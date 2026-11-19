@@ -1466,8 +1466,9 @@ emitted as their bits: `+0.0`, the store of `Guy::clear` and
 from integers and singles this crate already holds — `air::Airframe`,
 software floats by their bits (`num::single::Single`) — and the emitter
 writes guy 0's from there; on a **missile** `turret_inc` is 90.0's bits
-(`come_out_view::MISSILE_FIGURE_90`), which the emitter does not yet
-write. No float enters the simulation.
+(`come_out_view::MISSILE_FIGURE_90`), ~~which the emitter does not yet
+write~~ held as `Turret::inc` and kept by the object number's next
+occupant (item 4420, §23.9). No float enters the simulation.
 
 **Made to fail**: a herd's `gpiece` back at −1 parts on its range
 alone and moves the Adler; the first moving figure's `last_x` at its
@@ -1495,7 +1496,7 @@ this frame: the writers above, the gaia piece arm, the domain arms of
   floats.
 - A bird's figure: its `bank` is `air::Flight::roll`, and its
   `last_bank`, `pitch` and `last_pitch` are not held; an aircraft's crew
-  past guy 0; a missile's `turret_inc`; a converted figure's copied one.
+  past guy 0; ~~a missile's `turret_inc`~~ (item 4420, §23.9); a converted figure's copied one.
 - `size` past a re-init with a smaller crew; `last` past a teleport
   (`Unit::set_new_location(…, 1)`'s seat, which writes it equal to the
   point) or on a unit whose `Unit::process` this crate skips while the
@@ -2363,7 +2364,11 @@ differences against a present byte, and an empty range differs from a
 missing range. A record number of −1 can denote an unnamed record or a
 range available only in the original. The walk counts every differing
 range. The recorded-frame checks decode the full first pair of byte
-strings for their existing field-value assertions.
+strings for their existing field-value assertions. **A red row's `left:`
+is the pin and its `right:` the walk** (item 4422). Item 4419 read them
+the other way round and took out a write that turned 32 groups lines and
+grew none. A move is judged from `RON_PACKETS_PRINT`'s `PIN` lines, which
+`tools/repin_packets.py` sorts into turned, shrunk and grown.
 
 ## 23.6 How it was established, and what it has not established
 
@@ -2580,9 +2585,85 @@ has walked, so it keeps the ground under `last`. No packet on disk parts on it. 
 (the `unit_masks`/`+0x6c` clears and the `come_out` check) are not compared here. The 12 lines the first act
 predicted were not the 15 that turned: run1169 and run1320b keep one range each, and run893b's line did not
 move. Also open: `turret_inc` nonzero on some figure in theirs (byte 58, now the first parting on 9 lines;
-parked 4402a), against §16's `0x00000000` on every figure of two frames. **The next leaf is `cur_time`**
-(byte 108, the first parting on 17 lines). Ours is one behind on both first rows: run882b f6808 record
-24, ours 22 theirs 23; run810 f3631 record 45, ours `0x4d` theirs `0x4e`.
+parked 4402a), against §16's `0x00000000` on every figure of two frames. ~~**The next leaf is `cur_time`**
+(byte 108, the first parting on 17 lines).~~ Answered by item 4415, below.
+
+**`cur_time` was the oil-well stand's `param_4`** (item 4415, diff-backed). The 17 lines' first ranges sit on
+14 packets, and on every one the figure is a Citizen (`TypeIndex` 50) playing `CHAR_FARM` (37, length 90),
+`stopped`, `guy_flags 0x10`, and the range parts on `cur_time` and `last_time` alone, ours one step behind.
+`unitat.py` on run1424's own window puts `1/16` on a `GATHERORDER` with `build_type` 421 (`OILWELL`).
+Theirs' clock there, blocks 3154 to 3157: (89, 88), the wrap's (0, −1), (1, 0), (2, 1); ours is (0, −1) on
+the packet's 3156, so ours wraps a frame late and the phase was set at the stand. `RON_DEBUG_UNIT` on the
+pair's walk: ours reaches the stand facing east on the tick that ends 3066, but on walk (`a8 t1/15`), and
+takes `CHAR_FARM` on the next. A backtrace probe on that tick names the writer: `do_gather_steps` asks
+`CHAR_FARM` (cur 0, last −1), then `process_movement → guy_follow_anim` asks `CHAR_WALK`, `Guy::move:73–89`'s
+"at its point, still owed a turn" arm. The original cannot take that arm there: `Unit::do_gather@005ef2a0:381–385`
+is `set_anim(CHAR_FARM, 0, 1)`, `set_angle(0x40000000, ., 0)` and `set_new_location(x + 0x120, y, 1, 1)`, and
+`Unit::set_new_location@005f8d20:156` with `param_4` set opens the guy half with `Guy::set_angle(guy 0,
+heading, param_3)`, which with `param_3` writes the figure's `angle` and `last_angle` outright. So the figure
+faces east before its `Guy::move`, which finds `des_angle == angle` and asks for nothing. Ours had no `param_4`.
+`Sim::set_new_location_turning` is that argument (`crates/sim/src/movement/collide.rs`), its snap
+`Sim::guy_set_angle` (`Guy::set_angle` on guy 0, factored out of `unit_set_angle_as`), and the oil-well arm
+calls it. **7 guys lines turn, none grow** (`PACKETS_SCORE` 690 → 697): run1417, run1424, run1484, run1496,
+run865, run1155c and run1169. The guys line parts on fewer ranges on 9 more packets and the units line on 19.
+Value diff, run1424 frame 3156 record 16 (`1/16`, Citizen, TI 50): `cur_time` theirs 1, ours 0 → 1;
+`last_time` theirs 0, ours −1 → 0; the line whole. Byte 108 is the first parting on no line now (17 before).
+The pair's draws hold to 3866 with it.
+
+**Not established.** Six other callers of the original pass `param_4 = 1`: `Unit::work@0060d180` (two),
+`do_spec_anim@005e5880`, `init@00612100`, `come_out@00617c10` (four) and the debug jumps; and
+`do_air_physics@005e86d0` passes `(0, 1)`. Ours reaches them through `set_new_location` without the snap. No
+packet parts on one now. The oil-well arm's `set_angle(0x40000000, ., 0)` is still `Movement::set_heading` in
+ours, without `Unit::set_angle`'s mirror flip and group arm (brief row 2234's list). ~~**The next leaf is
+`turret_inc`** (byte 58, the first parting on 15 lines; parked 4402a)~~: answered by item 4420, below.
+
+**`turret_inc` is a dead missile's, kept by its object number** (item 4420, diff-backed). Every nonzero
+`+0x40` in the 110 streams is `0x42b40000` on guy 0 of a `who 1` unit that is no missile: Citizen,
+`FLAMETHROWER`, `ARMOREDSCOUTCAR`, `T80`, `MLRS`, `KATYUSHA`, `MUSTANG`, `STRATEGICBOMBER`,
+`TRANSPORTFREIGHTER`. The image stores that value once, at `Unit::come_out@00617c10:502`, for a type with the
+missile bit (`+0x1e4 & 0x8000000`). The value survives because a unit object belongs to its number. `find_free`
+hands back a dead number's object, and `Unit::init@00612100:68`–`74` saves `guy_mark` across `Object::init`.
+The pop loop (`:486`) starts at that mark, so guy 0 is never popped and never `Guy::clear`ed. `init_real`
+zeroes `+0x20..+0x3c` and stops short of `+0x40`. `Guy::clear`'s callers are `Guy::Guy`, `~Unit`,
+`Unit::init`'s pops and `set_type`'s crew. The pool holds only cleared guys, so the slot is the only carrier.
+In ours: `Turret::inc` (`units/anim.rs`) is the word, `SimComeOut::set_figure_90` writes it, and
+`Sim::init_guys` copies it beside the aim and turret flags it already kept. `set_guy` keeps the walk's. Run
+on the packets' own walks, every inheritance traces to a `NUCLEARMISSILE` (315) or `ICBM` (316) out of a
+silo. The chain runs on through non-missiles: Lakota `1/206` is missile 5053, 322 on 5325, 322 on 6128, 322
+on 6652. **14 guys lines turn, none grow** (`PACKETS_SCORE` 697 → 711; 729 → 743 on the tree item 4422's groups had moved): run785, run789, run795, run810,
+run823, run825, run882b, run883b, run1166, run1416, run1441, run1559b, run1564, run1570. The units line parts
+on one range fewer on 7 packets, the guys line on fewer on run1164 (3 → 1) and run1426b (3 → 2). Value diff, run882b frame 6808 record 50 (`1/50`, `STRATEGICBOMBER`, TI
+305): `turret_inc` theirs `0x42b40000`, ours `0` → `0x42b40000`. The ICBM `1/50` left it on 4541, and the
+bomber took the number on 4859. Byte 58 is the first parting on no line now (15 before). **Not established**:
+a seated figure's word (no reader parses the dump's `*((dword*) &turret_inc)`, so a stand-up starts at 0);
+guys past 0, which no store reaches. ~~**The next leaf is `z`** (byte 12, the first parting on 8 lines): run1359
+f5619 record 36, ours `00` theirs `7d`.~~ Answered by item 4428, below.
+
+**An aircraft's `z` is its number's dead occupant's, and the ground coming out** (item 4428, diff-backed). The 7
+lines' first ranges are all figure 0 of a unit inside something, `last` equal to `x`, `y`, `z`: three planes in
+an airport (run1359's Biplane `1/36`, TI 287, theirs 637; run1164's Mustang `1/140`, TI 294, 398; run1351's
+Albatross `1/41`, TI 288, 426), a `NUCLEARMISSILE` (315) in its silo (run1420 `1/36`, 32), each ours 0; and two
+foot units aboard a transport (below). `Guy::set_new_location@005d86f0`'s domain-2 arm (`:40`) writes `z` only for
+a helicopter, and then as a climb from the `z` there. `Unit::init@00612100` writes none, so a fixed-wing figure
+born inside keeps the `z` its object number's dead occupant left, as `turret_inc` is kept above. Run on the packets'
+own walks, each heir's predecessor names theirs' value: the Biplane's is a Citizen (TI 137) dead on ground 637, the
+Albatross's a TI 216 on 426, the missile's a TI 140 on 32. The Mustang's is a nuclear missile, and its 398 is the
+second half: `Unit::come_out@00617c10`'s tail (`6186c1`..) runs `Guy::update_z` on an air type's figure 0 (`z` the
+ground at the spot), and a helicopter then stores `z + 500` in `z` and `last_z`. Ours put the missile out at 0, so
+it flew from 0 to 2; from the silo's ground 396 it reaches 398. In ours: `Sim::init_guys` copies the dead
+occupant's figure-0 `z` (`Sim::guy_z`) into an air type's `airframe.z` and `last_z`, ahead of the helicopter's
+birth climb; `Sim::come_out_place` writes the ground (a fixed-wing figure's `last_z` the `z` before,
+`set_new_location`'s `param_3` copy). **5 guys lines turn, none grow** (`PACKETS_SCORE` 743 → 748): run1164,
+run1359, run1359b, run1359c, run1420; run1351's guys line parts on 2 → 1 and its units line, with 5 others, on one
+range fewer. Value diff, run1359 frame 5619 record 36 (`1/36`, Biplane, TI 287): `z` theirs 637, ours 0 → 637;
+`last_z` the same. The read under `come_out` touches inexact corners on the airbase melee's walks (6 rows of
+`GROUND_INEXACT`, one to two each). **Not established**: a helicopter's inherited start (no packet holds one born
+over a reused number); an aircraft whose dead occupant's ground changed after its death (ours reads the ground
+now). **The transport's passengers** (run1320b f5066 `1/23`, Fusilier TI 136, theirs 314 ours 242; run1264b f4919
+`1/63`, Bowmen TI 170, theirs 81 ours 73) keep the `z` of their last move, which ours recomputes from today's
+ground: under the boarding point it read 314 and 81 on the boarding frames (3769, 4104) and has changed since.
+Parked as 4428a. **The next leaf is byte 26** (`last_angle`'s third byte, the first parting on 4 lines, run1351 f4303
+record 48 ours `33` theirs `39`), then `z` on the 2 passengers.
 
 ## 24. Step H: the fifteen, every frame (item 4214)
 

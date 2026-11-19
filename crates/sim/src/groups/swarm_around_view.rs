@@ -496,10 +496,23 @@ impl SwarmView for SimSwarm<'_> {
         }
     }
     fn list_clear(&mut self) {}
-    // The original's clear is not applied: run 602's frame 981 holds the
-    // group slots' `form` at 9 and 0 where `st.form = -1` read -1 (parked
-    // 3386i). The sweep's view still takes the call.
-    fn set_form(&mut self) {}
+    // `0070fbe0:111`: the record's `form` is −1 on every arm past the
+    // `QUEUE_FIRST` re-entry (items 4419, 4422). The original has two
+    // callers, `action_build@00707510:222` and `finish_insert@0070e620`'s
+    // build and repair re-issues, both on `this`. The 2017 sample's slot
+    // 195, the person's `[12]` pushed on 926, takes a `Build` on 960 and
+    // reads `form` −1 on 961 (ours 9 before). A Citizen's goody-box group
+    // (`get_goody_box` pushes it and moves the **pool record** at
+    // `QUEUE_FIRST`) reads −1 once `finish_insert` re-issues its saved
+    // `Build`: run1383's record 65 on 1180, ours 9, theirs −1. Item 4422's
+    // census: 47 packets' groups lines shrink, 35 turn, none grows. Parked
+    // 3386i's objection, run602's 981, no longer stands: the write closes
+    // its `group:64.form` row (ours 0, theirs −1) and opens none.
+    fn set_form(&mut self) {
+        if let Some(st) = self.sim.gstate_mut(self.g) {
+            st.form = -1;
+        }
+    }
     fn leader_flags(&self, p: i32) -> i32 {
         // `leaders[p]`'s flags: bit 2 is the human.
         if self.sim.cities.nation[p as usize].human {

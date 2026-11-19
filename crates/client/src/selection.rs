@@ -19,9 +19,17 @@
 //! (`192.0`), and pairs each with one moved `48.0` along the previous
 //! side's direction, which is outward; a corner square closes each side.
 //! So the band is **48 world units wide, outside the rectangle**, every
-//! vertex at `TerrainOut::find_data_z` of its own point. The colour, the
-//! texture (`int_str_array +0x1784`) and the alpha are the draw's, not
-//! this module's (§3, "What is not established").
+//! vertex at `TerrainOut::find_data_z` of its own point.
+//!
+//! **Its texture** (item 4421): `set_texture(0, circle_gen +0x134)`, the
+//! first of `CircleRender::circle_textures`, which `CircleRender::init`
+//! loads from `effects_graphics.xml`'s `<SELECTIONCIRCLE>` list: the
+//! install's `city_radius.tga`. Every vertex's `u` is 0; an inner one's
+//! `v` is 0, an outer one's 1 (`TexArray::add`'s `xmm1`, `xmm2`; `1.0` at
+//! `0xb69514`). The texture's columns are one tent, alpha 0 at both edges
+//! and 255 at row 16, point-sampled ([`BandAlphas`]), so the band is a soft
+//! line at its middle, not a solid fill. (`int_str_array +0x1784`,
+//! `Effects`, is `set_poly_count_type`'s statistics name, not a texture.)
 
 use render::terrain::Heightfield;
 
@@ -44,6 +52,20 @@ pub fn rectangle(x: i32, y: i32, size: (i32, i32), k: i32) -> (i32, i32, i32, i3
 /// [`BAND`] out, and the corner square at the side's end, each vertex at
 /// `data_z` of its point clamped to the map as the listing clamps it.
 pub fn band(field: &Heightfield<'_>, r: (i32, i32, i32, i32)) -> Vec<[(i32, i32, i32); 3]> {
+    band_v(field, r)
+        .into_iter()
+        .map(|t| t.map(|(p, _)| p))
+        .collect()
+}
+
+/// A band corner: its point `(x, y, z)` and its texture `v`, 0 or 1.
+pub type BandVertex = ((i32, i32, i32), u8);
+
+/// [`band`]'s triangles with each corner's texture `v` (item 4421): 0 on
+/// the rectangle's edge, 1 on the edge [`BAND`] out; in a corner square, 0
+/// at the rectangle's corner and 1 at the other three, as the listing's
+/// `TexArray::add` calls give them (`0, 1, 1, 1` after the strip's pair).
+pub fn band_v(field: &Heightfield<'_>, r: (i32, i32, i32, i32)) -> Vec<[BandVertex; 3]> {
     let (x0, y0, x1, y1) = r;
     // Corners from (−x, −y) counter-clockwise, and each side's direction.
     let corners = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)];
@@ -71,18 +93,21 @@ pub fn band(field: &Heightfield<'_>, r: (i32, i32, i32, i32)) -> Vec<[(i32, i32,
                 (sx + dx * w[0], sy + dy * w[0]),
                 (sx + dx * w[1], sy + dy * w[1]),
             );
-            let (ai, bi) = (at(a.0, a.1), at(b.0, b.1));
-            let (ao, bo) = (at(a.0 + out_x, a.1 + out_y), at(b.0 + out_x, b.1 + out_y));
+            let (ai, bi) = ((at(a.0, a.1), 0), (at(b.0, b.1), 0));
+            let (ao, bo) = (
+                (at(a.0 + out_x, a.1 + out_y), 1),
+                (at(b.0 + out_x, b.1 + out_y), 1),
+            );
             out.push([ai, bi, bo]);
             out.push([ai, bo, ao]);
         }
         // The corner square past the side's end.
         let e = (sx + dx * len, sy + dy * len);
         let c = [
-            at(e.0, e.1),
-            at(e.0 + dx * BAND, e.1 + dy * BAND),
-            at(e.0 + dx * BAND + out_x, e.1 + dy * BAND + out_y),
-            at(e.0 + out_x, e.1 + out_y),
+            (at(e.0, e.1), 0),
+            (at(e.0 + dx * BAND, e.1 + dy * BAND), 1),
+            (at(e.0 + dx * BAND + out_x, e.1 + dy * BAND + out_y), 1),
+            (at(e.0 + out_x, e.1 + out_y), 1),
         ];
         out.push([c[0], c[1], c[2]]);
         out.push([c[0], c[2], c[3]]);
@@ -90,22 +115,78 @@ pub fn band(field: &Heightfield<'_>, r: (i32, i32, i32, i32)) -> Vec<[(i32, i32,
     out
 }
 
-/// **The selected buildings' bands as drawn** (item 4401): for each
-/// building of `selection` in the scene, [`band`] about its
+/// **The band's texture, as the draw samples it** (item 4421): the alpha
+/// of each row of column 0 of the first `<SELECTIONCIRCLE>`'s texture,
+/// rows top-down as the card holds them. Its rgb is white, so the band's
+/// colour is the vertex's (`MODULATE(TEXTURE, CURRENT)` on run1566b's
+/// draw 115) and its alpha the row's times the vertex's.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct BandAlphas(pub Vec<u8>);
+
+impl BandAlphas {
+    /// The install's: `effects_graphics.xml`'s first `<SELECTIONCIRCLE
+    /// texture=…>` (`CircleRender::init@008c48a0`, `circle_textures[0]`).
+    pub fn load(root: &std::path::Path) -> Option<BandAlphas> {
+        let xml = std::fs::read_to_string(root.join("Data/effects_graphics.xml")).ok()?;
+        let at = xml.find("<SELECTIONCIRCLE")?;
+        let rest = &xml[at..];
+        let t = rest.find("texture=\"")? + "texture=\"".len();
+        let name = &rest[t..t + rest[t..].find('"')?];
+        let bytes = std::fs::read(rondata::artdata::resolve_art(root, name)?).ok()?;
+        let img = render::tga::decode(&bytes).ok()?;
+        Some(BandAlphas(
+            (0..img.height)
+                .map(|y| img.rgba[y * img.width * 4 + 3])
+                .collect(),
+        ))
+    }
+}
+
+/// One triangle's part with `v` in `[lo, hi]`, as a fan of triangles: the
+/// triangle clipped by the two lines, `v` affine over it as a
+/// perspective-correct interpolation makes it in the world.
+fn clip_v(tri: &[([f32; 3], f32); 3], lo: f32, hi: f32) -> Vec<[[f32; 3]; 3]> {
+    let cut = |poly: Vec<([f32; 3], f32)>, keep: &dyn Fn(f32) -> bool, at: f32| {
+        let mut out = Vec::new();
+        for i in 0..poly.len() {
+            let (a, b) = (poly[i], poly[(i + 1) % poly.len()]);
+            if keep(a.1) {
+                out.push(a);
+            }
+            if keep(a.1) != keep(b.1) {
+                let t = (at - a.1) / (b.1 - a.1);
+                let p = [0, 1, 2].map(|k| a.0[k] + (b.0[k] - a.0[k]) * t);
+                out.push((p, at));
+            }
+        }
+        out
+    };
+    let poly = cut(tri.to_vec(), &|v| v >= lo, lo);
+    let poly = cut(poly, &|v| v <= hi, hi);
+    (1..poly.len().saturating_sub(1))
+        .map(|i| [poly[0].0, poly[i].0, poly[i + 1].0])
+        .collect()
+}
+
+/// **The selected buildings' bands as drawn** (items 4401, 4421): for
+/// each building of `selection` in the scene, [`band_v`] about its
 /// [`rectangle`], every vertex in the owner's unit colour
-/// (`render::silhouette::team_unit`, `TeamColor::get_unit`'s), as world
-/// triangles for the GPU's underlay pass, which blends them at
-/// [`crate::gpu::UNDERLAY_ALPHA`]. A unit draws no band here (its ring is
-/// [`crate::hud::rings`]'). The listing's alpha 0 for a vertex off the map
-/// is not carried: the pass's alpha is one constant.
+/// (`render::silhouette::team_unit`, `TeamColor::get_unit`'s), cut at
+/// each row of [`BandAlphas`] into one layer an alpha: the texel's, which
+/// the GPU's underlay pass multiplies by [`crate::gpu::UNDERLAY_ALPHA`].
+/// A row of alpha 0 draws nothing. Without the texture the band is one
+/// layer at 255, the solid fill of item 4401. A unit draws no band here
+/// (its ring is [`crate::hud::rings`]'). The listing's alpha 0 for a
+/// vertex off the map is not carried.
 pub fn underlay(
     world: &crate::world::World,
     selection: &[sim::observe::ObjId],
-) -> (Vec<[f32; 3]>, Vec<[f32; 3]>) {
-    let (mut pos, mut col) = (Vec::new(), Vec::new());
+) -> Vec<crate::gpu::ScreenLayer> {
+    let mut layers: std::collections::BTreeMap<u8, crate::gpu::ScreenLayer> = Default::default();
     if selection.is_empty() {
-        return (pos, col);
+        return Vec::new();
     }
+    let alphas = world.band_alphas();
     let placed = world.placed_buildings();
     let t = world.runner.terrain();
     let field = Heightfield {
@@ -125,14 +206,27 @@ pub fn underlay(
         };
         let back = b.foundation.map_or(b.half_offset, |f| f.back);
         let c = render::silhouette::team_unit(b.who).map(|v| f32::from(v) / 255.0);
-        for tri in band(&field, rectangle(b.x, b.y, size, back)) {
-            for (x, y, z) in tri {
-                pos.push([x as f32, y as f32, z as f32]);
-                col.push(c);
+        for tri in band_v(&field, rectangle(b.x, b.y, size, back)) {
+            let tri = tri.map(|((x, y, z), v)| ([x as f32, y as f32, z as f32], f32::from(v)));
+            let rows = alphas.map_or(1, |a| a.0.len());
+            for r in 0..rows {
+                let a = alphas.map_or(255, |a| a.0[r]);
+                if a == 0 {
+                    continue;
+                }
+                let (lo, hi) = (r as f32 / rows as f32, (r + 1) as f32 / rows as f32);
+                let l = layers.entry(a).or_insert_with(|| crate::gpu::ScreenLayer {
+                    alpha: a,
+                    ..Default::default()
+                });
+                for t in clip_v(&tri, lo, hi) {
+                    l.pos.extend(t);
+                    l.col.extend([c; 3]);
+                }
             }
         }
     }
-    (pos, col)
+    layers.into_values().filter(|l| !l.pos.is_empty()).collect()
 }
 
 /// **The scroll's pads** (item 4403), `IFaceRenderManager +0xe84`:
@@ -308,19 +402,328 @@ pub fn bars(
     }]
 }
 
-/// **The plate's font's advances** (item 4403): each character's
+/// **The plate's font's advances** (items 4403, 4423): each character's
 /// `CharacterInfo::advance` in `onscreen_mouseover_size`'s `D3D11GLFont`
-/// on run1559b's packet, for the characters `Napata` holds and no others.
-/// A name with any other character has no width here, and no plate is
-/// drawn for it rather than one guessed (`docs/HUD.md` §6).
-pub const PLATE_ADVANCES: [(char, i32); 4] = [('N', 12), ('a', 8), ('p', 9), ('t', 6)];
+/// (`fonts`' lookup 36: size 14, style 1, `mFontHeight` 16), sorted by
+/// character. The font rasterises a character the first time one is drawn,
+/// so a packet holds only those its game has shown: this is the union over
+/// the 144 packets on disk, 65 to 73 each, no character's advance differing
+/// between any two (`PLATE_FONT_PACKETS`, item 4423). A name with any other
+/// character (`X`, `Z`, anything past ASCII) has no width here, and no
+/// plate is drawn for it rather than one guessed (`docs/HUD.md` §6).
+/// Since item 4426 the client takes every advance from the face itself
+/// ([`PlateFace::advance`]); this table stays as the packets' witness.
+#[cfg(test)]
+pub const PLATE_ADVANCES: [(char, i32); 77] = [
+    (' ', 4),
+    ('!', 5),
+    ('%', 12),
+    ('&', 11),
+    ('\'', 4),
+    ('(', 6),
+    (')', 6),
+    ('+', 10),
+    (',', 5),
+    ('-', 5),
+    ('.', 5),
+    ('/', 7),
+    ('0', 10),
+    ('1', 7),
+    ('2', 9),
+    ('3', 9),
+    ('4', 9),
+    ('5', 8),
+    ('6', 9),
+    ('7', 8),
+    ('8', 9),
+    ('9', 9),
+    (':', 5),
+    (';', 5),
+    ('<', 10),
+    ('>', 10),
+    ('?', 8),
+    ('A', 11),
+    ('B', 11),
+    ('C', 10),
+    ('D', 12),
+    ('E', 10),
+    ('F', 9),
+    ('G', 11),
+    ('H', 13),
+    ('I', 6),
+    ('J', 8),
+    ('K', 11),
+    ('L', 10),
+    ('M', 14),
+    ('N', 12),
+    ('O', 11),
+    ('P', 10),
+    ('Q', 11),
+    ('R', 11),
+    ('S', 9),
+    ('T', 10),
+    ('U', 12),
+    ('V', 11),
+    ('W', 16),
+    ('Y', 10),
+    ('a', 8),
+    ('b', 9),
+    ('c', 7),
+    ('d', 9),
+    ('e', 8),
+    ('f', 6),
+    ('g', 8),
+    ('h', 10),
+    ('i', 5),
+    ('j', 5),
+    ('k', 9),
+    ('l', 5),
+    ('m', 14),
+    ('n', 10),
+    ('o', 9),
+    ('p', 9),
+    ('q', 9),
+    ('r', 7),
+    ('s', 7),
+    ('t', 6),
+    ('u', 9),
+    ('v', 8),
+    ('w', 12),
+    ('x', 8),
+    ('y', 8),
+    ('z', 7),
+];
+
+/// One character's advance in the plate's font ([`PLATE_ADVANCES`]).
+#[cfg(test)]
+pub fn plate_advance(c: char) -> Option<i32> {
+    PLATE_ADVANCES
+        .binary_search_by_key(&c, |&(k, _)| k)
+        .ok()
+        .map(|i| PLATE_ADVANCES[i].1)
+}
 
 /// The name's `text_width` in the plate's font, or `None` when a
 /// character's advance is not held ([`PLATE_ADVANCES`]).
+#[cfg(test)]
 pub fn plate_text_width(name: &str) -> Option<i32> {
-    name.chars()
-        .map(|c| PLATE_ADVANCES.iter().find(|(k, _)| *k == c).map(|(_, a)| a))
-        .sum()
+    name.chars().map(plate_advance).sum()
+}
+
+/// **The plate's face** (item 4426): `Data/Fonts/georgiab.ttf`, the file
+/// whose `FT_Face` the plate's `D3D11GLFont` holds (`mSGLTexFont`'s
+/// `m_fontFace`: family `Georgia`, style `Bold`, on every packet).
+pub const PLATE_FACE_FILE: &str = "georgiab.ttf";
+
+/// The face's size: `mPointSize` 14, set as pixels per em.
+pub const PLATE_PPEM: i32 = 14;
+
+/// The cell's baseline row: `mAscent` 13. `render_pendings` copies a
+/// glyph's bitmap into its atlas cell at row `ascent − bitmap_top`.
+pub const PLATE_ASCENT: i32 = 13;
+
+/// One glyph's atlas cell, as `FontRenderManager::render_pendings` fills
+/// it: `w` columns (`CharacterInfo::pix_width`, the bitmap's width) by
+/// [`PLATE_FONT_HEIGHT`] rows, the coverage one byte a texel, the top row
+/// first.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct GlyphCell {
+    pub w: usize,
+    pub cover: Vec<u8>,
+}
+
+/// **The plate's glyphs, off the install's face** (item 4426). The
+/// renderer DLL rasterises each character with its own FreeType
+/// (`FT::FontFace::RenderGlyph`: `FT_Load_Glyph(face, index, 0)`, then
+/// `FT_Render_Glyph(slot, 0)`, the 8-bit coverage), copies the bitmap into
+/// a 256 × 256 atlas cell at the cell's left column (the bitmap's
+/// `bitmap_left` is not applied) and row [`PLATE_ASCENT`] − `bitmap_top`,
+/// and `D3D11GLFont::add_character` lays the cell's quad at the pen
+/// (`abs_a` 0 on every packet) for `pix_width` × 16 pixels. The atlas
+/// itself is the GPU's and no packet holds it, so the cells are
+/// rasterised here from the same file, hinted as the DLL's FreeType hints
+/// by default (item 4427: the face's TrueType bytecode under `skrifa`'s
+/// interpreter, FreeType v40's normal target), the outline drawn by
+/// `ab_glyph`'s coverage rasteriser (`docs/HUD.md` §6). Each advance is
+/// the glyph's linear advance at [`PLATE_PPEM`], rounded: the packets'
+/// 77 characters agree on all 9,849 entries.
+#[derive(Clone)]
+pub struct PlateFace {
+    font: std::sync::Arc<ab_glyph::FontVec>,
+    bytes: std::sync::Arc<Vec<u8>>,
+    hinter: std::sync::Arc<skrifa::outline::HintingInstance>,
+}
+
+/// One glyph's outline in pixels, y up, as the hinter leaves it.
+#[derive(Default)]
+struct PixelPath {
+    segs: Vec<Seg>,
+    start: (f32, f32),
+    at: (f32, f32),
+}
+
+enum Seg {
+    Line([(f32, f32); 2]),
+    Quad([(f32, f32); 3]),
+    Cubic([(f32, f32); 4]),
+}
+
+impl skrifa::outline::OutlinePen for PixelPath {
+    fn move_to(&mut self, x: f32, y: f32) {
+        self.start = (x, y);
+        self.at = (x, y);
+    }
+    fn line_to(&mut self, x: f32, y: f32) {
+        self.segs.push(Seg::Line([self.at, (x, y)]));
+        self.at = (x, y);
+    }
+    fn quad_to(&mut self, cx0: f32, cy0: f32, x: f32, y: f32) {
+        self.segs.push(Seg::Quad([self.at, (cx0, cy0), (x, y)]));
+        self.at = (x, y);
+    }
+    fn curve_to(&mut self, cx0: f32, cy0: f32, cx1: f32, cy1: f32, x: f32, y: f32) {
+        self.segs
+            .push(Seg::Cubic([self.at, (cx0, cy0), (cx1, cy1), (x, y)]));
+        self.at = (x, y);
+    }
+    fn close(&mut self) {
+        if self.at != self.start {
+            self.segs.push(Seg::Line([self.at, self.start]));
+        }
+        self.at = self.start;
+    }
+}
+
+impl PixelPath {
+    /// `FT_Outline_Get_CBox`'s box: every point, the controls too.
+    fn cbox(&self) -> Option<(f32, f32, f32, f32)> {
+        let pts = self.segs.iter().flat_map(|s| match s {
+            Seg::Line(p) => p.to_vec(),
+            Seg::Quad(p) => p.to_vec(),
+            Seg::Cubic(p) => p.to_vec(),
+        });
+        pts.fold(None, |b, (x, y)| {
+            Some(match b {
+                None => (x, y, x, y),
+                Some((x0, y0, x1, y1)) => (x0.min(x), y0.min(y), x1.max(x), y1.max(y)),
+            })
+        })
+    }
+}
+
+impl std::fmt::Debug for PlateFace {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PlateFace")
+    }
+}
+
+impl PlateFace {
+    pub fn load(root: &std::path::Path) -> Result<PlateFace, String> {
+        use ab_glyph::Font;
+        let path = root.join("Data").join("Fonts").join(PLATE_FACE_FILE);
+        let bytes = std::fs::read(&path).map_err(|e| format!("{PLATE_FACE_FILE}: {e}"))?;
+        let font = ab_glyph::FontVec::try_from_vec(bytes)
+            .map_err(|e| format!("{PLATE_FACE_FILE}: {e}"))?;
+        let hinter = {
+            use skrifa::MetadataProvider;
+            let f = skrifa::FontRef::new(font.as_slice())
+                .map_err(|e| format!("{PLATE_FACE_FILE}: {e}"))?;
+            skrifa::outline::HintingInstance::new(
+                &f.outline_glyphs(),
+                skrifa::instance::Size::new(PLATE_PPEM as f32),
+                skrifa::instance::LocationRef::default(),
+                skrifa::outline::HintingOptions {
+                    engine: skrifa::outline::Engine::Interpreter,
+                    target: skrifa::outline::SmoothMode::Normal.into(),
+                },
+            )
+            .map_err(|e| format!("{PLATE_FACE_FILE}: the hinter: {e}"))?
+        };
+        let face = PlateFace {
+            bytes: std::sync::Arc::new(font.as_slice().to_vec()),
+            font: std::sync::Arc::new(font),
+            hinter: std::sync::Arc::new(hinter),
+        };
+        let upm = face.font.units_per_em().ok_or("the face has no em")?;
+        // Rounded, as the packet's `mAscent` 13 and `mDescent` −3 are
+        // (12.84 and 3.07 pixels: a ceiling would make the font 17 high).
+        let px = |u: f32| (u * PLATE_PPEM as f32 / upm).round() as i32;
+        let (ascent, descent) = (
+            px(face.font.ascent_unscaled()),
+            px(-face.font.descent_unscaled()),
+        );
+        if (ascent, ascent + descent) != (PLATE_ASCENT, PLATE_FONT_HEIGHT) {
+            return Err(format!(
+                "{PLATE_FACE_FILE}: ascent {ascent}, height {}, the packet's {PLATE_ASCENT} and {PLATE_FONT_HEIGHT}",
+                ascent + descent
+            ));
+        }
+        Ok(face)
+    }
+
+    fn glyph(&self, c: char) -> Option<ab_glyph::GlyphId> {
+        use ab_glyph::Font;
+        let id = self.font.glyph_id(c);
+        (id.0 != 0).then_some(id)
+    }
+
+    /// One character's advance: its linear advance at [`PLATE_PPEM`],
+    /// rounded, or `None` when the face has no glyph for it.
+    pub fn advance(&self, c: char) -> Option<i32> {
+        use ab_glyph::Font;
+        let id = self.glyph(c)?;
+        let upm = self.font.units_per_em()?;
+        Some((self.font.h_advance_unscaled(id) * PLATE_PPEM as f32 / upm).round() as i32)
+    }
+
+    /// The name's `text_width`, or `None` when the face lacks a glyph.
+    pub fn text_width(&self, name: &str) -> Option<i32> {
+        name.chars().map(|c| self.advance(c)).sum()
+    }
+
+    /// One character's atlas cell ([`GlyphCell`]); a glyph with no
+    /// outline (the space) is a cell 0 wide. The hinted outline's box is
+    /// floored and ceiled to whole pixels, as `FT_Render_Glyph` sizes its
+    /// bitmap, and the cell's row `r` is the band `PLATE_ASCENT − r − 1 ..
+    /// PLATE_ASCENT − r` above the baseline.
+    pub fn cell(&self, c: char) -> Option<GlyphCell> {
+        use skrifa::MetadataProvider;
+        let id = self.glyph(c)?;
+        let font = skrifa::FontRef::new(self.bytes.as_slice()).ok()?;
+        let outline = font
+            .outline_glyphs()
+            .get(skrifa::GlyphId::new(u32::from(id.0)))?;
+        let mut path = PixelPath::default();
+        outline
+            .draw(
+                skrifa::outline::DrawSettings::hinted(&self.hinter, false),
+                &mut path,
+            )
+            .ok()?;
+        let Some((x0, _, x1, _)) = path.cbox() else {
+            return Some(GlyphCell {
+                w: 0,
+                cover: Vec::new(),
+            });
+        };
+        let left = x0.floor();
+        let w = (x1.ceil() - left) as usize;
+        let h = PLATE_FONT_HEIGHT as usize;
+        let mut raster = ab_glyph_rasterizer::Rasterizer::new(w, h);
+        let pt = |(x, y): (f32, f32)| ab_glyph_rasterizer::point(x - left, PLATE_ASCENT as f32 - y);
+        for seg in &path.segs {
+            match *seg {
+                Seg::Line([a, b]) => raster.draw_line(pt(a), pt(b)),
+                Seg::Quad([a, b, c]) => raster.draw_quad(pt(a), pt(b), pt(c)),
+                Seg::Cubic([a, b, c, d]) => raster.draw_cubic(pt(a), pt(b), pt(c), pt(d)),
+            }
+        }
+        let mut cover = vec![0u8; w * h];
+        raster.for_each_pixel_2d(|x, y, v| {
+            cover[y as usize * w + x as usize] = (v.clamp(0.0, 1.0) * 255.0).round() as u8;
+        });
+        Some(GlyphCell { w, cover })
+    }
 }
 
 /// One rectangle of interface texels, RGBA8, the top row first.
@@ -371,6 +774,7 @@ impl Texels {
 pub struct ScrollArt {
     pub parts: Vec<Texels>,
     pub star: Texels,
+    pub face: PlateFace,
 }
 
 /// `name="value"` of one tag, the value trimmed.
@@ -464,7 +868,11 @@ impl ScrollArt {
         }
         let star = Texels::crop(&texture("TEX_COMMON")?, (l, t, w, h))
             .ok_or("the star lies off TEX_COMMON")?;
-        Ok(ScrollArt { parts, star })
+        Ok(ScrollArt {
+            parts,
+            star,
+            face: PlateFace::load(root)?,
+        })
     }
 }
 
@@ -520,8 +928,9 @@ fn layers_of(
 /// Over it, a capital's star at the pads' inner corner, its texels times
 /// the owner's `TeamColor::get_unit` (`add_smooth`'s colour); then the
 /// name, at the text's rectangle past the star and 3 rows down, each
-/// character at its advance. The glyphs are not the font's: the overlay's
-/// 5 × 7 stands in, white, on the font's height (`docs/HUD.md` §6).
+/// character's [`GlyphCell`] at the pen in [`PLATE_INK`], its coverage
+/// the alpha, the pen moved by the advance (item 4426: before it, the
+/// overlay's 5 × 7 stood in).
 pub fn plate_layers(
     art: &ScrollArt,
     size: (i32, i32),
@@ -571,33 +980,48 @@ pub fn plate_layers(
     } else {
         (sx, sy)
     };
-    let mut p = crate::overlay::Painter::new(size);
-    let mut x = tx;
-    for c in name.chars() {
-        p.text(
-            x,
-            ty + (PLATE_FONT_HEIGHT - 7) / 2,
-            &c.to_string(),
-            1,
-            PLATE_INK,
-        );
-        x += PLATE_ADVANCES
-            .iter()
-            .find(|(k, _)| *k == c)
-            .map_or(0, |(_, a)| *a);
+    let cells: Vec<(i32, GlyphCell)> = name
+        .chars()
+        .scan(tx, |x, c| {
+            let at = *x;
+            *x += art.face.advance(c).unwrap_or(0);
+            Some(art.face.cell(c).map(|cell| (at, cell)))
+        })
+        .flatten()
+        .collect();
+    let right = cells
+        .iter()
+        .map(|(at, c)| at + c.w as i32)
+        .max()
+        .unwrap_or(tx);
+    let (cw, chh) = ((right - tx).max(0) as usize, PLATE_FONT_HEIGHT as usize);
+    // Each quad blends over the last: coverage composes as alphas do.
+    let mut cover = vec![0u16; cw * chh];
+    for (at, cell) in &cells {
+        for v in 0..chh {
+            for u in 0..cell.w {
+                let a = u16::from(cell.cover[v * cell.w + u]);
+                let k = v * cw + (at - tx) as usize + u;
+                cover[k] = cover[k] + a - cover[k] * a / 255;
+            }
+        }
     }
-    out.push(crate::gpu::ScreenLayer {
-        alpha: 255,
-        pos: p.pos,
-        col: p.col,
-    });
+    let ink = PLATE_INK.map(|v| (v * 255.0) as u8);
+    out.extend(layers_of(
+        size,
+        (tx, right, ty, ty + PLATE_FONT_HEIGHT),
+        |x, y| {
+            let a = cover[(y - ty) as usize * cw + (x - tx) as usize] as u8;
+            Some([ink[0], ink[1], ink[2], a])
+        },
+    ));
     out
 }
 
 /// **The plates of the scene** (item 4410): `BuildOut::draw_overlays
 /// @0062cb30`'s, for every finished city centre (`flags & 4`, `& 0x20`)
 /// the viewer sees, selected or not, whose name `name_of(city)` gives and
-/// whose width [`plate_text_width`] holds. The capital's bit is the city
+/// whose width [`PlateFace::text_width`] holds. The capital's bit is the city
 /// record's (`CityData +4 & 0x10`). `player_profile.prefs & 0x40000` is
 /// taken as set, the default the photographs show.
 pub fn plates(
@@ -634,7 +1058,7 @@ pub fn plates(
             continue;
         };
         let Some(name) = name_of(c) else { continue };
-        let Some(text_w) = plate_text_width(&name) else {
+        let Some(text_w) = art.face.text_width(&name) else {
             continue;
         };
         let capital = sim.cities.cities.get(c).is_some_and(|k| k.capital);
@@ -762,12 +1186,67 @@ mod tests {
     /// row's evidence that the footprint is theirs. Then, on the first
     /// arm's footprint, `[ours red, both red]` on the client's still with
     /// nothing selected (item 4398), and then with the city selected, its
-    /// band drawn by [`underlay`] (item 4401): the half the drawing moves.
+    /// band drawn by [`underlay`]: the half the drawing moves. Item 4401
+    /// drew it solid, `[2132, 1404]`; item 4421 through `city_radius.tga`'s
+    /// rows, the soft line theirs is: `[1395, 1300]` (ours' red off theirs
+    /// 728 → 95).
     pub const RUN1559B_3279_SELECTED: ([[usize; 2]; 3], [usize; 2], [usize; 2]) = (
         [[4551, 1477], [4157, 721], [5398, 312]],
         [52, 9],
-        [2132, 1404],
+        [1395, 1300],
     );
+
+    /// **The band's texture is one tent** (item 4421): the install's first
+    /// `<SELECTIONCIRCLE>`, 32 rows, alpha 0 at the top row and 255 at row
+    /// 16, rising to it and falling after it.
+    #[test]
+    fn the_band_s_texture_is_a_tent_peaking_at_mid_band() {
+        let root = std::env::var_os("RON_INSTALL")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| std::path::PathBuf::from("../../game"));
+        let Some(BandAlphas(a)) = BandAlphas::load(&root) else {
+            println!("skipping: no effects_graphics.xml under {}", root.display());
+            return;
+        };
+        assert_eq!(a.len(), 32);
+        assert_eq!((a[0], a[16]), (0, 255));
+        assert!(a[..=16].windows(2).all(|w| w[0] < w[1]), "{a:?}");
+        assert!(a[16..].windows(2).all(|w| w[0] > w[1]), "{a:?}");
+    }
+
+    /// **The rows tile each triangle** (item 4421): [`clip_v`]'s pieces
+    /// over the 32 rows cover a triangle's area once, with `v` 0 at one
+    /// corner and 1 at the other two as a corner square's is, and the
+    /// strip `[0, 1/2]` holds a quarter of it (`v ≤ 1/2` is a triangle a
+    /// half the size on each side).
+    #[test]
+    fn the_rows_tile_a_triangle_once() {
+        let area = |t: &[[f32; 3]; 3]| {
+            let (u, w) = (
+                [0, 1, 2].map(|k| t[1][k] - t[0][k]),
+                [0, 1, 2].map(|k| t[2][k] - t[0][k]),
+            );
+            let c = [
+                u[1] * w[2] - u[2] * w[1],
+                u[2] * w[0] - u[0] * w[2],
+                u[0] * w[1] - u[1] * w[0],
+            ];
+            (c[0] * c[0] + c[1] * c[1] + c[2] * c[2]).sqrt() / 2.0
+        };
+        let tri = [
+            ([0.0, 0.0, 10.0], 0.0),
+            ([48.0, 0.0, 12.0], 1.0),
+            ([48.0, 48.0, 14.0], 1.0),
+        ];
+        let whole = area(&tri.map(|(p, _)| p));
+        let rows: f32 = (0..32)
+            .flat_map(|r| clip_v(&tri, r as f32 / 32.0, (r + 1) as f32 / 32.0))
+            .map(|t| area(&t))
+            .sum();
+        assert!((rows - whole).abs() < whole * 1e-4, "{rows} of {whole}");
+        let half: f32 = clip_v(&tri, 0.0, 0.5).iter().map(area).sum();
+        assert!((half - whole / 4.0).abs() < whole * 1e-4, "{half}");
+    }
 
     #[test]
     fn the_selected_city_s_band_on_run1559b() {
@@ -858,6 +1337,15 @@ mod tests {
         rgba[i * 4..i * 4 + 3].iter().all(|&c| i32::from(c) < DARK)
     }
 
+    /// The plate's name reads where every channel is over [`LIGHT`]: the
+    /// white ink on the dark body, which the photograph's translucent
+    /// "Reduced!" banner leaves bare in places (item 4426).
+    const LIGHT: i32 = 150;
+
+    fn light(rgba: &[u8], i: usize) -> bool {
+        rgba[i * 4..i * 4 + 3].iter().all(|&c| i32::from(c) > LIGHT)
+    }
+
     /// The plate's footprint, its rectangle moved `d` pixels. It is not
     /// masked by [`INTERFACE`], whose "city's label" rectangle is this
     /// plate, taken out by eye for the scene's rows.
@@ -900,9 +1388,18 @@ mod tests {
     /// the first arm's footprint, `[ours dark, both dark]` on the
     /// client's still: the half the drawing moves. Item 4410 drew the
     /// plate ([`plate_layers`]): `[0, 0]` → `[1742, 1251]`; drawn 89 px
-    /// east, the pin failed.
-    pub const RUN1559B_3279_PLATE: ([[usize; 2]; 3], [usize; 2]) =
-        ([[2670, 1285], [2670, 0], [1608, 1018]], [1742, 1251]);
+    /// east, the pin failed. Then `[theirs light, ours light, both
+    /// light]`, the name's white ink (item 4426): the overlay's 5 × 7
+    /// lit 9 of the photograph's 53; the face's glyphs ([`PlateFace`])
+    /// light 47 (and the dark half `[1742, 1251]` → `[1537, 1233]`);
+    /// hinted as the DLL's FreeType hints them (item 4427), 47 → 53 of 53,
+    /// ours light 192 → 209, the dark half → `[1541, 1238]`. Made to fail:
+    /// the same path drawn unhinted reads `[53, 193, 47]`.
+    pub const RUN1559B_3279_PLATE: ([[usize; 2]; 3], [usize; 2], [usize; 3]) = (
+        [[2670, 1285], [2670, 0], [1608, 1018]],
+        [1541, 1238],
+        [53, 209, 53],
+    );
 
     #[test]
     fn the_capital_s_plate_on_run1559b() {
@@ -926,8 +1423,9 @@ mod tests {
         let size = (p.photo.width as u32, p.photo.height as u32);
         let camera = p.camera;
         // The capital's city is `Napata` on the packet (item 4403: city 0
-        // of slot 0, `CityData +0x90`); the sim does not carry a founding
-        // name, so the row names it, and only it.
+        // of slot 0, `CityData +0x90`), and the sim names it so at its
+        // founding (item 4418, `sim::leaders::words::founding_name`): the
+        // row draws the sim's names, as the live client does.
         let sim = p.world.runner.sim();
         let napata = sim
             .building_by_o(CITY.0, CITY.1)
@@ -937,6 +1435,12 @@ mod tests {
             sim.cities.cities[napata].capital,
             "the city's record carries the capital's bit"
         );
+        assert_eq!(
+            sim.city_name(napata),
+            Some("Napata"),
+            "the sim's founding name is the packet's"
+        );
+        let names = sim.cities.names.clone();
         assert!(p.world.scroll_art.is_some(), "the plate's art loads");
         let ours = crate::still_named(
             &mut p.world,
@@ -948,7 +1452,7 @@ mod tests {
                 who: CITY.0,
                 o: CITY.1,
             }],
-            &|c| (c == napata).then(|| "Napata".to_string()),
+            &|c| names.get(&c).cloned(),
         );
         if let Some(dir) = std::env::var_os("RON_STILL_DIR") {
             let out = std::path::PathBuf::from(dir).join("still-plate.bmp");
@@ -959,7 +1463,13 @@ mod tests {
         let both = (0..first.len())
             .filter(|&i| on(i) && dark(&p.photo.rgba, i))
             .count();
-        let got = (got, [mine, both]);
+        let lit = |rgba: &[u8], i: usize| first[i] && light(rgba, i);
+        let theirs_lit = (0..first.len()).filter(|&i| lit(&p.photo.rgba, i)).count();
+        let ours_lit = (0..first.len()).filter(|&i| lit(&ours, i)).count();
+        let both_lit = (0..first.len())
+            .filter(|&i| lit(&ours, i) && lit(&p.photo.rgba, i))
+            .count();
+        let got = (got, [mine, both], [theirs_lit, ours_lit, both_lit]);
         println!("RUN1559B_3279_PLATE: {got:?}");
         assert_eq!(got, RUN1559B_3279_PLATE);
     }
@@ -1072,5 +1582,148 @@ mod tests {
         let got = (got, [mine, both, reds]);
         println!("RUN1559B_3279_BAR: {got:?}");
         assert_eq!(got, RUN1559B_3279_BAR);
+    }
+
+    /// One packet's line: `run map`, `[height, point, style]`, and each
+    /// held `(code, advance, [pix_width, pix_height, abs_a])`, the last
+    /// `None` on a file written before item 4426.
+    type PacketFont = (String, [i32; 3], Vec<(u32, i32, Option<[i32; 3]>)>);
+
+    /// The packets' plate font (`tools/render/plate_font_packet.py` over
+    /// every `frame-snapshot.bin` under `~/ron-golden` and `~/ron-data`):
+    /// per line `run map packet_frame height point style` and then
+    /// `code:advance:pix_width:pix_height:abs_a` for each character the
+    /// font holds, at `$RON_PLATE_FONT` or item 4426's file.
+    fn packet_fonts() -> Option<Vec<PacketFont>> {
+        let path = std::env::var_os("RON_PLATE_FONT")
+            .map(std::path::PathBuf::from)
+            .or_else(|| {
+                std::env::var_os("HOME").map(|h| {
+                    std::path::PathBuf::from(h)
+                        .join("ron-data/lab-experiments/2026-11-19-item-4426/plate-font.txt")
+                })
+            })?;
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            println!("skipping: no packet plate font at {}", path.display());
+            return None;
+        };
+        Some(
+            text.lines()
+                .map(|l| {
+                    let f: Vec<&str> = l.split_whitespace().collect();
+                    let n = |i: usize| f[i].parse::<i32>().expect("a number");
+                    let held = f[6..]
+                        .iter()
+                        .map(|e| {
+                            let v: Vec<i32> =
+                                e.split(':').map(|x| x.parse().expect("a number")).collect();
+                            let cell = (v.len() == 5).then(|| [v[2], v[3], v[4]]);
+                            (v[0] as u32, v[1], cell)
+                        })
+                        .collect();
+                    (format!("{} {}", f[0], f[1]), [n(3), n(4), n(5)], held)
+                })
+                .collect(),
+        )
+    }
+
+    /// **`PLATE_FONT_PACKETS`** (item 4423): [`PLATE_ADVANCES`] against
+    /// the plate's `D3D11GLFont` on every packet on disk, as `[entries
+    /// agreeing, entries held, packets]`. Each packet holds the characters
+    /// its game has drawn (65 to 73 of them), so the agreement is per
+    /// entry; the table is also exactly the characters some packet holds,
+    /// so none of its 77 is a guess. Before item 4423 the table held `N`,
+    /// `a`, `p`, `t` (4 characters). Made to fail: `o`'s advance 9 → 10
+    /// parts on all 144 packets.
+    pub const PLATE_FONT_PACKETS: [usize; 3] = [9849, 9849, 144];
+
+    #[test]
+    fn the_plate_s_advances_are_the_packets_font() {
+        let Some(packets) = packet_fonts() else {
+            return;
+        };
+        let mut seen = std::collections::BTreeSet::new();
+        let (mut agree, mut held) = (0, 0);
+        for (run, font, chars) in &packets {
+            assert_eq!(
+                *font,
+                [PLATE_FONT_HEIGHT, 14, 1],
+                "{run}: the plate's font is height 16, point 14, style 1"
+            );
+            for &(c, a, _) in chars {
+                let c = char::from_u32(c).expect("a character");
+                held += 1;
+                seen.insert(c);
+                if plate_advance(c) == Some(a) {
+                    agree += 1;
+                } else {
+                    println!("{run}: {c:?} theirs {a}, ours {:?}", plate_advance(c));
+                }
+            }
+        }
+        let table: std::collections::BTreeSet<char> =
+            PLATE_ADVANCES.iter().map(|&(c, _)| c).collect();
+        assert_eq!(seen, table, "the table is the characters the packets hold");
+        assert!(PLATE_ADVANCES.windows(2).all(|w| w[0].0 < w[1].0));
+        let got = [agree, held, packets.len()];
+        println!("PLATE_FONT_PACKETS: {got:?}");
+        assert_eq!(got, PLATE_FONT_PACKETS);
+        assert_eq!(plate_text_width("Napata"), Some(NAPATA_WIDTH));
+        // London: 10 + 9 + 10 + 9 + 9 + 10.
+        assert_eq!(plate_text_width("London"), Some(57));
+        assert_eq!(plate_text_width("Zela"), None);
+    }
+
+    /// **`PLATE_FACE_PACKETS`** (item 4426): [`PlateFace`] off the
+    /// install's `georgiab.ttf` against the plate's `D3D11GLFont` on every
+    /// packet, as `[advances agreeing, cells agreeing, entries held,
+    /// packets]`. A cell agrees when its width is the entry's `pix_width`,
+    /// and the entry's `pix_height` is 16 and its `abs_a` 0. Made to fail:
+    /// the advance truncated rather than rounded, 5,322 of 9,849 agree.
+    /// Hinted (item 4427), every cell keeps the packet's width.
+    pub const PLATE_FACE_PACKETS: [usize; 4] = [9849, 9849, 9849, 144];
+
+    #[test]
+    fn the_plate_s_face_is_the_packets_font() {
+        let Some(root) = std::env::var_os("RON_INSTALL").map(std::path::PathBuf::from) else {
+            println!("skipping: no RON_INSTALL for the plate's face");
+            return;
+        };
+        let Some(packets) = packet_fonts() else {
+            return;
+        };
+        let face = PlateFace::load(&root).expect("the plate's face loads");
+        let (mut adv, mut cells, mut held) = (0, 0, 0);
+        for (run, _, chars) in &packets {
+            for &(c, a, cell) in chars {
+                let ch = char::from_u32(c).expect("a character");
+                let [pw, ph, abs_a] = cell.expect("the file holds each entry's cell");
+                held += 1;
+                if face.advance(ch) == Some(a) {
+                    adv += 1;
+                } else {
+                    println!(
+                        "{run}: {ch:?} advance theirs {a}, ours {:?}",
+                        face.advance(ch)
+                    );
+                }
+                let w = face.cell(ch).map(|g| g.w as i32);
+                if w == Some(pw) && ph == PLATE_FONT_HEIGHT && abs_a == 0 {
+                    cells += 1;
+                } else {
+                    println!("{run}: {ch:?} cell theirs {pw}x{ph}+{abs_a}, ours {w:?}");
+                }
+            }
+        }
+        let got = [adv, cells, held, packets.len()];
+        println!("PLATE_FACE_PACKETS: {got:?}");
+        assert_eq!(got, PLATE_FACE_PACKETS);
+        // The table's 77 are the face's; X and Z, which no packet holds,
+        // take the face's own (the derivation, not a reading).
+        for &(c, a) in &PLATE_ADVANCES {
+            assert_eq!(face.advance(c), Some(a), "{c:?}");
+        }
+        assert_eq!(face.text_width("Napata"), Some(51));
+        assert!(face.text_width("Zela").is_some());
     }
 }

@@ -532,7 +532,13 @@ impl Sim {
             None,
             crate::orders::Coll::All,
         ) {
+            // `set_new_location(·, ·, 1, 1)`'s own reveal: the half-cell
+            // test against the exit spot `come_out` stored, then
+            // `update_seen(param_3 == 0)`, the whole disc (`005f8d20`,
+            // `docs/VISION.md` §6). The exit itself lit nothing (item 4424).
+            let from = self.units[captain].pos;
             self.set_new_location(captain, spot, true);
+            self.moved_to(captain, from, false);
             return Some(spot);
         }
         None

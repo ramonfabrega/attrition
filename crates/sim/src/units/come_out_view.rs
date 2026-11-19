@@ -570,7 +570,12 @@ impl ComeOutView for SimComeOut<'_> {
         };
         (p.x, p.y)
     }
-    fn set_figure_90(&mut self) {}
+    fn set_figure_90(&mut self) {
+        // `617fc7`: guy 0's `turret_inc` (item 4420).
+        if let Some(g) = self.sim.units[self.unit].guys.first_mut() {
+            g.turret.inc = MISSILE_FIGURE_90;
+        }
+    }
     fn v20(&mut self, _player: i32, h: i32) -> bool {
         h & UNIT_HOST == 0
     }

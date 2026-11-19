@@ -851,6 +851,8 @@ mod tests {
                 // `+0x34 role` is not one of `log_data`'s fields either;
                 // the group's next normalize writes it (`find_role`).
                 role: 0,
+                // `+0x49`: an army's group is one of units.
+                buildings: false,
             };
         }
 

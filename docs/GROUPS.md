@@ -404,6 +404,13 @@ to the back-pointer cull and a plain building is not. Then `find_role` (the
 OR of the members' `type.role`) and `speed = new_speed = the leader's
 speed`.
 
+A building member is still dropped by the first half: a deleted building's
+object is no longer valid. The `+0x49` byte stays set, so a building group
+emptied this way is a record of `num` 0 with its byte set. *Diff-backed*
+(item 4419): the 2017 sample's slot 193 holds the person's Lookout
+`3/2008` (deleted on 915) and reads `num` 0 on 927 after 926's push. Ours
+pruned `builds` only on the slot's `Groups::process` turn.
+
 `get_num_cap` is the same backwards walk, dropping only invalid objects,
 and counts the members for which `is_captain` holds — `docs/ARMY.md` §3.3's
 `num_captains`. It calls `normalize` first only when `num < 4 && id >= 0`.
@@ -875,6 +882,10 @@ The last loop slides the whole block so that one member sits at the
 origin, and quantises: `group.off[i] = div_3_table[form.off[i] >> 4]`.
 Two things about it were wrong or missing in every earlier pass.
 
+**The store sits inside the slide's member test** (item 4425, diff-backed):
+a member off the map keeps the record's old entry, never the `Form`'s
+zero, and `compute_form`'s tail negates all `num` entries.
+
 **The anchor is the first member of the *lowest-indexed* non-empty
 category, not the last.** The rank-stack walk's `prev` is written **only
 while it is still negative** — `72cfe2 movl %ecx, %esi` sits on the
@@ -933,18 +944,16 @@ approximation of the same 216 at three different bearings. The whole
 `72d17c`–`72d198` is `cmpl %eax, -0x1c(%ebp)` (the rank-stack's `prev`
 against this member's category), `cmpl $0x0, -0x20(%ebp)` (its `cat_id`),
 then `movl %esi, -0x40(%ebp)` / `movl %ebx, -0x38(%ebp)`. So the anchor is
-`cat_id 0` of the lowest non-empty category, full stop — which is the same
-member `find_leader` names. A record whose block sits somewhere else has
+`cat_id 0` of the lowest non-empty category, the member `find_leader`
+names. A record whose block sits somewhere else has
 been **re-origined** since, and that is §6.8.
 
 **Where the slot destination ends up in the order.** §6.6 step 6 passes it
 as a `UCoord` (`/0x30`), and the round trip is lossy in a way that is
 exactly `Unit::add_move_order`'s own snap: the `MOVEORDER`'s `x`/`y` is
 `floor(to / 48) × 48 + 24`. run31 reproduces all 36 members' destinations
-that way on every frame the un-refreshed table is readable — and note it is
-`x`/`y` that carries it, **not** `dest_x`/`dest_y`, which is the path
-stack's current waypoint (`docs/ORDERS.md` §11.1) and lags a whole click
-behind on most members.
+that way. `x`/`y` carries it, **not** `dest_x`/`dest_y`, the path
+stack's waypoint (`docs/ORDERS.md` §11.1).
 
 The quantisation is a **floor**: `init_coord_lookup_array@00681db0` builds
 `div_3_table` as `j / 3` for `j ≥ 0` and `(j − 2) / 3` for `j < 0`, which
@@ -970,9 +979,8 @@ Everything above closes on one row of one record, with no free parameter:
 which is `GROUPDATA` `id 66`'s own `off_x`, with `off_y` and `angles` all
 zero and `form_num 4`. `curr = [(0,0), (473,480), (−440,−446),
 (946,960)]` follows exactly from §6.6's `update_positions` under the
-leader's logged `angle` of `−1_605_566_464`. A **truncation** instead of
-the floor gives `[0, −13, 13, −27]`, which is why the rounding had to be
-settled first.
+leader's logged `angle` of `−1_605_566_464`. A truncation gives
+`[0, −13, 13, −27]`.
 
 #### The four things this does not reproduce
 
@@ -3474,6 +3482,29 @@ at `QUEUE_LAST` does the following:
 and the approach are the leading transit run. That is run157's 37080, and
 it is why the next look on 1005 re-issues: the "already aimed" test
 compares the box's cell with `orders_x`'s.
+
+**And the record's `form` is −1 afterwards** (items 4419, 4422).
+`action_swarm_around:111` writes `this->form = -1` on every arm past its
+own `QUEUE_FIRST` re-entry, before the members are walked. The original
+has two callers, `action_build@00707510:222` and `finish_insert`'s cases
+6 and `0xd`, and both pass their own `this`. `get_goody_box@005f7690`
+moves the **pool record** it has just pushed (`groups + slot * 0x9d4`),
+so the order is: `action_move_near`'s `QUEUE_NEW` recursion stores
+`get_form` (9 for a Citizen, §24.3), then `finish_insert` re-issues the
+saved build and the swarm writes −1 over it. `stamp`, `ox`/`oy` and
+`o_angle` keep the move's. *Diff-backed* on the packets: run1383's
+groups record 65 on 1180 (the Citizen `1/2`'s goody-box group, stamped
+808) reads `form` ours 9, theirs −1 without the write, and agrees with
+it. With the write, 47 packets' groups lines shrink and none grows
+(`PACKETS_SCORE` lines 697 → 729), and the 2017 sample's slot 195 (the
+person's `[12]`, a `Build` on 960) agrees on 961 (groups 961 → 2888,
+`docs/RECGAME.md` §7). Parked 3386i had taken the write out against
+run602's 981, and that objection no longer holds: the write closes
+`group:64.form` there and opens nothing. Item 4419 then took it out a
+second time, on a gate that read each packet assertion's `left` (the
+pin) as the measured value (`docs/CHECKSUM.md` §23.5).
+`a_goody_box_move_over_a_queued_build_leaves_its_record_at_form_minus_one`
+(`cities_tests.rs`) holds the goody-box order.
 
 ### 24.3 The width twin
 

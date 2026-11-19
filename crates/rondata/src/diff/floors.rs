@@ -505,13 +505,17 @@ pub const MAPGEN: Mapgen = Mapgen {
 // `economy/holdings.rs` (`Sim::ceo_tile_step`) at the booking, from the builder's +6.
 // Item 4291: `sweep-lines` 17,286 -> 17,287 (+1), a named rise: `City::scouted` (`CityData +0x4c`)
 // needs its `scouted: 0` in `sweep/city_get_empty_trade_routes.rs`'s city literal.
+// Item 4415: `largest` 3,710 -> 3,709 (-1): `set_new_location`'s `param_4` costs `movement/collide.rs`
+// five lines, and `probe_relocate` and the new `set_new_location_turning` moved to `groups/group/query.rs`.
+// Item 4420: `sweep-lines` 17,287 -> 17,288 (+1), a named rise: `Turret::inc` (`GuyData +0x40`,
+// `turret_inc`) needs its `inc: 0` in `sweep/guy_set_all_pivots.rs`'s turret literal.
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 11),
     ("test-tails", 0),
-    ("sweep-lines", 17_287),
+    ("sweep-lines", 17_288),
     ("names", 15),
     ("fields", 21),
-    ("largest", 3_710),
+    ("largest", 3_709),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before

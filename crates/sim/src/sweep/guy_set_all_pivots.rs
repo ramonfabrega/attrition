@@ -67,6 +67,7 @@ fn the_emulated_original_agrees_on_every_row() {
                         des: std::array::from_fn(|k| rd(m, 0x30 + 4 * k)),
                         node_flags: 0,
                         des_flags: 0,
+                        inc: 0,
                     };
                     let vx = f32::from_bits(vx_bits as u32) as i32;
                     let can = crate::combat::fight::pivot_steps(

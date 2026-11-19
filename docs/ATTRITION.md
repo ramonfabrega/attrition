@@ -339,7 +339,16 @@ only the first one reached is the reason.
    never fire. (An earlier draft read it as a team test. The implementation
    had grown a `team` field to match, defaulting to 0, which exempted every
    unit on player 0's ground until a test set it by hand. Both are gone.)
-6. Both sides hold a mutual treaty of type 2.
+6. The two are allied both ways: the victim's `diplos[owner]` and the
+   owner's `diplos[victim.who]` (`LeaderData +0x74`, read at `0xe3a404`
+   off `leaders.list` `0xe3a390`) are both 2, which is `is_ally`. It is
+   not `treaties` (`+0x94`), which an earlier draft called it. Until
+   item 4429 the port passed `false` here, so an ally's ground bled the
+   peace period. *Diff-backed*: the 2017 sample's computer 2's Citizen
+   `2/1` stood on its ally 0's ground on frame 2111. Ours bled it with
+   `attrition` 8 and stamped leader 2's `attrition_stamp` and
+   `attrition_stamp2` 2111; theirs did neither, and the units and
+   leaders sums moved from 2112 to 2700 and 2989 (`docs/RECGAME.md` §7).
 7. The victim has take-attrition disabled, or the owner has give-attrition
    disabled (both scenario-scriptable).
 8. **Unit kind.** The block is nested, and the nesting is the rule. A

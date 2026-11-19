@@ -183,7 +183,7 @@ impl Sim {
     /// `TerrainOut::find_data_z(x, y, 0)` ([`crate::World::data_z`]).
     /// `last_z` is the `z` `Guy::move`'s head copies (`005d9240:47`), the
     /// ground under the point it copies beside it.
-    fn guy_z(&self, u: usize, g: usize, at: crate::world::Pos, last: bool) -> i32 {
+    pub(crate) fn guy_z(&self, u: usize, g: usize, at: crate::world::Pos, last: bool) -> i32 {
         let unit = &self.units[u];
         match unit.kind.domain {
             Domain::Air if g == 0 => {
@@ -281,7 +281,7 @@ impl Sim {
             put(0x20 + 4 * k, &guy.turret.angles[k].to_le_bytes());
             put(0x30 + 4 * k, &guy.turret.des[k].to_le_bytes());
         }
-        put(0x40, &0u32.to_le_bytes());
+        put(0x40, &guy.turret.inc.to_le_bytes());
         put(0x44, &af_bank.to_le_bytes());
         put(0x48, &af_last_bank.to_le_bytes());
         put(0x4c, &af_pitch.to_le_bytes());

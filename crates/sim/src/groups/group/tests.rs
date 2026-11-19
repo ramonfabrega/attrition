@@ -963,6 +963,79 @@ fn compute_form_negates_the_offsets_when_the_bearing_opposes_the_angle() {
     );
 }
 
+/// **A member `compute_dests` skips keeps the record's offset** (item
+/// 4425, `docs/GROUPS.md` §6.4). The store into `GroupData +0x4c`/`+0x24c`
+/// sits inside the walk's active-and-on-map test, so a member that is off
+/// the map at the layout keeps what the last layout wrote; `compute_form`'s
+/// tail then negates all `num` entries, the kept one with them. run1221's
+/// army 2 (who 1, record 68) laid out 36 on 3832 and 27 on 4088, with
+/// three squads inside: the original's slots 0 to 8 at 4287 are 3832's,
+/// where this crate wrote the `Form`'s zero.
+#[test]
+fn a_member_off_the_map_at_a_layout_keeps_its_record_offset() {
+    let run = |second: Pos| {
+        let mut s = sim();
+        let t = {
+            let mut t = UnitType {
+                hits: 100,
+                combat: combat::Profile {
+                    attack: 15,
+                    uber_size: 1,
+                    x_spacing: 0xc0,
+                    y_spacing: 0x180,
+                    ..combat::Profile::default()
+                },
+                ..UnitType::default()
+            };
+            t.cols.role |= role::ROLE_MILITARY;
+            s.add_unit_type(t)
+        };
+        let from = Pos::new(0x4000, 0x6000);
+        let slot = s.init_army(1, None);
+        let us: Vec<usize> = (0..3)
+            .map(|k| spawn(&mut s, 1, t, Pos::new(from.x + 0x100 * k, from.y)))
+            .collect();
+        for &u in &us {
+            s.army_add_unit(1, slot, u);
+        }
+        let mv = |s: &mut Sim, dest: Pos| {
+            let g = s.army_group(1, slot);
+            s.group_action_move_to(
+                &g,
+                dest,
+                QueuePos::New,
+                true,
+                Angle(0),
+                MoveKind::AttackTo,
+                true,
+            );
+            s.ai.armies[1].list[slot].group.off.clone()
+        };
+        // North of the three: the bearing is the angle, no tail.
+        let first = mv(&mut s, Pos::new(0x4000, 0x4000));
+        s.units[us[2]].on_map = false;
+        (first, mv(&mut s, second))
+    };
+    // Aligned again: the third keeps its entry as it was.
+    let (first, aligned) = run(Pos::new(0x4100, 0x4000));
+    assert_ne!(
+        first[2],
+        (0, 0),
+        "a zero entry would say nothing: {first:?}"
+    );
+    assert_eq!(
+        aligned[2], first[2],
+        "kept, not the Form's zero: {aligned:?}"
+    );
+    // Opposed (south, 180° from the angle): the tail negates the kept entry.
+    let (first, opposed) = run(Pos::new(0x4000, 0x8000));
+    assert_eq!(
+        opposed[2],
+        (-first[2].0, -first[2].1),
+        "kept and negated by the tail: {first:?} against {opposed:?}"
+    );
+}
+
 /// **The group's cap is a one-pass-lagged minimum, not a minimum**
 /// (§18), and the lag is the whole of item 515's residue — a
 /// `compute_speed`-shaped model walks the original's own raid at 25
@@ -4573,6 +4646,38 @@ fn a_building_push_normalizes_the_last_pushed_slot() {
     );
     assert_eq!(s.group_speed_of(a), 34);
     assert_eq!(s.orders.pushed[i].state.new_speed, 34);
+}
+
+/// **A dead building leaves its group on the next push, and `+0x49`
+/// stands** (item 4419, `docs/GROUPS.md` §4.3): `Group::normalize@00711540`,
+/// run by `equals_group` on the last pushed slot, drops a member whose
+/// object is no longer in use, a building too (`Build`'s vslot `+0x20`
+/// answers 1, so only the valid-bit half reaches one). The 2017 sample's
+/// slot 193 holds the person's Lookout `3/2008`, deleted on 915, and reads
+/// `num` 0 on 927 after 926's push, with its building byte still set.
+///
+/// Made to fail with the building half of the prune removed: the slot
+/// keeps its member.
+#[test]
+fn a_dead_building_leaves_its_group_on_the_next_push() {
+    let mut s = sim();
+    let t = fighter(&mut s);
+    let b = s.add_building(1, Pos::new(0x2000, 0x2000), 0);
+    s.push_buildings_group(1, &[b]);
+    let i = s.orders.pushed.len() - 1;
+    assert!(s.orders.pushed[i].state.buildings, "copy_group sets +0x49");
+    s.buildings[b].alive = false;
+    let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+    let mut g = group_of(1, &[a]);
+    assert!(s.push_group(&mut g, true));
+    assert!(
+        s.orders.pushed[i].builds.is_empty(),
+        "the dead building left"
+    );
+    assert!(s.orders.pushed[i].state.buildings, "+0x49 stands");
+    let j = s.orders.pushed.len() - 1;
+    assert_ne!(i, j, "the units took a slot of their own");
+    assert!(!s.orders.pushed[j].state.buildings, "a unit push clears it");
 }
 
 /// **`Group::action_unitmask(0x100)`** (item 4291, `docs/CLIENT_INPUT.md`

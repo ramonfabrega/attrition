@@ -505,9 +505,8 @@ leader 2's `oil_patches` order, two buildings' `z` and six `seen2` cells.
 Units' 92 is the explore bit, which item 4351 carried as
 `sim::Unit::explore_queued`, outside the word `checksum/units.rs` builds.
 
-**Item 4388: 24 of the 28 taken** (`SAMPLE_RANGES`; journal
-`docs/journal/2026-11-18-item-4388.md`). *Diff-backed* on run1678's state 0,
-each a mutation that turns the pin red:
+**Item 4388: 24 of the 28 taken** (`SAMPLE_RANGES`). *Diff-backed* on
+run1678's state 0, each by a mutation:
 
 - **The mask.** `Setup::build_game@005ac190` calls `Leader::init` over
   `start_list`, the start permutation, and `Leader::init`'s loop ors a slot
@@ -540,29 +539,32 @@ samples every `z` again; `build_cities@005ab910` leaves the oil to
 by a mutation:
 
 - **Builds on 76**: the person's `city_gather` (recording frame 75, kind
-  0x1a1) lays five Farm points on `3/2000`, appended (`QUEUE_LAST` is 1,
-  `622efe`) in `city_down` order on both sides.
+  0x1a1) lays five Farm points on `3/2000`, appended (`622efe`) in
+  `city_down` order on both sides.
   `PtrLinkListAbstract<GatherPoint>::walk_data@004708a0` walks from
   `head_node->prev` by `prev`, last point first: `758 2000 gather[k]`
   32640|31872 and three more agree. Builds by sum 76 → 525.
-- **Units on 92**: `unit_masks & 0x4000000` (`Unit::explore_queued`,
-  4351's) is on the word: `439 0` 8|0x4000008 agrees. Units 92 → 532.
+- **Units on 92**: `unit_masks & 0x4000000` (`Unit::explore_queued`)
+  is on the word: `439 0` 8|0x4000008 agrees. Units 92 → 532.
 
-All twelve agree over 0..100.
+All twelve agree to 100.
 
-**Item 4412: run1697, to 560.** *Diff-backed* on run1697's ranges
-(`SAMPLE_RANGES_1697`), each by a mutation:
+**Items 4412, 4414: run1697, to 560**. *Diff-backed*, each by a
+mutation:
 
-- **Leaders on 241**: `528 4` `+0x238`, leader 4's `strong[2]` against
-  its teammate 2, ours 32, theirs 0. `Leader::diplomacy`'s `6bd02a`
-  tests the target's `leader_flags & 4`; its `je 6bd228` skips the four
-  building lines and the third parties at war with the target, not only
-  the difficulty's share. Leaders by sum 241 → 2112.
-- **Builds on 525**: `974 2008 flags` 1|0x41, the person's Lookout
-  `3/2008`. `Object::init@00647750:39` ors `0x40` for a `DETECT` type, a
-  building's as a unit's. Builds 525 → 3029; packets' lines 661 → 674.
+- **Leaders on 241**: leader 4's `strong[2]` toward teammate 2, 32|0.
+  `Leader::diplomacy`'s `6bd02a` (`leader_flags & 4`) skips the building
+  lines and the war count for a computer target. → 2112.
+- **Builds on 525**: the Lookout `3/2008`'s `flags` 1|0x41;
+  `Object::init@00647750:39` ors `0x40` for a `DETECT` type. → 3029.
+- **Units on 532**: the Citizen `3/6`'s `THINK` walks
+  `UnitOrder::walk_data@0047f2b0`, the flags byte (`04`), which ours left
+  out. → 2112.
 
-Next: units on 532, `905 6 guys.length`, 586 of 1,557 ranges parted.
+run1710 holds every first parting to 3,100 (`SAMPLE_RANGES_1710`):
+groups 927 → 2888 (4419, 4422; GROUPS §24.2); world 1716 → 2921, no
+exit lights a disc (4424; VISION §6); units 2112 → 2700, leaders → 2989,
+an ally's ground bleeds nothing (4429; ATTRITION, check 6).
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 

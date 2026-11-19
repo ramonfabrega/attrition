@@ -175,8 +175,8 @@ tile on each side, from `(−x, −y)` counter-clockwise, each paired with one
 closing each side: **a band 48 world units wide outside the rectangle**,
 every vertex at `find_data_z`. Its colour is the owner's
 `TeamColor::get_unit` with the alpha's top bit cleared unless
-`Camera::is_zoom_out`; its texture is `int_str_array +0x1784`'s; a vertex
-off the map takes alpha 0. `client::selection::band` is that geometry, and
+`Camera::is_zoom_out`; its texture is `city_radius.tga` (item 4421,
+below); a vertex off the map takes alpha 0. `client::selection::band` is that geometry, and
 **`RUN1559B_3279_SELECTED`** reads it on run1559b's photograph, the city's
 type 0 (7 × 7, `back` 1, point (3168, 30816)): of the band's 4,551 pixels,
 **1,477 are red in theirs** (`r − g` and `r − b` over 40); moved one tile
@@ -196,6 +196,32 @@ theirs' 1,477). Drawn one tile east, it read 855 and 542, and the pin
 failed. Ours is a solid 48-unit band; theirs is thinner and soft-edged,
 its texture's, so ours paints about 728 red pixels theirs does not.
 
+**Textured by item 4421.** The card calls name the texture, by
+`rise.pdb`'s `GSGraphicCard` vtable (`LF_ONEMETHOD` offsets):
+`set_render_state(render_states[17])` (`+0x24`, `0xc11d3c` the array's
+data, `+0x44`), `set_texture(0, circle_gen +0x134)` (`+0x20`), then
+`set_prim_type(3)` (`+0x2c`) and `set_poly_count_type("Effects")`
+(`+0x30`: `int_str_array +0x1784` is string 301, a statistics name, not a
+texture). `circle_gen +0x134` is `CircleRender::circle_textures[0]`, the
+first `<SELECTIONCIRCLE texture=…>` of `effects_graphics.xml`
+(`CircleRender::init@008c48a0`): **`city_radius.tga`**, 32 × 32, white,
+every column one tent of alpha, 0 at row 0 and 255 at row 16. The
+listing's `TexArray::add` (`xmm1`, `xmm2`) gives every vertex `u` 0, an
+inner one `v` 0 and an outer one `v` 1.0 (`0xb69514`); in a corner square
+`v` is 0 at the rectangle's corner alone. **run1566b's card pass agrees**:
+draw 115 binds `.\art\city_radius.tga`, flushed when the next state is
+set (its stack `RenderStateMethod::execute ← … ← flush_shadows`, as draw
+114's `draw_thick_rectangle` frame flushes the batch before the band's),
+with stage 0 `MODULATE(TEXTURE, CURRENT)` on colour and alpha, a point
+filter, no mip, `SRCALPHA`/`INVSRCALPHA` and the vertex's diffuse. So a
+pixel is the owner's colour at alpha `tex_a[⌊32 v⌋] · 0x7f / 255`: a soft
+line at mid-band. `client::selection::underlay` cuts each triangle at
+`v = r/32` into one layer a texel alpha (`BandAlphas`, `clip_v`), and the
+GPU's pass blends each at its alpha times `UNDERLAY_ALPHA`. **Ours red
+2,132 → 1,395, of them on theirs' red 1,404 → 1,300** (of 1,477): ours'
+red off theirs 728 → 95, theirs' red ours misses 73 → 177. Untextured, the
+pin reads the solid band's `[2132, 1404]` and fails.
+
 **The city's plate, placed (item 4403).** `BuildOut::draw_overlays@0062cb30`
 draws it for any active city centre (`flags & 4` and `& 0x20`), selected or
 not, under `player_profile.prefs & 0x40000` and the visibility branch; it
@@ -213,7 +239,15 @@ white. **Every quantity is the packet's** (run1559b, frame 3294): pads 8,
 the font `onscreen_mouseover_size` (`FontFamily` lookup 36, size 14), its
 `D3D11GLFont` `mFontHeight` 16; the name `Napata`, its `CharacterInfo`
 advances 12 + 8 + 9 + 8 + 6 + 8 = 51; the city's flags carry the capital's
-bit (`& 0x10`).
+bit (`& 0x10`). **Every other name's width** is the same font's advances
+(item 4423): the font fills a `CharacterInfo` the first time its character
+is drawn, so each packet holds 65 to 73, and the union over the 144
+packets on disk is 77 characters (every letter but `X` and `Z`, the digits,
+the space and 16 marks), no advance differing between any two packets
+(`tools/render/plate_font_packet.py`, the `fonts` table → lookup 36 →
+`gs_font`; **`PLATE_FONT_PACKETS`** reads 9,849 of 9,849 entries agreeing,
+and `o` 9 → 10 parts on all 144). They give 1,142 of the 1,164 `<CITY>`
+names in the tribe files the sim loads a width; `London` is 57.
 `client::selection::plate` is that rectangle: **x [1083, 1172), y [580,
 610)**, 89 × 30, which is the plate on the photograph to the pixel (its
 gold edge at 1083 and 1171, 580 and 609). **`RUN1559B_3279_PLATE`** reads
@@ -238,8 +272,35 @@ blue `Reduced!` that floats over the plate's sides. The GPU's screen pass
 (`gpu::ScreenLayer`) draws them after the tone map and before the
 overlay, a layer an alpha, at the underlay's constant blend. On the
 row's footprint: **ours dark 0 → 1,742, on theirs' dark 0 → 1,251** (of
-1,285); drawn 89 px east, ours read 0 and the pin failed. The name is a
-stand-in, and is drawn only where it is known (§6).
+1,285); drawn 89 px east, ours read 0 and the pin failed.
+
+**The glyphs (item 4426).** The plate's `D3D11GLFont` is FreeType's,
+static in `d3dgl.dll`: `mSGLTexFont`'s `m_fontFace` holds an `FT_Face`
+whose family is `Georgia` and style `Bold` on the packet, the install's
+`Data/Fonts/georgiab.ttf`. `FT::FontFace::RenderGlyph` loads with
+`FT_Load_Glyph(face, index, 0)` (the default, hinted) and renders with
+`FT_Render_Glyph(slot, 0)` (8-bit coverage);
+`FontRenderManager::render_pendings` copies the bitmap into a 256 × 256
+atlas cell at the cell's left column (`bitmap_left` is not applied) and
+row `mAscent` − `bitmap_top`; `D3D11GLFont::add_character` lays the
+cell's quad at the pen plus `abs_a` (0 on every entry), `pix_width` × 16,
+less half a pixel. The atlas is the GPU's, so `client::selection::PlateFace`
+rasterises the same file at 14 pixels an em (`mPointSize`; ascent 12.84
+and descent 3.07 round to the packet's 13 and 3), hinted as the DLL's
+FreeType hints (item 4427: the face's TrueType bytecode under `skrifa`'s
+interpreter, v40's normal target), the hinted outline's box floored and
+ceiled to the bitmap's, its coverage `ab_glyph`'s rasteriser's.
+**`PLATE_FACE_PACKETS`**: every advance (the linear advance,
+rounded) and every cell (its width the bitmap's, `pix_width`) agree on
+**9,849 of 9,849 entries over 144 packets**; truncating the advance
+leaves 5,322. So `X` and `Z` take the face's advances too, and every one
+of the 1,164 `<CITY>` names has a width (`Zela`). On the row, the name's
+white ink (every channel over 150, where the `Reduced!` banner leaves it
+bare): **theirs 53; ours lit 97 → 192, on theirs' 9 → 47**, the dark
+half 1,742 / 1,251 → 1,537 / 1,233; **hinted (item 4427), ours lit 192
+→ 209, on theirs' 47 → 53 of 53**, the dark half → 1,541 / 1,238, and
+every cell keeps its `pix_width` (9,849 of 9,849). The same path drawn
+unhinted reads 47 again: the six were stem edges the hinter snaps.
 
 **The bar (item 4410).** `WallOut::draw_health_bar@00640dd0` draws it for a
 member of the console's `play` group (or the mouse-over, or `+0x24`), at
@@ -487,14 +548,17 @@ Not established:
 - **A building's marker.** `draw_funky_rectangle_circle` at
   `BuildData::max_range` is not read, and its shape and size are not
   ported; ours outlines the footprint.
-- **The selected building's band, drawn** (items 4398 and 4401, §3): its
-  geometry is counted on run1559b (`RUN1559B_3279_SELECTED`) and drawn
-  untextured at one constant alpha. Not read: string `+0x1784`'s texture
-  and its coordinates (`TexArray::add`'s arguments are registers the
-  decompiler lost), which is why ours is wider and harder than theirs;
-  card mode 3 (`+0x2c(3)`): whether it depth-tests as `render_states[3]`
-  does for land units (0x20287, `docs/RENDERER.md` §3.7) is not read, and
-  ours tests nothing; `get_unit`'s alpha being `0xff`; the listing's alpha
+- **The selected building's band, drawn** (items 4398, 4401 and 4421,
+  §3): its geometry is counted on run1559b (`RUN1559B_3279_SELECTED`) and
+  drawn through `city_radius.tga`'s rows. ~~Not read: string `+0x1784`'s
+  texture and its coordinates~~: read (4421, §3), `+0x1784` is a
+  statistics name and the texture `circle_textures[0]`; the coordinates
+  rest on the listing, and the texture on run1566b's draw 115, whose
+  stream the probe did not keep (no vertex is compared). Not established:
+  `render_states[17]`'s depth test (`+0x2c(3)` is `set_prim_type`, not a
+  mode; ours tests nothing), and why theirs reads a shade stronger than
+  ours by eye (177 of theirs' red pixels ours misses: the blend's place in
+  HDR, or the tone map, is not read, parked 4421a); `get_unit`'s alpha being `0xff`; the listing's alpha
   0 for a vertex off the map (ours carries one alpha a pass); and the
   draw's place among the other underlays. The name plate is
   `BuildOut::draw_overlays@0062cb30`'s (`CityData +0x90`'s name on
@@ -503,15 +567,27 @@ Not established:
   drawing helper rather than an `iface*` window; the bar is
   `WallOut::draw_health_bar@00640dd0`/`@00640f20`'s (§3, item 4410).
 - **The plate, drawn** (items 4403 and 4410, §3): its rectangle and its
-  drawing are counted on run1559b (`RUN1559B_3279_PLATE`). Not
-  established: **the name.** The sim carries no founding name
-  (`sim::cities::rename`'s SEAM), so the client draws a plate only for a
-  city a rename has named, and the row names `Napata` itself; and the
-  font's advances are held for `N`, `a`, `p` and `t` alone
-  (`selection::PLATE_ADVANCES`, the packet's): a name with any other
-  character draws no plate rather than a guessed one. **The glyphs** are
-  the overlay's 5 × 7 in white, not the font's, which is
-  `D3D11GLFont`'s from the system's face (`sbl/d3dgl.pdb`) and not read.
+  drawing are counted on run1559b (`RUN1559B_3279_PLATE`). **The name**
+  is the sim's since item 4418: `City::generate_name@00735c90` ported
+  (`docs/LEADERS.md` §1.2), `CITY_NAMES_SCORE` 0 → 521 of 521 on the
+  packets, so the client draws a plate for every named city and the row
+  no longer names `Napata` itself. Not established: a captured city's
+  name (parked 4416a); the advances
+  of `X`, `Z` and anything past ASCII, which no packet's font has drawn:
+  since item 4426 they are the face's linear advance rounded, the rule
+  all 77 drawn characters keep, a derivation and not a reading; and a
+  plate for any city but Napata against a photograph (none on disk
+  shows another, parked 4423a). **The glyphs** are the install's face
+  hinted (§3, item 4427), lighting 53 of the row's 53. The DLL's
+  FreeType version is not read: its strings carry `FREETYPE_PROPERTIES`
+  (2.7.1 and later, where v40 is the default interpreter) and
+  `interpreter-version`, so v40 is the inference, borne out by the 53
+  and by every cell's width; `skrifa`'s interpreter is taken as
+  FreeType's outline for outline, and `ab_glyph`'s rasteriser for
+  FreeType's smooth one (their coverage may part by a level where the
+  row's threshold cannot see it). How the atlas is sampled is not read
+  either (the quad's half-pixel step is taken as a 1:1 mapping, which
+  the 53 bear out).
   Also not established: which architecture set's `TEX_CIV` the original
   loads (`iface_AS0_assets.tga` is `interface.xml`'s; `AS3`'s scroll
   differs only in the body's `(0, 0, 0)` for `(1, 1, 1)`), `tile_random`'s

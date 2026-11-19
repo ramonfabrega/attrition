@@ -85,30 +85,144 @@ impl Sim {
             .unwrap_or(0)
     }
 
-    /// `City::generate_name@00735c90`'s two stores to `city_name`, run from
-    /// `City::init` when `Build::activate`'s first argument is 0 — the start
-    /// city and a city completed by construction, never a capture
-    /// (`docs/LEADERS.md` §1.2). The step itself is [`name_step`].
+    /// `City::generate_name@00735c90`, run from `City::init` when
+    /// `Build::activate`'s first argument is 0 — the start city and a city
+    /// completed by construction, never a capture (`docs/LEADERS.md`
+    /// §1.2): the counter's step ([`name_step`]) and the founding name of
+    /// city `c` ([`founding_name`]), written where a rename writes
+    /// (`crate::cities::rename`).
     ///
     /// Exempt, in the original's order: a Forbidden City (`is(0x213)`; the
-    /// crate's `building_is_city` holds for it, §1.3); Conquer the World for
-    /// a non-barbarian tribe; a tribe with no city list.
+    /// crate's `building_is_city` holds for it, §1.3), which takes its
+    /// type's name (`type +0x74`); Conquer the World for a non-barbarian
+    /// tribe, which takes `ConquestGame::get_city_name` from frame 1. A
+    /// tribe file with no `<CITIES>` names the city after the tribe and
+    /// steps nothing.
     ///
-    /// SEAM, under the assumption §1.3 records: the tribe's city-name list
-    /// is not in the crate, so every list is taken as present and longer
-    /// than any count (`n < L`); and the barbarian tribe test under Conquer
-    /// the World is not carried, so a conquest game exempts every tribe.
-    pub(crate) fn generate_city_name(&mut self, b: usize) {
+    /// SEAM: neither exempt name is carried (the type's display name and
+    /// the campaign's list are not in the crate), so both cities stay
+    /// unnamed; and a tribe whose list was never loaded (a hand-built
+    /// tree) steps as if its list were longer than any count and names
+    /// nothing.
+    pub(crate) fn generate_city_name(&mut self, b: usize, c: usize) {
         if self.building_is(b, crate::cities::build::Ident::ForbiddenCity) {
-            return;
-        }
-        if self.ai.lobby.conquest {
             return;
         }
         let own = usize::from(self.buildings[b].owner);
         let tribes: Vec<usize> = self.tech.iter().map(|t| t.tribe).collect();
-        name_step(&mut self.leaders.city_name, &tribes, own);
+        let tribe = tribes
+            .get(own)
+            .and_then(|&t| self.tables.tech_tree.tribes.get(t));
+        if self.ai.lobby.conquest && !tribe.is_some_and(|t| t.barbarian) {
+            return;
+        }
+        let Some((list, name)) =
+            tribe.and_then(|t| t.cities.as_ref().map(|l| (l.clone(), t.name.clone())))
+        else {
+            name_step(&mut self.leaders.city_name, &tribes, own, None);
+            return;
+        };
+        let written = if list.is_empty() {
+            name
+        } else {
+            match founding_name(
+                &mut self.leaders.city_name,
+                &tribes,
+                own,
+                list.len(),
+                self.game_seed,
+            ) {
+                Some(Founding::Listed(i)) => list[i].clone(),
+                Some(Founding::Numbered(k)) => format!("{name}{SEPARATOR}{k}"),
+                None => return,
+            }
+        };
+        self.cities.names.insert(c, written);
     }
+}
+
+/// `loc_str_array_orig +0x15e0`, what `generate_name` puts between the
+/// tribe's name and a number: one space, read off ch94p's packet (item
+/// 4416).
+pub const SEPARATOR: &str = " ";
+
+/// The name [`founding_name`] chose: the list's entry at a 0-based index,
+/// or the tribe's name and a number.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Founding {
+    Listed(usize),
+    Numbered(i32),
+}
+
+/// `generate_name`'s choice from a list of `len` names, after the step
+/// ([`name_step`]) it runs first (`docs/LEADERS.md` §1.2), with `seed`
+/// `world->seed` ([`Sim::game_seed`]). With `n` the winner's new count
+/// and `prev` the owner's count before it:
+///
+/// 1. `n >= len`: the tribe's name and `n + 1`, and no second store.
+/// 2. `n <= 1` or `prev == 0`: index `1 +` the slots below the owner of
+///    its tribe; the second store.
+/// 3. otherwise: `m` the slots of 0..8 of the owner's tribe, `M = len −
+///    m + 1`, `x = (tribe + seed) mod M + 1` (signed), then the eight-bit
+///    Galois step `x ^= 0x170` on odd, `x >>= 1`, repeated, rejecting `x
+///    >= M` and stopping on the `(n − 1)`th value kept; index `x + m`.
+/// 4. an index past `len` is the tribe's name and `index + 1`; else the
+///    list's `index − 1`th.
+///
+/// `None` only where the original would not return: `M <= 1` (a divide
+/// by zero, or a step that keeps nothing), which needs eight slots of one
+/// tribe against a list of eight.
+pub(crate) fn founding_name(
+    names: &mut [i32],
+    tribes: &[usize],
+    own: usize,
+    len: usize,
+    seed: i32,
+) -> Option<Founding> {
+    let len = i32::try_from(len).ok()?;
+    let (n, prev) = name_step(names, tribes, own, Some(len))?;
+    if n >= len {
+        return Some(Founding::Numbered(n + 1));
+    }
+    let slots = tribes.len().min(8);
+    let index = if n <= 1 || prev == 0 {
+        1 + (0..own.min(slots))
+            .filter(|&k| tribes[k] == tribes[own])
+            .count() as i32
+    } else {
+        let m = (0..slots).filter(|&k| tribes[k] == tribes[own]).count() as i32;
+        let big_m = len - m + 1;
+        if big_m <= 1 {
+            return None;
+        }
+        let mut x = (tribes[own] as i32).wrapping_add(seed) % big_m + 1;
+        let mut kept = 1;
+        // The step is a maximal eight-bit LFSR on a start below 256, so a
+        // value in 1..M recurs within 255 steps; the bound only keeps a
+        // malformed list from spinning.
+        let mut steps = 0u32;
+        loop {
+            if x & 1 != 0 {
+                x ^= 0x170;
+            }
+            x >>= 1;
+            steps += 1;
+            if x < big_m {
+                kept += 1;
+                if kept == n {
+                    break;
+                }
+            } else if steps > 0x10000 {
+                return None;
+            }
+        }
+        x + m
+    };
+    Some(if index > len {
+        Founding::Numbered(index + 1)
+    } else {
+        Founding::Listed(index as usize - 1)
+    })
 }
 
 /// 256.0, `0x43800000`: `Leader::calc_anti_attrition`'s first store
@@ -230,12 +344,20 @@ pub fn anti_attrition(
 ///
 /// The winner is the slot of the owner's tribe, among slots 0..8 alone,
 /// with the largest count (strict `>` from −1, so a tie keeps the lowest
-/// slot) if that count is above 0, else the owner. The winner steps; then
-/// the owner takes 1 if it has never named a city and the winner's new
-/// count `n` is at most 1 or the owner's count was 0 before the step.
-pub(crate) fn name_step(names: &mut [i32], tribes: &[usize], own: usize) {
+/// slot) if that count is above 0, else the owner. The winner steps; then,
+/// unless `n` reaches the list's length `len` (that arm names by number and
+/// leaves, `7361a6`), the owner takes 1 if it has never named a city and
+/// the winner's new count `n` is at most 1 or the owner's count was 0
+/// before the step. `None` for a list never loaded. Answers `(n, prev)`,
+/// `prev` the owner's count before the step.
+pub(crate) fn name_step(
+    names: &mut [i32],
+    tribes: &[usize],
+    own: usize,
+    len: Option<i32>,
+) -> Option<(i32, i32)> {
     if own >= names.len() || own >= tribes.len() {
-        return;
+        return None;
     }
     let mut best = -1;
     let mut at = own;
@@ -249,9 +371,10 @@ pub(crate) fn name_step(names: &mut [i32], tribes: &[usize], own: usize) {
     let prev = names[own];
     names[winner] += 1;
     let n = names[winner];
-    if (n <= 1 || prev == 0) && names[own] == 0 {
+    if len.is_none_or(|l| n < l) && (n <= 1 || prev == 0) && names[own] == 0 {
         names[own] = 1;
     }
+    Some((n, prev))
 }
 
 #[cfg(test)]

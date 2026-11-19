@@ -6,6 +6,17 @@ license.workspace = true
 description = "The first pixels: a window over the free runner's scene (docs/RENDERER.md §3.6)"
 
 [dependencies]
+# The plate's glyphs, rasterised from the install's own face (item 4426).
+ab_glyph = "0.2.32"
+# Its coverage rasteriser draws the hinted outline (item 4427; already in
+# the lock under ab_glyph).
+ab_glyph_rasterizer = "0.1.10"
+# The plate's hinting (item 4427): the DLL's FreeType loads each glyph with
+# `FT_LOAD_DEFAULT`, so Georgia's TrueType bytecode runs (v40, the normal
+# target); ab_glyph's stack has no interpreter and skrifa's is FreeType's to
+# the point. It adds read-fonts and font-types to the tree and nothing else
+# (bytemuck was in it); the face stays the install's, read at run time.
+skrifa = "0.44"
 render = { path = "../render" }
 rondata = { path = "../rondata" }
 sim = { path = "../sim" }

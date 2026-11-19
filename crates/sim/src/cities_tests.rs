@@ -1114,9 +1114,17 @@ fn a_human_s_build_drop_gives_each_citizen_a_move_then_the_build() {
             sim.group_add(&mut g, u);
         }
         assert!(sim.push_group(&mut g, true));
+        // `action_swarm_around@0070fbe0:111` writes the record's `form`
+        // −1 (items 4419, 4422; the 2017 sample's slot 195 on 961).
+        sim.gstate_mut(&g).expect("a seated group").form = 9;
         let b = sim
             .group_action_build(&g, tile_pos(40, 40), t.barracks, QueuePos::New)
             .expect("the site is placed");
+        assert_eq!(
+            sim.gstate_mut(&g).map(|st| st.form),
+            Some(-1),
+            "the swarm's form"
+        );
         for (r, (was, cost)) in before.iter().zip(price).enumerate() {
             assert_eq!(
                 sim.economy.ledgers[0].bucket[r],
@@ -1213,6 +1221,51 @@ fn a_builder_s_re_entry_swarms_the_build_queued_behind_it_afresh() {
     let after = dest(&sim);
     assert_eq!(after.len(), 2, "{:?}", sim.units[u].orders);
     assert_ne!(after[1], before[1], "the second approach is laid afresh");
+}
+
+/// **A goody box's `QUEUE_FIRST` move leaves a builder's record at form
+/// −1** (item 4422). `Unit::get_goody_box@005f7690` pushes a one-member
+/// group and moves the **pool record** at `QUEUE_FIRST`:
+/// `action_move_near` saves the leader's action orders, halts, stores
+/// `get_form` (9 for a Citizen) at `QUEUE_NEW`, and `finish_insert`
+/// re-issues the saved `BUILDORDER` through `action_swarm_around`, whose
+/// `:111` writes the record's `form` −1. run1383's record 65 on 1180,
+/// the Citizen `1/2`'s group stamped 808: ours 9, theirs −1.
+///
+/// Made to fail with `SimSwarm::set_form` emptied (the record keeps 9).
+#[test]
+fn a_goody_box_move_over_a_queued_build_leaves_its_record_at_form_minus_one() {
+    let (mut sim, t, citizen, _) = alarm_sim();
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    sim.tables.unit_types[citizen].worker = Worker::Citizen;
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    let u = sim.init_unit(0, citizen, tile_pos(30, 44));
+    sim.swarm_around(u, b, Body::Build(b), true);
+    let mut g = crate::groups::group::Group::stack(0);
+    sim.group_add(&mut g, u);
+    assert!(sim.push_group(&mut g, true));
+    sim.group_action_move_to(
+        &g,
+        tile_pos(20, 44),
+        QueuePos::First,
+        false,
+        movement::Angle(0),
+        MoveKind::ExploreTo,
+        false,
+    );
+    assert!(
+        sim.units[u]
+            .orders
+            .iter()
+            .any(|o| matches!(o.body, Body::Build(x) if x == b)),
+        "the build is re-issued: {:?}",
+        sim.units[u].orders
+    );
+    assert_eq!(
+        sim.gstate_mut(&g).map(|st| st.form),
+        Some(-1),
+        "the swarm's form, after the move's get_form"
+    );
 }
 
 /// **A re-entry re-issues a queued build on whatever now holds its
@@ -11233,14 +11286,14 @@ fn a_rename_names_the_city_its_building_belongs_to() {
     let t = install_types(&mut sim);
     let (b, c) = city_at(&mut sim, &t, 0, 10, 10);
     let o = sim.buildings[b].index;
-    assert_eq!(sim.city_name_written(c), None);
+    assert_eq!(sim.city_name(c), None);
     assert!(!sim.command().process_rename_city(1, o, "Elsewhere"));
     assert!(!sim.command().process_rename_city(0, o + 1, "Elsewhere"));
-    assert_eq!(sim.city_name_written(c), None);
+    assert_eq!(sim.city_name(c), None);
     assert!(sim.command().process_rename_city(0, o, "Attrition"));
-    assert_eq!(sim.city_name_written(c), Some("Attrition"));
+    assert_eq!(sim.city_name(c), Some("Attrition"));
     assert!(sim.command().process_rename_city(0, o, "Norwich"));
-    assert_eq!(sim.city_name_written(c), Some("Norwich"));
+    assert_eq!(sim.city_name(c), Some("Norwich"));
 }
 
 /// **The start samples every building's `z` again once it stands**
@@ -11261,4 +11314,98 @@ fn the_start_s_resample_takes_each_live_building_s_ground() {
     sim.reinit_game_units();
     assert_eq!(sim.buildings[a].z, za + 3, "the ground the start leaves");
     assert_eq!(sim.buildings[b].z, zb, "a dead building is not sampled");
+}
+
+/// **A trained captain's exit lights no disc, gather point or none** (item
+/// 4424, `docs/VISION.md` §6): `Unit::come_out@00617c10` stores the exit spot
+/// into `+0x10`/`+0x14` before `set_new_location(spot, 1, 1)`, so the
+/// half-cell test that gates `update_seen` sees no change. A captain with a
+/// gather point is no exception; only the re-seat's own `set_new_location`
+/// lights, when it moves the half-cell. The sample's person's type-107
+/// captain lit nine fog cells round (74, 39) on 1715 in ours alone.
+///
+/// Made to fail with the exit's light back for a gathered captain.
+#[test]
+fn a_captain_out_toward_a_gather_point_lights_no_disc_at_its_exit() {
+    use crate::cities::rally::GatherPoint;
+    let (mut sim, t, _, militia) = alarm_sim();
+    sim.tables.unit_types[militia].los = 6;
+    let (b, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let m = sim.init_unit(0, militia, tile_pos(36, 36));
+    sim.go_inside(m, b);
+    assert!(sim.world.set_fog(vec![0; 16 * 16 * 4]));
+    sim.add_gather_point(
+        b,
+        GatherPoint {
+            pos: tile_pos(32, 56),
+            action: 0,
+        },
+        true,
+    );
+    // A human's captain keeps a held order, so the routing (and its
+    // re-seat) never runs: what lights is the exit alone.
+    sim.cities.nation[0].human = true;
+    sim.add_move_order(
+        m,
+        tile_pos(50, 50),
+        crate::orders::MoveKind::MoveTo,
+        crate::orders::QueuePos::New,
+        true,
+    );
+    sim.world.clear_seen();
+    let heading = sim.units[m].movement.heading;
+    assert!(sim.come_out(m));
+    assert_ne!(
+        sim.units[m].movement.heading, heading,
+        "the gather point turned the exit"
+    );
+    let lit = (0..sim.world.fog_ys())
+        .flat_map(|y| (0..sim.world.fog_xs()).map(move |x| (x, y)))
+        .filter(|&(x, y)| sim.world.seen(x, y).is_some_and(|s| s & 1 != 0))
+        .count();
+    assert_eq!(lit, 0, "the exit lit {lit} fog cells");
+}
+
+/// **The lone captain's re-seat lights its own disc** (item 4424,
+/// `come_out`'s lone move arm, `619ea2`..`619f86`): `set_new_location(·, spot,
+/// 1, 1)` off the exit spot, and `Unit::set_new_location@005f8d20`'s
+/// half-cell test then calls `update_seen(param_3 == 0)`, the whole disc. A
+/// computer's Militia with no order comes out toward a gather point; the
+/// re-seat leaves the exit's half-cell, and the disc is lit round where it
+/// stands. Reading-backed: no capture on disk holds a lone re-seat that
+/// moves the half-cell.
+///
+/// Made to fail with the re-seat's `moved_to` dropped.
+#[test]
+fn a_lone_captain_s_gather_re_seat_lights_the_disc_where_it_stands() {
+    use crate::cities::rally::GatherPoint;
+    let (mut sim, t, _, militia) = alarm_sim();
+    sim.tables.unit_types[militia].los = 6;
+    let (b, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let m = sim.init_unit(0, militia, tile_pos(36, 36));
+    sim.go_inside(m, b);
+    assert!(sim.world.set_fog(vec![0; 16 * 16 * 4]));
+    sim.add_gather_point(
+        b,
+        GatherPoint {
+            pos: tile_pos(32, 56),
+            action: 0,
+        },
+        true,
+    );
+    sim.world.clear_seen();
+    assert!(sim.come_out(m));
+    let lit: Vec<(i32, i32)> = (0..sim.world.fog_ys())
+        .flat_map(|y| (0..sim.world.fog_xs()).map(move |x| (x, y)))
+        .filter(|&(x, y)| sim.world.seen(x, y).is_some_and(|s| s & 1 != 0))
+        .collect();
+    let want = sim.seen_sweep(m, false).expect("a militia sees");
+    assert_eq!(lit.len(), want.end, "the re-seat's whole disc");
+    let (cx, cy) = want.centre;
+    assert!(
+        lit.iter()
+            .all(|&(x, y)| (x - cx).abs() <= want.radius && (y - cy).abs() <= want.radius),
+        "lit round {:?}: {lit:?}",
+        want.centre
+    );
 }
