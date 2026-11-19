@@ -627,6 +627,12 @@ pub(super) fn check(name: &str, walked: &[Walked]) {
         for (n, l) in STATE_LINES.iter().zip(&w.lines) {
             if let Some(f) = &l.first {
                 eprintln!("  {n}: {} of {} ranges part; first {f}", l.parted, l.theirs);
+                if std::env::var_os("RON_PROBE_4417").is_some()
+                    && let (Some(o), Some(t)) = (&f.ours, &f.theirs)
+                {
+                    let d = crate::checksum::fields::differing_fields(n, &f.field, o, t);
+                    eprintln!("PROBE4417\t{}\t{}\t{n}\t{}\t{}\t{d:?}", w.run, w.frame, f.record, f.field);
+                }
             }
         }
         if let Some((agree, of)) = city_names::tally(w) {
