@@ -742,6 +742,27 @@ impl Sim {
         // (`docs/VISION.md` §6). The battery's Aztec Horse Archer `1/45`,
         // out on 8655 at (44184, 19704) with no gather point, lit fog
         // (117, 55) and (119, 53) here and not in run989c (item 3361).
+        // **An aircraft's figure takes the ground at the spot** — the tail
+        // after `set_new_location` (`00617c10`, `6186c1`..): for a type of
+        // domain 2, `Guy::update_z(guy 0)` writes `z` (`+0x14`) from
+        // `find_data_z` of its point, and a helicopter (`+0x2b4 & 0x20`)
+        // then stores `z + 500` into both `z` and `last_z` (`+0x70`). A
+        // fixed-wing figure's `last_z` is `set_new_location`'s `param_3`
+        // copy, the `z` it held before (item 4428, `docs/CHECKSUM.md`
+        // §23.9): a missile leaves its silo at the ground, not at 0, and
+        // run1164's Mustang `1/140` inherits the 398 its number's dead
+        // missile reached.
+        if self.unit_domain_of(f) == Domain::Air {
+            let ground = self.ground_z(spot);
+            let heli = self.is_helicopter(f);
+            let af = &mut self.units[f].airframe;
+            af.last_z = af.z;
+            af.z = ground;
+            if heli {
+                af.z += 500;
+                af.last_z = af.z;
+            }
+        }
         self.coll_add(f);
         self.chain_add(f);
         if light {

@@ -1237,6 +1237,34 @@ impl Sim {
             // what run882b's Strategic Bomber `1/50` carries on 6808.
             first.turret.inc = old.turret.inc;
         }
+        // **And an aircraft's figure keeps the dead occupant's `z`** (item
+        // 4428, `docs/CHECKSUM.md` §23.9). `Unit::init@00612100:549`'s
+        // `set_new_location(x, y, 1, 1)` reaches `Guy::set_new_location
+        // @005d86f0`, whose domain-2 arm (`:40`) writes `z` (`+0x14`) only
+        // for a helicopter, and then as a climb from the `z` already there
+        // (`:41`–`:54`); `init_real` zeroes `+0x20..+0x3c` and `:540`'s pops
+        // never reach figure 0 of a reused number. So a fixed-wing plane or
+        // a missile born inside its airport or silo holds the last `z` the
+        // number's dead occupant wrote, and `param_3`'s copy (`:66`–`:69`)
+        // puts it in `last_z` too. run1359's Biplane `1/36` (TI 287) reads
+        // 637 on 5619, the ground under its dead Citizen predecessor's last
+        // point. A helicopter's climb ([`Sim::add_unit`]) starts from it.
+        let air = ty.is_some_and(|t| {
+            self.tables.unit_types[t].combat.domain == crate::territory::attrition::Domain::Air
+        });
+        if air
+            && let Some((i, old)) = self
+                .units
+                .iter()
+                .enumerate()
+                .rev()
+                .find(|(i, old)| *i != u && old.owner == who && old.index == o && !old.alive())
+        {
+            let z = self.guy_z(i, 0, old.movement.body.pos, false);
+            let af = &mut self.units[u].airframe;
+            af.z = z;
+            af.last_z = z;
+        }
         if std::env::var_os("RON_PROBE_4428").is_some()
             && let Some((i, old)) = self
                 .units
