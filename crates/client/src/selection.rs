@@ -135,6 +135,60 @@ pub fn underlay(
     (pos, col)
 }
 
+/// **The scroll's pads** (item 4403), `IFaceRenderManager +0xe84`:
+/// left, top, right, bottom. `setup_text@0051dd50` sets the top to
+/// `scroll_tex[0]`'s width and the sides to twice it; run1559b's packet
+/// holds 8, 4, 8, 4 (`scroll_tex[0]` is 4 × 4).
+pub const SCROLL_PAD: (i32, i32, i32, i32) = (8, 4, 8, 4);
+
+/// **The capital's star**, `scroll_capital_star`'s rectangle on the
+/// interface texture: 22 × 21 on run1559b's packet.
+pub const CAPITAL_STAR: (i32, i32) = (22, 21);
+
+/// **The plate's font height**: `onscreen_mouseover_size`'s font
+/// (`int_str_array +0x1680`, `FontFamily` lookup 36, size 14, style 1),
+/// whose `D3D11GLFont` holds `mFontHeight` 16 on run1559b's packet.
+pub const PLATE_FONT_HEIGHT: i32 = 16;
+
+/// **The city's plate, on the screen** (item 4403):
+/// `BuildOut::draw_overlays@0062cb30`'s rectangle, as `[x0, x1) × [y0,
+/// y1)` in window pixels. The anchor is `MiscAccess::world_to_console` of
+/// the building's point lowered `0x60 · (2 · y_size / 3)` in z (the
+/// listing at `0062cc4a`–`0062ccae`), the console's y added; the name's
+/// `text_w` wide and the font's `h` tall about it (`x0 = sx − w/2`, `y0 =
+/// sy − h/2`); then `IFaceRenderManager::adjust_for_scroll@0051cd20`
+/// widens it for the star when the city is a capital (3 rows each way,
+/// the star's width split left and right) and by [`SCROLL_PAD`].
+pub fn plate(
+    camera: &render::Camera,
+    b: &render::draw::PlacedBuilding,
+    y_size: i32,
+    text_w: i32,
+    h: i32,
+    capital: bool,
+) -> (i32, i32, i32, i32) {
+    let z = b.z - 0x60 * (2 * y_size / 3);
+    let p = render::camera::world_to_screen(
+        &camera.to_screen_matrix(),
+        &crate::pinned_screen(),
+        b.x,
+        b.y,
+        z,
+        None,
+    );
+    let (mut x0, mut y0) = (p.x - text_w / 2, p.y - h / 2);
+    let (mut x1, mut y1) = (x0 + text_w, y0 + h);
+    if capital {
+        let half = CAPITAL_STAR.0 / 2;
+        y0 -= 3;
+        y1 += 3;
+        x0 -= half;
+        x1 += CAPITAL_STAR.0 - half;
+    }
+    let (l, t, r, bo) = SCROLL_PAD;
+    (x0 - l, x1 + r, y0 - t, y1 + bo)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -332,5 +386,109 @@ mod tests {
         let got = (got, count(&ours), count(&selected));
         println!("RUN1559B_3279_SELECTED: {got:?}");
         assert_eq!(got, RUN1559B_3279_SELECTED);
+    }
+
+    /// **The name's width on run1559b**: `Napata`'s advances in the
+    /// plate's font, 12 + 8 + 9 + 8 + 6 + 8, each its `CharacterInfo`'s
+    /// `advance` in the packet's `D3D11GLFont` (item 4403).
+    const NAPATA_WIDTH: i32 = 51;
+
+    /// The plate's body reads where every channel is under [`DARK`]: the
+    /// scroll's black ground (16, 15, 13 on the photograph), never the
+    /// footprint.
+    const DARK: i32 = 40;
+
+    fn dark(rgba: &[u8], i: usize) -> bool {
+        rgba[i * 4..i * 4 + 3].iter().all(|&c| i32::from(c) < DARK)
+    }
+
+    /// The plate's footprint, its rectangle moved `d` pixels. It is not
+    /// masked by [`INTERFACE`], whose "city's label" rectangle is this
+    /// plate, taken out by eye for the scene's rows.
+    fn plate_foot(p: &crate::ground::tests::Probe, d: (i32, i32), capital: bool) -> Vec<bool> {
+        let b = p
+            .world
+            .placed_buildings()
+            .into_iter()
+            .find(|b| (b.who, b.o) == CITY)
+            .expect("the city is in the scene");
+        let ti = (b.type_index - rondata::load::BASE_BUILDTYPES) as usize;
+        let size = p.world.names.footprints[ti];
+        let (x0, x1, y0, y1) = plate(
+            &p.camera,
+            &b,
+            size.1,
+            NAPATA_WIDTH,
+            PLATE_FONT_HEIGHT,
+            capital,
+        );
+        println!(
+            "plate: point ({}, {}, {}) y_size {} rect x [{x0}, {x1}) y [{y0}, {y1})",
+            b.x, b.y, b.z, size.1
+        );
+        let (w, h) = (p.photo.width as i32, p.photo.height as i32);
+        let mut out = vec![false; (w * h) as usize];
+        for py in (y0 + d.1).max(0)..(y1 + d.1).min(h) {
+            for px in (x0 + d.0).max(0)..(x1 + d.0).min(w) {
+                out[(py * w + px) as usize] = true;
+            }
+        }
+        out
+    }
+
+    /// **`RUN1559B_3279_PLATE`** (item 4403): the capital's plate on
+    /// run1559b's photograph, its footprint [`plate`]'s from the packet's
+    /// pads, star, font height and the name's advances. Per arm,
+    /// `[footprint, theirs dark]`: as the listing places it; moved one
+    /// plate-height (30 px) down; and without the capital's star. Then, on
+    /// the first arm's footprint, `[ours dark, both dark]` on the
+    /// client's still: the half the drawing moves.
+    pub const RUN1559B_3279_PLATE: ([[usize; 2]; 3], [usize; 2]) =
+        ([[2670, 1285], [2670, 0], [1608, 1018]], [0, 0]);
+
+    #[test]
+    fn the_capital_s_plate_on_run1559b() {
+        let Some(mut p) = probe_at(run1559b()) else {
+            return;
+        };
+        let arms = [((0, 0), true), ((0, 30), true), ((0, 0), false)];
+        let mut got = [[0; 2]; 3];
+        let mut first = Vec::new();
+        for (k, (d, capital)) in arms.into_iter().enumerate() {
+            let foot = plate_foot(&p, d, capital);
+            let n = foot.iter().filter(|f| **f).count();
+            let r = (0..foot.len())
+                .filter(|&i| foot[i] && dark(&p.photo.rgba, i))
+                .count();
+            got[k] = [n, r];
+            if k == 0 {
+                first = foot;
+            }
+        }
+        let size = (p.photo.width as u32, p.photo.height as u32);
+        let camera = p.camera;
+        let ours = crate::still_selected(
+            &mut p.world,
+            &camera,
+            size,
+            crate::gpu::SilhouetteOrder::Before,
+            wgpu::TextureFormat::Rgba8Unorm,
+            &[sim::observe::ObjId {
+                who: CITY.0,
+                o: CITY.1,
+            }],
+        );
+        if let Some(dir) = std::env::var_os("RON_STILL_DIR") {
+            let out = std::path::PathBuf::from(dir).join("still-plate.bmp");
+            std::fs::write(&out, crate::gpu::bmp(&ours, size)).expect("the still writes");
+        }
+        let on = |i: usize| first[i] && dark(&ours, i);
+        let mine = (0..first.len()).filter(|&i| on(i)).count();
+        let both = (0..first.len())
+            .filter(|&i| on(i) && dark(&p.photo.rgba, i))
+            .count();
+        let got = (got, [mine, both]);
+        println!("RUN1559B_3279_PLATE: {got:?}");
+        assert_eq!(got, RUN1559B_3279_PLATE);
     }
 }

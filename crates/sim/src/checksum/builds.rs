@@ -473,12 +473,15 @@ impl Sim {
                 put("gather_from[k]", v);
             }
         }
-        // `PtrLinkListAbstract<GatherPoint>::walk_data@004708a0`.
+        // `PtrLinkListAbstract<GatherPoint>::walk_data@004708a0`: the walk
+        // starts at `head_node->prev` and steps by `prev` (`LLNode +4`), so
+        // the points go out last to first (item 4405: the person's five Farm
+        // points on `3/2000`, frame 76 of the 2017 sample).
         put(
             "gather.length",
             (bd.gather.len() as i32).to_le_bytes().to_vec(),
         );
-        for g in &bd.gather {
+        for g in bd.gather.iter().rev() {
             put("gather[k].type", 0i32.to_le_bytes().to_vec());
             put("gather[k].metric", vec![0]);
             let mut v = g.pos.x.to_le_bytes().to_vec();
