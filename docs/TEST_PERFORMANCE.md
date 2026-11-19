@@ -32,7 +32,7 @@ others. The offline step prints its slowest cases on Python 3.12 and later.
 
 On macOS, copy the printed `--sample TEST_OR_GROUP` command to sample the
 process under its recorded CPU reservation, memory ceiling, allocator setting,
-install and cache verifiers. The command checks the executable's SHA-256.
+install, fixture directories and cache verifiers. The command checks the executable's SHA-256.
 Use `--binary PATH` for a saved matching binary after a rebuild. The profile
 goes into a new temporary directory by default. Use `--output NEW_DIR` to
 retain it, `--seconds N` for the sample length and `--delay-seconds N` to
@@ -54,6 +54,9 @@ name. It preserves file order for repeated keys, the first value for a
 scalar, and the read recorder's actual requests, including missing keys.
 Each widening reads its own raw frames and compares its own complete state.
 Rounds and the auxiliary reader may share a raw frame within that walk.
+Coverage workers reuse replay state within each consecutive run of windows
+from one module. Each new run starts independently, even if the worker
+happens to pick up the same game twice. The loaded installation stays warm.
 The journal for item 4407 records the paired runs and corruption control.
 
 ## Scoped replay reuse

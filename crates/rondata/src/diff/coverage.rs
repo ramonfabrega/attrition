@@ -4118,6 +4118,7 @@ fn walk_by_module(windows: &[(&str, Window)], walkers: usize) -> Vec<Walk> {
                         while let Some(group) =
                             groups.get(next.fetch_add(1, std::sync::atomic::Ordering::Relaxed))
                         {
+                            prefix_batch.begin_group();
                             for index in group.clone() {
                                 match (windows[index].1)() {
                                     Some(w) => {

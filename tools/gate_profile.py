@@ -14,13 +14,15 @@ from test_runtime import execution_timeout
 
 ROOT = Path(__file__).resolve().parents[1]
 VERIFIERS = ('RON_VERIFY_ORACLE', 'RON_VERIFY_SETUP_OBSERVATIONS', 'RON_VERIFY_EMU')
+FIXTURE_DIRS = {'RON_GAMELOG_DIR', 'RON_CHECKSUM_DIR', 'RON_MINTED_PACKETS_DIR',
+                'RON_PACKETS_DIR', 'RON_PACKET_FOG_DIR', 'RON_RECGAME_DIR',
+                'RON_GOLDEN_DIR', 'RON_ORACLE_CACHE_DIR', 'RON_SETUP_OBSERVATIONS_DIR'}
 
 
 def replay_settings(env):
     """Runtime switches that change how an isolated replay obtains observations."""
     return {k: v for k, v in env.items() if k.startswith(('RON_VERIFY_', 'RON_DISABLE_', 'RON_PROFILE_'))
-            or k in ('RON_ORACLE_CACHE_DIR', 'RON_GOLDEN_DIR', 'RON_SHARE_WALKS',
-                     'RON_SUITE_GROUP', 'RON_SUITE_GROUP_TESTS')}
+            or k in FIXTURE_DIRS or k in ('RON_SHARE_WALKS', 'RON_SUITE_GROUP', 'RON_SUITE_GROUP_TESTS')}
 
 
 def measurements(directory):

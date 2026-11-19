@@ -50,7 +50,7 @@ class GateProfile(unittest.TestCase):
             binary = directory / 'test-binary'
             binary.write_bytes(b'authored')
             manifest = dict(binary=str(binary), resource_directory=d, install=d,
-                            replay_settings={'RON_VERIFY_ORACLE': '1'})
+                            replay_settings={'RON_VERIFY_ORACLE': '1', 'RON_GAMELOG_DIR': d})
             row = dict(name='fixture', cpu_slots=4, reservation_mib=1024, limit_mib=2048,
                        allocator={'requested': 'auto', 'MallocLargeCache': '0'})
             (directory / 'rondata/manifest.json').write_text(json.dumps(manifest))
@@ -58,7 +58,8 @@ class GateProfile(unittest.TestCase):
             (directory / 'binary-sha256.json').write_text(json.dumps({
                 str(binary): hashlib.sha256(binary.read_bytes()).hexdigest()}))
             tool = runner.gate_profile
-            with patch.dict(os.environ, RON_VERIFY_PREFIX_REUSE='1'), patch.object(tool.subprocess, 'run') as run:
+            with patch.dict(os.environ, RON_VERIFY_PREFIX_REUSE='1', RON_GAMELOG_DIR='elsewhere',
+                            RON_PACKETS_DIR='elsewhere'), patch.object(tool.subprocess, 'run') as run:
                 run.return_value.returncode = 23
                 self.assertEqual(tool.sample(directory, 'fixture', None, directory/'new', 2), 23)
                 command, = run.call_args.args
@@ -67,6 +68,8 @@ class GateProfile(unittest.TestCase):
                 self.assertNotIn('--timeout', command)
                 self.assertEqual((env['RON_TEST_CPU'], env['MallocLargeCache'], env['RON_VERIFY_ORACLE']), ('4', '0', '1'))
                 self.assertNotIn('RON_VERIFY_PREFIX_REUSE', env)
+                self.assertEqual(env['RON_GAMELOG_DIR'], d)
+                self.assertNotIn('RON_PACKETS_DIR', env)
                 manifest['groups'] = {'game:one': ['a', 'b']}
                 row.update(name='b', group='game:one', share_walks='off', timeout_seconds=2400)
                 (directory / 'rondata/manifest.json').write_text(json.dumps(manifest))

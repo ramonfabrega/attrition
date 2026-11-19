@@ -160,6 +160,17 @@ impl Scope {
         });
         Self(std::marker::PhantomData)
     }
+
+    /// Begin an independently scheduled run of windows. Keep the loaded
+    /// installation, but a previous run on this worker must not supply the
+    /// next run's initial state or change which fixtures it requests.
+    pub(crate) fn begin_group(&self) {
+        BATCH.with(|batch| {
+            let mut batch = batch.borrow_mut();
+            batch.prefix = None;
+            batch.start = None;
+        });
+    }
 }
 impl Drop for Scope {
     fn drop(&mut self) {
@@ -368,7 +379,7 @@ mod tests {
     }
     #[test]
     fn an_overlapping_walk_resumes_from_the_last_walk_s_start() {
-        let _scope = scope();
+        let scope = scope();
         mark_start(&key("a"), &built(5));
         put(key("a"), built(10));
         // Block 8 lies inside the last walk: its start, frame 5, serves it.
@@ -379,6 +390,17 @@ mod tests {
         assert!(take(&key("a"), 5).is_none(), "the start is no earlier");
         mark_start(&key("a"), &built(5));
         assert!(take(&key("b"), 8).is_none(), "other inputs never resume");
+        mark_start(&key("a"), &built(5));
+        put(key("a"), built(10));
+        scope.begin_group();
+        assert!(
+            take(&key("a"), 11).is_none(),
+            "a new group stands up independently"
+        );
+        assert!(
+            take(&key("a"), 8).is_none(),
+            "the previous starting state is gone too"
+        );
     }
     #[test]
     fn dropping_a_batch_discards_its_state_even_on_unwind() {
