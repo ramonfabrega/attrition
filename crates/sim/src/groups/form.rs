@@ -529,7 +529,7 @@ impl Sim {
     /// The same two without the captain test — `compute_dests`' two tail
     /// loops, which slide **every** active on-map member including a
     /// follower.
-    fn form_member_active(&self, u: usize) -> bool {
+    pub(crate) fn form_member_active(&self, u: usize) -> bool {
         self.units[u].alive() && self.units[u].on_map
     }
 

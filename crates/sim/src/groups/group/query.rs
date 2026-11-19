@@ -1138,7 +1138,27 @@ impl Sim {
                 crate::groups::form::Form::quantise(v)
             }
         };
-        let off: Vec<(i32, i32)> = f.off.iter().map(|&(x, y)| (q(x), q(y))).collect();
+        // `compute_dests`' store into the record (`72d5xx`, `GroupData +0x4c`
+        // and `+0x24c`) sits inside the same active-and-on-map test
+        // (vslots `+0x8`, `+0xbc`) as its slide, so a member that fails it
+        // keeps the offset the record already held — the last layout's,
+        // or `Group::add`'s zero — and the `Form`'s `memset` zero never
+        // reaches the record (item 4425). `compute_form`'s tail then
+        // negates all `num` of the record's entries with no such test, so a
+        // kept offset is negated too.
+        let old: Vec<(i32, i32)> = self.gstate(g).map(|st| st.off.clone()).unwrap_or_default();
+        let off: Vec<(i32, i32)> = f
+            .off
+            .iter()
+            .enumerate()
+            .map(|(i, &(x, y))| {
+                if g.list.get(i).is_none_or(|&u| self.form_member_active(u)) {
+                    return (q(x), q(y));
+                }
+                let (ox, oy) = old.get(i).copied().unwrap_or((0, 0));
+                if f.flipped { (-ox, -oy) } else { (ox, oy) }
+            })
+            .collect();
         if let Ok(want) = std::env::var("RON_PROBE_4425_REC")
             && let Some(st) = self.gstate(g)
             && st.pool.map(|p| g.who as usize * 64 + p as usize).map(|r| r.to_string()) == Some(want)
