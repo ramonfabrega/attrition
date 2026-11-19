@@ -7811,7 +7811,9 @@ target's), theirs `ox 5 uid 12`, the human's Citizen `0/5`, which its
 captain had taken on 9980. The copy now takes the live pair after the
 mirror. run1691's units line goes from 9,981 to 10,929 of 10,929 states
 (`the_demand_s_game_to_its_end_on_run1691`); with the refresh removed,
-units part on 9981 again (`tools/mutate.py`, held). Why no earlier
+units part on 9981 again (`tools/mutate.py`, held). Twenty-two packets'
+units lines part on fewer ranges and eight go whole (`PACKETS_SCORE` lines
+608 → 616 of 1,053). Why no earlier
 capture parted on it is not established: run112's followers at 696 were
 not re-walked under this item.
 
