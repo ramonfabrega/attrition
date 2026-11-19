@@ -2539,7 +2539,7 @@ impl Sim {
             // `activate`'s first argument is 0: the start city and a city
             // built, never a capture (`docs/LEADERS.md` §1.2).
             if !captured {
-                self.generate_city_name(b);
+                self.generate_city_name(b, c);
             }
             if second {
                 self.cities.cities[c].capital = true;
