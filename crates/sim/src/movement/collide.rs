@@ -2205,7 +2205,7 @@ impl Sim {
     /// figure's own `set_new_location`. With `move_guys` that snaps the
     /// figure onto the heading at once, so the frame's `Guy::move` finds
     /// `des_angle == angle` and asks for no walk (item 4415,
-    /// `docs/CHECKSUM.md` §23.10: the oil-well stand of
+    /// `docs/CHECKSUM.md` §23.9: the oil-well stand of
     /// `Unit::do_gather@005ef2a0:384`, whose `CHAR_FARM` started a frame
     /// late without it). The early returns of the shore half skip it, as
     /// they skip the rest of the guy half.
