@@ -387,6 +387,36 @@ fn the_in_danger_latch_is_unit_masks_bit_4() {
     assert_eq!(u32::from_le_bytes(masks_word.try_into().unwrap()) & 4, 0);
 }
 
+/// **`unit_masks & 0x4000000` is walked** (item 4405): the queued explore
+/// `add_move_facing_order@005e55c0:24` sets ([`crate::Unit::explore_queued`],
+/// item 4351) moves the unit's range by that one bit. The 2017 sample's
+/// scout `3/0` on 92 carried it and the emitter dropped it.
+#[test]
+fn the_queued_explore_is_unit_masks_bit_0x4000000() {
+    use crate::world::Pos;
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(60, 60), 2);
+    let u = sim.add_unit(crate::Unit::new(1, 27, Pos::new(480, 480), 10));
+    let before = sim.checksum_units().ranges;
+    sim.units[u].explore_queued = true;
+    let after = sim.checksum_units().ranges;
+    assert_eq!(before.len(), after.len(), "no range is added");
+    let parted: Vec<usize> = (0..before.len())
+        .filter(|&i| before[i].bytes != after[i].bytes)
+        .collect();
+    assert_eq!(parted.len(), 1, "one range moves");
+    let (b, a) = (&before[parted[0]].bytes, &after[parted[0]].bytes);
+    let xor: Vec<(usize, u8)> = b
+        .iter()
+        .zip(a)
+        .enumerate()
+        .filter(|(_, (x, y))| x != y)
+        .map(|(k, (x, y))| (k, x ^ y))
+        .collect();
+    assert_eq!(xor.len(), 1, "one byte moves");
+    assert_eq!(xor[0].1, 0x4, "by bit 0x4 of the word's high byte");
+    assert_eq!(xor[0].0 % 4, 3, "the word's high byte");
+}
+
 #[test]
 fn a_grouped_move_walks_its_group_order_after_the_move() {
     use crate::orders::{GroupMove, MoveKind, QueuePos};

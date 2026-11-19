@@ -524,9 +524,10 @@ pub(in crate::diff) mod tests {
     /// building's `z` off the whole start's ground): builds 0 → 76; and
     /// (the walk's oil left to `compute_all_territory`) leaders 0 → 241.
     /// Item 4405 (`walk_data@004708a0` emits a gather list last point
-    /// first): builds 76 → 525.
+    /// first): builds 76 → 525; and (`unit_masks & 0x4000000`, the queued
+    /// explore, on the word) units 92 → 532.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 92),
+        ("units", 532),
         ("builds", 525),
         ("walls", 21044),
         ("ammo", 3022),
@@ -742,13 +743,10 @@ pub(in crate::diff) mod tests {
     /// first): the person's `city_gather` Farm points on `3/2000` (recording
     /// frame 75) go out reversed, builds `758 2000 gather[k]` 32640|31872,
     /// `761` 33600|34560, `767` 34560|33600, `770` 31872|32640 agree on 76.
-    /// Builds whole over the window.
-    const SAMPLE_RANGES: &[(&str, i64, usize, usize, usize, &str)] = &[(
-        "units",
-        92,
-        1048,
-        1048,
-        1,
-        "439 0 collide_frame..play: unit_masks 8|67108872",
-    )];
+    /// Builds whole over the window. Act 2 (`unit_masks & 0x4000000`,
+    /// `add_move_facing_order`'s queued explore, carried since item 4351 as
+    /// `Unit::explore_queued`, on the word): units `439 0 unit_masks`
+    /// 8|0x4000008 on 92, the person's scout `3/0`, agree. All twelve lines
+    /// whole over the window.
+    const SAMPLE_RANGES: &[(&str, i64, usize, usize, usize, &str)] = &[];
 }
