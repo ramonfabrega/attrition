@@ -828,6 +828,7 @@ garbage line
         source='\n'.join(p.read_text() for p in [
             root/'crates/rondata/src/diff/floors.rs',
             root/'crates/rondata/src/diff/endpoint.rs',
+            root/'crates/rondata/src/diff/held_out.rs',
             root/'crates/rondata/src/census.rs',
             root/'crates/sim/src/docs_guard.rs'])
         for name in gate.COMMANDERS_LINES:
@@ -999,7 +1000,8 @@ garbage line
         root=Path(__file__).resolve().parents[2]
         source='\n'.join(p.read_text() for p in [
             root/'crates/rondata/src/diff/floors.rs',
-            root/'crates/rondata/src/diff/endpoint.rs'])
+            root/'crates/rondata/src/diff/endpoint.rs',
+            root/'crates/rondata/src/diff/held_out.rs'])
         reads=set(re.findall(r'fn (the_handoff_s_\w+)\(\)', source))
         self.assertGreaterEqual(len(reads), 5)
         self.assertEqual(reads - set(gate.COMMANDERS_LINES), set())
