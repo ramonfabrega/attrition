@@ -527,10 +527,12 @@ pub(in crate::diff) mod tests {
     /// first): builds 76 → 525; and (`unit_masks & 0x4000000`, the queued
     /// explore, on the word) units 92 → 532. Item 4412 (`strong`'s four
     /// building lines and its third parties at war are a human target's
-    /// arm, `6bd02a`): leaders 241 → 2112.
+    /// arm, `6bd02a`): leaders 241 → 2112; and (a detector building's
+    /// `SubObjectData::flags & 0x40`, `Object::init`'s `DETECT`) builds 525
+    /// → 3029.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 532),
-        ("builds", 525),
+        ("builds", 3029),
         ("walls", 21044),
         ("ammo", 3022),
         ("deaths", 3365),
@@ -810,16 +812,16 @@ pub(in crate::diff) mod tests {
     /// (`+0x238`) against its teammate 2, ours 32, theirs 0. Act 1
     /// (`Leader::diplomacy`'s `6bd02a`: the four building lines and the
     /// third parties at war count only toward a human target): the leaders
-    /// row agrees; leaders whole over the window.
-    const SAMPLE_RANGES_1697: &[(&str, i64, usize, usize, usize, &str)] = &[
-        (
-            "units",
-            532,
-            1557,
-            1556,
-            586,
-            "905 6 guys.length: +0x0 of 4|1: 01000000|04",
-        ),
-        ("builds", 525, 1260, 1260, 1, "974 2008 flags: flags 1|65"),
-    ];
+    /// row agrees; leaders whole over the window. Act 2 (`Object::init@
+    /// 00647750:39`'s `flags |= 0x40` for a `DETECT` type, a building's as
+    /// a unit's): builds `974 2008 flags` 1|0x41, the person's Lookout
+    /// `3/2008` (`TypeIndex` 107), agrees; builds whole over the window.
+    const SAMPLE_RANGES_1697: &[(&str, i64, usize, usize, usize, &str)] = &[(
+        "units",
+        532,
+        1557,
+        1556,
+        586,
+        "905 6 guys.length: +0x0 of 4|1: 01000000|04",
+    )];
 }
