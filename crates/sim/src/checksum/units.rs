@@ -399,7 +399,10 @@ impl Sim {
     /// `go_around_building` already keep (`docs/MOVEMENT.md`, "The verified
     /// line's lifecycle"). `0x4` is [`crate::Unit::in_danger`],
     /// `Unit::set_in_danger`'s latch (item 4251, run1600's records 27..29). `0x200` is [`crate::Unit::trade_unloaded`]
-    /// (`Unit::do_trade`'s, item 4234). `0x200000` (`Unit::init`'s
+    /// (`Unit::do_trade`'s, item 4234). `0x4000000` is
+    /// [`crate::Unit::explore_queued`], `add_move_facing_order`'s queued
+    /// explore (item 4351; on the word since item 4405, the 2017 sample's
+    /// scout `3/0` on 92). `0x200000` (`Unit::init`'s
     /// `can_carry(AIR)`) is not held.
     fn unit_masks_word(&self, u: usize) -> u32 {
         let un = &self.units[u];
@@ -424,6 +427,7 @@ impl Sim {
             (0x100000, un.half_step),
             (0x800000, un.auto_transport),
             (0x2000000, un.combat.entrenched),
+            (0x4000000, un.explore_queued),
         ];
         bits.iter()
             .filter(|(_, on)| *on)

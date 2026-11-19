@@ -431,9 +431,7 @@ before). The draws part at frame 2888, draw 32.
 
 **Not established:** whether `work`'s arm or the
 think's clear is reached on this file (the move is the conversion's,
-scored by mutation in `docs/journal/2026-11-17-item-4351.md`); ~~the
-playback under the `RON_CHECKSUMS` hook, booked for the item after~~
-(run1662, item 4359).
+scored by mutation in `docs/journal/2026-11-17-item-4351.md`).
 
 **The hook's take and the word 2888 → 3019 (item 4359, 2026-11-18).**
 run1662 plays the sample whole under the `RON_CHECKSUMS` hook (22,077
@@ -455,11 +453,6 @@ arm, run1662's cities line parts on 2888 (ours 3376104779, theirs
 which this crate read as never, though the capital's light blow had
 stamped `raid_stamp` 2887; it reads `CityData +0x18` now
 (`was_city_raided@009fd3e0`): 2908 → 3019.
-
-**Not established:** ~~the parting on 3019, where theirs starts two units'
-steps three frames after `Armies::emergency`, whose two armies are empty
-in our walk~~ (item 4380, below); ~~which field the units line parts on at 92; why four lines
-part on the start by sum~~ (item 4384, below).
 
 **The word 3019 read on run1674's window (item 4380, 2026-11-18).**
 run1674 prints every unit and figure over 3013..3021 (`docs/RUNS.md`).
@@ -512,11 +505,6 @@ leader 2's `oil_patches` order, two buildings' `z` and six `seen2` cells.
 Units' 92 is the explore bit, which item 4351 carried as
 `sim::Unit::explore_queued`, outside the word `checksum/units.rs` builds.
 
-~~**Not established:** the writer of `+0x6929` and its order in
-`build_game`; whether an unseated slot's `team` byte puts it on the
-person's team;~~ answered by item 4388, below. Still open: `oil_patches`,
-`z`, `seen2` and goods' `ever_seen`.
-
 **Item 4388: 24 of the 28 taken** (`SAMPLE_RANGES`; journal
 `docs/journal/2026-11-18-item-4388.md`). *Diff-backed* on run1678's state 0,
 each a mutation that turns the pin red:
@@ -559,9 +547,22 @@ reveal, as guessed) and goods' `ever_seen`.
   `oil_patches` (20, 4, 5, 15)|(5, 4, 20, 15) agrees.
 
 By sum (`SAMPLE_LINES`): goods 1 → 4094, world 0 → 1716, builds 0 → 76,
-leaders 0 → 241. State 0 is whole by range. The next first partings by
-range are builds on 76 (`758 2000 gather[k]` 32640|31872) and units on 92
-(`unit_masks` 0x4000000).
+leaders 0 → 241. State 0 is whole by range.
+
+**Item 4405: the window whole by range.** *Diff-backed* on run1678, each
+by a mutation:
+
+- **Builds on 76**: the person's `city_gather` (recording frame 75, kind
+  0x1a1) lays five Farm points on `3/2000`, appended (`QUEUE_LAST` is 1,
+  `622efe`) in `city_down` order on both sides.
+  `PtrLinkListAbstract<GatherPoint>::walk_data@004708a0` walks from
+  `head_node->prev` by `prev`, last point first: `758 2000 gather[k]`
+  32640|31872 and three more agree. Builds by sum 76 → 525.
+- **Units on 92**: `unit_masks & 0x4000000` (`Unit::explore_queued`,
+  4351's) is on the word: `439 0` 8|0x4000008 agrees. Units 92 → 532.
+
+All twelve agree over 0..100. Next by sum: leaders on 241, past the
+window, a ranges take (run1697 unused).
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
