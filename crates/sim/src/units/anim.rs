@@ -501,6 +501,16 @@ pub struct Turret {
     /// Cleared with `node_flags` in the one 32-bit store; nothing here
     /// reads it.
     pub des_flags: u16,
+    /// `turret_inc` (`+0x40`): **the bits of an `f32`**, carried and never
+    /// computed on (item 4420, `docs/CHECKSUM.md` §23.9). `Guy::clear`
+    /// zeroes it and `Guy::init_real` does not, and its one store of a
+    /// value is `Unit::come_out@00617c10:502`'s 90.0 on a missile's guy 0
+    /// ([`crate::units::come_out_view::MISSILE_FIGURE_90`]). So it outlives
+    /// the missile: the next unit `Unit::init` seats in that object number
+    /// keeps guy 0 (`guy_mark` survives `Object::init`, `:68`–`:74`) and
+    /// with it the word ([`Sim::init_guys`]). `Unit::swap_team` copies it.
+    /// Only the dump and the renderer read it.
+    pub inc: u32,
 }
 
 impl Turret {
@@ -510,6 +520,7 @@ impl Turret {
         des: [0; 4],
         node_flags: 0,
         des_flags: 0,
+        inc: 0,
     };
 
     /// `Guy::process@005e0230:30–56`, one frame: each turret on its
@@ -1221,6 +1232,10 @@ impl Sim {
             first.aim = old.aim;
             first.turret.node_flags = old.turret.node_flags;
             first.turret.des_flags = old.turret.des_flags;
+            // `turret_inc` (`+0x40`) too: `init_real` zeroes `+0x20..+0x3c`
+            // and stops short of it (item 4420). A dead missile's 90.0 is
+            // what run882b's Strategic Bomber `1/50` carries on 6808.
+            first.turret.inc = old.turret.inc;
         }
         self.units[u].guys = guys;
         // `Unit::init@00612100:548`-`549`, which follow the guy loop:
@@ -2887,9 +2902,13 @@ impl Sim {
         // `Guy::move` began from (`Guy::last`) are the walk's, not the
         // clock's: a dumped clock carries neither.
         let (follow, last) = (guys[g].follow, guys[g].last);
+        // `turret_inc` is the walk's as well: no reader parses the dump's
+        // `*((dword*) &turret_inc)` (item 4420).
+        let inc = guys[g].turret.inc;
         guys[g] = Guy {
             follow,
             last,
+            turret: Turret { inc, ..guy.turret },
             ..guy
         };
     }

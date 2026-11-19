@@ -281,7 +281,7 @@ impl Sim {
             put(0x20 + 4 * k, &guy.turret.angles[k].to_le_bytes());
             put(0x30 + 4 * k, &guy.turret.des[k].to_le_bytes());
         }
-        put(0x40, &0u32.to_le_bytes());
+        put(0x40, &guy.turret.inc.to_le_bytes());
         put(0x44, &af_bank.to_le_bytes());
         put(0x48, &af_last_bank.to_le_bytes());
         put(0x4c, &af_pitch.to_le_bytes());
