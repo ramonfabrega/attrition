@@ -20,12 +20,14 @@ DLL's font object behind it, by the PDBs' type records:
   `ArrayBaseMaster::length` is `+4` and `list` `+16`; `mFontHeight`
   `+380`, `mStyle` `+396`, `mPointSize` `+400`;
 - each non-null entry a `CharacterInfo` (`0x7241`): `c` (`wchar_t`)
-  `+16`, `advance` (`char`) `+18`.
+  `+16`, `advance` `+18`, `pix_width` `+19`, `pix_height` `+20`,
+  `abs_a` `+21` (each a `char`; item 4426 added the last three).
 
 The font fills an entry the first time its character is drawn, so a
 packet holds only the characters its game has shown. One line a packet:
-`run map packet_frame height point style`, then `code:advance` for every
-held entry, the code in decimal. The run and map are read off the path
+`run map packet_frame height point style`, then
+`code:advance:pix_width:pix_height:abs_a` for every held entry, the code
+in decimal. The run and map are read off the path
 (`.../<run>/<map>/frame-snapshot.bin`). Packets are the original's
 memory: what this prints stays outside the repository.
 `client::selection::tests::the_plate_s_advances_are_the_packets_font`
@@ -59,7 +61,7 @@ def font(s):
     for p in struct.unpack(f"<{length}I", s.read(cl, 4 * length)):
         if p:
             ci = s.read(p, 24)
-            held.append((struct.unpack_from("<H", ci, 16)[0], struct.unpack_from("<b", ci, 18)[0]))
+            held.append((struct.unpack_from("<H", ci, 16)[0], *struct.unpack_from("<4b", ci, 18)))
     return height, point, style, sorted(held)
 
 
@@ -69,7 +71,7 @@ def main(paths):
         parts = os.path.abspath(path).split(os.sep)
         run, map_dir = parts[-3], parts[-2]
         height, point, style, held = font(s)
-        chars = " ".join(f"{c}:{a}" for c, a in held)
+        chars = " ".join(":".join(map(str, e)) for e in held)
         print(f"{run} {map_dir} {s.frame} {height} {point} {style} {chars}")
 
 
