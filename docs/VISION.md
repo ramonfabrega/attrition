@@ -396,6 +396,19 @@ the outer test is subsumed by the inner one. `Unit::move_step` passes
 arriving on the map gets the **whole disc** — and so does
 `SpellType::cast_transport`'s move of a newborn barge onto the water (§11).
 
+**A unit out of a building lights nothing at its exit** (items 3365 and
+4424). `Unit::come_out@00617c10` stores the spot into `+0x10`/`+0x14`
+before `set_new_location(spot, 1, 1)`, so the half-cell test sees no
+change; the disc stands where `Unit::init` lit it, at the trainer. A
+gather point does not change that. Only the re-seat of a lone captain
+(`619381`, `619c08`, `619f86`) moves it off the exit spot, and its own
+`set_new_location(·, 1, 1)` lights the whole disc when the half-cell
+changes (`Sim::gather_reseat`). *Diff-backed* for the exit: the sample's
+person's type-107 squad, out on 1715 with a gather point, lit nine cells
+round (74, 39) in ours alone (run1710; `SAMPLE_LINES` world 1716 → 2921).
+The re-seat's light is a reading: no capture holds a lone re-seat that
+moves the half-cell (`a_lone_captain_s_gather_re_seat_lights_the_disc_where_it_stands`).
+
 **Every hundredth frame.** `GameDaemon::process_all@00732700` calls
 `update_all_seen` when `frame % 100 == 0x21` — frames 33, 133, 233 — and
 it is the fourth thing that function does, after `process_victory` and
