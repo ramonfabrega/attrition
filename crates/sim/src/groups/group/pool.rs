@@ -691,6 +691,7 @@ impl Sim {
         let (list, st) = self.seat_parts(seat);
         let pool = st.pool;
         let list = list.clone();
+        self.seat_prune_builds(seat);
         for i in (0..list.len()).rev() {
             let u = list[i];
             if !self.units[u].alive() || self.units[u].group_ptr != pool {
@@ -699,6 +700,47 @@ impl Sim {
             }
         }
         self.seat_normalize_tail(seat);
+    }
+
+    /// The prune's building half (`Group::normalize@00711540`, `get_num`):
+    /// a member whose object is no longer in use (`+8 & 1` clear) leaves,
+    /// and the slot arrays shift with it; a live building stays, because
+    /// `Build`'s vslot `+0x20` answers 1 (`Buffer::is_pending_load`'s
+    /// folded `return 1`), so the back-pointer half never reaches it.
+    /// `+0x49` stands ([`GroupState::buildings`]). The 2017 sample's slot
+    /// 193 empties on 926's push this way, where this crate waited for the
+    /// slot's `Groups::process` turn (item 4419).
+    pub(crate) fn seat_prune_builds(&mut self, seat: Seat) {
+        let Seat::Pushed(p) = seat else { return };
+        let base = self.orders.pushed[p].list.len();
+        for i in (0..self.orders.pushed[p].builds.len()).rev() {
+            let b = self.orders.pushed[p].builds[i];
+            if self.buildings[b].alive {
+                continue;
+            }
+            let x = &mut self.orders.pushed[p];
+            x.builds.remove(i);
+            let k = base + i;
+            let st = &mut x.state;
+            if k < st.off.len() {
+                st.off.remove(k);
+            }
+            if k < st.curr.len() {
+                st.curr.remove(k);
+            }
+            if k < st.angles.len() {
+                st.angles.remove(k);
+            }
+        }
+    }
+
+    /// The seat's `num` (`+0xc`): its units and its buildings.
+    fn seat_num(&self, seat: Seat) -> usize {
+        let b = match seat {
+            Seat::Army(..) => 0,
+            Seat::Pushed(p) => self.orders.pushed[p].builds.len(),
+        };
+        self.seat_list(seat).len() + b
     }
 
     /// `Group::normalize@00711540`'s tail on a seated group, after its
@@ -721,14 +763,15 @@ impl Sim {
     /// group 14; A9 row 12): no `normalize`, so its speed pair stands, and
     /// its origin is zeroed.
     pub(super) fn seat_get_num(&mut self, seat: Seat) -> usize {
-        if self.seat_list(seat).is_empty() {
+        if self.seat_num(seat) == 0 {
             let (_, st) = self.seat_parts(seat);
             st.o = Pos::new(0, 0);
             return 0;
         }
-        if self.seat_list(seat).len() < 4 {
+        if self.seat_num(seat) < 4 {
             self.seat_normalize(seat);
         } else {
+            self.seat_prune_builds(seat);
             let list = self.seat_list(seat).clone();
             for i in (0..list.len()).rev() {
                 if !self.units[list[i]].alive() {
@@ -737,7 +780,7 @@ impl Sim {
                 }
             }
         }
-        self.seat_list(seat).len()
+        self.seat_num(seat)
     }
 
     /// `Group::get_num_cap@007145c0` on a seat: an empty group answers zero
@@ -1068,7 +1111,7 @@ impl Sim {
                 .orders
                 .pushed
                 .iter()
-                .any(|x| x.who == who && x.state.pool == Some(s) && !x.builds.is_empty())
+                .any(|x| x.who == who && x.state.pool == Some(s) && x.state.buildings)
     }
 
     /// `Groups::push_group(who, g, 1)` for the one-building group the AI
@@ -1115,7 +1158,10 @@ impl Sim {
         let pool = self.open_slot(who);
         self.orders.last_group[w] = pool;
         let (slot, prev) = self.pool_record(who, pool);
-        let state = GroupState::copied(prev, pool, self.frame, list.len());
+        let state = GroupState {
+            buildings: true,
+            ..GroupState::copied(prev, pool, self.frame, list.len())
+        };
         let entry = crate::groups::group::Pushed {
             who,
             list: Vec::new(),

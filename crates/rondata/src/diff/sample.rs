@@ -530,14 +530,15 @@ pub(in crate::diff) mod tests {
     /// arm, `6bd02a`): leaders 241 → 2112; and (a detector building's
     /// `SubObjectData::flags & 0x40`, `Object::init`'s `DETECT`) builds 525
     /// → 3029. Item 4414 (a `THINK` walks `UnitOrder::walk_data@0047f2b0`'s
-    /// flags byte): units 532 → 2112.
+    /// flags byte): units 532 → 2112. Item 4419 (a dead building leaves its
+    /// group on the next push): groups 927 → 961.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 2112),
         ("builds", 3029),
         ("walls", 21044),
         ("ammo", 3022),
         ("deaths", 3365),
-        ("groups", 927),
+        ("groups", 961),
         ("guys", 2920),
         ("leaders", 2112),
         ("cities", 3176),
@@ -889,7 +890,8 @@ pub(in crate::diff) mod tests {
             1,
             "1 0 rolling..start_roll_angle: +0x7 of 99|99: 44290000|462b0000",
         ),
-        ("groups", 927, 586, 592, 348, "235 193 id..march: num 1|0"),
+        // Item 4419: 927 -> 961 (a dead building leaves on the push).
+        ("groups", 961, 586, 586, 1, "243 195 id..march: form 9|-1"),
         (
             "guys",
             2920,
