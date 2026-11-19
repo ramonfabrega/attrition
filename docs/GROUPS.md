@@ -882,6 +882,17 @@ The last loop slides the whole block so that one member sits at the
 origin, and quantises: `group.off[i] = div_3_table[form.off[i] >> 4]`.
 Two things about it were wrong or missing in every earlier pass.
 
+**The store is inside the walk's member test** (item 4425,
+diff-backed). Both `GroupData` stores (`+0x4c`, `+0x24c`) sit under the
+same active-and-on-map test (vslots `+0x8`, `+0xbc`) as the slide. A
+member that fails it keeps the record's old entry, either the last
+layout's or `Group::add`'s zero. The `Form`'s `memset` zero never reaches
+the record. `compute_form`'s tail negates all `num` entries with no such
+test, so a kept entry is negated too. run1221's army 2 (record 68) laid
+out 36 on 3832 and 27 on 4088, with three squads inside. The original's
+slots 0 to 8 at 4287 are 3832's. This crate wrote zero there until item
+4425, and 23 packets' groups lines turned.
+
 **The anchor is the first member of the *lowest-indexed* non-empty
 category, not the last.** The rank-stack walk's `prev` is written **only
 while it is still negative** — `72cfe2 movl %ecx, %esi` sits on the
