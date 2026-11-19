@@ -1350,8 +1350,10 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// leaders line agrees on 43 more packets and parts on fewer ranges on 24
 /// more, none on more: 104 ranges fewer over 67 rows, all in the leaders
 /// slot.
-/// Item 4397 adds run1381's builds line (`Setup::reinit_game_units`).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 651, 1053);
+/// **653** at item 4397: run1381's builds line (`Setup::reinit_game_units`,
+/// a start building's `z`) and run854's leaders line (`oil_patches`, the
+/// start's walk leaving the oil to `compute_all_territory`).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 653, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -4363,7 +4365,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (1731, 1729, 941) -> (1731, 1729, 939), leaders (271, 271, 7) -> (271, 271, 5).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 5) -> (271, 271, 4).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 4) -> (271, 271, 2).
-    // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
     (
         "run785",
         2178,
@@ -4375,7 +4377,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (28, 28, 4),
             (640, 640, 3),
             (1429, 1429, 1),
-            (271, 271, 2),
+            (271, 271, 1),
             (47, 47, 0),
             (15, 15, 0),
             (330, 330, 0),
@@ -4399,7 +4401,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (2157, 2155, 1258) -> (2157, 2155, 1256), leaders (271, 271, 7) -> (271, 271, 5).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 5) -> (271, 271, 4).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 4) -> (271, 271, 2).
-    // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
     (
         "run789",
         2799,
@@ -4411,7 +4413,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (664, 664, 2),
             (1765, 1765, 1),
-            (271, 271, 2),
+            (271, 271, 1),
             (52, 52, 0),
             (15, 15, 0),
             (330, 330, 0),
@@ -4435,7 +4437,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (2059, 2057, 1181) -> (2059, 2057, 1179), leaders (271, 271, 7) -> (271, 271, 5).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 5) -> (271, 271, 4).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 4) -> (271, 271, 2).
-    // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
     (
         "run795",
         2681,
@@ -4447,7 +4449,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (652, 652, 2),
             (1704, 1704, 1),
-            (271, 271, 2),
+            (271, 271, 1),
             (52, 52, 0),
             (15, 15, 0),
             (330, 330, 0),
@@ -4473,7 +4475,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (2384, 2381, 1399) -> (2384, 2381, 1398), leaders (271, 271, 7) -> (271, 271, 5).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 5) -> (271, 271, 4).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 4) -> (271, 271, 2).
-    // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
     (
         "run810",
         3631,
@@ -4485,7 +4487,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (688, 688, 5),
             (2341, 2341, 11),
-            (271, 271, 2),
+            (271, 271, 1),
             (58, 58, 0),
             (10, 10, 0),
             (330, 330, 0),
@@ -4509,7 +4511,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (2473, 2469, 1531) -> (2473, 2469, 1530), leaders (271, 271, 7) -> (271, 271, 5).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 5) -> (271, 271, 4).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 4) -> (271, 271, 2).
-    // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
     (
         "run823",
         4238,
@@ -4521,7 +4523,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (676, 676, 6),
             (2450, 2450, 11),
-            (271, 271, 2),
+            (271, 271, 1),
             (58, 58, 0),
             (10, 10, 0),
             (330, 330, 0),
@@ -4545,7 +4547,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): builds (2473, 2469, 1531) -> (2473, 2469, 1530), leaders (271, 271, 7) -> (271, 271, 5).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 5) -> (271, 271, 4).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 4) -> (271, 271, 2).
-    // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
     (
         "run825",
         4204,
@@ -4557,7 +4559,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (688, 688, 5),
             (2471, 2471, 10),
-            (271, 271, 2),
+            (271, 271, 1),
             (58, 58, 0),
             (10, 10, 0),
             (330, 330, 0),
@@ -4648,7 +4650,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (5770, 5605, 4899) -> (5770, 5770, 21).
     // Item 4388, `Leader::init`'s row on the unseated slots (`diplos[2..7]` 0|1): leaders (271, 271, 5) -> (271, 271, 3).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 3) -> (271, 271, 1).
-    // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
     (
         "run854",
         3301,
@@ -4660,7 +4662,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (640, 640, 7),
             (1794, 1794, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (36, 36, 0),
             (5, 5, 0),
             (330, 330, 0),
@@ -4687,7 +4689,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (10342, 10179, 7746) -> (10342, 10188, 7833).
     // Item 4388, `Leader::init`'s row on the unseated slots: leaders (271, 271, 5) -> (271, 271, 4).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 4) -> (271, 271, 2).
-    // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
     (
         "run865",
         4859,
@@ -4699,7 +4701,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (28, 28, 7),
             (640, 640, 3),
             (2210, 2210, 1),
-            (271, 271, 2),
+            (271, 271, 1),
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
@@ -4750,7 +4752,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (11125, 10662, 9730) -> (11125, 10809, 9782).
     // Item 4388, `Leader::init`'s row on the unseated slots: leaders (271, 271, 5) -> (271, 271, 4).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 4) -> (271, 271, 2).
-    // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
     (
         "run882b",
         6808,
@@ -4762,7 +4764,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (616, 616, 7),
             (2832, 2832, 26),
-            (271, 271, 2),
+            (271, 271, 1),
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
@@ -4790,7 +4792,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (11180, 10660, 9040) -> (11180, 10807, 10077).
     // Item 4388, `Leader::init`'s row on the unseated slots: leaders (271, 271, 5) -> (271, 271, 4).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 4) -> (271, 271, 2).
-    // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders (271, 271, 4) -> (271, 271, 3).
+    // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
     (
         "run883b",
         6821,
@@ -4802,7 +4804,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (616, 616, 7),
             (2832, 2832, 24),
-            (271, 271, 2),
+            (271, 271, 1),
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
@@ -5300,21 +5302,22 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ("run1484", "aggression cities_built"),
     ("run1487", "aggression cities_built"),
     ("run1496", "aggression cities_built"),
-    ("run785", "oil_patches.elements reg_gatherers"),
-    ("run789", "oil_patches.elements reg_gatherers"),
-    ("run795", "oil_patches.elements reg_gatherers"),
-    ("run810", "oil_patches.elements reg_gatherers"),
-    ("run823", "oil_patches.elements reg_gatherers"),
-    ("run825", "oil_patches.elements reg_gatherers"),
+    ("run785", "reg_gatherers"),
+    ("run789", "reg_gatherers"),
+    ("run795", "reg_gatherers"),
+    ("run810", "reg_gatherers"),
+    ("run823", "reg_gatherers"),
+    ("run825", "reg_gatherers"),
     ("run839", "aggression cities_built flags.leader_flags"),
     ("run842", "aggression cities_built flags.leader_flags"),
     ("run842b", "aggression cities_built flags.leader_flags"),
-    // Item 4388: `diplos` on the unseated slots agrees (`Leader::init`'s row).
-    ("run854", "oil_patches.elements"),
-    ("run865", "oil_patches.elements reg_gatherers"),
+    // Item 4397: `oil_patches.elements` agrees on every pair packet (the
+    // start's walk leaves the oil to `compute_all_territory`), and run854's
+    // leaders line is whole (with 4388's `diplos` and 4400's bits).
+    ("run865", "reg_gatherers"),
     ("run870", "aggression cities_built flags.leader_flags"),
-    ("run882b", "oil_patches.elements reg_gatherers"),
-    ("run883b", "oil_patches.elements reg_gatherers"),
+    ("run882b", "reg_gatherers"),
+    ("run883b", "reg_gatherers"),
     ("run938b", "aggression cities_built flags.leader_flags"),
 ];
 
