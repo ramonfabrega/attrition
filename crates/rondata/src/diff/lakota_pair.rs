@@ -506,7 +506,7 @@ fn run861_s_word_frame_is_widened_whole() {
     // Item 4177: 99 -> 103, +4 firsts, the combat rates' own: who=0 `average_damage_rate` 4853 ours 702 theirs 445; who=0 `damage_fifteen_seconds` 4853 ours 21 theirs 22; who=1 `average_hit_rate` 4853 ours 702 theirs 445; who=1 `hits_fifteen_seconds` 4853 ours 21 theirs 22 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 104 -> 99, item 4177's four combat-rate firsts on 4853 agree, and `score` (4177a; docs/LEADERS.md §18.5).
     // Item 4159's third residue: 99 -> 97, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
-    pin_eq!(w.firsts.len(), 97, "initial run861 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    pin_eq!(w.firsts.len(), 96, "initial run861 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
     // Item 3333: who=1's `bucket` timber 7707/7282 and metal 6422/5997,
     // standing from 4853, close with an Oil Platform priced by the Oil Wells
     // (`docs/AI.md` §270).

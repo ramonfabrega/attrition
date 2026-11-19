@@ -2636,8 +2636,34 @@ on one range fewer on 7 packets, the guys line on fewer on run1164 (3 → 1) and
 305): `turret_inc` theirs `0x42b40000`, ours `0` → `0x42b40000`. The ICBM `1/50` left it on 4541, and the
 bomber took the number on 4859. Byte 58 is the first parting on no line now (15 before). **Not established**:
 a seated figure's word (no reader parses the dump's `*((dword*) &turret_inc)`, so a stand-up starts at 0);
-guys past 0, which no store reaches. **The next leaf is `z`** (byte 12, the first parting on 8 lines): run1359
-f5619 record 36, ours `00` theirs `7d`.
+guys past 0, which no store reaches. ~~**The next leaf is `z`** (byte 12, the first parting on 8 lines): run1359
+f5619 record 36, ours `00` theirs `7d`.~~ Answered by item 4428, below.
+
+**An aircraft's `z` is its number's dead occupant's, and the ground coming out** (item 4428, diff-backed). The 7
+lines' first ranges are all figure 0 of a unit inside something, `last` equal to `x`, `y`, `z`: three planes in
+an airport (run1359's Biplane `1/36`, TI 287, theirs 637; run1164's Mustang `1/140`, TI 294, 398; run1351's
+Albatross `1/41`, TI 288, 426), a `NUCLEARMISSILE` (315) in its silo (run1420 `1/36`, 32), each ours 0; and two
+foot units aboard a transport (below). `Guy::set_new_location@005d86f0`'s domain-2 arm (`:40`) writes `z` only for
+a helicopter, and then as a climb from the `z` there. `Unit::init@00612100` writes none, so a fixed-wing figure
+born inside keeps the `z` its object number's dead occupant left, as `turret_inc` is kept above. Run on the packets'
+own walks, each heir's predecessor names theirs' value: the Biplane's is a Citizen (TI 137) dead on ground 637, the
+Albatross's a TI 216 on 426, the missile's a TI 140 on 32. The Mustang's is a nuclear missile, and its 398 is the
+second half: `Unit::come_out@00617c10`'s tail (`6186c1`..) runs `Guy::update_z` on an air type's figure 0 (`z` the
+ground at the spot), and a helicopter then stores `z + 500` in `z` and `last_z`. Ours put the missile out at 0, so
+it flew from 0 to 2; from the silo's ground 396 it reaches 398. In ours: `Sim::init_guys` copies the dead
+occupant's figure-0 `z` (`Sim::guy_z`) into an air type's `airframe.z` and `last_z`, ahead of the helicopter's
+birth climb; `Sim::come_out_place` writes the ground (a fixed-wing figure's `last_z` the `z` before,
+`set_new_location`'s `param_3` copy). **5 guys lines turn, none grow** (`PACKETS_SCORE` 743 → 748): run1164,
+run1359, run1359b, run1359c, run1420; run1351's guys line parts on 2 → 1 and its units line, with 5 others, on one
+range fewer. Value diff, run1359 frame 5619 record 36 (`1/36`, Biplane, TI 287): `z` theirs 637, ours 0 → 637;
+`last_z` the same. The read under `come_out` touches inexact corners on the airbase melee's walks (6 rows of
+`GROUND_INEXACT`, one to two each). **Not established**: a helicopter's inherited start (no packet holds one born
+over a reused number); an aircraft whose dead occupant's ground changed after its death (ours reads the ground
+now). **The transport's passengers** (run1320b f5066 `1/23`, Fusilier TI 136, theirs 314 ours 242; run1264b f4919
+`1/63`, Bowmen TI 170, theirs 81 ours 73) keep the `z` of their last move, which ours recomputes from today's
+ground: under the boarding point it read 314 and 81 on the boarding frames (3769, 4104) and has changed since.
+Parked as 4428a. **The next leaf is byte 26** (`last_angle`'s third byte, the first parting on 4 lines, run1351 f4303
+record 48 ours `33` theirs `39`), then `z` on the 2 passengers.
 
 ## 24. Step H: the fifteen, every frame (item 4214)
 
