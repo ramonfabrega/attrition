@@ -563,7 +563,7 @@ on its ranges, each by a mutation:
   out. → 2112.
 
 run1710 holds every first parting to 3,100 (`SAMPLE_RANGES_1710`).
-Next: groups on 927, the person's slot 193 `num` 1|0 (4414's journal).
+Item 4419: groups 927 → 2888 (its journal). Next: groups on 2888, slot 256's `stamp`.
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 

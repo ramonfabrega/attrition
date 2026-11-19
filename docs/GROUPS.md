@@ -404,6 +404,13 @@ to the back-pointer cull and a plain building is not. Then `find_role` (the
 OR of the members' `type.role`) and `speed = new_speed = the leader's
 speed`.
 
+A building member is still dropped by the first half: a deleted building's
+object is no longer valid. The `+0x49` byte stays set, so a building group
+emptied this way is a record of `num` 0 with its byte set. *Diff-backed*
+(item 4419): the 2017 sample's slot 193 holds the person's Lookout
+`3/2008` (deleted on 915) and reads `num` 0 on 927 after 926's push. Ours
+pruned `builds` only on the slot's `Groups::process` turn.
+
 `get_num_cap` is the same backwards walk, dropping only invalid objects,
 and counts the members for which `is_captain` holds — `docs/ARMY.md` §3.3's
 `num_captains`. It calls `normalize` first only when `num < 4 && id >= 0`.
