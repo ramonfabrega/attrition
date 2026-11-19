@@ -278,8 +278,10 @@ fn corpse_melee_s_leaders_are_compared_on_every_seat() {
         "leader records compared, by seat"
     );
     pin_eq!(w.standing(), vec![12, 9, 7], "standing keys, by seat");
-    // Item 3971: 176. Item 3975, the game closed: 1.
-    pin_eq!(w.rest().len(), 1, "the keys that part, by seat");
+    // Item 3971: 176. Item 3975, the game closed: 1. Item 4412 (`strong`'s
+    // lines and war count a human target's arm): 0, `who=1 strong[2]` on
+    // 2601 ours 608, theirs 576, agrees.
+    pin_eq!(w.rest().len(), 0, "the keys that part, by seat");
 }
 
 /// **The melee's closing state** (item 3971): run1542's closing block, the
