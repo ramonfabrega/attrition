@@ -572,7 +572,7 @@ class Width(unittest.TestCase):
         seen = {}
         class Child:
             returncode = 0
-            def __init__(self, command, stdout, stderr, env):
+            def __init__(self, command, stdout, stderr, env, cwd=None):
                 seen.update(command=command, env=env)
             def __enter__(self):
                 return self
