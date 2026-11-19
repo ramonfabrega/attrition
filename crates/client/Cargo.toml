@@ -6,6 +6,8 @@ license.workspace = true
 description = "The first pixels: a window over the free runner's scene (docs/RENDERER.md §3.6)"
 
 [dependencies]
+# The plate's glyphs, rasterised from the install's own face (item 4426).
+ab_glyph = "0.2.32"
 render = { path = "../render" }
 rondata = { path = "../rondata" }
 sim = { path = "../sim" }

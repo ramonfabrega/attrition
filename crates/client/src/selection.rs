@@ -411,6 +411,9 @@ pub fn bars(
 /// between any two (`PLATE_FONT_PACKETS`, item 4423). A name with any other
 /// character (`X`, `Z`, anything past ASCII) has no width here, and no
 /// plate is drawn for it rather than one guessed (`docs/HUD.md` §6).
+/// Since item 4426 the client takes every advance from the face itself
+/// ([`PlateFace::advance`]); this table stays as the packets' witness.
+#[cfg(test)]
 pub const PLATE_ADVANCES: [(char, i32); 77] = [
     (' ', 4),
     ('!', 5),
@@ -492,6 +495,7 @@ pub const PLATE_ADVANCES: [(char, i32); 77] = [
 ];
 
 /// One character's advance in the plate's font ([`PLATE_ADVANCES`]).
+#[cfg(test)]
 pub fn plate_advance(c: char) -> Option<i32> {
     PLATE_ADVANCES
         .binary_search_by_key(&c, |&(k, _)| k)
@@ -501,8 +505,135 @@ pub fn plate_advance(c: char) -> Option<i32> {
 
 /// The name's `text_width` in the plate's font, or `None` when a
 /// character's advance is not held ([`PLATE_ADVANCES`]).
+#[cfg(test)]
 pub fn plate_text_width(name: &str) -> Option<i32> {
     name.chars().map(plate_advance).sum()
+}
+
+/// **The plate's face** (item 4426): `Data/Fonts/georgiab.ttf`, the file
+/// whose `FT_Face` the plate's `D3D11GLFont` holds (`mSGLTexFont`'s
+/// `m_fontFace`: family `Georgia`, style `Bold`, on every packet).
+pub const PLATE_FACE_FILE: &str = "georgiab.ttf";
+
+/// The face's size: `mPointSize` 14, set as pixels per em.
+pub const PLATE_PPEM: i32 = 14;
+
+/// The cell's baseline row: `mAscent` 13. `render_pendings` copies a
+/// glyph's bitmap into its atlas cell at row `ascent − bitmap_top`.
+pub const PLATE_ASCENT: i32 = 13;
+
+/// One glyph's atlas cell, as `FontRenderManager::render_pendings` fills
+/// it: `w` columns (`CharacterInfo::pix_width`, the bitmap's width) by
+/// [`PLATE_FONT_HEIGHT`] rows, the coverage one byte a texel, the top row
+/// first.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct GlyphCell {
+    pub w: usize,
+    pub cover: Vec<u8>,
+}
+
+/// **The plate's glyphs, off the install's face** (item 4426). The
+/// renderer DLL rasterises each character with its own FreeType
+/// (`FT::FontFace::RenderGlyph`: `FT_Load_Glyph(face, index, 0)`, then
+/// `FT_Render_Glyph(slot, 0)`, the 8-bit coverage), copies the bitmap into
+/// a 256 × 256 atlas cell at the cell's left column (the bitmap's
+/// `bitmap_left` is not applied) and row [`PLATE_ASCENT`] − `bitmap_top`,
+/// and `D3D11GLFont::add_character` lays the cell's quad at the pen
+/// (`abs_a` 0 on every packet) for `pix_width` × 16 pixels. The atlas
+/// itself is the GPU's and no packet holds it, so the cells are
+/// rasterised here from the same file, unhinted (`ab_glyph`), where the
+/// DLL's FreeType hints by default (`docs/HUD.md` §6). Each advance is
+/// the glyph's linear advance at [`PLATE_PPEM`], rounded: the packets'
+/// 77 characters agree on all 9,849 entries.
+#[derive(Clone)]
+pub struct PlateFace {
+    font: std::sync::Arc<ab_glyph::FontVec>,
+}
+
+impl std::fmt::Debug for PlateFace {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PlateFace")
+    }
+}
+
+impl PlateFace {
+    pub fn load(root: &std::path::Path) -> Result<PlateFace, String> {
+        use ab_glyph::Font;
+        let path = root.join("Data").join("Fonts").join(PLATE_FACE_FILE);
+        let bytes = std::fs::read(&path).map_err(|e| format!("{PLATE_FACE_FILE}: {e}"))?;
+        let font = ab_glyph::FontVec::try_from_vec(bytes)
+            .map_err(|e| format!("{PLATE_FACE_FILE}: {e}"))?;
+        let face = PlateFace {
+            font: std::sync::Arc::new(font),
+        };
+        let upm = face.font.units_per_em().ok_or("the face has no em")?;
+        // Rounded, as the packet's `mAscent` 13 and `mDescent` −3 are
+        // (12.84 and 3.07 pixels: a ceiling would make the font 17 high).
+        let px = |u: f32| (u * PLATE_PPEM as f32 / upm).round() as i32;
+        let (ascent, descent) = (
+            px(face.font.ascent_unscaled()),
+            px(-face.font.descent_unscaled()),
+        );
+        if (ascent, ascent + descent) != (PLATE_ASCENT, PLATE_FONT_HEIGHT) {
+            return Err(format!(
+                "{PLATE_FACE_FILE}: ascent {ascent}, height {}, the packet's {PLATE_ASCENT} and {PLATE_FONT_HEIGHT}",
+                ascent + descent
+            ));
+        }
+        Ok(face)
+    }
+
+    fn glyph(&self, c: char) -> Option<ab_glyph::GlyphId> {
+        use ab_glyph::Font;
+        let id = self.font.glyph_id(c);
+        (id.0 != 0).then_some(id)
+    }
+
+    fn scale(&self) -> ab_glyph::PxScale {
+        use ab_glyph::Font;
+        let upm = self.font.units_per_em().unwrap_or(1.0);
+        ab_glyph::PxScale::from(PLATE_PPEM as f32 * self.font.height_unscaled() / upm)
+    }
+
+    /// One character's advance: its linear advance at [`PLATE_PPEM`],
+    /// rounded, or `None` when the face has no glyph for it.
+    pub fn advance(&self, c: char) -> Option<i32> {
+        use ab_glyph::Font;
+        let id = self.glyph(c)?;
+        let upm = self.font.units_per_em()?;
+        Some((self.font.h_advance_unscaled(id) * PLATE_PPEM as f32 / upm).round() as i32)
+    }
+
+    /// The name's `text_width`, or `None` when the face lacks a glyph.
+    pub fn text_width(&self, name: &str) -> Option<i32> {
+        name.chars().map(|c| self.advance(c)).sum()
+    }
+
+    /// One character's atlas cell ([`GlyphCell`]); a glyph with no
+    /// outline (the space) is a cell 0 wide.
+    pub fn cell(&self, c: char) -> Option<GlyphCell> {
+        use ab_glyph::Font;
+        let id = self.glyph(c)?;
+        let glyph =
+            id.with_scale_and_position(self.scale(), ab_glyph::point(0.0, PLATE_ASCENT as f32));
+        let Some(outline) = self.font.outline_glyph(glyph) else {
+            return Some(GlyphCell {
+                w: 0,
+                cover: Vec::new(),
+            });
+        };
+        let b = outline.px_bounds();
+        let (w, top) = ((b.max.x - b.min.x) as usize, b.min.y as i32);
+        let h = PLATE_FONT_HEIGHT as usize;
+        let mut cover = vec![0u8; w * h];
+        outline.draw(|x, y, v| {
+            let row = top + y as i32;
+            if (0..PLATE_FONT_HEIGHT).contains(&row) && (x as usize) < w {
+                cover[row as usize * w + x as usize] = (v.clamp(0.0, 1.0) * 255.0).round() as u8;
+            }
+        });
+        Some(GlyphCell { w, cover })
+    }
 }
 
 /// One rectangle of interface texels, RGBA8, the top row first.
@@ -553,6 +684,7 @@ impl Texels {
 pub struct ScrollArt {
     pub parts: Vec<Texels>,
     pub star: Texels,
+    pub face: PlateFace,
 }
 
 /// `name="value"` of one tag, the value trimmed.
@@ -646,7 +778,11 @@ impl ScrollArt {
         }
         let star = Texels::crop(&texture("TEX_COMMON")?, (l, t, w, h))
             .ok_or("the star lies off TEX_COMMON")?;
-        Ok(ScrollArt { parts, star })
+        Ok(ScrollArt {
+            parts,
+            star,
+            face: PlateFace::load(root)?,
+        })
     }
 }
 
@@ -702,8 +838,9 @@ fn layers_of(
 /// Over it, a capital's star at the pads' inner corner, its texels times
 /// the owner's `TeamColor::get_unit` (`add_smooth`'s colour); then the
 /// name, at the text's rectangle past the star and 3 rows down, each
-/// character at its advance. The glyphs are not the font's: the overlay's
-/// 5 × 7 stands in, white, on the font's height (`docs/HUD.md` §6).
+/// character's [`GlyphCell`] at the pen in [`PLATE_INK`], its coverage
+/// the alpha, the pen moved by the advance (item 4426: before it, the
+/// overlay's 5 × 7 stood in).
 pub fn plate_layers(
     art: &ScrollArt,
     size: (i32, i32),
@@ -753,30 +890,48 @@ pub fn plate_layers(
     } else {
         (sx, sy)
     };
-    let mut p = crate::overlay::Painter::new(size);
-    let mut x = tx;
-    for c in name.chars() {
-        p.text(
-            x,
-            ty + (PLATE_FONT_HEIGHT - 7) / 2,
-            &c.to_string(),
-            1,
-            PLATE_INK,
-        );
-        x += plate_advance(c).unwrap_or(0);
+    let cells: Vec<(i32, GlyphCell)> = name
+        .chars()
+        .scan(tx, |x, c| {
+            let at = *x;
+            *x += art.face.advance(c).unwrap_or(0);
+            Some(art.face.cell(c).map(|cell| (at, cell)))
+        })
+        .flatten()
+        .collect();
+    let right = cells
+        .iter()
+        .map(|(at, c)| at + c.w as i32)
+        .max()
+        .unwrap_or(tx);
+    let (cw, chh) = ((right - tx).max(0) as usize, PLATE_FONT_HEIGHT as usize);
+    // Each quad blends over the last: coverage composes as alphas do.
+    let mut cover = vec![0u16; cw * chh];
+    for (at, cell) in &cells {
+        for v in 0..chh {
+            for u in 0..cell.w {
+                let a = u16::from(cell.cover[v * cell.w + u]);
+                let k = v * cw + (at - tx) as usize + u;
+                cover[k] = cover[k] + a - cover[k] * a / 255;
+            }
+        }
     }
-    out.push(crate::gpu::ScreenLayer {
-        alpha: 255,
-        pos: p.pos,
-        col: p.col,
-    });
+    let ink = PLATE_INK.map(|v| (v * 255.0) as u8);
+    out.extend(layers_of(
+        size,
+        (tx, right, ty, ty + PLATE_FONT_HEIGHT),
+        |x, y| {
+            let a = cover[(y - ty) as usize * cw + (x - tx) as usize] as u8;
+            Some([ink[0], ink[1], ink[2], a])
+        },
+    ));
     out
 }
 
 /// **The plates of the scene** (item 4410): `BuildOut::draw_overlays
 /// @0062cb30`'s, for every finished city centre (`flags & 4`, `& 0x20`)
 /// the viewer sees, selected or not, whose name `name_of(city)` gives and
-/// whose width [`plate_text_width`] holds. The capital's bit is the city
+/// whose width [`PlateFace::text_width`] holds. The capital's bit is the city
 /// record's (`CityData +4 & 0x10`). `player_profile.prefs & 0x40000` is
 /// taken as set, the default the photographs show.
 pub fn plates(
@@ -813,7 +968,7 @@ pub fn plates(
             continue;
         };
         let Some(name) = name_of(c) else { continue };
-        let Some(text_w) = plate_text_width(&name) else {
+        let Some(text_w) = art.face.text_width(&name) else {
             continue;
         };
         let capital = sim.cities.cities.get(c).is_some_and(|k| k.capital);
@@ -1092,6 +1247,15 @@ mod tests {
         rgba[i * 4..i * 4 + 3].iter().all(|&c| i32::from(c) < DARK)
     }
 
+    /// The plate's name reads where every channel is over [`LIGHT`]: the
+    /// white ink on the dark body, which the photograph's translucent
+    /// "Reduced!" banner leaves bare in places (item 4426).
+    const LIGHT: i32 = 150;
+
+    fn light(rgba: &[u8], i: usize) -> bool {
+        rgba[i * 4..i * 4 + 3].iter().all(|&c| i32::from(c) > LIGHT)
+    }
+
     /// The plate's footprint, its rectangle moved `d` pixels. It is not
     /// masked by [`INTERFACE`], whose "city's label" rectangle is this
     /// plate, taken out by eye for the scene's rows.
@@ -1134,9 +1298,15 @@ mod tests {
     /// the first arm's footprint, `[ours dark, both dark]` on the
     /// client's still: the half the drawing moves. Item 4410 drew the
     /// plate ([`plate_layers`]): `[0, 0]` → `[1742, 1251]`; drawn 89 px
-    /// east, the pin failed.
-    pub const RUN1559B_3279_PLATE: ([[usize; 2]; 3], [usize; 2]) =
-        ([[2670, 1285], [2670, 0], [1608, 1018]], [1742, 1251]);
+    /// east, the pin failed. Then `[theirs light, ours light, both
+    /// light]`, the name's white ink (item 4426): the overlay's 5 × 7
+    /// lit 9 of the photograph's 53; the face's glyphs ([`PlateFace`])
+    /// light 47 (and the dark half `[1742, 1251]` → `[1537, 1233]`).
+    pub const RUN1559B_3279_PLATE: ([[usize; 2]; 3], [usize; 2], [usize; 3]) = (
+        [[2670, 1285], [2670, 0], [1608, 1018]],
+        [1537, 1233],
+        [53, 192, 47],
+    );
 
     #[test]
     fn the_capital_s_plate_on_run1559b() {
@@ -1200,7 +1370,13 @@ mod tests {
         let both = (0..first.len())
             .filter(|&i| on(i) && dark(&p.photo.rgba, i))
             .count();
-        let got = (got, [mine, both]);
+        let lit = |rgba: &[u8], i: usize| first[i] && light(rgba, i);
+        let theirs_lit = (0..first.len()).filter(|&i| lit(&p.photo.rgba, i)).count();
+        let ours_lit = (0..first.len()).filter(|&i| lit(&ours, i)).count();
+        let both_lit = (0..first.len())
+            .filter(|&i| lit(&ours, i) && lit(&p.photo.rgba, i))
+            .count();
+        let got = (got, [mine, both], [theirs_lit, ours_lit, both_lit]);
         println!("RUN1559B_3279_PLATE: {got:?}");
         assert_eq!(got, RUN1559B_3279_PLATE);
     }
@@ -1316,21 +1492,22 @@ mod tests {
     }
 
     /// One packet's line: `run map`, `[height, point, style]`, and each
-    /// held `(code, advance)`.
-    type PacketFont = (String, [i32; 3], Vec<(u32, i32)>);
+    /// held `(code, advance, [pix_width, pix_height, abs_a])`, the last
+    /// `None` on a file written before item 4426.
+    type PacketFont = (String, [i32; 3], Vec<(u32, i32, Option<[i32; 3]>)>);
 
     /// The packets' plate font (`tools/render/plate_font_packet.py` over
     /// every `frame-snapshot.bin` under `~/ron-golden` and `~/ron-data`):
     /// per line `run map packet_frame height point style` and then
-    /// `code:advance` for each character the font holds, at
-    /// `$RON_PLATE_FONT` or item 4423's file.
+    /// `code:advance:pix_width:pix_height:abs_a` for each character the
+    /// font holds, at `$RON_PLATE_FONT` or item 4426's file.
     fn packet_fonts() -> Option<Vec<PacketFont>> {
         let path = std::env::var_os("RON_PLATE_FONT")
             .map(std::path::PathBuf::from)
             .or_else(|| {
                 std::env::var_os("HOME").map(|h| {
                     std::path::PathBuf::from(h)
-                        .join("ron-data/lab-experiments/2026-11-19-item-4423/plate-font.txt")
+                        .join("ron-data/lab-experiments/2026-11-19-item-4426/plate-font.txt")
                 })
             })?;
         let Ok(text) = std::fs::read_to_string(&path) else {
@@ -1345,8 +1522,10 @@ mod tests {
                     let held = f[6..]
                         .iter()
                         .map(|e| {
-                            let (c, a) = e.split_once(':').expect("code:advance");
-                            (c.parse().expect("a code"), a.parse().expect("an advance"))
+                            let v: Vec<i32> =
+                                e.split(':').map(|x| x.parse().expect("a number")).collect();
+                            let cell = (v.len() == 5).then(|| [v[2], v[3], v[4]]);
+                            (v[0] as u32, v[1], cell)
                         })
                         .collect();
                     (format!("{} {}", f[0], f[1]), [n(3), n(4), n(5)], held)
@@ -1378,7 +1557,7 @@ mod tests {
                 [PLATE_FONT_HEIGHT, 14, 1],
                 "{run}: the plate's font is height 16, point 14, style 1"
             );
-            for &(c, a) in chars {
+            for &(c, a, _) in chars {
                 let c = char::from_u32(c).expect("a character");
                 held += 1;
                 seen.insert(c);
@@ -1400,5 +1579,57 @@ mod tests {
         // London: 10 + 9 + 10 + 9 + 9 + 10.
         assert_eq!(plate_text_width("London"), Some(57));
         assert_eq!(plate_text_width("Zela"), None);
+    }
+
+    /// **`PLATE_FACE_PACKETS`** (item 4426): [`PlateFace`] off the
+    /// install's `georgiab.ttf` against the plate's `D3D11GLFont` on every
+    /// packet, as `[advances agreeing, cells agreeing, entries held,
+    /// packets]`. A cell agrees when its width is the entry's `pix_width`,
+    /// and the entry's `pix_height` is 16 and its `abs_a` 0. Made to fail:
+    /// the advance truncated rather than rounded, 5,322 of 9,849 agree.
+    pub const PLATE_FACE_PACKETS: [usize; 4] = [9849, 9849, 9849, 144];
+
+    #[test]
+    fn the_plate_s_face_is_the_packets_font() {
+        let Some(root) = std::env::var_os("RON_INSTALL").map(std::path::PathBuf::from) else {
+            println!("skipping: no RON_INSTALL for the plate's face");
+            return;
+        };
+        let Some(packets) = packet_fonts() else {
+            return;
+        };
+        let face = PlateFace::load(&root).expect("the plate's face loads");
+        let (mut adv, mut cells, mut held) = (0, 0, 0);
+        for (run, _, chars) in &packets {
+            for &(c, a, cell) in chars {
+                let ch = char::from_u32(c).expect("a character");
+                let [pw, ph, abs_a] = cell.expect("the file holds each entry's cell");
+                held += 1;
+                if face.advance(ch) == Some(a) {
+                    adv += 1;
+                } else {
+                    println!(
+                        "{run}: {ch:?} advance theirs {a}, ours {:?}",
+                        face.advance(ch)
+                    );
+                }
+                let w = face.cell(ch).map(|g| g.w as i32);
+                if w == Some(pw) && ph == PLATE_FONT_HEIGHT && abs_a == 0 {
+                    cells += 1;
+                } else {
+                    println!("{run}: {ch:?} cell theirs {pw}x{ph}+{abs_a}, ours {w:?}");
+                }
+            }
+        }
+        let got = [adv, cells, held, packets.len()];
+        println!("PLATE_FACE_PACKETS: {got:?}");
+        assert_eq!(got, PLATE_FACE_PACKETS);
+        // The table's 77 are the face's; X and Z, which no packet holds,
+        // take the face's own (the derivation, not a reading).
+        for &(c, a) in &PLATE_ADVANCES {
+            assert_eq!(face.advance(c), Some(a), "{c:?}");
+        }
+        assert_eq!(face.text_width("Napata"), Some(51));
+        assert!(face.text_width("Zela").is_some());
     }
 }
