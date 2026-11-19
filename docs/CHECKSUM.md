@@ -2546,6 +2546,28 @@ Program built between two technology gains raises ours a gain early. No packet h
 arm of `is_jammed` still finds no enemy special over the unit (`air.rs`, its SEAM). After the build,
 the commonest first leaf is the guys line's `guy` range: 50 of the 402 lines that still part.
 
+## 23.9 The guys line's `last_z` on a foot squad (item 4402, first act)
+
+The census after item 4400, taken on one thread with `--nocapture`: the guys line parts on 54 counted lines,
+and the `guy` range is the first parting on 53. By byte of the range: 104 (`last_z`, `+0x70`) on 21 lines,
+all East Indies; 108 (`cur_time`) on 15; 58 (`turret_inc`'s byte 2) on 7; 12 (`z`) on 6. **165 ranges part
+on `last_z` alone**, with `x`, `y`, `z`, `last_x` and `last_y` agreeing. Every one is figure 0 of a foot
+squad (Crossbowmen, TOW, Fusiliers, Mech Infantry, Phalanx, Riflemen, Hoplites, Marines and others).
+**On all 165, theirs' `last_z` is theirs' own current `z`**, with `last` one step back. Ours is the ground
+under `last` (`Sim::guy_z`), which a single figure keeps: moving Citizens show `last_z ≠ z` in theirs. Value
+diff, `x, y, z, last_x, last_y, last_z`: run1325c frame 5578 record 41 (Marines), theirs 29516, 40222, 2,
+29544, 40233, **2**, ours **4**; run1169 frame 3769 record 22 (Riflemen), theirs …, −23, …, **−23**, ours
+**−20**.
+
+**Not established: the writer.** `Guy::move@005d9240`'s head copies `z` to `last_z`, and figure 0's
+`set_new_location(des, 0)` writes `z` at the new point. Read that way, `last_z` is the ground under `last`.
+None of `+0x70`'s writers (`Guy::move`, `Guy::set_new_location`, `Guy::set_new_z`, `Guy::clear`), nor
+`Unit::set_new_location`, `Unit::update_z` or `Guy::process`, writes a squad's figure 0 differently. The
+next act is a packet watch on run1169's Rifleman (`step4.py --watch` of `+0x14` and `+0x70`). Emitting
+`last_z = z` on a squad's figure 0 is predicted to turn 12 lines. It is not built without its writer. Also
+open: `turret_inc` nonzero on some figure in theirs (byte 58, 7 lines; parked 4402a), against §16's
+`0x00000000` on every figure of two frames.
+
 ## 24. Step H: the fifteen, every frame (item 4214)
 
 `DECISIONS.md` entry 132 §7, §10. `CheckSums::check_all@00936560` runs on every turn and prints only inside a dump
