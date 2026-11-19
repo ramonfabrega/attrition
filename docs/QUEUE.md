@@ -49,7 +49,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5): the pass designed five; out: the chain's builder on 4413 (parity held out; the game lane), the suite seat's 4422 (a group's `form`, the sample's next word and the packets' commonest parting: 4417's census and 4419's groups 927 → 961 met on it), the third seat's 4421 (the band, then the plate's font; 4418 ported the founding name, `CITY_NAMES_SCORE` 0 → 521 of 521), and the render seat's 4420 (`turret_inc`, then `z`; 4415 turned 7 guys lines, 690 → 697).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5): the pass designed five; out: the chain's builder on 4413 (parity held out; the game lane), the suite seat's 4422 (a group's `form`, the sample's next word and the packets' commonest parting: 4417's census and 4419's groups 927 → 961 met on it), the third seat's 4423 (the plate's font; 4421 textured the band, ours' red off theirs 728 → 95), and the render seat's 4420 (`turret_inc`, then `z`; 4415 turned 7 guys lines, 690 → 697).
 
 4413. **Parity held out: eight lobbies named before the original plays them** (a rules item, whole; the chain's, unspawned;
 `docs/RECGAME.md` §10; DECISIONS 144 §2). The seven games of parity's set were scored and then joined; this line is declared first. The
@@ -59,11 +59,12 @@ idle, 6,000 frames. First act: the eight named in a pinned table before any take
 pinned as found and never re-pinned in place; a fix moves a second column. It stops when the original refuses a file the client
 recorded on a lobby, and says which section it refused.
 
-4421. **The selected city's band, then the plate's font** (a `render` item, scoped; the third seat's, unspawned; `docs/HUD.md` §3, §6;
-DECISIONS 144 §5). 4418 ported `City::generate_name@00735c90`: `CITY_NAMES_SCORE` 0 → 521 of 521 live cities on 107 packets, and
-`RUN1559B_3279_PLATE` unchanged at [1742, 1251], now drawn from the sim's name. First act: the band, ours 2,132 red on theirs' 1,477 on
-`RUN1559B_3279_SELECTED`, wider and further out (parked 4401a): read where theirs is drawn before changing ours. Then a plate for London
-and the other names, which wants the font's advances past N, a, p and t. It stops when two acts move neither row.
+4423. **The plate's font: London's advances** (a `render` item, scoped; the third seat's, unspawned; `docs/HUD.md` §3, §6). 4418 ported
+the founding name (`CITY_NAMES_SCORE` 0 → 521 of 521) and 4421 textured the selected city's band through `city_radius.tga`
+(`circle_textures[0]`, run1566b's card draw 115): `RUN1559B_3279_SELECTED`'s selected half, ours red 2,132 → 1,395 on theirs' 1,477,
+ours' red off theirs 728 → 95; parked 4401a was mistaken (+0x1784 is `set_poly_count_type("Effects")`), parked 4421a (theirs a shade
+stronger, 177 pixels). The plate draws only names whose glyphs the client holds (N, a, p, t). First act: the advances of the
+`D3D11GLFont` on a packet's heap, then a plate for London. It stops when two acts move no row.
 
 4420. **The packets' guys line: `turret_inc`, then `z`** (a rules item, whole; the render seat's, unspawned; CHECKSUM §23).
 4415 turned 7 guys lines, `PACKETS_SCORE` 690 → 697 of 1,053 (`cur_time`: the oil-well stand's missing `Unit::set_new_location`
