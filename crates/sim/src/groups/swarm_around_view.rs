@@ -503,32 +503,7 @@ impl SwarmView for SimSwarm<'_> {
     // `group:64.form` row closes) and took it out: it parts 27 packets'
     // groups lines, so some caller hands this view a seated record where
     // the original's `this` keeps its `form` (its journal).
-    fn set_form(&mut self) {
-        if std::env::var_os("RON_PROBE_4422_FORM").is_none() {
-            return;
-        }
-        let frame = self.sim.frame;
-        let (army, pushed) = (self.g.army, self.g.pushed);
-        let was = self.sim.gstate_mut(self.g).map(|st| (st.form, st.pool));
-        if std::env::var_os("RON_PROBE_4422_BT").is_some() {
-            let bt = std::backtrace::Backtrace::force_capture().to_string();
-            let chain: Vec<&str> = bt
-                .lines()
-                .map(str::trim)
-                .filter(|l| l.contains("sim::") && !l.contains("backtrace") && !l.starts_with("at "))
-                .take(9)
-                .collect();
-            eprintln!(
-                "PROBE4422 f{frame} who {} army {army:?} pushed {pushed:?} was {was:?} list {:?} | {}",
-                self.g.who,
-                self.g.list,
-                chain.join(" < ")
-            );
-        }
-        if let Some(st) = self.sim.gstate_mut(self.g) {
-            st.form = -1;
-        }
-    }
+    fn set_form(&mut self) {}
     fn leader_flags(&self, p: i32) -> i32 {
         // `leaders[p]`'s flags: bit 2 is the human.
         if self.sim.cities.nation[p as usize].human {
