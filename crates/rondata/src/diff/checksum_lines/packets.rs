@@ -349,6 +349,15 @@ pub(super) fn walk_packets_with(
                 range.field
             );
         }
+        if std::env::var("RON_PROBE_4412").is_ok() {
+            crate::diff::sample::tests::print_partings(&ours, theirs);
+            for (b, bd) in built.sim.buildings.iter().enumerate() {
+                if bd.index == 2020 || bd.ty.is_some_and(|t| built.sim.tables.build_types[t].combat.as_ref().is_some_and(|c| c.obj_masks & sim::combat::mask::DETECT != 0)) {
+                    let ty = bd.ty.map(|t| built.sim.tables.build_types[t].ident);
+                    eprintln!("PROBE4412 b{b} {}/{} {:?} alive {} started {} active {}", bd.owner, bd.index, ty, bd.alive, bd.started, bd.active);
+                }
+            }
+        }
         let lines = compare(&ours, theirs);
         let empty = StreamRows::new();
         let leaves = leader_leaf_rows(&built.sim, theirs.get("leaders").unwrap_or(&empty));
