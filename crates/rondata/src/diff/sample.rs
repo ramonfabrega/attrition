@@ -551,11 +551,23 @@ pub(in crate::diff) mod tests {
     /// lines kept (`RNG_MASK` 0xfff). `RON_SAMPLE_RANGES`, else where the
     /// take left it.
     fn run1678() -> Option<crate::trace::ranges::Record> {
-        let path = match std::env::var("RON_SAMPLE_RANGES") {
+        ranges_record("RON_SAMPLE_RANGES", "run1678")
+    }
+
+    /// run1697's record (item 4412, `docs/RUNS.md` run1697): the same
+    /// playback to 560 under the same hooks, for the parting on 241 and the
+    /// two on 525 and 532. `RON_SAMPLE_RANGES_1697`, else where the take
+    /// left it.
+    fn run1697() -> Option<crate::trace::ranges::Record> {
+        ranges_record("RON_SAMPLE_RANGES_1697", "run1697")
+    }
+
+    fn ranges_record(var: &str, run: &str) -> Option<crate::trace::ranges::Record> {
+        let path = match std::env::var(var) {
             Ok(p) => std::path::PathBuf::from(p),
             Err(_) => {
                 let home = std::env::var("HOME").unwrap_or_default();
-                let dir = std::path::PathBuf::from(format!("{home}/ron-golden/run1678/map-7"));
+                let dir = std::path::PathBuf::from(format!("{home}/ron-golden/{run}/map-7"));
                 crate::testenv::experiment(&dir, "rontrace.ranges")?
             }
         };
@@ -582,14 +594,60 @@ pub(in crate::diff) mod tests {
     /// every frame's partings.
     #[test]
     fn the_sample_s_ranges_name_each_first_parting() {
-        use super::super::checksum_lines::packets::{Pieces, STATE_LINES, compare, our_lines};
-        let (Some(inst), Some(rcx), Some(mut rec)) = (install(), sample(), run1678()) else {
-            eprintln!("skipping: no install, no sample or no run1678");
+        let Some(rec) = run1678() else { return };
+        let Some((frames, got)) = walk_ranges(rec, SAMPLE_RANGES_WINDOW) else {
             return;
+        };
+        let pinned: Vec<SampleRange> = SAMPLE_RANGES
+            .iter()
+            .map(|&(l, f, t, o, p, x)| (l, f, t, o, p, x.to_string()))
+            .collect();
+        assert_eq!(
+            frames,
+            SAMPLE_RANGES_WINDOW as usize + 1,
+            "run1678's sets, one a frame"
+        );
+        assert_eq!(got, pinned, "SAMPLE_RANGES");
+    }
+
+    /// **The sample's lines by range, to 560** (item 4412): the same walk
+    /// over run1697's record, pinned per line by [`SAMPLE_RANGES_1697`].
+    /// `RON_SAMPLE_RANGES_DETAIL` and `RON_SAMPLE_RANGES_ALL` print as
+    /// above.
+    #[test]
+    fn the_sample_s_ranges_to_560_name_each_first_parting() {
+        let Some(rec) = run1697() else { return };
+        let Some((frames, got)) = walk_ranges(rec, SAMPLE_RANGES_1697_WINDOW) else {
+            return;
+        };
+        let pinned: Vec<SampleRange> = SAMPLE_RANGES_1697
+            .iter()
+            .map(|&(l, f, t, o, p, x)| (l, f, t, o, p, x.to_string()))
+            .collect();
+        assert_eq!(
+            frames,
+            SAMPLE_RANGES_1697_WINDOW as usize + 1,
+            "run1697's sets, one a frame"
+        );
+        assert_eq!(got, pinned, "SAMPLE_RANGES_1697");
+    }
+
+    /// The walk both ranges tests share: our sample from state 0 to
+    /// `window`, each frame's twelve lines against the record's set.
+    /// `(sets compared, each parting line's first parting)`, or `None` when
+    /// the install, the sample or the pieces are absent.
+    fn walk_ranges(
+        mut rec: crate::trace::ranges::Record,
+        window: i64,
+    ) -> Option<(usize, Vec<SampleRange>)> {
+        use super::super::checksum_lines::packets::{Pieces, STATE_LINES, compare, our_lines};
+        let (Some(inst), Some(rcx)) = (install(), sample()) else {
+            eprintln!("skipping: no install or no sample");
+            return None;
         };
         let Some(pieces) = Pieces::read() else {
             eprintln!("skipping: no pieces (RON_INSTALL)");
-            return;
+            return None;
         };
         let all = std::env::var("RON_SAMPLE_RANGES_ALL").is_ok();
         let detail: Option<i64> = std::env::var("RON_SAMPLE_RANGES_DETAIL")
@@ -600,7 +658,7 @@ pub(in crate::diff) mod tests {
         let mut stream = crate::input::Stream::pump(&rec_game);
         let mut seen: Vec<Option<FirstSeen>> = vec![None; 12];
         let mut frames = 0usize;
-        while built.sim.frame <= SAMPLE_RANGES_WINDOW {
+        while built.sim.frame <= window {
             let f = built.sim.frame;
             if let Some(theirs) = super::super::checksum_frames::record::stream_at(&mut rec, f) {
                 frames += 1;
@@ -634,16 +692,7 @@ pub(in crate::diff) mod tests {
         for row in &got {
             eprintln!("SAMPLE RANGES first {row:?}");
         }
-        let pinned: Vec<SampleRange> = SAMPLE_RANGES
-            .iter()
-            .map(|&(l, f, t, o, p, x)| (l, f, t, o, p, x.to_string()))
-            .collect();
-        assert_eq!(
-            frames,
-            SAMPLE_RANGES_WINDOW as usize + 1,
-            "run1678's sets, one a frame"
-        );
-        assert_eq!(got, pinned, "SAMPLE_RANGES");
+        Some((frames, got))
     }
 
     /// Every parted range of every line on one frame, decoded where the
@@ -749,4 +798,11 @@ pub(in crate::diff) mod tests {
     /// 8|0x4000008 on 92, the person's scout `3/0`, agree. All twelve lines
     /// whole over the window.
     const SAMPLE_RANGES: &[(&str, i64, usize, usize, usize, &str)] = &[];
+
+    /// run1697's last frame, ours: the record holds trace frames −1 to 559.
+    const SAMPLE_RANGES_1697_WINDOW: i64 = 560;
+
+    /// Per line that parts on run1697's window, its first parting by range
+    /// (item 4412; minted at the take's first walk).
+    const SAMPLE_RANGES_1697: &[(&str, i64, usize, usize, usize, &str)] = &[];
 }
