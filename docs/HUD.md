@@ -239,7 +239,15 @@ white. **Every quantity is the packet's** (run1559b, frame 3294): pads 8,
 the font `onscreen_mouseover_size` (`FontFamily` lookup 36, size 14), its
 `D3D11GLFont` `mFontHeight` 16; the name `Napata`, its `CharacterInfo`
 advances 12 + 8 + 9 + 8 + 6 + 8 = 51; the city's flags carry the capital's
-bit (`& 0x10`).
+bit (`& 0x10`). **Every other name's width** is the same font's advances
+(item 4423): the font fills a `CharacterInfo` the first time its character
+is drawn, so each packet holds 65 to 73, and the union over the 144
+packets on disk is 77 characters (every letter but `X` and `Z`, the digits,
+the space and 16 marks), no advance differing between any two packets
+(`tools/render/plate_font_packet.py`, the `fonts` table → lookup 36 →
+`gs_font`; **`PLATE_FONT_PACKETS`** reads 9,849 of 9,849 entries agreeing,
+and `o` 9 → 10 parts on all 144). They give 1,142 of the 1,164 `<CITY>`
+names in the tribe files the sim loads a width; `London` is 57.
 `client::selection::plate` is that rectangle: **x [1083, 1172), y [580,
 610)**, 89 × 30, which is the plate on the photograph to the pixel (its
 gold edge at 1083 and 1171, 580 and 609). **`RUN1559B_3279_PLATE`** reads
@@ -537,10 +545,12 @@ Not established:
   (`docs/LEADERS.md` §1.2), `CITY_NAMES_SCORE` 0 → 521 of 521 on the
   packets, so the client draws a plate for every named city and the row
   no longer names `Napata` itself. Not established: a captured city's
-  name (parked 4416a); and the
-  font's advances are held for `N`, `a`, `p` and `t` alone
-  (`selection::PLATE_ADVANCES`, the packet's): a name with any other
-  character draws no plate rather than a guessed one. **The glyphs** are
+  name (parked 4416a); and the advances
+  of `X`, `Z` and anything past ASCII, which no packet's font has drawn
+  (`selection::PLATE_ADVANCES`, item 4423): a name with one (22 of 1,164,
+  `Zela`, `Xian`) draws no plate rather than a guessed one; and a plate
+  for any city but Napata against a photograph (none on disk shows
+  another, parked 4423a). **The glyphs** are
   the overlay's 5 × 7 in white, not the font's, which is
   `D3D11GLFont`'s from the system's face (`sbl/d3dgl.pdb`) and not read.
   Also not established: which architecture set's `TEX_CIV` the original

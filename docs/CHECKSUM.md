@@ -2364,7 +2364,11 @@ differences against a present byte, and an empty range differs from a
 missing range. A record number of −1 can denote an unnamed record or a
 range available only in the original. The walk counts every differing
 range. The recorded-frame checks decode the full first pair of byte
-strings for their existing field-value assertions.
+strings for their existing field-value assertions. **A red row's `left:`
+is the pin and its `right:` the walk** (item 4422). Item 4419 read them
+the other way round and took out a write that turned 32 groups lines and
+grew none. A move is judged from `RON_PACKETS_PRINT`'s `PIN` lines, which
+`tools/repin_packets.py` sorts into turned, shrunk and grown.
 
 ## 23.6 How it was established, and what it has not established
 
@@ -2626,7 +2630,7 @@ In ours: `Turret::inc` (`units/anim.rs`) is the word, `SimComeOut::set_figure_90
 `Sim::init_guys` copies it beside the aim and turret flags it already kept. `set_guy` keeps the walk's. Run
 on the packets' own walks, every inheritance traces to a `NUCLEARMISSILE` (315) or `ICBM` (316) out of a
 silo. The chain runs on through non-missiles: Lakota `1/206` is missile 5053, 322 on 5325, 322 on 6128, 322
-on 6652. **14 guys lines turn, none grow** (`PACKETS_SCORE` 697 → 711): run785, run789, run795, run810,
+on 6652. **14 guys lines turn, none grow** (`PACKETS_SCORE` 697 → 711; 729 → 743 on the tree item 4422's groups had moved): run785, run789, run795, run810,
 run823, run825, run882b, run883b, run1166, run1416, run1441, run1559b, run1564, run1570. The units line parts
 on one range fewer on 7 packets, the guys line on fewer on run1164 (3 → 1) and run1426b (3 → 2). Value diff, run882b frame 6808 record 50 (`1/50`, `STRATEGICBOMBER`, TI
 305): `turret_inc` theirs `0x42b40000`, ours `0` → `0x42b40000`. The ICBM `1/50` left it on 4541, and the

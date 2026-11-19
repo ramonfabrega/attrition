@@ -402,19 +402,107 @@ pub fn bars(
     }]
 }
 
-/// **The plate's font's advances** (item 4403): each character's
+/// **The plate's font's advances** (items 4403, 4423): each character's
 /// `CharacterInfo::advance` in `onscreen_mouseover_size`'s `D3D11GLFont`
-/// on run1559b's packet, for the characters `Napata` holds and no others.
-/// A name with any other character has no width here, and no plate is
-/// drawn for it rather than one guessed (`docs/HUD.md` §6).
-pub const PLATE_ADVANCES: [(char, i32); 4] = [('N', 12), ('a', 8), ('p', 9), ('t', 6)];
+/// (`fonts`' lookup 36: size 14, style 1, `mFontHeight` 16), sorted by
+/// character. The font rasterises a character the first time one is drawn,
+/// so a packet holds only those its game has shown: this is the union over
+/// the 144 packets on disk, 65 to 73 each, no character's advance differing
+/// between any two (`PLATE_FONT_PACKETS`, item 4423). A name with any other
+/// character (`X`, `Z`, anything past ASCII) has no width here, and no
+/// plate is drawn for it rather than one guessed (`docs/HUD.md` §6).
+pub const PLATE_ADVANCES: [(char, i32); 77] = [
+    (' ', 4),
+    ('!', 5),
+    ('%', 12),
+    ('&', 11),
+    ('\'', 4),
+    ('(', 6),
+    (')', 6),
+    ('+', 10),
+    (',', 5),
+    ('-', 5),
+    ('.', 5),
+    ('/', 7),
+    ('0', 10),
+    ('1', 7),
+    ('2', 9),
+    ('3', 9),
+    ('4', 9),
+    ('5', 8),
+    ('6', 9),
+    ('7', 8),
+    ('8', 9),
+    ('9', 9),
+    (':', 5),
+    (';', 5),
+    ('<', 10),
+    ('>', 10),
+    ('?', 8),
+    ('A', 11),
+    ('B', 11),
+    ('C', 10),
+    ('D', 12),
+    ('E', 10),
+    ('F', 9),
+    ('G', 11),
+    ('H', 13),
+    ('I', 6),
+    ('J', 8),
+    ('K', 11),
+    ('L', 10),
+    ('M', 14),
+    ('N', 12),
+    ('O', 11),
+    ('P', 10),
+    ('Q', 11),
+    ('R', 11),
+    ('S', 9),
+    ('T', 10),
+    ('U', 12),
+    ('V', 11),
+    ('W', 16),
+    ('Y', 10),
+    ('a', 8),
+    ('b', 9),
+    ('c', 7),
+    ('d', 9),
+    ('e', 8),
+    ('f', 6),
+    ('g', 8),
+    ('h', 10),
+    ('i', 5),
+    ('j', 5),
+    ('k', 9),
+    ('l', 5),
+    ('m', 14),
+    ('n', 10),
+    ('o', 9),
+    ('p', 9),
+    ('q', 9),
+    ('r', 7),
+    ('s', 7),
+    ('t', 6),
+    ('u', 9),
+    ('v', 8),
+    ('w', 12),
+    ('x', 8),
+    ('y', 8),
+    ('z', 7),
+];
+
+/// One character's advance in the plate's font ([`PLATE_ADVANCES`]).
+pub fn plate_advance(c: char) -> Option<i32> {
+    PLATE_ADVANCES
+        .binary_search_by_key(&c, |&(k, _)| k)
+        .ok()
+        .map(|i| PLATE_ADVANCES[i].1)
+}
 
 /// The name's `text_width` in the plate's font, or `None` when a
 /// character's advance is not held ([`PLATE_ADVANCES`]).
 pub fn plate_text_width(name: &str) -> Option<i32> {
-    name.chars()
-        .map(|c| PLATE_ADVANCES.iter().find(|(k, _)| *k == c).map(|(_, a)| a))
-        .sum()
+    name.chars().map(plate_advance).sum()
 }
 
 /// One rectangle of interface texels, RGBA8, the top row first.
@@ -675,10 +763,7 @@ pub fn plate_layers(
             1,
             PLATE_INK,
         );
-        x += PLATE_ADVANCES
-            .iter()
-            .find(|(k, _)| *k == c)
-            .map_or(0, |(_, a)| *a);
+        x += plate_advance(c).unwrap_or(0);
     }
     out.push(crate::gpu::ScreenLayer {
         alpha: 255,
@@ -1228,5 +1313,92 @@ mod tests {
         let got = (got, [mine, both, reds]);
         println!("RUN1559B_3279_BAR: {got:?}");
         assert_eq!(got, RUN1559B_3279_BAR);
+    }
+
+    /// One packet's line: `run map`, `[height, point, style]`, and each
+    /// held `(code, advance)`.
+    type PacketFont = (String, [i32; 3], Vec<(u32, i32)>);
+
+    /// The packets' plate font (`tools/render/plate_font_packet.py` over
+    /// every `frame-snapshot.bin` under `~/ron-golden` and `~/ron-data`):
+    /// per line `run map packet_frame height point style` and then
+    /// `code:advance` for each character the font holds, at
+    /// `$RON_PLATE_FONT` or item 4423's file.
+    fn packet_fonts() -> Option<Vec<PacketFont>> {
+        let path = std::env::var_os("RON_PLATE_FONT")
+            .map(std::path::PathBuf::from)
+            .or_else(|| {
+                std::env::var_os("HOME").map(|h| {
+                    std::path::PathBuf::from(h)
+                        .join("ron-data/lab-experiments/2026-11-19-item-4423/plate-font.txt")
+                })
+            })?;
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            println!("skipping: no packet plate font at {}", path.display());
+            return None;
+        };
+        Some(
+            text.lines()
+                .map(|l| {
+                    let f: Vec<&str> = l.split_whitespace().collect();
+                    let n = |i: usize| f[i].parse::<i32>().expect("a number");
+                    let held = f[6..]
+                        .iter()
+                        .map(|e| {
+                            let (c, a) = e.split_once(':').expect("code:advance");
+                            (c.parse().expect("a code"), a.parse().expect("an advance"))
+                        })
+                        .collect();
+                    (format!("{} {}", f[0], f[1]), [n(3), n(4), n(5)], held)
+                })
+                .collect(),
+        )
+    }
+
+    /// **`PLATE_FONT_PACKETS`** (item 4423): [`PLATE_ADVANCES`] against
+    /// the plate's `D3D11GLFont` on every packet on disk, as `[entries
+    /// agreeing, entries held, packets]`. Each packet holds the characters
+    /// its game has drawn (65 to 73 of them), so the agreement is per
+    /// entry; the table is also exactly the characters some packet holds,
+    /// so none of its 77 is a guess. Before item 4423 the table held `N`,
+    /// `a`, `p`, `t` (4 characters). Made to fail: `o`'s advance 9 → 10
+    /// parts on all 144 packets.
+    pub const PLATE_FONT_PACKETS: [usize; 3] = [9849, 9849, 144];
+
+    #[test]
+    fn the_plate_s_advances_are_the_packets_font() {
+        let Some(packets) = packet_fonts() else {
+            return;
+        };
+        let mut seen = std::collections::BTreeSet::new();
+        let (mut agree, mut held) = (0, 0);
+        for (run, font, chars) in &packets {
+            assert_eq!(
+                *font,
+                [PLATE_FONT_HEIGHT, 14, 1],
+                "{run}: the plate's font is height 16, point 14, style 1"
+            );
+            for &(c, a) in chars {
+                let c = char::from_u32(c).expect("a character");
+                held += 1;
+                seen.insert(c);
+                if plate_advance(c) == Some(a) {
+                    agree += 1;
+                } else {
+                    println!("{run}: {c:?} theirs {a}, ours {:?}", plate_advance(c));
+                }
+            }
+        }
+        let table: std::collections::BTreeSet<char> =
+            PLATE_ADVANCES.iter().map(|&(c, _)| c).collect();
+        assert_eq!(seen, table, "the table is the characters the packets hold");
+        assert!(PLATE_ADVANCES.windows(2).all(|w| w[0].0 < w[1].0));
+        let got = [agree, held, packets.len()];
+        println!("PLATE_FONT_PACKETS: {got:?}");
+        assert_eq!(got, PLATE_FONT_PACKETS);
+        assert_eq!(plate_text_width("Napata"), Some(NAPATA_WIDTH));
+        // London: 10 + 9 + 10 + 9 + 9 + 10.
+        assert_eq!(plate_text_width("London"), Some(57));
+        assert_eq!(plate_text_width("Zela"), None);
     }
 }
