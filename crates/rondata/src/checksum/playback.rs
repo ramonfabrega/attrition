@@ -11,6 +11,8 @@ pub struct Score {
     /// First differing state, our Adler (None for an unimplemented record)
     /// and the Adler in the original's trace, for each state line.
     pub first: [Option<(i32, Option<u32>, u32)>; 12],
+    /// The first state our walk holds `Sim::game_over` on, if any.
+    pub over: Option<i32>,
 }
 
 pub(crate) fn recording_start(
@@ -25,13 +27,26 @@ pub(crate) fn recording_start(
 }
 
 pub fn compare(install: &Path, recording: &Path, trace: &Path) -> Result<Score, String> {
+    compare_until(install, recording, trace, None)
+}
+
+/// [`compare`], closing on state `until` where the original's game ended
+/// before the recording's closing package (a conquest: the take's last set
+/// is the game's last frame, item 4396), else on the closing package.
+pub fn compare_until(
+    install: &Path,
+    recording: &Path,
+    trace: &Path,
+    until: Option<i32>,
+) -> Result<Score, String> {
     let rec = crate::recgame::read(&recording.to_string_lossy()).map_err(|e| e.to_string())?;
-    let last = rec
+    let closing = rec
         .packages
         .last()
         .filter(|p| p.data.is_empty() && p.frame > 0)
         .ok_or("missing the recording's closing package")?
         .frame;
+    let last = until.map_or(closing, |u| u.min(closing));
     if !rec.truncated.is_empty() {
         return Err("truncated recording".into());
     }
@@ -53,12 +68,16 @@ pub fn compare(install: &Path, recording: &Path, trace: &Path) -> Result<Score, 
     let mut stream = crate::input::Stream::pump(&rec);
     let mut agreed = [0u32; 12];
     let mut mismatch = [None; 12];
+    let mut over = None;
     // Include the terminal state produced by the last tick. The original
     // tags a state's first set with the frame that just ran (setup is -1).
     for frame in 0..=last {
         let set = first
             .get(&(i64::from(frame) - 1))
             .ok_or_else(|| format!("missing checksum set for state {frame}"))?;
+        if over.is_none() && built.sim.game_over() {
+            over = Some(frame);
+        }
         let ours = state::adlers(&built.sim, &look, &tribes);
         for (i, value) in ours.into_iter().enumerate() {
             if value == Some(set.lines[i]) {
@@ -76,6 +95,7 @@ pub fn compare(install: &Path, recording: &Path, trace: &Path) -> Result<Score, 
         states: last as u32 + 1,
         agreed,
         first: mismatch,
+        over,
     })
 }
 

@@ -1350,10 +1350,12 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// leaders line agrees on 43 more packets and parts on fewer ranges on 24
 /// more, none on more: 104 ranges fewer over 67 rows, all in the leaders
 /// slot.
-/// **653** at item 4397: run1381's builds line (`Setup::reinit_game_units`,
+/// **659** at item 4396: eight whole units lines (the captain mirror's retarget kept
+/// in the order: run985b, run1011c, d, e, run1015b, run1001d, run946, run954b).
+/// **661** at item 4397: run1381's builds line (`Setup::reinit_game_units`,
 /// a start building's `z`) and run854's leaders line (`oil_patches`, the
 /// start's walk leaving the oil to `compute_all_territory`).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 653, 1053);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 661, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1474,11 +1476,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4226, a bird walked on neither line: units (1284, 1426, 1222) -> (1284, 1266, 1080), guys (417, 473, 92) -> (417, 417, 36).
     // Item 4251, `unit_masks` 0x4 (`in_danger`) emitted: units (1284, 1266, 1080) -> (1284, 1266, 1079).
     // Item 4348, gaia's angles from the start dump: guys (417, 417, 36) -> (417, 417, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (1284, 1284, 90) -> (1284, 1284, 87).
     (
         "ch95pkt",
         1117,
         [
-            (1284, 1284, 90),
+            (1284, 1284, 87),
             (517, 517, 13),
             (0, 0, 0),
             (0, 0, 0),
@@ -1510,11 +1513,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (2445, 2376, 1439) -> (2445, 2421, 1413).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (2445, 2445, 2) -> (2445, 2445, 0).
     (
         "run1001d",
         13760,
         [
-            (2445, 2445, 2),
+            (2445, 2445, 0),
             (2028, 2028, 0),
             (0, 0, 0),
             (3, 3, 0),
@@ -1620,11 +1624,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (3193, 3007, 1794) -> (3193, 3151, 1830).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (3193, 3193, 1) -> (3193, 3193, 0).
     (
         "run1011c",
         13225,
         [
-            (3193, 3193, 1),
+            (3193, 3193, 0),
             (2080, 2080, 0),
             (0, 0, 0),
             (6, 6, 0),
@@ -1655,11 +1660,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (3158, 2954, 1786) -> (3158, 3098, 1723).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (3158, 3158, 2) -> (3158, 3158, 0).
     (
         "run1011d",
         13277,
         [
-            (3158, 3158, 2),
+            (3158, 3158, 0),
             (2080, 2080, 0),
             (0, 0, 0),
             (12, 12, 0),
@@ -1691,11 +1697,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4320, the score's dirty bits (`0x800000`, `0x1000000`) emitted, leader 0's 0x2800007 agreeing: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (3117, 3117, 2) -> (3117, 3117, 0).
     (
         "run1011e",
         13296,
         [
-            (3117, 3117, 2),
+            (3117, 3117, 0),
             (2080, 2080, 0),
             (0, 0, 0),
             (9, 9, 2),
@@ -1726,11 +1733,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (3139, 2887, 1848) -> (3139, 3028, 1823).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (3139, 3139, 7) -> (3139, 3139, 0).
     (
         "run1015b",
         13392,
         [
-            (3139, 3139, 7),
+            (3139, 3139, 0),
             (2080, 2080, 0),
             (0, 0, 0),
             (27, 27, 0),
@@ -2061,11 +2069,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (10607, 10607, 67) -> (10607, 10607, 66).
     (
         "run1217",
         7728,
         [
-            (10607, 10607, 67),
+            (10607, 10607, 66),
             (3412, 3412, 11),
             (0, 0, 0),
             (6, 6, 0),
@@ -2407,11 +2416,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (4388, 4388, 8) -> (4388, 4388, 7).
     (
         "run1254c",
         3115,
         [
-            (4388, 4388, 8),
+            (4388, 4388, 7),
             (1674, 1674, 0),
             (0, 0, 0),
             (9, 9, 0),
@@ -2485,11 +2495,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (6468, 6468, 108) -> (6468, 6468, 99).
     (
         "run1264b",
         4919,
         [
-            (6468, 6468, 108),
+            (6468, 6468, 99),
             (1770, 1770, 4),
             (0, 0, 0),
             (3, 3, 0),
@@ -2529,11 +2540,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (11161, 11161, 78) -> (11161, 11161, 77).
     (
         "run1266c",
         8700,
         [
-            (11161, 11161, 78),
+            (11161, 11161, 77),
             (3796, 3796, 10),
             (0, 0, 0),
             (6, 6, 0),
@@ -2567,11 +2579,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (4744, 4744, 8) -> (4744, 4744, 5).
     (
         "run1268",
         3347,
         [
-            (4744, 4744, 8),
+            (4744, 4744, 5),
             (1908, 1908, 0),
             (0, 0, 0),
             (24, 24, 0),
@@ -3042,11 +3055,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (5746, 5746, 2) -> (5746, 5746, 1).
     (
         "run1332a",
         3627,
         [
-            (5746, 5746, 2),
+            (5746, 5746, 1),
             (2354, 2354, 0),
             (0, 0, 0),
             (48, 48, 0),
@@ -3159,11 +3173,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (3610, 3610, 6) -> (3610, 3610, 4).
     (
         "run1355",
         2933,
         [
-            (3610, 3610, 6),
+            (3610, 3610, 4),
             (1836, 1836, 0),
             (0, 0, 0),
             (3, 3, 0),
@@ -3400,12 +3415,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (5194, 5194, 9) -> (5194, 5194, 6).
     // Item 4397, `Setup::reinit_game_units` (every start building's `z` off the whole start's ground): builds (2147, 2147, 1) -> (2147, 2147, 0).
     (
         "run1381",
         3262,
         [
-            (5194, 5194, 9),
+            (5194, 5194, 6),
             (2147, 2147, 0),
             (0, 0, 0),
             (3, 3, 0),
@@ -3439,11 +3455,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (5014, 5014, 7) -> (5014, 5014, 5).
     (
         "run1382",
         3228,
         [
-            (5014, 5014, 7),
+            (5014, 5014, 5),
             (2015, 2015, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3939,11 +3956,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (2022, 1941, 1611) -> (2022, 1965, 1624).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (399, 399, 6) -> (399, 399, 5).
     // Item 4348, gaia's angles from the start dump: guys (604, 604, 1) -> (604, 604, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (2022, 2022, 110) -> (2022, 2022, 108).
     (
         "run1451",
         945,
         [
-            (2022, 2022, 110),
+            (2022, 2022, 108),
             (1968, 1968, 22),
             (0, 0, 0),
             (18, 18, 0),
@@ -3969,11 +3987,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (574, 574, 1) -> (574, 574, 0).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (399, 399, 4) -> (399, 399, 3).
     // Item 4348, gaia's angles from the start dump: guys (725, 725, 1) -> (725, 725, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (2655, 2655, 116) -> (2655, 2655, 112).
     (
         "run1457",
         700,
         [
-            (2655, 2655, 116),
+            (2655, 2655, 112),
             (1144, 1144, 23),
             (0, 0, 0),
             (21, 21, 0),
@@ -3998,11 +4017,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (2362, 2245, 1933) -> (2362, 2314, 1927).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (403, 403, 5) -> (403, 403, 3).
     // Item 4348, gaia's angles from the start dump: guys (665, 665, 1) -> (665, 665, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (2362, 2362, 115) -> (2362, 2362, 113).
     (
         "run1459",
         780,
         [
-            (2362, 2362, 115),
+            (2362, 2362, 113),
             (1316, 1316, 23),
             (0, 0, 0),
             (0, 0, 0),
@@ -4028,11 +4048,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4255, `equals_group`'s `get_num` on an emptied last slot: groups (568, 568, 2) -> (568, 568, 0).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (403, 403, 5) -> (403, 403, 3).
     // Item 4348, gaia's angles from the start dump: guys (686, 686, 1) -> (686, 686, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (2380, 2380, 116) -> (2380, 2380, 111).
     (
         "run1460",
         760,
         [
-            (2380, 2380, 116),
+            (2380, 2380, 111),
             (1296, 1296, 23),
             (0, 0, 0),
             (9, 9, 0),
@@ -4961,11 +4982,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (2838, 2838, 2) -> (2838, 2838, 0).
     (
         "run946",
         10842,
         [
-            (2838, 2838, 2),
+            (2838, 2838, 0),
             (1580, 1580, 0),
             (0, 0, 0),
             (15, 15, 0),
@@ -5000,11 +5022,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (2832, 2832, 2) -> (2832, 2832, 0).
     (
         "run954b",
         12155,
         [
-            (2832, 2832, 2),
+            (2832, 2832, 0),
             (1598, 1598, 0),
             (0, 0, 0),
             (9, 9, 0),
@@ -5205,12 +5228,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (3289, 3112, 2173) -> (3289, 3214, 2139).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4396, the captain mirror's retarget kept in the order: units (3289, 3289, 1) -> (3289, 3289, 0).
     // Item 4397, `Setup::reinit_game_units` (every start building's `z` off the whole start's ground): builds (2783, 2783, 2) -> (2783, 2783, 1).
     (
         "run985b",
         16762,
         [
-            (3289, 3289, 1),
+            (3289, 3289, 0),
             (2783, 2783, 1),
             (0, 0, 0),
             (0, 0, 0),

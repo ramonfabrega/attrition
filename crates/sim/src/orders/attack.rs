@@ -513,6 +513,19 @@ impl Sim {
                 ) || self.is_in_range(me, t))
             {
                 self.set_attack_target(u, Some(t));
+                // The pair is written into the order itself, and the
+                // function's copy `a` is stored back below
+                // ([`Self::store_attack`]), so the copy takes it too: run1695's
+                // Longbowmen `1/11` mirrors its captain onto the human's
+                // Citizen `0/5` on 9980, and the stale copy's `ox 2000 uid 0`
+                // overwrote theirs' `ox 5 uid 12` (item 4396).
+                if let Some(Order {
+                    body: Body::Attack(live),
+                    ..
+                }) = self.current_order(u).copied()
+                {
+                    a.target = live.target;
+                }
             }
         }
         let Some(target) = self.units[u].combat.target else {

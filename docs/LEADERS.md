@@ -2516,8 +2516,20 @@ left at 0, refused by its bucket clause (11,057 ≥ 3,000). The four tributes ar
   demand. So the store is diff-backed, and the clear and the stretch to
   `0x2000` rest on §8.5's two readings and the fixtures. Ours walked past
   the take, unpinned: the French declare on 7937 and the human is
-  conquered on 10929 (`defeated_by` 1, type 0). Item 4396 has the original
-  play that game to its end.
+  conquered on 10929 (`defeated_by` 1, type 0). ~~Item 4396 has the original
+  play that game to its end.~~ **Item 4396**: the same lobby minted to 11,200
+  and played by the original (run1691) ends the game itself on 10929, 10,929
+  frames, the frame our walk conquers on. **Leaders agrees on all 10,929
+  states** (`the_demand_s_game_to_its_end_on_run1691`), and the declaration is
+  printed on block 7937 on theirs (`diplos[0][1]`, `[1][0]` 1 → 0), ours on
+  7937 too. Units parted from 9981 (the captain mirror's stale copy,
+  `docs/COMBAT.md` §44.2, mended by the same item: 10,929 of 10,929); ammo
+  parts from 10075 (10,893 of 10,929), the next word. **The cadence's read is diff-backed** there: removed, leaders parts on
+  9985 (ours 2254783755, theirs 705512842). **`action_respond`'s clear still
+  fails nothing**: the demand arm calls `action_respond(me, t, 1)` just before
+  its own store of 1, and the idle human answers nothing, so no game on disk
+  clears a live demand. The clear rests on §8.5's two readings and the
+  fixtures.
 - **`scale_tribute`**: the load scale of `commerce_tribute` and
   `base_tribute` (`Constants::init`), and its rounding branches, which were
   not re-listed. A deal captured above Commerce 0 pins them.
