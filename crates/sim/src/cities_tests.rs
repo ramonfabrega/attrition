@@ -11403,7 +11403,8 @@ fn a_lone_captain_s_gather_re_seat_lights_the_disc_where_it_stands() {
     assert_eq!(lit.len(), want.end, "the re-seat's whole disc");
     let (cx, cy) = want.centre;
     assert!(
-        lit.iter().all(|&(x, y)| (x - cx).abs() <= want.radius && (y - cy).abs() <= want.radius),
+        lit.iter()
+            .all(|&(x, y)| (x - cx).abs() <= want.radius && (y - cy).abs() <= want.radius),
         "lit round {:?}: {lit:?}",
         want.centre
     );
