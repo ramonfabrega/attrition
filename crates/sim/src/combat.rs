@@ -437,7 +437,7 @@ pub struct Projectile {
     /// The intended target; forgotten if it dies in flight.
     pub target: Option<Obj>,
     /// **The pair the round keeps after its target leaves the pool**
-    /// (item 4404, `docs/COMBAT.md` §46.8): `AmmoData` stores its target as
+    /// (item 4404, `docs/COMBAT.md` §46.9): `AmmoData` stores its target as
     /// `whom`/`ox` (`+0x48`/`+0x4c`) and nothing clears them when the object
     /// dies — `Ammo::hit_target@00678f90` returns 0 on a slot no longer in
     /// use (`flags & 1`) without writing them, and writes −1 only on a live
