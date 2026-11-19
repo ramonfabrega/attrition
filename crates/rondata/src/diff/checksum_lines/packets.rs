@@ -632,11 +632,6 @@ pub(super) fn check(name: &str, walked: &[Walked]) {
                 {
                     let d = crate::checksum::fields::differing_fields(n, &f.field, o, t);
                     eprintln!("PROBE4417\t{}\t{}\t{n}\t{}\t{}\t{d:?}", w.run, w.frame, f.record, f.field);
-                    eprintln!(
-                        "PROBE4417W\t{}\t{:?}",
-                        w.run,
-                        crate::checksum::fields::range_fields(n, &f.field, o)
-                    );
                 }
             }
         }
