@@ -889,7 +889,16 @@ pub(in crate::diff) mod tests {
             1,
             "1 0 rolling..start_roll_angle: +0x7 of 99|99: 44290000|462b0000",
         ),
-        ("groups", 927, 586, 592, 348, "235 193 id..march: num 1|0"),
+        // Item 4419: 927 -> 961 (a dead building leaves on the push), then
+        // 961 -> 2888 (the swarm's `form` −1 on slot 195).
+        (
+            "groups",
+            2888,
+            628,
+            628,
+            3,
+            "346 256 id..march: stamp 2701|2887",
+        ),
         (
             "guys",
             2920,
