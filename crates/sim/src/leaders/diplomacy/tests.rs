@@ -147,3 +147,35 @@ fn war_is_allowed_after_the_rush_minutes() {
     sim.frame = 0;
     assert!(sim.war_allowed());
 }
+
+/// Item 4412 (run1697, leader 4 against its teammate 2 on 241, ours 32,
+/// theirs 0): the third parties at war with the target count toward
+/// `strong` only when the target is human — `6bd02a`'s `leader_flags & 4`
+/// test jumps to the `<< 5` at `6bd228` past them, and past the four
+/// building lines. Who=1, a computer at difficulty 3, views who=2, a
+/// computer the human who=0 is at war with: `strong` 0. The same view of
+/// a human target counts who=2's war on it.
+#[test]
+fn a_computer_target_s_strong_counts_no_third_party_at_war() {
+    let mut sim = Sim::new(Tuning::RON, World::new(2, 2), 3);
+    sim.cities.nation[0].human = true;
+    sim.cities.nation[1].human = false;
+    sim.cities.nation[2].human = false;
+    sim.ai.lobby.team_style = 1;
+    sim.ai.lobby.difficulty = 3;
+    sim.leaders.treaties[1][2] = 1;
+    sim.leaders.at_war[0][2] = true;
+    sim.leaders.at_war[2][0] = true;
+    // `(t + who·8)·8 + frame ≡ 0 (mod 512)`: who=1 views who=2 on 432.
+    sim.frame = 432;
+    sim.diplomacy(1);
+    assert_eq!(sim.ai.ai[1].aggression[2], 1, "the view ran (style 1)");
+    assert_eq!(sim.ai.ai[1].strong[2], 0, "a computer target: no count");
+
+    // The human target, viewed on 448: difficulty 3's 1, and who=2 at war
+    // with it, 1.
+    sim.leaders.treaties[1][0] = 1;
+    sim.frame = 448;
+    sim.diplomacy(1);
+    assert_eq!(sim.ai.ai[1].strong[0], 2 << 5, "a human target counts");
+}

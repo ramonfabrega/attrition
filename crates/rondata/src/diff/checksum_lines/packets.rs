@@ -1362,7 +1362,11 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// taking `last_z = z` (`Unit::process@00610bc0`'s `inside_up >= 0` arm,
 /// `docs/CHECKSUM.md` §23.9); the guys line parts on fewer ranges on 12
 /// more packets and the units line on 22, none on more.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 677, 1053);
+/// **690** at item 4412: thirteen whole builds lines (a detector building's
+/// `SubObjectData::flags & 0x40`, `Object::init`'s `DETECT`: run1217,
+/// run1221, run1224b, run1236, run1238c, run1263, run1264b, run1266c,
+/// run1294, run1296, run1327, run1361, run985b).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 690, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -2088,12 +2092,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4396, the captain mirror's retarget kept in the order: units (10607, 10607, 67) -> (10607, 10607, 66).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (10607,
     // 10607, 66) -> (10607, 10607, 58); guys (3247, 3247, 10) -> (3247, 3247, 2).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (3412, 3412, 11) -> (3412, 3412, 0).
     (
         "run1217",
         7728,
         [
             (10607, 10607, 58),
-            (3412, 3412, 11),
+            (3412, 3412, 0),
             (0, 0, 0),
             (6, 6, 0),
             (0, 0, 0),
@@ -2164,12 +2169,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (6445, 6445,
     // 69) -> (6445, 6445, 54); guys (1768, 1768, 15) -> (1768, 1768, 0).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (1719, 1719, 6) -> (1719, 1719, 0).
     (
         "run1221",
         4287,
         [
             (6445, 6445, 54),
-            (1719, 1719, 6),
+            (1719, 1719, 0),
             (0, 0, 0),
             (6, 6, 0),
             (0, 0, 0),
@@ -2208,12 +2214,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (4271, 4271, 12) -> (4271, 4271, 0).
     (
         "run1224b",
         9745,
         [
             (11740, 11740, 3),
-            (4271, 4271, 12),
+            (4271, 4271, 0),
             (0, 0, 0),
             (6, 6, 0),
             (0, 0, 0),
@@ -2286,12 +2293,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (1762, 1762, 5) -> (1762, 1762, 0).
     (
         "run1236",
         4179,
         [
             (6610, 6610, 116),
-            (1762, 1762, 5),
+            (1762, 1762, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2364,12 +2372,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (6417, 6417,
     // 37) -> (6417, 6417, 36); guys (2151, 2151, 1) -> (2151, 2151, 0).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2494, 2494, 6) -> (2494, 2494, 0).
     (
         "run1238c",
         5021,
         [
             (6417, 6417, 36),
-            (2494, 2494, 6),
+            (2494, 2494, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2485,12 +2494,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (3789, 3789, 15) -> (3789, 3789, 0).
     (
         "run1263",
         8362,
         [
             (11229, 11229, 1),
-            (3789, 3789, 15),
+            (3789, 3789, 0),
             (0, 0, 0),
             (9, 9, 0),
             (0, 0, 0),
@@ -2524,12 +2534,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4396, the captain mirror's retarget kept in the order: units (6468, 6468, 108) -> (6468, 6468, 99).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (6468, 6468,
     // 99) -> (6468, 6468, 88); guys (1895, 1895, 12) -> (1895, 1895, 1).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (1770, 1770, 4) -> (1770, 1770, 0).
     (
         "run1264b",
         4919,
         [
             (6468, 6468, 88),
-            (1770, 1770, 4),
+            (1770, 1770, 0),
             (0, 0, 0),
             (3, 3, 0),
             (2, 2, 0),
@@ -2571,12 +2582,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4396, the captain mirror's retarget kept in the order: units (11161, 11161, 78) -> (11161, 11161, 77).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (11161,
     // 11161, 77) -> (11161, 11161, 68); guys (3210, 3210, 9) -> (3210, 3210, 0).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (3796, 3796, 10) -> (3796, 3796, 0).
     (
         "run1266c",
         8700,
         [
             (11161, 11161, 68),
-            (3796, 3796, 10),
+            (3796, 3796, 0),
             (0, 0, 0),
             (6, 6, 0),
             (0, 0, 0),
@@ -2695,12 +2707,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (8216, 8216,
     // 68) -> (8216, 8216, 61); guys (2242, 2242, 7) -> (2242, 2242, 0).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2123, 2123, 2) -> (2123, 2123, 0).
     (
         "run1294",
         4473,
         [
             (8216, 8216, 61),
-            (2123, 2123, 2),
+            (2123, 2123, 0),
             (0, 0, 0),
             (3, 3, 0),
             (0, 0, 0),
@@ -2738,12 +2751,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (9905, 9905,
     // 58) -> (9905, 9905, 52); guys (2172, 2172, 9) -> (2172, 2172, 3).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2163, 2163, 4) -> (2163, 2163, 0).
     (
         "run1296",
         4632,
         [
             (9905, 9905, 52),
-            (2163, 2163, 4),
+            (2163, 2163, 0),
             (0, 0, 0),
             (0, 0, 0),
             (6, 6, 0),
@@ -2862,12 +2876,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (8490, 8490,
     // 86) -> (8490, 8490, 78); guys (2197, 2197, 9) -> (2197, 2197, 1).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2140, 2140, 4) -> (2140, 2140, 3).
     (
         "run1320b",
         5066,
         [
             (8490, 8490, 78),
-            (2140, 2140, 4),
+            (2140, 2140, 3),
             (0, 0, 0),
             (9, 9, 0),
             (2, 2, 0),
@@ -2940,12 +2955,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (7276, 7276,
     // 94) -> (7276, 7276, 85); guys (2055, 2055, 9) -> (2055, 2055, 0).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (1918, 1918, 4) -> (1918, 1918, 2).
     (
         "run1324c",
         4904,
         [
             (7276, 7276, 85),
-            (1918, 1918, 4),
+            (1918, 1918, 2),
             (0, 0, 0),
             (15, 15, 0),
             (2, 2, 0),
@@ -2982,12 +2998,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (10367,
     // 10367, 132) -> (10367, 10367, 119); guys (2706, 2706, 13) -> (2706, 2706, 0).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2521, 2521, 4) -> (2521, 2521, 2).
     (
         "run1325c",
         5578,
         [
             (10367, 10367, 119),
-            (2521, 2521, 4),
+            (2521, 2521, 2),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3065,12 +3082,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (4230, 4230, 14) -> (4230, 4230, 0).
     (
         "run1327",
         10930,
         [
             (13393, 13393, 10),
-            (4230, 4230, 14),
+            (4230, 4230, 0),
             (0, 0, 0),
             (0, 0, 0),
             (4, 4, 0),
@@ -3298,12 +3316,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 5) -> (271, 271, 4).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2974, 2974, 15) -> (2974, 2974, 13).
     (
         "run1359",
         5619,
         [
             (6464, 6464, 9),
-            (2974, 2974, 15),
+            (2974, 2974, 13),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3339,12 +3358,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 5) -> (271, 271, 4).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2974, 2974, 15) -> (2974, 2974, 13).
     (
         "run1359b",
         5677,
         [
             (6408, 6408, 9),
-            (2974, 2974, 15),
+            (2974, 2974, 13),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3380,12 +3400,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 5) -> (271, 271, 4).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 3) -> (271, 271, 2).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2974, 2974, 15) -> (2974, 2974, 13).
     (
         "run1359c",
         5678,
         [
             (6407, 6407, 9),
-            (2974, 2974, 15),
+            (2974, 2974, 13),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3422,12 +3443,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2544, 2544, 1) -> (2544, 2544, 0).
     (
         "run1361",
         4840,
         [
             (6810, 6810, 15),
-            (2544, 2544, 1),
+            (2544, 2544, 0),
             (0, 0, 0),
             (0, 0, 0),
             (4, 4, 0),
@@ -3771,12 +3793,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 2) -> (271, 271, 0).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2515, 2513, 683) -> (2515, 2513, 686).
     (
         "run1420",
         4586,
         [
             (5583, 5423, 1536),
-            (2515, 2513, 683),
+            (2515, 2513, 686),
             (0, 0, 0),
             (0, 0, 0),
             (8, 8, 0),
@@ -4437,12 +4460,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 5) -> (271, 271, 4).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 4) -> (271, 271, 2).
     // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (1731, 1729, 937) -> (1731, 1729, 938).
     (
         "run785",
         2178,
         [
             (4969, 4889, 2804),
-            (1731, 1729, 937),
+            (1731, 1729, 938),
             (0, 0, 0),
             (0, 0, 0),
             (28, 28, 4),
@@ -4473,12 +4497,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 5) -> (271, 271, 4).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 4) -> (271, 271, 2).
     // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2157, 2155, 1254) -> (2157, 2155, 1256).
     (
         "run789",
         2799,
         [
             (5889, 5809, 3724),
-            (2157, 2155, 1254),
+            (2157, 2155, 1256),
             (0, 0, 0),
             (281, 3, 280),
             (0, 0, 0),
@@ -4509,12 +4534,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 5) -> (271, 271, 4).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 4) -> (271, 271, 2).
     // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2059, 2057, 1177) -> (2059, 2057, 1178).
     (
         "run795",
         2681,
         [
             (5860, 5780, 3667),
-            (2059, 2057, 1177),
+            (2059, 2057, 1178),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4549,12 +4575,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): guys (2341, 2341,
     // 11) -> (2341, 2341, 3).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2384, 2381, 1396) -> (2384, 2381, 1397).
     (
         "run810",
         3631,
         [
             (9526, 9426, 7329),
-            (2384, 2381, 1396),
+            (2384, 2381, 1397),
             (0, 0, 0),
             (156, 0, 156),
             (0, 0, 0),
@@ -4587,12 +4614,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): guys (2450, 2450,
     // 11) -> (2450, 2450, 4).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2473, 2469, 1528) -> (2473, 2469, 1529).
     (
         "run823",
         4238,
         [
             (9339, 9227, 8404),
-            (2473, 2469, 1528),
+            (2473, 2469, 1529),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4625,12 +4653,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): guys (2471, 2471,
     // 10) -> (2471, 2471, 3).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2473, 2469, 1528) -> (2473, 2469, 1529).
     (
         "run825",
         4204,
         [
             (9362, 9250, 8445),
-            (2473, 2469, 1528),
+            (2473, 2469, 1529),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4728,12 +4757,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4388, `Leader::init`'s row on the unseated slots (`diplos[2..7]` 0|1): leaders (271, 271, 5) -> (271, 271, 3).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 3) -> (271, 271, 1).
     // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2095, 2095, 7) -> (2095, 2095, 5).
     (
         "run854",
         3301,
         [
             (5770, 5770, 21),
-            (2095, 2095, 7),
+            (2095, 2095, 5),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4767,12 +4797,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4388, `Leader::init`'s row on the unseated slots: leaders (271, 271, 5) -> (271, 271, 4).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 4) -> (271, 271, 2).
     // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2288, 2283, 1534) -> (2288, 2283, 1535).
     (
         "run865",
         4859,
         [
             (10342, 10188, 7833),
-            (2288, 2283, 1534),
+            (2288, 2283, 1535),
             (0, 0, 0),
             (0, 0, 0),
             (28, 28, 7),
@@ -4832,12 +4863,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): guys (2832, 2832,
     // 26) -> (2832, 2832, 5).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2737, 2732, 1916) -> (2737, 2732, 1917).
     (
         "run882b",
         6808,
         [
             (11125, 10815, 9506),
-            (2737, 2732, 1916),
+            (2737, 2732, 1917),
             (0, 0, 0),
             (15, 15, 5),
             (0, 0, 0),
@@ -4874,12 +4906,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): guys (2832, 2832,
     // 24) -> (2832, 2832, 5).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2737, 2732, 1917) -> (2737, 2732, 1918).
     (
         "run883b",
         6821,
         [
             (11180, 10834, 9394),
-            (2737, 2732, 1917),
+            (2737, 2732, 1918),
             (0, 0, 0),
             (36, 36, 5),
             (0, 0, 0),
@@ -5292,12 +5325,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4396, the captain mirror's retarget kept in the order: units (3289, 3289, 1) -> (3289, 3289, 0).
     // Item 4397, `Setup::reinit_game_units` (every start building's `z` off the whole start's ground): builds (2783, 2783, 2) -> (2783, 2783, 1).
+    // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2783, 2783, 1) -> (2783, 2783, 0).
     (
         "run985b",
         16762,
         [
             (3289, 3289, 0),
-            (2783, 2783, 1),
+            (2783, 2783, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),

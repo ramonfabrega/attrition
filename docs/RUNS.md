@@ -39029,6 +39029,31 @@ SHA-256 `4e95371959a2d3cfae9cf1860557740af7d046555d894fe8873ab05b77f2901f`.
 **What it holds**: `diff::sample::tests::the_sample_s_ranges_name_each_first_parting` (`SAMPLE_RANGES`): each line's
 first parting by range, record and field.
 
+## run1697 — the 2017 sample's playback to 560 with the checksum and ranges hooks, all twelve lines kept (2026-11-19, item 4412, `att-4412`)
+
+`docs/RECGAME.md` §7; DECISIONS 142 §4, 143 §4. **What the disk could not answer**: run1678's record ends on 99, and
+the sample's first partings by sum after item 4405 were leaders on 241, builds on 525 and units on 532. One take past
+all three: run1678's recipe with the end moved, `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1697 --recording "<install>/external-recgames/seifer008 - Toughest AI 4
+v 1.rcx" --end-frame 560 --cover cover=1 --log-window 236 246 --detail end:MISC --timeout 1800 --stall-seconds 120
+--tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0xfffu`, waited on with `waitrun.sh` in the
+background lane.
+- Pool lane 2, launched 07:16:35 −05:00, exited 07:17:36: **60.7 s** launch to exit, exit 0, `success`, 561 frames,
+  `last_frame` 560, not ended early, seed observed 340513920, five settings restored, no page fault, no relaunch.
+  `df -g ~` read 126 GB free before it. Minutes waited on another lane: none. DLL `3233a14d…`, defines
+  `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0xfffu`.
+- **The record**, `~/ron-golden/run1697/map-7/rontrace.ranges`, 418,967,904 bytes, SHA-256
+  `44d9f2a53b6afd7a58083f32602e5cd627bae23cdb5bbd8c20183885cf024642`: 589 sets on trace frames −1 to 559, 7,037,606
+  ranges, 306,308,826 bytes, none over, all twelve lines kept.
+- Filed with `filerun.py run1697 sample2017-playback-ranges-560`. The record stays where the take left it.
+
+Archive `gamelog-run1697-sample2017-playback-ranges-560.txt`, 3,772 bytes,
+SHA-256 `f8d1fbb7fb0a0c4299c01541bd49c2c701d479b67f22fa5b4d1346f332515e11`; `rontrace-run1697.log`, 10,854,144 bytes,
+SHA-256 `2cb5d712e1a4ffdf67daa56db011f59c7fc9de991d16332a4e494e872d42321b`.
+
+**What it holds**: `diff::sample::tests::the_sample_s_ranges_to_560_name_each_first_parting` (`SAMPLE_RANGES_1697`):
+each line's first parting by range over 0..560.
+
 ## run1683 — the original playing the demand's game, minted at style 0 (2026-11-18, item 4387, `att-4387`)
 
 `docs/LEADERS.md` §8.2, §8.6; `docs/RECGAME.md` §8.2; DECISIONS 142 §3. **What the disk could not answer**: no

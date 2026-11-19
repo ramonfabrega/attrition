@@ -356,29 +356,34 @@ impl Sim {
         }
         let diff = self.ai_difficulty();
         let target_human = self.cities.nation[t].human;
+        // The difficulty's share, the four lines and the third parties at
+        // war with the target are one arm, a human target's: `6bd02a`
+        // tests the target's `leader_flags & 4` and its `je` lands on
+        // `6bd228`, the `<< 5`, past all three (item 4412, run1697: leader
+        // 4 against its teammate 2 on 241, ours 32, theirs 0).
         if target_human {
             if diff >= 4 {
                 strong += 2;
             } else if diff == 3 {
                 strong += 1;
             }
-        }
-        for ident in LINES {
-            if self.line_buildings(me as Player, ident) != 0
-                && self.line_buildings(t as Player, ident) == 0
-            {
-                strong += 1;
+            for ident in LINES {
+                if self.line_buildings(me as Player, ident) != 0
+                    && self.line_buildings(t as Player, ident) == 0
+                {
+                    strong += 1;
+                }
             }
-        }
-        if diff > 2 {
-            strong += (0..players)
-                .filter(|&l| {
-                    !self.leaders.defeated[l]
-                        && l != me
-                        && l != t
-                        && (self.diplos(l, t) == 0 || self.diplos(t, l) == 0)
-                })
-                .count() as i32;
+            if diff > 2 {
+                strong += (0..players)
+                    .filter(|&l| {
+                        !self.leaders.defeated[l]
+                            && l != me
+                            && l != t
+                            && (self.diplos(l, t) == 0 || self.diplos(t, l) == 0)
+                    })
+                    .count() as i32;
+            }
         }
         strong <<= 5;
         if strong < 1 {

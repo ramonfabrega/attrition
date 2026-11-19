@@ -660,3 +660,38 @@ fn queued_attacks_keep_their_own_target_generation_and_fields() {
     );
     assert_eq!(fields(&sim, "order.attack")[0][8], 0);
 }
+
+/// **A detector building's flags carry `0x40`** (item 4412, run1697's
+/// Lookout `3/2008` on 525: ours 1, theirs 0x41): `Object::init@00647750:39`
+/// ORs `0x40` into `SubObjectData::flags` when vslot `+0x148` answers the
+/// type's `DETECT` objmask (`0x2000000`), for a building as for a unit.
+#[test]
+fn a_detector_building_s_flags_carry_0x40() {
+    use crate::cities::build::{BuildType, Ident};
+    use crate::world::Pos;
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(60, 60), 2);
+    for masks in [0, crate::combat::mask::DETECT] {
+        sim.tables.build_types.push(BuildType {
+            ident: Ident::Other,
+            combat: Some(crate::combat::Profile {
+                obj_masks: masks,
+                ..Default::default()
+            }),
+            ..BuildType::default()
+        });
+    }
+    let plain = sim.add_building(0, Pos::new(1152, 1152), 2);
+    let lookout = sim.add_building(0, Pos::new(2304, 2304), 2);
+    sim.buildings[plain].ty = Some(0);
+    sim.buildings[lookout].ty = Some(1);
+    let line = sim.checksum_builds(&|_| 0);
+    let flags: Vec<u8> = line
+        .ranges
+        .iter()
+        .filter(|r| r.field == "flags")
+        .map(|r| r.bytes[0])
+        .collect();
+    assert_eq!(flags.len(), 2);
+    assert_eq!(flags[0] & 0x40, 0, "no DETECT: no 0x40");
+    assert_eq!(flags[1] & 0x40, 0x40, "DETECT: 0x40");
+}

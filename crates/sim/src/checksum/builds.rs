@@ -137,18 +137,28 @@ impl Sim {
     /// `SubObjectData::flags` of a building: `0x1` in use, `0x2` started
     /// (`Wall::start`), `0x4` active, `0x20` a city's type
     /// (`SubObject::init` ORs it in when the type's vtable `+100`,
-    /// `BuildTypeData::is_city`, answers), `0x80` attacking.
+    /// `BuildTypeData::is_city`, answers), `0x40` the type's `DETECT`
+    /// objmask (`Object::init@00647750:39`, vslot `+0x148` asked
+    /// `0x2000000`, as a unit's; item 4412: run1697's Lookout `2008` on
+    /// 525, ours 1, theirs 0x41), `0x80` attacking.
     fn build_flags_byte(&self, b: usize) -> u8 {
         let bd = &self.buildings[b];
         let city = bd
             .ty
             .is_some_and(|t| crate::cities::build::is_city(&self.tables.build_types, t));
+        let detect = bd.ty.is_some_and(|t| {
+            self.tables.build_types[t]
+                .combat
+                .as_ref()
+                .is_some_and(|c| c.obj_masks & crate::combat::mask::DETECT != 0)
+        });
         [
             (0x1, bd.alive),
             (0x2, bd.started),
             (0x4, bd.active),
             (0x10, bd.damage_marked),
             (0x20, city),
+            (0x40, detect),
             (0x80, bd.attacking),
         ]
         .iter()

@@ -528,26 +528,13 @@ each a mutation that turns the pin red:
 Four ranges were left; item 4394 took the `seen2` cells (not a unit's
 reveal, as guessed) and goods' `ever_seen`.
 
-**Items 4394 and 4397** (their journals under `docs/journal/`).
-*Diff-backed* on run1678, each by a mutation:
-
-- **4394, the cells**: `Game::run@00584590:722`'s
-  `GameDaemon::update_all_seen` ors each live leader's team into every
-  `seen2` byte holding one of its bits at frame 0 (the Woodcutter
-  `2/2001`'s disc past its city's). World whole over the window.
-- **4394, goods**: `plan_strategy:314`–`:337` marks each `new_rares` good
-  it counts (`ever_seen |= 1 << who`). Goods whole over the window.
-- **4397, builds' `z`**: `Game::init@0058c480:629`'s
-  `Setup::reinit_game_units@005abf90` samples every live object's `z`
-  again. Farms `0/2003` 142|145 and `3/2002`
-  316|330, placed before `0/2006`'s and `3/2005`'s terraforms, agree.
-- **4397, the oil**: `Setup::build_cities@005ab910` runs the city's
-  `update_seen(0)` before `compute_all_territory`, and the pre-play fix
-  claims nothing, so leader 2's capital disc lists goods 5 and 4 first:
-  `oil_patches` (20, 4, 5, 15)|(5, 4, 20, 15) agrees.
-
-By sum (`SAMPLE_LINES`): goods 1 → 4094, world 0 → 1716, builds 0 → 76,
-leaders 0 → 241. State 0 is whole by range.
+**Items 4394 and 4397** (their journals), *diff-backed* on run1678, each
+by a mutation: frame 0's `update_all_seen` (`Game::run@00584590:722`)
+shares each team's `seen2`; `plan_strategy:314` marks `new_rares` goods
+`ever_seen`; `Setup::reinit_game_units@005abf90` (`Game::init:629`)
+samples every `z` again; `build_cities@005ab910` leaves the oil to
+`compute_all_territory`. By sum: goods 1 → 4094, world 0 → 1716, builds
+0 → 76, leaders 0 → 241. State 0 is whole by range.
 
 **Item 4405: the window whole by range.** *Diff-backed* on run1678, each
 by a mutation:
@@ -561,8 +548,21 @@ by a mutation:
 - **Units on 92**: `unit_masks & 0x4000000` (`Unit::explore_queued`,
   4351's) is on the word: `439 0` 8|0x4000008 agrees. Units 92 → 532.
 
-All twelve agree over 0..100. Next by sum: leaders on 241, past the
-window, a ranges take (run1697 unused).
+All twelve agree over 0..100.
+
+**Item 4412: run1697, to 560.** *Diff-backed* on run1697's ranges
+(`SAMPLE_RANGES_1697`), each by a mutation:
+
+- **Leaders on 241**: `528 4` `+0x238`, leader 4's `strong[2]` against
+  its teammate 2, ours 32, theirs 0. `Leader::diplomacy`'s `6bd02a`
+  tests the target's `leader_flags & 4`; its `je 6bd228` skips the four
+  building lines and the third parties at war with the target, not only
+  the difficulty's share. Leaders by sum 241 → 2112.
+- **Builds on 525**: `974 2008 flags` 1|0x41, the person's Lookout
+  `3/2008`. `Object::init@00647750:39` ors `0x40` for a `DETECT` type, a
+  building's as a unit's. Builds 525 → 3029; packets' lines 661 → 674.
+
+Next: units on 532, `905 6 guys.length`, 586 of 1,557 ranges parted.
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
