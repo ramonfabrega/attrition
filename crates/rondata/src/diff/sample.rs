@@ -716,6 +716,11 @@ pub(in crate::diff) mod tests {
                 }
                 let (rec, field) = a.map_or((-1, "-"), |r| (r.record, r.field));
                 let fields = match (a, b) {
+                    // A shifted range decodes theirs' bytes by our field's
+                    // name; at another length that is raw bytes alone.
+                    (Some(a), Some(b)) if a.bytes.len() != b.2.len() => {
+                        format!("len {}|{}: {:02x?}|{:02x?}", a.bytes.len(), b.2.len(), a.bytes, b.2)
+                    }
                     (Some(a), Some(b)) => {
                         let x = super::super::checksum_lines::range_fields(name, field, &a.bytes);
                         let y = super::super::checksum_lines::range_fields(name, field, &b.2);

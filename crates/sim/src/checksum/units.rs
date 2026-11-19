@@ -594,7 +594,8 @@ impl Sim {
     /// `CAST_SPELL` (that target, and `x`..`spell`, item 4234) on 3596; a
     /// `GUARD` (that target, and `dx`..`retry`, item 4266) on 12537; a
     /// `GROUP_MOVE` or `GROUP_ATTACK_TO` (the move, then the flags again,
-    /// `oxx`..`group_angle` and `in_group`, item 4243) on 6907; any
+    /// `oxx`..`group_angle` and `in_group`, item 4243) on 6907; a `THINK`
+    /// (the flags byte, item 4414) on the 2017 sample's 532; any
     /// other kind hands over its type and node byte alone here, its walker
     /// not ported (`docs/CHECKSUM.md` §17).
     fn checksum_order(&self, ranges: &mut Vec<Range>, u: usize, k: usize) {
@@ -681,6 +682,10 @@ impl Sim {
                     );
                 }
             }
+            // `ThinkOrder`'s vslot `+0x8` is the base's own
+            // `UnitOrder::walk_data@0047f2b0` (`ThinkOrder::vftable@00b48d88`):
+            // the flags byte alone (item 4414, the sample's units on 532).
+            Body::Think => put("order.flags", vec![o.flags]),
             Body::Build(b) if o.index() == kind::BUILD_AT => {
                 put("order.flags", vec![o.flags]);
                 put("order.target", target(b));
