@@ -4218,17 +4218,19 @@ fn name_effects_theirs(take: &str, at: &[i64]) -> Option<Vec<NameEffect>> {
 }
 
 /// **The renamed script's effects on our walk** (item 4268), pinned before
-/// the original's playback was read: no name before the package (the
-/// founding name is not carried), [`crate::script::RENAME_NAME`] from the
-/// frame after it; without the order, no name on any of the three. Seen
-/// red first: pinned empty.
+/// the original's playback was read: [`crate::script::RENAME_NAME`] from
+/// the frame after the package; without the order, no rename. Seen red
+/// first: pinned empty. Before the package the capital carries its
+/// founding name, `Napata`, since item 4418 ported `City::generate_name`
+/// (re-pinned by item 4422, whose lane gate was the first to run this
+/// test after that port; it was `None`), as the original's take does.
 fn renamed_effects_ours() -> Vec<NameEffect> {
     let row = |frame, name: Option<&str>| NameEffect {
         frame,
         name: name.map(str::to_string),
     };
     let name = Some(crate::script::RENAME_NAME);
-    vec![row(6730, None), row(6731, name), row(6999, name)]
+    vec![row(6730, Some("Napata")), row(6731, name), row(6999, name)]
 }
 
 /// **What the rename does on our walk** (item 4268), on
@@ -4308,9 +4310,9 @@ fn the_original_s_playback_of_the_renamed_file_walks_in_lockstep() {
     assert_eq!(walked, RENAMED_WALKED, "the walked table");
     assert_eq!(theirs, renamed_effects_theirs(), "the original's names");
     assert_eq!(
-        theirs[1..],
-        renamed_effects_ours()[1..],
-        "ours after the package"
+        theirs,
+        renamed_effects_ours(),
+        "ours, the founding name before the package (item 4418) and the rename after it"
     );
 }
 
