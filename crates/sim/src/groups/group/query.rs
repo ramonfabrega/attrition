@@ -70,8 +70,7 @@ impl Sim {
                 // turn, and an emptied slot is the dump's no longer.
                 // run1512's `[2007]`, disbanded on 832, leaves slot 1 on
                 // 833, `833 mod 64` (item 3918, `docs/GOLDEN.md` §165).
-                let buildings = &self.buildings;
-                self.orders.pushed[i].builds.retain(|&b| buildings[b].alive);
+                self.seat_prune_builds(crate::groups::group::Seat::Pushed(i));
                 let g = crate::groups::group::Group {
                     who,
                     army: None,
