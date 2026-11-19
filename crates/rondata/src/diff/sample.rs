@@ -620,13 +620,6 @@ pub(in crate::diff) mod tests {
                     }
                 }
             }
-            if std::env::var("RON_PROBE_4405").is_ok() && (60..=80).contains(&f) {
-                for (b, bd) in built.sim.buildings.iter().enumerate() {
-                    if !bd.gather.is_empty() {
-                        eprintln!("PROBE4405 f{f} b{b} owner{} ty{:?} gather {:?}", bd.owner, bd.ty, bd.gather);
-                    }
-                }
-            }
             stream.apply(f as i32, &mut built);
             built.tick();
         }

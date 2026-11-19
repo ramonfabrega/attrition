@@ -1565,9 +1565,6 @@ impl Stream {
     }
 
     fn one(&mut self, it: &Input, built: &mut Built, done: &mut Applied) {
-        if std::env::var("RON_PROBE_4405").is_ok() && it.frame <= 100 {
-            eprintln!("PROBE4405 cmd f{} who{} play{} {:?}", it.frame, it.who, it.play, it.cmd);
-        }
         if self.pump && self.pumped(it, built, done) {
             return;
         }
