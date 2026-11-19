@@ -308,6 +308,8 @@ struct Built {
     overlay: (Vec<[f32; 3]>, Vec<[f32; 3]>),
     /// The selected buildings' bands (item 4401), world triangles.
     underlay: (Vec<[f32; 3]>, Vec<[f32; 3]>),
+    /// The cities' plates (item 4410), the screen pass's layers.
+    screen: Vec<gpu::ScreenLayer>,
 }
 
 fn build(
@@ -365,6 +367,11 @@ fn build(
     let underlay = hud.map_or_else(Default::default, |input| {
         selection::underlay(world, &input.selection)
     });
+    // Item 4410: a city's plate wants its name, and the founding name is
+    // not carried (`sim::cities::rename`'s SEAM): a written one is drawn.
+    let screen = selection::plates(world, camera, (size.0 as i32, size.1 as i32), &|c| {
+        world.runner.sim().city_name_written(c).map(String::from)
+    });
     Built {
         figures,
         textured,
@@ -374,6 +381,7 @@ fn build(
         particles,
         overlay,
         underlay,
+        screen,
     }
 }
 
@@ -420,6 +428,7 @@ fn draw(
         trees: &b.trees,
         overlay: (&b.overlay.0, &b.overlay.1),
         underlay: (&b.underlay.0, &b.underlay.1),
+        screen: &b.screen,
         sprites: &b.sprites,
         shadows: &b.shadows,
         particles: &b.particles,
@@ -460,12 +469,28 @@ pub(crate) fn still_selected(
     format: wgpu::TextureFormat,
     selection: &[sim::observe::ObjId],
 ) -> Vec<u8> {
+    still_named(world, camera, size, order, format, selection, &|_| None)
+}
+
+/// [`still_selected`] with the cities' plates drawn (item 4410), each
+/// city's name `names(city)`'s.
+#[cfg(test)]
+pub(crate) fn still_named(
+    world: &mut World,
+    camera: &render::Camera,
+    size: (u32, u32),
+    order: gpu::SilhouetteOrder,
+    format: wgpu::TextureFormat,
+    selection: &[sim::observe::ObjId],
+    names: &dyn Fn(usize) -> Option<String>,
+) -> Vec<u8> {
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());
     let mut gpu = gpu::Gpu::new(&instance, None, format)
         .unwrap_or_else(|e| panic!("the still needs a GPU: {e}"));
     gpu.silhouette_order = order;
     let b = build(world, camera, size, 0.0, None);
     let underlay = selection::underlay(world, selection);
+    let screen = selection::plates(world, camera, (size.0 as i32, size.1 as i32), names);
     let version = world.runner.terrain().version;
     world.set_screen(camera, size);
     world.drawn_terrain();
@@ -491,6 +516,7 @@ pub(crate) fn still_selected(
         trees: &b.trees,
         overlay: (&[], &[]),
         underlay: (&underlay.0, &underlay.1),
+        screen: &screen,
         sprites: &b.sprites,
         shadows: &b.shadows,
         particles: &b.particles,
@@ -533,6 +559,7 @@ fn draw_page(
         trees: &[],
         overlay: (&overlay.0, &overlay.1),
         underlay: (&[], &[]),
+        screen: &[],
         sprites: &[],
         shadows: &[],
         particles: &[],
