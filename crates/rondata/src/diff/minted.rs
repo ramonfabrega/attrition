@@ -4163,7 +4163,7 @@ const RENAME_READ_AT: [i64; 3] = [6730, 6731, 6999];
 /// The capital's city name on one frame (item 4268): the bare line
 /// `CityData::log_data@004895c0` writes after `who` in slot 0's `CITY`
 /// record, or what a rename last wrote on our walk; `None` where no name
-/// is held — on our side, the founding name the crate does not carry.
+/// is held.
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct NameEffect {
     frame: i64,
@@ -4181,9 +4181,7 @@ fn name_effects_ours(orders: &[Order], at: &[i64]) -> Vec<NameEffect> {
         let city = s.buildings[s.building_by_o(0, crate::script::CAPITAL).unwrap()].city;
         ours.push(NameEffect {
             frame: s.frame,
-            name: city
-                .and_then(|c| s.city_name_written(c))
-                .map(str::to_string),
+            name: city.and_then(|c| s.city_name(c)).map(str::to_string),
         });
     }
     ours

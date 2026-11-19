@@ -11233,14 +11233,14 @@ fn a_rename_names_the_city_its_building_belongs_to() {
     let t = install_types(&mut sim);
     let (b, c) = city_at(&mut sim, &t, 0, 10, 10);
     let o = sim.buildings[b].index;
-    assert_eq!(sim.city_name_written(c), None);
+    assert_eq!(sim.city_name(c), None);
     assert!(!sim.command().process_rename_city(1, o, "Elsewhere"));
     assert!(!sim.command().process_rename_city(0, o + 1, "Elsewhere"));
-    assert_eq!(sim.city_name_written(c), None);
+    assert_eq!(sim.city_name(c), None);
     assert!(sim.command().process_rename_city(0, o, "Attrition"));
-    assert_eq!(sim.city_name_written(c), Some("Attrition"));
+    assert_eq!(sim.city_name(c), Some("Attrition"));
     assert!(sim.command().process_rename_city(0, o, "Norwich"));
-    assert_eq!(sim.city_name_written(c), Some("Norwich"));
+    assert_eq!(sim.city_name(c), Some("Norwich"));
 }
 
 /// **The start samples every building's `z` again once it stands**

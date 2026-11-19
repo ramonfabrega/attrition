@@ -926,8 +926,9 @@ mod tests {
         let size = (p.photo.width as u32, p.photo.height as u32);
         let camera = p.camera;
         // The capital's city is `Napata` on the packet (item 4403: city 0
-        // of slot 0, `CityData +0x90`); the sim does not carry a founding
-        // name, so the row names it, and only it.
+        // of slot 0, `CityData +0x90`), and the sim names it so at its
+        // founding (item 4418, `sim::leaders::words::founding_name`): the
+        // row draws the sim's names, as the live client does.
         let sim = p.world.runner.sim();
         let napata = sim
             .building_by_o(CITY.0, CITY.1)
@@ -937,6 +938,12 @@ mod tests {
             sim.cities.cities[napata].capital,
             "the city's record carries the capital's bit"
         );
+        assert_eq!(
+            sim.city_name(napata),
+            Some("Napata"),
+            "the sim's founding name is the packet's"
+        );
+        let names = sim.cities.names.clone();
         assert!(p.world.scroll_art.is_some(), "the plate's art loads");
         let ours = crate::still_named(
             &mut p.world,
@@ -948,7 +955,7 @@ mod tests {
                 who: CITY.0,
                 o: CITY.1,
             }],
-            &|c| (c == napata).then(|| "Napata".to_string()),
+            &|c| names.get(&c).cloned(),
         );
         if let Some(dir) = std::env::var_os("RON_STILL_DIR") {
             let out = std::path::PathBuf::from(dir).join("still-plate.bmp");
