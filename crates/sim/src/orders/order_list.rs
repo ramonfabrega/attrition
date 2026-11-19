@@ -710,6 +710,16 @@ impl Sim {
     /// Retarget the current attack without rewriting other orders in the queue.
     pub(crate) fn set_attack_target(&mut self, u: usize, target: Option<Obj>) {
         let id = target.map(|t| self.attack_target_id(t));
+        if std::env::var("RON_PROBE_4396").is_ok_and(|v| v.parse::<usize>() == Ok(u)) {
+            eprintln!(
+                "PROBE set_attack_target f{} u{u} {:?} action_of {:?} orders {:?}\n{}",
+                self.frame,
+                id,
+                self.action_of(u),
+                self.units[u].orders.iter().map(|o| (o.index(), o.flags)).collect::<Vec<_>>(),
+                std::backtrace::Backtrace::force_capture()
+            );
+        }
         if let Some(k) = self.action_of(u)
             && let Body::Attack(a) = &mut self.units[u].orders[k].body
         {
@@ -754,6 +764,9 @@ impl Sim {
         // the winner it returns (`docs/COMBAT.md` §33). Bumping here
         // counted a squad's mirror copies as separate attackers.
         let id = self.attack_target_id(target);
+        if std::env::var("RON_PROBE_4396").is_ok_and(|v| v.parse::<usize>() == Ok(u)) {
+            eprintln!("PROBE add_attack_order f{} u{u} {:?} {:?}\n{}", self.frame, id, pos, std::backtrace::Backtrace::force_capture());
+        }
         let unit = &mut self.units[u];
         unit.combat.target = Some(target);
         unit.combat.mandatory = mandatory;
