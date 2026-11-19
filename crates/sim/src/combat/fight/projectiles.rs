@@ -169,6 +169,7 @@ impl Sim {
             let sz = self.world.tile_z(centre.tile()) + 0xfa;
             let ez = self.aim_z(target, land_unit);
             self.add_ammo(combat::Projectile {
+                left: None,
                 shooter: me,
                 owner: self.buildings[b].owner,
                 target: Some(target),
@@ -574,8 +575,20 @@ impl Sim {
         // on the dead Stealth Bomber `1/17` comes down on 797 455 from the
         // Jet Fighter Bomber `1/18` and leaves it whole (205 on blocks
         // 796–799), where ours splashed it for 3½.
+        // The same test clears the pair a gone target left on the round
+        // ([`combat::Projectile::left`], item 4404): `do_damage@00678060`'s
+        // lines 76–81, so a spent arrow's record reads `whom -1 ox -1`.
+        if let Some(q) = self
+            .combat
+            .projectiles
+            .iter_mut()
+            .find(|q| q.slot == p.slot)
+        {
+            q.left = None;
+        }
         let p = combat::Projectile {
             air: p.air && target.is_some(),
+            left: None,
             ..p
         };
         if !self.hit_target(&p) {
