@@ -11315,3 +11315,53 @@ fn the_start_s_resample_takes_each_live_building_s_ground() {
     assert_eq!(sim.buildings[a].z, za + 3, "the ground the start leaves");
     assert_eq!(sim.buildings[b].z, zb, "a dead building is not sampled");
 }
+
+/// **A trained captain's exit lights no disc, gather point or none** (item
+/// 4424, `docs/VISION.md` §6): `Unit::come_out@00617c10` stores the exit spot
+/// into `+0x10`/`+0x14` before `set_new_location(spot, 1, 1)`, so the
+/// half-cell test that gates `update_seen` sees no change. A captain with a
+/// gather point is no exception; only the re-seat's own `set_new_location`
+/// lights, when it moves the half-cell. The sample's person's type-107
+/// captain lit nine fog cells round (74, 39) on 1715 in ours alone.
+///
+/// Made to fail with the exit's light back for a gathered captain.
+#[test]
+fn a_captain_out_toward_a_gather_point_lights_no_disc_at_its_exit() {
+    use crate::cities::rally::GatherPoint;
+    let (mut sim, t, _, militia) = alarm_sim();
+    sim.tables.unit_types[militia].los = 6;
+    let (b, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let m = sim.init_unit(0, militia, tile_pos(36, 36));
+    sim.go_inside(m, b);
+    assert!(sim.world.set_fog(vec![0; 16 * 16 * 4]));
+    sim.add_gather_point(
+        b,
+        GatherPoint {
+            pos: tile_pos(32, 56),
+            action: 0,
+        },
+        true,
+    );
+    // A human's captain keeps a held order, so the routing (and its
+    // re-seat) never runs: what lights is the exit alone.
+    sim.cities.nation[0].human = true;
+    sim.add_move_order(
+        m,
+        tile_pos(50, 50),
+        crate::orders::MoveKind::MoveTo,
+        crate::orders::QueuePos::New,
+        true,
+    );
+    sim.world.clear_seen();
+    let heading = sim.units[m].movement.heading;
+    assert!(sim.come_out(m));
+    assert_ne!(
+        sim.units[m].movement.heading, heading,
+        "the gather point turned the exit"
+    );
+    let lit = (0..sim.world.fog_ys())
+        .flat_map(|y| (0..sim.world.fog_xs()).map(move |x| (x, y)))
+        .filter(|&(x, y)| sim.world.seen(x, y).is_some_and(|s| s & 1 != 0))
+        .count();
+    assert_eq!(lit, 0, "the exit lit {lit} fog cells");
+}
