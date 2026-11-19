@@ -141,15 +141,6 @@ impl Sim {
             .find(|p| p.who == who && p.state.pool == Some(s));
         // The record: an army's while it has members, else the pushed
         // entry's, else an army's empty one.
-        if std::env::var_os("RON_PROBE_4417_BT").is_some() && who == 1 && s == 1 {
-            let n = self.orders.pushed.iter().filter(|p| p.who == who && p.state.pool == Some(s)).count();
-            eprintln!(
-                "PROBE4417CK f{} army {:?} pushed {:?} n {n}",
-                self.frame,
-                army.map(|a| (a.army, a.group.form, a.group.stamp, a.units.len())),
-                pushed.map(|p| (p.state.form, p.state.stamp, p.list.len()))
-            );
-        }
         let (st, units, builds): (&GroupState, &[usize], &[usize]) = match (army, pushed) {
             (Some(a), _) if !a.units.is_empty() || pushed.is_none() => (&a.group, &a.units, &[]),
             (_, Some(p)) => (&p.state, &p.list, &p.builds),
