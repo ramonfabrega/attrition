@@ -1114,9 +1114,17 @@ fn a_human_s_build_drop_gives_each_citizen_a_move_then_the_build() {
             sim.group_add(&mut g, u);
         }
         assert!(sim.push_group(&mut g, true));
+        // `action_swarm_around@0070fbe0:111` writes the record's `form`
+        // −1 (items 4419, 4422; the 2017 sample's slot 195 on 961).
+        sim.gstate_mut(&g).expect("a seated group").form = 9;
         let b = sim
             .group_action_build(&g, tile_pos(40, 40), t.barracks, QueuePos::New)
             .expect("the site is placed");
+        assert_eq!(
+            sim.gstate_mut(&g).map(|st| st.form),
+            Some(-1),
+            "the swarm's form"
+        );
         for (r, (was, cost)) in before.iter().zip(price).enumerate() {
             assert_eq!(
                 sim.economy.ledgers[0].bucket[r],
@@ -1213,6 +1221,51 @@ fn a_builder_s_re_entry_swarms_the_build_queued_behind_it_afresh() {
     let after = dest(&sim);
     assert_eq!(after.len(), 2, "{:?}", sim.units[u].orders);
     assert_ne!(after[1], before[1], "the second approach is laid afresh");
+}
+
+/// **A goody box's `QUEUE_FIRST` move leaves a builder's record at form
+/// −1** (item 4422). `Unit::get_goody_box@005f7690` pushes a one-member
+/// group and moves the **pool record** at `QUEUE_FIRST`:
+/// `action_move_near` saves the leader's action orders, halts, stores
+/// `get_form` (9 for a Citizen) at `QUEUE_NEW`, and `finish_insert`
+/// re-issues the saved `BUILDORDER` through `action_swarm_around`, whose
+/// `:111` writes the record's `form` −1. run1383's record 65 on 1180,
+/// the Citizen `1/2`'s group stamped 808: ours 9, theirs −1.
+///
+/// Made to fail with `SimSwarm::set_form` emptied (the record keeps 9).
+#[test]
+fn a_goody_box_move_over_a_queued_build_leaves_its_record_at_form_minus_one() {
+    let (mut sim, t, citizen, _) = alarm_sim();
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    sim.tables.unit_types[citizen].worker = Worker::Citizen;
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    let u = sim.init_unit(0, citizen, tile_pos(30, 44));
+    sim.swarm_around(u, b, Body::Build(b), true);
+    let mut g = crate::groups::group::Group::stack(0);
+    sim.group_add(&mut g, u);
+    assert!(sim.push_group(&mut g, true));
+    sim.group_action_move_to(
+        &g,
+        tile_pos(20, 44),
+        QueuePos::First,
+        false,
+        movement::Angle(0),
+        MoveKind::ExploreTo,
+        false,
+    );
+    assert!(
+        sim.units[u]
+            .orders
+            .iter()
+            .any(|o| matches!(o.body, Body::Build(x) if x == b)),
+        "the build is re-issued: {:?}",
+        sim.units[u].orders
+    );
+    assert_eq!(
+        sim.gstate_mut(&g).map(|st| st.form),
+        Some(-1),
+        "the swarm's form, after the move's get_form"
+    );
 }
 
 /// **A re-entry re-issues a queued build on whatever now holds its

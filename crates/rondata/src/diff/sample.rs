@@ -531,14 +531,16 @@ pub(in crate::diff) mod tests {
     /// `SubObjectData::flags & 0x40`, `Object::init`'s `DETECT`) builds 525
     /// → 3029. Item 4414 (a `THINK` walks `UnitOrder::walk_data@0047f2b0`'s
     /// flags byte): units 532 → 2112. Item 4419 (a dead building leaves its
-    /// group on the next push): groups 927 → 961.
+    /// group on the next push): groups 927 → 961. Item 4422
+    /// (`action_swarm_around`'s `form` −1, slot 195 on 961): groups 961 →
+    /// 2888.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 2112),
         ("builds", 3029),
         ("walls", 21044),
         ("ammo", 3022),
         ("deaths", 3365),
-        ("groups", 961),
+        ("groups", 2888),
         ("guys", 2920),
         ("leaders", 2112),
         ("cities", 3176),
@@ -890,8 +892,16 @@ pub(in crate::diff) mod tests {
             1,
             "1 0 rolling..start_roll_angle: +0x7 of 99|99: 44290000|462b0000",
         ),
-        // Item 4419: 927 -> 961 (a dead building leaves on the push).
-        ("groups", 961, 586, 586, 1, "243 195 id..march: form 9|-1"),
+        // Item 4419: 927 -> 961 (a dead building leaves on the push); item
+        // 4422: 961 -> 2888 (the swarm's `form` −1 on slot 195).
+        (
+            "groups",
+            2888,
+            628,
+            628,
+            3,
+            "346 256 id..march: stamp 2701|2887",
+        ),
         (
             "guys",
             2920,
