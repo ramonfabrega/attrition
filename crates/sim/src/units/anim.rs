@@ -1236,6 +1236,10 @@ impl Sim {
             // and stops short of it (item 4420). A dead missile's 90.0 is
             // what run882b's Strategic Bomber `1/50` carries on 6808.
             first.turret.inc = old.turret.inc;
+            if std::env::var_os("RON_PROBE_4420").is_some() && old.turret.inc != 0 {
+                let prev = self.units.iter().rev().find(|x| x.owner == who && x.index == o && !x.alive()).map(|x| (x.type_index, x.uid));
+                eprintln!("PROBE4420 f{} {}/{} inherits {:08x} from {:?}", self.frame, who as u8, o, old.turret.inc, prev);
+            }
         }
         self.units[u].guys = guys;
         // `Unit::init@00612100:548`-`549`, which follow the guy loop:
