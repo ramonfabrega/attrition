@@ -1402,7 +1402,7 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// `SubObjectData::flags & 0x40`, `Object::init`'s `DETECT`: run1217,
 /// run1221, run1224b, run1236, run1238c, run1263, run1264b, run1266c,
 /// run1294, run1296, run1327, run1361, run985b).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 690, 1053);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 697, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1821,17 +1821,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4415, the oil-well stand's cur_time: units (4193, 4193, 5) -> (4193, 4193, 4), guys (1129, 1129, 1) -> (1129, 1129, 0).
     (
         "run1155c",
         3003,
         [
-            (4193, 4193, 5),
+            (4193, 4193, 4),
             (2371, 2371, 0),
             (0, 0, 0),
             (6, 6, 0),
             (0, 0, 0),
             (550, 550, 1),
-            (1129, 1129, 1),
+            (1129, 1129, 0),
             (271, 271, 0),
             (27, 27, 0),
             (75, 75, 0),
@@ -2009,17 +2010,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (7749, 7749,
     // 100) -> (7749, 7749, 90); guys (1934, 1934, 11) -> (1934, 1934, 1).
+    // Item 4415, the oil-well stand's cur_time: units (7749, 7749, 90) -> (7749, 7749, 89), guys (1934, 1934, 1) -> (1934, 1934, 0).
     (
         "run1169",
         3769,
         [
-            (7749, 7749, 90),
+            (7749, 7749, 89),
             (1813, 1813, 6),
             (0, 0, 0),
             (12, 12, 0),
             (0, 0, 0),
             (628, 628, 5),
-            (1934, 1934, 1),
+            (1934, 1934, 0),
             (271, 271, 0),
             (27, 27, 0),
             (20, 20, 0),
@@ -3195,17 +3197,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4415, the oil-well stand's cur_time: units (4745, 4745, 11) -> (4745, 4745, 10), guys (1352, 1352, 3) -> (1352, 1352, 2).
     (
         "run1351",
         4303,
         [
-            (4745, 4745, 11),
+            (4745, 4745, 10),
             (2237, 2237, 0),
             (0, 0, 0),
             (3, 3, 0),
             (0, 0, 0),
             (562, 562, 2),
-            (1352, 1352, 3),
+            (1352, 1352, 2),
             (271, 271, 0),
             (30, 30, 0),
             (75, 75, 0),
@@ -3353,17 +3356,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2974, 2974, 15) -> (2974, 2974, 13).
+    // Item 4415, the oil-well stand's cur_time: units (6464, 6464, 9) -> (6464, 6464, 7), guys (1584, 1584, 3) -> (1584, 1584, 1).
     (
         "run1359",
         5619,
         [
-            (6464, 6464, 9),
+            (6464, 6464, 7),
             (2974, 2974, 13),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (568, 568, 3),
-            (1584, 1584, 3),
+            (1584, 1584, 1),
             (271, 271, 2),
             (48, 48, 0),
             (60, 60, 0),
@@ -3395,17 +3399,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2974, 2974, 15) -> (2974, 2974, 13).
+    // Item 4415, the oil-well stand's cur_time: units (6408, 6408, 9) -> (6408, 6408, 7), guys (1598, 1598, 3) -> (1598, 1598, 1).
     (
         "run1359b",
         5677,
         [
-            (6408, 6408, 9),
+            (6408, 6408, 7),
             (2974, 2974, 13),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (556, 556, 3),
-            (1598, 1598, 3),
+            (1598, 1598, 1),
             (271, 271, 2),
             (48, 48, 0),
             (55, 55, 0),
@@ -3437,17 +3442,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2974, 2974, 15) -> (2974, 2974, 13).
+    // Item 4415, the oil-well stand's cur_time: units (6407, 6407, 9) -> (6407, 6407, 7), guys (1598, 1598, 3) -> (1598, 1598, 1).
     (
         "run1359c",
         5678,
         [
-            (6407, 6407, 9),
+            (6407, 6407, 7),
             (2974, 2974, 13),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (556, 556, 3),
-            (1598, 1598, 3),
+            (1598, 1598, 1),
             (271, 271, 2),
             (48, 48, 0),
             (55, 55, 0),
@@ -3751,17 +3757,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 2) -> (271, 271, 0).
+    // Item 4415, the oil-well stand's cur_time: units (4518, 4518, 13) -> (4518, 4518, 12), guys (1265, 1265, 1) -> (1265, 1265, 0).
     (
         "run1417",
         4016,
         [
-            (4518, 4518, 13),
+            (4518, 4518, 12),
             (2321, 2321, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (544, 544, 0),
-            (1265, 1265, 1),
+            (1265, 1265, 0),
             (271, 271, 0),
             (33, 33, 0),
             (75, 75, 0),
@@ -3869,17 +3876,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 2) -> (271, 271, 0).
+    // Item 4415, the oil-well stand's cur_time: units (4129, 4129, 4) -> (4129, 4129, 3), guys (1138, 1138, 1) -> (1138, 1138, 0).
     (
         "run1424",
         3156,
         [
-            (4129, 4129, 4),
+            (4129, 4129, 3),
             (2025, 2025, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (550, 550, 2),
-            (1138, 1138, 1),
+            (1138, 1138, 0),
             (271, 271, 0),
             (27, 27, 0),
             (90, 90, 0),
@@ -3904,17 +3912,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (4175, 4001, 3194) -> (4175, 4169, 3190).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 3) -> (271, 271, 1).
+    // Item 4415, the oil-well stand's cur_time: units (4175, 4175, 9) -> (4175, 4175, 7), guys (1227, 1227, 5) -> (1227, 1227, 3).
     (
         "run1426b",
         3722,
         [
-            (4175, 4175, 9),
+            (4175, 4175, 7),
             (2266, 2265, 802),
             (0, 0, 0),
             (0, 0, 0),
             (2, 2, 0),
             (544, 544, 1),
-            (1227, 1227, 5),
+            (1227, 1227, 3),
             (271, 271, 1),
             (27, 27, 0),
             (80, 80, 0),
@@ -3941,17 +3950,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 6) -> (271, 271, 5).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 5) -> (271, 271, 4).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 4) -> (271, 271, 2).
+    // Item 4415, the oil-well stand's cur_time: units (4789, 4529, 2797) -> (4789, 4529, 2796), guys (1208, 1208, 6) -> (1208, 1208, 5).
     (
         "run1437",
         3894,
         [
-            (4789, 4529, 2797),
+            (4789, 4529, 2796),
             (2154, 2151, 568),
             (0, 0, 0),
             (3, 3, 0),
             (4, 4, 0),
             (538, 538, 0),
-            (1208, 1208, 6),
+            (1208, 1208, 5),
             (271, 271, 2),
             (30, 30, 0),
             (85, 85, 0),
@@ -4271,17 +4281,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (1446, 1446, 25) -> (1446, 1446, 24).
     // Item 4348, gaia's angles from the start dump: guys (1381, 1381, 124) -> (1381, 1381, 1).
     // Item 4400, the `leader_flags` bits: leaders (403, 403, 6) -> (403, 403, 3).
+    // Item 4415, the oil-well stand's cur_time: units (4145, 4145, 279) -> (4145, 4145, 278), guys (1381, 1381, 1) -> (1381, 1381, 0).
     (
         "run1484",
         676,
         [
-            (4145, 4145, 279),
+            (4145, 4145, 278),
             (1446, 1446, 22),
             (0, 0, 0),
             (304, 0, 304),
             (0, 0, 0),
             (562, 562, 2),
-            (1381, 1381, 1),
+            (1381, 1381, 0),
             (403, 403, 3),
             (9, 9, 0),
             (25, 25, 0),
@@ -4334,17 +4345,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (5026, 4939, 4499) -> (5026, 5005, 4438).
     // Item 4348, gaia's angles from the start dump: guys (1577, 1577, 122) -> (1577, 1577, 1).
     // Item 4400, the `leader_flags` bits: leaders (407, 407, 6) -> (407, 407, 3).
+    // Item 4415, the oil-well stand's cur_time: units (5026, 5026, 287) -> (5026, 5026, 286), guys (1577, 1577, 1) -> (1577, 1577, 0).
     (
         "run1496",
         1539,
         [
-            (5026, 5026, 287),
+            (5026, 5026, 286),
             (2180, 2180, 24),
             (0, 0, 0),
             (230, 0, 230),
             (2, 2, 0),
             (586, 586, 2),
-            (1577, 1577, 1),
+            (1577, 1577, 0),
             (407, 407, 3),
             (23, 23, 0),
             (25, 25, 0),
@@ -4460,17 +4472,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 4) -> (271, 271, 3).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 2) -> (271, 271, 0).
+    // Item 4415, the oil-well stand's cur_time: units (4240, 4200, 432) -> (4240, 4200, 431), guys (1112, 1112, 2) -> (1112, 1112, 1).
     (
         "run1570",
         3331,
         [
-            (4240, 4200, 432),
+            (4240, 4200, 431),
             (1890, 1887, 478),
             (0, 0, 0),
             (0, 0, 0),
             (4, 4, 0),
             (556, 556, 1),
-            (1112, 1112, 2),
+            (1112, 1112, 1),
             (271, 271, 0),
             (30, 30, 0),
             (75, 75, 0),
@@ -4612,6 +4625,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): guys (2341, 2341,
     // 11) -> (2341, 2341, 3).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2384, 2381, 1396) -> (2384, 2381, 1397).
+    // Item 4415, the oil-well stand's cur_time: guys (2341, 2341, 3) -> (2341, 2341, 2).
     (
         "run810",
         3631,
@@ -4622,7 +4636,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (156, 0, 156),
             (0, 0, 0),
             (688, 688, 5),
-            (2341, 2341, 3),
+            (2341, 2341, 2),
             (271, 271, 1),
             (58, 58, 0),
             (10, 10, 0),
@@ -4651,17 +4665,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): guys (2450, 2450,
     // 11) -> (2450, 2450, 4).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2473, 2469, 1528) -> (2473, 2469, 1529).
+    // Item 4415, the oil-well stand's cur_time: units (9339, 9227, 8404) -> (9339, 9227, 8403), guys (2450, 2450, 4) -> (2450, 2450, 2).
     (
         "run823",
         4238,
         [
-            (9339, 9227, 8404),
+            (9339, 9227, 8403),
             (2473, 2469, 1529),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
             (676, 676, 6),
-            (2450, 2450, 4),
+            (2450, 2450, 2),
             (271, 271, 1),
             (58, 58, 0),
             (10, 10, 0),
@@ -4690,6 +4705,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): guys (2471, 2471,
     // 10) -> (2471, 2471, 3).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2473, 2469, 1528) -> (2473, 2469, 1529).
+    // Item 4415, the oil-well stand's cur_time: guys (2471, 2471, 3) -> (2471, 2471, 2).
     (
         "run825",
         4204,
@@ -4700,7 +4716,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (688, 688, 5),
-            (2471, 2471, 3),
+            (2471, 2471, 2),
             (271, 271, 1),
             (58, 58, 0),
             (10, 10, 0),
@@ -4834,6 +4850,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 4) -> (271, 271, 2).
     // Item 4397, the start's walk leaving the oil to `compute_all_territory` (a capital's disc lists its patches first): leaders one parted range fewer, after item 4400's (the pin below).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2288, 2283, 1534) -> (2288, 2283, 1535).
+    // Item 4415, the oil-well stand's cur_time: guys (2210, 2210, 1) -> (2210, 2210, 0).
     (
         "run865",
         4859,
@@ -4844,7 +4861,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (28, 28, 7),
             (640, 640, 3),
-            (2210, 2210, 1),
+            (2210, 2210, 0),
             (271, 271, 1),
             (64, 64, 0),
             (0, 0, 0),
@@ -4900,17 +4917,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): guys (2832, 2832,
     // 26) -> (2832, 2832, 5).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2737, 2732, 1916) -> (2737, 2732, 1917).
+    // Item 4415, the oil-well stand's cur_time: units (11125, 10815, 9506) -> (11125, 10815, 9505), guys (2832, 2832, 5) -> (2832, 2832, 3).
     (
         "run882b",
         6808,
         [
-            (11125, 10815, 9506),
+            (11125, 10815, 9505),
             (2737, 2732, 1917),
             (0, 0, 0),
             (15, 15, 5),
             (0, 0, 0),
             (616, 616, 7),
-            (2832, 2832, 5),
+            (2832, 2832, 3),
             (271, 271, 1),
             (64, 64, 0),
             (0, 0, 0),
@@ -4943,17 +4961,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): guys (2832, 2832,
     // 24) -> (2832, 2832, 5).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2737, 2732, 1917) -> (2737, 2732, 1918).
+    // Item 4415, the oil-well stand's cur_time: units (11180, 10834, 9394) -> (11180, 10834, 9393), guys (2832, 2832, 5) -> (2832, 2832, 3).
     (
         "run883b",
         6821,
         [
-            (11180, 10834, 9394),
+            (11180, 10834, 9393),
             (2737, 2732, 1918),
             (0, 0, 0),
             (36, 36, 5),
             (0, 0, 0),
             (616, 616, 7),
-            (2832, 2832, 5),
+            (2832, 2832, 3),
             (271, 271, 1),
             (64, 64, 0),
             (0, 0, 0),
@@ -5790,17 +5809,18 @@ fn probe_built_clocks() {
 // both sides' ranges one count.
 /// Item 4348, gaia's angles from the start dump: units (3907, 3907, 408) -> (3907, 3907, 286), guys (1289, 1289, 124) -> (1289, 1289, 2).
 /// Item 4400, the `leader_flags` bits: leaders (407, 407, 6) -> (407, 407, 3).
+// Item 4415, the oil-well stand's cur_time: units (3907, 3907, 286) -> (3907, 3907, 284), guys (1289, 1289, 2) -> (1289, 1289, 0).
 const TAKE_PINNED: Pinned = (
     "run1575",
     1090,
     [
-        (3907, 3907, 286),
+        (3907, 3907, 284),
         (1709, 1709, 23),
         (0, 0, 0),
         (0, 0, 0),
         (0, 0, 0),
         (556, 556, 2),
-        (1289, 1289, 2),
+        (1289, 1289, 0),
         (407, 407, 3),
         (12, 12, 0),
         (25, 25, 0),
@@ -5909,17 +5929,18 @@ fn run1575_take_packet() {
 /// run1575's take packet's count, none of them a hire or a tribute.
 /// Item 4348, gaia's angles from the start dump: units (3911, 3911, 401) -> (3911, 3911, 279), guys (1289, 1289, 123) -> (1289, 1289, 1).
 /// Item 4400, the `leader_flags` bits: leaders (407, 407, 6) -> (407, 407, 3).
+// Item 4415, the oil-well stand's cur_time: units (3911, 3911, 279) -> (3911, 3911, 278), guys (1289, 1289, 1) -> (1289, 1289, 0).
 const TAKE1629_PINNED: Pinned = (
     "run1629",
     1190,
     [
-        (3911, 3911, 279),
+        (3911, 3911, 278),
         (2015, 2015, 23),
         (0, 0, 0),
         (0, 0, 0),
         (0, 0, 0),
         (556, 556, 2),
-        (1289, 1289, 1),
+        (1289, 1289, 0),
         (407, 407, 3),
         (12, 12, 0),
         (25, 25, 0),
@@ -6025,17 +6046,18 @@ fn run1629_take_packet() {
 /// Item 4400, the `leader_flags` bits: leaders (403, 403, 3) -> (403, 403, 0).
 /// the unseated slots' `diplos` agreeing. Item 4397: builds 1 → 0, the
 /// start's buildings' `z` resampled (`Setup::reinit_game_units`).
+// Item 4415, the oil-well stand's cur_time: units (3750, 3750, 1) -> (3750, 3750, 0), guys (1261, 1261, 1) -> (1261, 1261, 0).
 const TAKE1645_PINNED: Pinned = (
     "run1645",
     1000,
     [
-        (3750, 3750, 1),
+        (3750, 3750, 0),
         (2024, 2024, 0),
         (0, 0, 0),
         (0, 0, 0),
         (0, 0, 0),
         (556, 556, 2),
-        (1261, 1261, 1),
+        (1261, 1261, 0),
         (403, 403, 0),
         (9, 9, 0),
         (30, 30, 0),

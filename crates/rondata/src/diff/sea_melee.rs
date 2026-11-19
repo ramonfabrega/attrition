@@ -374,7 +374,8 @@ fn sea_melee_run1484_s_window_is_widened_whole() {
         }
     }
     pin_eq!(w.blocks, 20, "every block in the window");
-    pin_eq!(w.firsts.len(), 90, "run1484's window");
+    // Item 4415, the oil-well stand's `param_4`: block 660's `2/7` `cur_time`/`last_time` agree, −2.
+    pin_eq!(w.firsts.len(), 88, "run1484's window");
     pin_eq!(w.rounds_read, (157, 157), "the rounds read");
     pin_eq!(w.rounds.len(), 6, "the rounds that part");
 }
