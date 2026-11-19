@@ -1159,36 +1159,6 @@ impl Sim {
                 if f.flipped { (-ox, -oy) } else { (ox, oy) }
             })
             .collect();
-        if let Ok(want) = std::env::var("RON_PROBE_4425_REC")
-            && let Some(st) = self.gstate(g)
-            && st.pool.map(|p| g.who as usize * 64 + p as usize).map(|r| r.to_string()) == Some(want)
-        {
-            let m: Vec<String> = g
-                .list
-                .iter()
-                .map(|&u| {
-                    let x = &self.units[u];
-                    format!(
-                        "{u}:{}{}{}",
-                        u8::from(x.alive()),
-                        u8::from(x.on_map),
-                        u8::from(x.captain)
-                    )
-                })
-                .collect();
-            eprintln!(
-                "PROBE4425REC f{} form {} flipped {} reverse {} guarding {} to {:?} num {}\n  members {}\n  off {:?}",
-                self.frame,
-                f.form,
-                f.flipped,
-                f.reverse,
-                f.guarding,
-                to,
-                g.list.len(),
-                m.join(" "),
-                off
-            );
-        }
         let theta = f.o.map_or(Angle(0), |u| self.units[u].movement.heading);
         let curr = Sim::form_update_positions(&off, theta);
         let (o_angle, o_dist) = Sim::form_leader_offset(f, to);
