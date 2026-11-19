@@ -89,15 +89,18 @@ def inventory(names, binary, env):
     return inventory
 
 
-def fingerprint(inputs, names, env):
-    # Keep environment values out of the report. These two paths describe
-    # the experiment's output and history, not what the Rust test reads.
+def fingerprint(inputs, names, env, command):
+    # The audit and prior-report paths identify the experiment. The
+    # supervisor sets RON_TEST_MEMCAP_GIB from the command's RSS limit:
+    # bind the actual test command, since hashing has a smaller lease.
     settings = {k: v for k, v in env.items() if
                 (k.startswith(('RON_', 'RUST_', 'Malloc', 'DYLD_', 'LC_'))
                  or k in ('HOME', 'PATH', 'LANG', 'TZ'))
-                and k not in ('RON_GATE_SHADOW_FROM', 'RON_FIXTURE_AUDIT_DIR')}
-    keys = {'runtime': digest([platform.platform(), platform.machine(), settings, AGES, '--exact', '--test-threads=1']),
-            'requests': digest(names), 'model': hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
+                and k not in ('RON_GATE_SHADOW_FROM', 'RON_FIXTURE_AUDIT_DIR', 'RON_TEST_MEMCAP_GIB')}
+    sources = ('scoped_shadow.py', 'gate_profile.py', 'isolated_tests.py', 'test_runtime.py', 'resource_budget.py')
+    runner = {name: hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest() for name in sources}
+    keys = {'runtime': digest([platform.platform(), platform.machine(), settings, command]),
+            'requests': digest(names), 'model': digest(runner)}
     for kind, records in inputs.items():
         hashes = {}
         for path, stamp in records.items():
@@ -143,10 +146,10 @@ def score(report):
                 test_cpu_seconds=(row['user'] or 0) + (row['system'] or 0))
 
 
-def forecast(previous, binary, env):
+def forecast(previous, binary, env, command):
     names = requests(previous)
     inputs = inventory(names, binary, env)
-    key = fingerprint(inputs, names, env)
+    key = fingerprint(inputs, names, env, command)
     if inputs != inventory(names, binary, env):
         raise ValueError('inputs changed while hashing')
     predicted, reason = False, 'seed: no prior prospective observation'
@@ -163,10 +166,10 @@ def forecast(previous, binary, env):
                                  if stat.S_ISREG(s.mode))), inputs, names
 
 
-def record(previous, directory, binary):
+def record(previous, directory, binary, command):
     started = time.monotonic()
     try:
-        prediction, inputs, _ = forecast(previous, binary, os.environ)
+        prediction, inputs, _ = forecast(previous, binary, os.environ, command)
         prediction['stamps'] = digest(inputs)
     except (OSError, ValueError, KeyError) as error:
         prediction = dict(predicted_pass=False, reason=str(error))
@@ -187,11 +190,12 @@ if __name__ == '__main__':
     plan = sub.add_parser('forecast', help='run by the scoped gate before the actual test')
     for arg in ('previous', 'directory', 'binary'):
         plan.add_argument(arg, type=Path)
+    plan.add_argument('command', nargs='+', help='the complete supervised libtest invocation, following --')
     sub.add_parser('score').add_argument('report', type=Path)
     args = parser.parse_args()
     try:
         if args.action == 'forecast':
-            record(args.previous, args.directory, args.binary)
+            record(args.previous, args.directory, args.binary, args.command)
         else:
             print(json.dumps(score(args.report), indent=2))
     except (OSError, ValueError, KeyError) as error:

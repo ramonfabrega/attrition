@@ -357,6 +357,9 @@ def run_one(binary, name, number, output, directory, memory, cancelled, known=Tr
     stamp = binary_stamp(binary)
     env = child_environment(test_name=name)
     env['RON_TEST_CPU'] = str(cpu)
+    limit = min(MEMORY_MIB, math.ceil(memory * 1.5 / QUANTUM_MIB) * QUANTUM_MIB) if known else UNKNOWN_LIMIT_MIB
+    command = wrapper(directory, memory, cpu=cpu, limit=limit, timeout=execution_timeout(name)) + [
+        '/usr/bin/time', '-l', str(binary), '--exact', name, '--test-threads=1']
     prior = env.get('RON_GATE_SHADOW_FROM') if name == scoped_shadow.AGES else None
     if prior:
         # Forecasting has its own lease and timeout. Its exit cannot pass,
@@ -365,12 +368,10 @@ def run_one(binary, name, number, output, directory, memory, cancelled, known=Tr
             with (output / 'ages-forecast.log').open('x') as sink:
                 monitored_command(wrapper(directory, 256, timeout=180) + [
                     sys.executable, str(ROOT / 'tools/scoped_shadow.py'), 'forecast',
-                    prior, str(output), str(binary)], sink, env, cancelled)
+                    prior, str(output), str(binary), '--', *command], sink, env, cancelled)
         except OSError as error:
             print(f'ages forecast unavailable: {error}', file=sys.stderr)
     with log.open('x') as sink:
-        limit = min(MEMORY_MIB, math.ceil(memory * 1.5 / QUANTUM_MIB) * QUANTUM_MIB) if known else UNKNOWN_LIMIT_MIB
-        command = wrapper(directory, memory, cpu=cpu, limit=limit, timeout=execution_timeout(name)) + ['/usr/bin/time', '-l', str(binary), '--exact', name, '--test-threads=1']
         code = monitored_command(command, sink, env, cancelled)
     if prior:
         try:

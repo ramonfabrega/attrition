@@ -37,7 +37,8 @@ with the live result, reports any missed failure and checks input stability.
 
 The pilot hashes the test executable, the installation, the captures requested
 by this test in the previous gate, their index sidecars and the setup observation
-cache. It includes the request counts, runtime switches and platform in the
+cache. It includes the request counts, the supervised test command, the
+runner sources, runtime switches and platform in the
 key. The previous test must have passed with stable inputs and the expected
 fixture requests. A missing fixture, unstable input or unsupported archive
 mapping leaves the verdict to the running test. Hashing uses a separate lease

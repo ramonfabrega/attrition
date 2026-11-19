@@ -106,6 +106,7 @@ class ScopedShadow(unittest.TestCase):
             binary = root / 'binary'
             binary.write_bytes(b'program')
             env = dict(os.environ, RON_INSTALL=str(install), RON_GAMELOG_DIR=str(logs))
+            command = ['budget', '--limit-mib', '32768', '--', str(binary), '--exact', shadow.AGES]
             def report(name):
                 gate = root / name
                 data = gate / 'isolated/rondata'
@@ -118,7 +119,7 @@ class ScopedShadow(unittest.TestCase):
             legacy, _ = report('legacy')
             seed, directory = report('seed')
             with patch.dict(os.environ, env):
-                shadow.record(legacy, directory, binary)
+                shadow.record(legacy, directory, binary, command)
             self.assertFalse(shadow.read(directory, shadow.FORECAST)['predicted_pass'])
             shadow.check_stability(legacy, directory, binary, env)
             row = dict(name=shadow.AGES, success=True, exit=0, user=1, system=0)
@@ -126,12 +127,15 @@ class ScopedShadow(unittest.TestCase):
             self.assertTrue(shadow.score(seed)['comparable'])
             trial, output = report('next')
             with patch.dict(os.environ, env):
-                shadow.record(seed, output, binary)
+                shadow.record(seed, output, binary, command)
             self.assertTrue(shadow.read(output, shadow.FORECAST)['predicted_pass'])
             self.assertFalse((output / 'measurements.jsonl').exists())
             capture.write_bytes(b'other')
             os.utime(capture, ns=(stamp.st_atime_ns, stamp.st_mtime_ns))
-            prediction, _, _ = shadow.forecast(seed, binary, env)
+            def reason(settings=env, invocation=command):
+                return shadow.forecast(seed, binary, settings, invocation)[0]['reason']
+
+            prediction, _, _ = shadow.forecast(seed, binary, env, command)
             self.assertEqual(prediction['reason'], 'changed: captures')
             shadow.check_stability(seed, output, binary, env)
             (trial / 'fixture-requests/case.tsv').write_bytes(b'')
@@ -141,20 +145,20 @@ class ScopedShadow(unittest.TestCase):
             self.assertFalse(result['comparable'])
             capture.write_bytes(b'frame')
             rules.write_bytes(b'other')
-            self.assertEqual(shadow.forecast(seed, binary, env)[0]['reason'], 'changed: install')
+            self.assertEqual(reason(), 'changed: install')
             rules.write_bytes(b'rules')
-            self.assertEqual(shadow.forecast(seed, binary, dict(env, RON_AGES_ONLY='one'))[0]['reason'],
-                             'changed: runtime')
+            self.assertEqual(reason(dict(env, RON_AGES_ONLY='one')), 'changed: runtime')
+            self.assertEqual(reason(invocation=[*command[:2], '512', *command[3:]]), 'changed: runtime')
             binary.write_bytes(b'changed')
-            self.assertEqual(shadow.forecast(seed, binary, env)[0]['reason'], 'changed: binary')
+            self.assertEqual(reason(), 'changed: binary')
             binary.write_bytes(b'program')
             cache = logs / '.ron-observations-v1'
             cache.mkdir()
             (cache / 'setup').write_bytes(b'observed')
-            self.assertEqual(shadow.forecast(seed, binary, env)[0]['reason'], 'changed: setup cache')
+            self.assertEqual(reason(), 'changed: setup cache')
             seconds, nanos = divmod(capture.stat().st_mtime_ns, 10**9)
             capture.with_name(f'capture.ronidx-v1-5-{seconds}-{nanos}').write_bytes(b'index')
-            self.assertEqual(shadow.forecast(seed, binary, env)[0]['reason'], 'changed: indexes, setup cache')
+            self.assertEqual(reason(), 'changed: indexes, setup cache')
 
 
 class Admission(unittest.TestCase):
