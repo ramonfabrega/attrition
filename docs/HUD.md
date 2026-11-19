@@ -222,7 +222,47 @@ it: of the 2,670 pixels, **1,285 are dark in theirs** (every channel under
 of 1,608. Ours, nothing drawn: 0. The anchor moved 89 px east read 75, and
 the pin failed. The photograph's `INTERFACE` mask holds this rectangle as
 "the city's label", taken out by eye for the scene's rows; the plate's own
-row does not apply it. Not drawn yet (§6).
+row does not apply it.
+
+**Drawn by item 4410.** `client::selection::plate_layers` lays
+`draw_scroll` from the install's own texels: `interface.xml`'s nine
+`<IFACETEX name="scroll">` on `TEX_CIV` (`iface_AS0_assets.tga`; corners
+4 × 4, edges 138 × 4 and 4 × 21, the body 138 × 21, one texel `(1, 1, 1)`
+at alpha 224), each tiled from its first texel as `draw_2d_expander@0051c7b0`
+lays them; then `SCROLL_CAPITAL_STAR` (`interface.txt`, on `TEX_COMMON`),
+white with 64 alphas, times the owner's `team_unit`, at the pads' inner
+corner; then the name from the text's rectangle (past the star, 3 rows
+down), each character at its advance. **The photograph's opaque edge is
+the texture's to the byte**: 578 of 678 texels, the other 100 under the
+blue `Reduced!` that floats over the plate's sides. The GPU's screen pass
+(`gpu::ScreenLayer`) draws them after the tone map and before the
+overlay, a layer an alpha, at the underlay's constant blend. On the
+row's footprint: **ours dark 0 → 1,742, on theirs' dark 0 → 1,251** (of
+1,285); drawn 89 px east, ours read 0 and the pin failed. The name is a
+stand-in, and is drawn only where it is known (§6).
+
+**The bar (item 4410).** `WallOut::draw_health_bar@00640dd0` draws it for a
+member of the console's `play` group (or the mouse-over, or `+0x24`), at
+`world_to_console` of the point; `@00640f20` lifts the point `0x180`,
+takes 30 × 3 at `Camera::zoom_level` 6, 20 × 2 at 5 and 10 × 1 below,
+about the anchor (`x0 = sx − w/2`, `y0 = sy − h/2`); its colour is
+`ObjectData::health_level@006534b0`'s (0 `GREEN`, 1 to 3 `YELLOW`, past
+`RED`), the level of `hits(0) − damage` against 90, 75, 50, 25 and 10 % of
+`hits(0)`; and the listing (`00640fb9`–`0064108b`) hands
+`GraphicPieces::draw_health_bar@00908650` the fraction `left / full` in
+single precision, `full` `hits(1)` at least 1 and `left` `hits(0) −
+damage` zeroed below nothing and capped at `full`. That one lays a black
+quad one pixel outside the rectangle and the fill from `x0` over
+`trunc(w · fraction)`. Run1559b's packet holds `zoom_level` 5 (the
+camera's `+0x294`), so the bar is 20 × 2 in a 22 × 4 frame.
+`client::selection::bar` is that rectangle and `bars` draws it in the
+screen pass. **`RUN1559B_3279_BAR`** reads it on the frame's 88 pixels:
+**theirs black 86** (every channel under 12; the other two are the fill,
+`(255, 0, 0)`), moved one bar down 0, without the lift 0. Napata stands at
+**`health` 102 of `hits` 1,200** in the scene, 8.5 %: level 5, red, and a
+fill of 1 pixel, which is the photograph's. **Ours black 0 → 86, all on
+theirs, and both red 0 → 2**; the fill drawn green read 0 red, the bar
+drawn without the lift 0 black, and each failed the pin.
 
 ## 4. The bar (item 4198)
 
@@ -461,18 +501,34 @@ Not established:
   `IFaceRenderManager::draw_scroll` in the owner's colour, under
   `player_profile.prefs & 0x40000`, every seen city, selected or not), a
   drawing helper rather than an `iface*` window; the bar is
-  `WallOut::draw_health_bar@00640dd0`/`@00640f20`'s, not read.
-- **The plate, placed and not drawn** (item 4403, §3): its rectangle is
-  counted on run1559b (`RUN1559B_3279_PLATE`) from the packet's pads,
-  star, font height and the name's advances. Not established: the font's
-  advances for any other name (ours has no such font; the row holds
-  `Napata`'s 51 as a constant), the scroll's nine textures and the
-  star's pixels, `draw_2d_expander`'s tiling, the prefs bit's default and
-  the visibility branch's arms (`semaphore & 0x42`, the ally and the
-  over-player cases), and whether a rectangle end is inclusive (the
-  photograph's gold edge fits `[x0, x1)`). The bar (the black strip
-  with the red fill over the capital, 22 × 4 at about (1116, 445) on
-  the photograph) has no row yet.
+  `WallOut::draw_health_bar@00640dd0`/`@00640f20`'s (§3, item 4410).
+- **The plate, drawn** (items 4403 and 4410, §3): its rectangle and its
+  drawing are counted on run1559b (`RUN1559B_3279_PLATE`). Not
+  established: **the name.** The sim carries no founding name
+  (`sim::cities::rename`'s SEAM), so the client draws a plate only for a
+  city a rename has named, and the row names `Napata` itself; and the
+  font's advances are held for `N`, `a`, `p` and `t` alone
+  (`selection::PLATE_ADVANCES`, the packet's): a name with any other
+  character draws no plate rather than a guessed one. **The glyphs** are
+  the overlay's 5 × 7 in white, not the font's, which is
+  `D3D11GLFont`'s from the system's face (`sbl/d3dgl.pdb`) and not read.
+  Also not established: which architecture set's `TEX_CIV` the original
+  loads (`iface_AS0_assets.tga` is `interface.xml`'s; `AS3`'s scroll
+  differs only in the body's `(0, 0, 0)` for `(1, 1, 1)`), `tile_random`'s
+  offsets (the body is one texel, so they draw nothing different),
+  `add_smooth`'s blend of the star (ours is the texel times the colour,
+  at the texel's alpha), the prefs bit's default and the visibility
+  branch's arms (`semaphore & 0x42`, the ally and the over-player
+  cases), and whether a rectangle end is inclusive (the photograph's gold
+  edge fits `[x0, x1)`).
+- **The bar, drawn for a selection** (item 4410, §3): counted on
+  run1559b (`RUN1559B_3279_BAR`). Not established: the arms for the
+  mouse-over, `+0x24` and another player's unfinished building; the
+  `GREEN` and `YELLOW` globals' values (ours the plain primaries; the
+  photograph shows only `RED`, `(255, 0, 0)`); the zoom level off any
+  camera but run1559b's packet (`selection::BAR_ZOOM_LEVEL` 5: the client
+  carries no `Camera::zoom_level`); `screen_scale_x` and `_y` other than
+  1; and the place of the bar and the plate among the other overlays.
 - **Slots 8 and 9.** The record prints two more leaders (no tribe, no
   goods); the bar shows the issuing slot only and they are not compared.
 - **A narrow window.** The bar is one line, about 1,430 pixels at the
