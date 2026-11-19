@@ -22,7 +22,9 @@
 //! lobby as before. `--page-still OUT.bmp` writes the page itself.
 //! `--page-of CAPTURE` sets the page to that capture's lobby by the page's
 //! own keys (item 4215): in a window the page opens on it, and with
-//! `--still` or `--headless` the game starts from it at once.
+//! `--still` or `--headless` the game starts from it at once. With
+//! `--record OUT.rcx --headless` it records that game idle to `--frame`
+//! and draws nothing (item 4413).
 //!
 //! `--still` draws one frame off-screen and writes it; otherwise a window
 //! opens (arrows pan, `+`/`-` zoom, space plays, `Q` or Escape quits), and
@@ -286,8 +288,15 @@ fn parse() -> Result<Args, String> {
     a.frame = initial_frame.unwrap_or(if a.record.is_some() { 1 } else { 3294 });
     if let Some(path) = &a.record {
         a.lobby = true;
-        if a.headless || a.still.is_some() || a.silhouette.is_some() || a.page_still.is_some() {
-            return Err("--record needs a windowed lobby".into());
+        // Off-screen, a recording is a lobby page's idle game (item 4413):
+        // `--headless --page-of CAPTURE` starts it at once, no person.
+        let idle = a.headless && a.page_of.is_some();
+        if (a.headless && !idle)
+            || a.still.is_some()
+            || a.silhouette.is_some()
+            || a.page_still.is_some()
+        {
+            return Err("--record needs a windowed lobby, or --headless --page-of".into());
         }
         recording::check_paths(path, &a.trace)?;
     }
@@ -1087,6 +1096,33 @@ fn main() {
     world.set_land_light(args.land_light);
     world.set_mountain_light(!args.mountain_flat);
     session.mark("frame zero");
+    // **The idle recording** (item 4413, `docs/RECGAME.md` §10.3): `--record
+    // --headless --page-of CAPTURE --frame N` records the page's game as the
+    // window does when its person starts it and closes it on N untouched:
+    // slot 0's opening preferences at frame 0, N ticks, the file closed on
+    // N. Nothing is drawn.
+    if let (Some(path), Some(choices)) = (&args.record, &off_screen) {
+        let input = input::Input {
+            roster: world.names.roster.clone(),
+            ..input::Input::new(0)
+        };
+        let leader = input.leader_options(0);
+        let rec = recording::Recording::open(path, choices, &args.logs, leader.clone())
+            .unwrap_or_else(|e| {
+                eprintln!("recording: {e}");
+                std::process::exit(1);
+            });
+        world.runner.issue(&(0, 0, vec![leader]));
+        let frame = args.frame.max(1);
+        session.phase("run to the frame", || world.run_to(frame));
+        println!("LOBBY start, at frame {}", world.runner.frame());
+        finish(&session, &args.trace);
+        if let Err(e) = rec.save(world.runner.frame()) {
+            eprintln!("recording: {e}");
+            std::process::exit(1);
+        }
+        return;
+    }
     if page.is_none() {
         session.phase("run to the frame", || world.run_to(args.frame));
     }

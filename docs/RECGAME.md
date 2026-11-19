@@ -976,3 +976,31 @@ original and the sim now agree on twelve lines for all 14,438 states.
 The raw test compares the complete ammo and casualty pools on all states,
 including the 680 and 1,019 occupied states respectively. The old packet
 score of 562/1,053 and the frame-91 score of 8/12 both hold.
+
+
+### 10.3 Parity held out: eight lobbies named before the original plays them (item 4413)
+
+DECISIONS 144 §2 names the games by a rule fixed before any take: rows 0,
+20, 40, 60, 80, 100, 120 and 140 of the 161 lobbies in the order `Start:`
+counts them (`lobby::lobbies_on_disk`, as
+`every_lobby_s_start_built_from_its_choices` enumerates it), each at its own
+seed, the human idle, 6,000 frames. `diff::held_out::HELD_OUT` writes each
+row out (its first capture, the `GAMEINFO` lines, each `PLAYER` row and a
+digest of the whole block), and
+`the_held_out_eight_are_the_rows_the_rule_names` holds it against what that
+order yields, so the set cannot drift silently. The commit that pinned the
+table, before any recording, is the declaration; the journal quotes it.
+
+Each game is recorded by the client from its own lobby page, played by the
+original under the checksum hook as `run1700 + k`, and scored by
+`checksum::playback`. A game's first score (states agreeing per line, the
+first parting with both values) is pinned as found and never re-pinned in
+place: a fix moves a second column.
+
+As found (item 4413, 2026-11-19), five of the eight taken, none whole:
+rows 0 and 20 agree on ten lines to 6000, units and guys parting
+(first 2990 and 3694); rows 40, 60 and 80 the original ended itself on
+4973, 4074 and 3836 with our walk not over, seven, five and eight lines
+whole; row 80's world parts on setup's set. The original refused none of
+the five client-recorded files. `SCORES` holds every value; `docs/RUNS.md`
+run1700 to run1704.
