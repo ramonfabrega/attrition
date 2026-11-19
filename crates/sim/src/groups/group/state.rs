@@ -328,6 +328,15 @@ pub struct GroupState {
     /// (`docs/CHECKSUM.md` §19) and by `Army::add_group`'s OR into the
     /// army's role, which this crate does not carry.
     pub role: u32,
+    /// `+0x49 buildings`: **the byte, not the members** (item 4419).
+    /// `copy_group` copies the stack group's, so a push of buildings sets
+    /// it and a push of units clears it; `Group::clear@00713e80` zeroes it
+    /// (the short at `+0x48`, with `facing`). `Group::normalize@00711540`
+    /// and `get_num` drop a dead building and leave it, so a building
+    /// group emptied by a prune is a record of `num` 0 with the byte still
+    /// set: the 2017 sample's slot 193 on 927, the person's Lookout
+    /// `3/2008` deleted on 915 (`docs/GROUPS.md` §4.3).
+    pub buildings: bool,
 }
 
 impl GroupState {
@@ -359,6 +368,7 @@ impl GroupState {
             curr: vec![Pos::new(0, 0); n],
             angles: vec![0; n],
             unlinked: false,
+            buildings: false,
             ..prev
         }
     } // twin of Groups::copy_group
@@ -404,6 +414,7 @@ impl GroupState {
         self.facing = false;
         self.unlinked = true;
         self.role = 0;
+        self.buildings = false;
         self.stamp = frame;
     }
 
@@ -457,6 +468,7 @@ impl Default for GroupState {
             opportunity: 0,
             unlinked: false,
             role: 0,
+            buildings: false,
         }
     }
 }

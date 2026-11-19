@@ -187,7 +187,9 @@ impl Sim {
             i64::from(st.speed),
             i64::from(st.form_num),
             i64::from(st.facing),
-            i64::from(!builds.is_empty()),
+            // `buildings` (`+0x49`): the record's byte, which a prune that
+            // empties a building group leaves set (item 4419).
+            i64::from(st.buildings),
             who_byte,
             i64::from(st.march),
         ];

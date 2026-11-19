@@ -4575,6 +4575,38 @@ fn a_building_push_normalizes_the_last_pushed_slot() {
     assert_eq!(s.orders.pushed[i].state.new_speed, 34);
 }
 
+/// **A dead building leaves its group on the next push, and `+0x49`
+/// stands** (item 4419, `docs/GROUPS.md` §4.3): `Group::normalize@00711540`,
+/// run by `equals_group` on the last pushed slot, drops a member whose
+/// object is no longer in use, a building too (`Build`'s vslot `+0x20`
+/// answers 1, so only the valid-bit half reaches one). The 2017 sample's
+/// slot 193 holds the person's Lookout `3/2008`, deleted on 915, and reads
+/// `num` 0 on 927 after 926's push, with its building byte still set.
+///
+/// Made to fail with the building half of the prune removed: the slot
+/// keeps its member.
+#[test]
+fn a_dead_building_leaves_its_group_on_the_next_push() {
+    let mut s = sim();
+    let t = fighter(&mut s);
+    let b = s.add_building(1, Pos::new(0x2000, 0x2000), 0);
+    s.push_buildings_group(1, &[b]);
+    let i = s.orders.pushed.len() - 1;
+    assert!(s.orders.pushed[i].state.buildings, "copy_group sets +0x49");
+    s.buildings[b].alive = false;
+    let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+    let mut g = group_of(1, &[a]);
+    assert!(s.push_group(&mut g, true));
+    assert!(
+        s.orders.pushed[i].builds.is_empty(),
+        "the dead building left"
+    );
+    assert!(s.orders.pushed[i].state.buildings, "+0x49 stands");
+    let j = s.orders.pushed.len() - 1;
+    assert_ne!(i, j, "the units took a slot of their own");
+    assert!(!s.orders.pushed[j].state.buildings, "a unit push clears it");
+}
+
 /// **`Group::action_unitmask(0x100)`** (item 4291, `docs/CLIENT_INPUT.md`
 /// §31.1): the first live member's bit decides, a member after one that
 /// cleared is cleared too, every member takes the could-not-reach bit, and

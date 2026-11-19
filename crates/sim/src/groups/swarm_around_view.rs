@@ -498,7 +498,11 @@ impl SwarmView for SimSwarm<'_> {
     fn list_clear(&mut self) {}
     // The original's clear is not applied: run 602's frame 981 holds the
     // group slots' `form` at 9 and 0 where `st.form = -1` read -1 (parked
-    // 3386i). The sweep's view still takes the call.
+    // 3386i). The sweep's view still takes the call. Item 4419 built it
+    // again (the 2017 sample's slot 195 reads −1 on 961, and run602's
+    // `group:64.form` row closes) and took it out: it parts 27 packets'
+    // groups lines, so some caller hands this view a seated record where
+    // the original's `this` keeps its `form` (its journal).
     fn set_form(&mut self) {}
     fn leader_flags(&self, p: i32) -> i32 {
         // `leaders[p]`'s flags: bit 2 is the human.
