@@ -11365,3 +11365,46 @@ fn a_captain_out_toward_a_gather_point_lights_no_disc_at_its_exit() {
         .count();
     assert_eq!(lit, 0, "the exit lit {lit} fog cells");
 }
+
+/// **The lone captain's re-seat lights its own disc** (item 4424,
+/// `come_out`'s lone move arm, `619ea2`..`619f86`): `set_new_location(·, spot,
+/// 1, 1)` off the exit spot, and `Unit::set_new_location@005f8d20`'s
+/// half-cell test then calls `update_seen(param_3 == 0)`, the whole disc. A
+/// computer's Militia with no order comes out toward a gather point; the
+/// re-seat leaves the exit's half-cell, and the disc is lit round where it
+/// stands. Reading-backed: no capture on disk holds a lone re-seat that
+/// moves the half-cell.
+///
+/// Made to fail with the re-seat's `moved_to` dropped.
+#[test]
+fn a_lone_captain_s_gather_re_seat_lights_the_disc_where_it_stands() {
+    use crate::cities::rally::GatherPoint;
+    let (mut sim, t, _, militia) = alarm_sim();
+    sim.tables.unit_types[militia].los = 6;
+    let (b, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let m = sim.init_unit(0, militia, tile_pos(36, 36));
+    sim.go_inside(m, b);
+    assert!(sim.world.set_fog(vec![0; 16 * 16 * 4]));
+    sim.add_gather_point(
+        b,
+        GatherPoint {
+            pos: tile_pos(32, 56),
+            action: 0,
+        },
+        true,
+    );
+    sim.world.clear_seen();
+    assert!(sim.come_out(m));
+    let lit: Vec<(i32, i32)> = (0..sim.world.fog_ys())
+        .flat_map(|y| (0..sim.world.fog_xs()).map(move |x| (x, y)))
+        .filter(|&(x, y)| sim.world.seen(x, y).is_some_and(|s| s & 1 != 0))
+        .collect();
+    let want = sim.seen_sweep(m, false).expect("a militia sees");
+    assert_eq!(lit.len(), want.end, "the re-seat's whole disc");
+    let (cx, cy) = want.centre;
+    assert!(
+        lit.iter().all(|&(x, y)| (x - cx).abs() <= want.radius && (y - cy).abs() <= want.radius),
+        "lit round {:?}: {lit:?}",
+        want.centre
+    );
+}
