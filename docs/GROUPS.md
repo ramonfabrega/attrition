@@ -3482,6 +3482,29 @@ and the approach are the leading transit run. That is run157's 37080, and
 it is why the next look on 1005 re-issues: the "already aimed" test
 compares the box's cell with `orders_x`'s.
 
+**And the record's `form` is −1 afterwards** (items 4419, 4422).
+`action_swarm_around:111` writes `this->form = -1` on every arm past its
+own `QUEUE_FIRST` re-entry, before the members are walked. The original
+has two callers, `action_build@00707510:222` and `finish_insert`'s cases
+6 and `0xd`, and both pass their own `this`. `get_goody_box@005f7690`
+moves the **pool record** it has just pushed (`groups + slot * 0x9d4`),
+so the order is: `action_move_near`'s `QUEUE_NEW` recursion stores
+`get_form` (9 for a Citizen, §24.3), then `finish_insert` re-issues the
+saved build and the swarm writes −1 over it. `stamp`, `ox`/`oy` and
+`o_angle` keep the move's. *Diff-backed* on the packets: run1383's
+groups record 65 on 1180 (the Citizen `1/2`'s goody-box group, stamped
+808) reads `form` ours 9, theirs −1 without the write, and agrees with
+it. With the write, 47 packets' groups lines shrink and none grows
+(`PACKETS_SCORE` lines 697 → 729), and the 2017 sample's slot 195 (the
+person's `[12]`, a `Build` on 960) agrees on 961 (groups 961 → 2888,
+`docs/RECGAME.md` §7). Parked 3386i had taken the write out against
+run602's 981, and that objection no longer holds: the write closes
+`group:64.form` there and opens nothing. Item 4419 then took it out a
+second time, on a gate that read each packet assertion's `left` (the
+pin) as the measured value (`docs/CHECKSUM.md` §23.5).
+`a_goody_box_move_over_a_queued_build_leaves_its_record_at_form_minus_one`
+(`cities_tests.rs`) holds the goody-box order.
+
 ### 24.3 The width twin
 
 `action_move_near`'s per-member store at `00705749` guards `+0xaa`

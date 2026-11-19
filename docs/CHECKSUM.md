@@ -2363,7 +2363,11 @@ differences against a present byte, and an empty range differs from a
 missing range. A record number of −1 can denote an unnamed record or a
 range available only in the original. The walk counts every differing
 range. The recorded-frame checks decode the full first pair of byte
-strings for their existing field-value assertions.
+strings for their existing field-value assertions. **A red row's `left:`
+is the pin and its `right:` the walk** (item 4422). Item 4419 read them
+the other way round and took out a write that turned 32 groups lines and
+grew none. A move is judged from `RON_PACKETS_PRINT`'s `PIN` lines, which
+`tools/repin_packets.py` sorts into turned, shrunk and grown.
 
 ## 23.6 How it was established, and what it has not established
 
