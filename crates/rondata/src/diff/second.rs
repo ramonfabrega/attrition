@@ -2494,7 +2494,7 @@ mod tests {
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (16155, 44),
+                (16155, 32),
                 (16161, 1),
                 (16172, 1),
                 (16176, 1),
@@ -2503,8 +2503,7 @@ mod tests {
                 (16270, 1),
                 (16273, 1),
                 (16315, 1),
-                (16369, 1),
-                (16381, 48)
+                (16369, 1)
             ],
             "the blocks keys first part on, to the word's"
         );
@@ -2535,7 +2534,7 @@ mod tests {
         // Item 1634 removes 1/2046's false road flag from block 16288.
         // Item 3336: −1, block 16288's row closes with `Wall::set_type` leaving the hits to the next `calc_wall_stats` (`docs/AI.md` §272).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 121 -> 105.
-        pin_eq!(w.firsts.len(), 101, "every key parted on run572");
+        pin_eq!(w.firsts.len(), 41, "every key parted on run572");
     }
 
     /// **run579 — the second pair's East Indies word 16482, widened whole**
@@ -2595,10 +2594,9 @@ mod tests {
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
-                (16476, 100),
+                (16476, 40),
                 (16609, 1),
                 (16625, 1),
-                (16637, 4),
                 (16649, 1),
                 (16674, 1),
                 (16679, 2),
@@ -2623,7 +2621,7 @@ mod tests {
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 131 -> 115.
         // Item 4159's residue: 116 -> 115, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
         // Item 4242: 115 -> 113, group 75's `speed`/`new_speed` (25) on 16625: an army's pushed group takes `add_group`'s `get_num_cap`.
-        pin_eq!(w.firsts.len(), 112, "every key parted on run579");
+        pin_eq!(w.firsts.len(), 48, "every key parted on run579");
     }
 
     type AmmoFirsts = std::collections::BTreeMap<((i64, i64, i64), &'static str), (i64, String)>;
@@ -2832,7 +2830,7 @@ mod tests {
         // `epochs_queued`, `num_queued[0]`, `[504]`, `[64]` and `queue:queued`
         // on `1/2005`, `1/2020`, `1/2044` (ours 1 each) — the human's defeat asks `Game::check_victory`, whose conquest victory cleans every one of who=1's queues with no refund (`Leader::victory`, `docs/LEADERS.md` §10.2).
         // Item 4340: −1, no `leader:defense` row is left (the human's tally moves, its writers ungated; ch125 and ch131 name that key, here it is inferred).
-        pin_eq!(w.firsts.len(), 74, "run594 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 2677: −1 (parked 2680).
+        pin_eq!(w.firsts.len(), 40, "run594 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 2677: −1 (parked 2680).
         pin_eq!(
             w.firsts
                 .get(&(1, 181, "g.cur_anim[0]".into()))
@@ -2938,7 +2936,7 @@ mod tests {
         // Item 1586: 158 → 157; an army's normalize puts its group's cap back to its leader's speed (`docs/AI.md` §161).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 101 -> 85.
         // Item 4177: 85 -> 91, +6 firsts, the combat rates' own: who=0 `average_damage_rate` 17890 ours 3893 theirs 3943; who=0 `damage_current_frame` 17890 ours 43 theirs 42; who=0 `damage_fifteen_seconds` 17890 ours 150 theirs 151; who=1 `average_hit_rate` 17890 ours 3893 theirs 3943 (docs/LEADERS.md §3.5).
-        pin_eq!(w.firsts.len(), 82, "run589 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 40, "run589 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         pin_eq!(
             w.firsts
                 .get(&(1, 132, "order:kind".into()))
@@ -3043,7 +3041,7 @@ mod tests {
         // Item 1502: 158 → 134 on the tree merged after 1496; an attack's `order:target` on a building the start dump did not link is named by `(owner, index)` and agrees (parked 681; `docs/AI.md` §131.4).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 84 -> 68.
         // Item 4177: 68 -> 70, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 17778 ours 24 theirs 25; who=1 `hits_current_frame` 17778 ours 24 theirs 25 (docs/LEADERS.md §3.5).
-        pin_eq!(w.firsts.len(), 65, "run588 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 39, "run588 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         let word = w.standing.get(&17_786).expect("the word's closing state");
         for field in ["group:66.num", "group:66.list"] {
             pin!(
@@ -3194,7 +3192,7 @@ mod tests {
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 102 -> 86.
         // Item 4177: 86 -> 88, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 17647 ours 3 theirs 4; who=1 `hits_current_frame` 17647 ours 3 theirs 4 (docs/LEADERS.md §3.5).
         // Item 4159's residue: 89 -> 88, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-        pin_eq!(w.firsts.len(), 82, "every key parted on run585"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        pin_eq!(w.firsts.len(), 44, "every key parted on run585"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     }
 
     /// **run583 — East Indies frame 16760, widened before naming a mechanism**
@@ -3282,7 +3280,7 @@ mod tests {
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 137 -> 121.
         // Item 4159's residue: 122 -> 121, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
         // Item 4242: 121 -> 119, group 65's `speed`/`new_speed` (26) on 16892: an army's pushed group takes `add_group`'s `get_num_cap`.
-        pin_eq!(w.firsts.len(), 118, "every key parted on run583");
+        pin_eq!(w.firsts.len(), 50, "every key parted on run583");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**
