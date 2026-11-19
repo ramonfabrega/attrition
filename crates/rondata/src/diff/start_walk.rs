@@ -1190,19 +1190,19 @@ pub(crate) mod recording {
     const RUN1691_LAST: i32 = 10928;
 
     /// run1691's agreeing states per line, in `CHECKSUM_LINES`' order (item
-    /// 4396's first act: units 9,981 and ammo 10,893 of 10,929, the rest
-    /// whole, leaders among them).
+    /// 4396: ammo 10,893 of 10,929, the rest whole, leaders among them; the
+    /// first act's units 9,981 → 10,929 with the captain mirror's copy
+    /// refreshed, `Sim::do_attack_fight`).
     const RUN1691_AGREED: [u32; 12] = [
-        9981, 10929, 10929, 10893, 10929, 10929, 10929, 10929, 10929, 10929, 10929, 10929,
+        10929, 10929, 10929, 10893, 10929, 10929, 10929, 10929, 10929, 10929, 10929, 10929,
     ];
 
     /// run1691's first partings: `(line, (state, ours, theirs))` (item
-    /// 4396's first act).
+    /// 4396). The first act's units row, `(9981, Some(2715156771),
+    /// 2445541469)`, left with the captain mirror's fix: run1695's range 478,
+    /// record 11's `order.target`, ours `ox 2000 uid 0`, theirs `ox 5 uid 12`.
     type DemandEnd = (&'static str, (i32, Option<u32>, u32));
-    const RUN1691_FIRST: &[DemandEnd] = &[
-        ("units", (9981, Some(2715156771), 2445541469)),
-        ("ammo", (10075, Some(4012779512), 4143847442)),
-    ];
+    const RUN1691_FIRST: &[DemandEnd] = &[("ammo", (10075, Some(4012779512), 4143847442))];
 
     /// The first state our walk holds `game_over` on, to run1691's last:
     /// none (item 4396's first act).
@@ -1281,7 +1281,11 @@ pub(crate) mod recording {
     const RUN1695_WINDOW: (i64, i64) = (9975, 9990);
 
     /// The units line's first parting on run1695's window: `(state, the
-    /// record's ranges, ours, parted, the first parting)` (item 4396).
+    /// record's ranges, ours, parted, the first parting)` (item 4396; minted
+    /// at `(9981, 2249, 2249, 1, "478 11 order.target: ox 2000|5, uid
+    /// 0|12")` — the French Longbowmen `1/11`, TypeIndex 177, whose attack
+    /// order kept the stale copy's target after its squad captain's mirror
+    /// onto the human's Citizen `0/5` — and empty with the copy refreshed).
     const RUN1695_UNITS: Option<(i64, usize, usize, usize, &str)> = None;
 
     /// **The demand's units line by range at its first parting** (item
