@@ -239,7 +239,17 @@ impl Sim {
         let track = guy.follow.map_or((0, 0), |f| f.track);
         let (last, last_facing) = guy.last.unwrap_or((body.pos, facing));
         let z = self.guy_z(u, g, body.pos, false);
-        let last_z = self.guy_z(u, g, last, true);
+        // **A unit inside something walks no figure** (item 4411,
+        // `docs/CHECKSUM.md` §23.9): `Unit::process@00610bc0:554`'s arm for
+        // `inside_up >= 0` calls no `Guy::process`, and copies every
+        // figure's `z` into `last_z` (`:582`, `0x0061158d`), so `last`
+        // stays where the last walk left it and `last_z` is the figure's
+        // own `z`.
+        let last_z = if unit.inside.is_some() || unit.inside_unit.is_some() {
+            z
+        } else {
+            self.guy_z(u, g, last, true)
+        };
         let aim = guy.aim.map(|o| match o {
             crate::combat::Obj::Unit(v) => (self.units[v].index, self.units[v].owner as i8),
             crate::combat::Obj::Building(b) => {
