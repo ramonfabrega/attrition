@@ -3069,7 +3069,9 @@ impl Sim {
     ///
     /// SEAM: `is_jammed` is −1 unless the owner's leader carries
     /// `leader_flags & 0x40000` and an enemy's special stands over the
-    /// unit; nothing in this crate sets either, so the roll is spent and
+    /// unit. The bit is kept since item 4400
+    /// ([`crate::leaders::LeadersState::jam_threat`]); the special over the
+    /// unit (`SpecialsData::find_special`) is not, so the roll is spent and
     /// never jams.
     pub(crate) fn radar_jams(&mut self, u: usize) -> bool {
         if !self
@@ -3228,8 +3230,9 @@ impl Sim {
         });
     }
 
-    /// `ObjectData::is_jammed@00653660`, as far as this crate reaches: no
-    /// leader here carries `leader_flags & 0x40000`, so never.
+    /// `ObjectData::is_jammed@00653660`, as far as this crate reaches: the
+    /// leader's `0x40000` is kept (item 4400) but the enemy special over the
+    /// unit is not looked for, so never.
     fn is_jammed(&self, _u: usize) -> bool {
         false
     }

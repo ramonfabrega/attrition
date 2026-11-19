@@ -1464,23 +1464,29 @@ impl Sim {
     /// `0x8000` when none of its heroes still marches.
     pub(crate) fn process_spells(&mut self, u: usize, frame: i64) {
         // An Ambush's `0x27b` arm: `unit_masks &= 0xffffd7ff`.
+        let mut expired = false;
         if self.units[u].ambushing.is_some_and(|end| end < frame) {
             self.units[u].ambushing = None;
             self.units[u].cloak = false;
+            expired = true;
         }
-        let Some(end) = self.units[u].marching else {
-            return;
-        };
-        if end >= frame {
+        // A Forced March's `0x27c` arm: `unit_masks &= 0xffff7fff`.
+        if self.units[u].marching.is_some_and(|end| end < frame) {
+            self.units[u].marching = None;
+            expired = true;
+        }
+        // Either arm runs `Leader::verify_spell_flags@006ce190` (`:81–82`),
+        // which drops the leader's `0x4000` when no hero still ambushes
+        // and its `0x8000` when none still marches (item 4400).
+        if !expired {
             return;
         }
-        self.units[u].marching = None;
         let who = self.units[u].owner;
-        if !self
-            .units
-            .iter()
-            .any(|x| x.owner == who && x.alive() && x.marching.is_some())
-        {
+        let mine = |x: &crate::Unit| x.owner == who && x.alive();
+        if !self.units.iter().any(|x| mine(x) && x.ambushing.is_some()) {
+            self.leaders.ambush[who as usize] = false;
+        }
+        if !self.units.iter().any(|x| mine(x) && x.marching.is_some()) {
             self.leaders.forced_march[who as usize] = false;
         }
     }
@@ -1864,9 +1870,12 @@ impl AmbushView for SimAmbush<'_> {
     }
     /// `unit_masks |= 0x2800`: the `0x2000` is `ambushing`, the `0x800`
     /// the cloak (item 3958, `docs/AI.md` §402). The leader's `0x4000` is
-    /// not kept: [`Sim::process_cloak`]'s aura walks the heroes themselves.
+    /// [`crate::leaders::LeadersState::ambush`] (item 4400);
+    /// [`Sim::process_cloak`]'s aura walks the heroes themselves.
     fn set_flags(&mut self) {
         self.sim.units[self.g].cloak = true;
+        let who = self.sim.units[self.g].owner as usize;
+        self.sim.leaders.ambush[who] = true;
     }
     fn console_sound(&mut self) {}
 }

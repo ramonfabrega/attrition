@@ -57,6 +57,10 @@ mod particle;
 mod patch;
 mod recording;
 mod roads;
+// Item 4398's first act: the outline's geometry, read by its row; the
+// draw that consumes it outside the tests is the item's second half.
+#[cfg_attr(not(test), allow(dead_code))]
+mod selection;
 mod shadows;
 mod silhouette;
 mod snowcap;
@@ -302,6 +306,8 @@ struct Built {
     /// The burning buildings' particles (item 4233), one mesh a blend.
     particles: Vec<particle::ParticleMesh>,
     overlay: (Vec<[f32; 3]>, Vec<[f32; 3]>),
+    /// The selected buildings' bands (item 4401), world triangles.
+    underlay: (Vec<[f32; 3]>, Vec<[f32; 3]>),
 }
 
 fn build(
@@ -356,6 +362,9 @@ fn build(
         overlay.0.extend(p.pos);
         overlay.1.extend(p.col);
     }
+    let underlay = hud.map_or_else(Default::default, |input| {
+        selection::underlay(world, &input.selection)
+    });
     Built {
         figures,
         textured,
@@ -364,6 +373,7 @@ fn build(
         shadows,
         particles,
         overlay,
+        underlay,
     }
 }
 
@@ -409,6 +419,7 @@ fn draw(
         textured: &b.textured,
         trees: &b.trees,
         overlay: (&b.overlay.0, &b.overlay.1),
+        underlay: (&b.underlay.0, &b.underlay.1),
         sprites: &b.sprites,
         shadows: &b.shadows,
         particles: &b.particles,
@@ -435,11 +446,26 @@ pub(crate) fn still_of(
     order: gpu::SilhouetteOrder,
     format: wgpu::TextureFormat,
 ) -> Vec<u8> {
+    still_selected(world, camera, size, order, format, &[])
+}
+
+/// [`still_of`] with slot objects `selection` selected (item 4401): their
+/// underlays drawn, and no HUD, since the photograph's is masked.
+#[cfg(test)]
+pub(crate) fn still_selected(
+    world: &mut World,
+    camera: &render::Camera,
+    size: (u32, u32),
+    order: gpu::SilhouetteOrder,
+    format: wgpu::TextureFormat,
+    selection: &[sim::observe::ObjId],
+) -> Vec<u8> {
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());
     let mut gpu = gpu::Gpu::new(&instance, None, format)
         .unwrap_or_else(|e| panic!("the still needs a GPU: {e}"));
     gpu.silhouette_order = order;
     let b = build(world, camera, size, 0.0, None);
+    let underlay = selection::underlay(world, selection);
     let version = world.runner.terrain().version;
     world.set_screen(camera, size);
     world.drawn_terrain();
@@ -464,6 +490,7 @@ pub(crate) fn still_of(
         textured: &b.textured,
         trees: &b.trees,
         overlay: (&[], &[]),
+        underlay: (&underlay.0, &underlay.1),
         sprites: &b.sprites,
         shadows: &b.shadows,
         particles: &b.particles,
@@ -505,6 +532,7 @@ fn draw_page(
         textured: &[],
         trees: &[],
         overlay: (&overlay.0, &overlay.1),
+        underlay: (&[], &[]),
         sprites: &[],
         shadows: &[],
         particles: &[],

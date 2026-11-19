@@ -2376,7 +2376,8 @@ strings for their existing field-value assertions.
 - Not established: run1100 (no word walks its lobby); the walls line (no
   packet walks a wall); the ammo and deaths lines (no emitter); every
   line's agreement on a lobby-built start past frame 91 (~~only the minted
-  packet is one~~ 41 more since item 4205, §23.7); which of the
+  packet is one~~ 41 more since item 4205, §23.7); `leader_flags & 0x10`
+  on the random-nation seats (§23.8, parked 4400a); which of the
   dump-seated parts are the seat's and which the walk's (4188a; §23.7
   answers it for the 41); a `SimpleArray<int>` that has shrunk.
 
@@ -2503,6 +2504,47 @@ and the box's `flags` go 0, so `check_items` walks it no more
 102 of 102 (run1186b (105, 110, 25) → (105, 105, 0); five with no box
 leave the count), world 3 → 39 (run1186b (7361, 7361, 1) → 0, record
 1787 `down` ours −3 theirs −1). Each pin's pair is in its comment.
+
+## 23.8 The leaders line's flag word (item 4400)
+
+Item 4400 took a census of the 445 lines that parted on the 107 held packets. Each line was sorted by the
+leaf of its first differing range (`RON_PACKETS_PRINT=1`, one test thread, so the walks' prints do not
+interleave). The commonest leaf was the leaders line's `flags`: 67 of the 80 leaders partings. Every
+parting bit of `leader_flags` was one theirs held and ours never emitted. Over the 856 walked slots
+it was the transport level `0x100|0x200|0x400` on 38 slots, the jammer pair `0x20000|0x40000` on 56,
+`0x1000` on 26, `0x2000` on 20, `0x4000` on 14, `0x10` on 13, `0x8000` on 11 and `0x800` on 2.
+`leader_flags2` parts nowhere. **The direction: the original acted.** Each bit is set by an arm whose
+state this crate holds, or now holds. Only the line left it out.
+
+| bit | writer in the original | in the crate |
+|---|---|---|
+| `0x100`, `0x200`, `0x400` | `Leader::check_transport@006bc5f0` sets them as a block (`docs/TRANSPORT.md` §4) | `ai::transport::LeaderTransport` |
+| `0x20000` | `Leader::track_unit_type@006e0dd0:62–69`: on a `SPECIALFORCES` (`TypeIndex` 0x4b) type's count move, set while that type's own `num_units` is nonzero, cleared at zero | `LeadersState::special_forces`, `Sim::track_unit_type` |
+| `0x40000` | `Leaders::process_all@006ed2a0:19–36`, at a live slot's head: cleared, then set if a seated other slot not allied both ways (`diplos` 2) holds `0x20000`. `ObjectData::is_jammed` reads it | `LeadersState::jam_threat`, `Sim::refresh_jam_threat` |
+| `0x1000`, `0x800`, `0x2000` | `Leader::init`, `gain_tech` and `fix_tech_flags@006d2480`: explore the map (or the Spanish bonus, `Build::activate`), reveal the enemy (or the Space Program), the territory revealed | read live from the held techs, as `Sim::sees_every_cell` reads them |
+| `0x4000` | `SpellType::cast_ambush@00671610:52` sets it; `Leader::verify_spell_flags@006ce190` clears it on an Ambush's or a Forced March's expiry once no hero holds `unit_masks & 0x2000` | `LeadersState::ambush` |
+| `0x8000` | `cast_march@00671500:39`, and `verify_spell_flags` | `LeadersState::forced_march` |
+
+**`PACKETS_SCORE` goes from 608 to 651 of 1,053.** The leaders line agrees on 43 more packets and parts
+on fewer ranges on 24 more. None parts on more, and no other line moves: 104 ranges fewer over 67 rows.
+The three take packets go from 6 to 3, 6 to 3 and 3 to 0 leaders ranges. The value diff is `flags` on
+the packet's frame, theirs | ours before → ours after:
+
+| packet, frame, slot | bits | before | after |
+|---|---|---|---|
+| run1325c, 5578, 1 | transport | `0x2080703` \| `0x2080003` | `0x2080703` |
+| run1559b, 3294, 0 | jammers | `0xe0007` \| `0x80007` | `0xe0007` |
+| run854, 3301, 0 | jammers, `0x1000`, `0x2000` | `0xe3007` \| `0x80007` | `0xe3007` |
+| run1359, 5619, 1 | Ambush | `0x2884003` \| `0x2880003` | `0x2884003` |
+| run1359b, 5677, 1 | Ambush, Forced March | `0x8c003` \| `0x80003` | `0x8c003` |
+| run882b, 6808, 1 | transport, `0x800`, `0x1000`, `0x2000` | `0x8a3f03` \| `0x880003` | `0x8a3f03` |
+
+**Not established.** `0x10` is `Game::init_tribes@0058a600:44`, a seated slot whose nation was drawn at
+random (`+0xc` above 0x17). It sits on 13 slots of 10 chapter and melee packets, with ours 0. Those
+starts are seated from a dump. Alone it turns no line (parked 4400a). `0x800` is read live, so a Space
+Program built between two technology gains raises ours a gain early. No packet holds one. The jammer
+arm of `is_jammed` still finds no enemy special over the unit (`air.rs`, its SEAM). After the build,
+the commonest first leaf is the guys line's `guy` range: 50 of the 402 lines that still part.
 
 ## 24. Step H: the fifteen, every frame (item 4214)
 

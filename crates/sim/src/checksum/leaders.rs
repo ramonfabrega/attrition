@@ -680,10 +680,64 @@ impl Sim {
         {
             f |= WALL_STATS_DIRTY;
         }
-        // `leader_flags2`: the two bits this crate keeps, no governments
-        // (`0x800`) and no patriots (`0x1000`).
+        // The three bonus bits (item 4400): `Leader::init`, `gain_tech` and
+        // `fix_tech_flags` turn a held bonus into them, and a technology is
+        // never lost here, so holding it is the bit — as
+        // `Sim::sees_every_cell` and `sees_every_unit` read them.
+        // `0x1000` explore the map (or the Spanish tribe bonus), `0x800`
+        // reveal the enemy (or the Space Program), `0x2000` the territory
+        // revealed.
+        let roles = &self.tables.tech_tree.roles;
+        if self.sees_every_cell_bit(who) {
+            f |= 0x1000;
+        }
+        if self.holds_bonus(who, roles.reveal_enemy_preq)
+            || self.wonders_held(who) & (1 << crate::tech::wonder::SPACE_PROGRAM) != 0
+        {
+            f |= 0x800;
+        }
+        if self.holds_bonus(who, roles.territory_reveal_preq) {
+            f |= 0x2000;
+        }
+        // `0x8000`, a hero on a Forced March (`SpellType::cast_march` sets
+        // it, `Leader::verify_spell_flags` clears it; item 4400).
+        if self.leaders.forced_march.get(w).copied().unwrap_or(false) {
+            f |= 0x8000;
+        }
+        // `0x4000`, a hero's Ambush (`cast_ambush`, `verify_spell_flags`).
+        if self.leaders.ambush.get(w).copied().unwrap_or(false) {
+            f |= 0x4000;
+        }
+        // The jammer bits (item 4400): a `SPECIALFORCES` unit held
+        // (`0x20000`, `Leader::track_unit_type`) and an enemy holding one
+        // (`0x40000`, `Leaders::process_all`'s head).
+        if self.leaders.special_forces.get(w).copied().unwrap_or(false) {
+            f |= 0x2_0000;
+        }
+        if self.leaders.jam_threat.get(w).copied().unwrap_or(false) {
+            f |= 0x4_0000;
+        }
+        // The transport level's three bits (item 4400; `docs/TRANSPORT.md`
+        // §2, §4): `Leader::check_transport` sets `0x100 | 0x200 | 0x400` as
+        // a block when the leader holds `TRANSPORT_BONUS` and a dock, and
+        // clears them together.
+        let tr = self.ai.transport.get(w).copied().unwrap_or_default();
+        if tr.civilian {
+            f |= 0x100;
+        }
+        if tr.military {
+            f |= 0x200;
+        }
+        if tr.scout {
+            f |= 0x400;
+        }
+        // `leader_flags2`: the bits this crate keeps, no governments
+        // (`0x800`), no patriots (`0x1000`) and the scenario's transport lock
+        // (`0x20`, `LeaderData::locked_transport`).
         let t = &self.tech[w];
-        let f2 = if t.no_governments { 0x800 } else { 0 } | if t.no_patriots { 0x1000 } else { 0 };
+        let f2 = if t.no_governments { 0x800 } else { 0 }
+            | if t.no_patriots { 0x1000 } else { 0 }
+            | if tr.locked { 0x20 } else { 0 };
         (Some(f), Some(f2))
     }
 

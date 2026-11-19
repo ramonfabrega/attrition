@@ -95,13 +95,13 @@ impl LeaderTransport {
         self.civilian || self.military
     }
 
-    const fn set_all(&mut self) {
+    pub(crate) const fn set_all(&mut self) {
         self.civilian = true;
         self.military = true;
         self.scout = true;
     }
 
-    const fn clear(&mut self) {
+    pub(crate) const fn clear(&mut self) {
         self.civilian = false;
         self.military = false;
         self.scout = false;
