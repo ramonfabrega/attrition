@@ -994,3 +994,11 @@ original under the checksum hook as `run1700 + k`, and scored by
 `checksum::playback`. A game's first score (states agreeing per line, the
 first parting with both values) is pinned as found and never re-pinned in
 place: a fix moves a second column.
+
+As found (item 4413, 2026-11-19), five of the eight taken, none whole:
+rows 0 and 20 agree on ten lines to 6000, units and guys parting
+(first 2990 and 3694); rows 40, 60 and 80 the original ended itself on
+4973, 4074 and 3836 with our walk not over, seven, five and eight lines
+whole; row 80's world parts on setup's set. The original refused none of
+the five client-recorded files. `SCORES` holds every value; `docs/RUNS.md`
+run1700 to run1704.

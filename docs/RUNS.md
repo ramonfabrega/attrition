@@ -39347,3 +39347,27 @@ Files in place, `~/ron-golden/run1703/map-7/`: `gamelog_p.txt`, 2,416 bytes, SHA
 `56715212aeba3bfa5bc7a6db1fb4c180a043c399e0d79ff92724f357c8807b47`.
 
 **What it holds**: `diff::held_out::the_held_out_games_score_as_pinned` (`SCORES[3]`).
+
+## run1704 — parity held out, row 80: Great Lakes at Enlightenment recorded idle by the client, played to 3836 (2026-11-19, item 4413, `att-4413`)
+
+`docs/RECGAME.md` §10.3; DECISIONS 144 §2. **What the disk could not answer**: no take of this lobby's game under a
+file our client wrote; the row was declared before the take (`8b3538f49`). The file:
+`~/ron-golden/recordings/item4413-row080-6000.rcx`, 58,841 bytes, SHA-256
+`e4a98f6dc7d75cd1295486ae1f5111774fc0de44c9ddda5630f6b78bf407d945`: `client --record <file> --headless --page-of
+gamelog-run1349-greatlakes-chinese-enlightenment-start.txt --frame 6000`, no order but slot 0's opening preferences, closing on 6000, its donor the first finished
+recording with its version and options in the profile's `Recorded Games/` (`RON_RECGAME_DIR`).
+
+The take: run1700's line with `~/ron-golden/run1704` and this file, waited on with `waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 11:21:03 −05:00, exited 11:25:51:
+  **288.3 s** launch to exit, exit 0, `success`, no page fault, no relaunch.
+  3,837 frames, `last_frame` 3836, **ended early: the game ended itself**, seed 12345 observed, map
+  14. Players: tribe 4 (flags 7) and tribe 14 (flags 1). 5 settings restored. DLL `c9912c38…`, defines
+  `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS`. **The original took the file**: no section refused.
+- **Scored as found** (`the_held_out_games_score_as_pinned`): the original ended the game itself on 3836 (`compare_until` closing there), and our walk holds no `game_over` to it; walls, ammo, deaths, guys, leaders, cities, items and goods 3,837 of 3,837; **units 2,239**, first parting state 2239, ours 3211665055, theirs 2108038814; **builds 3,736**, first 2376, ours 2962723024, theirs 945131824; **groups 854**, first 854, ours 3368547131, theirs 1595471662; **world 0 of 3,837**, first parting on state 0 (setup's set), ours 3924883285, theirs 3379296129.
+- Filed **in place**, as run1700 is. run1704 was the number reserved for row 80.
+
+Files in place, `~/ron-golden/run1704/map-14/`: `gamelog_p.txt`, 2,424 bytes, SHA-256
+`5c9eb3038f4c930559da6606755843cc8b7fdda9f952ddc8b5d1438acdd84d5a`; `rontrace.log`, 78,759,744 bytes, SHA-256
+`67e83483fe0600fdcb00119bd574e8ac88667b3411e76ffa29fd4fc8fd20837e`.
+
+**What it holds**: `diff::held_out::the_held_out_games_score_as_pinned` (`SCORES[4]`).
