@@ -59,8 +59,8 @@ the range by record and field. Whole, the game joins parity's set as the seventh
 
 4412. **The 2017 sample, from state 241** (a rules item, whole; the suite's seat; `docs/RECGAME.md` §7; DECISIONS 142 §4, 143 §4).
 4405 made run1678's window (0..99) whole by range on all twelve lines (`SAMPLE_RANGES` 2 → 0): builds 76 → 525 (the gather list walked
-from `head_node->prev`, `758 2000 gather[k]` 32640 → 31872, theirs 31872), units 92 → 532 (`unit_masks` `0x4000000`,
-`Unit::explore_queued`: 8 → 0x4000008, theirs 0x4000008); both in `crates/sim`'s checksum emitters. First act: leaders on 241 by a ranges
+from `head_node->prev`, `758 2000 gather[k]` 32640 → 31872, theirs 31872), units 92 → 532 (`unit_masks` `0x4000000`, the explore bit:
+8 → 0x4000008, theirs 0x4000008); both in `crates/sim`'s checksum emitters. First act: leaders on 241 by a ranges
 take on 4384's recipe (`RNG_MASK=0xfff`) around it, on run1697, naming record and field. Then builds 525, units 532, groups 927.
 `SAMPLE_WALKED` 3019 of 21,044 is its last (parked 4380a). It stops when two acts move no line's first parting.
 
