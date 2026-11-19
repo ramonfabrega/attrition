@@ -183,8 +183,18 @@ type 0 (7 × 7, `back` 1, point (3168, 30816)): of the band's 4,551 pixels,
 east 721 of 4,157, with no back 312 of 5,398; theirs read 3 px south, once,
 1,016. The rest of the band is behind the buildings, which draw over an
 underlay. Ours, with nothing drawn: 52 red, 9 of them on theirs. The
-footprint is the geometry's, never a colour (DECISIONS 142 §5). Not drawn
-yet (§6).
+footprint is the geometry's, never a colour (DECISIONS 142 §5).
+
+**Drawn by item 4401.** `client::selection::underlay` lays the band of each
+selected building in the owner's `team_unit` colour, and the GPU's
+`underlay` pass blends it at alpha `0x7f` (`gpu::UNDERLAY_ALPHA`, the top
+bit cleared) after the ground and before the buildings, with no depth test
+and no depth written; `hud::rings` no longer outlines a building. On the
+same footprint the row's third half reads the still with the city
+selected: **ours red 52 → 2,132, of them on theirs' red 9 → 1,404** (of
+theirs' 1,477). Drawn one tile east, it read 855 and 542, and the pin
+failed. Ours is a solid 48-unit band; theirs is thinner and soft-edged,
+its texture's, so ours paints about 728 red pixels theirs does not.
 
 ## 4. The bar (item 4198)
 
@@ -409,12 +419,16 @@ Not established:
 - **A building's marker.** `draw_funky_rectangle_circle` at
   `BuildData::max_range` is not read, and its shape and size are not
   ported; ours outlines the footprint.
-- **The selected building's band, drawn** (item 4398, §3): its geometry
-  is read and counted on run1559b (`RUN1559B_3279_SELECTED`), not drawn;
-  `rings` still outlines the whole footprint about the point. Not read:
-  string `+0x1784`'s texture and its coordinates (`TexArray::add`'s
-  arguments are registers the decompiler lost), card mode 3, and the
-  draw's place among the underlays. The name plate is
+- **The selected building's band, drawn** (items 4398 and 4401, §3): its
+  geometry is counted on run1559b (`RUN1559B_3279_SELECTED`) and drawn
+  untextured at one constant alpha. Not read: string `+0x1784`'s texture
+  and its coordinates (`TexArray::add`'s arguments are registers the
+  decompiler lost), which is why ours is wider and harder than theirs;
+  card mode 3 (`+0x2c(3)`): whether it depth-tests as `render_states[3]`
+  does for land units (0x20287, `docs/RENDERER.md` §3.7) is not read, and
+  ours tests nothing; `get_unit`'s alpha being `0xff`; the listing's alpha
+  0 for a vertex off the map (ours carries one alpha a pass); and the
+  draw's place among the other underlays. The name plate is
   `BuildOut::draw_overlays@0062cb30`'s (`CityData +0x90`'s name on
   `IFaceRenderManager::draw_scroll` in the owner's colour, under
   `player_profile.prefs & 0x40000`, every seen city, selected or not), a

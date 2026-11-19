@@ -90,6 +90,51 @@ pub fn band(field: &Heightfield<'_>, r: (i32, i32, i32, i32)) -> Vec<[(i32, i32,
     out
 }
 
+/// **The selected buildings' bands as drawn** (item 4401): for each
+/// building of `selection` in the scene, [`band`] about its
+/// [`rectangle`], every vertex in the owner's unit colour
+/// (`render::silhouette::team_unit`, `TeamColor::get_unit`'s), as world
+/// triangles for the GPU's underlay pass, which blends them at
+/// [`crate::gpu::UNDERLAY_ALPHA`]. A unit draws no band here (its ring is
+/// [`crate::hud::rings`]'). The listing's alpha 0 for a vertex off the map
+/// is not carried: the pass's alpha is one constant.
+pub fn underlay(
+    world: &crate::world::World,
+    selection: &[sim::observe::ObjId],
+) -> (Vec<[f32; 3]>, Vec<[f32; 3]>) {
+    let (mut pos, mut col) = (Vec::new(), Vec::new());
+    if selection.is_empty() {
+        return (pos, col);
+    }
+    let placed = world.placed_buildings();
+    let t = world.runner.terrain();
+    let field = Heightfield {
+        width: t.width,
+        height: t.height,
+        corners: &t.corners,
+    };
+    for id in selection {
+        let Some(b) = placed.iter().find(|b| (b.who, b.o) == (id.who, id.o)) else {
+            continue;
+        };
+        let Some(&size) = usize::try_from(b.type_index - rondata::load::BASE_BUILDTYPES)
+            .ok()
+            .and_then(|ti| world.names.footprints.get(ti))
+        else {
+            continue;
+        };
+        let back = b.foundation.map_or(b.half_offset, |f| f.back);
+        let c = render::silhouette::team_unit(b.who).map(|v| f32::from(v) / 255.0);
+        for tri in band(&field, rectangle(b.x, b.y, size, back)) {
+            for (x, y, z) in tri {
+                pos.push([x as f32, y as f32, z as f32]);
+                col.push(c);
+            }
+        }
+    }
+    (pos, col)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -206,9 +251,13 @@ mod tests {
     /// photograph holds on the first arm and not on the others is the
     /// row's evidence that the footprint is theirs. Then, on the first
     /// arm's footprint, `[ours red, both red]` on the client's still with
-    /// nothing selected, which is the half the drawing moves.
-    pub const RUN1559B_3279_SELECTED: ([[usize; 2]; 3], [usize; 2]) =
-        ([[4551, 1477], [4157, 721], [5398, 312]], [52, 9]);
+    /// nothing selected (item 4398), and then with the city selected, its
+    /// band drawn by [`underlay`] (item 4401): the half the drawing moves.
+    pub const RUN1559B_3279_SELECTED: ([[usize; 2]; 3], [usize; 2], [usize; 2]) = (
+        [[4551, 1477], [4157, 721], [5398, 312]],
+        [52, 9],
+        [2132, 1404],
+    );
 
     #[test]
     fn the_selected_city_s_band_on_run1559b() {
@@ -257,12 +306,30 @@ mod tests {
             crate::gpu::SilhouetteOrder::Before,
             wgpu::TextureFormat::Rgba8Unorm,
         );
-        let on = |i: usize| first[i] && red(&ours, i);
-        let mine = (0..first.len()).filter(|&i| on(i)).count();
-        let both = (0..first.len())
-            .filter(|&i| on(i) && red(&p.photo.rgba, i))
-            .count();
-        let got = (got, [mine, both]);
+        let selected = crate::still_selected(
+            &mut p.world,
+            &camera,
+            size,
+            crate::gpu::SilhouetteOrder::Before,
+            wgpu::TextureFormat::Rgba8Unorm,
+            &[sim::observe::ObjId {
+                who: CITY.0,
+                o: CITY.1,
+            }],
+        );
+        if let Some(dir) = std::env::var_os("RON_STILL_DIR") {
+            let out = std::path::PathBuf::from(dir).join("still-selected.bmp");
+            std::fs::write(&out, crate::gpu::bmp(&selected, size)).expect("the still writes");
+        }
+        let count = |rgba: &[u8]| {
+            let on = |i: usize| first[i] && red(rgba, i);
+            let mine = (0..first.len()).filter(|&i| on(i)).count();
+            let both = (0..first.len())
+                .filter(|&i| on(i) && red(&p.photo.rgba, i))
+                .count();
+            [mine, both]
+        };
+        let got = (got, count(&ours), count(&selected));
         println!("RUN1559B_3279_SELECTED: {got:?}");
         assert_eq!(got, RUN1559B_3279_SELECTED);
     }
