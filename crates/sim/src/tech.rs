@@ -318,6 +318,12 @@ pub struct Tribe {
     /// of an unpacked merchant's "over time" piece
     /// ([`crate::units::anim::stall_piece`]; item 3369). Zero when unloaded.
     pub build_continent: i32,
+    /// The tribe file's `<CITIES>` list, the names
+    /// `City::generate_name@00735c90` founds a city under
+    /// ([`crate::leaders::words::founding_name`]). `None` when unloaded:
+    /// the counter steps as if the list were longer than any count, and no
+    /// name is written.
+    pub cities: Option<Vec<String>>,
 }
 
 /// The types the rules name by role. Each is optional: a tree without the

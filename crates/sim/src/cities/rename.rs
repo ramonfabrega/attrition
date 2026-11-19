@@ -10,10 +10,9 @@
 //! record, after `who`, which is the diff `rondata`'s renamed playback
 //! reads.
 //!
-//! SEAM: the name a city is given at its founding
-//! (`City::generate_name@00735c90`, the tribe's list) is not carried —
-//! the crate steps only its counter (`leaders::words`). A city reads
-//! `None` until a rename writes it.
+//! The same field holds the name a city is given at its founding
+//! (`City::generate_name@00735c90`, the tribe's list;
+//! `crate::leaders::words`, item 4418), so a rename overwrites it.
 
 use crate::{Player, Sim};
 
@@ -33,9 +32,10 @@ impl Sim {
         true
     }
 
-    /// `City +0x90` as a rename last wrote it, for city `c`; `None` while
-    /// the founding name stands (the SEAM above).
-    pub fn city_name_written(&self, c: usize) -> Option<&str> {
+    /// `City +0x90` for city `c`: its founding name, or what a rename
+    /// last wrote. `None` for a city no founding named (a capture, an
+    /// exempt arm, or a tribe whose list was never loaded).
+    pub fn city_name(&self, c: usize) -> Option<&str> {
         self.cities.names.get(&c).map(String::as_str)
     }
 }

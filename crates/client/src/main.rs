@@ -367,10 +367,10 @@ fn build(
     let underlay = hud.map_or_else(Default::default, |input| {
         selection::underlay(world, &input.selection)
     });
-    // Item 4410: a city's plate wants its name, and the founding name is
-    // not carried (`sim::cities::rename`'s SEAM): a written one is drawn.
+    // Item 4410: a city's plate wants its name, the founding one (item
+    // 4418) or a rename's; a city with none draws no plate.
     let mut screen = selection::plates(world, camera, (size.0 as i32, size.1 as i32), &|c| {
-        world.runner.sim().city_name_written(c).map(String::from)
+        world.runner.sim().city_name(c).map(String::from)
     });
     if let Some(input) = hud {
         screen.extend(selection::bars(
