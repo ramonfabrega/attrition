@@ -1355,7 +1355,10 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// **661** at item 4397: run1381's builds line (`Setup::reinit_game_units`,
 /// a start building's `z`) and run854's leaders line (`oil_patches`, the
 /// start's walk leaving the oil to `compute_all_territory`).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 661, 1053);
+/// **662** at item 4404: run1011e's ammo line (a gone target's `whom`/`ox`
+/// kept on the round until `Ammo::do_damage`), the packet whole on all
+/// twelve.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 662, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1698,6 +1701,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4320, the score's dirty bits (`0x800000`, `0x1000000`) emitted, leader 0's 0x2800007 agreeing: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4396, the captain mirror's retarget kept in the order: units (3117, 3117, 2) -> (3117, 3117, 0).
+    // Item 4404, a gone target's pair kept on the round until it lands: ammo (9, 9, 2) -> (9, 9, 0).
     (
         "run1011e",
         13296,
@@ -1705,7 +1709,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (3117, 3117, 0),
             (2080, 2080, 0),
             (0, 0, 0),
-            (9, 9, 2),
+            (9, 9, 0),
             (6, 6, 0),
             (538, 538, 0),
             (854, 854, 0),
