@@ -196,6 +196,34 @@ theirs' 1,477). Drawn one tile east, it read 855 and 542, and the pin
 failed. Ours is a solid 48-unit band; theirs is thinner and soft-edged,
 its texture's, so ours paints about 728 red pixels theirs does not.
 
+**The city's plate, placed (item 4403).** `BuildOut::draw_overlays@0062cb30`
+draws it for any active city centre (`flags & 4` and `& 0x20`), selected or
+not, under `player_profile.prefs & 0x40000` and the visibility branch; it
+is not the selection's. The anchor, by the listing at `0062cc4a`–`0062ccae`:
+`world_to_console(x, y, z − 0x60·(2·y_size/3))` (the object's `+0x10`,
+`+0x14`, `+0xc`), the console's y added. About it, the name (`CityData
++0x90`) `text_width` wide and the font's height tall (`x0 = sx − w/2`,
+`y0 = sy − h/2`); `adjust_for_scroll@0051cd20` then widens it for a capital
+(`CityData +4 & 0x10`: 3 rows each way, the star's width split) and by the
+pads; `draw_scroll@0051cdb0` lays the nine-part scroll on it, the star
+inside the left pad tinted the owner's `get_unit`, and the name is written
+white. **Every quantity is the packet's** (run1559b, frame 3294): pads 8,
+4, 8, 4 (`IFaceRenderManager +0xe84`; `setup_text` makes the top
+`scroll_tex[0]`'s width, 4, and the sides twice it); the star 22 × 21;
+the font `onscreen_mouseover_size` (`FontFamily` lookup 36, size 14), its
+`D3D11GLFont` `mFontHeight` 16; the name `Napata`, its `CharacterInfo`
+advances 12 + 8 + 9 + 8 + 6 + 8 = 51; the city's flags carry the capital's
+bit (`& 0x10`).
+`client::selection::plate` is that rectangle: **x [1083, 1172), y [580,
+610)**, 89 × 30, which is the plate on the photograph to the pixel (its
+gold edge at 1083 and 1171, 580 and 609). **`RUN1559B_3279_PLATE`** reads
+it: of the 2,670 pixels, **1,285 are dark in theirs** (every channel under
+40, the scroll's black); moved one plate down, 0; without the star, 1,018
+of 1,608. Ours, nothing drawn: 0. The anchor moved 89 px east read 75, and
+the pin failed. The photograph's `INTERFACE` mask holds this rectangle as
+"the city's label", taken out by eye for the scene's rows; the plate's own
+row does not apply it. Not drawn yet (§6).
+
 ## 4. The bar (item 4198)
 
 A `LeaderScene` through `sim::observe`, read-only, for the issuing slot:
@@ -434,6 +462,17 @@ Not established:
   `player_profile.prefs & 0x40000`, every seen city, selected or not), a
   drawing helper rather than an `iface*` window; the bar is
   `WallOut::draw_health_bar@00640dd0`/`@00640f20`'s, not read.
+- **The plate, placed and not drawn** (item 4403, §3): its rectangle is
+  counted on run1559b (`RUN1559B_3279_PLATE`) from the packet's pads,
+  star, font height and the name's advances. Not established: the font's
+  advances for any other name (ours has no such font; the row holds
+  `Napata`'s 51 as a constant), the scroll's nine textures and the
+  star's pixels, `draw_2d_expander`'s tiling, the prefs bit's default and
+  the visibility branch's arms (`semaphore & 0x42`, the ally and the
+  over-player cases), and whether a rectangle end is inclusive (the
+  photograph's gold edge fits `[x0, x1)`). The bar (the black strip
+  with the red fill over the capital, 22 × 4 at about (1116, 445) on
+  the photograph) has no row yet.
 - **Slots 8 and 9.** The record prints two more leaders (no tribe, no
   goods); the bar shows the issuing slot only and they are not compared.
 - **A narrow window.** The bar is one line, about 1,430 pixels at the

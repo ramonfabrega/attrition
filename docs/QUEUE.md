@@ -49,29 +49,30 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6): none out. Four seats, each designed and unspawned, held at the day's line (70 of 70 on 2026-11-18): the chain's 4404 (ammo on the demand's game, 10075), the suite's 4405 (the sample from state 76), the third's 4403 (the selected city's plate) and render's 4402 (the packets' guys `guy`). Nothing is designed behind them: the seat that stops first after these is the pass's boundary.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6): four out, cut off `62bd6c79e` on 2026-11-19 at 72 of 84 (Opus 5.5, high): the chain's 4404 (ammo on the demand's game, 10075; run1696, run1698), the suite's 4405 (the sample from state 76; run1697), the third's 4410 (the plate drawn; 4403 minted its row at 0, landed on depth) and render's 4402 (the packets' guys `guy`). Codex's 4406 to 4409 were fast-forwarded and gated whole first (`gate-codex-1119.log`, exit 0). Nothing is designed behind them: the seat that stops first after these is the pass's boundary.
 
-4404. **The demand's game: ammo on 10075** (a rules item, whole; the chain's, unspawned; `docs/LEADERS.md` §8.6; DECISIONS 143 §2,
+4404. **The demand's game: ammo on 10075** (a rules item, whole; the chain's, out; `docs/LEADERS.md` §8.6; DECISIONS 143 §2,
 §3). 4396 played the game to the original's own end on 10929 (run1691): 11 of 12 lines whole for all 10,929 states, units 9,981 →
 10,929 (the captain mirror's stale order copy in `do_attack_fight`; run1695's range 478). Ammo parts on 10075 (ours 4012779512,
 theirs 4143847442; 10,893 of 10,929). First act: a take of the same file with ammo's ranges (`RNG_MASK=0x8`) to about 10,090, naming
 the range by record and field. Whole, the game joins parity's set as the seventh (143 §2). It stops when two acts move the parting by nothing.
 
-4405. **The 2017 sample, from state 76** (a rules item, whole; the suite's seat, unspawned; `docs/RECGAME.md` §7; DECISIONS 142 §4,
+4405. **The 2017 sample, from state 76** (a rules item, whole; the suite's seat, out; `docs/RECGAME.md` §7; DECISIONS 142 §4,
 143 §4). 4397 made state 0 whole by range (`SAMPLE_RANGES` 3 → 0: the start buildings' `z` re-sampled by `reinit_game_units`, and
 the oil claim after the city's `update_seen`). First act: builds on 76, `758 2000 gather[k]` (32640|31872), by a ranges take of its
 window. Then units' `unit_masks` `0x4000000` on 92 (item 4351), then `SAMPLE_LINES`' lowest first parting. `SAMPLE_WALKED` 3019 of
 21,044 is its last (parked 4380a). It stops when two acts move no line's first parting.
 
-4402. **The packets' lines: guys' `guy`** (a rules item, whole; the render seat's, unspawned; CHECKSUM §23; DECISIONS 143 §4). 4400 closed
+4402. **The packets' lines: guys' `guy`** (a rules item, whole; the render seat's, out; CHECKSUM §23; DECISIONS 143 §4). 4400 closed
 leaders' `flags` (transport, jammers, the three bonuses, Ambush and Forced March), `PACKETS_SCORE` 608 → 651 of 1,053; its census
 puts guys' `guy` next, 50 of the 402 lines that still part (byte 104 on 21 of them). First act, on disk: that leaf's value diff on its
 commonest packet, record and field and both sides. Then the next leaf by count. It stops when two acts turn no line.
 
-4403. **The selected city's plate, then its bar** (a `render` item, scoped; the third seat's, unspawned; `docs/HUD.md` §3; DECISIONS 143
-§5). 4401 drew the band as an underlay: `RUN1559B_3279_SELECTED`'s band, ours red 52 → 2,132, on theirs' red 9 → 1,404 of 1,477, red one
-tile east (parked 4401a: the band's texture). First act: the plate's row minted on run1559b's photograph before it is drawn, then the
-plate as `BuildOut::draw_overlays` draws it. Then the bar, with its own row. It stops when two acts move no row.
+4410. **The selected city's plate drawn, then its bar** (a `render` item, scoped; the third seat's; `docs/HUD.md` §3; DECISIONS 143 §5).
+4403 minted `RUN1559B_3279_PLATE` before any draw: `selection::plate`'s rectangle x [1083,1172) y [580,610), every quantity off
+run1559b's packet (pads 8/4/8/4, star 22×21, font height 16, Napata's advances 51), theirs 1,285 dark of 2,670, ours 0, red with the
+anchor 89 px east (parked 4403a: the plate's mask). First act: draw the plate on `plate()`'s rectangle as a screen pass, scored on that
+row. Then the bar (`WallOut::draw_health_bar`, about 22×4 at (1116, 445)), its row minted first. It stops when two acts move no row.
 
 ## Direct branch handoff
 
