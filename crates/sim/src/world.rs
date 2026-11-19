@@ -1132,6 +1132,17 @@ impl World {
             return false;
         };
         let (seen, seen2, changed) = seen_step(self.fog_now[i], self.fog[i], mask);
+        if PROBE_4424.load(std::sync::atomic::Ordering::Relaxed)
+            && mask & 8 != 0
+            && [4392usize, 4393, 4511, 4512, 4513, 4631, 4751, 4871, 4991].contains(&i)
+        {
+            eprintln!(
+                "PROBE4424 set_seen ({fx},{fy}) i {i} mask {mask:#x} before {:#x}|{:#x}\n{}",
+                self.fog_now[i],
+                self.fog[i],
+                std::backtrace::Backtrace::force_capture()
+            );
+        }
         self.fog_now[i] = seen;
         self.fog[i] = seen2;
         self.or_was_seen(fx, fy, mask);
@@ -2336,3 +2347,6 @@ pub struct WorldState {
     /// functions and the checksum's walks.
     pub object_heads: Vec<Option<crate::combat::Obj>>,
 }
+
+/// Item 4424's probe: set by `Sim::tick` on `RON_PROBE_4424`'s frame.
+pub static PROBE_4424: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
