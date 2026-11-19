@@ -529,9 +529,10 @@ pub(in crate::diff) mod tests {
     /// building lines and its third parties at war are a human target's
     /// arm, `6bd02a`): leaders 241 → 2112; and (a detector building's
     /// `SubObjectData::flags & 0x40`, `Object::init`'s `DETECT`) builds 525
-    /// → 3029.
+    /// → 3029. Item 4414 (a `THINK` walks `UnitOrder::walk_data@0047f2b0`'s
+    /// flags byte): units 532 → 2112.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 532),
+        ("units", 2112),
         ("builds", 3029),
         ("walls", 21044),
         ("ammo", 3022),
@@ -564,6 +565,14 @@ pub(in crate::diff) mod tests {
     /// left it.
     fn run1697() -> Option<crate::trace::ranges::Record> {
         ranges_record("RON_SAMPLE_RANGES_1697", "run1697")
+    }
+
+    /// run1710's record (item 4414, `docs/RUNS.md` run1710): the same
+    /// playback to 3,100 under the same hooks, so every first parting under
+    /// the draw walk's 3019 is a diff on disk. `RON_SAMPLE_RANGES_1710`,
+    /// else where the take left it.
+    fn run1710() -> Option<crate::trace::ranges::Record> {
+        ranges_record("RON_SAMPLE_RANGES_1710", "run1710")
     }
 
     fn ranges_record(var: &str, run: &str) -> Option<crate::trace::ranges::Record> {
@@ -636,7 +645,29 @@ pub(in crate::diff) mod tests {
         assert_eq!(got, pinned, "SAMPLE_RANGES_1697");
     }
 
-    /// The walk both ranges tests share: our sample from state 0 to
+    /// **The sample's lines by range, to 3,100** (item 4414): the same walk
+    /// over run1710's record, pinned per line by [`SAMPLE_RANGES_1710`].
+    /// `RON_SAMPLE_RANGES_DETAIL` and `RON_SAMPLE_RANGES_ALL` print as
+    /// above.
+    #[test]
+    fn the_sample_s_ranges_to_3100_name_each_first_parting() {
+        let Some(rec) = run1710() else { return };
+        let Some((frames, got)) = walk_ranges(rec, SAMPLE_RANGES_1710_WINDOW) else {
+            return;
+        };
+        let pinned: Vec<SampleRange> = SAMPLE_RANGES_1710
+            .iter()
+            .map(|&(l, f, t, o, p, x)| (l, f, t, o, p, x.to_string()))
+            .collect();
+        assert_eq!(
+            frames,
+            SAMPLE_RANGES_1710_WINDOW as usize + 1,
+            "run1710's sets, one a frame"
+        );
+        assert_eq!(got, pinned, "SAMPLE_RANGES_1710");
+    }
+
+    /// The walk the ranges tests share: our sample from state 0 to
     /// `window`, each frame's twelve lines against the record's set.
     /// `(sets compared, each parting line's first parting)`, or `None` when
     /// the install, the sample or the pieces are absent.
@@ -716,6 +747,17 @@ pub(in crate::diff) mod tests {
                 }
                 let (rec, field) = a.map_or((-1, "-"), |r| (r.record, r.field));
                 let fields = match (a, b) {
+                    // A shifted range decodes theirs' bytes by our field's
+                    // name; at another length that is raw bytes alone.
+                    (Some(a), Some(b)) if a.bytes.len() != b.2.len() => {
+                        format!(
+                            "len {}|{}: {:02x?}|{:02x?}",
+                            a.bytes.len(),
+                            b.2.len(),
+                            a.bytes,
+                            b.2
+                        )
+                    }
                     (Some(a), Some(b)) => {
                         let x = super::super::checksum_lines::range_fields(name, field, &a.bytes);
                         let y = super::super::checksum_lines::range_fields(name, field, &b.2);
@@ -816,12 +858,61 @@ pub(in crate::diff) mod tests {
     /// 00647750:39`'s `flags |= 0x40` for a `DETECT` type, a building's as
     /// a unit's): builds `974 2008 flags` 1|0x41, the person's Lookout
     /// `3/2008` (`TypeIndex` 107), agrees; builds whole over the window.
-    const SAMPLE_RANGES_1697: &[(&str, i64, usize, usize, usize, &str)] = &[(
-        "units",
-        532,
-        1557,
-        1556,
-        586,
-        "905 6 guys.length: +0x0 of 4|1: 01000000|04",
-    )];
+    /// Item 4414, act 1 (`ThinkOrder`'s vslot `+0x8` is the base's
+    /// `UnitOrder::walk_data@0047f2b0`, the flags byte): the person's
+    /// Citizen `3/6` (`TypeIndex` 50, land), a `MOVE_TO` then a `THINK`, its
+    /// range `905` absent|`04` agrees, ours 1,556 → 1,557 ranges of 1,557.
+    /// All twelve lines whole over the window.
+    const SAMPLE_RANGES_1697: &[(&str, i64, usize, usize, usize, &str)] = &[];
+
+    /// run1710's last frame, ours: the record holds trace frames −1 to 3099.
+    const SAMPLE_RANGES_1710_WINDOW: i64 = 3100;
+
+    /// Per line that parts on run1710's window, its first parting by range
+    /// (item 4414). Minted at seven rows, each on the frame the sum parts
+    /// (`SAMPLE_LINES`): units, builds, ammo, groups, guys, leaders, world.
+    const SAMPLE_RANGES_1710: &[(&str, i64, usize, usize, usize, &str)] = &[
+        ("units", 2112, 2286, 2286, 3, "619 1 flags: flags 17|1"),
+        (
+            "builds",
+            3029,
+            2323,
+            2323,
+            2,
+            "1815 2003 myhits..launch_frames: up 5|7",
+        ),
+        (
+            "ammo",
+            3022,
+            3,
+            3,
+            1,
+            "1 0 rolling..start_roll_angle: +0x7 of 99|99: 44290000|462b0000",
+        ),
+        ("groups", 927, 586, 592, 348, "235 193 id..march: num 1|0"),
+        (
+            "guys",
+            2920,
+            804,
+            804,
+            2,
+            "379 0 guy: angle 2146133600|2134310912, last_angle 2146133600|2134310912, des_angle -1748041728|2134310912",
+        ),
+        (
+            "leaders",
+            2112,
+            667,
+            667,
+            1,
+            "267 2 who..ally_mask: +0x1ec of 26914|26914: 3f080000|00000000",
+        ),
+        (
+            "world",
+            1716,
+            7489,
+            7489,
+            3,
+            "3625 -1 seen: +0x1128 of 14400|14400: 08080808|00000808",
+        ),
+    ];
 }

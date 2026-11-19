@@ -550,19 +550,20 @@ by a mutation:
 
 All twelve agree over 0..100.
 
-**Item 4412: run1697, to 560.** *Diff-backed* on run1697's ranges
-(`SAMPLE_RANGES_1697`), each by a mutation:
+**Items 4412 and 4414: run1697, to 560** (their journals). *Diff-backed*
+on its ranges, each by a mutation:
 
-- **Leaders on 241**: `528 4` `+0x238`, leader 4's `strong[2]` against
-  its teammate 2, ours 32, theirs 0. `Leader::diplomacy`'s `6bd02a`
-  tests the target's `leader_flags & 4`; its `je 6bd228` skips the four
-  building lines and the third parties at war with the target, not only
-  the difficulty's share. Leaders by sum 241 → 2112.
-- **Builds on 525**: `974 2008 flags` 1|0x41, the person's Lookout
-  `3/2008`. `Object::init@00647750:39` ors `0x40` for a `DETECT` type, a
-  building's as a unit's. Builds 525 → 3029; packets' lines 661 → 674.
+- **Leaders on 241**: leader 4's `strong[2]` toward teammate 2, 32|0.
+  `Leader::diplomacy`'s `6bd02a` (`leader_flags & 4`, `je 6bd228`) skips
+  the building lines and the war count for a computer target. → 2112.
+- **Builds on 525**: the Lookout `3/2008`'s `flags` 1|0x41;
+  `Object::init@00647750:39` ors `0x40` for a `DETECT` type. → 3029.
+- **Units on 532**: the Citizen `3/6`'s `THINK` walks
+  `UnitOrder::walk_data@0047f2b0`, the flags byte (`04`), which ours left
+  out. → 2112.
 
-Next: units on 532, `905 6 guys.length`, 586 of 1,557 ranges parted.
+run1710 holds every first parting to 3,100 (`SAMPLE_RANGES_1710`).
+Next: groups on 927, the person's slot 193 `num` 1|0 (4414's journal).
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
