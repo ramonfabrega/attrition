@@ -319,6 +319,11 @@ impl Sim {
                     let hit = self.hit_target(&p);
                     if !hit {
                         self.combat.projectiles[i].target = None;
+                        // `check_hit@00678d90` writes the pair whatever it
+                        // finds (lines 42–44, then −1 on a miss), so a gone
+                        // target's pair goes with it (item 4404: run1698's
+                        // slot 2 on 10177, `flags 14`, `whom -1 ox -1`).
+                        self.combat.projectiles[i].left = None;
                         if self.check_hit(&p).is_none() {
                             self.combat.projectiles[i].missed = true;
                         }
