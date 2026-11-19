@@ -24,6 +24,32 @@ and warm/cold input-cache state explicit. A local test gain is not a suite gain.
 
 ## Reading a gate profile
 
+### Scoped reuse experiment
+
+Add `--shadow-from PRIOR_REPORT` to an isolated `--scope REF --require-fixtures`
+booking gate to measure a prediction for the draw-list census across the ages.
+The gate runs its ordinary selection and records the observed verdict. If the
+scope selects the census, its worker writes `isolated/rondata/ages-forecast.json`
+before starting the test. An older report with fixture requests can seed the
+experiment. To test a prediction, point a later gate at the seeded gate.
+`python3 tools/scoped_shadow.py score REPORT` compares the recorded prediction
+with the live result, reports any missed failure and checks input stability.
+
+The pilot hashes the test executable, the installation, the captures requested
+by this test in the previous gate, their index sidecars and the setup observation
+cache. It includes the request counts, runtime switches and platform in the
+key. The previous test must have passed with stable inputs and the expected
+fixture requests. A missing fixture, unstable input or unsupported archive
+mapping leaves the verdict to the running test. Hashing uses a separate lease
+and timeout. A prediction has no role in selection or the gate's exit.
+
+Camera packet and sweep binaries run one test thread each. The render library
+uses up to two. All three reserve 512 MiB and retain their 32 GiB RSS ceiling.
+The ages census decodes the farm art lazily once per lobby's tileset and
+applies the result, including a failed decode, to each field in each frame.
+
+### Timing and native samples
+
 `python3 tools/gate_profile.py REPORT` reads an existing isolated gate report.
 The release log also prints which lane finished last and the five largest
 rondata processes by CPU seconds. Group members share a process, so the

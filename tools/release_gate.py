@@ -1098,7 +1098,7 @@ def check_whole(*, lane, tests, whole, no_widen):
 
 def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, run=run_logged,
          lane=False, tests=None, item=None, base='worktree-replan-pdb', scope=None, isolated=None,
-         no_widen=False, whole=False, git=subprocess.run, whole_lock=None):
+         no_widen=False, whole=False, git=subprocess.run, whole_lock=None, shadow_from=None):
     # `git` runs the gate's own reads of the tree (`branch_paths`,
     # `base_moved`); the offline cases hand it a fixture so none reads the
     # tree the gate runs in (item 3366).
@@ -1114,6 +1114,8 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         raise ValueError('--scope is the booking gate\'s; a lane gate has --tests and --base')
     if isolated is None:
         isolated = True
+    if shadow_from is not None and (scope is None or lane or not isolated or not require_fixtures):
+        raise ValueError('--shadow-from requires an isolated --scope gate with --require-fixtures')
     tests = list(tests or [])
     if item is not None and not lane:
         raise ValueError('--item is a lane gate\'s: the booking gate reads the queue, not a journal')
@@ -1209,6 +1211,9 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     audit_dir.mkdir()
     env = child_environment(dispatcher=isolated)
     env.pop('RON_FIXTURE_AUDIT_DIR', None)
+    env.pop('RON_GATE_SHADOW_FROM', None)
+    if shadow_from is not None:
+        env['RON_GATE_SHADOW_FROM'] = str(Path(shadow_from).resolve())
     env.pop('RON_TEST_MEMCAP_GIB', None)
     env['RUST_TEST_THREADS'] = '2'
     env['RON_INSTALL'] = str(install)
@@ -1583,6 +1588,8 @@ def _run_steps(commands, *, run, env, audit_dir, report_dir, require_fixtures, r
         held = None
         if is_release:
             child_env['RON_FIXTURE_AUDIT_DIR'] = str(audit_dir)
+        else:
+            child_env.pop('RON_GATE_SHADOW_FROM', None)
         if lane and step_name(command) == 'guard':
             child_env['RON_LANE'] = '1'
         extra = {'log': str(report_dir / ('release-tests.log' if is_release
@@ -1762,6 +1769,8 @@ def main():
     parser.add_argument('--scope', metavar='REF',
                         help='the booking gate\'s: the tip the last whole gate ran on; the timed tests run only '
                              'when a merge since it can move a pin (every third landing takes no --scope)')
+    parser.add_argument('--shadow-from', type=Path, metavar='REPORT',
+                        help='measure an ages-test reuse prediction during a required-fixture scoped gate')
     parser.add_argument('--base', default='worktree-replan-pdb', metavar='REF',
                         help='with --lane: the branch the lane was cut from; a branch that touches '
                              'sim code outside sweep/ or a rondata::diff row list since it runs every '
@@ -1774,7 +1783,7 @@ def main():
         gate(args.install, report_dir=args.report_dir, require_fixtures=args.require_fixtures,
              test_threads=args.test_threads, lane=args.lane, tests=args.tests, item=args.item,
              base=args.base, scope=args.scope, isolated=args.isolated, no_widen=args.no_widen,
-             whole=args.whole)
+             whole=args.whole, shadow_from=args.shadow_from)
     except ValueError as exc:
         parser.error(str(exc))
 

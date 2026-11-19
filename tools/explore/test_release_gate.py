@@ -107,6 +107,25 @@ def release_ran(kwargs, log=RELEASE_LOG, present=True):
 
 
 class IsolatedGate(unittest.TestCase):
+    def test_shadow_is_explicit_and_confined_to_the_scoped_release(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            install = Path(tmp) / 'install'
+            (install / 'Data').mkdir(parents=True)
+            (install / 'Data/rules.xml').touch()
+            prior = Path(tmp) / 'previous'
+            for options in ({}, {'scope': 'HEAD', 'isolated': False}, {'scope': 'HEAD', 'require_fixtures': False}):
+                with self.assertRaisesRegex(ValueError, '--shadow-from requires'):
+                    gate.gate(install, shadow_from=prior, **options)
+            def run(command, **kwargs):
+                if 'tools/isolated_tests.py' in command:
+                    self.assertEqual(kwargs['env']['RON_GATE_SHADOW_FROM'], str(prior.resolve()))
+                    release_ran(kwargs, RELEASE_LOG.replace('FAILED', 'ok'))
+                else:
+                    self.assertNotIn('RON_GATE_SHADOW_FROM', kwargs['env'])
+            with patch.object(gate, 'branch_paths', return_value=[]):
+                gate.gate(install, report_dir=Path(tmp)/'report', require_fixtures=True,
+                          scope='HEAD', shadow_from=prior, run=run, git=UNMOVED)
+
     def test_all_six_phases_and_fixture_reporting_survive_isolation(self):
         with tempfile.TemporaryDirectory() as d:
             install = Path(d)/'install'

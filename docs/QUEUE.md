@@ -80,6 +80,8 @@ Parity holds at 5 of 6 and packet lines at 661 of 1,053. Whole branch gate passe
 
 `codex/gate-performance` (4407) builds on that tip. Historical queue failure 216 → 1.06 s, offline suite 113 → 55 s, whole gate 29m21s → 24m38s. Required-fixture gate green on `ad4f299f3`.
 
+`codex/scoped-gates` (4408) builds on that handoff. Scoped admission, farm decoding and a measured reuse prediction. Branch gate pending.
+
 ## How to maintain this file
 
 - **End of session:** rewrite "Where things stand" from scratch, headline first and whether it moved; delete

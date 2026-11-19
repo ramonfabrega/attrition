@@ -250,6 +250,9 @@ fn walk(
     let (inst, loaded, art, look, tribes) =
         (&sh.inst, &sh.loaded, &sh.art, &sh.look, &sh.tribes[..]);
     let tileset = tileset_of(art.root.as_path(), Path::new(start), style_file(g.name));
+    // Every field in this lobby draws the same tileset's wheat. Decode
+    // it on first use and apply that result to each field's own tally.
+    let farm = std::cell::LazyCell::new(|| crate::artdata::farm_decoding(inst, &tileset));
     let mut src = IndexedCapture::open(long).unwrap();
     let mut wanted: BTreeSet<i64> = src.frames().iter().map(|f| f.number).collect();
     wanted.insert(0);
@@ -352,7 +355,8 @@ fn walk(
                     (Kind::Building, why)
                 }
                 Pose::Field { orig_type } => {
-                    let why = crate::artdata::farm_decoding(inst, &tileset)
+                    let why = farm
+                        .as_ref()
                         .err()
                         .map(|f| format!("type {orig_type} on {tileset}: {f:?}"));
                     (Kind::Field, why)

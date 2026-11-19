@@ -89,6 +89,74 @@ class GateProfile(unittest.TestCase):
                 self.assertEqual(run.call_count, 3)
 
 
+class ScopedShadow(unittest.TestCase):
+    def test_prediction_precedes_verdict_and_rejects_changed_inputs(self):
+        shadow = runner.scoped_shadow
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            install = root / 'game'
+            (install / 'Data').mkdir(parents=True)
+            rules = install / 'Data/rules.xml'
+            rules.write_bytes(b'rules')
+            logs = root / 'logs'
+            logs.mkdir()
+            capture = logs / 'capture'
+            capture.write_bytes(b'frame')
+            stamp = capture.stat()
+            binary = root / 'binary'
+            binary.write_bytes(b'program')
+            env = dict(os.environ, RON_INSTALL=str(install), RON_GAMELOG_DIR=str(logs))
+            def report(name):
+                gate = root / name
+                data = gate / 'isolated/rondata'
+                data.mkdir(parents=True)
+                audit = gate / 'fixture-requests'
+                audit.mkdir()
+                (audit / 'case.tsv').write_text(f'1\t{capture.name.encode().hex()}\t{shadow.AGES.encode().hex()}\n')
+                return gate, data
+
+            legacy, _ = report('legacy')
+            seed, directory = report('seed')
+            with patch.dict(os.environ, env):
+                shadow.record(legacy, directory, binary)
+            self.assertFalse(shadow.read(directory, shadow.FORECAST)['predicted_pass'])
+            shadow.check_stability(legacy, directory, binary, env)
+            row = dict(name=shadow.AGES, success=True, exit=0, user=1, system=0)
+            (directory / 'measurements.jsonl').write_text(json.dumps(row))
+            self.assertTrue(shadow.score(seed)['comparable'])
+            trial, output = report('next')
+            with patch.dict(os.environ, env):
+                shadow.record(seed, output, binary)
+            self.assertTrue(shadow.read(output, shadow.FORECAST)['predicted_pass'])
+            self.assertFalse((output / 'measurements.jsonl').exists())
+            capture.write_bytes(b'other')
+            os.utime(capture, ns=(stamp.st_atime_ns, stamp.st_mtime_ns))
+            prediction, _, _ = shadow.forecast(seed, binary, env)
+            self.assertEqual(prediction['reason'], 'changed: captures')
+            shadow.check_stability(seed, output, binary, env)
+            (trial / 'fixture-requests/case.tsv').write_bytes(b'')
+            (output / 'measurements.jsonl').write_text(json.dumps(dict(row, success=False, exit=101)))
+            result = shadow.score(trial)
+            self.assertTrue(result['missed_failure'])
+            self.assertFalse(result['comparable'])
+            capture.write_bytes(b'frame')
+            rules.write_bytes(b'other')
+            self.assertEqual(shadow.forecast(seed, binary, env)[0]['reason'], 'changed: install')
+            rules.write_bytes(b'rules')
+            self.assertEqual(shadow.forecast(seed, binary, dict(env, RON_AGES_ONLY='one'))[0]['reason'],
+                             'changed: runtime')
+            binary.write_bytes(b'changed')
+            self.assertEqual(shadow.forecast(seed, binary, env)[0]['reason'], 'changed: binary')
+            binary.write_bytes(b'program')
+            cache = logs / '.ron-observations-v1'
+            cache.mkdir()
+            (cache / 'setup').write_bytes(b'observed')
+            self.assertEqual(shadow.forecast(seed, binary, env)[0]['reason'], 'changed: setup cache')
+            seconds, nanos = divmod(capture.stat().st_mtime_ns, 10**9)
+            capture.with_name(f'capture.ronidx-v1-5-{seconds}-{nanos}').write_bytes(b'index')
+            self.assertEqual(shadow.forecast(seed, binary, env)[0]['reason'], 'changed: indexes, setup cache')
+
+
 class Admission(unittest.TestCase):
     def test_atomic_capacity_and_release(self):
         with tempfile.TemporaryDirectory() as d:
@@ -318,19 +386,22 @@ class Admission(unittest.TestCase):
 
 class Manifest(unittest.TestCase):
     def test_target_budgets_preserve_requested_cpu_width(self):
-        self.assertEqual(runner.target_budget({'kind': ['lib'], 'name': 'sim'}, 4), (4, 4096))
+        self.assertEqual(runner.target_budget({'kind': ['lib'], 'name': 'sim'}, 4), (4, 4096, None))
         # Loop 3363: the sim lib at eight threads peaked at 4218-4262 MiB on
         # three whole gates (fc206a90, 163e8d89 twice) and the budget stopped
         # it with no test red; the limit follows the thread count.
-        self.assertEqual(runner.target_budget({'kind': ['lib'], 'name': 'sim'}, 8), (8, 6144))
-        self.assertEqual(runner.target_budget({'kind': ['lib'], 'name': 'fixed'}, 8), (8, 512))
-        self.assertEqual(runner.target_budget({'kind': ['test'], 'name': 'new'}, 4), (8, 32768))
+        self.assertEqual(runner.target_budget({'kind': ['lib'], 'name': 'sim'}, 8), (8, 6144, None))
+        self.assertEqual(runner.target_budget({'kind': ['lib'], 'name': 'fixed'}, 8), (8, 512, None))
+        self.assertEqual(runner.target_budget({'kind': ['test'], 'name': 'new'}, 4), (8, 32768, None))
         # Loop 3777: the emu cache keeps over-cap rows compressed, and under
         # verify at eight threads `sweep_u_z` read 3,859 MiB sampled, 6 %
         # under 4,096; the four sweep targets reserve the lib's 6,144.
+        for camera in ('camera_packet', 'camera_sweep'):
+            self.assertEqual(runner.target_budget({'kind': ['test'], 'name': camera}, 4), (1, 512, 32768))
+        self.assertEqual(runner.target_budget({'kind': ['lib'], 'name': 'render'}, 4), (2, 512, 32768))
         for family in ('a_f', 'g_o', 'p_t', 'u_z'):
-            self.assertEqual(runner.target_budget({'kind': ['test'], 'name': f'sweep_{family}'}, 4), (4, 6144))
-            self.assertEqual(runner.target_budget({'kind': ['test'], 'name': f'sweep_{family}'}, 8), (8, 6144))
+            self.assertEqual(runner.target_budget({'kind': ['test'], 'name': f'sweep_{family}'}, 4), (4, 6144, None))
+            self.assertEqual(runner.target_budget({'kind': ['test'], 'name': f'sweep_{family}'}, 8), (8, 6144, None))
 
     def test_discovery_is_strict(self):
         for text in ['a: test\na: test\n', 'unexpected\n', 'bench: benchmark\n']:

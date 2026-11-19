@@ -59,6 +59,7 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
 import gate_profile
+import scoped_shadow
 from resource_budget import DEFAULT, MEMORY_MIB, QUANTUM_MIB
 from test_runtime import child_environment, allocator_policy, execution_timeout
 
@@ -338,28 +339,49 @@ def resource_timing(log):
     return None
 
 
+def monitored_command(command, sink, env, cancelled, *, cwd=None):
+    with subprocess.Popen(command, stdout=sink, stderr=subprocess.STDOUT, env=env, cwd=cwd) as child:
+        while child.poll() is None:
+            if cancelled():
+                child.terminate()  # Supervisor terminates and reaps its process group.
+            try:
+                child.wait(timeout=0.2)
+            except subprocess.TimeoutExpired:
+                pass
+        return child.returncode
+
+
 def run_one(binary, name, number, output, directory, memory, cancelled, known=True, cpu=1):
     log = output / 'tests' / f'{number:04d}.log'
     start = time.monotonic()
     stamp = binary_stamp(binary)
     env = child_environment(test_name=name)
     env['RON_TEST_CPU'] = str(cpu)
+    prior = env.get('RON_GATE_SHADOW_FROM') if name == scoped_shadow.AGES else None
+    if prior:
+        # Forecasting has its own lease and timeout. Its exit cannot pass,
+        # fail, or consume the execution allowance of the real test.
+        try:
+            with (output / 'ages-forecast.log').open('x') as sink:
+                monitored_command(wrapper(directory, 256, timeout=180) + [
+                    sys.executable, str(ROOT / 'tools/scoped_shadow.py'), 'forecast',
+                    prior, str(output), str(binary)], sink, env, cancelled)
+        except OSError as error:
+            print(f'ages forecast unavailable: {error}', file=sys.stderr)
     with log.open('x') as sink:
         limit = min(MEMORY_MIB, math.ceil(memory * 1.5 / QUANTUM_MIB) * QUANTUM_MIB) if known else UNKNOWN_LIMIT_MIB
         command = wrapper(directory, memory, cpu=cpu, limit=limit, timeout=execution_timeout(name)) + ['/usr/bin/time', '-l', str(binary), '--exact', name, '--test-threads=1']
-        with subprocess.Popen(command, stdout=sink, stderr=subprocess.STDOUT, env=env) as child:
-            while child.poll() is None:
-                if cancelled():
-                    child.terminate()  # Supervisor terminates and reaps its process group.
-                try:
-                    child.wait(timeout=0.2)
-                except subprocess.TimeoutExpired:
-                    pass
+        code = monitored_command(command, sink, env, cancelled)
+    if prior:
+        try:
+            scoped_shadow.check_stability(Path(prior), output, binary, env)
+        except (OSError, ValueError, KeyError) as error:
+            print(f'ages stability check unavailable: {error}', file=sys.stderr)
     passed, clock, rss = read_result(log)
     stopped, seen_limit = stopped_at(log)
-    success = (child.returncode == 0 and passed == 1 and clock is not None and rss is not None
+    success = (code == 0 and passed == 1 and clock is not None and rss is not None
                and binary_stamp(binary) == stamp)
-    return dict(name=name, success=success, exit=child.returncode, elapsed=time.monotonic()-start,
+    return dict(name=name, success=success, exit=code, elapsed=time.monotonic()-start,
                 user=clock[0] if clock else None, system=clock[1] if clock else None,
                 rss_bytes=rss, reservation_mib=memory, stopped_mib=stopped, limit_mib=seen_limit or limit,
                 log=str(log), allocator=allocator_policy(env), resource_timing=resource_timing(log), cpu_slots=cpu)
@@ -547,6 +569,13 @@ def isolated(binary, output, directory, slots=8, skips=(), stop=None, started=No
 
 
 def target_budget(target, test_threads):
+    """CPU slots, reservation MiB and optional separate RSS ceiling."""
+    if target['kind'] == ['test'] and target['name'] in ('camera_packet', 'camera_sweep'):
+        # One libtest case per binary. Keep its original ceiling for a
+        # cold emulator environment while admitting its measured footprint.
+        return 1, 512, 32768
+    if target['kind'] == ['lib'] and target['name'] == 'render':
+        return min(test_threads, 2), 512, 32768
     if target['kind'] == ['test'] and target['name'] in ('sweep_a_f', 'sweep_g_o', 'sweep_p_t', 'sweep_u_z'):
         # Loop 3777 (the sixty-third pass): the emu cache now keeps the
         # over-cap rows compressed, and every whole gate verifies them; at
@@ -554,17 +583,17 @@ def target_budget(target, test_threads):
         # 3,859 MiB sampled, 6 % under the old 4,096 (and the build before
         # the bound was stopped at 4,110). The lib's 6,144: the four targets
         # run one at a time, so the reservation is held by one at a time.
-        return min(test_threads, 8), 6144
+        return min(test_threads, 8), 6144, None
     if target['kind'] == ['lib'] and target['name'] == 'fixed':
-        return min(test_threads, 8), 512
+        return min(test_threads, 8), 512, None
     if target['kind'] == ['lib'] and target['name'] == 'sim':
         # Loop 3363: at eight threads the lib peaked at 4218, 4249 and 4262
         # MiB on three whole gates and was stopped with no test red (the
         # 12000-row sweeps in `sweep/mod.rs`, which the standalone targets
         # cannot hold); the same tree at four threads peaks under 4096. The
         # limit follows the width, 512 MiB a thread past four.
-        return min(test_threads, 8), 4096 + 512 * max(0, min(test_threads, 8) - 4)
-    return 8, 32768
+        return min(test_threads, 8), 4096 + 512 * max(0, min(test_threads, 8) - 4), None
+    return 8, 32768, None
 
 
 def package_name(manifest_path, read=lambda path: Path(path).read_text()):
@@ -610,20 +639,13 @@ def run_beside(executable, target, number, output, directory, test_threads, sele
     keys every line to its binary). A binary that exits zero without one
     verdict is an infrastructure failure, never a pass."""
     log = output / 'beside' / f'{number:02d}-{target["name"]}.log'
-    cpu, memory = target_budget(target, test_threads)
+    cpu, memory, limit = target_budget(target, test_threads)
     stamp = binary_stamp(executable)
     begun = time.monotonic()
-    with log.open('x') as sink, subprocess.Popen(
-            wrapper(directory, memory, cpu) + [executable, f'--test-threads={test_threads}', *selection],
-            cwd=ROOT, env=env, stdout=sink, stderr=subprocess.STDOUT) as child:
-        while child.poll() is None:
-            if stop.is_set():
-                child.terminate()  # The supervisor terminates and reaps its process group.
-            try:
-                child.wait(timeout=0.2)
-            except subprocess.TimeoutExpired:
-                pass
-    rc = child.returncode
+    with log.open('x') as sink:
+        command = wrapper(directory, memory, cpu, limit=limit) + [
+            executable, f'--test-threads={min(test_threads, cpu)}', *selection]
+        rc = monitored_command(command, sink, env, stop.is_set, cwd=ROOT)
     if binary_stamp(executable) != stamp:
         rc = 125
     seen = verdicts(log)
@@ -758,6 +780,14 @@ def release(output, directory, slots, test_threads, skips=(), exclude_packages=(
           f"binaries{first}; both done at {last:.1f} s", flush=True)
     try:
         gate_profile.report(output)
+        if env.get('RON_GATE_SHADOW_FROM'):
+            if (output / 'rondata' / scoped_shadow.FORECAST).is_file():
+                trial = scoped_shadow.score(output.parent)
+                print(f"Ages shadow: {trial['reason']}, predicted pass {trial['predicted_pass']}, "
+                      f"actual pass {trial['actual_pass']}, inputs comparable {trial['comparable']}, "
+                      f"forecast {trial['forecast_seconds']:.1f} s", flush=True)
+            else:
+                print('Ages shadow: no forecast recorded for this selection', flush=True)
     except (OSError, ValueError, KeyError) as error:
         # A partial diagnostic file must preserve cancellation and test exits.
         print(f'Release timing breakdown unavailable: {error}', file=sys.stderr, flush=True)
