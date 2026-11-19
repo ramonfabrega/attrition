@@ -525,7 +525,9 @@ pub(in crate::diff) mod tests {
     /// (the walk's oil left to `compute_all_territory`) leaders 0 → 241.
     /// Item 4405 (`walk_data@004708a0` emits a gather list last point
     /// first): builds 76 → 525; and (`unit_masks & 0x4000000`, the queued
-    /// explore, on the word) units 92 → 532.
+    /// explore, on the word) units 92 → 532. Item 4412 (`strong`'s four
+    /// building lines and its third parties at war are a human target's
+    /// arm, `6bd02a`): leaders 241 → 2112.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 532),
         ("builds", 525),
@@ -534,7 +536,7 @@ pub(in crate::diff) mod tests {
         ("deaths", 3365),
         ("groups", 927),
         ("guys", 2920),
-        ("leaders", 241),
+        ("leaders", 2112),
         ("cities", 3176),
         ("items", 3976),
         ("goods", 4094),
@@ -803,6 +805,21 @@ pub(in crate::diff) mod tests {
     const SAMPLE_RANGES_1697_WINDOW: i64 = 560;
 
     /// Per line that parts on run1697's window, its first parting by range
-    /// (item 4412; minted at the take's first walk).
-    const SAMPLE_RANGES_1697: &[(&str, i64, usize, usize, usize, &str)] = &[];
+    /// (item 4412). Minted at three rows: units 532, builds 525 and leaders
+    /// 241, `528 4 who..ally_mask` `+0x230` 0x20|0, leader 4's `strong[2]`
+    /// (`+0x238`) against its teammate 2, ours 32, theirs 0. Act 1
+    /// (`Leader::diplomacy`'s `6bd02a`: the four building lines and the
+    /// third parties at war count only toward a human target): the leaders
+    /// row agrees; leaders whole over the window.
+    const SAMPLE_RANGES_1697: &[(&str, i64, usize, usize, usize, &str)] = &[
+        (
+            "units",
+            532,
+            1557,
+            1556,
+            586,
+            "905 6 guys.length: +0x0 of 4|1: 01000000|04",
+        ),
+        ("builds", 525, 1260, 1260, 1, "974 2008 flags: flags 1|65"),
+    ];
 }
