@@ -49,7 +49,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6): four out, cut off `62bd6c79e` on 2026-11-19 at 72 of 84 (Opus 5.5, high): the chain's 4404 (ammo on the demand's game, 10075; run1696, run1698), the suite's 4412 (the sample from state 241; run1697; 4405 moved builds 76 → 525 and units 92 → 532), the third's 4410 (the plate drawn; 4403 minted its row at 0, landed on depth) and render's 4411 (guys' `last_z`; 4402 named the leaf, landed on depth). Codex's 4406 to 4409 were fast-forwarded and gated whole first (`gate-codex-1119.log`, exit 0). Nothing is designed behind them: the seat that stops first after these is the pass's boundary.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6): four out, cut off `62bd6c79e` on 2026-11-19 at 72 of 84 (Opus 5.5, high): the chain's 4404 (ammo on the demand's game, 10075; run1696, run1698), the suite's 4412 (the sample from state 241; run1697; 4405 moved builds 76 → 525 and units 92 → 532), the third's 4410 landed whole (the plate drawn, `RUN1559B_3279_PLATE` both dark 0 → 1,251 of theirs' 1,285; the bar minted and drawn, `RUN1559B_3279_BAR` 0 → 86 of 88; parked 4410a, 4410b), and render's 4411 (guys' `last_z`; 4402 named the leaf, landed on depth). Codex's 4406 to 4409 were fast-forwarded and gated whole first (`gate-codex-1119.log`, exit 0). Nothing is designed behind them, so 4410's landing was the pass's boundary: the third seat stands empty, and the three out are booked as they land, gated whole, and handed to `steer`.
 
 4404. **The demand's game: ammo on 10075** (a rules item, whole; the chain's, out; `docs/LEADERS.md` §8.6; DECISIONS 143 §2,
 §3). 4396 played the game to the original's own end on 10929 (run1691): 11 of 12 lines whole for all 10,929 states, units 9,981 →
@@ -70,12 +70,6 @@ ours the ground under `last` (run1325c f5578 rec 41, Marines: theirs 2, ours 4);
 `turret_inc` nonzero, 7 lines). First act: a `step4 --watch` of `+0x14`/`+0x70` over `Unit::process` for Rifleman 1/22 on run1169's
 packet, naming the writer. The hypothesis, 12 lines on `last_z = z`, is the act's to keep or kill. Then `cur_time` (byte 108, 15 lines).
 It stops when two acts turn no line.
-
-4410. **The selected city's plate drawn, then its bar** (a `render` item, scoped; the third seat's; `docs/HUD.md` §3; DECISIONS 143 §5).
-4403 minted `RUN1559B_3279_PLATE` before any draw: `selection::plate`'s rectangle x [1083,1172) y [580,610), every quantity off
-run1559b's packet (pads 8/4/8/4, star 22×21, font height 16, Napata's advances 51), theirs 1,285 dark of 2,670, ours 0, red with the
-anchor 89 px east (parked 4403a: the plate's mask). First act: draw the plate on `plate()`'s rectangle as a screen pass, scored on that
-row. Then the bar (`WallOut::draw_health_bar`, about 22×4 at (1116, 445)), its row minted first. It stops when two acts move no row.
 
 ## Direct branch handoff
 
