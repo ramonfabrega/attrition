@@ -550,41 +550,20 @@ by a mutation:
 
 All twelve agree over 0..100.
 
-**Item 4412: run1697, to 560.** *Diff-backed* on run1697's ranges
-(`SAMPLE_RANGES_1697`), each by a mutation:
+**Items 4412 and 4414: run1697, to 560** (their journals). *Diff-backed*
+on its ranges, each by a mutation:
 
-- **Leaders on 241**: `528 4` `+0x238`, leader 4's `strong[2]` against
-  its teammate 2, ours 32, theirs 0. `Leader::diplomacy`'s `6bd02a`
-  tests the target's `leader_flags & 4`; its `je 6bd228` skips the four
-  building lines and the third parties at war with the target, not only
-  the difficulty's share. Leaders by sum 241 → 2112.
-- **Builds on 525**: `974 2008 flags` 1|0x41, the person's Lookout
-  `3/2008`. `Object::init@00647750:39` ors `0x40` for a `DETECT` type, a
-  building's as a unit's. Builds 525 → 3029; packets' lines 661 → 674.
+- **Leaders on 241**: leader 4's `strong[2]` toward teammate 2, 32|0.
+  `Leader::diplomacy`'s `6bd02a` (`leader_flags & 4`, `je 6bd228`) skips
+  the building lines and the war count for a computer target. → 2112.
+- **Builds on 525**: the Lookout `3/2008`'s `flags` 1|0x41;
+  `Object::init@00647750:39` ors `0x40` for a `DETECT` type. → 3029.
+- **Units on 532**: the Citizen `3/6`'s `THINK` walks
+  `UnitOrder::walk_data@0047f2b0`, the flags byte (`04`), which ours left
+  out. → 2112.
 
-**Item 4414: units on 532, and run1710 to 3,100.** *Diff-backed* on
-run1697's ranges by a mutation:
-
-- **Units on 532**: the person's Citizen `3/6` (`TypeIndex` 50, land)
-  holds a `MOVE_TO`, then a `THINK` with flags 4. `ThinkOrder::vftable@
-  00b48d88`'s `+0x8` is the base's `UnitOrder::walk_data@0047f2b0`, the
-  flags byte alone. Ours walked the type and node byte and stopped. Range
-  `905`: ours absent, theirs `04`; the shift read `guys.length` 4|1. Units
-  by sum 532 → 2112; run1697's window whole by range.
-
-run1710 (`docs/RUNS.md`) replays the sample to 3,100 under the same hooks
-(`SAMPLE_RANGES_1710`). Every line's first parting by range falls on its
-frame by sum: groups 927, world 1716, units and leaders 2112, guys 2920,
-ammo 3022, builds 3029.
-
-Next: **groups on 927**. The person's slot 193 (pool 1) reads `num` 1|0,
-with ours' `list` holding the Lookout `3/2008`. On 915 the person groups
-`[2008]` and sends `Disband{all:0}`, and both sides hold the building group
-(`stamp` 915) over 916..926. On 926 the person groups `[12]` and moves it,
-and both push pool 3; theirs' pool 1 is empty on 927. *Hypothesis, not
-read to the end*: `push_group`'s `equals_group` normalizes the last pushed
-slot, 193, and the original's normalize drops the building. Ours prunes
-`list`, not `builds` (`pool.rs`, `push_group_slot`).
+run1710 holds every first parting to 3,100 (`SAMPLE_RANGES_1710`).
+Next: groups on 927, the person's slot 193 `num` 1|0 (4414's journal).
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
