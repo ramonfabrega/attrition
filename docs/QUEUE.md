@@ -49,7 +49,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5): the pass designed five; out: the chain's builder on 4413 (parity held out; the game lane), the suite seat's 4424 (the sample, from world 1716; 4422 put a group's `form` right, packets 697 → 729, the sample's groups 961 → 2888), the third seat's 4423 (the plate's font; 4421 textured the band, ours' red off theirs 728 → 95), and the render seat's 4420 (`turret_inc`, then `z`; 4415 turned 7 guys lines, 690 → 697); 4425 (the packets' groups `off_x`) for the seat that stops first.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5): the pass designed five; out: the chain's builder on 4413 (parity held out; the game lane), the suite seat's 4424 (the sample, from world 1716; 4422 put a group's `form` right, packets 697 → 729, the sample's groups 961 → 2888), the third seat's 4426 (the plate's glyphs; 4423 read the font's advances off the packets, 4 → 77 characters), and the render seat's 4420 (`turret_inc`, then `z`; 4415 turned 7 guys lines, 690 → 697); 4425 (the packets' groups `off_x`) for the seat that stops first.
 
 4413. **Parity held out: eight lobbies named before the original plays them** (a rules item, whole; the chain's, unspawned;
 `docs/RECGAME.md` §10; DECISIONS 144 §2). The seven games of parity's set were scored and then joined; this line is declared first. The
@@ -59,12 +59,12 @@ idle, 6,000 frames. First act: the eight named in a pinned table before any take
 pinned as found and never re-pinned in place; a fix moves a second column. It stops when the original refuses a file the client
 recorded on a lobby, and says which section it refused.
 
-4423. **The plate's font: London's advances** (a `render` item, scoped; the third seat's, unspawned; `docs/HUD.md` §3, §6). 4418 ported
-the founding name (`CITY_NAMES_SCORE` 0 → 521 of 521) and 4421 textured the selected city's band through `city_radius.tga`
-(`circle_textures[0]`, run1566b's card draw 115): `RUN1559B_3279_SELECTED`'s selected half, ours red 2,132 → 1,395 on theirs' 1,477,
-ours' red off theirs 728 → 95; parked 4401a was mistaken (+0x1784 is `set_poly_count_type("Effects")`), parked 4421a (theirs a shade
-stronger, 177 pixels). The plate draws only names whose glyphs the client holds (N, a, p, t). First act: the advances of the
-`D3D11GLFont` on a packet's heap, then a plate for London. It stops when two acts move no row.
+4426. **The plate's glyphs: the font's own, in place of the overlay** (a `render` item, scoped; the third seat's, unspawned; `docs/HUD.md`
+§3, §6). 4423 read the `D3D11GLFont` off 144 packets (`PLATE_FONT_PACKETS` 9,849 of 9,849 entries, no two packets differ;
+`tools/render/plate_font_packet.py`): `PLATE_ADVANCES` 4 → 77 characters, a width for 1,142 of 1,164 tribe `<CITY>` names. A London
+plate moves no row: no photograph on disk shows a city but Napata (parked 4423a); X and Z no packet has drawn (4423b). First act: the
+glyphs' `CharacterInfo` texture rectangles drawn in place of the 5×7 overlay, scored on `RUN1559B_3279_PLATE`'s ours half. It stops when
+two acts move no row.
 
 4420. **The packets' guys line: `turret_inc`, then `z`** (a rules item, whole; the render seat's, unspawned; CHECKSUM §23).
 4415 turned 7 guys lines, `PACKETS_SCORE` 690 → 697 of 1,053 (`cur_time`: the oil-well stand's missing `Unit::set_new_location`
