@@ -176,34 +176,6 @@ pub(in crate::diff) fn compare(
             let t = theirs.get(*name).unwrap_or(&empty);
             let mut differences = differing_ranges(o, t);
             let first = differences.next().map(|i| FirstDifference::at(o, t, i));
-            if *name == "groups"
-                && std::env::var_os("RON_PROBE_4425").is_some()
-                && let Some(f) = &first
-            {
-                let n = o.ranges.len().max(t.len());
-                let hex = |b: &[u8]| b.iter().map(|x| format!("{x:02x}")).collect::<String>();
-                for i in 0..n {
-                    let or = o.ranges.get(i);
-                    if or.map(|r| r.record) != Some(f.record) && i != f.index {
-                        continue;
-                    }
-                    let tr = t.get(i);
-                    let field = or.map_or_else(|| tr.unwrap().0.clone(), |r| r.field.to_owned());
-                    let dec = |b: Option<&[u8]>| {
-                        b.and_then(|b| crate::checksum::fields::range_fields("groups", &field, b))
-                            .map(|v| v.iter().map(|(k, x)| format!("{k}={x}")).collect::<Vec<_>>().join(" "))
-                            .unwrap_or_else(|| b.map_or("-".into(), hex))
-                    };
-                    let same = or.map(|r| &r.bytes) == tr.map(|r| &r.2);
-                    eprintln!(
-                        "PROBE4425\t{i}\trec {}\t{field}\t{}\n  ours   {}\n  theirs {}",
-                        f.record,
-                        if same { "same" } else { "PART" },
-                        dec(or.map(|r| r.bytes.as_slice())),
-                        dec(tr.map(|r| r.2.as_slice()))
-                    );
-                }
-            }
             LineOutcome {
                 theirs: t.len(),
                 ours: o.ranges.len(),
