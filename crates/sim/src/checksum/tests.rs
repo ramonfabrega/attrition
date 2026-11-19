@@ -218,6 +218,46 @@ fn a_bare_building_walks_eighteen_ranges_and_its_queue() {
     assert!(line.ranges[15].bytes.iter().all(|&x| x == 0));
 }
 
+/// **The gather list goes out last point first** (item 4405):
+/// `PtrLinkListAbstract<GatherPoint>::walk_data@004708a0` starts at
+/// `head_node->prev` and steps by `prev`, while `Build::add_gather_point`'s
+/// `QUEUE_LAST` leaves the new point at the list's end. The 2017 sample's
+/// `city_gather` on `3/2000` (frame 76) parted on exactly this.
+#[test]
+fn a_gather_list_walks_from_its_last_point() {
+    use crate::cities::rally::GatherPoint;
+    use crate::world::Pos;
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(60, 60), 2);
+    let b = sim.add_building(0, Pos::new(1152, 1152), 2);
+    let first = GatherPoint {
+        pos: Pos::new(480, 960),
+        action: 1,
+    };
+    let second = GatherPoint {
+        pos: Pos::new(1440, 1920),
+        action: 1,
+    };
+    sim.add_gather_point(b, first, true);
+    sim.add_gather_point(b, second, false);
+    assert_eq!(
+        sim.buildings[b].gather,
+        [first, second],
+        "QUEUE_LAST appends"
+    );
+    let line = sim.checksum_builds(&|_| 0);
+    let points: Vec<(i32, i32)> = line
+        .ranges
+        .iter()
+        .filter(|r| r.field == "gather[k]")
+        .map(|r| {
+            let x = i32::from_le_bytes(r.bytes[0..4].try_into().unwrap());
+            let y = i32::from_le_bytes(r.bytes[4..8].try_into().unwrap());
+            (x, y)
+        })
+        .collect();
+    assert_eq!(points, [(1440, 1920), (480, 960)]);
+}
+
 /// **A bird is on neither the units nor the guys line** (item 4226,
 /// `docs/CHECKSUM.md` §24.3): `check_units@009371d0` and
 /// `check_guys@00937430` walk slots 0 to 8, and a bird is slot 9's. A herd
@@ -345,6 +385,36 @@ fn the_in_danger_latch_is_unit_masks_bit_4() {
     assert_eq!(xor[0].1, 0x4, "by bit 0x4");
     let masks_word = b[xor[0].0 - (xor[0].0 % 4)..][..4].to_vec();
     assert_eq!(u32::from_le_bytes(masks_word.try_into().unwrap()) & 4, 0);
+}
+
+/// **`unit_masks & 0x4000000` is walked** (item 4405): the queued explore
+/// `add_move_facing_order@005e55c0:24` sets ([`crate::Unit::explore_queued`],
+/// item 4351) moves the unit's range by that one bit. The 2017 sample's
+/// scout `3/0` on 92 carried it and the emitter dropped it.
+#[test]
+fn the_queued_explore_is_unit_masks_bit_0x4000000() {
+    use crate::world::Pos;
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(60, 60), 2);
+    let u = sim.add_unit(crate::Unit::new(1, 27, Pos::new(480, 480), 10));
+    let before = sim.checksum_units().ranges;
+    sim.units[u].explore_queued = true;
+    let after = sim.checksum_units().ranges;
+    assert_eq!(before.len(), after.len(), "no range is added");
+    let parted: Vec<usize> = (0..before.len())
+        .filter(|&i| before[i].bytes != after[i].bytes)
+        .collect();
+    assert_eq!(parted.len(), 1, "one range moves");
+    let (b, a) = (&before[parted[0]].bytes, &after[parted[0]].bytes);
+    let xor: Vec<(usize, u8)> = b
+        .iter()
+        .zip(a)
+        .enumerate()
+        .filter(|(_, (x, y))| x != y)
+        .map(|(k, (x, y))| (k, x ^ y))
+        .collect();
+    assert_eq!(xor.len(), 1, "one byte moves");
+    assert_eq!(xor[0].1, 0x4, "by bit 0x4 of the word's high byte");
+    assert_eq!(xor[0].0 % 4, 3, "the word's high byte");
 }
 
 #[test]

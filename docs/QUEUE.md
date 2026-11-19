@@ -49,7 +49,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6): four out, cut off `62bd6c79e` on 2026-11-19 at 72 of 84 (Opus 5.5, high): the chain's 4404 (ammo on the demand's game, 10075; run1696, run1698), the suite's 4405 (the sample from state 76; run1697), the third's 4410 (the plate drawn; 4403 minted its row at 0, landed on depth) and render's 4411 (guys' `last_z`; 4402 named the leaf, landed on depth). Codex's 4406 to 4409 were fast-forwarded and gated whole first (`gate-codex-1119.log`, exit 0). Nothing is designed behind them: the seat that stops first after these is the pass's boundary.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6): four out, cut off `62bd6c79e` on 2026-11-19 at 72 of 84 (Opus 5.5, high): the chain's 4404 (ammo on the demand's game, 10075; run1696, run1698), the suite's 4412 (the sample from state 241; run1697; 4405 moved builds 76 → 525 and units 92 → 532), the third's 4410 (the plate drawn; 4403 minted its row at 0, landed on depth) and render's 4411 (guys' `last_z`; 4402 named the leaf, landed on depth). Codex's 4406 to 4409 were fast-forwarded and gated whole first (`gate-codex-1119.log`, exit 0). Nothing is designed behind them: the seat that stops first after these is the pass's boundary.
 
 4404. **The demand's game: ammo on 10075** (a rules item, whole; the chain's, out; `docs/LEADERS.md` §8.6; DECISIONS 143 §2,
 §3). 4396 played the game to the original's own end on 10929 (run1691): 11 of 12 lines whole for all 10,929 states, units 9,981 →
@@ -57,11 +57,12 @@ lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when
 theirs 4143847442; 10,893 of 10,929). First act: a take of the same file with ammo's ranges (`RNG_MASK=0x8`) to about 10,090, naming
 the range by record and field. Whole, the game joins parity's set as the seventh (143 §2). It stops when two acts move the parting by nothing.
 
-4405. **The 2017 sample, from state 76** (a rules item, whole; the suite's seat, out; `docs/RECGAME.md` §7; DECISIONS 142 §4,
-143 §4). 4397 made state 0 whole by range (`SAMPLE_RANGES` 3 → 0: the start buildings' `z` re-sampled by `reinit_game_units`, and
-the oil claim after the city's `update_seen`). First act: builds on 76, `758 2000 gather[k]` (32640|31872), by a ranges take of its
-window. Then units' `unit_masks` `0x4000000` on 92 (item 4351), then `SAMPLE_LINES`' lowest first parting. `SAMPLE_WALKED` 3019 of
-21,044 is its last (parked 4380a). It stops when two acts move no line's first parting.
+4412. **The 2017 sample, from state 241** (a rules item, whole; the suite's seat; `docs/RECGAME.md` §7; DECISIONS 142 §4, 143 §4).
+4405 made run1678's window (0..99) whole by range on all twelve lines (`SAMPLE_RANGES` 2 → 0): builds 76 → 525 (the gather list walked
+from `head_node->prev`, `758 2000 gather[k]` 32640 → 31872, theirs 31872), units 92 → 532 (`unit_masks` `0x4000000`, the explore bit:
+8 → 0x4000008, theirs 0x4000008); both in `crates/sim`'s checksum emitters. First act: leaders on 241 by a ranges
+take on 4384's recipe (`RNG_MASK=0xfff`) around it, on run1697, naming record and field. Then builds 525, units 532, groups 927.
+`SAMPLE_WALKED` 3019 of 21,044 is its last (parked 4380a). It stops when two acts move no line's first parting.
 
 4411. **The packets' lines: guys' `last_z` on a squad's figure 0** (a rules item, whole; the render seat's; CHECKSUM §23.9; DECISIONS 143 §4).
 4402's value diff: 165 guys ranges part on `last_z` alone, every one figure 0 of a foot squad, theirs' `last_z` its own current `z`,
