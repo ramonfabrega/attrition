@@ -1315,12 +1315,16 @@ mod tests {
         assert_eq!(got, RUN1559B_3279_BAR);
     }
 
+    /// One packet's line: `run map`, `[height, point, style]`, and each
+    /// held `(code, advance)`.
+    type PacketFont = (String, [i32; 3], Vec<(u32, i32)>);
+
     /// The packets' plate font (`tools/render/plate_font_packet.py` over
     /// every `frame-snapshot.bin` under `~/ron-golden` and `~/ron-data`):
     /// per line `run map packet_frame height point style` and then
     /// `code:advance` for each character the font holds, at
     /// `$RON_PLATE_FONT` or item 4423's file.
-    fn packet_fonts() -> Option<Vec<(String, [i32; 3], Vec<(u32, i32)>)>> {
+    fn packet_fonts() -> Option<Vec<PacketFont>> {
         let path = std::env::var_os("RON_PLATE_FONT")
             .map(std::path::PathBuf::from)
             .or_else(|| {
