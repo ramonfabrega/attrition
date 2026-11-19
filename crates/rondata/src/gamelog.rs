@@ -296,6 +296,20 @@ impl<'a> Block<'a> {
         self.fields_raw().filter(move |(k, _)| keys.contains(k))
     }
 
+    /// Index one record for a reader that requests many of its field names.
+    /// Building the index does not count as reading every field.
+    #[cfg(test)]
+    pub(crate) fn indexed_fields(&self) -> IndexedFields<'a> {
+        let mut values = std::collections::HashMap::<_, Vec<_>>::new();
+        for (key, value) in self.fields_raw() {
+            values.entry(key).or_default().push(value);
+        }
+        IndexedFields {
+            block: *self,
+            values,
+        }
+    }
+
     /// The child blocks, in file order.
     pub fn children(&self) -> Children<'a> {
         self.ensure();
@@ -395,6 +409,24 @@ impl<'a> Block<'a> {
             }
         }
         None
+    }
+}
+
+#[cfg(test)]
+pub(crate) struct IndexedFields<'a> {
+    block: Block<'a>,
+    values: std::collections::HashMap<&'a str, Vec<&'a str>>,
+}
+
+#[cfg(test)]
+impl<'a> IndexedFields<'a> {
+    pub(crate) fn all(&self, key: &str) -> &[&'a str] {
+        reads::note(self.block.log, self.block.node, key);
+        self.values.get(key).map_or(&[], Vec::as_slice)
+    }
+
+    pub(crate) fn get(&self, key: &str) -> Option<&'a str> {
+        self.all(key).first().copied()
     }
 }
 
@@ -4469,6 +4501,34 @@ impl fmt::Display for Pos {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn indexed_fields_keep_file_order_and_record_only_requested_names() {
+        let log =
+            Log::parse_eager("BEGIN LEADERDATA\n flags bad\n other skipped\n flags 42\n empty\n");
+        let block = log.roots().next().unwrap();
+        reads::start();
+        let expected = (
+            block.get("flags"),
+            block.all("flags"),
+            block.get("empty"),
+            block.get("absent"),
+        );
+        let noted = reads::stop();
+        reads::start();
+        let fields = block.indexed_fields();
+        let actual = (
+            fields.get("flags"),
+            fields.all("flags").to_vec(),
+            fields.get("empty"),
+            fields.get("absent"),
+        );
+        let indexed = reads::stop();
+        assert_eq!(expected, (Some("bad"), vec!["bad", "42"], Some(""), None));
+        assert_eq!(actual, expected);
+        assert_eq!(indexed, noted);
+        assert!(!indexed[&block.read_key()].contains("other"));
+    }
 
     #[test]
     fn selected_clock_rows_match_complete_records() {

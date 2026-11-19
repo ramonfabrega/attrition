@@ -37,7 +37,7 @@ def alive(pid):
     return True
 
 
-class LaneLock(unittest.TestCase):
+class LockFixture(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
@@ -84,6 +84,8 @@ class LaneLock(unittest.TestCase):
         rc = int(run.stdout.strip().rsplit('rc=', 1)[1])
         return rc, run.stderr, time.monotonic() - started
 
+
+class LaneLock(LockFixture):
     def test_a_live_lock_refuses_at_once(self):
         pid = self.hold(20)
         rc, err, took = self.launch()
@@ -121,7 +123,7 @@ class LaneLock(unittest.TestCase):
         self.assertEqual(self.holder_pid(), str(pid))
 
 
-class TakeFirst(LaneLock):
+class TakeFirst(LockFixture):
     def shell(self, body, **extra):
         env = dict(os.environ, RON_WINE_BIN='/usr/bin/true', RON_WINEPREFIX=str(self.root), RON_LANES_ROOT=str(self.root),
                    RON_LANE_LOCK=str(self.lock), RON_LANE_HOLDER='test')
@@ -177,7 +179,7 @@ class TakeFirst(LaneLock):
         self.assertIn(f'pid {script}', err)
 
 
-class Liveness(LaneLock):
+class Liveness(LockFixture):
     """A pid is a number the kernel hands out again (parked 1180, the
     twentieth pass). run426's lock named pid 15593; the game had exited and
     an unrelated `next-server` held the number, so `kill -0` said the lane

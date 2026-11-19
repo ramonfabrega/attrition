@@ -11,9 +11,7 @@
 # (`tools/release_gate.py`, `COMMANDERS_LINES`), so a lane skips them here
 # and runs everything else. `release_gate.py --lane` sets it.
 #
-# The two offline suites that read the queue run first, in under a second
-# (parked 1188, the twentieth pass): a queue line `test_brief` refused was
-# green here and red at the booking gate's first step.
+# Run the same source checks as the release gate before building anything.
 set -e
 cd "$(dirname "$0")/.."
 # Standalone guards join the same budget as gates, with the reflex's own
@@ -34,13 +32,13 @@ fi
 # it is where the release test binaries are built.
 PROFILE=()
 if [ "$1" = "--built" ]; then PROFILE=(--release); shift; fi
-(cd tools/explore && python3 -m unittest -q test_brief test_queueledger test_sweep_gen.FamilyRegistrations)
-# The structure pin, with nothing built (Loop 4070): 4063's builder ended a
+# The source pins, with nothing built (Loop 4070): 4063's builder ended a
 # production file in an inline test tail, this reflex reported nothing on
 # `diff::start`, and a whole gate went red on the pin at minute 49. Under a
 # second; `diff::floors::tests::the_pinned_shape_is_the_tree_s` stays the
 # authority and runs below and in the release suite.
-python3 tools/shape.py --check
+sh tools/source_pins.sh
+(cd tools/explore && python3 -m unittest -q test_brief test_queueledger test_sweep_gen.FamilyRegistrations)
 if [ -n "$RON_LANE" ]; then
   # The journal's gate quote cannot exist before the lane's gate has run (3277).
   cargo test -q "${PROFILE[@]}" -p sim docs_guard -- --skip an_item_number_is_minted_once_and_in_its_file_s_form --skip a_journal_quotes_its_lane_verdict_and_gate_minutes
@@ -63,7 +61,6 @@ RON_DIFF_DEBUG=1 cargo test -q "${PROFILE[@]}" -p rondata blind::tests::the_blin
 # no `RON_DIFF_DEBUG`: one that ever reaches a dump refuses here, loudly.
 cargo test -q "${PROFILE[@]}" -p rondata --lib -- writers:: ledger:: diff::floors::tests::the_pinned_shape_is_the_tree_s
 if [ -z "$RON_LANE" ]; then cargo test -q "${PROFILE[@]}" -p rondata the_handoff; fi
-python3 tools/queueledger.py
 # The nations census round-trips (Loop 3972): `docs/NATIONS.md`'s generated
 # tables are what `nations_census.py` emits on this tree, so a lane that runs
 # `--write` to re-pin its row carries no churn it did not cause. ~3 s; it

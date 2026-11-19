@@ -22,6 +22,40 @@ of the concurrent suite. Its historical merged baseline is not a controlled
 same-tree comparison. Keep concurrency, fixture availability, build profile,
 and warm/cold input-cache state explicit. A local test gain is not a suite gain.
 
+## Reading a gate profile
+
+`python3 tools/gate_profile.py REPORT` reads an existing isolated gate report.
+The release log also prints which lane finished last and the five largest
+rondata processes by CPU seconds. Group members share a process, so the
+ranking sums their attributed CPU. A test's wall time can overlap several
+others. The offline step prints its slowest cases on Python 3.12 and later.
+
+On macOS, copy the printed `--sample TEST_OR_GROUP` command to sample the
+process under its recorded CPU reservation, memory ceiling, allocator setting,
+install and cache verifiers. The command checks the executable's SHA-256.
+Use `--binary PATH` for a saved matching binary after a rebuild. The profile
+goes into a new temporary directory by default. Use `--output NEW_DIR` to
+retain it, `--seconds N` for the sample length and `--delay-seconds N` to
+sample later in the run. The process runs to completion. With a booking gate's
+fixture audit present, its per-test requests and their presence must match.
+The raw macOS sample retains all threads and waits. The terminal shows the
+highest self counts within the test executable. Selecting a group or one of its members runs its full recorded membership
+with the same walk-sharing setting. Reports predating that setting can
+reproduce solo tests.
+
+The queue ledger and source-shape check are the gate's first phase. The guard
+also runs them on the working tree before invoking Cargo. The isolated pool
+runs jobs that occupy all its slots first, then orders other jobs by estimated
+duration. A test without a timing gets the median of the selected, measured
+tests for scheduling. Reservations and timeouts still use their own policies.
+
+The leader-record verifier indexes one block's borrowed field values by
+name. It preserves file order for repeated keys, the first value for a
+scalar, and the read recorder's actual requests, including missing keys.
+Each widening reads its own raw frames and compares its own complete state.
+Rounds and the auxiliary reader may share a raw frame within that walk.
+The journal for item 4407 records the paired runs and corruption control.
+
 ## Scoped replay reuse
 
 The coverage driver may open a thread-local `harness::prefix::Scope` over

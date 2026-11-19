@@ -117,7 +117,7 @@ def phase_budget(command, *, drain=False):
         return HOST_CPU_SLOTS, HOST_MEMORY_MIB  # the whole host: the clock's second attempt
     if is_clock(command):
         return CLOCK_BESIDE_LOAD  # the clock's first attempt, beside load (`CLOCK_TARGET`)
-    if (any(str(a).endswith(('offline_tests.py', 'shape.py')) for a in command)
+    if (any(str(a).endswith(('offline_tests.py', 'source_pins.sh')) for a in command)
             or 'fmt' in command):
         return 2, 1024
     if any(str(a).endswith('guard.sh') for a in command) and '--built' not in command:
@@ -1273,14 +1273,14 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     # **The pins that read the tree go first** (Loop 4070): 4063's inline
     # test tail was red on the structure pin at minute 49.5 of a whole gate,
     # a comparison that takes a second. `pins` is that comparison with
-    # nothing built (`tools/shape.py --check`, never forgiven, a worker's
+    # nothing built (`tools/source_pins.sh`, never forgiven, a worker's
     # half), and the guard step — the blind list, the paperwork guards, the
     # structure pin itself — runs before the release step, where it builds
     # the release binaries the release step then runs. A pin that only the
     # release step held was a pin only minute 49 held. The release step
     # still runs every one of them.
     commands = [
-        [sys.executable, 'tools/shape.py', '--check'],
+        ['sh', 'tools/source_pins.sh'],
         [sys.executable, 'tools/offline_tests.py'],
         ['cargo', 'clippy', '--all-targets', '--', '-D', 'warnings'],
         ['cargo', 'fmt', '--check'],
@@ -1496,7 +1496,7 @@ def step_name(command):
         return 'clock'
     if is_merge_pins(command):
         return 'merge pins'
-    if any(str(a).endswith('shape.py') for a in command):
+    if command == ['sh', 'tools/source_pins.sh']:
         return 'pins'
     if command[-1].endswith('offline_tests.py'):
         return 'offline'

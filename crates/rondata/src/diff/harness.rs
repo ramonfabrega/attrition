@@ -5174,8 +5174,14 @@ pub(crate) mod tests {
             // The second read/parse below exists only for the migration audit.
             let stage = profiling.then(std::time::Instant::now);
             let cached = oracle_store.enabled().then(|| oracle_store.read(ix, at));
-            let reused_text = (reuse && cached.is_none()).then(|| ix.read_frame(at).unwrap());
-            let reused_log = reused_text.as_deref().map(Log::parse_eager);
+            // The rounds and auxiliary readers consume the same frame bytes.
+            // Each walk reads its own source, and the reference frame decoder
+            // still takes its independent indexed read below.
+            let text = (cached.is_none() || rounds).then(|| ix.read_frame(at).unwrap());
+            let reused_log = text
+                .as_deref()
+                .filter(|_| reuse && cached.is_none())
+                .map(Log::parse_eager);
             let fresh_frame;
             let frame = if let Some(value) = &cached {
                 &value.frame
@@ -5202,11 +5208,8 @@ pub(crate) mod tests {
             debug_ammo(&built, n);
             debug_builds(&built, n);
             if rounds {
-                let raw = match &reused_text {
-                    Some(t) => t.clone(),
-                    None => ix.read_frame(at).unwrap(),
-                };
-                let (t, o) = compare_rounds(&built.sim, &raw, n, &mut round_firsts);
+                let (t, o) =
+                    compare_rounds(&built.sim, text.as_deref().unwrap(), n, &mut round_firsts);
                 rounds_read.0 += t;
                 rounds_read.1 += o;
             }
@@ -5222,8 +5225,7 @@ pub(crate) mod tests {
                 stages[1] += t.elapsed();
             }
             let stage = profiling.then(std::time::Instant::now);
-            let legacy_text = (!reuse).then(|| ix.read_frame(at).unwrap());
-            let legacy_log = legacy_text.as_deref().map(Log::parse);
+            let legacy_log = text.as_deref().filter(|_| !reuse).map(Log::parse);
             let flog = reused_log.as_ref().or(legacy_log.as_ref());
             let fresh_groups;
             let groups = if let Some(value) = &cached {

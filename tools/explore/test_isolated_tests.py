@@ -20,6 +20,72 @@ gate = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(gate)
 
 
+class GateProfile(unittest.TestCase):
+    def test_reports_the_last_finisher_and_ranks_whole_processes(self):
+        with tempfile.TemporaryDirectory() as d:
+            directory = Path(d)
+            (directory / 'rondata').mkdir()
+            (directory / 'lanes.json').write_text(json.dumps({
+                'library': {'start': 0, 'end': 10}, 'side': [{'name': 'sim', 'start': 8, 'end': 11}]}))
+            rows = [dict(name='a', group='game:one', user=4, system=1),
+                    dict(name='b', group='game:one', user=3, system=0),
+                    dict(name='solo', user=5, system=1), dict(name='never ran', user=None, system=None)]
+            (directory / 'rondata/measurements.jsonl').write_text(''.join(json.dumps(r)+'\n' for r in rows))
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                runner.gate_profile.report(directory)
+            lines = out.getvalue().splitlines()
+            self.assertIn('sim finished last at 11.0 s', lines[0])
+            self.assertIn('8.0 CPU s  game:one', lines[1])
+            self.assertIn('6.0 CPU s  solo', lines[2])
+            self.assertIn('--sample solo', lines[3])
+
+    def test_sample_restores_the_recorded_settings_and_refuses_a_rebuilt_binary(self):
+        import hashlib
+        with tempfile.TemporaryDirectory() as d:
+            directory = Path(d)
+            (directory / 'rondata').mkdir()
+            (directory / 'Data').mkdir()
+            (directory / 'Data/rules.xml').touch()
+            binary = directory / 'test-binary'
+            binary.write_bytes(b'authored')
+            manifest = dict(binary=str(binary), resource_directory=d, install=d,
+                            replay_settings={'RON_VERIFY_ORACLE': '1'})
+            row = dict(name='fixture', cpu_slots=4, reservation_mib=1024, limit_mib=2048,
+                       allocator={'requested': 'auto', 'MallocLargeCache': '0'})
+            (directory / 'rondata/manifest.json').write_text(json.dumps(manifest))
+            (directory / 'rondata/measurements.jsonl').write_text(json.dumps(row))
+            (directory / 'binary-sha256.json').write_text(json.dumps({
+                str(binary): hashlib.sha256(binary.read_bytes()).hexdigest()}))
+            tool = runner.gate_profile
+            with patch.dict(os.environ, RON_VERIFY_PREFIX_REUSE='1'), patch.object(tool.subprocess, 'run') as run:
+                run.return_value.returncode = 23
+                self.assertEqual(tool.sample(directory, 'fixture', None, directory/'new', 2), 23)
+                command, = run.call_args.args
+                env = run.call_args.kwargs['env']
+                self.assertEqual(command[command.index('--cpu')+1], '4')
+                self.assertNotIn('--timeout', command)
+                self.assertEqual((env['RON_TEST_CPU'], env['MallocLargeCache'], env['RON_VERIFY_ORACLE']), ('4', '0', '1'))
+                self.assertNotIn('RON_VERIFY_PREFIX_REUSE', env)
+                manifest['groups'] = {'game:one': ['a', 'b']}
+                row.update(name='b', group='game:one', share_walks='off', timeout_seconds=2400)
+                (directory / 'rondata/manifest.json').write_text(json.dumps(manifest))
+                (directory / 'rondata/measurements.jsonl').write_text(json.dumps(row))
+                for selection in ('b', 'game:one'):
+                    self.assertEqual(tool.sample(directory, selection, None, directory/'group', 2), 23)
+                    command, = run.call_args.args
+                    self.assertIn('a', command)
+                    self.assertEqual(command[-2:], ['--with-test', 'b'])
+                    self.assertEqual(command[command.index('--timeout')+1], '2400')
+                    env = run.call_args.kwargs['env']
+                    self.assertEqual((env['RON_SUITE_GROUP'], env['RON_SUITE_GROUP_TESTS'], env['RON_SHARE_WALKS']),
+                                     ('game:one', '2', 'off'))
+                binary.write_bytes(b'rebuilt')
+                with self.assertRaisesRegex(ValueError, 'differs from the gate'):
+                    tool.sample(directory, 'b', None, directory/'other', 2)
+                self.assertEqual(run.call_count, 3)
+
+
 class Admission(unittest.TestCase):
     def test_atomic_capacity_and_release(self):
         with tempfile.TemporaryDirectory() as d:
@@ -395,7 +461,9 @@ class Width(unittest.TestCase):
     def test_a_wide_test_fills_the_slots_that_stood_idle(self):
         profile = {name: {'elapsed': work * 100, 'rss_bytes': 1} for name, work in self.WORK.items()}
         profile['wide']['cpu'] = 4
+        profile['a']['elapsed'] = 200  # Narrow work would otherwise block the exclusive job.
         spans, wall = self.schedule(profile)
+        self.assertEqual(min(spans, key=lambda span: span[2])[0], 'wide')
         widths = {name: cpu for name, cpu, _, _ in spans}
         self.assertEqual(widths, {'wide': 4, 'a': 1, 'b': 1, 'c': 1, 'd': 1})
         # The pool never holds more slot-units than it has.
@@ -411,6 +479,13 @@ class Width(unittest.TestCase):
         occupied = sum(cpu * (t1 - t0) for _, cpu, t0, t1 in spans) / (4 * wall)
         self.assertLess(wall, 0.6, spans)
         self.assertGreater(occupied, 0.6, (occupied, spans))
+
+    def test_a_new_test_runs_among_measured_jobs_instead_of_at_the_tail(self):
+        work = dict(long=0.01, short=0.01, new=0.01)
+        profile = {'long': {'elapsed': 20, 'rss_bytes': 1}, 'short': {'elapsed': 1, 'rss_bytes': 1}}
+        with patch.object(self, 'WORK', work):
+            spans, _ = self.schedule(profile, slots=1)
+        self.assertEqual([name for name, *_ in spans], ['long', 'new', 'short'])
 
     def test_a_row_without_cpu_is_one_slot_and_a_width_is_capped_at_the_pool(self):
         self.assertEqual(runner.width('x', {}, 8), 1)
@@ -845,7 +920,7 @@ class Groups(unittest.TestCase):
         self.assertEqual(runner.group_timeout(['a', 'b'], {'a': 600, 'b': 10}), 2440)
         long = 'diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned'
         self.assertEqual(runner.group_timeout(['a', long], {'a': 1}), 3600)
-        self.assertEqual(runner.weights(['a', 'b', 'c'], {'a': {'elapsed': 3}}, {'a': 9, 'b': 2}), {'a': 3, 'b': 2, 'c': 0})
+        self.assertEqual(runner.weights(['a', 'b', 'c'], {'a': {'elapsed': 3}}, {'a': 9, 'b': 2}), {'a': 3, 'b': 2})
 
     def test_a_group_s_memory_is_its_own_measured_peak_and_never_a_member_s_row(self):
         # Red first: the first whole run gave a group 1.5 times its largest

@@ -73,6 +73,9 @@ benchmark. `python3 tools/explore/test_memcap.py` exercises sampling failures.
 
 ## Native call graphs
 
+For a saved release gate, run `python3 tools/gate_profile.py REPORT` and copy
+the sample command. It restores the test reservation and verifies the binary.
+
 `docs/lab/2026-09-09-native-profile.md` records the census profiles and the
 selective frame lookup they motivated. Build a release test binary with
 `CARGO_PROFILE_RELEASE_DEBUG=1`, then run `profile_native.py BINARY EXACT_TEST

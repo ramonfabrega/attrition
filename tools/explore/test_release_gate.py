@@ -131,7 +131,7 @@ class IsolatedGate(unittest.TestCase):
         self.assertEqual(gate.phase_budget(['python3', 'tools/offline_tests.py']), (2, 1024))
         self.assertEqual(gate.phase_budget(['cargo', 'fmt', '--check']), (2, 1024))
         self.assertEqual(gate.phase_budget(['cargo', 'clippy']), (8, 32768))
-        self.assertEqual(gate.phase_budget([sys.executable, 'tools/shape.py', '--check']), (2, 1024))
+        self.assertEqual(gate.phase_budget(['sh', 'tools/source_pins.sh']), (2, 1024))
         # Loop 4070: the gate's guard step builds the release binaries now —
         # a build's reservation; a guard that is not `--built` keeps the
         # reflex's, and its debug rebuild ceiling.
@@ -193,6 +193,7 @@ class SharedEntryPoints(unittest.TestCase):
             (tools/'explore').mkdir(parents=True)
             (root/'bin').mkdir()
             (tools/'guard.sh').write_text((gate.ROOT/'tools/guard.sh').read_text())
+            (tools/'source_pins.sh').write_text((gate.ROOT/'tools/source_pins.sh').read_text())
             # A recording admission shim avoids process monitoring in this authored test.
             (tools/'resource_budget.py').write_text(
                 'import sys,subprocess,json\nfrom pathlib import Path\n'
@@ -257,6 +258,7 @@ class SharedEntryPoints(unittest.TestCase):
             (tools/'explore').mkdir(parents=True)
             (root/'bin').mkdir()
             (tools/'guard.sh').write_text((gate.ROOT/'tools/guard.sh').read_text())
+            (tools/'source_pins.sh').write_text((gate.ROOT/'tools/source_pins.sh').read_text())
             (tools/'resource_budget.py').write_text(
                 'import sys,subprocess\n'
                 'raise SystemExit(subprocess.run(sys.argv[sys.argv.index("--")+1:]).returncode)\n')
@@ -382,6 +384,18 @@ class GateTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 gate.gate(tmp, run=lambda *a, **k: self.fail('ran without install'))
 
+    def test_source_pins_propagate_the_live_ledgers_failure_before_building(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            tools = root/'tools'
+            tools.mkdir()
+            (tools/'queueledger.py').write_text("print('unbooked 4406')\nraise SystemExit(1)\n")
+            (tools/'shape.py').write_text("print('shape reached')\n")
+            result = subprocess.run(['sh', str(gate.ROOT/'tools/source_pins.sh')],
+                                    cwd=root, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 1)
+            self.assertEqual(result.stdout.splitlines(), ['unbooked 4406'])
+
     def test_every_child_has_explicit_install(self):
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').write_text('authored placeholder')
@@ -394,7 +408,7 @@ class GateTests(unittest.TestCase):
                     release_ran(kwargs)
             gate.gate(path, report_dir=path/'report', run=run)
             self.assertEqual(len(calls), 9)
-            self.assertEqual(calls[0], [sys.executable, 'tools/shape.py', '--check'])
+            self.assertEqual(calls[0], ['sh', 'tools/source_pins.sh'])
             self.assertEqual(calls[1], [sys.executable, 'tools/offline_tests.py'])
             self.assertEqual(calls[4][:4], ['cargo','run','-p','rondata'])
             self.assertIn('--release', release_of(calls))
@@ -547,7 +561,7 @@ garbage line
                     release_ran(kwargs)
             with self.assertRaises(subprocess.CalledProcessError):
                 gate.gate(path, report_dir=path/'report', run=run)
-            self.assertEqual(calls, [[sys.executable, 'tools/shape.py', '--check'],
+            self.assertEqual(calls, [['sh', 'tools/source_pins.sh'],
                                      [sys.executable, 'tools/offline_tests.py']])
 
     def test_a_pin_that_reads_the_tree_is_red_in_the_first_step_and_the_guard_before_release(self):

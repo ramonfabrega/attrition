@@ -114,4 +114,5 @@ NOT_RUN = {
 }
 
 if __name__ == '__main__':
-    unittest.main(module=None, argv=[sys.argv[0], *SUITES], verbosity=2)
+    timing = ['--durations', '10'] if hasattr(unittest.TestResult, 'addDuration') else []
+    unittest.main(module=None, argv=[sys.argv[0], *timing, *SUITES], verbosity=2)

@@ -932,8 +932,9 @@ pub(crate) fn region_theirs(block: &Block<'_>) -> std::collections::BTreeMap<Str
 /// what keeps a thinner capture from reading as a page of divergences.
 pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i64> {
     let mut out = std::collections::BTreeMap::new();
+    let fields = block.indexed_fields();
     let all = |k: &str| -> Vec<i64> {
-        block
+        fields
             .all(k)
             .iter()
             .map(|v| v.trim().parse().unwrap_or(i64::MIN))
@@ -1136,7 +1137,7 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
     // Item 4159, step VII-b1 (`docs/LEADERS.md` §7): `blacken`.
     .chain(["blacken"])
     {
-        if let Some(x) = block.int(key) {
+        if let Some(x) = fields.get(key).and_then(|v| v.trim().parse().ok()) {
             out.insert(key.to_string(), x);
         }
     }
@@ -1174,7 +1175,7 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
     // `anti_att` is the record's one float: `log_data` prints it `%f`, six
     // decimals, and it is read as those millionths ([`millionths`] is this
     // crate's side of the same print).
-    if let Some(x) = block
+    if let Some(x) = fields
         .get("anti_att")
         .and_then(|v| print_millionths(v.trim()))
     {
@@ -1280,7 +1281,7 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
     for (d, x) in all("reg_terr[scan]").iter().enumerate().take(64) {
         out.insert(format!("reg_terr[{d}]"), *x);
     }
-    let (bits, values) = (block.all("bits"), block.all("bit_values"));
+    let (bits, values) = (fields.all("bits"), fields.all("bit_values"));
     // `tech`, the first 806-bit mask `log_data` prints (§17), as its print.
     if let Some((_, v)) = bits
         .iter()

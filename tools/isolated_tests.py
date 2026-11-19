@@ -50,6 +50,7 @@ import queue
 import re
 import shutil
 import signal
+import statistics
 import subprocess
 import sys
 import threading
@@ -57,6 +58,7 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
+import gate_profile
 from resource_budget import DEFAULT, MEMORY_MIB, QUANTUM_MIB
 from test_runtime import child_environment, allocator_policy, execution_timeout
 
@@ -155,7 +157,7 @@ def group_units(names, groups, profile, slots):
 def weights(names, profile, timings=None):
     """Seconds a test is expected to take, for the pool's longest-first
     order: its profile row's `elapsed`, else the timings file's seconds
-    (the profile is of 2026-10-16 and knows 876 tests), else zero."""
+    (the profile is of 2026-10-16 and knows 876 tests). Omit unmeasured names."""
     if timings is None:
         try:
             from release_gate import TIMINGS
@@ -163,7 +165,8 @@ def weights(names, profile, timings=None):
             timings = timed(TIMINGS.read_text())
         except (ImportError, OSError):
             timings = {}
-    return {name: profile.get(name, {}).get('elapsed', timings.get(name, 0)) for name in names}
+    return {name: seconds for name in names
+            if (seconds := profile.get(name, {}).get('elapsed', timings.get(name))) is not None}
 
 
 def group_timeout(tests, weight):
@@ -392,7 +395,8 @@ def run_group(binary, key, tests, number, output, directory, memory, cancelled, 
     verdicts.poll()
     stopped, seen_limit = stopped_at(log)
     common = dict(reservation_mib=memory, stopped_mib=stopped, limit_mib=seen_limit or limit, log=str(log),
-                  allocator=allocator_policy(env), resource_timing=resource_timing(log), cpu_slots=1)
+                  allocator=allocator_policy(env), resource_timing=resource_timing(log), cpu_slots=1,
+                  share_walks=env['RON_SHARE_WALKS'], timeout_seconds=timeout)
     return group_rows(key, tests, verdicts, exit_code=child.returncode, began=start,
                       stamp_held=binary_stamp(binary) == stamp, common=common)
 
@@ -431,12 +435,24 @@ def isolated(binary, output, directory, slots=8, skips=(), stop=None, started=No
     groups = load_groups() if groups is None else groups
     weight = weights(names, profile)
     units = group_units(names, groups, profile, slots)
-    # Longest first, a group by its members' sum; equal weights keep the
-    # binary's own order.
-    pending = sorted(units, key=lambda unit: -sum(weight[name] for _, name in unit[1]))
+    # A pool-wide job behind one narrow group strands every other slot
+    # until the group finishes. Clear exclusive jobs before packing the pool.
+    # Give unmeasured tests a typical slot in the queue: one new 52 s test
+    # dispatched at weight zero left seven workers idle at the finish.
+    def unit_width(unit):
+        key, members = unit
+        return 1 if key is not None else width(members[0][1], profile, slots)
+
+    typical = statistics.median(weight.values()) if weight else 0
+    def priority(unit):
+        return unit_width(unit) == slots, sum(weight.get(n, typical) for _, n in unit[1])
+
+    pending = sorted(units, key=priority, reverse=True)
     grouped = {key: [name for _, name in members] for key, members in units if key is not None}
     (output / 'manifest.json').write_text(json.dumps(dict(binary=str(binary), binary_stamp=stamp, tests=names, ignored=ignored, skipped=skipped, requested_skips=list(skips),
-        install=os.environ.get('RON_INSTALL'), slots=slots, resource_directory=str(directory), groups=grouped), indent=2)+'\n')
+        install=os.environ.get('RON_INSTALL'),
+        replay_settings=gate_profile.replay_settings(os.environ), slots=slots,
+        resource_directory=str(directory), groups=grouped), indent=2)+'\n')
     cancelled = False
     def cancel(_sig, _frame):
         nonlocal cancelled
@@ -456,9 +472,6 @@ def isolated(binary, output, directory, slots=8, skips=(), stop=None, started=No
             # first out, so a wide test is never starved by narrow ones.
             active = {}
             used = 0
-            def unit_width(unit):
-                key, members = unit
-                return 1 if key is not None else width(members[0][1], profile, slots)
             while (pending and not halted()) or active:
                 while pending and not halted() and used + unit_width(pending[0]) <= slots:
                     unit = pending.pop(0)
@@ -743,6 +756,11 @@ def release(output, directory, slots, test_threads, skips=(), exclude_packages=(
     first = f", the first {rows[0]['start'] - spans['library']['start']:.1f} s after it" if rows and library else ''
     print(f"Release lanes: library {library_seconds:.1f} s; beside it {side_seconds:.1f} s over {len(rows)} "
           f"binaries{first}; both done at {last:.1f} s", flush=True)
+    try:
+        gate_profile.report(output)
+    except (OSError, ValueError, KeyError) as error:
+        # A partial diagnostic file must preserve cancellation and test exits.
+        print(f'Release timing breakdown unavailable: {error}', file=sys.stderr, flush=True)
     if stop.is_set() or any(rc in (130, -signal.SIGINT, -signal.SIGTERM) for rc in exits_by.values()):
         return 130
     # No binary is lost in silence: every executable Cargo built has its exit.
