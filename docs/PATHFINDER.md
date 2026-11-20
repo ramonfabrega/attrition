@@ -460,6 +460,18 @@ costs nothing:
   unblocking only when they have no other blocked neighbour left.
   `WData.bad` (`+0x12`) counts that bit per cell the same way.
 
+**The order a footprint is blocked in shows.** A tile loses its own `0x2000`
+as it blocks and gives it to its neighbours, so of two blocked neighbours
+only the earlier keeps the bit. `BuildType::mask_me@006312a0` walks the
+footprint **column by column**: the outer loop runs over `x_size` (`+0x234`),
+the inner over `y_size` (`+0x238`), and the template byte is
+`x_size·v + u`. A University's template (corners and centre blocked) ends
+with the bit on its west corners and not its east ones. A walk row by row
+(this crate's until item 4441) puts it on the north-east corner instead, and
+that parted row 100's world line on state 134 (`docs/RECGAME.md` §10.3,
+run1721). Diff-backed by run1721's ranges; the killer is
+`movement::roads::tests::a_footprint_is_masked_column_by_column`.
+
 So a building raises the *pathfinder's terrain cost* of every cell it
 stands on, by the number of tiles of that cell it covers. That is the whole
 of §12's frame-1476 scout: a city with nine of a cell's sixteen tiles under
