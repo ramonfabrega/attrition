@@ -3675,6 +3675,54 @@ fn a_tower_picks_a_target_and_reloads_by_its_arrows() {
     );
 }
 
+/// **A building at no health left still counts its arrows down** (item
+/// 4454, `docs/RECGAME.md` §7): `Build::process@0061edf0` reaches
+/// `do_attack` on the type's attack (`+0x1e8`) and the finished bit, and
+/// asks nothing of `health`; `do_attack`'s head then takes one off
+/// `recharging`. The 2017 sample's `4/2000` fell to health 0 on 3878 and
+/// went on 8, 7, 6 in theirs.
+#[test]
+fn a_building_at_no_health_still_counts_its_arrows_down() {
+    let mut sim = arena();
+    let hop = sim.add_unit_type(hoplite_type());
+    let tower = sim.add_building(0, Pos::new(1000, 1000), 0);
+    sim.buildings[tower].combat = Some(combat::Profile {
+        attack: 80,
+        armor: 2,
+        recharge: 60,
+        max_range: 6,
+        to_hit: 400,
+        attenuate: 0,
+        proj_speed: 200,
+        ammo_per_att: 1,
+        base_arrows: 1,
+        most_shots: 4,
+        x_size: 1,
+        y_size: 1,
+        big_radius: 96,
+        ..combat::Profile::default()
+    });
+    sim.buildings[tower].hits = 400;
+    sim.buildings[tower].health = 400;
+    let b = combatant(
+        &mut sim,
+        1,
+        hop,
+        Pos::new(1000 + 3 * 192, 1000),
+        movement::Angle::WEST,
+    );
+    sim.set_stance(b, Stance::HoldFire);
+    run(&mut sim, 17);
+    assert_eq!(sim.buildings[tower].target, Some(Obj::Unit(b)));
+    assert_eq!(sim.buildings[tower].recharging, 60, "the first arrow");
+    sim.buildings[tower].health = 0;
+    run(&mut sim, 2);
+    assert_eq!(
+        sim.buildings[tower].recharging, 58,
+        "health 0 does not stop the countdown"
+    );
+}
+
 /// **A Tower's arrow flies at 90** (item 1380, `docs/GOLDEN.md` §57):
 /// `BuildData::get_shot@0062dd90` is 0 for a type its switch does not
 /// name while the owner's `ages` is at most 2, and `Ammo::init`'s
