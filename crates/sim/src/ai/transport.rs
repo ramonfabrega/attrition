@@ -1635,6 +1635,25 @@ impl Sim {
         // second of the two `Unit::set_anim` draws the original spends
         // when the scout arrives.
         self.seat_guys(r);
+        // **And every figure's `last` is its seat and the host's angle**
+        // (item 4439, `docs/RECGAME.md` §10.3). `set_new_location(this, x,
+        // y, 1, 1)` (`00617c10:519`) hands guy 0 to
+        // `Guy::set_new_location(…, 1)`, whose `005d86f0:66`–`70` copy the
+        // point and `z` into `last_x`/`last_y`/`last_z`, and whose crew loop
+        // seats each crew figure the same way; then `set_angle(host->angle,
+        // …, 1)` (`:629`) reaches `Guy::set_angle(guy 0, a, 1)`, which
+        // writes `last_angle` (`+0x1c`) beside `angle` (`005d9010:13`–`16`)
+        // and re-seats the crew with `set_angle(crew, a, 1)` and
+        // `set_new_location(crew, …, 1)`. So a passenger whose own walk ran
+        // earlier in the frame stands ashore with `last` on its new point,
+        // not where it went aboard: run1716's scout `1/0` on 3250, `last`
+        // (19080, 39768, −30, −664928256) on theirs, the boarding point
+        // (30849, 41470, −37, −1553072128) on ours before this.
+        let m = self.units[r].movement;
+        for g in &mut self.units[r].guys {
+            let at = g.follow.map_or(m.body.pos, |f| f.body.pos);
+            g.last = Some((at, m.heading));
+        }
         self.come_out_join_army(r);
     }
 

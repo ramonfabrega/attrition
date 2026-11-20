@@ -2834,17 +2834,20 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (682, 682, 9) -> (682, 682, 8).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (682, 682, 8) -> (682, 682, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (9905, 9905, 52) -> (9905, 9905, 34).
+    // Item 4439, a passenger lands with its figures' `last` on its seat (`come_out`'s
+    // `set_new_location(…, 1, 1)`): units (9905, 9905, 34) -> (9905, 9905, 33); guys (2172, 2172,
+    // 3) -> (2172, 2172, 2).
     (
         "run1296",
         4632,
         [
-            (9905, 9905, 34),
+            (9905, 9905, 33),
             (2163, 2163, 0),
             (0, 0, 0),
             (0, 0, 0),
             (6, 6, 0),
             (682, 682, 0),
-            (2172, 2172, 3),
+            (2172, 2172, 2),
             (271, 271, 0),
             (27, 27, 0),
             (5, 5, 0),

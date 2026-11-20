@@ -1470,6 +1470,11 @@ fn ashore(human: bool, avg: i32) -> (Fix, usize, Pos) {
     ];
     f.sim.roster.art.tracks.insert(2, (-48, -192));
     f.sim.seat_guys(rider);
+    // Where a walked unit's last `Guy::move` began: its boarding point.
+    let walked = f.sim.units[rider].pos;
+    for g in &mut f.sim.units[rider].guys {
+        g.last = Some((walked, crate::movement::Angle::NORTH));
+    }
     f.sim.units[rider].movement.body.avg_speed = avg;
     f.sim.units[rider].guys[1]
         .follow
@@ -1533,6 +1538,30 @@ fn a_passenger_comes_ashore_at_the_average_it_boarded_with() {
         u.guys[1].follow.map(|g| g.des),
         "seated on its offset"
     );
+}
+
+/// **A passenger put ashore has every figure's `last` on its seat, at the
+/// boat's angle** (item 4439, `docs/RECGAME.md` §10.3): `come_out`'s
+/// `set_new_location(this, x, y, 1, 1)` (`00617c10:519`) reaches
+/// `Guy::set_new_location(…, 1)`, which copies the point into `last_x`/
+/// `last_y` (`005d86f0:66`–`70`), and its `set_angle(host->angle, …, 1)`
+/// (`:629`) reaches `Guy::set_angle(guy 0, a, 1)`, which writes
+/// `last_angle` and re-seats the crew the same way (`005d9010`). run1716's
+/// scout `1/0` on 3250 reads `last` (19080, 39768, −664928256), its point
+/// and angle; this crate kept its boarding point and angle.
+///
+/// Made to fail with the write taken out of `land_tail`: guy 0's `last`
+/// is the boarding point.
+#[test]
+fn a_passenger_put_ashore_has_each_figure_s_last_on_its_seat() {
+    let (f, r, boarded) = ashore(false, 0);
+    let u = &f.sim.units[r];
+    let west = crate::movement::Angle::WEST;
+    assert_ne!(u.pos, boarded);
+    assert_eq!(u.movement.heading, west, "turned to the boat's angle");
+    assert_eq!(u.guys[0].last, Some((u.pos, west)), "guy 0: its point");
+    let seat = u.guys[1].follow.map(|g| g.body.pos).expect("a seat");
+    assert_eq!(u.guys[1].last, Some((seat, west)), "the crew: its seat");
 }
 
 /// **A passenger put ashore clears where it boarded** (item 1598,

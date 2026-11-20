@@ -39526,4 +39526,7 @@ Files in place, `~/ron-golden/run1716/map-18/`: `gamelog_p.txt`, 2,451 bytes, SH
 `4696ba0d186ce4db444e51778a04b9439217cfee6f87e703b3e8650a96bae063`.
 
 **What it holds**: `diff::held_out::tests::row_120_s_barge_is_born_with_form_zero_on_run1716_s_ranges` (every units
-range on 2694, ours against theirs).
+range on 2694, ours against theirs), and since item 4439
+`row_120_s_scout_lands_with_its_figure_s_last_on_its_point_on_run1716_s_ranges` (every units and guys range on 3250).
+**Re-scored by item 4439** (`score_recording`, no new take): guys 6,001, whole; units 5,864, first 5864: range 1139,
+record 35, `collide_frame..play`, byte 90, `cavarch_o` ours −1, theirs −2.
