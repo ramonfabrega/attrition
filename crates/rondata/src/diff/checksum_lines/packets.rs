@@ -337,15 +337,6 @@ pub(super) fn walk_packets_with(
             "{run}: the walk's frame"
         );
         at += 1;
-        if std::env::var_os("RON_PROBE_4430").is_some() {
-            for u in built.sim.units.iter().filter(|u| u.alive() && u.guys.first().is_some_and(|g| g.turret != Default::default())) {
-                eprintln!(
-                    "PROBE4430-UNIT {run} f{f} {}/{} ti {} pos ({},{}) facing {:#x} guys {:x?}",
-                    u.owner, u.index, u.type_index, u.pos.x, u.pos.y, u.movement.facing.0,
-                    u.guys.iter().map(|g| (g.turret.angles, g.turret.des, g.turret.node_flags, g.turret.des_flags)).collect::<Vec<_>>()
-                );
-            }
-        }
         let ours = our_lines(&built.sim, &pieces);
         let world = ours.iter().find(|l| l.name == "world").expect("world line");
         let detailed = built.sim.world_image();
