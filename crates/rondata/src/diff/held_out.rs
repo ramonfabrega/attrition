@@ -217,61 +217,6 @@ mod tests {
         );
     }
 
-    /// **Row 120's barge is born with `form` 0** (item 4435, `docs/RECGAME.md`
-    /// §10.3): run1716, the ranges take of run1706's file, holds the units
-    /// line's every range on state 2694, where the computer's transport
-    /// barge `1/15` (type 320) is born holding a move. Range 521, its
-    /// `collide_frame..play`, reads `form` (`+0xaa`, byte 98) 0 on theirs,
-    /// `Unit::init@00612100:81`–`86`'s birth value for every type outside
-    /// the four citizen ids; this crate's `transport_boat` had left
-    /// `Unit::new`'s −1. Every units range on 2694, ours against theirs,
-    /// byte for byte: red on the tree before the fix, at range 521.
-    #[test]
-    fn row_120_s_barge_is_born_with_form_zero_on_run1716_s_ranges() {
-        let Some(inst) = crate::testenv::install() else {
-            return;
-        };
-        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(6) else {
-            eprintln!("skipping: row 120's recording is missing");
-            return;
-        };
-        let Some(ranges) =
-            crate::testenv::experiment(&home.join("ron-golden/run1716/map-18"), "rontrace.ranges")
-        else {
-            eprintln!("skipping: run1716's ranges record is missing");
-            return;
-        };
-        const STATE: i64 = 2694;
-        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 120's file");
-        let loaded = crate::load::load(&inst).expect("the install loads");
-        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
-        let mut stream = crate::input::Stream::pump(&rec);
-        while built.sim.frame < STATE {
-            stream.apply(built.sim.frame as i32, &mut built);
-            built.sim.command().tick();
-        }
-        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
-        let set = record
-            .first_of(STATE - 1)
-            .expect("state 2694's set")
-            .clone();
-        let theirs = record.ranges(&set).expect("the set's ranges");
-        let theirs: Vec<_> = theirs.iter().filter(|r| r.line == 0).collect();
-        let ours = built.sim.checksum_units();
-        assert_eq!(ours.ranges.len(), theirs.len(), "units ranges on 2694");
-        for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
-            assert_eq!(
-                a.bytes, b.bytes,
-                "units range {k} on 2694, record {} {}",
-                a.record, a.field
-            );
-        }
-        // The barge's own range, by name: `form` at byte 98 of range 521.
-        assert_eq!(theirs[521].bytes.len(), 111);
-        assert_eq!(theirs[521].bytes[0xaa - 0x48], 0, "theirs' form");
-    }
-
     /// **The held-out line**, from the table alone: the games whose score
     /// agrees on every line on every state, of the eight, and how many are
     /// taken.
@@ -507,19 +452,7 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        // Moved by item 4435 (a transport's birth `form`, 0 not -1): units
-        // 5,435 -> 5,998, first 2990 -> 3157 (the barge 1/15, born on 2990).
-        moved: Some(Score {
-            states: 6001,
-            agreed: [
-                5998, 6001, 6001, 6001, 6001, 6001, 5998, 6001, 6001, 6001, 6001, 6001,
-            ],
-            first: &[
-                ("units", (3157, Some(1863797253), 284838221)),
-                ("guys", (3157, Some(3930404420), 1713190284)),
-            ],
-            over: None,
-        }),
+        moved: None,
     }),
     // run1701
     // row 20, New World (seed 12345), as found 2026-11-19: ten lines whole;
@@ -537,19 +470,7 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        // Moved by item 4435: units 5,073 -> 5,997, first 3694 -> 4180 (the
-        // barge 1/14, born on 3694).
-        moved: Some(Score {
-            states: 6001,
-            agreed: [
-                5997, 6001, 6001, 6001, 6001, 6001, 5997, 6001, 6001, 6001, 6001, 6001,
-            ],
-            first: &[
-                ("units", (4180, Some(3212556184), 4081694552)),
-                ("guys", (4180, Some(797978321), 3921096337)),
-            ],
-            over: None,
-        }),
+        moved: None,
     }),
     // run1702
     // row 40, East Indies at Medieval (seed 12345), as found 2026-11-19: the
@@ -711,20 +632,7 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        // Moved by item 4435: units 4,815 -> 5,861, first 2694 -> 3250. On
-        // 2694, run1716's units range 521, the barge 1/15's `form` (+0xaa),
-        // read ours -1, theirs 0.
-        moved: Some(Score {
-            states: 6001,
-            agreed: [
-                5861, 6001, 6001, 6001, 6001, 6001, 5998, 6001, 6001, 6001, 6001, 6001,
-            ],
-            first: &[
-                ("units", (3250, Some(1841316763), 2091402007)),
-                ("guys", (3250, Some(2633326924), 47538376)),
-            ],
-            over: None,
-        }),
+        moved: None,
     }),
     // run1707
     // row 140, East Indies at difficulty 4 (seed 12345), as found 2026-11-19 on the

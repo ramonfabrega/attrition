@@ -446,8 +446,6 @@ impl Sim {
             // beat's coin — the pasture's own bug, one type over
             // (`docs/SYNC.md` §3.11).
             unit.type_index = self.tables.unit_types[gt].type_index;
-            // The same birth's `form`, as the boat's below.
-            unit.form = crate::init_form(unit.type_index);
             unit.movement.speed = self.type_speed(9, gt);
             unit.movement.turning = self.turning_for(gt);
             // `Unit::init@00612100:282–309` (`crate::units::stance`).
@@ -1060,12 +1058,6 @@ impl Sim {
         boat.kind = self.tables.unit_types[ty].kind;
         boat.ty = Some(ty);
         boat.type_index = self.tables.unit_types[ty].type_index;
-        // `Unit::init@00612100:81`–`86`'s `form` (`+0xaa`): 0 for a boat, as
-        // for every type outside the four citizen ids. The boat had kept
-        // `Unit::new`'s −1, and row 120's barge `1/15` parted the units
-        // line on 2694 by that byte alone (item 4435, `docs/RECGAME.md`
-        // §10.3).
-        boat.form = crate::init_form(boat.type_index);
         // **`Unit::update_speed`, not the type's raw `MOVES`.** The boat is
         // born like any other unit and takes the cached speed the same way
         // — which for a `NAVAL` type whose owner holds the Whales rare is

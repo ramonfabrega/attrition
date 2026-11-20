@@ -56,7 +56,7 @@ use crate::{Player, Sim};
 /// | `GroupMoveOrder` | §6.6's per-frame formation | every member gets a plain `Move` — `docs/ORDERS.md` §8.4's verdict |
 /// | `action_guard`'s building arm, human sweep and `QUEUE_FIRST` | §9's escort half, `docs/ORDERS.md` §24.7 | no building is ever guarded; the unit arm is built (item 567) |
 /// | the order-time path plan | §6.7 | the sim plans on the first step, in `do_move`; with a zero slot offset the plan is the same one |
-/// | `find_nearby_spot`'s collision, `invalid_loc` on a slot | §6.6 step 4's same-region arm | no slot is ever invalid in the same region, so no member is re-slotted there; the different-region arm is built (§37.1) |
+/// | `find_nearby_spot`'s collision, `invalid_loc` on a slot | §6.6 step 4's same-region arm | built (item 4432, `Sim::same_region_spot`), as is the different-region arm (§37.1) |
 /// | `QUEUE_FIRST`'s insert dance (`set_up_insert` / `action_halt` / recurse / `finish_insert`) | §6.2, §10 | `charge`'s `QUEUE_FIRST` is a plain `push_front` on each member |
 /// | the scenario `ignore_orders` filter | §5 | never set outside a scenario |
 /// | `is_modern_infantry`, the strafe | §6.6, §10 | no modern infantry, no planes (`is_packing` is built: [`Sim::clear_keeping_pack`], item 3336) |

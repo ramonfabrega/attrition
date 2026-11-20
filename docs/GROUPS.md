@@ -1102,7 +1102,13 @@ that
      `find_nearby_spot` around slot 0 between `0xc0` and `0x480`; a
      **non-captain** around the **last captain seen** in the walk, at the
      given angle turned ±90° depending on whether it is that captain's own
-     figure.
+     figure. A computer's unit (`unit_masks & 0x40000`) is not asked; a
+     figure after a re-placed captain is re-placed unasked (`local_14`).
+     The captain's sweep passes `uber_unit` 1; the figure's rings are
+     `guy_spacing` to 4×, +90° when its `o_up` is the captain. Built (item
+     4432, `Sim::same_region_spot`); *diff-backed* on the figure half by
+     the sample's `3/27` on 2699 (run1710), the captain half by a reading
+     alone.
 5. A `QUEUE_NEW` on a **packing packer** with orders queued rotates the
    tail order to the front instead of clearing, and the member's queue mode
    becomes `QUEUE_FIRST`.
@@ -5162,9 +5168,8 @@ it. Asked as the unit rather than the type, the sweep found (35928, 43176);
 without the write-back the path kept the old offset.
 
 Built in `Sim::group_action_move_to`'s member loop. **Not built**: a
-loaded boat's passenger type, and the same-region `invalid_loc` arm, which
-a computer's unit (`unit_masks & 0x40000`) skips unless a re-placed captain
-came first. ~~The `TRANSPORTBARGE` footprint~~ is built (item 3522,
+loaded boat's passenger type. ~~The same-region `invalid_loc` arm~~ is
+built (item 4432, §6.6 step 4, `Sim::same_region_spot`). ~~The `TRANSPORTBARGE` footprint~~ is built (item 3522,
 `docs/AI.md` §304): `705c0f`–`705c9b` ask `invalid_loc(member, slot 0's
 tile, 1, 1, 0, 0, 0)`, and when it refuses a member whose type's domain
 (`+0x218`) is land and the leader `can_transport`, the type swept is
