@@ -504,6 +504,70 @@ mod tests {
         }
     }
 
+    /// **Row 60's army push zeroes the emptied last slot's origin** (item
+    /// 4473, `docs/RECGAME.md` §10.3): run1722, the ranges take of run1703's
+    /// file. On 3598 who=1's army 1 takes `1/169` through
+    /// `Army::add_unit@006f9f40:37`'s `Groups::push_group(who, g, 1)`, into
+    /// slot 67, while `last_group` names slot 68 (record 68), empty on both
+    /// sides since its members left. `Group::equals_group@00708000` asks the
+    /// last slot's `get_num@00714700`, whose empty arm writes `ox`/`oy` 0.
+    /// This crate's army push skipped `equals_group`'s side effects. Every
+    /// groups range on 3597 and 3598, byte for byte: red on the tree before
+    /// the fix at range 92 on 3598, record 68 `id..march`, `ox` ours 33720,
+    /// theirs 0 (`oy` 15048, 0).
+    #[test]
+    fn row_60_s_army_push_zeroes_the_empty_last_slot_s_origin_on_run1722_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIRST, 3) else {
+            eprintln!("skipping: row 60's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1722/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1722's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 60's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [3597, 3598] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_groups();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 5).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "groups' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "groups range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Record 68's `ox` (`+0x18`, byte 20 of `id..march`), by name.
+            let k = ours
+                .ranges
+                .iter()
+                .position(|r| r.record == 68 && r.field == "id..march")
+                .expect("record 68");
+            let want: i32 = if state == 3597 { 33720 } else { 0 };
+            assert_eq!(
+                &theirs[k].bytes[20..24],
+                &want.to_le_bytes(),
+                "theirs' record 68 ox on {state}"
+            );
+        }
+    }
+
     /// Probe (item 4473): row 60's ranges on `RON_PROBE_4473`'s states,
     /// ours against run1722's, by field, on `RON_PROBE_4473_LINES`.
     #[test]
