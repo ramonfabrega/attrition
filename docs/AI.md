@@ -547,6 +547,16 @@ Read whole (294 lines). Computer leaders only. For every building of mine
   `find_nearby_spot == 0`, so a ring with no spot leaves the recruit
   gathering (item 4300's fourth act; `Sim::swarm_around_new`;
   recon4300-2's walk at DIFFICULTY 4 backs it, 1750 → 4202).
+- **The `0x2000` mark is carried** (item 4455, `Building::no_builder`;
+  diff-backed). The listing holds two writers of the bit and no third:
+  this function's `orw` at `6ca6c6`, reached past both `goto`s (builder
+  found, recruit sent), and `Group::action_swarm_around@0070fbe0`'s
+  `BUILD_AT` member arm, whose `andw` at `7107bb` clears it after the
+  member's `add_build_order`. Theirs held it on two never-started
+  computer sites ours left at 0: run1720's `1/2036` on 2376 (row 80,
+  whole with it) and run1721's `1/2027` on 1976. Its one reader,
+  `take_damage`'s site-abandon disband (`docs/LEADERS.md` §2.2), is not
+  carried: §13.
 
 **"My territory at the site" was a misreading, here and in §2.12, §2.13
 step 8 and §2.17.** `world+0x13c` is **`WorldData::danger[8]`**;
@@ -1875,6 +1885,10 @@ folded back into §2's prose.
 
 ## 13. What is not established
 
+- **The site-abandon disband** (item 4455, parked 4455a): `Object::take_damage@00652020`'s
+  alive arm disbands an unfinished computer site with `hits(0) <= 2 * damage` and
+  `build_masks & 0x2000` and returns 1, a raze credited with no death. The bit is carried
+  (§2.8); the arm is a SEAM in `damage_building`, and no capture has shown it fire.
 - **The woodcutter camp's slot count** — `BuildData::gather_max`, written
   by `BuildTypeData::max_gatherers@0063c430` → `calc_gather@00639e40`
   (`docs/ECONOMY.md`'s open item): 5 for camp 2001 on run9's map, 0
