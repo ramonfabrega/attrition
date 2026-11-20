@@ -363,11 +363,20 @@ impl WpathView for SimWpath<'_> {
             .is_some_and(|o| matches!(o.body, Body::Move(mo) if mo.kind == MoveKind::ExploreTo))
     }
     fn explore_gate(&mut self) -> bool {
-        // SEAM: the clause `order.flags & 4 == 0 || unit_masks & 0x40100`,
-        // which can only ever turn scouting *off* for a scout whose explore
-        // order carries `ACTION`. Left out until the two mask bits are
-        // modelled; every explore order in the corpus has `flags 1`.
-        true
+        // `update_order()->flags & 4 == 0 || unit_masks & 0x40100`
+        // (`find_wpath@00688fc0`, `00689375`..; item 4442): an explore
+        // order carrying `ACTION` (`flags & 4`) scouts only for a unit
+        // under the computer's hand (`0x40000`, [`Sim::unit_ai_bit`]) or
+        // on AUTO EXPLORE (`0x100`, [`crate::Unit::auto_explore`]). A
+        // person's queued explores carry `flags 5`: the 2017 sample's scout
+        // `3/0` plans its 2892 leg without the scout's prices, seen ground
+        // the cheaper, as the original does.
+        let un = &self.sim.units[self.u];
+        let action = self
+            .sim
+            .current_order(self.u)
+            .is_some_and(|o| o.flags & 4 != 0);
+        !action || un.auto_explore || self.sim.unit_ai_bit(un.owner)
     }
     fn explore_kind_is_explore(&mut self) -> bool {
         // The order's own kind is the one the `order_type` test just read.
