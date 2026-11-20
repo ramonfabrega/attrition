@@ -3261,13 +3261,9 @@ impl Sim {
         // The two capital calls (`docs/LEADERS.md` §11), before the old record closes.
         self.capture_capital_calls(o, a, c, was_capital, newcity);
         // The closes carry the captor to `Leader::lost_a_city` (§10.2).
-        // `capture_city@00733380`'s close loop skips a city centre
-        // (`flags & 0x20`): the members close while the old city is still
-        // open, and the old centre closes only after `City::close`, below
-        // (`:1170`–`:1172`). Item 4466: run1724's Inca capital on 3887, whose
-        // library, still its city's and so its owner's first library, cleans
-        // its queue with a refund (`Build::close@00628980:468`) — the epoch
-        // queued there off `num_queued` and `epochs_queued`.
+        // The loop skips a city centre (`flags & 0x20`): members close while
+        // the old city is open, so a library still its city's cleans or hands
+        // on its queue (CITIES §7.3 step 6, item 4466); the centre closes last.
         self.cities.capturing = Some(a);
         let mut old_centre = None;
         for b in to_close {
@@ -3288,8 +3284,7 @@ impl Sim {
             self.cities.cities[c].members.clear();
             self.close_city(c, Some(a));
         }
-        // `:1170`–`:1172`: the old centre's `+0x72` to −1, then its
-        // `close(5)`; the record is closed, so the close closes no city.
+        // `capture_city@00733380:1170`–`:1172`: the old centre's `close(5)`.
         if let Some(b) = old_centre
             && self.buildings[b].alive
         {
