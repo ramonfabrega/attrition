@@ -2162,16 +2162,25 @@ impl Sim {
         // (`masks.txt`, `docs/DATALAYER.md`); without one loaded it falls
         // back on the old flat/non-flat line.
         let (xs, ys) = (
-            self.tables.build_types[ty].x_size.max(1),
-            self.tables.build_types[ty].y_size.max(1),
+            self.tables.build_types[ty].x_size,
+            self.tables.build_types[ty].y_size,
         );
         // `is_city || connects_to_roads` — the one predicate both of
         // `mask_me`'s road arms read, from opposite sides.
         let lays = build::is_city(&self.tables.build_types, ty)
             || crate::movement::roads::connects_to_roads(&self.tables.build_types, ty);
-        for (i, t) in self.footprint(ty, corner).into_iter().enumerate() {
-            let (u, v) = (i as i32 % xs, i as i32 / xs);
-            debug_assert!(v < ys);
+        // **Column by column**: `mask_me`'s outer loop is `x_size` (`+0x234`)
+        // and its inner `y_size` (`+0x238`), the template read at
+        // `x_size * v + u`. The order is visible: `set_blocked_at` clears a
+        // tile's own `BAD_PATH` and sets it on the eight around, so of two
+        // blocked neighbours only the earlier keeps the bit. Row by row
+        // left the computer's University `1/2006` (run1721, frame 133,
+        // corner (208, 108)) with `BAD_PATH` on (211, 108) where the
+        // original holds it on (208, 111) (item 4441, `docs/RECGAME.md`
+        // §10.3).
+        let walk = (0..xs).flat_map(|u| (0..ys).map(move |v| (u, v)));
+        for (u, v) in walk {
+            let t = Pos::new(corner.x + u, corner.y + v);
             if on {
                 self.world
                     .clear_tile_bits(t, tile::PLACED | tile::PLACED_TWICE);
