@@ -173,6 +173,16 @@ pub struct Loaded {
     /// between an idle variant with its own length and one silently
     /// played as the default (`docs/ANIM.md` §3.2).
     pub piece_lengths: crate::artdata::PieceLengths,
+    /// The `TypeIndex`es whose gender piece the original names `-PACKED`
+    /// rather than `-FEMALE` (item 4461):
+    /// `GraphicPieces::unit_node_from_gpiece@00901c30:229`–`241` builds
+    /// `-PACKED` for a type whose `role & 0x10000` (`ROLE_MILITARY`) is
+    /// set, a merchant (`TypeData::is_merchant@0042dbd0`: `MERCHANT`,
+    /// `MERCHANTDUTCH`, `FURTRAPPER`) or one that `is(FISHERMEN)`, and
+    /// `-FEMALE` for every other. The piece readers take it, so a
+    /// military type's `-FEMALE` entry — the shipped Assault Marines' — is
+    /// no piece of its (`crate::artdata`'s `entry_pieces`).
+    pub gender_packed: std::collections::BTreeSet<i32>,
     /// The pieces whose `<UNIT>` names a skeleton — a death object's
     /// corpse fade (`crate::artdata::piece_skeletons`, `docs/GOLDEN.md`
     /// §127).
@@ -614,11 +624,12 @@ fn read_install(install: &Install) -> Result<Loaded, crate::Error> {
         .iter()
         .map(|r| r.text("GRAPH").unwrap_or_default().trim().to_string())
         .collect();
-    loaded.piece_lengths = crate::artdata::piece_lengths(install, &graphs);
+    loaded.piece_lengths = crate::artdata::piece_lengths(install, &graphs, &loaded.gender_packed);
     loaded.casualty_attachments = crate::artdata::casualty_attachments(install);
-    loaded.piece_skeletons = crate::artdata::piece_skeletons(install, &graphs);
-    loaded.piece_tracks = crate::artdata::piece_tracks(install, &graphs);
-    loaded.piece_releases = crate::artdata::piece_releases(install, &graphs);
+    loaded.piece_skeletons =
+        crate::artdata::piece_skeletons(install, &graphs, &loaded.gender_packed);
+    loaded.piece_tracks = crate::artdata::piece_tracks(install, &graphs, &loaded.gender_packed);
+    loaded.piece_releases = crate::artdata::piece_releases(install, &graphs, &loaded.gender_packed);
     loaded.pivot_restrictions = crate::artdata::pivot_restrictions(install, &graphs);
     loaded.instant_hits = crate::artdata::instant_hits(install, &graphs);
     // An anti-air building's packet: the three `verify_load` draws as a
@@ -852,6 +863,18 @@ pub fn load_tables(
     }
     // `SpellType::init` seeds the caster bit on each craft's `FROM`/`FROM2`,
     // and `init_spellcasters` walks it down the graft/from chains.
+    // The gender piece's tail, by `unit_node_from_gpiece`'s three tests
+    // (`Loaded::gender_packed`).
+    let gender_packed: std::collections::BTreeSet<i32> = (0..cols.len())
+        .filter(|&i| {
+            cols[i].is(ai_load::role::ROLE_MILITARY)
+                || i == MERCHANT
+                || i == MERCHANTDUTCH
+                || i == FURTRAPPER
+                || unit_is(i, FISHERMEN)
+        })
+        .map(|i| 0x32 + i as i32)
+        .collect();
     let craft_records = crafts.map(|t| t.records.as_slice()).unwrap_or_default();
     // …and the record itself, which `Unit::do_cast` reads: the cast time
     // and the targeting letters (`docs/ORDERS.md` §6.9). The rows land in
@@ -2249,6 +2272,7 @@ pub fn load_tables(
     });
 
     Loaded {
+        gender_packed,
         unit_types,
         build_types,
         tree,
@@ -3129,6 +3153,7 @@ mod tests {
             gaia_lengths: Default::default(),
             gaia_variants: Default::default(),
             piece_lengths: Default::default(),
+            gender_packed: Default::default(),
             piece_skeletons: Default::default(),
             casualty_attachments: Default::default(),
             piece_tracks: Default::default(),

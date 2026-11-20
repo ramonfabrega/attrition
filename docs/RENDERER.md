@@ -2218,9 +2218,13 @@ the closing block, and the Aztec pair's starts.
   the map.
 - **The pieces between the start and the closing block.** The pairs' strides
   print guys without `gpiece`.
-- **4166a**, the Assault Marines' variant. Item 4169's reading is in its
+- ~~**4166a**, the Assault Marines' variant. Item 4169's reading is in its
   journal: the original's piece is guy state written at seventeen call
-  sites, and ours is derived from the object number every frame.
+  sites, and ours is derived from the object number every frame.~~
+  Answered by item 4461 (`docs/CHECKSUM.md` §23.12): the original names a
+  military type's gender piece `-PACKED`, so the shipped `-FEMALE` entry
+  is a node no lookup builds (run1437's packet holds 6408 tried and empty).
+  All 34,399 records agree.
 - **What the addon draws under `BUILD_BUILD`** with the smelter's `-1`
   anim, and what the crews' figure draws from a null action.
 - **What a round or a corpse draws**: a round resolves on its files, not
@@ -5135,7 +5139,7 @@ Each line names what would settle it.
   ~~Still a grep~~: every long capture's closing block prints it (item
   4166, §3.13), and on 110 lobbies the runner's pieces are the dump's on
   34,394 of 34,399 records. The five are the Assault Marines' variant
-  (parked 4166a).
+  (parked 4166a), and agree since item 4461: 34,399 of 34,399.
 - **Whether the original interpolates figures between simulation frames**
   when it draws. In `GuyOut::draw`, ~~the place to read~~ the anchor's point
   is not interpolated and the bank is (§3.5). Whether the mesh's own
