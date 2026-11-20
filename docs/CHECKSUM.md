@@ -2893,6 +2893,27 @@ angle already equals the push's (each is compared to its own `+0x18`; ours share
 here. The crate's own body-turn gate still reads the bit as the facing against `frame_facing`, which `Guy::set_angle`
 also moves; only the checksum reads `Movement::turned`.
 
+## 23.11 The guys line's crew `des` (item 4460)
+
+**The rule.** A crew figure (every figure past guy 0, `SQUAD_SIZE` 1) has its `des_x`/`des_y` (`+0x5c`/`+0x60`)
+written only by `Guy::set_new_location@005d86f0`'s crew loop. That loop writes guy 0's new `x`/`y` plus the figure's
+track offset, and runs whenever guy 0 is placed, whatever the call's `param_3`. `Unit::set_new_location@005f8d20`
+writes `des` for the squad alone (`+0xb5` figures). Its guy 0 is placed only when `param_3` is set. A push with
+`param_3` 0 moves the unit and guy 0's `des` and leaves every crew `des` on guy 0's body. The guys line's arm for a
+trackless crew figure (no `Follow`) now reads `des` as `Movement::body.pos`, where it read the unit's point.
+
+**How it was established (diff-backed).** run1722, row 60's ranges take. On tick 2106 the computer's Caravan `1/40`
+(TI 59, land, three figures) is pushed (−2, −2) to (37942, 19990). State 2107, units range 1429 and guys range 399,
+record 40: guy 0's `des` is (37942, 19990) on both sides, and guy 0's `x` is 37944 on both. The two crew figures
+read `des` ours (37942, 19990), theirs (37944, 19992). Test:
+`diff::held_out::tests::row_60_s_pushed_caravan_keeps_its_crew_s_des_on_run1722_s_ranges`, every units and guys
+range on 2107 and 2108. Row 60's guys line became whole (4,010 → 4,075). Guys also moved on rows 40, 100, 10, 30,
+110 and 130 (`docs/journal/2026-11-20-item-4460.md`).
+
+**Not established.** A trackless crew figure's `des_angle` (`+0x64`) is the same loop's copy of guy 0's `angle` at
+the call. Ours reads guy 0's facing now, which a turn in place moves without the loop running. No range on file has
+parted on it.
+
 ## 24. Step H: the fifteen, every frame (item 4214)
 
 `DECISIONS.md` entry 132 §7, §10. `CheckSums::check_all@00936560` runs on every turn and prints only inside a dump
