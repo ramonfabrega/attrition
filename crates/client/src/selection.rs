@@ -1189,11 +1189,14 @@ mod tests {
     /// band drawn by [`underlay`]: the half the drawing moves. Item 4401
     /// drew it solid, `[2132, 1404]`; item 4421 through `city_radius.tga`'s
     /// rows, the soft line theirs is: `[1395, 1300]` (ours' red off theirs
-    /// 728 → 95).
+    /// 728 → 95). Item 4438: unselected `[52, 9]` → `[100, 35]`, selected
+    /// `[1395, 1300]` → `[1443, 1326]`: the buildings' trim, drawn in the
+    /// owner's colour (`docs/RENDERER.md` §5.3), where the footprint
+    /// crosses the city's sprite.
     pub const RUN1559B_3279_SELECTED: ([[usize; 2]; 3], [usize; 2], [usize; 2]) = (
         [[4551, 1477], [4157, 721], [5398, 312]],
-        [52, 9],
-        [1395, 1300],
+        [100, 35],
+        [1443, 1326],
     );
 
     /// **The band's texture is one tent** (item 4421): the install's first

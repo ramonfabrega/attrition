@@ -610,7 +610,7 @@ pub struct Gpu {
     sprite_layout: wgpu::BindGroupLayout,
     sampler: wgpu::Sampler,
     /// Each building piece's sprite on the GPU, uploaded once.
-    textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
+    textures: std::sync::Mutex<std::collections::BTreeMap<(i32, u8), wgpu::BindGroup>>,
     /// The figures' textured pipeline and its sampler (item 4099).
     textured: wgpu::RenderPipeline,
     /// A lit figure's (item 4345, `fs_textured_lit`).
@@ -1575,7 +1575,7 @@ impl Gpu {
     }
 
     /// A building piece's sprite as a bind group, uploaded on first use.
-    fn texture(&self, piece: i32, image: &render::tga::Image) -> wgpu::BindGroup {
+    fn texture(&self, piece: (i32, u8), image: &render::tga::Image) -> wgpu::BindGroup {
         let mut cache = self.textures.lock().unwrap();
         if let Some(b) = cache.get(&piece) {
             return b.clone();
@@ -1974,7 +1974,7 @@ impl Gpu {
                     mapped_at_creation: false,
                 });
                 self.queue.write_buffer(&buf, 0, &bytes);
-                (buf, self.texture(sp.piece, &sp.image.image))
+                (buf, self.texture((sp.piece, sp.who), &sp.image.image))
             })
             .collect()
     }

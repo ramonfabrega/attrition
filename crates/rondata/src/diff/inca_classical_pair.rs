@@ -174,7 +174,8 @@ fn inca_classical_pair_the_long_s_stride_walks_back_from_4501() {
     // `form` (71) and `build:extra` (53), which the stride does not print,
     // and who=1's groups' `held` and pools (24 each). No unit row parts
     // through block 4501, the last before the word's block 4502.
-    pin_eq!(w.firsts.len(), 172, "the stride's baseline");
+    // Item 4435: 172 -> 128, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 128, "the stride's baseline");
 }
 
 /// run1260b: the word 4501's window, blocks 4495..4751 at the long's
@@ -249,7 +250,8 @@ fn inca_classical_pair_run1260b_s_word_frame_is_widened_whole() {
     // unit's `form`, who=1's 23 groups' `held` and pools, `SITE[i].reg`
     // and `aggression[1]`), and later births' `form` and new groups'
     // `held` and pools.
-    pin_eq!(w.firsts.len(), 133, "run1260b baseline");
+    // Item 4435: 133 -> 101, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 101, "run1260b baseline");
 }
 
 /// run1269: the word 5357's window, blocks 5351..5607 at run1260b's
@@ -320,7 +322,8 @@ fn inca_classical_pair_run1269_s_word_frame_is_widened_whole() {
     // Item 3710: 2 keys fewer — who=1's leader `free_peasants` and
     // `gatherers` agree now that `produce_city` walks its citizens by
     // object number (`docs/AI.md` §358.4).
-    pin_eq!(w.firsts.len(), 116, "run1269 baseline");
+    // Item 4435: 116 -> 100, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 100, "run1269 baseline");
 }
 
 /// run1270: the gap 5302..5350's window, blocks 5301..5360 at run1269's
@@ -382,7 +385,8 @@ fn inca_classical_pair_run1270_s_gap_is_widened_whole() {
     // Item 3710: 2 keys fewer — who=1's leader `free_peasants` and
     // `gatherers` agree now that `produce_city` walks its citizens by
     // object number (`docs/AI.md` §358.4).
-    pin_eq!(w.firsts.len(), 113, "run1270 baseline");
+    // Item 4435: 113 -> 97, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 97, "run1270 baseline");
 }
 
 /// **The long's stride between the two windows** (item 3616): run1260's
@@ -427,7 +431,8 @@ fn inca_classical_pair_the_long_s_stride_walks_back_from_5357() {
     // through 5301. The state first parts in the gap 5302..5350, which no
     // dump holds: run1269's first block, 5351, already has the Scout `0/0`
     // a step behind.
-    pin_eq!(w.firsts.len(), 178, "the stride's baseline");
+    // Item 4435: 178 -> 145, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 145, "the stride's baseline");
 }
 
 /// **The closing state** (item 3617): run1260's closing block 6074, the
@@ -561,5 +566,6 @@ fn inca_classical_pair_run1270b_s_closing_frame_is_widened_whole() {
     // `gatherers` agree now that `produce_city` walks its citizens by
     // object number (`docs/AI.md` §358.4).
     // Item 4159's residue: 94 -> 93, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 93, "run1270b baseline");
+    // Item 4435: 93 -> 91, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 91, "run1270b baseline");
 }

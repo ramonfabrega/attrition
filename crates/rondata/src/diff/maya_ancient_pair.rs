@@ -204,7 +204,8 @@ fn maya_ancient_pair_run1234b_s_word_frame_is_widened_whole() {
     // wound on 4386 and the Bowmen `1/44`..`1/46`'s angles from 4396
     // agree with it. What stands is the standing families (4177, 4179,
     // groups 77 and 78 from 4202 and 4238, `1/79`'s `form` on 4302).
-    pin_eq!(w.firsts.len(), 82, "run1234b baseline");
+    // Item 4435: 82 -> 77, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 77, "run1234b baseline");
 }
 
 /// **The closing state** (item 3600): run1234's closing block 5936, the
@@ -304,5 +305,6 @@ fn maya_ancient_pair_run1248_s_closing_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 86, "run1248 baseline");
+    // Item 4435: 86 -> 72, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 72, "run1248 baseline");
 }

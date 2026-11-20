@@ -1071,6 +1071,11 @@ pub struct Tuning {
     pub city_heal_rate: i32,
     /// Whether Chinese cities are founded as Large Cities.
     pub chinese_large_cities: i32,
+    /// `CHINESE_LARGE_CITY` (constants `+0x784`, beside the plural's
+    /// `+0x788`): read by `Setup::build_cities@005ab910` alone, which
+    /// converts the start's Small City to a Large City before its start
+    /// when either flag is set (item 4436).
+    pub chinese_large_city: i32,
     /// Percent faster Mayan construction.
     pub maya_building_speed: i32,
     /// Percent faster construction with Versailles. Ships as zero.
@@ -1840,6 +1845,7 @@ impl Tuning {
         thesenator_build_armor: 5,
         city_heal_rate: 4,
         chinese_large_cities: 1,
+        chinese_large_city: 1,
         maya_building_speed: 20,
         versailles_building_speed: 0,
         tobacco_building_speed: 10,
@@ -2755,6 +2761,7 @@ impl Tuning {
             ),
             ("CITY_HEAL_RATE", Slot::Value(T.city_heal_rate)),
             ("CHINESE_LARGE_CITIES", Slot::Value(T.chinese_large_cities)),
+            ("CHINESE_LARGE_CITY", Slot::Value(T.chinese_large_city)),
             ("MAYA_BUILDING_SPEED", Slot::Value(T.maya_building_speed)),
             (
                 "VERSAILLES_BUILDING_SPEED",

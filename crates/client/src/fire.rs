@@ -485,11 +485,12 @@ mod tests {
     /// Item 4292: the drawn plume 10,936 → 10,838 of 21,021 → 20,949, past 1,977 → 2,068 (a named fall from 10,936): the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white; the packet's 11,826 → 11,830. Its residue is parked 4292e.
     /// Item 4311: the drawn plume 10,838 → 10,772 of 20,949 → 20,161, past 2,068 → 2,236 (a named fall from 10,838, theirs the fires off shrinking with the white); the packet's 11,830 → 11,728: the map's edge border drawn (item 4311, `docs/RENDERER.md` §3.15) moves the frame's mean, so its white.
     /// Item 4319: the drawn plume 10,772 → 10,773 of 20,161 → 20,165, past 2,236 → 2,238, dense 1,016 → 1,015 (a named fall of one); the packet's 11,728 → 11,726 (a named fall of two): the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24) moves the frame's mean, so its white.
+    /// Item 4438: the drawn plume 10,773 → 10,765 of 20,165 → 19,963, past 2,238 → 2,263, dense 1,015 → 980 (a named fall of the reader's base); the packet's 11,726 → 11,707: the buildings' trim drawn in the owner's colour (item 4438, `docs/RENDERER.md` §5.3) reddens the fires-off scene each pixel is classed against.
     const RUN1559B_3279_PLUME: PlumeRows = [
-        ((10773, 20165, 2238), (14872, 1015)),
-        ((0, 20165, 0), (0, 0)),
-        ((20165, 20165, 0), (16955, 3210)),
-        ((11726, 20165, 1821), (14034, 1905)),
+        ((10765, 19963, 2263), (14801, 980)),
+        ((0, 19963, 0), (0, 0)),
+        ((19963, 19963, 0), (16895, 3068)),
+        ((11707, 19963, 1866), (14030, 1834)),
     ];
     /// **`RUN1570_PLUME`**, on run1570's frame 3327: as run1559b's. Seen
     /// at **316** of 18,871 (made to fail: 944). Item 4233: **316 →
@@ -516,11 +517,12 @@ mod tests {
     /// Item 4292: the drawn plume 11,071 → 10,862 of 20,141 → 19,668, past 1,561 → 1,796 (a named fall from 11,071): the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white; the packet's 12,274 → 12,121. Its residue is parked 4292e.
     /// Item 4311: the drawn plume 10,862 → 10,825 of 19,668 → 19,322, past 1,796 → 1,918 (a named fall from 10,862, theirs the fires off shrinking with the white); the packet's 12,121 → 12,012: the map's edge border drawn (item 4311, `docs/RENDERER.md` §3.15) moves the frame's mean, so its white.
     /// Item 4319: the drawn plume 10,825 → 10,827 of 19,322 → 19,324, past 1,918 → 1,916; the packet's 12,012 → 12,015, past 1,479 → 1,478: the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24) moves the frame's mean, so its white.
+    /// Item 4438: the drawn plume 10,827 → 10,829 of 19,324 → 19,071, past 1,916 → 1,933, dense 1,002 → 982; the packet's 12,015 → 12,003 (a named fall of twelve): the buildings' trim drawn in the owner's colour (item 4438, `docs/RENDERER.md` §5.3) reddens the fires-off scene each pixel is classed against.
     const RUN1570_PLUME: PlumeRows = [
-        ((10827, 19324, 1916), (14759, 1002)),
-        ((0, 19324, 0), (0, 0)),
-        ((19324, 19324, 0), (16140, 3184)),
-        ((12015, 19324, 1478), (13471, 2271)),
+        ((10829, 19071, 1933), (14671, 982)),
+        ((0, 19071, 0), (0, 0)),
+        ((19071, 19071, 0), (16032, 3039)),
+        ((12003, 19071, 1488), (13382, 2240)),
     ];
 
     #[test]

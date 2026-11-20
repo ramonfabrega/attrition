@@ -288,7 +288,8 @@ fn mongol_gunpowder_pair_run1279b_s_word_frame_is_widened_whole() {
     // Item 3688: 90 → 89. who=1's `leader:attack` agrees with the
     // Monarch's cavalry arm of `UnitData::attack` (`docs/AI.md` §349.1).
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 89 -> 77.
-    pin_eq!(w.firsts.len(), 77, "run1279b baseline");
+    // Item 4435: 77 -> 76, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 76, "run1279b baseline");
 }
 
 /// run1292: the gap before the word's window, blocks 1895..1975 at
@@ -424,7 +425,8 @@ fn mongol_gunpowder_pair_run1292b_s_word_frame_is_widened_whole() {
     // `1/94` and `1/95` each hold the attack on `0/11`, and `1/84` the
     // second `GROUPATTACKTOORDER`.
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 139 -> 135.
-    pin_eq!(w.firsts.len(), 135, "run1292b baseline");
+    // Item 4435: 135 -> 109, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 109, "run1292b baseline");
 }
 
 /// run1296b: the word 5047's window, blocks 5041..5297 at run1292's
@@ -492,7 +494,8 @@ fn mongol_gunpowder_pair_run1296b_s_word_frame_is_widened_whole() {
     // Item 3688: 119 → 118, block 5041's `leader:attack` agreeing (the
     // Monarch's cavalry arm, `docs/AI.md` §349.1).
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 118 -> 114.
-    pin_eq!(w.firsts.len(), 114, "run1296b baseline");
+    // Item 4435: 114 -> 93, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 93, "run1296b baseline");
 }
 
 /// run1298: the closing window, blocks 5297..5400 at run1296b's detail,
@@ -553,7 +556,8 @@ fn mongol_gunpowder_pair_run1298_s_closing_window_is_widened_whole() {
     // cavalry arm, `docs/AI.md` §349.1).
     // Item 4159's residue: 114 -> 113, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 113 -> 109.
-    pin_eq!(w.firsts.len(), 109, "run1298 baseline");
+    // Item 4435: 109 -> 88, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 88, "run1298 baseline");
 }
 
 /// **The closing state** (item 3636): run1279's closing block 5400, the
@@ -671,7 +675,8 @@ fn mongol_gunpowder_pair_the_long_s_stride_walks_back_from_4499() {
     // and new buildings' `build:extra`, who=1's groups' `held` and pools as
     // each is minted, and new units' `form`. No unit's position or orders
     // part through block 4401.
-    pin_eq!(w.firsts.len(), 187, "the late stride's baseline");
+    // Item 4435: 187 -> 148, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 148, "the late stride's baseline");
 }
 
 /// run1292c: the walk back from the word 4499, blocks 4395..4495 at
@@ -729,5 +734,6 @@ fn mongol_gunpowder_pair_run1292c_walks_back_from_4499() {
     // round leaves through piece 153's pivot and strikes `0/5` on 4474, so
     // block 4475's treaties, wound and flight agree.
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 136 -> 132.
-    pin_eq!(w.firsts.len(), 132, "run1292c baseline");
+    // Item 4435: 132 -> 105, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 105, "run1292c baseline");
 }

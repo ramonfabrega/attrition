@@ -197,7 +197,8 @@ mod bodies {
             // Item 919 208 fewer: run78's `GUY` records are the short form,
             // so gaia's 104 animals' `cur_anim` and `cur_time` read `theirs
             // None` and are named unprinted now, not parting.
-            12,
+            // Item 4435: 12 -> 11, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+            11,
             "every row standing on the old word's block"
         );
         // **The floor**: 437 keys standing on the window's first block,
@@ -220,7 +221,8 @@ mod bodies {
         // 15800, above.
         // Item 1330 took 40 (106/107 → 66/66): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): (25, 25) -> (12, 12).
-        pin_eq!((first, firsts.len()), (12, 12), "the floor");
+        // Item 4435: firsts.len()), (12, 12) -> firsts.len()), (11, 11), a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+        pin_eq!((first, firsts.len()), (11, 11), "the floor");
     }
 
     pub(in super::super) fn run221_s_word_frame_is_widened_whole() {
@@ -500,7 +502,8 @@ mod bodies {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index.
         pin_eq!(
             under,
-            ["16681 1/63 form: ours -1 theirs 0"],
+            // Item 4435: ["16681 1/63 form: ours -1 theirs 0"] -> Vec::<String>::new(), a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+            Vec::<String>::new(),
             "the rows under the word and on it"
         );
         // **The census, on the window's first block** (the floor's): who=1's
@@ -558,7 +561,8 @@ mod bodies {
             // against 68, `1/11` 64 against −1, army 1's `1/48`..`1/60` 71
             // against 70 among them — who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
             // Item 1106: → 274/274, who=1's `territory` 305 against 302, summed at the border pass's end (`docs/AI.md` §84).
-            [24, 24],
+            // Item 4435: [24, 24] -> [23, 23], a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+            [23, 23],
             "every row standing on the word's pre-state and its block"
         );
         // **Past the word to the window's end** (the word left for 16982,
@@ -618,7 +622,8 @@ mod bodies {
         // Item 1291 took (159, 166, 167) → (159, 166, 166): a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (159, 166, 166).
         // Item 1330 took 41 (153/158/158 → 112/115/115): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under_n, firsts.len()), (23, 24, 24), "the floor");
+        // Item 4435: under_n, firsts.len()), (23, 24, 24) -> under_n, firsts.len()), (23, 23, 23), a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+        pin_eq!((first, under_n, firsts.len()), (23, 23, 23), "the floor");
     }
 
     pub(in super::super) fn run233_s_word_frame_is_widened_whole() {
@@ -1026,7 +1031,8 @@ mod bodies {
             // `group` on 17575, 64 on both sides (ours −1 before): the
             // trained squad's birth push, `come_out`'s (parked 689,
             // `docs/GROUPS.md` §31).
-            (23, 0, 23, 24),
+            // Item 4435: (23, 0, 23, 24) -> (23, 0, 23, 23), a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+            (23, 0, 23, 23),
             "the floor"
         );
     }
@@ -1507,7 +1513,8 @@ mod bodies {
         // 0 there, the standing shape of every group member's.
         pin_eq!(
             under(FIRST + 1, TURN),
-            ["19414 1/78 form: ours -1 theirs 0"],
+            // Item 4435: ["19414 1/78 form: ours -1 theirs 0"] -> Vec::<String>::new(), a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+            Vec::<String>::new(),
             "the keys first parting under the old word"
         );
         // **Under item 850's word and on it, the move's value diff** (item
@@ -1590,7 +1597,8 @@ mod bodies {
             // −1, army 1's 70 against 69): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
             // Item 1106: → 288/0/289/290, who=1's wealth, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84): `leftover[2:wealth]` 1938 against 1930 on 19408.
             // Item 4328: (24, 0, 25, 25) → (23, 0, 24, 24), a `reg_unpack_merch` row agreeing (a packed merchant left out).
-            (23, 0, 24, 24),
+            // Item 4435: (23, 0, 24, 24) -> (23, 0, 23, 23), a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+            (23, 0, 23, 23),
             "the floor"
         );
     }
@@ -1720,7 +1728,8 @@ mod bodies {
         // Item 1330 took 46 (162/0/162/167 → 116/0/116/119): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         pin_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (24, 0, 24, 25),
+            // Item 4435: (24, 0, 24, 25) -> (23, 0, 23, 24), a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+            (23, 0, 23, 24),
             "the floor"
         );
     }

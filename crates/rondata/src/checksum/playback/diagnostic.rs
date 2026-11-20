@@ -31,6 +31,40 @@ pub(super) fn verify_record(
     Ok(())
 }
 
+/// Every byte of the parted range that differs, not only the first (item
+/// 4436): a wide range, such as the world line's tile masks, can part on
+/// a whole footprint, and its first byte names one tile of it. Empty
+/// where the range parts on one byte alone.
+fn census(ours: &[u8], original: &[u8]) -> String {
+    const LISTED: usize = 32;
+    let differing: Vec<usize> = (0..ours.len().max(original.len()))
+        .filter(|&n| ours.get(n) != original.get(n))
+        .collect();
+    if differing.len() < 2 {
+        return String::new();
+    }
+    let at = |bytes: &[u8], n: usize| {
+        bytes
+            .get(n)
+            .map_or_else(|| "end".into(), |x| format!("{x:#04x}"))
+    };
+    let listed: Vec<String> = differing
+        .iter()
+        .take(LISTED)
+        .map(|&n| format!("{n}: {}|{}", at(ours, n), at(original, n)))
+        .collect();
+    format!(
+        "; {} bytes differ (ours|original): {}{}",
+        differing.len(),
+        listed.join(", "),
+        if differing.len() > LISTED {
+            ", …"
+        } else {
+            ""
+        }
+    )
+}
+
 pub(super) fn explain(
     i: usize,
     ours: Option<&Line>,
@@ -114,6 +148,7 @@ pub(super) fn explain(
             use std::fmt::Write;
             write!(detail, ", {field} ours {ours}, original {original}").unwrap();
         }
+        detail.push_str(&census(&a.bytes, &b.bytes));
         return Ok(detail);
     }
     Err(format!(
