@@ -331,7 +331,7 @@ fn a_trade_order_and_a_route_s_end_clear_the_unloaded_bit() {
 }
 
 /// **A dying `TRADE_ROUTE` ends the route in the kill** (item 4463,
-/// `kill_current_order@005e2cb0:119`–`120`): run1724's Inca caravan, its
+/// `kill_current_order@005e2cb0:119`–`120`): run1724's caravan `12`, its
 /// home captured on 3887, holds no order and a clear `unit_masks & 0x200`
 /// on 3888. The kill itself runs `end_trade_route`, not the next frame's
 /// `caravan_work`.

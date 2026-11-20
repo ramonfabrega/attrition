@@ -351,7 +351,7 @@ impl Sim {
             // `kill_current_order@005e2cb0:119`–`120`: a dying `TRADE_ROUTE`
             // ends the route there and then, while it is still the action,
             // so its two cities let the link go on the same frame (item
-            // 4463: run1724's Inca caravan `4/12`, its home captured on
+            // 4463: run1724's caravan `12`, its home captured on
             // 3887, `unit_masks & 0x200` and city 8's link gone on 3888;
             // until now `caravan_work` ended it a frame late).
             Body::Trade(_) => self.end_trade_route(u),
