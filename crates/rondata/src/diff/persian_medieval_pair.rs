@@ -195,7 +195,8 @@ fn persian_medieval_pair_run1181b_s_word_frame_is_widened_whole() {
     // births' `form` and groups' `held` as they come.
     // Item 3708: 86 → 85, a fort placed but not built no longer
     // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
-    pin_eq!(w.firsts.len(), 85, "run1181b baseline");
+    // Item 4435: 85 -> 79, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 79, "run1181b baseline");
 }
 
 /// run1189: the landing's window, blocks 2160..2220 at the long's detail
@@ -261,7 +262,8 @@ fn persian_medieval_pair_run1189_lands_the_explorer_on_its_attack() {
     // Explorer's orders agree on 2172.
     // Item 3708: 77 → 76, a fort placed but not built no longer
     // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
-    pin_eq!(w.firsts.len(), 76, "run1189 baseline");
+    // Item 4435: 76 -> 75, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 75, "run1189 baseline");
 }
 
 /// run1189b: the word 4038's window, blocks 4033..4289 at the long's
@@ -351,7 +353,8 @@ fn persian_medieval_pair_run1189b_s_word_frame_is_widened_whole() {
     // against 8), both 149 13/16 on 4284.
     // Item 4177: 116 -> 118, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 4283 ours 7 theirs 8; who=1 `hits_current_frame` 4283 ours 7 theirs 8 (docs/LEADERS.md §3.5).
     // Item 4159r5: 118 -> 114, the launch rows of pieces 1882 (1): rounds that left the figure's square leave from their bays.
-    pin_eq!(w.firsts.len(), 114, "run1189b baseline");
+    // Item 4435: 114 -> 86, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 86, "run1189b baseline");
     // The count cannot see the Peltasts' bays: `0/2000`'s `build:damage`
     // parts later on either tree, so the key set is the same. Its frame is
     // the pin — 4048 when the javelins leave the figure, 4193 from the bay,
@@ -428,7 +431,8 @@ fn persian_medieval_pair_run1211_s_word_frame_is_widened_whole() {
     // `damage` 584 against 585 on 4530.
     // Item 4177: 112 -> 118, +6 firsts, the combat rates' own: who=0 `damage_current_frame` 4518 ours 14 theirs 15; who=1 `hits_current_frame` 4518 ours 14 theirs 15; who=0 `average_damage_rate` 4751 ours 4995 theirs 5045; who=0 `damage_fifteen_seconds` 4751 ours 444 theirs 445 (docs/LEADERS.md §3.5).
     // Item 4159r5: 118 -> 110, the launch rows of pieces 114 (18), 1882 (114): rounds that left the figure's square leave from their bays.
-    pin_eq!(w.firsts.len(), 110, "run1211 baseline");
+    // Item 4435: 110 -> 81, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 81, "run1211 baseline");
 }
 
 /// **The long's stride, walked back from the word 4038** (item 3554):
@@ -477,7 +481,8 @@ fn persian_medieval_pair_the_long_s_stride_walks_back_from_4038() {
     // -1 theirs -2, under `[AttackTo, Attack(0/10), Move]`. Both read -2
     // on every stride block 1501..3901 (`1/46` from 1801). The fix is
     // `do_move`'s `k` exemption; 153 keys, the standing families alone.
-    pin_eq!(w.firsts.len(), 153, "the stride's baseline");
+    // Item 4435: 153 -> 121, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 121, "the stride's baseline");
 }
 
 /// **The pair's closing state**: run1181's closing dump, block 4760,

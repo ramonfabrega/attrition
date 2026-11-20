@@ -336,7 +336,8 @@ fn russian_modern_pair_run1161b_s_word_frame_is_widened_whole() {
     // groups 73, 91, 92 and 93's `held` and pool, `form` on `1/122`,
     // `1/145`, `1/155`, and who=1's reassembly on block 3808.
     // Item 4159's twelfth residue: 127 -> 114, the CEO's tile step marks the economy dirty.
-    pin_eq!(w.firsts.len(), 114, "run1161b baseline");
+    // Item 4435: 114 -> 107, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 107, "run1161b baseline");
 }
 
 /// run1166b: the word 4097's window, blocks 4092..4348 at the long's detail —
@@ -406,7 +407,8 @@ fn russian_modern_pair_run1166b_s_word_frame_is_widened_whole() {
     // two tiles of sight lit them); what is left is the standing families
     // and who=1's reassembly on block 4104 (3522a).
     // Item 4159's twelfth residue: 147 -> 131, the CEO's tile step marks the economy dirty.
-    pin_eq!(w.firsts.len(), 131, "run1166b baseline");
+    // Item 4435: 131 -> 107, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 107, "run1166b baseline");
 }
 
 /// run1170: the word 5651's window, blocks 5645..5841 at the long's detail —
@@ -484,7 +486,8 @@ fn russian_modern_pair_run1170_s_word_frame_is_widened_whole() {
     // Item 4177: 177 -> 179, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 5786 ours 6 theirs 7; who=1 `hits_current_frame` 5786 ours 6 theirs 7 (docs/LEADERS.md §3.5).
     // Item 4159r5: 179 -> 173, the launch rows of pieces 57 (22): rounds that left the figure's square leave from their bays.
     // Item 4159's twelfth residue: 173 -> 167, the CEO's tile step marks the economy dirty.
-    pin_eq!(w.firsts.len(), 167, "run1170 baseline");
+    // Item 4435: 167 -> 120, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 120, "run1170 baseline");
 }
 
 /// run1168: the gap before the word 4097's window, blocks 3928..4098 at the
@@ -542,7 +545,8 @@ fn russian_modern_pair_run1168_s_gap_is_widened_whole() {
     // against theirs 21, and 878 path keys with them. The fix (the barge's
     // sweep round slot 0): 1881 → 114, the standing families alone.
     // Item 4159's twelfth residue: 114 -> 109, the CEO's tile step marks the economy dirty.
-    pin_eq!(w.firsts.len(), 109, "run1168 baseline");
+    // Item 4435: 109 -> 101, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 101, "run1168 baseline");
 }
 
 /// run1162: the gap before the word 3682's window, blocks 259..3682 at one
@@ -590,7 +594,8 @@ fn russian_modern_pair_run1162_s_gap_is_widened_whole() {
     // `income` on 3400 (3487 against 3753: the CEO's city, run1162e). With
     // the three built, 121: the standing families and `dest_angle` on
     // `1/34`, `1/70` and `1/130`.
-    pin_eq!(w.firsts.len(), 121, "run1162 baseline");
+    // Item 4435: 121 -> 105, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 105, "run1162 baseline");
 }
 
 /// run1162c: the first parting's window, blocks 2174..2210 at the long's
@@ -636,7 +641,8 @@ fn russian_modern_pair_run1162c_s_first_parting_is_widened_whole() {
     // 2187 — the site `1/2038` (type 422, `construct_hits` 1) disbanded and
     // refunded 160 timber and 110 metal on theirs, priced after its close.
     // With `SimDisband` pricing after the close, 90: the standing families.
-    pin_eq!(w.firsts.len(), 90, "run1162c baseline");
+    // Item 4435: 90 -> 87, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 87, "run1162c baseline");
 }
 
 /// run1162d: the territory census's window, blocks 2596..2622 at the long's
@@ -682,7 +688,8 @@ fn russian_modern_pair_run1162d_s_census_is_widened_whole() {
     // the census counted the live map, sea cells too, where
     // `get_team_terr@006d62e0` sums `LeaderData::territory`. With the field,
     // 94: the standing families.
-    pin_eq!(w.firsts.len(), 94, "run1162d baseline");
+    // Item 4435: 94 -> 93, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 93, "run1162d baseline");
 }
 
 /// run1162e: the wealth's window, blocks 3376..3402 at the long's detail
@@ -728,7 +735,8 @@ fn russian_modern_pair_run1162e_s_wealth_is_widened_whole() {
     // (`gov` 626 → 628) brought the CEO into a city. With
     // `THECEO_PRODUCTION_BONUS`, 106: the standing families and
     // `dest_angle` on `1/34` (3379) and `1/70` (3401).
-    pin_eq!(w.firsts.len(), 106, "run1162e baseline");
+    // Item 4435: 106 -> 101, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 101, "run1162e baseline");
 }
 
 /// **The word's road search, node for node** (item 3524): every road search
@@ -845,5 +853,6 @@ fn russian_modern_pair_run1149_s_gap_before_5651_is_widened_whole() {
     // (`form`, `SITE[i].reg`, the groups' `held` and pool, a building's
     // `build:extra`) or a figure's `mirror`. The long prints `UNITDATA` and
     // `GUYDATA` alone, so no leader row is compared here.
-    pin_eq!(w.firsts.len(), 252, "run1149 gap baseline");
+    // Item 4435: 252 -> 194, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 194, "run1149 gap baseline");
 }

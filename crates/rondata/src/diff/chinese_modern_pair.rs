@@ -187,7 +187,8 @@ fn chinese_modern_pair_the_long_s_stride_is_widened() {
     // Item 3782, 207 → 177: the Submarine's re-chosen slot agrees —
     // `find_unit_with_radius` asks the disc's cells, so its block-0 re-place
     // no longer sees a unit across a cell line (`docs/AI.md` §378.2).
-    pin_eq!(w.firsts.len(), 177, "the stride's baseline");
+    // Item 4435: 177 -> 135, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 135, "the stride's baseline");
 }
 
 /// run1431b: the pair's closing window, blocks 3875..4131 at the long's
@@ -259,7 +260,8 @@ fn chinese_modern_pair_run1431b_s_closing_frame_is_widened_whole() {
     // Item 4176: 125 -> 128, +3 firsts: who=0's `attack_stamp[1]`, `raid_stamp[1]` and `ally_stamp[1]` on 4063, ours 3761 theirs 4062, beside the rounds' own partings (71 against 73).
     // Item 4177: 128 -> 130, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 4063 ours 0 theirs 1; who=1 `hits_current_frame` 4063 ours 0 theirs 1 (docs/LEADERS.md §3.5).
     // Item 4159r5: 130 -> 121, the launch rows of pieces 68 (14): rounds that left the figure's square leave from their bays.
-    pin_eq!(w.firsts.len(), 121, "run1431b baseline");
+    // Item 4435: 121 -> 87, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 87, "run1431b baseline");
     // Item 4159r5: (71, 73) -> (71, 71), the launch rows of pieces 68 (14): rounds that left the figure's square leave from their bays.
     pin_eq!(w.rounds_read, (71, 71), "the rounds read");
     // Every round, both directions: 71 in ours against 73, 52 parting —

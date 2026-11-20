@@ -330,7 +330,8 @@ fn run970d_s_gap_is_widened_whole() {
     // elephant arm. **67 → 62** with the arm: the standing set alone.
     // Item 4159's residue: 63 -> 62, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 62 -> 50.
-    pin_eq!(w.firsts.len(), 50, "keys that part in the gap");
+    // Item 4435: 50 -> 45, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 45, "keys that part in the gap");
 }
 
 /// run970e: the word 14594's window, blocks 14588..14845 at run970's
@@ -404,7 +405,8 @@ fn run970e_s_word_frame_is_widened_whole() {
     // 33048)/(21912, 32664) → agreeing. **929 → 56**: the 54 standing on
     // 14588 and who=1's `group:71.held` and `pool:71` on 14640, the
     // control's late rows as run970's 177 and 222. The word 14631 → 24000.
-    pin_eq!(w.firsts.len(), 42, "keys that part in the window");
+    // Item 4435: 42 -> 41, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 41, "keys that part in the window");
 }
 
 /// The closing state's window: run962b's closing block alone, the long's

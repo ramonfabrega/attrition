@@ -3211,8 +3211,8 @@ const WANT_CH20: &[&str] = &[
     // its disembark, 1160, ours 0 against 15, and its turn after — until
     // item 1164 put it ashore at the average it boarded with
     // (`docs/TRANSPORT.md` §6.4): ten rows, all agreeing.
-    "704 0/8 form",
-    "830 0/9 form",
+    // Item 4435: "704 0/8 form" and "830 0/9 form", births through
+    // `transport_boat`, now take `Unit::init`'s `form` 0, and agree.
 ];
 // **What parts in the pool**: the 620 toggle's pushed selection's
 // `ox`/`oy`, (0, 0) there and (−1, −1) here, chapter nineteen's standing
@@ -7862,7 +7862,7 @@ const WANT_CH46: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "704 0/10 form",
+    // Item 4435: "704 0/10 form", a boat's birth `form` (`transport_boat`, 0), agrees.
 ];
 
 /// Chapter forty-six's pool rows (item 1278): run496 whole, all the
@@ -8001,7 +8001,7 @@ const WANT_CH47: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "708 0/12 form",
+    // Item 4435: "708 0/12 form", a boat's birth `form` (`transport_boat`, 0), agrees.
 ];
 
 /// Chapter forty-seven's pool rows (item 1310): run514 whole — slot 0,
@@ -8044,7 +8044,7 @@ const WANT_CH43: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "704 0/10 form",
+    // Item 4435: "704 0/10 form", a boat's birth `form` (`transport_boat`, 0), agrees.
 ];
 
 /// Chapter forty-three's pool rows (items 1223, 1235, 1248): none, run466

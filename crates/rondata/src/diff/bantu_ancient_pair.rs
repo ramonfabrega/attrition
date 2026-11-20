@@ -193,7 +193,8 @@ fn bantu_ancient_pair_run1206b_s_word_frame_is_widened_whole() {
     // `SITE[i].reg`, both leaders' `aggression`, who=1's groups' `held`
     // and pools), group `75`'s `held` and pool on 4186, and on 4360
     // `1/175`'s `form`, ours -1 against theirs 0.
-    pin_eq!(w.firsts.len(), 113, "run1206b baseline");
+    // Item 4435: 113 -> 90, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 90, "run1206b baseline");
 }
 
 /// run1236: who=1's make list walked back, blocks 3970..4186 at the long's
@@ -253,7 +254,8 @@ fn bantu_ancient_pair_run1236_s_make_list_is_widened_whole() {
     // `form`, `SITE[i].reg`, both leaders' `aggression`, who=1's groups'
     // `held` and pools) and two groups' `held` and pool on 4034 and 4106
     // (`80`: `[47]`, `86`: `[30]`), which theirs never prints.
-    pin_eq!(w.firsts.len(), 115, "run1236 baseline");
+    // Item 4435: 115 -> 92, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 92, "run1236 baseline");
 }
 
 /// run1236b: the word 5072's window, blocks 5066..5322 at the long's
@@ -318,7 +320,8 @@ fn bantu_ancient_pair_run1236b_s_word_frame_is_widened_whole() {
     // 5253) stand: both are the **buried** `ATTACKORDER`'s target, which
     // this crate does not carry — the current attack agrees on both sides
     // on both blocks (`docs/AI.md` §315.3, parked 3592a).
-    pin_eq!(w.firsts.len(), 94, "run1236b baseline");
+    // Item 4435: 94 -> 89, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 89, "run1236b baseline");
 }
 
 /// **The long's stride, walked back from the word 5072** (item 3591):
@@ -363,7 +366,8 @@ fn bantu_ancient_pair_the_long_s_stride_walks_back_from_5072() {
     // `form` and `build:extra` — from 101 through 5001: no unit field
     // parts on any stride block, so the state run1236b opens apart on
     // 5066 parts after 5001.
-    pin_eq!(w.firsts.len(), 182, "the stride's baseline");
+    // Item 4435: 182 -> 150, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 150, "the stride's baseline");
 }
 
 /// run1238: the stride's gap walked, blocks 4995..5073 at the long's
@@ -422,7 +426,8 @@ fn bantu_ancient_pair_run1238_walks_the_parting_back_from_5066() {
     // ours threw from the figure's own square (6792, 8520) for 16.
     //
     // With the Umpakati's bays: **92**, the standing families alone.
-    pin_eq!(w.firsts.len(), 92, "run1238 baseline");
+    // Item 4435: 92 -> 84, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 84, "run1238 baseline");
 }
 
 /// run1238d: the word 5322's window, blocks 5316..5572 at the long's
@@ -492,7 +497,8 @@ fn bantu_ancient_pair_run1238d_s_word_frame_is_widened_whole() {
     // What stands is the standing families, the buried target (3592a) and
     // eight guards' `dest_angle` (5380..5474, 3580b's shape).
     // Item 4159's residue: 95 -> 94, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 94, "run1238d baseline");
+    // Item 4435: 94 -> 91, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 91, "run1238d baseline");
 }
 
 /// **The pair's closing state**: run1206's closing dump, block 6211, walked
@@ -599,5 +605,6 @@ fn bantu_ancient_pair_run1240_s_closing_frame_is_widened_whole() {
     // from the window's first block 5955: `form`, `SITE[i].reg`,
     // `aggression[1]` and who=1's groups' `held` and pools. No unit,
     // building or city field parts, and the closing block agrees.
-    pin_eq!(w.firsts.len(), 73, "run1240 baseline");
+    // Item 4435: 73 -> 70, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 70, "run1240 baseline");
 }

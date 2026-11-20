@@ -186,7 +186,8 @@ fn dutch_medieval_pair_the_long_s_stride_walks_back_from_7063() {
     // ours' 1431655765. Neither spends a draw, and no unit's position or
     // orders part through block 7001.
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 306 -> 299.
-    pin_eq!(w.firsts.len(), 299, "the stride's baseline");
+    // Item 4435: 299 -> 217, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 217, "the stride's baseline");
 }
 
 /// run1273b: the word 7063's window, blocks 7057..7096 at the long's
@@ -259,7 +260,8 @@ fn dutch_medieval_pair_run1273b_s_word_frame_is_widened_whole() {
     // `avoid` (33384, 35064) and takes the no-spot arm; the Citizen's rows
     // and their cascade are gone, and what stands is block 7057's
     // families and two births' `form` (`1/307` on 7063, `1/308` on 7093).
-    pin_eq!(w.firsts.len(), 145, "run1273b baseline");
+    // Item 4435: 145 -> 113, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 113, "run1273b baseline");
 }
 
 /// **The closing state** (item 3621): run1273's closing block 7096, the

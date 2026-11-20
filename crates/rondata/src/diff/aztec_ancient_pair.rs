@@ -201,7 +201,8 @@ fn aztec_ancient_pair_run1256b_s_word_frame_is_widened_whole() {
     // collides in theirs alone (`collide_o` 3, path 4 against 1); the word's
     // extra draw is theirs' `Guy::set_anim < Unit::move_step`, at index 2.
     // Item 3613, with piece 36's bays: 136, the standing families alone.
-    pin_eq!(w.firsts.len(), 121, "run1256b baseline");
+    // Item 4435: 121 -> 94, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 94, "run1256b baseline");
 }
 
 /// **The long's stride, walked back from the word 8716** (item 3604):
@@ -254,7 +255,8 @@ fn aztec_ancient_pair_the_long_s_stride_walks_back_from_8716() {
     // Item 4333, `gain_tech`'s unit arm raises `0x4000000` for the Militia line alone: 294 -> 293, `1/107`'s
     // `mylos` (the Catapult, 4 against 10 from 5701 as item 3604 booked it) agrees, its cache no longer refreshed by
     // a gain off the line.
-    pin_eq!(w.firsts.len(), 293, "the stride's baseline");
+    // Item 4435: 293 -> 195, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 195, "the stride's baseline");
 }
 
 /// run1266: the gap's window, blocks 8596..8710 at run1256b's detail with
@@ -314,7 +316,8 @@ fn aztec_ancient_pair_run1266_s_gap_is_widened_whole() {
     // `dest_angle` alone.
     // Item 4159's residue: 142 -> 141, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 141 -> 129.
-    pin_eq!(w.firsts.len(), 129, "run1266 baseline");
+    // Item 4435: 129 -> 103, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 103, "run1266 baseline");
 }
 
 /// **The closing state** (item 3613): run1256's closing block 9259, the
@@ -412,5 +415,6 @@ fn aztec_ancient_pair_run1266d_s_closing_frame_is_widened_whole() {
     // Item 3613: 163 keys, the standing families alone, through the
     // closing block 9259.
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 163 -> 145.
-    pin_eq!(w.firsts.len(), 145, "run1266d baseline");
+    // Item 4435: 145 -> 100, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 100, "run1266d baseline");
 }

@@ -310,7 +310,8 @@ fn sea_melee_run1483_s_word_window_is_widened_whole() {
     // Item 4204: 192 -> 164, −28 on 2601, the head quit's `clear_orders`:
     //   `0/1`..`0/7` `orders.len`/`order:length` 0 = 0, `idle` 1 = 1; the
     //   walker `0/4` stops at theirs' (8736, 12160) (was ours (8712, 12168)).
-    pin_eq!(w.firsts.len(), 164, "run1483's word window");
+    // Item 4435: 164 -> 159, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 159, "run1483's word window");
     pin_eq!(w.rounds_read, (8, 8), "the rounds read");
     pin_eq!(w.rounds.len(), 4, "the rounds that part");
 }
@@ -447,7 +448,8 @@ fn sea_melee_run1486_s_window_is_widened_whole() {
     // `2/16`'s rounds, and 3849a's dead targets (118 → 111, 46 → 24).
     pin_eq!(carrier, vec![], "the carrier's first parted damage");
     pin_eq!(w.blocks, 102, "every block in the window");
-    pin_eq!(w.firsts.len(), 111, "run1486's window");
+    // Item 4435: 111 -> 110, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 110, "run1486's window");
     pin_eq!(w.rounds_read, (381, 381), "the rounds read");
     pin_eq!(w.rounds.len(), 24, "the rounds that part");
 }
@@ -518,7 +520,8 @@ fn sea_melee_run1487_s_window_is_widened_whole() {
         .collect();
     pin_eq!(scouts, vec![], "the two scouts' first parted rows");
     pin_eq!(w.blocks, 26, "every block in the window");
-    pin_eq!(w.firsts.len(), 144, "run1487's window");
+    // Item 4435: 144 -> 140, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 140, "run1487's window");
     pin_eq!(w.rounds_read, (121, 121), "the rounds read");
     pin_eq!(w.rounds.len(), 6, "the rounds that part");
 }

@@ -164,7 +164,8 @@ fn run999_s_word_frame_is_widened_whole() {
     // family alone (`SITE[·].reg` 65 against 0, `aggression`, `form` −1
     // against 0/9, the army `pool:n` and `group:n.held` with no `GROUPDATA`
     // printed, the newborn `g.angle[0]`).
-    pin_eq!(w.firsts.len(), 42, "keys that part in the window");
+    // Item 4435: 42 -> 40, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 40, "keys that part in the window");
 }
 
 /// run999b: the word 10982's window, blocks 10976..11232 at `GUYS=4`,
@@ -218,7 +219,8 @@ fn run999b_s_word_frame_is_widened_whole() {
     // head). Built: 575 → 55, the standing family alone (`SITE[·].reg`,
     // `aggression`, `form`, the army `pool:n` and `group:n.held`, the
     // newborn `g.angle[0]`).
-    pin_eq!(w.firsts.len(), 46, "keys that part in the window");
+    // Item 4435: 46 -> 45, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 45, "keys that part in the window");
 }
 
 /// run999c: the word 17215's window, blocks 17209..17465 at `GUYS=4`,
