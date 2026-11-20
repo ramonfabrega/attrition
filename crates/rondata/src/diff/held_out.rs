@@ -1341,16 +1341,96 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         },
         moved: None,
     }),
-    None,
-    None,
-    None,
-    None,
+    // run1734
+    // row 90, as found 2026-11-20: 10 lines whole; units 6,000 of 6,001, first 4021; guys 6,000
+    // of 6,001, first 4021.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                6000, 6001, 6001, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[
+                ("units", (4021, Some(1032385785), 3868390707)),
+                ("guys", (4021, Some(1818783002), 2641849684)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1735
+    // row 110, as found 2026-11-20: 5 lines whole; units 2,702 of 6,001, first 2184; builds
+    // 4,221 of 6,001, first 4221; ammo 4,472 of 6,001, first 3303; groups 3,544 of 6,001, first
+    // 1608; guys 5,977 of 6,001, first 2464; leaders 4,995 of 6,001, first 3176; world 3,999 of
+    // 6,001, first 3809.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                2702, 4221, 6001, 4472, 6001, 3544, 5977, 4995, 6001, 6001, 6001, 3999,
+            ],
+            first: &[
+                ("units", (2184, Some(1779962534), 330632884)),
+                ("builds", (4221, Some(3943548441), 1202439769)),
+                ("ammo", (3303, None, 3094479036)),
+                ("groups", (1608, Some(2931878699), 617474571)),
+                ("guys", (2464, Some(451796102), 1018289160)),
+                ("leaders", (3176, Some(2352774769), 1606385266)),
+                ("world", (3809, Some(2182316411), 2894561759)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1736
+    // row 130, as found 2026-11-20, ended by the original on 4730: 4 lines whole; units 1,704
+    // of 4,731, first 1570; builds 553 of 4,731, first 553; ammo 4,392 of 4,731, first 1601;
+    // deaths 4,084 of 4,731, first 1746; groups 4,553 of 4,731, first 2811; guys 4,566 of
+    // 4,731, first 1736; leaders 1,976 of 4,731, first 1376; world 553 of 4,731, first 553.
+    Some(FirstScore {
+        last: Some(4730),
+        found: Score {
+            states: 4731,
+            agreed: [
+                1704, 553, 4731, 4392, 4084, 4553, 4566, 1976, 4731, 4731, 4731, 553,
+            ],
+            first: &[
+                ("units", (1570, Some(834499912), 2753003137)),
+                ("builds", (553, Some(2297078769), 1047897137)),
+                ("ammo", (1601, Some(2349929217), 941472936)),
+                ("deaths", (1746, Some(1419733817), 1134652217)),
+                ("groups", (2811, Some(2634708853), 2723050627)),
+                ("guys", (1736, Some(4103418160), 1070804956)),
+                ("leaders", (1376, Some(73709351), 1700509480)),
+                ("world", (553, Some(699267042), 2987457272)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1737
+    // row 150, as found 2026-11-20: 12 lines whole.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[],
+            over: None,
+        },
+        moved: None,
+    }),
 ];
 
 /// **Parity held out, second, N of 8** (item 4462): the second battery's
-/// games whole on every line and state, and the games taken.
+/// games whole on every line and state, and the games taken. As found,
+/// 2026-11-20: 1 of 8, row 150 (run1737).
 #[cfg(test)]
-pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (0, 4);
+pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (1, 8);
 
 /// One battery: its declared table, its pins, where its files and takes
 /// sit, and its line in the handoff.

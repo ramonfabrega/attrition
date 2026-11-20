@@ -1138,3 +1138,32 @@ range 1170. Row 120 is now **whole**; units also moves on rows 40, 60, 80,
 
 *Not established*: rows 80 and 100 next part units on `des_angle` (`+0x58`):
 run1720 on 2367, range 2407; run1721 on 1793, range 1581. Unread.
+
+**The second battery, as found** (item 4462, 2026-11-20; DECISIONS 145
+§2). Rows 10, 30, 50, 70, 90, 110, 130 and 150 of the same order, declared
+in `HELD_OUT_SECOND` (`d6adb6cf7`) before any file was recorded, each
+recorded idle by the client's page to 6000 and played by the original as
+`run1730 + k` under the checksum hook. The scores are pinned once in
+`SCORES_SECOND`. Its found column replaces the first's as the estimate:
+**1 of 8 whole, 65 of 96 lines** (the first's was 0 of 8, 64 of 96).
+
+| row | run | lobby | states | whole | lowest first parting |
+|---|---|---|---|---|---|
+| 10 | run1730 | Lakota peace, ages 8..7, `RUSH_RULES 10` | 6,001 | 4 | builds and world 537 |
+| 30 | run1731 | East Indies, Industrial | 4,548, ended on 4547 | 8 | world 1662 |
+| 50 | run1732 | Great Sahara, Gunpowder | 4,455, ended on 4454 | 11 | groups 3352 |
+| 70 | run1733 | Great Lakes, Medieval | 5,141, ended on 5140 | 11 | world 5054 |
+| 90 | run1734 | East Indies, Ancient, difficulty 0 | 6,001 | 10 | units and guys 4021, one state each |
+| 110 | run1735 | East Indies melee, Information, three seats | 6,001 | 5 | groups 1608 |
+| 130 | run1736 | East Indies all-tech, ages 8..7 | 4,731, ended on 4730 | 4 | builds and world 553 |
+| 150 | run1737 | Great Sahara, difficulty 4 | 6,001 | **12** | whole |
+
+The original refused none of the eight files. Row 110 is the only row of
+the sixteen with three seats, and it is played as its lobby stands.
+`docs/RUNS.md` run1730 to run1737 holds every value; the pins hold both
+sides of every first parting.
+
+*Not established*: no parting here names its leaf, since the take holds
+sums. Rows 10 and 130 are the two lobbies that start past the last age
+(`STARTING_TECHNOLOGY 8`), and both part builds and world together early,
+on 537 and 553. That suggests one cause, but neither row is read.
