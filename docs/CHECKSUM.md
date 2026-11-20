@@ -2616,7 +2616,8 @@ and the units line on 22. Value diff, run1325c frame 5578 record 41 (Marines): `
 **Not established.** ~~The entering frame: our predicate is the state at the checksum, while theirs is
 `inside_up` at the unit's own `process`. No packet on disk parts on it.~~ Settled by item 4467
 (diff-backed): run1725's `1/0` boards after its walk on 4026 and keeps `last_z` −33; the arm keys on
-`Unit::processed_outside`, written at `process`'s head. The arm's other effects
+`Unit::processed_outside`, written at `process`'s head. A standing figure's `z` under ground flattened
+after its last step is derived here and stored there (parked 4467a). The arm's other effects
 (the `unit_masks`/`+0x6c` clears and the `come_out` check) are not compared here. The 12 lines the first act
 predicted were not the 15 that turned: run1169 and run1320b keep one range each, and run893b's line did not
 move. Also open: `turret_inc` nonzero on some figure in theirs (byte 58, now the first parting on 9 lines;
