@@ -521,8 +521,12 @@ impl Sim {
         p(0x9c, 2, i64::from(self.object_armor(Obj::Unit(u))));
         p(0x9e, 2, i64::from(un.attrition));
         p(0xa0, 2, i64::from(un.num_queued));
+        // `cavarch_o`: the held target's `o`, else −1, or −2 once a
+        // fire-on-the-move search has come back empty twice running
+        // (`Unit::cavarch_fight@005ff4b0:34`, `cavarch_idle`; item 4443).
         let cast = un.cast_target.map(|o| self.obj_o_who(o));
-        p(0xa2, 2, cast.map_or(-1, |x| x.0));
+        let none = if un.cavarch_idle { -2 } else { -1 };
+        p(0xa2, 2, cast.map_or(none, |x| x.0));
         p(
             0xa4,
             2,
