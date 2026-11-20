@@ -771,29 +771,6 @@ pub(in crate::diff) mod tests {
                 if detail == Some(f) {
                     print_partings(&ours, &theirs);
                 }
-                // PROBE 4454: RON_PROBE_RANGE=<line>:<record>:<lo>-<hi>:<field>
-                if let Ok(v) = std::env::var("RON_PROBE_RANGE") {
-                    let parts: Vec<&str> = v.split(':').collect();
-                    let (lo, hi) = parts[2].split_once('-').unwrap();
-                    let (lo, hi): (i64, i64) = (lo.parse().unwrap(), hi.parse().unwrap());
-                    let want: i16 = parts[1].parse().unwrap();
-                    if (lo..=hi).contains(&f) {
-                        let k = STATE_LINES.iter().position(|n| *n == parts[0]).unwrap();
-                        let hx = |b: &[u8]| b.iter().map(|x| format!("{x:02x}")).collect::<String>();
-                        for (idx, r) in ours[k].ranges.iter().enumerate() {
-                            if r.record != want || r.field != parts[3] {
-                                continue;
-                            }
-                            let t = theirs.get(parts[0]).and_then(|t| t.get(idx));
-                            eprintln!(
-                                "PROBE {f} {} idx {idx} ours {} theirs {}",
-                                parts[0],
-                                hx(&r.bytes),
-                                t.map_or(String::new(), |r| hx(&r.2))
-                            );
-                        }
-                    }
-                }
                 let outcome = compare(&ours, &theirs);
                 for (k, (name, o)) in STATE_LINES.iter().zip(&outcome).enumerate() {
                     let Some(d) = &o.first else { continue };
