@@ -676,15 +676,18 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // run1722): leaders 4,068 -> 4,075, whole -- who=1's seven
         // `resource_cap` words ours 2400, theirs 3200 on 969, its republic
         // taken on 968. The game's first parting 969 -> 1055 (units,
-        // `cavarch_o`, item 4443's leaf).
+        // `cavarch_o`, item 4443's leaf). Moved by item 4447 (an empty
+        // building at its ceiling ejects, run1722): builds 4,073 -> 4,075,
+        // whole -- the human's city `0/2000`'s `build_masks` on 4019 ours 4144,
+        // theirs 20528 (`0x4000`, set by `take_damage`'s
+        // `eject_contents(1, -1, 0, 1)` with no garrison to read).
         moved: Some(Score {
             states: 4075,
             agreed: [
-                1055, 4073, 4075, 4075, 4075, 3863, 3958, 4075, 4066, 4075, 4075, 3984,
+                1055, 4075, 4075, 4075, 4075, 3863, 3958, 4075, 4066, 4075, 4075, 3984,
             ],
             first: &[
                 ("units", (1055, Some(2835614280), 2603158087)),
-                ("builds", (4019, Some(202745570), 1178445602)),
                 ("groups", (3598, Some(3778361523), 962934390)),
                 ("guys", (2014, Some(4240840485), 61413159)),
                 ("cities", (2253, Some(2126061725), 1479221375)),

@@ -11423,3 +11423,44 @@ fn a_lone_captain_s_gather_re_seat_lights_the_disc_where_it_stands() {
         want.centre
     );
 }
+
+/// **An empty building at its ceiling ejects** (item 4447, run1722):
+/// `Object::take_damage@00652020`'s building arm calls `eject_contents(1,
+/// -1, 0, 1)` whenever `hits(0) <= damage` and the building cannot carry
+/// aircraft, attrition's blow included, and on a building
+/// `Object::eject_contents@0064cd20` only sets `build_masks |= 0x4000` and
+/// returns. It reads no garrison. `Build::process_ejection@006201e0` clears
+/// the bit on the building's next `process`, because the chain is empty.
+/// Row 60's city `0/2000`, 1200 of 1200 with no garrison, held `0x5030` on
+/// 4019 where ours held `0x1030`.
+///
+/// Made to fail by restoring the garrison test at the eject in
+/// `damage_building`.
+#[test]
+fn an_empty_city_at_its_ceiling_ejects_until_its_next_process() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b, _) = city_at(&mut sim, &t, 1, 32, 32);
+    assert!(sim.buildings[b].garrison.is_empty());
+    let eight = combat::Sixteenths { whole: 8, frac: 0 };
+    let bd = &mut sim.buildings[b];
+    bd.damage = bd.hits - 20;
+    bd.sync_health();
+    sim.damage_building(b, eight, None, 100, true);
+    assert!(
+        !sim.buildings[b].eject_pending,
+        "short of its ceiling: no ejection"
+    );
+    let bd = &mut sim.buildings[b];
+    bd.damage = bd.hits - 4;
+    bd.sync_health();
+    sim.damage_building(b, eight, None, 101, true);
+    let bd = &sim.buildings[b];
+    assert_eq!(bd.damage, bd.hits, "the clamp");
+    assert!(bd.eject_pending, "at its ceiling, empty: 0x4000");
+    sim.process_building_whole(b, 102);
+    assert!(
+        !sim.buildings[b].eject_pending,
+        "the next process finds the chain empty and clears it"
+    );
+}
