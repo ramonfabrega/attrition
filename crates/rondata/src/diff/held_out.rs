@@ -434,6 +434,76 @@ mod tests {
         }
     }
 
+    /// **Row 60's pushed caravan keeps its crew's `des` on guy 0's body**
+    /// (item 4460, `docs/RECGAME.md` §10.3): run1722, the ranges take of
+    /// run1703's file. On tick 2106 the computer's Caravan `1/40` (type 59)
+    /// is pushed (−2, −2) to (37942, 19990) by a collision.
+    /// `Unit::set_new_location@005f8d20` writes `des` on the squad alone
+    /// (`+0xb5`, one figure), and with `param_3` 0 guy 0's body stays on
+    /// (37944, 19992). The two trackless crew figures' `des` is written only by
+    /// `Guy::set_new_location@005d86f0`'s crew loop, on guy 0's last point.
+    /// This crate reported it as the unit's point. Every units and guys range on
+    /// 2107 and 2108, byte for byte: red on the tree before the fix at units
+    /// range 1429 and guys range 399, record 40, `des_x` (byte 84), ours
+    /// 37942, theirs 37944.
+    #[test]
+    fn row_60_s_pushed_caravan_keeps_its_crew_s_des_on_run1722_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIRST, 3) else {
+            eprintln!("skipping: row 60's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1722/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1722's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 60's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [2107, 2108] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            for (line, ours) in [
+                (0u8, built.sim.checksum_units()),
+                (6u8, built.sim.checksum_guys()),
+            ] {
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == line).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {line}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "line {line} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+                if line == 6 && state == 2107 {
+                    // `1/40`'s first crew figure's `des_x`, by name: bytes
+                    // 84..88 of guys range 399.
+                    assert_eq!(
+                        &theirs[399].bytes[84..88],
+                        &37944i32.to_le_bytes(),
+                        "theirs' crew des_x on {state}"
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 120's barge is born with `form` 0** (item 4435, `docs/RECGAME.md`
     /// §10.3): run1716, the ranges take of run1706's file, holds the units
     /// line's every range on state 2694, where the computer's transport
