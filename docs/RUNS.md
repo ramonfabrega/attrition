@@ -39619,4 +39619,5 @@ Files in place, `~/ron-golden/run1722/map-7/`: `gamelog_p.txt`, 2,414 bytes, SHA
 `be704899b7d606e484c6eba373284c8a16f2b1db1d4f9583b5f9bd7e6d01c087`; `rontrace.ranges`, 2,869,485,940 bytes,
 SHA-256 `836429df5b5e2f77116bacddc5b33504e8e216ed0672df5029dbd9f8b068b669`.
 
-**What it holds**: row 60's leaves for `score_recording`; `SCORES[3].moved` is scored on run1703.
+**What it holds**: row 60's leaves for `score_recording`; `SCORES[3].moved` is scored on run1703. Item 4447 read the
+builds leaf here (range 10, record 2000, `build_masks` on 4019, ours 4144, theirs 20528) and moved builds 4,073 → 4,075.

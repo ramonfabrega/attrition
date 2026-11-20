@@ -1125,3 +1125,7 @@ reaches theirs' caps the next frame (`calc_resource_caps@006ce900` runs every
 frame) and ours only at reassembly, on 976 (`docs/ECONOMY.md`). Read every
 frame, leaders is 4,075 of 4,075 (`SCORES[3].moved`); the row parts first on
 1055, `cavarch_o`. Diff-backed by run1722's ranges.
+
+**Row 60's builds (item 4447).** On 4019 `0/2000`'s `build_masks`: ours
+0x1030, theirs 0x5030; an empty city at its ceiling ejects (`docs/COMBAT.md`
+§7.2). Builds 4,075 of 4,075.
