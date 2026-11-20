@@ -1184,15 +1184,18 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4467 (the guys line's inside arm is chosen at the
         // unit's own `process`): guys 4,949 -> 4,961, first 2487 -> 3107;
         // units stands on 2487, its sum there moved.
+        // Moved by item 4471 (a trackless crew figure's `des` is guy 0's point,
+        // `Guy::set_new_location`'s crew loop): guys 4,961 -> 4,965, first 3107 -> 3190: the sum
+        // on 3107 is now theirs'.
         moved: Some(Score {
             states: 4974,
             agreed: [
-                2487, 4974, 4974, 4974, 4974, 4964, 4961, 4974, 4974, 4974, 4974, 4859,
+                2487, 4974, 4974, 4974, 4974, 4964, 4965, 4974, 4974, 4974, 4974, 4859,
             ],
             first: &[
                 ("units", (2487, Some(3429527498), 3877923716)),
                 ("groups", (1854, Some(284774603), 2949074744)),
-                ("guys", (3107, Some(3099161691), 3465507855)),
+                ("guys", (3190, Some(2877806205), 2189546945)),
                 ("world", (4859, Some(155879679), 1707773025)),
             ],
             over: None,
@@ -1247,15 +1250,18 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // theirs): units 3,662 -> 3,714; guys 3,958 -> 4,010, first 2014 -> 2107.
         // On item 4448's tree, beside its guard arm: units 3,672 -> 3,724, first
         // 2014 -> 2107.
+        // Moved by item 4471 (a trackless crew figure's `des` is guy 0's point,
+        // `Guy::set_new_location`'s crew loop): units 3,724 -> 3,788, first 2107 -> 3757; guys
+        // 4,010 -> 4,075, whole. On 2107 both lines' sums are now theirs' (guys ours 882770536,
+        // theirs 1991836272).
         moved: Some(Score {
             states: 4075,
             agreed: [
-                3724, 4075, 4075, 4075, 4075, 3863, 4010, 4075, 4075, 4075, 4075, 3984,
+                3788, 4075, 4075, 4075, 4075, 3863, 4075, 4075, 4075, 4075, 4075, 3984,
             ],
             first: &[
-                ("units", (2107, Some(2129234027), 2894235763)),
+                ("units", (3757, Some(89157210), 2279304812)),
                 ("groups", (3598, Some(3778361523), 962934390)),
-                ("guys", (2107, Some(882770536), 1991836272)),
                 ("world", (3984, Some(402934873), 4267790267)),
             ],
             over: None,
@@ -1373,16 +1379,22 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // after it (header, 12 control points, 17 weights, 16 knots, no
         // weights, 121 points and 121 normals, `total_spline_length`
         // 0x4765a7a2), ours none. Ammo parts next on 3210, ours refused.
+        // Moved by item 4471 (a trackless crew figure's `des` is guy 0's point,
+        // `Guy::set_new_location`'s crew loop): units 2,728 -> 2,743, first 2646 -> 2743; guys
+        // 3,308 -> 3,323, first 2646 -> 2744. On 2646, run1721's guys range 435 (units range
+        // 1696), record 46, the computer's Caravan 1/46 (TI 59): crew figure 1's `des_y` read ours
+        // 12355, theirs 12377, and figure 2's (range 436) the same. Units part next on 2743, range
+        // 2939, record 91, `guys.length` ours 1, theirs 0.
         moved: Some(Score {
             states: 3331,
             agreed: [
-                2728, 3331, 3331, 3291, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 3331,
+                2743, 3331, 3331, 3291, 2756, 3331, 3323, 3331, 3331, 3331, 3331, 3331,
             ],
             first: &[
-                ("units", (2646, Some(3584274957), 3109728825)),
+                ("units", (2743, Some(4227177816), 316449748)),
                 ("ammo", (3210, None, 252233938)),
                 ("deaths", (2756, Some(1136466598), 3621657254)),
-                ("guys", (2646, Some(1999790736), 3081855676)),
+                ("guys", (2744, Some(3271434361), 1542266661)),
             ],
             over: None,
         }),
@@ -1511,10 +1523,12 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // `SplineData`): ammo 5,591 -> 5,907, first 4542 -> 5135, ours
         // refused there. No ranges are on disk for run1730: on 4542 ours'
         // ammo sum was 2344817575 and is now theirs' 281265979.
+        // Moved by item 4471 (a trackless crew figure's `des` is guy 0's point,
+        // `Guy::set_new_location`'s crew loop): guys 5,942 -> 5,963, its first parting unmoved.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                2496, 537, 6001, 5907, 5350, 3066, 5942, 3976, 6001, 6001, 6001, 537,
+                2496, 537, 6001, 5907, 5350, 3066, 5963, 3976, 6001, 6001, 6001, 537,
             ],
             first: &[
                 ("units", (1747, Some(2268899682), 1685366186)),
@@ -1551,10 +1565,12 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4467 (the guys line's inside arm is chosen at the
         // unit's own `process`): guys 4,519 -> 4,525; units and guys stand
         // on 2334, their sums there moved.
+        // Moved by item 4471 (a trackless crew figure's `des` is guy 0's point,
+        // `Guy::set_new_location`'s crew loop): guys 4,525 -> 4,542, its first parting unmoved.
         moved: Some(Score {
             states: 4548,
             agreed: [
-                2334, 4548, 4548, 4548, 4548, 4548, 4525, 3748, 4548, 4548, 4548, 4423,
+                2334, 4548, 4548, 4548, 4548, 4548, 4542, 3748, 4548, 4548, 4548, 4423,
             ],
             first: &[
                 ("units", (2334, Some(2937566862), 994488935)),
@@ -1636,7 +1652,24 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4471 (a trackless crew figure's `des` is guy 0's point,
+        // `Guy::set_new_location`'s crew loop): guys 5,977 -> 6,000, its first parting unmoved.
+        moved: Some(Score {
+            states: 6001,
+            agreed: [
+                2702, 4221, 6001, 4472, 6001, 3544, 6000, 4995, 6001, 6001, 6001, 3999,
+            ],
+            first: &[
+                ("units", (2184, Some(1779962534), 330632884)),
+                ("builds", (4221, Some(3943548441), 1202439769)),
+                ("ammo", (3303, None, 3094479036)),
+                ("groups", (1608, Some(2931878699), 617474571)),
+                ("guys", (2464, Some(451796102), 1018289160)),
+                ("leaders", (3176, Some(2352774769), 1606385266)),
+                ("world", (3809, Some(2182316411), 2894561759)),
+            ],
+            over: None,
+        }),
     }),
     // run1736
     // row 130, as found 2026-11-20, ended by the original on 4730: 4 lines whole; units 1,704
@@ -1671,10 +1704,12 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // the ammo line walks its `SplineData`): ammo 4,392 -> 4,511, first
         // 1601 -> 2367. No ranges are on disk for run1736: on 1601 ours'
         // ammo sum was 2349929217 and is now theirs' 941472936.
+        // Moved by item 4471 (a trackless crew figure's `des` is guy 0's point,
+        // `Guy::set_new_location`'s crew loop): guys 4,591 -> 4,695, its first parting unmoved.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                1735, 553, 4731, 4511, 4084, 4553, 4591, 1976, 4731, 4731, 4731, 553,
+                1735, 553, 4731, 4511, 4084, 4553, 4695, 1976, 4731, 4731, 4731, 553,
             ],
             first: &[
                 ("units", (1735, Some(3081680851), 796971071)),
