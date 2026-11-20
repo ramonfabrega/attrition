@@ -1013,10 +1013,15 @@ impl Sim {
             if danger < 1 && self.recruit_builder(who, b, site_reg) {
                 continue;
             }
-            // SEAM: `build_masks |= 0x2000` — "no builder could be found" —
-            // has nowhere to live. Note that a *started* site inside my own
-            // borders also lands here: `danger >= 1` skips the recruit scan
-            // entirely, so the original never re-sends a builder to it.
+            // **`build_masks |= 0x2000`, "no builder could be found"**
+            // (`6ca6c6`, item 4455): reached past both `goto`s, the builder
+            // found and the recruit sent. A *started* site in danger lands
+            // here too: `danger >= 1` skips the recruit scan entirely, so
+            // the original never re-sends a builder to it. run1720's
+            // `1/2036` (row 80) on 2376 and run1721's `1/2027` (row 100) on
+            // 1976, both never started (`job_counter` 0, `frame_started`
+            // -1), read `0x2000` in theirs where ours read 0.
+            self.buildings[b].no_builder = true;
         }
     }
 

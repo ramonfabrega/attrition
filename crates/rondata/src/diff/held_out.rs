@@ -934,12 +934,17 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // `update_action` on the blocker): units 3,835 -> 3,837, whole. On
         // 2367, run1720's units range 2407, record 73 (the Fusiliers 1/73,
         // type 136), `dest_angle` read ours 0xa715.., theirs 0xb5b5...
+        // Moved by item 4455 (`check_orphaned_buildings` marks a site with
+        // no builder and no recruit, `build_masks |= 0x2000`): builds 3,736
+        // -> 3,837, whole, and the game with it. On 2376, run1720's builds
+        // range 1883, record 2036 (the computer's site 1/2036, never
+        // started), `build_masks` read ours 0, theirs 0x2000.
         moved: Some(Score {
             states: 3837,
             agreed: [
-                3837, 3736, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837,
+                3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837,
             ],
-            first: &[("builds", (2376, Some(2962723024), 945131824))],
+            first: &[],
             over: None,
         }),
     }),
@@ -984,14 +989,19 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4449 (`set_new_location(…, 1)` copies each figure's
         // point into `last`): guys 3,316 -> 3,308, a named fall past its
         // first parting, which stays on 2646.
+        // Moved by item 4455 (`check_orphaned_buildings` marks a site with
+        // no builder and no recruit, `build_masks |= 0x2000`): builds 2,230
+        // -> 2,588, first 1976 -> 2588. On 1976, run1721's builds range
+        // 1451, record 2027 (the computer's site 1/2027, never started),
+        // `build_masks` read ours 0, theirs 0x2000.
         moved: Some(Score {
             states: 3331,
             agreed: [
-                2697, 2230, 3331, 3172, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 2618,
+                2697, 2588, 3331, 3172, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 2618,
             ],
             first: &[
                 ("units", (2587, Some(4287155215), 4036875673)),
-                ("builds", (1976, Some(3652536594), 4264774034)),
+                ("builds", (2588, Some(3298180603), 88948818)),
                 ("ammo", (2618, Some(1076236747), 891350609)),
                 ("deaths", (2756, Some(1136466598), 3621657254)),
                 ("guys", (2646, Some(1999790736), 3081855676)),
@@ -1075,6 +1085,7 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
 ];
 
 /// **Parity held out, N of 8** (DECISIONS 144 §2): the games whole on every
-/// line and state, and the games taken.
+/// line and state, and the games taken. Item 4455: 3 -> 4, row 80 whole
+/// (`build_masks & 0x2000` on its site 1/2036).
 #[cfg(test)]
-pub(crate) const HELD_OUT_LINE: (usize, usize) = (3, 8);
+pub(crate) const HELD_OUT_LINE: (usize, usize) = (4, 8);

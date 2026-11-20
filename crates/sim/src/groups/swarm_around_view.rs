@@ -418,8 +418,8 @@ fn seeker_type<V: SwarmView>(v: &mut V, p: i32, m: i32, b: i32, who: i32) -> i32
 ///   `idle` stays 0), a unit carrying citizens (the inside count) and the
 ///   `GATHER` arm's predicate (`is(0x1a4)`; this crate swarms `Build` and
 ///   `Repair` only) answer no; the report of an illegal order is not
-///   modelled; `BUILD_AT`'s clear of the site's `+0x60 & 0x2000` is not
-///   either.
+///   modelled. `BUILD_AT`'s clear of the site's `+0x60 & 0x2000` is
+///   [`crate::cities::Building::no_builder`]'s (item 4455).
 /// - The object's type indices are the original's only where a test reads
 ///   them: a citizen answers `0x32` and every other unit `0x7fff`, the
 ///   seeker's type is rebuilt by the ring helper in `orders.rs` from the
@@ -730,7 +730,12 @@ impl SwarmView for SimSwarm<'_> {
             action != 0,
         );
     }
-    fn clear_site_2000(&mut self, _who: i32, _b: i32) {}
+    fn clear_site_2000(&mut self, _who: i32, b: i32) {
+        // `build_masks &= ~0x2000` (`andw` at `7107bb`, item 4455).
+        if let Some(bd) = self.sim.buildings.get_mut(b as usize) {
+            bd.no_builder = false;
+        }
+    }
     fn ignore_always(&self) -> bool {
         true
     }

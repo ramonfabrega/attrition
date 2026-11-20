@@ -39497,7 +39497,8 @@ Files in place, `~/ron-golden/run1720/map-14/`: `gamelog_p.txt`, 2,424 bytes, SH
 `e3a388f77df255413526262ecdada13ad0191f0e186418d1d53ff7473f18ce3a`; `rontrace.ranges`, 2,868,394,932 bytes,
 SHA-256 `7d7779deaa779e96e8da7dd0103c751a3d6226fa1dd68af83751930646d86c76`.
 
-**What it holds**: row 80's leaves for `score_recording`; `SCORES[4].moved` is scored on run1704.
+**What it holds**: row 80's leaves for `score_recording`; `SCORES[4].moved` is scored on run1704. Item 4455 read
+builds range 1883 on 2376 (`1/2036`, `build_masks` theirs `0x2000`) and made row 80 whole.
 ## run1716 — parity held out, row 120's file to 6000 with the checksum and ranges hooks, all twelve lines kept (2026-11-19, item 4435, `att-4435`)
 
 `docs/RECGAME.md` §10.3; DECISIONS 144 §3, 145 §1. **What the disk could not answer**: run1706 holds sums only, so
@@ -39590,7 +39591,9 @@ Files in place, `~/ron-golden/run1721/map-14/`: `gamelog_p.txt`, 2,414 bytes, SH
 `dd82a15bb8eb98e82c7303a6934d37bb9ab49b4b394e7ddddb94244fd7752f4a`; `rontrace.ranges`, 2,336,505,516 bytes,
 SHA-256 `c12f156cda8d3c9d32e075f725ae752c29db5cb2416b3250dba4f38f9fceb778`.
 
-**What it holds**: row 100's leaves for `score_recording`; `SCORES[5].moved` is scored on run1705.
+**What it holds**: row 100's leaves for `score_recording`; `SCORES[5].moved` is scored on run1705. Item 4455 read
+builds range 1451 on 1976 (`1/2027`, `build_masks` theirs `0x2000`); builds part next on 2588, range 1270, record
+2022, `must_walk`, where ours ends and theirs walks on.
 
 ## run1724 — the 2017 sample's playback to 4,130 with the checksum and ranges hooks, all twelve lines kept (2026-11-20, item 4445, `att-4445`)
 
