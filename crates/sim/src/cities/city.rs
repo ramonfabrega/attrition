@@ -1619,6 +1619,7 @@ impl Sim {
             helpers: 0,
             under_attack: 0,
             eject_pending: false,
+            no_builder: false,
             hold_frames: 0,
             stance_set: None,
             fort_slot: None,

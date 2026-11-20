@@ -179,6 +179,7 @@ impl Sim {
             (0x400, bd.had_helpers),
             (0x800, bd.gather_bumped),
             (0x1000, bd.activated),
+            (0x2000, bd.no_builder),
             (0x4000, bd.eject_pending),
         ]
         .iter()

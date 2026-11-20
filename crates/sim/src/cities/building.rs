@@ -109,6 +109,16 @@ pub struct Building {
     pub under_attack: u8,
     /// `build_masks & 0x4000`: eject one squad a frame.
     pub eject_pending: bool,
+    /// **`build_masks & 0x2000`: no builder could be found** (item 4455).
+    /// One writer sets it, `Leader::check_orphaned_buildings@006c9f20`'s
+    /// tail (`orw %cx, 0x60(%eax)` at `6ca6c6`), on a computer's
+    /// unfinished site no builder stands on and none was recruited for. One
+    /// clears it, `Group::action_swarm_around@0070fbe0`'s `BUILD_AT`
+    /// member arm, after the member's `add_build_order` (`andw` at
+    /// `7107bb`). The listing holds no other `or`/`and` of the bit on
+    /// `+0x60`/`+0x61`. Its reader, `Object::take_damage@00652020`'s
+    /// site-abandon disband, is a SEAM in `damage_building`.
+    pub no_builder: bool,
     /// `ObjectData::hold_frames` on a dead building: 30 from its close
     /// (`Object::close@00647160`, reached through `Wall::close:155`), one
     /// off a frame in `Objects::process_all`'s building band, one back for
@@ -367,6 +377,7 @@ impl Sim {
             helpers: 0,
             under_attack: 0,
             eject_pending: false,
+            no_builder: false,
             hold_frames: 0,
             fort_slot: None,
             oil_slot: None,

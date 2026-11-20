@@ -1333,6 +1333,11 @@ impl Sim {
             bd.sync_health();
             return Taken::Alive { lost };
         }
+        // SEAM: the site-abandon disband (`Object::take_damage@00652020`,
+        // the alive arm, item 4455's parked 4455a): an unfinished computer
+        // site with `hits(0) <= 2 * damage` and `build_masks & 0x2000`
+        // ([`crate::cities::Building::no_builder`]) is disbanded and the
+        // call returns 1, a raze credited with no death. Not carried.
         bd.damage_marked |= matches!(taken, Taken::Alive { .. });
         bd.sync_health();
         if matches!(taken, Taken::Died { .. }) {
