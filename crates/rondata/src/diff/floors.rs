@@ -514,13 +514,15 @@ pub const MAPGEN: Mapgen = Mapgen {
 // `turret_inc`) needs its `inc: 0` in `sweep/guy_set_all_pivots.rs`'s turret literal.
 // Item 4450: `largest` 3,709 -> 3,710 (+1), a named rise: `Build::activate`'s enhancer byte needs one
 // call in `cities/city.rs`'s `activate`; its body is `economy/holdings.rs`' `activate_enhancer_byte`.
+// Item 4455: `largest` 3,710 -> 3,711 (+1), a named rise: `build_masks & 0x2000`
+// (`Building::no_builder`) needs its `no_builder: false` in `cities/city.rs`'s building literal.
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 11),
     ("test-tails", 0),
     ("sweep-lines", 17_288),
     ("names", 15),
     ("fields", 21),
-    ("largest", 3_710),
+    ("largest", 3_711),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before
