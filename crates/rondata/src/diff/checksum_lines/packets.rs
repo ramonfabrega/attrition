@@ -5137,12 +5137,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (2832, 2832, 3) -> (2832, 2832, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (616, 616, 7) -> (616, 616, 3).
     // Item 4441, `mask_me` walks a footprint column by column: world (9536, 9536, 12) -> (9536, 9536, 11).
+    // Item 4447, an empty building at its ceiling ejects (`build_masks` `0x4000`): builds (2737, 2732, 1918) -> (2737, 2732, 1917).
     (
         "run883b",
         6821,
         [
             (11180, 10834, 9393),
-            (2737, 2732, 1918),
+            (2737, 2732, 1917),
             (0, 0, 0),
             (36, 36, 5),
             (0, 0, 0),
