@@ -290,7 +290,8 @@ fn run993d_s_word_frame_is_widened_whole() {
     // `raid_stamp` agrees (ours 12774 → 12773, run993c's 12774 blow landing
     // as theirs does). `1/87`'s `dest_angle` stands.
     // Item 4435: 52 -> 49, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 49, "keys that part in the window");
+    // Item 4448: 49 -> 48, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 48, "keys that part in the window");
 }
 
 /// The closing state's window: run986b's closing block alone, the long's

@@ -415,7 +415,8 @@ fn greek_classical_pair_run1214_s_word_frame_is_widened_whole() {
     // and team sums on 7859, and who=1's `resources[2:wealth]`, agree.
     // Item 4159's residue: 126 -> 125, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     // Item 4435: 125 -> 114, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 114, "run1214 baseline");
+    // Item 4448: 114 -> 103, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 103, "run1214 baseline");
 }
 
 /// **The long's stride, walked back from the word 4341** (item 3571):

@@ -495,7 +495,8 @@ fn mongol_gunpowder_pair_run1296b_s_word_frame_is_widened_whole() {
     // Monarch's cavalry arm, `docs/AI.md` §349.1).
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 118 -> 114.
     // Item 4435: 114 -> 93, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 93, "run1296b baseline");
+    // Item 4448: 93 -> 92, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 92, "run1296b baseline");
 }
 
 /// run1298: the closing window, blocks 5297..5400 at run1296b's detail,

@@ -188,7 +188,8 @@ fn japanese_modern_pair_the_long_s_stride_walks_back_from_the_word() {
     // on 27 units, the buildings' `build:extra` (which the stride does not
     // print) and who=1's groups with their pools — and one unit row, the
     // Infantry `1/18`'s `dest_angle` on 1801.
-    pin_eq!(w.firsts.len(), 95, "the stride's baseline");
+    // Item 4448: 95 -> 94, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 94, "the stride's baseline");
 }
 
 /// run1403b: the word 3160's window, blocks 3095..3411 at the long's

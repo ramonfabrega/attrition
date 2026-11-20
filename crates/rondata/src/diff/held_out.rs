@@ -822,13 +822,16 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // `0/2000`'s `build_masks` on 4019 ours 4144, theirs 20528
         // (`0x4000`, set by `take_damage`'s `eject_contents(1, -1, 0, 1)`
         // with no garrison to read).
+        // Moved by item 4448 (`detect_unit_collision`'s guard arm runs
+        // `update_action` on the blocker): units 3,662 -> 3,672, first
+        // 1561 -> 2014 -- a bumped guard's `dest_angle` takes its turn.
         moved: Some(Score {
             states: 4075,
             agreed: [
-                3662, 4075, 4075, 4075, 4075, 3863, 3958, 4075, 4066, 4075, 4075, 3984,
+                3672, 4075, 4075, 4075, 4075, 3863, 3958, 4075, 4066, 4075, 4075, 3984,
             ],
             first: &[
-                ("units", (1561, Some(3913862560), 4278570550)),
+                ("units", (2014, Some(3549321578), 3787872620)),
                 ("groups", (3598, Some(3778361523), 962934390)),
                 ("guys", (2014, Some(4240840485), 61413159)),
                 ("cities", (2253, Some(2126061725), 1479221375)),
@@ -864,15 +867,16 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4443 (the units line folds `cavarch_o` -2): units
         // 2,239 -> 3,835, first 2239 -> 2367. On 2239, run1720's units range
         // 3003, record 86 (1/86, type 140), `cavarch_o` read ours -1, theirs -2.
+        // Moved by item 4448 (`detect_unit_collision`'s guard arm runs
+        // `update_action` on the blocker): units 3,835 -> 3,837, whole. On
+        // 2367, run1720's units range 2407, record 73 (the Fusiliers 1/73,
+        // type 136), `dest_angle` read ours 0xa715.., theirs 0xb5b5...
         moved: Some(Score {
             states: 3837,
             agreed: [
-                3835, 3736, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837,
+                3837, 3736, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837,
             ],
-            first: &[
-                ("units", (2367, Some(2679787322), 784355304)),
-                ("builds", (2376, Some(2962723024), 945131824)),
-            ],
+            first: &[("builds", (2376, Some(2962723024), 945131824))],
             over: None,
         }),
     }),
@@ -909,13 +913,18 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4443 (the units line folds `cavarch_o` -2): units
         // 1,611 -> 2,696, first 1611 -> 1793. On 1611, run1721's units range
         // 1170, record 31 (1/31, type 170), `cavarch_o` read ours -1, theirs -2.
+        // Moved by item 4448 (`detect_unit_collision`'s guard arm runs
+        // `update_action` on the blocker): units 2,696 -> 2,697, first
+        // 1793 -> 2587. On 1793, run1721's units range 1581, record 43 (the
+        // Assault Infantry 1/43, type 104), `dest_angle` read ours
+        // 0xc000.., theirs 0xcbf2...
         moved: Some(Score {
             states: 3331,
             agreed: [
-                2696, 2230, 3331, 3172, 2756, 3331, 3316, 3331, 3331, 3331, 3331, 2618,
+                2697, 2230, 3331, 3172, 2756, 3331, 3316, 3331, 3331, 3331, 3331, 2618,
             ],
             first: &[
-                ("units", (1793, Some(4040064246), 1794145779)),
+                ("units", (2587, Some(4287155215), 4036875673)),
                 ("builds", (1976, Some(3652536594), 4264774034)),
                 ("ammo", (2618, Some(1076236747), 891350609)),
                 ("deaths", (2756, Some(1136466598), 3621657254)),

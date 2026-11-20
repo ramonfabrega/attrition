@@ -309,7 +309,8 @@ fn russian_medieval_pair_run1268b_s_word_frame_is_widened_whole() {
     // on 4444, on both sides now. Past the standing families: the two
     // order points above and `1/125`'s `dest_angle` on 4509 (ours
     // -1605566464, theirs 1814626304); no draw parts.
-    pin_eq!(w.firsts.len(), 55, "run1268b baseline");
+    // Item 4448: 55 -> 51, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 51, "run1268b baseline");
 }
 
 /// **The long's stride, walked back from the window** (item 3605):

@@ -157,7 +157,8 @@ fn run1005_s_word_frame_is_widened_whole() {
     // theirs; agreeing the block after) and `dest_angle` of `1/54` on 15214
     // and `1/50` on 15224 (parked 3380a, 3380b). Nothing on the word's
     // block 14992.
-    pin_eq!(w.firsts.len(), 44, "keys that part in the window");
+    // Item 4448: 44 -> 42, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 42, "keys that part in the window");
 }
 
 /// The closing state's window: run898b's closing block alone, the long's

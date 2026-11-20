@@ -236,7 +236,8 @@ fn egyptian_gunpowder_pair_run1254b_s_word_frame_is_widened_whole() {
     // and 3181, and one row: `1/23`'s `dest_angle` on 3277, ours
     // -1295384576 against theirs 2122579968, which spends no draw (parked
     // 3614a).
-    pin_eq!(w.firsts.len(), 56, "run1254b baseline");
+    // Item 4448: 56 -> 55, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 55, "run1254b baseline");
 }
 
 /// **The closing state** (item 3614): run1254's closing block 4455, the
@@ -342,5 +343,6 @@ fn egyptian_gunpowder_pair_run1267_s_closing_frame_is_widened_whole() {
     // who=1's groups' `held` and pools), group 68's two on 4230 and who=1's
     // `SITE[1].reg` on 4376 — and one row, `1/49`'s `dest_angle` on 4406,
     // ours 0 against theirs 286261248, which spends no draw (parked 3614a).
-    pin_eq!(w.firsts.len(), 55, "run1267 baseline");
+    // Item 4448: 55 -> 54, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 54, "run1267 baseline");
 }

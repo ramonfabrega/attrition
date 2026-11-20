@@ -507,6 +507,9 @@ pub const MAPGEN: Mapgen = Mapgen {
 // needs its `scouted: 0` in `sweep/city_get_empty_trade_routes.rs`'s city literal.
 // Item 4415: `largest` 3,710 -> 3,709 (-1): `set_new_location`'s `param_4` costs `movement/collide.rs`
 // five lines, and `probe_relocate` and the new `set_new_location_turning` moved to `groups/group/query.rs`.
+// Item 4448: `largest` 3,709 -> 3,710 (+1), a named rise: `detect_unit_collision`'s guard arm
+// calls `update_action` on the blocker, one line in `movement/collide.rs`'s `guard_targets_me`;
+// its comment is on the trait's method in `movement/detect_collision_view.rs`.
 // Item 4420: `sweep-lines` 17,287 -> 17,288 (+1), a named rise: `Turret::inc` (`GuyData +0x40`,
 // `turret_inc`) needs its `inc: 0` in `sweep/guy_set_all_pivots.rs`'s turret literal.
 pub const STRUCTURE: [(&str, u64); 6] = [
@@ -515,7 +518,7 @@ pub const STRUCTURE: [(&str, u64); 6] = [
     ("sweep-lines", 17_288),
     ("names", 15),
     ("fields", 21),
-    ("largest", 3_709),
+    ("largest", 3_710),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before

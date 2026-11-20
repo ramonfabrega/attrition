@@ -289,7 +289,8 @@ fn german_modern_pair_run1397b_s_word_frame_is_widened_whole() {
     // theirs 1, eight rows, 3742a). Past block 3995's 47 standing rows:
     // `1/49`'s `dest_angle` on 4103, groups 65 and 69's lists on 4171 and
     // 4180, and `1/69`'s `dest_angle` on 4320.
-    pin_eq!(w.firsts.len(), 61, "run1397b baseline");
+    // Item 4448: 61 -> 59, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 59, "run1397b baseline");
     // Every round, both directions: 137 in ours against 176, the first
     // parting the Tiger `1/38`'s on 4018, which ours holds alone. Item 3738:
     // 137 against 144 and 18 parting, the first `1/53`'s `ammo[1]` on 4301

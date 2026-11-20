@@ -159,7 +159,8 @@ fn run1007_s_word_frame_is_widened_whole() {
     // who=1's guards at their posts (`1/51`, a Pikeman: 440991744 ours,
     // −440991744 theirs), which part no draw to the game's end (parked
     // 3383a).
-    pin_eq!(w.firsts.len(), 33, "keys that part in the window");
+    // Item 4448: 33 -> 26, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 26, "keys that part in the window");
 }
 
 /// run1007c: the word 16548's window, blocks 16542 to the game's end at

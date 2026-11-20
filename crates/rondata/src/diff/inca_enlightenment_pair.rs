@@ -478,7 +478,8 @@ fn inca_enlightenment_pair_run1323c_s_closing_window_is_widened_whole() {
     // shape of parked 3567a and 3580b. Before piece 790's bays `0/2000`'s
     // `build:damage` parted on 3815 (785 ours, 791 theirs), from `1/44`'s
     // round (TypeIndex 136, Fusilier).
-    pin_eq!(w.firsts.len(), 49, "run1323c baseline");
+    // Item 4448: 49 -> 47, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 47, "run1323c baseline");
     pin_eq!(w.rounds_read, (214, 214), "the rounds read");
     // Item 3659: 214 a side. The seven keys that part are one round's,
     // the Carbineer `1/83`'s (TypeIndex 190, piece 844, a pivot piece) on

@@ -1497,7 +1497,8 @@ mod tests {
         // stays at its witnessed floor 11985 until item 1429 widens it.
         // Item 1457: 144 → 140; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 67 -> 35.
-        pin_eq!(w.firsts.len(), 28, "every key parted on run574");
+        // Item 4448: 28 -> 23, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+        pin_eq!(w.firsts.len(), 23, "every key parted on run574");
     }
 
     /// **The word 12538, widened whole** (item 1429):
@@ -1609,13 +1610,15 @@ mod tests {
                 .len(),
             // 33 on 1429's own tree, 32 with 1461's crew `get_speed` beside it
             // (the booking gate on 8f83972e); 13 since item 1472; 9 since item 1477.
-            7,
+            // Item 4448: 7 -> 2, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+            2,
             "the blocks keys first part on, to one past the word's"
         );
         // 1694 on 1429's own tree, 1528 with 1461's crew step beside it;
         // 367 since item 1472's crew clear; 142 since item 1477's census walk.
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 71 -> 39.
-        pin_eq!(w.firsts.len(), 32, "every key parted on run584");
+        // Item 4448: 32 -> 27, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+        pin_eq!(w.firsts.len(), 27, "every key parted on run584");
     }
 
     /// **The word 12816, widened whole** (item 1477):
@@ -2106,16 +2109,18 @@ mod tests {
             w.missing
         );
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: [(15230, 56), (15266, 1), (15268, 1)… -> [(15230, 24), (15266, 1), (15268, 1)….
+        // Item 4448: [(15230, 24), (15266, 1), (15268, 1), (15326, 1), (15366, 1)] -> [(15230, 24)], a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).take(5).collect::<Vec<_>>(),
             // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
-            [(15230, 24), (15266, 1), (15268, 1), (15326, 1), (15366, 1)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            [(15230, 24)], // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
             "the blocks keys first part on, the first five"
         );
         // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 62 -> 30.
         // Item 4231: 30 -> 28, group 68's `speed`/`new_speed` 0|35 on 15421 agree (`docs/GROUPS.md` §3.4).
-        pin_eq!(w.firsts.len(), 28, "every key parted on run668"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        // Item 4448: 28 -> 24, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+        pin_eq!(w.firsts.len(), 24, "every key parted on run668"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         // **The word 15275's frame, widened** (item 1524, `docs/AI.md`
         // §140): ours 12 draws against 11, parting at index 4 — ours
         // `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
@@ -2580,20 +2585,10 @@ mod tests {
         }
         // The new word, 10144, is past this window's last block 10015.
         // Item 1461: its rows leave; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
+        // Item 4448: [(9759, 24), (9765, 1), (9781, 1), (9782, 1), (9799, 1), (9824, 1), (9993, 1), (9994, 1), (10011, 1), (10014, 1) ] -> [(9759, 24)], a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [
-                (9759, 24),
-                (9765, 1),
-                (9781, 1),
-                (9782, 1),
-                (9799, 1),
-                (9824, 1),
-                (9993, 1),
-                (9994, 1),
-                (10011, 1),
-                (10014, 1)
-            ],
+            [(9759, 24)],
             "the blocks keys first part on, the whole window"
         );
         // Item 1338, on the tree merged with 1326's: 1,075 → 557.
@@ -2602,7 +2597,8 @@ mod tests {
         // Item 1354, the troops term and the `mylos` cache: 262 → 114.
         // Item 1377, who=1's `defense` standing on 9759 no more: 114 → 113.
         // Item 1461: 110 → 95; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
-        pin_eq!(w.firsts.len(), 33, "every key parted on run529");
+        // Item 4448: 33 -> 24, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+        pin_eq!(w.firsts.len(), 24, "every key parted on run529");
     }
 
     /// **The gap 9038..9317, widened whole** (item 1318):

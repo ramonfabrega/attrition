@@ -471,7 +471,8 @@ fn roman_medieval_pair_run1293b_s_word_frame_is_widened_whole() {
         "no position or order parts past the standing block"
     );
     // Item 4435: 102 -> 86, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 86, "run1293b baseline");
+    // Item 4448: 86 -> 84, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 84, "run1293b baseline");
 }
 
 /// **The long's stride, walked back from the word 5582** (item 3631):

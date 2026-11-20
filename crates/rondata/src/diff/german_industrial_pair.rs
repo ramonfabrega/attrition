@@ -485,7 +485,8 @@ fn german_industrial_pair_run1354_s_closing_window_is_widened_whole() {
     // 3682b). No draw parts: the word is whole.
     // Item 3742: 73 → **55**, the Albatrosses' `myspeed` gone with the
     // Aluminum arm (§366.3).
-    pin_eq!(w.firsts.len(), 54, "run1354 baseline");
+    // Item 4448: 54 -> 52, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 52, "run1354 baseline");
     // Every round, both directions: 995 a side, 11 parting. Six are
     // 4728's dead target (`1/33`'s and `1/35`'s `ox`/`whom`, ours −1
     // against theirs `0/13`, §338's standing row); five are who=1's German
