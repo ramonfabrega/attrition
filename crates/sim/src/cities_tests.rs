@@ -3560,6 +3560,56 @@ fn an_unassimilated_city_does_not_heal_or_make_anything_and_assimilates_at_two_t
     assert!(!sim.leaders.defeated[1]);
 }
 
+/// **What a capture carries across, and what it leaves** (item 4463,
+/// run1724's 3887: the Inca capital taken by the person). The copy keeps
+/// the old building's `max_age` when it is the greater
+/// (`Build::swap_team@00628210:44`–`48`), its `visible` and the flags
+/// byte's `0x10` (`Wall::swap_team@00640c00`); the new city record takes
+/// the old one's `traded_with` (`City::capture@00736c40:77`–`84`); and the
+/// loser's other city keeps its slot, 1, since a closed city's slot stays
+/// where it is (`City::close@00737550`, from `capture_city:1157`).
+#[test]
+fn a_capture_carries_max_age_visible_and_traded_with_and_leaves_the_slots() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b, _) = city_at(&mut sim, &t, 1, 32, 32);
+    sim.tech[1].epoch[tech::Line::Civic as usize] = 1;
+    let (b2, _) = city_at(&mut sim, &t, 1, 8, 8);
+    let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+    sim.tech[1].ages = 1;
+    sim.tech[0].ages = 0;
+    let c0 = sim.buildings[b].city.expect("the capital's record");
+    sim.cities.cities[c0].traded_with[4] = 2;
+    let bd = &mut sim.buildings[b];
+    bd.damage = bd.hits;
+    bd.sync_health();
+    bd.visible = 1 << 0;
+    bd.damage_marked = true;
+    let c2 = sim.buildings[b2].city.expect("the second city");
+    assert_eq!(sim.city_index_in_owner(c2), 1, "slot 1 before");
+    sim.frame = 1000;
+    let hs: Vec<usize> = (0..3)
+        .map(|i| spawn(&mut sim, 0, hoplite, tile_pos(36, 32 + i)))
+        .collect();
+    assert!(sim.check_capture(b, hs[2]));
+    let nc = sim
+        .cities
+        .cities
+        .iter()
+        .position(|c| c.alive && c.owner == 0)
+        .expect("player 0 has the city now");
+    let nb = sim.cities.cities[nc].building;
+    assert_eq!(sim.build_max_age(nb), 1, "the old building's age, not 0");
+    assert_eq!(sim.buildings[nb].visible, 1, "ObjectData::visible copied");
+    assert!(sim.buildings[nb].damage_marked, "flags & 0x10 copied");
+    assert_eq!(
+        sim.cities.cities[nc].traded_with[4], 2,
+        "traded_with copied"
+    );
+    assert!(sim.cities.cities[c2].alive);
+    assert_eq!(sim.city_index_in_owner(c2), 1, "the slot stays 1, not 0");
+}
+
 /// **A captured city's record is `City::init`'s on a transfer, then
 /// `City::capture`'s** (item 2106, Great Sahara's Napata `1/2086` on its
 /// capture frame 4340): all five clocks — `attack_stamp`, `raid_stamp`,

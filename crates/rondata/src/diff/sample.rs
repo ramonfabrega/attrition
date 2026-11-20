@@ -423,8 +423,11 @@ pub(in crate::diff) mod tests {
     ///
     /// Item 4442 (`find_wpath`'s scouting gate; the person's Scout `3/0`
     /// re-plans its `flags 5` explore on 2892 at a person's prices): 3019
-    /// → 3887, +868.
-    const SAMPLE_WALKED: (i64, i64) = (3887, 21044);
+    /// → 3887, +868. Item 4463 (the Inca capital taken on 3887 hands its
+    /// building's age, farm slots, flags and `visible` across, keeps the
+    /// loser's city slots, and its caravan's route ends that frame): 3887
+    /// → 3903, +16.
+    const SAMPLE_WALKED: (i64, i64) = (3903, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -564,20 +567,25 @@ pub(in crate::diff) mod tests {
     /// a named fall past world's unchanged 3878 and the 3888 partings.
     /// Item 4456 (a unit out of a building paints its disc where it stood
     /// inside, then moves it): world 3878 -> 3888, every other line
-    /// unchanged.
+    /// unchanged. Item 4463 (the capture of 3887 carried across: the
+    /// building's `max_age`, farm slot, flags and `visible`, the city's
+    /// `traded_with`, the loser's city slots, its caravan's route ended):
+    /// units 3888 -> 3906, builds -> 3904, ammo -> 3920, groups 3935 ->
+    /// 4004, guys -> 3906, cities -> 3891, world -> 3889, items 4805 ->
+    /// 5474; goods 4559 -> 4458, a named fall past leaders' unchanged 3888.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 3888),
-        ("builds", 3888),
+        ("units", 3906),
+        ("builds", 3904),
         ("walls", 21044),
-        ("ammo", 3888),
+        ("ammo", 3920),
         ("deaths", 3932),
-        ("groups", 3935),
-        ("guys", 3888),
+        ("groups", 4004),
+        ("guys", 3906),
         ("leaders", 3888),
-        ("cities", 3888),
-        ("items", 4805),
-        ("goods", 4559),
-        ("world", 3888),
+        ("cities", 3891),
+        ("items", 5474),
+        ("goods", 4458),
+        ("world", 3889),
     ];
 
     /// `(frames our walk holds no wall, shot or death, the first it holds
@@ -597,8 +605,11 @@ pub(in crate::diff) mod tests {
     /// the first shot still on 2929. Item 4454 (a building at health 0
     /// still counts its arrows down): 5344 -> 6697, measured on the merged
     /// tree (22 commits of the base beside it); the first shot still on
+    /// 2929. Item 4463 (the capture of 3887 carried across): 6697 -> 5042,
+    /// a named fall, the lost frames not read one by one (a capture that
+    /// lands differently moves the war after it); the first shot still on
     /// 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (6697, Some(2929));
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (5042, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
@@ -1016,31 +1027,45 @@ pub(in crate::diff) mod tests {
     /// the Inca Citizen `4/4`'s disc at its inside point (10152, 10104)
     /// before `:518`'s `move_unit` to its spot (10488, 10968):
     /// `4474 793 block.present` ours 0 -> theirs' 1, an empty block on
-    /// world cell (13, 13) (`docs/COLLISION.md` §25).
+    /// world cell (13, 13) (`docs/COLLISION.md` §25). Item 4463: both sides
+    /// take the Inca capital `4/2000` on 3887 (`check_capture` true on
+    /// both), and the hand-over parted: builds' `2661 2010 max_age` ours 0
+    /// -> theirs' 1 (`Build::swap_team@00628210:44`–`48` keeps the old
+    /// building's), `flags` 39 -> 55 and `visible` 0 -> 8 on the copy
+    /// (`Wall::swap_team@00640c00`), the farms' `+0x78` 34..38 -> 9, 10,
+    /// 11, 18, 21 (`swap_team:75`–`81`), and the loser's next city's `city`
+    /// 0 -> 1 (`City::close@00737550`, from `capture_city:1157`, leaves the slot); cities'
+    /// `46 9 traded_with[4]` 0 -> 2 (`City::capture@00736c40:77`–`84`) and
+    /// city 8's caravan link and `trade_val` 96 -> 0; units' and guys' 3888
+    /// were the caravan `12`, its walk popped by `City::close@00737550:202`'s
+    /// `repath` and its route ended in the kill (`unit_masks` 0x4020a ->
+    /// 0x4000a). Units and guys 3888 -> 3906, builds -> 3904, ammo -> 3920,
+    /// groups 3935 -> 4004, cities -> 3891, world -> 3889; leaders' 3888
+    /// stands: player 4's `flags` `+0x2` 08|48.
     const SAMPLE_RANGES_1724: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
-            3888,
-            3621,
-            3664,
-            531,
-            "2304 19 guy: cur_anim 13|11",
+            3906,
+            3644,
+            3648,
+            73,
+            "2038 6 collide_frame..play: dest_angle -541917184|-1260584960, orders_x 32568|32376, orders_y 7032|7608",
         ),
         (
             "builds",
-            3888,
+            3904,
+            3064,
             3000,
-            3000,
-            24,
-            "2661 2010 max_age: max_age 0|1",
+            338,
+            "2710 2011 gather_down..infiltrate2: gather_max 0|5",
         ),
         (
             "ammo",
-            3888,
+            3920,
             3,
             3,
             1,
-            "1 0 rolling..start_roll_angle: +0x7 of 99|99: 63a00000|469f0000",
+            "1 0 rolling..start_roll_angle: +0x7 of 99|99: 439e0000|b99f0000",
         ),
         (
             "deaths",
@@ -1050,15 +1075,15 @@ pub(in crate::diff) mod tests {
             4,
             "12 -1 00936bff: +0x0 of 0|4: |01000000",
         ),
+        ("groups", 4004, 628, 628, 1, "166 130 id..march: facing 0|1"),
         (
-            "groups",
-            3935,
-            622,
-            622,
-            2,
-            "295 201 curr_x: curr_x[1] -120|-117, curr_x[2] 119|116",
+            "guys",
+            3906,
+            1012,
+            1012,
+            1,
+            "990 12 guy: end_time 30|120, cur_anim 0|1",
         ),
-        ("guys", 3888, 998, 998, 4, "621 19 guy: cur_anim 13|11"),
         (
             "leaders",
             3888,
@@ -1069,19 +1094,19 @@ pub(in crate::diff) mod tests {
         ),
         (
             "cities",
-            3888,
+            3891,
             51,
-            55,
-            7,
-            "46 9 city..ter: traded_with[4] 0|2",
+            51,
+            3,
+            "45 9 city_flags: +0x1 of 2|2: 99|89",
         ),
         (
             "world",
-            3888,
-            7771,
-            7771,
-            1,
-            "5083 1336 block.body: +0x4 of 96|96: 0e000e00|1c001c00",
+            3889,
+            7781,
+            7781,
+            29,
+            "154 130 cell: +0xf of 21|21: 03ff0000|feff0000",
         ),
     ];
 }
