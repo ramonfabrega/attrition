@@ -1118,3 +1118,22 @@ range 1392, record 1368, `cell`, byte 20, ours 0x02, theirs 0xff. Units
 still parts first, on 1611: range 1170, record 31, `cavarch_o` ours −1,
 theirs −2, the leaf rows 80 and 120 part on. Diff-backed by run1721's
 ranges; the score of the other seven rows is the gate's.
+
+**Row 60's leaders line, by leaf (item 4444, run1722).** A ranges take of
+row 60's file to its end (run1703's line under `RON_RANGES`,
+`RNG_MASK=0xfffu`) gives the leaf of the leaders line that parted on state
+969. It is who=1's `encrypt` words: all seven `resource_cap` words are ours
+2400, theirs 3200, fifty more on every slot. Both sides took the same tech
+on 968 (epoch[3] 1 → 2, `epochs` 7 → 8). Theirs' caps follow on 969, ours on
+976, its next reassembly. `calc_resource_caps@006ce900` runs on every frame
+and asks `has_preq(REPUBLIC_n)` there. Ours read the republic tier off the
+holdings rebuilt only at reassembly (`docs/ECONOMY.md`, the republic term).
+With the tier read every frame, row 60's leaders goes 4,068 → 4,075 of 4,075,
+whole (`SCORES[3].moved`), and the row's first parting goes 969 → 1055:
+units, range 859, record 21, `cavarch_o` ours −1, theirs −2, item 4443's
+leaf. The other leaves on run1722: builds 4019 (range 10, record 2000,
+`build_masks` ours 4144, theirs 20528), groups 3598 (range 92, record 68,
+`ox`/`oy` ours (33720, 15048), theirs 0), guys 2014 (range 642, record 2,
+`guy_flags` ours 16, theirs 18), cities 2253 (range 4, record 0, `granary`
+ours 50, theirs 20) and world 3984 (range 3627, `seen3`, 433 bytes, ours 0,
+theirs 2). Diff-backed by run1722's ranges.

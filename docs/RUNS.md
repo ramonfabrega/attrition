@@ -39591,3 +39591,32 @@ Files in place, `~/ron-golden/run1721/map-14/`: `gamelog_p.txt`, 2,414 bytes, SH
 SHA-256 `c12f156cda8d3c9d32e075f725ae752c29db5cb2416b3250dba4f38f9fceb778`.
 
 **What it holds**: row 100's leaves for `score_recording`; `SCORES[5].moved` is scored on run1705.
+
+## run1722 — parity held out, row 60's ranges: Great Sahara at Gunpowder, the client's file played to its end under `RON_RANGES` (2026-11-19, item 4444, `att-4444`)
+
+`docs/RECGAME.md` §10.3; DECISIONS 145 §1, §3. **What the disk could not answer**: run1703 holds the checksum's sums
+alone, so row 60's leaders line, first apart on state 969 (ours 2042929290, theirs 243376476), named no leaf. The file
+is run1703's, `~/ron-golden/recordings/item4413-row060-6000.rcx` (SHA-256 `bde614ca…`, as the receipt checks).
+
+The take: run1703's line (run1700's) with `~/ron-golden/run1722` and `--tracer-def RON_RANGES --tracer-def
+RNG_MASK=0xfffu` beside `RON_CHECKSUMS` (run1721's recipe). The lane read `free`, and `df -g ~` read 93 GB free
+before the take and 84 GB after. The wait ran on `waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 23:02:35 −05:00, exited 23:07:51: **315.4 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 4,075 frames, `last_frame` 4074, **ended early: the game ended itself**, as run1703 did.
+  Seed 12345 observed, map 7. Players: tribe 4 (flags 7) and tribe 5 (flags 1). Five settings restored. DLL
+  `d9d8ecb9…`, defines `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0xfffu`.
+- **Scored** (`score_recording <install> <the file> ~/ron-golden/run1722/map-7`, release): on the base, every line's
+  agreeing count and first parting are run1703's. The leaders line's leaf on state 969 (trace frame 968) is **range
+  205, record 1, `encrypt`**: who=1's `resource_cap`, ours 2400, theirs 3200, and so on all seven cap words. Both
+  sides took the same tech on 968, and theirs' caps follow on 969, ours on 976. After item 4444's fix (the republic
+  tier read every frame) leaders holds 4,075 of 4,075, and the row parts first on 1055 (units, range 859, record 21,
+  `cavarch_o` ours −1, theirs −2). The other leaves are in `docs/RECGAME.md` §10.3.
+- Filed **in place**, as run1703 is: a held-out take stays out of the corpora. run1722 was the number reserved for
+  row 60's ranges.
+
+Files in place, `~/ron-golden/run1722/map-7/`: `gamelog_p.txt`, 2,414 bytes, SHA-256
+`0237edf878c68cd2de44d1df3e42a6c0263852e76e2c4048f7f6a252b029aa2d`; `rontrace.log`, 86,172,448 bytes, SHA-256
+`be704899b7d606e484c6eba373284c8a16f2b1db1d4f9583b5f9bd7e6d01c087`; `rontrace.ranges`, 2,869,485,940 bytes,
+SHA-256 `836429df5b5e2f77116bacddc5b33504e8e216ed0672df5029dbd9f8b068b669`.
+
+**What it holds**: row 60's leaves for `score_recording`; `SCORES[3].moved` is scored on run1703.
