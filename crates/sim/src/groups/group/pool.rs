@@ -3,6 +3,27 @@
 use super::*;
 
 impl Sim {
+    /// PROBE 4477b (reverted whole): 1/47's mirror and record 75's flag.
+    pub(crate) fn p4477b(&self) {
+        thread_local!(static LAST: std::cell::RefCell<String> = const { std::cell::RefCell::new(String::new()) });
+        if std::env::var_os("RON_PROBE_4477").is_none() || !(1826..=3302).contains(&self.frame) {
+            return;
+        }
+        let rec = self.pool_record(1, 11).1;
+        let mut s = format!("rec75 facing {} list {:?}", rec.facing, self.pool_records(1, 11).first().map(|r| r.1.clone()));
+        for (u, x) in self.units.iter().enumerate() {
+            if x.owner == 1 && x.alive() && [33, 43, 44, 45, 47].contains(&x.index) {
+                s += &format!(" | 1/{} ty {:?} g {:?} mirror {} hd {:x} ldr {}", x.index, x.ty, x.group_ptr, x.movement.mirror, x.movement.heading.0,
+                    self.group_of(u).is_some_and(|g| self.is_group_leader(u, &g)));
+            }
+        }
+        LAST.with(|l| {
+            if *l.borrow() != s {
+                eprintln!("P4477B f{} {s}", self.frame);
+                *l.borrow_mut() = s;
+            }
+        });
+    }
     /// PROBE 4477 (reverted whole).
     pub(crate) fn p4477(&self, u: usize, tag: &str, s: Option<u8>) {
         if std::env::var_os("RON_PROBE_4477").is_some()
