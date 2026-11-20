@@ -1139,8 +1139,9 @@ range 1170. Row 120 is now **whole**; units also moves on rows 40, 60, 80,
 *Not established*: rows 80 and 100 next part units on `des_angle` (`+0x58`):
 run1720 on 2367, range 2407; run1721 on 1793, range 1581. Unread.
 
-**The second battery, as found** (item 4462, 2026-11-20; DECISIONS 145
-§2). Rows 10, 30, 50, 70, 90, 110, 130 and 150 of the same order, declared
+## 11. Parity held out, second: eight more lobbies named before the original plays them (item 4462)
+
+DECISIONS 145 §2, 2026-11-20. Rows 10, 30, 50, 70, 90, 110, 130 and 150 of the same order, declared
 in `HELD_OUT_SECOND` (`d6adb6cf7`) before any file was recorded, each
 recorded idle by the client's page to 6000 and played by the original as
 `run1730 + k` under the checksum hook. The scores are pinned once in
