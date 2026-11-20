@@ -265,7 +265,8 @@ fn greek_medieval_pair_run1380b_s_word_frame_is_widened_whole() {
     // 115 parting.
     pin_eq!(w.rounds_read, (1205, 1205), "the rounds read");
     // Item 4159r5: 115 -> 100, the launch rows of pieces 216 (3): rounds that left the figure's square leave from their bays.
-    pin_eq!(w.rounds.len(), 100, "the rounds that part");
+    // Item 4446: 100 -> 66, piece 138's node row: a Horse Archer's rounds leave from its turret's aim.
+    pin_eq!(w.rounds.len(), 66, "the rounds that part");
 }
 
 /// run1388: the pair's closing window, blocks 5686..5943 at the long's
@@ -341,7 +342,8 @@ fn greek_medieval_pair_run1388_s_closing_frame_is_widened_whole() {
     // `launch::BAYS` row (parked 3711b).
     pin_eq!(w.rounds_read, (1239, 1239), "the rounds read");
     // Item 4159r5: 133 -> 113, the launch rows of pieces 216 (5): rounds that left the figure's square leave from their bays.
-    pin_eq!(w.rounds.len(), 113, "the rounds that part");
+    // Item 4446: 113 -> 77, piece 138's node row: a Horse Archer's rounds leave from its turret's aim.
+    pin_eq!(w.rounds.len(), 77, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3703): run1380's closing block,

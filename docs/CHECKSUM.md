@@ -2683,11 +2683,26 @@ scale agrees. **2 guys lines turn, none grow** (`PACKETS_SCORE` 784 → 786): ru
 part on one and two ranges fewer. Value diff, run1351 frame 4303 record 48 (`1/48`, A7V, TI 242): `turret_angles[0]`
 and `des_turret_angles[0]` theirs `0xe5390000`, ours `0xe5330000` → `0xe5390000`. Byte 26 is still the first parting on
 run973g (record 56, ours `16` theirs `0e`) and run1268 (record 54, ours `6b` theirs `80`), both a Horse Archer (TI 188,
-pieces 842 and 138, `RData +0x88` 1.0), a different cause.
+pieces 842 and 138, `RData +0x88` 1.0), a different cause. ~~Answered by item 4446, below.~~
+
+**The Cavalry Archer's turret bears from its saddle: piece 138's `(4, 0, 0)` row** (item 4446, diff-backed). run973g
+f12286 record 56 is who=1's `1/56`, TI 188 `CAVARCHERS`, piece 842 (`SAME_AS` 138), at (8664, 30312), facing
+`0xd6050000`, on an `ATTACKORDER` at the Building `0/2005`, mid-swing (`cur_time` 16 of 25). `step4.py --entry 5d8bc0
+--this 362bd3fc` on the packet runs `Guy::set_all_pivots` and writes `des_turret_angles[0]` `0xf80e0000` (`005d8f36`), the
+packet's own value; `--hook 5d8e35` reads `find_angle`'s `ecx` −1267, `edx` −453 to (7392, 29856), so the node vector
+is (−5, −3). A probe of ours' `set_all_pivots` on 12244 and 12270 had the same point, target and facing and a vector of
+(0, 0): `pivot::NODES` had no row for piece 138, though item 3633's `RELEASES` comment names its `(4, 0, 0)` as read.
+run973g's packet reads it through 842, `(−0.06, −1.48, 32.63)` (1545's); at rotation 121° × 4.8 it is (−5.94, −3.91),
+truncated (−5, −3). The row goes in `NODES` (`pivot::tests::the_cavalry_archer_bears_its_turret_from_its_saddle`).
+**The direction: ours computed differently** on the frame both aimed. **4 lines turn, none grow** (`PACKETS_SCORE`
+806 → 810, on item 4443's tip): run973g's and run1268's guys and units lines, each units line's last range. Value diff, run973g
+frame 12286 record 56 (`1/56`, Horse Archer, TI 188): `turret_angles[0]` and `des_turret_angles[0]` theirs
+`0xf80e0000`, ours `0xf8160000` → `0xf80e0000`; run1268 f3347 record 54 (piece 138), byte 26 ours `6b` theirs `80` →
+agreeing.
 
 **Not established.** Piece 193's 0.9 rests on the XML and on run1374b's rounds fitting 189's rows at 0.9, not on a
-packet. The Horse Archer's bearing: its pivot is aimed through `cavarch.rs` as well as `set_attack`, and no probe has
-read which call or which input parts on run973g and run1268.
+packet. ~~The Horse Archer's bearing~~ (item 4446, above). Which other restricted pieces lack a `NODES` row: none was
+swept; the `NODES` SEAM stands.
 
 ## 24. Step H: the fifteen, every frame (item 4214)
 

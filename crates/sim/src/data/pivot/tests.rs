@@ -127,6 +127,32 @@ fn a_same_as_piece_bears_its_turret_at_its_own_scale() {
     }
 }
 
+/// **The Cavalry Archer bears its turret from its saddle** (item 4446):
+/// piece 138's `(4, 0, 0)` is `(−0.06, −1.48, 32.63)`, and the Maya's 842
+/// reads it ([`SAME_AS`]). On run973g's packet (logger frame 12286) the
+/// original's `Guy::set_all_pivots` on `1/56` (TI 188), aimed at the
+/// Building `0/2005`, hands `find_angle` (`005d8e35`, `step4.py`) `ecx`
+/// −1267 and `edx` −453 from (8664, 30312), facing `0xd6050000`, to (7392,
+/// 29856): the node at (−5, −3), and `des_turret_angles[0]` `0xf80e0000`.
+/// With no row the node is (0, 0) and the angle `0xf8160000`. Made to fail
+/// with 138's row out of `NODES`.
+#[test]
+fn the_cavalry_archer_bears_its_turret_from_its_saddle() {
+    let facing = Angle(0xd605_0000_u32 as i32);
+    assert!(node(138, 4).is_some(), "piece 138's pivot row");
+    assert_eq!(node(842, 4), node(138, 4));
+    assert_eq!(offset(842, 4, facing), (-5, -3));
+    let (vx, vy) = offset(842, 4, facing);
+    let (dx, dy) = (7392 - 8664 - vx, 29856 - 30312 - vy);
+    assert_eq!(
+        (dx, dy),
+        (-1267, -453),
+        "the original's find_angle arguments"
+    );
+    let des = crate::movement::find_angle(dx, dy).0.wrapping_sub(facing.0);
+    assert_eq!(des as u32, 0xf80e_0000);
+}
+
 /// **The Egyptian Light Tank's rounds leave from its turret's muzzle**
 /// (item 3707, `docs/AI.md` §360.2): piece 193 (`A7VDES`, unit type 243)
 /// is `lighttank.bh3` at scale 0.9 with `<RESTRICTION name="A7VDES"
