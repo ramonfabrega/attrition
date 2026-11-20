@@ -904,6 +904,49 @@ impl Sim {
                 put("order.air", b);
                 put("order.air_attack_ground", vec![0u8; 0x3c - 0x30]);
             }
+            Body::AirPatrol(ap) => {
+                // `AirPatrolOrder::walk_data@00483ed0` (item 4474, run1721's
+                // units on 2743, the Jet Fighter `1/91` handed a patrol on
+                // 2742): the flags byte through `PatrolOrder`'s vbptr, its
+                // `waypoint` (`+0x3c`), `x_pos` (`+0x4`) and `y_pos`
+                // (`+0x20`) by `SimpleArray<Coord>::walk_data@00483cc0`, the
+                // flags byte again through `AirOrder`'s, and the `AirOrder`
+                // row (`+0x44..+0x5c`).
+                put("order.flags", vec![o.flags]);
+                put(
+                    "order.waypoint",
+                    (ap.waypoint as i32).to_le_bytes().to_vec(),
+                );
+                let size = patrol_array_size(usize::from(ap.len));
+                for (name, axis) in [("order.x_pos", 0usize), ("order.y_pos", 1)] {
+                    let n = usize::from(ap.len);
+                    put(name, (n as i32).to_le_bytes().to_vec());
+                    if n > 0 {
+                        put(name, (size as i32).to_le_bytes().to_vec());
+                        put(name, (-1i16).to_le_bytes().to_vec());
+                        put(name, vec![0]);
+                        let list = ap
+                            .live()
+                            .iter()
+                            .flat_map(|p| if axis == 0 { p.x } else { p.y }.to_le_bytes())
+                            .collect();
+                        put(name, list);
+                    }
+                }
+                put("order.flags", vec![o.flags]);
+                let mut b = vec![0u8; 0x1c - 0x4];
+                let (oxx, whose) = ap.home.map_or((-1, -1), |h| {
+                    let bd = &self.buildings[h];
+                    (i64::from(bd.index), i64::from(bd.owner))
+                });
+                let mut p = |at: usize, w, x: i64| put_raw(&mut b, at - 0x4, w, x);
+                p(0x4, 4, oxx);
+                p(0x8, 4, whose);
+                p(0xc, 4, i64::from(ap.cruising_alt));
+                p(0x10, 4, i64::from(ap.sharp_turn));
+                p(0x18, 4, i64::from(ap.returning));
+                put("order.air", b);
+            }
             _ => {}
         }
     }
@@ -917,6 +960,18 @@ impl Sim {
             && !self.is_flat(b)
             && self.building_ident(b) != crate::cities::build::Ident::University
     }
+}
+
+/// **An `AirPatrolOrder` array's `size`** (`SimpleArray<Coord>`, `+0xc` and
+/// `+0x28`), the capacity its walk hands over after the length.
+/// `PatrolOrder::clear@00483ac0` keeps a capacity of at least 1 (it
+/// reallocates one slot only below 1), and `SimpleArray<Coord>::make_valid@
+/// 0046edd0` at `increment` −1 grows by the capacity itself when that
+/// suffices: 1, 2, 4, 8 as an Airbase's gather list appends. SEAM: an order
+/// `OrdersMemManager::get_obj` recycles keeps the capacity its last use
+/// grew to, which this crate does not carry; this is a fresh object's.
+fn patrol_array_size(n: usize) -> usize {
+    n.max(1).next_power_of_two()
 }
 
 fn put_raw(b: &mut [u8], at: usize, width: usize, v: i64) {
