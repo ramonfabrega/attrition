@@ -787,6 +787,23 @@ pub(in crate::diff) mod tests {
                     "PROBE4445 {f} who2 dirty {} stamp {} rate[2] {} leftover[2] {}",
                     l.dirty, l.gather_stamp, l.rate[2], l.leftover[2]
                 );
+                let h = &sim.economy.holdings[2];
+                for (k, c) in h.cities.iter().enumerate() {
+                    let m: Vec<i32> = c
+                        .sites
+                        .iter()
+                        .filter(|x| x.resource == sim::economy::Resource::Metal)
+                        .map(|x| x.gatherers)
+                        .collect();
+                    eprintln!("PROBE4445 {f}   holdings city {k} smelter {} metal sites {m:?}", c.smelter);
+                }
+                let m: Vec<i32> = h
+                    .outside
+                    .iter()
+                    .filter(|x| x.resource == sim::economy::Resource::Metal)
+                    .map(|x| x.gatherers)
+                    .collect();
+                eprintln!("PROBE4445 {f}   holdings outside metal {m:?} rares {:?}", h.rares);
                 for (b, bd) in sim.buildings.iter().enumerate() {
                     if !bd.alive || bd.owner != 2 {
                         continue;
@@ -800,7 +817,9 @@ pub(in crate::diff) mod tests {
                         .map(|&u| format!("{u}:{}", sim.is_gathering_at(u, b, true)))
                         .collect();
                     eprintln!(
-                        "PROBE4445 {f}   mine b{b} active {} num {} chain {chain:?}",
+                        "PROBE4445 {f}   mine b{b} city {:?} pos {:?} active {} num {} chain {chain:?}",
+                        bd.city,
+                        bd.pos,
                         bd.active,
                         sim.num_gatherers(b, true, true)
                     );
