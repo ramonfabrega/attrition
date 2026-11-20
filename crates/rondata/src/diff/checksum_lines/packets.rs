@@ -1443,7 +1443,10 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// parting on fewer builds ranges, none on more:
 /// `check_orphaned_buildings` marks a computer's site with no builder and
 /// no recruit (`build_masks |= 0x2000`), and `BUILD_AT`'s swarm clears it.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 841, 1053);
+/// **842** at item 4461 (+1, on 4465's 841): run1437's guys line whole, a
+/// military type's gender piece named `-PACKED`, so the Assault Marines'
+/// `-FEMALE` entry is no piece (`docs/CHECKSUM.md` §23.12).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 842, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -4177,6 +4180,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4415, the oil-well stand's cur_time: units (4789, 4529, 2797) -> (4789, 4529, 2796), guys (1208, 1208, 6) -> (1208, 1208, 5).
     // Item 4441, `mask_me` walks a footprint column by column: world (8414, 8414, 1) -> (8414, 8414, 0).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2154, 2151, 568) -> (2154, 2154, 8).
+    // Item 4461, a military type's gender piece is named -PACKED, so the Assault Marines' -FEMALE is no piece: guys (1208, 1208, 5) -> (1208, 1208, 0).
     (
         "run1437",
         3894,
@@ -4187,7 +4191,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (3, 3, 0),
             (4, 4, 0),
             (538, 538, 0),
-            (1208, 1208, 5),
+            (1208, 1208, 0),
             (271, 271, 2),
             (30, 30, 0),
             (85, 85, 0),

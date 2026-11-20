@@ -2848,6 +2848,42 @@ angle already equals the push's (each is compared to its own `+0x18`; ours share
 here. The crate's own body-turn gate still reads the bit as the facing against `frame_facing`, which `Guy::set_angle`
 also moves; only the checksum reads `Movement::turned`.
 
+## 23.12 The guys line's `gpiece`: a military type's gender piece is named `-PACKED` (item 4461)
+
+**A gender piece has one name, and for a military type, a merchant or a fisherman it is `-PACKED`** (item 4461,
+diff-backed). After 4453 and 4465 the census put `gpiece` (`GuyData +0x88`, guy byte 128) first on run1437's guys
+line, f3894 record 55, ours `08` theirs `48`, on 5 ranges. The unit is `1/55`, uid 89, TI 122 (`ASSAULTMARINES`,
+foot), on an `ATTACKTOORDER` with one figure. The dump's `gpiece` is 72, which is `122 − 0x32`, the plain piece.
+Ours' 0x1908 is 72 plus `num_unit_pieces_per_gender` 0x18c0, the gender piece, since `o` 55 is odd.
+
+On that frame every one of theirs' odd-numbered citizens plays the female piece (28 of 28 figures), and none of the
+odd Assault Marines does (0 of 10). `get_unit_gpiece@0090c030:155` takes the gender walk when `unit_flags2 & 4` is
+clear and `param_3` (the figure's `o`, `Guy::update_gpiece@005d8530:45`) is odd. So the walk is entered, and it
+falls through: **the packet holds piece 6408 tried and empty**. At `graphic_pieces` (`0xc06214` → `0xe896d8`),
+`loaded[6408]` is 1 and `data_pieces[6408]` is 0, while piece 72 and the citizens' 10560 hold data
+(`$CLAUDE_JOB_DIR`-scratch reader over `tools/recomp/snapshot.py`).
+
+The cause is the name. `GraphicPieces::unit_node_from_gpiece@00901c30:229`–`241` builds the gender tail as
+`internal_strings` 3706, `PACKED`, when `role & 0x10000` is set (`testl $0x10000, 0x2c8(%ecx)` at `90205b`, the
+`ROLE_MILITARY` bit), or `TypeData::is_merchant@0042dbd0`, or vslot `+0x60` `TypeData::is(FISHERMEN, 0)`.
+Otherwise the tail is 3705, `FEMALE`. The install ships `ASSAULTMARINES-DEFAULT-AGE0-FEMALE` and no `-PACKED`
+for that graph, so the original's lookup for a military type finds no node. Ours read `-PACKED` and `-FEMALE` as one
+coordinate and placed the entry on TI 122. No graph ships both tails on one slot. The `-FEMALE` graphs are
+`ASSAULTMARINES`, `CITIZENS`, `CITIZENSKOREAN`, `SCHOLAR` and `SCHOLARKOREAN`. **The direction: ours computed
+differently.**
+
+`Loaded::gender_packed` (`rondata::load`) is the set the three tests name. `artdata`'s `entry_pieces` places a
+gender entry only on the types whose tail it is, for `piece_lengths`, `piece_skeletons`, `piece_releases` and
+`piece_tracks`. The client's `unit_art` listing keeps every entry. Killer:
+`artdata::tests::a_military_type_s_female_entry_is_no_piece_of_its`. **1 line turns, none grow**
+(`PACKETS_SCORE` 841 → 842): run1437's guys line, 5 → 0 ranges. Value diff, run1437 f3894 record 55 (`1/55`,
+Assault Marines, TI 122): `gpiece` theirs 72, ours 6408 → 72, and the same on the line's other four ranges, the odd
+Assault Marines.
+
+**Not established.** A packed civilian (the Militia and Partisans graphs ship `-PACKED`, and the role word decides
+whether the original looks for it), and a fisherman's or a merchant's gender piece, are in no packet here. The
+predicate is read in the listing, and only its military arm is diff-backed.
+
 ## 24. Step H: the fifteen, every frame (item 4214)
 
 `DECISIONS.md` entry 132 §7, §10. `CheckSums::check_all@00936560` runs on every turn and prints only inside a dump
