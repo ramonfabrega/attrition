@@ -159,7 +159,12 @@ impl std::fmt::Display for FirstDifference {
             self.offset,
             value(self.ours.as_deref()),
             value(self.theirs.as_deref())
-        )
+        )?;
+        if std::env::var_os("RON_PROBE_4430").is_some() {
+            let hex = |r: Option<&[u8]>| r.map_or("-".to_owned(), |b| b.iter().map(|x| format!("{x:02x}")).collect());
+            write!(f, "\n    PROBE4430-OURS {}\n    PROBE4430-THEIRS {}", hex(self.ours.as_deref()), hex(self.theirs.as_deref()))?;
+        }
+        Ok(())
     }
 }
 
