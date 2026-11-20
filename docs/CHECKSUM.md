@@ -2769,7 +2769,10 @@ clears it, since nothing in that walk sets it. The guys record emits `0x2` from 
 (`movement::collide::tests::a_push_after_the_pushed_unit_s_walk_leaves_guy_flags_bit_2`). **1 line turns, none
 grow** (`PACKETS_SCORE` 813 → 814): run1296's guys line (2 → 0 ranges). Its units line parts on 20 ranges, not 22,
 and first on record 99 `myhits..launch_frames` byte 8, ours `79` theirs `77`. Value diff, run1296 f4632 record 59
-(`1/59`, Arquebusiers): `guy_flags` theirs `0x12`, ours `0x10` → `0x12`.
+(`1/59`, Arquebusiers): `guy_flags` theirs `0x12`, ours `0x10` → `0x12`. The held-out games move too: row 40's
+guys 4,870 → 4,949 agreeing states, and row 60's units 3,662 → 3,714 and guys 3,958 → 4,010, its guys parting
+2014 → 2107 (4450a's gaia animal `8/2`, 16 ours, 18 theirs). `facing != frame_facing` as the predicate took the
+same gains and broke four packet pairs and three windows (item 4450).
 
 **Not established.** A tracked crew figure the push does not recurse into, and a trackless crew figure whose own
 angle already equals the push's (each is compared to its own `+0x18`; ours shares guy 0's facing), are in no packet
