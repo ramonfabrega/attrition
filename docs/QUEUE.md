@@ -50,7 +50,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5): the pass designed four seats: the chain's 4439 (held out, the Ancient starts; landed on 4435's tip, held: 4435's merge is reverted, gate-4435.log red on 282 widened windows, its second commit out), a parity seat's 4436 (held out, the later starts; out), a parity seat's 4432 (the sample, from units 2700; out), the eye's 4438 (the buildings' team colour; out, after 4437 landed at its stop). 4439 and 4436 both take the game lane, one game at a time. Unseated, for the seat that stops first: 4430 (guys' `last_angle`), 4431 (groups' `facing`), 4433 (a plate for a city but Napata).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5): the pass designed four seats: the chain's 4439 (held out, the Ancient starts; landed on 4435's tip, held: 4435's merge is reverted, gate-4435.log red on 282 widened windows, its second commit out), a parity seat's 4436 (held out, the later starts; out), a parity seat's 4440 (the sample, from 2888, after 4432 moved units 2700 → 2888; out), the eye's 4438 (the buildings' team colour; out, after 4437 landed at its stop). 4439 and 4436 both take the game lane, one game at a time. Unseated, for the seat that stops first: 4430 (guys' `last_angle`), 4431 (groups' `facing`), 4433 (a plate for a city but Napata).
 
 4439. **Parity held out, the Ancient starts: a passenger's unload** (a rules item, whole; the chain's; `docs/RECGAME.md` §10.3;
 DECISIONS 145 §1, §3). 4435 took row 120 as run1716 (ranges, 4.29 GB) and found a transport born with `form` −1 where `Unit::init` writes 0:
@@ -69,33 +69,12 @@ units 1858. The original ends each between 3330 and 4973, ours not over. First a
 (run1722, run1723). The end is read when a row reaches it in lockstep, not before. Re-pin `SCORES[k].moved`. It takes the game lane after
 4435's take. It stops when two landings running move no row's column (145 §4).
 
-4432. **The 2017 sample, from units 2700** (a rules item, whole; a parity seat's, unspawned; `docs/RECGAME.md` §7). 4429 wired
-`process_attrition`'s check 6 (an ally's ground, diplomacy +0x74 both ways): units 2112 → 2700, leaders 2112 → 2989 (state 2112, computer
-2's Citizen on ally 0's ground: flags 17 → 1, damage 1 → 0, attrition 8 → 0, leader 2's `attrition_stamp` 0x83f → 0; theirs 1/0/0/0).
-`SAMPLE_LINES` now part first on units 2700, then groups 2888, guys 2920, world 2921, leaders 2989, ammo 3022, builds 3029. First act, on
-disk: unit o 27's move order, `off_y` 72|696 and `y` 30792|30648, its path shifted (+22, +126). Then leaders 2989 (player 3's `oil_patches`
-0x0c|0x0d). It stops when two landings running move no line's first parting (145 §4).
-
-4430. **The packets' guys line: `last_angle`** (a rules item, whole; unseated, for the seat that stops first; CHECKSUM §23). 4428 turned
-5 guys lines, `PACKETS_SCORE` 743 → 748 of 1,053: an aircraft's figure-0 `z` is its object number's dead occupant's (`Guy::set_new_location`
-writes no `z` for fixed-wing), plus `come_out`'s tail `Guy::update_z` (run1359 f5619 record 36, a BIPLANE TI 287, theirs 637, ours 0 →
-637). Byte 26, `last_angle`, is now first on 4 lines: run1351 f4303 record 48, ours 33 theirs 39. First act: its writer by a `step4.py`
-watch on that packet. Parked 4428a (a transport passenger's `z`). Re-pin through `tools/repin_packets.py`. It stops when two landings
-running turn no line (145 §4).
-
-4431. **The packets' groups line: `facing`** (a rules item, whole; unseated; CHECKSUM §23). 4425 turned 23 groups lines, `PACKETS_SCORE`
-748 → 771 of 1,053: `Form::compute_dests` writes `GroupData` +0x4c/+0x24c only inside its active-and-on-map member test, so an off-map
-member keeps its old entry, and `compute_form`'s tail negates them (run1221 f4287 groups record 68, `off_x` ours zero → theirs'). The
-groups line parts on 8 rows; `facing` (+0x48) is first on 5: run854 f3301 record 75 ours 0 theirs 1; run865 f4859 record 70 ours 1
-theirs 0. The other 3 are information melee rows (run1469 record 65 `form` 0|−1; run1472 `order_num` 5|3). First act: `facing`'s writer
-by a `step4.py` watch. Re-pin through `tools/repin_packets.py`. It stops when two landings running turn no line (145 §4).
-
-4433. **A plate for a city but Napata** (a `render` item, scoped; unseated; `docs/HUD.md` §3, §6). 4427 hinted the plate's glyphs
-(`skrifa` in `crates/client`, FreeType v40's interpreter; the face still read from the install): `RUN1559B_3279_PLATE`'s light arm
-both-lit 47 → 53 of 53, the dark half [1541, 1238]. With the founding name (4418), the font's advances (4423) and its glyphs (4426,
-4427), every plate the client draws has a width and a face, but no photograph on disk shows a city other than Napata (parked 4423a).
-First act: one photograph of a second city's plate at a frame the client can reach, taken as run1715. It stops when the take shows no
-plate the client can score.
+4440. **The 2017 sample, from 2888** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §7). 4432 wired `action_move_near`'s
+same-region arm (unit o 27's `dest_y` 30792 → theirs' 30648): `SAMPLE_LINES` units 2700 → 2888, every other line unmoved. Units and groups
+now part first on 2888, the frame after item 4359's bell (computer 4's capital struck on 2887): units' first range `2361 2 order.type`
+7|absent (ours 3107 ranges, theirs 3137, 745 parted); groups' `346 256 id..march`, `stamp` 2701|2887. Then guys 2920, world 2921, leaders
+2989 (player 3's `oil_patches` 0x0c|0x0d). First act, on disk: the order on 2888 and the group's stamp, both values and the writer.
+It stops when two landings running move no line's first parting (145 §4).
 
 4438. **The buildings' team colour** (a `render` item, scoped; unseated; `docs/RENDERER.md` §5.3; DECISIONS 145 §5). On run1559b's pair the
 capital's roofs and awnings carry the player's red in theirs and none in ours (the pass's `crop-1559b-city-1x.png`): the figures take the
