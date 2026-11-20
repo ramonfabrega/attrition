@@ -219,10 +219,7 @@ impl Sim {
         // pushes into slot 65 while `last_group` is slot 67, emptied of
         // `1/39..1/41` since its move on 8171: run1597's record reads slot
         // 67's `ox`/`oy` 30552/21144 on 8205 and 0/0 on 8206 (item 4255).
-        if let Some(seat) = self.pool_seat(g.who, last) {
-            self.seat_normalize(seat);
-            self.seat_get_num(seat);
-        }
+        self.push_equals_last(g.who, last);
         let pool = self.pool_slot_for(g.who, &g.list);
         // `70fa3b`: `equals_group` against the player's **last pushed**
         // slot — the same owner and the same members in the same order —
@@ -1023,6 +1020,21 @@ impl Sim {
         }
     }
 
+    /// **`Group::equals_group@00708000`'s side effects on the last pushed
+    /// slot** (`docs/GROUPS.md` §36.2), which every `Groups::push_group`
+    /// runs before it chooses a slot, equal or not: `normalize` (its `id`
+    /// is never −1), then vslot `+0x4`, `Group::get_num@00714700`, whose
+    /// empty arm zeroes `num`, `ox` and `oy`. Every caller of `push_group`
+    /// takes it: a selection's push ([`Sim::push_group_slot`]), a
+    /// building group's ([`Sim::push_buildings_group`]) and
+    /// `Army::add_unit@006f9f40:37`'s stack group (item 4473).
+    pub(crate) fn push_equals_last(&mut self, who: Player, last: u8) {
+        if let Some(seat) = self.pool_seat(who, last) {
+            self.seat_normalize(seat);
+            self.seat_get_num(seat);
+        }
+    }
+
     /// The slot `Groups::push_group@0070f9e0` hands a group of `who`, and
     /// the `last_group` it leaves behind (§3.1, §3.2):
     ///
@@ -1142,10 +1154,7 @@ impl Sim {
         // speed 34 from 61 in the original (run1580; item 4222), where this
         // crate waited for `Groups::process`' turn on 65.
         // Its `get_num` on the same slot follows (§36.2), as there.
-        if let Some(seat) = self.pool_seat(who, last) {
-            self.seat_normalize(seat);
-            self.seat_get_num(seat);
-        }
+        self.push_equals_last(who, last);
         let equal = self.orders.pushed.iter().any(|x| {
             x.who == who && x.state.pool == Some(last) && x.builds == list && x.list.is_empty()
         }) && !self.ai.armies[w]
