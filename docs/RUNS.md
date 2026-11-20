@@ -39593,7 +39593,10 @@ SHA-256 `c12f156cda8d3c9d32e075f725ae752c29db5cb2416b3250dba4f38f9fceb778`.
 
 **What it holds**: row 100's leaves for `score_recording`; `SCORES[5].moved` is scored on run1705. Item 4455 read
 builds range 1451 on 1976 (`1/2027`, `build_masks` theirs `0x2000`); builds part next on 2588, range 1270, record
-2022, `must_walk`, where ours ends and theirs walks on.
+2022, `must_walk`, where ours ends and theirs walks on. Item 4465 read that range as the silo `1/2022`'s
+`launching` array, which theirs walks after the pointer's byte (length 1, size 4, increment −1, flags 0, `[84]`).
+On 2618 it read range 1268's `visible` (ours 0, theirs `0xff`), the nuke's launch; builds and world are whole
+after it (`docs/CHECKSUM.md` §18).
 
 ## run1724 — the 2017 sample's playback to 4,130 with the checksum and ranges hooks, all twelve lines kept (2026-11-20, item 4445, `att-4445`)
 

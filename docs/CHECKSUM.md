@@ -1752,6 +1752,47 @@ Their offsets have not been grepped, and they walk 0 here.
 `StrafeOrder` and `AirPatrolOrder` still hand over their type and node byte
 alone. No score parts on them yet.
 
+**The same missile's silo, in the builds line** (item 4465, diff-backed on
+row 100, run1721). On 2588 the silo `1/2022` launches `1/84`: `do_launch`
+sets `recharging` 30 and `launch_frames` 0, and adds the missile to
+`ObjectData::launching` (`+0x44`, a `SimpleArray<int> *`). `do_launch:171`
+mallocs the array on that first launch. After the pointer's byte
+(`Object::walk_data@00647830`, site `647910`) theirs walks
+`SimpleArray<int>::walk_data@00473120`: length 1, size 4, `increment` −1,
+flags 0, then `[84]` (sites `473157`, `4731b8`, `4731c6`, `4731de`,
+`4732dd`). Ours folded the byte alone. Its next range, `WallData`'s
+`must_walk`, fell on theirs' length at range 1270, the parting 4455 read as
+"a building theirs holds". Two facts follow from the readings:
+
+- **The block is never freed.** Every other writer calls
+  `SimpleArray<int>::remove@00462e70`, which shifts the rest down and keeps
+  the block: `do_launch`'s kill arm, `kill_current_order:148`,
+  `clear_gather:70` and `do_missile_launch`. So the byte is 1 from the first
+  launch on. On 2618 the missile leaves, and both sides walk the byte 1 and
+  length 0 (1,758 ranges each).
+- **The size is the block's capacity.** `increase_size@004220e0` with
+  `increment` −1 adds 4 to an empty block and the capacity to any other
+  (`4220ee`..`4220fc`), so 4, 8, 16.
+
+`Launching` (`cities::building`) carries the capacity.
+
+On 2618 `do_missile_launch:70` sets the silo's `visible` (`+0x40`) to
+`0xff` for a nuke on `AIR_ATTACK_GROUND`, then calls vslot `0x164`. Ours had
+kept that in `Nukes::shown`, which the walker never read: range 1268, ours
+0, theirs `0xff`. Now the arm writes `Building::visible` and calls
+`update_local_seen_build`. The same write closes the world line's leaf on
+2618 (the pass's: range 1392, record 1368, `cell` byte 20, ours `0x02`,
+theirs `0xff`). Row 100's builds goes 2,588 → 3,331 and its world 2,618 →
+3,331, both whole (`SCORES[5].moved`). No other row moved.
+`a_hangar_s_launching_walks_its_pointer_from_the_first_launch_and_its_array`
+holds the walk.
+
+*Not established*: no dump shows a block past 4, so the doubling rests on
+the listing alone. The `STRAFE` half of the arm's test asks
+`is_ally(who, who)`, read as always true and not traced. The world leaf's
+values before the change are the pass's and run1721's row's (`docs/RUNS.md`),
+not re-read on this tree.
+
 ## 19. The groups line, ported (item 4116)
 
 **The line is the original's on run 1562's frame 91**: 556 of 556 ranges,
