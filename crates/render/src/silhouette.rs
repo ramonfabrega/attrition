@@ -1386,6 +1386,16 @@ pub const RUN1559B_3279_COLOUR_STILL: (usize, usize) = (19, 33);
 /// 66)), 0/2001 0.0423 (ours (97, 89, 75), theirs (109, 99, 62)).
 /// **Item 4286: 0 → 2 of 2**: 0/2000 0.0293 → 0.0043 (ours (118, 106, 69) Y 105.4), 0/2001 0.0423 → 0.0051 (ours (108, 99, 64) Y 98.2): the buildings' sprites tinted at load and taken through `TL_FAKE_LIGHT`, their shadow blended (item 4286, `docs/RENDERER.md` §3.28).
 pub const RUN1559B_3279_BUILDINGS_WARMTH: (usize, usize) = (2, 2);
+/// **The buildings' team colour** (item 4438; `docs/RENDERER.md` §5.3,
+/// "The buildings' team colour"): on the client's still (before, plain),
+/// each building's mask pixels — its own key's, its sprite texel at alpha
+/// 248, outside the interface — as `((who, o), (agree, held))`, a pixel
+/// agreeing within [`HUE`]'s 0.05 in chromaticity. Minted at its found
+/// value, the reader committed before the count: 0/2001 **6 of 55**
+/// (mean ours (70, 70, 50), the photograph (131, 18, 13)), 0/2000 **243
+/// of 656** (ours (66, 66, 48), the photograph (97, 47, 34)).
+pub const RUN1559B_3279_BUILDINGS_TEAM: [((u8, i16), (u32, u32)); 2] =
+    [((0, 2001), (6, 55)), ((0, 2000), (243, 656))];
 /// The same reader over every object the row scores, the figures and the
 /// buildings, on the same draw (item 4286): minted at **1 of 33**, the
 /// reader seen to pass (0/2, piece 4576, 0.0044); the next nearest 1/26

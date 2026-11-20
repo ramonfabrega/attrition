@@ -2028,6 +2028,126 @@ mod tests {
         );
     }
 
+    /// **The buildings' team colour** (item 4438; `docs/RENDERER.md` §5.3,
+    /// "The buildings' team colour", committed before this count). The
+    /// mask is geometry: a building's pixels on the client's still (before,
+    /// plain) that its own key holds and whose sprite texel's alpha is 248,
+    /// the card's first `_NONQUAD` draw's alpha reference, outside the
+    /// interface. A mask pixel is held when both sides' r + g + b reach
+    /// [`HUE`]'s dark, and agrees when the still's chromaticity lies within
+    /// [`HUE`]'s 0.05 of the photograph's. Pinned per building as
+    /// `(agree, held)`.
+    #[test]
+    fn the_buildings_team_colour_on_the_still() {
+        use crate::gpu::SilhouetteOrder;
+        use render::silhouette::{HUE, Rect, chromaticity};
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let camera = crate::pinned_camera();
+        world.run_to(PHOTO_FRAME);
+        world.blend = crate::world::Blend::Last;
+        world.run_to(PHOTO_FRAME + 1);
+        let size = (photo.width, photo.height);
+        let still = crate::still_of(
+            &mut world,
+            &camera,
+            (size.0 as u32, size.1 as u32),
+            SilhouetteOrder::Before,
+            wgpu::TextureFormat::Rgba8Unorm,
+        );
+        let scene = frame_scene(&mut world, &camera, size);
+        let w = size.0;
+        let mut got = Vec::new();
+        for (k, who) in scene.who.iter().enumerate() {
+            if !who.3 || who.0 == TREE_WHO {
+                continue;
+            }
+            let key = k as u32 + 1;
+            let (mut x0, mut y0, mut x1, mut y1) = (i32::MAX, i32::MAX, i32::MIN, i32::MIN);
+            for (i, &q) in scene.keys.keys.iter().enumerate() {
+                if q == key {
+                    let (x, y) = ((i % w) as i32, (i / w) as i32);
+                    (x0, y0, x1, y1) = (x0.min(x), y0.min(y), x1.max(x + 1), y1.max(y + 1));
+                }
+            }
+            if x0 >= x1 {
+                continue;
+            }
+            let window = Rect::new(x0, y0, x1, y1);
+            let paint = painted(
+                &mut world,
+                &scene,
+                &camera,
+                size,
+                key,
+                window,
+                Colouring::Silhouette,
+            );
+            let ww = (x1 - x0) as usize;
+            let (mut mask, mut held, mut agree) = (0u32, 0u32, 0u32);
+            let (mut ours_sum, mut theirs_sum) = ([0f64; 3], [0f64; 3]);
+            for y in y0..y1 {
+                for x in x0..x1 {
+                    let j = (y - y0) as usize * ww + (x - x0) as usize;
+                    let Some(t) = paint[j] else { continue };
+                    if scene.keys.at(x as usize, y as usize) != key
+                        || (t.alpha - 248.0).abs() >= 0.5
+                        || INTERFACE
+                            .iter()
+                            .any(|q| (q.x0..q.x1).contains(&x) && (q.y0..q.y1).contains(&y))
+                    {
+                        continue;
+                    }
+                    mask += 1;
+                    let i = (y as usize * w + x as usize) * 4;
+                    let o = [0, 1, 2].map(|c| f32::from(still[i + c]));
+                    let p = [0, 1, 2].map(|c| f32::from(photo.rgba[i + c]));
+                    if o.iter().sum::<f32>() < HUE.dark || p.iter().sum::<f32>() < HUE.dark {
+                        continue;
+                    }
+                    held += 1;
+                    for c in 0..3 {
+                        ours_sum[c] += f64::from(o[c]);
+                        theirs_sum[c] += f64::from(p[c]);
+                    }
+                    let (a, b) = (chromaticity(o), chromaticity(p));
+                    agree += u32::from(
+                        ((a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2)).sqrt() <= HUE.distance,
+                    );
+                }
+            }
+            let n = f64::from(held.max(1));
+            println!(
+                "{}/{} piece {}: mask {mask}, held {held}, agree {agree}; mean ours ({:.0}, {:.0}, {:.0}), the photograph ({:.0}, {:.0}, {:.0})",
+                who.0,
+                who.1,
+                who.2,
+                ours_sum[0] / n,
+                ours_sum[1] / n,
+                ours_sum[2] / n,
+                theirs_sum[0] / n,
+                theirs_sum[1] / n,
+                theirs_sum[2] / n,
+            );
+            got.push(((who.0, who.1), (agree, held)));
+        }
+        assert_eq!(got, render::silhouette::RUN1559B_3279_BUILDINGS_TEAM);
+    }
+
     /// **The colour row** (item 4099; `docs/RENDERER.md` §5.3, "The colour
     /// reader", committed before this count): on the row's draw
     /// (`Blend::Last`), each object the traced reader scores, its colours
