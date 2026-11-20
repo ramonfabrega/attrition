@@ -3339,6 +3339,10 @@ down in place; the bits are kept, and the dump-built start births a unit at `typ
 0|2 (`Leader::init:178`'s own bit, `:229` each ally under `reveal_map`); `reg_cities[1]` 0|1 (`City::init`'s add on
 an unsized census); `resource_cap[0..5]` 0|1,120 (`:289`, `commerce_cap[0] << 4`). All whole; journal 4340.
 
+**Item 4457**: a bonus nation's free epoch at setup is a `gain_tech` (`Leader::init@006e3930:544`), so both stats
+bits rise (`:2313`). Row 140's Dutch seat (run1725, setup, range 128, byte 3: ours `0b`, theirs `0f`): leaders
+whole.
+
 ## 25.5 How it was established, and what it has not established
 
 The sites and calling conventions are read from the listing (`walk_function`'s prologue and `ret 8`;

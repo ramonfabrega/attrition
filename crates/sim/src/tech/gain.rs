@@ -42,19 +42,29 @@ impl Sim {
             &self.tables.tuning,
             &mut self.tech[who as usize],
         );
-        // `Leader::init@006e3930` lays the tree down in place, and its
-        // `gain_tech` tails' `0xc000000` are the epochs' and Despotism's
-        // (`:544`–`:576`), which `start` does not run: so the setup leaves
-        // both stats bits as they stood, and theirs' setup `check_all`
-        // reads `leader_flags` byte 3 `0a` (items 4333, 4340;
+        // `Leader::init@006e3930` lays the tree down in place, so the setup
+        // leaves both stats bits as they stood, and theirs' setup
+        // `check_all` reads `leader_flags` byte 3 `0a` (items 4333, 4340;
         // `docs/CHECKSUM.md` §25.4). A unit is born at its leader's speed
         // (`Unit::init`'s `update_speed`), so nothing waits on the first
         // `calc_unit_stats`.
+        //
+        // **But a nation's free tech is a `gain_tech`** (item 4457): the
+        // Dutch Commerce, Russian Civic, Aztec and Roman Military and
+        // American Science epochs and the Persians' Despotism
+        // (`:544`–`:576`) each call `gain_tech(…, 1)`, which passes the
+        // tech gate (`gain_tech@006dcb60:935`) and reaches the tail's
+        // `leader_flags |= 0xc000000` (`:2313`). `start` reports those
+        // gains alone, so a non-empty report is that tail. Row 140's Dutch
+        // seat: run1725's setup set, `leader_flags` byte 3 theirs `0f`,
+        // where restoring read `0b`.
         let wall_stats_were = self.cities.wall_stats_dirty[who as usize];
         let unit_stats_were = self.roster.unit_stats_dirty[who as usize];
         self.apply_gained(who);
-        self.cities.wall_stats_dirty[who as usize] = wall_stats_were;
-        self.roster.unit_stats_dirty[who as usize] = unit_stats_were;
+        if events.is_empty() {
+            self.cities.wall_stats_dirty[who as usize] = wall_stats_were;
+            self.roster.unit_stats_dirty[who as usize] = unit_stats_were;
+        }
         // `Leader::init@006e3930:289`'s per-good loop: each of the six
         // `resource_cap` words (`LeaderDataEncrypt +0x30`) is
         // `commerce_cap[0] << 4`, in sixteenths, until the first

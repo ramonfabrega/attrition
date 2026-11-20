@@ -4123,11 +4123,19 @@ widening 224 → 210 keys and run711's 482 → 286, neither with a key of
 floor, word or chapter moved. Unit test
 `transport::tests::a_passenger_put_ashore_clears_the_disc_it_boarded_from`.
 
-**What this has *not* established.** The same `come_out` lines serve a
+**What this has *not* established.** ~~The same `come_out` lines serve a
 unit leaving a **building**, whose retained point is where it went in (or
 `Unit::init`'s birth point for a trained unit); `come_out_place` still
-paints the spot fresh, and no capture has been read for the difference.
-Nor has a passenger landed in the same unit cell it boarded from, where
+paints the spot fresh, and no capture has been read for the difference.~~
+**Answered by item 4456**: `come_out_place` calls `coll_come_out` with the
+body's point from inside. run1724's world line on 3878 diffs it. The
+sample's Inca Citizen `4/4`, in at (10152, 10104), comes out at (10488,
+10968), and theirs holds an empty block on world cell (13, 13) =
+793 (`block.present` 0|1 before the fix). The world line's first
+parting went 3878 → 3888. Test
+`cities_tests::a_unit_out_of_a_building_clears_the_disc_it_stood_inside`.
+A trained unit's retained point (`Unit::init`'s seat) is diffed by no
+capture read for it. Nor has a passenger landed in the same unit cell it boarded from, where
 `move_unit` is not called at all and `add_to_world`'s paint is the whole
 of it — `coll_come_out` reaches the same end there.
 

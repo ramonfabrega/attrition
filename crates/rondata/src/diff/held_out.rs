@@ -217,6 +217,54 @@ mod tests {
         );
     }
 
+    /// **Row 140's Dutch seat starts with both stats bits raised** (item
+    /// 4457, `docs/RECGAME.md` §10.3): run1725, the ranges take of run1707's
+    /// file, holds setup's set. `Leader::init@006e3930:544` gives the Dutch
+    /// (`has_tribe_bonus(0x16)`, `dutch_free_commerce`) their next Commerce
+    /// epoch through `gain_tech(…, 1)`, which passes the tech gate
+    /// (`gain_tech@006dcb60:935`) and reaches the tail's `leader_flags |=
+    /// 0xc000000` (`:2313`). This crate laid the epoch into the tree and put
+    /// both stats bits back as they stood. Every leaders range on state 0,
+    /// ours against theirs, byte for byte: red on the tree before the fix,
+    /// at range 128, record 1, `flags` byte 3, ours `0b`, theirs `0f`
+    /// (`unit_stats_dirty`, `0x4000000`).
+    #[test]
+    fn row_140_s_dutch_seat_starts_with_both_stats_bits_on_run1725_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(7) else {
+            eprintln!("skipping: row 140's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1725/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1725's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 140's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let built = crate::checksum::playback::recording_start(&loaded, &rec);
+        assert_eq!(built.sim.frame, 0);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let set = record.first_of(-1).expect("setup's set").clone();
+        let theirs = record.ranges(&set).expect("the set's ranges");
+        let theirs: Vec<_> = theirs.iter().filter(|r| r.line == 7).collect();
+        let ours = built.sim.checksum_leaders();
+        assert_eq!(ours.ranges.len(), theirs.len(), "leaders ranges on state 0");
+        for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+            assert_eq!(
+                a.bytes, b.bytes,
+                "leaders range {k} on state 0, record {} {}",
+                a.record, a.field
+            );
+        }
+        // The Dutch seat's `leader_flags`, by name: byte 3 of range 128.
+        assert_eq!(theirs[128].bytes[3], 0x0f, "theirs' leader_flags byte 3");
+    }
+
     /// **Row 120's barge is born with `form` 0** (item 4435, `docs/RECGAME.md`
     /// §10.3): run1716, the ranges take of run1706's file, holds the units
     /// line's every range on state 2694, where the computer's transport
@@ -906,12 +954,17 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // `update_action` on the blocker): units 3,835 -> 3,837, whole. On
         // 2367, run1720's units range 2407, record 73 (the Fusiliers 1/73,
         // type 136), `dest_angle` read ours 0xa715.., theirs 0xb5b5...
+        // Moved by item 4455 (`check_orphaned_buildings` marks a site with
+        // no builder and no recruit, `build_masks |= 0x2000`): builds 3,736
+        // -> 3,837, whole, and the game with it. On 2376, run1720's builds
+        // range 1883, record 2036 (the computer's site 1/2036, never
+        // started), `build_masks` read ours 0, theirs 0x2000.
         moved: Some(Score {
             states: 3837,
             agreed: [
-                3837, 3736, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837,
+                3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837,
             ],
-            first: &[("builds", (2376, Some(2962723024), 945131824))],
+            first: &[],
             over: None,
         }),
     }),
@@ -956,6 +1009,11 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4449 (`set_new_location(…, 1)` copies each figure's
         // point into `last`): guys 3,316 -> 3,308, a named fall past its
         // first parting, which stays on 2646.
+        // Moved by item 4455 (`check_orphaned_buildings` marks a site with
+        // no builder and no recruit, `build_masks |= 0x2000`): builds 2,230
+        // -> 2,588, first 1976 -> 2588. On 1976, run1721's builds range
+        // 1451, record 2027 (the computer's site 1/2027, never started),
+        // `build_masks` read ours 0, theirs 0x2000.
         // Moved by item 4459 (the units line walks `AirAttackGroundOrder`'s
         // five ranges): units 2,697 -> 2,728, first 2587 -> 2646. On 2587,
         // run1721's units range 2809, record 84 (the missile 1/84, TI 316,
@@ -964,11 +1022,11 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         moved: Some(Score {
             states: 3331,
             agreed: [
-                2728, 2230, 3331, 3172, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 2618,
+                2728, 2588, 3331, 3172, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 2618,
             ],
             first: &[
                 ("units", (2646, Some(3584274957), 3109728825)),
-                ("builds", (1976, Some(3652536594), 4264774034)),
+                ("builds", (2588, Some(3298180603), 88948818)),
                 ("ammo", (2618, Some(1076236747), 891350609)),
                 ("deaths", (2756, Some(1136466598), 3621657254)),
                 ("guys", (2646, Some(1999790736), 3081855676)),
@@ -1034,15 +1092,17 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4443 (the units line folds `cavarch_o` -2): units
         // 1,568 -> 5,999, first 1568 -> 3937. On 1568 (our walk) the
         // fire-on-the-move 1/2 (type 12) is the one unit idle at -2.
+        // Moved by item 4457 (the Dutch free Commerce's `gain_tech` tail):
+        // leaders 6,000 -> 6,001, whole. run1725's setup set, range 128,
+        // record 1, `leader_flags` byte 3: ours 0x0b, theirs 0x0f.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5999, 6001, 6001, 6001, 6001, 6001, 6000, 6000, 6001, 6001, 6001, 6001,
+                5999, 6001, 6001, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 6001, 6001,
             ],
             first: &[
                 ("units", (3937, Some(595040496), 264476909)),
                 ("guys", (4026, Some(1242658676), 1019574129)),
-                ("leaders", (0, Some(3890907082), 2955970510)),
             ],
             over: None,
         }),
@@ -1050,6 +1110,7 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
 ];
 
 /// **Parity held out, N of 8** (DECISIONS 144 §2): the games whole on every
-/// line and state, and the games taken.
+/// line and state, and the games taken. Item 4455: 3 -> 4, row 80 whole
+/// (`build_masks & 0x2000` on its site 1/2036).
 #[cfg(test)]
-pub(crate) const HELD_OUT_LINE: (usize, usize) = (3, 8);
+pub(crate) const HELD_OUT_LINE: (usize, usize) = (4, 8);

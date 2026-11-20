@@ -39497,7 +39497,8 @@ Files in place, `~/ron-golden/run1720/map-14/`: `gamelog_p.txt`, 2,424 bytes, SH
 `e3a388f77df255413526262ecdada13ad0191f0e186418d1d53ff7473f18ce3a`; `rontrace.ranges`, 2,868,394,932 bytes,
 SHA-256 `7d7779deaa779e96e8da7dd0103c751a3d6226fa1dd68af83751930646d86c76`.
 
-**What it holds**: row 80's leaves for `score_recording`; `SCORES[4].moved` is scored on run1704.
+**What it holds**: row 80's leaves for `score_recording`; `SCORES[4].moved` is scored on run1704. Item 4455 read
+builds range 1883 on 2376 (`1/2036`, `build_masks` theirs `0x2000`) and made row 80 whole.
 ## run1716 — parity held out, row 120's file to 6000 with the checksum and ranges hooks, all twelve lines kept (2026-11-19, item 4435, `att-4435`)
 
 `docs/RECGAME.md` §10.3; DECISIONS 144 §3, 145 §1. **What the disk could not answer**: run1706 holds sums only, so
@@ -39590,7 +39591,9 @@ Files in place, `~/ron-golden/run1721/map-14/`: `gamelog_p.txt`, 2,414 bytes, SH
 `dd82a15bb8eb98e82c7303a6934d37bb9ab49b4b394e7ddddb94244fd7752f4a`; `rontrace.ranges`, 2,336,505,516 bytes,
 SHA-256 `c12f156cda8d3c9d32e075f725ae752c29db5cb2416b3250dba4f38f9fceb778`.
 
-**What it holds**: row 100's leaves for `score_recording`; `SCORES[5].moved` is scored on run1705.
+**What it holds**: row 100's leaves for `score_recording`; `SCORES[5].moved` is scored on run1705. Item 4455 read
+builds range 1451 on 1976 (`1/2027`, `build_masks` theirs `0x2000`); builds part next on 2588, range 1270, record
+2022, `must_walk`, where ours ends and theirs walks on.
 
 ## run1724 — the 2017 sample's playback to 4,130 with the checksum and ranges hooks, all twelve lines kept (2026-11-20, item 4445, `att-4445`)
 
@@ -39648,3 +39651,34 @@ SHA-256 `836429df5b5e2f77116bacddc5b33504e8e216ed0672df5029dbd9f8b068b669`.
 
 **What it holds**: row 60's leaves for `score_recording`; `SCORES[3].moved` is scored on run1703. Item 4447 read the
 builds leaf here (range 10, record 2000, `build_masks` on 4019, ours 4144, theirs 20528) and moved builds 4,073 → 4,075.
+
+## run1725 — parity held out, row 140's file to 6000 with the checksum and ranges hooks, all twelve lines kept (2026-11-20, item 4457, `att-4457`)
+
+`docs/RECGAME.md` §10.3; DECISIONS 145 §3, 146 §3. **What the disk could not answer**: run1707 holds sums only, so
+row 140's three parted lines (units 3937, guys 4026, leaders on state 0) named no leaf, and no ranges take of this
+lobby existed. Theirs' ranges never change, so this game is taken once. The take is run1716's line with the run
+directory and the file changed: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1725 --recording ~/ron-golden/recordings/item4413-row140-6000.rcx --end-frame 6000 --allow-early-end
+--cover cover=1 --log-window 0 31 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS
+--tracer-def RON_RANGES --tracer-def RNG_MASK=0xfffu`, waited on with `waitrun.sh` in the background. `df -g ~` read
+118 GB free before it and 107 after.
+- **The run**: pool lane 1, launched 11:25:28 −05:00, exited 11:32:50: **442.8 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 12345 observed, map 18. Players:
+  tribe 4 (flags 7) and tribe 22 (flags 1). Five settings restored. DLL `b5054b4b…`, defines `-DRON_AUTOSTART
+  -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0xfffu`. The recording's SHA-256 is run1707's. The lane read
+  `free` when the take was filed. Minutes waited on another lane: none.
+- **The record**, `~/ron-golden/run1725/map-18/rontrace.ranges`, 4,332,574,952 bytes, SHA-256
+  `bfcb34f00657e2dd643516c990d5daf602bdcc0a9914d7e19cabb28b62ed3e4d`: 6,001 sets on trace frames −1 to 5999,
+  87,024,981 ranges, 2,939,589,486 bytes, none over (`ranges.py summary`).
+- **Scored** (`score_recording … ~/ron-golden/run1725/map-18`, on `ae1409682`): the sums are `SCORES[7].moved`'s,
+  nine lines whole. Units 5,999, first 3937: **range 173, record 1, `collide_frame..play`, byte 84: `myarmor` ours 2,
+  theirs 1**. Guys 6,000, first 4026: **range 52, record 0, `guy`, byte 104: `last_z` ours −30, theirs −33**.
+  Leaders 6,000, first state 0 (setup's set): **range 128, record 1, `flags`, byte 3: ours 0x0b, theirs 0x0f**, the
+  Dutch seat's `leader_flags` bit `0x4000000`, set in theirs only.
+- Filed **in place**, as run1716 is: a held-out take stays out of the corpora. The record stays where the take left it.
+
+Files in place, `~/ron-golden/run1725/map-18/`: `gamelog_p.txt`, 2,455 bytes, SHA-256
+`a65797aaf55f3ef47511da9d89e5f826d0d860b7afa22db1956a19de56c1ec77`; `rontrace.log`, 55,146,304 bytes, SHA-256
+`7ce3c05a7ab78baa9fe056871707ef26f080bb0792571404e0d0d029a837ddd4`.
+
+**What it holds**: row 140's three leaves for `score_recording`; `SCORES[7].moved` is scored on run1707.

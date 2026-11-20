@@ -1438,7 +1438,12 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// `dest_angle` takes its turn.
 /// **817** on item 4453's (+1): run1296's guys line whole, a push after the
 /// pushed unit's walk leaving `guy_flags & 2`.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 817, 1053);
+/// **823** at item 4455 (+6): the builds lines of run1325c, run1324c,
+/// run1169, run1385p, run1293 and run1304 whole, and six more packets'
+/// parting on fewer builds ranges, none on more:
+/// `check_orphaned_buildings` marks a computer's site with no builder and
+/// no recruit (`build_masks |= 0x2000`), and `BUILD_AT`'s swarm clears it.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 823, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1974,12 +1979,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6004, 6004, 21) -> (6004, 6004, 17).
     // Item 4441, `mask_me` walks a footprint column by column: world (9290, 9290, 11) -> (9290, 9290, 10).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6004, 6004, 17) -> (6004, 6004, 6).
+    // Item 4455, `check_orphaned_buildings` marks a site with no builder
+    // (`build_masks` `0x2000`): builds (2267, 2266, 377) -> (2267, 2266, 375).
     (
         "run1165",
         3719,
         [
             (6004, 6004, 6),
-            (2267, 2266, 377),
+            (2267, 2266, 375),
             (0, 0, 0),
             (287, 9, 286),
             (0, 0, 0),
@@ -2021,12 +2028,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6004, 6004, 22) -> (6004, 6004, 18).
     // Item 4441, `mask_me` walks a footprint column by column: world (9262, 9262, 13) -> (9262, 9262, 12).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6004, 6004, 18) -> (6004, 6004, 7).
+    // Item 4455, `check_orphaned_buildings` marks a site with no builder
+    // (`build_masks` `0x2000`): builds (2247, 2246, 434) -> (2247, 2246, 432).
     (
         "run1166",
         3920,
         [
             (6004, 6004, 7),
-            (2247, 2246, 434),
+            (2247, 2246, 432),
             (0, 0, 0),
             (0, 0, 0),
             (10, 10, 0),
@@ -2069,12 +2078,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (7749, 7749, 89) -> (7749, 7749, 65).
     // Item 4441, `mask_me` walks a footprint column by column: world (9438, 9438, 1) -> (9438, 9438, 0).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (7749, 7749, 65) -> (7749, 7749, 51).
+    // Item 4455, `check_orphaned_buildings` marks a site with no builder
+    // (`build_masks` `0x2000`): builds (1813, 1813, 6) -> (1813, 1813, 0).
     (
         "run1169",
         3769,
         [
             (7749, 7749, 51),
-            (1813, 1813, 6),
+            (1813, 1813, 0),
             (0, 0, 0),
             (12, 12, 0),
             (0, 0, 0),
@@ -2799,12 +2810,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4425, a member compute_dests skips keeps its record offset: groups (586, 586, 4) -> (586, 586, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (9512, 9512, 109) -> (9512, 9512, 73).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (9512, 9512, 73) -> (9512, 9512, 55).
+    // Item 4455, `check_orphaned_buildings` marks a site with no builder
+    // (`build_masks` `0x2000`): builds (1938, 1938, 1) -> (1938, 1938, 0).
     (
         "run1293",
         3606,
         [
             (9512, 9512, 55),
-            (1938, 1938, 1),
+            (1938, 1938, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2944,12 +2957,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // 20) -> (5488, 5488, 19); guys (1616, 1616, 1) -> (1616, 1616, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (5488, 5488, 19) -> (5488, 5488, 13).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5488, 5488, 13) -> (5488, 5488, 6).
+    // Item 4455, `check_orphaned_buildings` marks a site with no builder
+    // (`build_masks` `0x2000`): builds (2029, 2029, 1) -> (2029, 2029, 0).
     (
         "run1304",
         3865,
         [
             (5488, 5488, 6),
-            (2029, 2029, 1),
+            (2029, 2029, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3033,12 +3048,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (8490, 8490, 78) -> (8490, 8490, 47).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (8490, 8490, 47) -> (8490, 8490, 42).
     // Item 4450, `City::calc_gather`'s bytes kept to the reassembly: cities (39, 39, 1) -> (39, 39, 0).
+    // Item 4455, `check_orphaned_buildings` marks a site with no builder
+    // (`build_masks` `0x2000`): builds (2140, 2140, 3) -> (2140, 2140, 2).
     (
         "run1320b",
         5066,
         [
             (8490, 8490, 42),
-            (2140, 2140, 3),
+            (2140, 2140, 2),
             (0, 0, 0),
             (9, 9, 0),
             (2, 2, 0),
@@ -3117,12 +3134,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4425, a member compute_dests skips keeps its record offset: groups (676, 676, 8) -> (676, 676, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (7276, 7276, 85) -> (7276, 7276, 56).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (7276, 7276, 56) -> (7276, 7276, 45).
+    // Item 4455, `check_orphaned_buildings` marks a site with no builder
+    // (`build_masks` `0x2000`): builds (1918, 1918, 2) -> (1918, 1918, 0).
     (
         "run1324c",
         4904,
         [
             (7276, 7276, 45),
-            (1918, 1918, 2),
+            (1918, 1918, 0),
             (0, 0, 0),
             (15, 15, 0),
             (2, 2, 0),
@@ -3163,12 +3182,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4425, a member compute_dests skips keeps its record offset: groups (682, 682, 8) -> (682, 682, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (10367, 10367, 119) -> (10367, 10367, 82).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (10367, 10367, 82) -> (10367, 10367, 70).
+    // Item 4455, `check_orphaned_buildings` marks a site with no builder
+    // (`build_masks` `0x2000`): builds (2521, 2521, 2) -> (2521, 2521, 0).
     (
         "run1325c",
         5578,
         [
             (10367, 10367, 70),
-            (2521, 2521, 2),
+            (2521, 2521, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3800,12 +3821,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (652, 652, 1) -> (652, 652, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (5193, 5193, 10) -> (5193, 5193, 9).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5193, 5193, 9) -> (5193, 5193, 0).
+    // Item 4455, `check_orphaned_buildings` marks a site with no builder
+    // (`build_masks` `0x2000`): builds (1774, 1774, 1) -> (1774, 1774, 0).
     (
         "run1385p",
         2775,
         [
             (5193, 5193, 0),
-            (1774, 1774, 1),
+            (1774, 1774, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3894,12 +3917,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6953, 6953, 72) -> (6953, 6953, 47).
     // Item 4441, `mask_me` walks a footprint column by column: world (9554, 9554, 10) -> (9554, 9554, 8).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6953, 6953, 47) -> (6953, 6953, 36).
+    // Item 4455, `check_orphaned_buildings` marks a site with no builder
+    // (`build_masks` `0x2000`): builds (2128, 2127, 608) -> (2128, 2127, 607).
     (
         "run1416",
         4016,
         [
             (6953, 6953, 36),
-            (2128, 2127, 608),
+            (2128, 2127, 607),
             (0, 0, 0),
             (18, 18, 1),
             (0, 0, 0),
@@ -4519,12 +4544,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (610, 610, 2) -> (610, 610, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (5340, 5340, 287) -> (5340, 5340, 284).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5340, 5340, 284) -> (5340, 5340, 276).
+    // Item 4455, `check_orphaned_buildings` marks a site with no builder
+    // (`build_masks` `0x2000`): builds (2736, 2736, 26) -> (2736, 2736, 24).
     (
         "run1487",
         1980,
         [
             (5340, 5340, 276),
-            (2736, 2736, 26),
+            (2736, 2736, 24),
             (0, 0, 0),
             (208, 0, 208),
             (8, 8, 0),
@@ -4554,12 +4581,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (586, 586, 2) -> (586, 586, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (5026, 5026, 286) -> (5026, 5026, 285).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5026, 5026, 285) -> (5026, 5026, 282).
+    // Item 4455, `check_orphaned_buildings` marks a site with no builder
+    // (`build_masks` `0x2000`): builds (2180, 2180, 24) -> (2180, 2180, 23).
     (
         "run1496",
         1539,
         [
             (5026, 5026, 282),
-            (2180, 2180, 24),
+            (2180, 2180, 23),
             (0, 0, 0),
             (230, 0, 230),
             (2, 2, 0),
@@ -5056,12 +5085,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (5770, 5770, 21) -> (5770, 5770, 17).
     // Item 4441, `mask_me` walks a footprint column by column: world (9344, 9344, 2) -> (9344, 9344, 1).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5770, 5770, 17) -> (5770, 5770, 0).
+    // Item 4455, `check_orphaned_buildings` marks a site with no builder
+    // (`build_masks` `0x2000`): builds (2095, 2095, 5) -> (2095, 2095, 1).
     (
         "run854",
         3301,
         [
             (5770, 5770, 0),
-            (2095, 2095, 5),
+            (2095, 2095, 1),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
