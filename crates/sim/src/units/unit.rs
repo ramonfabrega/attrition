@@ -364,6 +364,17 @@ pub struct Unit {
     /// member (`docs/ANIM.md`). Empty for a unit stood up without art,
     /// which then plays nothing and draws nothing for it.
     pub guys: Vec<crate::units::anim::Guy>,
+    /// `UnitData::guys.size` (`+0xe4 +0x8`), **the figure array's
+    /// allocation**, which the checksum's units and guys lines walk
+    /// (`PtrArray<Guy>::walk_data@0046df30`, `docs/CHECKSUM.md` §16).
+    /// `Unit::init@00612100:472`–`484` and `Unit::set_type@00612fa0:145`
+    /// grow it to the new crew when the crew is larger (by the shortfall:
+    /// `increment` is 1) and nothing in a running game shrinks it, so a
+    /// reused object number keeps its last occupant's larger allocation
+    /// (item 4451: run1327's Citizen `1/46` reads 3 on 10930, where a
+    /// three-figure Heavy Elephant held the number until 5101). 0 on a unit
+    /// a dump handed in, which the walk reads as its figure count.
+    pub guys_alloc: i32,
     /// `UnitData::is_captain` — `o_up < 0`, a unit that heads its own
     /// squad; every standalone unit is one.
     pub captain: bool,
@@ -1013,6 +1024,7 @@ impl Unit {
             unit_masks2: 0,
             avoid: None,
             guys: Vec::new(),
+            guys_alloc: 0,
             captain: true,
             o_up: None,
             o_down: None,
