@@ -50,7 +50,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3): the pass designed four seats, none out: the chain's 4455 (held out, `build_masks & 0x2000` on rows 80 and 100), a parity seat's 4456 (the sample, world 3878), a parity seat's 4457 (held out, row 140's ranges), the eye's 4458 (a wreck fades). 4456 and 4457 both take the game lane, one game at a time, 4457 first. Unseated, for the seat that stops first: 4459 (held out, row 100), 4460 (held out, row 60), 4461 (guys' `gpiece`), 4431 (groups' `facing`). 4462 (the second battery) is seated when `Parity held out:` reads 4 of 8.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3): the pass designed four seats: out are the chain's 4455 (held out, `build_masks & 0x2000` on rows 80 and 100), a parity seat's 4456 (the sample, world 3878; its gate running), a parity seat's 4457 (held out, row 140's ranges; run1725 filed, the game lane free) and 4459 (held out, row 100), refilled on the eye's seat when 4458 stopped on its first act (the three hazy vehicles are live tanks; parked 4458a). Unseated, for the seat that stops first: 4460 (held out, row 60), 4461 (guys' `gpiece`), 4431 (groups' `facing`). 4462 (the second battery) is seated when `Parity held out:` reads 4 of 8.
 
 4455. **Parity held out: `build_masks & 0x2000` on rows 80 and 100** (a rules item, whole; the chain's, unspawned; `docs/RECGAME.md`
 §10.3; DECISIONS 146 §2, §3). The pass scored both rows on their takes (`score_recording`, on disk): row 80's builds part first on 2376,
@@ -74,14 +74,6 @@ DECISIONS 145 §3, 146 §3). Row 140 (East Indies, difficulty 4) is three states
 calls equal. It is the one row of the five not whole with no ranges take. First act: one take of its file to 6000 as run1725 (4435's
 recipe, run1716; `df -g ~` first), then `score_recording` names all three leaves. Leaders on state 0 first: it is a start the dumps'
 block does not cover. Re-pin `SCORES[7].moved`. It stops when two landings running move no row's column, or `df -g ~` reads under 60.
-
-4458. **A wreck fades** (a `render` item, scoped; the eye's seat, unspawned; `docs/RENDERER.md` §3.13; DECISIONS 146 §5). On run1559b's
-photograph at 3279 theirs draws three vehicles translucent over the grass with a tan dust at the base (the pass's crop, x 1060–1700, y
-560–960: `https://cdn.ramonfabrega.com/attrition/pass-1120/crop-1559b-units-1x.png`), and two riflemen's muzzle flashes. Ours draws the
-three opaque and no flash. `crates/client/src/dead.rs`'s header already says the body's fade is not drawn. First act: which records the
-three are on the packet (a `DeathObj` or a unit), and a row minted at its found value on their pixels. Then the alpha `DeathObjOut::draw`
-gives the body. Parked behind it: the flashes; the plaza's red kerb (4438a). It stops, and says what they are, when the three are not
-death objects.
 
 4459. **Parity held out: row 100, on run1721** (a rules item, whole; unseated; `docs/RECGAME.md` §10.3; DECISIONS 146 §2). The pass's
 score names five leaves, all on disk. Units 2587: range 2809, record 84, `guys.length` ours 1, theirs 4 (4451's leaf was a reused unit
