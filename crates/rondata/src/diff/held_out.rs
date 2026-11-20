@@ -723,6 +723,56 @@ mod tests {
         );
     }
 
+    /// PROBE 4474: record 91 on both sides over 2740..=2744.
+    #[test]
+    fn probe_4474_record_91() {
+        if std::env::var("RON_PROBE_4474").is_err() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else { return };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIRST, 5) else { return };
+        let ranges = crate::testenv::experiment(&home.join("ron-golden/run1721/map-14"), "rontrace.ranges").unwrap();
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).unwrap();
+        let rno: i16 = std::env::var("RON_PROBE_REC").ok().and_then(|v| v.parse().ok()).unwrap_or(91);
+        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(2738);
+        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(2744);
+        while built.sim.frame <= hi {
+            let state = built.sim.frame;
+            if state >= lo {
+                for u in built.sim.units.iter().filter(|u| u.alive() && i64::from(u.index) == i64::from(rno)) {
+                    crate::diff::harness::debug_unit(&built, u, state);
+                }
+                let set = record.first_of(state - 1).unwrap().clone();
+                let theirs = record.ranges(&set).unwrap();
+                for line in [0u8, 6] {
+                    let t: Vec<_> = theirs.iter().filter(|r| r.line == line).collect();
+                    let ours = if line == 0 { built.sim.checksum_units() } else { built.sim.checksum_guys() };
+                    let idx: Vec<usize> = ours.ranges.iter().enumerate().filter(|(_, r)| r.record == rno).map(|(i, _)| i).collect();
+                    let (Some(&a), Some(&b)) = (idx.first(), idx.last()) else {
+                        eprintln!("s{state} line {line}: ours holds no record {rno} ({} ranges, theirs {})", ours.ranges.len(), t.len());
+                        continue;
+                    };
+                    eprintln!("s{state} line {line}: ours {} ranges, theirs {}; record {rno} at {a}..={b}", ours.ranges.len(), t.len());
+                    for i in a.saturating_sub(1)..=(b + 3) {
+                        let o = ours.ranges.get(i);
+                        let th = t.get(i);
+                        let ob = o.map(|r| r.bytes.iter().map(|x| format!("{x:02x}")).collect::<String>()).unwrap_or_default();
+                        let tb = th.map(|r| r.bytes.iter().map(|x| format!("{x:02x}")).collect::<String>()).unwrap_or_default();
+                        let mark = if ob == tb { " " } else { "*" };
+                        eprintln!("  {mark}{i} r{} {}\n     ours   {ob}\n     theirs {tb}", o.map_or(-1, |r| r.record), o.map_or("", |r| r.field));
+                    }
+                }
+            }
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+    }
+
     /// Game `k`'s units line on `state`, ours against the ranges take
     /// `run`'s, every range byte for byte; returns theirs' range `range`.
     fn units_ranges_agree(k: usize, run: &str, state: i64, range: usize) -> Option<Vec<u8>> {
