@@ -776,6 +776,9 @@ impl Sim {
     /// order is immaterial because the flag goes on the survivors either
     /// way, and taking it first is what keeps the borrow local here.
     pub fn remove_from_city(&mut self, b: usize) {
+        if std::env::var("RON_PROBE_4466").is_ok() && self.buildings[b].is_library && self.frame == 3887 {
+            eprintln!("PROBE4466 remove b{} f{}\n{}", b, self.frame, std::backtrace::Backtrace::force_capture());
+        }
         if let Some(c) = self.buildings[b].city.take() {
             self.cities.cities[c].members.retain(|&m| m != b);
             if self.buildings[b].active && self.building_is(b, Ident::Temple) {
