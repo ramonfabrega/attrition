@@ -610,8 +610,11 @@ pub(in crate::diff) mod tests {
     /// 2929. Item 4463 (the capture of 3887 carried across): 6697 -> 5042,
     /// a named fall, the lost frames not read one by one (a capture that
     /// lands differently moves the war after it); the first shot still on
+    /// 2929. Item 4466 (the capture's members close before the old city,
+    /// the library's queue refunded): 5042 -> 6309, a named rise past every
+    /// parting, the frames not read one by one; the first shot still on
     /// 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (5042, Some(2929));
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (6309, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
