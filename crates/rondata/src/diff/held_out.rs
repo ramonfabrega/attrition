@@ -26,6 +26,11 @@ pub(crate) struct HeldOut {
 #[cfg(test)]
 pub(crate) const HELD_OUT_ROWS: [usize; 8] = [0, 20, 40, 60, 80, 100, 120, 140];
 
+/// **The second battery's rows** (DECISIONS 145 §2, item 4462): the same
+/// order, the rows between the first's.
+#[cfg(test)]
+pub(crate) const HELD_OUT_SECOND_ROWS: [usize; 8] = [10, 30, 50, 70, 90, 110, 130, 150];
+
 #[cfg(test)]
 fn fnv(text: &str) -> u64 {
     text.bytes().fold(0xcbf2_9ce4_8422_2325, |h, b| {
@@ -72,6 +77,21 @@ mod tests {
     /// prints the table as Rust.
     #[test]
     fn the_held_out_eight_are_the_rows_the_rule_names() {
+        rows_are_the_table(&HELD_OUT_ROWS, &HELD_OUT);
+    }
+
+    /// **The second declaration** (item 4462's first act; DECISIONS 145
+    /// §2): rows 10, 30, …, 150, written out before any take, held the
+    /// same way. `RON_HELD_OUT_PRINT=2` prints this table as Rust.
+    #[test]
+    fn the_second_held_out_eight_are_the_rows_the_rule_names() {
+        rows_are_the_table(&HELD_OUT_SECOND_ROWS, &HELD_OUT_SECOND);
+    }
+
+    /// `rows` of `lobbies_on_disk` against `table`, column for column;
+    /// `RON_HELD_OUT_PRINT` (`1` the first battery, `2` the second) prints
+    /// the table instead.
+    fn rows_are_the_table(rows: &[usize; 8], table: &[HeldOut; 8]) {
         let Some(dir) = crate::testenv::gamelog_dir() else {
             eprintln!("skipping: no gamelog directory (set RON_GAMELOG_DIR)");
             return;
@@ -83,8 +103,13 @@ mod tests {
             crate::diff::START_LOBBIES,
             "the rows are of 161"
         );
-        let print = std::env::var_os("RON_HELD_OUT_PRINT").is_some();
-        for (k, &row) in HELD_OUT_ROWS.iter().enumerate() {
+        let which = if rows[0] == HELD_OUT_SECOND_ROWS[0] {
+            "2"
+        } else {
+            "1"
+        };
+        let print = std::env::var("RON_HELD_OUT_PRINT").is_ok_and(|v| v == which);
+        for (k, &row) in rows.iter().enumerate() {
             let l = &lobbies[row];
             let (info, players, digest) = columns(&l.lines);
             if print {
@@ -101,8 +126,8 @@ mod tests {
                 println!("    }},");
                 continue;
             }
-            let want = &HELD_OUT[k];
-            assert_eq!(want.row, row, "HELD_OUT[{k}]'s row");
+            let want = &table[k];
+            assert_eq!(want.row, row, "the table's row {k}");
             assert_eq!(
                 (l.captures[0].as_str(), info.as_str(), players, digest),
                 (
@@ -702,6 +727,110 @@ pub(crate) const HELD_OUT: [HeldOut; 8] = [
             "flags 1; tribe 22; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Beatrix Wilhelmina Armgard",
         ],
         digest: 0xafdc08ec613c25c1,
+    },
+];
+
+/// **The second eight, as declared** (item 4462, before any take; DECISIONS
+/// 145 §2): rows 10, 30, …, 150 of the same order, each the human (tribe 4,
+/// slot 0) against the computers its lobby seats, `MAP_SIZE 2`, played as
+/// the lobby stands (adding seats or a team is Ramon's):
+///
+/// | row | first capture | `MAP_STYLE` | seed | computer tribes | `DIFFICULTY` | ages |
+/// |---|---|---|---|---|---|---|
+/// | 10 | run1016 Lakota peace | 18 | 12345 | 19 | 3 | 8..7, `RUSH_RULES 10` |
+/// | 30 | run1152 East Indies | 18 | 12345 | 15 | 5 | 5..5 |
+/// | 50 | run1253 Great Sahara | 7 | 12345 | 7 | 5 | 3..3 |
+/// | 70 | run1328 Great Lakes | 14 | 12345 | 15 | 5 | 2..2 |
+/// | 90 | run139 East Indies | 18 | 12345 | 11 | 0 | 0..7 |
+/// | 110 | run1482 East Indies melee | 18 | 12345 | 10, 13 | 0 | 7..7 |
+/// | 130 | run651 East Indies all-tech | 18 | 12345 | 23 | 5 | 8..7 |
+/// | 150 | run977 Great Sahara | 7 | 12345 | 10 | 4 | 0..7 |
+///
+/// Row 110 seats three players (`PLAYERS 2`), the one row of the sixteen
+/// that does. Each is played to 6,000 frames with the human idle, as
+/// `run1730 + k` for `HELD_OUT_SECOND[k]`.
+#[cfg(test)]
+pub(crate) const HELD_OUT_SECOND: [HeldOut; 8] = [
+    HeldOut {
+        row: 10,
+        capture: "gamelog-run1016-lakota-peace-cover.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 18; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 3; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 10; CANNON_TIMES 0; STARTING_TECHNOLOGY 8; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 19; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Sitting Bull",
+        ],
+        digest: 0x2dc0d92836db2607,
+    },
+    HeldOut {
+        row: 30,
+        capture: "gamelog-run1152-eastindies-japanese-industrial-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 18; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 5; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 5; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 5; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 15; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Shogun Takauji Ashikaga",
+        ],
+        digest: 0x4c9996d38f35b638,
+    },
+    HeldOut {
+        row: 50,
+        capture: "gamelog-run1253-greatsahara-egyptian-gunpowder-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 7; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 5; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 3; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 3; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 7; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Pharaoh Ramesses II",
+        ],
+        digest: 0xf96cd391ec4ba84f,
+    },
+    HeldOut {
+        row: 70,
+        capture: "gamelog-run1328-greatlakes-japanese-medieval-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 14; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 5; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 2; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 2; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 15; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Shogun Takauji Ashikaga",
+        ],
+        digest: 0xcfc0c20cc95e7c1a,
+    },
+    HeldOut {
+        row: 90,
+        capture: "gamelog-run139-eastindies-makelist.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 18; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 0; STARTING_TOWN 2; STARTING_RESOURCES 1; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 0; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 11; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; William the Conqueror",
+        ],
+        digest: 0x9391b199dcc55b5e,
+    },
+    HeldOut {
+        row: 110,
+        capture: "gamelog-run1482-eastindies-information-melee-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 18; MAP_SIZE 2; PLAYERS 2; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 0; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 7; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 10; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Emperor Napoleon",
+            "flags 1; tribe 13; who 2; team 8; handicap 0; play 2; pauses 0; diff 2; pop_cap_frame 0; Tsar Ivan the Terrible",
+        ],
+        digest: 0xfbf3f6e14ffc47b6,
+    },
+    HeldOut {
+        row: 130,
+        capture: "gamelog-run651-eastindies-persian-alltech-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 18; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 5; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 8; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 23; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Cyrus the Great",
+        ],
+        digest: 0x4e3334b9feb6c070,
+    },
+    HeldOut {
+        row: 150,
+        capture: "gamelog-run977-greatsahara-french-diff4-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 7; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 4; STARTING_TOWN 2; STARTING_RESOURCES 1; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 0; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 10; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Emperor Napoleon",
+        ],
+        digest: 0x04c04c23cd57f7c9,
     },
 ];
 
