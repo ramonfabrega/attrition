@@ -606,6 +606,19 @@ pub struct Movement {
     /// moves the angle, a push by another unit included, and cleared only
     /// after `Guy::move`; item 3571).
     pub frame_facing: movement::Angle,
+    /// **`guy_flags & 2` as the frame leaves it** (item 4453,
+    /// `docs/CHECKSUM.md` §23.11), on guy 0 and every figure without a
+    /// track — the set `Guy::do_turn@005d97a0:31`–`42` recurses into.
+    /// `do_turn:15` sets the bit on any call that moves the angle and
+    /// `Guy::process@005e0230:28` clears it after `Guy::move`, so it is
+    /// still set at the frame's end only when a `do_turn` reached the
+    /// figure after its own unit's walk: a pusher processed later in the
+    /// frame (`Unit::detect_boat_collision+0x630`, [`Sim::push_turn`]).
+    /// Every `do_turn` of the unit's own work and of `Guy::move` is
+    /// cleared in the same `Unit::process`, so only the push sets this,
+    /// and [`Sim::process_movement_on`]'s head clears it. Read only by the
+    /// units and guys lines.
+    pub turned: bool,
     /// Where it *wants* to face: **`UnitData::angle` (`+0x50`)**, which is
     /// also **`GuyData::des_angle` (`+0x64`)** — `Unit::set_angle` writes the
     /// two together, and `Unit::move_step` calls it with the bearing to the
@@ -670,6 +683,7 @@ impl Movement {
         Movement {
             facing: movement::Angle::INITIAL,
             frame_facing: movement::Angle::INITIAL,
+            turned: false,
             heading: movement::Angle::INITIAL,
             des_angle: movement::Angle::INITIAL,
             dest: None,

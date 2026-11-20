@@ -1392,7 +1392,7 @@ beside it from the minted walk on frame 91), then the port:
 | `turret_angles[4]`, `des_turret_angles[4]`, `node_flags`, `des_node_flags` | `Turret` (zero on every figure here) | 54 | 54 |
 | `cur_time`, `end_time`, `last_time`, `cur_anim`, `stopped`, `hold_attack`, `queued_attack` | the figure's clock (`Guy`) | 54 | 54 |
 | `ox`, `whom` | `Guy::aim` (−1, −1 on every figure here) | 54 | 54 |
-| `guy_flags` | derives: `init_real`'s `0x8`, `0x10`, `0x40`, `0x80`, `0x100` and `set_in_danger`'s `0x20` (16 on every figure here) | 54 | 54 |
+| `guy_flags` | derives: `init_real`'s `0x8`, `0x10`, `0x40`, `0x80`, `0x100` and `set_in_danger`'s `0x20` (16 on every figure here); `do_turn`'s `0x2` after a late push, §23.11 | 54 | 54 |
 | `variation`, `off_x`, `off_y` | `Guy::clear@005db590`'s 0; no writer read | 54 | 54 |
 | the five floats | bits (below) | 54 | 54 |
 | `gpiece` | **derives** for a gaia type (below) | 14 | 54 |
@@ -2736,6 +2736,45 @@ Citizen) the same.
 between 5101 and 5301, and no packet holds those frames, so the packets' diff is the evidence. An `increment`
 other than 1 (the shortfall arm against the block arm) is in no packet here. A unit a dump hands in reads its
 figure count, because no dump prints the allocation.
+
+## 23.11 The guys line's `guy_flags & 2` after a late push (item 4453)
+
+**A push by a unit processed after the pushed one leaves `guy_flags & 2` on the frame** (item 4453, diff-backed).
+After item 4451 the census put `guy_flags` (`GuyData +0x9a`, guy byte 146) first on run1296's guys and units
+lines, f4632 record 59, ours `10` theirs `12`. The unit is `1/59`, uid 92, TI 98 (`ARQUEBUSIERS`, foot), idle with
+no orders, one figure, `collide_frame 4631`, stepping about (8, 14) a frame while idle. Bit `0x2` was not among the
+bits the walk derived.
+
+The writers by offset (`field_0x9a`, `+ 0x9a`): `Guy::init_real@005db6b0` and `Guy::clear@005db590` (zero and
+the derived bits), `Unit::set_in_danger` (`| 0x20`), `Unit::set_rally` and `Unit::fight` (`& 0xfffb`),
+`Unit::update_speed` (a `UnitData` field of the same offset, not the figure's), and two for bit `0x2`:
+`Guy::do_turn@005d97a0:15` sets it whenever its new angle is not the figure's `+0x18`, and
+`Guy::process@005e0230:28` clears it right after `Guy::move`. `Unit::process@00610bc0:538`–`552` runs the unit's
+work (vslot `+0x188`) and then `Guy::process` on its figures, so every `do_turn` of the unit's own `move_step` and of
+`Guy::move`'s `turn_towards` is cleared in the same process. The bit can stand at the frame's end only when a
+`do_turn` reaches the figure after its own unit's walk.
+
+**The watch, both values** (`step4.py` on run1296's packet, `RUNS.md`, watching `3a6521dc+0x9a:2`, the figure of
+`1/59` at `16a320ac`): `--entry 610bc0 --this 16a320ac` (`1/59`'s own process) makes one write,
+`Guy::process+0x13` `0x12` → `0x10`, and does not move the unit. `--entry 610bc0 --this 1508de34` (the Supply Wagon
+`1/174`, TI 63, on an `ATTACKTOORDER`, the unit `1/59` names in `collide_o`) makes one write, `Guy::do_turn+0x16`
+`0x10` → `0x12`. A hook on `do_turn` names its caller, `Unit::detect_boat_collision+0x630` under
+`move_step+0x413`, with `this` the figure and arguments `(0x87a3d280, 0x53990057, 1, 1)`: the push's turn of an idle
+unit, §13.3 in `COLLISION.md`. **The direction: ours computed differently.** Both sides push and turn `1/59` (its
+`angle` agrees); ours carried no bit for it.
+
+`Movement::turned` is the bit, on guy 0 and every figure without a track (the set `do_turn:31`–`42` recurses into;
+`SQUAD_SIZE` is 1). `Sim::push_turn` sets it when the turn moves the facing, and `Sim::process_movement_on`'s head
+clears it, since nothing in that walk sets it. The guys record emits `0x2` from it
+(`movement::collide::tests::a_push_after_the_pushed_unit_s_walk_leaves_guy_flags_bit_2`). **1 line turns, none
+grow** (`PACKETS_SCORE` 813 → 814): run1296's guys line (2 → 0 ranges). Its units line parts on 20 ranges, not 22,
+and first on record 99 `myhits..launch_frames` byte 8, ours `79` theirs `77`. Value diff, run1296 f4632 record 59
+(`1/59`, Arquebusiers): `guy_flags` theirs `0x12`, ours `0x10` → `0x12`.
+
+**Not established.** A tracked crew figure the push does not recurse into, and a trackless crew figure whose own
+angle already equals the push's (each is compared to its own `+0x18`; ours shares guy 0's facing), are in no packet
+here. The crate's own body-turn gate still reads the bit as the facing against `frame_facing`, which `Guy::set_angle`
+also moves; only the checksum reads `Movement::turned`.
 
 ## 24. Step H: the fifteen, every frame (item 4214)
 

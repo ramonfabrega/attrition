@@ -1430,7 +1430,7 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// **806** on item 4430's tip: run1351's and run1426b's guys lines whole
 /// (4430), and run1426b's units line too, whose last ranges were 4430's
 /// turrets and 4443's `cavarch_o`; run1351's units line parts on one.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 813, 1053);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 814, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -2888,17 +2888,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // `set_new_location(…, 1, 1)`): units (9905, 9905, 34) -> (9905, 9905, 33); guys (2172, 2172,
     // 3) -> (2172, 2172, 2).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (9905, 9905, 33) -> (9905, 9905, 22).
+    // Item 4453, a push after the pushed unit's walk leaves guy_flags 0x2: units (9905, 9905, 22) -> (9905, 9905, 20), guys (2172, 2172, 2) -> (2172, 2172, 0).
     (
         "run1296",
         4632,
         [
-            (9905, 9905, 22),
+            (9905, 9905, 20),
             (2163, 2163, 0),
             (0, 0, 0),
             (0, 0, 0),
             (6, 6, 0),
             (682, 682, 0),
-            (2172, 2172, 2),
+            (2172, 2172, 0),
             (271, 271, 0),
             (27, 27, 0),
             (5, 5, 0),

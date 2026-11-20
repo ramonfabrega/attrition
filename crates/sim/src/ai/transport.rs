@@ -1561,6 +1561,7 @@ impl Sim {
             heading: self.units[r].movement.heading,
             facing: self.units[r].movement.facing,
             frame_facing: self.units[r].movement.frame_facing,
+            turned: self.units[r].movement.turned,
             mirror: self.units[r].movement.mirror,
             des_angle: self.units[r].movement.des_angle,
             body: crate::movement::Body { pos: at, ..body },
