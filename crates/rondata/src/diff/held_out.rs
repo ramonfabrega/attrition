@@ -336,6 +336,65 @@ mod tests {
         }
     }
 
+    /// **Row 120's MLRS reads `cavarch_o` −2 in the units line** (item
+    /// 4443, `docs/RECGAME.md` §10.3): on 5864 the computer's fire-on-the-move
+    /// MLRS `1/35` (type 273) steps an `ExploreTo` with an empty search after
+    /// an empty one, and `Unit::cavarch_fight@005ff4b0:34` writes `cavarch_o`
+    /// (`+0xa2`) `0xfffe`. This crate held the −2 as `cavarch_idle` and gave
+    /// it to the dump differ, but the units line's `collide_frame..play`
+    /// range wrote −1. Every units range on 5864, ours against theirs, byte
+    /// for byte: red on the tree before the fix, at range 1139, record 35,
+    /// byte 90, ours `ff ff`, theirs `fe ff`.
+    #[test]
+    fn row_120_s_mlrs_reads_cavarch_o_minus_two_on_run1716_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(6) else {
+            eprintln!("skipping: row 120's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1716/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1716's ranges record is missing");
+            return;
+        };
+        const STATE: i64 = 5864;
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 120's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        while built.sim.frame < STATE {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let set = record
+            .first_of(STATE - 1)
+            .expect("state 5864's set")
+            .clone();
+        let theirs = record.ranges(&set).expect("the set's ranges");
+        let theirs: Vec<_> = theirs.iter().filter(|r| r.line == 0).collect();
+        let ours = built.sim.checksum_units();
+        assert_eq!(ours.ranges.len(), theirs.len(), "units ranges on 5864");
+        for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+            assert_eq!(
+                a.bytes, b.bytes,
+                "units range {k} on 5864, record {} {}",
+                a.record, a.field
+            );
+        }
+        // The MLRS's own range, by name: `cavarch_o` at byte 90 of 1139.
+        assert_eq!(theirs[1139].bytes.len(), 111);
+        assert_eq!(
+            &theirs[1139].bytes[0xa2 - 0x48..0xa4 - 0x48],
+            &[0xfe, 0xff],
+            "theirs' cavarch_o"
+        );
+    }
+
     /// **The held-out line**, from the table alone: the games whose score
     /// agrees on every line on every state, of the eight, and how many are
     /// taken.
@@ -633,13 +692,16 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by origin/main at 0b34ad2ac (merged into item 4413's branch): groups
         // 1,843 -> 4,964, its first parting 711 -> 1854. Moved by item 4439:
         // guys 4,824 -> 4,876, first 2444 -> 2487.
+        // Moved by item 4443 (the units line folds `cavarch_o` -2): units
+        // 1,858 -> 2,487, first 1858 -> 2487. On 1858 (our walk) the
+        // fire-on-the-move 1/32 (type 156) is the one unit idle at -2.
         moved: Some(Score {
             states: 4974,
             agreed: [
-                1858, 4974, 4974, 4974, 4974, 4964, 4876, 4974, 4967, 4974, 4974, 4859,
+                2487, 4974, 4974, 4974, 4974, 4964, 4876, 4974, 4967, 4974, 4974, 4859,
             ],
             first: &[
-                ("units", (1858, Some(2347968956), 4143655355)),
+                ("units", (2487, Some(1142976455), 3877923716)),
                 ("groups", (1854, Some(284774603), 2949074744)),
                 ("guys", (2487, Some(2678849350), 3953000265)),
                 ("cities", (4127, Some(3606914667), 2610767417)),
@@ -672,7 +734,25 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4443 (the units line folds `cavarch_o` -2): units
+        // 1,055 -> 3,662, first 1055 -> 1561. On 1055 (our walk) the
+        // fire-on-the-move 1/21 (type 139) is the one unit idle at -2.
+        moved: Some(Score {
+            states: 4075,
+            agreed: [
+                3662, 4073, 4075, 4075, 4075, 3863, 3958, 4068, 4066, 4075, 4075, 3984,
+            ],
+            first: &[
+                ("units", (1561, Some(3913862560), 4278570550)),
+                ("builds", (4019, Some(202745570), 1178445602)),
+                ("groups", (3598, Some(3778361523), 962934390)),
+                ("guys", (2014, Some(4240840485), 61413159)),
+                ("leaders", (969, Some(2042929290), 243376476)),
+                ("cities", (2253, Some(2126061725), 1479221375)),
+                ("world", (3984, Some(402934873), 4267790267)),
+            ],
+            over: None,
+        }),
     }),
     // run1704
     // row 80, Great Lakes at Enlightenment (seed 12345), as found 2026-11-19: the
@@ -698,13 +778,16 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4436 (run1720's ranges): world 0 -> 3,837, whole --
         // state 0's tile masks, eleven tiles of bit 0x4, the Chinese Town
         // 1/2000's third behind-ring, now marked at its start.
+        // Moved by item 4443 (the units line folds `cavarch_o` -2): units
+        // 2,239 -> 3,835, first 2239 -> 2367. On 2239, run1720's units range
+        // 3003, record 86 (1/86, type 140), `cavarch_o` read ours -1, theirs -2.
         moved: Some(Score {
             states: 3837,
             agreed: [
-                2239, 3736, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837,
+                3835, 3736, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837,
             ],
             first: &[
-                ("units", (2239, Some(3211665055), 2108038814)),
+                ("units", (2367, Some(2679787322), 784355304)),
                 ("builds", (2376, Some(2962723024), 945131824)),
             ],
             over: None,
@@ -740,13 +823,16 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // 134's tile masks, `BAD_PATH` on (211, 108) ours and (208, 111)
         // theirs around the computer's University 1/2006, now masked column
         // by column as `BuildType::mask_me` walks it; world parts next on 2618.
+        // Moved by item 4443 (the units line folds `cavarch_o` -2): units
+        // 1,611 -> 2,696, first 1611 -> 1793. On 1611, run1721's units range
+        // 1170, record 31 (1/31, type 170), `cavarch_o` read ours -1, theirs -2.
         moved: Some(Score {
             states: 3331,
             agreed: [
-                1611, 2230, 3331, 3172, 2756, 3331, 3316, 3331, 3331, 3331, 3331, 2618,
+                2696, 2230, 3331, 3172, 2756, 3331, 3316, 3331, 3331, 3331, 3331, 2618,
             ],
             first: &[
-                ("units", (1611, Some(1862838836), 884976179)),
+                ("units", (1793, Some(4040064246), 1794145779)),
                 ("builds", (1976, Some(3652536594), 4264774034)),
                 ("ammo", (2618, Some(1076236747), 891350609)),
                 ("deaths", (2756, Some(1136466598), 3621657254)),
@@ -779,13 +865,14 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // first 3250 -> 5864; guys 5,998 -> 6,001, whole. On 3250, run1716's
         // units range 159, the scout 1/0's figure, `last_x`, `last_y`,
         // `last_z`, `last_angle` read ours 30849, 41470, -37, -1553072128,
-        // theirs 19080, 39768, -30, -664928256.
+        // theirs 19080, 39768, -30, -664928256. Moved by item 4443 (the units
+        // line folds `cavarch_o` -2): units 5,864 -> 6,001, whole; the game is
+        // whole. On 5864, run1716's units range 1139, record 35 (the MLRS
+        // 1/35, type 273), `cavarch_o` read ours -1, theirs -2.
         moved: Some(Score {
             states: 6001,
-            agreed: [
-                5864, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
-            ],
-            first: &[("units", (5864, Some(2913597975), 426834454))],
+            agreed: [6001; 12],
+            first: &[],
             over: None,
         }),
     }),
@@ -809,13 +896,16 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
             over: None,
         },
         // Moved by item 4439: guys 5,994 -> 6,000, first 3081 -> 4026.
+        // Moved by item 4443 (the units line folds `cavarch_o` -2): units
+        // 1,568 -> 5,999, first 1568 -> 3937. On 1568 (our walk) the
+        // fire-on-the-move 1/2 (type 12) is the one unit idle at -2.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                1568, 6001, 6001, 6001, 6001, 6001, 6000, 6000, 6001, 6001, 6001, 6001,
+                5999, 6001, 6001, 6001, 6001, 6001, 6000, 6000, 6001, 6001, 6001, 6001,
             ],
             first: &[
-                ("units", (1568, Some(3165276990), 354175805)),
+                ("units", (3937, Some(595040496), 264476909)),
                 ("guys", (4026, Some(1242658676), 1019574129)),
                 ("leaders", (0, Some(3890907082), 2955970510)),
             ],
@@ -827,4 +917,4 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
 /// **Parity held out, N of 8** (DECISIONS 144 §2): the games whole on every
 /// line and state, and the games taken.
 #[cfg(test)]
-pub(crate) const HELD_OUT_LINE: (usize, usize) = (2, 8);
+pub(crate) const HELD_OUT_LINE: (usize, usize) = (3, 8);
