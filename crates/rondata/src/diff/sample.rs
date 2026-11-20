@@ -1041,14 +1041,7 @@ pub(in crate::diff) mod tests {
             2,
             "295 201 curr_x: curr_x[1] -120|-117, curr_x[2] 119|116",
         ),
-        (
-            "guys",
-            3888,
-            998,
-            998,
-            4,
-            "621 19 guy: cur_anim 13|11",
-        ),
+        ("guys", 3888, 998, 998, 4, "621 19 guy: cur_anim 13|11"),
         (
             "leaders",
             3888,

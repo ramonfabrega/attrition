@@ -1429,7 +1429,13 @@ parted on 45 ranges and summed to 2626631255.
   28296), the British scout `1/0` and its dog (45082, 19586 against
   45100, 19556; 45189, 19594 against 45206, 19565), the dog's
   `last_angle` −1785069568 against −1750794240 (its tracked body turned
-  this frame).
+  this frame). **Every `set_new_location(…, 1)` writes `last` on the
+  point** (item 4449, diff-backed on run1724): `Unit::set_new_location@
+  005f8d20` hands its `param_3` to each figure's `Guy::set_new_location`
+  (`:66–70`), and `Unit::come_out@00617c10:518` places with `(1, 1)`
+  (`Sim::guys_last_on_point`). The sample's Inca Citizen `4/4`, out of
+  its building on 3878, parted `last` 10152, 10104, 332 against 10488,
+  10968, 304 before it.
 - **`z` and `last_z`** — `Guy::set_new_location` writes `z` by the type's
   domain: an aircraft's climb, a ship's 0, and the ground under the point
   otherwise (`TerrainOut::find_data_z(x, y, 0)`, `World::data_z`). The 36

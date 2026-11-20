@@ -2305,33 +2305,10 @@ impl Sim {
             // on (34464, 37595), the rotation of its (−48, −192) track
             // about the cell centre it was just snapped to, and its own
             // angle equal to the leader's to the digit.
-            let facing = self.units[u].movement.facing;
-            self.crew_des(u, to, facing, true);
+            self.crew_des(u, to, self.units[u].movement.facing, true);
             self.guys_last_on_point(u);
         }
         true
-    }
-
-    /// `Guy::set_new_location(…, 1)`'s `param_3` copy for every figure of
-    /// unit `u` (`005d86f0:66–70`): `last_x`/`last_y` become the point it
-    /// was just put on and `last_z` its new `z`, which the guys line reads
-    /// off that point. `Unit::set_new_location@005f8d20` hands its own
-    /// `param_3` to each squad figure (`:162`, `:234`) and guy 0's crew
-    /// loop hands `1` to each crew figure, so the copy reaches them all.
-    /// No angle is written: `last_angle` is `param_4`'s
-    /// ([`Sim::guy_set_angle`]) and the crew's snap leaves it (item 4253).
-    /// Item 4449: a computer's captain re-seated from its trainer's exit to
-    /// its gather point's spot (`Unit::come_out@00617c10:1069`) kept
-    /// `last` on the exit, run1724's Citizen `3/6` on 107.
-    pub(crate) fn guys_last_on_point(&mut self, u: usize) {
-        let m = self.units[u].movement;
-        for g in &mut self.units[u].guys {
-            let (at, facing) = g
-                .follow
-                .map_or((m.body.pos, m.facing), |f| (f.body.pos, f.facing));
-            let angle = g.last.map_or(facing, |(_, a)| a);
-            g.last = Some((at, angle));
-        }
     }
 
     /// The shore half of `Unit::set_new_location@005f8d20`, and the whole
