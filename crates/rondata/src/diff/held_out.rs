@@ -504,6 +504,74 @@ mod tests {
         }
     }
 
+    /// **Row 60's Dragoon keeps its dropped target's uid** (item 4476,
+    /// `docs/RECGAME.md` §10.3): run1722, the ranges take of run1703's file.
+    /// On 3756 the Dragoon `1/21` (TypeIndex 189, land) holds the
+    /// fire-on-the-move target `0/11`, uid 18; on 3757 both sides drop it
+    /// (`cavarch_o` −1, `cavarch_who` −1), and theirs keeps `cavarch_uid`
+    /// 18: every writer of `UnitData +0xa6` writes it only on a find
+    /// (`Unit::fight@005fd4d0`, `Group::action_spell@006fe1a0`). This crate
+    /// read the uid off the held target and wrote 0 without one. Every units
+    /// range on 3756 and 3757, byte for byte: red on the tree before the fix
+    /// at range 788 on 3757, record 21 `collide_frame..play`, `cavarch_uid`
+    /// ours 0, theirs 18.
+    #[test]
+    fn row_60_s_dragoon_keeps_its_dropped_target_s_uid_on_run1722_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIRST, 3) else {
+            eprintln!("skipping: row 60's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1722/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1722's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 60's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for (state, held) in [(3756, 11), (3757, -1)] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_units();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Theirs' record 21, by name: the target dropped, the uid kept.
+            let k = ours
+                .ranges
+                .iter()
+                .position(|r| r.record == 21 && r.field == "collide_frame..play")
+                .expect("record 21");
+            let f =
+                crate::checksum::fields::range_fields("units", &theirs[k].field, &theirs[k].bytes)
+                    .expect("record 21's fields");
+            let get = |n: &str| f.iter().find(|(m, _)| m == n).map(|x| x.1);
+            assert_eq!(get("cavarch_o"), Some(held), "theirs' cavarch_o on {state}");
+            assert_eq!(
+                get("cavarch_uid"),
+                Some(18),
+                "theirs' cavarch_uid on {state}"
+            );
+        }
+    }
+
     /// **Row 60's army push zeroes the emptied last slot's origin** (item
     /// 4473, `docs/RECGAME.md` §10.3): run1722, the ranges take of run1703's
     /// file. On 3598 who=1's army 1 takes `1/169` through
@@ -1489,15 +1557,18 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // whole. On 3598 who=1's army 1 pushes `1/169` into slot 67 while
         // slot 68 is the last and empty: run1722's groups range 92, record 68,
         // `ox`/`oy` ours (33720, 15048), theirs (0, 0).
+        // Moved by item 4476 (`cavarch_uid` is carried, written only on a
+        // find and kept past a dropped target): units 3,788 -> 4,075, whole.
+        // On 3757 the Dragoon `1/21` (TI 189, land) drops its target `0/11`
+        // (`cavarch_o` 11 -> -1, `cavarch_who` 0 -> -1 on both sides):
+        // run1722's units range 788, record 21, `cavarch_uid` ours 0,
+        // theirs 18.
         moved: Some(Score {
             states: 4075,
             agreed: [
-                3788, 4075, 4075, 4075, 4075, 4075, 4075, 4075, 4075, 4075, 4075, 3984,
+                4075, 4075, 4075, 4075, 4075, 4075, 4075, 4075, 4075, 4075, 4075, 3984,
             ],
-            first: &[
-                ("units", (3757, Some(89157210), 2279304812)),
-                ("world", (3984, Some(402934873), 4267790267)),
-            ],
+            first: &[("world", (3984, Some(402934873), 4267790267))],
             over: None,
         }),
     }),
