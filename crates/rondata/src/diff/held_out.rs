@@ -395,6 +395,65 @@ mod tests {
         );
     }
 
+    /// Item 4448's probe (reverted whole): `RON_4448=<k>:<run>:<state>:<record>:<lo>`.
+    #[test]
+    fn probe_4448() {
+        let Ok(spec) = std::env::var("RON_4448") else {
+            return;
+        };
+        let v: Vec<&str> = spec.split(':').collect();
+        let k: usize = v[0].parse().unwrap();
+        let run = v[1];
+        let state: i64 = v[2].parse().unwrap();
+        let rec_no: i16 = v[3].parse().unwrap();
+        let lo: i64 = v[4].parse().unwrap();
+        let inst = crate::testenv::install().unwrap();
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let rcx = paths(k).0.unwrap();
+        let ranges = crate::testenv::experiment(
+            &home.join(format!("ron-golden/{run}/map-14")),
+            "rontrace.ranges",
+        )
+        .unwrap();
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame <= state {
+            if built.sim.frame >= lo {
+                let f = built.sim.frame;
+                if let Some(set) = record.first_of(f - 1).cloned() {
+                    let theirs = record.ranges(&set).unwrap();
+                    let theirs: Vec<_> = theirs.iter().filter(|r| r.line == 0).collect();
+                    let ours = built.sim.checksum_units();
+                    for (i, a) in ours.ranges.iter().enumerate() {
+                        if a.record != rec_no || a.field != "collide_frame..play" {
+                            continue;
+                        }
+                        if let Some(b) = theirs.get(i) {
+                            let d: Vec<String> = a.bytes.iter().zip(&b.bytes).enumerate().filter(|(_, (x, y))| x != y).map(|(j, (x, y))| format!("+{:#x} {x:02x}/{y:02x}", j + 0x48)).collect();
+                            eprintln!("S{f} DIFF {d:?}");
+                        }
+                        let t = theirs.get(i).map(|b| b.bytes[8..20].to_vec());
+                        eprintln!(
+                            "S{f} range {i} ours {:02x?} theirs {:02x?} n {} {}",
+                            &a.bytes[8..20],
+                            t,
+                            ours.ranges.len(),
+                            theirs.len()
+                        );
+                    }
+                }
+                for u in built.sim.units.iter().filter(|u| u.alive() && i64::from(u.index) == i64::from(rec_no)) {
+                    crate::diff::harness::debug_unit(&built, u, f);
+                }
+            }
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+    }
+
     /// **The held-out line**, from the table alone: the games whose score
     /// agrees on every line on every state, of the eight, and how many are
     /// taken.
