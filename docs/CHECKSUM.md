@@ -2854,7 +2854,7 @@ also moves; only the checksum reads `Movement::turned`.
 diff-backed). After 4453 and 4465 the census put `gpiece` (`GuyData +0x88`, guy byte 128) first on run1437's guys
 line, f3894 record 55, ours `08` theirs `48`, on 5 ranges. The unit is `1/55`, uid 89, TI 122 (`ASSAULTMARINES`,
 foot), on an `ATTACKTOORDER` with one figure. The dump's `gpiece` is 72, which is `122 − 0x32`, the plain piece.
-Ours' 0x1908 is 72 plus `num_unit_pieces_per_gender` 0x18c0, the gender piece, since `o` 55 is odd.
+Ours' 6408 is 72 plus `num_unit_pieces_per_gender` 0x18c0, the gender piece, since `o` 55 is odd.
 
 On that frame every one of theirs' odd-numbered citizens plays the female piece (28 of 28 figures), and none of the
 odd Assault Marines does (0 of 10). `get_unit_gpiece@0090c030:155` takes the gender walk when `unit_flags2 & 4` is
