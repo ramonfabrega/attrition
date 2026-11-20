@@ -628,8 +628,16 @@ fn drive(text: &str, out: &mut Paths) {
 /// on its booking named them here. Item 4118 measured them on every
 /// widening: the union parts on 7 tests and `play` on 93, so all three
 /// stay owed (`docs/CHECKSUM.md` §18; parked 4118a, 4118b).
-const UNREAD_UNIT_FIELDS_OWED: &[(&str, u32)] =
-    &[("hero", 4118), ("play", 4118), ("special", 4118)];
+///
+/// Item 4464 gave the unit `myarmor`, `Unit::update_armor`'s cache, for
+/// the units line (run1725's 3937). The dump's reader beside `diff::unit`
+/// is not built, and no widening has measured it (parked 4464c).
+const UNREAD_UNIT_FIELDS_OWED: &[(&str, u32)] = &[
+    ("hero", 4118),
+    ("myarmor", 4464),
+    ("play", 4118),
+    ("special", 4118),
+];
 
 /// The field names of `pub struct Unit` in `crates/sim/src/units/unit.rs`
 /// (item 4014 moved it out of `lib.rs`).
