@@ -797,6 +797,10 @@ impl Sim {
                 self.units[u].health = hits - damage;
             }
             self.units[u].movement.speed = self.own_speed(u, ty);
+            // `update_armor`, on the captain behind the `+0xe8` test, which
+            // writes its chain: asked of every figure here, each climbs to
+            // the same captain and writes the same value (item 4464).
+            self.update_armor(u);
         }
     }
 }

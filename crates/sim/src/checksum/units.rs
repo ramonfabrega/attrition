@@ -518,7 +518,8 @@ impl Sim {
         p(0x96, 2, i64::from(un.mana_burn));
         p(0x98, 2, i64::from(un.spell_time));
         p(0x9a, 2, i64::from(un.movement.speed));
-        p(0x9c, 2, i64::from(self.object_armor(Obj::Unit(u))));
+        // `myarmor`: the cache `Unit::update_armor` wrote (item 4464).
+        p(0x9c, 2, i64::from(un.myarmor));
         p(0x9e, 2, i64::from(un.attrition));
         p(0xa0, 2, i64::from(un.num_queued));
         // `cavarch_o`: the held target's `o`, else −1, or −2 once a

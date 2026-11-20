@@ -102,6 +102,9 @@ impl Sim {
             unit.pos.y.div_euclid(48) * 48 + 24,
         );
         self.units.push(unit);
+        // `Unit::init@00612100` caches the new unit's armour through
+        // `Unit::update_armor@006054c0` (item 4464).
+        self.update_armor(i);
         // `Unit::init@00612100:76`: `units_built` counts a unit whose type
         // has population (`+0x2f0`) — every unit record passes here once.
         if let Some(t) = self.units[i].ty

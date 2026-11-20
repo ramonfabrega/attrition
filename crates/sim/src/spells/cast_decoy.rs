@@ -310,6 +310,8 @@ impl DecoyView for SimDecoy<'_> {
     fn refresh(&mut self, o: i32) {
         // `update_los`: term 12's one tile, on the cache.
         self.sim.update_los(o as usize);
+        // `update_armor` (item 4464).
+        self.sim.update_armor(o as usize);
     }
     fn o_down(&self, o: i32) -> i32 {
         self.sim.units[o as usize].o_down.map_or(-1, |x| x as i32)

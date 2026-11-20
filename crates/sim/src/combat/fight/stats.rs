@@ -242,6 +242,33 @@ impl Sim {
         self.profile(o).armor + self.dutch_term(o) + self.mods_of(self.owner_of(o) as usize).armor
     }
 
+    /// **`Unit::update_armor@006054c0`** (item 4464): climb the squad chain
+    /// to its captain (`while !is_captain: this = o_up`), take
+    /// `ObjectData::armor@00647db0` of the captain ([`Self::object_armor`]),
+    /// and cache it in the captain's `myarmor` and in every figure down its
+    /// `o_down` chain. The citizens' `CATTLE_CITIZEN_ARMOR` arm (types 0x32
+    /// and 0x33 under the leader's `rare` or `rare_conquest` bit 31) is not
+    /// carried (parked 4464a).
+    pub(crate) fn update_armor(&mut self, u: usize) {
+        let mut c = u;
+        for _ in 0..self.units.len() {
+            match self.units[c].o_up {
+                Some(up) if !self.units[c].captain && up != c => c = up,
+                _ => break,
+            }
+        }
+        let armor = self.object_armor(Obj::Unit(c));
+        self.units[c].myarmor = armor;
+        let mut down = self.units[c].o_down;
+        for _ in 0..self.units.len() {
+            let Some(d) = down.filter(|&d| d != c) else {
+                break;
+            };
+            self.units[d].myarmor = armor;
+            down = self.units[d].o_down;
+        }
+    }
+
     pub fn armor_of(&self, o: Obj) -> i32 {
         // `ObjectData::armor@00647db0`'s Dutch term (item 3329): `ages ×
         // DUTCH_ATTACK_BONUS` on a Dutch kind.
