@@ -347,6 +347,10 @@ mod tests {
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
                 crate::diff::harness::debug_watch(&built, built.sim.frame);
+                if built.sim.frame >= 4018 {
+                    let b = built.sim.buildings.last().map(|b| (b.owner, b.index, b.pos, b.z));
+                    eprintln!("PROBE tick {} ground {:?} buildings {} last {:?}", built.sim.frame, built.sim.world.data_z(29583, 22730), built.sim.buildings.len(), b);
+                }
             }
             let set = record.first_of(state - 1).expect("set").clone();
             let all = record.ranges(&set).expect("ranges");
