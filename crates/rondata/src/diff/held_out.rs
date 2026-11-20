@@ -1388,7 +1388,28 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4468 (a nuke strike's round keeps
+        // `calc_nuke_spline`'s spline and the ammo line walks its
+        // `SplineData`): ammo 5,591 -> 5,907, first 4542 -> 5135, ours
+        // refused there. No ranges are on disk for run1730: on 4542 ours'
+        // ammo sum was 2344817575 and is now theirs' 281265979.
+        moved: Some(Score {
+            states: 6001,
+            agreed: [
+                2496, 537, 6001, 5907, 5350, 3066, 5932, 3976, 6001, 6001, 6001, 537,
+            ],
+            first: &[
+                ("units", (1747, Some(1368369504), 1685366186)),
+                ("builds", (537, Some(1374294361), 1810502041)),
+                ("ammo", (5135, None, 990220286)),
+                ("deaths", (4686, Some(4192616794), 999637338)),
+                ("groups", (3066, Some(2106809472), 4177681537)),
+                ("guys", (1747, Some(978400498), 3434034420)),
+                ("leaders", (1576, Some(2345254394), 1305656828)),
+                ("world", (537, Some(993370751), 2782374025)),
+            ],
+            over: None,
+        }),
     }),
     // run1731
     // row 30, as found 2026-11-20, ended by the original on 4547: 8 lines whole; units 2,334 of
@@ -1511,15 +1532,19 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by the merge of 4459 (`AirAttackGroundOrder`'s five ranges
         // walked), measured on the merged tree before this item's gate:
         // units 1,704 -> 1,735, first 1570 -> 1735.
+        // Moved by item 4468 (a nuke strike's round keeps its spline and
+        // the ammo line walks its `SplineData`): ammo 4,392 -> 4,511, first
+        // 1601 -> 2367. No ranges are on disk for run1736: on 1601 ours'
+        // ammo sum was 2349929217 and is now theirs' 941472936.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                1735, 553, 4731, 4392, 4084, 4553, 4566, 1976, 4731, 4731, 4731, 553,
+                1735, 553, 4731, 4511, 4084, 4553, 4566, 1976, 4731, 4731, 4731, 553,
             ],
             first: &[
                 ("units", (1735, Some(3081680851), 796971071)),
                 ("builds", (553, Some(2297078769), 1047897137)),
-                ("ammo", (1601, Some(2349929217), 941472936)),
+                ("ammo", (2367, Some(1123882197), 1189418202)),
                 ("deaths", (1746, Some(1419733817), 1134652217)),
                 ("groups", (2811, Some(2634708853), 2723050627)),
                 ("guys", (1736, Some(4103418160), 1070804956)),
