@@ -39526,4 +39526,68 @@ Files in place, `~/ron-golden/run1716/map-18/`: `gamelog_p.txt`, 2,451 bytes, SH
 `4696ba0d186ce4db444e51778a04b9439217cfee6f87e703b3e8650a96bae063`.
 
 **What it holds**: `diff::held_out::tests::row_120_s_barge_is_born_with_form_zero_on_run1716_s_ranges` (every units
+range on 2694, ours against theirs), and since item 4439
+`row_120_s_scout_lands_with_its_figure_s_last_on_its_point_on_run1716_s_ranges` (every units and guys range on 3250).
+**Re-scored by item 4439** (`score_recording`, no new take): guys 6,001, whole; units 5,864, first 5864: range 1139,
+record 35, `collide_frame..play`, byte 90, `cavarch_o` ours −1, theirs −2.
 range on 2694, ours against theirs).
+
+## run1715 — run1559b's take with the view on Teayo: a plate but Napata's (2026-11-19, item 4433, `att-4433`)
+
+`docs/HUD.md` §3. **What the disk could not answer**: no photograph showed a city plate but Napata's (parked 4423a).
+run1559b's packet holds four Aztec cities (`names.tsv`, item 4416); its `City` records place `Teayo` (o 2013, no
+capital) at (40800, 24672), the centre of tile (212, 128), and the client's `--frame 3279 --look 40800,24672
+--still` draws its plate clear of every mover (`Cempoala`'s, at (184, 112), has a truck over it). The line is
+run1564's with its command file replaced: `~/ron-data/lab-experiments/2026-11-19-item-4433/photo3294.cmd` holds
+`3200 camera 212,128` and `3294 pause 1`, and `poolshot.py ~/ron-golden/run1715 3294 --map 14` runs beside it:
+`zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1715 --map 14 --end-frame 3296
+--timeout 600 --log-window 3292 3296 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 0 --cover cover=0 --profile
+STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cmd-file
+<it> --tracer-def RON_STATE_FRAME=3294 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, launched 21:23:49 −05:00, at 54.8 frames a second to 3294; the packet and the photograph were written
+  by 21:24. The receipt reads `ValueError: extra lifecycle or fault records`, as run1559b's did (`waitrun.sh` exit 2);
+  settings restored, all three lanes free afterwards. 92 GB free before it and 82 GB after. Not filed.
+- Minutes waited on another lane: none (lane 1 was held by a pool capture at 21:14, free by 21:23).
+
+Packet `~/ron-golden/run1715/map-14/frame-snapshot.bin`, 920,535,488 bytes,
+SHA-256 `76e62061cc0d436186c0e3e9428e09882445c41d2f3fb5432ef58f910754bfb5`. Gamelog
+`~/ron-golden/run1715/map-14/gamelog.txt`, 1,461,239 bytes,
+SHA-256 `1992cd2f9ea39cb3fd11c38a7b10f5d21cb1c31e7b3fb7f5c61bb4bc40199e83`.
+
+Photograph `~/ron-data/lab-experiments/2026-11-19-item-4433/run1715-3294.png`: window 22198, 1920×1080 with no title
+bar, the gamelog at 3295, tagged `sRGB` (no match needed). SHA-256
+`6c062d4910572774c1e83069fe3c825f23d3ab4fd5617f89d37aff45c219827a`. `sips -s format tga` gives `run1715-3294.tga`,
+SHA-256 `3a1dd2a870ebb00e8f3434636ce028051677c4a7a97421619ee423aae7da6d6c`, the TGA the test reads.
+
+**What it holds**: `packet_points.py`'s `state 0` line is the pinned camera with `loc` `471f6000 46c0c000`, (40800,
+24672) (`RUN1715_LOC`). `client::selection::tests::a_city_s_plate_on_run1715` (`RUN1715_3279_PLATE`).
+## run1721 — parity held out, row 100's ranges: Great Lakes at Information, the client's file played to its end under `RON_RANGES` (2026-11-19, item 4441, `att-4441`)
+
+`docs/RECGAME.md` §10.3; DECISIONS 145 §1, §3. **What the disk could not answer**: run1705 holds the checksum's sums
+alone, so row 100's world line, first apart on state 134 (ours 3348711314, theirs 341395346), named no leaf. The file
+is run1705's, `~/ron-golden/recordings/item4413-row100-6000.rcx` (SHA-256 `90371f7e…`, as the receipt checks).
+
+The take: run1705's line (run1700's) with `~/ron-golden/run1721` and `--tracer-def RON_RANGES --tracer-def
+RNG_MASK=0xfffu` beside `RON_CHECKSUMS` (4435's recipe, run1716). The lane read `free`, and `df -g ~` read 96 GB free
+before the take and 94 GB after. The wait ran on `waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 21:14:11 −05:00, exited 21:18:36: **264.4 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 3,331 frames, `last_frame` 3330, **ended early: the game ended itself**, as run1705 did.
+  Seed 12345 observed, map 14. Players: tribe 4 (flags 7) and tribe 1 (flags 1). Five settings restored. DLL
+  `f4aa745f…`, defines `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0xfffu`.
+- **Scored** (`score_recording <install> <the file> ~/ron-golden/run1721/map-14`, release): on the base, every line's
+  agreeing count and first parting are run1705's second column. The world line's leaf on state 134 (trace frame 133)
+  is **range 3624, section 6's `mask`, two bytes**: 52263 (ours 0x60, theirs 0x40) and 53697 (ours 0x40, theirs
+  0x60). That is `tile::BAD_PATH` on tile (211, 108) in ours and on (208, 111) in theirs. Both tiles are blocked
+  corners of the computer's University `1/2006` (`TypeIndex` `0x1a4`), started that frame at corner (208, 108),
+  4 × 4. After item 4441's fix (`BuildType::mask_me`'s column walk) the world line holds 2,618 of 3,331 and parts
+  next on 2618: range 1392, record 1368, `cell`, byte 20, ours 0x02, theirs 0xff. The other units, builds, ammo,
+  deaths and guys leaves are in item 4441's journal.
+- Filed **in place**, as run1705 is: a held-out take stays out of the corpora. run1721 was the number reserved for
+  row 100's ranges.
+
+Files in place, `~/ron-golden/run1721/map-14/`: `gamelog_p.txt`, 2,414 bytes, SHA-256
+`b851cb394aad785e3a40d7d9cf2bfb8c5b646392a470bc2e0b3f2509a6cf8ed5`; `rontrace.log`, 72,164,608 bytes, SHA-256
+`dd82a15bb8eb98e82c7303a6934d37bb9ab49b4b394e7ddddb94244fd7752f4a`; `rontrace.ranges`, 2,336,505,516 bytes,
+SHA-256 `c12f156cda8d3c9d32e075f725ae752c29db5cb2416b3250dba4f38f9fceb778`.
+
+**What it holds**: row 100's leaves for `score_recording`; `SCORES[5].moved` is scored on run1705.

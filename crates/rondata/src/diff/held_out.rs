@@ -272,6 +272,70 @@ mod tests {
         assert_eq!(theirs[521].bytes[0xaa - 0x48], 0, "theirs' form");
     }
 
+    /// **Row 120's scout lands with its figure's `last` on its point**
+    /// (item 4439, `docs/RECGAME.md` §10.3): on 3250 the barge `1/15`
+    /// unloads the scout `1/0` at (19080, 39768). `Unit::come_out@00617c10`
+    /// seats it through `set_new_location(this, x, y, 1, 1)`
+    /// (`:519`), whose `param_3` reaches `Guy::set_new_location(guy 0, x,
+    /// y, 1)` and copies the point and `z` into `last_x`/`last_y`/`last_z`
+    /// (`005d86f0:66`–`70`), and then turns it to the host's angle with
+    /// `Unit::set_angle(…, 1)` (`:629`), whose `Guy::set_angle(guy 0, a,
+    /// 1)` writes `last_angle` (`005d9010:13`–`16`). Every units and guys
+    /// range on 3250, ours against theirs, byte for byte: red on the tree
+    /// before the fix, at guys range 51, the scout's figure, `last_*` ours
+    /// (30849, 41470, −37, −1553072128), theirs (19080, 39768, −30,
+    /// −664928256).
+    #[test]
+    fn row_120_s_scout_lands_with_its_figure_s_last_on_its_point_on_run1716_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(6) else {
+            eprintln!("skipping: row 120's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1716/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1716's ranges record is missing");
+            return;
+        };
+        const STATE: i64 = 3250;
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 120's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        while built.sim.frame < STATE {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let set = record
+            .first_of(STATE - 1)
+            .expect("state 3250's set")
+            .clone();
+        let all = record.ranges(&set).expect("the set's ranges");
+        for (line, ours) in [
+            (0u8, built.sim.checksum_units()),
+            (6u8, built.sim.checksum_guys()),
+        ] {
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == line).collect();
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "line {line}'s ranges on 3250"
+            );
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "line {line} range {k} on 3250, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+    }
+
     /// **The held-out line**, from the table alone: the games whose score
     /// agrees on every line on every state, of the eight, and how many are
     /// taken.
@@ -509,15 +573,12 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         },
         // Moved by item 4435 (a transport's birth `form`, 0 not -1): units
         // 5,435 -> 5,998, first 2990 -> 3157 (the barge 1/15, born on 2990).
+        // Moved by item 4439 (a passenger's figure lands with `last` on its
+        // seat): units and guys 5,998 -> 6,001, whole; the game is whole.
         moved: Some(Score {
             states: 6001,
-            agreed: [
-                5998, 6001, 6001, 6001, 6001, 6001, 5998, 6001, 6001, 6001, 6001, 6001,
-            ],
-            first: &[
-                ("units", (3157, Some(1863797253), 284838221)),
-                ("guys", (3157, Some(3930404420), 1713190284)),
-            ],
+            agreed: [6001; 12],
+            first: &[],
             over: None,
         }),
     }),
@@ -538,16 +599,12 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
             over: None,
         },
         // Moved by item 4435: units 5,073 -> 5,997, first 3694 -> 4180 (the
-        // barge 1/14, born on 3694).
+        // barge 1/14, born on 3694). Moved by item 4439: units and guys 5,997
+        // -> 6,001, whole; the game is whole.
         moved: Some(Score {
             states: 6001,
-            agreed: [
-                5997, 6001, 6001, 6001, 6001, 6001, 5997, 6001, 6001, 6001, 6001, 6001,
-            ],
-            first: &[
-                ("units", (4180, Some(3212556184), 4081694552)),
-                ("guys", (4180, Some(797978321), 3921096337)),
-            ],
+            agreed: [6001; 12],
+            first: &[],
             over: None,
         }),
     }),
@@ -574,16 +631,17 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
             over: None,
         },
         // Moved by origin/main at 0b34ad2ac (merged into item 4413's branch): groups
-        // 1,843 -> 4,964, its first parting 711 -> 1854.
+        // 1,843 -> 4,964, its first parting 711 -> 1854. Moved by item 4439:
+        // guys 4,824 -> 4,876, first 2444 -> 2487.
         moved: Some(Score {
             states: 4974,
             agreed: [
-                1858, 4974, 4974, 4974, 4974, 4964, 4824, 4974, 4967, 4974, 4974, 4859,
+                1858, 4974, 4974, 4974, 4974, 4964, 4876, 4974, 4967, 4974, 4974, 4859,
             ],
             first: &[
                 ("units", (1858, Some(2347968956), 4143655355)),
                 ("groups", (1854, Some(284774603), 2949074744)),
-                ("guys", (2444, Some(4226756071), 1757622212)),
+                ("guys", (2487, Some(2678849350), 3953000265)),
                 ("cities", (4127, Some(3606914667), 2610767417)),
                 ("world", (4859, Some(155879679), 1707773025)),
             ],
@@ -678,10 +736,14 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         },
         // Moved by origin/main at 0b34ad2ac: groups 2,400 -> 3,331, whole; guys
         // 2,895 -> 3,316, its first parting unmoved.
+        // Moved by item 4441 (run1721's ranges): world 134 -> 2,618 -- state
+        // 134's tile masks, `BAD_PATH` on (211, 108) ours and (208, 111)
+        // theirs around the computer's University 1/2006, now masked column
+        // by column as `BuildType::mask_me` walks it; world parts next on 2618.
         moved: Some(Score {
             states: 3331,
             agreed: [
-                1611, 2230, 3331, 3172, 2756, 3331, 3316, 3331, 3331, 3331, 3331, 134,
+                1611, 2230, 3331, 3172, 2756, 3331, 3316, 3331, 3331, 3331, 3331, 2618,
             ],
             first: &[
                 ("units", (1611, Some(1862838836), 884976179)),
@@ -689,7 +751,7 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
                 ("ammo", (2618, Some(1076236747), 891350609)),
                 ("deaths", (2756, Some(1136466598), 3621657254)),
                 ("guys", (2646, Some(1999790736), 3081855676)),
-                ("world", (134, Some(3348711314), 341395346)),
+                ("world", (2618, Some(4234786203), 1600898917)),
             ],
             over: None,
         }),
@@ -713,16 +775,17 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         },
         // Moved by item 4435: units 4,815 -> 5,861, first 2694 -> 3250. On
         // 2694, run1716's units range 521, the barge 1/15's `form` (+0xaa),
-        // read ours -1, theirs 0.
+        // read ours -1, theirs 0. Moved by item 4439: units 5,861 -> 5,864,
+        // first 3250 -> 5864; guys 5,998 -> 6,001, whole. On 3250, run1716's
+        // units range 159, the scout 1/0's figure, `last_x`, `last_y`,
+        // `last_z`, `last_angle` read ours 30849, 41470, -37, -1553072128,
+        // theirs 19080, 39768, -30, -664928256.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5861, 6001, 6001, 6001, 6001, 6001, 5998, 6001, 6001, 6001, 6001, 6001,
+                5864, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
             ],
-            first: &[
-                ("units", (3250, Some(1841316763), 2091402007)),
-                ("guys", (3250, Some(2633326924), 47538376)),
-            ],
+            first: &[("units", (5864, Some(2913597975), 426834454))],
             over: None,
         }),
     }),
@@ -745,11 +808,23 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4439: guys 5,994 -> 6,000, first 3081 -> 4026.
+        moved: Some(Score {
+            states: 6001,
+            agreed: [
+                1568, 6001, 6001, 6001, 6001, 6001, 6000, 6000, 6001, 6001, 6001, 6001,
+            ],
+            first: &[
+                ("units", (1568, Some(3165276990), 354175805)),
+                ("guys", (4026, Some(1242658676), 1019574129)),
+                ("leaders", (0, Some(3890907082), 2955970510)),
+            ],
+            over: None,
+        }),
     }),
 ];
 
 /// **Parity held out, N of 8** (DECISIONS 144 §2): the games whole on every
 /// line and state, and the games taken.
 #[cfg(test)]
-pub(crate) const HELD_OUT_LINE: (usize, usize) = (0, 8);
+pub(crate) const HELD_OUT_LINE: (usize, usize) = (2, 8);

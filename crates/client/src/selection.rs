@@ -1353,22 +1353,27 @@ mod tests {
     /// masked by [`INTERFACE`], whose "city's label" rectangle is this
     /// plate, taken out by eye for the scene's rows.
     fn plate_foot(p: &crate::ground::tests::Probe, d: (i32, i32), capital: bool) -> Vec<bool> {
+        city_plate_foot(p, CITY, NAPATA_WIDTH, d, capital)
+    }
+
+    /// [`plate_foot`] for any city centre `city`, its name `width` wide
+    /// (item 4433).
+    fn city_plate_foot(
+        p: &crate::ground::tests::Probe,
+        city: (u8, i16),
+        width: i32,
+        d: (i32, i32),
+        capital: bool,
+    ) -> Vec<bool> {
         let b = p
             .world
             .placed_buildings()
             .into_iter()
-            .find(|b| (b.who, b.o) == CITY)
+            .find(|b| (b.who, b.o) == city)
             .expect("the city is in the scene");
         let ti = (b.type_index - rondata::load::BASE_BUILDTYPES) as usize;
         let size = p.world.names.footprints[ti];
-        let (x0, x1, y0, y1) = plate(
-            &p.camera,
-            &b,
-            size.1,
-            NAPATA_WIDTH,
-            PLATE_FONT_HEIGHT,
-            capital,
-        );
+        let (x0, x1, y0, y1) = plate(&p.camera, &b, size.1, width, PLATE_FONT_HEIGHT, capital);
         println!(
             "plate: point ({}, {}, {}) y_size {} rect x [{x0}, {x1}) y [{y0}, {y1})",
             b.x, b.y, b.z, size.1
@@ -1475,6 +1480,132 @@ mod tests {
         let got = (got, [mine, both], [theirs_lit, ours_lit, both_lit]);
         println!("RUN1559B_3279_PLATE: {got:?}");
         assert_eq!(got, RUN1559B_3279_PLATE);
+    }
+
+    /// Slot 1's city 2013, the Aztecs' `Teayo` on run1559b's packet
+    /// (`names.tsv`, item 4416): no capital, its `City` record at (40800,
+    /// 24672), the centre of tile (212, 128).
+    const TEAYO: (u8, i16) = (1, 2013);
+
+    /// run1715's packet's `loc` (item 4433; `docs/RUNS.md` run1715): the
+    /// `state 0` line's `471f6000 46c0c000`, (40800, 24672), with every
+    /// other field the pinned camera's.
+    const RUN1715_LOC: (u32, u32) = (0x471f_6000, 0x46c0_c000);
+
+    /// **run1715's photograph** (item 4433; `docs/RUNS.md` run1715):
+    /// run1564's take with `camera 212,128` staged on frame 3200 in place
+    /// of `192,200`, the view on Teayo. The grab is tagged `sRGB`, 1920 ×
+    /// 1080 with no title bar; the TGA is `sips`'s conversion of it. It is
+    /// drawn at [`crate::silhouette::PHOTO_FRAME`], as run1559b's and
+    /// run1564's are (assumed, not clocked: the plate stands still).
+    fn run1715() -> crate::ground::tests::Photo {
+        let path = std::env::var_os("RON_PHOTO_RUN1715")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| {
+                let home = std::env::var_os("HOME").unwrap_or_default();
+                std::path::PathBuf::from(home)
+                    .join("ron-data/lab-experiments/2026-11-19-item-4433/run1715-3294.tga")
+            });
+        let mut camera = crate::pinned_camera();
+        camera.loc_x = f32::from_bits(RUN1715_LOC.0);
+        camera.loc_y = f32::from_bits(RUN1715_LOC.1);
+        crate::ground::tests::Photo {
+            path,
+            camera,
+            frame: crate::silhouette::PHOTO_FRAME,
+            traced: &[],
+        }
+    }
+
+    /// **`RUN1715_3279_PLATE`** (item 4433): Teayo's plate on run1715's
+    /// photograph, the first plate but Napata's against the original.
+    /// Read as [`RUN1559B_3279_PLATE`] is, the arms `[footprint, theirs
+    /// dark]` as placed, moved one plate-height (30 px) down, and with a
+    /// capital's star it does not have; then `[ours dark, both dark]` and
+    /// `[theirs light, ours light, both light]` on the first arm's
+    /// footprint, the client's still at the photograph's camera. Found
+    /// `([[1416, 735], [1416, 0], [2430, 735]], [728, 728], [144, 146,
+    /// 144])`: every pixel ours darkens or lights, theirs does too, but
+    /// 2 lit and 7 dark at the edges. Made to fail: ours drawn `Teoya`
+    /// (the same letters, the same width) reads `[729, 697]`, `[144, 146,
+    /// 112]`.
+    pub const RUN1715_3279_PLATE: ([[usize; 2]; 3], [usize; 2], [usize; 3]) = (
+        [[1416, 735], [1416, 0], [2430, 735]],
+        [728, 728],
+        [144, 146, 144],
+    );
+
+    #[test]
+    fn a_city_s_plate_on_run1715() {
+        let Some(mut p) = probe_at(run1715()) else {
+            return;
+        };
+        let sim = p.world.runner.sim();
+        let teayo = sim
+            .building_by_o(TEAYO.0, TEAYO.1)
+            .and_then(|b| sim.buildings[b].city)
+            .expect("the centre is a city's");
+        assert!(!sim.cities.cities[teayo].capital, "Teayo is no capital");
+        assert_eq!(sim.city_name(teayo), Some("Teayo"), "the packet's name");
+        let names = sim.cities.names.clone();
+        let art = p.world.scroll_art.as_ref().expect("the plate's art loads");
+        let width = art
+            .face
+            .text_width("Teayo")
+            .expect("every letter has an advance");
+        assert_eq!(
+            Some(width),
+            plate_text_width("Teayo"),
+            "the packets' advances"
+        );
+        let arms = [((0, 0), false), ((0, 30), false), ((0, 0), true)];
+        let mut got = [[0; 2]; 3];
+        let mut first = Vec::new();
+        for (k, (d, capital)) in arms.into_iter().enumerate() {
+            let foot = city_plate_foot(&p, TEAYO, width, d, capital);
+            let n = foot.iter().filter(|f| **f).count();
+            let r = (0..foot.len())
+                .filter(|&i| foot[i] && dark(&p.photo.rgba, i))
+                .count();
+            got[k] = [n, r];
+            if k == 0 {
+                first = foot;
+            }
+        }
+        let size = (p.photo.width as u32, p.photo.height as u32);
+        let camera = p.camera;
+        // The take's selection is run1559b's, Napata (the panel's `Small
+        // City - Napata`), whose band is out of this view.
+        let ours = crate::still_named(
+            &mut p.world,
+            &camera,
+            size,
+            crate::gpu::SilhouetteOrder::Before,
+            wgpu::TextureFormat::Rgba8Unorm,
+            &[sim::observe::ObjId {
+                who: CITY.0,
+                o: CITY.1,
+            }],
+            &|c| names.get(&c).cloned(),
+        );
+        if let Some(dir) = std::env::var_os("RON_STILL_DIR") {
+            let out = std::path::PathBuf::from(dir).join("still-plate-run1715.bmp");
+            std::fs::write(&out, crate::gpu::bmp(&ours, size)).expect("the still writes");
+        }
+        let on = |i: usize| first[i] && dark(&ours, i);
+        let mine = (0..first.len()).filter(|&i| on(i)).count();
+        let both = (0..first.len())
+            .filter(|&i| on(i) && dark(&p.photo.rgba, i))
+            .count();
+        let lit = |rgba: &[u8], i: usize| first[i] && light(rgba, i);
+        let theirs_lit = (0..first.len()).filter(|&i| lit(&p.photo.rgba, i)).count();
+        let ours_lit = (0..first.len()).filter(|&i| lit(&ours, i)).count();
+        let both_lit = (0..first.len())
+            .filter(|&i| lit(&ours, i) && lit(&p.photo.rgba, i))
+            .count();
+        let got = (got, [mine, both], [theirs_lit, ours_lit, both_lit]);
+        println!("RUN1715_3279_PLATE: {got:?}");
+        assert_eq!(got, RUN1715_3279_PLATE);
     }
 
     /// The bar's footprint: [`bar`]'s rectangle one pixel out on every

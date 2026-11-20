@@ -1059,9 +1059,62 @@ and 20 units now parts only where guys does. Row 140 (units on 1568) did
 not move. `row_120_s_barge_is_born_with_form_zero_on_run1716_s_ranges`
 holds every units range on 2694.
 
-*Not established*: what parts on 3250. On row 120, units and guys both part
+*Not established*: ~~what parts on 3250. On row 120, units and guys both part
 first on the figure of the scout `1/0`, the barge's passenger. On 3250 both
 sides put it at (19080, 39768). Theirs also moves the figure's `last_x`,
 `last_y`, `last_z` and `last_angle` onto that point, and ours keeps the
 values from before it moved. Guys agrees again on 3253. Units disagrees on
-140 states, so something more parts it after 3253, and that cause is not read.
+140 states, so something more parts it after 3253, and that cause is not read.~~
+Answered by item 4439, below: the passenger's landing writes its figures'
+`last`; the later units parting is on 5864.
+
+**A passenger lands with its figures' `last` on its seat** (item 4439,
+run1716, diff-backed on row 120). `Unit::come_out@00617c10` seats a
+passenger with `set_new_location(this, x, y, 1, 1)` (`:519`). That call's
+`param_3` reaches `Guy::set_new_location(guy 0, x, y, 1)`, which copies the
+point and `z` into `last_x`, `last_y` and `last_z` (`005d86f0:66`–`70`), and
+whose crew loop seats each crew figure the same way. The tail then turns the
+passenger to the host's angle with `set_angle(…, 1)` (`:629`). That reaches
+`Guy::set_angle(guy 0, a, 1)`, which writes `last_angle` beside `angle`
+(`005d9010:13`–`16`) and re-seats the crew. This crate's `land_tail` wrote
+none of it, so a passenger whose own walk ran earlier in the frame kept the
+`last` of its boarding until its next walk. On row 120, 3250, run1716's units
+range 159 (record 0, the scout `1/0`'s figure) reads `last_x`, `last_y`,
+`last_z`, `last_angle` as 19080, 39768, −30, −664928256 on theirs and
+30849, 41470, −37, −1553072128 on ours. Our walk puts a passenger ashore on
+each of the five Ancient-start partings the transport fix left: the scout
+`1/0` off barge `1/15` on row 0's 3157, the citizen `1/7` off `1/15` on row
+20's 4180, `1/0` off `1/42` on row 40's guys parting 2444, `1/0` off `1/15`
+on row 120's 3250, and `1/0` off `1/20` on row 140's guys parting 3081. In
+the second column, rows 0 and 20 are **whole**: all twelve lines on all
+6,001 states. Row 120's guys is whole and units moved 5,861 → 5,864 (first
+3250 → 5864). Row 40's guys moved 4,824 → 4,876 (2444 → 2487), and row 140's
+5,994 → 6,000 (3081 → 4026). Parity held out reads 2 of 8, 72 of 96 lines
+with item 4436's row 80 beside it.
+`row_120_s_scout_lands_with_its_figure_s_last_on_its_point_on_run1716_s_ranges`
+holds every units and guys range on 3250.
+
+*Not established*: what parts row 120's units on 5864, to the end. run1716
+names it: range 1139, record 35, `collide_frame..play`, byte 90,
+`cavarch_o` ours −1, theirs −2 (unread). Whether rows 0 and 20's partings
+were this cause rests on our walk and on the sums agreeing; neither has a
+ranges take. A unit leaving a building (`garrison.rs`'s `come_out_place`)
+takes the same `set_new_location(…, 1, 1)` and is not given the write; no
+score parts on it yet.
+
+**Row 100's world line, by leaf (item 4441, run1721).** A ranges take of
+row 100's file to its end (run1705's line under `RON_RANGES`,
+`RNG_MASK=0xfffu`) gives the leaf of the world line that parted on state
+134. It is section 6's tile masks (range 3624), two bytes: `tile::BAD_PATH`
+sits on (211, 108) in ours and on (208, 111) in the original. Both are
+blocked corners of the computer's University `1/2006` (`0x1a4`, 4 × 4,
+corner (208, 108)), started on frame 133. Blocking a tile clears its own
+`BAD_PATH` and sets it on its neighbours, so which corners keep the bit
+depends on the walk order. `BuildType::mask_me@006312a0` walks the footprint
+column by column and ours walked it row by row (`docs/PATHFINDER.md`, the
+`tcost` paragraph). With the walk built, row 100's world goes 134 → 2,618 of
+3,331 (`SCORES[5].moved`). It parts next on 2618, the state ammo parts on:
+range 1392, record 1368, `cell`, byte 20, ours 0x02, theirs 0xff. Units
+still parts first, on 1611: range 1170, record 31, `cavarch_o` ours −1,
+theirs −2, the leaf rows 80 and 120 part on. Diff-backed by run1721's
+ranges; the score of the other seven rows is the gate's.
