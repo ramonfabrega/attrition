@@ -1870,18 +1870,21 @@ impl Sim {
             return;
         }
         let u = self.buildings[b].launching.remove(0);
-        // The nuke arm (item 1091, `do_missile_launch`): a nuke on its
+        // The nuke arm (item 1091, `do_missile_launch:70`): a nuke on its
         // strike shows the silo to everyone, `+0x40` (`visible`) `0xff`,
-        // then vslot `0x164`, `Wall::update_local_seen@0063ed50`, whose
-        // seen bits nothing here reads.
+        // then vslot `0x164`, `Wall::update_local_seen@0063ed50`. Item
+        // 4465: the byte is the building's own, which the builds line folds
+        // and `update_local_seen_build` ORs in (run1721's silo `1/2022` on
+        // 2618: `visible` ours 0, theirs `0xff`); the `STRAFE` half of the
+        // test asks `is_ally(who, who)`, which always holds.
         if self.air_line_is(u, crate::air::airbase::NUCLEARMISSILE)
             && matches!(
                 self.current_order(u).map(|o| o.body),
                 Some(crate::orders::Body::AirAttackGround(_))
             )
-            && !self.combat.nukes.shown.contains(&b)
         {
-            self.combat.nukes.shown.push(b);
+            self.buildings[b].visible = 0xff;
+            self.update_local_seen_build(b);
         }
         self.come_out(u);
         let frame = self.frame;

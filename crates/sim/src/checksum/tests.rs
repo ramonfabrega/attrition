@@ -748,6 +748,68 @@ fn a_missile_s_strike_walks_its_point_its_air_row_and_its_own_three() {
 /// 4414, `docs/RECGAME.md` §7): `ThinkOrder::vftable@00b48d88`'s `+0x8`
 /// is the base's walker, the flags byte alone. run1697 on 532: the
 /// person's Citizen `3/6`, a move then a think, `1b 00 00 00`, `00`, `04`.
+/// **A hangar's `launching` walks its pointer from the first launch on,
+/// and the array behind it** (item 4465, [`crate::cities::building::Launching`]):
+/// never launched, the byte 0 and nothing more; holding a missile, the
+/// byte 1, length 1, size 4, `increment` −1, flags 0 and the unit's `o`
+/// (run1721's silo `1/2022` on 2588); emptied, the byte 1 and length 0
+/// (on 2618); the fifth entry doubles the size to 8.
+#[test]
+fn a_hangar_s_launching_walks_its_pointer_from_the_first_launch_and_its_array() {
+    use crate::world::Pos;
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(60, 60), 2);
+    let b = sim.add_building(1, Pos::new(960, 960), 0);
+    sim.buildings[b].index = 2022;
+    let units: Vec<usize> = (0..5)
+        .map(|_| sim.add_unit(crate::Unit::new(1, 16, Pos::new(480, 480), 10)))
+        .collect();
+    let os: Vec<i16> = units.iter().map(|&u| sim.units[u].index).collect();
+    let walked = |sim: &crate::Sim| -> Vec<(&'static str, Vec<u8>)> {
+        let ranges = sim.checksum_builds(&|_| -1).ranges;
+        let at = ranges
+            .iter()
+            .position(|r| r.record == 2022 && r.field == "launching")
+            .expect("the pointer's byte");
+        ranges[at..]
+            .iter()
+            .take_while(|r| r.field.starts_with("launching"))
+            .map(|r| (r.field, r.bytes.clone()))
+            .collect()
+    };
+    assert_eq!(walked(&sim), [("launching", vec![0])], "never launched");
+    sim.buildings[b].launching.push(units[0]);
+    let o = i32::from(os[0]).to_le_bytes().to_vec();
+    assert_eq!(
+        walked(&sim),
+        [
+            ("launching", vec![1]),
+            ("launching.length", vec![1, 0, 0, 0]),
+            ("launching.size", vec![4, 0, 0, 0]),
+            ("launching.increment", vec![0xff, 0xff]),
+            ("launching.flags", vec![0]),
+            ("launching[k]", o),
+        ],
+        "one missile in the silo"
+    );
+    sim.buildings[b].launching.remove(0);
+    assert_eq!(
+        walked(&sim),
+        [("launching", vec![1]), ("launching.length", vec![0; 4])],
+        "emptied, the block kept"
+    );
+    for &u in &units {
+        sim.buildings[b].launching.push(u);
+    }
+    let w = walked(&sim);
+    assert_eq!(w[1].1, vec![5, 0, 0, 0]);
+    assert_eq!(w[2].1, vec![8, 0, 0, 0], "4, then doubled");
+    let list: Vec<u8> = os
+        .iter()
+        .flat_map(|&o| i32::from(o).to_le_bytes())
+        .collect();
+    assert_eq!(w[5].1, list, "in the order they joined, by o");
+}
+
 #[test]
 fn a_think_walks_its_flags_byte() {
     use crate::orders::{Body, Order, flag};

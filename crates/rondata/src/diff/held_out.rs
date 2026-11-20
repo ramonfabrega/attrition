@@ -1077,18 +1077,24 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // run1721's units range 2809, record 84 (the missile 1/84, TI 316,
         // laid in its silo): ours walked `guys.length` 01 00 00 00 after the
         // order's node byte, theirs the order's flags byte 04.
+        // Moved by item 4465 (a hangar's `launching` walks its pointer from
+        // the first launch and its `SimpleArray<int>`; a nuke's strike
+        // writes the silo's own `visible` 0xff and relights its fog):
+        // builds 2,588 -> 3,331, whole, and world 2,618 -> 3,331, whole. On
+        // 2588, run1721's builds range 1270, record 2022 (the silo 1/2022):
+        // ours walked the next `must_walk` 01, theirs `launching.length`
+        // 01 00 00 00, then size 4, increment -1, flags 0 and [84]. On 2618,
+        // range 1268, record 2022, `visible` read ours 0, theirs 0xff.
         moved: Some(Score {
             states: 3331,
             agreed: [
-                2728, 2588, 3331, 3172, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 2618,
+                2728, 3331, 3331, 3172, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 3331,
             ],
             first: &[
                 ("units", (2646, Some(3584274957), 3109728825)),
-                ("builds", (2588, Some(3298180603), 88948818)),
                 ("ammo", (2618, Some(1076236747), 891350609)),
                 ("deaths", (2756, Some(1136466598), 3621657254)),
                 ("guys", (2646, Some(1999790736), 3081855676)),
-                ("world", (2618, Some(4234786203), 1600898917)),
             ],
             over: None,
         }),

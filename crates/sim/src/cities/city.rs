@@ -1614,7 +1614,7 @@ impl Sim {
             city: None,
             garrison: Vec::new(),
             launch_frames: 0,
-            launching: Vec::new(),
+            launching: crate::cities::building::Launching::default(),
             founder: who,
             // `Wall::init@0063e9b0` → `Object::init@00647750`: the owner's
             // next uid; `frame_started` −1 until `Wall::start`.
