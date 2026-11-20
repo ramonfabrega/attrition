@@ -1405,7 +1405,12 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// **773** at item 4436: run1381's and run1220b's world lines whole (the
 /// Chinese village a Large City before its start, its third behind-ring
 /// marked).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 773, 1053);
+/// **784** at item 4441: eleven whole world lines (run1437, run1355,
+/// run1155c, run1419b, run1351c, run1351, run1417, run1420, run1424,
+/// run1169, run1382) and 22 more parting on fewer world ranges, none on
+/// more: `BuildType::mask_me` walks a footprint column by column, so
+/// `BAD_PATH` stays on the corners the original leaves it on.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 784, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1826,6 +1831,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4415, the oil-well stand's cur_time: units (4193, 4193, 5) -> (4193, 4193, 4), guys (1129, 1129, 1) -> (1129, 1129, 0).
     // Item 4422, the swarm's form -1: groups (550, 550, 1) -> (550, 550, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (7583, 7583, 2) -> (7583, 7583, 0).
     (
         "run1155c",
         3003,
@@ -1841,7 +1847,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (27, 27, 0),
             (75, 75, 0),
             (120, 120, 0),
-            (7583, 7583, 2),
+            (7583, 7583, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (2760, 2965, 535) -> (2760, 2965, 213); builds (520, 520,
@@ -1891,6 +1897,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (550, 550, 1) -> (550, 550, 0).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (1321, 1321, 3) -> (1321, 1321, 1).
     // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: guys (1321, 1321, 1) -> (1321, 1321, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (7597, 7597, 15) -> (7597, 7597, 14).
     (
         "run1164",
         4528,
@@ -1906,7 +1913,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 0),
             (75, 75, 0),
             (120, 120, 0),
-            (7597, 7597, 15),
+            (7597, 7597, 14),
         ],
     ),
     // Item 4208, the whales' piece: units (6004, 6418, 5320) -> (6004, 6418, 5252); builds (2267,
@@ -1934,6 +1941,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (6004, 6004,
     // 22) -> (6004, 6004, 21); guys (1890, 1890, 1) -> (1890, 1890, 0).
     // Item 4422, the swarm's form -1: groups (676, 676, 1) -> (676, 676, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (9290, 9290, 11) -> (9290, 9290, 10).
     (
         "run1165",
         3719,
@@ -1949,7 +1957,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 0),
             (15, 15, 0),
             (330, 330, 0),
-            (9290, 9290, 11),
+            (9290, 9290, 10),
         ],
     ),
     // Item 4208, the whales' piece: units (6004, 6310, 5126) -> (6004, 6310, 5070); builds (2247,
@@ -1978,6 +1986,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // 24) -> (6004, 6004, 23); guys (1935, 1935, 2) -> (1935, 1935, 1).
     // Item 4422, the swarm's form -1: groups (688, 688, 1) -> (688, 688, 0).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: units (6004, 6004, 23) -> (6004, 6004, 22), guys (1935, 1935, 1) -> (1935, 1935, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (9262, 9262, 13) -> (9262, 9262, 12).
     (
         "run1166",
         3920,
@@ -1993,7 +2002,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 0),
             (15, 15, 0),
             (330, 330, 0),
-            (9262, 9262, 13),
+            (9262, 9262, 12),
         ],
     ),
     // Item 4208, the whales' piece: units (7749, 8143, 6789) -> (7749, 8143, 6726); builds (1813,
@@ -2023,6 +2032,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4415, the oil-well stand's cur_time: units (7749, 7749, 90) -> (7749, 7749, 89), guys (1934, 1934, 1) -> (1934, 1934, 0).
     // Item 4422, the swarm's form -1: groups (628, 628, 5) -> (628, 628, 4).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (628, 628, 4) -> (628, 628, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (9438, 9438, 1) -> (9438, 9438, 0).
     (
         "run1169",
         3769,
@@ -2038,7 +2048,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (27, 27, 0),
             (20, 20, 0),
             (330, 330, 0),
-            (9438, 9438, 1),
+            (9438, 9438, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (6735, 7099, 6040) -> (6735, 7099, 5981); builds (1911,
@@ -3237,6 +3247,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4415, the oil-well stand's cur_time: units (4745, 4745, 11) -> (4745, 4745, 10), guys (1352, 1352, 3) -> (1352, 1352, 2).
     // Item 4422, the swarm's form -1: groups (562, 562, 2) -> (562, 562, 0).
     // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: units (4745, 4745, 10) -> (4745, 4745, 9), guys (1352, 1352, 2) -> (1352, 1352, 1).
+    // Item 4441, `mask_me` walks a footprint column by column: world (8328, 8328, 2) -> (8328, 8328, 0).
     (
         "run1351",
         4303,
@@ -3252,7 +3263,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
-            (8328, 8328, 2),
+            (8328, 8328, 0),
         ],
     ),
     // Item 4205, the built start: units (4512, 4732, 3134) -> (4512, 4732, 3067); builds (2143,
@@ -3277,6 +3288,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4422, the swarm's form -1: groups (556, 556, 2) -> (556, 556, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (8298, 8298, 1) -> (8298, 8298, 0).
     (
         "run1351c",
         3521,
@@ -3292,7 +3304,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
-            (8298, 8298, 1),
+            (8298, 8298, 0),
         ],
     ),
     // Item 4205, the built start: units (3610, 3841, 2961) -> (3610, 3841, 2904); builds (1836,
@@ -3318,6 +3330,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4396, the captain mirror's retarget kept in the order: units (3610, 3610, 6) -> (3610, 3610, 4).
     // Item 4422, the swarm's form -1: groups (556, 556, 2) -> (556, 556, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (7777, 7777, 1) -> (7777, 7777, 0).
     (
         "run1355",
         2933,
@@ -3333,7 +3346,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (27, 27, 0),
             (80, 80, 0),
             (120, 120, 0),
-            (7777, 7777, 1),
+            (7777, 7777, 0),
         ],
     ),
     // Item 4205, the built start: units (5707, 5937, 4835) -> (5707, 5937, 4771); builds (1977,
@@ -3401,6 +3414,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4415, the oil-well stand's cur_time: units (6464, 6464, 9) -> (6464, 6464, 7), guys (1584, 1584, 3) -> (1584, 1584, 1).
     // Item 4422, the swarm's form -1: groups (568, 568, 3) -> (568, 568, 0).
     // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: units (6464, 6464, 7) -> (6464, 6464, 6), guys (1584, 1584, 1) -> (1584, 1584, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (8007, 8007, 2) -> (8007, 8007, 1).
     (
         "run1359",
         5619,
@@ -3416,7 +3430,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (48, 48, 0),
             (60, 60, 0),
             (120, 120, 0),
-            (8007, 8007, 2),
+            (8007, 8007, 1),
         ],
     ),
     // Item 4205, the built start: units (6408, 6424, 5583) -> (6408, 6424, 5539); builds (2974,
@@ -3446,6 +3460,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4415, the oil-well stand's cur_time: units (6408, 6408, 9) -> (6408, 6408, 7), guys (1598, 1598, 3) -> (1598, 1598, 1).
     // Item 4422, the swarm's form -1: groups (556, 556, 3) -> (556, 556, 0).
     // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: units (6408, 6408, 7) -> (6408, 6408, 6), guys (1598, 1598, 1) -> (1598, 1598, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (7717, 7717, 2) -> (7717, 7717, 1).
     (
         "run1359b",
         5677,
@@ -3461,7 +3476,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (48, 48, 0),
             (55, 55, 0),
             (120, 120, 0),
-            (7717, 7717, 2),
+            (7717, 7717, 1),
         ],
     ),
     // Item 4205, the built start: units (6407, 6423, 5580) -> (6407, 6423, 5536); builds (2974,
@@ -3491,6 +3506,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4415, the oil-well stand's cur_time: units (6407, 6407, 9) -> (6407, 6407, 7), guys (1598, 1598, 3) -> (1598, 1598, 1).
     // Item 4422, the swarm's form -1: groups (556, 556, 3) -> (556, 556, 0).
     // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: units (6407, 6407, 7) -> (6407, 6407, 6), guys (1598, 1598, 1) -> (1598, 1598, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (7715, 7715, 2) -> (7715, 7715, 1).
     (
         "run1359c",
         5678,
@@ -3506,7 +3522,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (48, 48, 0),
             (55, 55, 0),
             (120, 120, 0),
-            (7715, 7715, 2),
+            (7715, 7715, 1),
         ],
     ),
     // Item 4205, the built start: units (6810, 6671, 5784) -> (6810, 6671, 5721); builds (2544,
@@ -3616,6 +3632,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4396, the captain mirror's retarget kept in the order: units (5014, 5014, 7) -> (5014, 5014, 5).
+    // Item 4441, `mask_me` walks a footprint column by column: world (8340, 8340, 2) -> (8340, 8340, 0).
     (
         "run1382",
         3228,
@@ -3631,7 +3648,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (20, 20, 0),
             (70, 70, 0),
             (180, 180, 0),
-            (8340, 8340, 2),
+            (8340, 8340, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (2933, 3253, 650) -> (2933, 3253, 339); builds (1184, 1184,
@@ -3774,6 +3791,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (634, 634, 9) -> (634, 634, 8).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: units (6953, 6953, 73) -> (6953, 6953, 72), guys (1829, 1829, 1) -> (1829, 1829, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (634, 634, 8) -> (634, 634, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (9554, 9554, 10) -> (9554, 9554, 8).
     (
         "run1416",
         4016,
@@ -3789,7 +3807,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (33, 33, 0),
             (5, 5, 0),
             (330, 330, 0),
-            (9554, 9554, 10),
+            (9554, 9554, 8),
         ],
     ),
     // Item 4205, the built start: units (4518, 4705, 3767) -> (4518, 4705, 3703); builds (2321,
@@ -3815,6 +3833,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 2) -> (271, 271, 0).
     // Item 4415, the oil-well stand's cur_time: units (4518, 4518, 13) -> (4518, 4518, 12), guys (1265, 1265, 1) -> (1265, 1265, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (8274, 8274, 1) -> (8274, 8274, 0).
     (
         "run1417",
         4016,
@@ -3830,7 +3849,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (33, 33, 0),
             (75, 75, 0),
             (180, 180, 0),
-            (8274, 8274, 1),
+            (8274, 8274, 0),
         ],
     ),
     // Item 4209, the box's `clear_down`: builds (2033, 2033, 75) -> (2033, 2033, 74); items (60, 110,
@@ -3855,6 +3874,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 2) -> (271, 271, 0).
     // Item 4422, the swarm's form -1: groups (544, 544, 1) -> (544, 544, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (8434, 8434, 2) -> (8434, 8434, 0).
     (
         "run1419b",
         3212,
@@ -3870,7 +3890,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (27, 27, 0),
             (60, 60, 0),
             (180, 180, 0),
-            (8434, 8434, 2),
+            (8434, 8434, 0),
         ],
     ),
     // Item 4205, the built start: units (5583, 5614, 4645) -> (5583, 5614, 4588); builds (2515,
@@ -3896,6 +3916,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 2) -> (271, 271, 0).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2515, 2513, 683) -> (2515, 2513, 686).
     // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: units (5583, 5423, 1536) -> (5583, 5423, 1535), guys (1327, 1327, 1) -> (1327, 1327, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (8466, 8466, 1) -> (8466, 8466, 0).
     (
         "run1420",
         4586,
@@ -3911,7 +3932,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (38, 38, 0),
             (70, 70, 0),
             (180, 180, 0),
-            (8466, 8466, 1),
+            (8466, 8466, 0),
         ],
     ),
     // Item 4209, the box's `clear_down`: items (90, 110, 44) -> (90, 90, 0).
@@ -3937,6 +3958,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 2) -> (271, 271, 0).
     // Item 4415, the oil-well stand's cur_time: units (4129, 4129, 4) -> (4129, 4129, 3), guys (1138, 1138, 1) -> (1138, 1138, 0).
     // Item 4422, the swarm's form -1: groups (550, 550, 2) -> (550, 550, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (8344, 8344, 2) -> (8344, 8344, 0).
     (
         "run1424",
         3156,
@@ -3952,7 +3974,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (27, 27, 0),
             (90, 90, 0),
             (180, 180, 0),
-            (8344, 8344, 2),
+            (8344, 8344, 0),
         ],
     ),
     // Item 4209, the box's `clear_down`: items (80, 110, 52) -> (80, 80, 0).
@@ -3975,6 +3997,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4415, the oil-well stand's cur_time: units (4175, 4175, 9) -> (4175, 4175, 7), guys (1227, 1227, 5) -> (1227, 1227, 3).
     // Item 4422, the swarm's form -1: groups (544, 544, 1) -> (544, 544, 0).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: units (4175, 4175, 7) -> (4175, 4175, 6), guys (1227, 1227, 3) -> (1227, 1227, 2).
+    // Item 4441, `mask_me` walks a footprint column by column: world (8284, 8284, 10) -> (8284, 8284, 8).
     (
         "run1426b",
         3722,
@@ -3990,7 +4013,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (27, 27, 0),
             (80, 80, 0),
             (180, 180, 0),
-            (8284, 8284, 10),
+            (8284, 8284, 8),
         ],
     ),
     // Item 4209, the box's `clear_down`: items (85, 110, 49) -> (85, 85, 0).
@@ -4013,6 +4036,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 5) -> (271, 271, 4).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 4) -> (271, 271, 2).
     // Item 4415, the oil-well stand's cur_time: units (4789, 4529, 2797) -> (4789, 4529, 2796), guys (1208, 1208, 6) -> (1208, 1208, 5).
+    // Item 4441, `mask_me` walks a footprint column by column: world (8414, 8414, 1) -> (8414, 8414, 0).
     (
         "run1437",
         3894,
@@ -4028,7 +4052,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 0),
             (85, 85, 0),
             (180, 180, 0),
-            (8414, 8414, 1),
+            (8414, 8414, 0),
         ],
     ),
     // Item 4218, the idle latch (`flags & 0x08`): units (2475, 2702, 2286) -> (2475, 2702, 2279).
@@ -4109,6 +4133,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 2) -> (271, 271, 0).
     // Item 4422, the swarm's form -1: groups (550, 550, 1) -> (550, 550, 0).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: units (4274, 4240, 907) -> (4274, 4240, 906), guys (1108, 1108, 1) -> (1108, 1108, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (8276, 8276, 9) -> (8276, 8276, 8).
     (
         "run1441",
         3294,
@@ -4124,7 +4149,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
-            (8276, 8276, 9),
+            (8276, 8276, 8),
         ],
     ),
     // Item 4209, the box's `clear_down`: items (125, 135, 37) -> (125, 125, 0).
@@ -4450,6 +4475,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 2) -> (271, 271, 0).
     // Item 4422, the swarm's form -1: groups (550, 550, 1) -> (550, 550, 0).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: units (4274, 4240, 907) -> (4274, 4240, 906), guys (1108, 1108, 1) -> (1108, 1108, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (8276, 8276, 9) -> (8276, 8276, 8).
     (
         "run1559b",
         3294,
@@ -4465,7 +4491,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
-            (8276, 8276, 9),
+            (8276, 8276, 8),
         ],
     ),
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (267, 267, 2) -> (267, 267, 0).
@@ -4506,6 +4532,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 2) -> (271, 271, 0).
     // Item 4422, the swarm's form -1: groups (550, 550, 1) -> (550, 550, 0).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: units (4274, 4240, 907) -> (4274, 4240, 906), guys (1108, 1108, 1) -> (1108, 1108, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (8276, 8276, 9) -> (8276, 8276, 8).
     (
         "run1564",
         3294,
@@ -4521,7 +4548,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
-            (8276, 8276, 9),
+            (8276, 8276, 8),
         ],
     ),
     // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0).
@@ -4546,6 +4573,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4415, the oil-well stand's cur_time: units (4240, 4200, 432) -> (4240, 4200, 431), guys (1112, 1112, 2) -> (1112, 1112, 1).
     // Item 4422, the swarm's form -1: groups (556, 556, 1) -> (556, 556, 0).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: units (4240, 4200, 431) -> (4240, 4200, 430), guys (1112, 1112, 1) -> (1112, 1112, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (8294, 8294, 9) -> (8294, 8294, 8).
     (
         "run1570",
         3331,
@@ -4561,7 +4589,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
-            (8294, 8294, 9),
+            (8294, 8294, 8),
         ],
     ),
     // Item 4208, the whales' piece: units (4969, 4983, 4166) -> (4969, 4983, 4139); builds (1731,
@@ -4585,6 +4613,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (1731, 1729, 937) -> (1731, 1729, 938).
     // Item 4422, the swarm's form -1: groups (640, 640, 3) -> (640, 640, 0).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (1429, 1429, 1) -> (1429, 1429, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (9108, 9108, 10) -> (9108, 9108, 9).
     (
         "run785",
         2178,
@@ -4600,7 +4629,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (47, 47, 0),
             (15, 15, 0),
             (330, 330, 0),
-            (9108, 9108, 10),
+            (9108, 9108, 9),
         ],
     ),
     // Item 4208, the whales' piece: units (5889, 5855, 5006) -> (5889, 5855, 4979); builds (2157,
@@ -4624,6 +4653,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2157, 2155, 1254) -> (2157, 2155, 1256).
     // Item 4422, the swarm's form -1: groups (664, 664, 2) -> (664, 664, 0).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (1765, 1765, 1) -> (1765, 1765, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (9526, 9526, 11) -> (9526, 9526, 9).
     (
         "run789",
         2799,
@@ -4639,7 +4669,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (52, 52, 0),
             (15, 15, 0),
             (330, 330, 0),
-            (9526, 9526, 11),
+            (9526, 9526, 9),
         ],
     ),
     // Item 4208, the whales' piece: units (5860, 5823, 4887) -> (5860, 5823, 4860); builds (2059,
@@ -4663,6 +4693,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2059, 2057, 1177) -> (2059, 2057, 1178).
     // Item 4422, the swarm's form -1: groups (652, 652, 2) -> (652, 652, 0).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (1704, 1704, 1) -> (1704, 1704, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (9420, 9420, 11) -> (9420, 9420, 9).
     (
         "run795",
         2681,
@@ -4678,7 +4709,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (52, 52, 0),
             (15, 15, 0),
             (330, 330, 0),
-            (9420, 9420, 11),
+            (9420, 9420, 9),
         ],
     ),
     // Item 4208, the whales' piece: units (9526, 9603, 8636) -> (9526, 9603, 8609); builds (2384,
@@ -4708,6 +4739,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (688, 688, 5) -> (688, 688, 4).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (2341, 2341, 2) -> (2341, 2341, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (688, 688, 4) -> (688, 688, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (9442, 9442, 11) -> (9442, 9442, 9).
     (
         "run810",
         3631,
@@ -4723,7 +4755,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (58, 58, 0),
             (10, 10, 0),
             (330, 330, 0),
-            (9442, 9442, 11),
+            (9442, 9442, 9),
         ],
     ),
     // Item 4208, the whales' piece: units (9339, 9413, 8439) -> (9339, 9413, 8412); builds (2473,
@@ -4751,6 +4783,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (676, 676, 6) -> (676, 676, 5).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (2450, 2450, 2) -> (2450, 2450, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (676, 676, 5) -> (676, 676, 1).
+    // Item 4441, `mask_me` walks a footprint column by column: world (9552, 9552, 11) -> (9552, 9552, 9).
     (
         "run823",
         4238,
@@ -4766,7 +4799,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (58, 58, 0),
             (10, 10, 0),
             (330, 330, 0),
-            (9552, 9552, 11),
+            (9552, 9552, 9),
         ],
     ),
     // Item 4208, the whales' piece: units (9362, 9436, 8403) -> (9362, 9436, 8376); builds (2473,
@@ -4794,6 +4827,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (688, 688, 5) -> (688, 688, 4).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (2471, 2471, 2) -> (2471, 2471, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (688, 688, 4) -> (688, 688, 0).
+    // Item 4441, `mask_me` walks a footprint column by column: world (9560, 9560, 11) -> (9560, 9560, 9).
     (
         "run825",
         4204,
@@ -4809,7 +4843,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (58, 58, 0),
             (10, 10, 0),
             (330, 330, 0),
-            (9560, 9560, 11),
+            (9560, 9560, 9),
         ],
     ),
     // Item 4218, the idle latch (`flags & 0x08`): units (1201, 1312, 1056) -> (1201, 1312, 1053).
@@ -4900,6 +4934,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2095, 2095, 7) -> (2095, 2095, 5).
     // Item 4422, the swarm's form -1: groups (640, 640, 7) -> (640, 640, 5).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (640, 640, 5) -> (640, 640, 1).
+    // Item 4441, `mask_me` walks a footprint column by column: world (9344, 9344, 2) -> (9344, 9344, 1).
     (
         "run854",
         3301,
@@ -4915,7 +4950,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (36, 36, 0),
             (5, 5, 0),
             (330, 330, 0),
-            (9344, 9344, 2),
+            (9344, 9344, 1),
         ],
     ),
     // Item 4208, the whales' piece: units (10342, 10233, 9575) -> (10342, 10233, 9554); builds (2288,
@@ -4942,6 +4977,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2288, 2283, 1534) -> (2288, 2283, 1535).
     // Item 4415, the oil-well stand's cur_time: guys (2210, 2210, 1) -> (2210, 2210, 0).
     // Item 4422, the swarm's form -1: groups (640, 640, 3) -> (640, 640, 2).
+    // Item 4441, `mask_me` walks a footprint column by column: world (9534, 9534, 12) -> (9534, 9534, 11).
     (
         "run865",
         4859,
@@ -4957,7 +4993,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
-            (9534, 9534, 12),
+            (9534, 9534, 11),
         ],
     ),
     // Item 4218, the idle latch (`flags & 0x08`): units (1636, 1776, 294) -> (1636, 1776, 263).
@@ -5011,6 +5047,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4415, the oil-well stand's cur_time: units (11125, 10815, 9506) -> (11125, 10815, 9505), guys (2832, 2832, 5) -> (2832, 2832, 3).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (2832, 2832, 3) -> (2832, 2832, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (616, 616, 7) -> (616, 616, 3).
+    // Item 4441, `mask_me` walks a footprint column by column: world (9518, 9518, 12) -> (9518, 9518, 11).
     (
         "run882b",
         6808,
@@ -5026,7 +5063,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
-            (9518, 9518, 12),
+            (9518, 9518, 11),
         ],
     ),
     // Item 4208, the whales' piece: units (11180, 10557, 9936) -> (11180, 10557, 9912); builds (2737,
@@ -5057,6 +5094,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4415, the oil-well stand's cur_time: units (11180, 10834, 9394) -> (11180, 10834, 9393), guys (2832, 2832, 5) -> (2832, 2832, 3).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (2832, 2832, 3) -> (2832, 2832, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (616, 616, 7) -> (616, 616, 3).
+    // Item 4441, `mask_me` walks a footprint column by column: world (9536, 9536, 12) -> (9536, 9536, 11).
     (
         "run883b",
         6821,
@@ -5072,7 +5110,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
-            (9536, 9536, 12),
+            (9536, 9536, 11),
         ],
     ),
     // Item 4208, the whales' piece: units (2652, 2987, 625) -> (2652, 2987, 343); builds (709, 709,
@@ -6163,7 +6201,8 @@ const TAKE1645_PINNED: Pinned = (
         (9, 9, 0),
         (30, 30, 0),
         (405, 405, 0),
-        (8981, 8981, 1),
+        // Item 4441, `mask_me` walks a footprint column by column: world (8981, 8981, 1) -> (8981, 8981, 0).
+        (8981, 8981, 0),
     ],
 );
 
