@@ -314,10 +314,10 @@ pub struct BuildingScene {
     /// (item 4035), as `Wall::update_gpiece@00643070` passes them: the
     /// nation of its **founder** (`BuildData::founder`, `+0x7f`), an index
     /// into the tech tree's tribes — a captured city keeps the art of the
-    /// nation that built it — and its age, `BuildData::max_age`, which this
-    /// crate does not keep: the owner's ages owned
-    /// (`LeaderDataEncrypt::ages`) stand in, the value `Leader::gain_tech`
-    /// writes to every building of the player.
+    /// nation that built it — and its age, `BuildData::max_age`
+    /// ([`Sim::build_max_age`]): the owner's ages owned, the value
+    /// `Leader::gain_tech` writes to every building of the player, or the
+    /// age a captured building kept from its old owner (item 4463).
     pub tribe: usize,
     pub age: i32,
     /// A farm's record (`BuildData +0x78 >= 0`), which
@@ -675,7 +675,7 @@ impl Sim {
                 job_counter: b.job_counter,
                 construct_time: self.construct_time_of(i),
                 tribe: self.tech.get(b.founder as usize).map_or(0, |p| p.tribe),
-                age: self.tech.get(b.owner as usize).map_or(0, |p| p.ages),
+                age: self.build_max_age(i) as i32,
                 // A record in the list — `farm.valid` is `Farms::add`'s,
                 // and a farm the harness stood up from a dump joins the
                 // list without it.

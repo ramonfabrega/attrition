@@ -679,6 +679,71 @@ fn a_garrison_walks_its_target_and_its_search() {
     }
 }
 
+/// **A missile's strike walks `AirAttackGroundOrder::walk_data@004875a0`'s
+/// five ranges** (item 4459, `docs/CHECKSUM.md` §18): the flags byte, the
+/// `AttackGroundOrder` point with `accuracy` and `attack_unit`
+/// (`+0x4..+0x14`), the flags byte again, the `AirOrder` row (`oxx`..
+/// `returning`) and the class's own `total_time`, `sx`, `sy`. run1721 on
+/// 2587: the missile `1/84` (TI 316) laid in its silo, `18 00 00 00`, `00`,
+/// `04`, (3168, 30816, 0, 0), `04`, (−1, −1, 1600, 0, 0, 0), (0, 0, 0); with
+/// a home, the silo's object and owner.
+#[test]
+fn a_missile_s_strike_walks_its_point_its_air_row_and_its_own_three() {
+    use crate::orders::{AirAttackGroundOrder, Body, CRUISING_ALT, Order, flag};
+    use crate::world::Pos;
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(60, 60), 2);
+    let u = sim.add_unit(crate::Unit::new(1, 16, Pos::new(480, 480), 10));
+    let b = sim.add_building(1, Pos::new(960, 960), 0);
+    sim.buildings[b].index = 2003;
+    for (home, oxx, whose, alt, turn, returning) in [
+        (None, -1i32, -1i32, CRUISING_ALT, 0, false),
+        (Some(b), 2003, 1, CRUISING_ALT + 200, -1, true),
+    ] {
+        sim.units[u].orders.clear();
+        sim.units[u].orders.push_back(Order {
+            flags: flag::ACTION,
+            body: Body::AirAttackGround(AirAttackGroundOrder {
+                at: Pos::new(3168, 30816),
+                home,
+                cruising_alt: alt,
+                sharp_turn: turn,
+                returning,
+            }),
+        });
+        let record = sim.units[u].index;
+        let ranges = sim.checksum_units().ranges;
+        let at = ranges
+            .iter()
+            .position(|r| r.record == record && r.field == "order.type")
+            .expect("the order's type");
+        assert_eq!(ranges[at].bytes, 0x18i32.to_le_bytes(), "AIR_ATTACK_GROUND");
+        let walked: Vec<(&str, Vec<u8>)> = ranges[at + 2..]
+            .iter()
+            .take_while(|r| r.field.starts_with("order."))
+            .map(|r| (r.field, r.bytes.clone()))
+            .collect();
+        assert_eq!(
+            walked,
+            vec![
+                ("order.flags", vec![4]),
+                (
+                    "order.attack_ground",
+                    [3168i32, 30816, 0, 0].map(i32::to_le_bytes).concat()
+                ),
+                ("order.flags", vec![4]),
+                (
+                    "order.air",
+                    [oxx, whose, alt, turn, 0, i32::from(returning)]
+                        .map(i32::to_le_bytes)
+                        .concat()
+                ),
+                ("order.air_attack_ground", vec![0; 12]),
+            ],
+            "run1721's 1/84 on 2587, home {home:?}"
+        );
+    }
+}
+
 /// **A think walks the base's `UnitOrder::walk_data@0047f2b0`** (item
 /// 4414, `docs/RECGAME.md` §7): `ThinkOrder::vftable@00b48d88`'s `+0x8`
 /// is the base's walker, the flags byte alone. run1697 on 532: the

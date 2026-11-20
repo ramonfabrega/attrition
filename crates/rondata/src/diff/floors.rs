@@ -522,7 +522,7 @@ pub const STRUCTURE: [(&str, u64); 6] = [
     ("sweep-lines", 17_288),
     ("names", 15),
     ("fields", 21),
-    ("largest", 3_711),
+    ("largest", 3_710),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before

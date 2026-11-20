@@ -485,6 +485,26 @@ mod tests {
         );
     }
 
+    /// **Row 100's missile walks its strike** (item 4459, `docs/CHECKSUM.md`
+    /// §18): on tick 2586 the computer lays an `AIR_ATTACK_GROUND` on the
+    /// missile `1/84` (TI 316) in its silo, and
+    /// `AirAttackGroundOrder::walk_data@004875a0` hands over five ranges
+    /// after the node byte. Every units range on 2587: red without the
+    /// walker, 3,804 ranges against 3,809, the first unequal at range 2809,
+    /// record 84, where ours walked `guys.length` (`01 00 00 00`) and
+    /// theirs the flags byte (`04`).
+    #[test]
+    fn row_100_s_missile_walks_its_air_attack_ground_order_on_run1721_s_ranges() {
+        let Some(theirs) = units_ranges_agree(5, "run1721", 2587, 2812) else {
+            return;
+        };
+        assert_eq!(
+            theirs,
+            [-1i32, -1, 0x640, 0, 0, 0].map(i32::to_le_bytes).concat(),
+            "theirs' AirOrder row"
+        );
+    }
+
     /// Game `k`'s units line on `state`, ours against the ranges take
     /// `run`'s, every range byte for byte; returns theirs' range `range`.
     fn units_ranges_agree(k: usize, run: &str, state: i64, range: usize) -> Option<Vec<u8>> {
@@ -1162,13 +1182,18 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // -> 2,588, first 1976 -> 2588. On 1976, run1721's builds range
         // 1451, record 2027 (the computer's site 1/2027, never started),
         // `build_masks` read ours 0, theirs 0x2000.
+        // Moved by item 4459 (the units line walks `AirAttackGroundOrder`'s
+        // five ranges): units 2,697 -> 2,728, first 2587 -> 2646. On 2587,
+        // run1721's units range 2809, record 84 (the missile 1/84, TI 316,
+        // laid in its silo): ours walked `guys.length` 01 00 00 00 after the
+        // order's node byte, theirs the order's flags byte 04.
         moved: Some(Score {
             states: 3331,
             agreed: [
-                2697, 2588, 3331, 3172, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 2618,
+                2728, 2588, 3331, 3172, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 2618,
             ],
             first: &[
-                ("units", (2587, Some(4287155215), 4036875673)),
+                ("units", (2646, Some(3584274957), 3109728825)),
                 ("builds", (2588, Some(3298180603), 88948818)),
                 ("ammo", (2618, Some(1076236747), 891350609)),
                 ("deaths", (2756, Some(1136466598), 3621657254)),
