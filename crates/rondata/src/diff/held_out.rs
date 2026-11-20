@@ -1325,14 +1325,22 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // ours walked the next `must_walk` 01, theirs `launching.length`
         // 01 00 00 00, then size 4, increment -1, flags 0 and [84]. On 2618,
         // range 1268, record 2022, `visible` read ours 0, theirs 0xff.
+        // Moved by item 4468 (the nuke strike's round keeps
+        // `calc_nuke_spline`'s spline and the ammo line walks its
+        // `SplineData`): ammo 3,172 -> 3,291, first 2618 -> 3210. On 2618,
+        // run1721's ammo range 1, record 0, byte 75, `traj` read ours 1,
+        // theirs 2; theirs walks `has_path` 01 and the spline's 278 ranges
+        // after it (header, 12 control points, 17 weights, 16 knots, no
+        // weights, 121 points and 121 normals, `total_spline_length`
+        // 0x4765a7a2), ours none. Ammo parts next on 3210, ours refused.
         moved: Some(Score {
             states: 3331,
             agreed: [
-                2728, 3331, 3331, 3172, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 3331,
+                2728, 3331, 3331, 3291, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 3331,
             ],
             first: &[
                 ("units", (2646, Some(3584274957), 3109728825)),
-                ("ammo", (2618, Some(1076236747), 891350609)),
+                ("ammo", (3210, None, 252233938)),
                 ("deaths", (2756, Some(1136466598), 3621657254)),
                 ("guys", (2646, Some(1999790736), 3081855676)),
             ],
@@ -1458,15 +1466,20 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4467 (the guys line's inside arm is chosen at the
         // unit's own `process`): guys 5,932 -> 5,942, first 1747 -> 2449;
         // units stands on 1747, its sum there moved.
+        // Moved by item 4468 (a nuke strike's round keeps
+        // `calc_nuke_spline`'s spline and the ammo line walks its
+        // `SplineData`): ammo 5,591 -> 5,907, first 4542 -> 5135, ours
+        // refused there. No ranges are on disk for run1730: on 4542 ours'
+        // ammo sum was 2344817575 and is now theirs' 281265979.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                2496, 537, 6001, 5591, 5350, 3066, 5942, 3976, 6001, 6001, 6001, 537,
+                2496, 537, 6001, 5907, 5350, 3066, 5942, 3976, 6001, 6001, 6001, 537,
             ],
             first: &[
                 ("units", (1747, Some(2268899682), 1685366186)),
                 ("builds", (537, Some(1374294361), 1810502041)),
-                ("ammo", (4542, Some(2344817575), 281265979)),
+                ("ammo", (5135, None, 990220286)),
                 ("deaths", (4686, Some(4192616794), 999637338)),
                 ("groups", (3066, Some(2106809472), 4177681537)),
                 ("guys", (2449, Some(2995814966), 2693759490)),
@@ -1614,15 +1627,19 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // units 1,704 -> 1,735, first 1570 -> 1735.
         // Moved by item 4467 (the guys line's inside arm is chosen at the
         // unit's own `process`): guys 4,566 -> 4,591, first on 1736.
+        // Moved by item 4468 (a nuke strike's round keeps its spline and
+        // the ammo line walks its `SplineData`): ammo 4,392 -> 4,511, first
+        // 1601 -> 2367. No ranges are on disk for run1736: on 1601 ours'
+        // ammo sum was 2349929217 and is now theirs' 941472936.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                1735, 553, 4731, 4392, 4084, 4553, 4591, 1976, 4731, 4731, 4731, 553,
+                1735, 553, 4731, 4511, 4084, 4553, 4591, 1976, 4731, 4731, 4731, 553,
             ],
             first: &[
                 ("units", (1735, Some(3081680851), 796971071)),
                 ("builds", (553, Some(2297078769), 1047897137)),
-                ("ammo", (1601, Some(2349929217), 941472936)),
+                ("ammo", (2367, Some(1123882197), 1189418202)),
                 ("deaths", (1746, Some(1419733817), 1134652217)),
                 ("groups", (2811, Some(2634708853), 2723050627)),
                 ("guys", (1736, Some(4103418160), 1070804956)),
