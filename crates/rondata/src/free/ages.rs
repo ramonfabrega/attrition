@@ -747,7 +747,7 @@ pub(crate) const AGES_CORPSES: (usize, usize) = (196, 196);
 /// parted, `GreatLakesAmericanInformation`'s Assault Marines (TypeIndex
 /// 122, land) on frame 4321 (RENDERER §3.13), agree since item 4461: a
 /// military type's gender piece is named `-PACKED`, so their `-FEMALE`
-/// entry is no piece (`docs/CHECKSUM.md` §23.12), 34,394 → 34,399.
+/// entry is no piece (`docs/CHECKSUM.md` §23.13), 34,394 → 34,399.
 pub(crate) const AGES_CLOSING: (usize, usize) = (34_399, 34_399);
 
 /// **The closing records that print the pieces item 4169 reads**:

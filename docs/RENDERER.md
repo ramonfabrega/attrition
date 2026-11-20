@@ -2221,7 +2221,7 @@ the closing block, and the Aztec pair's starts.
 - ~~**4166a**, the Assault Marines' variant. Item 4169's reading is in its
   journal: the original's piece is guy state written at seventeen call
   sites, and ours is derived from the object number every frame.~~
-  Answered by item 4461 (`docs/CHECKSUM.md` §23.12): the original names a
+  Answered by item 4461 (`docs/CHECKSUM.md` §23.13): the original names a
   military type's gender piece `-PACKED`, so the shipped `-FEMALE` entry
   is a node no lookup builds (run1437's packet holds 6408 tried and empty).
   All 34,399 records agree.

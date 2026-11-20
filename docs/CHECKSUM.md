@@ -2893,7 +2893,7 @@ angle already equals the push's (each is compared to its own `+0x18`; ours share
 here. The crate's own body-turn gate still reads the bit as the facing against `frame_facing`, which `Guy::set_angle`
 also moves; only the checksum reads `Movement::turned`.
 
-## 23.11 The guys line's crew `des` (item 4460)
+## 23.12 The guys line's crew `des` (item 4460)
 
 **The rule.** A crew figure (every figure past guy 0, `SQUAD_SIZE` 1) has its `des_x`/`des_y` (`+0x5c`/`+0x60`)
 written only by `Guy::set_new_location@005d86f0`'s crew loop. That loop writes guy 0's new `x`/`y` plus the figure's
@@ -2914,7 +2914,7 @@ range on 2107 and 2108. Row 60's guys line became whole (4,010 → 4,075). Guys 
 the call. Ours reads guy 0's facing now, which a turn in place moves without the loop running. No range on file has
 parted on it.
 
-## 23.12 The guys line's `gpiece`: a military type's gender piece is named `-PACKED` (item 4461)
+## 23.13 The guys line's `gpiece`: a military type's gender piece is named `-PACKED` (item 4461)
 
 **A gender piece has one name, and for a military type, a merchant or a fisherman it is `-PACKED`** (item 4461,
 diff-backed). After 4453 and 4465 the census put `gpiece` (`GuyData +0x88`, guy byte 128) first on run1437's guys

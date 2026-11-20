@@ -1445,7 +1445,7 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// no recruit (`build_masks |= 0x2000`), and `BUILD_AT`'s swarm clears it.
 /// **844** at item 4461 (+1, on 4468's 843): run1437's guys line whole, a
 /// military type's gender piece named `-PACKED`, so the Assault Marines'
-/// `-FEMALE` entry is no piece (`docs/CHECKSUM.md` §23.12).
+/// `-FEMALE` entry is no piece (`docs/CHECKSUM.md` §23.13).
 pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 844, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
