@@ -3239,7 +3239,10 @@ fn a_unit_out_of_a_building_clears_the_disc_it_stood_inside() {
         !sim.movement.coll.get(inside.x, inside.y),
         "the inside disc is painted and cleared, the other unit's bit with it"
     );
-    assert!(sim.movement.coll.get(spot.x, spot.y), "the spot's disc is set");
+    assert!(
+        sim.movement.coll.get(spot.x, spot.y),
+        "the spot's disc is set"
+    );
     assert_eq!(sim.units[h].coll_at, Some(sim.units[h].pos));
 }
 
