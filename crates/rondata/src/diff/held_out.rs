@@ -395,6 +395,71 @@ mod tests {
         );
     }
 
+    /// Item 4459's probe, reverted whole.
+    #[test]
+    fn probe_4459() {
+        let Ok(spec) = std::env::var("RON_PROBE_4459") else {
+            return;
+        };
+        let mut it = spec.split(',').map(|v| v.parse::<i64>().unwrap());
+        let (lo, hi, line, o) = (
+            it.next().unwrap(),
+            it.next().unwrap(),
+            it.next().unwrap() as u8,
+            it.next().unwrap() as i16,
+        );
+        let inst = crate::testenv::install().unwrap();
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(5) else { panic!() };
+        let ranges = home.join("ron-golden/run1721/map-14/rontrace.ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("the game's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < hi {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            let state = built.sim.frame;
+            if state < lo {
+                continue;
+            }
+            for u in built.sim.units.iter().filter(|u| u.index == o) {
+                eprintln!(
+                    "P4459 {state} ours {:?}/{} uid {} TI {} hp {} guys {} alloc {} squad {} on_map {}",
+                    u.owner, u.index, u.uid, u.type_index, u.health, u.guys.len(), u.guys_alloc, u.squad_size, u.on_map
+                );
+            }
+            let Some(set) = record.first_of(state - 1).cloned() else {
+                continue;
+            };
+            let theirs = record.ranges(&set).expect("the set's ranges");
+            let theirs: Vec<_> = theirs.into_iter().filter(|r| r.line == line).collect();
+            let ours = match line {
+                0 => built.sim.checksum_units(),
+                6 => built.sim.checksum_guys(),
+                _ => panic!(),
+            };
+            eprintln!("P4459 {state} ranges ours {} theirs {}", ours.ranges.len(), theirs.len());
+            let mut shown = 0;
+            for (i, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                if a.record == o || (a.bytes != b.bytes && shown < 6) {
+                    if a.bytes != b.bytes {
+                        shown += 1;
+                    }
+                    eprintln!(
+                        "P4459 {state} range {i} record {} {} {} ours {:02x?} theirs {:02x?}",
+                        a.record,
+                        a.field,
+                        if a.bytes == b.bytes { "=" } else { "PART" },
+                        &a.bytes[..a.bytes.len().min(40)],
+                        &b.bytes[..b.bytes.len().min(40)]
+                    );
+                }
+            }
+        }
+    }
+
     /// Game `k`'s units line on `state`, ours against the ranges take
     /// `run`'s, every range byte for byte; returns theirs' range `range`.
     fn units_ranges_agree(k: usize, run: &str, state: i64, range: usize) -> Option<Vec<u8>> {
