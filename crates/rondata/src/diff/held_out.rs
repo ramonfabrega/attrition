@@ -632,6 +632,51 @@ mod tests {
         );
     }
 
+    /// PROBE 4471: row 100's guys on 2640..=2646, ours against run1721.
+    #[test]
+    fn probe_4471() {
+        if std::env::var("RON_PROBE_4471").is_err() {
+            return;
+        }
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIRST, 5) else { panic!("rcx") };
+        let ranges = home.join("ron-golden/run1721/map-14/rontrace.ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("the game's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(2640);
+        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(2646);
+        let o: u16 = std::env::var("RON_PROBE_O").ok().and_then(|v| v.parse().ok()).unwrap_or(46);
+        while built.sim.frame <= hi {
+            let f = built.sim.frame;
+            if f >= lo {
+                for u in built.sim.units.iter().filter(|u| u.alive() && u.index == o) {
+                    crate::diff::harness::debug_unit(&built, u, f);
+                }
+                let set = record.first_of(f - 1).expect("set").clone();
+                let theirs = record.ranges(&set).expect("ranges");
+                let theirs: Vec<_> = theirs.into_iter().filter(|r| r.line == 6).collect();
+                let ours = built.sim.checksum_guys();
+                eprintln!("  state {f}: guys ranges ours {} theirs {}", ours.ranges.len(), theirs.len());
+                for (i, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    if a.record == o && a.field == "guy" {
+                        for &(name, off, w) in sim::checksum::guys::GUY_FIELDS {
+                            let (x, y) = (&a.bytes[off - 8..off - 8 + w], &b.bytes[off - 8..off - 8 + w]);
+                            eprintln!("    {f} r{i} rec{} {name}: ours {:02x?} theirs {:02x?}{}", a.record, x, y, if x != y { "  <<" } else { "" });
+                        }
+                    } else if a.bytes != b.bytes {
+                        eprintln!("    {f} r{i} rec{} {} differs", a.record, a.field);
+                    }
+                }
+            }
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+    }
+
     /// Game `k`'s units line on `state`, ours against the ranges take
     /// `run`'s, every range byte for byte; returns theirs' range `range`.
     fn units_ranges_agree(k: usize, run: &str, state: i64, range: usize) -> Option<Vec<u8>> {
