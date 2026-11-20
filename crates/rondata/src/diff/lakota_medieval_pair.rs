@@ -384,5 +384,6 @@ fn lakota_medieval_pair_run1235c_s_closing_frame_is_widened_whole() {
     // and `1/104` (4790), 3567a's shape (parked 3580b). The closing block
     // 4974 agrees.
     // Item 4435: 115 -> 84, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 84, "run1235c baseline");
+    // Item 4448: 84 -> 82, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 82, "run1235c baseline");
 }

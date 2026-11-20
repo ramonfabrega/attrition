@@ -302,7 +302,8 @@ fn run780_s_word_frame_is_widened_whole() {
     // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 97 -> 95.
     // Item 4435: 95 -> 85, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 85, "initial run780 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    // Item 4448: 85 -> 84, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 84, "initial run780 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
     // Item 1768: 897 keys part on blocks 2201..2457, 129 of them on the
     // window's first block (nothing dumped parts on the word's own block
     // 2208). The word 2207 (ours 9 draws, theirs 8, index 8) is the idle

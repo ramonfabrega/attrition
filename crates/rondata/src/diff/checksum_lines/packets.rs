@@ -1432,7 +1432,11 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// turrets and 4443's `cavarch_o`; run1351's units line parts on one.
 /// **815** on item 4450's tip (+2): run1235b's and run1320b's cities lines
 /// whole, `City::calc_gather`'s enhancer bytes kept to the reassembly.
-/// **816** on item 4453's (+1): run1296's guys line whole, a push after the
+/// **816** at item 4448, on 815's tip: run1263's units line whole and
+/// run1224b's parting on one range fewer: `detect_unit_collision`'s guard
+/// arm runs `update_action` on the blocker, so a bumped guard's
+/// `dest_angle` takes its turn.
+/// **817** on item 4453's (+1): run1296's guys line whole, a push after the
 /// pushed unit's walk leaving `guy_flags & 2`.
 pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 816, 1053);
 
@@ -2320,11 +2324,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (4271, 4271, 12) -> (4271, 4271, 0).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (11740, 11740, 3) -> (11740, 11740, 2).
+    // Item 4448, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm): units (11740, 11740, 2) -> (11740, 11740, 1).
     (
         "run1224b",
         9745,
         [
-            (11740, 11740, 2),
+            (11740, 11740, 1),
             (4271, 4271, 0),
             (0, 0, 0),
             (6, 6, 0),
@@ -2615,11 +2620,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (3789, 3789, 15) -> (3789, 3789, 0).
+    // Item 4448, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm): units (11229, 11229, 1) -> (11229, 11229, 0).
     (
         "run1263",
         8362,
         [
-            (11229, 11229, 1),
+            (11229, 11229, 0),
             (3789, 3789, 0),
             (0, 0, 0),
             (9, 9, 0),

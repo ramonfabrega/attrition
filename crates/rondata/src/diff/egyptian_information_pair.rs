@@ -278,7 +278,8 @@ fn egyptian_information_pair_run1399b_s_word_frame_is_widened_whole() {
     // piece 207's pivot rows): **65** — the T80DES `1/42`'s round of 3214
     // leaves its muzzle on both sides; `1/29`'s of 3216 still parts, a
     // node-1 round ours fires from `WALK` (parked 3743a).
-    pin_eq!(w.firsts.len(), 65, "run1399b baseline");
+    // Item 4448: 65 -> 62, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 62, "run1399b baseline");
     // Every round, both directions: 648 in ours against 684, the first
     // parting `1/34`'s `ammo[0]` on 3205 (`sx` 5640 against 5530, `sz` 364
     // against 533, `total_time` 3 against 2).

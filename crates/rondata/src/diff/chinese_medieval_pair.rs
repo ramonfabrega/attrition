@@ -401,5 +401,6 @@ fn chinese_medieval_pair_run1223_s_closing_frame_is_widened_whole() {
     // Mongols' Crossbowmen, the same Asian style) launch `1/69`'s round
     // from its bay, and 4452's `0/2000` `damage_frac` agrees (parked 3580a,
     // struck).
-    pin_eq!(w.firsts.len(), 51, "run1223 baseline");
+    // Item 4448: 51 -> 48, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 48, "run1223 baseline");
 }

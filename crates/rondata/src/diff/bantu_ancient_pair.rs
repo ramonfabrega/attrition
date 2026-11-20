@@ -321,7 +321,8 @@ fn bantu_ancient_pair_run1236b_s_word_frame_is_widened_whole() {
     // this crate does not carry — the current attack agrees on both sides
     // on both blocks (`docs/AI.md` §315.3, parked 3592a).
     // Item 4435: 94 -> 89, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 89, "run1236b baseline");
+    // Item 4448: 89 -> 86, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 86, "run1236b baseline");
 }
 
 /// **The long's stride, walked back from the word 5072** (item 3591):
@@ -498,7 +499,8 @@ fn bantu_ancient_pair_run1238d_s_word_frame_is_widened_whole() {
     // eight guards' `dest_angle` (5380..5474, 3580b's shape).
     // Item 4159's residue: 95 -> 94, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     // Item 4435: 94 -> 91, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 91, "run1238d baseline");
+    // Item 4448: 91 -> 83, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 83, "run1238d baseline");
 }
 
 /// **The pair's closing state**: run1206's closing dump, block 6211, walked

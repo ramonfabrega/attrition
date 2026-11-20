@@ -171,7 +171,8 @@ fn run1013_s_word_frame_is_widened_whole() {
     // Item 4159's fifteenth residue: 37 → 36. 13640's `leader:score` (ours
     // 4218, theirs 4275) agrees: the 21 decoys of group 65 closing on 13631
     // raise who=1's units bit (`Unit::close:79`), recounted on 13639.
-    pin_eq!(w.firsts.len(), 36, "keys that part in the window");
+    // Item 4448: 36 -> 34, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 34, "keys that part in the window");
 }
 
 /// run1013b: the gap 8380..13489 at a stride of 16 (item 3390): blocks

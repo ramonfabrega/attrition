@@ -242,5 +242,6 @@ fn bantu_medieval_pair_run1281b_s_closing_frame_is_widened_whole() {
     // `1/90` (4893), `1/29` (4895), and the Pikemen (134) `1/55` (4765) —
     // 3567a's shape (parked 3624a). No other unit, building or city field
     // parts, and the closing block 4915 agrees.
-    pin_eq!(w.firsts.len(), 60, "run1281b baseline");
+    // Item 4448: 60 -> 52, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 52, "run1281b baseline");
 }

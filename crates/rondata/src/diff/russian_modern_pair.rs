@@ -595,7 +595,8 @@ fn russian_modern_pair_run1162_s_gap_is_widened_whole() {
     // the three built, 121: the standing families and `dest_angle` on
     // `1/34`, `1/70` and `1/130`.
     // Item 4435: 121 -> 105, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 105, "run1162 baseline");
+    // Item 4448: 105 -> 104, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 104, "run1162 baseline");
 }
 
 /// run1162c: the first parting's window, blocks 2174..2210 at the long's
@@ -736,7 +737,8 @@ fn russian_modern_pair_run1162e_s_wealth_is_widened_whole() {
     // `THECEO_PRODUCTION_BONUS`, 106: the standing families and
     // `dest_angle` on `1/34` (3379) and `1/70` (3401).
     // Item 4435: 106 -> 101, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 101, "run1162e baseline");
+    // Item 4448: 101 -> 99, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 99, "run1162e baseline");
 }
 
 /// **The word's road search, node for node** (item 3524): every road search

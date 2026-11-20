@@ -326,7 +326,8 @@ fn roman_gunpowder_pair_run1357c_s_closing_window_is_widened_whole() {
     // pools), the Pike Legion `1/68`'s walk end (`orders_x` 8424 against
     // 8471 on 3987) and the Spy `1/98`'s idle `dest_angle` (4048):
     // draw-silent to the close (parked 3688b).
-    pin_eq!(w.firsts.len(), 46, "run1357c baseline");
+    // Item 4448: 46 -> 43, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 43, "run1357c baseline");
     pin_eq!(w.rounds_read, (431, 431), "the rounds read");
     // 431 a side, 10 parting: who=1's Bombards (TY 267, `1/64`, `1/100`)
     // launch from their square, ours, against (6886, 30285) at `sz` 365

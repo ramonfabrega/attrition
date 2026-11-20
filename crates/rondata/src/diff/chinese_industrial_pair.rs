@@ -395,5 +395,6 @@ fn chinese_industrial_pair_run1184_s_closing_frame_is_widened_whole() {
     // (`income` 3814/1200/1040 against 4454/1520/1360, `score` 8499 against
     // 8590), 4213's `escrow` and 4376–4379's food. What stands is block
     // 4201's standing rows and the three `dest_angle` rows.
-    pin_eq!(w.firsts.len(), 48, "run1184 baseline");
+    // Item 4448: 48 -> 45, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 45, "run1184 baseline");
 }

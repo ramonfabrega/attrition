@@ -416,7 +416,8 @@ fn run978f_s_word_frame_is_widened_whole() {
     // (15582 → 23627) and **41** stand: the standing set, the `g.angle[0]`
     // family (ours 0x55555555, theirs 0) and two `dest_angle`s on 15624 and
     // 15653.
-    pin_eq!(w.firsts.len(), 29, "run978f with the rares' tail");
+    // Item 4448: 29 -> 27, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 27, "run978f with the rares' tail");
 }
 
 /// The closing state's window: run972b's closing block alone, the long's

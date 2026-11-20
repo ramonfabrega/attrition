@@ -353,13 +353,8 @@ fn aztec_medieval_pair_run1322_s_closing_window_is_widened_whole() {
             .collect::<std::collections::BTreeSet<_>>()
             .into_iter()
             .collect::<Vec<_>>(),
-        [
-            "4376 1/89 orders_x",
-            "4376 1/89 orders_y",
-            "4494 1/69 orders_x",
-            "4494 1/69 orders_y",
-            "4496 1/118 dest_angle",
-        ],
+        // Item 4448: ["4376 1/89 orders_x", "4376 1/89 orders_y", "4494 1/69 orders_x", "4494 1/69 orders_y", "4496 1/118 dest_angle"] -> Vec::<String>::new(), a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+        Vec::<String>::new(),
         "the object rows past `form`"
     );
     // Item 3658, the pair whole: 57 keys. Past the standing families —
@@ -369,7 +364,8 @@ fn aztec_medieval_pair_run1322_s_closing_window_is_widened_whole() {
     // Atl-Atl `1/69` (87) hold `orders_x/y` at their guard point where
     // theirs print the unit's own, and `1/118`'s `dest_angle` parts on
     // 4496. No position, hit or draw parts through the closing block.
-    pin_eq!(w.firsts.len(), 57, "run1322 baseline");
+    // Item 4448: 57 -> 52, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 52, "run1322 baseline");
     pin_eq!(w.rounds_read, (537, 537), "the rounds read");
     // Every round, both directions: 362 a side, 38 parting — the slot
     // shifts from theirs' spent arrows (`docs/COMBAT.md` §46.7), the Heavy

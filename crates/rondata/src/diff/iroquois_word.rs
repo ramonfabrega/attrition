@@ -1054,7 +1054,8 @@ fn run940_s_word_frame_is_widened_whole() {
     // Item 3369: 61 -> 43, an unpacked merchant's "over time" piece
     // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
     // Item 3958: −1 — the Scout `1/0`'s `blown` (ours 1, theirs 0; run918's on 1114) leaves, kept unblown by `land_cloak` (`docs/AI.md` §402).
-    pin_eq!(w.firsts.len(), 35, "initial run940 baseline");
+    // Item 4448: 35 -> 32, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 32, "initial run940 baseline");
 }
 
 /// run943: the word 10695's window, blocks 10689..10945 at run940's detail
