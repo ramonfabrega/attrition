@@ -708,6 +708,23 @@ pub(in crate::diff) mod tests {
                 if detail == Some(f) {
                     print_partings(&ours, &theirs);
                 }
+                // RON_PROBE_4432: every range of one line's records on a frame.
+                if let Ok(v) = std::env::var("RON_PROBE_4432") {
+                    let mut it = v.split(':');
+                    let (pf, pl, lo, hi) = (it.next().unwrap().parse::<i64>().unwrap(), it.next().unwrap().to_string(), it.next().unwrap().parse::<i16>().unwrap(), it.next().unwrap().parse::<i16>().unwrap());
+                    if pf == f {
+                        for (name, o) in STATE_LINES.iter().zip(&ours) {
+                            if *name != pl { continue; }
+                            let t = theirs.get(*name);
+                            for (i, r) in o.ranges.iter().enumerate() {
+                                if r.record < lo || r.record > hi { continue; }
+                                let same = t.and_then(|t| t.get(i)).map(|b| b.2 == r.bytes);
+                                let dec = super::super::checksum_lines::range_fields(name, r.field, &r.bytes);
+                                eprintln!("PROBE {name} {i} {} {} same={same:?} {dec:?} {:02x?}", r.record, r.field, r.bytes);
+                            }
+                        }
+                    }
+                }
                 let outcome = compare(&ours, &theirs);
                 for (k, (name, o)) in STATE_LINES.iter().zip(&outcome).enumerate() {
                     let Some(d) = &o.first else { continue };
