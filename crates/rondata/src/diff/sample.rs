@@ -578,8 +578,10 @@ pub(in crate::diff) mod tests {
     /// shot still on 2929. Item 4440 (the bell's group pushed, a garrison
     /// walked): 5010 -> 4141, every frame it loses past units' 2892 and
     /// groups' 3053; the first shot still on 2929. Item 4442 (the scouting
-    /// gate): 4141 -> 3855, the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3855, Some(2929));
+    /// gate): 4141 -> 3855, the first shot still on 2929. Item 4446 (piece
+    /// 138's node row): 3855 -> 3974, past every parting, the twelve lines'
+    /// first partings unmoved; the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3974, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve

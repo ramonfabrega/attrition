@@ -287,7 +287,8 @@ fn aztec_medieval_pair_run1308b_s_word_frame_is_widened_whole() {
     // `1/22`, `1/29` and `1/102` (3658a), each spent record now carrying
     // its launch's row.
     pin_eq!(w.rounds_read, (363, 363), "the rounds read");
-    pin_eq!(w.rounds.len(), 21, "the rounds that part");
+    // Item 4446: 21 -> 2, piece 138's node row: a Horse Archer's rounds leave from its turret's aim.
+    pin_eq!(w.rounds.len(), 2, "the rounds that part");
 }
 
 /// run1322: the closing window, blocks 4347..4603 at run1308b's detail,
@@ -381,7 +382,8 @@ fn aztec_medieval_pair_run1322_s_closing_window_is_widened_whole() {
     // (3658b), and `1/29`'s one-unit launches on 4356, 4382 and 4539
     // (3658a).
     // Item 4159r5: 45 -> 11, the launch rows of pieces 920 (9): rounds that left the figure's square leave from their bays.
-    pin_eq!(w.rounds.len(), 11, "the rounds that part");
+    // Item 4446: 11 -> 0, piece 138's node row: a Horse Archer's rounds leave from its turret's aim.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **The closing state** (item 3658): run1308's closing block 4603, the
