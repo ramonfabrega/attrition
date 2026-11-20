@@ -226,3 +226,36 @@ fn reg_terr_counts_the_tiles_the_pass_has_written() {
     assert_eq!(sim.reg_terr(1, r0), 0);
     assert_eq!(sim.territory.territory_high[1], 600, "never lowered");
 }
+
+/// **A region the pass walks to its end takes `0x20`, on that frame and
+/// no other** (`compute_reg_territory@006b0bb0:280`–`282`, item 4475):
+/// the daemon's next cycle trades it for `0x10`, and every gather
+/// building in the region re-walks. The 2017 sample's captured Inca camp
+/// `3/2011` takes its 61 tiles that way on 3904.
+#[test]
+fn a_region_walked_to_its_end_takes_the_verify_bit_that_frame() {
+    use crate::world::{REGION_REFIND_GATHER, REGION_VERIFY_GATHER};
+    let mut sim = Sim::new(crate::Tuning::RON, rows(200, 3), 2);
+    sim.in_play = true;
+    let before = sim.world.owners();
+    let mut target = before.clone();
+    target.fill((Owner::Player(1), Owner::None));
+    sim.world.set_owners(&target);
+    sim.start_border_pass(before);
+    let r = |sim: &Sim, y: i32| sim.world.region_of(Cell::new(0, y)).unwrap();
+    let verify = |sim: &Sim, y: i32| sim.world.region_flags(r(sim, y)) & REGION_VERIFY_GATHER;
+    sim.advance_border_pass();
+    // Frame one ends region 0 and starts region 1.
+    assert_ne!(verify(&sim, 0), 0, "region 0 is walked to its end");
+    assert_eq!(verify(&sim, 1), 0, "region 1 is not");
+    sim.world.cycle_gather_flags();
+    assert_ne!(
+        sim.world.region_flags(r(&sim, 0)) & REGION_REFIND_GATHER,
+        0,
+        "the cycle trades it for 0x10"
+    );
+    sim.advance_border_pass();
+    assert_eq!(verify(&sim, 0), 0, "a finished region is not walked again");
+    assert_ne!(verify(&sim, 1), 0, "region 1 ends on frame two");
+    assert_eq!(verify(&sim, 2), 0);
+}
