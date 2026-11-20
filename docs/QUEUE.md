@@ -32,7 +32,7 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 Blind: never 336 · residue 336 · open 0
 Rubric: ported 738 · replaced by design 331 · open 571 of 3611 · lockstep bytes 78.1 % · ages held 8 of 8 · unit types seen 296 of 302
 Held-out: 8 of 9 whole · shortest 6147
-Parity held out: 4 of 8 whole · 8 taken · lines 64 of 96 as found, 80 now · first partings 2990 3694 711 969 0 134 2694 0 as found, whole whole 1854 2107 whole 2588 whole 3937 now
+Parity held out: 4 of 8 whole · 8 taken · lines 64 of 96 as found, 80 now · first partings 2990 3694 711 969 0 134 2694 0 as found, whole whole 1854 2107 whole 2588 whole 4026 now
 Structure: flat 11 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 21 · largest 3710
 Renderer: K 59 of M 60 · frames 35 of 35 · pieces 1465 of 1478 · resolved 1,237,711 of 1,237,726 objects over 110 lobbies
 Clock: ceilings on GreatLakes lobby, 600 frames off-screen from frame 0 · frame zero 1.5 s · p99 20 ms · slowest 400 ms (frame 1, first sight) · peak 320 MiB
@@ -50,7 +50,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3): the pass designed four seats; out now: 4465 (held out, row 100 from 2588; 4459 landed, units 2587 → 2646, on the eye's seat since 4458 stopped on its first act), 4466 (the sample, leaders 3888; 4463 landed, 3887's city handed over as theirs), 4464 (held out, row 140 from 3937; 4457 landed, its leaders whole) and 4462 (the second battery), seated on the chain's seat when 4455 made row 80 whole and `Parity held out:` read 4 of 8. Unseated, for the seat that stops first: 4460 (held out, row 60), 4461 (guys' `gpiece`), 4431 (groups' `facing`).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3): the pass designed four seats; out now: 4465 (held out, row 100 from 2588; 4459 landed, units 2587 → 2646, on the eye's seat since 4458 stopped on its first act), 4466 (the sample, leaders 3888; 4463 landed, 3887's city handed over as theirs), 4467 (held out, row 140 from 4026; 4464 landed, units 3937 → 4026) and 4462 (the second battery), seated on the chain's seat when 4455 made row 80 whole and `Parity held out:` read 4 of 8. Unseated, for the seat that stops first: 4460 (held out, row 60), 4461 (guys' `gpiece`), 4431 (groups' `facing`).
 
 4466. **The 2017 sample, from leaders 3888** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §7). 4463 made the city taken
 on 3887 hand over as theirs does: units and guys 3888 → 3906, builds → 3904, ammo → 3920, groups 3935 → 4004, cities → 3891, world →
@@ -58,12 +58,12 @@ on 3887 hand over as theirs does: units and guys 3888 → 3906, builds → 3904,
 4463a (`swap_team`'s `build_masks` and +0x48..+0x54). First act: every writer of that bit in the export, and whether 3887's change of
 owner is the one that raises it. Run 1726 stays reserved and unused. It stops when two landings running move no line's first parting.
 
-4464. **Parity held out: row 140, from 3937** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §10.3; DECISIONS 145 §3).
-4457 took run1725 and made row 140's leaders whole (the Dutch seat's `dutch_free_commerce` is a `gain_tech`, so its tail raises
-`leader_flags` 0xc000000: setup's set, range 128, record 1, byte 3, ours 0x0b, theirs 0x0f); the row's first parting 0 → 3937, lines
-78 → 80 of 96 with 4455. Next: units 3937, run1725 range 173, record 1, `myarmor` ours 2, theirs 1; then guys 4026, range 52,
-record 0, `last_z` ours −30, theirs −33. Parked 4457a. First act: record 1's armour on both sides on 3936 and 3937, from the take
-on disk. Re-pin `SCORES[7].moved`. It stops when two landings running move no row's column (145 §4).
+4467. **Parity held out: row 140, from 4026** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §10.3). 4464 kept the cached
+`myarmor` until the next frame's `calc_unit_stats` (the Dutch age 0 → 1 lands mid-frame and `Unit::update_armor` re-caches on 3938:
+run1725 3937, range 173, record 1, who=1's Armed Merchant TI 62, ours 2 → 1, theirs 1); row 140's units 5,999 → 6,000 of 6,001, first
+parting 3937 → 4026. Next on 4026: units (a new leaf, unread) and guys (range 52, record 0, `last_z` ours −30, theirs −33). Parked
+4464a to 4464c. First act: both leaves on 4025 and 4026, from the take on disk. Re-pin `SCORES[7].moved`. It stops when two landings
+running move no row's column (145 §4).
 
 4465. **Parity held out: row 100, from 2588** (a rules item, whole; the eye's seat; `docs/RECGAME.md` §10.3; CHECKSUM §18). 4459
 walked `AirAttackGroundOrder`'s five ranges: on 2587 the missile `1/84` (TI 316) in its silo took a strike, and the `guys.length` leaf

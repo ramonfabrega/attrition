@@ -2505,13 +2505,9 @@ fn widen_civilians_walk(
                     continue;
                 };
                 rows += 1;
-                // A nuke's launch sets the silo's byte to `0xff`
-                // (`Build::do_missile_launch@00622670`), which the dump
-                // prints as −1; that writer lives in `Nukes::shown`.
-                let ours = match s.built.sim.combat.nukes.visible_of(b) {
-                    0 => i64::from(s.built.sim.buildings[b].visible),
-                    v => v,
-                };
+                // The dump prints the byte signed: a nuke's launch sets the
+                // silo's to `0xff` (`Build::do_missile_launch@00622670`), −1.
+                let ours = i64::from(s.built.sim.buildings[b].visible as i8);
                 if ours != theirs {
                     firsts
                         .entry((w, o, "build:visible".into()))

@@ -265,6 +265,64 @@ mod tests {
         assert_eq!(theirs[128].bytes[3], 0x0f, "theirs' leader_flags byte 3");
     }
 
+    /// **Row 140's Dutch merchants keep their cached armour for a frame**
+    /// (item 4464, `docs/RECGAME.md` §10.3): on 3937 the Dutch seat (who=1)
+    /// reaches its first age (`ages` 0 -> 1) inside the objects pass, and
+    /// the `gain_tech` tail raises `0x4000000`. `ObjectData::armor@00647db0`
+    /// would add `ages × DUTCH_ATTACK_BONUS` for its Armed Merchants (type
+    /// 0x3e). But `myarmor` (`UnitData +0x9c`) is a cache that only
+    /// `Unit::update_armor@006054c0` writes, and the next frame's
+    /// `Leader::process` reaches it through `calc_unit_stats@006cf970`. So
+    /// theirs reads 1 on 3937 and 2 on 3938. Every units range on 3937 and
+    /// 3938, ours against run1725, byte for byte: red on the tree before
+    /// the fix, at range 173 (`1/1`), byte 84, ours 2, theirs 1.
+    #[test]
+    fn row_140_s_dutch_merchants_keep_their_cached_armour_on_run1725_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(7) else {
+            eprintln!("skipping: row 140's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1725/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1725's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 140's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for (state, want) in [(3937, 1u8), (3938, 2)] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let theirs = record.ranges(&set).expect("the set's ranges");
+            let theirs: Vec<_> = theirs.iter().filter(|r| r.line == 0).collect();
+            let ours = built.sim.checksum_units();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // The Armed Merchant `1/1`'s `myarmor`, by name: byte 84 of range 173.
+            assert_eq!(
+                theirs[173].bytes[0x9c - 0x48],
+                want,
+                "theirs' myarmor on {state}"
+            );
+        }
+    }
+
     /// **Row 120's barge is born with `form` 0** (item 4435, `docs/RECGAME.md`
     /// §10.3): run1716, the ranges take of run1706's file, holds the units
     /// line's every range on state 2694, where the computer's transport
@@ -1019,18 +1077,24 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // run1721's units range 2809, record 84 (the missile 1/84, TI 316,
         // laid in its silo): ours walked `guys.length` 01 00 00 00 after the
         // order's node byte, theirs the order's flags byte 04.
+        // Moved by item 4465 (a hangar's `launching` walks its pointer from
+        // the first launch and its `SimpleArray<int>`; a nuke's strike
+        // writes the silo's own `visible` 0xff and relights its fog):
+        // builds 2,588 -> 3,331, whole, and world 2,618 -> 3,331, whole. On
+        // 2588, run1721's builds range 1270, record 2022 (the silo 1/2022):
+        // ours walked the next `must_walk` 01, theirs `launching.length`
+        // 01 00 00 00, then size 4, increment -1, flags 0 and [84]. On 2618,
+        // range 1268, record 2022, `visible` read ours 0, theirs 0xff.
         moved: Some(Score {
             states: 3331,
             agreed: [
-                2728, 2588, 3331, 3172, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 2618,
+                2728, 3331, 3331, 3172, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 3331,
             ],
             first: &[
                 ("units", (2646, Some(3584274957), 3109728825)),
-                ("builds", (2588, Some(3298180603), 88948818)),
                 ("ammo", (2618, Some(1076236747), 891350609)),
                 ("deaths", (2756, Some(1136466598), 3621657254)),
                 ("guys", (2646, Some(1999790736), 3081855676)),
-                ("world", (2618, Some(4234786203), 1600898917)),
             ],
             over: None,
         }),
@@ -1095,13 +1159,16 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4457 (the Dutch free Commerce's `gain_tech` tail):
         // leaders 6,000 -> 6,001, whole. run1725's setup set, range 128,
         // record 1, `leader_flags` byte 3: ours 0x0b, theirs 0x0f.
+        // Moved by item 4464 (`myarmor` is `Unit::update_armor`'s cache):
+        // units 5,999 -> 6,000, first 3937 -> 4026. run1725's 3937, range
+        // 173, record 1 (who=1's Armed Merchant), `myarmor` ours 2, theirs 1.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5999, 6001, 6001, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 6001, 6001,
+                6000, 6001, 6001, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 6001, 6001,
             ],
             first: &[
-                ("units", (3937, Some(595040496), 264476909)),
+                ("units", (4026, Some(3301215378), 2306706575)),
                 ("guys", (4026, Some(1242658676), 1019574129)),
             ],
             over: None,

@@ -93,6 +93,12 @@ pub struct Unit {
     /// Public because it is observable state, not a private counter — the
     /// original keeps it in `UnitData::attrition` and the interface shows it.
     pub attrition: i32,
+    /// `UnitData::myarmor` (`+0x9c`): the armour `Unit::update_armor@006054c0`
+    /// last cached, [`crate::Sim::update_armor`]. It is written at birth, on
+    /// a new type, by the decoy cast and by the owner's `calc_unit_stats`,
+    /// and by nothing else, so a term that moves mid-frame (the Dutch
+    /// `ages`) reaches it only on the next frame's leader pass (item 4464).
+    pub myarmor: i32,
     /// Whether the current bleed goes through supply.
     pub ignores_supply: bool,
     /// Whether supply sheltered this unit from a tick that was otherwise due.
@@ -986,6 +992,7 @@ impl Unit {
             special: None,
             doober: None,
             attrition: 0,
+            myarmor: 0,
             num_queued: 0,
             queue_time: 0,
             ignores_supply: false,
