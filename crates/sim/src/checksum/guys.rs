@@ -235,7 +235,7 @@ impl Sim {
                 unit.movement.heading,
             ),
             // **A trackless crew figure's `des` is guy 0's body point**
-            // (item 4460, `docs/CHECKSUM.md` §23.11). Every figure past guy 0
+            // (item 4460, `docs/CHECKSUM.md` §23.12). Every figure past guy 0
             // is crew ([`crate::units::anim::SQUAD_SIZE`] is 1), and its
             // `des` (`+0x5c`) is written only by `Guy::set_new_location@005d86f0`'s
             // crew loop, as guy 0's new `x`/`y` plus a zero track.

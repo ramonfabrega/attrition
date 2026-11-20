@@ -743,10 +743,12 @@ pub(crate) const AGES_CORPSES: (usize, usize) = (196, 196);
 
 /// **The closing block, record by record** (item 4166, new): of the
 /// figures and buildings the 110 closing blocks print a `gpiece` for, whose
-/// object the runner holds, those whose piece is ours. The five that part
-/// are `GreatLakesAmericanInformation`'s Assault Marines (TypeIndex 122,
-/// land) on frame 4321, RENDERER §3.13.
-pub(crate) const AGES_CLOSING: (usize, usize) = (34_394, 34_399);
+/// object the runner holds, those whose piece is ours. The five that
+/// parted, `GreatLakesAmericanInformation`'s Assault Marines (TypeIndex
+/// 122, land) on frame 4321 (RENDERER §3.13), agree since item 4461: a
+/// military type's gender piece is named `-PACKED`, so their `-FEMALE`
+/// entry is no piece (`docs/CHECKSUM.md` §23.13), 34,394 → 34,399.
+pub(crate) const AGES_CLOSING: (usize, usize) = (34_399, 34_399);
 
 /// **The closing records that print the pieces item 4169 reads**:
 /// `(gpiece, ours, printed)` over the 110 closing blocks. A piece the
@@ -772,8 +774,9 @@ pub(crate) const AGES_CLOSING_WATCHED: &[(i32, usize, usize)] = &[
 /// a member counts when every file decodes and the closing block's piece
 /// is ours on every record of it): the lobbies whose K is M, of all.
 /// Item 4169: 98, +15 from 83 — the lobbies short only through the
-/// sawmill, the smelter or the Air Defense line.
-pub(crate) const AGES_LOBBIES_WHOLE: (usize, usize) = (98, 110);
+/// sawmill, the smelter or the Air Defense line. Item 4461: 99, +1 —
+/// `GreatLakesAmericanInformation`, its Assault Marines' gender piece.
+pub(crate) const AGES_LOBBIES_WHOLE: (usize, usize) = (99, 110);
 
 /// **The draw list across the ages resolves, and the closing block's
 /// pieces are ours** (item 4166, `docs/RENDERER.md` §3.13): every
