@@ -1085,14 +1085,22 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // ours walked the next `must_walk` 01, theirs `launching.length`
         // 01 00 00 00, then size 4, increment -1, flags 0 and [84]. On 2618,
         // range 1268, record 2022, `visible` read ours 0, theirs 0xff.
+        // Moved by item 4468 (the nuke strike's round keeps
+        // `calc_nuke_spline`'s spline and the ammo line walks its
+        // `SplineData`): ammo 3,172 -> 3,291, first 2618 -> 3210. On 2618,
+        // run1721's ammo range 1, record 0, byte 75, `traj` read ours 1,
+        // theirs 2; theirs walks `has_path` 01 and the spline's 278 ranges
+        // after it (header, 12 control points, 17 weights, 16 knots, no
+        // weights, 121 points and 121 normals, `total_spline_length`
+        // 0x4765a7a2), ours none. Ammo parts next on 3210, ours refused.
         moved: Some(Score {
             states: 3331,
             agreed: [
-                2728, 3331, 3331, 3172, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 3331,
+                2728, 3331, 3331, 3291, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 3331,
             ],
             first: &[
                 ("units", (2646, Some(3584274957), 3109728825)),
-                ("ammo", (2618, Some(1076236747), 891350609)),
+                ("ammo", (3210, None, 252233938)),
                 ("deaths", (2756, Some(1136466598), 3621657254)),
                 ("guys", (2646, Some(1999790736), 3081855676)),
             ],
