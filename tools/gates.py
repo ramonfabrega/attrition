@@ -98,7 +98,12 @@ def row(path):
     exits = re.findall(r'^exit (\d+)$', text, re.M)
     if steps:
         red = ('not reached' in steps[1] or out['failed'] or ' FAILED ' in summary or (exits and exits[-1] != '0'))
-        out['verdict'] = ('red: ' + ', '.join(out['failed']) if out['failed'] else 'red') if red else 'green'
+        # Three names and a count: gate-4435.log's 282 widenings made one
+        # row of 30 kB (the pass of 2026-11-20). `failed` keeps them all.
+        named = ', '.join(out['failed'][:3])
+        if len(out['failed']) > 3:
+            named += f" and {len(out['failed']) - 3} more"
+        out['verdict'] = ('red: ' + named if out['failed'] else 'red') if red else 'green'
     return out
 
 

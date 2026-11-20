@@ -564,6 +564,10 @@ read are in `docs/audit/2026-11-09-loop-retired-clauses.md`, "Retired
    89); a residue row is a claim no capture can break, and one the
    console's `!eval` or an `@` line can reach is struck, never restated
    on scope (Loop 3473).
+9. **Its held-out rows scored by leaf** — `score_recording` on every
+   row not whole whose ranges take is on disk, the leaves pasted into the
+   items it books (DECISIONS 146 §2: three rows took minutes, and two
+   of them parted on one bit no item had named).
 
 **It never moves what is the user's**: the
 roster, the worker count, the phase, the finish

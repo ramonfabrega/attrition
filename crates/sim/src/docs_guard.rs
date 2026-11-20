@@ -167,7 +167,7 @@ const OVER: &[(&str, &str, usize)] = &[
     // Promoted out of §6 by G1 at its size then. Its `#### ` parts carry
     // no number and 27 citations name §6.4 whole, so it is pinned rather
     // than split at a seam a citation would have to guess.
-    ("GROUPS.md", "6.4 The slot table", 16_448),
+    ("GROUPS.md", "6.4 The slot table", 16_414),
 ];
 
 /// `(heading, bytes)` for every `## ` section of a document, the preamble

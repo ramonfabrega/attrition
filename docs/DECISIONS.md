@@ -159,7 +159,8 @@ is append-only and amended in place, as it always was.
 - 142 standing — Codex's live windows join parity's set (5 of 6 games), a driver settles Codex's branch before it briefs, the demand is tried on a game the walk holds, the sample is read by its lines, and a row's footprint is never a colour (2026-11-18)
 - 143 standing — The pass of 2026-11-18, second: step 5 is ratified and the milestone closed, the headline is parity on the declared set, the chain plays the demand's game to its end, the third seat draws what a selected city shows, and no row is minted on the lake's streaks
 - 144 extended by 145 — The pass of 2026-11-19: item 4404's game is ratified as parity's seventh with its end tick pinned, a game is declared before the original plays it and parity held out is booked, the sample takes its ranges once, the lake gives up its seat, and the third seat names a city
-- 145 standing — The pass of 2026-11-19, second: parity held out is ratified at 0 of 8 and parsed on the scoreboard, a held-out game is spent once a lane reads it and a second battery is named, the lanes follow the eight with each game's ranges taken once, a lane lands one act and the driver counts the stop, the client opens every game on one camera, and `tranche.py` reads a booking's parentheses
+- 145 extended by 146 — The pass of 2026-11-19, second: parity held out is ratified at 0 of 8 and parsed on the scoreboard, a held-out game is spent once a lane reads it and a second battery is named, the lanes follow the eight with each game's ranges taken once, a lane lands one act and the driver counts the stop, the client opens every game on one camera, and `tranche.py` reads a booking's parentheses
+- 146 standing — The pass of 2026-11-20: a pass scores every held-out row with ranges on disk by leaf before it designs (rows 80 and 100 part builds on one bit of `build_masks`), the fold of the eight into the headline is recommended and left with Ramon, four seats and the second battery's item with its declaration first, 4450a closed by item 4453, and the eye's seat takes the fading wreck
 
 ## 1. Fidelity before divergence
 
@@ -14468,3 +14469,113 @@ this tranche's subjects (red on the old parser).
   reaches one. No item is booked.
 - **Item 4434 is done by the pass**: `docs/RECGAME.md` §10.3's results
   paragraph reads all eight, and the line is §1's.
+
+## 146. A pass scores the held-out rows by leaf before it designs, the fold is recommended and left with Ramon, and the eye's seat takes the fading wreck (2026-11-20)
+
+**What happened.** `commander` (Opus 5.5) ran twenty-three first-parent
+merges off the pass of 2026-11-19, second (items 4430 to 4454; Codex's
+4452 fast-forwarded and gated whole between them), reached the backstop,
+drained and gated whole (`gate-drain-1120.log`, exit 0 on `667b108ad`, the
+tip and origin/main). The pass ran on the `steer` row from 10:30 −05:00
+with no subagent and no capture. The tables are in
+`docs/audit/2026-11-20-fable-pass-leaves.md`.
+
+**§1. The fold is Ramon's, and the pass recommends it.** The handoff
+asked the pass to rule on whether the eight fold into the headline. Entry
+144 §2 keeps the set's membership with Ramon and entry 145 §2 put the
+question to him; no answer is on record, and a pass moves nothing a
+decision entry reserves. Nothing moves here. The recommendation is to
+fold, for three reasons:
+
+- **The eight entered the way §2 wants every game to enter**: named
+  before the original played them. Six of the seven did not; they were
+  scored first and joined after.
+- **All eight are spent as an estimate.** Entry 145 §2 says a game stops
+  being held out once a lane reads a parting off it, and by this tranche
+  a lane has read one off every row. Their `now` column is work, and work
+  is what the headline counts.
+- **Folded, it reads 9 of 15 today**, not the handoff's "6 of 15": six of
+  the seven and three of the eight.
+
+The estimate does not fold. Its number stays the found column, 0 of 8
+games and 64 of 96 lines, until the second battery's found column
+replaces it. On the second battery's seats and team the pass recommends
+taking the second eight by the recipe as named, so the two found columns
+compare, and booking seats and a team as a row of its own afterwards.
+Whether the lobby page can set a team is still unread.
+
+**§2. A pass scores every held-out row with ranges on disk before it
+designs.** The record before this one said no parting of the eight names
+its leaf, and it booked the rows by line and state. Three of the five
+rows not whole have a ranges take on disk. The pass ran
+`score_recording` on each at the tip (rows 80, 100 and 60 against
+run1720, run1721 and run1722), in a few minutes, and it named the leaf
+of each of their eleven parted lines:
+
+| row | line, state | the take's range, record | leaf | ours | theirs |
+|---|---|---|---|---|---|
+| 80 | builds 2376 | 1883, 2036 | `build_masks` (`job_counter..demolition` byte 25) | 0 | 8192 |
+| 100 | builds 1976 | 1451, 2027 | `build_masks`, the same byte | 0 | 8192 |
+| 100 | units 2587 | 2809, 84 | `guys.length` | 1 | 4 |
+| 100 | guys 2646 | 435, 46 | `des_y` | 12355 | 12377 |
+| 100 | ammo 2618 | 1, 0 | `rolling..start_roll_angle` byte 75 | 1 | 2 |
+| 100 | world 2618 | 1392, 1368 | `cell` byte 20 | 0x02 | 0xff |
+| 100 | deaths 2756 | 1, 0 | `first_frame..unit_crew`, seven bytes from 8 | 0x38 | 0x98 |
+| 60 | units and guys 2107 | 1429 and 399, 40 | `des_x`, `des_y` | 37942, 19990 | 37944, 19992 |
+| 60 | groups 3598 | 92, 68 | `ox`, `oy` | 33720, 15048 | 0, 0 |
+| 60 | world 3984 | 3627 | `seen3`, 433 bytes from 8247 | 0x00 | 0x02 |
+
+**Rows 80 and 100 part their builds line on one bit, `0x2000` of
+`build_masks`**, and builds is the only line row 80 parts on. So the
+nearest game to whole, the count's next step to 4 of 8 and the second
+battery's trigger all rest on one bit, and no item said so. Item 4447
+landed the bit beside it, `0x4000`. The scoring is the pass's ninth first
+act from here (`docs/LOOP.md`).
+
+**§3. The seats.** Four, as the roster stands:
+
+- **The chain's builder: item 4455**, the bit of §2 on both rows.
+- **A parity seat: item 4456**, the sample from world 3878. It is the one
+  game outside the headline, and its lowest first parting went 2700 →
+  3878 of 21,044 in six landings.
+- **A parity seat: item 4457**, row 140: three states from whole on three
+  lines, and the one row not whole with no ranges take. One take, run1725.
+- **The eye's seat: item 4458** (§5).
+- **Unseated**: rows 100 and 60 as items of their own (4459, 4460: a lane
+  lands one act, so a row is an item), the packets' lines (4461, 4431),
+  and the second battery (4462), seated when the line reads 4 of 8. Its
+  first act is the declaration, one commit before any take, as 4413's was.
+
+**§4. What the tranche parked.**
+
+- **4450a is closed by item 4453.** Item 4450 fitted a predicate to our
+  own state (`facing != frame_facing`), broke the demand's game, a combat
+  window, the sample and four packet pairs, and was reverted. Item 4453
+  watched the original's write (`step4.py --watch`) and set the bit at
+  the one call site the watch named. It takes the same states (row 60's
+  guys 3,958 → 4,010, row 40's +79 against the broad predicate's +80) and
+  breaks nothing. `do_turn`'s other late callers are unread, and no
+  parting on disk names one. The method's clause already says to watch
+  before fitting; the two lanes cost 11.66 and 8.28 USD.
+- **4448a** is items 4459 and 4460; **4448b** and `gpiece` are item 4461;
+  the sample's `block.present` is item 4456.
+- **Parity's count is still prose, and it cost a booking.** Item 4449's
+  booking named 3888 as the sample's first parting where `SAMPLE_LINES`
+  pinned world on 3878; item 4454's mended it. A parsed `Parity:` line
+  (the games whole of the set, and the sample's lowest first parting off
+  `SAMPLE_LINES`) would have gone red. This is the fifth record to say it
+  is not built, and it is not built here.
+
+**§5. The eye's seat takes the fading wreck.** The pass drew run1559b's
+still at the tip beside the photograph. Theirs draws three vehicles
+translucent over the grass with dust at the base, and two riflemen's
+muzzle flashes. Ours draws the three solid and no flash. The client's
+corpse module says in its own header that the body's fade is not drawn.
+Whether the three are death objects is the item's first act, not a
+finding. The roofs carry the player's red since item 4438. The red line
+round the plaza in theirs looks like the selection's band, which ours
+draws only when selected, and not a kerb (parked 4438a stays parked).
+
+**§6. `tools/gates.py` names three failures of a red and counts the
+rest.** `gate-4435.log` was red on 282 widenings, and the table printed
+every name on one row of 30 kB. A test holds it (red first).

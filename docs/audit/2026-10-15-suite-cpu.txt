@@ -1,6 +1,6 @@
-# Every rondata release test's CPU alone, 2026-11-19, tools/suite_timings.py (tree 4623a2e0).
+# Every rondata release test's CPU alone, 2026-11-20, tools/suite_timings.py (tree 667b108a).
 # /usr/bin/time -l, one test per process, --test-threads 1; CPU seconds (user + sys), instructions retired (1e9), the test; -1 when unread.
-# Sum 7,047 CPU-seconds and 140.00e12 instructions over 2548 tests; the host's load 12.1 at the start and 2.4 at the end.
+# Sum 7,065 CPU-seconds and 140.42e12 instructions over 2555 tests; the host's load 19.9 at the start and 20.0 at the end.
 678.60	11859.81	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 340.78	6474.38	free::ages::the_draw_list_across_the_ages_resolves
 199.37	4888.75	diff::held_out::tests::the_held_out_games_score_as_pinned
@@ -27,6 +27,7 @@
 18.57	271.09	mapgen::tests::east_indies_s_values_are_the_traced_stream_and_7937_and_7945
 18.08	269.11	mapgen::tests::great_lakes_s_group_tail_is_the_traced_stream_and_7861_to_7870
 17.79	270.47	mapgen::tests::east_indies_s_place_all_is_the_traced_stream_and_7859
+14.61	348.85	diff::sample::tests::the_sample_s_ranges_to_4130_name_each_first_parting
 14.36	289.66	diff::sample::tests::the_sample_walks_to_its_word
 13.90	307.68	diff::harness::checkpoint::tests::run69_single_reseat_interventions_follow_the_remaining_capture
 13.81	226.71	mapgen::tests::east_indies_s_mask_is_the_traced_stream
@@ -1482,6 +1483,7 @@
 0.87	17.64	diff::second::tests::run356_s_word_frame_is_widened_whole
 0.87	14.60	diff::golden::chapter_sixty_two_s_word_frame_is_widened_whole
 0.87	17.79	diff::start_walk::recording::the_demand_s_lobby_demands_on_6081
+0.87	17.75	diff::held_out::tests::row_120_s_mlrs_reads_cavarch_o_minus_two_on_run1716_s_ranges
 0.86	18.25	diff::aztec_modern_pair::aztec_modern_pair_the_long_s_stride_walks_back_from_the_word
 0.86	14.49	diff::golden::chapter_one_hundred_and_thirty_one_s_window_is_widened_whole
 0.86	14.99	diff::golden::chapter_seventy_eight_s_word_frame_is_widened_whole
@@ -1548,6 +1550,7 @@
 0.80	16.36	diff::second::tests::run355_s_word_frame_is_widened_whole
 0.80	16.81	diff::classical_melee::classical_melee_run1450_s_closing_state
 0.80	17.14	diff::second::tests::run403_s_word_frame_is_widened_whole
+0.80	14.89	diff::held_out::tests::row_80_s_fusiliers_take_the_guard_turn_s_dest_angle_on_run1720_s_ranges
 0.79	15.61	diff::british_industrial_pair::british_industrial_pair_run1336d_s_gap_is_widened_whole
 0.79	16.16	diff::checksum_lines::packets::chapter95_packets
 0.79	13.50	diff::golden::chapter_thirty_five_holds_to_the_golden_word
@@ -1621,6 +1624,7 @@
 0.70	13.65	diff::golden::chapter_seven_b_s_civilians_act_alike_with_the_ai_off_and_on
 0.70	14.61	diff::gunpowder_melee::gunpowder_melee_s_arquebusiers_squad_skips_the_held_bombard_number
 0.70	16.01	diff::order::tests::run20_s_world_chain_sits_on_the_move_orders_own_offset
+0.69	12.66	diff::held_out::tests::row_100_s_assault_infantry_take_the_guard_turn_s_dest_angle_on_run1721_s_ranges
 0.69	15.08	diff::coverage_pair::run656_s_word_frame_is_widened_whole
 0.69	12.06	diff::golden::chapter_one_hundred_and_twenty_eight_s_group_pool_is_widened_whole
 0.69	12.23	diff::golden::chapter_sixty_four_s_word_frame_is_widened_whole
@@ -1646,6 +1650,8 @@
 0.67	12.25	diff::golden::chapter_thirty_two_holds_to_the_golden_word
 0.67	14.82	diff::world::tests::run32_s_scheduled_replans_cost_the_original_s_nodes
 0.67	14.97	diff::mongol_classical_pair::mongol_classical_pair_captures_say_their_lobby
+0.67	12.62	diff::held_out::tests::row_120_s_barge_is_born_with_form_zero_on_run1716_s_ranges
+0.67	13.02	diff::held_out::tests::row_120_s_scout_lands_with_its_figure_s_last_on_its_point_on_run1716_s_ranges
 0.66	13.03	diff::dutch_sahara_word::run995_s_word_frame_is_widened_whole
 0.66	12.26	diff::golden::chapter_eighty_six_s_window_is_widened_whole
 0.66	11.11	diff::golden::chapter_fifty_three_holds_to_the_golden_word
@@ -2549,3 +2555,4 @@
 0.00	0.03	trace::checksums::tests::a_receipted_trace_requires_its_endpoint_checksum_and_detach
 0.00	0.07	diff::checksum_lines::packets::city_names::the_city_names_score_is_the_table
 0.00	0.03	diff::held_out::tests::the_held_out_line_reads_as_pinned
+0.00	0.03	diff::held_out::tests::the_handoff_s_parity_held_out_line_is_the_pinned_scores

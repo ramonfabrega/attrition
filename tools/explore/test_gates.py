@@ -139,6 +139,22 @@ class TheTable(unittest.TestCase):
             self.assertEqual(row['verdict'], 'no receipt')
             self.assertIsNone(row['admission_s'])
 
+    def test_a_red_with_many_failures_names_three_and_counts_the_rest(self):
+        # gate-4435.log, 2026-11-19: 282 widenings red on one merge, and
+        # the table printed every name on one row of 30 kB (the pass of
+        # 2026-11-20). The row names three; `failed` keeps them all.
+        names = [f'diff::second::tests::run{n}_s_word_frame_is_widened_whole' for n in range(282)]
+        text = WHOLE_RED.replace(
+            '  failed: diff::battery::battery_captures_are_complete_and_say_their_lobby\n',
+            ''.join(f'  failed: {n}\n' for n in names))
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / 'gate-wide.log'
+            f.write_text(text)
+            [row] = gates.rows([f])
+            self.assertEqual(row['verdict'], 'red: ' + ', '.join(names[:3]) + ' and 279 more')
+            self.assertEqual(len(row['failed']), 282)
+            self.assertEqual(gates.totals([row])['red'], 1)
+
 
 if __name__ == '__main__':
     unittest.main()

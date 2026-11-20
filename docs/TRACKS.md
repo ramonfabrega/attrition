@@ -143,6 +143,14 @@ is named; the sample's lowest first parting 2700 of 21,044 (item 4432); the pack
 whole by its counters; **renderer** — the plate reads the city's name in the install's face; the client opens every lobby on Great
 Lakes' camera (item 4437), and theirs' buildings carry a team colour ours lack (item 4438).
 
+**At the pass of 2026-11-20** (entry 146): **checksum** — parity 6 of 7; parity held out 3 of 8 now, 78 of 96 lines (0 of 8 and 64 as
+found); the pass scored the rows with ranges on disk by leaf, and rows 80 and 100 part builds on one bit, row 80 on nothing else (item
+4455); row 140 is three states from whole and takes its ranges (item 4457); the sample's lowest first parting 3878 of 21,044 (item
+4456); the packets' lines 817 of 1,053 (items 4461, 4431); the second battery is booked, its declaration first (item 4462); whether the
+eight fold into the headline is Ramon's, recommended, 9 of 15 folded; **orders** — whole by its counters; **renderer** — the client opens
+on slot 0's capital on 161 of 161 lobbies and the buildings carry the team's colour; theirs fades a wreck under dust and ours draws it
+solid (item 4458).
+
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it
 on one lane, taking textures and team colours next; then the lobby screen

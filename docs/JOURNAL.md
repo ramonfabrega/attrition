@@ -22331,3 +22331,30 @@ The pass drew three held-out lobbies in the client and found it opens
 every game on Great Lakes' camera, open sea on East Indies; the eye's
 seat takes that. The pass moved no score and took no capture.
 **DECISIONS 145.** `docs/audit/2026-11-19-fable-pass-held-out.md`.
+
+## 2026-11-20 — the pass: the held-out rows scored by leaf, and one bit stands between the eight and four whole (Fable 5.2, steering)
+
+`commander` ran twenty-three merges off the pass before, reached the
+backstop and handed over at `667b108ad` on a green whole gate. Parity
+held out went 0 → 3 of 8 in that tranche and the sample's first parting
+2700 → 3878. The handoff asked for seats and for a ruling on whether the
+eight fold into the headline. The fold is Ramon's by entry 144, so the
+pass recommended it and moved nothing: the eight were named before they
+were played, every one has been read by a lane since, and folded the
+headline reads 9 of 15. For the seats the pass did what the record
+before it had left undone. It ran the scorer on the three rows whose
+ranges are on disk and read the leaf of each of their eleven parted
+lines in a few minutes. Rows 80 and
+100 part their builds line on the same bit of `build_masks`, and row 80
+parts on nothing else, so the chain's builder goes there: one cause from
+4 of 8, which is also what calls the second battery. Row 140, three
+states from whole, takes its ranges; the sample keeps its seat; rows 100
+and 60 are items of their own behind them. That scoring is a first act
+of every pass now. The pass drew run1559b's still beside the photograph
+and saw three wrecks that theirs fades under dust and ours draws solid;
+the eye's seat takes that. 4450a was closed on 4453's evidence: a watch
+on the original's write found the call site that a predicate fitted to
+our own state had missed at the cost of four games. The gate table's red
+column, which printed 282 test names on one row, names three and counts
+the rest. The pass moved no score and took no capture.
+**DECISIONS 146.** `docs/audit/2026-11-20-fable-pass-leaves.md`.

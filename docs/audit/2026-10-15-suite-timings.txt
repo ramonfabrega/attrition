@@ -1,6 +1,6 @@
-# Every rondata release test timed alone, 2026-11-19, tools/suite_timings.py (tree 4623a2e0).
+# Every rondata release test timed alone, 2026-11-20, tools/suite_timings.py (tree 667b108a).
 # One test per process, --test-threads 1, sequential, RON_INSTALL set; seconds then the test.
-# Sum 5,720 s over 2548 tests; --stale-only merged. Top 10 = 1118 s, top 30 = 1540, top 100 = 2077; 1092 tests under 1 s.
+# Sum 5,741 s over 2555 tests; --stale-only merged. Top 10 = 1118 s, top 30 = 1543, top 100 = 2086; 1095 tests under 1 s.
 # By module: mapgen 687 s / 133 tests, golden 363 s / 346 tests, audit 321 s / 124 tests, coverage 266 s / 6 tests, harness 227 s / 101 tests.
 216.02	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 199.71	diff::held_out::tests::the_held_out_games_score_as_pinned
@@ -22,6 +22,7 @@
 22.05	diff::start_walk::the_lobby_walked_from_the_built_start
 19.05	mapgen::tests::east_indies_s_heights_are_the_start_dump_s_grid
 19.01	mapgen::tests::east_indies_s_heights_at_894_are_the_start_dump_s_grid
+15.43	diff::sample::tests::the_sample_s_ranges_to_4130_name_each_first_parting
 14.60	diff::greek_classical_pair::greek_classical_pair_run1214_s_word_frame_is_widened_whole
 14.43	diff::sample::tests::the_sample_walks_to_its_word
 14.00	diff::greek_classical_pair::greek_classical_pair_first_parting
@@ -1121,6 +1122,7 @@
 1.51	diff::egyptian_gunpowder_pair::egyptian_gunpowder_pair_first_parting
 1.50	diff::chinese_industrial_pair::chinese_industrial_pair_first_parting
 1.50	diff::chinese_industrial_pair::run1155_chinese_industrial_pair_closing_state
+1.49	diff::held_out::tests::row_100_s_assault_infantry_take_the_guard_turn_s_dest_angle_on_run1721_s_ranges
 1.49	free::tests::the_terrain_s_corners_are_in_register
 1.49	diff::american_modern_pair::run1151_american_modern_pair_closing_state
 1.49	diff::american_word::run999_s_word_frame_is_widened_whole
@@ -1152,6 +1154,7 @@
 1.45	diff::japanese_medieval_pair::japanese_medieval_pair_the_long_s_stride_walks_to_5101
 1.45	diff::inca_classical_pair::inca_classical_pair_the_long_s_stride_walks_back_from_4501
 1.45	diff::sahara_toughest::tests::run529_s_word_frame_is_widened_whole
+1.44	diff::held_out::tests::row_120_s_barge_is_born_with_form_zero_on_run1716_s_ranges
 1.44	diff::audit::german_ancient_pair_corrections_change_nothing
 1.44	diff::spanish_modern_pair::spanish_modern_pair_run1395c_walks_the_state_back
 1.44	diff::third_pair::run614_s_builder_window_is_widened_whole
@@ -1253,6 +1256,7 @@
 1.29	diff::sahara_coverage::run683_s_word_frame_is_widened_whole
 1.28	free::tests::the_draw_list_s_frames_are_in_register
 1.28	diff::golden::run265_s_rounds_are_the_original_s_record_for_record
+1.28	diff::held_out::tests::row_80_s_fusiliers_take_the_guard_turn_s_dest_angle_on_run1720_s_ranges
 1.27	diff::world::tests::run64_s_danger_map_is_the_original_s
 1.27	diff::audit::chinese_enlightenment_pair_corrections_change_nothing
 1.27	diff::british_modern_pair::british_modern_pair_first_parting
@@ -1537,6 +1541,7 @@
 0.90	diff::iroquois_word::run928_s_word_frame_is_widened_whole
 0.90	diff::golden::chapter_thirty_three_holds_to_the_golden_word
 0.90	diff::persian_word::run979b_persian_closing_state
+0.90	diff::held_out::tests::row_120_s_mlrs_reads_cavarch_o_minus_two_on_run1716_s_ranges
 0.89	diff::minted::the_rallied_game_s_round_in_flight_is_the_packet_s
 0.89	diff::gunpowder_melee::gunpowder_melee_run1413_s_word_window_is_widened_whole
 0.89	diff::golden::chapter_one_hundred_and_seventeen_s_window_is_widened_whole
@@ -1729,6 +1734,7 @@
 0.68	diff::golden::chapter_forty_two_holds_to_the_golden_word
 0.68	diff::golden::chapter_ninety_nine_holds_to_the_golden_word
 0.68	diff::golden::chapter_seventeen_holds_to_the_golden_word
+0.68	diff::held_out::tests::row_120_s_scout_lands_with_its_figure_s_last_on_its_point_on_run1716_s_ranges
 0.67	diff::british_industrial_pair::british_industrial_pair_run1336c_s_leaders_stride_is_widened_whole
 0.67	diff::bantu_word::run978d_s_escrow_window_is_widened_whole
 0.67	diff::egyptian_industrial_pair::egyptian_industrial_pair_captures_say_their_lobby
@@ -2480,6 +2486,7 @@
 0.01	checksum::tests::range_values_require_matching_shapes_and_a_known_field
 0.01	diff::harness::prefix::tests::the_overlap_checkpoint_keeps_the_earlier_start_and_group_boundary
 0.01	gamelog::tests::indexed_fields_keep_file_order_and_record_only_requested_names
+0.01	diff::held_out::tests::the_handoff_s_parity_held_out_line_is_the_pinned_scores
 0.00	diff::held_out::tests::the_held_out_line_reads_as_pinned
 0.00	trace::checksums::tests::a_receipted_trace_requires_its_endpoint_checksum_and_detach
 0.00	recgame::tests::a_donor_may_differ_in_team_style_alone
