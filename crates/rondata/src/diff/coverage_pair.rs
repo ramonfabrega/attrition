@@ -2474,7 +2474,13 @@ fn run1075_s_garrison_window_is_widened_whole() {
     // Item 4159's eighth residue: 3947 -> 227, `do_move` re-pushes the goal after a failed planner unless it is on top (run1608's packet, `1/84` on 2553); the 2554 parting leaves whole (`1/84` and `1/111` hold their `ATTACK_TO`s, `1/84` at (43176, 44328), path empty, as theirs), and no leader row parts in the window; the next gameplay rows 2554 `1/2033` `construct_hits` (ours 10323 theirs 10359) and 2594 `1/135` `hits_left` (130 / 127).
     // Item 4422: 227 -> 226, `group:64.form` on 2040 (ours 0, theirs −1) agrees: `action_swarm_around`'s `form = −1`.
     // Item 4435: 220 -> 201, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 201, "initial run1075 baseline");
+    // Item 4440: 220 -> 198 on its own base, the bell's one-building group
+    // pushed on who=1's pool on 2073 (`take_damage`'s `push_group(who, ·,
+    // 1)`): `1/83` is seated in group 75 on 2091 (ours 71 -> 75, theirs
+    // 75), and groups 71 and 75 no longer trade records on 2296 (`stamp`
+    // ours 2090 -> 2294 on 71, theirs 2294); 23 rows leave, one arrives
+    // (2552 `group:71.form` ours 0 theirs 9). Merged with 4435: 179.
+    pin_eq!(w.firsts.len(), 179, "initial run1075 baseline");
 }
 
 /// `Ammo::init+0xcd9` (`0x67c8c9`): the first of a round's two landing

@@ -320,8 +320,7 @@ clean exit, map 7, five players, and all five backed-up settings restored.
 The recording's seed **340513920** survives `rise.ini` seed **12345**.
 `GAME INFO`/`GAMEINFO`, `FRAME` and closing records use the solo log's shape.
 `GameLog::init@00933190` names the output **`gamelog_p.txt`**, not
-`gamelog.txt`; the runner now uses that path for both its stall detector and
-its verifier. A playback receipt requires install → menu 13 → contiguous
+`gamelog.txt`; the runner's stall detector and verifier use it. A playback receipt requires install → menu 13 → contiguous
 frames → menu 21, with no solo-modal events, faults or dropped records.
 
 **Absent evidence matters:** the existing Rust parser accounts for all
@@ -348,8 +347,7 @@ attempt is retained for overlap: the leader-only long recipe agrees in all
 1,981 complete printed leader records over frames 1..283, including the two
 flag lines preceding each `LEADERDATA`; all 285 shared RNG frames agree.
 These are native/native reproducibility checks. The long recipe records
-leaders per frame and wider objects only at endgame; it does not provide
-whole-world per-frame comparison coverage. `end:MISC` alone emitted no frame
+leaders per frame, wider objects only at endgame. `end:MISC` alone emitted no frame
 blocks and is not a sufficient playback-oracle recipe.
 
 **Completed range:** run900's successful long recipe records trace frames
@@ -538,9 +536,8 @@ samples every `z` again; `build_cities@005ab910` leaves the oil to
 **Item 4405: the window whole by range.** *Diff-backed* on run1678, each
 by a mutation:
 
-- **Builds on 76**: the person's `city_gather` (recording frame 75, kind
-  0x1a1) lays five Farm points on `3/2000`, appended (`622efe`) in
-  `city_down` order on both sides.
+- **Builds on 76**: the person's `city_gather` (kind 0x1a1) lays five
+  Farm points on `3/2000`, appended (`622efe`) in `city_down` order.
   `PtrLinkListAbstract<GatherPoint>::walk_data@004708a0` walks from
   `head_node->prev` by `prev`, last point first: `758 2000 gather[k]`
   32640|31872 and three more agree. Builds by sum 76 → 525.
@@ -565,7 +562,9 @@ run1710 holds every first parting to 3,100 (`SAMPLE_RANGES_1710`):
 groups 927 → 2888 (4419, 4422; GROUPS §24.2); world 1716 → 2921, no
 exit lights a disc (4424; VISION §6); units 2112 → 2700, leaders → 2989,
 allies bleed nothing (4429; ATTRITION); units → 2888, a refused
-slot moves (4432; GROUPS §6.6).
+slot moves (4432; GROUPS §6.6); units → 2892, a `GARRISON` walks
+target and `search`, groups → 3053, the bell's group is pushed (4440;
+CHECKSUM §17).
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 

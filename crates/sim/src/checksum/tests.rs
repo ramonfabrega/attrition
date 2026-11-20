@@ -604,6 +604,58 @@ fn a_guard_walks_its_target_and_its_own_twenty_four_bytes() {
     );
 }
 
+/// **A garrison walks `GarrisonOrder::walk_data@00484690`'s three ranges**
+/// (item 4440, `docs/RECGAME.md` §7): the flags byte, `TargetOrder`'s
+/// `ox`, `whom`, `uid` (the building) and its own `search` (`+0x14`, four
+/// bytes). The 2017 sample's 2888: computer 4's Citizen `4/2` under the
+/// bell, `1a 00 00 00`, `00`, then `04`, `d0 07 00 00 04 00 00 00 00 00`,
+/// `01 00 00 00`.
+#[test]
+fn a_garrison_walks_its_target_and_its_search() {
+    use crate::orders::{Body, Order, flag};
+    use crate::world::Pos;
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(60, 60), 2);
+    let u = sim.add_unit(crate::Unit::new(1, 16, Pos::new(480, 480), 10));
+    let b = sim.add_building(1, Pos::new(960, 960), 0);
+    sim.buildings[b].index = 2000;
+    sim.buildings[b].uid = 7;
+    for search in [true, false] {
+        sim.units[u].orders.clear();
+        sim.units[u].orders.push_back(Order {
+            flags: flag::ACTION,
+            body: Body::Garrison {
+                building: b,
+                search,
+            },
+        });
+        let record = sim.units[u].index;
+        let ranges = sim.checksum_units().ranges;
+        let at = ranges
+            .iter()
+            .position(|r| r.record == record && r.field == "order.type")
+            .expect("the order's type");
+        assert_eq!(ranges[at].bytes, 0x1ai32.to_le_bytes(), "GARRISON");
+        let walked: Vec<(&str, Vec<u8>)> = ranges[at + 2..]
+            .iter()
+            .take_while(|r| r.field.starts_with("order."))
+            .map(|r| (r.field, r.bytes.clone()))
+            .collect();
+        let mut target = Vec::new();
+        target.extend_from_slice(&2000i32.to_le_bytes());
+        target.extend_from_slice(&1i32.to_le_bytes());
+        target.extend_from_slice(&7u16.to_le_bytes());
+        assert_eq!(
+            walked,
+            vec![
+                ("order.flags", vec![4]),
+                ("order.target", target),
+                ("order.search", i32::from(search).to_le_bytes().to_vec()),
+            ],
+            "the sample's 4/2 on 2888, search {search}"
+        );
+    }
+}
+
 /// **A think walks the base's `UnitOrder::walk_data@0047f2b0`** (item
 /// 4414, `docs/RECGAME.md` §7): `ThinkOrder::vftable@00b48d88`'s `+0x8`
 /// is the base's walker, the flags byte alone. run1697 on 532: the
