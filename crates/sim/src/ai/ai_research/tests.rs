@@ -1122,3 +1122,30 @@ fn produce_tech_queues_a_unit_s_research_on_the_unit_queue() {
     assert!(sim.produce_tech(1, t.phalanx, 1));
     assert_eq!(sim.buildings[bar].queue.items.len(), 1);
 }
+
+/// **A republic taken between two reassemblies caps the very next frame**
+/// (item 4444, run1722): `Leader::gather@006ce280` runs
+/// `calc_resource_caps@006ce900` on every frame, outside the reassembly
+/// gate, and that asks `has_preq(REPUBLIC_n)` there. Row 60's computer
+/// takes its republic on 968 and theirs' seven caps read 3200 on 969, where
+/// ours held 2400 to its next reassembly on 976.
+#[test]
+fn a_republic_taken_between_reassemblies_caps_the_next_frame() {
+    let (mut sim, t) = sim();
+    sim.tables.tech_tree.roles.republic_preq = [Some(t.gov_a), None, None];
+    sim.command().tick();
+    let before = sim.economy.ledgers[1].cap;
+    // No reassembly is due on the next frame.
+    sim.economy.ledgers[1].dirty = false;
+    sim.economy.ledgers[1].gather_stamp = sim.frame;
+    assert!(!sim.holdings_due(1, sim.frame + 1));
+    sim.tech[1].tech[t.gov_a] = true;
+    sim.command().tick();
+    let bonus = sim.tables.tuning.republic_commerce_bonus[0] * crate::economy::RATE_SCALE;
+    assert_eq!(bonus, 800, "fifty, in sixteenths");
+    let after = sim.economy.ledgers[1].cap;
+    for g in [0, 1, 2, 4, 5] {
+        assert_eq!(after[g], before[g] + bonus, "good {g}'s cap");
+    }
+    assert_eq!(after[3], before[3], "knowledge is uncapped");
+}
