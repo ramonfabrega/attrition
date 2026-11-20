@@ -264,7 +264,8 @@ fn roman_classical_pair_run1194b_s_word_frame_is_widened_whole() {
     // Horse `1/28`'s `dest_angle` on 4079 — ours 137756672, theirs
     // -1351155712, ours a frame late at its guard post, agreeing from
     // 4080 (parked 3567a).
-    pin_eq!(w.firsts.len(), 48, "run1194b baseline");
+    // Item 4448: 48 -> 47, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 47, "run1194b baseline");
 }
 
 /// run1210: the pair's last blocks, 6875..7131 at the window's detail —
@@ -313,5 +314,6 @@ fn roman_classical_pair_run1210_s_closing_frame_is_widened_whole() {
     // family**: on block 6931 the `1/195`'s `dest_angle` reads ours
     // -610729984 against theirs -620363776, 3567a's row again (parked
     // 3567a). The closing block 7131 agrees.
-    pin_eq!(w.firsts.len(), 46, "run1210 baseline");
+    // Item 4448: 46 -> 45, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 45, "run1210 baseline");
 }

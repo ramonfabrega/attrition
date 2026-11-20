@@ -365,5 +365,6 @@ fn turkish_enlightenment_pair_run1186c_s_closing_frame_is_widened_whole() {
     // groups 65, 69 and 71. The closing block 3813 parts nothing new.
     // Item 3708: 59 → 58, a fort placed but not built no longer
     // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
-    pin_eq!(w.firsts.len(), 58, "run1186c baseline");
+    // Item 4448: 58 -> 56, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 56, "run1186c baseline");
 }

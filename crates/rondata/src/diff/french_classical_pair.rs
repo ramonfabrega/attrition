@@ -238,5 +238,6 @@ fn french_classical_pair_run1262_s_closing_frame_is_widened_whole() {
     // on `1/2000` (1), `1/2005` (3), `1/2017` (5), `1/2018` (4), `1/2021`
     // (4), `1/2023` (1) — the human's defeat asks `Game::check_victory`, whose conquest victory cleans every one of who=1's queues with no refund (`Leader::victory`, `docs/LEADERS.md` §10.2).
     // Item 4340: −1, no `leader:defense` row is left (the human's tally moves, its writers ungated; ch125 and ch131 name that key, here it is inferred).
-    pin_eq!(w.firsts.len(), 141, "the closing walk's baseline");
+    // Item 4448: 141 -> 140, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 140, "the closing walk's baseline");
 }

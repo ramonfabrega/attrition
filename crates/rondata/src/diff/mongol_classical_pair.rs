@@ -326,7 +326,8 @@ fn mongol_classical_pair_run1218_s_word_frame_is_widened_whole() {
     // Item 4159r14, the Mongol stable arm of `get_cost` (3558a, 3581a): 89
     // -> 68. who=1's `bucket` on 9738 and 9783, the stable queues' `cost`
     // and `score` on 9800 (ours 14867 against 14868) agree.
-    pin_eq!(w.firsts.len(), 68, "run1218 baseline");
+    // Item 4448: 68 -> 56, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 56, "run1218 baseline");
 }
 
 /// **The long's stride, walked back from the word 9744** (item 3575):
@@ -437,7 +438,8 @@ fn mongol_classical_pair_run1222_walks_the_gap_before_9744() {
     // section 318.2): who=1's `leftover[2:wealth]` on 9696, agrees.
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 81 -> 74.
     // Item 4159r14, the Mongol stable arm of `get_cost` (3558a): 74 -> 60.
-    pin_eq!(w.firsts.len(), 60, "run1222 baseline");
+    // Item 4448: 60 -> 52, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 52, "run1222 baseline");
 }
 
 /// run1224: the word 9772's window, blocks 9740..9885 at run1218's detail
@@ -503,7 +505,8 @@ fn mongol_classical_pair_run1224_s_word_frame_is_widened_whole() {
     // Item 4159r14, the Mongol stable arm of `get_cost` (3558a, 3581a): 86
     // -> 65. who=1's `bucket` on 9740 and 9783, the stable queues' `cost`
     // and `score` on 9800 agree.
-    pin_eq!(w.firsts.len(), 65, "run1224 baseline");
+    // Item 4448: 65 -> 56, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 56, "run1224 baseline");
 }
 
 /// **The closing state** (item 3581): with the draw stream whole to the

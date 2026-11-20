@@ -205,7 +205,8 @@ fn egyptian_classical_pair_run1230b_s_word_frame_is_widened_whole() {
     // `resources` and `bucket` agree; `1/73`'s and six other
     // `dest_angle` rows stand.
     // Item 4435: 102 -> 95, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 95, "run1230b baseline");
+    // Item 4448: 95 -> 88, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 88, "run1230b baseline");
 }
 
 /// The long's own stride blocks, 1 through 5901 — the last before run1230b's
@@ -317,7 +318,8 @@ fn egyptian_classical_pair_run1241_walks_the_market_s_queue_back() {
     // 12168 against 7227, 12158) and the groups' `held`/`pool` on 5697.
     // Item 4159's residue: 110 -> 109, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     // Item 4435: 109 -> 92, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 92, "run1241 baseline");
+    // Item 4448: 92 -> 90, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 90, "run1241 baseline");
 }
 
 /// run1241b: the word 6537's window, blocks 6532..6748 — six blocks before
@@ -395,7 +397,8 @@ fn egyptian_classical_pair_run1241b_s_word_frame_is_widened_whole() {
     // groups' `held` and pools on 6533 and 6543, the five `dest_angle` rows
     // from 6664 (3580b's shape) and `1/261`'s `form` on 6733.
     // Item 4435: 96 -> 90, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 90, "run1241b baseline");
+    // Item 4448: 90 -> 85, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 85, "run1241b baseline");
 }
 
 /// The long's stride blocks between run1230b's last block 6212 and

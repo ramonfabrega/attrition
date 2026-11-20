@@ -247,7 +247,8 @@ fn maya_information_pair_run1411b_s_closing_frame_is_widened_whole() {
     // position, order or hit parts, no draw parts to 3330, and the closing
     // block 3331 agrees. Item 3756, piece 170's pivot rows (the Armored
     // Cavalry at art style 0): 57 → 56 keys, theirs' rounds read 243 → 240.
-    pin_eq!(w.firsts.len(), 56, "run1411b baseline");
+    // Item 4448: 56 -> 53, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 53, "run1411b baseline");
     pin_eq!(w.rounds_read, (240, 240), "the rounds read");
     // Every round, both directions: 240 in ours against 243, 121 parting.
     // The first is the Armored Cavalry `1/31`'s (TI 220, piece 874 at the

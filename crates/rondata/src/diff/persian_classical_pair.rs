@@ -323,7 +323,8 @@ fn persian_classical_pair_run1327b_s_closing_window_is_widened_whole() {
     // the Archer `1/124` on 11406; parked 3663a). Before pieces 113's and
     // 1975's bays: 65, with the human's `0/2000`'s `build:damage` (414
     // against 420 on 11378), `1/296`'s `damage_o` and `city_flags[0x4]`.
-    pin_eq!(w.firsts.len(), 59, "run1327b baseline");
+    // Item 4448: 59 -> 56, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 56, "run1327b baseline");
     pin_eq!(w.rounds_read, (1332, 1332), "the rounds read");
     // 1278 a side, 24 parting: dead targets' `whom`/`ox` and slot shifts.
     // Item 3679: 1332 a side, 6 parting — the spent arrows held (COMBAT

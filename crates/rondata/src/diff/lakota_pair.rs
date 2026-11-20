@@ -380,7 +380,8 @@ fn run853_s_word_frame_is_widened_whole() {
         }
     }
     // Item 4435: 97 -> 87, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 87, "initial run853 baseline");
+    // Item 4448: 87 -> 81, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 81, "initial run853 baseline");
     // Item 3333: who=1's `bucket` timber 13437/13252 and metal 11970/11785,
     // standing from 3296, close with an Oil Platform priced by the Oil Wells
     // (`docs/AI.md` §270).

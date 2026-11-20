@@ -400,7 +400,8 @@ fn russian_gunpowder_pair_run1357b_s_closing_window_is_widened_whole() {
     // 6312 against 6308 on 5237, `1/59`'s on 5275) and two idle units'
     // `dest_angle` (`1/65` on 5239, `1/75` on 5271): draw-silent to the
     // close (parked 3688b).
-    pin_eq!(w.firsts.len(), 60, "run1357b baseline");
+    // Item 4448: 60 -> 54, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 54, "run1357b baseline");
     pin_eq!(w.rounds_read, (504, 504), "the rounds read");
     // 504 a side, 153 parting: who=1's Crossbowmen (TY 172) launch a unit
     // or two off theirs (`1/36`'s of 5146 from (3777, 31725) against

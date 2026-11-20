@@ -317,7 +317,8 @@ fn aztec_ancient_pair_run1266_s_gap_is_widened_whole() {
     // Item 4159's residue: 142 -> 141, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 141 -> 129.
     // Item 4435: 129 -> 103, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 103, "run1266 baseline");
+    // Item 4448: 103 -> 102, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 102, "run1266 baseline");
 }
 
 /// **The closing state** (item 3613): run1256's closing block 9259, the

@@ -396,7 +396,8 @@ fn british_classical_pair_run1326b_s_closing_window_is_widened_whole() {
     // (7958, 10275) (parked 3662a).
     // Item 4159's residue: 100 -> 99, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     // Item 4435: 99 -> 88, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 88, "run1326b baseline");
+    // Item 4448: 88 -> 78, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 78, "run1326b baseline");
     // Every round, both directions: 209 a side. The British Catapults
     // (TI 265, piece 215) threw from their square 245 under until piece
     // 215 took piece 567's row; 23 parted before it.

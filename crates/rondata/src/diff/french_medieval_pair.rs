@@ -263,7 +263,8 @@ fn french_medieval_pair_run1393b_s_word_frame_is_widened_whole() {
     // 882769920, and the Peltasts `1/82` (TI 84) on 3164, 600702976 against
     // 693043200 — 3567a's shape (parked 3735a). No other unit, building or
     // city field parts, and no draw parts to the game's end.
-    pin_eq!(w.firsts.len(), 56, "run1393b baseline");
+    // Item 4448: 56 -> 54, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 54, "run1393b baseline");
     // Every round, both directions: no round flies in the window.
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
@@ -336,7 +337,8 @@ fn french_medieval_pair_run1414_s_closing_frame_is_widened_whole() {
     // -1696333824 — 3567a's shape (parked 3735a). No other unit, building
     // or city field parts, no draw parts to 4664, and the closing block
     // 4665 agrees.
-    pin_eq!(w.firsts.len(), 55, "run1414 baseline");
+    // Item 4448: 55 -> 53, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 53, "run1414 baseline");
     // Every round, both directions: 287 each side, 10 rows parting — the
     // Trebuchets `1/70`'s `ammo[1]` and `1/71`'s `ammo[0]` (TI 266) on
     // 4408, each round's `sx`, `sy`, `sz`, `angle` and `v1z`: they leave

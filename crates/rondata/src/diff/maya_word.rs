@@ -325,7 +325,8 @@ fn run973d_s_word_frame_is_widened_whole() {
     // (`CHAR_ATTACK3` and `1` off run973e, `2` off run973f) **27**: the
     // standing set and `1/53`'s `dest_angle` on 12209, apart one field and
     // healed by the close; the word moved 12197 → 12267 → 13086.
-    pin_eq!(w.firsts.len(), 27, "run973d with the Horse Archer's nodes");
+    // Item 4448: 27 -> 26, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 26, "run973d with the Horse Archer's nodes");
 }
 
 /// The closing state's window: run966b's closing block alone, the long's

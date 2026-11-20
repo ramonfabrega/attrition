@@ -246,7 +246,8 @@ fn french_information_pair_run1448b_s_closing_frame_is_widened_whole() {
     // against 1), `mirror` on `1/87`, `1/106` and `1/123` (ours 0, theirs
     // 1), and two guards' `dest_angle` — the TOW `1/71` (type 141) and the
     // Abrams `1/83` (type 254), group 65's. No draw parts to 3191.
-    pin_eq!(w.firsts.len(), 55, "run1448b baseline");
+    // Item 4448: 55 -> 53, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 53, "run1448b baseline");
     // Every round, both directions: 56 against 56, none parting.
     pin_eq!(w.rounds_read, (56, 56), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");

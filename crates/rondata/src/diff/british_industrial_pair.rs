@@ -518,7 +518,8 @@ fn british_industrial_pair_run1355c_s_closing_window_is_widened_whole() {
     // `held` and pools, the human leader's `SITE[*].reg` and
     // `aggression[1]`) and two idle Black Watch's `dest_angle` (`1/83` on
     // 4624, `1/61` on 4626; parked 3683c).
-    pin_eq!(w.firsts.len(), 58, "run1355c baseline");
+    // Item 4448: 58 -> 56, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 56, "run1355c baseline");
     pin_eq!(w.rounds_read, (295, 295), "the rounds read");
     // 295 a side, 37 parting: the Artillery's (`1/68`, `1/94`, `1/106`,
     // TY 269) eight launches, 136 below theirs and some 40 behind (parked

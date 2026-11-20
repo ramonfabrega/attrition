@@ -1153,6 +1153,7 @@ impl DetectCollisionView for SimDetect<'_> {
         let DetectNode::Live(i) = n else {
             return false;
         };
+        self.sim.update_action(i); // The trait's doc: the call is for its side effects.
         self.sim.action_of(i).is_some_and(
             |a| matches!(self.sim.units[i].orders[a].body, Body::Guard(g) if g.target == self.u),
         )
