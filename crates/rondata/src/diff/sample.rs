@@ -560,7 +560,8 @@ pub(in crate::diff) mod tests {
     /// (`set_new_location(…, 1)` copies a figure's point into `last`, the
     /// Inca Citizen `4/4` out of its building): units and guys 3878 → 3888.
     /// Item 4454 (a building at health 0 still counts its arrows down,
-    /// `Build::process@0061edf0`): builds 3878 → 3888.
+    /// `Build::process@0061edf0`): builds 3878 → 3888; items 5760 → 4805,
+    /// a named fall past world's unchanged 3878 and the 3888 partings.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 3888),
         ("builds", 3888),
@@ -571,7 +572,7 @@ pub(in crate::diff) mod tests {
         ("guys", 3888),
         ("leaders", 3888),
         ("cities", 3888),
-        ("items", 5760),
+        ("items", 4805),
         ("goods", 4559),
         ("world", 3878),
     ];
