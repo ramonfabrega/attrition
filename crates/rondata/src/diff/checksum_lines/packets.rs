@@ -1443,7 +1443,7 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// parting on fewer builds ranges, none on more:
 /// `check_orphaned_buildings` marks a computer's site with no builder and
 /// no recruit (`build_masks |= 0x2000`), and `BUILD_AT`'s swarm clears it.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 841, 1053);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 843, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1983,6 +1983,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (2267, 2266, 377) -> (2267, 2266, 375).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2267, 2266, 375) -> (2267, 2267, 0), world (9290, 9290, 10) -> (9290, 9290, 0).
+    // Item 4468, a nuke strike's round keeps its spline and the ammo line walks its SplineData: ammo (287, 9, 286) -> (287, 287, 0).
     (
         "run1165",
         3719,
@@ -1990,7 +1991,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (6004, 6004, 6),
             (2267, 2267, 0),
             (0, 0, 0),
-            (287, 9, 286),
+            (287, 287, 0),
             (0, 0, 0),
             (676, 676, 0),
             (1890, 1890, 0),
@@ -4815,6 +4816,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (1765, 1765, 1) -> (1765, 1765, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (9526, 9526, 11) -> (9526, 9526, 9).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2157, 2155, 1256) -> (2157, 2157, 1), world (9526, 9526, 9) -> (9526, 9526, 1).
+    // Item 4468, a nuke strike's round keeps its spline and the ammo line walks its SplineData: ammo (281, 3, 280) -> (281, 281, 0).
     (
         "run789",
         2799,
@@ -4822,7 +4824,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (5889, 5809, 3724),
             (2157, 2157, 1),
             (0, 0, 0),
-            (281, 3, 280),
+            (281, 281, 0),
             (0, 0, 0),
             (664, 664, 0),
             (1765, 1765, 0),
