@@ -281,7 +281,8 @@ fn japanese_industrial_pair_run1153b_s_word_frame_is_widened_whole() {
     // theirs 1). After the arms: 61, every one a standing family the other
     // late-age pairs carry — `SITE[i].reg`, `aggression`, `form`, and the
     // groups' `held` and pool (`docs/AI.md` section 303).
-    pin_eq!(w.firsts.len(), 61, "run1153b baseline");
+    // Item 4435: 61 -> 60, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 60, "run1153b baseline");
 }
 
 /// run1153c: the word 3674's window, blocks 3668..3924 at the long's
@@ -367,7 +368,8 @@ fn japanese_industrial_pair_run1153c_s_word_frame_is_widened_whole() {
     // sides, where ours had sailed on to (2832, 8916) under its
     // `MOVEORDER`. What is left from 3790 is the standing `form` family and
     // `1/82`'s path on 3813 (parked 3525a).
-    pin_eq!(w.firsts.len(), 151, "run1153c baseline");
+    // Item 4435: 151 -> 112, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 112, "run1153c baseline");
 }
 
 /// run1171: the word 4343's window, blocks 4338..4548 — six blocks before
@@ -448,5 +450,6 @@ fn japanese_industrial_pair_run1171_s_word_frame_is_widened_whole() {
     // closing 4548. Left: the 109 standing rows of 4338, who=1's `form`
     // on `1/38` (4351) and `1/87` (4352), and groups 70 (4357) and 84
     // (4491) `held` and pool, the standing families.
-    pin_eq!(w.firsts.len(), 115, "run1171 baseline");
+    // Item 4435: 115 -> 83, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 83, "run1171 baseline");
 }

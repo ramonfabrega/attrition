@@ -648,6 +648,18 @@ pasture).
   `Built::region_map`; `built_from_lobby` first left it empty and every
   record of run12 and run13 parted on `CITY 0/2000 reg`, ours −1 theirs
   1. It rides `FromLobby::region_map` now.
+- **The Chinese village is a Large City before it starts** (item 4436).
+  `Setup::build_cities@005ab910` inits the village as a Small City
+  (`0x19e`), and for a leader with tribe bonus `0xe` under
+  `CHINESE_LARGE_CITY` or `CHINESE_LARGE_CITIES` (both 1 as shipped)
+  calls `set_type(0x19f, 0)` before the start (vtable `+0x1a8`). So
+  `Wall::start`'s last statement, `mark_behind_tiles`, reads the Large
+  City's `BEHIND_HEIGHT` 3; `Build::activate`'s own Chinese arm then finds
+  the type it already holds. The walk converted at `activate` alone, after
+  the start, and marked two rings: run1720's state 0 parted on eleven
+  tiles of the world line's masks. `Setup::chinese_start_city`, in the
+  walk and the installer. Only the checksum reads `BEHIND`. *Diff-backed*
+  (`held_out`, row 80).
 
 ## 7.3 The wide projection
 

@@ -182,7 +182,8 @@ fn greek_medieval_pair_the_long_s_stride_walks_back_from_the_word() {
     // print) on 101 and as each is born, and who=1's groups 64.. with
     // their pools as each is minted. No unit row parts before the word's
     // window.
-    pin_eq!(w.firsts.len(), 253, "the stride's baseline");
+    // Item 4435: 253 -> 168, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 168, "the stride's baseline");
 }
 
 /// run1380b: the word 5626's window, blocks 5595..5877 at the long's
@@ -254,7 +255,8 @@ fn greek_medieval_pair_run1380b_s_word_frame_is_widened_whole() {
     // `order:target` on 5875 (`0/4` against `0/10`, parked 3711a); no
     // draw feels any of them before the game ends.
     // Item 4159's residue: 138 -> 137, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 134, "run1380b baseline");
+    // Item 4435: 134 -> 97, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 97, "run1380b baseline");
     // Every round, both directions: 1205 against 1199. The first to part
     // are launch points a unit or two off — the Heavy Horse Archer
     // `1/151`'s `ammo[4]` on 5601 (`sx` 6566 against 6565) and the
@@ -330,7 +332,8 @@ fn greek_medieval_pair_run1388_s_closing_frame_is_widened_whole() {
     // parts on the closing block 5943, and no draw parts to 5942.
     // Item 4159's residue: 142 -> 141, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 141 -> 138.
-    pin_eq!(w.firsts.len(), 138, "run1388 baseline");
+    // Item 4435: 138 -> 98, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 98, "run1388 baseline");
     // Every round, both directions: 1239 each side, 133 parting: 3703a's
     // launch points a unit or two off, and the Trebuchet `1/132`'s (TI 266)
     // `ammo[3]` on 5817, which leaves from the figure's own (6456, 10680,

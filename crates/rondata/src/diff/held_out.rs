@@ -695,15 +695,17 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
             over: None,
         },
         // Moved by origin/main at 0b34ad2ac: groups 854 -> 3,837, whole.
+        // Moved by item 4436 (run1720's ranges): world 0 -> 3,837, whole --
+        // state 0's tile masks, eleven tiles of bit 0x4, the Chinese Town
+        // 1/2000's third behind-ring, now marked at its start.
         moved: Some(Score {
             states: 3837,
             agreed: [
-                2239, 3736, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 0,
+                2239, 3736, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837,
             ],
             first: &[
                 ("units", (2239, Some(3211665055), 2108038814)),
                 ("builds", (2376, Some(2962723024), 945131824)),
-                ("world", (0, Some(3924883285), 3379296129)),
             ],
             over: None,
         }),

@@ -946,7 +946,8 @@ fn run678_s_word_frame_is_widened_whole() {
     // 1546's, 1,378 on item 1544's); 98 stand from the window's first block
     // — `1/2006`'s capital bit no longer among them.
     // Item 4159's residue: 67 -> 66, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 66, "initial run678 baseline");
+    // Item 4435: 66 -> 61, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 61, "initial run678 baseline");
     // Item 3333: who=1's `bucket` timber 17978/17958 and metal 14157/14137 on
     // 1183 close with an Oil Platform priced by the Oil Wells (`docs/AI.md`
     // §270).
@@ -973,7 +974,8 @@ fn run678_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(979),
+        // Item 4435: Some(979) -> Some(1022), a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+        Some(1022),
         "the first parting past the standing block"
     );
     pin_eq!(
@@ -1063,7 +1065,8 @@ fn run679_s_word_frame_is_widened_whole() {
     // frame 1419, its 128-frame phase (1419 + 2037 = 27 × 128), with no
     // unit of leader 1's holding it as its action (`docs/AI.md` §162) —
     // and leader 1's `gather_stamp`, 1391 in ours against 1423 on 1424.
-    pin_eq!(w.firsts.len(), 74, "initial run679 baseline");
+    // Item 4435: 74 -> 67, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 67, "initial run679 baseline");
     // **The word 1277's value diff, item 1558** (`docs/AI.md` §153): the
     // scout `1/0` (`TypeIndex` 77) stood apart from the window's first
     // block — (29065, 27134) in ours against (29060, 27038), its move bound
@@ -1188,7 +1191,8 @@ fn run710_s_word_frame_is_widened_whole() {
     // Item 3708: 79 → 78, a fort placed but not built no longer
     // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
     // Item 4159's residue: 79 -> 78, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 78, "initial run710 baseline");
+    // Item 4435: 78 -> 69, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 69, "initial run710 baseline");
     // **The word 2288's value diff, item 1598** (`docs/AI.md` §166): the
     // ARMOREDCAVALRY `1/40` (`TypeIndex` 220), put ashore by Freighter
     // `1/52` on 1703, parted first there — `pos` ours (42648, 37176)
@@ -1272,7 +1276,8 @@ fn run710_s_word_frame_is_widened_whole() {
     // (`1/28`'s `half_step` and move on 1528 until item 1586).
     pin_eq!(
         first,
-        Some(1529),
+        // Item 4435: Some(1529) -> Some(1574), a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+        Some(1574),
         "the first parting past the standing block"
     );
 }
@@ -1320,7 +1325,8 @@ fn run711_s_word_frame_is_widened_whole() {
     // Item 2761: 106 → 102 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
     // Item 4159's residue: 68 -> 67, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 67, "initial run711 baseline");
+    // Item 4435: 67 -> 60, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 60, "initial run711 baseline");
     // **The word 1960's value diff, item 1594** (`docs/AI.md` §165): on
     // 1954 every number player 1's births took in the gap is the
     // original's. The Freighter `1/37` (`TypeIndex` 322) reached the Oil
@@ -1442,7 +1448,8 @@ fn run714_s_word_frame_is_widened_whole() {
     // first of it to part, the item after's hypothesis.
     // Item 2761: 109 → 105 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
-    pin_eq!(w.firsts.len(), 75, "initial run714 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    // Item 4435: 75 -> 64, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 64, "initial run714 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
     pin_eq!(
         w.firsts
             .iter()
@@ -1583,7 +1590,8 @@ fn run715_s_word_frame_is_widened_whole() {
     // spline where the straight line put them on 2939 and 2942
     // (`docs/AI.md` §174). **147** on item 1625's tree merged with 1620's.
     // Item 2761: 114 → 110 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 88, "initial run715 baseline");
+    // Item 4435: 88 -> 73, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 73, "initial run715 baseline");
     pin_eq!(
         w.firsts
             .iter()
@@ -1600,7 +1608,8 @@ fn run715_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(2872),
+        // Item 4435: Some(2872) -> Some(2910), a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+        Some(2910),
         "the first parting past the standing block"
     );
 }
@@ -1670,7 +1679,8 @@ fn run716_s_word_frame_is_widened_whole() {
     // position on 3387. The word 3395 lies past the window (run721's).
     // **190** on item 1625's tree merged with 1620's (194 before it).
     // Item 2761: 153 → 149 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 124, "initial run716 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −3, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    // Item 4435: 124 -> 77, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 77, "initial run716 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −3, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
     let first = w
         .firsts
         .values()
@@ -1679,7 +1689,8 @@ fn run716_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(3139), // Item 2677: 3138 -> 3139 (parked 2680).
+        // Item 4435: Some(3139), // Item 2677: 3138 -> 3139 (parked 2680). -> Some(3200), // Item 2677: 3138 -> 3139 (parked 2680)., a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+        Some(3200), // Item 2677: 3138 -> 3139 (parked 2680).
         "the first parting past the standing block"
     );
 }
@@ -1799,7 +1810,8 @@ fn run763_s_closing_frame_is_widened_whole() {
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
     // Item 2761: 190 → 186 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 4159's third residue: 161 -> 128, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
-    pin_eq!(w.firsts.len(), 128, "run763 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    // Item 4435: 128 -> 76, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 76, "run763 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
 }
 
 #[test]
@@ -1830,7 +1842,8 @@ fn run762_s_word_frame_is_widened_whole() {
     // Item 2761: 196 → 192 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 4159's residue: 168 -> 167, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     // Item 4159's third residue: 167 -> 137, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
-    pin_eq!(w.firsts.len(), 137, "run762 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    // Item 4435: 137 -> 80, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 80, "run762 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
 }
 
 #[test]
@@ -1863,7 +1876,8 @@ fn run754_s_word_frame_is_widened_whole() {
     // citizen whose hits already part from 3923 (its attrition, 3917); theirs is whole.
     // Item 4159's residue: 143 -> 142, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     // Item 4159's third residue: 142 -> 138, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
-    pin_eq!(w.firsts.len(), 138, "run754 keys that part (item 1669)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −9, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    // Item 4435: 138 -> 78, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 78, "run754 keys that part (item 1669)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −9, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
 }
 
 #[test]
@@ -1902,7 +1916,8 @@ fn run721_s_word_frame_is_widened_whole() {
     // Item 2761: 179 → 175 with `Unit::close`'s count (`docs/AI.md` §232).
     pin_eq!(
         w.firsts.len(),
-        134, // Item 2677: −1 (parked 2680). // Item 3172: −16, the Sulphur siege arm (`get_cost`, a Siege Factory unit) // Item 3336: −1, `Wall::set_type`'s hits (`docs/AI.md` §272) // Item 3335: −1, the group change (every attacking type in its trainer's group)
+        // Item 4435: re-pinned, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+        81, // Item 2677: −1 (parked 2680). // Item 3172: −16, the Sulphur siege arm (`get_cost`, a Siege Factory unit) // Item 3336: −1, `Wall::set_type`'s hits (`docs/AI.md` §272) // Item 3335: −1, the group change (every attacking type in its trainer's group)
         "run721 after find_path relocates a unit off a refusing tile (item 1667: 394 -> 326)"
     );
     let path = dump(RUN721).expect("the replay just read run721");
@@ -1979,7 +1994,8 @@ fn run721_s_word_frame_is_widened_whole() {
         .min();
     pin_eq!(
         first,
-        Some(3391),
+        // Item 4435: Some(3391) -> Some(3411), a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+        Some(3411),
         "the first parting past the standing block"
     );
 }
@@ -2248,7 +2264,8 @@ fn run1066_s_carrier_window_is_widened_whole() {
     eprintln!("run1066 queue rows: {queue:#?}");
     pin_eq!(w.blocks, 237, "every captured block");
     pin_eq!(queue.len(), 0, "the carrier's queue parts nowhere");
-    pin_eq!(w.firsts.len(), 72, "initial run1066 baseline");
+    // Item 4435: 72 -> 70, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 70, "initial run1066 baseline");
 }
 
 /// run1075, item 3455: the coverage pair's lobby with eleven human
@@ -2456,7 +2473,8 @@ fn run1075_s_garrison_window_is_widened_whole() {
     // Item 4159's sixth residue: 7792 -> 3947, the muster chase land-only (`Army::find_muster_spot`'s two `find_unit`s carry `FILTER_DOMAIN, 0`). On the 2300 tick army 0 found who=0's staged ship `0/20` beside a damaged building of who=1's capital in ours alone and took `hurry` 1, muster (51, 59) against theirs' 0 and (45, 47) (the `ARMY` record on 2552); the hurry gate then kept `1/70` from looking on 2345. Now `1/70` takes `0/18` on 2346 as theirs (`dest_angle` 1522728960, `orders_x/y` (41931, 38098), the `ATTACKORDER` `defensive 1` with `def` (41928, 38088)); the first gameplay parting is 2554 (`1/84`'s and `1/111`'s orders), the combat leaves' first 2588 (who 0 `hits_current_frame` ours 36 theirs 35).
     // Item 4159's eighth residue: 3947 -> 227, `do_move` re-pushes the goal after a failed planner unless it is on top (run1608's packet, `1/84` on 2553); the 2554 parting leaves whole (`1/84` and `1/111` hold their `ATTACK_TO`s, `1/84` at (43176, 44328), path empty, as theirs), and no leader row parts in the window; the next gameplay rows 2554 `1/2033` `construct_hits` (ours 10323 theirs 10359) and 2594 `1/135` `hits_left` (130 / 127).
     // Item 4422: 227 -> 226, `group:64.form` on 2040 (ours 0, theirs −1) agrees: `action_swarm_around`'s `form = −1`.
-    pin_eq!(w.firsts.len(), 220, "initial run1075 baseline");
+    // Item 4435: 220 -> 201, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 201, "initial run1075 baseline");
 }
 
 /// `Ammo::init+0xcd9` (`0x67c8c9`): the first of a round's two landing

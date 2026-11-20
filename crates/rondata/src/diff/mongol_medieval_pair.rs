@@ -200,7 +200,8 @@ fn mongol_medieval_pair_the_long_s_stride_walks_back_from_the_word() {
     // Item 3709, to 3901 before the word 3989: 39 blocks, **162** keys,
     // the same standing families as each group and building is minted —
     // no unit row parts on the stride before the word.
-    pin_eq!(w.firsts.len(), 162, "the stride's baseline");
+    // Item 4435: 162 -> 133, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 133, "the stride's baseline");
 }
 
 /// run1378b: the word 2595's window, blocks 2495..2846 at the long's
@@ -275,7 +276,8 @@ fn mongol_medieval_pair_run1378b_s_word_frame_is_widened_whole() {
     // and the three Light Cavalry (210) queued costs on 2586 (132/88
     // against 126/84) still part — they were not the boat's cause.
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 125 -> 107.
-    pin_eq!(w.firsts.len(), 107, "run1378b baseline");
+    // Item 4435: 107 -> 93, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 93, "run1378b baseline");
     // Every round, both directions: none fly in the window.
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
@@ -358,7 +360,8 @@ fn mongol_medieval_pair_run1386_s_word_frame_is_widened_whole() {
     // `1/20`'s on 4221, whose target `0/13` died on 4220: theirs' round
     // keeps `ox` 13 and `whom` 0, ours' reads -1 (parked 3714a).
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 135 -> 131.
-    pin_eq!(w.firsts.len(), 131, "run1386 baseline");
+    // Item 4435: 131 -> 102, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 102, "run1386 baseline");
     pin_eq!(w.rounds_read, (209, 209), "the rounds read");
     pin_eq!(w.rounds.len(), 2, "the rounds that part");
 }
@@ -426,7 +429,8 @@ fn mongol_medieval_pair_run1391b_s_closing_frame_is_widened_whole() {
     // block 5593, and no draw parts to 5592.
     // Item 4159's residue: 104 -> 103, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 103 -> 99.
-    pin_eq!(w.firsts.len(), 99, "run1391b baseline");
+    // Item 4435: 99 -> 91, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 91, "run1391b baseline");
     // Every round, both directions: 1674 each side, 50 parting — every one
     // a Trebuchet's (TI 266: `1/64`, `1/74`, `1/79`), leaving from the
     // figure's own point ~700 below theirs' (`1/64`'s on 5523: (7800,

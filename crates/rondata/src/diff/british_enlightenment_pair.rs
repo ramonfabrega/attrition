@@ -220,7 +220,8 @@ fn british_enlightenment_pair_run1157b_s_word_frame_is_widened_whole() {
     // is the standing families alone: block 4581's 96 rows, the new
     // units' `form` and groups 76's and 79's `held`/pool, and one
     // `SITE[8].reg` on 4776.
-    pin_eq!(w.firsts.len(), 108, "run1157b baseline");
+    // Item 4435: 108 -> 89, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 89, "run1157b baseline");
 }
 
 /// run1185b: the pair's last blocks, 5266..5523 at the window's detail —
@@ -270,5 +271,6 @@ fn british_enlightenment_pair_run1185b_s_closing_frame_is_widened_whole() {
     // against theirs 610 and 0 (parked 3542a); the closing block agrees.
     // Item 4177: 110 -> 112, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 5276 ours 15 theirs 16; who=1 `hits_current_frame` 5276 ours 15 theirs 16 (docs/LEADERS.md §3.5).
     // Item 4159's third residue: 112 -> 108, the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long: the capital `0/2000`'s `damage` on 5276 (604 / 610) and the two rates beside it.
-    pin_eq!(w.firsts.len(), 108, "run1185b baseline");
+    // Item 4435: 108 -> 89, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 89, "run1185b baseline");
 }

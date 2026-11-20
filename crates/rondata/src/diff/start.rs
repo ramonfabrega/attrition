@@ -1274,6 +1274,9 @@ pub fn from_lobby(
             };
             let pos = sim.snap_center(ty, Pos::new(sx * 0x300, sy * 0x300));
             let b = sim.setup().init_build(who as sim::Player, ty, pos, false);
+            // The Chinese village becomes a Large City before its start
+            // (item 4436).
+            sim.setup().chinese_start_city(b);
             sim.setup().activate(b, false, false);
             // `build_cities`' own `cities_built++` (`docs/CHECKSUM.md` §20).
             sim.setup().count_start_city(who as sim::Player);

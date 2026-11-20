@@ -366,7 +366,8 @@ fn run658_dates_the_gap_before_17171() {
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 97 -> 85.
     // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
     // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
-    pin_eq!(w.firsts.len(), 32, "initial run658 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+    // Item 4435: 32 -> 27, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 27, "initial run658 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
     // **The date, on the original's side** (`docs/AI.md` §131). Leader 0's
     // economy-dirty bit, `leader_flags & 0x2000000`, which no row compares:
     // the blocks of the window it stands on, read off the dump (the closing
@@ -494,7 +495,8 @@ fn run600_s_closing_frame_is_widened_whole() {
     // run667's 17380 (parked 4189b). Nothing of the end of the game parts.
     // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
     // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
-    pin_eq!(w.firsts.len(), 47, "run600 closing baseline");
+    // Item 4435: 47 -> 44, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 44, "run600 closing baseline");
 }
 
 #[test]
@@ -550,7 +552,8 @@ fn run667_s_closing_frame_is_widened_whole() {
     // −1 = −1 (were ours 2..5); `1/123` `cur_anim` 0 = 0, `end_time` 32 = 32.
     // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
     // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
-    pin_eq!(w.firsts.len(), 55, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
+    // Item 4435: 55 -> 52, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 52, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
 }
 
 #[test]
@@ -584,7 +587,8 @@ fn run662_s_word_frame_is_widened_whole() {
     // Item 3603: piece 48's bays (the Arquebusiers' art, run1254c) moved this pin: 84 -> 82.
     // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
     // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
-    pin_eq!(w.firsts.len(), 30, "initial run662 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+    // Item 4435: 30 -> 27, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 27, "initial run662 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
 }
 
 /// run661: the successor after the guard's leg and the fire on the move,
@@ -630,7 +634,8 @@ fn run661_s_word_frame_is_widened_whole() {
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 106 -> 82.
     // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
     // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
-    pin_eq!(w.firsts.len(), 30, "initial run661 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+    // Item 4435: 30 -> 27, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 27, "initial run661 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
 }
 
 /// run657: the successor after `move_step`'s snap stand, frame 17171
@@ -680,7 +685,8 @@ fn run657_s_word_frame_is_widened_whole() {
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 119 -> 95.
     // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
     // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
-    pin_eq!(w.firsts.len(), 31, "initial run657 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+    // Item 4435: 31 -> 27, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 27, "initial run657 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
 }
 
 #[test]
@@ -707,7 +713,8 @@ fn run655_s_word_frame_is_widened_whole() {
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 132 -> 108.
     // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
     // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
-    pin_eq!(w.firsts.len(), 42, "initial run655 baseline");
+    // Item 4435: 42 -> 27, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 27, "initial run655 baseline");
 }
 
 /// run649: the packet's capture, blocks 15086..15090 around who=1's army 6
@@ -756,7 +763,8 @@ fn run649_s_decision_frame_is_widened_whole() {
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 33 -> 30.
     // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
     // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
-    pin_eq!(w.firsts.len(), 27, "run649 whole");
+    // Item 4435: 27 -> 25, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 25, "run649 whole");
 }
 
 #[test]
@@ -778,7 +786,8 @@ fn run642_s_word_frame_is_widened_whole() {
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 58 -> 34.
     // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
     // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
-    pin_eq!(w.firsts.len(), 29, "initial run642 baseline");
+    // Item 4435: 29 -> 25, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 25, "initial run642 baseline");
 }
 
 /// run639: the successor after Construction's clock and hit points,
@@ -828,7 +837,8 @@ fn run639_s_word_frame_is_widened_whole() {
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 58 -> 34.
     // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
     // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
-    pin_eq!(w.firsts.len(), 29, "initial run639 baseline");
+    // Item 4435: 29 -> 26, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 26, "initial run639 baseline");
 }
 
 /// run636: the successor after a French General's craft rate, frame
@@ -873,7 +883,8 @@ fn run636_s_word_frame_is_widened_whole() {
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 58 -> 34.
     // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
     // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
-    pin_eq!(w.firsts.len(), 29, "initial run636 baseline");
+    // Item 4435: 29 -> 26, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 26, "initial run636 baseline");
 }
 
 /// run635: the successor after the crew's `GuyData::get_speed`, frame
@@ -913,7 +924,8 @@ fn run635_s_word_frame_is_widened_whole() {
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 55 -> 31.
     // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
     // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
-    pin_eq!(w.firsts.len(), 28, "initial run635 baseline");
+    // Item 4435: 28 -> 26, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 26, "initial run635 baseline");
 }
 
 /// run634: the successor after the French siege cost, frame 12794
@@ -944,7 +956,8 @@ fn run634_s_word_frame_is_widened_whole() {
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 55 -> 31.
     // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
     // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
-    pin_eq!(w.firsts.len(), 28, "initial run634 baseline");
+    // Item 4435: 28 -> 26, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 26, "initial run634 baseline");
 }
 
 /// run631: the successor after the member's re-placed slot and the
@@ -975,7 +988,8 @@ fn run631_s_word_frame_is_widened_whole() {
     // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 56 -> 32.
     // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
     // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
-    pin_eq!(w.firsts.len(), 30, "initial run631 baseline");
+    // Item 4435: 30 -> 27, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 27, "initial run631 baseline");
 }
 
 /// run629: the successor after the Militia ramp and the French siege move,
@@ -1005,7 +1019,8 @@ fn run629_s_word_frame_is_widened_whole() {
     // Item 1457: 197 → 193; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 193 → 97; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     // Item 1461: 97 → 90; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
-    pin_eq!(w.firsts.len(), 29, "initial run629 baseline");
+    // Item 4435: 29 -> 28, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 28, "initial run629 baseline");
 }
 
 /// run630: the muster before the word 10802 (item 1457).
@@ -1036,7 +1051,8 @@ fn run630_s_muster_window_is_widened_whole() {
     // Item 4159's residue: 30 -> 29, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     pin_eq!(
         w.firsts.len(),
-        29,
+        // Item 4435: 29 -> 28, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+        28,
         "run630 after the members' come-out and the pushed slot's normalize"
     );
 }
@@ -1069,7 +1085,8 @@ fn run624_s_word_frame_is_widened_whole() {
     // Item 1458: 95 → 90; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     pin_eq!(
         w.firsts.len(),
-        29,
+        // Item 4435: 29 -> 28, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+        28,
         "run624 after the Militia ramp and the French siege move"
     );
 }
@@ -1101,7 +1118,8 @@ fn run625_s_hoplite_frame_is_widened_whole() {
     // Item 1458: 95 → 90; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     pin_eq!(
         w.firsts.len(),
-        29,
+        // Item 4435: 29 -> 28, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+        28,
         "initial run625 baseline: its standing keys on 9980"
     );
 }
@@ -1134,7 +1152,8 @@ fn run627_s_food_frame_is_widened_whole() {
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 38 -> 25.
     pin_eq!(
         w.firsts.len(),
-        25,
+        // Item 4435: 25 -> 24, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+        24,
         "initial run627 baseline: its standing keys on 7776"
     );
 }
@@ -1199,7 +1218,8 @@ fn run622_s_word_frame_is_widened_whole() {
     // Item 1455: 96 → 95, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1457: 95 → 93; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 93 → 88; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 26, "run622 after the gull's flight");
+    // Item 4435: 26 -> 24, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 24, "run622 after the gull's flight");
 }
 
 /// run617: the successor after `largest_gather`, frame 8840 (item 1451).
@@ -1227,7 +1247,8 @@ fn run617_s_word_frame_is_widened_whole() {
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1455: 111 → 110, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1458: 110 → 105; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 30, "run617 after the idle push-back");
+    // Item 4435: 30 -> 28, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 28, "run617 after the idle push-back");
 }
 
 /// run616: the successor after the per-building queue, frame 8385 (item
@@ -1256,7 +1277,8 @@ fn run616_s_word_frame_is_widened_whole() {
     pin!(w.missing.is_empty(), "every key is read: {:?}", w.missing);
     // Item 1455: 109 → 108, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1458: 108 → 103; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 29, "run616 after the idle push-back");
+    // Item 4435: 29 -> 28, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 28, "run616 after the idle push-back");
 }
 
 /// run612: the successor after a wonder's start became first contact,
@@ -1286,7 +1308,8 @@ fn run612_s_word_frame_is_widened_whole() {
     // Item 1455: 106 → 104, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1458: 104 → 99; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     // Item 4159's residue: 39 -> 38, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 24, "run612 after the idle push-back");
+    // Item 4435: 24 -> 23, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 23, "run612 after the idle push-back");
 }
 
 /// run610: the successor after the university admission limit, frame 8182.
@@ -1315,7 +1338,8 @@ fn run610_s_word_frame_is_widened_whole() {
     // Item 1455: 109 → 107, who=1's food and its queued Citizens' costs — a Citizen is ramped by the Militia line too (`docs/COSTS.md`).
     // Item 1457: 107 → 105; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 105 → 100; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-    pin_eq!(w.firsts.len(), 25, "run610 after the idle push-back");
+    // Item 4435: 25 -> 23, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 23, "run610 after the idle push-back");
 }
 
 /// run611: the first capture of this game past first contact, blocks
@@ -1361,7 +1385,8 @@ fn run613_s_contact_frame_is_widened_whole() {
     // Item 1457: 102 → 100; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 100 → 95; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 38 -> 25.
-    pin_eq!(w.firsts.len(), 25, "run613 after the idle push-back");
+    // Item 4435: 25 -> 24, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 24, "run613 after the idle push-back");
     pin!(
         !w.firsts
             .keys()
@@ -1446,7 +1471,8 @@ fn run620_s_ship_window_is_widened_whole() {
     // Item 1457: 86 → 84; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 84 → 83; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 35 -> 28.
-    pin_eq!(w.firsts.len(), 28, "run620 after the idle push-back");
+    // Item 4435: 28 -> 24, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 24, "run620 after the idle push-back");
     // `form` is the standing new-unit residue (−1 here, 0 there) every
     // window carries for a unit born after the start; nothing else of
     // either ship parts.
@@ -1487,7 +1513,8 @@ fn run618_s_boarding_window_is_widened_whole() {
     // Item 1458: 109 → 104; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     // Item 4159's residue: 44 -> 43, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 43 -> 29.
-    pin_eq!(w.firsts.len(), 29, "run618 after the idle push-back");
+    // Item 4435: 29 -> 28, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 28, "run618 after the idle push-back");
 }
 
 /// run615: the builder `1/51`'s birth beside the wonder, blocks
@@ -1518,7 +1545,8 @@ fn run615_s_birth_window_is_widened_whole() {
     // Item 1457: 105 → 103; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 103 → 98; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 39 -> 25.
-    pin_eq!(w.firsts.len(), 25, "run615 after the idle push-back");
+    // Item 4435: 25 -> 24, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 24, "run615 after the idle push-back");
     // **The recruit at birth** (item 1449): city `1/2008` trains citizen
     // `1/51` on frame 7962, the wonder `1/2022` recruits it on its phase the
     // same frame, and it walks to the original's spot. With the queues in a
@@ -1559,7 +1587,8 @@ fn run614_s_builder_window_is_widened_whole() {
     // Item 1457: 108 → 106; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
     // Item 1458: 106 → 101; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 39 -> 25.
-    pin_eq!(w.firsts.len(), 25, "run614 after the idle push-back");
+    // Item 4435: 25 -> 23, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 23, "run614 after the idle push-back");
     pin!(
         !w.firsts
             .keys()
@@ -1581,7 +1610,8 @@ fn run611_s_contact_window_is_widened_whole() {
     // Item 1458: 105 → 100; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
     // Item 4159's residue: 40 -> 39, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 39 -> 25.
-    pin_eq!(w.firsts.len(), 25, "run611 after the idle push-back");
+    // Item 4435: 25 -> 24, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 24, "run611 after the idle push-back");
 }
 
 /// run603: the successor word after French timber capacity, frame 7356.
