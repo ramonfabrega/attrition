@@ -649,7 +649,7 @@ mod tests {
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
         let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(2640);
         let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(2646);
-        let o: u16 = std::env::var("RON_PROBE_O").ok().and_then(|v| v.parse().ok()).unwrap_or(46);
+        let o: i16 = std::env::var("RON_PROBE_O").ok().and_then(|v| v.parse().ok()).unwrap_or(46);
         while built.sim.frame <= hi {
             let f = built.sim.frame;
             if f >= lo {
