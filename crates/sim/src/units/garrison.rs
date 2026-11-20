@@ -756,6 +756,23 @@ impl Sim {
         // 696 units from where this crate left it.
         let facing = self.units[f].movement.facing;
         self.crew_des(f, spot, facing, true);
+        // **And every figure's `last` is its new point** (item 4449): the
+        // same `set_new_location(spot, 1, 1)` (`00617c10:518`) hands each
+        // figure to `Guy::set_new_location(…, 1)`, whose `param_3` copies
+        // the point into `last_x`/`last_y` and the new `z` into `last_z`
+        // (`005d86f0:66–70`), and `param_4`'s `Guy::set_angle(…, 1)` writes
+        // `last_angle` beside `angle` on guy 0. A unit that went in walking
+        // came out with `last` on the door it entered by: the sample's Inca
+        // Citizen `4/4` out of its building on 3878 at (10488, 10968),
+        // `last` ours (10152, 10104, 332), theirs (10488, 10968, 304),
+        // run1724.
+        self.guys_last_on_point(f);
+        let facing = self.units[f].movement.facing;
+        if let Some(g) = self.units[f].guys.first_mut()
+            && g.follow.is_none()
+        {
+            g.last = g.last.map(|(at, _)| (at, facing));
+        }
     }
 
     /// `Object::eject_contents` on a building: deferred — one squad a frame

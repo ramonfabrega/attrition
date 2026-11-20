@@ -556,15 +556,17 @@ pub(in crate::diff) mod tests {
     /// 2989 → 3575, cities 3176 → 3888, items 3976 → 7544, goods 4094 →
     /// 4559, world 2921 → 3878. Item 4445 (an outside mine pays the Inca's
     /// wealth per miner): leaders 3575 → 3888; items 7544 → 5760, past
-    /// 3878, where units, builds, guys and world already part.
+    /// 3878, where units, builds, guys and world already part. Item 4449
+    /// (`set_new_location(…, 1)` copies a figure's point into `last`, the
+    /// Inca Citizen `4/4` out of its building): units and guys 3878 → 3888.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 3878),
+        ("units", 3888),
         ("builds", 3878),
         ("walls", 21044),
         ("ammo", 3888),
         ("deaths", 3932),
         ("groups", 3935),
-        ("guys", 3878),
+        ("guys", 3888),
         ("leaders", 3888),
         ("cities", 3888),
         ("items", 5760),
@@ -993,15 +995,19 @@ pub(in crate::diff) mod tests {
     /// 320, its first miner at an outside mine. Step 5 now pays the Inca's
     /// wealth per miner (`BuildTypeData::calc_gather@00639e40:849`–`856`,
     /// reached from `Leader::calc_gather@006ceee0:211`–`222`): leaders
-    /// 3575 -> 3888, every other row unchanged.
+    /// 3575 -> 3888, every other row unchanged. Item 4449: units and guys
+    /// 3878 -> 3888, `set_new_location(…, 1)`'s `last` copy
+    /// (`Guy::set_new_location@005d86f0:66`–`70`) on the Inca Citizen `4/4`
+    /// out of its building: `2844 4 guy` `last_x/last_y/last_z` ours
+    /// 10152, 10104, 332 -> theirs' 10488, 10968, 304.
     const SAMPLE_RANGES_1724: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
-            3878,
-            3607,
-            3607,
-            1,
-            "2844 4 guy: last_x 10152|10488, last_y 10104|10968, last_z 332|304",
+            3888,
+            3621,
+            3664,
+            531,
+            "2304 19 guy: cur_anim 13|11",
         ),
         (
             "builds",
@@ -1035,14 +1041,7 @@ pub(in crate::diff) mod tests {
             2,
             "295 201 curr_x: curr_x[1] -120|-117, curr_x[2] 119|116",
         ),
-        (
-            "guys",
-            3878,
-            991,
-            991,
-            1,
-            "756 4 guy: last_x 10152|10488, last_y 10104|10968, last_z 332|304",
-        ),
+        ("guys", 3888, 998, 998, 4, "621 19 guy: cur_anim 13|11"),
         (
             "leaders",
             3888,
