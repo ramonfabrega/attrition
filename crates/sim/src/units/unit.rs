@@ -716,9 +716,12 @@ impl Movement {
 
     /// `Unit::set_angle`'s mirror flip (`605410`–`605424`): the new
     /// heading against the old `+0x50`, by `reversing`'s inclusive window.
-    const fn flip_mirror(&mut self, to: movement::Angle) {
+    fn flip_mirror(&mut self, to: movement::Angle) {
         let d = to.0.wrapping_sub(self.heading.0) as u32;
         if d >= 0x4000_0000 && d <= 0xc000_0000 {
+            if crate::groups::group::P4477_FRAME.with(|f| f.get()) == 3065 {
+                eprintln!("P4477C flip {:x} -> {:x} mirror {}\n{}", self.heading.0, to.0, self.mirror, std::backtrace::Backtrace::force_capture());
+            }
             self.mirror = !self.mirror;
         }
     }
@@ -732,7 +735,7 @@ impl Movement {
     /// `Guy::set_angle` is not `Guy::do_turn`, so it leaves `guy_flags & 2`
     /// as it found it: the snap is not a turn the body's own `Guy::move`
     /// skips for, and [`Movement::frame_facing`] moves with the facing.
-    pub const fn set_facing(&mut self, facing: movement::Angle) {
+    pub fn set_facing(&mut self, facing: movement::Angle) {
         self.flip_mirror(facing);
         self.facing = facing;
         self.frame_facing = facing;
@@ -762,7 +765,7 @@ impl Movement {
     /// set — and its callers are `do_move`'s re-face, `go_inside`,
     /// `do_spec_anim` and the scenario loader, none of which this crate
     /// reaches yet.
-    pub const fn set_heading(&mut self, heading: movement::Angle) {
+    pub fn set_heading(&mut self, heading: movement::Angle) {
         self.flip_mirror(heading);
         self.heading = heading;
     }
