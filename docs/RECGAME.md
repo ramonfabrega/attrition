@@ -1101,3 +1101,20 @@ were this cause rests on our walk and on the sums agreeing; neither has a
 ranges take. A unit leaving a building (`garrison.rs`'s `come_out_place`)
 takes the same `set_new_location(…, 1, 1)` and is not given the write; no
 score parts on it yet.
+
+**Row 100's world line, by leaf (item 4441, run1721).** A ranges take of
+row 100's file to its end (run1705's line under `RON_RANGES`,
+`RNG_MASK=0xfffu`) gives the leaf of the world line that parted on state
+134. It is section 6's tile masks (range 3624), two bytes: `tile::BAD_PATH`
+sits on (211, 108) in ours and on (208, 111) in the original. Both are
+blocked corners of the computer's University `1/2006` (`0x1a4`, 4 × 4,
+corner (208, 108)), started on frame 133. Blocking a tile clears its own
+`BAD_PATH` and sets it on its neighbours, so which corners keep the bit
+depends on the walk order. `BuildType::mask_me@006312a0` walks the footprint
+column by column and ours walked it row by row (`docs/PATHFINDER.md`, the
+`tcost` paragraph). With the walk built, row 100's world goes 134 → 2,618 of
+3,331 (`SCORES[5].moved`). It parts next on 2618, the state ammo parts on:
+range 1392, record 1368, `cell`, byte 20, ours 0x02, theirs 0xff. Units
+still parts first, on 1611: range 1170, record 31, `cavarch_o` ours −1,
+theirs −2, the leaf rows 80 and 120 part on. Diff-backed by run1721's
+ranges; the score of the other seven rows is the gate's.
