@@ -50,7 +50,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5): the pass designed four seats: the chain's 4439 (held out, the Ancient starts; landed, re-measured on the tip now 4435 is re-landed with its re-pins), a parity seat's 4441 (held out, the later starts, after 4436 made row 80's world whole; out), a parity seat's 4440 (the sample, from 2888, after 4432 moved units 2700 → 2888; out), the eye's 4433 (a plate for a city but Napata; out, after 4437 and 4438 landed at their stops). 4439 and 4441 both take the game lane, one game at a time. Unseated, for the seat that stops first: 4430 (guys' `last_angle`), 4431 (groups' `facing`).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5): the pass designed four seats: the chain's 4439 (held out, the Ancient starts; landed, re-measured on the tip now 4435 is re-landed with its re-pins), a parity seat's 4441 (held out, the later starts, after 4436 made row 80's world whole; out), a parity seat's 4442 (the sample, from 2892, after 4440 moved units 2888 → 2892 and groups 2888 → 3053; out), the eye's 4433 (a plate for a city but Napata; out, after 4437 and 4438 landed at their stops). 4439 and 4441 both take the game lane, one game at a time. Unseated, for the seat that stops first: 4430 (guys' `last_angle`), 4431 (groups' `facing`).
 
 4439. **Parity held out, the Ancient starts: a passenger's unload** (a rules item, whole; the chain's; `docs/RECGAME.md` §10.3;
 DECISIONS 145 §1, §3). 4435 took row 120 as run1716 (ranges, 4.29 GB) and found a transport born with `form` −1 where `Unit::init` writes 0:
@@ -68,12 +68,13 @@ converts before `Wall::start`: row 80's world 0 → 3,837 of 3,837 (state 0, ran
 parts on at 5864) and builds on 2376 (`build_masks` 0|8192). First act: one ranges take of row 100 as run1721, then its world on 134 by
 leaf; rows 60 and 40 as run1722, run1723. Re-pin `SCORES[k].moved`. It stops when two landings running move no row's column (145 §4).
 
-4440. **The 2017 sample, from 2888** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §7). 4432 wired `action_move_near`'s
-same-region arm (unit o 27's `dest_y` 30792 → theirs' 30648): `SAMPLE_LINES` units 2700 → 2888, every other line unmoved. Units and groups
-now part first on 2888, the frame after item 4359's bell (computer 4's capital struck on 2887): units' first range `2361 2 order.type`
-7|absent (ours 3107 ranges, theirs 3137, 745 parted); groups' `346 256 id..march`, `stamp` 2701|2887. Then guys 2920, world 2921, leaders
-2989 (player 3's `oil_patches` 0x0c|0x0d). First act, on disk: the order on 2888 and the group's stamp, both values and the writer.
-It stops when two landings running move no line's first parting (145 §4).
+4442. **The 2017 sample, from 2892** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §7). 4440 read the bell on 2888: computer
+4's Citizens walk `GarrisonOrder::walk_data` with the capital's flags, target and search (ours walked type and node only), and both bell
+arms of `take_damage` push the building's group (`[4/2000]` in slot 256, `stamp` ours 2701 → theirs' 2887): `SAMPLE_LINES` units 2888 →
+2892, groups 2888 → 3053. Units now part on 2892: `1410 0 path.size..increment`, `path.length` 68|65 (theirs 3163 ranges, ours 3166,
+1512 parted), record 0 not yet named by `TypeIndex`. Then guys 2920, world 2921, leaders 2989, builds 3029, groups 3053 (`341 257`, `ox`/
+`oy`). First act, on disk: name record 0 of range 1410, then its path's writer with both lengths. It stops when two landings running move
+no line's first parting (145 §4).
 
 4430. **The packets' guys line: `last_angle`** (a rules item, whole; unseated, for the seat that stops first; CHECKSUM §23). 4428 turned
 5 guys lines, `PACKETS_SCORE` 743 → 748 of 1,053: an aircraft's figure-0 `z` is its object number's dead occupant's (`Guy::set_new_location`
