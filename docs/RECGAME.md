@@ -1136,8 +1136,12 @@ range 1170. Row 120 is now **whole**; units also moves on rows 40, 60, 80,
 100 and 140 (`docs/journal/2026-11-20-item-4443.md`); row 60 parts first on
 1561. With 4444: 3 of 8, 74 of 96 lines.
 
-*Not established*: rows 80 and 100 next part units on `des_angle` (`+0x58`):
-run1720 on 2367, range 2407; run1721 on 1793, range 1581. Unread.
+~~*Not established*: rows 80 and 100 next part units on `des_angle` (`+0x58`):
+run1720 on 2367, range 2407; run1721 on 1793, range 1581. Unread.~~
+Answered by item 4448.
+
+**Row 60's groups** (item 4473): an army's push zeroes the emptied last
+slot's `ox`/`oy` (`docs/GROUPS.md` §36.2).
 
 ## 11. Parity held out, second: eight more lobbies named before the original plays them (item 4462)
 

@@ -5115,6 +5115,16 @@ when player 1 pushes into slot 65 (diff-backed:
 modelled. Its `id` is −1, so it drops dead members only, and a push's list
 is built from live units.
 
+**An army's push takes it too** (item 4473). `Army::add_unit@006f9f40:37`
+hands its stack group to `Groups::push_group(who, g, 1)`, so the same
+`equals_group` runs on the last slot. The crate's army arm (`ai/army.rs`)
+chose its slot through `pool_slot_for` without it. On row 60 of the held-out
+battery, who=1's army 1 pushes `1/169` into slot 67 on 3598 while slot 68 is
+the last and empty. run1722's groups range 92, record 68, reads `ox`/`oy`
+(0, 0) there; ours kept (33720, 15048). `Sim::push_equals_last` is now the one
+step all three pushes call: a selection's, a building group's and an army's.
+Diff-backed: `row_60_s_army_push_zeroes_the_empty_last_slot_s_origin_on_run1722_s_ranges`.
+
 ### 36.3 What moved
 
 No floor or word moves; French East Indies stays at 10802. 85 widening
