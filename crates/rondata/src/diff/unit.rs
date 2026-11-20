@@ -522,7 +522,10 @@ mod tests {
             // 1440 → 1446: item 3329 binds a `GRAPH` to its types without
             // case, so six more entries name a piece. 1446 → 1452: item 3369
             // names the six "over time" merchant pieces (`artdata::OVER_TIME`).
-            1452,
+            // 1452 → 1451: item 4461 places a gender entry only on the
+            // types whose tail it is, and `ASSAULTMARINES-DEFAULT-AGE0-FEMALE`
+            // (piece 6408) names none (`docs/CHECKSUM.md` §23.13).
+            1451,
             "every `<UNIT>` entry the unit path can name"
         );
         // **And an entry with no `<ANIM>` child is one of them.** All

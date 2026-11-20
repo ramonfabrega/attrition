@@ -621,7 +621,7 @@ pub struct Movement {
     /// after `Guy::move`; item 3571).
     pub frame_facing: movement::Angle,
     /// **`guy_flags & 2` as the frame leaves it** (item 4453,
-    /// `docs/CHECKSUM.md` §23.11), on guy 0 and every figure without a
+    /// `docs/CHECKSUM.md` §23.12), on guy 0 and every figure without a
     /// track — the set `Guy::do_turn@005d97a0:31`–`42` recurses into.
     /// `do_turn:15` sets the bit on any call that moves the angle and
     /// `Guy::process@005e0230:28` clears it after `Guy::move`, so it is
