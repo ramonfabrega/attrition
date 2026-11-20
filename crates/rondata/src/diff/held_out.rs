@@ -702,9 +702,41 @@ mod tests {
         );
     }
 
+    /// **Row 100's Caravan crew keep guy 0's point** (item 4471,
+    /// `docs/CHECKSUM.md` §18): on tick 2645 the computer's Caravan `1/46`
+    /// (TI 59, standing blocked on its trade route) is pushed, and its
+    /// point moves from (40382, 12377) to (40382, 12355) on both sides while
+    /// guy 0's body stays. Guy 0's `des_y` takes the unit's 12355, but the
+    /// two crew figures' `des_y` is what `Guy::set_new_location`'s crew loop
+    /// last wrote, guy 0's point 12377. Every guys range on 2646: red
+    /// without it at range 435, record 46, `des_y` ours `43 30`, theirs
+    /// `59 30`.
+    #[test]
+    fn row_100_s_caravan_crew_keep_guy_0_s_point_on_run1721_s_ranges() {
+        let Some(theirs) = line_ranges_agree(5, "run1721", 2646, 6, 435) else {
+            return;
+        };
+        assert_eq!(
+            &theirs[0x60 - 0x8..0x64 - 0x8],
+            &12377i32.to_le_bytes(),
+            "theirs' crew des_y"
+        );
+    }
+
     /// Game `k`'s units line on `state`, ours against the ranges take
     /// `run`'s, every range byte for byte; returns theirs' range `range`.
     fn units_ranges_agree(k: usize, run: &str, state: i64, range: usize) -> Option<Vec<u8>> {
+        line_ranges_agree(k, run, state, 0, range)
+    }
+
+    /// The same for line `line` (0 units, 6 guys).
+    fn line_ranges_agree(
+        k: usize,
+        run: &str,
+        state: i64,
+        line: u8,
+        range: usize,
+    ) -> Option<Vec<u8>> {
         let inst = crate::testenv::install()?;
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
         let (Some(rcx), _) = paths(&FIRST, k) else {
@@ -729,13 +761,21 @@ mod tests {
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
         let set = record.first_of(state - 1).expect("the state's set").clone();
         let theirs = record.ranges(&set).expect("the set's ranges");
-        let theirs: Vec<_> = theirs.into_iter().filter(|r| r.line == 0).collect();
-        let ours = built.sim.checksum_units();
-        assert_eq!(ours.ranges.len(), theirs.len(), "units ranges on {state}");
+        let theirs: Vec<_> = theirs.into_iter().filter(|r| r.line == line).collect();
+        let ours = match line {
+            0 => built.sim.checksum_units(),
+            6 => built.sim.checksum_guys(),
+            _ => unreachable!("line {line}"),
+        };
+        assert_eq!(
+            ours.ranges.len(),
+            theirs.len(),
+            "line {line}'s ranges on {state}"
+        );
         for (i, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
             assert_eq!(
                 a.bytes, b.bytes,
-                "units range {i} on {state}, record {} {}",
+                "line {line} range {i} on {state}, record {} {}",
                 a.record, a.field
             );
         }
