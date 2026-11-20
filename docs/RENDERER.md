@@ -1084,9 +1084,8 @@ figure-level map is pinned to the port, and the node-level convention
 has not been read again.
 
 **What is not established.**
-- **Why the camera moved between run1441 and run1559.** Both takes stage
-  the same cursor pin and inputs. The camera probably moves in real time
-  rather than in sim time, but nothing has been read to show it.
+- ~~**Why the camera moved between run1441 and run1559.**~~ Both start at
+  the capital and were moved off it on one axis (§3.31, item 4437).
 - **A mid-game height table.** Only the start's `DUMP_ALL` blocks print
   one, so the condition is not checked past frame 37.
 - ~~**What a building draws.** The sprite and its anchor are the original's.
@@ -4521,6 +4520,68 @@ on run1688's own 3279 pass lays its strokes (4393a). The pass has the take's str
 **What three takes agree on** (item 4399, its journal). Within the takes' 2-luma noise floor, run1564, run1665 and
 run1688 agree on **3.8 % of the water's pixels**, as even speckle; a pair barely beats one side shifted. Only the
 lake's mean holds. So no row is minted on its pattern: the item's stop.
+
+## 3.31 The opening camera (item 4437)
+
+*2026-11-19, Opus 5.5. `client::opening`; checked by
+`opening::tests::the_capital_in_the_opening_frame` and
+`the_opening_camera_is_the_unmoved_packets_camera`.*
+
+**The row.** Of the 161 lobbies `Start:` builds, each started from its
+page (`FreeRunner::from_choices` on the events that set it), those whose
+slot 0 capital (its one city centre on frame 0) projects inside the
+1920×1080 screen at the client's opening camera. **Minted at 95 of 161**
+on run1559b's packet's camera (§3.6), which every lobby opened on: 66
+outside, 53 of them East Indies (style 18), the rest one or a few lobbies
+each of eleven other styles. **95 → 161 of 161** on the camera below. The
+pinned count stays beside it (`CAPITAL_IN_FRAME_PINNED`, 95), so the
+comparison is seen able to fail.
+
+**What the original does at the start** (read). `Game::init@0058c480`
+ends its load with `Game::zoom_to_first_unit@0058db30`. It takes the
+console player's object 2000, the capital a start places
+(`rondata::script::CAPITAL`), from that player's list at
+`GameAccess::objects +0x14 + who·0x1c`. While the object lives
+(`flags & 1`), the camera's `loc` becomes its point (`+0x10`, `+0x14`,
+each `^ 0x63637`) through `Camera::set_loc@00844a60`, which writes `loc_x`
+and `loc_y` and nothing else. `set_loc` is skipped under
+`scroll_lock_flags & 1`. Otherwise `loc` becomes half the world's `xs`
+and `ys` (`WorldData +0`, `+4`). Those are counted in cells (60 and 60 on
+run1570's packet), so this lands in world units near the map's corner, not
+at its centre. The zoom becomes level 5 (`fixed_zooms[5]`). The same call
+selects the object through the console's select list (parked 4437a).
+`Game::run@00584590` calls it again only for a scenario with no valid
+`ScenarioData::camera_init_x`/`_y`, which v1 cuts. The client ports this
+in `opening::camera`: `pinned_camera` with `loc` set to slot 0's object
+2000's point, or the corner fallback. A lobby opens on it, both at launch
+and at the page's start. The photographed pair keeps run1559b's camera.
+
+**Held against the packets** (diff-backed on one map). Of the 55
+`frame-snapshot.bin` under `~/ron-golden/*/map-14/`, all 55 hold zoom
+`46a2f59c`, which is their own `fixed_zooms[5]` (`+0x334`), at level 5.
+**21 hold `loc` at the console player's object 2000 to the bit**:
+`45460000 46f0c000`, Great Lakes' capital at (3168, 30816). These are the
+captures that never moved it: ch95pkt, run1327, run1332a, run1351,
+run1351c, run1417, run1426b, run1570, run1586–run1592, run1652, run1653,
+run839, run938b, run943c and run946. The harness lobby's opening camera
+is those bits (`UNMOVED_LOC`). The other 34 were moved after the start:
+- by a fixed step on one screen axis or both, the lanes' cursor pins:
+  run1559b's x by −1063.72, run1441's and run1437's y by −1071.32, and the
+  diagonal pins' ±535.66 on run1357, run1361, run1381 and their kin;
+- by a console `camera` line: run1564 and run1665, at tile (192, 200);
+- or far off: run842, run870, run954b, run984b/c, run1100, ch94p.
+run1100 is the one packet off the harness map, and its camera was moved.
+So the rule is backed on one capital's point. No packet on disk holds an
+East Indies start, so East Indies rests on the reading and the row.
+
+**Not established.**
+- The fallback: no packet has a dead object 2000 at load.
+- What moves the camera between the start and a packet (§3.6's first
+  bullet). The steps sit on screen axes, which looks like edge scrolling
+  under the lanes' cursor pins, but the scroll is unread
+  (`Camera::check_scroll@008440f0`).
+- `zoom_mode` (`~prefs >> 0xb & 1 | 2`) is unread. Under the client's
+  fresh profile the zoom is the packets' own.
 
 ## 4. The stack
 
