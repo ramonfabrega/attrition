@@ -817,6 +817,7 @@ pub(in crate::diff) mod tests {
             }
             stream.apply(f as i32, &mut built);
             crate::diff::harness::debug_watch(&built, f);
+            crate::diff::harness::debug_builds(&built, f);
             built.tick();
         }
         let got: Vec<SampleRange> = STATE_LINES

@@ -2798,8 +2798,20 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
                 m.by_type[b.queue.items[0].ty]
             )
         };
+        // Probe (item 4472): the region's flags and the survey's candidates.
+        let probe = match (b.ty, built.sim.world.region_of(b.pos.cell())) {
+            (Some(t), Some(r)) if std::env::var("RON_DEBUG_BUILDS_GATHER").is_ok() => {
+                let corner = built.sim.tile_corner(t, b.pos);
+                format!(
+                    " rf{:#x} cand{}",
+                    built.sim.world.region_flags(r),
+                    built.sim.gather_tcoords(t, b.owner, corner).len()
+                )
+            }
+            _ => String::new(),
+        };
         eprintln!(
-            "  f{frame} B {}/{} ty{ty} ({},{}) city{} act{} regen{} jc{}/{} hits{} dmg{}/{} help{} gl{} q[{}]{head}",
+            "  f{frame} B {}/{} ty{ty} ({},{}) city{} act{} regen{} jc{}/{} hits{} dmg{}/{} help{} gl{} q[{}]{head}{probe}",
             b.owner,
             b.index,
             b.pos.x,
