@@ -823,7 +823,13 @@ metal" that it is recorded here rather than explained. The positive arm is
 modelled (`economy::Site::miner_wealth`, the gatherers after the mine's cap,
 outside the enhancer; item 3360, `docs/AI.md` §281) and diff-backed on run987's
 block 7776 (who=1's `income[2:wealth]` 912 on both sides); the negative arm is
-dead at the shipped 10 and not modelled.
+dead at the shipped 10 and not modelled. **A mine outside every city takes it
+too**: `Leader::calc_gather@006ceee0:211`–`222` hands a camp or mine with
+`city < 0` to the same `BuildData::calc_gather`, so the wealth term has no city
+gate. Ours had added it in `city_rates` alone; item 4445 adds it to step 5's
+outside sites, diff-backed on run1724's state 3575 (the 2017 sample's computer
+2, its first miner at an outside mine: `resources[2]` and `income[2]` 320 on
+both sides, where ours had read 160).
 
 The flat branch is also the only one that does not bound gatherers by slots:
 it adds `per × n` for whatever `n` it was handed, where the mine, woodcutter
