@@ -1128,13 +1128,16 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4457 (the Dutch free Commerce's `gain_tech` tail):
         // leaders 6,000 -> 6,001, whole. run1725's setup set, range 128,
         // record 1, `leader_flags` byte 3: ours 0x0b, theirs 0x0f.
+        // Moved by item 4464 (`myarmor` is `Unit::update_armor`'s cache):
+        // units 5,999 -> 6,000, first 3937 -> 4026. run1725's 3937, range
+        // 173, record 1 (who=1's Armed Merchant), `myarmor` ours 2, theirs 1.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5999, 6001, 6001, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 6001, 6001,
+                6000, 6001, 6001, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 6001, 6001,
             ],
             first: &[
-                ("units", (3937, Some(595040496), 264476909)),
+                ("units", (4026, Some(3301215378), 2306706575)),
                 ("guys", (4026, Some(1242658676), 1019574129)),
             ],
             over: None,
