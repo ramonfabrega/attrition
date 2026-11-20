@@ -750,26 +750,6 @@ pub(in crate::diff) mod tests {
     ) {
         use super::super::checksum_lines::packets::STATE_LINES;
         let empty = Default::default();
-        // PROBE 4440: `RON_PROBE_4440=<line>:<lo>-<hi>` prints both sides' ranges raw.
-        if let Some((pl, lo, hi)) = std::env::var("RON_PROBE_4440").ok().and_then(|v| {
-            let (l, r) = v.split_once(':')?;
-            let (a, b) = r.split_once('-')?;
-            Some((l.to_string(), a.parse::<usize>().ok()?, b.parse::<usize>().ok()?))
-        }) {
-            for (name, o) in STATE_LINES.iter().zip(ours) {
-                if *name != pl {
-                    continue;
-                }
-                let t: &super::super::checksum_lines::StreamRows =
-                    theirs.get(*name).unwrap_or(&empty);
-                for i in lo..=hi {
-                    let a = o.ranges.get(i).map(|r| format!("{} {} {:02x?}", r.record, r.field, r.bytes));
-                    let b = t.get(i).map(|r| format!("{} {} {:02x?}", r.0, r.1, r.2));
-                    eprintln!("PROBE {name} {i} ours {a:?}");
-                    eprintln!("PROBE {name} {i} thrs {b:?}");
-                }
-            }
-        }
         for (name, o) in STATE_LINES.iter().zip(ours) {
             let t: &super::super::checksum_lines::StreamRows = theirs.get(*name).unwrap_or(&empty);
             for i in 0..o.ranges.len().max(t.len()) {
