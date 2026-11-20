@@ -659,6 +659,21 @@ mod tests {
                 let set = record.first_of(f - 1).expect("set").clone();
                 let theirs = record.ranges(&set).expect("ranges");
                 let theirs: Vec<_> = theirs.into_iter().filter(|r| r.line == 6).collect();
+                let tu: Vec<_> = record.ranges(&set).expect("ranges").into_iter().filter(|r| r.line == 0).collect();
+                let ou = built.sim.checksum_units();
+                eprintln!("  state {f}: units ranges ours {} theirs {}", ou.ranges.len(), tu.len());
+                for (i, (a, b)) in ou.ranges.iter().zip(&tu).enumerate() {
+                    if a.record == o && a.field == "collide_frame..play" {
+                        for &(name, off, w) in sim::checksum::units::UNIT_FIELDS {
+                            let (x, y) = (&a.bytes[off - 0x48..off - 0x48 + w], &b.bytes[off - 0x48..off - 0x48 + w]);
+                            eprintln!("    U {f} r{i} rec{} {name}: ours {:02x?} theirs {:02x?}{}", a.record, x, y, if x != y { "  <<" } else { "" });
+                        }
+                    } else if a.bytes != b.bytes {
+                        eprintln!("    U {f} r{i} rec{} {} differs: ours {:02x?} theirs {:02x?}", a.record, a.field, a.bytes, b.bytes);
+                    } else if a.record == o {
+                        eprintln!("    U {f} r{i} rec{} {} = {:02x?}", a.record, a.field, a.bytes);
+                    }
+                }
                 let ours = built.sim.checksum_guys();
                 eprintln!("  state {f}: guys ranges ours {} theirs {}", ours.ranges.len(), theirs.len());
                 for (i, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
