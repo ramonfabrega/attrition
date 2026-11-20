@@ -659,3 +659,37 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
 /// line and state, and the games taken.
 #[cfg(test)]
 pub(crate) const HELD_OUT_LINE: (usize, usize) = (0, 8);
+
+/// PROBE (item 4436, reverted whole): row 80's start, the buildings whose
+/// footprint touches tiles (205..230, 70..95), and the BEHIND bits there.
+#[cfg(test)]
+#[test]
+#[ignore]
+fn probe_4436_row80_behind() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let home = std::path::PathBuf::from(std::env::var("HOME").unwrap());
+    let rcx = home.join("ron-golden/recordings/item4413-row080-6000.rcx");
+    let rec = crate::recgame::read(&rcx.to_string_lossy()).unwrap();
+    let loaded = crate::load::load(&inst).unwrap();
+    let built = crate::checksum::playback::recording_start(&loaded, &rec);
+    let sim = &built.sim;
+    for (i, b) in sim.buildings.iter().enumerate() {
+        let Some(ty) = b.ty else { continue };
+        let t = &sim.tables.build_types[ty];
+        let c = sim::cities::place::tile_corner_of(t.x_size, t.y_size, b.pos);
+        if c.x + t.x_size >= 205 && c.x <= 230 && c.y + t.y_size >= 70 && c.y <= 95 {
+            eprintln!(
+                "PROBE b{i} who {:?} o {} ty {ty} {:?} pos ({},{}) corner ({},{}) size {}x{} behind {} active {}",
+                b.owner, b.index, t.ident, b.pos.x, b.pos.y, c.x, c.y, t.x_size, t.y_size, t.behind_height, b.active
+            );
+        }
+    }
+    for y in 76..88 {
+        let row: String = (210..224)
+            .map(|x| format!("{:04x} ", sim.world.tile_mask(sim::Pos::new(x, y))))
+            .collect();
+        eprintln!("PROBE y {y}: {row}");
+    }
+}
