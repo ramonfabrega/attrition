@@ -1159,8 +1159,11 @@ impl Sim {
     /// that game (run1651's coverage); on 2888 a Citizen's walk to its
     /// garrison spends `Unit::do_move+0xe84`. SEAMS: the type's vslot
     /// `+0x90`, a city's building that is not the city itself, answered
-    /// no (as `alarm_view`'s `data_type_slot90`); the group is not pushed
-    /// on the player's pool, as [`Sim::peasant_alarm`]'s.
+    /// no (as `alarm_view`'s `data_type_slot90`). The group is pushed on
+    /// the player's pool (`Groups::push_group(who, g, 1)`, `:279`) before
+    /// the bell, as [`Sim::peasant_alarm`]'s (item 4440): the sample's 2887
+    /// seats `[4/2000]` in slot 256, player 4's slot 0, a building group,
+    /// with `last_group` slot 1.
     pub(crate) fn city_struck_alarm(&mut self, b: usize, c: usize) {
         let who = self.buildings[b].owner;
         if self.cities.nation[who as usize].human
@@ -1171,6 +1174,7 @@ impl Sim {
             return;
         }
         let cb = self.cities.cities[c].building;
+        self.push_building_group(who, cb);
         self.action_alarm(who, &[cb]);
     }
 

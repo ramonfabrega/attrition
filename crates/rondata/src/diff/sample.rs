@@ -538,14 +538,17 @@ pub(in crate::diff) mod tests {
     /// (`process_attrition`'s check 6, an ally's ground both ways): units
     /// 2112 → 2700 and leaders 2112 → 2989. Item 4432 (`action_move_near`'s
     /// same-region arm: a refused slot re-placed round its captain's, the
-    /// person's Ashigaru Spearmen `3/27` on 2699): units 2700 → 2888.
+    /// person's Ashigaru Spearmen `3/27` on 2699): units 2700 → 2888. Item
+    /// 4440 (`GarrisonOrder::walk_data@00484690` ported, and the bell's
+    /// one-building group pushed on its player's pool): units 2888 → 2892,
+    /// groups 2888 → 3053.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 2888),
+        ("units", 2892),
         ("builds", 3029),
         ("walls", 21044),
         ("ammo", 3022),
         ("deaths", 3365),
-        ("groups", 2888),
+        ("groups", 3053),
         ("guys", 2920),
         ("leaders", 2989),
         ("cities", 3176),
@@ -559,8 +562,10 @@ pub(in crate::diff) mod tests {
     /// theirs' frame. Item 4429 (an ally's ground bleeds nothing): 3594 →
     /// 4361 empty frames, past every parting; the first shot stays on 2929.
     /// Item 4432 (a refused group slot re-placed): 4361 → 5010, the first
-    /// shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (5010, Some(2929));
+    /// shot still on 2929. Item 4440 (the bell's group pushed, a garrison
+    /// walked): 5010 -> 4141, every frame it loses past units' 2892 and
+    /// groups' 3053; the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4141, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
@@ -890,13 +895,16 @@ pub(in crate::diff) mod tests {
         // squad figure whose group slot (39070, 30774) is refused, is
         // re-placed round its captain's: order `y`/`dest_y` 30792 -> 30648,
         // `off_y` 72 -> 696, its seventeen path points (+22, +126) -> 0).
+        // Item 4440: 2888 -> 2892 (computer 4's ten Citizens under the bell
+        // walk `GarrisonOrder::walk_data@00484690`: `4/2`'s flags `04`, the
+        // capital (2000, 4, uid 0), `search` 1; ours 3107 -> 3137 ranges).
         (
             "units",
-            2888,
-            3137,
-            3107,
-            745,
-            "2361 2 order.type: +0x0 of 4|1: 07000000|04",
+            2892,
+            3163,
+            3166,
+            1512,
+            "1410 0 path.size..increment: path.length 68|65",
         ),
         (
             "builds",
@@ -915,14 +923,17 @@ pub(in crate::diff) mod tests {
             "1 0 rolling..start_roll_angle: +0x7 of 99|99: 44290000|462b0000",
         ),
         // Item 4419: 927 -> 961 (a dead building leaves on the push); item
-        // 4422: 961 -> 2888 (the swarm's `form` −1 on slot 195).
+        // 4422: 961 -> 2888 (the swarm's `form` −1 on slot 195). Item 4440:
+        // 2888 -> 3053 (the bell's `[4/2000]` pushed into player 4's slot 0
+        // on 2887: `stamp` 2701 -> 2887, `list[0]` 2009 -> 2000,
+        // `last_group[4]` 257 -> 256).
         (
             "groups",
-            2888,
-            628,
-            628,
-            3,
-            "346 256 id..march: stamp 2701|2887",
+            3053,
+            610,
+            610,
+            1,
+            "341 257 id..march: ox 7392|20448, oy 22752|18144, o_angle -1148715008|0",
         ),
         (
             "guys",

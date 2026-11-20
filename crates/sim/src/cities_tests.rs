@@ -9016,6 +9016,7 @@ fn a_citizen_struck_rings_its_city_s_bell_and_only_a_computer_s_once() {
     let (mut sim, b, c, near, other, _, _) = fresh();
     sim.peasant_alarm(near);
     assert!(sim.cities.cities[c].alarm, "the bell");
+    assert!(bell_group_seated(&sim, 0, b), "the bell's group is pushed");
     assert!(garrisoning(&sim, near, b), "{:?}", sim.units[near].orders);
     assert!(garrisoning(&sim, other, b), "every Citizen in the radius");
     // A second blow: the bell is rung, nothing toggles.
@@ -9047,6 +9048,17 @@ fn a_citizen_struck_rings_its_city_s_bell_and_only_a_computer_s_once() {
     assert!(!sim.cities.cities[c].alarm, "a Militia is no peasant");
     sim.peasant_alarm(far);
     assert!(!sim.cities.cities[c].alarm, "outside every city");
+}
+
+/// The bell's group seated on `who`'s pool (`Groups::push_group(who, g,
+/// 1)` in both of `Object::take_damage@00652020`'s arms, item 4440): the
+/// slot `last_group` names holds `[b]` alone, a building group.
+fn bell_group_seated(sim: &Sim, who: crate::Player, b: usize) -> bool {
+    let s = sim.orders.last_group[who as usize];
+    sim.orders
+        .pushed
+        .iter()
+        .any(|x| x.who == who && x.state.pool == Some(s) && x.state.buildings && x.builds == [b])
 }
 
 /// **A city struck rings its own bell, a computer's, once** (item 4359,
@@ -9083,6 +9095,7 @@ fn a_city_struck_rings_its_own_bell_and_only_a_computer_s_once() {
     sim.damage_building(b, blow, Some(Obj::Unit(att)), 100, false);
     assert!(sim.cities.cities[c].alarm, "the bell");
     assert!(garrisoning(&sim, near), "{:?}", sim.units[near].orders);
+    assert!(bell_group_seated(&sim, 0, b), "the bell's group is pushed");
     sim.damage_building(b, blow, Some(Obj::Unit(att)), 101, false);
     assert!(sim.cities.cities[c].alarm, "no all-clear from a blow");
 
@@ -9091,6 +9104,7 @@ fn a_city_struck_rings_its_own_bell_and_only_a_computer_s_once() {
     sim.damage_building(b, blow, Some(Obj::Unit(att)), 100, false);
     assert!(!sim.cities.cities[c].alarm, "a human's city rings nothing");
     assert!(!garrisoning(&sim, near));
+    assert!(!bell_group_seated(&sim, 0, b), "nor pushes a group");
 
     let (mut sim, _, b, c, _, att, _) = fresh();
     sim.ai.lobby.difficulty = 1;

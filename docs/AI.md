@@ -41134,6 +41134,12 @@ This crate set the three city flags and rang nothing. Built as `Sim::city_struck
 Citizens walk to garrison, and the walk's word moves 2888 → 2908 (`docs/RECGAME.md` §7). The cities line
 there is run1662's hook's; without the arm it parts on 2888.
 
+**The pool push (item 4440, 2026-11-19).** Both arms push their one-building group, `push_group(who, ·, 1)`
+(lines 209 and 279), and ring the bell on the slot it lands in. Both arms here had rung without the push.
+`Sim::push_building_group` now runs first in each. On the sample's 2887 it seats `[4/2000]` in player 4's
+slot 0, a building group, which is not `last_group` (slot 1): groups' `stamp` 2701|2887, `list[0]`
+2009|2000 and `last_group[4]` 257|256 agree, and groups move 2888 → 3053 (`docs/RECGAME.md` §7).
+
 ### 416.3 The score, and the value diff
 
 - On block 2073 `1/3`, `1/5`, `1/60` read `damage_frac` 0 and `order:kind` 26 (GARRISON) on both sides,
