@@ -3242,10 +3242,7 @@ impl Sim {
             return None;
         }
         let was_capital = self.cities.cities[c].capital;
-        if std::env::var("RON_PROBE_4466").is_ok() {
-            let libs: Vec<_> = (0..self.buildings.len()).filter(|&x| self.buildings[x].is_library && self.buildings[x].alive).map(|x| (x, self.buildings[x].owner, self.buildings[x].city, self.buildings[x].active, self.buildings[x].queue.items.len())).collect();
-            eprintln!("PROBE4466 capture entry f{} a{} c{} o{} members{:?} libs{:?}", self.frame, a, c, o, self.cities.cities[c].members, libs);
-        }
+        // The head — entry to `City::find_buildings` — is
         // `capture_view::capture_city_steps`, swept against the original
         // (item 3362); the failed-swap arm below is not.
         let (head, to_close) = {
@@ -3259,10 +3256,6 @@ impl Sim {
             let head = capture_city_steps(&mut view, a, c, o);
             (head, view.to_close)
         };
-        if std::env::var("RON_PROBE_4466").is_ok() {
-            let libs: Vec<_> = (0..self.buildings.len()).filter(|&x| self.buildings[x].is_library).map(|x| (x, self.buildings[x].owner, self.buildings[x].alive, self.buildings[x].city)).collect();
-            eprintln!("PROBE4466 after head f{} newcity{:?} to_close{:?} libs{:?}", self.frame, head.newcity, to_close, libs);
-        }
         let newcity = head.newcity;
         let mut base = head.base;
         let mut to_close: Vec<usize> = to_close;
