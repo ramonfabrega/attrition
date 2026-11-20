@@ -468,6 +468,27 @@ fn capitalism_adds_its_oil_after_the_refineries() {
     assert_eq!(t.capitalism_oil_prod * RATE_SCALE, 1600);
 }
 
+/// Step 5's mine outside every city takes the Inca's wealth per miner as a
+/// city member's does: `Leader::calc_gather@006ceee0:211`–`222` calls the
+/// same `BuildData::calc_gather`, whose `00639e40:849`–`856` adds
+/// `gatherers × INCA_WEALTH_PER_MINER × 16`. The sample's computer 2 reads
+/// wealth `resources` 160 -> 320 on 3575, its first miner at an outside
+/// mine (item 4445, run1724).
+#[test]
+fn an_outside_mine_pays_the_inca_wealth_per_miner() {
+    let t = Tuning::RON;
+    let mut h = Holdings::new();
+    let mut s = Site::new(Resource::Metal, 1);
+    s.gatherers = 1;
+    s.miner_wealth = t.inca_wealth_per_miner;
+    h.outside.push(s);
+    let out = assemble(&t, &h);
+    assert_eq!(out[Resource::Metal.index()], 160);
+    assert_eq!(out[Resource::Wealth.index()], 160);
+    h.outside[0].gatherers = 3;
+    assert_eq!(assemble(&t, &h)[Resource::Wealth.index()], 480);
+}
+
 #[test]
 fn an_unavailable_resource_takes_no_part() {
     // Oil before the Industrial age: the rate is assembled and the cap is

@@ -554,7 +554,9 @@ pub(in crate::diff) mod tests {
     /// prices): units 2892 → 3878, builds 3029 → 3878, ammo 3022 → 3888,
     /// deaths 3365 → 3932, groups 3053 → 3935, guys 2920 → 3878, leaders
     /// 2989 → 3575, cities 3176 → 3888, items 3976 → 7544, goods 4094 →
-    /// 4559, world 2921 → 3878.
+    /// 4559, world 2921 → 3878. Item 4445 (an outside mine pays the Inca's
+    /// wealth per miner): leaders 3575 → 3888; items 7544 → 5760, past
+    /// 3878, where units, builds, guys and world already part.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 3878),
         ("builds", 3878),
@@ -563,9 +565,9 @@ pub(in crate::diff) mod tests {
         ("deaths", 3932),
         ("groups", 3935),
         ("guys", 3878),
-        ("leaders", 3575),
+        ("leaders", 3888),
         ("cities", 3888),
-        ("items", 7544),
+        ("items", 5760),
         ("goods", 4559),
         ("world", 3878),
     ];
@@ -582,8 +584,10 @@ pub(in crate::diff) mod tests {
     /// 4430 and 4444): 3855 -> 3974, measured on the merged tip; 4443's fix
     /// is the units line's image alone, so the frames moved with 4430's
     /// turrets or 4444's caps meeting 4442's gate, all past leaders' 3575;
+    /// the first shot still on 2929. Item 4445 (an outside mine pays the
+    /// Inca's wealth per miner): 3974 -> 5344, measured on the merged tree;
     /// the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3974, Some(2929));
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (5344, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
@@ -607,6 +611,14 @@ pub(in crate::diff) mod tests {
     /// else where the take left it.
     fn run1710() -> Option<crate::trace::ranges::Record> {
         ranges_record("RON_SAMPLE_RANGES_1710", "run1710")
+    }
+
+    /// run1724's record (item 4445, `docs/RUNS.md` run1724): the same
+    /// playback to 4,130 under the same hooks, for leaders' 3575 and the
+    /// four lines on 3878. `RON_SAMPLE_RANGES_1724`, else where the take
+    /// left it.
+    fn run1724() -> Option<crate::trace::ranges::Record> {
+        ranges_record("RON_SAMPLE_RANGES_1724", "run1724")
     }
 
     fn ranges_record(var: &str, run: &str) -> Option<crate::trace::ranges::Record> {
@@ -701,6 +713,28 @@ pub(in crate::diff) mod tests {
         assert_eq!(got, pinned, "SAMPLE_RANGES_1710");
     }
 
+    /// **The sample's lines by range, to 4,130** (item 4445): the same walk
+    /// over run1724's record, pinned per line by [`SAMPLE_RANGES_1724`].
+    /// `RON_SAMPLE_RANGES_DETAIL` and `RON_SAMPLE_RANGES_ALL` print as
+    /// above.
+    #[test]
+    fn the_sample_s_ranges_to_4130_name_each_first_parting() {
+        let Some(rec) = run1724() else { return };
+        let Some((frames, got)) = walk_ranges(rec, SAMPLE_RANGES_1724_WINDOW) else {
+            return;
+        };
+        let pinned: Vec<SampleRange> = SAMPLE_RANGES_1724
+            .iter()
+            .map(|&(l, f, t, o, p, x)| (l, f, t, o, p, x.to_string()))
+            .collect();
+        assert_eq!(
+            frames,
+            SAMPLE_RANGES_1724_WINDOW as usize + 1,
+            "run1724's sets, one a frame"
+        );
+        assert_eq!(got, pinned, "SAMPLE_RANGES_1724");
+    }
+
     /// The walk the ranges tests share: our sample from state 0 to
     /// `window`, each frame's twelve lines against the record's set.
     /// `(sets compared, each parting line's first parting)`, or `None` when
@@ -781,6 +815,26 @@ pub(in crate::diff) mod tests {
                     continue;
                 }
                 let (rec, field) = a.map_or((-1, "-"), |r| (r.record, r.field));
+                // A leader's decrypted block is one range a word: name the
+                // word by its place in the record's run of them (item 4445).
+                let field = match (*name, field) {
+                    ("leaders", "encrypt") => {
+                        let k = i - o
+                            .ranges
+                            .iter()
+                            .position(|r| r.record == rec && r.field == "encrypt")
+                            .unwrap_or(i);
+                        let six = sim::checksum::leaders::ENCRYPT_SIX;
+                        let leaf = if k < 54 {
+                            format!("{}[{}]", six[k % 9], k / 9)
+                        } else {
+                            format!("word {k}")
+                        };
+                        format!("encrypt {leaf}")
+                    }
+                    _ => field.to_string(),
+                };
+                let field = field.as_str();
                 let fields = match (a, b) {
                     // A shifted range decodes theirs' bytes by our field's
                     // name; at another length that is raw bytes alone.
@@ -928,4 +982,90 @@ pub(in crate::diff) mod tests {
     /// 0x0c|0x0d) and world 2921 (`6412 2449` `block.body`) agree. All twelve
     /// lines whole over the window.
     const SAMPLE_RANGES_1710: &[(&str, i64, usize, usize, usize, &str)] = &[];
+
+    /// run1724's last frame, ours: the record holds trace frames −1 to 4129.
+    const SAMPLE_RANGES_1724_WINDOW: i64 = 4130;
+
+    /// Per line that parts on run1724's window, its first parting by range
+    /// (item 4445). Minted at nine rows with leaders on 3575: computer 2's
+    /// wealth (`ENCRYPT_SIX` index 2), `356 2 encrypt leftover[2]` ours
+    /// 2160, theirs 2400, `resources[2]` and `income[2]` ours 160, theirs
+    /// 320, its first miner at an outside mine. Step 5 now pays the Inca's
+    /// wealth per miner (`BuildTypeData::calc_gather@00639e40:849`–`856`,
+    /// reached from `Leader::calc_gather@006ceee0:211`–`222`): leaders
+    /// 3575 -> 3888, every other row unchanged.
+    const SAMPLE_RANGES_1724: &[(&str, i64, usize, usize, usize, &str)] = &[
+        (
+            "units",
+            3878,
+            3607,
+            3607,
+            1,
+            "2844 4 guy: last_x 10152|10488, last_y 10104|10968, last_z 332|304",
+        ),
+        (
+            "builds",
+            3878,
+            3064,
+            3064,
+            1,
+            "2672 2000 gather_down..infiltrate2: recharging 8|7",
+        ),
+        (
+            "ammo",
+            3888,
+            3,
+            3,
+            1,
+            "1 0 rolling..start_roll_angle: +0x7 of 99|99: 63a00000|469f0000",
+        ),
+        (
+            "deaths",
+            3932,
+            16,
+            12,
+            4,
+            "12 -1 00936bff: +0x0 of 0|4: |01000000",
+        ),
+        (
+            "groups",
+            3935,
+            622,
+            622,
+            2,
+            "295 201 curr_x: curr_x[1] -120|-117, curr_x[2] 119|116",
+        ),
+        (
+            "guys",
+            3878,
+            991,
+            991,
+            1,
+            "756 4 guy: last_x 10152|10488, last_y 10104|10968, last_z 332|304",
+        ),
+        (
+            "leaders",
+            3888,
+            667,
+            667,
+            12,
+            "531 4 flags: +0x2 of 8|8: 080a0000|480a0000",
+        ),
+        (
+            "cities",
+            3888,
+            51,
+            55,
+            7,
+            "46 9 city..ter: traded_with[4] 0|2",
+        ),
+        (
+            "world",
+            3878,
+            7751,
+            7749,
+            901,
+            "4474 793 block.present: +0x0 of 4|4: 00000000|01000000",
+        ),
+    ];
 }

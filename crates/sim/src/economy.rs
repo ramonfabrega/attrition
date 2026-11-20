@@ -907,6 +907,12 @@ pub fn assemble(t: &Tuning, h: &Holdings) -> [i32; RESOURCES] {
     for site in &h.outside {
         let i = site.resource.index();
         out[i] += per_gatherer(t, site.resource, site.level) * site.gatherers;
+        // Step 5 runs the same `BuildData::calc_gather` a city member does
+        // (`Leader::calc_gather@006ceee0:211`–`222`), so the Inca's wealth
+        // per miner (`BuildTypeData::calc_gather@00639e40:849`–`856`) reaches
+        // a mine outside every city too (item 4445: the sample's computer 2,
+        // wealth 160 -> 320 on 3575 with its first miner at an outside mine).
+        out[Resource::Wealth.index()] += site.miner_wealth * RATE_SCALE * site.gatherers;
     }
     if h.iroquois {
         out[Resource::Food.index()] += iroquois_food(t, None, &h.outside);
