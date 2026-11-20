@@ -2843,7 +2843,12 @@ gather_from.length = 0                               # +0x9c = 0
   on another player's ground.
 - **The transfer's order**: the copy walks at `Build::init`, then the
   old half's close frees the tiles, and the copy takes them back on the
-  next region pass. No capture holds a captured camp.
+  next region pass. ~~No capture holds a captured camp.~~ The 2017 sample's Inca camp `3/2011`, taken on 3887,
+  is one. Ours re-walks it on 3889 with nothing to take. Theirs re-walks
+  it again on state 3904, takes 61 tiles, and sets `gather_max` 5 (run1724;
+  244 draws at `find_gather_tiles` < `Build::process+0x661`). Ours has no
+  flag that frame. Nothing establishes what set the region's `0x20` in
+  theirs on 3902 or 3903 (item 4472, parked 4472a).
 - **The mine's stamps.** This crate carries no `MiningList::mtn` or
   `cliff`. A re-walk recomputes the nearest range, which the stamp would
   have named anyway, unless the range has moved out of reach. The cliff
