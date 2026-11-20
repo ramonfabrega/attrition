@@ -1565,8 +1565,9 @@ were carried or derived.
 `inside_up_who` (the owner while nothing is seated or the unit is not inside;
 the container's owner inside); `launch_frames` 0 (a launcher's clock);
 `gather_down` (the next unit down its building's gatherers, whose head is
-the builds line's); `myarmor` (`ObjectData::armor`, the term
-`Unit::update_armor` caches; `Sim::object_armor`); `cavarch_uid` (0, the
+the builds line's); `myarmor` (`Unit::myarmor`, the cache
+`Unit::update_armor` writes at birth, on a new type, in the decoy cast and in
+`calc_unit_stats`; item 4464); `cavarch_uid` (0, the
 target's `uid` with one); `guy_mark` (`anim::SQUAD_SIZE`); `collide_frame`
 and `damage_o` (−1, `Unit::init`'s, where the crate keeps 0 for "never");
 `unit_masks` from the 17 bits the crate keeps; the `+0x86` union for a
@@ -1629,8 +1630,10 @@ that diff on this frame: `los_x`'s one writer, the animal's overrides,
   `GATHER` (their type and node byte alone are emitted; the trade, the cast, the
   grouped moves and the guard walk since items 4230, 4234, 4243 and 4266, §24.3); `flags & 0x8`
   (run1100's); `unit_masks & 0x200000` (`Unit::init`'s `can_carry(AIR)`)
-  and the bits not listed (§18 names which agree by rule); `myarmor`'s cache timing and the cattle
-  citizens' term; `los_x` of a unit the harness seats from a dump.
+  and the bits not listed (§18 names which agree by rule); ~~`myarmor`'s cache timing~~ (item 4464:
+  run1725's 3937, the Dutch `ages` moves mid-frame and the cache on 3938's `calc_unit_stats`), the cattle
+  citizens' term, and combat's `armor_of`, which still reads the live armour, not the cache (parked 4464a,
+  4464b); `los_x` of a unit the harness seats from a dump.
 
 ### Queued attack orders (item 4364)
 
