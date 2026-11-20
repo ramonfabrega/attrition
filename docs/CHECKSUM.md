@@ -2613,9 +2613,10 @@ and none part anew** (`PACKETS_SCORE` 661 → 676, 677 with item 4404's ammo lin
 and the units line on 22. Value diff, run1325c frame 5578 record 41 (Marines): `last_z` theirs 2, ours 4 →
 2, the line whole. Byte 104 is the first parting on no line now (21 before).
 
-**Not established.** The entering frame: our predicate is the state at the checksum, while theirs is
-`inside_up` at the unit's own `process`. A unit that went inside after its `process` on the dumped frame
-has walked, so it keeps the ground under `last`. No packet on disk parts on it. The arm's other effects
+**Not established.** ~~The entering frame: our predicate is the state at the checksum, while theirs is
+`inside_up` at the unit's own `process`. No packet on disk parts on it.~~ Settled by item 4467
+(diff-backed): run1725's `1/0` boards after its walk on 4026 and keeps `last_z` −33; the arm keys on
+`Unit::processed_outside`, written at `process`'s head. The arm's other effects
 (the `unit_masks`/`+0x6c` clears and the `come_out` check) are not compared here. The 12 lines the first act
 predicted were not the 15 that turned: run1169 and run1320b keep one range each, and run893b's line did not
 move. Also open: `turret_inc` nonzero on some figure in theirs (byte 58, now the first parting on 9 lines;
