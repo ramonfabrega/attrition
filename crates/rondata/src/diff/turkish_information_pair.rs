@@ -277,7 +277,8 @@ fn turkish_information_pair_run1446b_s_word_frame_is_widened_whole() {
     // Item 3780, 940 → 83: the sub comes out east in both, and the window
     // parts on the standing families alone.
     // Item 4435: 83 -> 79, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 79, "run1446b baseline");
+    // Item 4448: 79 -> 78, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 78, "run1446b baseline");
     // Every round, both directions: 56 against 56, none parting.
     pin_eq!(w.rounds_read, (56, 56), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");

@@ -395,6 +395,81 @@ mod tests {
         );
     }
 
+    /// Game `k`'s units line on `state`, ours against the ranges take
+    /// `run`'s, every range byte for byte; returns theirs' range `range`.
+    fn units_ranges_agree(k: usize, run: &str, state: i64, range: usize) -> Option<Vec<u8>> {
+        let inst = crate::testenv::install()?;
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(k) else {
+            eprintln!("skipping: game {k}'s recording is missing");
+            return None;
+        };
+        let Some(ranges) = crate::testenv::experiment(
+            &home.join(format!("ron-golden/{run}/map-14")),
+            "rontrace.ranges",
+        ) else {
+            eprintln!("skipping: {run}'s ranges record is missing");
+            return None;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("the game's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        while built.sim.frame < state {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let set = record.first_of(state - 1).expect("the state's set").clone();
+        let theirs = record.ranges(&set).expect("the set's ranges");
+        let theirs: Vec<_> = theirs.into_iter().filter(|r| r.line == 0).collect();
+        let ours = built.sim.checksum_units();
+        assert_eq!(ours.ranges.len(), theirs.len(), "units ranges on {state}");
+        for (i, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+            assert_eq!(
+                a.bytes, b.bytes,
+                "units range {i} on {state}, record {} {}",
+                a.record, a.field
+            );
+        }
+        Some(theirs[range].bytes.clone())
+    }
+
+    /// **A bumped guard's `dest_angle`** (item 4448, `docs/RECGAME.md`
+    /// §10.3): on tick 2366 the computer's Fusiliers `1/73` (type 136)
+    /// turns at its guard spot (`Unit::do_guard`'s `set_angle`) after
+    /// `Unit::work`'s `update_action` has already copied the old heading,
+    /// and a unit that walks into it runs `detect_unit_collision`'s `0xc`
+    /// arm, whose `update_action(blocker)` copies the new one. Every
+    /// units range on 2367: red without that call at range 2407, record
+    /// 73, byte 18, ours `15 a7`, theirs `b5 b5`.
+    #[test]
+    fn row_80_s_fusiliers_take_the_guard_turn_s_dest_angle_on_run1720_s_ranges() {
+        let Some(theirs) = units_ranges_agree(4, "run1720", 2367, 2407) else {
+            return;
+        };
+        assert_eq!(
+            &theirs[0x5a - 0x48..0x5c - 0x48],
+            &[0xb5, 0xb5],
+            "theirs' dest_angle"
+        );
+    }
+
+    /// The same call on row 100 (item 4448): run1721's Assault Infantry
+    /// `1/43` (type 104) turns at its guard spot on tick 1792. Red without
+    /// it at range 1581, record 43, byte 18, ours `00 c0`, theirs `f2 cb`.
+    #[test]
+    fn row_100_s_assault_infantry_take_the_guard_turn_s_dest_angle_on_run1721_s_ranges() {
+        let Some(theirs) = units_ranges_agree(5, "run1721", 1793, 1581) else {
+            return;
+        };
+        assert_eq!(
+            &theirs[0x5a - 0x48..0x5c - 0x48],
+            &[0xf2, 0xcb],
+            "theirs' dest_angle"
+        );
+    }
+
     /// **The held-out line**, from the table alone: the games whose score
     /// agrees on every line on every state, of the eight, and how many are
     /// taken.
@@ -752,6 +827,9 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // `0/2000`'s `build_masks` on 4019 ours 4144, theirs 20528
         // (`0x4000`, set by `take_damage`'s `eject_contents(1, -1, 0, 1)`
         // with no garrison to read).
+        // Moved by item 4448 (`detect_unit_collision`'s guard arm runs
+        // `update_action` on the blocker): units 3,662 -> 3,672, first
+        // 1561 -> 2014 -- a bumped guard's `dest_angle` takes its turn.
         // Moved by item 4450 (run1722): cities 4,066 -> 4,075, whole --
         // who=1's city 0 `granary` ours 50, theirs 20 on 2253
         // (`City::calc_gather`'s byte kept to the reassembly on 2256), and
@@ -759,10 +837,10 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         moved: Some(Score {
             states: 4075,
             agreed: [
-                3662, 4075, 4075, 4075, 4075, 3863, 3958, 4075, 4075, 4075, 4075, 3984,
+                3672, 4075, 4075, 4075, 4075, 3863, 3958, 4075, 4075, 4075, 4075, 3984,
             ],
             first: &[
-                ("units", (1561, Some(3913862560), 4278570550)),
+                ("units", (2014, Some(3549321578), 3787872620)),
                 ("groups", (3598, Some(3778361523), 962934390)),
                 ("guys", (2014, Some(4240840485), 61413159)),
                 ("world", (3984, Some(402934873), 4267790267)),
@@ -797,15 +875,16 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4443 (the units line folds `cavarch_o` -2): units
         // 2,239 -> 3,835, first 2239 -> 2367. On 2239, run1720's units range
         // 3003, record 86 (1/86, type 140), `cavarch_o` read ours -1, theirs -2.
+        // Moved by item 4448 (`detect_unit_collision`'s guard arm runs
+        // `update_action` on the blocker): units 3,835 -> 3,837, whole. On
+        // 2367, run1720's units range 2407, record 73 (the Fusiliers 1/73,
+        // type 136), `dest_angle` read ours 0xa715.., theirs 0xb5b5...
         moved: Some(Score {
             states: 3837,
             agreed: [
-                3835, 3736, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837,
+                3837, 3736, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837, 3837,
             ],
-            first: &[
-                ("units", (2367, Some(2679787322), 784355304)),
-                ("builds", (2376, Some(2962723024), 945131824)),
-            ],
+            first: &[("builds", (2376, Some(2962723024), 945131824))],
             over: None,
         }),
     }),
@@ -842,16 +921,21 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4443 (the units line folds `cavarch_o` -2): units
         // 1,611 -> 2,696, first 1611 -> 1793. On 1611, run1721's units range
         // 1170, record 31 (1/31, type 170), `cavarch_o` read ours -1, theirs -2.
+        // Moved by item 4448 (`detect_unit_collision`'s guard arm runs
+        // `update_action` on the blocker): units 2,696 -> 2,697, first
+        // 1793 -> 2587. On 1793, run1721's units range 1581, record 43 (the
+        // Assault Infantry 1/43, type 104), `dest_angle` read ours
+        // 0xc000.., theirs 0xcbf2...
         // Moved by item 4449 (`set_new_location(…, 1)` copies each figure's
         // point into `last`): guys 3,316 -> 3,308, a named fall past its
         // first parting, which stays on 2646.
         moved: Some(Score {
             states: 3331,
             agreed: [
-                2696, 2230, 3331, 3172, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 2618,
+                2697, 2230, 3331, 3172, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 2618,
             ],
             first: &[
-                ("units", (1793, Some(4040064246), 1794145779)),
+                ("units", (2587, Some(4287155215), 4036875673)),
                 ("builds", (1976, Some(3652536594), 4264774034)),
                 ("ammo", (2618, Some(1076236747), 891350609)),
                 ("deaths", (2756, Some(1136466598), 3621657254)),

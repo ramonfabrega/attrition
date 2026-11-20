@@ -251,7 +251,8 @@ fn korean_classical_pair_run1250b_s_word_frame_is_widened_whole() {
     // 8390, 69 on 8458), and three of who=1's `orders_x`/`orders_y` a few
     // units apart (`1/69` on 8548, 11580, 30913 against 11601, 30926).
     // No `pos`, `hits` or order row parts.
-    pin_eq!(w.firsts.len(), 67, "run1250b baseline");
+    // Item 4448: 67 -> 55, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 55, "run1250b baseline");
 }
 
 /// **The pair's last blocks, from the disk** (item 3609): the word is the
@@ -322,5 +323,6 @@ fn korean_classical_pair_run1250_s_closing_frame_is_widened_whole() {
     // `1/2020` (3 each), `1/2022`, `1/2026` (2 each) — the human's defeat asks `Game::check_victory`, whose conquest victory cleans every one of who=1's queues with no refund (`Leader::victory`, `docs/LEADERS.md` §10.2).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 162 -> 155.
     // Item 4340: −1, no `leader:defense` row is left (the human's tally moves, its writers ungated; ch125 and ch131 name that key, here it is inferred).
-    pin_eq!(w.firsts.len(), 154, "the closing walk's baseline");
+    // Item 4448: 154 -> 153, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 153, "the closing walk's baseline");
 }

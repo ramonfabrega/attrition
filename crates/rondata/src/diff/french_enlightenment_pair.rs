@@ -183,7 +183,8 @@ fn french_enlightenment_pair_the_long_s_stride_walks_back_from_4505() {
     // on 3901 (its guard order re-aimed) and **`1/48`'s `order:target`
     // on 4401, ours `0/4` against theirs `0/12`**, an army's attack.
     // Item 4435: 171 -> 142, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 142, "the stride's baseline");
+    // Item 4448: 142 -> 141, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 141, "the stride's baseline");
 }
 
 /// **The closing state** (item 3691): run1344's closing block 4941, the

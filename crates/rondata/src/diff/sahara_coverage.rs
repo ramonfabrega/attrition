@@ -800,7 +800,8 @@ fn run702_s_word_frame_is_widened_whole() {
     // Item 3279: −14, `death:extra` is not a parting on a capture that
     // logs no `DEATHS` (this one prints no `DEATH_OBJS`; `docs/AI.md` §259).
     // Item 4159's residue: 60 -> 59, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 59, "initial run702 baseline");
+    // Item 4448: 59 -> 56, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 56, "initial run702 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1979).count(),
         47,

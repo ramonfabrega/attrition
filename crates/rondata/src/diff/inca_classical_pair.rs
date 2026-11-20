@@ -323,7 +323,8 @@ fn inca_classical_pair_run1269_s_word_frame_is_widened_whole() {
     // `gatherers` agree now that `produce_city` walks its citizens by
     // object number (`docs/AI.md` §358.4).
     // Item 4435: 116 -> 100, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 100, "run1269 baseline");
+    // Item 4448: 100 -> 99, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 99, "run1269 baseline");
 }
 
 /// run1270: the gap 5302..5350's window, blocks 5301..5360 at run1269's

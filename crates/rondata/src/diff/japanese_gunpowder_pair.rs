@@ -237,7 +237,8 @@ fn japanese_gunpowder_pair_run1208b_s_word_frame_is_widened_whole() {
     // the `1/77`'s `dest_angle` on 3054, ours 1498415104 against theirs
     // 943259648, 3567a's shape (parked 3580b). Block 2840 agrees: `1/23`
     // re-aims onto `0/13` as theirs does.
-    pin_eq!(w.firsts.len(), 51, "run1208b baseline");
+    // Item 4448: 51 -> 50, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 50, "run1208b baseline");
 }
 
 /// run1208c: the blocks before the word's window, 2771..2834 (item 3563) —
@@ -500,5 +501,6 @@ fn japanese_gunpowder_pair_run1237b_s_closing_frame_is_widened_whole() {
     // uid 170; 3487, ours 897908736 against theirs 969932800) and `1/131`
     // (uid 169; 3492), 3567a's shape (parked 3580b). The closing block
     // 3674 agrees.
-    pin_eq!(w.firsts.len(), 47, "run1237b baseline");
+    // Item 4448: 47 -> 45, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 45, "run1237b baseline");
 }

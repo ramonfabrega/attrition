@@ -291,7 +291,8 @@ fn american_modern_pair_run1151b_s_word_frame_is_widened_whole() {
     // Item 3755: 72 → 57, `get_cost`'s American aircraft arm built —
     // the Airbase's fighters and the buckets with them agree; the Bomber
     // (304) still reads 67 against 57 on 2186 (parked 3755a).
-    pin_eq!(w.firsts.len(), 56, "run1151b baseline");
+    // Item 4448: 56 -> 53, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 53, "run1151b baseline");
 }
 
 /// run1151c: the word 4488's window, blocks 4482..4549 — six blocks before
@@ -517,5 +518,6 @@ fn american_modern_pair_run1163_s_walk_back_is_widened_whole() {
     // Item 4177: 62 -> 66, +4 firsts, the combat rates' own: who=0 `average_damage_rate` 4396 ours 74 theirs 91; who=0 `damage_fifteen_seconds` 4396 ours 25 theirs 26; who=1 `average_hit_rate` 4396 ours 107 theirs 124; who=1 `hits_fifteen_seconds` 4396 ours 26 theirs 27 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 66 -> 62, item 4177's four combat-rate firsts on 4396 agree: the nuke strikes the city building at its ceiling (4177a).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 62 -> 61.
-    pin_eq!(w.firsts.len(), 60, "run1163 baseline");
+    // Item 4448: 60 -> 59, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 59, "run1163 baseline");
 }

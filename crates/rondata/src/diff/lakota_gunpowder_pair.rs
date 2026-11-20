@@ -280,7 +280,8 @@ fn lakota_gunpowder_pair_run1289b_s_word_frame_is_widened_whole() {
     // `1/51` 4215, `1/63` 4231, `1/50` 4315 — theirs writes it with the
     // turn, ours keeps the old) and who=1's `bucket[0:food]` 10681 against
     // 10683 from 4219; nothing past them parts through 4438.
-    pin_eq!(w.firsts.len(), 55, "run1289b baseline");
+    // Item 4448: 55 -> 51, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 51, "run1289b baseline");
     // **Every round, both directions** (item 3645, Loop 3644): 222 round-
     // blocks a side. Before the rows 235 ours against 222 and 119 round
     // keys, the first `1/39`'s launch on 4217. What stands is two rounds'

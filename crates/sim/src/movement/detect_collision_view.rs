@@ -113,6 +113,15 @@ pub trait DetectCollisionView {
     fn node_is_moving(&mut self, n: Self::Node) -> bool;
     /// `update_action` of the node's unit, vslot `0x74`: its `+8`/`+0xc` name
     /// this unit.
+    ///
+    /// **The `update_action(blocker)` is called for its side effects too**
+    /// (`detect_unit_collision@00617060:237`, item 4448): a guard someone
+    /// bumps rewrites its `orders_x/y` and `dest_angle` (`+0x58`) from where
+    /// it stands and which way it faces *now*, after its own step's turn
+    /// (`Unit::do_guard`'s `set_angle`, which writes `+0x50` and not
+    /// `+0x58`). Run1720's Fusiliers `1/73` turns at its guard spot on tick
+    /// 2366 and theirs prints `dest_angle` `0xb5b5..` on 2367, where the
+    /// step's `update_action` had left `0xa715..`.
     fn guard_targets_me(&mut self, n: Self::Node) -> bool;
     /// The node's owner is this unit's (`who == +0x9`).
     fn node_same_owner(&mut self, n: Self::Node) -> bool;

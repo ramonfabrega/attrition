@@ -500,7 +500,8 @@ fn russian_information_pair_run1423c_s_closing_frame_is_widened_whole() {
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 157 -> 153.
     // Item 4159r5: 153 -> 144, the launch rows of pieces 210 (3): rounds that left the figure's square leave from their bays.
     // Item 4435: 144 -> 107, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 107, "run1423c baseline");
+    // Item 4448: 107 -> 106, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 106, "run1423c baseline");
     // Item 4159r5: (29, 30) -> (29, 29), the launch rows of pieces 210 (3): rounds that left the figure's square leave from their bays.
     pin_eq!(w.rounds_read, (29, 29), "the rounds read");
     // 29 against 30, 12 parting, every one the T80 `1/59`'s (TI 260)

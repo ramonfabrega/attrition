@@ -1987,7 +1987,8 @@ mod tests {
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             // Item 4435: [(11323, 27), (11445, 1), (11539, 1), (11542, 1)] -> [(11323, 26), (11539, 1), (11542, 1)], a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-            [(11323, 26), (11539, 1), (11542, 1)],
+            // Item 4448: [(11323, 26), (11539, 1), (11542, 1)] -> [(11323, 26)], a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+            [(11323, 26)],
             "the blocks keys first part on, to the window's end"
         );
         // Item 1291 took one: a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
@@ -2004,7 +2005,8 @@ mod tests {
             // Item 1407: 153 → 152 (11445's 2 → 1).
             // Item 1586: 100 → 98 (11411's 2 go); an army's normalize puts its group's cap back to the leader's speed (`docs/AI.md` §161).
             // Item 4435: 30 -> 28, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-            28,
+            // Item 4448: 28 -> 26, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+            26,
             "every key parted on run490 (1311 before item 1281, 382 before 1297, 229 before 1302)"
         );
     }
@@ -2093,7 +2095,8 @@ mod tests {
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 52 -> 36.
         // Item 4159's residue: 37 -> 36, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
         // Item 4435: 34 -> 31, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-        pin_eq!(w.firsts.len(), 31, "every key parted on run506");
+        // Item 4448: 31 -> 26, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+        pin_eq!(w.firsts.len(), 26, "every key parted on run506");
     }
 
     /// **run508 — the second pair's East Indies word 12582, widened whole**
@@ -2322,7 +2325,8 @@ mod tests {
         // Item 1458: 149 → 141; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 48 -> 32.
         // Item 4435: 31 -> 30, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-        pin_eq!(w.firsts.len(), 30, "every key parted on run535");
+        // Item 4448: 30 -> 27, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+        pin_eq!(w.firsts.len(), 27, "every key parted on run535");
     }
 
     /// **run544 — the second pair's East Indies word 15862, widened whole**
@@ -2947,7 +2951,8 @@ mod tests {
         // Item 3369: an unpacked merchant's "over time" piece (`sim::units::anim::stall_piece`) moved this pin: 101 -> 85.
         // Item 4177: 85 -> 91, +6 firsts, the combat rates' own: who=0 `average_damage_rate` 17890 ours 3893 theirs 3943; who=0 `damage_current_frame` 17890 ours 43 theirs 42; who=0 `damage_fifteen_seconds` 17890 ours 150 theirs 151; who=1 `average_hit_rate` 17890 ours 3893 theirs 3943 (docs/LEADERS.md §3.5).
         // Item 4435: 40 -> 28, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-        pin_eq!(w.firsts.len(), 28, "run589 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        // Item 4448: 28 -> 27, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+        pin_eq!(w.firsts.len(), 27, "run589 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         pin_eq!(
             w.firsts
                 .get(&(1, 132, "order:kind".into()))

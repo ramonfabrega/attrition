@@ -232,5 +232,6 @@ fn spanish_classical_pair_run1232b_s_closing_frame_is_widened_whole() {
     // section 318.2; parked 3586a answered): both leaders' `territory`
     // and team sums on 8310 agree.
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 74 -> 67.
-    pin_eq!(w.firsts.len(), 67, "run1232b baseline");
+    // Item 4448: 67 -> 56, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
+    pin_eq!(w.firsts.len(), 56, "run1232b baseline");
 }
