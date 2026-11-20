@@ -98,6 +98,35 @@ fn the_a7v_s_round_leaves_from_its_turret() {
     assert_eq!(409 + release_offset(&r, f, 0).2, 587, "the dump's height");
 }
 
+/// **A `SAME_AS` piece bears its turret from the node at its own scale**
+/// (item 4430): [`offset`] reads 189's node for the A7V's 192 but 192's own
+/// `RData +0x88`, 0.9. On run1351's packet (logger frame 4303) the original's
+/// `Guy::set_all_pivots` on `1/48`, aimed at the Citizen `0/12`, hands
+/// `find_angle` (`005d8e35`, `step4.py`) `ecx` −2274 and `edx` 418 from the
+/// hull at (5544, 31512), facing `0xd3600000`, to (3255, 31923): the node
+/// at (−15, −7), and `des_turret_angles[0]` `0xe5830000`. At 1.0 the node is
+/// (−16, −8) and the angle `0xe57d0000`. Made to fail with 192's row out of
+/// `RDATA_SCALE`.
+#[test]
+fn a_same_as_piece_bears_its_turret_at_its_own_scale() {
+    let facing = Angle(0xd360_0000_u32 as i32);
+    assert_eq!(rotation(facing), 117);
+    assert_eq!(offset(192, 4, facing), (-15, -7));
+    let (vx, vy) = offset(192, 4, facing);
+    let (dx, dy) = (3255 - 5544 - vx, 31923 - 31512 - vy);
+    assert_eq!(
+        (dx, dy),
+        (-2274, 418),
+        "the original's find_angle arguments"
+    );
+    let des = crate::movement::find_angle(dx, dy).0.wrapping_sub(facing.0);
+    assert_eq!(des as u32, 0xe583_0000);
+    // Each `SAME_AS` pair's own scales agree, so the node is the row's.
+    for (p, q) in SAME_AS {
+        assert_eq!(scale(*p), scale(*q), "piece {p} reads as {q}");
+    }
+}
+
 /// **The Egyptian Light Tank's rounds leave from its turret's muzzle**
 /// (item 3707, `docs/AI.md` §360.2): piece 193 (`A7VDES`, unit type 243)
 /// is `lighttank.bh3` at scale 0.9 with `<RESTRICTION name="A7VDES"

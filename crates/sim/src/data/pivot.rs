@@ -635,8 +635,11 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     // run1426b's; without these rows both turrets bore from the vector at
     // 1.0. run1351's `1/48` on 4303: the original's `find_angle` arguments
     // (`005d8e35`, `step4.py` on the packet) take the node at (−15, −7), and
-    // ours took (−16, −8).
+    // ours took (−16, −8). The `A7VDES`'s 193 has no packet: its 0.9 is
+    // `unit_graphics.xml`'s scale, and run1374b's rounds fit 189's rows at
+    // 0.9 (`run1374b_s_egyptian_light_tank_rounds_leave_from_its_turret`).
     (192, (9, 10)),
+    (193, (9, 10)),
     (195, (9, 10)),
 ];
 
