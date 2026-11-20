@@ -270,6 +270,34 @@ pub fn city_source(t: &Tuning, owner: Player, b: &PlayerBorders, c: &City) -> So
     }
 }
 
+/// [`city_source`] for a city whose `race` (`CityData +0x5f`) may not be
+/// the slot whose list holds it (item 4469):
+/// `World::compute_reg_territory@006b0bb0:425`–`:483` takes the limit from
+/// the slot's arrays and the bonuses — civic, flat and temple — from
+/// `race`'s, and a claim it wins is −2 ([`Source::owner_agrees`] false).
+/// `race` is `None` (−1) only on a record never founded, read as agreeing;
+/// `c.owner_agrees` is overwritten.
+pub fn city_source_by_race(
+    t: &Tuning,
+    owner: Player,
+    borders: &[PlayerBorders],
+    race: Option<Player>,
+    c: &City,
+) -> Source {
+    let race = race
+        .filter(|&r| usize::from(r) < borders.len())
+        .unwrap_or(owner);
+    let c = City {
+        owner_agrees: race == owner,
+        ..*c
+    };
+    let mut src = city_source(t, owner, &borders[usize::from(owner)], &c);
+    if race != owner {
+        src.bonuses = city_source(t, owner, &borders[usize::from(race)], &c).bonuses;
+    }
+    src
+}
+
 /// Turns a fort into a [`Source`].
 pub fn fort_source(t: &Tuning, owner: Player, b: &PlayerBorders, f: &Fort) -> Source {
     let mut bonuses = b.fort + b.civic;
