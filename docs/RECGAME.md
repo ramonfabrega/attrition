@@ -1139,6 +1139,19 @@ range 1170. Row 120 is now **whole**; units also moves on rows 40, 60, 80,
 *Not established*: rows 80 and 100 next part units on `des_angle` (`+0x58`):
 run1720 on 2367, range 2407; run1721 on 1793, range 1581. Unread.
 
+**Row 60's groups, by leaf (item 4473, run1722).** On 3598 who=1's army 1
+pushes `1/169` alone into slot 67 (`last_group` 68 → 67 on both sides).
+Slot 68, the last pushed slot, has no members. `Groups::push_group`'s
+`equals_group` asks its `get_num`, whose empty arm zeroes `ox`/`oy`: groups
+range 92, record 68, reads ours (33720, 15048), theirs (0, 0). The army's
+push (`Army::add_unit@006f9f40:37`) skipped that step (`docs/GROUPS.md`
+§36.2). In the second column, groups is whole on row 60 (3,863 → 4,075) and
+row 40 (4,964 → 4,974); row 60 parts first on 3757 (units), row 40 on 2487.
+The second battery moved too: row 50 is whole (groups 4,415 → 4,455), row 130's
+groups is whole (4,553 → 4,731), and row 110's groups moved 3,544 → 3,553
+(first 1608 → 3553). Diff-backed on row 60 by run1722's ranges. The other
+rows have sums alone, so their leaf is this one by supposition.
+
 ## 11. Parity held out, second: eight more lobbies named before the original plays them (item 4462)
 
 DECISIONS 145 §2, 2026-11-20. Rows 10, 30, 50, 70, 90, 110, 130 and 150 of the same order, declared
