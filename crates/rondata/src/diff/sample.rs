@@ -559,9 +559,12 @@ pub(in crate::diff) mod tests {
     /// 3878, where units, builds, guys and world already part. Item 4449
     /// (`set_new_location(…, 1)` copies a figure's point into `last`, the
     /// Inca Citizen `4/4` out of its building): units and guys 3878 → 3888.
+    /// Item 4454 (a building at health 0 still counts its arrows down,
+    /// `Build::process@0061edf0`): builds 3878 → 3888; items 5760 → 4805,
+    /// a named fall past world's unchanged 3878 and the 3888 partings.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 3888),
-        ("builds", 3878),
+        ("builds", 3888),
         ("walls", 21044),
         ("ammo", 3888),
         ("deaths", 3932),
@@ -569,7 +572,7 @@ pub(in crate::diff) mod tests {
         ("guys", 3888),
         ("leaders", 3888),
         ("cities", 3888),
-        ("items", 5760),
+        ("items", 4805),
         ("goods", 4559),
         ("world", 3878),
     ];
@@ -588,8 +591,11 @@ pub(in crate::diff) mod tests {
     /// turrets or 4444's caps meeting 4442's gate, all past leaders' 3575;
     /// the first shot still on 2929. Item 4445 (an outside mine pays the
     /// Inca's wealth per miner): 3974 -> 5344, measured on the merged tree;
-    /// the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (5344, Some(2929));
+    /// the first shot still on 2929. Item 4454 (a building at health 0
+    /// still counts its arrows down): 5344 -> 6697, measured on the merged
+    /// tree (22 commits of the base beside it); the first shot still on
+    /// 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (6697, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
@@ -999,7 +1005,10 @@ pub(in crate::diff) mod tests {
     /// 3878 -> 3888, `set_new_location(…, 1)`'s `last` copy
     /// (`Guy::set_new_location@005d86f0:66`–`70`) on the Inca Citizen `4/4`
     /// out of its building: `2844 4 guy` `last_x/last_y/last_z` ours
-    /// 10152, 10104, 332 -> theirs' 10488, 10968, 304.
+    /// 10152, 10104, 332 -> theirs' 10488, 10968, 304. Item 4454: builds
+    /// 3878 -> 3888, `Build::process@0061edf0` reaching `do_attack` at
+    /// health 0: computer 4's `2672 2000` `recharging` ours 8 -> theirs' 7
+    /// (it held at 8 from 3877 on; theirs went 7, 6, 5).
     const SAMPLE_RANGES_1724: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
@@ -1011,11 +1020,11 @@ pub(in crate::diff) mod tests {
         ),
         (
             "builds",
-            3878,
-            3064,
-            3064,
-            1,
-            "2672 2000 gather_down..infiltrate2: recharging 8|7",
+            3888,
+            3000,
+            3000,
+            24,
+            "2661 2010 max_age: max_age 0|1",
         ),
         (
             "ammo",

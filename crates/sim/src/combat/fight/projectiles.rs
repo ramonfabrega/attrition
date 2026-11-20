@@ -11,7 +11,14 @@ impl Sim {
     /// `Build::process` → `Build::do_attack` for a building that shoots (§8.6).
     pub(crate) fn process_building_combat(&mut self, b: usize, frame: i64) {
         let me = Obj::Building(b);
-        if !self.active(me) || self.attack_of(me) == 0 {
+        // **A building at no health left still counts its arrows down**
+        // (item 4454, `docs/RECGAME.md` §7): `Build::process@0061edf0`
+        // reaches `do_attack` on the type's attack (`type +0x1e8`) and the
+        // finished bit alone, and asks nothing of `health`. [`Sim::active`]
+        // asks for health left, which is the target search's question; the
+        // sample's building `4/2000` (computer 4's) fell to health 0 on 3878, and
+        // its `recharging` held at 8 here where theirs went on to 7.
+        if !self.struck(me) || self.attack_of(me) == 0 {
             return;
         }
         // **A site does not shoot** (item 1323, `docs/COMBAT.md` §8.6):
