@@ -130,6 +130,13 @@ impl Sim {
             // and who=1's food and wealth caps are 300, not 250, on 17085
             // (`docs/ECONOMY.md` §15).
             self.economy.holdings[who].wonders = self.wonders_held(player);
+            // And its republic arm asks `has_preq(REPUBLIC_3)`, then 2,
+            // then 1, there too: row 60's computer takes its republic on
+            // 968 and theirs' seven caps are 3200, not 2400, on 969, where
+            // the tier read at the last reassembly held ours to 976
+            // (item 4444, run1722).
+            self.economy.holdings[who].republic = self
+                .government_bonus_level(player, &self.tables.tech_tree.roles.republic_preq);
             // `do_gather`'s escrow arm reads `escrow_rate` on every frame,
             // and a human never escrows (`docs/AI.md` §98).
             self.economy.holdings[who].escrow_rate = if self.cities.nation[who].human {
