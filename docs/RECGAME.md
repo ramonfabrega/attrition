@@ -1027,3 +1027,18 @@ original ended the four later starts is not read from theirs: our walk of
 row 100 has the computer's army at the human's burning capital on 3000,
 which suggests a conquest and is our side only. All eight seat two
 players with no team (DECISIONS 145 §2).
+
+**Row 80's world line, by leaf (item 4436, run1720).** A ranges take of
+row 80's file to its end (run1704's line under `RON_RANGES`,
+`RNG_MASK=0xfffu`) names the leaf of the world line that parted on every
+state: on state 0, section 6's tile masks (range 3624), eleven tiles
+where the original holds bit `0x4` (`tile::BEHIND`) and ours does not.
+They are the third ring the Chinese Town `1/2000` hides (corner (217, 81),
+7 × 7): Large City's `BEHIND_HEIGHT` 3, where ours marked the Small
+City's 2. `Setup::build_cities@005ab910` converts a Chinese village to a
+Large City between `Build::init` and its start, so `Wall::start` marks
+three rings; ours converted at `Build::activate`'s head, after the start
+(`docs/START.md` §7.2). Built in `Setup::chinese_start_city`: row 80's
+world 0 → 3,837 of 3,837 (`SCORES[4].moved`), nine lines whole of twelve
+before and ten now; units 2239 and builds 2376 remain. Diff-backed by
+run1720's ranges; the other seven rows did not move.
