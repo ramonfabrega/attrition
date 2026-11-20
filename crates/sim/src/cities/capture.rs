@@ -679,8 +679,21 @@ impl Sim {
             return false;
         }
         let who = i32::from(self.units[unit].owner);
+        let probe = std::env::var("RON_PROBE_4463").is_ok();
+        let (pf, pg, ph, po) = (
+            self.frame,
+            self.buildings[b].garrison.len(),
+            self.buildings[b].health,
+            self.buildings[b].owner,
+        );
         let mut v = SimCapture::new(self, b, unit);
-        check_capture_steps(&mut v, unit as i32, who) != 0
+        let r = check_capture_steps(&mut v, unit as i32, who) != 0;
+        if probe {
+            eprintln!(
+                "PROBE4463 frame {pf} check_capture b {b} owner {po} health {ph} garrison {pg} unit {unit} who {who} -> {r}"
+            );
+        }
+        r
     }
 
     /// `UnitData::get_capture_value` for one figure.
