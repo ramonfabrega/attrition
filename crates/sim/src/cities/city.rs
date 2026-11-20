@@ -939,10 +939,11 @@ impl Sim {
             let city = &self.cities.cities[c];
             let owner = city.owner;
             let level = (self.city_level_of(c) - 1).clamp(0, 2) as usize;
-            let src = territory::city_source(
+            let src = territory::city_source_by_race(
                 &self.tables.tuning,
                 owner,
-                &self.territory.borders[owner as usize],
+                &self.territory.borders,
+                city.race,
                 &territory::City {
                     pos: city.pos,
                     level,

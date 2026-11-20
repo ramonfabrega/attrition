@@ -2334,7 +2334,43 @@ pub const SPLINE_MAX: usize = 128;
 pub struct Spline {
     pts: [[Single; 3]; SPLINE_MAX],
     len: u8,
+    arm: SplineArm,
 }
+
+/// **Which arm of the original laid a [`Spline`]**, so the ammo line can
+/// walk its `SplineData` (item 4468, `docs/CHECKSUM.md` §18): the walk
+/// folds the control points, the knot arrays and the normals as well as
+/// the points, and only the nuke arm's are read whole.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SplineArm {
+    /// `calc_from_dir` and the Cruise Missile's arm: their header, knot
+    /// arrays and normals are not read for the walk, and the ammo line
+    /// refuses a round that carries one.
+    Unwalked,
+    /// `calc_nuke_spline`'s other arm ([`Spline::nuke`]), from `s` to `e`.
+    Nuke {
+        s: (i32, i32, i32),
+        e: (i32, i32, i32),
+    },
+}
+
+/// **A nuke-arm spline's `SplineData`, as `SplineData::walk_data@009132b0`
+/// folds it** (item 4468): what [`Spline::nuke`] builds beside its points.
+pub struct NukeParts {
+    /// `control_verts` (`+0x64`): the twelve control points.
+    pub ctl: [[Single; 3]; NUKE_CTL],
+    /// `knots` (`+0x80`): the weights, `make_valid(n + 4)` long — 17 —
+    /// 100, 30, 15 and then 10.
+    pub weights: [Single; NUKE_CTL + 5],
+    /// `spline_knots` (`+0xb8`): `clamp_knots@00910be0`'s sixteen.
+    pub knots: [Single; NUKE_CTL + 4],
+}
+
+/// The nuke arm's control points.
+pub const NUKE_CTL: usize = 12;
+
+/// The nuke arm's degree, `+0x60`'s low half.
+pub const NUKE_DEGREE: usize = 3;
 
 impl Spline {
     /// The points laid: `Spline +0xd8`, which `Ammo::init` and the re-plan
@@ -2351,6 +2387,66 @@ impl Spline {
     /// Point `i`, `(x, y, z)`.
     pub fn point(&self, i: usize) -> [Single; 3] {
         self.pts[i]
+    }
+
+    /// The arm that laid it.
+    pub fn arm(&self) -> SplineArm {
+        self.arm
+    }
+
+    /// The points laid, `spline_verts` (`+0xd4`).
+    pub fn points(&self) -> &[[Single; 3]] {
+        &self.pts[..usize::from(self.len)]
+    }
+
+    /// **`Spline::build_normals@00911f60` with `flags` `0x10`**, the flag
+    /// `Ammo::init@0067bbf0` sets before `calc_nuke_spline` (item 4468):
+    /// `spline_normals` and `total_spline_length` (`+0x4c`).
+    ///
+    /// - For each point past the first, its step `d` from the one before;
+    ///   the length gains `sqrt((dy·dy + dx·dx) + dz·dz)`, the sum taken in
+    ///   singles and its root in double, rounded back (`912074`–`912093`):
+    ///   the correctly rounded single root;
+    /// - the normal is the step before plus this one (the first step's
+    ///   "before" zero), normalised;
+    /// - and one more normal, the last control step normalised
+    ///   (`flags & 4` clear, `& 0x10` set).
+    ///
+    /// Normalising (`912141`–`9121a1`): `q = (y·y + x·x) + z·z`; unless `q`
+    /// is 0 or 1, each component times `1 / sqrtf(q)` (`divss`), `sqrtf`
+    /// being `sqrtf@0041e6f0`'s double root rounded back.
+    pub fn normals(&self, last_ctl: [[Single; 3]; 2]) -> (Vec<[Single; 3]>, Single) {
+        let zero = Single::ZERO;
+        let one = Single::from_bits(0x3f80_0000);
+        let unit = |v: [Single; 3]| {
+            let q = v[1]
+                .mulss(v[1])
+                .addss(v[0].mulss(v[0]))
+                .addss(v[2].mulss(v[2]));
+            if q.eq_value(zero) || q.eq_value(one) {
+                return v;
+            }
+            let inv = one.divss(q.sqrtss());
+            v.map(|c| c.mulss(inv))
+        };
+        let pts = self.points();
+        let mut out = Vec::with_capacity(pts.len());
+        let mut length = zero;
+        let mut before = [zero; 3];
+        for w in pts.windows(2) {
+            let d = [0, 1, 2].map(|c| w[1][c].subss(w[0][c]));
+            let q = d[1]
+                .mulss(d[1])
+                .addss(d[0].mulss(d[0]))
+                .addss(d[2].mulss(d[2]));
+            length = q.sqrtss().addss(length);
+            out.push(unit([0, 1, 2].map(|c| before[c].addss(d[c]))));
+            before = d;
+        }
+        out.push(unit(
+            [0, 1, 2].map(|c| last_ctl[1][c].subss(last_ctl[0][c])),
+        ));
+        (out, length)
     }
 
     fn push(&mut self, p: [Single; 3]) {
@@ -2461,8 +2557,21 @@ impl Spline {
     /// `total_spline_length` 39,282.046875; `Ammo::inc_time` re-plans it at
     /// its fourth point as a guided round's.
     pub fn nuke(s: (i32, i32, i32), e: (i32, i32, i32)) -> Spline {
-        const DEGREE: usize = 3;
-        const N: usize = 12;
+        let parts = Spline::nuke_parts(s, e);
+        let mut out = Spline::generate(
+            &parts.ctl,
+            NUKE_DEGREE,
+            &parts.knots,
+            crate::air::MISSILE_FLIGHT,
+        );
+        out.arm = SplineArm::Nuke { s, e };
+        out
+    }
+
+    /// [`Spline::nuke`]'s control points, weights and knots.
+    pub fn nuke_parts(s: (i32, i32, i32), e: (i32, i32, i32)) -> NukeParts {
+        const DEGREE: usize = NUKE_DEGREE;
+        const N: usize = NUKE_CTL;
         let f = Single::from_i32;
         let (sx, sy, sz) = (f(s.0), f(s.1), f(s.2));
         let (ex, ey, ez) = (f(e.0), f(e.1), f(e.2));
@@ -2496,7 +2605,7 @@ impl Spline {
             [ex, ey, up(ez, 2000)],
             [ex, ey, ez],
         ];
-        let mut weights = [f(10); N + 4];
+        let mut weights = [f(10); N + 5];
         weights[0] = f(100);
         weights[1] = f(30);
         weights[2] = f(15);
@@ -2512,7 +2621,11 @@ impl Spline {
             }
             *slot = k;
         }
-        Spline::generate(&ctl, DEGREE, &knots, crate::air::MISSILE_FLIGHT)
+        NukeParts {
+            ctl,
+            weights,
+            knots,
+        }
     }
 
     /// **`Spline::generate_bspline@00911820`** over `ctl` at `degree`, on
@@ -2533,6 +2646,7 @@ impl Spline {
         let mut s = Spline {
             pts: [[zero; 3]; SPLINE_MAX],
             len: 0,
+            arm: SplineArm::Unwalked,
         };
         s.push(ctl[0]);
         let mut t = knots[0].addss(delta);

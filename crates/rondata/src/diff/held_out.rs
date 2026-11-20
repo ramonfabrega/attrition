@@ -365,6 +365,75 @@ mod tests {
         }
     }
 
+    /// **Row 140's boarder keeps its walk's `last_z` on the frame it
+    /// boards** (item 4467, `docs/CHECKSUM.md` §23.9): on 4026 who=1's
+    /// `1/0` (`TypeIndex` 69, land) walks its one figure onto its `des`
+    /// (29565, 22740) and then boards the carrier, after its own `process`.
+    /// `Unit::process@00610bc0` chose its arm on `inside_up` at its head,
+    /// so the figure ran `Guy::move`, whose head copied `last_z = z` (−33,
+    /// the ground the 4025 step wrote at `last` (29583, 22730)); the inside
+    /// arm's `last_z = z` (`:582`) runs from 4027. This crate keyed the
+    /// arm on the unit's state at the checksum and wrote the new `z` (−30)
+    /// on the boarding frame. Every units and guys range on 4026 and 4027,
+    /// ours against theirs, byte for byte: red on the tree before the fix,
+    /// at units range 163 and guys range 52, record 0, `last_z` (byte 104),
+    /// ours `e2`, theirs `df`.
+    #[test]
+    fn row_140_s_boarder_keeps_its_walk_s_last_z_on_run1725_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIRST, 7) else {
+            eprintln!("skipping: row 140's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1725/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1725's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 140's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for (state, want) in [(4026, -33i8), (4027, -30)] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            for (line, ours) in [
+                (0u8, built.sim.checksum_units()),
+                (6u8, built.sim.checksum_guys()),
+            ] {
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == line).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {line}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "line {line} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+                if line == 6 {
+                    // `1/0`'s figure's `last_z`, by name: byte 104 of guys range 52.
+                    assert_eq!(
+                        theirs[52].bytes[104] as i8, want,
+                        "theirs' last_z on {state}"
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 120's barge is born with `form` 0** (item 4435, `docs/RECGAME.md`
     /// §10.3): run1716, the ranges take of run1706's file, holds the units
     /// line's every range on state 2694, where the computer's transport
@@ -1072,15 +1141,18 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // cities 4,967 -> 4,974, whole.
         // Moved by item 4453 (a push after the pushed unit's walk leaves
         // `guy_flags & 2`): guys 4,870 -> 4,949, its first parting on 2487.
+        // Moved by item 4467 (the guys line's inside arm is chosen at the
+        // unit's own `process`): guys 4,949 -> 4,961, first 2487 -> 3107;
+        // units stands on 2487, its sum there moved.
         moved: Some(Score {
             states: 4974,
             agreed: [
-                2487, 4974, 4974, 4974, 4974, 4964, 4949, 4974, 4974, 4974, 4974, 4859,
+                2487, 4974, 4974, 4974, 4974, 4964, 4961, 4974, 4974, 4974, 4974, 4859,
             ],
             first: &[
-                ("units", (2487, Some(1142976455), 3877923716)),
+                ("units", (2487, Some(3429527498), 3877923716)),
                 ("groups", (1854, Some(284774603), 2949074744)),
-                ("guys", (2487, Some(2678849350), 3953000265)),
+                ("guys", (3107, Some(3099161691), 3465507855)),
                 ("world", (4859, Some(155879679), 1707773025)),
             ],
             over: None,
@@ -1253,14 +1325,22 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // ours walked the next `must_walk` 01, theirs `launching.length`
         // 01 00 00 00, then size 4, increment -1, flags 0 and [84]. On 2618,
         // range 1268, record 2022, `visible` read ours 0, theirs 0xff.
+        // Moved by item 4468 (the nuke strike's round keeps
+        // `calc_nuke_spline`'s spline and the ammo line walks its
+        // `SplineData`): ammo 3,172 -> 3,291, first 2618 -> 3210. On 2618,
+        // run1721's ammo range 1, record 0, byte 75, `traj` read ours 1,
+        // theirs 2; theirs walks `has_path` 01 and the spline's 278 ranges
+        // after it (header, 12 control points, 17 weights, 16 knots, no
+        // weights, 121 points and 121 normals, `total_spline_length`
+        // 0x4765a7a2), ours none. Ammo parts next on 3210, ours refused.
         moved: Some(Score {
             states: 3331,
             agreed: [
-                2728, 3331, 3331, 3172, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 3331,
+                2728, 3331, 3331, 3291, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 3331,
             ],
             first: &[
                 ("units", (2646, Some(3584274957), 3109728825)),
-                ("ammo", (2618, Some(1076236747), 891350609)),
+                ("ammo", (3210, None, 252233938)),
                 ("deaths", (2756, Some(1136466598), 3621657254)),
                 ("guys", (2646, Some(1999790736), 3081855676)),
             ],
@@ -1330,15 +1410,17 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4464 (`myarmor` is `Unit::update_armor`'s cache):
         // units 5,999 -> 6,000, first 3937 -> 4026. run1725's 3937, range
         // 173, record 1 (who=1's Armed Merchant), `myarmor` ours 2, theirs 1.
+        // Moved by item 4467 (the guys line's inside arm is chosen at the
+        // unit's own `process`): units and guys 6,000 -> 6,001, whole; the
+        // row is whole. run1725's 4026, units range 163 and guys range 52,
+        // record 0 (who=1's `1/0`, TI 69, boarding), `last_z` ours -30,
+        // theirs -33.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                6000, 6001, 6001, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 6001, 6001,
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
             ],
-            first: &[
-                ("units", (4026, Some(3301215378), 2306706575)),
-                ("guys", (4026, Some(1242658676), 1019574129)),
-            ],
+            first: &[],
             over: None,
         }),
     }),
@@ -1346,9 +1428,10 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
 
 /// **Parity held out, N of 8** (DECISIONS 144 §2): the games whole on every
 /// line and state, and the games taken. Item 4455: 3 -> 4, row 80 whole
-/// (`build_masks & 0x2000` on its site 1/2036).
+/// (`build_masks & 0x2000` on its site 1/2036). Item 4467: 4 -> 5, row 140
+/// whole (a boarder's `last_z` on 4026).
 #[cfg(test)]
-pub(crate) const HELD_OUT_LINE: (usize, usize) = (4, 8);
+pub(crate) const HELD_OUT_LINE: (usize, usize) = (5, 8);
 
 /// **The second battery's scores**, `HELD_OUT_SECOND[k]` played as
 /// `run1730 + k` (item 4462): `None` until the original has played it. The
@@ -1380,7 +1463,31 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4467 (the guys line's inside arm is chosen at the
+        // unit's own `process`): guys 5,932 -> 5,942, first 1747 -> 2449;
+        // units stands on 1747, its sum there moved.
+        // Moved by item 4468 (a nuke strike's round keeps
+        // `calc_nuke_spline`'s spline and the ammo line walks its
+        // `SplineData`): ammo 5,591 -> 5,907, first 4542 -> 5135, ours
+        // refused there. No ranges are on disk for run1730: on 4542 ours'
+        // ammo sum was 2344817575 and is now theirs' 281265979.
+        moved: Some(Score {
+            states: 6001,
+            agreed: [
+                2496, 537, 6001, 5907, 5350, 3066, 5942, 3976, 6001, 6001, 6001, 537,
+            ],
+            first: &[
+                ("units", (1747, Some(2268899682), 1685366186)),
+                ("builds", (537, Some(1374294361), 1810502041)),
+                ("ammo", (5135, None, 990220286)),
+                ("deaths", (4686, Some(4192616794), 999637338)),
+                ("groups", (3066, Some(2106809472), 4177681537)),
+                ("guys", (2449, Some(2995814966), 2693759490)),
+                ("leaders", (1576, Some(2345254394), 1305656828)),
+                ("world", (537, Some(993370751), 2782374025)),
+            ],
+            over: None,
+        }),
     }),
     // run1731
     // row 30, as found 2026-11-20, ended by the original on 4547: 8 lines whole; units 2,334 of
@@ -1401,7 +1508,22 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4467 (the guys line's inside arm is chosen at the
+        // unit's own `process`): guys 4,519 -> 4,525; units and guys stand
+        // on 2334, their sums there moved.
+        moved: Some(Score {
+            states: 4548,
+            agreed: [
+                2334, 4548, 4548, 4548, 4548, 4548, 4525, 3748, 4548, 4548, 4548, 4423,
+            ],
+            first: &[
+                ("units", (2334, Some(2937566862), 994488935)),
+                ("guys", (2334, Some(4256556349), 3856065750)),
+                ("leaders", (1776, Some(740584264), 2366335817)),
+                ("world", (1662, Some(3453374911), 2282901965)),
+            ],
+            over: None,
+        }),
     }),
     // run1732
     // row 50, as found 2026-11-20, ended by the original on 4454: 11 lines whole; groups 4,415
@@ -1503,15 +1625,21 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by the merge of 4459 (`AirAttackGroundOrder`'s five ranges
         // walked), measured on the merged tree before this item's gate:
         // units 1,704 -> 1,735, first 1570 -> 1735.
+        // Moved by item 4467 (the guys line's inside arm is chosen at the
+        // unit's own `process`): guys 4,566 -> 4,591, first on 1736.
+        // Moved by item 4468 (a nuke strike's round keeps its spline and
+        // the ammo line walks its `SplineData`): ammo 4,392 -> 4,511, first
+        // 1601 -> 2367. No ranges are on disk for run1736: on 1601 ours'
+        // ammo sum was 2349929217 and is now theirs' 941472936.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                1735, 553, 4731, 4392, 4084, 4553, 4566, 1976, 4731, 4731, 4731, 553,
+                1735, 553, 4731, 4511, 4084, 4553, 4591, 1976, 4731, 4731, 4731, 553,
             ],
             first: &[
                 ("units", (1735, Some(3081680851), 796971071)),
                 ("builds", (553, Some(2297078769), 1047897137)),
-                ("ammo", (1601, Some(2349929217), 941472936)),
+                ("ammo", (2367, Some(1123882197), 1189418202)),
                 ("deaths", (1746, Some(1419733817), 1134652217)),
                 ("groups", (2811, Some(2634708853), 2723050627)),
                 ("guys", (1736, Some(4103418160), 1070804956)),

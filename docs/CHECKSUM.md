@@ -1796,6 +1796,49 @@ the listing alone. The `STRAFE` half of the arm's test asks
 values before the change are the pass's and run1721's row's (`docs/RUNS.md`),
 not re-read on this tree.
 
+**The nuke strike's round, in the ammo line** (item 4468, diff-backed on row
+100, run1721). On 2618 the missile's strike fires record 0. `Ammo::init:616`–`634`
+pops a `Spline` from `Recycler<Spline>`, sets its `flags` to `0x10` and lays
+`calc_nuke_spline`'s other arm into `ammo_path` (`+0x68`), and `:831` writes
+`traj` (`+0x50`) as `(local_30 != 0) + 1`, so 2. Ours kept no spline on this
+round (`Sim::missile_round`) and wrote `traj` 1: range 1, byte 75, ours 1,
+theirs 2. After the path byte (01) theirs walks `SplineData::walk_data@009132b0`,
+278 ranges:
+
+- `type`..`depth` (`+0x40`..`+0x64`, 36 bytes): 3, `0x10`, 0.0,
+  `total_spline_length`, 0, −1.0, −1.0, −1, degree 3, depth 120. The −1s are
+  `Spline::clear@00914410`'s.
+- `control_verts`: 12 points in a block of 16, each its own range (site
+  `4a4896`).
+- `knots` (`+0x80`): 17 weights, 100, 30, 15 and then 10, one range of 68 bytes.
+  `make_valid(n + 4)` makes the length 17 and the size 17.
+- `spline_knots` (`+0xb8`): the 16 `clamp_knots` laid, `0 0 0 0 145 … 415`.
+- `weights` (`+0x9c`): empty, so its length alone.
+- `spline_verts`: 121 points in a block of 128. `spline_normals`: 121 in 128.
+
+`Spline::build_normals@00911f60` with `flags & 0x10` writes the normals and
+the length. For each point past the first, `d` is its step from the one
+before. The length gains `sqrt((dy·dy + dx·dx) + dz·dz)`, summed in singles,
+rooted in double and rounded back. The normal is the step before plus `d`
+(the first step's "before" is zero), normalised. One more normal follows: the
+last control step, normalised. Normalising multiplies by `1 / sqrtf(q)`
+unless `q` is 0 or 1 (`912141`–`9121a1`). Every step is SSE single, so
+`Single::sqrtss` is both roots. Now the round keeps `Spline::nuke` with its
+arm (`SplineArm::Nuke`), and `checksum_ammo` walks it from `Spline::nuke_parts`
+and `Spline::normals`. All 281 ammo ranges agree on every state of the
+flight, 2618 to 2736. Row 100's ammo goes 3,172 → 3,291 of 3,331, and its
+first parting 2618 → 3210, where ours refuses the line (`SCORES[5].moved`).
+The length is also run1471's printed 39,282.046875
+(`a_nuke_spline_s_length_and_normals_are_build_normals`).
+
+*Not established*: the sizes 16 and 128 fit `increase_size` with `increment`
+−1 (4, then doubling). They are read off this one spline, and it may be the
+game's first. A recycled `Spline` keeps its blocks through `clear`, so a
+round that pops a used one walks the earlier sizes. Ours does not model the
+pool. The Cruise Missile's arm and `calc_from_dir`'s guided spline are
+`SplineArm::Unwalked`, and the line still refuses a round that carries one.
+A V2's re-planned spline is one of those.
+
 ## 19. The groups line, ported (item 4116)
 
 **The line is the original's on run 1562's frame 91**: 556 of 556 ranges,
@@ -2654,9 +2697,11 @@ and none part anew** (`PACKETS_SCORE` 661 → 676, 677 with item 4404's ammo lin
 and the units line on 22. Value diff, run1325c frame 5578 record 41 (Marines): `last_z` theirs 2, ours 4 →
 2, the line whole. Byte 104 is the first parting on no line now (21 before).
 
-**Not established.** The entering frame: our predicate is the state at the checksum, while theirs is
-`inside_up` at the unit's own `process`. A unit that went inside after its `process` on the dumped frame
-has walked, so it keeps the ground under `last`. No packet on disk parts on it. The arm's other effects
+**Not established.** ~~The entering frame: our predicate is the state at the checksum, while theirs is
+`inside_up` at the unit's own `process`. No packet on disk parts on it.~~ Settled by item 4467
+(diff-backed): run1725's `1/0` boards after its walk on 4026 and keeps `last_z` −33; the arm keys on
+`Unit::processed_outside`, written at `process`'s head. A standing figure's `z` under ground flattened
+after its last step is derived here and stored there (parked 4467a). The arm's other effects
 (the `unit_masks`/`+0x6c` clears and the `come_out` check) are not compared here. The 12 lines the first act
 predicted were not the 15 that turned: run1169 and run1320b keep one range each, and run893b's line did not
 move. Also open: `turret_inc` nonzero on some figure in theirs (byte 58, now the first parting on 9 lines;

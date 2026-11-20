@@ -144,6 +144,44 @@ fn a_v2_s_spline_is_run1471s() {
     assert_eq!(path.point(120), printed_ctl[11], "the landing");
 }
 
+/// **The nuke arm's `SplineData` beside its points** (item 4468):
+/// `build_normals@00911f60`'s length is run1471's printed
+/// `total_spline_length` (`docs/GOLDEN.md` §152.8), one normal a point
+/// with the last control step's normalised after them, the knots
+/// `clamp_knots` laid and seventeen weights; and the spline names its arm.
+#[test]
+fn a_nuke_spline_s_length_and_normals_are_build_normals() {
+    let (s, e) = ((16043, 15865, 925), (18223, 16238, 631));
+    let path = Spline::nuke(s, e);
+    assert_eq!(path.arm(), crate::combat::SplineArm::Nuke { s, e });
+    let parts = Spline::nuke_parts(s, e);
+    let (normals, length) = path.normals([parts.ctl[10], parts.ctl[11]]);
+    assert!(length.prints_as(39_282_046_875), "{:#x}", length.bits());
+    assert_eq!(length.bits(), 0x4719_720c, "39,282.046875 exactly");
+    assert_eq!(normals.len(), path.len());
+    // The first normal is the first step's direction: up, tilted by the
+    // basis sums' wobble in `x` and `y` (the 16043.001953 of the points).
+    let one = Single::from_bits(0x3f80_0000);
+    assert_eq!(normals[0][2], one);
+    assert_eq!(normals[0][0], normals[0][1]);
+    assert_eq!(normals[0][0].bits(), 0x38e2_7f7d);
+    // The last is the final control step's, straight down.
+    assert_eq!(normals[120], [Single::ZERO, Single::ZERO, one.neg()]);
+    let knots: Vec<i32> = parts.knots.iter().map(|k| k.to_i32()).collect();
+    assert_eq!(
+        knots,
+        [
+            0, 0, 0, 0, 145, 200, 235, 265, 295, 325, 355, 385, 415, 415, 415, 415
+        ]
+    );
+    assert_eq!(parts.weights.len(), 17);
+    assert_eq!(parts.weights[16].to_i32(), 10);
+    // A guided round's spline is no nuke arm, and its walk is not read.
+    let v = |x: i32| [Single::from_i32(x); 3];
+    let guided = Spline::from_dir(v(0), v(100), v(1000), Single::from_i32(200));
+    assert_eq!(guided.arm(), crate::combat::SplineArm::Unwalked);
+}
+
 /// **The guided round's two splines on run1469** (item 3802, GOLDEN
 /// §152.2): the Russian Jet Fighter `2/14`'s round on `1/14`, launched
 /// from (12775, 16410). Block 620 prints the spline its re-plan laid
