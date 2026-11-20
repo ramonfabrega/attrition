@@ -50,14 +50,15 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3): the pass designed four seats; out now: 4474 (held out, row 100 from 2743, on the eye's seat; 4471 landed and moved nothing, the first of two), 4472 (the sample from 3904; 4469 landed, leaders 3889 → 3925), 4431 (groups' `facing`), seated when 4461 made run1437's guys line whole (packets 843 → 844), and 4473 (held out, row 60 from 3598, then row 40's take; 4460 landed, row 60's guys whole). Unseated: 4470 (the second battery's row 90).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3): the pass designed four seats; out now: 4474 (held out, row 100 from 2743, on the eye's seat; 4471 landed and moved nothing, the first of two), 4475 (the sample from 3904; 4472 landed and moved nothing, the first of two), 4431 (groups' `facing`), seated when 4461 made run1437's guys line whole (packets 843 → 844), and 4473 (held out, row 60 from 3598, then row 40's take; 4460 landed, row 60's guys whole). Unseated: 4470 (the second battery's row 90).
 
-4472. **The 2017 sample, from 3904** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §7; LEADERS §20.2). 4469 made an
-unassimilated city's claim win as −2 with its bonuses from the race's arrays (`compute_reg_territory`: on 3889 the Inca capital's 29
-cells `who` 03 → fe, theirs fe; player 3's `reg_terr[1]` 77 → 48, theirs 48): leaders 3889 → 3925, world → 3904, cities 3891 → 4201.
-Next by frame: builds and world 3904 (world `3624 -1 mask +0x6201` ours e138, theirs f138, beside builds `2710 2011 gather_max` 0|5),
-then units and guys 3906; leaders 3925 is player 1's `hits_current_frame` 2|1. First act: building 2011 on 3903 and 3904, from the
-ranges on disk. Run 1726 stays reserved and unused. It stops when two landings running move no line's first parting (145 §4).
+4475. **The 2017 sample, from 3904, the camp's region** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §7; ECONOMY §17.4).
+4472 moved no number (the first of two): builds `2710 2011 gather_max` 0|5 and world `3624 -1 mask` (61 tiles' `0x1000` clear|set)
+are one cause, the Inca camp 3/2011 taken on 3887. On 3904 theirs spends 244 draws in `find_gather_tiles` under `Build::process`'s
+region-0x10 re-walk arm; ours holds the camp's region at 0x4 from 3890 and nothing raises 0x10. Ruled out in its journal: script
+calls, orders, our building closes, first-entry coverage, other region writers. Leading hypothesis (parked 4472a): a second close of
+the dead old half 4/2001 at the end of its death countdown, through `Object::die`'s `+0x32`, unread. First act: that path in the
+export, then the writer that raises 0x10. Run 1726 stays reserved. A second landing that moves no line's first parting ends the line.
 
 4474. **Parity held out: row 100, from 2743** (a rules item, whole; the eye's seat; `docs/RECGAME.md` §10.3; CHECKSUM §18). 4471
 landed row 100's killer for 4460's crew point (run1721 2646, Caravan 1/46 crew `des_y` 12355|12377) and moved no number: the first
