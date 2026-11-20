@@ -135,8 +135,8 @@ impl Sim {
             // 968 and theirs' seven caps are 3200, not 2400, on 969, where
             // the tier read at the last reassembly held ours to 976
             // (item 4444, run1722).
-            self.economy.holdings[who].republic = self
-                .government_bonus_level(player, &self.tables.tech_tree.roles.republic_preq);
+            self.economy.holdings[who].republic =
+                self.government_bonus_level(player, &self.tables.tech_tree.roles.republic_preq);
             // `do_gather`'s escrow arm reads `escrow_rate` on every frame,
             // and a human never escrows (`docs/AI.md` §98).
             self.economy.holdings[who].escrow_rate = if self.cities.nation[who].human {
