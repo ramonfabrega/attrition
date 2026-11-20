@@ -897,7 +897,12 @@ pub(in crate::diff) mod tests {
                                     .zip(&b.2)
                                     .enumerate()
                                     .filter(|(_, (p, q))| p != q)
-                                    .take(16)
+                                    // Probe (item 4472): every byte.
+                                    .take(if std::env::var("RON_SAMPLE_RANGES_BYTES").is_ok() {
+                                        usize::MAX
+                                    } else {
+                                        16
+                                    })
                                     .map(|(k, (p, q))| format!("+{k:#x} {p:02x}|{q:02x}"))
                                     .collect();
                                 format!("len {}|{}: {}", a.bytes.len(), b.2.len(), d.join(", "))
