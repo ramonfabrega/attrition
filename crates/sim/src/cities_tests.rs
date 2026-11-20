@@ -3666,6 +3666,58 @@ fn a_capture_cleans_the_captured_library_s_queue_and_marks_the_capital_plundered
     );
 }
 
+/// **An unassimilated city's claim wins as −2** (item 4469, run1724's
+/// 3889: the Inca capital taken on 3887). `compute_reg_territory@006b0bb0:
+/// 425`–`:483` compares the city's `race` (`+0x5f`) with the slot whose
+/// list holds it; a city taken from a foe keeps the loser's `race`, so the
+/// cells it wins are `Ambiguous` and count in nobody's `reg_terr`, until
+/// `City::assimilate` sets `race` and fixes the borders.
+#[test]
+fn an_unassimilated_city_s_cells_count_for_nobody_until_it_assimilates() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b, _) = city_at(&mut sim, &t, 1, 32, 32);
+    sim.tech[1].epoch[tech::Line::Civic as usize] = 1;
+    let _ = city_at(&mut sim, &t, 1, 8, 8);
+    let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+    let bd = &mut sim.buildings[b];
+    bd.damage = bd.hits;
+    bd.sync_health();
+    sim.frame = 1000;
+    let hs: Vec<usize> = (0..3)
+        .map(|i| spawn(&mut sim, 0, hoplite, tile_pos(36, 32 + i)))
+        .collect();
+    assert!(sim.check_capture(b, hs[2]));
+    let nc = sim
+        .cities
+        .cities
+        .iter()
+        .position(|c| c.alive && c.owner == 0)
+        .expect("player 0 has the city now");
+    assert_eq!(sim.cities.cities[nc].race, Some(1), "the loser's race");
+    sim.settle_borders();
+    let at = sim.cities.cities[nc].pos.cell();
+    let r = sim.world.region_of(at).expect("a land region");
+    assert_eq!(
+        sim.world.owner(at),
+        crate::world::Owner::Ambiguous,
+        "the city's own cell"
+    );
+    assert_eq!(sim.reg_terr(0, r), 0, "nothing counts for the taker");
+    sim.assimilate(nc);
+    sim.settle_borders();
+    assert_eq!(sim.cities.cities[nc].race, Some(0));
+    assert_eq!(
+        sim.world.owner(at),
+        crate::world::Owner::Player(0),
+        "assimilated: its own"
+    );
+    assert!(
+        sim.reg_terr(0, r) > 0,
+        "the taker's count, once assimilated"
+    );
+}
+
 /// **A captured city's record is `City::init`'s on a transfer, then
 /// `City::capture`'s** (item 2106, Great Sahara's Napata `1/2086` on its
 /// capture frame 4340): all five clocks — `attack_stamp`, `raid_stamp`,

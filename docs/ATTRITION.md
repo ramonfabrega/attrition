@@ -811,6 +811,19 @@ it survives only because it is observable in a save file. The original also
 resolves such a city's *bonuses* from the owner it records while taking its
 *limit* from the list it was found in.
 
+**The record is `race` (`CityData +0x5f`), and a capture makes the case**
+(item 4469; `compute_reg_territory@006b0bb0:425`–`:483`). A city taken
+from a foe keeps the loser's `race` until `City::assimilate` sets it and
+fixes the borders (`docs/CITIES.md` §7.3), so for those frames its cells
+read `-2` on the world line and count in no `reg_terr`. The bonuses are
+civic, flat and temple from `race`'s arrays; the limit, temple level
+included, is the slot's. `territory::city_source_by_race` builds it, and
+`race` −1, a record never founded, is read as agreeing. *Diff-backed* on
+run1724's 3889: the Inca capital taken on 3887 holds 29 cells, `who` 03 in
+ours before this item and `fe` in theirs, and player 3's `reg_terr[1]` goes
+77 → 48, theirs' value. *Not established*: a `race` of −1 on a live city,
+which no capture reaches.
+
 ---
 
 ## The building half
