@@ -2807,6 +2807,10 @@ impl Sim {
     /// behind (`0x29a` at index 0) and closes with the building.
     fn hand_off_library_queue(&mut self, b: usize) {
         let who = self.buildings[b].owner;
+        if std::env::var("RON_PROBE_4466").is_ok() {
+            let libs: Vec<_> = (0..self.buildings.len()).filter(|&x| self.buildings[x].owner == who && self.buildings[x].is_library).map(|x| (x, self.buildings[x].alive, self.buildings[x].active, self.buildings[x].city)).collect();
+            eprintln!("PROBE4466 handoff f{} b{} next{:?} libs{:?}", self.frame, b, self.first_library(who), libs);
+        }
         let Some(next) = self.first_library(who) else {
             self.clean_queue(b, true);
             return;
@@ -2837,6 +2841,13 @@ impl Sim {
         // first library, asked before anything closes. Only that one hands
         // its queue on below.
         let was_first_library = self.buildings[b].is_library && self.first_library(who) == Some(b);
+        if std::env::var("RON_PROBE_4466").is_ok() && self.buildings[b].is_library {
+            eprintln!(
+                "PROBE4466 close f{} b{} who{} first{:?} was_first{} q{} city{:?} silent{}",
+                self.frame, b, who, self.first_library(who), was_first_library,
+                self.buildings[b].queue.items.len(), self.buildings[b].city, silent
+            );
+        }
         // `Build::close@00628980` line 59, its first act: `defense -= 1`
         // for a type with arrows.
         if self.buildings[b]
