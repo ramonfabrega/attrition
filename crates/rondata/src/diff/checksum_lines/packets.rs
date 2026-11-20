@@ -1430,7 +1430,7 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// **806** on item 4430's tip: run1351's and run1426b's guys lines whole
 /// (4430), and run1426b's units line too, whose last ranges were 4430's
 /// turrets and 4443's `cavarch_o`; run1351's units line parts on one.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 810, 1053);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 813, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -2187,17 +2187,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4425, a member compute_dests skips keeps its record offset: groups (700, 700, 8) -> (700, 700, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (10607, 10607, 58) -> (10607, 10607, 44).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (10607, 10607, 44) -> (10607, 10607, 37).
+    // Item 4451, a reused number keeps its figure array's allocation: units (10607, 10607, 37) -> (10607, 10607, 35), guys (3247, 3247, 2) -> (3247, 3247, 0).
     (
         "run1217",
         7728,
         [
-            (10607, 10607, 37),
+            (10607, 10607, 35),
             (3412, 3412, 0),
             (0, 0, 0),
             (6, 6, 0),
             (0, 0, 0),
             (700, 700, 0),
-            (3247, 3247, 2),
+            (3247, 3247, 0),
             (271, 271, 0),
             (56, 56, 0),
             (0, 0, 0),
@@ -3236,17 +3237,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (4230, 4230, 14) -> (4230, 4230, 0).
     // Item 4422, the swarm's form -1: groups (574, 574, 2) -> (574, 574, 0).
+    // Item 4451, a reused number keeps its figure array's allocation: units (13393, 13393, 10) -> (13393, 13393, 0), guys (3459, 3459, 10) -> (3459, 3459, 0).
     (
         "run1327",
         10930,
         [
-            (13393, 13393, 10),
+            (13393, 13393, 0),
             (4230, 4230, 0),
             (0, 0, 0),
             (0, 0, 0),
             (4, 4, 0),
             (574, 574, 0),
-            (3459, 3459, 10),
+            (3459, 3459, 0),
             (271, 271, 0),
             (59, 59, 0),
             (25, 25, 0),

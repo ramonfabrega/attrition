@@ -9251,6 +9251,41 @@ fn a_computer_captain_comes_out_clean_and_the_city_flag_waits_for_a_human() {
     );
 }
 
+/// **A unit put on a point with `param_3` takes `last` there** (item
+/// 4449): `Guy::set_new_location(…, 1)` (`005d86f0:66`–`70`) copies the
+/// point into `last_x`/`last_y`, and `Unit::come_out@00617c10:518` places
+/// with `set_new_location(spot, 1, 1)`. A unit that walked in comes out
+/// with `last` on its exit, not on the door; a re-seat through
+/// [`Sim::set_new_location`] with the guys moves it again, and one without
+/// leaves it.
+#[test]
+fn a_unit_out_of_its_building_takes_last_on_its_exit() {
+    let (mut sim, t, _, militia) = alarm_sim();
+    let (b, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let door = tile_pos(36, 36);
+    let m = sim.init_unit(0, militia, door);
+    let angle = sim.units[m].movement.facing;
+    sim.units[m].guys[0].last = Some((door, angle));
+    sim.go_inside(m, b);
+    assert!(sim.come_out(m));
+    let exit = sim.units[m].pos;
+    assert_ne!(exit, door, "the exit is a ring spot, not the door");
+    assert_eq!(
+        sim.units[m].guys[0].last.map(|(at, _)| at),
+        Some(exit),
+        "come_out's set_new_location(spot, 1, 1) copies the spot into last"
+    );
+    let seat = tile_pos(40, 40);
+    sim.set_new_location(m, seat, true);
+    assert_eq!(sim.units[m].guys[0].last.map(|(at, _)| at), Some(seat));
+    sim.set_new_location(m, tile_pos(44, 44), false);
+    assert_eq!(
+        sim.units[m].guys[0].last.map(|(at, _)| at),
+        Some(seat),
+        "without param_3 no figure is moved, and last stays"
+    );
+}
+
 /// **A city takes its owner's first dead slot, not anyone's** (twenty-fourth
 /// pass, group 20; A5 #11): `Cities::init_city` has one list per leader, so a
 /// leader's cities sort the same after any capture. Another leader's dead
