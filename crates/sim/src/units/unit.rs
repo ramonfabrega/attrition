@@ -230,6 +230,16 @@ pub struct Unit {
     /// `(ox, whom)` = `(−1, −1)` whenever it differs from what is held
     /// (`docs/GOLDEN.md` §48).
     pub cavarch_who: i8,
+    /// **`cavarch_uid` (`+0xa6`) itself**: 0 from `Unit::init@00612100:561`,
+    /// then the uid (`ObjectData +0x30`) of each target a writer of the
+    /// pair finds — `Unit::fight@005fd4d0:220`, `:424`, `:587`, `:1046`,
+    /// `Group::action_spell@006fe1a0:591` and `Unit::do_cast@005ebfe0:475` —
+    /// and **never cleared with it**: every writer but `do_cast` writes it
+    /// only under `ox ≥ 0`, and the clears (`fight:200`, `do_move`,
+    /// `move_step`) write `+0xa2` alone, so a dropped target's uid stays
+    /// (item 4476: row 60's Dragoon `1/21` on 3757, `cavarch_o` −1,
+    /// `cavarch_uid` 18).
+    pub cavarch_uid: u16,
     /// **`cavarch_o` −2** (`0xfffe`): a fire-on-the-move type's search
     /// found nothing twice running, and the next one waits for the
     /// thirty-two-frame phase (`Unit::cavarch_fight@005ff4b0`'s tail,
@@ -1030,6 +1040,7 @@ impl Unit {
             healing: 0,
             cast_target: None,
             cavarch_who: 0,
+            cavarch_uid: 0,
             cavarch_idle: false,
             head_serial: HeadSerial(0),
             casting: false,

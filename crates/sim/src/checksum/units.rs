@@ -563,11 +563,9 @@ impl Sim {
                 i64::from(un.combat.damage_o)
             },
         );
-        p(
-            0xa6,
-            2,
-            un.cast_target.map_or(0, |o| i64::from(self.obj_uid(o))),
-        );
+        // `cavarch_uid`: the carried word, kept past a dropped target
+        // (item 4476).
+        p(0xa6, 2, i64::from(un.cavarch_uid));
         p(0xa8, 1, i64::from(un.cavarch_who));
         p(0xa9, 1, i64::from(un.combat.damage_who));
         p(0xaa, 1, i64::from(un.form));
@@ -608,7 +606,7 @@ impl Sim {
     }
 
     /// The `uid` (`ObjectData +0x30`) of a combat object.
-    fn obj_uid(&self, o: Obj) -> u16 {
+    pub(crate) fn obj_uid(&self, o: Obj) -> u16 {
         match o {
             Obj::Unit(v) => self.units[v].uid,
             Obj::Building(b) => self.buildings[b].uid,
