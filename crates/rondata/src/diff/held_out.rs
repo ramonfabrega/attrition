@@ -1263,13 +1263,94 @@ pub(crate) const HELD_OUT_LINE: (usize, usize) = (4, 8);
 /// found column is pinned once and never re-pinned; it is the estimate
 /// (DECISIONS 145 §2).
 #[cfg(test)]
-pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] =
-    [None, None, None, None, None, None, None, None];
+pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
+    // run1730
+    // row 10, as found 2026-11-20: 4 lines whole; units 2,496 of 6,001, first 1747; builds 537
+    // of 6,001, first 537; ammo 5,591 of 6,001, first 4542; deaths 5,350 of 6,001, first 4686;
+    // groups 3,066 of 6,001, first 3066; guys 5,932 of 6,001, first 1747; leaders 3,976 of
+    // 6,001, first 1576; world 537 of 6,001, first 537.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                2496, 537, 6001, 5591, 5350, 3066, 5932, 3976, 6001, 6001, 6001, 537,
+            ],
+            first: &[
+                ("units", (1747, Some(1368369504), 1685366186)),
+                ("builds", (537, Some(1374294361), 1810502041)),
+                ("ammo", (4542, Some(2344817575), 281265979)),
+                ("deaths", (4686, Some(4192616794), 999637338)),
+                ("groups", (3066, Some(2106809472), 4177681537)),
+                ("guys", (1747, Some(978400498), 3434034420)),
+                ("leaders", (1576, Some(2345254394), 1305656828)),
+                ("world", (537, Some(993370751), 2782374025)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1731
+    // row 30, as found 2026-11-20, ended by the original on 4547: 8 lines whole; units 2,334 of
+    // 4,548, first 2334; guys 4,519 of 4,548, first 2334; leaders 3,748 of 4,548, first 1776;
+    // world 4,423 of 4,548, first 1662.
+    Some(FirstScore {
+        last: Some(4547),
+        found: Score {
+            states: 4548,
+            agreed: [
+                2334, 4548, 4548, 4548, 4548, 4548, 4519, 3748, 4548, 4548, 4548, 4423,
+            ],
+            first: &[
+                ("units", (2334, Some(1174910604), 994488935)),
+                ("guys", (2334, Some(700966203), 3856065750)),
+                ("leaders", (1776, Some(740584264), 2366335817)),
+                ("world", (1662, Some(3453374911), 2282901965)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1732
+    // row 50, as found 2026-11-20, ended by the original on 4454: 11 lines whole; groups 4,415
+    // of 4,455, first 3352.
+    Some(FirstScore {
+        last: Some(4454),
+        found: Score {
+            states: 4455,
+            agreed: [
+                4455, 4455, 4455, 4455, 4455, 4415, 4455, 4455, 4455, 4455, 4455, 4455,
+            ],
+            first: &[("groups", (3352, Some(4005438802), 229385035))],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1733
+    // row 70, as found 2026-11-20, ended by the original on 5140: 11 lines whole; world 5,054
+    // of 5,141, first 5054.
+    Some(FirstScore {
+        last: Some(5140),
+        found: Score {
+            states: 5141,
+            agreed: [
+                5141, 5141, 5141, 5141, 5141, 5141, 5141, 5141, 5141, 5141, 5141, 5054,
+            ],
+            first: &[("world", (5054, Some(2368706929), 2281807025))],
+            over: None,
+        },
+        moved: None,
+    }),
+    None,
+    None,
+    None,
+    None,
+];
 
 /// **Parity held out, second, N of 8** (item 4462): the second battery's
 /// games whole on every line and state, and the games taken.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (0, 0);
+pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (0, 4);
 
 /// One battery: its declared table, its pins, where its files and takes
 /// sit, and its line in the handoff.
