@@ -920,7 +920,7 @@ pub(super) fn chapter_thirty_seven_s_nuke_is_launched_and_fired_field_for_field(
             0,
             2007,
             "visible",
-            sim.combat.nukes.visible_of(silo),
+            i64::from(sim.buildings[silo].visible as i8),
             get("visible"),
         );
         // The nuke.
