@@ -578,6 +578,12 @@ impl Sim {
             }
         }
 
+        // `action_move_near`'s `local_3c` and `local_18` across the member
+        // walk (§6.6 step 4's same-region arm): the index of the last
+        // captain the walk passed, and whether that captain was re-placed,
+        // which carries its figures after it.
+        let mut last_captain = 0usize;
+        let mut carry = false;
         for (i, &u) in g.list.iter().enumerate() {
             match plan[i] {
                 Member::Skip => continue,
@@ -622,6 +628,17 @@ impl Sim {
             // stack, so `find_path` pulled back off the map's edge onto
             // its own square where theirs, from (46079, 38109), stopped
             // at (45683, 37689) (item 3711, `docs/AI.md` §363.1).
+            // `local_14`, read before the clamp (`705b0e` and before): a
+            // captain resets the carry and becomes the walk's last captain;
+            // a figure inherits the carry. Both the `i == 0` and the
+            // different-region paths leave it as it is.
+            let carried = if self.units[u].captain {
+                last_captain = i;
+                false
+            } else {
+                carry
+            };
+            carry = carried;
             let mut slot = self.restrict_pos(slots.to[i]);
             slots.to[i] = slot;
             // §6.6 step 4's **different-region** arm (`705a2a`..`705c9b`):
@@ -646,8 +663,7 @@ impl Sim {
             // (8664, 1368) where the original's whole army aims at
             // (8568, 984) (run1168's block 4091, `docs/AI.md` §304).
             // SEAM: a loaded boat's passenger type (a sea member with
-            // `num_inside`); and the same-region `invalid_loc` arm, which a
-            // computer's unit (`unit_masks & 0x40000`) skips.
+            // `num_inside`).
             if i > 0 {
                 let s0 = self.restrict_pos(slots.to[0]);
                 if self.world.tregion_alt(slot.tile()) != self.world.tregion_alt(s0.tile()) {
@@ -669,6 +685,17 @@ impl Sim {
                     // group 15; A9 row 34), so a stale back-pointer is
                     // re-pointed. A group with no seat has no id to write.
                     self.repoint_member(g, u);
+                } else if let Some(spot) =
+                    self.same_region_spot(u, slot, s0, slots.to[last_captain], angle, carried)
+                {
+                    // §6.6 step 4's **same-region** arm, [`Sim::same_region_spot`].
+                    // Written back into the table, which §6.7's translation
+                    // reads next.
+                    slot = spot.0;
+                    slots.to[i] = slot;
+                    carry = spot.1;
+                } else {
+                    carry = false;
                 }
             }
             // §6.6 step 6: the order's angle is the formation's, **plus**
@@ -812,6 +839,81 @@ impl Sim {
             return self.barge_type(who).or(Some(own));
         }
         Some(own)
+    }
+
+    /// §6.6 step 4's **same-region** arm of `Group::action_move_near@00704990`
+    /// (`705b0e`..`705b9b`, then `LAB_00705ba0`; decompile 550-650), for
+    /// member `u` whose slot is `slot`, slot 0's point `s0` and the walk's
+    /// last captain's slot `captain_slot`. `None` when the member keeps its
+    /// slot; else the new slot and the carry the walk takes on.
+    ///
+    /// The arm is entered when the carry stands (`local_14`: the last
+    /// captain was re-placed, so its figures follow it unasked), or when
+    /// the member is a player's (`unit_masks & 0x40000` clear) and its
+    /// slot's tile is `invalid_loc(0, 0, 0, 0, 0)` while slot 0's is not.
+    /// Then:
+    ///
+    /// - **A figure** (`is_captain` clear) is placed round the last
+    ///   captain's slot by its type's `find_nearby_spot`, rings
+    ///   `guy_spacing` to four times it, the default step, the formation's
+    ///   angle turned +90° when its `o_up` is its captain (vslot `+0xe4`)
+    ///   and −90° otherwise, `FILTER_NOT_ME` against itself, no squad
+    ///   argument. The carry stays as it was.
+    /// - **A captain** is placed round slot 0's point, rings `0xc0` to
+    ///   `0x480`, the default step, the formation's angle, `FILTER_NOT_ME`
+    ///   against itself and `uber_unit` 1, a squad placement. The carry is
+    ///   set.
+    ///
+    /// A sweep that finds nothing hands back its centre (`find_nearby_spot`
+    /// returns 1 with `out` the input point, and the arm writes `out`
+    /// either way).
+    ///
+    /// The person's Ashigaru Spearmen `3/27` in the 2017 sample on 2699,
+    /// the middle figure of the three-figure squad its captain `3/26`
+    /// heads: its slot (39070, 30774) is refused, slot 0's (39192, 30696)
+    /// is not, and theirs' order and path aim at (39048, 30648) (item 4432,
+    /// `docs/GROUPS.md` §6.6).
+    pub(crate) fn same_region_spot(
+        &self,
+        u: usize,
+        slot: Pos,
+        s0: Pos,
+        captain_slot: Pos,
+        angle: Angle,
+        carried: bool,
+    ) -> Option<(Pos, bool)> {
+        let unit = &self.units[u];
+        let enter = carried
+            || (!self.unit_ai_bit(unit.owner)
+                && self.invalid_loc(u, slot.tile(), false, false, false, false, false) != 0
+                && self.invalid_loc(u, s0.tile(), false, false, false, false, false) == 0);
+        if !enter {
+            return None;
+        }
+        if unit.captain {
+            let spot = self
+                .find_nearby_spot_squad(u, s0, 0xc0, 0x480, -1, angle)
+                .unwrap_or(s0);
+            return Some((spot, true));
+        }
+        let ty = unit.ty?;
+        let turn = if unit.o_up == Some(self.captain_of(u)) {
+            0x4000_0000
+        } else {
+            0xc000_0000_u32 as i32
+        };
+        let gs = self.tables.unit_types[ty].combat.guy_spacing;
+        let spot = self
+            .find_nearby_spot_type_for(
+                ty,
+                u,
+                captain_slot,
+                gs,
+                gs * 4,
+                Angle(angle.0.wrapping_add(turn)),
+            )
+            .unwrap_or(captain_slot);
+        Some((spot, carried))
     }
 
     /// `Group::action_move_near@00704990`'s keep (`:410`–`440`, `:727`–

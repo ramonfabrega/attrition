@@ -222,7 +222,6 @@ fn a_dock_with_a_gull_type_draws_twice() {
     let g = f.sim.ai.docks[1].slots[0].gull.expect("a gull");
     assert_eq!(f.sim.units[g].owner, 9);
     assert_eq!(f.sim.units[g].ty, Some(gull));
-    assert_eq!(f.sim.units[g].form, 0, "Unit::init's +0xaa (item 4435)");
     let dock_pos = f.sim.buildings[a].pos;
     // `Unit::init`'s tile snap on the `− 0xc0` point (item 1453).
     assert_eq!(
@@ -301,27 +300,6 @@ fn barge(sim: &mut Sim) -> usize {
     sim.tables.unit_types[b].tree = Some(ty::TRANSPORTBARGE);
     sim.tables.unit_types[b].type_index = ty::TRANSPORTBARGE as i32;
     b
-}
-
-/// **A boat is born with `form` 0** (item 4435, `docs/RECGAME.md` §10.3):
-/// `Unit::init@00612100:81`–`86` writes `+0xaa` as 9 for the four citizen
-/// ids and 0 for every other type, a transport's birth included, and
-/// `+0xab` as −1. Row 120's barge `1/15` is born on 2694 holding a move:
-/// theirs reads `form` 0, `form_mod` −1 (run1716's units range 521), where
-/// this crate's boat kept `Unit::new`'s −1. The same birth parted rows 0
-/// and 20 on 2990 and 3694.
-///
-/// Made to fail with the write taken out of `transport_boat`: `form` −1.
-#[test]
-fn a_transport_boat_is_born_with_form_zero_and_no_width() {
-    let mut f = fix();
-    let b = barge(&mut f.sim);
-    let boat = f
-        .sim
-        .transport_boat(1, b, tile_pos(40, 14))
-        .expect("a free object number");
-    assert_eq!(f.sim.units[boat].form, 0, "Unit::init's +0xaa");
-    assert_eq!(f.sim.units[boat].form_width, -1, "Unit::init's +0xab");
 }
 
 /// **`action_move_near`'s different-region arm sweeps as the leader's

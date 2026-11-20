@@ -32,7 +32,7 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 Blind: never 336 · residue 336 · open 0
 Rubric: ported 738 · replaced by design 331 · open 571 of 3611 · lockstep bytes 78.1 % · ages held 8 of 8 · unit types seen 296 of 302
 Held-out: 8 of 9 whole · shortest 6147
-Parity held out: 0 of 8 whole · 8 taken · lines 64 of 96 as found, 66 now · first partings 2990 3694 711 969 0 134 2694 0 as found, 3157 4180 1854 969 0 134 3250 0 now
+Parity held out: 0 of 8 whole · 8 taken · lines 64 of 96 as found, 66 now · first partings 2990 3694 711 969 0 134 2694 0 as found, 2990 3694 1854 969 0 134 2694 0 now
 Structure: flat 11 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 21 · largest 3709
 Renderer: K 59 of M 60 · frames 35 of 35 · pieces 1465 of 1478 · resolved 1,237,591 of 1,237,606 objects over 110 lobbies
 Clock: ceilings on GreatLakes lobby, 600 frames off-screen from frame 0 · frame zero 1.5 s · p99 20 ms · slowest 400 ms (frame 1, first sight) · peak 320 MiB
@@ -50,12 +50,12 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5): the pass designed four seats: the chain's 4439 (held out, the Ancient starts, after 4435 landed: a barge born with form 0; out), a parity seat's 4436 (held out, the later starts; out), a parity seat's 4432 (the sample, from units 2700; out), the eye's 4438 (the buildings' team colour; out, after 4437 landed at its stop). 4439 and 4436 both take the game lane, one game at a time. Unseated, for the seat that stops first: 4430 (guys' `last_angle`), 4431 (groups' `facing`), 4433 (a plate for a city but Napata).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5): the pass designed four seats: the chain's 4439 (held out, the Ancient starts; landed on 4435's tip, held: 4435's merge is reverted, gate-4435.log red on 282 widened windows, its second commit out), a parity seat's 4436 (held out, the later starts; out), a parity seat's 4440 (the sample, from 2888, after 4432 moved units 2700 → 2888; out), the eye's 4438 (the buildings' team colour; out, after 4437 landed at its stop). 4439 and 4436 both take the game lane, one game at a time. Unseated, for the seat that stops first: 4430 (guys' `last_angle`), 4431 (groups' `facing`), 4433 (a plate for a city but Napata).
 
 4439. **Parity held out, the Ancient starts: a passenger's unload** (a rules item, whole; the chain's; `docs/RECGAME.md` §10.3;
 DECISIONS 145 §1, §3). 4435 took row 120 as run1716 (ranges, 4.29 GB) and found a transport born with `form` −1 where `Unit::init` writes 0:
 units rows 0, 20 and 120 agree 5,435 → 5,998, 5,073 → 5,997 and 4,815 → 5,861, first partings 2990 → 3157, 3694 → 4180, 2694 → 3250.
-Row 120 parts units and guys on 3250 (parked 4435a): the scout `1/0` leaves the barge at (19080, 39768) and theirs' figure takes that
+Row 120 parts units and guys on 3250: the scout `1/0` leaves the barge at (19080, 39768) and theirs' figure takes that
 point into `last_x`, `last_y`, `last_z` and `last_angle`, ours keeps (30849, 41470, −37, −1553072128). First act: on run1716's ranges,
 the writer (`Unit::come_out` → `set_new_location(…, 1, 1)`, item 4238's harness test), then whether rows 0 and 20's 3157 and 4180 are
 the same cause; runs 1717 to 1719 for rows 0, 20 and 140 when a ranges take is needed. Re-pin `SCORES[k].moved`, never `found`. It
@@ -69,12 +69,12 @@ units 1858. The original ends each between 3330 and 4973, ours not over. First a
 (run1722, run1723). The end is read when a row reaches it in lockstep, not before. Re-pin `SCORES[k].moved`. It takes the game lane after
 4435's take. It stops when two landings running move no row's column (145 §4).
 
-4432. **The 2017 sample, from units 2700** (a rules item, whole; a parity seat's, unspawned; `docs/RECGAME.md` §7). 4429 wired
-`process_attrition`'s check 6 (an ally's ground, diplomacy +0x74 both ways): units 2112 → 2700, leaders 2112 → 2989 (state 2112, computer
-2's Citizen on ally 0's ground: flags 17 → 1, damage 1 → 0, attrition 8 → 0, leader 2's `attrition_stamp` 0x83f → 0; theirs 1/0/0/0).
-`SAMPLE_LINES` now part first on units 2700, then groups 2888, guys 2920, world 2921, leaders 2989, ammo 3022, builds 3029. First act, on
-disk: unit o 27's move order, `off_y` 72|696 and `y` 30792|30648, its path shifted (+22, +126). Then leaders 2989 (player 3's `oil_patches`
-0x0c|0x0d). It stops when two landings running move no line's first parting (145 §4).
+4440. **The 2017 sample, from 2888** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §7). 4432 wired `action_move_near`'s
+same-region arm (unit o 27's `dest_y` 30792 → theirs' 30648): `SAMPLE_LINES` units 2700 → 2888, every other line unmoved. Units and groups
+now part first on 2888, the frame after item 4359's bell (computer 4's capital struck on 2887): units' first range `2361 2 order.type`
+7|absent (ours 3107 ranges, theirs 3137, 745 parted); groups' `346 256 id..march`, `stamp` 2701|2887. Then guys 2920, world 2921, leaders
+2989 (player 3's `oil_patches` 0x0c|0x0d). First act, on disk: the order on 2888 and the group's stamp, both values and the writer.
+It stops when two landings running move no line's first parting (145 §4).
 
 4430. **The packets' guys line: `last_angle`** (a rules item, whole; unseated, for the seat that stops first; CHECKSUM §23). 4428 turned
 5 guys lines, `PACKETS_SCORE` 743 → 748 of 1,053: an aircraft's figure-0 `z` is its object number's dead occupant's (`Guy::set_new_location`
