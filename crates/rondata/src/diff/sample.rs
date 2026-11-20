@@ -807,6 +807,26 @@ pub(in crate::diff) mod tests {
                     continue;
                 }
                 let (rec, field) = a.map_or((-1, "-"), |r| (r.record, r.field));
+                // A leader's decrypted block is one range a word: name the
+                // word by its place in the record's run of them (item 4445).
+                let field = match (*name, field) {
+                    ("leaders", "encrypt") => {
+                        let k = i - o
+                            .ranges
+                            .iter()
+                            .position(|r| r.record == rec && r.field == "encrypt")
+                            .unwrap_or(i);
+                        let six = sim::checksum::leaders::ENCRYPT_SIX;
+                        let leaf = if k < 54 {
+                            format!("{}[{}]", six[k % 9], k / 9)
+                        } else {
+                            format!("word {k}")
+                        };
+                        format!("encrypt {leaf}")
+                    }
+                    _ => field.to_string(),
+                };
+                let field = field.as_str();
                 let fields = match (a, b) {
                     // A shifted range decodes theirs' bytes by our field's
                     // name; at another length that is raw bytes alone.
