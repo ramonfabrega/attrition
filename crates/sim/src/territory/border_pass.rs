@@ -318,7 +318,7 @@ impl Sim {
                 // and `|= 0x20`, so its gather buildings verify their lists
                 // in the objects that follow and re-walk on the next frame,
                 // once the daemon's cycle has traded the bit for `0x10`
-                // (`docs/ECONOMY.md` §17.5; item 4475). `0x80` feeds only
+                // (`docs/ECONOMY.md` §17.2; item 4475). `0x80` feeds only
                 // `Borders::add_border_region`, which is not carried.
                 self.world.or_region_flags(r, REGION_VERIFY_GATHER);
                 for l in &mut self.economy.ledgers {
