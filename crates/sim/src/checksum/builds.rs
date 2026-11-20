@@ -433,7 +433,26 @@ impl Sim {
         // `Object::walk_data@00647830`.
         put("must_walk", vec![1]);
         put("myhits..launch_frames", self.object_bytes(b));
-        put("launching", vec![u8::from(!bd.launching.is_empty())]);
+        // `launching` (`+0x44`): the pointer, then `SimpleArray<int>::walk_data@00473120`
+        // — the length; with elements the size, `increment` −1 and the
+        // flags (`& 0xbf`, 0), then the elements, each the unit's `o`, in
+        // one range (item 4465, [`crate::cities::building::Launching`]).
+        put("launching", vec![u8::from(bd.launching.allocated())]);
+        if bd.launching.allocated() {
+            let n = bd.launching.len();
+            put("launching.length", (n as i32).to_le_bytes().to_vec());
+            if n > 0 {
+                put("launching.size", bd.launching.size().to_le_bytes().to_vec());
+                put("launching.increment", (-1i16).to_le_bytes().to_vec());
+                put("launching.flags", vec![0]);
+                let list = bd
+                    .launching
+                    .iter()
+                    .flat_map(|&u| i32::from(self.units[u].index).to_le_bytes())
+                    .collect();
+                put("launching[k]", list);
+            }
+        }
         // `WallData::walk_data@00642510`.
         put("must_walk", vec![1]);
         put("job_counter..demolition", self.wall_bytes(b, gpiece));

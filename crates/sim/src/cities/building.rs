@@ -140,8 +140,8 @@ pub struct Building {
     /// (`crate::air`'s `do_launch`, `docs/ORDERS.md` §38).
     pub launch_frames: i32,
     /// `ObjectData::launching` (`+0x44`): the planes `do_launch` has let
-    /// go and whose EXIT has not yet killed its order.
-    pub launching: Vec<usize>,
+    /// go and whose EXIT has not yet killed its order ([`Launching`]).
+    pub launching: Launching,
     /// `BuildData::founder`.
     pub founder: Player,
     /// The four per-call construction-clock clauses, as inputs.
@@ -279,6 +279,75 @@ impl Building {
     }
 }
 
+/// **`ObjectData::launching` (`+0x44`), a `SimpleArray<int> *`** (item
+/// 4465, `docs/CHECKSUM.md` §18): the planes, or the missiles, a hangar has
+/// let go, in the order they joined, by [`Sim::units`] index.
+///
+/// The pointer is null until the first launch: `Object::do_launch@0064f3b0:171`
+/// mallocs the array then, empty (`SimpleArray<int>::SimpleArray<int>@00433c00`:
+/// size 0, `increment` −1, flags 0), and adds the unit. **Nothing frees
+/// it**: every other writer (`do_launch`'s kill arm, `Unit::kill_current_order@005e2cb0:148`,
+/// `Build::clear_gather@00623180:70`, `Build::do_missile_launch@00622670`)
+/// calls `SimpleArray<int>::remove@00462e70`, which shifts the rest down
+/// in order and keeps the block. So `Object::walk_data@00647830` folds a
+/// 1 for the pointer from the first launch on, empty or not, and then
+/// the array's own walk.
+///
+/// `size` is the block's capacity: `ArrayBase<int>::add@0042daf0` grows a
+/// full array through `SimpleArray<int>::increase_size@004220e0`, whose
+/// `increment` −1 adds 4 to an empty block and the capacity to any other
+/// (`4220ee`..`4220fc`: `edi = size ? size : 4`), so 4, 8, 16. run1721's
+/// silo `1/2022` on 2588: length 1, size 4, `[84]`.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Launching {
+    list: Vec<usize>,
+    size: u32,
+}
+
+impl Launching {
+    /// `ArrayBase<int>::add`: the block allocated on the first, grown when full.
+    pub fn push(&mut self, u: usize) {
+        if self.list.len() as u32 == self.size {
+            self.size += if self.size == 0 { 4 } else { self.size };
+        }
+        self.list.push(u);
+    }
+
+    /// `SimpleArray<int>::remove` of every entry `keep` refuses (none is
+    /// held twice: `do_launch` adds only what `find` misses).
+    pub fn retain(&mut self, keep: impl FnMut(&usize) -> bool) {
+        self.list.retain(keep);
+    }
+
+    /// The entry at `k`, taken out, the rest shifted down.
+    pub fn remove(&mut self, k: usize) -> usize {
+        self.list.remove(k)
+    }
+
+    /// The pointer is not null: something has launched from here.
+    pub const fn allocated(&self) -> bool {
+        self.size != 0
+    }
+
+    /// The block's capacity, `SimpleArray +0x8`.
+    pub const fn size(&self) -> u32 {
+        self.size
+    }
+}
+
+impl std::ops::Deref for Launching {
+    type Target = [usize];
+    fn deref(&self) -> &[usize] {
+        &self.list
+    }
+}
+
+impl PartialEq<Vec<usize>> for Launching {
+    fn eq(&self, other: &Vec<usize>) -> bool {
+        self.list == *other
+    }
+}
+
 /// A unit that came out of a queue this frame.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Produced {
@@ -375,7 +444,7 @@ impl Sim {
             city: None,
             garrison: Vec::new(),
             launch_frames: 0,
-            launching: Vec::new(),
+            launching: Launching::default(),
             founder: owner,
             uid,
             frame_started: 0,
