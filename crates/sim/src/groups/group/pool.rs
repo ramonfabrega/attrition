@@ -266,7 +266,18 @@ impl Sim {
         // pushes `1/64`..`1/66` onto the slot army 1's closed group last
         // held, and the layout reads that group's `facing` (§28).
         let (slot, prev) = self.pool_record(g.who, pool);
+        let prev_facing = prev.facing;
         let state = GroupState::copied(prev, pool, self.frame, g.list.len());
+        if std::env::var("RON_PROBE_4431").ok().and_then(|v| v.parse::<usize>().ok())
+            == Some(g.who as usize * 64 + pool as usize)
+        {
+            let names: Vec<i16> = g.list.iter().map(|&u| self.units[u].index).collect();
+            eprintln!(
+                "P4431P f{} push {:?} prev_facing {:?} copied_facing {}\n{}",
+                self.frame, names, prev_facing, state.facing,
+                std::backtrace::Backtrace::force_capture()
+            );
+        }
         let entry = crate::groups::group::Pushed {
             who: g.who,
             list: g.list.clone(),
