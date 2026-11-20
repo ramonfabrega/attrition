@@ -1057,15 +1057,17 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4443 (the units line folds `cavarch_o` -2): units
         // 1,568 -> 5,999, first 1568 -> 3937. On 1568 (our walk) the
         // fire-on-the-move 1/2 (type 12) is the one unit idle at -2.
+        // Moved by item 4457 (the Dutch free Commerce's `gain_tech` tail):
+        // leaders 6,000 -> 6,001, whole. run1725's setup set, range 128,
+        // record 1, `leader_flags` byte 3: ours 0x0b, theirs 0x0f.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5999, 6001, 6001, 6001, 6001, 6001, 6000, 6000, 6001, 6001, 6001, 6001,
+                5999, 6001, 6001, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 6001, 6001,
             ],
             first: &[
                 ("units", (3937, Some(595040496), 264476909)),
                 ("guys", (4026, Some(1242658676), 1019574129)),
-                ("leaders", (0, Some(3890907082), 2955970510)),
             ],
             over: None,
         }),
