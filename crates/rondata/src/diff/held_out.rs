@@ -395,6 +395,81 @@ mod tests {
         );
     }
 
+    /// Game `k`'s units line on `state`, ours against the ranges take
+    /// `run`'s, every range byte for byte; returns theirs' range `range`.
+    fn units_ranges_agree(k: usize, run: &str, state: i64, range: usize) -> Option<Vec<u8>> {
+        let inst = crate::testenv::install()?;
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(k) else {
+            eprintln!("skipping: game {k}'s recording is missing");
+            return None;
+        };
+        let Some(ranges) = crate::testenv::experiment(
+            &home.join(format!("ron-golden/{run}/map-14")),
+            "rontrace.ranges",
+        ) else {
+            eprintln!("skipping: {run}'s ranges record is missing");
+            return None;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("the game's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        while built.sim.frame < state {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let set = record.first_of(state - 1).expect("the state's set").clone();
+        let theirs = record.ranges(&set).expect("the set's ranges");
+        let theirs: Vec<_> = theirs.into_iter().filter(|r| r.line == 0).collect();
+        let ours = built.sim.checksum_units();
+        assert_eq!(ours.ranges.len(), theirs.len(), "units ranges on {state}");
+        for (i, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+            assert_eq!(
+                a.bytes, b.bytes,
+                "units range {i} on {state}, record {} {}",
+                a.record, a.field
+            );
+        }
+        Some(theirs[range].bytes.clone())
+    }
+
+    /// **A bumped guard's `dest_angle`** (item 4448, `docs/RECGAME.md`
+    /// §10.3): on tick 2366 the computer's Fusiliers `1/73` (type 136)
+    /// turns at its guard spot (`Unit::do_guard`'s `set_angle`) after
+    /// `Unit::work`'s `update_action` has already copied the old heading,
+    /// and a unit that walks into it runs `detect_unit_collision`'s `0xc`
+    /// arm, whose `update_action(blocker)` copies the new one. Every
+    /// units range on 2367: red without that call at range 2407, record
+    /// 73, byte 18, ours `15 a7`, theirs `b5 b5`.
+    #[test]
+    fn row_80_s_fusiliers_take_the_guard_turn_s_dest_angle_on_run1720_s_ranges() {
+        let Some(theirs) = units_ranges_agree(4, "run1720", 2367, 2407) else {
+            return;
+        };
+        assert_eq!(
+            &theirs[0x5a - 0x48..0x5c - 0x48],
+            &[0xb5, 0xb5],
+            "theirs' dest_angle"
+        );
+    }
+
+    /// The same call on row 100 (item 4448): run1721's Assault Infantry
+    /// `1/43` (type 104) turns at its guard spot on tick 1792. Red without
+    /// it at range 1581, record 43, byte 18, ours `00 c0`, theirs `f2 cb`.
+    #[test]
+    fn row_100_s_assault_infantry_take_the_guard_turn_s_dest_angle_on_run1721_s_ranges() {
+        let Some(theirs) = units_ranges_agree(5, "run1721", 1793, 1581) else {
+            return;
+        };
+        assert_eq!(
+            &theirs[0x5a - 0x48..0x5c - 0x48],
+            &[0xf2, 0xcb],
+            "theirs' dest_angle"
+        );
+    }
+
     /// **The held-out line**, from the table alone: the games whose score
     /// agrees on every line on every state, of the eight, and how many are
     /// taken.
