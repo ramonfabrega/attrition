@@ -181,7 +181,7 @@ fn french_information_pair_the_long_s_stride_walks_back_from_the_word() {
     // stride does not print), `form` on 27 units, who=1's groups 64..68'
     // `held` and pools (5 each), and `mirror` on `1/87` from 3001 and on
     // `1/106` and `1/123` from 3101 (ours 0, theirs 1). No draw parts.
-    pin_eq!(w.firsts.len(), 87, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 84, "the stride's baseline");
 }
 
 /// run1448b: the pair's last blocks, 2935..3192 at the long's detail with
@@ -247,7 +247,7 @@ fn french_information_pair_run1448b_s_closing_frame_is_widened_whole() {
     // 1), and two guards' `dest_angle` — the TOW `1/71` (type 141) and the
     // Abrams `1/83` (type 254), group 65's. No draw parts to 3191.
     // Item 4448: 55 -> 53, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
-    pin_eq!(w.firsts.len(), 53, "run1448b baseline");
+    pin_eq!(w.firsts.len(), 50, "run1448b baseline");
     // Every round, both directions: 56 against 56, none parting.
     pin_eq!(w.rounds_read, (56, 56), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");

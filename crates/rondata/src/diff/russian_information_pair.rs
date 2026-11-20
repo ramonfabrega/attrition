@@ -202,7 +202,7 @@ fn russian_information_pair_the_long_s_stride_walks_back_from_the_word() {
     // `attack[1].mandatory` on 5901 goes (`docs/AI.md` §368.1).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 288 -> 284.
     // Item 4435: 284 -> 201, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 201, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 192, "the stride's baseline");
 }
 
 /// run1401b: the word 6153's window, blocks 6095..6403 at the long's
@@ -278,7 +278,7 @@ fn russian_information_pair_run1401b_s_word_frame_is_widened_whole() {
     // Item 4177: 164 -> 168, +4 firsts, the combat rates' own: who=0 `average_damage_rate` 6095 ours 1578 theirs 1581; who=0 `damage_fifteen_seconds` 6095 ours 75 theirs 77; who=1 `average_hit_rate` 6095 ours 1578 theirs 1581; who=1 `hits_fifteen_seconds` 6095 ours 75 theirs 77 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 168 -> 164, item 4177's four combat-rate firsts agree (4177a).
     // Item 4435: 160 -> 111, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 111, "run1401b baseline");
+    pin_eq!(w.firsts.len(), 102, "run1401b baseline");
     // Every round, both directions: 408 in ours against 227. Item 3744:
     // 408 against 408, 98 parting — the MLRS `1/99`'s launch point (40,
     // `sx`/`sy`/`sz`, 3744a) and `1/198`'s rounds (58, 3744b); none spends
@@ -356,7 +356,7 @@ fn russian_information_pair_run1423_s_gap_is_widened_whole() {
     // Item 4159's residue: 167 -> 163, item 4177's four combat-rate firsts agree (4177a).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 163 -> 159.
     // Item 4435: 159 -> 114, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 114, "run1423 baseline");
+    pin_eq!(w.firsts.len(), 105, "run1423 baseline");
     pin_eq!(w.rounds_read, (408, 408), "the rounds read");
     // 94 parting: the MLRS `1/99`'s launch point from 5913 (3744a). Item
     // 3760, the Strategic Bomber's bays and the Jet Fighter's guns: 94 →
@@ -429,7 +429,7 @@ fn russian_information_pair_run1423b_s_gap_is_widened_whole() {
     // Item 4159's residue: 174 -> 170, item 4177's four combat-rate firsts agree (4177a).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 170 -> 167.
     // Item 4435: 167 -> 124, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 124, "run1423b baseline");
+    pin_eq!(w.firsts.len(), 115, "run1423b baseline");
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -501,7 +501,7 @@ fn russian_information_pair_run1423c_s_closing_frame_is_widened_whole() {
     // Item 4159r5: 153 -> 144, the launch rows of pieces 210 (3): rounds that left the figure's square leave from their bays.
     // Item 4435: 144 -> 107, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4448: 107 -> 106, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
-    pin_eq!(w.firsts.len(), 106, "run1423c baseline");
+    pin_eq!(w.firsts.len(), 97, "run1423c baseline");
     // Item 4159r5: (29, 30) -> (29, 29), the launch rows of pieces 210 (3): rounds that left the figure's square leave from their bays.
     pin_eq!(w.rounds_read, (29, 29), "the rounds read");
     // 29 against 30, 12 parting, every one the T80 `1/59`'s (TI 260)

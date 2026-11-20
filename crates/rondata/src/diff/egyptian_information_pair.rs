@@ -279,7 +279,7 @@ fn egyptian_information_pair_run1399b_s_word_frame_is_widened_whole() {
     // leaves its muzzle on both sides; `1/29`'s of 3216 still parts, a
     // node-1 round ours fires from `WALK` (parked 3743a).
     // Item 4448: 65 -> 62, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
-    pin_eq!(w.firsts.len(), 62, "run1399b baseline");
+    pin_eq!(w.firsts.len(), 53, "run1399b baseline");
     // Every round, both directions: 648 in ours against 684, the first
     // parting `1/34`'s `ammo[0]` on 3205 (`sx` 5640 against 5530, `sz` 364
     // against 533, `total_time` 3 against 2).
@@ -362,7 +362,7 @@ fn egyptian_information_pair_run1421_s_word_frame_is_widened_whole() {
     // craft), group 67's `held` on 3507, `1/124`'s `mirror` on 3511, and
     // the same families later; `0/10` dies on 3519 on both sides and the
     // leader rows agree (`docs/AI.md` §367.2).
-    pin_eq!(w.firsts.len(), 62, "run1421 baseline");
+    pin_eq!(w.firsts.len(), 50, "run1421 baseline");
     // Every round, both directions: 655 against 697 and 367 parting before;
     // now 655 against 662 and 74, none of them `1/55`'s — the T80DES
     // node-1 rounds (parked 3743a).
@@ -436,7 +436,7 @@ fn egyptian_information_pair_run1421b_s_closing_frame_is_widened_whole() {
     // craft minted later add their `mirror` (`1/128` on 3767, `1/129` on
     // 3789). No other unit, building, city or leader field parts, no draw
     // parts to 3797, and the closing block 3798 agrees.
-    pin_eq!(w.firsts.len(), 54, "run1421b baseline");
+    pin_eq!(w.firsts.len(), 41, "run1421b baseline");
     // Every round, both directions: 109 in ours against 110, 26 parting,
     // the first the T80DES `1/42`'s `ammo[1]` on 3772 (`sx, sy, sz` 4392,
     // 32088, 603 against 4245, 32066, 733: piece 207's node 1, which ours
