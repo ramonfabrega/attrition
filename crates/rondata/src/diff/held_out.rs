@@ -1455,7 +1455,26 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4467 (the guys line's inside arm is chosen at the
+        // unit's own `process`): guys 5,932 -> 5,942, first 1747 -> 2449;
+        // units stands on 1747, its sum there moved.
+        moved: Some(Score {
+            states: 6001,
+            agreed: [
+                2496, 537, 6001, 5591, 5350, 3066, 5942, 3976, 6001, 6001, 6001, 537,
+            ],
+            first: &[
+                ("units", (1747, Some(2268899682), 1685366186)),
+                ("builds", (537, Some(1374294361), 1810502041)),
+                ("ammo", (4542, Some(2344817575), 281265979)),
+                ("deaths", (4686, Some(4192616794), 999637338)),
+                ("groups", (3066, Some(2106809472), 4177681537)),
+                ("guys", (2449, Some(2995814966), 2693759490)),
+                ("leaders", (1576, Some(2345254394), 1305656828)),
+                ("world", (537, Some(993370751), 2782374025)),
+            ],
+            over: None,
+        }),
     }),
     // run1731
     // row 30, as found 2026-11-20, ended by the original on 4547: 8 lines whole; units 2,334 of
@@ -1476,7 +1495,22 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4467 (the guys line's inside arm is chosen at the
+        // unit's own `process`): guys 4,519 -> 4,525; units and guys stand
+        // on 2334, their sums there moved.
+        moved: Some(Score {
+            states: 4548,
+            agreed: [
+                2334, 4548, 4548, 4548, 4548, 4548, 4525, 3748, 4548, 4548, 4548, 4423,
+            ],
+            first: &[
+                ("units", (2334, Some(2937566862), 994488935)),
+                ("guys", (2334, Some(4256556349), 3856065750)),
+                ("leaders", (1776, Some(740584264), 2366335817)),
+                ("world", (1662, Some(3453374911), 2282901965)),
+            ],
+            over: None,
+        }),
     }),
     // run1732
     // row 50, as found 2026-11-20, ended by the original on 4454: 11 lines whole; groups 4,415
@@ -1578,10 +1612,12 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by the merge of 4459 (`AirAttackGroundOrder`'s five ranges
         // walked), measured on the merged tree before this item's gate:
         // units 1,704 -> 1,735, first 1570 -> 1735.
+        // Moved by item 4467 (the guys line's inside arm is chosen at the
+        // unit's own `process`): guys 4,566 -> 4,591, first on 1736.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                1735, 553, 4731, 4392, 4084, 4553, 4566, 1976, 4731, 4731, 4731, 553,
+                1735, 553, 4731, 4392, 4084, 4553, 4591, 1976, 4731, 4731, 4731, 553,
             ],
             first: &[
                 ("units", (1735, Some(3081680851), 796971071)),
