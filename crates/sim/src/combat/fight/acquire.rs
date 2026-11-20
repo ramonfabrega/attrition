@@ -711,6 +711,9 @@ impl Sim {
             return;
         }
         for (k, a) in self.pivot_rests(ty) {
+            if std::env::var_os("RON_PROBE_4446").is_some() && self.frame > 12000 {
+                eprintln!("PROBE4446 f{} {}/{} g{} reset_pivots des[{k}] {a:#x}", self.frame, self.units[i].owner, self.units[i].index, g);
+            }
             self.units[i].guys[g].turret.des[k] = a;
         }
     }

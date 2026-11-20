@@ -363,7 +363,21 @@ impl Sim {
             None => self.units[i].movement.facing,
         };
         let piece = guy.map_or(-1, |x| x.gpiece);
+        let probe = std::env::var_os("RON_PROBE_4446").is_some() && self.frame > 12000;
+        if probe {
+            eprintln!(
+                "PROBE4446 f{} {}/{} g{} piece {} from ({},{}) to ({},{}) target {:?} facing {:#x} follow {} angles {:x?} des {:x?} vec {:?}",
+                self.frame, self.units[i].owner, self.units[i].index, g, piece, from.x, from.y, to.x, to.y,
+                target, facing.0, guy.is_some_and(|x| x.follow.is_some()), self.units[i].guys[g].turret.angles, self.units[i].guys[g].turret.des,
+                crate::data::pivot::offset(piece, 4, facing)
+            );
+        }
         let turret = &mut self.units[i].guys[g].turret;
+        if probe {
+            let mut t2 = *turret;
+            pivot_steps(nodes.len(), |node| nodes.get(&node).copied().unwrap_or((0, 0)), |node| crate::data::pivot::offset(piece, node, facing), (from, to), facing, &mut t2);
+            eprintln!("PROBE4446 -> des {:x?} flags {} {}", t2.des, t2.node_flags, t2.des_flags);
+        }
         pivot_steps(
             nodes.len(),
             |node| nodes.get(&node).copied().unwrap_or((0, 0)),
