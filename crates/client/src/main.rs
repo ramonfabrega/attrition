@@ -54,6 +54,7 @@ mod hud;
 mod input;
 mod lobby;
 mod oil;
+mod opening;
 mod overlay;
 mod particle;
 mod patch;
@@ -687,6 +688,9 @@ impl App {
                             w.debug_ground = self.world.debug_ground;
                             w.set_land_light(self.args.land_light);
                             w.set_mountain_light(!self.args.mountain_flat);
+                            let opening =
+                                opening::camera(&w.runner.scene(Some(0)), &w.runner.terrain());
+                            (self.camera.loc_x, self.camera.loc_y) = (opening.loc_x, opening.loc_y);
                             self.world = w;
                             self.opened = Some(choices);
                         }
@@ -1078,6 +1082,9 @@ fn main() {
         (None, None) if args.lobby => world::Game::Lobby,
         (None, None) => world::Game::Pair,
     };
+    // A lobby opens where the original's does (item 4437, `opening`); the
+    // pair keeps run1559b's camera, which its photograph was taken at.
+    let a_lobby = !matches!(game, world::Game::Pair);
     let opened = session.phase("open the install and the captures", || {
         World::open_game(&args.install, &args.logs, game)
     });
@@ -1123,11 +1130,14 @@ fn main() {
         }
         return;
     }
+    // Read on the start, as `Game::init` reads it, before any frame runs.
+    let opening =
+        a_lobby.then(|| opening::camera(&world.runner.scene(Some(0)), &world.runner.terrain()));
     if page.is_none() {
         session.phase("run to the frame", || world.run_to(args.frame));
     }
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());
-    let mut camera = pinned_camera();
+    let mut camera = opening.unwrap_or_else(pinned_camera);
     if let Some((x, y)) = args.look {
         (camera.loc_x, camera.loc_y) = (x, y);
     }
