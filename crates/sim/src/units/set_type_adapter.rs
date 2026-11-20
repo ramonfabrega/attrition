@@ -159,6 +159,7 @@ impl UnitSetTypeView for SimSetType<'_> {
         self.sim.units[u].kind = self.sim.tables.unit_types[rec].kind;
         self.sim.units[u].type_index = self.sim.tables.unit_types[rec].type_index;
         self.sim.units[u].movement.speed = self.sim.own_speed(u, rec);
+        self.sim.update_armor(u);
         // `Unit::set_type@00612fa0:235`: `update_hits`, then `update_los`,
         // `update_armor` and `update_speed` on the new type.
         self.sim.update_los(u);
