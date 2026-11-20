@@ -323,6 +323,75 @@ mod tests {
         }
     }
 
+    /// **Row 140's boarder keeps its walk's `last_z` on the frame it
+    /// boards** (item 4467, `docs/CHECKSUM.md` §23.9): on 4026 who=1's
+    /// `1/0` (`TypeIndex` 69, land) walks its one figure onto its `des`
+    /// (29565, 22740) and then boards the carrier, after its own `process`.
+    /// `Unit::process@00610bc0` chose its arm on `inside_up` at its head,
+    /// so the figure ran `Guy::move`, whose head copied `last_z = z` (−33,
+    /// the ground the 4025 step wrote at `last` (29583, 22730)); the inside
+    /// arm's `last_z = z` (`:582`) runs from 4027. This crate keyed the
+    /// arm on the unit's state at the checksum and wrote the new `z` (−30)
+    /// on the boarding frame. Every units and guys range on 4026 and 4027,
+    /// ours against theirs, byte for byte: red on the tree before the fix,
+    /// at units range 163 and guys range 52, record 0, `last_z` (byte 104),
+    /// ours `e2`, theirs `df`.
+    #[test]
+    fn row_140_s_boarder_keeps_its_walk_s_last_z_on_run1725_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(7) else {
+            eprintln!("skipping: row 140's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1725/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1725's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 140's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for (state, want) in [(4026, -33i8), (4027, -30)] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            for (line, ours) in [
+                (0u8, built.sim.checksum_units()),
+                (6u8, built.sim.checksum_guys()),
+            ] {
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == line).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {line}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "line {line} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+                if line == 6 {
+                    // `1/0`'s figure's `last_z`, by name: byte 104 of guys range 52.
+                    assert_eq!(
+                        theirs[52].bytes[104] as i8, want,
+                        "theirs' last_z on {state}"
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 120's barge is born with `form` 0** (item 4435, `docs/RECGAME.md`
     /// §10.3): run1716, the ranges take of run1706's file, holds the units
     /// line's every range on state 2694, where the computer's transport
