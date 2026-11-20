@@ -367,7 +367,7 @@ pub struct Unit {
     /// `UnitData::guys.size` (`+0xe4 +0x8`), **the figure array's
     /// allocation**, which the checksum's units and guys lines walk
     /// (`PtrArray<Guy>::walk_data@0046df30`, `docs/CHECKSUM.md` §16).
-    /// `Unit::init@00612100:472`–`484` and `Unit::set_type@00612fa0:145`
+    /// `Unit::init@00612100:472`–`484` and `Unit::set_type@00612fa0:140`
     /// grow it to the new crew when the crew is larger (by the shortfall:
     /// `increment` is 1) and nothing in a running game shrinks it, so a
     /// reused object number keeps its last occupant's larger allocation
