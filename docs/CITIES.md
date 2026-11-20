@@ -1852,6 +1852,24 @@ that type**; `n = init_build(A, t, x, y, restore = 1)`; `build_masks`,
 `update_hits(0)`; `update_los`. The `damage` copy is why `capture_city` resets
 the city to `hits − 10` afterwards; other captured buildings keep their damage.
 
+**Built to the letter by item 4463** (run1724's 3887, the Inca capital `4/2000`
+taken by the person; `docs/RECGAME.md` §7). Before it, the crate's copy
+carried none of `max_age`, the farm's slot, `flags & 0x10`/`0x80` or
+`visible`. Now `max_age` is a floor on the copy (`Building::max_age_floor`,
+read as the larger of it and the owner's ages, which is what `init` and
+`gain_tech` leave on a building that never changed hands). The farm keeps its
+`Farms` slot and record (`swap_team:75`–`81`). The flags byte and `visible`
+come across. Three neighbours moved with it, each from its own function:
+`City::capture` copies the eight `traded_with` words (`:77`–`:84`); a city's
+`city` is its slot in the owner's list with dead slots counted
+(`Cities::close_city@00733310` leaves the slot); and `City::close@00737550:202`
+`repath`s every caravan linked to the closed city, whose `TRADE_ROUTE` then
+dies in `do_trade` and ends the route in the kill
+(`kill_current_order@005e2cb0:119`–`120`). **Diff-backed** by run1724: builds
+3888 → 3904, cities → 3891, units → 3906. **Not established:** the
+`build_masks` short (`+0x60`) the copy also takes, which the crate's derived
+bits do not carry; the copy's `+0x48..+0x54` words.
+
 ---
 
 ## 8. Assimilation, the city heal, plunder, loss
