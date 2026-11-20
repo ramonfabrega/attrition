@@ -2495,6 +2495,7 @@ impl Sim {
             bd.job_counter = 0;
             bd.job_counter_2 = 0;
         }
+        self.activate_enhancer_byte(b);
         self.terra_cotta_activate(b);
         self.kremlin_activate(b, captured);
         self.forbidden_city_activate(b);

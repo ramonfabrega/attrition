@@ -305,6 +305,45 @@ impl Sim {
         self.buildings[b].alive && self.buildings[b].active
     }
 
+    /// **`Build::activate@00623e20`'s enhancer bytes** (item 4450): a
+    /// granary or lumber mill finished inside a city writes that city's
+    /// byte at once, `GRANARY_BONUS` at `granary_level` into `+0x56`
+    /// (`:432`-`441`, read as `fishermen_bonus[level + 4]`, the table
+    /// before it) or `LUMBERMILL_BONUS` at `lumber_level` into `+0x57`
+    /// (`:411`-`420`), before it raises `0x2000000`. The tech level is read
+    /// as it stands; a level gained later waits for the next reassembly.
+    /// Row 60's who=1 city 0 on run1722: its granary finishes on 1713 and
+    /// theirs reads 20 there, four frames before the reassembly on 1720.
+    pub(crate) fn activate_enhancer_byte(&mut self, b: usize) {
+        let Some(c) = self.buildings[b].city else {
+            return;
+        };
+        let (slot, r) = if self.is_kind(b, Ident::Granary) {
+            (0, economy::Resource::Food)
+        } else if self.is_kind(b, Ident::Lumbermill) {
+            (1, economy::Resource::Timber)
+        } else {
+            return;
+        };
+        let owner = self
+            .cities
+            .cities
+            .get(c)
+            .map_or(self.buildings[b].owner, |k| k.owner);
+        let levels = Levels::for_player(self, owner);
+        let lvl = if slot == 0 {
+            levels.granary.max(1)
+        } else {
+            levels.lumber_mill.max(1)
+        };
+        let v = economy::enhancer_bonus(&self.tables.tuning, r, lvl) as u8;
+        let e = &mut self.cities.enhancers;
+        if e.len() <= c {
+            e.resize(c + 1, [0; 3]);
+        }
+        e[c][slot] = v;
+    }
+
     fn is_kind(&self, b: usize, ident: Ident) -> bool {
         self.buildings[b]
             .ty
