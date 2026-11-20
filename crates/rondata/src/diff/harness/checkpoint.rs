@@ -481,7 +481,13 @@ mod tests {
             eprintln!(
                 "split {split}, policy effects [any unit, clock, position, player unit, RNG, comparator]: {seen:?}; affected counts/last: {affected:?}"
             );
-            assert_eq!(seen, [[Some(95), None, None, None, None, None], [None; 6]]);
+            // Item 4449: the figure correction's `set_new_location(…, 1)`
+            // now writes the figures' `last`, so the branch without it
+            // parts on the guys (the clock column) on 95 beside the unit.
+            assert_eq!(
+                seen,
+                [[Some(95), Some(95), None, None, None, None], [None; 6]]
+            );
             assert_eq!(affected, [(11, Some(105)), (0, None)]);
             if split == 0 {
                 let audit = observed.replay.built.correction_audit.take().unwrap();

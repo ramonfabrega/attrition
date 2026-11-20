@@ -770,10 +770,13 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4443 (the units line folds `cavarch_o` -2): units
         // 1,858 -> 2,487, first 1858 -> 2487. On 1858 (our walk) the
         // fire-on-the-move 1/32 (type 156) is the one unit idle at -2.
+        // Moved by item 4449 (`set_new_location(…, 1)` copies each figure's
+        // point into `last`): guys 4,876 -> 4,870, a named fall past its
+        // first parting, which stays on 2487.
         moved: Some(Score {
             states: 4974,
             agreed: [
-                2487, 4974, 4974, 4974, 4974, 4964, 4876, 4974, 4967, 4974, 4974, 4859,
+                2487, 4974, 4974, 4974, 4974, 4964, 4870, 4974, 4967, 4974, 4974, 4859,
             ],
             first: &[
                 ("units", (2487, Some(1142976455), 3877923716)),
@@ -918,10 +921,13 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // 1793 -> 2587. On 1793, run1721's units range 1581, record 43 (the
         // Assault Infantry 1/43, type 104), `dest_angle` read ours
         // 0xc000.., theirs 0xcbf2...
+        // Moved by item 4449 (`set_new_location(…, 1)` copies each figure's
+        // point into `last`): guys 3,316 -> 3,308, a named fall past its
+        // first parting, which stays on 2646.
         moved: Some(Score {
             states: 3331,
             agreed: [
-                2697, 2230, 3331, 3172, 2756, 3331, 3316, 3331, 3331, 3331, 3331, 2618,
+                2697, 2230, 3331, 3172, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 2618,
             ],
             first: &[
                 ("units", (2587, Some(4287155215), 4036875673)),

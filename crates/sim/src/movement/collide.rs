@@ -2290,7 +2290,7 @@ impl Sim {
             // `Guy::set_new_location(guy 0, pos, 1)` moves the disc now.
             self.coll_follow(u);
             // Its helicopter climb, and `param_3`'s `last_z = z` after it
-            // (`5d8859`). SEAM: the write for every other figure.
+            // (`5d8859`). Every other figure's `last` is written below.
             if self.is_helicopter(u) {
                 self.helicopter_climb(u, to);
                 let af = &mut self.units[u].airframe;
@@ -2306,8 +2306,8 @@ impl Sim {
             // on (34464, 37595), the rotation of its (−48, −192) track
             // about the cell centre it was just snapped to, and its own
             // angle equal to the leader's to the digit.
-            let facing = self.units[u].movement.facing;
-            self.crew_des(u, to, facing, true);
+            self.crew_des(u, to, self.units[u].movement.facing, true);
+            self.guys_last_on_point(u);
         }
         true
     }
