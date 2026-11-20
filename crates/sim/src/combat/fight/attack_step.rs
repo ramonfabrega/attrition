@@ -363,13 +363,6 @@ impl Sim {
             None => self.units[i].movement.facing,
         };
         let piece = guy.map_or(-1, |x| x.gpiece);
-        if std::env::var_os("RON_PROBE_4430").is_some() {
-            eprintln!(
-                "PROBE4430 f{} {}/{} g{} piece {} from ({},{}) to ({},{}) target {:?} facing {:#x} angles {:x?} des {:x?}",
-                self.frame, self.units[i].owner, self.units[i].index, g, piece, from.x, from.y, to.x, to.y,
-                target, facing.0, self.units[i].guys[g].turret.angles, self.units[i].guys[g].turret.des
-            );
-        }
         let turret = &mut self.units[i].guys[g].turret;
         pivot_steps(
             nodes.len(),
