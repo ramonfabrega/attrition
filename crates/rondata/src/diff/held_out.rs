@@ -695,13 +695,13 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4443 (the units line folds `cavarch_o` -2): units
         // 1,858 -> 2,487, first 1858 -> 2487. On 1858 (our walk) the
         // fire-on-the-move 1/32 (type 156) is the one unit idle at -2.
-        // Moved by item 4450 (guys `guy_flags & 2` read; a finished
-        // granary's byte written at `Build::activate`): guys 4,876 -> 4,956,
+        // Moved by item 4450 (`City::calc_gather`'s bytes kept to the
+        // reassembly, a finished granary's written at `Build::activate`):
         // cities 4,967 -> 4,974, whole.
         moved: Some(Score {
             states: 4974,
             agreed: [
-                2487, 4974, 4974, 4974, 4974, 4964, 4956, 4974, 4974, 4974, 4974, 4859,
+                2487, 4974, 4974, 4974, 4974, 4964, 4876, 4974, 4974, 4974, 4974, 4859,
             ],
             first: &[
                 ("units", (2487, Some(1142976455), 3877923716)),
@@ -749,22 +749,19 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // `0/2000`'s `build_masks` on 4019 ours 4144, theirs 20528
         // (`0x4000`, set by `take_damage`'s `eject_contents(1, -1, 0, 1)`
         // with no garrison to read).
-        // Moved by item 4450 (run1722): guys 3,958 -> 4,010, first 2014 ->
-        // 2107, and units 3,662 -> 3,714 -- gaia's animal `8/2` (type 413)
-        // turned after its process on 2014, `guy_flags` ours 16, theirs 18
-        // (`0x2`, `Guy::do_turn`'s, cleared only by `Guy::process`); cities
-        // 4,066 -> 4,075, whole -- who=1's city 0 `granary` ours 50, theirs
-        // 20 on 2253 (`City::calc_gather`'s byte kept to the reassembly on
-        // 2256), and 20 on 1713 (`Build::activate` writes it at once).
+        // Moved by item 4450 (run1722): cities 4,066 -> 4,075, whole --
+        // who=1's city 0 `granary` ours 50, theirs 20 on 2253
+        // (`City::calc_gather`'s byte kept to the reassembly on 2256), and
+        // 20 on 1713 (`Build::activate` writes it at once).
         moved: Some(Score {
             states: 4075,
             agreed: [
-                3714, 4075, 4075, 4075, 4075, 3863, 4010, 4075, 4075, 4075, 4075, 3984,
+                3662, 4075, 4075, 4075, 4075, 3863, 3958, 4075, 4075, 4075, 4075, 3984,
             ],
             first: &[
                 ("units", (1561, Some(3913862560), 4278570550)),
                 ("groups", (3598, Some(3778361523), 962934390)),
-                ("guys", (2107, Some(882770536), 1991836272)),
+                ("guys", (2014, Some(4240840485), 61413159)),
                 ("world", (3984, Some(402934873), 4267790267)),
             ],
             over: None,
@@ -915,19 +912,14 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4443 (the units line folds `cavarch_o` -2): units
         // 1,568 -> 5,999, first 1568 -> 3937. On 1568 (our walk) the
         // fire-on-the-move 1/2 (type 12) is the one unit idle at -2.
-        // Item 4450, a named fall: guys 6,000 -> 5,999, first 4026 -> 3937,
-        // the state units already parts on. Our ship `1/17` (type 323)
-        // holds `facing` off `frame_facing` there, so ours writes
-        // `guy_flags & 2` where theirs holds none; no ranges take of this
-        // row names theirs' leaf (`docs/journal/2026-11-20-item-4450.md`).
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5999, 6001, 6001, 6001, 6001, 6001, 5999, 6000, 6001, 6001, 6001, 6001,
+                5999, 6001, 6001, 6001, 6001, 6001, 6000, 6000, 6001, 6001, 6001, 6001,
             ],
             first: &[
-                ("units", (3937, Some(1479186674), 264476909)),
-                ("guys", (3937, Some(4106619489), 1633815135)),
+                ("units", (3937, Some(595040496), 264476909)),
+                ("guys", (4026, Some(1242658676), 1019574129)),
                 ("leaders", (0, Some(3890907082), 2955970510)),
             ],
             over: None,
