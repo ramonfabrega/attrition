@@ -734,7 +734,25 @@ pub(in crate::diff) mod tests {
             }
             stream.apply(f as i32, &mut built);
             crate::diff::harness::debug_watch(&built, f);
+            let probe = std::env::var("RON_PROBE_4442")
+                .ok()
+                .and_then(|v| v.parse::<i64>().ok())
+                == Some(f);
+            if probe {
+                built.sim.trace.trace_costs = true;
+                built.sim.trace.cost_marks.clear();
+            }
             built.tick();
+            if probe {
+                built.sim.trace.trace_costs = false;
+                for m in &built.sim.trace.cost_marks {
+                    let un = &built.sim.units[m.unit];
+                    eprintln!(
+                        "PROBE4442 f{f} {}/{} from ({},{}) to ({},{}) dir {} step {} depth {} cost {}",
+                        un.owner, un.index, m.from.0, m.from.1, m.to.0, m.to.1, m.dir, m.step, m.depth, m.cost
+                    );
+                }
+            }
         }
         let got: Vec<SampleRange> = STATE_LINES
             .iter()
