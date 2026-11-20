@@ -1301,9 +1301,24 @@ impl Sim {
             }
         }
         let city = self.building_is_city(b);
+        let hangar = self.buildings[b].ty.is_some_and(|t| self.is_hangar(t));
         let bd = &mut self.buildings[b];
         bd.damage_frac = frac;
         bd.damage += lost;
+        // **`hits(0) <= damage && !can_carry(AIR)` → `eject_contents(1,
+        // -1, 0, 1)`** (`Object::take_damage@00652020`, the building arm,
+        // ahead of the city clamp and on attrition's blow too; item 4447).
+        // `hits(0)` reads `+0x54`, `construct_hits`. With every type
+        // (`-1`), `Object::eject_contents@0064cd20` on a building only
+        // sets `build_masks |= 0x4000` and returns: its gate is vslot
+        // `0xbc`, the folded `return 1` on a `Build`, and it never reads
+        // `inside_down`. So an empty building at its ceiling ejects too,
+        // and `Build::process_ejection@006201e0` clears the bit on its
+        // next `process`: run1722's city `0/2000` (the idle human's), 1200 of 1200 and
+        // no garrison, holds `0x5030` on 4019 where ours held `0x1030`.
+        if bd.construct_hits <= bd.damage && !hangar {
+            bd.eject_pending = true;
+        }
         let hits = bd.hits_now();
         if city && bd.active {
             // The clamp: a city never dies from damage. **It keeps the
@@ -1314,9 +1329,6 @@ impl Sim {
             if bd.damage >= hits {
                 bd.damage_marked = true;
                 bd.damage = hits;
-                if !bd.garrison.is_empty() {
-                    bd.eject_pending = true;
-                }
             }
             bd.sync_health();
             return Taken::Alive { lost };
@@ -1331,8 +1343,6 @@ impl Sim {
             // test (`docs/LEADERS.md` §2.2). The city clamp returned above.
             self.note_building_lost(owner);
             self.die_building(b);
-        } else if site && bd.construct_hits <= bd.damage && !bd.garrison.is_empty() {
-            bd.eject_pending = true;
         }
         taken
     }

@@ -948,7 +948,9 @@ passed on).
    citizen hit inside a city with a finished city building: push an alarm
    group). No change to the numbers.
 7. T **Build-proper**: city-under-attack flags; if `T.damage ≥ T.hits(0)` and
-   T cannot carry aircraft: `eject_contents`; if T is a city building
+   T cannot carry aircraft: `eject_contents` — with no garrison test, so
+   an empty building takes `build_masks` `0x4000` until its next `process`
+   (item 4447; diff-backed by run1722's ranges, `0/2000` on 4019); if T is a city building
    (`0x20`) that `is_active`: if `damage < hits` return 0, else set flag
    `0x10`, **clamp `damage = hits`** and return 0 — **a city never dies from
    damage**; it sits at zero and waits to be captured.
