@@ -1027,3 +1027,26 @@ original ended the four later starts is not read from theirs: our walk of
 row 100 has the computer's army at the human's burning capital on 3000,
 which suggests a conquest and is our side only. All eight seat two
 players with no team (DECISIONS 145 §2).
+
+**The Ancient starts' first units parting, by leaf** (item 4435, run1716,
+diff-backed). run1716 is row 120's file played again under the ranges hook.
+On 2694 the computer's transport barge `1/15` (type 320) is born holding a
+move. Its `collide_frame..play` range reads `form` (`+0xaa`) as 0 on theirs
+and −1 on ours. Every other byte of the units line agrees on that state.
+`Unit::init@00612100:81`–`86` writes `form` 9 for the four citizen ids and 0
+for every other type. This crate's `transport_boat` skipped that write and
+kept `Unit::new`'s −1. It now writes it, and so does the dock gull's birth
+beside it. Rows 0 and 20 parted on the same birth: barge `1/15` on 2990 and
+barge `1/14` on 3694, each the first parting state. In the second column,
+units moved 4,815 → 5,861 on row 120 (first 2694 → 3250), 5,435 → 5,998 on
+row 0 (2990 → 3157) and 5,073 → 5,997 on row 20 (3694 → 4180). On rows 0
+and 20 units now parts only where guys does. Row 140 (units on 1568) did
+not move. `row_120_s_barge_is_born_with_form_zero_on_run1716_s_ranges`
+holds every units range on 2694.
+
+*Not established*: what parts on 3250. On row 120, units and guys both part
+first on the figure of the scout `1/0`, the barge's passenger. On 3250 both
+sides put it at (19080, 39768). Theirs also moves the figure's `last_x`,
+`last_y`, `last_z` and `last_angle` onto that point, and ours keeps the
+values from before it moved. Guys agrees again on 3253. Units disagrees on
+140 states, so something more parts it after 3253, and that cause is not read.
