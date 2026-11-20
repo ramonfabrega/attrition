@@ -129,16 +129,7 @@ impl Sim {
             return;
         };
         let (f, m) = self.group_slot_image(id);
-        let mut line = format!("{:?} {:?}", f, m.iter().map(|x| x.0).collect::<Vec<_>>());
-        if let Ok(us) = std::env::var("RON_PROBE_4431_UNITS") {
-            for w in us.split(',') {
-                let Some((a, b)) = w.split_once('/') else { continue };
-                let (a, b): (u8, i16) = (a.parse().unwrap_or(0), b.parse().unwrap_or(0));
-                if let Some(u) = (0..self.units.len()).find(|&u| self.units[u].owner == a && self.units[u].index == b && self.units[u].health > 0) {
-                    line += &format!(" {w}:g{}:map{}:h{:#x}:m{}", self.pool_group_of(u), self.units[u].on_map, self.units[u].movement.heading.0, self.units[u].movement.mirror);
-                }
-            }
-        }
+        let line = format!("{:?} {:?}", f, m.iter().map(|x| x.0).collect::<Vec<_>>());
         if self.trace.probe_4431.as_deref() != Some(line.as_str()) {
             eprintln!("P4431 f{} slot {id} {line}", self.frame);
             self.trace.probe_4431 = Some(line);
