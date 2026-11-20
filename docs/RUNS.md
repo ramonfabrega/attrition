@@ -39530,3 +39530,34 @@ range on 2694, ours against theirs), and since item 4439
 `row_120_s_scout_lands_with_its_figure_s_last_on_its_point_on_run1716_s_ranges` (every units and guys range on 3250).
 **Re-scored by item 4439** (`score_recording`, no new take): guys 6,001, whole; units 5,864, first 5864: range 1139,
 record 35, `collide_frame..play`, byte 90, `cavarch_o` ours −1, theirs −2.
+range on 2694, ours against theirs).
+
+## run1715 — run1559b's take with the view on Teayo: a plate but Napata's (2026-11-19, item 4433, `att-4433`)
+
+`docs/HUD.md` §3. **What the disk could not answer**: no photograph showed a city plate but Napata's (parked 4423a).
+run1559b's packet holds four Aztec cities (`names.tsv`, item 4416); its `City` records place `Teayo` (o 2013, no
+capital) at (40800, 24672), the centre of tile (212, 128), and the client's `--frame 3279 --look 40800,24672
+--still` draws its plate clear of every mover (`Cempoala`'s, at (184, 112), has a truck over it). The line is
+run1564's with its command file replaced: `~/ron-data/lab-experiments/2026-11-19-item-4433/photo3294.cmd` holds
+`3200 camera 212,128` and `3294 pause 1`, and `poolshot.py ~/ron-golden/run1715 3294 --map 14` runs beside it:
+`zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1715 --map 14 --end-frame 3296
+--timeout 600 --log-window 3292 3296 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 0 --cover cover=0 --profile
+STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cmd-file
+<it> --tracer-def RON_STATE_FRAME=3294 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, launched 21:23:49 −05:00, at 54.8 frames a second to 3294; the packet and the photograph were written
+  by 21:24. The receipt reads `ValueError: extra lifecycle or fault records`, as run1559b's did (`waitrun.sh` exit 2);
+  settings restored, all three lanes free afterwards. 92 GB free before it and 82 GB after. Not filed.
+- Minutes waited on another lane: none (lane 1 was held by a pool capture at 21:14, free by 21:23).
+
+Packet `~/ron-golden/run1715/map-14/frame-snapshot.bin`, 920,535,488 bytes,
+SHA-256 `76e62061cc0d436186c0e3e9428e09882445c41d2f3fb5432ef58f910754bfb5`. Gamelog
+`~/ron-golden/run1715/map-14/gamelog.txt`, 1,461,239 bytes,
+SHA-256 `1992cd2f9ea39cb3fd11c38a7b10f5d21cb1c31e7b3fb7f5c61bb4bc40199e83`.
+
+Photograph `~/ron-data/lab-experiments/2026-11-19-item-4433/run1715-3294.png`: window 22198, 1920×1080 with no title
+bar, the gamelog at 3295, tagged `sRGB` (no match needed). SHA-256
+`6c062d4910572774c1e83069fe3c825f23d3ab4fd5617f89d37aff45c219827a`. `sips -s format tga` gives `run1715-3294.tga`,
+SHA-256 `3a1dd2a870ebb00e8f3434636ce028051677c4a7a97421619ee423aae7da6d6c`, the TGA the test reads.
+
+**What it holds**: `packet_points.py`'s `state 0` line is the pinned camera with `loc` `471f6000 46c0c000`, (40800,
+24672) (`RUN1715_LOC`). `client::selection::tests::a_city_s_plate_on_run1715` (`RUN1715_3279_PLATE`).
