@@ -1421,7 +1421,7 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// their units lines one and two ranges fewer: a `sim::data::pivot`
 /// `SAME_AS` piece keeps its own `RData +0x88`, so the A7V's 192 and the
 /// `CHURCHILLDES`'s 195 bear their turrets from the node at 0.9.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 786, 1053);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 788, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -2717,17 +2717,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 0).
     // Item 4396, the captain mirror's retarget kept in the order: units (4744, 4744, 8) -> (4744, 4744, 5).
+    // Item 4446, piece 138's (4, 0, 0) node row, the Cavalry Archer's turret from its saddle: units (4744, 4744, 5) -> (4744, 4744, 4), guys (1246, 1246, 1) -> (1246, 1246, 0).
     (
         "run1268",
         3347,
         [
-            (4744, 4744, 5),
+            (4744, 4744, 4),
             (1908, 1908, 0),
             (0, 0, 0),
             (24, 24, 0),
             (4, 4, 0),
             (544, 544, 0),
-            (1246, 1246, 1),
+            (1246, 1246, 0),
             (271, 271, 0),
             (30, 30, 0),
             (90, 90, 0),
@@ -5454,17 +5455,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (3135, 2970, 1716) -> (3135, 3126, 1560).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4446, piece 138's (4, 0, 0) node row, the Cavalry Archer's turret from its saddle: units (3135, 3135, 4) -> (3135, 3135, 3), guys (941, 941, 1) -> (941, 941, 0).
     (
         "run973g",
         12286,
         [
-            (3135, 3135, 4),
+            (3135, 3135, 3),
             (2052, 2052, 0),
             (0, 0, 0),
             (3, 3, 0),
             (0, 0, 0),
             (532, 532, 0),
-            (941, 941, 1),
+            (941, 941, 0),
             (271, 271, 0),
             (35, 35, 0),
             (60, 60, 0),
