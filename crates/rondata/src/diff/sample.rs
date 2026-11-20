@@ -562,8 +562,10 @@ pub(in crate::diff) mod tests {
     /// theirs' frame. Item 4429 (an ally's ground bleeds nothing): 3594 →
     /// 4361 empty frames, past every parting; the first shot stays on 2929.
     /// Item 4432 (a refused group slot re-placed): 4361 → 5010, the first
-    /// shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (5010, Some(2929));
+    /// shot still on 2929. Item 4440 (the bell's group pushed, a garrison
+    /// walked): 5010 -> 4141, every frame it loses past units' 2892 and
+    /// groups' 3053; the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4141, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
