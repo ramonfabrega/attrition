@@ -170,12 +170,18 @@ pub struct World {
     /// `render::draw::SpriteAt`) rather than its `zbuffer` model. On by
     /// default; `--zbuffer` turns it off.
     pub sprites: bool,
+    /// Draw a building's alpha-248 texels in its owner's building colour
+    /// (item 4438; `docs/RENDERER.md` §5.3, "The buildings' team colour").
+    /// On by default; off is the draw before, the texel itself.
+    pub team_trim: bool,
     /// `Camera::fixed_zooms[6]` and `Game::game_sprite_scale`, the sprite
     /// scale's numerator (`render::draw::sprite_at`).
     pub sprite_zoom: (f32, f32),
     /// Each building piece's sprite, `None` where its `texture=` does not
     /// resolve or decode; a foundation's under its [`foundation_key`].
     sprite_images: BTreeMap<i32, Option<std::sync::Arc<SpriteImage>>>,
+    /// Item 4438: each owner's lit sprite, by `(piece, who)`.
+    team_sprites: BTreeMap<(i32, u8, bool), std::sync::Arc<SpriteImage>>,
     /// The tint a building's sprite takes at load (item 4286): the
     /// tileset's, `GraphicPieces::tint_color` as `TintColor`.
     sprite_tint: [u8; 3],
@@ -851,9 +857,18 @@ pub fn lobby_tileset(root: &Path, start: &Path) -> Option<String> {
 /// 1.9 and multiplies by the HDR 5 before the tone map, as it does the
 /// trees', the roads' and the particles' ([`render::silhouette::fake_light`]).
 /// The sprite is sampled nearest, so the texel's map is the sample's.
-pub fn fake_light_sprite(image: &mut render::tga::Image) {
+///
+/// Item 4438 (§5.3): a texel at alpha 248 is the first draw's,
+/// `MODULATE4X(TEXTURE, CURRENT)` with the owner's building colour as the
+/// vertex colour ([`render::silhouette::team_trim`]), before the light;
+/// with `owner` `None`, the texel itself (the draw before).
+pub fn fake_light_sprite(image: &mut render::tga::Image, owner: Option<[u8; 3]>) {
     for p in image.rgba.as_chunks_mut::<4>().0 {
-        let lit = render::silhouette::fake_light([0, 1, 2].map(|k| f32::from(p[k])));
+        let mut rgb = [0, 1, 2].map(|k| f32::from(p[k]));
+        if let Some(owner) = owner.filter(|_| p[3] == 248) {
+            rgb = render::silhouette::team_trim(rgb, owner);
+        }
+        let lit = render::silhouette::fake_light(rgb);
         for k in 0..3 {
             p[k] = lit[k].round() as u8;
         }
@@ -1191,8 +1206,10 @@ impl World {
             install,
             pose: true,
             sprites: true,
+            team_trim: true,
             sprite_zoom: crate::PINNED_SPRITE_ZOOM,
             sprite_images: BTreeMap::new(),
+            team_sprites: BTreeMap::new(),
             sprite_tint: tint,
             construction: None,
             scaffolds: None,
@@ -2804,6 +2821,30 @@ impl World {
     }
 
     /// A building piece's sprite, decoded once.
+    /// Item 4438: the owner's sprite, its trim in the owner's building
+    /// colour and lit, built once from [`World::sprite_image`].
+    pub fn team_sprite(&mut self, piece: i32, who: u8) -> Option<std::sync::Arc<SpriteImage>> {
+        let trim = self.team_trim;
+        if let Some(s) = self.team_sprites.get(&(piece, who, trim)) {
+            return Some(s.clone());
+        }
+        let base = self.sprite_image(piece)?;
+        let mut image = base.image.clone();
+        fake_light_sprite(
+            &mut image,
+            trim.then(|| render::silhouette::team_build(who)),
+        );
+        let s = std::sync::Arc::new(SpriteImage {
+            image,
+            offset: base.offset,
+            covered: base.covered.clone(),
+        });
+        self.team_sprites.insert((piece, who, trim), s.clone());
+        Some(s)
+    }
+
+    /// A building piece's sprite, decoded and tinted once, unlit: its
+    /// owner's trim and the light are [`World::team_sprite`]'s.
     pub fn sprite_image(&mut self, piece: i32) -> Option<std::sync::Arc<SpriteImage>> {
         if let Some(s) = self.sprite_images.get(&piece) {
             return s.clone();
@@ -2837,7 +2878,6 @@ impl World {
             // `SpritePacket::set_sprite@009171c0`, which sets it on the
             // sprite's `ImageIO` before the load tints each row.
             image.tint(self.sprite_tint);
-            fake_light_sprite(&mut image);
             let covered = image
                 .rgba
                 .as_chunks::<4>()
@@ -2904,7 +2944,7 @@ impl World {
                 Pose::Foundation { slot, .. } if self.sprites => foundation_key(slot),
                 _ => continue,
             };
-            let Some(image) = self.sprite_image(piece) else {
+            let Some(image) = self.team_sprite(piece, d.who) else {
                 continue;
             };
             let at = sprite_at(
