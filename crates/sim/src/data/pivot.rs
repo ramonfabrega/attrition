@@ -629,6 +629,15 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (173, (7, 10)),
     (232, (4, 5)),
     (844, (51, 50)),
+    // Item 4430: a [`SAME_AS`] piece reads another's rows but keeps its own
+    // `RData +0x88`, and [`scale`] looks the piece up as itself. The A7V's
+    // 192 is 0.9 on run1351's packet and the Egyptian 195 is 0.9 on
+    // run1426b's; without these rows both turrets bore from the vector at
+    // 1.0. run1351's `1/48` on 4303: the original's `find_angle` arguments
+    // (`005d8e35`, `step4.py` on the packet) take the node at (−15, −7), and
+    // ours took (−16, −8).
+    (192, (9, 10)),
+    (195, (9, 10)),
 ];
 
 /// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
