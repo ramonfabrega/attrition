@@ -517,6 +517,10 @@ const UNIT_STATS_DIRTY: i64 = 0x400_0000;
 /// `leader_flags & 0x8000000`: the wall stats are stale
 /// ([`crate::cities::CitiesState::wall_stats_dirty`]).
 const WALL_STATS_DIRTY: i64 = 0x800_0000;
+/// `leader_flags & 0x400000`: the first capital loss has been plundered
+/// (`Cities::capture_city@00733380:833`, the only writer; nothing clears
+/// it), as [`crate::cities::city::Tally::capital_plundered`] keeps it.
+const CAPITAL_PLUNDERED: i64 = 0x40_0000;
 
 /// The `size` a `SimpleArray<int>` with elements reports: its capacity,
 /// which grows by ten (`docs/CHECKSUM.md` §20, §23.4). 10 on every
@@ -702,6 +706,18 @@ impl Sim {
             .unwrap_or(false)
         {
             f |= WALL_STATS_DIRTY;
+        }
+        // The capital's plunder bit (item 4466): raised on the loser by the
+        // first capital capture's plunder arm (`docs/CITIES.md` §8.3).
+        // run1724's Inca capital, taken on 3887: player 4's `flags +0x2`
+        // 08 here and 48 in the original's state 3888.
+        if self
+            .cities
+            .city_tally
+            .get(w)
+            .is_some_and(|t| t.capital_plundered)
+        {
+            f |= CAPITAL_PLUNDERED;
         }
         // The three bonus bits (item 4400): `Leader::init`, `gain_tech` and
         // `fix_tech_flags` turn a held bonus into them, and a technology is
@@ -962,24 +978,21 @@ impl Sim {
         // `make_list`: an `Array<MakeObject>`.
         let ml = &a.make_list.list;
         array_head(&mut out, record, "make_list", ml.len(), ml.len(), 0x80);
-        let own: Vec<usize> = self
-            .cities
-            .cities
-            .iter()
-            .enumerate()
-            .filter(|(_, x)| x.alive && usize::from(x.owner) == w)
-            .map(|(i, _)| i)
-            .collect();
         for m in ml {
             let ti = if m.t < 0 {
                 i64::from(m.t)
             } else {
                 bases.index(m.t as usize)
             };
+            // The city's slot in its owner's list, closed slots counted, as
+            // the builds and cities walks print it (item 4463): a closed
+            // city keeps its slot (`City::close@00737550`). Item 4466:
+            // run1724's state 3888, eight of player 4's entries 03|00 and
+            // 00|01 on `+0xc` where the rank among live cities was written.
             let city = usize::try_from(m.city)
                 .ok()
-                .and_then(|c| own.iter().position(|&i| i == c))
-                .map_or(i64::from(m.city), |k| k as i64);
+                .filter(|&c| c < self.cities.cities.len())
+                .map_or(i64::from(m.city), |c| self.city_index_in_owner(c) as i64);
             out.push(LeaderRange {
                 record,
                 field: "make_list[k]",

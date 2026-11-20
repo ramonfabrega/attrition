@@ -26,6 +26,11 @@ pub(crate) struct HeldOut {
 #[cfg(test)]
 pub(crate) const HELD_OUT_ROWS: [usize; 8] = [0, 20, 40, 60, 80, 100, 120, 140];
 
+/// **The second battery's rows** (DECISIONS 145 §2, item 4462): the same
+/// order, the rows between the first's.
+#[cfg(test)]
+pub(crate) const HELD_OUT_SECOND_ROWS: [usize; 8] = [10, 30, 50, 70, 90, 110, 130, 150];
+
 #[cfg(test)]
 fn fnv(text: &str) -> u64 {
     text.bytes().fold(0xcbf2_9ce4_8422_2325, |h, b| {
@@ -72,6 +77,21 @@ mod tests {
     /// prints the table as Rust.
     #[test]
     fn the_held_out_eight_are_the_rows_the_rule_names() {
+        rows_are_the_table(&HELD_OUT_ROWS, &HELD_OUT);
+    }
+
+    /// **The second declaration** (item 4462's first act; DECISIONS 145
+    /// §2): rows 10, 30, …, 150, written out before any take, held the
+    /// same way. `RON_HELD_OUT_PRINT=2` prints this table as Rust.
+    #[test]
+    fn the_second_held_out_eight_are_the_rows_the_rule_names() {
+        rows_are_the_table(&HELD_OUT_SECOND_ROWS, &HELD_OUT_SECOND);
+    }
+
+    /// `rows` of `lobbies_on_disk` against `table`, column for column;
+    /// `RON_HELD_OUT_PRINT` (`1` the first battery, `2` the second) prints
+    /// the table instead.
+    fn rows_are_the_table(rows: &[usize; 8], table: &[HeldOut; 8]) {
         let Some(dir) = crate::testenv::gamelog_dir() else {
             eprintln!("skipping: no gamelog directory (set RON_GAMELOG_DIR)");
             return;
@@ -83,8 +103,13 @@ mod tests {
             crate::diff::START_LOBBIES,
             "the rows are of 161"
         );
-        let print = std::env::var_os("RON_HELD_OUT_PRINT").is_some();
-        for (k, &row) in HELD_OUT_ROWS.iter().enumerate() {
+        let which = if rows[0] == HELD_OUT_SECOND_ROWS[0] {
+            "2"
+        } else {
+            "1"
+        };
+        let print = std::env::var("RON_HELD_OUT_PRINT").is_ok_and(|v| v == which);
+        for (k, &row) in rows.iter().enumerate() {
             let l = &lobbies[row];
             let (info, players, digest) = columns(&l.lines);
             if print {
@@ -101,8 +126,8 @@ mod tests {
                 println!("    }},");
                 continue;
             }
-            let want = &HELD_OUT[k];
-            assert_eq!(want.row, row, "HELD_OUT[{k}]'s row");
+            let want = &table[k];
+            assert_eq!(want.row, row, "the table's row {k}");
             assert_eq!(
                 (l.captures[0].as_str(), info.as_str(), players, digest),
                 (
@@ -124,13 +149,13 @@ mod tests {
     /// so the scores below skipped with `0 missing fixtures` on the gate's
     /// log. Seen with `HOME` pointed at an empty directory: sixteen requests
     /// missing, where the audit had counted none.
-    fn paths(k: usize) -> (Option<std::path::PathBuf>, Option<std::path::PathBuf>) {
+    fn paths(b: &Battery, k: usize) -> (Option<std::path::PathBuf>, Option<std::path::PathBuf>) {
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
         let rcx = crate::testenv::experiment(
             &home.join("ron-golden/recordings"),
-            &format!("item4413-row{:03}-6000.rcx", HELD_OUT[k].row),
+            &format!("item{}-row{:03}-6000.rcx", b.item, b.table[k].row),
         );
-        let run = home.join(format!("ron-golden/run{}", 1700 + k));
+        let run = home.join(format!("ron-golden/run{}", b.run + k));
         let map = std::fs::read_dir(&run)
             .ok()
             .and_then(|d| {
@@ -151,26 +176,42 @@ mod tests {
     /// take with no pin fails and prints the score to pin.
     #[test]
     fn the_held_out_games_score_as_pinned() {
+        games_score_as_pinned(&FIRST);
+    }
+
+    /// **The second battery's scores** (item 4462, DECISIONS 145 §2):
+    /// `HELD_OUT_SECOND[k]` played as `run1730 + k`, held as the first's
+    /// are; the found column is the estimate.
+    #[test]
+    fn the_second_held_out_games_score_as_pinned() {
+        games_score_as_pinned(&SECOND);
+    }
+
+    fn games_score_as_pinned(b: &Battery) {
         let Some(inst) = crate::testenv::install() else {
             return;
         };
         let mut wrong: Vec<String> = Vec::new();
-        for (k, held) in HELD_OUT.iter().enumerate() {
-            let (Some(rcx), Some(take)) = paths(k) else {
+        for (k, held) in b.table.iter().enumerate() {
+            let (Some(rcx), Some(take)) = paths(b, k) else {
                 eprintln!(
                     "skipping: row {} has no file or no run{} take",
                     held.row,
-                    1700 + k
+                    b.run + k
                 );
                 continue;
             };
-            let pin = &SCORES[k];
+            let pin = &b.scores[k];
             let until = pin.as_ref().and_then(|p| p.last);
             let score =
                 match crate::checksum::playback::compare_until(inst.root(), &rcx, &take, until) {
                     Ok(s) => s,
                     Err(e) => {
-                        wrong.push(format!("row {} run{}: not scored: {e}", held.row, 1700 + k));
+                        wrong.push(format!(
+                            "row {} run{}: not scored: {e}",
+                            held.row,
+                            b.run + k
+                        ));
                         continue;
                     }
                 };
@@ -182,7 +223,7 @@ mod tests {
             eprintln!(
                 "HELD OUT row {} run{}: states {} agreed {:?} first {first:?} over {:?}",
                 held.row,
-                1700 + k,
+                b.run + k,
                 score.states,
                 score.agreed,
                 score.over
@@ -194,9 +235,10 @@ mod tests {
             }
             let Some(pin) = pin else {
                 wrong.push(format!(
-                    "row {}: run{} is taken and SCORES[{k}] is unpinned",
+                    "row {}: run{} is taken and {}[{k}] is unpinned",
                     held.row,
-                    1700 + k
+                    b.run + k,
+                    b.scores_name
                 ));
                 continue;
             };
@@ -206,7 +248,7 @@ mod tests {
                 wrong.push(format!(
                     "row {} run{}: states, agreeing, first partings, ours' end: got {got:?}",
                     held.row,
-                    1700 + k
+                    b.run + k
                 ));
             }
         }
@@ -234,7 +276,7 @@ mod tests {
             return;
         };
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(7) else {
+        let (Some(rcx), _) = paths(&FIRST, 7) else {
             eprintln!("skipping: row 140's recording is missing");
             return;
         };
@@ -282,7 +324,7 @@ mod tests {
             return;
         };
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(7) else {
+        let (Some(rcx), _) = paths(&FIRST, 7) else {
             eprintln!("skipping: row 140's recording is missing");
             return;
         };
@@ -407,7 +449,7 @@ mod tests {
             return;
         };
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(6) else {
+        let (Some(rcx), _) = paths(&FIRST, 6) else {
             eprintln!("skipping: row 120's recording is missing");
             return;
         };
@@ -466,7 +508,7 @@ mod tests {
             return;
         };
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(6) else {
+        let (Some(rcx), _) = paths(&FIRST, 6) else {
             eprintln!("skipping: row 120's recording is missing");
             return;
         };
@@ -526,7 +568,7 @@ mod tests {
             return;
         };
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(6) else {
+        let (Some(rcx), _) = paths(&FIRST, 6) else {
             eprintln!("skipping: row 120's recording is missing");
             return;
         };
@@ -595,7 +637,7 @@ mod tests {
     fn units_ranges_agree(k: usize, run: &str, state: i64, range: usize) -> Option<Vec<u8>> {
         let inst = crate::testenv::install()?;
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(k) else {
+        let (Some(rcx), _) = paths(&FIRST, k) else {
             eprintln!("skipping: game {k}'s recording is missing");
             return None;
         };
@@ -670,8 +712,19 @@ mod tests {
     /// taken.
     #[test]
     fn the_held_out_line_reads_as_pinned() {
-        let taken = SCORES.iter().flatten().count();
-        let whole = SCORES
+        line_reads_as_pinned(&FIRST);
+    }
+
+    /// The second battery's line, from its table alone (item 4462).
+    #[test]
+    fn the_second_held_out_line_reads_as_pinned() {
+        line_reads_as_pinned(&SECOND);
+    }
+
+    fn line_reads_as_pinned(b: &Battery) {
+        let taken = b.scores.iter().flatten().count();
+        let whole = b
+            .scores
             .iter()
             .flatten()
             .filter(|p| {
@@ -679,11 +732,7 @@ mod tests {
                 s.first.is_empty() && s.agreed == [s.states; 12]
             })
             .count();
-        assert_eq!(
-            (whole, taken),
-            HELD_OUT_LINE,
-            "parity held out: N of 8, T taken"
-        );
+        assert_eq!((whole, taken), b.line, "{}: N of 8, T taken", b.label);
     }
 
     /// The queue's line for [`SCORES`]: the games whole of the eight, the
@@ -691,7 +740,7 @@ mod tests {
     /// ([`FirstScore::moved`], else as found), and each game's lowest first
     /// parting in row order, as found and now (`whole` for a game with
     /// none, `-` for one not taken).
-    fn queue_line() -> String {
+    fn queue_line(b: &Battery) -> String {
         let lines = |s: &Score| s.agreed.iter().filter(|&&a| a == s.states).count();
         let lowest = |s: &Score| {
             s.first
@@ -701,7 +750,7 @@ mod tests {
                 .map_or("whole".to_string(), |v| v.to_string())
         };
         let col = |now: bool| -> (usize, String) {
-            let scores = SCORES.iter().map(|p| {
+            let scores = b.scores.iter().map(|p| {
                 p.as_ref().map(|p| {
                     if now {
                         p.moved.unwrap_or(p.found)
@@ -719,12 +768,13 @@ mod tests {
         let (found, found_firsts) = col(false);
         let (now, now_firsts) = col(true);
         format!(
-            "Parity held out: {} of {} whole \u{b7} {} taken \u{b7} lines {found} of {} as found, \
+            "{}: {} of {} whole \u{b7} {} taken \u{b7} lines {found} of {} as found, \
              {now} now \u{b7} first partings {found_firsts} as found, {now_firsts} now",
-            HELD_OUT_LINE.0,
-            SCORES.len(),
-            HELD_OUT_LINE.1,
-            12 * HELD_OUT_LINE.1,
+            b.label,
+            b.line.0,
+            b.scores.len(),
+            b.line.1,
+            12 * b.line.1,
         )
     }
 
@@ -737,15 +787,29 @@ mod tests {
     /// booking. Made to fail first on a handoff with no such line.
     #[test]
     fn the_handoff_s_parity_held_out_line_is_the_pinned_scores() {
+        handoff_line_is_the_pinned_scores(&FIRST);
+    }
+
+    /// **The handoff's second parity-held-out line** (item 4462): the
+    /// second battery's [`queue_line`], `Parity held out, second:`, in the
+    /// first's grammar. Its found half is the estimate (DECISIONS 145 §2).
+    #[test]
+    fn the_handoff_s_parity_held_out_second_line_is_the_pinned_scores() {
+        handoff_line_is_the_pinned_scores(&SECOND);
+    }
+
+    fn handoff_line_is_the_pinned_scores(b: &Battery) {
         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
         let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
-        let want = queue_line();
-        let line = q.lines().find(|l| l.starts_with("Parity held out:"));
+        let want = queue_line(b);
+        let head = format!("{}:", b.label);
+        let line = q.lines().find(|l| l.starts_with(&head));
         assert_eq!(
             line.map(str::trim_end),
             Some(want.as_str()),
-            "docs/QUEUE.md's handoff carries `{want}` (`diff::held_out::SCORES`), beside the \
-             Held-out line"
+            "docs/QUEUE.md's handoff carries `{want}` (`diff::held_out::{}`), beside the \
+             Held-out line",
+            b.scores_name
         );
     }
 }
@@ -849,6 +913,110 @@ pub(crate) const HELD_OUT: [HeldOut; 8] = [
             "flags 1; tribe 22; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Beatrix Wilhelmina Armgard",
         ],
         digest: 0xafdc08ec613c25c1,
+    },
+];
+
+/// **The second eight, as declared** (item 4462, before any take; DECISIONS
+/// 145 §2): rows 10, 30, …, 150 of the same order, each the human (tribe 4,
+/// slot 0) against the computers its lobby seats, `MAP_SIZE 2`, played as
+/// the lobby stands (adding seats or a team is Ramon's):
+///
+/// | row | first capture | `MAP_STYLE` | seed | computer tribes | `DIFFICULTY` | ages |
+/// |---|---|---|---|---|---|---|
+/// | 10 | run1016 Lakota peace | 18 | 12345 | 19 | 3 | 8..7, `RUSH_RULES 10` |
+/// | 30 | run1152 East Indies | 18 | 12345 | 15 | 5 | 5..5 |
+/// | 50 | run1253 Great Sahara | 7 | 12345 | 7 | 5 | 3..3 |
+/// | 70 | run1328 Great Lakes | 14 | 12345 | 15 | 5 | 2..2 |
+/// | 90 | run139 East Indies | 18 | 12345 | 11 | 0 | 0..7 |
+/// | 110 | run1482 East Indies melee | 18 | 12345 | 10, 13 | 0 | 7..7 |
+/// | 130 | run651 East Indies all-tech | 18 | 12345 | 23 | 5 | 8..7 |
+/// | 150 | run977 Great Sahara | 7 | 12345 | 10 | 4 | 0..7 |
+///
+/// Row 110 seats three players (`PLAYERS 2`), the one row of the sixteen
+/// that does. Each is played to 6,000 frames with the human idle, as
+/// `run1730 + k` for `HELD_OUT_SECOND[k]`.
+#[cfg(test)]
+pub(crate) const HELD_OUT_SECOND: [HeldOut; 8] = [
+    HeldOut {
+        row: 10,
+        capture: "gamelog-run1016-lakota-peace-cover.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 18; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 3; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 10; CANNON_TIMES 0; STARTING_TECHNOLOGY 8; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 19; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Sitting Bull",
+        ],
+        digest: 0x2dc0d92836db2607,
+    },
+    HeldOut {
+        row: 30,
+        capture: "gamelog-run1152-eastindies-japanese-industrial-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 18; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 5; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 5; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 5; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 15; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Shogun Takauji Ashikaga",
+        ],
+        digest: 0x4c9996d38f35b638,
+    },
+    HeldOut {
+        row: 50,
+        capture: "gamelog-run1253-greatsahara-egyptian-gunpowder-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 7; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 5; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 3; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 3; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 7; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Pharaoh Ramesses II",
+        ],
+        digest: 0xf96cd391ec4ba84f,
+    },
+    HeldOut {
+        row: 70,
+        capture: "gamelog-run1328-greatlakes-japanese-medieval-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 14; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 5; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 2; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 2; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 15; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Shogun Takauji Ashikaga",
+        ],
+        digest: 0xcfc0c20cc95e7c1a,
+    },
+    HeldOut {
+        row: 90,
+        capture: "gamelog-run139-eastindies-makelist.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 18; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 0; STARTING_TOWN 2; STARTING_RESOURCES 1; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 0; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 11; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; William the Conqueror",
+        ],
+        digest: 0x9391b199dcc55b5e,
+    },
+    HeldOut {
+        row: 110,
+        capture: "gamelog-run1482-eastindies-information-melee-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 18; MAP_SIZE 2; PLAYERS 2; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 0; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 7; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 10; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Emperor Napoleon",
+            "flags 1; tribe 13; who 2; team 8; handicap 0; play 2; pauses 0; diff 2; pop_cap_frame 0; Tsar Ivan the Terrible",
+        ],
+        digest: 0xfbf3f6e14ffc47b6,
+    },
+    HeldOut {
+        row: 130,
+        capture: "gamelog-run651-eastindies-persian-alltech-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 18; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 5; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 8; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 23; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Cyrus the Great",
+        ],
+        digest: 0x4e3334b9feb6c070,
+    },
+    HeldOut {
+        row: 150,
+        capture: "gamelog-run977-greatsahara-french-diff4-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 7; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 4; STARTING_TOWN 2; STARTING_RESOURCES 1; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 0; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 10; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Emperor Napoleon",
+        ],
+        digest: 0x04c04c23cd57f7c9,
     },
 ];
 
@@ -1256,3 +1424,237 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
 /// whole (a boarder's `last_z` on 4026).
 #[cfg(test)]
 pub(crate) const HELD_OUT_LINE: (usize, usize) = (5, 8);
+
+/// **The second battery's scores**, `HELD_OUT_SECOND[k]` played as
+/// `run1730 + k` (item 4462): `None` until the original has played it. The
+/// found column is pinned once and never re-pinned; it is the estimate
+/// (DECISIONS 145 §2).
+#[cfg(test)]
+pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
+    // run1730
+    // row 10, as found 2026-11-20: 4 lines whole; units 2,496 of 6,001, first 1747; builds 537
+    // of 6,001, first 537; ammo 5,591 of 6,001, first 4542; deaths 5,350 of 6,001, first 4686;
+    // groups 3,066 of 6,001, first 3066; guys 5,932 of 6,001, first 1747; leaders 3,976 of
+    // 6,001, first 1576; world 537 of 6,001, first 537.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                2496, 537, 6001, 5591, 5350, 3066, 5932, 3976, 6001, 6001, 6001, 537,
+            ],
+            first: &[
+                ("units", (1747, Some(1368369504), 1685366186)),
+                ("builds", (537, Some(1374294361), 1810502041)),
+                ("ammo", (4542, Some(2344817575), 281265979)),
+                ("deaths", (4686, Some(4192616794), 999637338)),
+                ("groups", (3066, Some(2106809472), 4177681537)),
+                ("guys", (1747, Some(978400498), 3434034420)),
+                ("leaders", (1576, Some(2345254394), 1305656828)),
+                ("world", (537, Some(993370751), 2782374025)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1731
+    // row 30, as found 2026-11-20, ended by the original on 4547: 8 lines whole; units 2,334 of
+    // 4,548, first 2334; guys 4,519 of 4,548, first 2334; leaders 3,748 of 4,548, first 1776;
+    // world 4,423 of 4,548, first 1662.
+    Some(FirstScore {
+        last: Some(4547),
+        found: Score {
+            states: 4548,
+            agreed: [
+                2334, 4548, 4548, 4548, 4548, 4548, 4519, 3748, 4548, 4548, 4548, 4423,
+            ],
+            first: &[
+                ("units", (2334, Some(1174910604), 994488935)),
+                ("guys", (2334, Some(700966203), 3856065750)),
+                ("leaders", (1776, Some(740584264), 2366335817)),
+                ("world", (1662, Some(3453374911), 2282901965)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1732
+    // row 50, as found 2026-11-20, ended by the original on 4454: 11 lines whole; groups 4,415
+    // of 4,455, first 3352.
+    Some(FirstScore {
+        last: Some(4454),
+        found: Score {
+            states: 4455,
+            agreed: [
+                4455, 4455, 4455, 4455, 4455, 4415, 4455, 4455, 4455, 4455, 4455, 4455,
+            ],
+            first: &[("groups", (3352, Some(4005438802), 229385035))],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1733
+    // row 70, as found 2026-11-20, ended by the original on 5140: 11 lines whole; world 5,054
+    // of 5,141, first 5054.
+    Some(FirstScore {
+        last: Some(5140),
+        found: Score {
+            states: 5141,
+            agreed: [
+                5141, 5141, 5141, 5141, 5141, 5141, 5141, 5141, 5141, 5141, 5141, 5054,
+            ],
+            first: &[("world", (5054, Some(2368706929), 2281807025))],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1734
+    // row 90, as found 2026-11-20: 10 lines whole; units 6,000 of 6,001, first 4021; guys 6,000
+    // of 6,001, first 4021.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                6000, 6001, 6001, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[
+                ("units", (4021, Some(1032385785), 3868390707)),
+                ("guys", (4021, Some(1818783002), 2641849684)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1735
+    // row 110, as found 2026-11-20: 5 lines whole; units 2,702 of 6,001, first 2184; builds
+    // 4,221 of 6,001, first 4221; ammo 4,472 of 6,001, first 3303; groups 3,544 of 6,001, first
+    // 1608; guys 5,977 of 6,001, first 2464; leaders 4,995 of 6,001, first 3176; world 3,999 of
+    // 6,001, first 3809.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                2702, 4221, 6001, 4472, 6001, 3544, 5977, 4995, 6001, 6001, 6001, 3999,
+            ],
+            first: &[
+                ("units", (2184, Some(1779962534), 330632884)),
+                ("builds", (4221, Some(3943548441), 1202439769)),
+                ("ammo", (3303, None, 3094479036)),
+                ("groups", (1608, Some(2931878699), 617474571)),
+                ("guys", (2464, Some(451796102), 1018289160)),
+                ("leaders", (3176, Some(2352774769), 1606385266)),
+                ("world", (3809, Some(2182316411), 2894561759)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1736
+    // row 130, as found 2026-11-20, ended by the original on 4730: 4 lines whole; units 1,704
+    // of 4,731, first 1570; builds 553 of 4,731, first 553; ammo 4,392 of 4,731, first 1601;
+    // deaths 4,084 of 4,731, first 1746; groups 4,553 of 4,731, first 2811; guys 4,566 of
+    // 4,731, first 1736; leaders 1,976 of 4,731, first 1376; world 553 of 4,731, first 553.
+    Some(FirstScore {
+        last: Some(4730),
+        found: Score {
+            states: 4731,
+            agreed: [
+                1704, 553, 4731, 4392, 4084, 4553, 4566, 1976, 4731, 4731, 4731, 553,
+            ],
+            first: &[
+                ("units", (1570, Some(834499912), 2753003137)),
+                ("builds", (553, Some(2297078769), 1047897137)),
+                ("ammo", (1601, Some(2349929217), 941472936)),
+                ("deaths", (1746, Some(1419733817), 1134652217)),
+                ("groups", (2811, Some(2634708853), 2723050627)),
+                ("guys", (1736, Some(4103418160), 1070804956)),
+                ("leaders", (1376, Some(73709351), 1700509480)),
+                ("world", (553, Some(699267042), 2987457272)),
+            ],
+            over: None,
+        },
+        // Moved by the merge of 4459 (`AirAttackGroundOrder`'s five ranges
+        // walked), measured on the merged tree before this item's gate:
+        // units 1,704 -> 1,735, first 1570 -> 1735.
+        moved: Some(Score {
+            states: 4731,
+            agreed: [
+                1735, 553, 4731, 4392, 4084, 4553, 4566, 1976, 4731, 4731, 4731, 553,
+            ],
+            first: &[
+                ("units", (1735, Some(3081680851), 796971071)),
+                ("builds", (553, Some(2297078769), 1047897137)),
+                ("ammo", (1601, Some(2349929217), 941472936)),
+                ("deaths", (1746, Some(1419733817), 1134652217)),
+                ("groups", (2811, Some(2634708853), 2723050627)),
+                ("guys", (1736, Some(4103418160), 1070804956)),
+                ("leaders", (1376, Some(73709351), 1700509480)),
+                ("world", (553, Some(699267042), 2987457272)),
+            ],
+            over: None,
+        }),
+    }),
+    // run1737
+    // row 150, as found 2026-11-20: 12 lines whole.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[],
+            over: None,
+        },
+        moved: None,
+    }),
+];
+
+/// **Parity held out, second, N of 8** (item 4462): the second battery's
+/// games whole on every line and state, and the games taken. As found,
+/// 2026-11-20: 1 of 8, row 150 (run1737).
+#[cfg(test)]
+pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (1, 8);
+
+/// One battery: its declared table, its pins, where its files and takes
+/// sit, and its line in the handoff.
+#[cfg(test)]
+pub(crate) struct Battery {
+    /// The handoff line's head, before its colon.
+    pub label: &'static str,
+    /// The item whose recordings these are (`item<N>-row<RRR>-6000.rcx`).
+    pub item: u32,
+    /// The run number of game 0; game `k` is `run + k`.
+    pub run: usize,
+    pub table: &'static [HeldOut; 8],
+    pub scores: &'static [Option<FirstScore>; 8],
+    /// The pins' name, for a failure's message.
+    pub scores_name: &'static str,
+    pub line: (usize, usize),
+}
+
+/// The first battery (item 4413).
+#[cfg(test)]
+pub(crate) const FIRST: Battery = Battery {
+    label: "Parity held out",
+    item: 4413,
+    run: 1700,
+    table: &HELD_OUT,
+    scores: &SCORES,
+    scores_name: "SCORES",
+    line: HELD_OUT_LINE,
+};
+
+/// The second battery (item 4462).
+#[cfg(test)]
+pub(crate) const SECOND: Battery = Battery {
+    label: "Parity held out, second",
+    item: 4462,
+    run: 1730,
+    table: &HELD_OUT_SECOND,
+    scores: &SCORES_SECOND,
+    scores_name: "SCORES_SECOND",
+    line: HELD_OUT_SECOND_LINE,
+};

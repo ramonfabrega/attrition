@@ -3261,8 +3261,16 @@ impl Sim {
         // The two capital calls (`docs/LEADERS.md` §11), before the old record closes.
         self.capture_capital_calls(o, a, c, was_capital, newcity);
         // The closes carry the captor to `Leader::lost_a_city` (§10.2).
+        // The loop skips a city centre (`flags & 0x20`): members close while
+        // the old city is open, so a library still its city's cleans or hands
+        // on its queue (CITIES §7.3 step 6, item 4466); the centre closes last.
         self.cities.capturing = Some(a);
+        let mut old_centre = None;
         for b in to_close {
+            if self.building_is_city(b) {
+                old_centre = Some(b);
+                continue;
+            }
             if self.buildings[b].alive {
                 if !self.buildings[b].active {
                     self.disband_building(b, false);
@@ -3271,12 +3279,18 @@ impl Sim {
                 }
             }
         }
-        self.cities.capturing = None;
         // The old record.
         if self.cities.cities[c].alive {
             self.cities.cities[c].members.clear();
             self.close_city(c, Some(a));
         }
+        // `capture_city@00733380:1170`–`:1172`: the old centre's `close(5)`.
+        if let Some(b) = old_centre
+            && self.buildings[b].alive
+        {
+            self.close_building(b, true);
+        }
+        self.cities.capturing = None;
         if let Some(nc) = newcity {
             let nb = self.cities.cities[nc].building;
             self.update_hits(nb);

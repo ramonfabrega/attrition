@@ -1805,7 +1805,13 @@ with an animal inside the radius, `CITIES=5` and `UNITS=3` over the window.
    friendly city is the new one are `swap_team`ed too.
 5. **Plunder** (§8.3).
 6. The close list: inactive → `disband(0)`; active → `close(5)` (silent
-   transfer); the new ones `mask_me(1, REGEN_SIMPLE)`.
+   transfer); the new ones `mask_me(1, REGEN_SIMPLE)`. **The loop skips a
+   city centre** (`flags & 0x20`): the members close while the old city is
+   open, so a library still its city's closes as its owner's first library
+   and `Build::close@00628980:468` hands its queue on or cleans it with a
+   refund; the old centre closes at step 8 (item 4466, run1724's 3887:
+   `epochs_queued` and `num_queued[573]` 1 → 0 on the loser, buckets 0 and
+   4 refunded; built in `Sim::capture_city`).
 7. **Capitals**: `was_capital`, `O` lacks the Forbidden City, and
    `find_capital(O, skip c)` finds no capital held by `O` → `Leader::
    lost_capital(O, A)` (§8.5); the new city has `0x10` and `A` held none →
@@ -2280,6 +2286,16 @@ heal, ejection), then the sites' `construct_hits` refresh.
 
 ## 12. What is not established
 
+- **The capture's capital calls run before the close loop here** (item
+  4466, parked 4466a): `capture_city@00733380` runs step 7 after step 6;
+  `Sim::capture_city` runs `capture_capital_calls` before it. No line
+  parts on it on run1724's 3888.
+- **The first capital's plunder arm takes two predicates on reading
+  only** (§8.3, item 4466): `team_style == 3` and the Persians'
+  `find_capital` (`local_88`) send it to the plain arm, and team styles 1,
+  2 and 9 pay `CAPITAL_PLUNDER_ASSASSIN × max(1, live nations)`;
+  `plunder_on_capture` builds neither. The bit itself is on the leaders
+  line since 4466 (`leader_flags & 0x400000`, diff-backed on 3888).
 - **The wonder disband's `+8 & 1`** (§4, item 4322; parked 4322a): read as
   `alive`; a dying site held over `hold_frames` is not separated. No capture
   finishes a wonder while a rival's site of its type is dying.
