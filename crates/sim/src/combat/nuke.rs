@@ -74,9 +74,6 @@ pub struct Nukes {
     pub stamp: Vec<i64>,
     /// `LeaderData +0x7bc nukes_used` (`6784c8`), by player.
     pub used: Vec<i32>,
-    /// The buildings whose `ObjectData +0x40 visible` a nuke's launch set
-    /// to `0xff` (`Build::do_missile_launch@00622670`'s nuke arm).
-    pub shown: Vec<usize>,
 }
 
 impl Nukes {
@@ -88,12 +85,6 @@ impl Nukes {
     /// A player's `nukes_used`.
     pub fn used_of(&self, who: Player) -> i32 {
         self.used.get(usize::from(who)).copied().unwrap_or(0)
-    }
-
-    /// A building's `visible` as the dump prints it: `-1` once a nuke has
-    /// left it, else 0 (no other writer is carried here).
-    pub fn visible_of(&self, b: usize) -> i64 {
-        if self.shown.contains(&b) { -1 } else { 0 }
     }
 }
 

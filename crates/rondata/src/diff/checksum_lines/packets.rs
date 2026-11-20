@@ -1443,7 +1443,7 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// parting on fewer builds ranges, none on more:
 /// `check_orphaned_buildings` marks a computer's site with no builder and
 /// no recruit (`build_masks |= 0x2000`), and `BUILD_AT`'s swarm clears it.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 823, 1053);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 841, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1933,22 +1933,23 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (1321, 1321, 3) -> (1321, 1321, 1).
     // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: guys (1321, 1321, 1) -> (1321, 1321, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (7597, 7597, 15) -> (7597, 7597, 14).
+    // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2140, 2136, 777) -> (2140, 2140, 3), leaders (271, 271, 3) -> (271, 271, 2), world (7597, 7597, 14) -> (7597, 7597, 0).
     (
         "run1164",
         4528,
         [
             (6053, 5923, 4240),
-            (2140, 2136, 777),
+            (2140, 2140, 3),
             (0, 0, 0),
             (3, 3, 0),
             (0, 0, 0),
             (550, 550, 0),
             (1321, 1321, 0),
-            (271, 271, 3),
+            (271, 271, 2),
             (30, 30, 0),
             (75, 75, 0),
             (120, 120, 0),
-            (7597, 7597, 14),
+            (7597, 7597, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (6004, 6418, 5320) -> (6004, 6418, 5252); builds (2267,
@@ -1981,12 +1982,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6004, 6004, 17) -> (6004, 6004, 6).
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (2267, 2266, 377) -> (2267, 2266, 375).
+    // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2267, 2266, 375) -> (2267, 2267, 0), world (9290, 9290, 10) -> (9290, 9290, 0).
     (
         "run1165",
         3719,
         [
             (6004, 6004, 6),
-            (2267, 2266, 375),
+            (2267, 2267, 0),
             (0, 0, 0),
             (287, 9, 286),
             (0, 0, 0),
@@ -1996,7 +1998,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 0),
             (15, 15, 0),
             (330, 330, 0),
-            (9290, 9290, 10),
+            (9290, 9290, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (6004, 6310, 5126) -> (6004, 6310, 5070); builds (2247,
@@ -2030,22 +2032,23 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6004, 6004, 18) -> (6004, 6004, 7).
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (2247, 2246, 434) -> (2247, 2246, 432).
+    // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2247, 2246, 432) -> (2247, 2247, 1), leaders (271, 271, 1) -> (271, 271, 0), world (9262, 9262, 12) -> (9262, 9262, 1).
     (
         "run1166",
         3920,
         [
             (6004, 6004, 7),
-            (2247, 2246, 432),
+            (2247, 2247, 1),
             (0, 0, 0),
             (0, 0, 0),
             (10, 10, 0),
             (688, 688, 0),
             (1935, 1935, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (30, 30, 0),
             (15, 15, 0),
             (330, 330, 0),
-            (9262, 9262, 12),
+            (9262, 9262, 1),
         ],
     ),
     // Item 4208, the whales' piece: units (7749, 8143, 6789) -> (7749, 8143, 6726); builds (1813,
@@ -3919,12 +3922,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6953, 6953, 47) -> (6953, 6953, 36).
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (2128, 2127, 608) -> (2128, 2127, 607).
+    // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2128, 2127, 607) -> (2128, 2128, 0), world (9554, 9554, 8) -> (9554, 9554, 0).
     (
         "run1416",
         4016,
         [
             (6953, 6953, 36),
-            (2128, 2127, 607),
+            (2128, 2128, 0),
             (0, 0, 0),
             (18, 18, 1),
             (0, 0, 0),
@@ -3934,7 +3938,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (33, 33, 0),
             (5, 5, 0),
             (330, 330, 0),
-            (9554, 9554, 8),
+            (9554, 9554, 0),
         ],
     ),
     // Item 4205, the built start: units (4518, 4705, 3767) -> (4518, 4705, 3703); builds (2321,
@@ -4047,12 +4051,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: units (5583, 5423, 1536) -> (5583, 5423, 1535), guys (1327, 1327, 1) -> (1327, 1327, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (8466, 8466, 1) -> (8466, 8466, 0).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5583, 5423, 1535) -> (5583, 5423, 1530).
+    // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2515, 2513, 686) -> (2515, 2515, 0).
     (
         "run1420",
         4586,
         [
             (5583, 5423, 1530),
-            (2515, 2513, 686),
+            (2515, 2515, 0),
             (0, 0, 0),
             (0, 0, 0),
             (8, 8, 0),
@@ -4131,22 +4136,23 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4441, `mask_me` walks a footprint column by column: world (8284, 8284, 10) -> (8284, 8284, 8).
     // Item 4430, a SAME_AS piece's own RData +0x88, the CHURCHILLDES's piece 195 at 0.9: units (4175, 4175, 6) -> (4175, 4175, 4), guys (1227, 1227, 2) -> (1227, 1227, 0).
     // Item 4443 (on 4430), the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4175, 4175, 4) -> (4175, 4175, 0).
+    // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2266, 2265, 802) -> (2266, 2266, 0), leaders (271, 271, 1) -> (271, 271, 0), world (8284, 8284, 8) -> (8284, 8284, 0).
     (
         "run1426b",
         3722,
         [
             (4175, 4175, 0),
-            (2266, 2265, 802),
+            (2266, 2266, 0),
             (0, 0, 0),
             (0, 0, 0),
             (2, 2, 0),
             (544, 544, 0),
             (1227, 1227, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (27, 27, 0),
             (80, 80, 0),
             (180, 180, 0),
-            (8284, 8284, 8),
+            (8284, 8284, 0),
         ],
     ),
     // Item 4209, the box's `clear_down`: items (85, 110, 49) -> (85, 85, 0).
@@ -4170,12 +4176,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 4) -> (271, 271, 2).
     // Item 4415, the oil-well stand's cur_time: units (4789, 4529, 2797) -> (4789, 4529, 2796), guys (1208, 1208, 6) -> (1208, 1208, 5).
     // Item 4441, `mask_me` walks a footprint column by column: world (8414, 8414, 1) -> (8414, 8414, 0).
+    // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2154, 2151, 568) -> (2154, 2154, 8).
     (
         "run1437",
         3894,
         [
             (4789, 4529, 2796),
-            (2154, 2151, 568),
+            (2154, 2154, 8),
             (0, 0, 0),
             (3, 3, 0),
             (4, 4, 0),
@@ -4269,12 +4276,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: units (4274, 4240, 907) -> (4274, 4240, 906), guys (1108, 1108, 1) -> (1108, 1108, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (8276, 8276, 9) -> (8276, 8276, 8).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4274, 4240, 906) -> (4274, 4240, 900).
+    // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (1890, 1887, 478) -> (1890, 1890, 0), world (8276, 8276, 8) -> (8276, 8276, 0).
     (
         "run1441",
         3294,
         [
             (4274, 4240, 900),
-            (1890, 1887, 478),
+            (1890, 1890, 0),
             (0, 0, 0),
             (0, 0, 0),
             (2, 2, 0),
@@ -4284,7 +4292,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
-            (8276, 8276, 8),
+            (8276, 8276, 0),
         ],
     ),
     // Item 4209, the box's `clear_down`: items (125, 135, 37) -> (125, 125, 0).
@@ -4622,12 +4630,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: units (4274, 4240, 907) -> (4274, 4240, 906), guys (1108, 1108, 1) -> (1108, 1108, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (8276, 8276, 9) -> (8276, 8276, 8).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4274, 4240, 906) -> (4274, 4240, 900).
+    // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (1890, 1887, 478) -> (1890, 1890, 0), world (8276, 8276, 8) -> (8276, 8276, 0).
     (
         "run1559b",
         3294,
         [
             (4274, 4240, 900),
-            (1890, 1887, 478),
+            (1890, 1890, 0),
             (0, 0, 0),
             (0, 0, 0),
             (2, 2, 0),
@@ -4637,7 +4646,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
-            (8276, 8276, 8),
+            (8276, 8276, 0),
         ],
     ),
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (267, 267, 2) -> (267, 267, 0).
@@ -4680,12 +4689,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: units (4274, 4240, 907) -> (4274, 4240, 906), guys (1108, 1108, 1) -> (1108, 1108, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (8276, 8276, 9) -> (8276, 8276, 8).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4274, 4240, 906) -> (4274, 4240, 900).
+    // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (1890, 1887, 478) -> (1890, 1890, 0), world (8276, 8276, 8) -> (8276, 8276, 0).
     (
         "run1564",
         3294,
         [
             (4274, 4240, 900),
-            (1890, 1887, 478),
+            (1890, 1890, 0),
             (0, 0, 0),
             (0, 0, 0),
             (2, 2, 0),
@@ -4695,7 +4705,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
-            (8276, 8276, 8),
+            (8276, 8276, 0),
         ],
     ),
     // Item 4209, the box's `clear_down`: items (75, 110, 55) -> (75, 75, 0).
@@ -4722,12 +4732,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: units (4240, 4200, 431) -> (4240, 4200, 430), guys (1112, 1112, 1) -> (1112, 1112, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (8294, 8294, 9) -> (8294, 8294, 8).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4240, 4200, 430) -> (4240, 4200, 424).
+    // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (1890, 1887, 478) -> (1890, 1890, 0), world (8294, 8294, 8) -> (8294, 8294, 0).
     (
         "run1570",
         3331,
         [
             (4240, 4200, 424),
-            (1890, 1887, 478),
+            (1890, 1890, 0),
             (0, 0, 0),
             (0, 0, 0),
             (4, 4, 0),
@@ -4737,7 +4748,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 0),
             (75, 75, 0),
             (180, 180, 0),
-            (8294, 8294, 8),
+            (8294, 8294, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (4969, 4983, 4166) -> (4969, 4983, 4139); builds (1731,
@@ -4762,12 +4773,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (640, 640, 3) -> (640, 640, 0).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (1429, 1429, 1) -> (1429, 1429, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (9108, 9108, 10) -> (9108, 9108, 9).
+    // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (1731, 1729, 938) -> (1731, 1731, 1), world (9108, 9108, 9) -> (9108, 9108, 1).
     (
         "run785",
         2178,
         [
             (4969, 4889, 2804),
-            (1731, 1729, 938),
+            (1731, 1731, 1),
             (0, 0, 0),
             (0, 0, 0),
             (28, 28, 4),
@@ -4777,7 +4789,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (47, 47, 0),
             (15, 15, 0),
             (330, 330, 0),
-            (9108, 9108, 9),
+            (9108, 9108, 1),
         ],
     ),
     // Item 4208, the whales' piece: units (5889, 5855, 5006) -> (5889, 5855, 4979); builds (2157,
@@ -4802,12 +4814,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (664, 664, 2) -> (664, 664, 0).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (1765, 1765, 1) -> (1765, 1765, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (9526, 9526, 11) -> (9526, 9526, 9).
+    // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2157, 2155, 1256) -> (2157, 2157, 1), world (9526, 9526, 9) -> (9526, 9526, 1).
     (
         "run789",
         2799,
         [
             (5889, 5809, 3724),
-            (2157, 2155, 1256),
+            (2157, 2157, 1),
             (0, 0, 0),
             (281, 3, 280),
             (0, 0, 0),
@@ -4817,7 +4830,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (52, 52, 0),
             (15, 15, 0),
             (330, 330, 0),
-            (9526, 9526, 9),
+            (9526, 9526, 1),
         ],
     ),
     // Item 4208, the whales' piece: units (5860, 5823, 4887) -> (5860, 5823, 4860); builds (2059,
@@ -4842,12 +4855,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (652, 652, 2) -> (652, 652, 0).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (1704, 1704, 1) -> (1704, 1704, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (9420, 9420, 11) -> (9420, 9420, 9).
+    // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2059, 2057, 1178) -> (2059, 2059, 1), world (9420, 9420, 9) -> (9420, 9420, 1).
     (
         "run795",
         2681,
         [
             (5860, 5780, 3667),
-            (2059, 2057, 1178),
+            (2059, 2059, 1),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4857,7 +4871,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (52, 52, 0),
             (15, 15, 0),
             (330, 330, 0),
-            (9420, 9420, 9),
+            (9420, 9420, 1),
         ],
     ),
     // Item 4208, the whales' piece: units (9526, 9603, 8636) -> (9526, 9603, 8609); builds (2384,
@@ -4888,12 +4902,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (2341, 2341, 2) -> (2341, 2341, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (688, 688, 4) -> (688, 688, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (9442, 9442, 11) -> (9442, 9442, 9).
+    // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2384, 2381, 1397) -> (2384, 2384, 2), world (9442, 9442, 9) -> (9442, 9442, 1).
     (
         "run810",
         3631,
         [
             (9526, 9426, 7329),
-            (2384, 2381, 1397),
+            (2384, 2384, 2),
             (0, 0, 0),
             (156, 0, 156),
             (0, 0, 0),
@@ -4903,7 +4918,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (58, 58, 0),
             (10, 10, 0),
             (330, 330, 0),
-            (9442, 9442, 9),
+            (9442, 9442, 1),
         ],
     ),
     // Item 4208, the whales' piece: units (9339, 9413, 8439) -> (9339, 9413, 8412); builds (2473,
@@ -4932,12 +4947,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (2450, 2450, 2) -> (2450, 2450, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (676, 676, 5) -> (676, 676, 1).
     // Item 4441, `mask_me` walks a footprint column by column: world (9552, 9552, 11) -> (9552, 9552, 9).
+    // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2473, 2469, 1529) -> (2473, 2473, 2), world (9552, 9552, 9) -> (9552, 9552, 1).
     (
         "run823",
         4238,
         [
             (9339, 9227, 8403),
-            (2473, 2469, 1529),
+            (2473, 2473, 2),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4947,7 +4963,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (58, 58, 0),
             (10, 10, 0),
             (330, 330, 0),
-            (9552, 9552, 9),
+            (9552, 9552, 1),
         ],
     ),
     // Item 4208, the whales' piece: units (9362, 9436, 8403) -> (9362, 9436, 8376); builds (2473,
@@ -4976,12 +4992,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (2471, 2471, 2) -> (2471, 2471, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (688, 688, 4) -> (688, 688, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (9560, 9560, 11) -> (9560, 9560, 9).
+    // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2473, 2469, 1529) -> (2473, 2473, 2), world (9560, 9560, 9) -> (9560, 9560, 1).
     (
         "run825",
         4204,
         [
             (9362, 9250, 8445),
-            (2473, 2469, 1529),
+            (2473, 2473, 2),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4991,7 +5008,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (58, 58, 0),
             (10, 10, 0),
             (330, 330, 0),
-            (9560, 9560, 9),
+            (9560, 9560, 1),
         ],
     ),
     // Item 4218, the idle latch (`flags & 0x08`): units (1201, 1312, 1056) -> (1201, 1312, 1053).
@@ -5131,12 +5148,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (640, 640, 3) -> (640, 640, 2).
     // Item 4441, `mask_me` walks a footprint column by column: world (9534, 9534, 12) -> (9534, 9534, 11).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (10342, 10188, 7833) -> (10342, 10188, 7824).
+    // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2288, 2283, 1535) -> (2288, 2288, 2), world (9534, 9534, 11) -> (9534, 9534, 1).
     (
         "run865",
         4859,
         [
             (10342, 10188, 7824),
-            (2288, 2283, 1535),
+            (2288, 2288, 2),
             (0, 0, 0),
             (0, 0, 0),
             (28, 28, 7),
@@ -5146,7 +5164,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
-            (9534, 9534, 11),
+            (9534, 9534, 1),
         ],
     ),
     // Item 4218, the idle latch (`flags & 0x08`): units (1636, 1776, 294) -> (1636, 1776, 263).
@@ -5202,12 +5220,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4425, a member compute_dests skips keeps its record offset: groups (616, 616, 7) -> (616, 616, 3).
     // Item 4441, `mask_me` walks a footprint column by column: world (9518, 9518, 12) -> (9518, 9518, 11).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (11125, 10815, 9505) -> (11125, 10815, 9496).
+    // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2737, 2732, 1917) -> (2737, 2737, 2), world (9518, 9518, 11) -> (9518, 9518, 1).
     (
         "run882b",
         6808,
         [
             (11125, 10815, 9496),
-            (2737, 2732, 1917),
+            (2737, 2737, 2),
             (0, 0, 0),
             (15, 15, 5),
             (0, 0, 0),
@@ -5217,7 +5236,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
-            (9518, 9518, 11),
+            (9518, 9518, 1),
         ],
     ),
     // Item 4208, the whales' piece: units (11180, 10557, 9936) -> (11180, 10557, 9912); builds (2737,
@@ -5251,12 +5270,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4441, `mask_me` walks a footprint column by column: world (9536, 9536, 12) -> (9536, 9536, 11).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (11180, 10834, 9393) -> (11180, 10834, 9384).
     // Item 4447, an empty building at its ceiling ejects (`build_masks` `0x4000`): builds (2737, 2732, 1918) -> (2737, 2732, 1917).
+    // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2737, 2732, 1917) -> (2737, 2737, 2), world (9536, 9536, 11) -> (9536, 9536, 1).
     (
         "run883b",
         6821,
         [
             (11180, 10834, 9384),
-            (2737, 2732, 1917),
+            (2737, 2737, 2),
             (0, 0, 0),
             (36, 36, 5),
             (0, 0, 0),
@@ -5266,7 +5286,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
-            (9536, 9536, 11),
+            (9536, 9536, 1),
         ],
     ),
     // Item 4208, the whales' piece: units (2652, 2987, 625) -> (2652, 2987, 343); builds (709, 709,
@@ -5747,18 +5767,13 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
         "ch95pkt",
         "aggression cities_built explored flags.leader_flags",
     ),
-    ("run1164", "encrypt.bucket[2] encrypt.bucket[5] explored"),
-    (
-        "run1166",
-        // Item 4159's twelfth residue: `collected`, `encrypt.bucket[0]`, `[1]`, `encrypt.leftover[0]`
-        // and `escrow` agree, the CEO's tile step having dirtied the economy on theirs' frame.
-        "explored",
-    ),
+    // Item 4465: `explored` agrees on run1164, run1166 and run1426b once a nuke's
+    // launch relights its silo's fog (`update_local_seen_build` with `visible` 0xff).
+    ("run1164", "encrypt.bucket[2] encrypt.bucket[5]"),
     ("run1320b", "encrypt.bucket[2]"),
     ("run1359", "encrypt.bucket[0] encrypt.bucket[1]"),
     ("run1359b", "encrypt.bucket[0] encrypt.bucket[1]"),
     ("run1359c", "encrypt.bucket[0] encrypt.bucket[1]"),
-    ("run1426b", "explored"),
     ("run1437", "encrypt.bucket[2] encrypt.bucket[5]"),
     ("run1438", "aggression cities_built flags.leader_flags"),
     ("run1440", "aggression cities_built flags.leader_flags"),

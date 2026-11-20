@@ -1099,7 +1099,7 @@ fn a_nuke_s_launch_shows_its_silo_and_its_round_does_not_scatter() {
         }
         spent.push(n);
         assert!(!s.units[m].alive(), "fired and gone");
-        assert_eq!(s.combat.nukes.shown.contains(&silo), nuke, "the silo shown");
+        assert_eq!(s.buildings[silo].visible == 0xff, nuke, "the silo shown");
         if nuke {
             assert_eq!(
                 s.combat.projectiles[0].landing, s.buildings[enemy].pos,
