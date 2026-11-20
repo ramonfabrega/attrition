@@ -776,53 +776,6 @@ pub(in crate::diff) mod tests {
                     }
                 }
             }
-            if let Some((lo, hi)) = std::env::var("RON_PROBE_4445").ok().and_then(|v| {
-                let (a, b) = v.split_once('-')?;
-                Some((a.parse::<i64>().ok()?, b.parse::<i64>().ok()?))
-            }) && (lo..=hi).contains(&f)
-            {
-                let sim = &built.sim;
-                let l = &sim.economy.ledgers[2];
-                eprintln!(
-                    "PROBE4445 {f} who2 dirty {} stamp {} rate[2] {} leftover[2] {}",
-                    l.dirty, l.gather_stamp, l.rate[2], l.leftover[2]
-                );
-                for (b, bd) in sim.buildings.iter().enumerate() {
-                    if !bd.alive || bd.owner != 2 {
-                        continue;
-                    }
-                    if sim.building_ident(b) != sim::cities::build::Ident::Mine {
-                        continue;
-                    }
-                    let chain: Vec<String> = bd
-                        .gatherers
-                        .iter()
-                        .map(|&u| format!("{u}:{}", sim.is_gathering_at(u, b, true)))
-                        .collect();
-                    eprintln!(
-                        "PROBE4445 {f}   mine b{b} active {} num {} chain {chain:?}",
-                        bd.active,
-                        sim.num_gatherers(b, true, true)
-                    );
-                }
-                for (u, un) in sim.units.iter().enumerate() {
-                    if un.owner != 2 || !un.on_map {
-                        continue;
-                    }
-                    for o in &un.orders {
-                        if let sim::orders::Body::Gather(g) = o.body
-                            && sim.building_ident(g.building) == sim::cities::build::Ident::Mine
-                        {
-                            eprintln!(
-                                "PROBE4445 {f}   unit {u} gather b{} been_there {} front {:?}",
-                                g.building,
-                                g.been_there,
-                                un.orders.front().map(|o| format!("{:?}", o.body).chars().take(48).collect::<String>())
-                            );
-                        }
-                    }
-                }
-            }
             stream.apply(f as i32, &mut built);
             crate::diff::harness::debug_watch(&built, f);
             built.tick();
@@ -854,26 +807,6 @@ pub(in crate::diff) mod tests {
                     continue;
                 }
                 let (rec, field) = a.map_or((-1, "-"), |r| (r.record, r.field));
-                // A leader's decrypted block is one range a word: name the
-                // word by its place in the record's run of them.
-                let field = match (*name, field) {
-                    ("leaders", "encrypt") => {
-                        let k = i - o
-                            .ranges
-                            .iter()
-                            .position(|r| r.record == rec && r.field == "encrypt")
-                            .unwrap_or(i);
-                        let six = sim::checksum::leaders::ENCRYPT_SIX;
-                        let leaf = if k < 54 {
-                            format!("{}[{}]", six[k % 9], k / 9)
-                        } else {
-                            format!("word {k}")
-                        };
-                        format!("encrypt {leaf}")
-                    }
-                    _ => field.to_string(),
-                };
-                let field = field.as_str();
                 let fields = match (a, b) {
                     // A shifted range decodes theirs' bytes by our field's
                     // name; at another length that is raw bytes alone.
