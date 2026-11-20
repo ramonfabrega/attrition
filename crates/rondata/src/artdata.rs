@@ -32,7 +32,7 @@
 //! what keeps the two honest: six lengths — three sheep, three fish — that
 //! both oracles state.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use crate::Install;
@@ -244,7 +244,14 @@ pub fn gaia_tables(install: &Install) -> (GaiaLengths, GaiaVariants) {
 /// `-PACKED`, `-CREW{k}` and `-FEMALE`. `PACKED` and `FEMALE` are the
 /// **same** coordinate: `get_unit_gpiece` reaches the packed art through
 /// its `packing` argument in place of the gender bit, and no shipped entry
-/// carries both. The age digit is the age itself, not the bracket — `0`,
+/// carries both. **But a type's gender piece has one name, never both**
+/// (item 4461): `GraphicPieces::unit_node_from_gpiece@00901c30:229`–`241`
+/// builds `-PACKED` (`internal_strings` 3706) for a type whose `role &
+/// 0x10000` is set (`testl $0x10000, 0x2c8(%ecx)` at `90205b`), a merchant
+/// (`TypeData::is_merchant`) or one that `is(FISHERMEN)`, and `-FEMALE`
+/// (3705) for every other — so the shipped `ASSAULTMARINES-…-FEMALE` is a
+/// node no lookup reaches, and [`entry_pieces`] places a gender tail only
+/// on the types whose name it is. The age digit is the age itself, not the bracket — `0`,
 /// `3` and `5` for brackets 0, 1 and 2, which is `age < 5 ? age / 3 : 2`,
 /// the same fold `get_unit_gpiece` applies to the leader's age.
 struct PieceName<'a> {
@@ -252,6 +259,9 @@ struct PieceName<'a> {
     style: i32,
     age: i32,
     gender: i32,
+    /// The gender tail's spelling: `Some(true)` for `-PACKED`,
+    /// `Some(false)` for `-FEMALE`, `None` for neither.
+    packed_tail: Option<bool>,
     crew: i32,
 }
 
@@ -266,10 +276,13 @@ impl<'a> PieceName<'a> {
         let style = STYLES.iter().position(|s| *s == style)? as i32;
         let age: i32 = parts.next()?.strip_prefix("AGE")?.parse().ok()?;
         let age = if age < 5 { age / 3 } else { 2 };
-        let (mut gender, mut crew) = (0, 0);
+        let (mut gender, mut crew, mut packed_tail) = (0, 0, None);
         for tail in parts {
             match tail {
-                "PACKED" | "FEMALE" => gender = 1,
+                "PACKED" | "FEMALE" => {
+                    gender = 1;
+                    packed_tail = Some(tail == "PACKED");
+                }
                 _ => crew = tail.strip_prefix("CREW")?.parse().ok()?,
             }
         }
@@ -278,6 +291,7 @@ impl<'a> PieceName<'a> {
             style,
             age,
             gender,
+            packed_tail,
             crew,
         })
     }
@@ -315,13 +329,33 @@ pub use sim::units::anim::TOTAL_UNIT_PIECES;
 /// Every piece a `<UNIT>` entry is: an "over time" name's one index
 /// ([`OVER_TIME`]), or the arithmetic's for each `TypeIndex` that plays
 /// its `GRAPH`. `None` when it is neither.
-fn entry_pieces(name: &str, by_graph: &BTreeMap<String, Vec<i32>>) -> Option<Vec<i32>> {
+///
+/// `packed`, where given, is the set of `TypeIndex`es whose gender piece
+/// the original names `-PACKED` ([`crate::load::Loaded::gender_packed`]);
+/// a gender tail then places only the types whose name it is — a
+/// `-FEMALE` entry none of the `packed` types, a `-PACKED` entry only
+/// them ([`PieceName`], item 4461). `None` places every type, the art
+/// listing's view ([`unit_art`]).
+fn entry_pieces(
+    name: &str,
+    by_graph: &BTreeMap<String, Vec<i32>>,
+    packed: Option<&BTreeSet<i32>>,
+) -> Option<Vec<i32>> {
     if let Some(k) = OVER_TIME.iter().position(|n| *n == name) {
         return Some(vec![TOTAL_UNIT_PIECES - 6 + k as i32]);
     }
     let p = PieceName::parse(name)?;
     let types = by_graph.get(&p.graph.to_ascii_uppercase())?;
-    Some(types.iter().map(|&ty| p.piece(ty)).collect())
+    Some(
+        types
+            .iter()
+            .filter(|ty| match (p.packed_tail, packed) {
+                (Some(tail), Some(set)) => set.contains(ty) == tail,
+                _ => true,
+            })
+            .map(|&ty| p.piece(ty))
+            .collect(),
+    )
 }
 
 /// `first_bird_piece`, the first of the gaia ("bird") pieces —
@@ -398,7 +432,7 @@ fn graph_types(graphs: &[String]) -> BTreeMap<String, Vec<i32>> {
 /// all is the packet's own missing slot, which `Guy::set_anim` gives the
 /// three-frame fallback ([`sim::units::anim::MISSING`]). Returns an empty map
 /// when either XML is unreadable.
-pub fn piece_lengths(install: &Install, graphs: &[String]) -> PieceLengths {
+pub fn piece_lengths(install: &Install, graphs: &[String], packed: &BTreeSet<i32>) -> PieceLengths {
     let apath = install.data("anim_graphics.xml");
     let upath = install.data("unit_graphics.xml");
     let (Ok(atext), Ok(utext)) = (crate::read(&apath), crate::read(&upath)) else {
@@ -413,7 +447,7 @@ pub fn piece_lengths(install: &Install, graphs: &[String]) -> PieceLengths {
     let mut frames: BTreeMap<&str, u32> = BTreeMap::new();
     let mut out = PieceLengths::new();
     for (name, rows) in &units {
-        let Some(pieces) = entry_pieces(name, &by_graph) else {
+        let Some(pieces) = entry_pieces(name, &by_graph, Some(packed)) else {
             continue;
         };
         let mut lengths: BTreeMap<i8, u32> = BTreeMap::new();
@@ -746,7 +780,11 @@ pub const fn release_frame(ms: u32) -> u32 {
 /// attribute is absent), which picks the death object's fade
 /// (`docs/GOLDEN.md` §127). `graphs` is the `GRAPH` column
 /// [`piece_lengths`] takes.
-pub fn piece_skeletons(install: &Install, graphs: &[String]) -> BTreeMap<i32, i32> {
+pub fn piece_skeletons(
+    install: &Install,
+    graphs: &[String],
+    packed: &BTreeSet<i32>,
+) -> BTreeMap<i32, i32> {
     let mut out = BTreeMap::new();
     let upath = install.data("unit_graphics.xml");
     let Ok(utext) = crate::read(&upath) else {
@@ -780,7 +818,7 @@ pub fn piece_skeletons(install: &Install, graphs: &[String]) -> BTreeMap<i32, i3
         else {
             continue;
         };
-        let Some(pieces) = entry_pieces(name.trim(), &by_graph) else {
+        let Some(pieces) = entry_pieces(name.trim(), &by_graph, Some(packed)) else {
             continue;
         };
         for &piece in &pieces {
@@ -812,7 +850,11 @@ pub fn piece_skeletons(install: &Install, graphs: &[String]) -> BTreeMap<i32, i3
 /// for every melee type: `docs/COMBAT.md` §9.0's SEAM — this crate has no
 /// reading of `UnitType +0x2cc`, the one other route into
 /// `Object::fire_ammo` for a unit, and no capture on this disk reaches it.
-pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
+pub fn piece_releases(
+    install: &Install,
+    graphs: &[String],
+    packed: &BTreeSet<i32>,
+) -> PieceReleases {
     let upath = install.data("unit_graphics.xml");
     let Ok(utext) = crate::read(&upath) else {
         return PieceReleases::new();
@@ -831,7 +873,7 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
         let Some(name) = u.attribute("name") else {
             continue;
         };
-        let Some(pieces) = entry_pieces(name.trim(), &by_graph) else {
+        let Some(pieces) = entry_pieces(name.trim(), &by_graph, Some(packed)) else {
             continue;
         };
         let mut rows: BTreeMap<i8, Vec<sim::units::anim::Release>> = BTreeMap::new();
@@ -1011,7 +1053,7 @@ pub type PieceTracks = BTreeMap<i32, (i32, i32)>;
 /// `(-96, 48)` this reads for piece `13043` reproduces that to the unit
 /// through `Guy::set_new_location`'s rotation (`docs/MOVEMENT.md`, "The
 /// follower's destination").
-pub fn piece_tracks(install: &Install, graphs: &[String]) -> PieceTracks {
+pub fn piece_tracks(install: &Install, graphs: &[String], packed: &BTreeSet<i32>) -> PieceTracks {
     let upath = install.data("unit_graphics.xml");
     let Ok(utext) = crate::read(&upath) else {
         return PieceTracks::new();
@@ -1025,7 +1067,7 @@ pub fn piece_tracks(install: &Install, graphs: &[String]) -> PieceTracks {
         let Some(name) = u.attribute("name") else {
             continue;
         };
-        let Some(pieces) = entry_pieces(name.trim(), &by_graph) else {
+        let Some(pieces) = entry_pieces(name.trim(), &by_graph, Some(packed)) else {
             continue;
         };
         let attr = |k: &str| -> f32 {
@@ -1320,7 +1362,7 @@ pub fn unit_art(install: &Install, graphs: &[String]) -> Vec<UnitArt> {
                 (*slot, anim.clone(), file)
             })
             .collect();
-        let pieces = entry_pieces(&name, &by_graph)
+        let pieces = entry_pieces(&name, &by_graph, None)
             .or_else(|| bird_pieces(&name, graphs))
             .unwrap_or_default();
         out.push(UnitArt {
@@ -3046,9 +3088,48 @@ mod tests {
             "ArmedCaravan",
             "the case differs in the file"
         );
-        let lengths = piece_lengths(&inst, &graphs);
+        let lengths = piece_lengths(&inst, &graphs, &gender_packed(&inst));
         assert!(lengths.contains_key(&10), "CARADUTCH's age-0 piece");
         assert!(lengths.contains_key(&12682), "and its crew's");
+    }
+
+    /// The install's own [`crate::load::Loaded::gender_packed`].
+    fn gender_packed(inst: &Install) -> BTreeSet<i32> {
+        crate::load::load(inst)
+            .expect("the install loads")
+            .gender_packed
+    }
+
+    /// **A gender piece has the one name its type's tests give it** (item
+    /// 4461): the original builds `-PACKED` for a military type, a merchant
+    /// or a fisherman, and `-FEMALE` for the rest
+    /// (`GraphicPieces::unit_node_from_gpiece@00901c30:229`–`241`). run1437's
+    /// packet holds piece 6408 (`ASSAULTMARINES-DEFAULT-AGE0-FEMALE`'s slot,
+    /// `TypeIndex` 122 with the gender bit) tried and empty — `loaded` 1,
+    /// `data_pieces` 0 — and every odd-numbered Assault Marine on its
+    /// frame 3894 on the plain piece 72, while its citizens' odd figures
+    /// play the female 10560.
+    #[test]
+    fn a_military_type_s_female_entry_is_no_piece_of_its() {
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install");
+            return;
+        };
+        let packed = gender_packed(&inst);
+        assert!(packed.contains(&122), "the Assault Marines are military");
+        assert!(!packed.contains(&0x32), "a citizen is not");
+        assert!(packed.contains(&0x109), "the Catapult is");
+        let lengths = piece_lengths(&inst, &graphs(&inst), &packed);
+        assert!(lengths.contains_key(&72), "the Assault Marines' own piece");
+        assert!(
+            !lengths.contains_key(&(72 + 0x18c0)),
+            "their -FEMALE entry is a node no lookup builds"
+        );
+        assert!(lengths.contains_key(&0x18c0), "the citizens' -FEMALE stays");
+        assert!(
+            lengths.contains_key(&(0x109 - 0x32 + 0x18c0)),
+            "the Catapult's -PACKED stays"
+        );
     }
 
     fn graphs(inst: &Install) -> Vec<String> {
@@ -3739,7 +3820,7 @@ mod tests {
             .collect();
         let quiet = harmless_ammo(&inst);
         assert_eq!(quiet.len(), 3, "{quiet:?}");
-        let rel = piece_releases(&inst, &graphs);
+        let rel = piece_releases(&inst, &graphs, &gender_packed(&inst));
         let piece = |g: &str| {
             let ty = 0x32
                 + graphs
