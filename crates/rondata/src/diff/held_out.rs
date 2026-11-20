@@ -973,15 +973,18 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // cities 4,967 -> 4,974, whole.
         // Moved by item 4453 (a push after the pushed unit's walk leaves
         // `guy_flags & 2`): guys 4,870 -> 4,949, its first parting on 2487.
+        // Moved by item 4467 (the guys line's inside arm is chosen at the
+        // unit's own `process`): guys 4,949 -> 4,961, first 2487 -> 3107;
+        // units stands on 2487, its sum there moved.
         moved: Some(Score {
             states: 4974,
             agreed: [
-                2487, 4974, 4974, 4974, 4974, 4964, 4949, 4974, 4974, 4974, 4974, 4859,
+                2487, 4974, 4974, 4974, 4974, 4964, 4961, 4974, 4974, 4974, 4974, 4859,
             ],
             first: &[
-                ("units", (2487, Some(1142976455), 3877923716)),
+                ("units", (2487, Some(3429527498), 3877923716)),
                 ("groups", (1854, Some(284774603), 2949074744)),
-                ("guys", (2487, Some(2678849350), 3953000265)),
+                ("guys", (3107, Some(3099161691), 3465507855)),
                 ("world", (4859, Some(155879679), 1707773025)),
             ],
             over: None,
@@ -1225,15 +1228,17 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4464 (`myarmor` is `Unit::update_armor`'s cache):
         // units 5,999 -> 6,000, first 3937 -> 4026. run1725's 3937, range
         // 173, record 1 (who=1's Armed Merchant), `myarmor` ours 2, theirs 1.
+        // Moved by item 4467 (the guys line's inside arm is chosen at the
+        // unit's own `process`): units and guys 6,000 -> 6,001, whole; the
+        // row is whole. run1725's 4026, units range 163 and guys range 52,
+        // record 0 (who=1's `1/0`, TI 69, boarding), `last_z` ours -30,
+        // theirs -33.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                6000, 6001, 6001, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 6001, 6001,
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
             ],
-            first: &[
-                ("units", (4026, Some(3301215378), 2306706575)),
-                ("guys", (4026, Some(1242658676), 1019574129)),
-            ],
+            first: &[],
             over: None,
         }),
     }),
@@ -1241,6 +1246,7 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
 
 /// **Parity held out, N of 8** (DECISIONS 144 §2): the games whole on every
 /// line and state, and the games taken. Item 4455: 3 -> 4, row 80 whole
-/// (`build_masks & 0x2000` on its site 1/2036).
+/// (`build_masks & 0x2000` on its site 1/2036). Item 4467: 4 -> 5, row 140
+/// whole (a boarder's `last_z` on 4026).
 #[cfg(test)]
-pub(crate) const HELD_OUT_LINE: (usize, usize) = (4, 8);
+pub(crate) const HELD_OUT_LINE: (usize, usize) = (5, 8);
