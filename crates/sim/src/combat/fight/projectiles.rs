@@ -11,6 +11,22 @@ impl Sim {
     /// `Build::process` → `Build::do_attack` for a building that shoots (§8.6).
     pub(crate) fn process_building_combat(&mut self, b: usize, frame: i64) {
         let me = Obj::Building(b);
+        // PROBE 4454
+        if (3874..=3880).contains(&frame) && self.buildings[b].index == 2000 {
+            let bd = &self.buildings[b];
+            eprintln!(
+                "BPROBE f{frame} b{b} owner {} active_obj {} attack {} active {} cycles {} target {:?} near {:?} phase {} rech {}",
+                bd.owner,
+                self.active(me),
+                self.attack_of(me),
+                bd.active,
+                self.wall_cycle_of(b).is_some(),
+                bd.target,
+                bd.near,
+                bd.phase(frame) & 0x1f,
+                bd.recharging
+            );
+        }
         if !self.active(me) || self.attack_of(me) == 0 {
             return;
         }
