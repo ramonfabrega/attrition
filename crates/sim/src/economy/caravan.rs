@@ -1127,6 +1127,25 @@ impl Sim {
         // cannot fire while the only two orders are this pair.
     }
 
+    /// `City::close@00737550:191`–`:205`'s last arm for city `c` (item
+    /// 4463; called from [`Sim::close_city`]'s tail, after `lost_a_city`).
+    pub(crate) fn close_city_caravans(&mut self, c: usize) {
+        // `City::close@00737550:191`–`:205`, its last arm: every caravan
+        // linked to the closed city (`vans`, `+0x78` long) whose slot and
+        // unit are alive is `Unit::repath`ed, which pops the walk it is on
+        // until the `TRADE_ROUTE` heads its list; `do_trade` then finds
+        // the home closed and the order dies (item 4463: run1724's 3887,
+        // the Inca capital taken, its caravan holding no order on 3888).
+        for (k, w) in self.city_links(c) {
+            let van = &self.economy.caravans[w as usize].slots[k as usize];
+            if let Some(u) = van.unit.filter(|_| van.alive)
+                && self.units[u].alive()
+            {
+                self.repath(u);
+            }
+        }
+    }
+
     /// `Unit::end_trade_route@005e3bd0`: the route is given up — the pair
     /// forgotten, the plan and any parked search with it.
     pub fn end_trade_route(&mut self, u: usize) {
@@ -1143,6 +1162,28 @@ impl Sim {
         van.city_a = None;
         van.city_b = None;
         van.reset_road = false;
+        // `005e3bd0:31`–`:85`, when the action is the `TRADE_ROUTE` (item
+        // 4463): its `loaded` (`+0x20`) cleared, and each end whose
+        // building is an active build in a live city lets the link go
+        // (`Array<CaravanLink>::remove`) and recounts its trade
+        // (`City::compute_trade`). An end that has closed — a captured
+        // city's old record — is skipped. This crate's links are the
+        // slot's `city_a`/`city_b`, cleared above, so the recount is what
+        // is left to do.
+        let Some(i) = self.action_of(u) else {
+            return;
+        };
+        let Body::Trade(mut ord) = self.units[u].orders[i].body else {
+            return;
+        };
+        ord.loaded = false;
+        self.units[u].orders[i].body = Body::Trade(ord);
+        for c in [Some(ord.home), ord.dest].into_iter().flatten() {
+            let b = self.cities.cities[c].building;
+            if self.cities.cities[c].alive && self.buildings[b].alive && self.buildings[b].active {
+                self.compute_trade(c);
+            }
+        }
     }
 }
 
