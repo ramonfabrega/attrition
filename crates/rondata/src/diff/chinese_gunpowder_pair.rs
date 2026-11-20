@@ -223,7 +223,8 @@ fn chinese_gunpowder_pair_the_long_s_stride_walks_back_from_4884() {
     // the buildings' `build:extra` (which the stride does not print), and
     // who=1's groups' `held` and pools as each group is minted. No unit's
     // position or orders part through block 4801.
-    pin_eq!(w.firsts.len(), 177, "the stride's baseline");
+    // Item 4435: 177 -> 143, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 143, "the stride's baseline");
 }
 
 /// run1283b: the word 4884's window, blocks 4879..5135 at the long's
@@ -302,7 +303,8 @@ fn chinese_gunpowder_pair_run1283b_s_word_frame_is_widened_whole() {
     // piece 1195's pivot and lands on 5132 on both sides; the window is the
     // standing families alone (`form`, who=1's groups' `held` and pools).
     // Item 4159's residue: 149 -> 148, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 148, "run1283b baseline");
+    // Item 4435: 148 -> 111, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 111, "run1283b baseline");
 }
 
 /// run1299: the word 5196's window, blocks 5190..5446 at run1283b's detail
@@ -378,7 +380,8 @@ fn chinese_gunpowder_pair_run1299_s_word_frame_is_widened_whole() {
     // who=1's wagon radius at its one researched step, `1/98`'s reload of
     // 5324 is 60 on both sides (block 5325), and the swing of 5384 and
     // everything after it agree (`docs/AI.md` section 333.3).
-    pin_eq!(w.firsts.len(), 138, "run1299 baseline");
+    // Item 4435: 138 -> 110, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 110, "run1299 baseline");
 }
 
 /// run1302: the closing window, blocks 5446..5569 at run1283b's detail,
@@ -436,7 +439,8 @@ fn chinese_gunpowder_pair_run1302_s_closing_window_is_widened_whole() {
     // `aggression[1]`, who=1's groups' `held` and pools), then births'
     // `form` and the `SITE[0..5].reg` rows again on 5567 and 5568. No
     // unit's position or orders part through the closing block.
-    pin_eq!(w.firsts.len(), 129, "run1302 baseline");
+    // Item 4435: 129 -> 105, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 105, "run1302 baseline");
 }
 
 /// **The closing state** (item 3641): run1283's closing block 5569, the
@@ -568,5 +572,6 @@ fn chinese_gunpowder_pair_run1283c_s_gap_is_widened_whole() {
     // Item 3637: **144 → 130**. The move row compares `retry` and
     // `attempts`, and `do_move` keeps the roll: `1/215`'s rows leave, and
     // what remains is the standing families (`docs/AI.md` section 333.1).
-    pin_eq!(w.firsts.len(), 130, "run1283c baseline");
+    // Item 4435: 130 -> 97, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 97, "run1283c baseline");
 }

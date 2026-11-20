@@ -183,7 +183,8 @@ fn iroquois_enlightenment_pair_the_long_s_stride_walks_back_from_3962() {
     // Item 3958: 155 → 152 — the three `blown` rows leave (parked 3114):
     // each unit holds `land_cloak`, which `Unit::work`'s stealth arm skips
     // (`docs/AI.md` §402).
-    pin_eq!(w.firsts.len(), 152, "the stride's baseline");
+    // Item 4435: 152 -> 114, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 114, "the stride's baseline");
 }
 
 /// run1291b: the word 3962's window, blocks 3956..4212 at the long's
@@ -262,7 +263,8 @@ fn iroquois_enlightenment_pair_run1291b_s_word_frame_is_widened_whole() {
     // `1/157`, and groups 68, 82, 84 and 85's `held` and pools as each is
     // minted. No unit's position, orders or hits part.
     // Item 4159's residue: 122 -> 121, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 121, "run1291b baseline");
+    // Item 4435: 121 -> 91, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 91, "run1291b baseline");
     // Every round, both directions: 301 round-blocks theirs, 228 ours. The
     // first to part is `1/82`'s, on the window's first block, fired in the
     // undumped gap 3902..3955 on both sides: ours leaves from (3912, 12792,
@@ -358,7 +360,8 @@ fn iroquois_enlightenment_pair_run1320_s_closing_window_is_widened_whole() {
     // boat (the inside arm's clear) and eight `cloak` rows, the President
     // `1/15`'s Ambush on 4889 and seven Transport Galleons in its aura from
     // 4895 (the hero arm), all agree; 131 stands.
-    pin_eq!(w.firsts.len(), 131, "run1320 baseline");
+    // Item 4435: 131 -> 91, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 91, "run1320 baseline");
     // **Every round, both directions**: 940 round-blocks a side, and none
     // parts — the Musketeers' (`1/73`..`1/75`, piece 1457) among them,
     // which left the figure's own point before item 3655's bays.

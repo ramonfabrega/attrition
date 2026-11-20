@@ -260,7 +260,8 @@ fn japanese_enlightenment_pair_run1366b_s_closing_frame_is_widened_whole() {
     // Item 4176: 148 -> 151, +3 firsts: who=0's `attack_stamp[1]`, `raid_stamp[1]` and `ally_stamp[1]` on 4609, ours 4608 theirs 4307, on a closing frame whose state already parts.
     // Item 4177: 151 -> 153, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 4557 ours 2 theirs 3; who=1 `hits_current_frame` 4557 ours 2 theirs 3 (docs/LEADERS.md §3.5).
     // Item 4159r5: 153 -> 146, the launch rows of pieces 111 (15): rounds that left the figure's square leave from their bays.
-    pin_eq!(w.firsts.len(), 146, "run1366b baseline");
+    // Item 4435: 146 -> 115, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 115, "run1366b baseline");
     // Every round, both directions: 102 round-blocks ours, 115 theirs.
     // **72 rows part, every one a launch** of group 66's three Gun Samurai
     // (161, `ELITESAMURAI`) `1/53`, `1/54` and `1/55` at the city: ours

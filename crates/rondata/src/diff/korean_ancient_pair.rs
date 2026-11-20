@@ -228,7 +228,8 @@ fn korean_ancient_pair_run1200b_s_word_frame_is_widened_whole() {
     // standing families alone (every unit's `form`, `SITE[i].reg`, both
     // leaders' `aggression`, who=1's groups' `held` and pools); no unit
     // field parts on any block.
-    pin_eq!(w.firsts.len(), 83, "run1200b baseline");
+    // Item 4435: 83 -> 69, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 69, "run1200b baseline");
 }
 
 /// **The long's stride, walked back from the word 4350** (item 3578):
@@ -277,7 +278,8 @@ fn korean_ancient_pair_the_long_s_stride_walks_back_from_4350() {
     // frame long from the figure's own square) and `damage_frac` 2 against
     // 10 (`1/44`'s arrow, the same). With the bays, 125: the standing
     // families alone.
-    pin_eq!(w.firsts.len(), 125, "the stride's baseline");
+    // Item 4435: 125 -> 108, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 108, "the stride's baseline");
 }
 
 /// **The pair's last blocks, from the disk** (item 3578): the word is the
@@ -340,5 +342,6 @@ fn korean_ancient_pair_run1200_s_closing_frame_is_widened_whole() {
     // `1/2005`, `1/2006`, `1/2009`, `1/2011` (1 each), `1/2012` (5),
     // `1/2048`, `1/2054` (1 each) — the human's defeat asks `Game::check_victory`, whose conquest victory cleans every one of who=1's queues with no refund (`Leader::victory`, `docs/LEADERS.md` §10.2). The queues 3578c names.
     // Item 4340: −1, no `leader:defense` row is left (the human's tally moves, its writers ungated; ch125 and ch131 name that key, here it is inferred).
-    pin_eq!(w.firsts.len(), 153, "the closing walk's baseline");
+    // Item 4435: 153 -> 139, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 139, "the closing walk's baseline");
 }

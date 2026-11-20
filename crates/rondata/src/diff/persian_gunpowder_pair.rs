@@ -236,7 +236,8 @@ fn persian_gunpowder_pair_the_long_s_stride_walks_back_from_the_word() {
     // window): **187** keys, with 3709's owner-9 chain and the builder
     // clear. Past the standing families the one unit row is still `1/42`'s
     // `dest_angle` on 2901; nothing else parts before 4801.
-    pin_eq!(w.firsts.len(), 187, "the stride's baseline");
+    // Item 4435: 187 -> 146, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 146, "the stride's baseline");
 }
 
 /// run1370b: the word 1180's window, blocks 1095..1431 at the long's
@@ -374,7 +375,8 @@ fn persian_gunpowder_pair_run1383b_s_word_frame_is_widened_whole() {
     // `order:move.angle`); on 3132 its path is 1 node against 7.
     // Item 3709 (the word at 4842): **102** keys — the Fishermen `1/125`'s
     // rows leave with the owner-9 gate on the chain.
-    pin_eq!(w.firsts.len(), 102, "run1383b baseline");
+    // Item 4435: 102 -> 100, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 100, "run1383b baseline");
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -447,7 +449,8 @@ fn persian_gunpowder_pair_run1387_s_word_frame_is_widened_whole() {
     // rows a few units off (4883..4938), `1/21`'s `dest_angle` (4886),
     // `1/99`'s order after its kill on 4951 (ours `kind` 21, theirs 2;
     // `cur_time` 17 against 18, parked 3713a), and `SITE[2..4].reg` on 4976.
-    pin_eq!(w.firsts.len(), 143, "run1387 baseline");
+    // Item 4435: 143 -> 118, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 118, "run1387 baseline");
     pin_eq!(w.rounds_read, (5, 5), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -507,7 +510,8 @@ fn persian_gunpowder_pair_run1390_s_closing_frame_is_widened_whole() {
     // `SITE[i]`); after it, groups 89, 92 and 93 held and `form` on units
     // as each is built, eight `dest_angle`s (5545..5646), and group 79's
     // `order:group.id` 5658907 against 5658909 from 5652.
-    pin_eq!(w.firsts.len(), 152, "run1390 baseline");
+    // Item 4435: 152 -> 137, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 137, "run1390 baseline");
     pin_eq!(w.rounds_read, (219, 219), "the rounds read");
     // Every round, both directions: 219 a side, 40 parting — the six
     // Bombards' (TI 267, piece 1977) launches from `1/73`, `1/76`, `1/86`,
@@ -575,7 +579,8 @@ fn persian_gunpowder_pair_run1385_s_site_window_is_widened_whole() {
     // 33). Built (`find_fort` waits for `Build::activate`): **91** keys,
     // every one a standing family (`form`, the leaders' `SITE[i].reg` and
     // `aggression`, who=1's groups and pools); the site table agrees.
-    pin_eq!(w.firsts.len(), 91, "run1385 baseline");
+    // Item 4435: 91 -> 90, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 90, "run1385 baseline");
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }

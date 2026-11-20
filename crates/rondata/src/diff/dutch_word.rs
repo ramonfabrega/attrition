@@ -242,7 +242,8 @@ fn run963b_s_word_frame_is_widened_whole() {
     // `pool:n`, `aggression` and the newborn `g.angle[0]`, 53 on 5577 and
     // ten later as new members join those kinds (`1/27`'s `form` on 5601
     // through `1/36`'s `g.angle[0]` on 5811).
-    pin_eq!(w.firsts.len(), 58, "keys that part in the window");
+    // Item 4435: 58 -> 56, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 56, "keys that part in the window");
 }
 
 /// run963c: the word 22935's window, blocks 22929..23185 at run963's
@@ -297,7 +298,8 @@ fn run963c_s_word_frame_is_widened_whole() {
     // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
     // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
     // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
-    pin_eq!(w.firsts.len(), 71, "keys that part in the window");
+    // Item 4435: 71 -> 68, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 68, "keys that part in the window");
 }
 
 /// run963d: the word 23782's window to the trace's last frame, blocks
@@ -351,7 +353,8 @@ fn run963d_s_word_frame_is_widened_whole() {
     // (`sim::units::anim::stall_piece`): its crew on one piece at its point.
     // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
     // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
-    pin_eq!(w.firsts.len(), 90, "keys that part in the window");
+    // Item 4435: 90 -> 66, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 66, "keys that part in the window");
 }
 
 /// The closing state's window: run917's closing block alone, the long's

@@ -204,7 +204,8 @@ fn run956b_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 37, "keys that part in the window");
+    // Item 4435: 37 -> 36, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 36, "keys that part in the window");
     // Item 3314: 51 keys, every one standing from 18020 — the control's set
     // (`SITE[n].reg`, `form`, groups' `held`, the pool, `aggression`) and
     // who=1's `1/22`..`1/37` `g.angle[0]`, ours `0x55555555` against 0.
