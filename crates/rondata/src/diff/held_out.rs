@@ -773,16 +773,18 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4449 (`set_new_location(…, 1)` copies each figure's
         // point into `last`): guys 4,876 -> 4,870, a named fall past its
         // first parting, which stays on 2487.
+        // Moved by item 4450 (`City::calc_gather`'s bytes kept to the
+        // reassembly, a finished granary's written at `Build::activate`):
+        // cities 4,967 -> 4,974, whole.
         moved: Some(Score {
             states: 4974,
             agreed: [
-                2487, 4974, 4974, 4974, 4974, 4964, 4870, 4974, 4967, 4974, 4974, 4859,
+                2487, 4974, 4974, 4974, 4974, 4964, 4870, 4974, 4974, 4974, 4974, 4859,
             ],
             first: &[
                 ("units", (2487, Some(1142976455), 3877923716)),
                 ("groups", (1854, Some(284774603), 2949074744)),
                 ("guys", (2487, Some(2678849350), 3953000265)),
-                ("cities", (4127, Some(3606914667), 2610767417)),
                 ("world", (4859, Some(155879679), 1707773025)),
             ],
             over: None,
@@ -828,16 +830,19 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4448 (`detect_unit_collision`'s guard arm runs
         // `update_action` on the blocker): units 3,662 -> 3,672, first
         // 1561 -> 2014 -- a bumped guard's `dest_angle` takes its turn.
+        // Moved by item 4450 (run1722): cities 4,066 -> 4,075, whole --
+        // who=1's city 0 `granary` ours 50, theirs 20 on 2253
+        // (`City::calc_gather`'s byte kept to the reassembly on 2256), and
+        // 20 on 1713 (`Build::activate` writes it at once).
         moved: Some(Score {
             states: 4075,
             agreed: [
-                3672, 4075, 4075, 4075, 4075, 3863, 3958, 4075, 4066, 4075, 4075, 3984,
+                3672, 4075, 4075, 4075, 4075, 3863, 3958, 4075, 4075, 4075, 4075, 3984,
             ],
             first: &[
                 ("units", (2014, Some(3549321578), 3787872620)),
                 ("groups", (3598, Some(3778361523), 962934390)),
                 ("guys", (2014, Some(4240840485), 61413159)),
-                ("cities", (2253, Some(2126061725), 1479221375)),
                 ("world", (3984, Some(402934873), 4267790267)),
             ],
             over: None,

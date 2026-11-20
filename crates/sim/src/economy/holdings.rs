@@ -305,6 +305,62 @@ impl Sim {
         self.buildings[b].alive && self.buildings[b].active
     }
 
+    /// **`Build::activate@00623e20`'s enhancer bytes** (item 4450): a
+    /// granary or lumber mill finished inside a city writes that city's
+    /// byte at once, `GRANARY_BONUS` at `granary_level` into `+0x56`
+    /// (`:432`-`441`, read as `fishermen_bonus[level + 4]`, the table
+    /// before it) or `LUMBERMILL_BONUS` at `lumber_level` into `+0x57`
+    /// (`:411`-`420`), before it raises `0x2000000`. The tech level is read
+    /// as it stands; a level gained later waits for the next reassembly.
+    /// Row 60's who=1 city 0 on run1722: its granary finishes on 1713 and
+    /// theirs reads 20 there, four frames before the reassembly on 1720.
+    pub(crate) fn activate_enhancer_byte(&mut self, b: usize) {
+        let Some(c) = self.buildings[b].city else {
+            return;
+        };
+        let (slot, r) = if self.is_kind(b, Ident::Granary) {
+            (0, economy::Resource::Food)
+        } else if self.is_kind(b, Ident::Lumbermill) {
+            (1, economy::Resource::Timber)
+        } else {
+            return;
+        };
+        let owner = self
+            .cities
+            .cities
+            .get(c)
+            .map_or(self.buildings[b].owner, |k| k.owner);
+        let levels = Levels::for_player(self, owner);
+        let lvl = if slot == 0 {
+            levels.granary.max(1)
+        } else {
+            levels.lumber_mill.max(1)
+        };
+        let v = economy::enhancer_bonus(&self.tables.tuning, r, lvl) as u8;
+        // Only a city a reassembly here has stored: a start stood up from a
+        // packet activates its buildings before it installs the techs, and
+        // reads the live levels until its first reassembly.
+        if let Some(Some(bytes)) = self.cities.enhancers.get_mut(c) {
+            bytes[slot] = v;
+        }
+    }
+
+    /// `CityData +0x56..=+0x58` as the cities line reads them: the bytes
+    /// the last reassembly or activation stored
+    /// ([`crate::cities::CitiesState::enhancers`]), else the live levels.
+    pub(crate) fn city_enhancer_bytes(&self, c: usize) -> [u8; 3] {
+        if let Some(Some(b)) = self.cities.enhancers.get(c) {
+            return *b;
+        }
+        let owner = self.cities.cities[c].owner;
+        let held = self.city_holdings(c, Levels::for_player(self, owner));
+        [
+            held.granary as u8,
+            held.lumber_mill as u8,
+            held.smelter as u8,
+        ]
+    }
+
     fn is_kind(&self, b: usize, ident: Ident) -> bool {
         self.buildings[b]
             .ty
@@ -669,11 +725,24 @@ impl Sim {
             a.known_rares = a.census.reg_known_rares.iter().sum();
         }
 
-        let cities: Vec<economy::City> = self
-            .cities_of(who)
-            .into_iter()
-            .map(|c| self.city_holdings(c, levels))
+        let indices = self.cities_of(who);
+        let cities: Vec<economy::City> = indices
+            .iter()
+            .map(|&c| self.city_holdings(c, levels))
             .collect();
+        // `City::calc_gather`'s bytes stay on the city until the next
+        // reassembly ([`crate::cities::CitiesState::enhancers`]).
+        for (&c, city) in indices.iter().zip(&cities) {
+            let e = &mut self.cities.enhancers;
+            if e.len() <= c {
+                e.resize(c + 1, None);
+            }
+            e[c] = Some([
+                city.granary as u8,
+                city.lumber_mill as u8,
+                city.smelter as u8,
+            ]);
+        }
         let refineries = self.refinery_count(who);
 
         // `COMMERCE_CAP[commerce_level]`, and the level is

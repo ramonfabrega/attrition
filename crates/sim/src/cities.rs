@@ -74,6 +74,17 @@ pub struct CitiesState {
     /// it for [`Sim::type_avail`] (`docs/TECH.md`, "A built wonder is
     /// built for everyone").
     pub wonders_built: u32,
+    /// `CityData +0x56..=+0x58`, the granary, lumber mill and smelter bytes
+    /// as `City::calc_gather@00737c60` last wrote them, by city index (item
+    /// 4450). The original writes them only inside `Leader::calc_gather`'s
+    /// cadence ([`crate::economy::should_recompute`]), so between two
+    /// reassemblies they keep the levels of the last one: on row 60's 2253
+    /// (run1722) city 0's granary reads 20 on theirs, level 1, where the
+    /// owner's level was already 2. Written by [`Sim::assemble_holdings_with`],
+    /// read by the cities line; grown on demand. A city with no entry was
+    /// never reassembled here (a start stood up from a packet or a dump
+    /// carries no bytes), and the line reads its live levels instead.
+    pub enhancers: Vec<Option<[u8; 3]>>,
     /// `City +0x90` where a `rename_city` wrote it, by city index
     /// (`CommandPackage::process_rename_city@00944090`; item 4268,
     /// `crate::cities::rename`). A city absent here keeps the founding name,
