@@ -804,6 +804,13 @@ pub(in crate::diff) mod tests {
                     .map(|x| x.gatherers)
                     .collect();
                 eprintln!("PROBE4445 {f}   holdings outside metal {m:?} rares {:?}", h.rares);
+                eprintln!(
+                    "PROBE4445 {f}   assemble {:?} per_gatherer {} handicap {} cap {:?}",
+                    sim::economy::assemble(&sim.tables.tuning, h),
+                    sim::economy::per_gatherer(&sim.tables.tuning, sim::economy::Resource::Metal, 1),
+                    h.handicap,
+                    l.cap
+                );
                 for (b, bd) in sim.buildings.iter().enumerate() {
                     if !bd.alive || bd.owner != 2 {
                         continue;
