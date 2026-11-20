@@ -3,6 +3,22 @@
 use super::*;
 
 impl Sim {
+    /// PROBE 4477 (reverted whole).
+    pub(crate) fn p4477(&self, u: usize, tag: &str, s: Option<u8>) {
+        if std::env::var_os("RON_PROBE_4477").is_some()
+            && (1826..=1830).contains(&self.frame)
+            && self.units[u].owner == 1
+            && [33, 43, 44].contains(&self.units[u].index)
+        {
+            eprintln!(
+                "P4477 f{} {tag} 1/{} {:?} -> {:?} up {:?} down {:?}\n{}",
+                self.frame, self.units[u].index, self.units[u].group_ptr, s,
+                self.units[u].o_up.map(|i| self.units[i].index),
+                self.units[u].o_down.map(|i| self.units[i].index),
+                std::backtrace::Backtrace::force_capture()
+            );
+        }
+    }
     // ------------------------------------------------------------------
     // Building a group (§3, §4)
     // ------------------------------------------------------------------
@@ -195,6 +211,7 @@ impl Sim {
             // is already done (and on the equal arm, none is owed).
             |_, _, _| {},
             |(s, g), k, slot| {
+                s.p4477(g.list[k], "push", u8::try_from(slot).ok());
                 s.units[g.list[k]].group_ptr = u8::try_from(slot).ok();
             },
         );
@@ -812,6 +829,7 @@ impl Sim {
     ) {
         for &f in chain {
             if self.units[f].alive() {
+                self.p4477(f, "add_group", Some(s));
                 self.units[f].group_ptr = Some(s);
             }
         }
@@ -903,6 +921,7 @@ impl Sim {
             st.emptied(frame);
         }
         if self.units[o].group_ptr == pool {
+            self.p4477(o, "seat_remove", None);
             self.units[o].group_ptr = None;
         }
         self.seat_set_speed(seat);
@@ -1016,6 +1035,7 @@ impl Sim {
             |i| units[i].o_down.filter(|&d| units[d].alive()),
         );
         for f in walked {
+            self.p4477(f, "set_group", s);
             self.units[f].group_ptr = s;
         }
     }
