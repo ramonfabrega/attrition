@@ -527,7 +527,6 @@ impl Sim {
         // (`Leader::process_event_frame@006ec180`, `docs/LEADERS.md` §3.2).
         self.fold_rates(frame);
         self.frame += 1;
-        self.probe_4431();
         // `Game::do_frame`, after the increment: the stray-road sweep
         // (`crate::movement::mesh`, `docs/ROADS.md` §10).
         self.scan_and_kill_stray_roads();

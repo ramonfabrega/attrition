@@ -1048,13 +1048,6 @@ impl Sim {
     /// here only for the flag.
     pub(crate) fn toggle_leader_facing(&mut self, u: usize) {
         let Some(g) = self.group_of(u) else { return };
-        if std::env::var_os("RON_PROBE_4431").is_some() {
-            eprintln!(
-                "P4431W f{} toggle u {}/{} leader {} pool {} army {:?} heading {:#x}",
-                self.frame, self.units[u].owner, self.units[u].index,
-                self.is_group_leader(u, &g), self.pool_group_of(u), g.army, self.units[u].movement.heading.0
-            );
-        }
         if self.is_group_leader(u, &g)
             && let Some(st) = self.facing_record_mut(&g)
         {
@@ -1086,13 +1079,6 @@ impl Sim {
         // `5e3087`/`5e308d`: `unit_masks & 2` takes it, leader or not.
         self.units[u].movement.mirror = f;
         let Some(g) = self.group_of(u) else { return };
-        if std::env::var_os("RON_PROBE_4431").is_some() {
-            eprintln!(
-                "P4431W f{} handback u {}/{} leader {} pool {} f {f} order_facing {order_facing} turned {turned}",
-                self.frame, self.units[u].owner, self.units[u].index,
-                self.is_group_leader(u, &g), self.pool_group_of(u),
-            );
-        }
         if self.is_group_leader(u, &g)
             && let Some(st) = self.facing_record_mut(&g)
         {

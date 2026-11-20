@@ -38,8 +38,6 @@ pub struct TraceState {
     /// of the frame's own marks instead, which is where the original
     /// spends them. `crate::golden::Script::stage` is the only writer.
     pub staged_marks: Vec<(String, u32)>,
-    /// PROBE 4431.
-    pub probe_4431: Option<String>,
     /// Whether [`Sim::tick`] records [`Sim::phase_marks`]. Off by default:
     /// the harness turns it on, the soak pays nothing.
     pub trace_phases: bool,

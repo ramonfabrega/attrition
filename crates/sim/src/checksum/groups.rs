@@ -123,19 +123,6 @@ impl Sim {
         i32::from(who) * SLOTS_PER_PLAYER as i32 + i32::from(self.orders.last_group[who as usize])
     }
 
-    /// PROBE 4431: slot `RON_PROBE_4431`'s image on every change.
-    pub(crate) fn probe_4431(&mut self) {
-        let Some(id) = std::env::var("RON_PROBE_4431").ok().and_then(|v| v.parse::<usize>().ok()) else {
-            return;
-        };
-        let (f, m) = self.group_slot_image(id);
-        let line = format!("{:?} {:?}", f, m.iter().map(|x| x.0).collect::<Vec<_>>());
-        if self.trace.probe_4431.as_deref() != Some(line.as_str()) {
-            eprintln!("P4431 f{} slot {id} {line}", self.frame);
-            self.trace.probe_4431 = Some(line);
-        }
-    }
-
     /// Slot `id`'s fields and members, from the record this crate holds on
     /// it (`docs/CHECKSUM.md` §19 has the rule for each field).
     fn group_slot_image(&self, id: usize) -> SlotImage {

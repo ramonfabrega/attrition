@@ -279,7 +279,6 @@ impl Sim {
             },
             trace: crate::trace::TraceState {
                 staged_marks: Vec::new(),
-                probe_4431: None,
                 trace_phases: false,
                 phase_marks: Vec::new(),
                 trace_costs: false,
