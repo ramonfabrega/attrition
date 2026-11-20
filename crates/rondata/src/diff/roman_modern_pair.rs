@@ -182,7 +182,8 @@ fn roman_modern_pair_the_long_s_stride_is_widened() {
     // not print them), who=1's groups' `held` (25, groups 64..88) and their
     // pools (25). No position, order or path key parts; no draw parts to
     // the game's end.
-    pin_eq!(w.firsts.len(), 186, "the stride's baseline");
+    // Item 4435: 186 -> 138, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 138, "the stride's baseline");
 }
 
 /// run1444b: the pair's closing window, blocks 4979..5235 at the long's
@@ -250,7 +251,8 @@ fn roman_modern_pair_run1444b_s_closing_frame_is_widened_whole() {
     // before any leader record the pair prints (parked 3771a). No draw
     // parts to 5234.
     // Item 4159's twelfth residue: 127 -> 124, the CEO's tile step marks the economy dirty.
-    pin_eq!(w.firsts.len(), 124, "run1444b baseline");
+    // Item 4435: 124 -> 88, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 88, "run1444b baseline");
     pin_eq!(w.rounds_read, (63, 63), "the rounds read");
     // Every round, both directions: 63 against 63, none parting.
     pin_eq!(w.rounds.len(), 0, "the rounds that part");

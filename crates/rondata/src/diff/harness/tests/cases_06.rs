@@ -916,7 +916,8 @@ mod bodies {
         // Item 1291 took (148, 151, 153) → (148, 150, 152): a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (148, 150, 152).
         // Item 1330 took 29 (141/143/144 → 112/114/115): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under, firsts.len()), (29, 29, 29), "the floor");
+        // Item 4435: under, firsts.len()), (29, 29, 29) -> under, firsts.len()), (28, 28, 28), a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+        pin_eq!((first, under, firsts.len()), (28, 28, 28), "the floor");
     }
 
     pub(in super::super) fn run149_s_word_frame_is_widened_whole() {
@@ -1066,7 +1067,8 @@ mod bodies {
         // Item 1291 took (148, 148, 152) → (148, 148, 151): a landed passenger's `mirror` agrees — `set_new_location` keeps the unit's own angle, and `set_angle`'s flip reads it (`docs/TRANSPORT.md` §17).
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (148, 148, 151).
         // Item 1330 took 29 (142/142/144 → 113/113/115): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
-        pin_eq!((first, under, firsts.len()), (29, 29, 29), "the floor");
+        // Item 4435: under, firsts.len()), (29, 29, 29) -> under, firsts.len()), (28, 28, 28), a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+        pin_eq!((first, under, firsts.len()), (28, 28, 28), "the floor");
     }
 
     pub(in super::super) fn run143_s_word_frame_is_widened_whole() {
@@ -1313,7 +1315,8 @@ mod bodies {
         // Item 1326 re-pinned, the make list's `city` compared as the leader's own index: was (127, 147, 155).
         // Item 1330 took 26 (127/142/147 → 101/114/117): the births' `form`, `Unit::init`'s (`docs/GROUPS.md` §24.3).
         // Item 1407 took one (101/114/117 → 101/113/116): a boat's embark flag (`docs/AI.md` §105).
-        pin_eq!((first, under, firsts.len()), (28, 29, 29), "the floor");
+        // Item 4435: under, firsts.len()), (28, 29, 29) -> under, firsts.len()), (28, 28, 28), a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+        pin_eq!((first, under, firsts.len()), (28, 28, 28), "the floor");
     }
 
     pub(in super::super) fn run73_s_window_clocks_are_the_original_s() {

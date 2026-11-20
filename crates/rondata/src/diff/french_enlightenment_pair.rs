@@ -182,7 +182,8 @@ fn french_enlightenment_pair_the_long_s_stride_walks_back_from_4505() {
     // unit rows, both who=1's Fusiliers (TY 136): `1/59`'s `dest_angle`
     // on 3901 (its guard order re-aimed) and **`1/48`'s `order:target`
     // on 4401, ours `0/4` against theirs `0/12`**, an army's attack.
-    pin_eq!(w.firsts.len(), 171, "the stride's baseline");
+    // Item 4435: 171 -> 142, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 142, "the stride's baseline");
 }
 
 /// **The closing state** (item 3691): run1344's closing block 4941, the
@@ -330,7 +331,8 @@ fn french_enlightenment_pair_run1360_s_closing_window_is_widened_whole() {
     // Item 4177: 113 -> 119, +6 firsts, the combat rates' own: who=0 `damage_current_frame` 4691 ours 26 theirs 27; who=1 `hits_current_frame` 4691 ours 26 theirs 27; who=0 `average_damage_rate` 4851 ours 3351 theirs 3401; who=0 `damage_fifteen_seconds` 4851 ours 254 theirs 255 (docs/LEADERS.md §3.5).
     // Item 4159's residue: 120 -> 119, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     // Item 4159's third residue: 119 -> 111, the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long.
-    pin_eq!(w.firsts.len(), 111, "run1360 baseline");
+    // Item 4435: 111 -> 88, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 88, "run1360 baseline");
     // Item 4159's third residue: (465, 477) -> (465, 465), the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long.
     pin_eq!(w.rounds_read, (465, 465), "the rounds read");
     // 202 parting: 195 rows on the six Fusiliers' (TY 136) rounds (parked
@@ -420,7 +422,8 @@ fn french_enlightenment_pair_run1344b_s_word_frame_is_widened_whole() {
     // `hits_left` on 4552 agree (20, 0, 0, 4 and 157 both sides) — 3961a's run1344b row.
     // Item 4177: 118 -> 120, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 4642 ours 23 theirs 24; who=1 `hits_current_frame` 4642 ours 23 theirs 24 (docs/LEADERS.md §3.5).
     // Item 4159's third residue: 120 -> 116, the default Fusiliers' piece 86 takes piece 790's launch rows, its rounds no longer a frame long.
-    pin_eq!(w.firsts.len(), 116, "run1344b baseline");
+    // Item 4435: 116 -> 95, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 95, "run1344b baseline");
     // Every round, both directions: 421 round-blocks theirs, 446 ours, 255
     // parting, the first on the window's first block 4495. Item 3691: 428
     // ours, 139 parting — 129 rows on six Fusiliers' (TY 136) rounds;
