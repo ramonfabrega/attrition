@@ -3491,8 +3491,9 @@ fn a_city_at_zero_falls_to_three_hoplites_but_not_two() {
     );
     assert_eq!(sim.cities.cities[nc].capture_stamp, 1000);
     assert!(sim.city_unassimilated(nc));
-    // Territory changed hands.
-    assert_eq!(sim.world.owner_at(tile_pos(32, 32)), Owner::Player(0));
+    // Territory changed hands, but an unassimilated city's claim wins as
+    // −2 (item 4469, `compute_reg_territory@006b0bb0:467`, run1724's 3889).
+    assert_eq!(sim.world.owner_at(tile_pos(32, 32)), Owner::Ambiguous);
     // Player 1 lost their last city: defeated.
     assert!(sim.leaders.defeated[1]);
     assert_eq!(sim.cities.city_tally[0].captured, 1);
