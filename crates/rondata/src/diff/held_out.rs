@@ -742,14 +742,18 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4443 (the units line folds `cavarch_o` -2): units
         // 1,055 -> 3,662, first 1055 -> 1561. On 1055 (our walk) the
         // fire-on-the-move 1/21 (type 139) is the one unit idle at -2.
+        // Moved by item 4447 (an empty building at its ceiling ejects,
+        // run1722): builds 4,073 -> 4,075, whole -- the human's city
+        // `0/2000`'s `build_masks` on 4019 ours 4144, theirs 20528
+        // (`0x4000`, set by `take_damage`'s `eject_contents(1, -1, 0, 1)`
+        // with no garrison to read).
         moved: Some(Score {
             states: 4075,
             agreed: [
-                3662, 4073, 4075, 4075, 4075, 3863, 3958, 4075, 4066, 4075, 4075, 3984,
+                3662, 4075, 4075, 4075, 4075, 3863, 3958, 4075, 4066, 4075, 4075, 3984,
             ],
             first: &[
                 ("units", (1561, Some(3913862560), 4278570550)),
-                ("builds", (4019, Some(202745570), 1178445602)),
                 ("groups", (3598, Some(3778361523), 962934390)),
                 ("guys", (2014, Some(4240840485), 61413159)),
                 ("cities", (2253, Some(2126061725), 1479221375)),
