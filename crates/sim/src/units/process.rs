@@ -19,6 +19,13 @@ impl Sim {
         if !self.units[i].alive() {
             return;
         }
+        // **`Unit::process@00610bc0` picks its arm on `inside_up` at its
+        // head** (`:435`): a unit that boards or garrisons later in the
+        // frame has walked its figures on the map arm, so the guys line's
+        // inside-arm `last_z = z` (`:582`) is not this frame's (item 4467,
+        // [`Unit::processed_outside`]).
+        self.units[i].processed_outside =
+            self.units[i].inside.is_none() && self.units[i].inside_unit.is_none();
         // Gaia's animals: `Animal::process` is `Unit::process` without
         // a player behind it — no heal, no attrition, no reload; the
         // order step (`Animal::do_idle` when idle) and the body follow.

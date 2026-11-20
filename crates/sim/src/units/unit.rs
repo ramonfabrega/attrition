@@ -122,6 +122,14 @@ pub struct Unit {
     /// `on_map == false`, and it is the whole reason a passenger's orders
     /// stop being stepped (`docs/TRANSPORT.md` §6).
     pub inside_unit: Option<usize>,
+    /// **This frame's [`Sim::process_unit`] ran the map arm**: neither
+    /// [`Unit::inside`] nor [`Unit::inside_unit`] was set at its head,
+    /// where `Unit::process@00610bc0` reads `inside_up` (`:435`). The guys
+    /// line's inside arm (`last_z = z`, `:582`, `docs/CHECKSUM.md` §23.9)
+    /// is keyed on it, so a unit that boards after its own `process` keeps
+    /// the `last_z` its walk wrote (item 4467: run1725's `1/0` on 4026).
+    /// `false` until the first process, so a unit born inside takes the arm.
+    pub processed_outside: bool,
     /// **A unit's own training queue** (item 3981, `docs/AI.md` §413): the
     /// Aircraft Carrier's planes, `UnitData +0xa0 num_queued` (a short)
     /// and `+0x64 queue_time`, the clock (`crate::air::carrier_queue`).
@@ -1005,6 +1013,7 @@ impl Unit {
             },
             inside: None,
             inside_unit: None,
+            processed_outside: false,
             max_health: health,
             orders: std::collections::VecDeque::new(),
             path: orders::PathStack::new(),
