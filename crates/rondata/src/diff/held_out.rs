@@ -599,10 +599,14 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         },
         // Moved by origin/main at 0b34ad2ac: groups 2,400 -> 3,331, whole; guys
         // 2,895 -> 3,316, its first parting unmoved.
+        // Moved by item 4441 (run1721's ranges): world 134 -> 2,618 -- state
+        // 134's tile masks, `BAD_PATH` on (211, 108) ours and (208, 111)
+        // theirs around the computer's University 1/2006, now masked column
+        // by column as `BuildType::mask_me` walks it; world parts next on 2618.
         moved: Some(Score {
             states: 3331,
             agreed: [
-                1611, 2230, 3331, 3172, 2756, 3331, 3316, 3331, 3331, 3331, 3331, 134,
+                1611, 2230, 3331, 3172, 2756, 3331, 3316, 3331, 3331, 3331, 3331, 2618,
             ],
             first: &[
                 ("units", (1611, Some(1862838836), 884976179)),
@@ -610,7 +614,7 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
                 ("ammo", (2618, Some(1076236747), 891350609)),
                 ("deaths", (2756, Some(1136466598), 3621657254)),
                 ("guys", (2646, Some(1999790736), 3081855676)),
-                ("world", (134, Some(3348711314), 341395346)),
+                ("world", (2618, Some(4234786203), 1600898917)),
             ],
             over: None,
         }),

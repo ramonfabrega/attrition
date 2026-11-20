@@ -433,3 +433,76 @@ fn the_search_refuses_ocean_and_answers_nothing_across_it() {
         "an unbroken sea wall leaves no road"
     );
 }
+
+/// **`BuildType::mask_me@006312a0` walks the footprint column by column**
+/// (outer `x_size`, inner `y_size`), and the order shows in `BAD_PATH`:
+/// `set_blocked_at` clears a tile's own bit and sets it on the eight
+/// around, so of two blocked neighbours only the one blocked first keeps
+/// it. The University's template blocks its four corners and its centre
+/// two by two; column by column, the west corners keep the bit and the
+/// east ones lose it. Row by row the north-east corner kept it and the
+/// south-west lost it, which is what parted row 100's world line on state
+/// 134 around the computer's University `1/2006` (run1721, item 4441).
+#[test]
+fn a_footprint_is_masked_column_by_column() {
+    let (mut sim, _city, _, _) = town(Pos::new(40, 40));
+    let mut mask = vec![0u8; 16];
+    for (u, v) in [
+        (0, 0),
+        (3, 0),
+        (0, 3),
+        (3, 3),
+        (1, 1),
+        (2, 1),
+        (1, 2),
+        (2, 2),
+    ] {
+        mask[v * 4 + u] = 1;
+    }
+    let uni_ty = sim.add_build_type(BuildType {
+        ident: Ident::University,
+        flags: flags::parse("a"),
+        x_size: 4,
+        y_size: 4,
+        job_time: 1,
+        hits: 400,
+        block_mask: mask,
+        ..BuildType::default()
+    });
+    let b = library_at(&mut sim, uni_ty, Pos::new(48, 40));
+    assert!(sim.buildings[b].started, "the university is started");
+    let blocked: Vec<Pos> = (30..60)
+        .flat_map(|y| (30..60).map(move |x| Pos::new(x, y)))
+        .filter(|&t| {
+            let m = sim.world.tile_mask(t);
+            m & tile::BLOCKED != 0 && m & tile::OBJECT == tile::OBJECT_BUILDING
+        })
+        .filter(|t| t.x >= 45)
+        .collect();
+    assert_eq!(blocked.len(), 8, "four corners and the centre: {blocked:?}");
+    let (x0, y0) = (
+        blocked.iter().map(|t| t.x).min().unwrap(),
+        blocked.iter().map(|t| t.y).min().unwrap(),
+    );
+    let bad = |x: i32, y: i32| sim.world.tile_mask(Pos::new(x, y)) & tile::BAD_PATH != 0;
+    assert!(
+        bad(x0, y0),
+        "the north-west corner, blocked first, keeps BAD_PATH"
+    );
+    assert!(
+        bad(x0, y0 + 3),
+        "the south-west corner keeps it: column 1 comes after"
+    );
+    assert!(
+        !bad(x0 + 3, y0),
+        "the north-east corner, after (x0+2, y0+1), loses it"
+    );
+    assert!(
+        !bad(x0 + 3, y0 + 3),
+        "the south-east corner, blocked last, loses it"
+    );
+    assert!(
+        bad(x0 + 1, y0 + 1) && bad(x0 + 2, y0 + 2),
+        "the centre keeps it"
+    );
+}
