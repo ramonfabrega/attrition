@@ -1035,6 +1035,7 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
 ];
 
 /// **Parity held out, N of 8** (DECISIONS 144 §2): the games whole on every
-/// line and state, and the games taken.
+/// line and state, and the games taken. Item 4455: 3 -> 4, row 80 whole
+/// (`build_masks & 0x2000` on its site 1/2036).
 #[cfg(test)]
-pub(crate) const HELD_OUT_LINE: (usize, usize) = (3, 8);
+pub(crate) const HELD_OUT_LINE: (usize, usize) = (4, 8);
