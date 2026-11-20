@@ -359,7 +359,7 @@ mod tests {
                 for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
                     if name == "guys" && k == 52 {
                         eprintln!("PROBE  whole ours {:?}", crate::checksum::fields::range_fields(name, &a.field, &a.bytes));
-                        eprintln!("PROBE  whole theirs {:?}", crate::checksum::fields::range_fields(name, &b.field, &b.bytes));
+                        eprintln!("PROBE  whole theirs {:?}", crate::checksum::fields::range_fields(name, &a.field, &b.bytes));
                     }
                     if a.bytes != b.bytes {
                         let f = crate::checksum::fields::differing_fields(name, &a.field, &a.bytes, &b.bytes);
