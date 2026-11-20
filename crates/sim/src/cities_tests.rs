@@ -3567,7 +3567,7 @@ fn an_unassimilated_city_does_not_heal_or_make_anything_and_assimilates_at_two_t
 /// byte's `0x10` (`Wall::swap_team@00640c00`); the new city record takes
 /// the old one's `traded_with` (`City::capture@00736c40:77`–`84`); and the
 /// loser's other city keeps its slot, 1, since a closed city's slot stays
-/// where it is (`Cities::close_city@00733310`).
+/// where it is (`City::close@00737550`, from `capture_city:1157`).
 #[test]
 fn a_capture_carries_max_age_visible_and_traded_with_and_leaves_the_slots() {
     let mut sim = world_sim();

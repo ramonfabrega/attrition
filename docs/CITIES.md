@@ -1862,7 +1862,7 @@ read as the larger of it and the owner's ages, which is what `init` and
 come across. Three neighbours moved with it, each from its own function:
 `City::capture` copies the eight `traded_with` words (`:77`–`:84`); a city's
 `city` is its slot in the owner's list with dead slots counted
-(`Cities::close_city@00733310` leaves the slot); and `City::close@00737550:202`
+(`City::close@00737550`, which `capture_city:1157` calls directly, leaves the slot); and `City::close@00737550:202`
 `repath`s every caravan linked to the closed city, whose `TRADE_ROUTE` then
 dies in `do_trade` and ends the route in the kill
 (`kill_current_order@005e2cb0:119`–`120`). **Diff-backed** by run1724: builds

@@ -261,7 +261,8 @@ impl Sim {
         let (city, city_down) = match bd.city {
             Some(c) => {
                 // The slot in the owner's list, dead slots counted:
-                // `Cities::close_city@00733310` leaves a closed city's slot
+                // `City::close@00737550`, which `capture_city:1157` calls
+                // directly, leaves a closed city's slot
                 // where it is, so a capital taken from slot 0 leaves the
                 // owner's next city at 1 (item 4463, run1724's 3888).
                 let index = self.city_index_in_owner(c) as i64;

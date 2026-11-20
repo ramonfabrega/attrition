@@ -1034,7 +1034,7 @@ pub(in crate::diff) mod tests {
     /// building's), `flags` 39 -> 55 and `visible` 0 -> 8 on the copy
     /// (`Wall::swap_team@00640c00`), the farms' `+0x78` 34..38 -> 9, 10,
     /// 11, 18, 21 (`swap_team:75`–`81`), and the loser's next city's `city`
-    /// 0 -> 1 (`Cities::close_city@00733310` leaves the slot); cities'
+    /// 0 -> 1 (`City::close@00737550`, from `capture_city:1157`, leaves the slot); cities'
     /// `46 9 traded_with[4]` 0 -> 2 (`City::capture@00736c40:77`–`84`) and
     /// city 8's caravan link and `trade_val` 96 -> 0; units' and guys' 3888
     /// were the caravan `12`, its walk popped by `City::close@00737550:202`'s
