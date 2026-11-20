@@ -395,6 +395,25 @@ mod tests {
         );
     }
 
+    /// **Row 100's missile walks its strike** (item 4459, `docs/RECGAME.md`
+    /// §10.3): on tick 2586 the computer lays an `AIR_ATTACK_GROUND` on the
+    /// missile `1/84` (TI 316) in its silo, and
+    /// `AirAttackGroundOrder::walk_data@004875a0` hands over five ranges
+    /// after the node byte. Every units range on 2587: red without the
+    /// walker at range 2809, record 84, where ours walked `guys.length`
+    /// (`01 00 00 00`) and theirs the flags byte (`04`).
+    #[test]
+    fn row_100_s_missile_walks_its_air_attack_ground_order_on_run1721_s_ranges() {
+        let Some(theirs) = units_ranges_agree(5, "run1721", 2587, 2812) else {
+            return;
+        };
+        assert_eq!(
+            theirs,
+            [-1i32, -1, 0x640, 0, 0, 0].map(i32::to_le_bytes).concat(),
+            "theirs' AirOrder row"
+        );
+    }
+
     /// Item 4459's probe, reverted whole.
     #[test]
     fn probe_4459() {
@@ -427,7 +446,15 @@ mod tests {
             for u in built.sim.units.iter().filter(|u| u.index == o) {
                 eprintln!(
                     "P4459 {state} ours {:?}/{} uid {} TI {} hp {} guys {} alloc {} squad {} on_map {}",
-                    u.owner, u.index, u.uid, u.type_index, u.health, u.guys.len(), u.guys_alloc, u.squad_size, u.on_map
+                    u.owner,
+                    u.index,
+                    u.uid,
+                    u.type_index,
+                    u.health,
+                    u.guys.len(),
+                    u.guys_alloc,
+                    u.squad_size,
+                    u.on_map
                 );
             }
             let Some(set) = record.first_of(state - 1).cloned() else {
@@ -440,7 +467,11 @@ mod tests {
                 6 => built.sim.checksum_guys(),
                 _ => panic!(),
             };
-            eprintln!("P4459 {state} ranges ours {} theirs {}", ours.ranges.len(), theirs.len());
+            eprintln!(
+                "P4459 {state} ranges ours {} theirs {}",
+                ours.ranges.len(),
+                theirs.len()
+            );
             let mut shown = 0;
             for (i, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
                 if a.record == o || (a.bytes != b.bytes && shown < 6) {
@@ -1001,13 +1032,18 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4449 (`set_new_location(…, 1)` copies each figure's
         // point into `last`): guys 3,316 -> 3,308, a named fall past its
         // first parting, which stays on 2646.
+        // Moved by item 4459 (the units line walks `AirAttackGroundOrder`'s
+        // five ranges): units 2,697 -> 2,728, first 2587 -> 2646. On 2587,
+        // run1721's units range 2809, record 84 (the missile 1/84, TI 316,
+        // laid in its silo): ours walked `guys.length` 01 00 00 00 after the
+        // order's node byte, theirs the order's flags byte 04.
         moved: Some(Score {
             states: 3331,
             agreed: [
-                2697, 2230, 3331, 3172, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 2618,
+                2728, 2230, 3331, 3172, 2756, 3331, 3308, 3331, 3331, 3331, 3331, 2618,
             ],
             first: &[
-                ("units", (2587, Some(4287155215), 4036875673)),
+                ("units", (2646, Some(3584274957), 3109728825)),
                 ("builds", (1976, Some(3652536594), 4264774034)),
                 ("ammo", (2618, Some(1076236747), 891350609)),
                 ("deaths", (2756, Some(1136466598), 3621657254)),
