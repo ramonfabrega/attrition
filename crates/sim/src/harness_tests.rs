@@ -4949,3 +4949,53 @@ fn the_marines_boat_takes_its_hits_and_its_speed() {
     assert_eq!(sim.own_speed(u, hop), speed + 3 * 2);
     assert_eq!(sim.type_speed(0, hop), speed, "the type's own is unmoved");
 }
+
+/// **A reused number walks its dead occupant's figure allocation** (item
+/// 4451, `docs/CHECKSUM.md` §23.10): `Unit::init@00612100:472`–`484` grows
+/// `UnitData::guys.size` to the new crew only when the crew is larger, and
+/// nothing shrinks it. run1327's Citizen `1/46` walks `guys.size` 3 on
+/// 10930, the number a three-figure Heavy Elephant held until 5101; a
+/// fresh number walks its own count, and a larger crew raises the size.
+#[test]
+fn a_reused_number_walks_its_dead_occupants_figure_allocation() {
+    let mut sim = skirmish(4);
+    let citizen = sim.add_unit_type(citizen_type());
+    let mut elephant = citizen_type();
+    elephant.combat.crew_size = 2;
+    let elephant = sim.add_unit_type(elephant);
+    let sizes = |sim: &Sim, field: &str| -> Vec<(i16, i32)> {
+        sim.checksum_guys()
+            .ranges
+            .iter()
+            .filter(|r| r.field == field)
+            .map(|r| {
+                (
+                    r.record,
+                    i32::from_le_bytes(r.bytes[0..4].try_into().unwrap()),
+                )
+            })
+            .collect()
+    };
+    let a = sim.init_unit(0, elephant, centre_of(Cell::new(5, 5)));
+    let o = sim.units[a].index;
+    assert_eq!(sim.units[a].guys.len(), 3, "three figures");
+    assert_eq!(sizes(&sim, "guys.size"), [(o, 3)]);
+    sim.units[a].health = 0;
+    let b = sim.init_unit(0, citizen, centre_of(Cell::new(9, 9)));
+    assert_eq!(sim.units[b].index, o, "the Citizen takes the dead number");
+    assert_eq!(sim.units[b].guys.len(), 1, "one figure");
+    assert_eq!(sizes(&sim, "guys.length"), [(o, 1)]);
+    assert_eq!(
+        sizes(&sim, "guys.size"),
+        [(o, 3)],
+        "the elephant's allocation stands"
+    );
+    assert_eq!(sizes(&sim, "guys.size..increment"), [(o, 3)]);
+    let c = sim.init_unit(0, citizen, centre_of(Cell::new(12, 12)));
+    assert_ne!(sim.units[c].index, o);
+    assert_eq!(
+        sizes(&sim, "guys.size"),
+        [(o, 3), (sim.units[c].index, 1)],
+        "a fresh number walks its own count"
+    );
+}

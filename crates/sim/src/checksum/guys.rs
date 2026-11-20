@@ -131,9 +131,10 @@ impl Sim {
         if n == 0 {
             return;
         }
-        // `size`, the allocation: the figure count on every unit of both
-        // frames read (`docs/CHECKSUM.md` §16).
-        let size = n;
+        // `size`, the allocation (`docs/CHECKSUM.md` §16): the figure
+        // count, or more on a reused number whose dead occupant had a
+        // larger crew ([`crate::units::unit::Unit::guys_alloc`], item 4451).
+        let size = unit.guys_alloc.max(n);
         put("guys.size", size.to_le_bytes().to_vec());
         put("guys.increment", GUYS_INCREMENT.to_le_bytes().to_vec());
         put("guys.flags", vec![0]);
