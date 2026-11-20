@@ -250,11 +250,15 @@ impl Sim {
         // figure's `z` into `last_z` (`:582`, `0x0061158d`), so `last`
         // stays where the last walk left it and `last_z` is the figure's
         // own `z`.
-        let last_z = if unit.inside.is_some() || unit.inside_unit.is_some() {
-            z
-        } else {
-            self.guy_z(u, g, last, true)
-        };
+        // **The arm is chosen at the unit's own `process`**, not here (item
+        // 4467): a unit that went inside after it walked this frame keeps
+        // the ground under `last` (run1725's `1/0` boarding on 4026).
+        let last_z =
+            if (unit.inside.is_some() || unit.inside_unit.is_some()) && !unit.processed_outside {
+                z
+            } else {
+                self.guy_z(u, g, last, true)
+            };
         let aim = guy.aim.map(|o| match o {
             crate::combat::Obj::Unit(v) => (self.units[v].index, self.units[v].owner as i8),
             crate::combat::Obj::Building(b) => {
