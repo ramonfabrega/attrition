@@ -564,7 +564,8 @@ mutation:
 run1710 holds every first parting to 3,100 (`SAMPLE_RANGES_1710`):
 groups 927 → 2888 (4419, 4422; GROUPS §24.2); world 1716 → 2921, no
 exit lights a disc (4424; VISION §6); units 2112 → 2700, leaders → 2989,
-an ally's ground bleeds nothing (4429; ATTRITION, check 6).
+allies bleed nothing (4429; ATTRITION); units → 2888, a refused
+slot moves (4432; GROUPS §6.6).
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 

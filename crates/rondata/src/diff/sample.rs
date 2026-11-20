@@ -536,9 +536,11 @@ pub(in crate::diff) mod tests {
     /// 2888. Item 4424 (a trained captain's exit lights no disc; the
     /// gather re-seat lights its own): world 1716 → 2921. Item 4429
     /// (`process_attrition`'s check 6, an ally's ground both ways): units
-    /// 2112 → 2700 and leaders 2112 → 2989.
+    /// 2112 → 2700 and leaders 2112 → 2989. Item 4432 (`action_move_near`'s
+    /// same-region arm: a refused slot re-placed round its captain's, the
+    /// person's Ashigaru Spearmen `3/27` on 2699): units 2700 → 2888.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 2700),
+        ("units", 2888),
         ("builds", 3029),
         ("walls", 21044),
         ("ammo", 3022),
@@ -556,7 +558,9 @@ pub(in crate::diff) mod tests {
     /// one)`. Minted at 0: none on 3,594 of 21,044, the first shot on 2929,
     /// theirs' frame. Item 4429 (an ally's ground bleeds nothing): 3594 →
     /// 4361 empty frames, past every parting; the first shot stays on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4361, Some(2929));
+    /// Item 4432 (a refused group slot re-placed): 4361 → 5010, the first
+    /// shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (5010, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
@@ -724,6 +728,7 @@ pub(in crate::diff) mod tests {
                 }
             }
             stream.apply(f as i32, &mut built);
+            crate::diff::harness::debug_watch(&built, f);
             built.tick();
         }
         let got: Vec<SampleRange> = STATE_LINES
@@ -880,14 +885,18 @@ pub(in crate::diff) mod tests {
     /// (`SAMPLE_LINES`): units, builds, ammo, groups, guys, leaders, world.
     const SAMPLE_RANGES_1710: &[(&str, i64, usize, usize, usize, &str)] = &[
         // Item 4429: 2112 -> 2700 (computer 2's Citizen `2/1` on its ally
-        // 0's ground bled the peace period on 2111 in ours alone).
+        // 0's ground bled the peace period on 2111 in ours alone). Item
+        // 4432: 2700 -> 2888 (the person's Ashigaru Spearmen `3/27`, a
+        // squad figure whose group slot (39070, 30774) is refused, is
+        // re-placed round its captain's: order `y`/`dest_y` 30792 -> 30648,
+        // `off_y` 72 -> 696, its seventeen path points (+22, +126) -> 0).
         (
             "units",
-            2700,
-            2875,
-            2875,
-            19,
-            "2087 27 collide_frame..play: orders_y 30792|30648",
+            2888,
+            3137,
+            3107,
+            745,
+            "2361 2 order.type: +0x0 of 4|1: 07000000|04",
         ),
         (
             "builds",

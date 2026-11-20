@@ -374,3 +374,109 @@ fn the_tail_invert_turns_over_a_stack_the_move_never_wrote_to() {
         "the skipped member's own stack is inverted with everyone else's"
     );
 }
+
+/// A three-figure squad of player `who` — a captain and two figures down
+/// its chain (`o_up`/`o_down`, `is_captain` clear on the two) — pushed as
+/// one group, with `guy_spacing` 0x30 on the type.
+fn squad(s: &mut Sim, who: Player) -> (Group, [usize; 3]) {
+    let t = fighter(s);
+    s.tables.unit_types[t].combat.guy_spacing = 0x30;
+    let a = spawn(s, who, t, Pos::new(0x480, 0x480));
+    let b = spawn(s, who, t, Pos::new(0x480 + 0x60, 0x480));
+    let c = spawn(s, who, t, Pos::new(0x480 - 0x60, 0x480));
+    let cap = i32::from(s.units[a].index);
+    for (f, up) in [(b, a), (c, b)] {
+        s.units[f].captain = false;
+        s.units[f].combat.captain = cap;
+        s.units[f].o_up = Some(up);
+        s.units[up].o_down = Some(f);
+    }
+    let mut g = stack(who, &[a, b, c]);
+    assert!(s.push_group(&mut g, true));
+    (g, [a, b, c])
+}
+
+/// Each member's raw slot after the move: its stack's goal, which §6.7
+/// translates from the slot table (`path[0]`).
+fn slots_after(s: &mut Sim, g: &Group, m: [usize; 3]) -> [Pos; 3] {
+    s.group_action_move_to(
+        g,
+        Pos::new(0x480 + 8 * 0x300, 0x480 + 2 * 0x300),
+        QueuePos::New,
+        true,
+        Angle(0),
+        MoveKind::MoveTo,
+        false,
+    );
+    m.map(|u| s.units[u].path[0].to)
+}
+
+/// **A player's figure whose slot is refused is placed round its captain's**
+/// (`Group::action_move_near@00704990`'s same-region arm, `705b0e`..`705b9b`
+/// and `LAB_00705ba0`, `docs/GROUPS.md` §6.6 step 4; item 4432). The
+/// middle figure's slot tile is marked built (`invalid_loc` 4) and slot
+/// 0's is not, both in one region: the figure's slot moves onto a valid
+/// tile within `guy_spacing`..`4 × guy_spacing` (one quarter-tile snap
+/// beside) of the captain's slot, and it is the order's `dest` and the
+/// stack's goal both. The third figure keeps its own: a figure's re-place
+/// carries nothing. A computer's squad (`unit_masks & 0x40000`) keeps the
+/// refused slot. The sample's Ashigaru Spearmen `3/27` on 2699.
+///
+/// Made to fail by dropping the arm (`same_region_spot` answering `None`):
+/// the figure aims at the built tile.
+#[test]
+fn a_player_s_figure_whose_slot_is_refused_is_placed_round_its_captain_s() {
+    for (who, moves) in [(0, true), (1, false)] {
+        let mut s = flat(24);
+        let (g, m) = squad(&mut s, who);
+        let base = slots_after(&mut s.clone(), &g, m);
+        let refused = base[1].tile();
+        s.world
+            .set_tile_mask(refused, s.world.tile_mask(refused) | 0x4000);
+        assert_eq!(
+            s.world.tregion_alt(refused),
+            s.world.tregion_alt(base[0].tile()),
+            "one region: the different-region arm stays out"
+        );
+        assert_ne!(
+            s.invalid_loc(m[1], refused, false, false, false, false, false),
+            0,
+            "the slot is refused"
+        );
+        let got = slots_after(&mut s, &g, m);
+        assert_eq!(got[0], base[0], "the captain's slot is its own");
+        assert_eq!(got[2], base[2], "a figure's re-place carries nothing");
+        let dest = match s.current_order(m[1]).expect("a move").body {
+            crate::orders::Body::Move(mo) => mo.dest,
+            _ => unreachable!(),
+        };
+        if !moves {
+            assert_eq!(got[1], base[1], "a computer's figure keeps its slot");
+            continue;
+        }
+        assert_ne!(got[1].tile(), refused, "re-placed off the built tile");
+        assert_eq!(
+            s.invalid_loc(m[1], got[1].tile(), false, false, false, false, false),
+            0,
+            "onto a valid one"
+        );
+        let d = vector_dist(got[1].x - base[0].x, got[1].y - base[0].y);
+        assert!(
+            (0x30 - 0x60..=4 * 0x30 + 0x60).contains(&d),
+            "round the captain's slot {:?}: {:?} at {d}",
+            base[0],
+            got[1]
+        );
+        assert_eq!(
+            (
+                dest.x.div_euclid(0x30) * 0x30 + 0x18,
+                dest.y.div_euclid(0x30) * 0x30 + 0x18
+            ),
+            (
+                got[1].x.div_euclid(0x30) * 0x30 + 0x18,
+                got[1].y.div_euclid(0x30) * 0x30 + 0x18
+            ),
+            "the order aims at the new slot"
+        );
+    }
+}
