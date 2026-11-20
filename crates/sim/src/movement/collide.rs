@@ -1153,6 +1153,15 @@ impl DetectCollisionView for SimDetect<'_> {
         let DetectNode::Live(i) = n else {
             return false;
         };
+        // **`update_action` on the blocker, for its side effects**
+        // (`detect_unit_collision@00617060:237`, item 4448): the `0xc` arm
+        // reads the guard's target through `update_action(blocker)`, so a
+        // guard someone bumps rewrites its `orders_x/y` and `dest_angle`
+        // (`+0x58`) from where it stands and which way it faces *now* --
+        // after its own step's turn. Run1720's Fusiliers `1/73` turns at
+        // its guard spot on tick 2366 and theirs prints `dest_angle`
+        // `0xb5b5..` on 2367, ours the step's `0xa715..`.
+        self.sim.update_action(i);
         self.sim.action_of(i).is_some_and(
             |a| matches!(self.sim.units[i].orders[a].body, Body::Guard(g) if g.target == self.u),
         )
