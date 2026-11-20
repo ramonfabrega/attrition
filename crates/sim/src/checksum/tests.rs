@@ -680,7 +680,7 @@ fn a_garrison_walks_its_target_and_its_search() {
 }
 
 /// **A missile's strike walks `AirAttackGroundOrder::walk_data@004875a0`'s
-/// five ranges** (item 4459, `docs/RECGAME.md` §10.3): the flags byte, the
+/// five ranges** (item 4459, `docs/CHECKSUM.md` §18): the flags byte, the
 /// `AttackGroundOrder` point with `accuracy` and `attack_unit`
 /// (`+0x4..+0x14`), the flags byte again, the `AirOrder` row (`oxx`..
 /// `returning`) and the class's own `total_time`, `sx`, `sy`. run1721 on

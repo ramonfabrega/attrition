@@ -1138,27 +1138,3 @@ range 1170. Row 120 is now **whole**; units also moves on rows 40, 60, 80,
 
 *Not established*: rows 80 and 100 next part units on `des_angle` (`+0x58`):
 run1720 on 2367, range 2407; run1721 on 1793, range 1581. Unread.
-
-**A missile's strike walks five ranges** (item 4459, diff-backed on row 100,
-run1721). On 2587 row 100's units line parted on range 2809, record 84, as
-`guys.length` 1 against 4. That was not a figure count: the two walks fell out
-of step there. On tick 2586 the computer lays an `AIR_ATTACK_GROUND` (0x18)
-on its missile `1/84` (TI 316, in its silo, off the map), and both sides hand
-over the same order type and node byte. Theirs then walks
-`AirAttackGroundOrder::walk_data@004875a0`'s five ranges: the flags byte
-(`04`), `AttackGroundOrder`'s `att_x`..`attack_unit` (3168, 30816, 0, 0), the
-flags byte again, the `AirOrder` row `oxx`..`returning` (−1, −1, 1600, 0, 0,
-0) and the class's own `total_time`, `sx`, `sy` (0, 0, 0). The listing names
-the call sites `4875c3`, `4875d1`, `4875e9`, `4875f7` and `487605`. Ours walked
-no ranges past the node byte, so its next range, `guys.length`, sat where
-theirs had the flags byte. With the walker built, all units ranges agree on
-2587 to 2591. Row 100's units goes 2,697 → 2,728 of 3,331 and its first
-parting 2587 → 2646, the state guys parts on (`SCORES[5].moved`). No other
-row moved. `row_100_s_missile_walks_its_air_attack_ground_order_on_run1721_s_ranges`
-holds every units range on 2587.
-
-*Not established*: the class's `total_time`, `sx`, `sy` and `AirOrder::old`
-are written only by `clear` (0) and `operator=` in the export, found by name.
-Their offsets have not been grepped, and they walk 0 here.
-`StrafeOrder` and `AirPatrolOrder` still hand over their type and node byte
-alone. No score parts on them yet.

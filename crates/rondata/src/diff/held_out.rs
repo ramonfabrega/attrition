@@ -395,8 +395,8 @@ mod tests {
         );
     }
 
-    /// **Row 100's missile walks its strike** (item 4459, `docs/RECGAME.md`
-    /// §10.3): on tick 2586 the computer lays an `AIR_ATTACK_GROUND` on the
+    /// **Row 100's missile walks its strike** (item 4459, `docs/CHECKSUM.md`
+    /// §18): on tick 2586 the computer lays an `AIR_ATTACK_GROUND` on the
     /// missile `1/84` (TI 316) in its silo, and
     /// `AirAttackGroundOrder::walk_data@004875a0` hands over five ranges
     /// after the node byte. Every units range on 2587: red without the
