@@ -559,9 +559,12 @@ mod tests {
                 .iter()
                 .position(|r| r.record == 21 && r.field == "collide_frame..play")
                 .expect("record 21");
-            let f =
-                crate::checksum::fields::range_fields("units", &theirs[k].field, &theirs[k].bytes)
-                    .expect("record 21's fields");
+            let f = crate::checksum::fields::range_fields(
+                "units",
+                &ours.ranges[k].field,
+                &theirs[k].bytes,
+            )
+            .expect("record 21's fields");
             let get = |n: &str| f.iter().find(|(m, _)| m == n).map(|x| x.1);
             assert_eq!(get("cavarch_o"), Some(held), "theirs' cavarch_o on {state}");
             assert_eq!(
