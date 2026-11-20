@@ -129,4 +129,16 @@ run1559b's still at the tip beside its photograph, at half size and at
 
 ## The gate
 
-Whole, by `tools/gate_run.sh`. Quoted by the commit after the gated one.
+Whole, by `tools/gate_run.sh`, once.
+
+- **`gate-pass-1120.log`: `gate exit 0`** on `3d376d942`, 9 of 9 steps:
+  offline 1.0, guard 0.4, merge pins 1.1, release 20.4, clock 0.1.
+  `Clock: green beside load`. Admission 10.8 s over 1,463 leases; load
+  2.5 at its start and 9.0 at its end. `Fixture audit: 198699 requests,
+  0 missing fixtures`, the drain's count. `Rows: one driver row at most:
+  steer 13a6fe47 (working)`; `Driver: 0 landings since the last pass
+  (backstop 20) · context 291 k`. `Builders: 0 reaped`; 127 GB free
+  after it. The paperwork guards and the offline suite had run on the
+  tree before the commit: the guards were red twice first, on the
+  handoff 145 bytes over its ceiling and on entry 146's missing index
+  row.
