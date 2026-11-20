@@ -149,13 +149,13 @@ mod tests {
     /// so the scores below skipped with `0 missing fixtures` on the gate's
     /// log. Seen with `HOME` pointed at an empty directory: sixteen requests
     /// missing, where the audit had counted none.
-    fn paths(k: usize) -> (Option<std::path::PathBuf>, Option<std::path::PathBuf>) {
+    fn paths(b: &Battery, k: usize) -> (Option<std::path::PathBuf>, Option<std::path::PathBuf>) {
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
         let rcx = crate::testenv::experiment(
             &home.join("ron-golden/recordings"),
-            &format!("item4413-row{:03}-6000.rcx", HELD_OUT[k].row),
+            &format!("item{}-row{:03}-6000.rcx", b.item, b.table[k].row),
         );
-        let run = home.join(format!("ron-golden/run{}", 1700 + k));
+        let run = home.join(format!("ron-golden/run{}", b.run + k));
         let map = std::fs::read_dir(&run)
             .ok()
             .and_then(|d| {
@@ -176,26 +176,42 @@ mod tests {
     /// take with no pin fails and prints the score to pin.
     #[test]
     fn the_held_out_games_score_as_pinned() {
+        games_score_as_pinned(&FIRST);
+    }
+
+    /// **The second battery's scores** (item 4462, DECISIONS 145 §2):
+    /// `HELD_OUT_SECOND[k]` played as `run1730 + k`, held as the first's
+    /// are; the found column is the estimate.
+    #[test]
+    fn the_second_held_out_games_score_as_pinned() {
+        games_score_as_pinned(&SECOND);
+    }
+
+    fn games_score_as_pinned(b: &Battery) {
         let Some(inst) = crate::testenv::install() else {
             return;
         };
         let mut wrong: Vec<String> = Vec::new();
-        for (k, held) in HELD_OUT.iter().enumerate() {
-            let (Some(rcx), Some(take)) = paths(k) else {
+        for (k, held) in b.table.iter().enumerate() {
+            let (Some(rcx), Some(take)) = paths(b, k) else {
                 eprintln!(
                     "skipping: row {} has no file or no run{} take",
                     held.row,
-                    1700 + k
+                    b.run + k
                 );
                 continue;
             };
-            let pin = &SCORES[k];
+            let pin = &b.scores[k];
             let until = pin.as_ref().and_then(|p| p.last);
             let score =
                 match crate::checksum::playback::compare_until(inst.root(), &rcx, &take, until) {
                     Ok(s) => s,
                     Err(e) => {
-                        wrong.push(format!("row {} run{}: not scored: {e}", held.row, 1700 + k));
+                        wrong.push(format!(
+                            "row {} run{}: not scored: {e}",
+                            held.row,
+                            b.run + k
+                        ));
                         continue;
                     }
                 };
@@ -207,7 +223,7 @@ mod tests {
             eprintln!(
                 "HELD OUT row {} run{}: states {} agreed {:?} first {first:?} over {:?}",
                 held.row,
-                1700 + k,
+                b.run + k,
                 score.states,
                 score.agreed,
                 score.over
@@ -219,9 +235,10 @@ mod tests {
             }
             let Some(pin) = pin else {
                 wrong.push(format!(
-                    "row {}: run{} is taken and SCORES[{k}] is unpinned",
+                    "row {}: run{} is taken and {}[{k}] is unpinned",
                     held.row,
-                    1700 + k
+                    b.run + k,
+                    b.scores_name
                 ));
                 continue;
             };
@@ -231,7 +248,7 @@ mod tests {
                 wrong.push(format!(
                     "row {} run{}: states, agreeing, first partings, ours' end: got {got:?}",
                     held.row,
-                    1700 + k
+                    b.run + k
                 ));
             }
         }
@@ -259,7 +276,7 @@ mod tests {
             return;
         };
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(7) else {
+        let (Some(rcx), _) = paths(&FIRST, 7) else {
             eprintln!("skipping: row 140's recording is missing");
             return;
         };
@@ -305,7 +322,7 @@ mod tests {
             return;
         };
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(6) else {
+        let (Some(rcx), _) = paths(&FIRST, 6) else {
             eprintln!("skipping: row 120's recording is missing");
             return;
         };
@@ -364,7 +381,7 @@ mod tests {
             return;
         };
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(6) else {
+        let (Some(rcx), _) = paths(&FIRST, 6) else {
             eprintln!("skipping: row 120's recording is missing");
             return;
         };
@@ -424,7 +441,7 @@ mod tests {
             return;
         };
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(6) else {
+        let (Some(rcx), _) = paths(&FIRST, 6) else {
             eprintln!("skipping: row 120's recording is missing");
             return;
         };
@@ -473,7 +490,7 @@ mod tests {
     fn units_ranges_agree(k: usize, run: &str, state: i64, range: usize) -> Option<Vec<u8>> {
         let inst = crate::testenv::install()?;
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(k) else {
+        let (Some(rcx), _) = paths(&FIRST, k) else {
             eprintln!("skipping: game {k}'s recording is missing");
             return None;
         };
@@ -548,8 +565,19 @@ mod tests {
     /// taken.
     #[test]
     fn the_held_out_line_reads_as_pinned() {
-        let taken = SCORES.iter().flatten().count();
-        let whole = SCORES
+        line_reads_as_pinned(&FIRST);
+    }
+
+    /// The second battery's line, from its table alone (item 4462).
+    #[test]
+    fn the_second_held_out_line_reads_as_pinned() {
+        line_reads_as_pinned(&SECOND);
+    }
+
+    fn line_reads_as_pinned(b: &Battery) {
+        let taken = b.scores.iter().flatten().count();
+        let whole = b
+            .scores
             .iter()
             .flatten()
             .filter(|p| {
@@ -557,11 +585,7 @@ mod tests {
                 s.first.is_empty() && s.agreed == [s.states; 12]
             })
             .count();
-        assert_eq!(
-            (whole, taken),
-            HELD_OUT_LINE,
-            "parity held out: N of 8, T taken"
-        );
+        assert_eq!((whole, taken), b.line, "{}: N of 8, T taken", b.label);
     }
 
     /// The queue's line for [`SCORES`]: the games whole of the eight, the
@@ -569,7 +593,7 @@ mod tests {
     /// ([`FirstScore::moved`], else as found), and each game's lowest first
     /// parting in row order, as found and now (`whole` for a game with
     /// none, `-` for one not taken).
-    fn queue_line() -> String {
+    fn queue_line(b: &Battery) -> String {
         let lines = |s: &Score| s.agreed.iter().filter(|&&a| a == s.states).count();
         let lowest = |s: &Score| {
             s.first
@@ -579,7 +603,7 @@ mod tests {
                 .map_or("whole".to_string(), |v| v.to_string())
         };
         let col = |now: bool| -> (usize, String) {
-            let scores = SCORES.iter().map(|p| {
+            let scores = b.scores.iter().map(|p| {
                 p.as_ref().map(|p| {
                     if now {
                         p.moved.unwrap_or(p.found)
@@ -597,12 +621,13 @@ mod tests {
         let (found, found_firsts) = col(false);
         let (now, now_firsts) = col(true);
         format!(
-            "Parity held out: {} of {} whole \u{b7} {} taken \u{b7} lines {found} of {} as found, \
+            "{}: {} of {} whole \u{b7} {} taken \u{b7} lines {found} of {} as found, \
              {now} now \u{b7} first partings {found_firsts} as found, {now_firsts} now",
-            HELD_OUT_LINE.0,
-            SCORES.len(),
-            HELD_OUT_LINE.1,
-            12 * HELD_OUT_LINE.1,
+            b.label,
+            b.line.0,
+            b.scores.len(),
+            b.line.1,
+            12 * b.line.1,
         )
     }
 
@@ -615,15 +640,29 @@ mod tests {
     /// booking. Made to fail first on a handoff with no such line.
     #[test]
     fn the_handoff_s_parity_held_out_line_is_the_pinned_scores() {
+        handoff_line_is_the_pinned_scores(&FIRST);
+    }
+
+    /// **The handoff's second parity-held-out line** (item 4462): the
+    /// second battery's [`queue_line`], `Parity held out, second:`, in the
+    /// first's grammar. Its found half is the estimate (DECISIONS 145 §2).
+    #[test]
+    fn the_handoff_s_parity_held_out_second_line_is_the_pinned_scores() {
+        handoff_line_is_the_pinned_scores(&SECOND);
+    }
+
+    fn handoff_line_is_the_pinned_scores(b: &Battery) {
         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
         let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
-        let want = queue_line();
-        let line = q.lines().find(|l| l.starts_with("Parity held out:"));
+        let want = queue_line(b);
+        let head = format!("{}:", b.label);
+        let line = q.lines().find(|l| l.starts_with(&head));
         assert_eq!(
             line.map(str::trim_end),
             Some(want.as_str()),
-            "docs/QUEUE.md's handoff carries `{want}` (`diff::held_out::SCORES`), beside the \
-             Held-out line"
+            "docs/QUEUE.md's handoff carries `{want}` (`diff::held_out::{}`), beside the \
+             Held-out line",
+            b.scores_name
         );
     }
 }
@@ -1218,3 +1257,57 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
 /// (`build_masks & 0x2000` on its site 1/2036).
 #[cfg(test)]
 pub(crate) const HELD_OUT_LINE: (usize, usize) = (4, 8);
+
+/// **The second battery's scores**, `HELD_OUT_SECOND[k]` played as
+/// `run1730 + k` (item 4462): `None` until the original has played it. The
+/// found column is pinned once and never re-pinned; it is the estimate
+/// (DECISIONS 145 §2).
+#[cfg(test)]
+pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] =
+    [None, None, None, None, None, None, None, None];
+
+/// **Parity held out, second, N of 8** (item 4462): the second battery's
+/// games whole on every line and state, and the games taken.
+#[cfg(test)]
+pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (0, 0);
+
+/// One battery: its declared table, its pins, where its files and takes
+/// sit, and its line in the handoff.
+#[cfg(test)]
+pub(crate) struct Battery {
+    /// The handoff line's head, before its colon.
+    pub label: &'static str,
+    /// The item whose recordings these are (`item<N>-row<RRR>-6000.rcx`).
+    pub item: u32,
+    /// The run number of game 0; game `k` is `run + k`.
+    pub run: usize,
+    pub table: &'static [HeldOut; 8],
+    pub scores: &'static [Option<FirstScore>; 8],
+    /// The pins' name, for a failure's message.
+    pub scores_name: &'static str,
+    pub line: (usize, usize),
+}
+
+/// The first battery (item 4413).
+#[cfg(test)]
+pub(crate) const FIRST: Battery = Battery {
+    label: "Parity held out",
+    item: 4413,
+    run: 1700,
+    table: &HELD_OUT,
+    scores: &SCORES,
+    scores_name: "SCORES",
+    line: HELD_OUT_LINE,
+};
+
+/// The second battery (item 4462).
+#[cfg(test)]
+pub(crate) const SECOND: Battery = Battery {
+    label: "Parity held out, second",
+    item: 4462,
+    run: 1730,
+    table: &HELD_OUT_SECOND,
+    scores: &SCORES_SECOND,
+    scores_name: "SCORES_SECOND",
+    line: HELD_OUT_SECOND_LINE,
+};
