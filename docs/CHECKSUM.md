@@ -2662,8 +2662,32 @@ over a reused number); an aircraft whose dead occupant's ground changed after it
 now). **The transport's passengers** (run1320b f5066 `1/23`, Fusilier TI 136, theirs 314 ours 242; run1264b f4919
 `1/63`, Bowmen TI 170, theirs 81 ours 73) keep the `z` of their last move, which ours recomputes from today's
 ground: under the boarding point it read 314 and 81 on the boarding frames (3769, 4104) and has changed since.
-Parked as 4428a. **The next leaf is byte 26** (`last_angle`'s third byte, the first parting on 4 lines, run1351 f4303
-record 48 ours `33` theirs `39`), then `z` on the 2 passengers.
+Parked as 4428a. ~~**The next leaf is byte 26** (`last_angle`'s third byte, the first parting on 4 lines, run1351 f4303
+record 48 ours `33` theirs `39`), then `z` on the 2 passengers.~~ Answered by item 4430, below.
+
+**Byte 26 is `turret_angles[0]`, and a `SAME_AS` piece's turret bears from its node at its own scale** (item 4430,
+diff-backed). The range starts at `GuyData +0x8`, so byte 26 is `+0x22`, `turret_angles[0]`'s third byte: `last_angle`
+(`+0x1c`) is bytes 20 to 23 and agreed. run1351 f4303 record 48 is who=1's A7V `1/48` (TI 242, piece 192), standing
+mid-swing (`cur_time` 13 of 35) on an `ATTACKORDER` at the fleeing Citizen `0/12`. Both ranges whole, only
+`turret_angles[0]` and `des_turret_angles[0]` part: theirs `0xe5390000`, ours `0xe5330000`. Ours aimed on 4290 and
+never again, and so did theirs (the same `cur_time`). `step4.py --entry 5d8bc0 --this 390f77a4` on the packet runs
+`Guy::set_all_pivots` against `0/12` where it stands on 4303 and writes `0xe5830000` (`005d8f36`), where ours'
+arithmetic on the same point gave `0xe57d0000`: the same 6 units, so the parting is the arithmetic, not the target's
+point or the frame. `--hook 5d8e35` reads `find_angle@0092d130`'s arguments: `ecx` −2274, `edx` 418 from the hull at
+(5544, 31512) to (3255, 31923), so the node vector is (−15, −7). Ours' was (−16, −8). `pivot::offset` reads piece 189's
+node for 192 (`SAME_AS`) and looked the scale up as 192, which had no `RDATA_SCALE` row, so it scaled by `guy_scale`
+alone; the packet holds 192's `RData +0x88` at 0.9 (`RUNS.md` run1351). At 117°, (0.0, −3.96) × 4.32 is (−15.24, −7.77)
+and × 4.8 is (−16.94, −8.63). Piece 195 (`CHURCHILLDES`, TI 245; run1426b's packet, 0.9, `SAME_AS` 194) had the same
+gap, and 193 (`A7VDES`) too by `unit_graphics.xml`. `release` was right all along: it reads the row's piece, whose
+scale agrees. **2 guys lines turn, none grow** (`PACKETS_SCORE` 784 → 786): run1351 and run1426b; their units lines
+part on one and two ranges fewer. Value diff, run1351 frame 4303 record 48 (`1/48`, A7V, TI 242): `turret_angles[0]`
+and `des_turret_angles[0]` theirs `0xe5390000`, ours `0xe5330000` → `0xe5390000`. Byte 26 is still the first parting on
+run973g (record 56, ours `16` theirs `0e`) and run1268 (record 54, ours `6b` theirs `80`), both a Horse Archer (TI 188,
+pieces 842 and 138, `RData +0x88` 1.0), a different cause.
+
+**Not established.** Piece 193's 0.9 rests on the XML and on run1374b's rounds fitting 189's rows at 0.9, not on a
+packet. The Horse Archer's bearing: its pivot is aimed through `cavarch.rs` as well as `set_attack`, and no probe has
+read which call or which input parts on run973g and run1268.
 
 ## 24. Step H: the fifteen, every frame (item 4214)
 

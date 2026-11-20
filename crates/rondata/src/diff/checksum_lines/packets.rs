@@ -1417,7 +1417,20 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// run1169, run1382) and 22 more parting on fewer world ranges, none on
 /// more: `BuildType::mask_me` walks a footprint column by column, so
 /// `BAD_PATH` stays on the corners the original leaves it on.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 784, 1053);
+/// **786** at item 4430: run1351's and run1426b's guys lines whole, and
+/// their units lines one and two ranges fewer: a `sim::data::pivot`
+/// `SAME_AS` piece keeps its own `RData +0x88`, so the A7V's 192 and the
+/// `CHURCHILLDES`'s 195 bear their turrets from the node at 0.9.
+/// **803** at item 4443: nineteen whole units lines (run1355, run1381,
+/// run1220b, run1254c, run1419b, run1351c, run1417, run1323b, run1007b,
+/// run1237, run1424, run1332a, run991d, run1305b, run854, run1385p, run959,
+/// run1357, run1382) and 42 more parting on fewer units ranges, none on
+/// more: the units line folds `cavarch_o` −2, `Unit::cavarch_fight`'s
+/// `0xfffe`, which the sim held as `cavarch_idle`.
+/// **806** on item 4430's tip: run1351's and run1426b's guys lines whole
+/// (4430), and run1426b's units line too, whose last ranges were 4430's
+/// turrets and 4443's `cavarch_o`; run1351's units line parts on one.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 806, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1613,11 +1626,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (2939, 2843, 1601) -> (2939, 2933, 1108).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (2939, 2939, 3) -> (2939, 2939, 0).
     (
         "run1007b",
         15915,
         [
-            (2939, 2939, 3),
+            (2939, 2939, 0),
             (2417, 2417, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -1839,11 +1853,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4415, the oil-well stand's cur_time: units (4193, 4193, 5) -> (4193, 4193, 4), guys (1129, 1129, 1) -> (1129, 1129, 0).
     // Item 4422, the swarm's form -1: groups (550, 550, 1) -> (550, 550, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (7583, 7583, 2) -> (7583, 7583, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4193, 4193, 4) -> (4193, 4193, 1).
     (
         "run1155c",
         3003,
         [
-            (4193, 4193, 4),
+            (4193, 4193, 1),
             (2371, 2371, 0),
             (0, 0, 0),
             (6, 6, 0),
@@ -1950,11 +1965,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (676, 676, 1) -> (676, 676, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6004, 6004, 21) -> (6004, 6004, 17).
     // Item 4441, `mask_me` walks a footprint column by column: world (9290, 9290, 11) -> (9290, 9290, 10).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6004, 6004, 17) -> (6004, 6004, 6).
     (
         "run1165",
         3719,
         [
-            (6004, 6004, 17),
+            (6004, 6004, 6),
             (2267, 2266, 377),
             (0, 0, 0),
             (287, 9, 286),
@@ -1996,11 +2012,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: units (6004, 6004, 23) -> (6004, 6004, 22), guys (1935, 1935, 1) -> (1935, 1935, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6004, 6004, 22) -> (6004, 6004, 18).
     // Item 4441, `mask_me` walks a footprint column by column: world (9262, 9262, 13) -> (9262, 9262, 12).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6004, 6004, 18) -> (6004, 6004, 7).
     (
         "run1166",
         3920,
         [
-            (6004, 6004, 18),
+            (6004, 6004, 7),
             (2247, 2246, 434),
             (0, 0, 0),
             (0, 0, 0),
@@ -2043,11 +2060,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4425, a member compute_dests skips keeps its record offset: groups (628, 628, 4) -> (628, 628, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (7749, 7749, 89) -> (7749, 7749, 65).
     // Item 4441, `mask_me` walks a footprint column by column: world (9438, 9438, 1) -> (9438, 9438, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (7749, 7749, 65) -> (7749, 7749, 51).
     (
         "run1169",
         3769,
         [
-            (7749, 7749, 65),
+            (7749, 7749, 51),
             (1813, 1813, 6),
             (0, 0, 0),
             (12, 12, 0),
@@ -2089,11 +2107,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // 67) -> (6735, 6735, 60); guys (1962, 1962, 7) -> (1962, 1962, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (640, 640, 4) -> (640, 640, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6735, 6735, 60) -> (6735, 6735, 48).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6735, 6735, 48) -> (6735, 6735, 36).
     (
         "run1185",
         4582,
         [
-            (6735, 6735, 48),
+            (6735, 6735, 36),
             (1911, 1911, 0),
             (0, 0, 0),
             (3, 3, 0),
@@ -2167,11 +2186,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (3412, 3412, 11) -> (3412, 3412, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (700, 700, 8) -> (700, 700, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (10607, 10607, 58) -> (10607, 10607, 44).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (10607, 10607, 44) -> (10607, 10607, 37).
     (
         "run1217",
         7728,
         [
-            (10607, 10607, 44),
+            (10607, 10607, 37),
             (3412, 3412, 0),
             (0, 0, 0),
             (6, 6, 0),
@@ -2207,11 +2227,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4422, the swarm's form -1: groups (550, 550, 1) -> (550, 550, 0).
     // Item 4436, the Chinese village a Large City before its start: world (7663, 7663, 1) -> (7663, 7663, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4091, 4091, 1) -> (4091, 4091, 0).
     (
         "run1220b",
         2976,
         [
-            (4091, 4091, 1),
+            (4091, 4091, 0),
             (1817, 1817, 0),
             (0, 0, 0),
             (9, 9, 0),
@@ -2293,11 +2314,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (4271, 4271, 12) -> (4271, 4271, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (11740, 11740, 3) -> (11740, 11740, 2).
     (
         "run1224b",
         9745,
         [
-            (11740, 11740, 3),
+            (11740, 11740, 2),
             (4271, 4271, 0),
             (0, 0, 0),
             (6, 6, 0),
@@ -2335,11 +2357,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // 63) -> (7490, 7490, 57); guys (2097, 2097, 6) -> (2097, 2097, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (646, 646, 7) -> (646, 646, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (7490, 7490, 57) -> (7490, 7490, 38).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (7490, 7490, 38) -> (7490, 7490, 30).
     (
         "run1235b",
         4127,
         [
-            (7490, 7490, 38),
+            (7490, 7490, 30),
             (1733, 1733, 0),
             (0, 0, 0),
             (12, 12, 0),
@@ -2376,11 +2399,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (1762, 1762, 5) -> (1762, 1762, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (658, 658, 4) -> (658, 658, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6610, 6610, 116) -> (6610, 6610, 94).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6610, 6610, 94) -> (6610, 6610, 90).
     (
         "run1236",
         4179,
         [
-            (6610, 6610, 94),
+            (6610, 6610, 90),
             (1762, 1762, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2413,11 +2437,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (3448, 3448, 3) -> (3448, 3448, 0).
     (
         "run1237",
         2674,
         [
-            (3448, 3448, 3),
+            (3448, 3448, 0),
             (1650, 1650, 0),
             (0, 0, 0),
             (3, 3, 0),
@@ -2457,11 +2482,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2494, 2494, 6) -> (2494, 2494, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (646, 646, 4) -> (646, 646, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6417, 6417, 36) -> (6417, 6417, 29).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6417, 6417, 29) -> (6417, 6417, 25).
     (
         "run1238c",
         5021,
         [
-            (6417, 6417, 29),
+            (6417, 6417, 25),
             (2494, 2494, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2539,11 +2565,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4396, the captain mirror's retarget kept in the order: units (4388, 4388, 8) -> (4388, 4388, 7).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4388, 4388, 7) -> (4388, 4388, 0).
     (
         "run1254c",
         3115,
         [
-            (4388, 4388, 7),
+            (4388, 4388, 0),
             (1674, 1674, 0),
             (0, 0, 0),
             (9, 9, 0),
@@ -2674,11 +2701,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (3796, 3796, 10) -> (3796, 3796, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (682, 682, 8) -> (682, 682, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (11161, 11161, 68) -> (11161, 11161, 49).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (11161, 11161, 49) -> (11161, 11161, 42).
     (
         "run1266c",
         8700,
         [
-            (11161, 11161, 49),
+            (11161, 11161, 42),
             (3796, 3796, 0),
             (0, 0, 0),
             (6, 6, 0),
@@ -2713,11 +2741,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 0).
     // Item 4396, the captain mirror's retarget kept in the order: units (4744, 4744, 8) -> (4744, 4744, 5).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4744, 4744, 5) -> (4744, 4744, 1).
     (
         "run1268",
         3347,
         [
-            (4744, 4744, 5),
+            (4744, 4744, 1),
             (1908, 1908, 0),
             (0, 0, 0),
             (24, 24, 0),
@@ -2756,11 +2785,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // 120) -> (9512, 9512, 109); guys (2191, 2191, 11) -> (2191, 2191, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (586, 586, 4) -> (586, 586, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (9512, 9512, 109) -> (9512, 9512, 73).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (9512, 9512, 73) -> (9512, 9512, 55).
     (
         "run1293",
         3606,
         [
-            (9512, 9512, 73),
+            (9512, 9512, 55),
             (1938, 1938, 1),
             (0, 0, 0),
             (0, 0, 0),
@@ -2804,11 +2834,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (688, 688, 9) -> (688, 688, 8).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (688, 688, 8) -> (688, 688, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (8216, 8216, 61) -> (8216, 8216, 36).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (8216, 8216, 36) -> (8216, 8216, 25).
     (
         "run1294",
         4473,
         [
-            (8216, 8216, 36),
+            (8216, 8216, 25),
             (2123, 2123, 0),
             (0, 0, 0),
             (3, 3, 0),
@@ -2854,11 +2885,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4439, a passenger lands with its figures' `last` on its seat (`come_out`'s
     // `set_new_location(…, 1, 1)`): units (9905, 9905, 34) -> (9905, 9905, 33); guys (2172, 2172,
     // 3) -> (2172, 2172, 2).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (9905, 9905, 33) -> (9905, 9905, 22).
     (
         "run1296",
         4632,
         [
-            (9905, 9905, 33),
+            (9905, 9905, 22),
             (2163, 2163, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2897,11 +2929,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4411, a unit inside takes `last_z = z` (`Unit::process`'s inside arm): units (5488, 5488,
     // 20) -> (5488, 5488, 19); guys (1616, 1616, 1) -> (1616, 1616, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (5488, 5488, 19) -> (5488, 5488, 13).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5488, 5488, 13) -> (5488, 5488, 6).
     (
         "run1304",
         3865,
         [
-            (5488, 5488, 13),
+            (5488, 5488, 6),
             (2029, 2029, 1),
             (0, 0, 0),
             (0, 0, 0),
@@ -2936,11 +2969,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4422, the swarm's form -1: groups (550, 550, 1) -> (550, 550, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4968, 4968, 5) -> (4968, 4968, 0).
     (
         "run1305b",
         4181,
         [
-            (4968, 4968, 5),
+            (4968, 4968, 0),
             (1882, 1882, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2983,11 +3017,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2140, 2140, 4) -> (2140, 2140, 3).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (652, 652, 4) -> (652, 652, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (8490, 8490, 78) -> (8490, 8490, 47).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (8490, 8490, 47) -> (8490, 8490, 42).
     (
         "run1320b",
         5066,
         [
-            (8490, 8490, 47),
+            (8490, 8490, 42),
             (2140, 2140, 3),
             (0, 0, 0),
             (9, 9, 0),
@@ -3020,11 +3055,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 3) -> (271, 271, 2).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (3933, 3933, 5) -> (3933, 3933, 0).
     (
         "run1323b",
         3052,
         [
-            (3933, 3933, 5),
+            (3933, 3933, 0),
             (1792, 1792, 0),
             (0, 0, 0),
             (3, 3, 0),
@@ -3065,11 +3101,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (676, 676, 9) -> (676, 676, 8).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (676, 676, 8) -> (676, 676, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (7276, 7276, 85) -> (7276, 7276, 56).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (7276, 7276, 56) -> (7276, 7276, 45).
     (
         "run1324c",
         4904,
         [
-            (7276, 7276, 56),
+            (7276, 7276, 45),
             (1918, 1918, 2),
             (0, 0, 0),
             (15, 15, 0),
@@ -3110,11 +3147,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2521, 2521, 4) -> (2521, 2521, 2).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (682, 682, 8) -> (682, 682, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (10367, 10367, 119) -> (10367, 10367, 82).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (10367, 10367, 82) -> (10367, 10367, 70).
     (
         "run1325c",
         5578,
         [
-            (10367, 10367, 82),
+            (10367, 10367, 70),
             (2521, 2521, 2),
             (0, 0, 0),
             (0, 0, 0),
@@ -3235,11 +3273,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4396, the captain mirror's retarget kept in the order: units (5746, 5746, 2) -> (5746, 5746, 1).
     // Item 4422, the swarm's form -1: groups (580, 580, 5) -> (580, 580, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5746, 5746, 1) -> (5746, 5746, 0).
     (
         "run1332a",
         3627,
         [
-            (5746, 5746, 1),
+            (5746, 5746, 0),
             (2354, 2354, 0),
             (0, 0, 0),
             (48, 48, 0),
@@ -3278,17 +3317,19 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (562, 562, 2) -> (562, 562, 0).
     // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: units (4745, 4745, 10) -> (4745, 4745, 9), guys (1352, 1352, 2) -> (1352, 1352, 1).
     // Item 4441, `mask_me` walks a footprint column by column: world (8328, 8328, 2) -> (8328, 8328, 0).
+    // Item 4430, a SAME_AS piece's own RData +0x88, the A7V's turret vector at 0.9: units (4745, 4745, 9) -> (4745, 4745, 8), guys (1352, 1352, 1) -> (1352, 1352, 0).
+    // Item 4443 (on 4430), the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4745, 4745, 8) -> (4745, 4745, 1).
     (
         "run1351",
         4303,
         [
-            (4745, 4745, 9),
+            (4745, 4745, 1),
             (2237, 2237, 0),
             (0, 0, 0),
             (3, 3, 0),
             (0, 0, 0),
             (562, 562, 0),
-            (1352, 1352, 1),
+            (1352, 1352, 0),
             (271, 271, 0),
             (30, 30, 0),
             (75, 75, 0),
@@ -3319,11 +3360,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4422, the swarm's form -1: groups (556, 556, 2) -> (556, 556, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (8298, 8298, 1) -> (8298, 8298, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4512, 4512, 11) -> (4512, 4512, 0).
     (
         "run1351c",
         3521,
         [
-            (4512, 4512, 11),
+            (4512, 4512, 0),
             (2143, 2143, 0),
             (0, 0, 0),
             (3, 3, 0),
@@ -3361,11 +3403,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4396, the captain mirror's retarget kept in the order: units (3610, 3610, 6) -> (3610, 3610, 4).
     // Item 4422, the swarm's form -1: groups (556, 556, 2) -> (556, 556, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (7777, 7777, 1) -> (7777, 7777, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (3610, 3610, 4) -> (3610, 3610, 0).
     (
         "run1355",
         2933,
         [
-            (3610, 3610, 4),
+            (3610, 3610, 0),
             (1836, 1836, 0),
             (0, 0, 0),
             (3, 3, 0),
@@ -3401,11 +3444,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4422, the swarm's form -1: groups (568, 568, 2) -> (568, 568, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5707, 5707, 10) -> (5707, 5707, 0).
     (
         "run1357",
         3439,
         [
-            (5707, 5707, 10),
+            (5707, 5707, 0),
             (1977, 1977, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3445,11 +3489,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (568, 568, 3) -> (568, 568, 0).
     // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: units (6464, 6464, 7) -> (6464, 6464, 6), guys (1584, 1584, 1) -> (1584, 1584, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (8007, 8007, 2) -> (8007, 8007, 1).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6464, 6464, 6) -> (6464, 6464, 1).
     (
         "run1359",
         5619,
         [
-            (6464, 6464, 6),
+            (6464, 6464, 1),
             (2974, 2974, 13),
             (0, 0, 0),
             (0, 0, 0),
@@ -3491,11 +3536,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (556, 556, 3) -> (556, 556, 0).
     // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: units (6408, 6408, 7) -> (6408, 6408, 6), guys (1598, 1598, 1) -> (1598, 1598, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (7717, 7717, 2) -> (7717, 7717, 1).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6408, 6408, 6) -> (6408, 6408, 1).
     (
         "run1359b",
         5677,
         [
-            (6408, 6408, 6),
+            (6408, 6408, 1),
             (2974, 2974, 13),
             (0, 0, 0),
             (0, 0, 0),
@@ -3537,11 +3583,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (556, 556, 3) -> (556, 556, 0).
     // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: units (6407, 6407, 7) -> (6407, 6407, 6), guys (1598, 1598, 1) -> (1598, 1598, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (7715, 7715, 2) -> (7715, 7715, 1).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6407, 6407, 6) -> (6407, 6407, 1).
     (
         "run1359c",
         5678,
         [
-            (6407, 6407, 6),
+            (6407, 6407, 1),
             (2974, 2974, 13),
             (0, 0, 0),
             (0, 0, 0),
@@ -3580,11 +3627,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2544, 2544, 1) -> (2544, 2544, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6810, 6810, 15) -> (6810, 6810, 1).
     (
         "run1361",
         4840,
         [
-            (6810, 6810, 15),
+            (6810, 6810, 1),
             (2544, 2544, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3623,11 +3671,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4397, `Setup::reinit_game_units` (every start building's `z` off the whole start's ground): builds (2147, 2147, 1) -> (2147, 2147, 0).
     // Item 4422, the swarm's form -1: groups (556, 556, 1) -> (556, 556, 0).
     // Item 4436, the Chinese village a Large City before its start: world (8334, 8334, 1) -> (8334, 8334, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5194, 5194, 6) -> (5194, 5194, 0).
     (
         "run1381",
         3262,
         [
-            (5194, 5194, 6),
+            (5194, 5194, 0),
             (2147, 2147, 0),
             (0, 0, 0),
             (3, 3, 0),
@@ -3663,11 +3712,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4396, the captain mirror's retarget kept in the order: units (5014, 5014, 7) -> (5014, 5014, 5).
     // Item 4441, `mask_me` walks a footprint column by column: world (8340, 8340, 2) -> (8340, 8340, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5014, 5014, 5) -> (5014, 5014, 0).
     (
         "run1382",
         3228,
         [
-            (5014, 5014, 5),
+            (5014, 5014, 0),
             (2015, 2015, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3733,11 +3783,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4422, the swarm's form -1: groups (652, 652, 1) -> (652, 652, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (5193, 5193, 10) -> (5193, 5193, 9).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5193, 5193, 9) -> (5193, 5193, 0).
     (
         "run1385p",
         2775,
         [
-            (5193, 5193, 9),
+            (5193, 5193, 0),
             (1774, 1774, 1),
             (0, 0, 0),
             (0, 0, 0),
@@ -3779,11 +3830,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (694, 694, 13) -> (694, 694, 12).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (694, 694, 12) -> (694, 694, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6512, 6512, 34) -> (6512, 6512, 22).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6512, 6512, 22) -> (6512, 6512, 15).
     (
         "run1391",
         4174,
         [
-            (6512, 6512, 22),
+            (6512, 6512, 15),
             (1830, 1830, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3825,11 +3877,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4425, a member compute_dests skips keeps its record offset: groups (634, 634, 8) -> (634, 634, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6953, 6953, 72) -> (6953, 6953, 47).
     // Item 4441, `mask_me` walks a footprint column by column: world (9554, 9554, 10) -> (9554, 9554, 8).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6953, 6953, 47) -> (6953, 6953, 36).
     (
         "run1416",
         4016,
         [
-            (6953, 6953, 47),
+            (6953, 6953, 36),
             (2128, 2127, 608),
             (0, 0, 0),
             (18, 18, 1),
@@ -3867,11 +3920,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 2) -> (271, 271, 0).
     // Item 4415, the oil-well stand's cur_time: units (4518, 4518, 13) -> (4518, 4518, 12), guys (1265, 1265, 1) -> (1265, 1265, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (8274, 8274, 1) -> (8274, 8274, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4518, 4518, 12) -> (4518, 4518, 0).
     (
         "run1417",
         4016,
         [
-            (4518, 4518, 12),
+            (4518, 4518, 0),
             (2321, 2321, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3908,11 +3962,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 2) -> (271, 271, 0).
     // Item 4422, the swarm's form -1: groups (544, 544, 1) -> (544, 544, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (8434, 8434, 2) -> (8434, 8434, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4406, 4406, 4) -> (4406, 4406, 0).
     (
         "run1419b",
         3212,
         [
-            (4406, 4406, 4),
+            (4406, 4406, 0),
             (2033, 2033, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3950,11 +4005,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2515, 2513, 683) -> (2515, 2513, 686).
     // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: units (5583, 5423, 1536) -> (5583, 5423, 1535), guys (1327, 1327, 1) -> (1327, 1327, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (8466, 8466, 1) -> (8466, 8466, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5583, 5423, 1535) -> (5583, 5423, 1530).
     (
         "run1420",
         4586,
         [
-            (5583, 5423, 1535),
+            (5583, 5423, 1530),
             (2515, 2513, 686),
             (0, 0, 0),
             (0, 0, 0),
@@ -3992,11 +4048,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4415, the oil-well stand's cur_time: units (4129, 4129, 4) -> (4129, 4129, 3), guys (1138, 1138, 1) -> (1138, 1138, 0).
     // Item 4422, the swarm's form -1: groups (550, 550, 2) -> (550, 550, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (8344, 8344, 2) -> (8344, 8344, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4129, 4129, 3) -> (4129, 4129, 0).
     (
         "run1424",
         3156,
         [
-            (4129, 4129, 3),
+            (4129, 4129, 0),
             (2025, 2025, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4031,17 +4088,19 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (544, 544, 1) -> (544, 544, 0).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: units (4175, 4175, 7) -> (4175, 4175, 6), guys (1227, 1227, 3) -> (1227, 1227, 2).
     // Item 4441, `mask_me` walks a footprint column by column: world (8284, 8284, 10) -> (8284, 8284, 8).
+    // Item 4430, a SAME_AS piece's own RData +0x88, the CHURCHILLDES's piece 195 at 0.9: units (4175, 4175, 6) -> (4175, 4175, 4), guys (1227, 1227, 2) -> (1227, 1227, 0).
+    // Item 4443 (on 4430), the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4175, 4175, 4) -> (4175, 4175, 0).
     (
         "run1426b",
         3722,
         [
-            (4175, 4175, 6),
+            (4175, 4175, 0),
             (2266, 2265, 802),
             (0, 0, 0),
             (0, 0, 0),
             (2, 2, 0),
             (544, 544, 0),
-            (1227, 1227, 2),
+            (1227, 1227, 0),
             (271, 271, 1),
             (27, 27, 0),
             (80, 80, 0),
@@ -4129,11 +4188,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (2308, 2197, 1945) -> (2308, 2269, 1887).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (399, 399, 6) -> (399, 399, 5).
     // Item 4348, gaia's angles from the start dump: guys (638, 638, 1) -> (638, 638, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (2308, 2308, 105) -> (2308, 2308, 104).
     (
         "run1440",
         809,
         [
-            (2308, 2308, 105),
+            (2308, 2308, 104),
             (1968, 1968, 22),
             (0, 0, 0),
             (18, 18, 0),
@@ -4167,11 +4227,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (550, 550, 1) -> (550, 550, 0).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: units (4274, 4240, 907) -> (4274, 4240, 906), guys (1108, 1108, 1) -> (1108, 1108, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (8276, 8276, 9) -> (8276, 8276, 8).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4274, 4240, 906) -> (4274, 4240, 900).
     (
         "run1441",
         3294,
         [
-            (4274, 4240, 906),
+            (4274, 4240, 900),
             (1890, 1887, 478),
             (0, 0, 0),
             (0, 0, 0),
@@ -4198,11 +4259,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (399, 399, 6) -> (399, 399, 5).
     // Item 4348, gaia's angles from the start dump: guys (604, 604, 1) -> (604, 604, 0).
     // Item 4396, the captain mirror's retarget kept in the order: units (2022, 2022, 110) -> (2022, 2022, 108).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (2022, 2022, 108) -> (2022, 2022, 107).
     (
         "run1451",
         945,
         [
-            (2022, 2022, 108),
+            (2022, 2022, 107),
             (1968, 1968, 22),
             (0, 0, 0),
             (18, 18, 0),
@@ -4259,11 +4321,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (403, 403, 5) -> (403, 403, 3).
     // Item 4348, gaia's angles from the start dump: guys (665, 665, 1) -> (665, 665, 0).
     // Item 4396, the captain mirror's retarget kept in the order: units (2362, 2362, 115) -> (2362, 2362, 113).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (2362, 2362, 113) -> (2362, 2362, 111).
     (
         "run1459",
         780,
         [
-            (2362, 2362, 113),
+            (2362, 2362, 111),
             (1316, 1316, 23),
             (0, 0, 0),
             (0, 0, 0),
@@ -4439,11 +4502,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (407, 407, 6) -> (407, 407, 3).
     // Item 4422, the swarm's form -1: groups (610, 610, 2) -> (610, 610, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (5340, 5340, 287) -> (5340, 5340, 284).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5340, 5340, 284) -> (5340, 5340, 276).
     (
         "run1487",
         1980,
         [
-            (5340, 5340, 284),
+            (5340, 5340, 276),
             (2736, 2736, 26),
             (0, 0, 0),
             (208, 0, 208),
@@ -4473,11 +4537,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4415, the oil-well stand's cur_time: units (5026, 5026, 287) -> (5026, 5026, 286), guys (1577, 1577, 1) -> (1577, 1577, 0).
     // Item 4422, the swarm's form -1: groups (586, 586, 2) -> (586, 586, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (5026, 5026, 286) -> (5026, 5026, 285).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5026, 5026, 285) -> (5026, 5026, 282).
     (
         "run1496",
         1539,
         [
-            (5026, 5026, 285),
+            (5026, 5026, 282),
             (2180, 2180, 24),
             (0, 0, 0),
             (230, 0, 230),
@@ -4511,11 +4576,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (550, 550, 1) -> (550, 550, 0).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: units (4274, 4240, 907) -> (4274, 4240, 906), guys (1108, 1108, 1) -> (1108, 1108, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (8276, 8276, 9) -> (8276, 8276, 8).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4274, 4240, 906) -> (4274, 4240, 900).
     (
         "run1559b",
         3294,
         [
-            (4274, 4240, 906),
+            (4274, 4240, 900),
             (1890, 1887, 478),
             (0, 0, 0),
             (0, 0, 0),
@@ -4568,11 +4634,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (550, 550, 1) -> (550, 550, 0).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: units (4274, 4240, 907) -> (4274, 4240, 906), guys (1108, 1108, 1) -> (1108, 1108, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (8276, 8276, 9) -> (8276, 8276, 8).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4274, 4240, 906) -> (4274, 4240, 900).
     (
         "run1564",
         3294,
         [
-            (4274, 4240, 906),
+            (4274, 4240, 900),
             (1890, 1887, 478),
             (0, 0, 0),
             (0, 0, 0),
@@ -4609,11 +4676,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (556, 556, 1) -> (556, 556, 0).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: units (4240, 4200, 431) -> (4240, 4200, 430), guys (1112, 1112, 1) -> (1112, 1112, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (8294, 8294, 9) -> (8294, 8294, 8).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4240, 4200, 430) -> (4240, 4200, 424).
     (
         "run1570",
         3331,
         [
-            (4240, 4200, 430),
+            (4240, 4200, 424),
             (1890, 1887, 478),
             (0, 0, 0),
             (0, 0, 0),
@@ -4971,11 +5039,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4425, a member compute_dests skips keeps its record offset: groups (640, 640, 5) -> (640, 640, 1).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (5770, 5770, 21) -> (5770, 5770, 17).
     // Item 4441, `mask_me` walks a footprint column by column: world (9344, 9344, 2) -> (9344, 9344, 1).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5770, 5770, 17) -> (5770, 5770, 0).
     (
         "run854",
         3301,
         [
-            (5770, 5770, 17),
+            (5770, 5770, 0),
             (2095, 2095, 5),
             (0, 0, 0),
             (0, 0, 0),
@@ -5014,11 +5083,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4415, the oil-well stand's cur_time: guys (2210, 2210, 1) -> (2210, 2210, 0).
     // Item 4422, the swarm's form -1: groups (640, 640, 3) -> (640, 640, 2).
     // Item 4441, `mask_me` walks a footprint column by column: world (9534, 9534, 12) -> (9534, 9534, 11).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (10342, 10188, 7833) -> (10342, 10188, 7824).
     (
         "run865",
         4859,
         [
-            (10342, 10188, 7833),
+            (10342, 10188, 7824),
             (2288, 2283, 1535),
             (0, 0, 0),
             (0, 0, 0),
@@ -5084,11 +5154,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (2832, 2832, 3) -> (2832, 2832, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (616, 616, 7) -> (616, 616, 3).
     // Item 4441, `mask_me` walks a footprint column by column: world (9518, 9518, 12) -> (9518, 9518, 11).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (11125, 10815, 9505) -> (11125, 10815, 9496).
     (
         "run882b",
         6808,
         [
-            (11125, 10815, 9505),
+            (11125, 10815, 9496),
             (2737, 2732, 1917),
             (0, 0, 0),
             (15, 15, 5),
@@ -5131,11 +5202,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: guys (2832, 2832, 3) -> (2832, 2832, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (616, 616, 7) -> (616, 616, 3).
     // Item 4441, `mask_me` walks a footprint column by column: world (9536, 9536, 12) -> (9536, 9536, 11).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (11180, 10834, 9393) -> (11180, 10834, 9384).
     (
         "run883b",
         6821,
         [
-            (11180, 10834, 9393),
+            (11180, 10834, 9384),
             (2737, 2732, 1918),
             (0, 0, 0),
             (36, 36, 5),
@@ -5205,11 +5277,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // 18) -> (4112, 4112, 15); guys (1352, 1352, 3) -> (1352, 1352, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (568, 568, 4) -> (568, 568, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (4112, 4112, 15) -> (4112, 4112, 12).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4112, 4112, 12) -> (4112, 4112, 10).
     (
         "run912e",
         12753,
         [
-            (4112, 4112, 12),
+            (4112, 4112, 10),
             (1508, 1508, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -5412,11 +5485,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (562, 562, 4) -> (562, 562, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4466, 4466, 2) -> (4466, 4466, 0).
     (
         "run959",
         18368,
         [
-            (4466, 4466, 2),
+            (4466, 4466, 0),
             (1832, 1832, 0),
             (0, 0, 0),
             (9, 9, 0),
@@ -5448,11 +5522,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (3135, 2970, 1716) -> (3135, 3126, 1560).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (3135, 3135, 4) -> (3135, 3135, 1).
     (
         "run973g",
         12286,
         [
-            (3135, 3135, 4),
+            (3135, 3135, 1),
             (2052, 2052, 0),
             (0, 0, 0),
             (3, 3, 0),
@@ -5593,11 +5668,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4266, a guard order's walker: units (3178, 3010, 2130) -> (3178, 3169, 1151).
     // Item 4298, `hire_stamp`, `hire_who` and `tributes` on the line: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4324, `resources_controlled` counted off `rare`: leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (3178, 3178, 1) -> (3178, 3178, 0).
     (
         "run991d",
         15256,
         [
-            (3178, 3178, 1),
+            (3178, 3178, 0),
             (2006, 2006, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -5983,11 +6059,12 @@ fn probe_built_clocks() {
 /// Item 4348, gaia's angles from the start dump: units (3907, 3907, 408) -> (3907, 3907, 286), guys (1289, 1289, 124) -> (1289, 1289, 2).
 /// Item 4400, the `leader_flags` bits: leaders (407, 407, 6) -> (407, 407, 3).
 // Item 4415, the oil-well stand's cur_time: units (3907, 3907, 286) -> (3907, 3907, 284), guys (1289, 1289, 2) -> (1289, 1289, 0).
+// Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (3907, 3907, 284) -> (3907, 3907, 283).
 const TAKE_PINNED: Pinned = (
     "run1575",
     1090,
     [
-        (3907, 3907, 284),
+        (3907, 3907, 283),
         (1709, 1709, 23),
         (0, 0, 0),
         (0, 0, 0),
@@ -6104,11 +6181,12 @@ fn run1575_take_packet() {
 /// Item 4348, gaia's angles from the start dump: units (3911, 3911, 401) -> (3911, 3911, 279), guys (1289, 1289, 123) -> (1289, 1289, 1).
 /// Item 4400, the `leader_flags` bits: leaders (407, 407, 6) -> (407, 407, 3).
 // Item 4415, the oil-well stand's cur_time: units (3911, 3911, 279) -> (3911, 3911, 278), guys (1289, 1289, 1) -> (1289, 1289, 0).
+// Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (3911, 3911, 278) -> (3911, 3911, 277).
 const TAKE1629_PINNED: Pinned = (
     "run1629",
     1190,
     [
-        (3911, 3911, 278),
+        (3911, 3911, 277),
         (2015, 2015, 23),
         (0, 0, 0),
         (0, 0, 0),
