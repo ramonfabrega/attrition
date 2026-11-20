@@ -143,27 +143,6 @@ fn score(
             over = Some(frame);
         }
         let lines = state::ranges(&built.sim, &look, &tribes);
-        if let Ok(w) = std::env::var("RON_PROBE_LEADERS") {
-            let mut it = w.split(',').map(|x| x.parse::<i32>().unwrap_or(-1));
-            let (lo, hi) = (it.next().unwrap_or(0), it.next().unwrap_or(0));
-            if (lo..=hi).contains(&frame)
-                && let Some(l) = lines[7].as_ref()
-            {
-                for who in 0..2i16 {
-                    let v: Vec<i32> = l
-                        .ranges
-                        .iter()
-                        .filter(|r| r.record == who && r.field.starts_with("encrypt"))
-                        .map(|r| {
-                            let mut b = [0u8; 4];
-                            b[..r.bytes.len().min(4)].copy_from_slice(&r.bytes[..r.bytes.len().min(4)]);
-                            i32::from_le_bytes(b)
-                        })
-                        .collect();
-                    eprintln!("PROBE {frame} who {who} {v:?}");
-                }
-            }
-        }
         for (i, line) in lines.iter().enumerate() {
             let value = line.as_ref().map(|l| l.adler());
             if value == Some(set.lines[i]) {
