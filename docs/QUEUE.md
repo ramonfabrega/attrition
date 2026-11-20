@@ -99,6 +99,8 @@ Parity held at 5 of 6 and packet lines at 661 of 1,053 on that tip. Whole branch
 
 `codex/field-coverage` (4409) builds on 4408. Field coverage avoided 152,601 ticks across 39 windows. Widened scope 13m26s → 13m02s, required-fixture whole gate 24m11s → 23m27s. Both green on `383c9cbd1`.
 
+`codex/checksum-scoring` (4452) starts from `ed15741e8`. Timing the held-out scorer's type-index lookups and Adler fold. Branch gate pending.
+
 ## How to maintain this file
 
 - **End of session:** rewrite "Where things stand" from scratch, headline first and whether it moved; delete

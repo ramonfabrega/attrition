@@ -531,6 +531,30 @@ fn simple_array_size(n: usize) -> usize {
     n.div_ceil(SIMPLE_ARRAY_SIZE).max(1) * SIMPLE_ARRAY_SIZE
 }
 
+/// Boundaries in the loaded tree's compact id space. A leader image reads
+/// the same table for every counter, queue entry and mask bit.
+#[derive(Clone, Copy)]
+struct TypeIndexBases {
+    units: usize,
+    buildings: usize,
+    techs: usize,
+}
+
+impl TypeIndexBases {
+    fn index(self, t: usize) -> i64 {
+        let id = t as i64;
+        if t < self.units {
+            id
+        } else if t < self.buildings {
+            0x32 + id - self.units as i64
+        } else if t < self.techs {
+            0x19e + id - self.buildings as i64
+        } else {
+            0x220 + id - self.techs as i64
+        }
+    }
+}
+
 impl Sim {
     /// **The leaders line** (`docs/CHECKSUM.md` §20).
     pub fn checksum_leaders(&self) -> Line {
@@ -558,28 +582,27 @@ impl Sim {
     /// `BASE_TECHTYPES` (0x220), each in tree order (`docs/TECH.md`, "The
     /// type space").
     pub(crate) fn tree_type_index(&self, t: usize) -> i64 {
+        self.type_index_bases().index(t)
+    }
+
+    fn type_index_bases(&self) -> TypeIndexBases {
         let types = &self.tables.tech_tree.types;
-        let g = types
+        let units = types
             .iter()
             .filter(|d| matches!(d.kind, crate::tech::Kind::Good))
             .count();
-        let u = g + types.iter().filter(|d| d.kind.is_unit()).count();
-        let b = u + types.iter().filter(|d| d.kind.is_building()).count();
-        let t32 = t as i64;
-        if t < g {
-            t32
-        } else if t < u {
-            0x32 + t32 - g as i64
-        } else if t < b {
-            0x19e + t32 - u as i64
-        } else {
-            0x220 + t32 - b as i64
+        let buildings = units + types.iter().filter(|d| d.kind.is_unit()).count();
+        let techs = buildings + types.iter().filter(|d| d.kind.is_building()).count();
+        TypeIndexBases {
+            units,
+            buildings,
+            techs,
         }
     }
 
     /// `Leader::track_unit_type`'s six armed-unit counters as sums of
     /// `num_units` by the type's trainer `TypeIndex` (`docs/CHECKSUM.md` §20).
-    fn leader_trained(&self, who: Player, name: &str) -> i64 {
+    fn leader_trained(&self, who: Player, name: &str, bases: TypeIndexBases) -> i64 {
         let types = &self.tables.unit_types;
         let tree = &self.tables.tech_tree.types;
         let m = &self.roster.muster[who as usize];
@@ -590,7 +613,7 @@ impl Sim {
                     .tree
                     .and_then(|x| tree.get(x))
                     .and_then(|d| d.where_)
-                    .map(|wh| self.tree_type_index(wh));
+                    .map(|wh| bases.index(wh));
                 let air = types[t].combat.domain == crate::territory::attrition::Domain::Air;
                 match (name, trainer) {
                     ("barracks_units", Some(0x1ab)) | ("stable_units", Some(0x1ac)) => true,
@@ -757,6 +780,7 @@ impl Sim {
         if w >= self.leader_seats() {
             return out;
         }
+        let bases = self.type_index_bases();
         // The long range.
         let mut leaves = Vec::new();
         let mut at = 0x8;
@@ -770,7 +794,7 @@ impl Sim {
                 name,
                 width,
                 count,
-                self.leader_long(who, name, count),
+                self.leader_long(who, name, count, bases),
             ));
             at = off + width * count;
         }
@@ -851,7 +875,7 @@ impl Sim {
             v.iter()
                 .enumerate()
                 .filter(|(_, on)| **on)
-                .map(|(i, _)| self.tree_type_index(i) as usize)
+                .map(|(i, _)| bases.index(i) as usize)
                 .collect()
         };
         mask(
@@ -859,7 +883,7 @@ impl Sim {
             record,
             ["tech.head", "tech.ptr"],
             806,
-            Some(self.leader_tech_bits(who)),
+            Some(self.leader_tech_bits_with(who, bases)),
         );
         mask(
             &mut out,
@@ -950,7 +974,7 @@ impl Sim {
             let ti = if m.t < 0 {
                 i64::from(m.t)
             } else {
-                self.tree_type_index(m.t as usize)
+                bases.index(m.t as usize)
             };
             let city = usize::try_from(m.city)
                 .ok()
@@ -1103,13 +1127,17 @@ impl Sim {
     /// owned types, and the spell bits `0x275..=0x2ab` the tree has no entry
     /// for (`docs/LEADERS.md` §17); `tech_at_start` never holds a spell.
     pub fn leader_tech_bits(&self, who: Player) -> Vec<usize> {
+        self.leader_tech_bits_with(who, self.type_index_bases())
+    }
+
+    fn leader_tech_bits_with(&self, who: Player, bases: TypeIndexBases) -> Vec<usize> {
         let t = &self.tech[who as usize];
         let mut bits: Vec<usize> = t
             .tech
             .iter()
             .enumerate()
             .filter(|(_, on)| **on)
-            .map(|(i, _)| self.tree_type_index(i) as usize)
+            .map(|(i, _)| bases.index(i) as usize)
             .collect();
         bits.extend(
             (0..64)
@@ -1120,7 +1148,13 @@ impl Sim {
     }
 
     /// One leaf of the long range as this crate holds it, or `None`.
-    fn leader_long(&self, who: Player, name: &str, count: usize) -> Option<Vec<i64>> {
+    fn leader_long(
+        &self,
+        who: Player,
+        name: &str,
+        count: usize,
+        bases: TypeIndexBases,
+    ) -> Option<Vec<i64>> {
         let w = who as usize;
         let l = &self.economy.ledgers[w];
         let h = &self.economy.holdings[w];
@@ -1142,7 +1176,7 @@ impl Sim {
         match name {
             "who" => one(w as i64),
             "tribe" => one(t.tribe as i64),
-            "gov" => one(t.gov.map_or(-1, |g| self.tree_type_index(g))),
+            "gov" => one(t.gov.map_or(-1, |g| bases.index(g))),
             // A slot no player takes holds `Leader::init`'s row (item 4388).
             "diplos" => Some(
                 (0..count)
@@ -1448,7 +1482,7 @@ impl Sim {
                     }
                 }
                 for (id, n) in t.queued.iter().enumerate() {
-                    let ti = self.tree_type_index(id);
+                    let ti = bases.index(id);
                     if ti >= 0x220 && (ti as usize) < count {
                         v[ti as usize] = i64::from(*n);
                     }
@@ -1559,7 +1593,7 @@ impl Sim {
             // (`factory_units`), the Dock `0x1b0`, else an air type
             // (`+0x218 == 2`). So each is a sum of `num_units`.
             "barracks_units" | "stable_units" | "combat_units" | "factory_units" | "dock_units"
-            | "air_units" => one(self.leader_trained(who, name)),
+            | "air_units" => one(self.leader_trained(who, name, bases)),
             // Item 4176 (`crate::leaders::tallies`): the kill, loss and raze
             // counters (`docs/LEADERS.md` §2), the victim stamps (§4), the
             // attrition stamps and `give_att_disabled` (§5), and the

@@ -73,9 +73,16 @@ impl Line {
 pub fn adler32(seed: u32, bytes: &[u8]) -> u32 {
     const MOD: u32 = 65521;
     let (mut a, mut b) = (seed & 0xffff, seed >> 16);
-    for &x in bytes {
-        a = (a + u32::from(x)) % MOD;
-        b = (b + a) % MOD;
+    // Even with both seed halves at 65535 and every byte at 255, after
+    // 4096 bytes b is at most 2,408,114,175. Both sums fit in u32
+    // until the chunk ends, where reduction gives the same residues.
+    for chunk in bytes.chunks(4096) {
+        for &x in chunk {
+            a += u32::from(x);
+            b += a;
+        }
+        a %= MOD;
+        b %= MOD;
     }
     (b << 16) | a
 }

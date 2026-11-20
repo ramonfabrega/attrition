@@ -15,6 +15,29 @@ fn adler32_is_zlib_s() {
 }
 
 #[test]
+fn adler32_matches_the_byte_fold_across_chunk_and_range_boundaries() {
+    let varying: Vec<u8> = (0..8193).map(|i| (i as u8).wrapping_mul(55)).collect();
+    for bytes in [vec![255; 8193], varying] {
+        for seed in [0, 1, 0xfffe_ffff, u32::MAX] {
+            for n in [0, 1, 4095, 4096, 4097, 8192, 8193] {
+                let (mut a, mut b) = (seed & 0xffff, seed >> 16);
+                for &byte in &bytes[..n] {
+                    a = (a + u32::from(byte)) % 65521;
+                    b = (b + a) % 65521;
+                }
+                let expected = b << 16 | a;
+                assert_eq!(adler32(seed, &bytes[..n]), expected);
+                let split = n.min(4095);
+                assert_eq!(
+                    adler32(adler32(seed, &bytes[..split]), &bytes[split..n]),
+                    expected
+                );
+            }
+        }
+    }
+}
+
+#[test]
 fn world_bytes_preserve_missing_fields_and_collision_block_transitions() {
     use crate::world::{Cell, World};
     let mut sim = crate::Sim::new(crate::Tuning::RON, World::new(4, 6), 2);

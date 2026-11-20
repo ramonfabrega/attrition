@@ -24,6 +24,13 @@ and warm/cold input-cache state explicit. A local test gain is not a suite gain.
 
 ## Reading a gate profile
 
+For checksum playback, time the complete scorer with the gate's recorded CPU
+reservation. The held-out test visits every scored state of eight recordings.
+Its printed result includes counts and first divergences. To compare changes
+inside the scorer, also compare the ordered range bytes and twelve line sums
+at every state. The [checksum scoring journal](journal/2026-11-20-item-4452.md)
+records the differential run and how to reproduce it.
+
 ### Scoped reuse experiment
 
 Add `--shadow-from PRIOR_REPORT` to an isolated `--scope REF --require-fixtures`
