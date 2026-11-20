@@ -1373,14 +1373,16 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4460 (a trackless crew figure's `des` is guy 0's body
         // point, `Guy::set_new_location`'s crew loop): guys
         // 4,961 -> 4,965, first 3107 -> 3190.
+        // Moved by item 4473 (`Army::add_unit`'s push runs `equals_group`'s
+        // normalize and `get_num` on the last slot): groups 4,964 -> 4,974,
+        // whole. No ranges take of this row; the leaf is row 60's.
         moved: Some(Score {
             states: 4974,
             agreed: [
-                2487, 4974, 4974, 4974, 4974, 4964, 4965, 4974, 4974, 4974, 4974, 4859,
+                2487, 4974, 4974, 4974, 4974, 4974, 4965, 4974, 4974, 4974, 4974, 4859,
             ],
             first: &[
                 ("units", (2487, Some(3429527498), 3877923716)),
-                ("groups", (1854, Some(284774603), 2949074744)),
                 ("guys", (3190, Some(2877806205), 2189546945)),
                 ("world", (4859, Some(155879679), 1707773025)),
             ],
@@ -1442,14 +1444,18 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // 2107, run1722's units range 1429 and guys range 399, record 40 (the
         // Caravan 1/40, TI 59, pushed (-2, -2) on 2106), its first crew
         // figure's `des_x` read ours 37942, theirs 37944 (`des_y` 19990, 19992).
+        // Moved by item 4473 (`Army::add_unit`'s push runs `equals_group`'s
+        // normalize and `get_num` on the last slot): groups 3,863 -> 4,075,
+        // whole. On 3598 who=1's army 1 pushes `1/169` into slot 67 while
+        // slot 68 is the last and empty: run1722's groups range 92, record 68,
+        // `ox`/`oy` ours (33720, 15048), theirs (0, 0).
         moved: Some(Score {
             states: 4075,
             agreed: [
-                3788, 4075, 4075, 4075, 4075, 3863, 4075, 4075, 4075, 4075, 4075, 3984,
+                3788, 4075, 4075, 4075, 4075, 4075, 4075, 4075, 4075, 4075, 4075, 3984,
             ],
             first: &[
                 ("units", (3757, Some(89157210), 2279304812)),
-                ("groups", (3598, Some(3778361523), 962934390)),
                 ("world", (3984, Some(402934873), 4267790267)),
             ],
             over: None,
@@ -1782,7 +1788,17 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
             first: &[("groups", (3352, Some(4005438802), 229385035))],
             over: None,
         },
-        moved: None,
+        // Moved by item 4473 (`Army::add_unit`'s push runs `equals_group`'s
+        // normalize and `get_num` on the last slot): groups
+        // 4,415 -> 4,455; the row is whole. No ranges take of this row.
+        moved: Some(Score {
+            states: 4455,
+            agreed: [
+                4455, 4455, 4455, 4455, 4455, 4455, 4455, 4455, 4455, 4455, 4455, 4455,
+            ],
+            first: &[],
+            over: None,
+        }),
     }),
     // run1733
     // row 70, as found 2026-11-20, ended by the original on 5140: 11 lines whole; world 5,054
@@ -1843,16 +1859,19 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4460 (a trackless crew figure's `des` is guy 0's body
         // point, `Guy::set_new_location`'s crew loop): guys
         // 5,977 -> 6,000, first on 2464.
+        // Moved by item 4473 (`Army::add_unit`'s push runs `equals_group`'s
+        // normalize and `get_num` on the last slot): groups
+        // 3,544 -> 3,553, first 1608 -> 3553.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                2702, 4221, 6001, 4472, 6001, 3544, 6000, 4995, 6001, 6001, 6001, 3999,
+                2702, 4221, 6001, 4472, 6001, 3553, 6000, 4995, 6001, 6001, 6001, 3999,
             ],
             first: &[
                 ("units", (2184, Some(1779962534), 330632884)),
                 ("builds", (4221, Some(3943548441), 1202439769)),
                 ("ammo", (3303, None, 3094479036)),
-                ("groups", (1608, Some(2931878699), 617474571)),
+                ("groups", (3553, Some(2133273625), 271133720)),
                 ("guys", (2464, Some(451796102), 1018289160)),
                 ("leaders", (3176, Some(2352774769), 1606385266)),
                 ("world", (3809, Some(2182316411), 2894561759)),
@@ -1896,17 +1915,19 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4460 (a trackless crew figure's `des` is guy 0's body
         // point, `Guy::set_new_location`'s crew loop): guys
         // 4,591 -> 4,695, first on 1736.
+        // Moved by item 4473 (`Army::add_unit`'s push runs `equals_group`'s
+        // normalize and `get_num` on the last slot): groups
+        // 4,553 -> 4,731, whole.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                1735, 553, 4731, 4511, 4084, 4553, 4695, 1976, 4731, 4731, 4731, 553,
+                1735, 553, 4731, 4511, 4084, 4731, 4695, 1976, 4731, 4731, 4731, 553,
             ],
             first: &[
                 ("units", (1735, Some(3081680851), 796971071)),
                 ("builds", (553, Some(2297078769), 1047897137)),
                 ("ammo", (2367, Some(1123882197), 1189418202)),
                 ("deaths", (1746, Some(1419733817), 1134652217)),
-                ("groups", (2811, Some(2634708853), 2723050627)),
                 ("guys", (1736, Some(4103418160), 1070804956)),
                 ("leaders", (1376, Some(73709351), 1700509480)),
                 ("world", (553, Some(699267042), 2987457272)),
@@ -1932,9 +1953,10 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
 
 /// **Parity held out, second, N of 8** (item 4462): the second battery's
 /// games whole on every line and state, and the games taken. As found,
-/// 2026-11-20: 1 of 8, row 150 (run1737).
+/// 2026-11-20: 1 of 8, row 150 (run1737). Item 4473: 1 -> 2, row 50
+/// (run1732) whole with its groups line.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (1, 8);
+pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (2, 8);
 
 /// One battery: its declared table, its pins, where its files and takes
 /// sit, and its line in the handoff.
