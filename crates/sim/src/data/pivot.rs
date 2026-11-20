@@ -315,6 +315,22 @@ const NODES: &[(i32, i32, Node)] = &[
             py: -960_000,
         },
     ),
+    // **Piece 138, the Cavalry Archer** (item 4446): run1293's packet read
+    // its `(4, 0, 0)` for item 3633, and run973g's reads it again through
+    // piece 842 ([`SAME_AS`]), `(−0.06, −1.48, 32.63)` (`0xbd75c28f`,
+    // `0xbfbd70a3`), 1545's; the row was never filed, so the turret bore
+    // from the figure's point. run973g's `1/56` on 12286: the original's
+    // `find_angle` arguments (`005d8e35`, `step4.py` on the packet) take
+    // the node at (−5, −3), and `des_turret_angles[0]` is `0xf80e0000`,
+    // where ours took (0, 0) and `0xf8160000`.
+    (
+        138,
+        4,
+        Node {
+            px: -60_000,
+            py: -1_480_000,
+        },
+    ),
     (
         1545,
         4,
