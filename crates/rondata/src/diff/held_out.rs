@@ -273,7 +273,7 @@ mod tests {
             return;
         };
         let states: Vec<i64> = spec.split(',').map(|s| s.parse().unwrap()).collect();
-        let line: usize = std::env::var("RON_PROBE_LINE")
+        let line: u8 = std::env::var("RON_PROBE_LINE")
             .ok()
             .and_then(|s| s.parse().ok())
             .unwrap_or(0);
