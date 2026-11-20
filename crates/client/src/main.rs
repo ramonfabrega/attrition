@@ -54,6 +54,7 @@ mod hud;
 mod input;
 mod lobby;
 mod oil;
+mod opening;
 mod overlay;
 mod particle;
 mod patch;
