@@ -434,6 +434,76 @@ mod tests {
         }
     }
 
+    /// **Row 60's pushed caravan keeps its crew's `des` on guy 0's body**
+    /// (item 4460, `docs/RECGAME.md` §10.3): run1722, the ranges take of
+    /// run1703's file. On tick 2106 the computer's Caravan `1/40` (type 59)
+    /// is pushed (−2, −2) to (37942, 19990) by a collision.
+    /// `Unit::set_new_location@005f8d20` writes `des` on the squad alone
+    /// (`+0xb5`, one figure), and with `param_3` 0 guy 0's body stays on
+    /// (37944, 19992). The two trackless crew figures' `des` is written only by
+    /// `Guy::set_new_location@005d86f0`'s crew loop, on guy 0's last point.
+    /// This crate reported it as the unit's point. Every units and guys range on
+    /// 2107 and 2108, byte for byte: red on the tree before the fix at units
+    /// range 1429 and guys range 399, record 40, `des_x` (byte 84), ours
+    /// 37942, theirs 37944.
+    #[test]
+    fn row_60_s_pushed_caravan_keeps_its_crew_s_des_on_run1722_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIRST, 3) else {
+            eprintln!("skipping: row 60's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1722/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1722's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 60's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [2107, 2108] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            for (line, ours) in [
+                (0u8, built.sim.checksum_units()),
+                (6u8, built.sim.checksum_guys()),
+            ] {
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == line).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {line}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "line {line} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+                if line == 6 && state == 2107 {
+                    // `1/40`'s first crew figure's `des_x`, by name: bytes
+                    // 84..88 of guys range 399.
+                    assert_eq!(
+                        &theirs[399].bytes[84..88],
+                        &37944i32.to_le_bytes(),
+                        "theirs' crew des_x on {state}"
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 120's barge is born with `form` 0** (item 4435, `docs/RECGAME.md`
     /// §10.3): run1716, the ranges take of run1706's file, holds the units
     /// line's every range on state 2694, where the computer's transport
@@ -1184,9 +1254,9 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4467 (the guys line's inside arm is chosen at the
         // unit's own `process`): guys 4,949 -> 4,961, first 2487 -> 3107;
         // units stands on 2487, its sum there moved.
-        // Moved by item 4471 (a trackless crew figure's `des` is guy 0's point,
-        // `Guy::set_new_location`'s crew loop): guys 4,961 -> 4,965, first 3107 -> 3190: the sum
-        // on 3107 is now theirs'.
+        // Moved by item 4460 (a trackless crew figure's `des` is guy 0's body
+        // point, `Guy::set_new_location`'s crew loop): guys
+        // 4,961 -> 4,965, first 3107 -> 3190.
         moved: Some(Score {
             states: 4974,
             agreed: [
@@ -1250,10 +1320,12 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // theirs): units 3,662 -> 3,714; guys 3,958 -> 4,010, first 2014 -> 2107.
         // On item 4448's tree, beside its guard arm: units 3,672 -> 3,724, first
         // 2014 -> 2107.
-        // Moved by item 4471 (a trackless crew figure's `des` is guy 0's point,
-        // `Guy::set_new_location`'s crew loop): units 3,724 -> 3,788, first 2107 -> 3757; guys
-        // 4,010 -> 4,075, whole. On 2107 both lines' sums are now theirs' (guys ours 882770536,
-        // theirs 1991836272).
+        // Moved by item 4460 (a trackless crew figure's `des` is guy 0's body
+        // point, `Guy::set_new_location`'s crew loop): units
+        // 3,724 -> 3,788, first 2107 -> 3757; guys 4,010 -> 4,075, whole. On
+        // 2107, run1722's units range 1429 and guys range 399, record 40 (the
+        // Caravan 1/40, TI 59, pushed (-2, -2) on 2106), its first crew
+        // figure's `des_x` read ours 37942, theirs 37944 (`des_y` 19990, 19992).
         moved: Some(Score {
             states: 4075,
             agreed: [
@@ -1379,12 +1451,10 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // after it (header, 12 control points, 17 weights, 16 knots, no
         // weights, 121 points and 121 normals, `total_spline_length`
         // 0x4765a7a2), ours none. Ammo parts next on 3210, ours refused.
-        // Moved by item 4471 (a trackless crew figure's `des` is guy 0's point,
-        // `Guy::set_new_location`'s crew loop): units 2,728 -> 2,743, first 2646 -> 2743; guys
-        // 3,308 -> 3,323, first 2646 -> 2744. On 2646, run1721's guys range 435 (units range
-        // 1696), record 46, the computer's Caravan 1/46 (TI 59): crew figure 1's `des_y` read ours
-        // 12355, theirs 12377, and figure 2's (range 436) the same. Units part next on 2743, range
-        // 2939, record 91, `guys.length` ours 1, theirs 0.
+        // Moved by item 4460 (a trackless crew figure's `des` is guy 0's body
+        // point, `Guy::set_new_location`'s crew loop): units
+        // 2,728 -> 2,743, first 2646 -> 2743; guys 3,308 -> 3,323, first 2646
+        // -> 2744.
         moved: Some(Score {
             states: 3331,
             agreed: [
@@ -1523,8 +1593,9 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // `SplineData`): ammo 5,591 -> 5,907, first 4542 -> 5135, ours
         // refused there. No ranges are on disk for run1730: on 4542 ours'
         // ammo sum was 2344817575 and is now theirs' 281265979.
-        // Moved by item 4471 (a trackless crew figure's `des` is guy 0's point,
-        // `Guy::set_new_location`'s crew loop): guys 5,942 -> 5,963, its first parting unmoved.
+        // Moved by item 4460 (a trackless crew figure's `des` is guy 0's body
+        // point, `Guy::set_new_location`'s crew loop): guys
+        // 5,942 -> 5,963, first on 2449.
         moved: Some(Score {
             states: 6001,
             agreed: [
@@ -1565,8 +1636,9 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4467 (the guys line's inside arm is chosen at the
         // unit's own `process`): guys 4,519 -> 4,525; units and guys stand
         // on 2334, their sums there moved.
-        // Moved by item 4471 (a trackless crew figure's `des` is guy 0's point,
-        // `Guy::set_new_location`'s crew loop): guys 4,525 -> 4,542, its first parting unmoved.
+        // Moved by item 4460 (a trackless crew figure's `des` is guy 0's body
+        // point, `Guy::set_new_location`'s crew loop): guys
+        // 4,525 -> 4,542, first on 2334.
         moved: Some(Score {
             states: 4548,
             agreed: [
@@ -1652,8 +1724,9 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        // Moved by item 4471 (a trackless crew figure's `des` is guy 0's point,
-        // `Guy::set_new_location`'s crew loop): guys 5,977 -> 6,000, its first parting unmoved.
+        // Moved by item 4460 (a trackless crew figure's `des` is guy 0's body
+        // point, `Guy::set_new_location`'s crew loop): guys
+        // 5,977 -> 6,000, first on 2464.
         moved: Some(Score {
             states: 6001,
             agreed: [
@@ -1704,8 +1777,9 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // the ammo line walks its `SplineData`): ammo 4,392 -> 4,511, first
         // 1601 -> 2367. No ranges are on disk for run1736: on 1601 ours'
         // ammo sum was 2349929217 and is now theirs' 941472936.
-        // Moved by item 4471 (a trackless crew figure's `des` is guy 0's point,
-        // `Guy::set_new_location`'s crew loop): guys 4,591 -> 4,695, its first parting unmoved.
+        // Moved by item 4460 (a trackless crew figure's `des` is guy 0's body
+        // point, `Guy::set_new_location`'s crew loop): guys
+        // 4,591 -> 4,695, first on 1736.
         moved: Some(Score {
             states: 4731,
             agreed: [

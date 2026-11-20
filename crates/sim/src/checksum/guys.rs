@@ -234,18 +234,15 @@ impl Sim {
                 unit.pos,
                 unit.movement.heading,
             ),
-            // **A trackless crew figure's `des` is guy 0's point, not the
-            // unit's** (item 4471, `docs/CHECKSUM.md` §18). Every figure
-            // past guy 0 is crew ([`crate::units::anim::SQUAD_SIZE`] is
-            // 1), and `Unit::set_new_location@005f8d20`'s tail writes
-            // `des` into guy 0 alone. A crew figure's `des_x`/`des_y` is
-            // written only by `Guy::set_new_location@005d86f0:73`–`97`'s
-            // crew loop, which every call on guy 0 runs whatever its
-            // `param_3`, with the point guy 0 is set to. Without a track
-            // offset that is guy 0's own `x`/`y`, the body. The two part
-            // when the unit's point moves and guy 0's does not: a
-            // collision push that does not move the body (run1721's
-            // Caravan `1/46` on tick 2645, `des_y` 12355 and 12377).
+            // **A trackless crew figure's `des` is guy 0's body point**
+            // (item 4460, `docs/CHECKSUM.md` §23.11). Every figure past guy 0
+            // is crew ([`crate::units::anim::SQUAD_SIZE`] is 1), and its
+            // `des` (`+0x5c`) is written only by `Guy::set_new_location@005d86f0`'s
+            // crew loop, as guy 0's new `x`/`y` plus a zero track.
+            // `Unit::set_new_location@005f8d20` writes `des` for the squad
+            // alone, so a push with `param_3` 0 moves the unit and guy 0's
+            // `des` and leaves the crew's on guy 0's body (run1722's Caravan
+            // `1/40` on 2107: ours 37942, theirs 37944).
             None => (
                 unit.movement.body,
                 unit.movement.facing,
