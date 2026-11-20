@@ -1094,9 +1094,10 @@ with item 4436's row 80 beside it.
 `row_120_s_scout_lands_with_its_figure_s_last_on_its_point_on_run1716_s_ranges`
 holds every units and guys range on 3250.
 
-*Not established*: what parts row 120's units on 5864, to the end. run1716
+*Not established*: ~~what parts row 120's units on 5864, to the end. run1716
 names it: range 1139, record 35, `collide_frame..play`, byte 90,
-`cavarch_o` ours −1, theirs −2 (unread). Whether rows 0 and 20's partings
+`cavarch_o` ours −1, theirs −2 (unread).~~ Answered by item 4443, below: the
+units line now folds the −2 this crate already held. Whether rows 0 and 20's partings
 were this cause rests on our walk and on the sums agreeing; neither has a
 ranges take. A unit leaving a building (`garrison.rs`'s `come_out_place`)
 takes the same `set_new_location(…, 1, 1)` and is not given the write; no
@@ -1125,3 +1126,15 @@ reaches theirs' caps the next frame (`calc_resource_caps@006ce900` runs every
 frame) and ours only at reassembly, on 976 (`docs/ECONOMY.md`). Read every
 frame, leaders is 4,075 of 4,075 (`SCORES[3].moved`); the row parts first on
 1055, `cavarch_o`. Diff-backed by run1722's ranges.
+
+**The units line folds `cavarch_o` −2** (item 4443, diff-backed on rows 80,
+100 and 120). `Unit::cavarch_fight@005ff4b0:34` writes `0xfffe` after two
+empty searches. The sim held it (`cavarch_idle`); the units range wrote −1.
+run1716, run1720 and run1721 name the leaf (ours −1, theirs −2): row 120 on
+5864, range 1139 (MLRS `1/35`); row 80 on 2239, range 3003; row 100 on 1611,
+range 1170. Row 120 is now **whole**; units also moves on rows 40, 60, 80,
+100 and 140 (`docs/journal/2026-11-20-item-4443.md`); row 60 parts first on
+1561. With 4444: 3 of 8, 74 of 96 lines.
+
+*Not established*: rows 80 and 100 next part units on `des_angle` (`+0x58`):
+run1720 on 2367, range 2407; run1721 on 1793, range 1581. Unread.
