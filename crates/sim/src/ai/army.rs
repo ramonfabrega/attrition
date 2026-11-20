@@ -481,6 +481,13 @@ impl Sim {
         if self.ai.armies[w].list[slot].units.contains(&u) {
             return;
         }
+        if std::env::var_os("RON_PROBE_4431").is_some() && (1825..=1832).contains(&self.frame) && who == 1 {
+            eprintln!(
+                "P4431A f{} army_add_unit 1/{} slot {slot} from g{}\n{}",
+                self.frame, self.units[u].index, self.pool_group_of(u),
+                std::backtrace::Backtrace::force_capture()
+            );
+        }
         // **The push arm is an army with no group** (`Army::add_unit
         // @006f9f40`: `+0x96 < 1 || list[0] < 0`). An army loses its group
         // only through `Army::normalize@006f9b50`'s `remove_group` on an
