@@ -1265,6 +1265,17 @@ impl Sim {
             af.z = z;
             af.last_z = z;
         }
+        // **The allocation outlives the occupant** (item 4451): the
+        // number's last dead occupant's `guys.size`, grown to this crew
+        // only when the crew is larger ([`Unit::guys_alloc`]).
+        let held = self
+            .units
+            .iter()
+            .enumerate()
+            .rev()
+            .find(|(i, old)| *i != u && old.owner == who && old.index == o && !old.alive())
+            .map_or(0, |(_, old)| old.guys_alloc.max(old.guys.len() as i32));
+        self.units[u].guys_alloc = held.max(guys.len() as i32);
         self.units[u].guys = guys;
         // `Unit::init@00612100:548`-`549`, which follow the guy loop:
         // `update_gpiece`, then `set_new_location(x, y, 1, 1)`. The
@@ -1345,6 +1356,10 @@ impl Sim {
             usize::try_from(self.tables.unit_types[ty].combat.crew_size + SQUAD_SIZE as i32)
                 .unwrap_or(0);
         self.units[u].guys.truncate(count);
+        // `Unit::set_type@00612fa0:140`–`152` grows the allocation to the
+        // new crew and never shrinks it ([`Unit::guys_alloc`]).
+        let alloc = &mut self.units[u].guys_alloc;
+        *alloc = (*alloc).max(count as i32);
         count
     }
 

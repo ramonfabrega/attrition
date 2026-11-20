@@ -1375,8 +1375,8 @@ units have one figure and two have two (the scouts and their dogs); on
 run1100's frame 93 have one, six two and two three, `size` equal to the
 count on all 101. **`size` is emitted as the count**: `Unit::init@00612100`
 grows the array to the crew it needs and never shrinks it, so a number
-re-inited with a smaller crew would keep the larger allocation — not
-read on any frame here. A `GuyData` `Coord` is stored **plain**:
+re-inited with a smaller crew would keep the larger allocation —
+~~not read here~~ §23.10. A `GuyData` `Coord` is stored **plain**:
 `Guy::set_new_location@005d86f0` writes the value it is handed, where a
 `SubObjectData`'s is masked.
 
@@ -2709,6 +2709,33 @@ agreeing.
 **Not established.** Piece 193's 0.9 rests on the XML and on run1374b's rounds fitting 189's rows at 0.9, not on a
 packet. ~~The Horse Archer's bearing~~ (item 4446, above). Which other restricted pieces lack a `NODES` row: none was
 swept; the `NODES` SEAM stands.
+
+## 23.10 The guys line's `guys.size` on a reused number (item 4451)
+
+**A reused object number keeps its dead occupant's figure allocation** (item 4451, diff-backed). After item 4446
+the census put `guys.size` (the walk's second range, §16) first on two guys lines, ours 1 theirs 3: run1327 f10930
+record 46 and run1217 f7728 record 188. Both are a Persian or Greek Citizen (TI 50, `PEASANTS`) with one figure:
+`1/46` uid 250 and `1/188` uid 493. On run1318, the long of run1327's lobby, `1/46` is a Heavy Elephant (TI 261,
+uid 78, three figures) from 2701 to 5101; on 5301 the Citizen holds the number.
+
+`Objects::init_unit@0065e0c0` takes a number from `find_free` and runs `Unit::init` (vslot `+0x8c`) on the object
+already in that slot of `units.field_0x10[who]`, so the `guys` array (`UnitData +0xe4`) is the dead occupant's.
+`Unit::init@00612100:472`–`484` grows `size` (`+0x8`) only when the crew (`+0x30c` + `+0x304`) is larger, by
+the shortfall when `increment` is 1. `:511`–`528` frees the figures past the crew and nulls their pointers, and
+`length` becomes the crew. `Unit::set_type@00612fa0:140`–`152` grows it the same way. The only other writers are
+the two constructors' zero. So `size` is the slot's high-water crew. **The direction: ours computed differently**.
+Our walk emitted the figure count. It now emits `Unit::guys_alloc`, which `Sim::init_guys` inherits from the
+number's last dead occupant and raises to the crew, and `reinit_guys_begin` raises on a type change
+(`harness_tests::a_reused_number_walks_its_dead_occupants_figure_allocation`). **4 lines turn, none grow**
+(`PACKETS_SCORE` 810 → 813): run1327's units and guys lines (10 ranges each, five reused numbers) and run1217's
+guys line (2); run1217's units line parts on 35 ranges, not 37. Value diff, run1327 f10930 record 46 (`1/46`,
+Citizen): `guys.size` and `guys.size..increment`'s `size` theirs 3, ours 1 → 3; run1217 f7728 record 188 (`1/188`,
+Citizen) the same.
+
+**Not established.** The `step4.py` watch the item booked was not run: the write is at the Citizen's birth,
+between 5101 and 5301, and no packet holds those frames, so the packets' diff is the evidence. An `increment`
+other than 1 (the shortfall arm against the block arm) is in no packet here. A unit a dump hands in reads its
+figure count, because no dump prints the allocation.
 
 ## 24. Step H: the fifteen, every frame (item 4214)
 
