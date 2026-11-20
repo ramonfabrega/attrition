@@ -1481,9 +1481,8 @@ impl Sim {
     /// `turn_angles@005d98c0` is [`crate::movement::turn_towards`] at the
     /// body's rate (`GuyData::turn_speed(1)`, the guy's own `last_speed`)
     /// **halved** by its fourth argument. `do_turn@005d97a0` then sets
-    /// `guy_flags & 2` when `out` is not the angle it had — the bit the
-    /// body's own turn respects, which this crate reads as the facing
-    /// against [`crate::Movement::frame_facing`] — asks for the turn
+    /// `guy_flags & 2` when `out` is not the angle it had ([`crate::Movement::turned`], item 4453;
+    /// the body's own turn reads it as the facing against `frame_facing`) — asks for the turn
     /// animation when the guy has one (its fifth argument), and writes
     /// `out` as guy 0's angle and every trackless crew figure's through
     /// `Guy::set_angle(out, 0)`. The peacock `8/2` on run511's block 9348,
@@ -1506,9 +1505,6 @@ impl Sim {
         let was = m.facing;
         let (out, _) = crate::movement::turn_towards(was, bearing, rate);
         if out != was {
-            // `do_turn:15`'s `guy_flags | 2` (item 4453): run1296's
-            // Arquebusiers `1/59` on 4632, pushed by the Supply Wagon
-            // `1/174` after its own walk, reads `0x12`.
             self.units[o].movement.turned = true;
             let outer = self
                 .trace
