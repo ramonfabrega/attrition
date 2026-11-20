@@ -324,7 +324,7 @@ mod tests {
             return;
         };
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(7) else {
+        let (Some(rcx), _) = paths(&FIRST, 7) else {
             eprintln!("skipping: row 140's recording is missing");
             return;
         };
