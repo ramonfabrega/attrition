@@ -1559,14 +1559,6 @@ impl Stream {
         while self.next < self.input.len() && self.input[self.next].frame == frame {
             let it = self.input[self.next].clone();
             self.next += 1;
-            // Probe (item 4472): the orders a window of frames applies.
-            if let Some((lo, hi)) = std::env::var("RON_DEBUG_STREAM").ok().and_then(|v| {
-                let (a, b) = v.split_once('-')?;
-                Some((a.parse::<i32>().ok()?, b.parse::<i32>().ok()?))
-            }) && (lo..=hi).contains(&frame)
-            {
-                eprintln!("  f{frame} ORDER {:?}", it.cmd);
-            }
             self.one(&it, built, &mut done);
         }
         done

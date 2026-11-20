@@ -817,7 +817,6 @@ pub(in crate::diff) mod tests {
             }
             stream.apply(f as i32, &mut built);
             crate::diff::harness::debug_watch(&built, f);
-            crate::diff::harness::debug_builds(&built, f);
             built.tick();
         }
         let got: Vec<SampleRange> = STATE_LINES
@@ -841,15 +840,6 @@ pub(in crate::diff) mod tests {
         let empty = Default::default();
         for (name, o) in STATE_LINES.iter().zip(ours) {
             let t: &super::super::checksum_lines::StreamRows = theirs.get(*name).unwrap_or(&empty);
-            // Probe (item 4472): one line's every range, both sides.
-            if std::env::var("RON_SAMPLE_RANGES_DUMP").as_deref() == Ok(*name) {
-                for r in &o.ranges {
-                    eprintln!("DUMP ours {} {} {:02x?}", r.record, r.field, r.bytes);
-                }
-                for r in t.iter() {
-                    eprintln!("DUMP theirs {:02x?}", r.2);
-                }
-            }
             for i in 0..o.ranges.len().max(t.len()) {
                 let (a, b) = (o.ranges.get(i), t.get(i));
                 if a.map(|r| &r.bytes) == b.map(|r| &r.2) {
@@ -906,12 +896,7 @@ pub(in crate::diff) mod tests {
                                     .zip(&b.2)
                                     .enumerate()
                                     .filter(|(_, (p, q))| p != q)
-                                    // Probe (item 4472): every byte.
-                                    .take(if std::env::var("RON_SAMPLE_RANGES_BYTES").is_ok() {
-                                        usize::MAX
-                                    } else {
-                                        16
-                                    })
+                                    .take(16)
                                     .map(|(k, (p, q))| format!("+{k:#x} {p:02x}|{q:02x}"))
                                     .collect();
                                 format!("len {}|{}: {}", a.bytes.len(), b.2.len(), d.join(", "))
