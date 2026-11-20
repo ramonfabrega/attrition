@@ -1445,6 +1445,10 @@ crate had: `150 × 125 / 100 + 50`, times 16. ~~Diamonds, the wonders and
 Virtual Reality are still not built.~~ **The wonders are built and the
 Pyramids' term is diff-backed, 2026-09-25** (§15); Diamonds and Virtual
 Reality are still not.
+**The tier is read every frame** (item 4444, run1722), as the commerce
+level and the wonders are: `calc_resource_caps` runs outside the reassembly
+gate. Row 60's computer takes its republic on 968, and theirs' caps are 3200
+on 969, where a tier read at reassembly held ours at 2400 until 976.
 
 `COMMERCE_CAP` ships as `70 100 150 200 260 320 400 500`, indexed by the
 player's commerce level — one of four `epoch` counters on the encrypted block.

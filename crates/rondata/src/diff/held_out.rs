@@ -672,7 +672,26 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4444 (the caps' republic term read every frame,
+        // run1722): leaders 4,068 -> 4,075, whole -- who=1's seven
+        // `resource_cap` words ours 2400, theirs 3200 on 969, its republic
+        // taken on 968. The game's first parting 969 -> 1055 (units,
+        // `cavarch_o`, item 4443's leaf).
+        moved: Some(Score {
+            states: 4075,
+            agreed: [
+                1055, 4073, 4075, 4075, 4075, 3863, 3958, 4075, 4066, 4075, 4075, 3984,
+            ],
+            first: &[
+                ("units", (1055, Some(2835614280), 2603158087)),
+                ("builds", (4019, Some(202745570), 1178445602)),
+                ("groups", (3598, Some(3778361523), 962934390)),
+                ("guys", (2014, Some(4240840485), 61413159)),
+                ("cities", (2253, Some(2126061725), 1479221375)),
+                ("world", (3984, Some(402934873), 4267790267)),
+            ],
+            over: None,
+        }),
     }),
     // run1704
     // row 80, Great Lakes at Enlightenment (seed 12345), as found 2026-11-19: the

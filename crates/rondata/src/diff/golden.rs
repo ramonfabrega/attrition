@@ -5498,11 +5498,9 @@ fn chapter_seventy_six_s_word_frame_is_widened_whole() {
 }
 
 const WANT_CH76: &[&str] = &[
-    "1013 0/-1 leader:resource_cap[0:food]",
-    "1013 0/-1 leader:resource_cap[1:timber]",
-    "1013 0/-1 leader:resource_cap[2:wealth]",
-    "1013 0/-1 leader:resource_cap[4:metal]",
-    "1013 0/-1 leader:resource_cap[5:oil]",
+    // Item 4444: 18 -> 13 rows. Who=0's five `resource_cap` rows on 1013
+    // are gone: the republic tier is read every frame, as
+    // `calc_resource_caps@006ce900` reads it, not at the next reassembly.
     "600 0/-1 leader:aggression[1]",
     "600 0/0 form",
     "600 0/1 form",
