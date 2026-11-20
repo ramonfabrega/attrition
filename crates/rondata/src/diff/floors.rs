@@ -509,13 +509,15 @@ pub const MAPGEN: Mapgen = Mapgen {
 // five lines, and `probe_relocate` and the new `set_new_location_turning` moved to `groups/group/query.rs`.
 // Item 4420: `sweep-lines` 17,287 -> 17,288 (+1), a named rise: `Turret::inc` (`GuyData +0x40`,
 // `turret_inc`) needs its `inc: 0` in `sweep/guy_set_all_pivots.rs`'s turret literal.
+// Item 4450: `largest` 3,709 -> 3,710 (+1), a named rise: `Build::activate`'s enhancer byte needs one
+// call in `cities/city.rs`'s `activate`; its body is `economy/holdings.rs`' `activate_enhancer_byte`.
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 11),
     ("test-tails", 0),
     ("sweep-lines", 17_288),
     ("names", 15),
     ("fields", 21),
-    ("largest", 3_709),
+    ("largest", 3_710),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before
