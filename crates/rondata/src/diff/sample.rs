@@ -606,8 +606,9 @@ pub(in crate::diff) mod tests {
     /// still counts its arrows down): 5344 -> 6697, measured on the merged
     /// tree (22 commits of the base beside it); the first shot still on
     /// 2929. Item 4463 (the capture of 3887 carried across): 6697 -> 5042,
-    /// a named fall, the frames it loses past every line's first parting
-    /// (leaders' 3888 the earliest); the first shot still on 2929.
+    /// a named fall, the lost frames not read one by one (a capture that
+    /// lands differently moves the war after it); the first shot still on
+    /// 2929.
     const SAMPLE_OURS_HELD: (usize, Option<i64>) = (5042, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
