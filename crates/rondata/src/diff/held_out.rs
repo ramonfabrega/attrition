@@ -349,9 +349,7 @@ mod tests {
                 crate::diff::harness::debug_watch(&built, built.sim.frame);
                 if built.sim.frame >= 4018 {
                     let b = built.sim.buildings.last().map(|b| (b.owner, b.index, b.pos, b.z));
-                    let _ = b;
-                    let u = built.sim.units.iter().find(|u| u.owner == 1 && u.index == 0);
-                    eprintln!("PROBE tick {} 1/0 {:?}", built.sim.frame, u.map(|u| (u.type_index, u.kind.domain, u.pos, u.inside, u.inside_unit)));
+                    eprintln!("PROBE tick {} ground {:?} buildings {} last {:?}", built.sim.frame, built.sim.world.data_z(29583, 22730), built.sim.buildings.len(), b);
                 }
             }
             let set = record.first_of(state - 1).expect("set").clone();
