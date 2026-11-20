@@ -982,6 +982,9 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         let placed = match city_ty {
             Some(ty) => {
                 let b = sim.setup().init_build(who, ty, pos, false);
+                // The Chinese village becomes a Large City before its
+                // start (item 4436).
+                sim.setup().chinese_start_city(b);
                 sim.setup().activate(b, false, false);
                 Ok(b)
             }

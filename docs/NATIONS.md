@@ -291,7 +291,7 @@ left out; a constant with no reader in the export is dead there too.
 | `CHINESE_SCIENCE_DISCOUNT` | 20 | TypeData::get_cost | modelled at queue.rs | `chinese_science_discount` |
 | `CHINESE_CITIZEN_INSTANT` | 1 | ObjectData::train_time | modelled at queue.rs | `chinese_citizen_instant` |
 | `CHINESE_CITIZEN_CREATION` | 100 | ObjectData::train_time | modelled at queue.rs | `chinese_citizen_creation` |
-| `CHINESE_LARGE_CITY` | 1 | ConquestGame::build_cities, Setup::build_cities | not carried | `chinese_large_city` |
+| `CHINESE_LARGE_CITY` | 1 | ConquestGame::build_cities, Setup::build_cities | modelled at setup.rs | `chinese_large_city` |
 | `CHINESE_LARGE_CITIES` | 1 | Build::activate, City::assimilate, ConquestGame::build_cities +1 | modelled at activate.rs | `chinese_large_cities` |
 | `JAPANESE_DAMAGE` | -5 | ObjectData::get_damage | modelled at damage.rs | `japanese_damage` |
 | `JAPANESE_BARRACKS_COST` | -7 | TypeData::get_cost | modelled at pricing.rs | `japanese_barracks_cost` |

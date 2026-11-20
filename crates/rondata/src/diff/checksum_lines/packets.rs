@@ -1402,7 +1402,10 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// `SubObjectData::flags & 0x40`, `Object::init`'s `DETECT`: run1217,
 /// run1221, run1224b, run1236, run1238c, run1263, run1264b, run1266c,
 /// run1294, run1296, run1327, run1361, run985b).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 771, 1053);
+/// **773** at item 4436: run1381's and run1220b's world lines whole (the
+/// Chinese village a Large City before its start, its third behind-ring
+/// marked).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 773, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -2181,6 +2184,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4328, a packed merchant out of `reg_unpack_merch`: leaders (271, 271, 2) -> (271, 271, 1).
     // Item 4332, `Unit::think`'s citizen bit `0x80000` emitted: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4422, the swarm's form -1: groups (550, 550, 1) -> (550, 550, 0).
+    // Item 4436, the Chinese village a Large City before its start: world (7663, 7663, 1) -> (7663, 7663, 0).
     (
         "run1220b",
         2976,
@@ -2196,7 +2200,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (27, 27, 0),
             (90, 90, 0),
             (120, 120, 0),
-            (7663, 7663, 1),
+            (7663, 7663, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (6445, 6949, 5946) -> (6445, 6949, 5874); builds (1719,
@@ -3572,6 +3576,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4396, the captain mirror's retarget kept in the order: units (5194, 5194, 9) -> (5194, 5194, 6).
     // Item 4397, `Setup::reinit_game_units` (every start building's `z` off the whole start's ground): builds (2147, 2147, 1) -> (2147, 2147, 0).
     // Item 4422, the swarm's form -1: groups (556, 556, 1) -> (556, 556, 0).
+    // Item 4436, the Chinese village a Large City before its start: world (8334, 8334, 1) -> (8334, 8334, 0).
     (
         "run1381",
         3262,
@@ -3587,7 +3592,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (27, 27, 0),
             (90, 90, 0),
             (180, 180, 0),
-            (8334, 8334, 1),
+            (8334, 8334, 0),
         ],
     ),
     // Item 4205, the built start: units (5014, 5130, 4171) -> (5014, 5130, 4106); builds (2015,
