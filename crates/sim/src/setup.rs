@@ -91,6 +91,36 @@ impl Setup<'_> {
         self.sim.activate(b, captured, counted)
     }
 
+    /// `Setup::build_cities@005ab910`, between the village's `Build::init`
+    /// and its start (vtable `+0x1a8`, whose `Wall::start` marks the
+    /// tiles the building hides): a leader with tribe bonus `0xe` (the
+    /// Chinese), under `CHINESE_LARGE_CITY` or `CHINESE_LARGE_CITIES`,
+    /// has the village `set_type(0x19f, 0)`, a Large City (our `Town`),
+    /// **before** it starts. So `Wall::mark_behind_tiles` reads the Large
+    /// City's `BEHIND_HEIGHT` 3, not the Small City's 2; converting at
+    /// `Build::activate`'s head, after the start, left the third ring
+    /// unmarked (item 4436: run1720's state 0, eleven tiles of the world
+    /// line's masks, bit `0x4`). `activate`'s own arm then converts it
+    /// again, a type it already holds.
+    pub fn chinese_start_city(&mut self, b: usize) {
+        let who = self.sim.buildings[b].owner;
+        let t = &self.sim.tables.tuning;
+        if !(self.sim.cities.nation[who as usize].chinese
+            && (t.chinese_large_city != 0 || t.chinese_large_cities != 0))
+        {
+            return;
+        }
+        if let Some(town) = self
+            .sim
+            .tables
+            .build_types
+            .iter()
+            .position(|t| t.ident == crate::cities::build::Ident::Town)
+        {
+            self.sim.set_type(b, town);
+        }
+    }
+
     /// `Setup::build_cities@005ab910:59`: the start city is activated with
     /// `(0, 0, 0)`, so `Build::activate` does not count it, and
     /// `build_cities` adds `cities_built`'s one itself.
