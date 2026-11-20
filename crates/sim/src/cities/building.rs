@@ -134,6 +134,16 @@ pub struct Building {
     pub launching: Vec<usize>,
     /// `BuildData::founder`.
     pub founder: Player,
+    /// **`BuildData::max_age` (`+0x83`) carried across a capture** (item
+    /// 4463). `Build::init@00629740:54` writes the owner's ages and
+    /// `Leader::gain_tech@006dcb60:538`–`550` raises it to the owner's on
+    /// an age, never lowers it, so on a building that never changed hands
+    /// the byte is the owner's ages. `Build::swap_team@00628210:44`–`48`
+    /// gives the new building the larger of its own and the old one's, so
+    /// a building taken from a player further on keeps that player's age:
+    /// this is the old building's byte, 0 on one never captured, and
+    /// [`Sim::build_max_age`] is the larger of it and the owner's ages.
+    pub max_age_floor: u8,
     /// The four per-call construction-clock clauses, as inputs.
     pub clock: crate::cities::build::ClockMods,
     /// Frame of the last hit by another player, for the repair gate.
@@ -383,6 +393,7 @@ impl Sim {
             farm: Farm::default(),
             ever_seen: 0,
             ever_seen_completed: 0,
+            max_age_floor: 0,
             mylos: 0,
             healing: 0,
             visible: 0,

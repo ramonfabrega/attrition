@@ -259,11 +259,11 @@ impl Sim {
         p(0x70, 2, gather_down);
         let (city, city_down) = match bd.city {
             Some(c) => {
-                let index = self
-                    .cities_of(self.cities.cities[c].owner)
-                    .iter()
-                    .position(|&x| x == c)
-                    .map_or(-1, |i| i as i64);
+                // The slot in the owner's list, dead slots counted:
+                // `Cities::close_city@00733310` leaves a closed city's slot
+                // where it is, so a capital taken from slot 0 leaves the
+                // owner's next city at 1 (item 4463, run1724's 3888).
+                let index = self.city_index_in_owner(c) as i64;
                 let chain = self.city_chain(c);
                 let next = chain
                     .iter()
@@ -317,11 +317,15 @@ impl Sim {
     }
 
     /// `BuildData::max_age` (+0x83): `Build::init` writes the owner's age
-    /// (`LeaderDataEncrypt +0xdc`) and `Leader::gain_tech` rewrites it on
-    /// every building of the player, so it is the owner's ages owned.
-    fn build_max_age(&self, b: usize) -> i64 {
+    /// (`LeaderDataEncrypt +0xdc`) and `Leader::gain_tech` raises it to the
+    /// owner's on every building of the player, so it is the owner's ages
+    /// owned, or the age a captured building kept from its old owner
+    /// ([`crate::cities::building::Building::max_age_floor`], item 4463),
+    /// whichever is larger.
+    pub(crate) fn build_max_age(&self, b: usize) -> i64 {
         let owner = self.buildings[b].owner as usize;
-        self.tech.get(owner).map_or(0, |p| i64::from(p.ages))
+        let ages = self.tech.get(owner).map_or(0, |p| i64::from(p.ages));
+        ages.max(i64::from(self.buildings[b].max_age_floor))
     }
 
     /// A technology's `TypeIndex` from its tree id: the techs run from
