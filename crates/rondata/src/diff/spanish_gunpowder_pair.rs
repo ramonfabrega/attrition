@@ -217,7 +217,8 @@ fn spanish_gunpowder_pair_the_long_s_stride_walks_back_from_2168() {
     // containment parts through block 2101: the Arquebusiers `1/48`, `1/49`
     // and `1/50` (TypeIndex 98) agree there, `1/48` and `1/49` on an
     // `ATTACKTOORDER` to (40776, 37128).
-    pin_eq!(w.firsts.len(), 100, "the stride's baseline");
+    // Item 4435: 100 -> 97, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 97, "the stride's baseline");
 }
 
 /// run1287b: the word 2168's window, blocks 2163..2419 at the long's
@@ -302,7 +303,8 @@ fn spanish_gunpowder_pair_run1287b_s_word_frame_is_widened_whole() {
     // arm now ejects at the shore: on 2163 ours' `1/48` stands at (41688,
     // 36360), `1/49` at (41688, 36168) and `1/50` at (41832, 36504), as
     // theirs, `inside` −1, and `1/68` is gone on both sides.
-    pin_eq!(w.firsts.len(), 85, "run1287b baseline");
+    // Item 4435: 85 -> 81, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 81, "run1287b baseline");
 }
 
 /// run1301: the gap 2102..2162 that the long's stride does not print, at
@@ -361,7 +363,8 @@ fn spanish_gunpowder_pair_run1301_s_gap_is_widened_whole() {
     // order, both sides. **The state parted on 2163** before this item:
     // theirs puts the three ashore and `1/68` dies; ours kept them aboard
     // (`think_carry_army`'s eject was a seam, `docs/AI.md` §335.1).
-    pin_eq!(w.firsts.len(), 76, "run1301 baseline");
+    // Item 4435: 76 -> 74, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 74, "run1301 baseline");
 }
 
 /// run1303: the gap 3802..3860 that the long's stride does not print, at
@@ -417,7 +420,8 @@ fn spanish_gunpowder_pair_run1303_s_gap_is_widened_whole() {
     // idle frame after its `ATTACKTOORDER` ends on 3858 (both sides),
     // theirs' search takes the Farm `0/2004` and ours' weighed it at 0
     // (`docs/AI.md` §335.2).
-    pin_eq!(w.firsts.len(), 89, "run1303 baseline");
+    // Item 4435: 89 -> 83, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 83, "run1303 baseline");
 }
 
 /// run1301b: the word 3866's window, blocks 3861..4117 at run1287b's
@@ -498,7 +502,8 @@ fn spanish_gunpowder_pair_run1301b_s_word_frame_is_widened_whole() {
     // bay (1809, 5233) for 12 frames with theirs, and the Farm is struck
     // on 3877 both sides; what is left past block 3861 is who=1's groups'
     // `held` and pools on 3882, 3966, 4018, 4028 and 4106 (§335.3).
-    pin_eq!(w.firsts.len(), 95, "run1301b baseline");
+    // Item 4435: 95 -> 89, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 89, "run1301b baseline");
 }
 
 /// run1304b: the word 4859's window, blocks 4853..5109 at run1287b's
@@ -571,7 +576,8 @@ fn spanish_gunpowder_pair_run1304b_s_word_frame_is_widened_whole() {
     // unit parts past the standing families but `1/122`'s `half_step` on
     // 4878 (ours 1, theirs 0).
     // Item 4159's residue: 136 -> 135, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 135, "run1304b baseline");
+    // Item 4435: 135 -> 98, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 98, "run1304b baseline");
     // **Every round, both directions** (item 3645's walk, Loop 3644): 608
     // round-blocks a side. What parts is three rounds on block 5002 (`1/56`,
     // `1/57`, `1/73`) whose target `0/12` has left the dump: theirs keep
@@ -663,7 +669,8 @@ fn spanish_gunpowder_pair_run1306_s_closing_window_is_widened_whole() {
         "no unit parts"
     );
     // Item 4159's residue: 138 -> 137, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 137, "run1306 baseline");
+    // Item 4435: 137 -> 98, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 98, "run1306 baseline");
     // **Every round, both directions** (item 3645's walk): 439 round-blocks
     // a side, and none parts.
     pin_eq!(w.rounds_read, (439, 439), "the rounds read");

@@ -182,7 +182,8 @@ fn american_enlightenment_pair_the_long_s_stride_walks_back_from_3215() {
     // `hits_left` ours 90 theirs 160, `myspeed` 25 against 31, `pos`
     // (35137, 43021) against (34971, 43021) (`docs/AI.md` §341).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 127 -> 126.
-    pin_eq!(w.firsts.len(), 126, "the stride's baseline");
+    // Item 4435: 126 -> 120, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 120, "the stride's baseline");
 }
 
 /// run1314b: the word 3215's window, blocks 3209..3465 at the long's
@@ -251,7 +252,8 @@ fn american_enlightenment_pair_run1314b_s_word_frame_is_widened_whole() {
     // against (34536, 43080): the draw on 3215, ours 15 against 16, index
     // 9, ours `Guy::set_anim+0x104b`, theirs
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271` (`docs/AI.md` §341).
-    pin_eq!(w.firsts.len(), 97, "run1314b baseline");
+    // Item 4435: 97 -> 96, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 96, "run1314b baseline");
     // Every round, both directions: 9 round-blocks theirs, 18 ours, 3
     // parting — all the Sloop `1/61`'s (TI 327) at the human's `0/2005`:
     // its round's end point on 3240, `ex`/`ey` (4773, 7451) against
@@ -314,7 +316,8 @@ fn american_enlightenment_pair_run1325_s_clocks_are_widened_whole() {
     // pools) and what follows the old word; unread by the draft — the
     // next session's first job (journal 2026-10-26, item 3661).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 120 -> 119.
-    pin_eq!(w.firsts.len(), 119, "run1325 baseline");
+    // Item 4435: 119 -> 118, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 118, "run1325 baseline");
     pin_eq!(w.rounds_read, (9, 9), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -376,7 +379,8 @@ fn american_enlightenment_pair_run1325b_s_word_frame_is_widened_whole() {
     // against (7451, 9479, 418), arriving a frame late — and the human's
     // capital `0/2000` took its damage on 5583 in theirs alone
     // (`build:damage` 0 against 4): the word 5583.
-    pin_eq!(w.firsts.len(), 163, "run1325b baseline");
+    // Item 4435: 163 -> 111, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 111, "run1325b baseline");
     pin_eq!(w.rounds_read, (84, 84), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -520,7 +524,8 @@ fn american_enlightenment_pair_run1325d_s_closing_window_is_widened_whole() {
     // `angle`.
     // Item 4159's residue: 148 -> 147, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 147 -> 146.
-    pin_eq!(w.firsts.len(), 146, "run1325d baseline");
+    // Item 4435: 146 -> 89, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 89, "run1325d baseline");
     // 82 a side, none parting. Before piece 218's bays who=1's Cannons'
     // (type 268) four rounds left the carriage's own point, 100 low —
     // `1/96`'s on 6475 from (9480, 9864, 318) against (9369, 9768, 418).

@@ -237,7 +237,8 @@ fn japanese_ancient_pair_run1252b_s_word_frame_is_widened_whole() {
     // Item 3610: 1962 → 82, the standing families alone, with piece
     // 1176's bays: `1/50`'s arrow lands on `0/6` on 4904 on both sides.
     // Item 4159's residue: 83 -> 82, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 82, "run1252b baseline");
+    // Item 4435: 82 -> 63, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 63, "run1252b baseline");
 }
 
 /// **The long's stride, walked back from the word 4934** (item 3602):
@@ -282,7 +283,8 @@ fn japanese_ancient_pair_the_long_s_stride_walks_back_from_4934() {
     // `form`, and who=1's groups' `held` and pools, which the stride does
     // not print — from 101 through 4901: no unit field parts on any stride
     // block, so the state run1252b opens apart on 4928 parts after 4901.
-    pin_eq!(w.firsts.len(), 134, "the stride's baseline");
+    // Item 4435: 134 -> 107, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 107, "the stride's baseline");
 }
 
 /// run1264: the gap's window, blocks 4895..4940 at run1252b's detail with
@@ -337,7 +339,8 @@ fn japanese_ancient_pair_run1264_s_gap_is_widened_whole() {
     // 4926, `1/51`'s re-aim. With the bays: 79, the standing families
     // alone (every unit's `form`, who=0's `SITE[i].reg`, `aggression[1]`,
     // who=1's groups' `held`).
-    pin_eq!(w.firsts.len(), 79, "run1264 baseline");
+    // Item 4435: 79 -> 61, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 61, "run1264 baseline");
 }
 
 /// **The closing state** (item 3610): run1252's closing block 6127, the
@@ -441,5 +444,6 @@ fn japanese_ancient_pair_run1264c_s_closing_frame_is_widened_whole() {
     // Item 3610: 59 keys, the standing families alone, through the
     // closing block 6127.
     // Item 4159's residue: 60 -> 59, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 59, "run1264c baseline");
+    // Item 4435: 59 -> 55, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 55, "run1264c baseline");
 }

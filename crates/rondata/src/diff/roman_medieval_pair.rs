@@ -249,7 +249,8 @@ fn roman_medieval_pair_run1275b_s_word_frame_is_widened_whole() {
         w.firsts.keys().all(|(who, o, _)| (*who, *o) != (1, 17)),
         "the Citizen 1/17 parts nowhere in the window"
     );
-    pin_eq!(w.firsts.len(), 66, "run1275b baseline");
+    // Item 4435: 66 -> 65, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 65, "run1275b baseline");
 }
 
 /// run1277: the word 3607's window, blocks 3602..3858 at the long's detail
@@ -328,7 +329,8 @@ fn roman_medieval_pair_run1277_s_word_frame_is_widened_whole() {
             || what.starts_with("group:")),
         "past the standing blocks only pools, groups and form part"
     );
-    pin_eq!(w.firsts.len(), 112, "run1277 baseline");
+    // Item 4435: 112 -> 74, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 74, "run1277 baseline");
 }
 
 /// **The word's road search, node for node** (item 3631): every road search
@@ -468,7 +470,8 @@ fn roman_medieval_pair_run1293b_s_word_frame_is_widened_whole() {
             .all(|((_, _, k), (f, _))| *f == 5577 || !(k == "pos" || k.starts_with("order"))),
         "no position or order parts past the standing block"
     );
-    pin_eq!(w.firsts.len(), 102, "run1293b baseline");
+    // Item 4435: 102 -> 86, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 86, "run1293b baseline");
 }
 
 /// **The long's stride, walked back from the word 5582** (item 3631):
@@ -505,7 +508,8 @@ fn roman_medieval_pair_the_long_s_stride_walks_back_from_5582() {
         }
         eprintln!("  missing {:?}", w.missing);
     }
-    pin_eq!(w.firsts.len(), 180, "run1275 stride baseline");
+    // Item 4435: 180 -> 129, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 129, "run1275 stride baseline");
 }
 
 /// run1293c: the gap before the word 5582's window, blocks 5501..5577 at
@@ -569,10 +573,14 @@ fn roman_medieval_pair_run1293c_s_gap_is_widened_whole() {
             .filter(|(_, (f, _))| *f > 5501)
             .map(|(k, (f, _))| (*f, k.clone()))
             .min()
-            == Some((5544, (1, 174, "form".to_string()))),
-        "the first parting past the standing block is a newborn's form on 5544"
+            .is_none(),
+        // Item 4435: `1/174` (5544) and `1/186` (5564) were born through
+        // `transport_boat`, and now take `Unit::init`'s `form` 0: nothing
+        // parts past the standing block.
+        "nothing parts past the standing block (was a newborn's form on 5544)"
     );
-    pin_eq!(w.firsts.len(), 93, "run1293c baseline");
+    // Item 4435: 93 -> 80, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 80, "run1293c baseline");
 }
 
 /// run1295: the word 5971's window, blocks 5833..5979 at the long's detail
@@ -644,7 +652,8 @@ fn roman_medieval_pair_run1295_s_word_frame_is_widened_whole() {
     // Item 3710: 2 keys fewer — who=1's leader `free_peasants` and
     // `gatherers` agree now that `produce_city` walks its citizens by
     // object number (`docs/AI.md` §358.4).
-    pin_eq!(w.firsts.len(), 96, "run1295 baseline");
+    // Item 4435: 96 -> 85, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 85, "run1295 baseline");
 }
 
 /// **The closing state** (item 3635): run1275's closing block 5980, the

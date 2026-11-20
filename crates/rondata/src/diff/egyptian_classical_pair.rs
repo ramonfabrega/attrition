@@ -204,7 +204,8 @@ fn egyptian_classical_pair_run1230b_s_word_frame_is_widened_whole() {
     // team sums of 6176/6201), who=1's wealth `income`, `leftover`,
     // `resources` and `bucket` agree; `1/73`'s and six other
     // `dest_angle` rows stand.
-    pin_eq!(w.firsts.len(), 102, "run1230b baseline");
+    // Item 4435: 102 -> 95, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 95, "run1230b baseline");
 }
 
 /// The long's own stride blocks, 1 through 5901 — the last before run1230b's
@@ -250,7 +251,8 @@ fn egyptian_classical_pair_the_long_s_stride_walks_back_from_5956() {
     // unit parts on a stride block through 5901. The stride prints no
     // `LEADERDATA` or `BUILDDATA`, so run1230b's economy rows on 5956 are
     // not walked back here.
-    pin_eq!(w.firsts.len(), 187, "run1230 stride baseline");
+    // Item 4435: 187 -> 144, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 144, "run1230 stride baseline");
 }
 
 /// run1241: the walk back from run1230b's first block 5956, blocks
@@ -314,7 +316,8 @@ fn egyptian_classical_pair_run1241_walks_the_market_s_queue_back() {
     // standing families, `1/84`'s `orders_x`/`orders_y` on 5759 (7224,
     // 12168 against 7227, 12158) and the groups' `held`/`pool` on 5697.
     // Item 4159's residue: 110 -> 109, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
-    pin_eq!(w.firsts.len(), 109, "run1241 baseline");
+    // Item 4435: 109 -> 92, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 92, "run1241 baseline");
 }
 
 /// run1241b: the word 6537's window, blocks 6532..6748 — six blocks before
@@ -391,7 +394,8 @@ fn egyptian_classical_pair_run1241b_s_word_frame_is_widened_whole() {
     // through the closing block. What stands is the standing families, the
     // groups' `held` and pools on 6533 and 6543, the five `dest_angle` rows
     // from 6664 (3580b's shape) and `1/261`'s `form` on 6733.
-    pin_eq!(w.firsts.len(), 96, "run1241b baseline");
+    // Item 4435: 96 -> 90, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 90, "run1241b baseline");
 }
 
 /// The long's stride blocks between run1230b's last block 6212 and
@@ -435,7 +439,8 @@ fn egyptian_classical_pair_the_long_s_stride_walks_the_scout_back() {
     // Item 3595: **158** keys, every one a standing family (`build:extra`,
     // `form`, groups' `held`/`pool`). The Scout `1/126` agrees on 6301,
     // 6401 and 6501, and so does every other unit on the three blocks.
-    pin_eq!(w.firsts.len(), 158, "run1230 stride 6301 baseline");
+    // Item 4435: 158 -> 151, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 151, "run1230 stride 6301 baseline");
 }
 
 /// run1242: the Scout `1/126` walked back from run1241b's first block 6532,
@@ -497,7 +502,8 @@ fn egyptian_classical_pair_run1242_walks_the_scout_back() {
     // (`docs/AI.md` section 318.2) gives (13, 15) to who=0 theirs, and the
     // enemy cell's +4 sends theirs east. After it: **91**, the standing
     // families alone.
-    pin_eq!(w.firsts.len(), 91, "run1242 baseline");
+    // Item 4435: 91 -> 86, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    pin_eq!(w.firsts.len(), 86, "run1242 baseline");
 }
 
 /// **The pair's closing state**: run1230's closing dump, block 6749, walked
