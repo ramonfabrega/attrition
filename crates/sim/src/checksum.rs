@@ -378,8 +378,7 @@ impl Sim {
         // `City::calc_gather@00737c60`'s four bytes as its last run wrote
         // them (item 4450, [`crate::cities::CitiesState::enhancers`]); the
         // fourth (oil) it writes as zero.
-        let [granary, lumber_mill, smelter] =
-            self.cities.enhancers.get(c).copied().unwrap_or([0; 3]);
+        let [granary, lumber_mill, smelter] = self.city_enhancer_bytes(c);
         put(0x56, &[granary, lumber_mill, smelter, 0]);
         put(
             0x5a,

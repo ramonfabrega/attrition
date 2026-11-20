@@ -337,11 +337,28 @@ impl Sim {
             levels.lumber_mill.max(1)
         };
         let v = economy::enhancer_bonus(&self.tables.tuning, r, lvl) as u8;
-        let e = &mut self.cities.enhancers;
-        if e.len() <= c {
-            e.resize(c + 1, [0; 3]);
+        // Only a city a reassembly here has stored: a start stood up from a
+        // packet activates its buildings before it installs the techs, and
+        // reads the live levels until its first reassembly.
+        if let Some(Some(bytes)) = self.cities.enhancers.get_mut(c) {
+            bytes[slot] = v;
         }
-        e[c][slot] = v;
+    }
+
+    /// `CityData +0x56..=+0x58` as the cities line reads them: the bytes
+    /// the last reassembly or activation stored
+    /// ([`crate::cities::CitiesState::enhancers`]), else the live levels.
+    pub(crate) fn city_enhancer_bytes(&self, c: usize) -> [u8; 3] {
+        if let Some(Some(b)) = self.cities.enhancers.get(c) {
+            return *b;
+        }
+        let owner = self.cities.cities[c].owner;
+        let held = self.city_holdings(c, Levels::for_player(self, owner));
+        [
+            held.granary as u8,
+            held.lumber_mill as u8,
+            held.smelter as u8,
+        ]
     }
 
     fn is_kind(&self, b: usize, ident: Ident) -> bool {
@@ -718,13 +735,13 @@ impl Sim {
         for (&c, city) in indices.iter().zip(&cities) {
             let e = &mut self.cities.enhancers;
             if e.len() <= c {
-                e.resize(c + 1, [0; 3]);
+                e.resize(c + 1, None);
             }
-            e[c] = [
+            e[c] = Some([
                 city.granary as u8,
                 city.lumber_mill as u8,
                 city.smelter as u8,
-            ];
+            ]);
         }
         let refineries = self.refinery_count(who);
 

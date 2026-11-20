@@ -1430,7 +1430,9 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// **806** on item 4430's tip: run1351's and run1426b's guys lines whole
 /// (4430), and run1426b's units line too, whose last ranges were 4430's
 /// turrets and 4443's `cavarch_o`; run1351's units line parts on one.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 813, 1053);
+/// **815** on item 4450's tip (+2): run1235b's and run1320b's cities lines
+/// whole, `City::calc_gather`'s enhancer bytes kept to the reassembly.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 815, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -2359,6 +2361,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4425, a member compute_dests skips keeps its record offset: groups (646, 646, 7) -> (646, 646, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (7490, 7490, 57) -> (7490, 7490, 38).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (7490, 7490, 38) -> (7490, 7490, 30).
+    // Item 4450, `City::calc_gather`'s bytes kept to the reassembly: cities (30, 30, 1) -> (30, 30, 0).
     (
         "run1235b",
         4127,
@@ -2371,7 +2374,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (646, 646, 0),
             (2097, 2097, 0),
             (271, 271, 0),
-            (30, 30, 1),
+            (30, 30, 0),
             (15, 15, 0),
             (330, 330, 0),
             (9352, 9352, 0),
@@ -3020,6 +3023,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4425, a member compute_dests skips keeps its record offset: groups (652, 652, 4) -> (652, 652, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (8490, 8490, 78) -> (8490, 8490, 47).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (8490, 8490, 47) -> (8490, 8490, 42).
+    // Item 4450, `City::calc_gather`'s bytes kept to the reassembly: cities (39, 39, 1) -> (39, 39, 0).
     (
         "run1320b",
         5066,
@@ -3032,7 +3036,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (652, 652, 0),
             (2197, 2197, 1),
             (271, 271, 1),
-            (39, 39, 1),
+            (39, 39, 0),
             (5, 5, 0),
             (330, 330, 0),
             (9476, 9476, 1),

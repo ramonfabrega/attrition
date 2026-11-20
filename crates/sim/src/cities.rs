@@ -81,9 +81,10 @@ pub struct CitiesState {
     /// reassemblies they keep the levels of the last one: on row 60's 2253
     /// (run1722) city 0's granary reads 20 on theirs, level 1, where the
     /// owner's level was already 2. Written by [`Sim::assemble_holdings_with`],
-    /// read by the cities line; grown on demand, a city never reassembled
-    /// reads zeros, `City::init`'s.
-    pub enhancers: Vec<[u8; 3]>,
+    /// read by the cities line; grown on demand. A city with no entry was
+    /// never reassembled here (a start stood up from a packet or a dump
+    /// carries no bytes), and the line reads its live levels instead.
+    pub enhancers: Vec<Option<[u8; 3]>>,
     /// `City +0x90` where a `rename_city` wrote it, by city index
     /// (`CommandPackage::process_rename_city@00944090`; item 4268,
     /// `crate::cities::rename`). A city absent here keeps the founding name,
