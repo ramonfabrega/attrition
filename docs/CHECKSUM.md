@@ -2694,8 +2694,8 @@ is (−5, −3). A probe of ours' `set_all_pivots` on 12244 and 12270 had the sa
 (0, 0): `pivot::NODES` had no row for piece 138, though item 3633's `RELEASES` comment names its `(4, 0, 0)` as read.
 run973g's packet reads it through 842, `(−0.06, −1.48, 32.63)` (1545's); at rotation 121° × 4.8 it is (−5.94, −3.91),
 truncated (−5, −3). The row goes in `NODES` (`pivot::tests::the_cavalry_archer_bears_its_turret_from_its_saddle`).
-**The direction: ours computed differently** on the frame both aimed. **2 guys lines turn, none grow** (`PACKETS_SCORE`
-786 → 788): run973g and run1268; their units lines part on one range fewer each (4 → 3, 5 → 4). Value diff, run973g
+**The direction: ours computed differently** on the frame both aimed. **4 lines turn, none grow** (`PACKETS_SCORE`
+806 → 810, on item 4443's tip): run973g's and run1268's guys and units lines, each units line's last range. Value diff, run973g
 frame 12286 record 56 (`1/56`, Horse Archer, TI 188): `turret_angles[0]` and `des_turret_angles[0]` theirs
 `0xf80e0000`, ours `0xf8160000` → `0xf80e0000`; run1268 f3347 record 54 (piece 138), byte 26 ours `6b` theirs `80` →
 agreeing.
