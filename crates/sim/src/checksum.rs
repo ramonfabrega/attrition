@@ -342,8 +342,6 @@ impl Sim {
             .and_then(|a| a.city_ai.get(c))
             .copied()
             .unwrap_or_default();
-        let levels = crate::economy::holdings::Levels::for_player(self, city.owner);
-        let held = self.city_holdings(c, levels);
         let mut b = vec![0u8; 0x72 - CITY_BASE];
         let mut put = |at: usize, v: &[u8]| {
             b[at - CITY_BASE..at - CITY_BASE + v.len()].copy_from_slice(v);
@@ -377,17 +375,12 @@ impl Sim {
         put(0x50, &i16b(i64::from(ai.peasant_dist)));
         put(0x52, &i16b(i64::from(city.trade_val)));
         put(0x54, &NO_CONQUEST_NODE.to_le_bytes());
-        // `City::calc_gather@00737c60`'s four bytes; the fourth (oil) it
-        // writes as zero.
-        put(
-            0x56,
-            &[
-                held.granary as u8,
-                held.lumber_mill as u8,
-                held.smelter as u8,
-                0,
-            ],
-        );
+        // `City::calc_gather@00737c60`'s four bytes as its last run wrote
+        // them (item 4450, [`crate::cities::CitiesState::enhancers`]); the
+        // fourth (oil) it writes as zero.
+        let [granary, lumber_mill, smelter] =
+            self.cities.enhancers.get(c).copied().unwrap_or([0; 3]);
+        put(0x56, &[granary, lumber_mill, smelter, 0]);
         put(
             0x5a,
             &[ai.free, ai.busy as u8, ai.gatherers, city.pop as u8],

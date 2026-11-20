@@ -669,11 +669,24 @@ impl Sim {
             a.known_rares = a.census.reg_known_rares.iter().sum();
         }
 
-        let cities: Vec<economy::City> = self
-            .cities_of(who)
-            .into_iter()
-            .map(|c| self.city_holdings(c, levels))
+        let indices = self.cities_of(who);
+        let cities: Vec<economy::City> = indices
+            .iter()
+            .map(|&c| self.city_holdings(c, levels))
             .collect();
+        // `City::calc_gather`'s bytes stay on the city until the next
+        // reassembly ([`crate::cities::CitiesState::enhancers`]).
+        for (&c, city) in indices.iter().zip(&cities) {
+            let e = &mut self.cities.enhancers;
+            if e.len() <= c {
+                e.resize(c + 1, [0; 3]);
+            }
+            e[c] = [
+                city.granary as u8,
+                city.lumber_mill as u8,
+                city.smelter as u8,
+            ];
+        }
         let refineries = self.refinery_count(who);
 
         // `COMMERCE_CAP[commerce_level]`, and the level is
