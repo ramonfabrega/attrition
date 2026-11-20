@@ -738,12 +738,23 @@ pub(in crate::diff) mod tests {
                 .ok()
                 .and_then(|v| v.parse::<i64>().ok())
                 == Some(f);
+            let fogp = |b: &sim::Sim, tag: &str| {
+                for (fx, fy) in [(99, 83), (105, 83), (98, 83), (100, 83), (104, 83), (106, 83), (99, 82), (105, 82)] {
+                    eprintln!("PROBE4442 fog {tag} ({fx},{fy}) seen2 {:?}", b.world.seen2(fx, fy));
+                }
+                eprintln!(
+                    "PROBE4442 mask {tag} census {:?}",
+                    b.ai.ai.iter().map(|a| a.census.ally_mask).collect::<Vec<_>>()
+                );
+            };
             if probe {
+                fogp(&built.sim, "before");
                 built.sim.trace.trace_costs = true;
                 built.sim.trace.cost_marks.clear();
             }
             built.tick();
             if probe {
+                fogp(&built.sim, "after");
                 built.sim.trace.trace_costs = false;
                 for m in &built.sim.trace.cost_marks {
                     let un = &built.sim.units[m.unit];
