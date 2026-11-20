@@ -1090,7 +1090,8 @@ on row 120's 3250, and `1/0` off `1/20` on row 140's guys parting 3081. In
 the second column, rows 0 and 20 are **whole**: all twelve lines on all
 6,001 states. Row 120's guys is whole and units moved 5,861 → 5,864 (first
 3250 → 5864). Row 40's guys moved 4,824 → 4,876 (2444 → 2487), and row 140's
-5,994 → 6,000 (3081 → 4026). Parity held out reads 2 of 8, 71 of 96 lines.
+5,994 → 6,000 (3081 → 4026). Parity held out reads 2 of 8, 72 of 96 lines
+with item 4436's row 80 beside it.
 `row_120_s_scout_lands_with_its_figure_s_last_on_its_point_on_run1716_s_ranges`
 holds every units and guys range on 3250.
 
