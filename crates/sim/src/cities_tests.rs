@@ -3208,6 +3208,41 @@ fn a_player_s_garrison_takes_the_squad_in_whole_and_its_eject_keeps_their_angles
     }
 }
 
+/// `docs/COLLISION.md` §25, the building half (item 4456): a unit out of a
+/// building has its disc painted at the point it stood inside, then moved
+/// to its spot, so a bit another unit painted there while it was inside
+/// is cleared with the old footprint. run1724's Inca Citizen `4/4`, in at
+/// (10152, 10104), out on 3878, left world cell (13, 13) an empty block.
+#[test]
+fn a_unit_out_of_a_building_clears_the_disc_it_stood_inside() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+    // A disc to paint: `coll_size` 1, as every unit in the captures.
+    sim.tables.unit_types[hoplite].combat.block_radius = 48;
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, b);
+    let h = spawn(&mut sim, 0, hoplite, tile_pos(52, 40));
+    assert_eq!(sim.coll_size(h), 1);
+    let inside = crate::movement::collide::ucell(sim.units[h].movement.body.pos);
+    sim.go_inside(h, b);
+    // Another unit's bit, on the point the hoplite stands at inside.
+    sim.movement.coll.set(inside.x, inside.y, true);
+    assert!(sim.come_out(h));
+    let spot = crate::movement::collide::ucell(sim.units[h].pos);
+    assert!(
+        (spot.x - inside.x).abs() > 1 || (spot.y - inside.y).abs() > 1,
+        "the spot's disc does not reach the inside point"
+    );
+    assert!(
+        !sim.movement.coll.get(inside.x, inside.y),
+        "the inside disc is painted and cleared, the other unit's bit with it"
+    );
+    assert!(sim.movement.coll.get(spot.x, spot.y), "the spot's disc is set");
+    assert_eq!(sim.units[h].coll_at, Some(sim.units[h].pos));
+}
+
 #[test]
 fn the_garrison_heal_runs_every_twenty_frames_where_the_unit_was_trained() {
     let mut sim = world_sim();

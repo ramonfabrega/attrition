@@ -562,6 +562,9 @@ pub(in crate::diff) mod tests {
     /// Item 4454 (a building at health 0 still counts its arrows down,
     /// `Build::process@0061edf0`): builds 3878 → 3888; items 5760 → 4805,
     /// a named fall past world's unchanged 3878 and the 3888 partings.
+    /// Item 4456 (a unit out of a building paints its disc where it stood
+    /// inside, then moves it): world 3878 -> 3888, every other line
+    /// unchanged.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 3888),
         ("builds", 3888),
@@ -574,7 +577,7 @@ pub(in crate::diff) mod tests {
         ("cities", 3888),
         ("items", 4805),
         ("goods", 4559),
-        ("world", 3878),
+        ("world", 3888),
     ];
 
     /// `(frames our walk holds no wall, shot or death, the first it holds
@@ -1008,7 +1011,12 @@ pub(in crate::diff) mod tests {
     /// 10152, 10104, 332 -> theirs' 10488, 10968, 304. Item 4454: builds
     /// 3878 -> 3888, `Build::process@0061edf0` reaching `do_attack` at
     /// health 0: computer 4's `2672 2000` `recharging` ours 8 -> theirs' 7
-    /// (it held at 8 from 3877 on; theirs went 7, 6, 5).
+    /// (it held at 8 from 3877 on; theirs went 7, 6, 5). Item 4456: world
+    /// 3878 -> 3888, `Unit::come_out@00617c10:514`'s `add_to_world` painting
+    /// the Inca Citizen `4/4`'s disc at its inside point (10152, 10104)
+    /// before `:518`'s `move_unit` to its spot (10488, 10968):
+    /// `4474 793 block.present` ours 0 -> theirs' 1, an empty block on
+    /// world cell (13, 13) (`docs/COLLISION.md` §25).
     const SAMPLE_RANGES_1724: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
@@ -1069,11 +1077,11 @@ pub(in crate::diff) mod tests {
         ),
         (
             "world",
-            3878,
-            7751,
-            7749,
-            901,
-            "4474 793 block.present: +0x0 of 4|4: 00000000|01000000",
+            3888,
+            7771,
+            7771,
+            1,
+            "5083 1336 block.body: +0x4 of 96|96: 0e000e00|1c001c00",
         ),
     ];
 }

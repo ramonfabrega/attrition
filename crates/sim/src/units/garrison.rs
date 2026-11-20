@@ -667,6 +667,9 @@ impl Sim {
         turn: bool,
     ) {
         let u = &mut self.units[f];
+        // Guy 0's retained point: where the figure stood when it went in,
+        // or where `Unit::init` seated it, since nothing moves it inside.
+        let retained = u.movement.body.pos;
         let flip = turn
             && angle.is_some_and(|a| {
                 crate::groups::group::reversing(crate::movement::Angle(
@@ -744,7 +747,16 @@ impl Sim {
                 af.last_z = af.z;
             }
         }
-        self.coll_add(f);
+        // **The disc is painted where the figure stood inside, then moved**
+        // (item 4456, `docs/COLLISION.md` §25): `remove_from_inside`'s
+        // `add_to_world` (`00617c10:514`) paints each guy's disc at its
+        // `+0xc`/`+0x10`, which still hold the point it went in at, and
+        // `:518`'s `set_new_location(spot, 1, 1)` reaches
+        // `CollCheck::move_unit(old, spot)`. The old footprint's block is
+        // allocated and its bits cleared again in one frame: the sample's
+        // Inca Citizen `4/4`, in at (10152, 10104), out on 3878 at (10488,
+        // 10968), leaves cell 793 an empty block in run1724's world line.
+        self.coll_come_out(f, retained);
         self.chain_add(f);
         // **And the crew comes out with it.** The original places the
         // unit with `set_new_location(·, ·, 1, 1)` (`00617c10:518`),
