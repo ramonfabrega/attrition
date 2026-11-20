@@ -841,6 +841,15 @@ pub(in crate::diff) mod tests {
         let empty = Default::default();
         for (name, o) in STATE_LINES.iter().zip(ours) {
             let t: &super::super::checksum_lines::StreamRows = theirs.get(*name).unwrap_or(&empty);
+            // Probe (item 4472): one line's every range, both sides.
+            if std::env::var("RON_SAMPLE_RANGES_DUMP").as_deref() == Ok(*name) {
+                for r in &o.ranges {
+                    eprintln!("DUMP ours {} {} {:02x?}", r.record, r.field, r.bytes);
+                }
+                for r in t.iter() {
+                    eprintln!("DUMP theirs {:02x?}", r.2);
+                }
+            }
             for i in 0..o.ranges.len().max(t.len()) {
                 let (a, b) = (o.ranges.get(i), t.get(i));
                 if a.map(|r| &r.bytes) == b.map(|r| &r.2) {
