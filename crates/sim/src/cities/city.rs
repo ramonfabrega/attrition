@@ -611,20 +611,7 @@ impl Sim {
             }
         }
         self.lost_a_city(owner, was_capital, captor);
-        // `City::close@00737550:191`–`:205`, its last arm: every caravan
-        // linked to the closed city (`vans`, `+0x78` long) whose slot and
-        // unit are alive is `Unit::repath`ed, which pops the walk it is on
-        // until the `TRADE_ROUTE` heads its list; `do_trade` then finds
-        // the home closed and the order dies (item 4463: run1724's 3887,
-        // the Inca capital taken, its caravan holding no order on 3888).
-        for (k, w) in self.city_links(c) {
-            let van = &self.economy.caravans[w as usize].slots[k as usize];
-            if let Some(u) = van.unit.filter(|_| van.alive)
-                && self.units[u].alive()
-            {
-                self.repath(u);
-            }
-        }
+        self.close_city_caravans(c);
         self.sync_pop_cities();
         self.sync_territory();
     }
@@ -3372,54 +3359,7 @@ impl Sim {
         }
         let pos = self.buildings[b].pos;
         let n = self.init_build(a, ty, pos, true);
-        let old = self.buildings[b].clone();
-        let bd = &mut self.buildings[n];
-        bd.started = old.started;
-        bd.active = old.active;
-        bd.activated = old.activated;
-        bd.under_attack = old.under_attack;
-        bd.job_counter = old.job_counter;
-        bd.job_counter_2 = old.job_counter_2;
-        bd.constr_time = old.constr_time;
-        bd.construct_hits = old.construct_hits;
-        bd.damage = old.damage;
-        // Not `damage_frac`: `swap_team` copies `+0x24` and `+0x3a` and
-        // leaves `+0x3b` the new record's 0 (`docs/AI.md` §230; run676's
-        // Napata `1/2086`, captured at its ceiling with a fraction of 2,
-        // prints 0).
-        bd.founder = old.founder;
-        bd.recharging = old.recharging;
-        bd.clock = old.clock;
-        // `Wall::swap_team@00640c00` copies `+0x62`/`+0x63` across: who has
-        // ever seen it stays who had (item 2106: Napata `1/2086` reads 255
-        // in the original on its capture frame, 2 here).
-        bd.ever_seen = old.ever_seen;
-        bd.ever_seen_completed = old.ever_seen_completed;
-        // `Wall::swap_team@00640c00`, after the library: the flags byte is
-        // the new record's `& 0x40` or'd with the old one's `& 0xbf`, and
-        // `ObjectData::visible` (`+0x40`) is copied (item 4463: the Inca
-        // capital `4/2000` taken on 3887 had shot the person, `visible` 8,
-        // and was marked damaged, `0x10`; the copy read 0 and clear here).
-        // Of the byte this crate keeps `0x10` and `0x80` as fields; `0x1`,
-        // `0x2`, `0x4` are the copy's own and `0x20`, `0x40` the type's.
-        bd.damage_marked = old.damage_marked;
-        bd.attacking = old.attacking;
-        bd.visible = old.visible;
-        // `Build::swap_team@00628210:44`–`48`: the new building's `max_age`
-        // is the larger of its own (its new owner's ages, `Build::init`)
-        // and the old building's (item 4463).
-        self.buildings[n].max_age_floor = self.build_max_age(b) as u8;
-        // `swap_team:75`–`81`, a farm (`TypeIndex` 0x1a1): the new building
-        // takes the old one's `+0x78`, the `Farms` record is re-pointed at
-        // it, and the old one's is −1, so its close frees nothing. The
-        // record — crop cells, type, heights — is the same one, carried
-        // across; `Build::init` made none for the copy (`param_6`), and
-        // without this the activation's push gave it a new slot at the
-        // list's end (item 4463).
-        if let Some(slot) = self.cities.farm_order.iter().position(|&x| x == b) {
-            self.cities.farm_order[slot] = n;
-            self.buildings[n].farm = self.buildings[b].farm.clone();
-        }
+        self.swap_team_copy(b, n);
         self.update_hits(n);
         self.update_build_los(n);
         Some(n)

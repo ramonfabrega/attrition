@@ -1127,6 +1127,25 @@ impl Sim {
         // cannot fire while the only two orders are this pair.
     }
 
+    /// `City::close@00737550:191`–`:205`'s last arm for city `c` (item
+    /// 4463; called from [`Sim::close_city`]'s tail, after `lost_a_city`).
+    pub(crate) fn close_city_caravans(&mut self, c: usize) {
+        // `City::close@00737550:191`–`:205`, its last arm: every caravan
+        // linked to the closed city (`vans`, `+0x78` long) whose slot and
+        // unit are alive is `Unit::repath`ed, which pops the walk it is on
+        // until the `TRADE_ROUTE` heads its list; `do_trade` then finds
+        // the home closed and the order dies (item 4463: run1724's 3887,
+        // the Inca capital taken, its caravan holding no order on 3888).
+        for (k, w) in self.city_links(c) {
+            let van = &self.economy.caravans[w as usize].slots[k as usize];
+            if let Some(u) = van.unit.filter(|_| van.alive)
+                && self.units[u].alive()
+            {
+                self.repath(u);
+            }
+        }
+    }
+
     /// `Unit::end_trade_route@005e3bd0`: the route is given up — the pair
     /// forgotten, the plan and any parked search with it.
     pub fn end_trade_route(&mut self, u: usize) {
