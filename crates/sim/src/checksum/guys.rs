@@ -150,9 +150,20 @@ impl Sim {
 
     /// `GuyData::guy_flags` (`+0x9a`) of figure `g`, from what this crate
     /// keeps: the bits `Guy::init_real@005db6b0` sets from the type and the
-    /// piece, and `Unit::set_in_danger`'s `0x20`.
+    /// piece, `Unit::set_in_danger`'s `0x20`, and **`0x2`, a turn since the
+    /// figure's own `Guy::process`** (item 4450). `Guy::do_turn@005d97a0`
+    /// sets `0x2` on any turn that moves the angle and recurses into the
+    /// trackless crew; `Guy::process@005e0230` clears it right after
+    /// `Guy::move`. So the state boundary holds it on guy 0 and its
+    /// trackless crew when a `do_turn` came after the body's process:
+    /// [`crate::Movement::frame_facing`], the facing that process left,
+    /// against the facing now, the predicate the body turn itself reads.
+    /// Row 60's gaia animal `8/2` (type 413) on run1722's 2014: turned to
+    /// `0xa2d82d55` after its process, `guy_flags` ours 16, theirs 18.
     fn guy_flags_word(&self, u: usize, g: usize) -> u16 {
         let unit = &self.units[u];
+        let turned = unit.movement.facing != unit.movement.frame_facing
+            && (g == 0 || unit.guys[g].follow.is_none());
         let ty = unit.type_index;
         let pivot = self
             .roster
@@ -161,6 +172,7 @@ impl Sim {
             .get(&ty)
             .is_some_and(|nodes| !nodes.is_empty());
         let bits = [
+            (0x2, turned),
             (0x8, self.guy_turns(u, g)),
             (0x10, unit.movement.turning.instant_from_stop),
             (
