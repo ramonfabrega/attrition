@@ -1417,13 +1417,20 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// run1169, run1382) and 22 more parting on fewer world ranges, none on
 /// more: `BuildType::mask_me` walks a footprint column by column, so
 /// `BAD_PATH` stays on the corners the original leaves it on.
+/// **786** at item 4430: run1351's and run1426b's guys lines whole, and
+/// their units lines one and two ranges fewer: a `sim::data::pivot`
+/// `SAME_AS` piece keeps its own `RData +0x88`, so the A7V's 192 and the
+/// `CHURCHILLDES`'s 195 bear their turrets from the node at 0.9.
 /// **803** at item 4443: nineteen whole units lines (run1355, run1381,
 /// run1220b, run1254c, run1419b, run1351c, run1417, run1323b, run1007b,
 /// run1237, run1424, run1332a, run991d, run1305b, run854, run1385p, run959,
 /// run1357, run1382) and 42 more parting on fewer units ranges, none on
 /// more: the units line folds `cavarch_o` −2, `Unit::cavarch_fight`'s
 /// `0xfffe`, which the sim held as `cavarch_idle`.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 803, 1053);
+/// **806** on item 4430's tip: run1351's and run1426b's guys lines whole
+/// (4430), and run1426b's units line too, whose last ranges were 4430's
+/// turrets and 4443's `cavarch_o`; run1351's units line parts on one.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 806, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -3310,18 +3317,19 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (562, 562, 2) -> (562, 562, 0).
     // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: units (4745, 4745, 10) -> (4745, 4745, 9), guys (1352, 1352, 2) -> (1352, 1352, 1).
     // Item 4441, `mask_me` walks a footprint column by column: world (8328, 8328, 2) -> (8328, 8328, 0).
-    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4745, 4745, 9) -> (4745, 4745, 2).
+    // Item 4430, a SAME_AS piece's own RData +0x88, the A7V's turret vector at 0.9: units (4745, 4745, 9) -> (4745, 4745, 8), guys (1352, 1352, 1) -> (1352, 1352, 0).
+    // Item 4443 (on 4430), the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4745, 4745, 8) -> (4745, 4745, 1).
     (
         "run1351",
         4303,
         [
-            (4745, 4745, 2),
+            (4745, 4745, 1),
             (2237, 2237, 0),
             (0, 0, 0),
             (3, 3, 0),
             (0, 0, 0),
             (562, 562, 0),
-            (1352, 1352, 1),
+            (1352, 1352, 0),
             (271, 271, 0),
             (30, 30, 0),
             (75, 75, 0),
@@ -4080,18 +4088,19 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (544, 544, 1) -> (544, 544, 0).
     // Item 4420, a dead missile's turret_inc on its slot's next guy 0: units (4175, 4175, 7) -> (4175, 4175, 6), guys (1227, 1227, 3) -> (1227, 1227, 2).
     // Item 4441, `mask_me` walks a footprint column by column: world (8284, 8284, 10) -> (8284, 8284, 8).
-    // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4175, 4175, 6) -> (4175, 4175, 2).
+    // Item 4430, a SAME_AS piece's own RData +0x88, the CHURCHILLDES's piece 195 at 0.9: units (4175, 4175, 6) -> (4175, 4175, 4), guys (1227, 1227, 2) -> (1227, 1227, 0).
+    // Item 4443 (on 4430), the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4175, 4175, 4) -> (4175, 4175, 0).
     (
         "run1426b",
         3722,
         [
-            (4175, 4175, 2),
+            (4175, 4175, 0),
             (2266, 2265, 802),
             (0, 0, 0),
             (0, 0, 0),
             (2, 2, 0),
             (544, 544, 0),
-            (1227, 1227, 2),
+            (1227, 1227, 0),
             (271, 271, 1),
             (27, 27, 0),
             (80, 80, 0),

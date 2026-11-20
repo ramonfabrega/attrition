@@ -190,10 +190,10 @@ sets `saving = 1` and `limit = 300 / repaths²`; both zero `saving` after.
   ten-cell detour west through unexplored ground where the original walks
   seven cells south-east; no capture had exercised it before, because until
   the AI's borders were right no non-scout in either game was given an
-  explore order over any distance. The `flags & 4` clause is a **seam**: it
-  can only ever turn scouting *off* for a scout whose explore order carries
-  `ACTION`, the two `unit_masks` bits are unmodelled, and every explore order
-  in the corpus has `flags 1`. **`army` and `worker` are AI-only** — a human's
+  explore order over any distance. ~~The `flags & 4` clause is a seam~~
+  **(built by item 4442)**: `0x40000` is `Sim::unit_ai_bit`, `0x100`
+  `auto_explore`, and a person's queued explores carry `flags 5` (the 2017
+  sample's Scout `3/0` on 2892). **`army` and `worker` are AI-only** — a human's
   `find_wpath` jumps straight to the search past the whole block (audit
   V14): for AI leaders, `army = 1` iff the type is military (`+0x1e8`
   attack ≠ 0, or its `is_supply` virtual — for the base class,

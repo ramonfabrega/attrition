@@ -734,20 +734,24 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
+        // Moved by item 4444 (the caps' republic term read every frame,
+        // run1722): leaders 4,068 -> 4,075, whole -- who=1's seven
+        // `resource_cap` words ours 2400, theirs 3200 on 969, its republic
+        // taken on 968. The game's first parting 969 -> 1055 (units,
+        // `cavarch_o`, item 4443's leaf).
         // Moved by item 4443 (the units line folds `cavarch_o` -2): units
         // 1,055 -> 3,662, first 1055 -> 1561. On 1055 (our walk) the
         // fire-on-the-move 1/21 (type 139) is the one unit idle at -2.
         moved: Some(Score {
             states: 4075,
             agreed: [
-                3662, 4073, 4075, 4075, 4075, 3863, 3958, 4068, 4066, 4075, 4075, 3984,
+                3662, 4073, 4075, 4075, 4075, 3863, 3958, 4075, 4066, 4075, 4075, 3984,
             ],
             first: &[
                 ("units", (1561, Some(3913862560), 4278570550)),
                 ("builds", (4019, Some(202745570), 1178445602)),
                 ("groups", (3598, Some(3778361523), 962934390)),
                 ("guys", (2014, Some(4240840485), 61413159)),
-                ("leaders", (969, Some(2042929290), 243376476)),
                 ("cities", (2253, Some(2126061725), 1479221375)),
                 ("world", (3984, Some(402934873), 4267790267)),
             ],
