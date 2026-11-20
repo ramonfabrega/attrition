@@ -3610,6 +3610,62 @@ fn a_capture_carries_max_age_visible_and_traded_with_and_leaves_the_slots() {
     assert_eq!(sim.city_index_in_owner(c2), 1, "the slot stays 1, not 0");
 }
 
+/// **A capture closes the members before the old city** (item 4466,
+/// run1724's 3887: the Inca capital's library held an epoch). The close
+/// loop of `Cities::capture_city@00733380` skips the city centre, so the
+/// library closes while still its city's, the owner's first library; with
+/// no other, `Build::close@00628980:468` cleans its queue with a refund,
+/// `num_queued` and `epochs_queued` down. The first capital loss raises
+/// the loser's `leader_flags & 0x400000` (`capture_city:833`) on the line.
+#[test]
+fn a_capture_cleans_the_captured_library_s_queue_and_marks_the_capital_plundered() {
+    use crate::tech::{Line, TechTree, TypeDef};
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = TechTree::new();
+    let library_t = tree.add(TypeDef::building("Library"));
+    let mut ww = TypeDef::epoch("Written Word", Line::Science, 0).at(library_t);
+    ww.cost[economy::Resource::Food.index()] = 4;
+    ww.job_time = 400;
+    let written_word = tree.add(ww);
+    sim.set_tech_tree(tree);
+    sim.tables.build_types[t.library].tree = Some(library_t);
+    let (b, _) = city_at(&mut sim, &t, 1, 32, 32);
+    sim.tech[1].epoch[Line::Civic as usize] = 1;
+    let _ = city_at(&mut sim, &t, 1, 8, 8);
+    let lib = sim.init_build(1, t.library, tile_pos(36, 32), false);
+    finish(&mut sim, lib);
+    assert_eq!(sim.first_library(1), Some(lib));
+    let food = sim.economy.ledgers[1].bucket[0];
+    assert_eq!(sim.queue_tech(lib, written_word), Ok(0));
+    let paid = food - sim.economy.ledgers[1].bucket[0];
+    assert!(paid > 0);
+    assert_eq!(sim.tech[1].epochs_queued, 1);
+    assert_eq!(sim.tech[1].queued[written_word], 1);
+    assert_eq!(sim.leader_flag_words(1).0.unwrap() & 0x40_0000, 0);
+    let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+    let bd = &mut sim.buildings[b];
+    bd.damage = bd.hits;
+    bd.sync_health();
+    sim.frame = 1000;
+    let hs: Vec<usize> = (0..3)
+        .map(|i| spawn(&mut sim, 0, hoplite, tile_pos(36, 32 + i)))
+        .collect();
+    assert!(sim.check_capture(b, hs[2]));
+    assert!(!sim.buildings[lib].alive || sim.buildings[lib].owner != 1);
+    assert_eq!(sim.tech[1].epochs_queued, 0, "epochs_queued down");
+    assert_eq!(sim.tech[1].queued[written_word], 0, "num_queued down");
+    assert_eq!(
+        sim.economy.ledgers[1].bucket[0], food,
+        "the queue cleaned with a refund"
+    );
+    assert_ne!(
+        sim.leader_flag_words(1).0.unwrap() & 0x40_0000,
+        0,
+        "the capital's plunder bit on the line"
+    );
+}
+
 /// **A captured city's record is `City::init`'s on a transfer, then
 /// `City::capture`'s** (item 2106, Great Sahara's Napata `1/2086` on its
 /// capture frame 4340): all five clocks — `attack_stamp`, `raid_stamp`,

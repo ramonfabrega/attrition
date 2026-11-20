@@ -573,6 +573,8 @@ pub(in crate::diff) mod tests {
     /// units 3888 -> 3906, builds -> 3904, ammo -> 3920, groups 3935 ->
     /// 4004, guys -> 3906, cities -> 3891, world -> 3889, items 4805 ->
     /// 5474; goods 4559 -> 4458, a named fall past leaders' unchanged 3888.
+    /// Item 4466 (the capture's members close before the old city; the
+    /// line's `0x400000` and make-list city slot): leaders 3888 -> 3889.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 3906),
         ("builds", 3904),
@@ -581,7 +583,7 @@ pub(in crate::diff) mod tests {
         ("deaths", 3932),
         ("groups", 4004),
         ("guys", 3906),
-        ("leaders", 3888),
+        ("leaders", 3889),
         ("cities", 3891),
         ("items", 5474),
         ("goods", 4458),
@@ -1041,7 +1043,11 @@ pub(in crate::diff) mod tests {
     /// `repath` and its route ended in the kill (`unit_masks` 0x4020a ->
     /// 0x4000a). Units and guys 3888 -> 3906, builds -> 3904, ammo -> 3920,
     /// groups 3935 -> 4004, cities -> 3891, world -> 3889; leaders' 3888
-    /// stands: player 4's `flags` `+0x2` 08|48.
+    /// stands: player 4's `flags` `+0x2` 08|48. Item 4466 (the capture's
+    /// members close before the old city, `capture_city@00733380`'s loop
+    /// skipping the centre; `0x400000` and the make list's city slot on the
+    /// line): leaders 3888 -> 3889, player 3's `reg_terr[1]` 77|48; every
+    /// other line unchanged.
     const SAMPLE_RANGES_1724: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
@@ -1086,11 +1092,11 @@ pub(in crate::diff) mod tests {
         ),
         (
             "leaders",
-            3888,
+            3889,
             667,
             667,
-            12,
-            "531 4 flags: +0x2 of 8|8: 080a0000|480a0000",
+            1,
+            "400 3 who..ally_mask: +0x1458 of 26914|26914: 4d000000|30000000",
         ),
         (
             "cities",
