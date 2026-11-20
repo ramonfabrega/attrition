@@ -3602,7 +3602,10 @@ fn a_capture_carries_max_age_visible_and_traded_with_and_leaves_the_slots() {
     assert_eq!(sim.build_max_age(nb), 1, "the old building's age, not 0");
     assert_eq!(sim.buildings[nb].visible, 1, "ObjectData::visible copied");
     assert!(sim.buildings[nb].damage_marked, "flags & 0x10 copied");
-    assert_eq!(sim.cities.cities[nc].traded_with[4], 2, "traded_with copied");
+    assert_eq!(
+        sim.cities.cities[nc].traded_with[4], 2,
+        "traded_with copied"
+    );
     assert!(sim.cities.cities[c2].alive);
     assert_eq!(sim.city_index_in_owner(c2), 1, "the slot stays 1, not 0");
 }
