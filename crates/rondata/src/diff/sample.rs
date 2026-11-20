@@ -395,8 +395,11 @@ pub(in crate::diff) mod tests {
     /// (`Unit::do_move+0xe84 < Unit::do_explore_to`, spent on both
     /// sides). On 3020 computer 1's MERCHANT `1/17` (`TypeIndex` 61) parts
     /// too: theirs collides with the scout at (39826, 32220), ours does not.
-    const SAMPLE_WINDOW_RECORDS: (usize, usize, Option<(i64, &str)>) =
-        (26, 8, Some((3013, "run1674")));
+    ///
+    /// Item 4442 (`find_wpath`'s scouting gate: the scout's `flags 5`
+    /// explore plans at a person's prices, the 2892 detour gone): 8 parted
+    /// → 0, all 26 agree.
+    const SAMPLE_WINDOW_RECORDS: (usize, usize, Option<(i64, &str)>) = (26, 0, None);
 
     /// The sample's word and the frames walked, against run1651's draws:
     /// 3019 of 21,044 (item 4359: 2888 → 3019, +131, in two builds. On
@@ -574,8 +577,9 @@ pub(in crate::diff) mod tests {
     /// Item 4432 (a refused group slot re-placed): 4361 → 5010, the first
     /// shot still on 2929. Item 4440 (the bell's group pushed, a garrison
     /// walked): 5010 -> 4141, every frame it loses past units' 2892 and
-    /// groups' 3053; the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4141, Some(2929));
+    /// groups' 3053; the first shot still on 2929. Item 4442 (the scouting
+    /// gate): 4141 -> 3855, the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3855, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
