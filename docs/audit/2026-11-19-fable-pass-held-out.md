@@ -142,3 +142,25 @@ Item 4434 left the queue: the pass wrote its paragraph and its line.
   agrees on every state of all eight, so none of the eight holds a wall.
 - **The driver's own cost is not summed**, as before.
 - **The blind list was not scanned**: open 0.
+
+## The gate
+
+Whole, by `tools/gate_run.sh`, twice.
+
+- **`gate-pass-1119b.log`: `gate exit 1`** on `3774bc2d6`, in its offline
+  step after one minute.
+  `test_the_commander_s_lines_are_tests_that_exist` reads four source
+  files for every name in `COMMANDERS_LINES`, and the new line's test
+  lives in `diff/held_out.rs`, which was not one of them. The pass had
+  run the paperwork guard and the release filters and not the offline
+  suite. Both directions of that check read the held-out module now.
+- **`gate-pass-1119c.log`: `gate exit 0`** on `e5f6fc88d`, 9 of 9 steps:
+  offline 1.0, guard 1.0, merge pins 1.1, release 22.1, clock 0.1.
+  `Clock: green beside load`. Admission 10.2 s over 1,457 leases; load
+  2.2 at its start and 8.8 at its end. The four `held_out::tests` ran and
+  passed, the scores' in 244.8 CPU-seconds. `Fixture audit: 198539
+  requests, 0 missing fixtures`: eight more than the drain's, the eight
+  recordings. `Rows: one driver row at
+  most: steer 429c9837 (working)`; `Driver: 0 landings since the last
+  pass (backstop 20) · context 368 k`. `Builders: 0 reaped`; 143 GB free
+  after it.
