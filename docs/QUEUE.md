@@ -99,7 +99,7 @@ Parity held at 5 of 6 and packet lines at 661 of 1,053 on that tip. Whole branch
 
 `codex/field-coverage` (4409) builds on 4408. Field coverage avoided 152,601 ticks across 39 windows. Widened scope 13m26s → 13m02s, required-fixture whole gate 24m11s → 23m27s. Both green on `383c9cbd1`.
 
-`codex/checksum-scoring` (4452) starts from `ed15741e8`. Timing the held-out scorer's type-index lookups and Adler fold. Branch gate pending.
+`codex/checksum-scoring` (4452) starts from `ed15741e8`. Held-out scorer 203.3 → 76.2s alone. Eight-thread booking 11m47s, full required-fixture gate 22m46s, both green on `fc3a10565`. All 54,659 compared states kept their range bytes and checksums.
 
 ## How to maintain this file
 
