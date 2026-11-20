@@ -1433,7 +1433,26 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by the merge of 4459 (`AirAttackGroundOrder`'s five ranges
+        // walked), measured on the merged tree before this item's gate:
+        // units 1,704 -> 1,735, first 1570 -> 1735.
+        moved: Some(Score {
+            states: 4731,
+            agreed: [
+                1735, 553, 4731, 4392, 4084, 4553, 4566, 1976, 4731, 4731, 4731, 553,
+            ],
+            first: &[
+                ("units", (1735, Some(3081680851), 796971071)),
+                ("builds", (553, Some(2297078769), 1047897137)),
+                ("ammo", (1601, Some(2349929217), 941472936)),
+                ("deaths", (1746, Some(1419733817), 1134652217)),
+                ("groups", (2811, Some(2634708853), 2723050627)),
+                ("guys", (1736, Some(4103418160), 1070804956)),
+                ("leaders", (1376, Some(73709351), 1700509480)),
+                ("world", (553, Some(699267042), 2987457272)),
+            ],
+            over: None,
+        }),
     }),
     // run1737
     // row 150, as found 2026-11-20: 12 lines whole.

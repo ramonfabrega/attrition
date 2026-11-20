@@ -1159,6 +1159,7 @@ recorded idle by the client's page to 6000 and played by the original as
 | 130 | run1736 | East Indies all-tech, ages 8..7 | 4,731, ended on 4730 | 4 | builds and world 553 |
 | 150 | run1737 | Great Sahara, difficulty 4 | 6,001 | **12** | whole |
 
+Since the take, row 130's units line has moved 1,704 → 1,735 (4459's merge; `SCORES_SECOND[6].moved`).
 The original refused none of the eight files. Row 110 is the only row of
 the sixteen with three seats, and it is played as its lobby stands.
 `docs/RUNS.md` run1730 to run1737 holds every value; the pins hold both
