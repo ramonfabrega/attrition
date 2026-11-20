@@ -611,6 +611,7 @@ impl Sim {
             }
         }
         self.lost_a_city(owner, was_capital, captor);
+        self.close_city_caravans(c);
         self.sync_pop_cities();
         self.sync_territory();
     }
@@ -1634,6 +1635,7 @@ impl Sim {
             farm: crate::Farm::default(),
             ever_seen: 0,
             ever_seen_completed: 0,
+            max_age_floor: 0,
             mylos: 0,
             healing: 0,
             visible: 0,
@@ -3310,6 +3312,10 @@ impl Sim {
         nc.no_heal = oldc.no_heal;
         nc.attacking = oldc.attacking;
         nc.ever_attacked = oldc.ever_attacked;
+        // `City::capture@00736c40:77`–`84`: the eight `traded_with` words
+        // come across (item 4463: run1724's Inca capital, taken on 3887,
+        // `traded_with[4]` 2 in the original's new record and 0 here).
+        nc.traded_with = oldc.traded_with;
         if oldc.capital {
             nc.was_capital |= 1 << o;
             if oldc.founding_capital {
@@ -3353,29 +3359,7 @@ impl Sim {
         }
         let pos = self.buildings[b].pos;
         let n = self.init_build(a, ty, pos, true);
-        let old = self.buildings[b].clone();
-        let bd = &mut self.buildings[n];
-        bd.started = old.started;
-        bd.active = old.active;
-        bd.activated = old.activated;
-        bd.under_attack = old.under_attack;
-        bd.job_counter = old.job_counter;
-        bd.job_counter_2 = old.job_counter_2;
-        bd.constr_time = old.constr_time;
-        bd.construct_hits = old.construct_hits;
-        bd.damage = old.damage;
-        // Not `damage_frac`: `swap_team` copies `+0x24` and `+0x3a` and
-        // leaves `+0x3b` the new record's 0 (`docs/AI.md` §230; run676's
-        // Napata `1/2086`, captured at its ceiling with a fraction of 2,
-        // prints 0).
-        bd.founder = old.founder;
-        bd.recharging = old.recharging;
-        bd.clock = old.clock;
-        // `Wall::swap_team@00640c00` copies `+0x62`/`+0x63` across: who has
-        // ever seen it stays who had (item 2106: Napata `1/2086` reads 255
-        // in the original on its capture frame, 2 here).
-        bd.ever_seen = old.ever_seen;
-        bd.ever_seen_completed = old.ever_seen_completed;
+        self.swap_team_copy(b, n);
         self.update_hits(n);
         self.update_build_los(n);
         Some(n)

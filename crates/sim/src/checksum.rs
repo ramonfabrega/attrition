@@ -413,7 +413,7 @@ impl Sim {
     /// taken as the caravan's slot in its owner's list and `who` as that
     /// owner: **an assumption**, since no link stands on the scored frame
     /// (`docs/CHECKSUM.md` §12).
-    fn city_links(&self, c: usize) -> Vec<(i32, i32)> {
+    pub(crate) fn city_links(&self, c: usize) -> Vec<(i32, i32)> {
         let mut out = Vec::new();
         for (who, list) in self.economy.caravans.iter().enumerate() {
             for (k, v) in list.slots[..list.mark].iter().enumerate() {
@@ -450,7 +450,10 @@ impl Sim {
             if owners.is_none() {
                 break;
             }
-            for (index, c) in self.cities_of(who).into_iter().enumerate() {
+            for c in self.cities_of(who) {
+                // `CityData::city` (`+0x6`), the slot, not the live rank
+                // (item 4463; [`Sim::city_index_in_owner`]).
+                let index = self.city_index_in_owner(c);
                 let record = c as i16;
                 let mut put = |field, bytes: Vec<u8>| {
                     ranges.push(Range {

@@ -669,7 +669,10 @@ fn census() -> Option<Vec<GameCensus>> {
 /// Item 4208: +65,812 objects, +65,812 resolved, the unresolved holding at
 /// 15 — gaia's birds, which had no piece and were not drawn until
 /// `Sim::gaia_piece`, now drawn on `WILDBIRD-TYPE0`'s 60045 and resolved.
-pub(crate) const AGES_RESOLVED: (usize, usize, usize) = (1_237_591, 1_237_606, 110);
+/// Item 4463: +120 objects, +120 resolved, from (1,237,591, 1,237,606), the
+/// unresolved holding at 15 — the capture's hand-over and the trade kill
+/// change what the lobbies draw; not split by lobby or by arm.
+pub(crate) const AGES_RESOLVED: (usize, usize, usize) = (1_237_711, 1_237_726, 110);
 
 /// The dumped frames walked: frame 0 and every `FRAME` each long prints.
 pub(crate) const AGES_FRAMES: usize = 4_608;

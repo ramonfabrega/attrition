@@ -239,5 +239,10 @@ fn french_classical_pair_run1262_s_closing_frame_is_widened_whole() {
     // (4), `1/2023` (1) — the human's defeat asks `Game::check_victory`, whose conquest victory cleans every one of who=1's queues with no refund (`Leader::victory`, `docs/LEADERS.md` §10.2).
     // Item 4340: −1, no `leader:defense` row is left (the human's tally moves, its writers ungated; ch125 and ch131 name that key, here it is inferred).
     // Item 4448: 141 -> 140, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
-    pin_eq!(w.firsts.len(), 140, "the closing walk's baseline");
+    // Item 4463: 140 -> 135, −5 on the closing block 6107, the human's defeat handing its cities over:
+    // the Light Horse `1/182`'s `guard.retry` (ours 7, theirs 6) and the two idle Phalanxes `1/89` and
+    // `1/221`'s `g.cur_anim` (1 and 2, theirs 0) and `g.end_time` (64 and 48, theirs 32) now agree —
+    // the capture's hand-over (`swap_team`'s carries, the caravan's route ended in the kill), measured
+    // against the same tree with item 4463's `crates/sim` diff reversed.
+    pin_eq!(w.firsts.len(), 135, "the closing walk's baseline");
 }
