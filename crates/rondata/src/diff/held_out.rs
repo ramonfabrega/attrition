@@ -217,6 +217,36 @@ mod tests {
         );
     }
 
+    /// PROBE 4450: row 60's city 0 enhancers (`RON_PROBE_4450`).
+    #[test]
+    fn probe_4450() {
+        if std::env::var("RON_PROBE_4450").is_err() {
+            return;
+        }
+        let inst = crate::testenv::install().expect("install");
+        let (Some(rcx), _) = paths(3) else { panic!("row") };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("file");
+        let loaded = crate::load::load(&inst).expect("loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        while built.sim.frame < 2262 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            let f = built.sim.frame;
+            if (1700..1725).contains(&f) || (2245..2262).contains(&f) {
+                let c = 0usize;
+                let owner = built.sim.cities.cities[c].owner;
+                let levels = sim::economy::holdings::Levels::for_player(&built.sim, owner);
+                let live = built.sim.city_holdings(c, levels);
+                let l = &built.sim.economy.ledgers[owner as usize];
+                eprintln!(
+                    "STATE {f} owner {owner} stored {:?} live {} level {} dirty {} stamp {}",
+                    built.sim.cities.enhancers.get(c), live.granary, levels.granary, l.dirty, l.gather_stamp
+                );
+            }
+        }
+    }
+
     /// **Row 120's barge is born with `form` 0** (item 4435, `docs/RECGAME.md`
     /// §10.3): run1716, the ranges take of run1706's file, holds the units
     /// line's every range on state 2694, where the computer's transport
