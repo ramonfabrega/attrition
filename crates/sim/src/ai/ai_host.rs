@@ -200,6 +200,22 @@ impl Host for ScriptHost<'_> {
     }
 
     fn call(&mut self, name: &str, args: &[Value]) -> Result<Value, String> {
+        // Probe (item 4472): every host call over a window of frames.
+        let frame = self.sim.frame;
+        let r = self.call_probe(name, args);
+        if let Some((lo, hi)) = std::env::var("RON_DEBUG_HOST").ok().and_then(|v| {
+            let (a, b) = v.split_once('-')?;
+            Some((a.parse::<i64>().ok()?, b.parse::<i64>().ok()?))
+        }) && (lo..=hi).contains(&frame)
+        {
+            eprintln!("  f{frame} HOST {name}{args:?} = {r:?}");
+        }
+        r
+    }
+}
+
+impl ScriptHost<'_> {
+    fn call_probe(&mut self, name: &str, args: &[Value]) -> Result<Value, String> {
         let a = |i: usize| args.get(i).map_or(0, Value::as_int);
         let s = |i: usize| args.get(i).map_or_else(String::new, Value::as_str);
         Ok(match name.to_ascii_lowercase().as_str() {
