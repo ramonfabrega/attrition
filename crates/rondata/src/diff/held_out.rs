@@ -301,7 +301,7 @@ mod tests {
                 0 => built.sim.checksum_units(),
                 _ => built.sim.checksum_guys(),
             };
-            eprintln!("PROBE state {state}: ours {} theirs {}", ours.ranges.len(), theirs.len());
+            eprintln!("PROBE state {state}: ours {} theirs {} ages1 {:?} dirty1 {:?}", ours.ranges.len(), theirs.len(), built.sim.tech.get(1).map(|p| p.ages), built.sim.roster.unit_stats_dirty.get(1));
             for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
                 if a.bytes != b.bytes {
                     let d: Vec<String> = a
