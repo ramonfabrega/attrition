@@ -217,40 +217,6 @@ mod tests {
         );
     }
 
-    /// PROBE 4450: a held-out row's turned figures (`RON_PROBE_4450=<k>`).
-    #[test]
-    fn probe_4450() {
-        let Ok(k) = std::env::var("RON_PROBE_4450") else {
-            return;
-        };
-        let k: usize = k.parse().unwrap();
-        let inst = crate::testenv::install().expect("install");
-        let (Some(rcx), _) = paths(k) else { panic!("row") };
-        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("file");
-        let loaded = crate::load::load(&inst).expect("loads");
-        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
-        let mut stream = crate::input::Stream::pump(&rec);
-        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap();
-        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap();
-        while built.sim.frame < hi {
-            stream.apply(built.sim.frame as i32, &mut built);
-            built.sim.command().tick();
-            if built.sim.frame >= lo {
-                eprintln!("STATE {}", built.sim.frame);
-                for (u, unit) in built.sim.units.iter().enumerate() {
-                    let m = unit.movement;
-                    if m.facing != m.frame_facing && unit.alive() {
-                        eprintln!(
-                            "  u{u} {:?}/{} TI {} dom {:?} pos {:?} on_map {} facing {:?} frame_facing {:?} heading {:?} guys {} orders {:?}",
-                            unit.owner, unit.index, unit.type_index, unit.kind.domain, unit.pos, unit.on_map,
-                            m.facing, m.frame_facing, m.heading, unit.guys.len(), built.sim.order_type(u)
-                        );
-                    }
-                }
-            }
-        }
-    }
-
     /// **Row 120's barge is born with `form` 0** (item 4435, `docs/RECGAME.md`
     /// §10.3): run1716, the ranges take of run1706's file, holds the units
     /// line's every range on state 2694, where the computer's transport
