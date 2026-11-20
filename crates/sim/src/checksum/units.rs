@@ -149,6 +149,32 @@ pub const CAST_FIELDS: &[(&str, usize, usize)] = &[
     ("spell", 0x20, 4),
 ];
 
+/// **`AttackGroundOrder`'s walked 16 bytes** (`+0x4..+0x14`, `att_x`..
+/// `attack_unit`, the PDB's field list), the first own range of
+/// `AirAttackGroundOrder::walk_data@004875a0` (item 4459).
+pub const ATTACK_GROUND_FIELDS: &[(&str, usize, usize)] = &[
+    ("att_x", 0x4, 4),
+    ("att_y", 0x8, 4),
+    ("accuracy", 0xc, 4),
+    ("attack_unit", 0x10, 4),
+];
+
+/// **`AirOrder`'s walked 24 bytes** (`+0x4..+0x1c` of the base, `oxx`..
+/// `returning`, the PDB's field list), the second (item 4459).
+pub const AIR_FIELDS: &[(&str, usize, usize)] = &[
+    ("oxx", 0x4, 4),
+    ("whose", 0x8, 4),
+    ("cruising_alt", 0xc, 4),
+    ("sharp_turn", 0x10, 4),
+    ("old", 0x14, 4),
+    ("returning", 0x18, 4),
+];
+
+/// **`AirAttackGroundOrder`'s own walked 12 bytes** (`+0x30..+0x3c`,
+/// `total_time`, `sx`, `sy`, the PDB's field list), the third (item 4459).
+pub const AIR_ATTACK_GROUND_FIELDS: &[(&str, usize, usize)] =
+    &[("total_time", 0x30, 4), ("sx", 0x34, 4), ("sy", 0x38, 4)];
+
 /// **`GuardOrder`'s own walked 24 bytes** (`+0x14..+0x2c`, `dx`..`retry`,
 /// the PDB's field list; `GuardOrder::walk_data@00486550`, item 4266). The
 /// post's two `Coord`s go over as stored, unmasked: run1597's record 62 on
@@ -602,9 +628,11 @@ impl Sim {
     /// 2888; a
     /// `GROUP_MOVE` or `GROUP_ATTACK_TO` (the move, then the flags again,
     /// `oxx`..`group_angle` and `in_group`, item 4243) on 6907; a `THINK`
-    /// (the flags byte, item 4414) on the 2017 sample's 532; any
-    /// other kind hands over its type and node byte alone here, its walker
-    /// not ported (`docs/CHECKSUM.md` §17).
+    /// (the flags byte, item 4414) on the 2017 sample's 532; an
+    /// `AIR_ATTACK_GROUND` (the flags byte, the ground point, the flags
+    /// byte again, the `AirOrder` row and `total_time`..`sy`, item 4459) on
+    /// run1721's 2587; any other kind hands over its type and node byte
+    /// alone here, its walker not ported (`docs/CHECKSUM.md` §17).
     fn checksum_order(&self, ranges: &mut Vec<Range>, u: usize, k: usize) {
         let unit = &self.units[u];
         let record = unit.index;
@@ -839,6 +867,42 @@ impl Sim {
                 p(0x24, 4, i64::from(g.idle));
                 p(0x28, 4, i64::from(g.retry));
                 put("order.guard", b);
+            }
+            Body::AirAttackGround(g) => {
+                // `AirAttackGroundOrder::walk_data@004875a0` (item 4459,
+                // run1721's units on 2587, a missile `1/84` laid in its
+                // silo): the flags byte through `AttackGroundOrder`'s
+                // vbptr, its `att_x`..`attack_unit` (`+0x4..+0x14`), the
+                // flags byte again through `AirOrder`'s, the `AirOrder`
+                // row (`+0x18..+0x30`) and its own `total_time`, `sx`,
+                // `sy` (`+0x30..+0x3c`). `Unit::add_air_attack_ground_order@
+                // 005e41c0` writes the point, 0 `accuracy` and
+                // `attack_unit`, the home, `cruising_alt` 0x640 and 0
+                // `returning` on an order `get_obj` has just cleared;
+                // `do_air_physics` rewrites `cruising_alt` and `returning`.
+                // SEAM: `old` and the class's own three are written by no
+                // function but `clear` (0) and `operator=` in the export,
+                // and walk 0 here.
+                put("order.flags", vec![o.flags]);
+                let mut b = vec![0u8; 0x14 - 0x4];
+                put_raw(&mut b, 0, 4, i64::from(g.at.x));
+                put_raw(&mut b, 4, 4, i64::from(g.at.y));
+                put("order.attack_ground", b);
+                put("order.flags", vec![o.flags]);
+                let mut b = vec![0u8; 0x1c - 0x4];
+                debug_assert_eq!(AIR_FIELDS.len(), 6);
+                let (oxx, whose) = g.home.map_or((-1, -1), |h| {
+                    let bd = &self.buildings[h];
+                    (i64::from(bd.index), i64::from(bd.owner))
+                });
+                let mut p = |at: usize, w, x: i64| put_raw(&mut b, at - 0x4, w, x);
+                p(0x4, 4, oxx);
+                p(0x8, 4, whose);
+                p(0xc, 4, i64::from(g.cruising_alt));
+                p(0x10, 4, i64::from(g.sharp_turn));
+                p(0x18, 4, i64::from(g.returning));
+                put("order.air", b);
+                put("order.air_attack_ground", vec![0u8; 0x3c - 0x30]);
             }
             _ => {}
         }
