@@ -454,6 +454,14 @@ fn an_empty_search_twice_waits_for_the_thirty_two_frame_phase() {
     let phase = 64 - o;
     sim.cavarch_head(me, phase + 1);
     assert_eq!(sim.cavarch_o(me), -2, "an empty answer after −1 at init");
+    // The units line folds the same −2 (`+0xa2`, byte 90 of
+    // `collide_frame..play`; item 4443, run1716's MLRS `1/35` on 5864).
+    let bytes = sim.unit_record_bytes(me);
+    assert_eq!(
+        &bytes[0xa2 - 0x48..0xa4 - 0x48],
+        &[0xfe, 0xff],
+        "the line's −2"
+    );
     let foe = put(&mut sim, 0, ty, Pos::new(3000, 4200));
     sim.cavarch_head(me, phase + 2);
     assert_eq!(sim.cavarch_o(me), -2, "off the phase, no search");
