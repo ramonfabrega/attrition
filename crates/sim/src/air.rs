@@ -1999,9 +1999,9 @@ impl Sim {
     /// point (13824, 14976), `sz` 466, `ez` 78, 120 frames, `v1z`
     /// 626.016663.
     ///
-    /// SEAM: a nuke (`is(0x13b)`: no scatter, and the spline's other arm),
-    /// the spline's own points, which the simulation never reads, and
-    /// `Ammo::init`'s `balance.attacks` count.
+    /// SEAM: a nuke (`is(0x13b)`: no scatter, and the spline's other arm)
+    /// and `Ammo::init`'s `balance.attacks` count. The spline is kept on
+    /// the round since item 4468, for the ammo line's walk; nothing steps it.
     pub(crate) fn missile_round(&mut self, u: usize, at: Pos) {
         let me = crate::combat::Obj::Unit(u);
         let p = self.profile(me);
