@@ -217,43 +217,6 @@ mod tests {
         );
     }
 
-    /// PROBE 4450: row 60's guys on 2014 (`RON_PROBE_4450`).
-    #[test]
-    fn probe_4450() {
-        if std::env::var("RON_PROBE_4450").is_err() {
-            return;
-        }
-        let inst = crate::testenv::install().expect("install");
-        let (Some(rcx), _) = paths(3) else { panic!("row 60") };
-        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("file");
-        let loaded = crate::load::load(&inst).expect("loads");
-        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
-        let mut stream = crate::input::Stream::pump(&rec);
-        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(2012);
-        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(2015);
-        while built.sim.frame < hi {
-            stream.apply(built.sim.frame as i32, &mut built);
-            built.sim.command().tick();
-            if built.sim.frame >= lo {
-                eprintln!("STATE {}", built.sim.frame);
-                for (u, unit) in built.sim.units.iter().enumerate() {
-                    let m = unit.movement;
-                    if unit.index == 2 || m.facing != m.frame_facing {
-                        eprintln!(
-                            "  u{u} {:?}/{} TI {} dom {:?} pos {:?} facing {:?} frame_facing {:?} heading {:?} guys {}",
-                            unit.owner, unit.index, unit.type_index, unit.kind.domain, unit.pos,
-                            m.facing, m.frame_facing, m.heading, unit.guys.len()
-                        );
-                    }
-                }
-                let ours = built.sim.checksum_guys();
-                if let Some(r) = ours.ranges.get(642) {
-                    eprintln!("  guys range 642 record {} {} {:02x?}", r.record, r.field, &r.bytes[..16]);
-                }
-            }
-        }
-    }
-
     /// **Row 120's barge is born with `form` 0** (item 4435, `docs/RECGAME.md`
     /// §10.3): run1716, the ranges take of run1706's file, holds the units
     /// line's every range on state 2694, where the computer's transport
