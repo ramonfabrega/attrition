@@ -771,6 +771,25 @@ pub(in crate::diff) mod tests {
                 if detail == Some(f) {
                     print_partings(&ours, &theirs);
                 }
+                // PROBE 4454: RON_PROBE_WORLD=<lo>-<hi>:<from index>
+                if let Ok(v) = std::env::var("RON_PROBE_WORLD") {
+                    let (w, from) = v.split_once(':').unwrap();
+                    let (lo, hi) = w.split_once('-').unwrap();
+                    let (lo, hi): (i64, i64) = (lo.parse().unwrap(), hi.parse().unwrap());
+                    let from: usize = from.parse().unwrap();
+                    if (lo..=hi).contains(&f) {
+                        let k = STATE_LINES.iter().position(|n| *n == "world").unwrap();
+                        let hx = |b: &[u8]| b.iter().map(|x| format!("{x:02x}")).collect::<String>();
+                        for (i, r) in ours[k].ranges.iter().enumerate().skip(from) {
+                            eprintln!("WO {f} {i} {} {} {}", r.record, r.field, hx(&r.bytes));
+                        }
+                        if let Some(t) = theirs.get("world") {
+                            for (i, r) in t.iter().enumerate().skip(from) {
+                                eprintln!("WT {f} {i} {}", hx(&r.2));
+                            }
+                        }
+                    }
+                }
                 let outcome = compare(&ours, &theirs);
                 for (k, (name, o)) in STATE_LINES.iter().zip(&outcome).enumerate() {
                     let Some(d) = &o.first else { continue };
