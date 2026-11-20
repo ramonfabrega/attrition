@@ -1138,23 +1138,3 @@ range 1170. Row 120 is now **whole**; units also moves on rows 40, 60, 80,
 
 *Not established*: rows 80 and 100 next part units on `des_angle` (`+0x58`):
 run1720 on 2367, range 2407; run1721 on 1793, range 1581. Unread.
-
-**A nation's free tech raises both stats bits at setup** (item 4457,
-diff-backed on row 140). run1725 is row 140's ranges take, played to 6000.
-On setup's set, range 128 (the Dutch seat's `leader_flags`) reads byte 3 `0f`
-in theirs and `0b` in ours: theirs alone holds `0x4000000`. That is
-`Leader::init@006e3930:544`. A Dutch seat with `dutch_free_commerce` gains its
-next Commerce epoch through `gain_tech(…, 1)`. That call passes the tech gate
-(`gain_tech@006dcb60:935`) and reaches the tail's `|= 0xc000000` (`:2313`).
-The Russian, Aztec, Roman and American epochs and the Persians' Despotism
-(`:551`–`:576`) take the same path. `Sim::start_techs` used to put both bits
-back as they stood. It now keeps them raised whenever the tree's `start`
-reported a nation gain. Row 140's leaders line is now **whole**: 6,000 → 6,001
-of 6,001 (`SCORES[7].moved`). No other row moved.
-
-*Not established*: row 140 next parts units on 3937 and guys on 4026. Units:
-range 173, record 1, `myarmor` (byte 84), ours 2, theirs 1. Guys: range 52,
-record 0, `last_z` (byte 104), ours −30, theirs −33. Neither unit is named
-yet, and neither is read. A seat whose free epoch is already at the last
-level gains nothing at setup and keeps the bits as they stood. No take
-covers that case.
