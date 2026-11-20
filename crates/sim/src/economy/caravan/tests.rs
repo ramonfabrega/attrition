@@ -329,3 +329,22 @@ fn a_trade_order_and_a_route_s_end_clear_the_unloaded_bit() {
     sim.end_trade_route(u);
     assert!(!sim.units[u].trade_unloaded, "a route's end clears it");
 }
+
+/// **A dying `TRADE_ROUTE` ends the route in the kill** (item 4463,
+/// `kill_current_order@005e2cb0:119`–`120`): run1724's Inca caravan, its
+/// home captured on 3887, holds no order and a clear `unit_masks & 0x200`
+/// on 3888. The kill itself runs `end_trade_route`, not the next frame's
+/// `caravan_work`.
+#[test]
+fn killing_a_trade_order_ends_the_route_at_once() {
+    let mut sim = bare();
+    let u = sim.add_unit(crate::Unit::new(1, 14, Pos::new(960, 960), 10));
+    sim.add_trade_order(u, 0);
+    sim.units[u].trade_unloaded = true;
+    sim.kill_current_order(u);
+    assert!(sim.units[u].orders.is_empty());
+    assert!(
+        !sim.units[u].trade_unloaded,
+        "end_trade_route ran inside the kill"
+    );
+}
