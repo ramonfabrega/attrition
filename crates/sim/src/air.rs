@@ -1999,9 +1999,9 @@ impl Sim {
     /// point (13824, 14976), `sz` 466, `ez` 78, 120 frames, `v1z`
     /// 626.016663.
     ///
-    /// SEAM: a nuke (`is(0x13b)`: no scatter, and the spline's other arm),
-    /// the spline's own points, which the simulation never reads, and
-    /// `Ammo::init`'s `balance.attacks` count.
+    /// SEAM: a nuke (`is(0x13b)`: no scatter, and the spline's other arm)
+    /// and `Ammo::init`'s `balance.attacks` count. The spline is kept on
+    /// the round since item 4468, for the ammo line's walk; nothing steps it.
     pub(crate) fn missile_round(&mut self, u: usize, at: Pos) {
         let me = crate::combat::Obj::Unit(u);
         let p = self.profile(me);
@@ -2029,6 +2029,16 @@ impl Sim {
             landing.y += self.rng.roll() % s - s / 2;
         }
         let ez = self.ground_z(at).max(0);
+        // **The round keeps its spline** (item 4468): `Ammo::init:616`–`634`
+        // pops a `Spline`, sets its `flags` `0x10` and lays
+        // `calc_nuke_spline`'s other arm into `ammo_path`, and `traj` is 2
+        // (`:831`). Nothing here steps it — the round has no target, so
+        // `inc_time`'s guided arm holds — but the ammo line walks it.
+        // SEAM: the Cruise Missile's ground arm (`is(0x13a)`) is not laid
+        // here; its round flies [`MISSILE_FLIGHT`] with no spline.
+        let spline = (!self.air_line_is(u, crate::air::airbase::CRUISEMISSILE)).then(|| {
+            crate::combat::Spline::nuke((launch.x, launch.y, sz), (landing.x, landing.y, ez))
+        });
         self.add_ammo(crate::combat::Projectile {
             left: None,
             shooter: me,
@@ -2055,7 +2065,7 @@ impl Sim {
             punctures: false,
             spent: false,
             crash: None,
-            spline: None,
+            spline,
             // `Object::fire_ammo`'s unit arm: the missile type's
             // `fire_proj`, its `<INSTANTHIT ammo>` (item 4175).
             gpiece: self.fire_proj(me),

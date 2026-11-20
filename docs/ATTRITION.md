@@ -811,6 +811,8 @@ it survives only because it is observable in a save file. The original also
 resolves such a city's *bonuses* from the owner it records while taking its
 *limit* from the list it was found in.
 
+The record is `race` (`+0x5f`), and a capture makes the case: `docs/LEADERS.md` §20.2 (item 4469).
+
 ---
 
 ## The building half

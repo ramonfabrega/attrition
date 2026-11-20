@@ -575,6 +575,8 @@ pub(in crate::diff) mod tests {
     /// 5474; goods 4559 -> 4458, a named fall past leaders' unchanged 3888.
     /// Item 4466 (the capture's members close before the old city; the
     /// line's `0x400000` and make-list city slot): leaders 3888 -> 3889.
+    /// Item 4469 (an unassimilated city's cells win as −2): leaders 3889 ->
+    /// 3925, cities 3891 -> 4201, world 3889 -> 3904.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 3906),
         ("builds", 3904),
@@ -583,11 +585,11 @@ pub(in crate::diff) mod tests {
         ("deaths", 3932),
         ("groups", 4004),
         ("guys", 3906),
-        ("leaders", 3889),
-        ("cities", 3891),
+        ("leaders", 3925),
+        ("cities", 4201),
         ("items", 5474),
         ("goods", 4458),
-        ("world", 3889),
+        ("world", 3904),
     ];
 
     /// `(frames our walk holds no wall, shot or death, the first it holds
@@ -613,8 +615,10 @@ pub(in crate::diff) mod tests {
     /// 2929. Item 4466 (the capture's members close before the old city,
     /// the library's queue refunded): 5042 -> 6309, a named rise past every
     /// parting, the frames not read one by one; the first shot still on
-    /// 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (6309, Some(2929));
+    /// 2929. Item 4469 (an unassimilated city's cells win as −2, the
+    /// captured Inca capital's 29 from 3889): 6309 -> 4473, a named fall,
+    /// the frames not read one by one; the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4473, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
@@ -1050,7 +1054,13 @@ pub(in crate::diff) mod tests {
     /// members close before the old city, `capture_city@00733380`'s loop
     /// skipping the centre; `0x400000` and the make list's city slot on the
     /// line): leaders 3888 -> 3889, player 3's `reg_terr[1]` 77|48; every
-    /// other line unchanged.
+    /// other line unchanged. Item 4469 (an unassimilated city's claim wins
+    /// as −2, its bonuses from `race`'s arrays,
+    /// `compute_reg_territory@006b0bb0:425`–`:483`): the captured Inca
+    /// capital's 29 cells `154 130 cell` `who` 03 -> theirs' fe on 3889,
+    /// `reg_terr[1]` 77 -> 48; leaders 3889 -> 3925, world 3889 -> 3904,
+    /// cities 3891 -> whole to 4130 (`45 9 city_flags` 99|89 was
+    /// `0x1000`, the pass's near-border mark from a cell it gave player 3).
     const SAMPLE_RANGES_1724: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
@@ -1095,27 +1105,19 @@ pub(in crate::diff) mod tests {
         ),
         (
             "leaders",
-            3889,
+            3925,
             667,
             667,
-            1,
-            "400 3 who..ally_mask: +0x1458 of 26914|26914: 4d000000|30000000",
-        ),
-        (
-            "cities",
-            3891,
-            51,
-            51,
-            3,
-            "45 9 city_flags: +0x1 of 2|2: 99|89",
+            2,
+            "134 1 who..ally_mask: +0xa54 of 26914|26914: 02000800|01000800",
         ),
         (
             "world",
-            3889,
-            7781,
-            7781,
-            29,
-            "154 130 cell: +0xf of 21|21: 03ff0000|feff0000",
+            3904,
+            7795,
+            7795,
+            1,
+            "3624 -1 mask: +0x6201 of 115200|115200: e138e138|f138f138",
         ),
     ];
 }

@@ -5354,6 +5354,17 @@ covers all ten slots and runs from `Game::close (00594b80)` and
    `CityData +0x5f` (`race`, a `char`) is not the slot whose city list held
    that city.
 
+**A captured city counts for nobody until it assimilates** (item 4469;
+`:425`–`:483`). Step 4's −2 is `race` (`CityData +0x5f`), which a city
+taken from a foe keeps as the loser's until `City::assimilate` sets it and
+fixes the borders (`docs/CITIES.md` §7.3). Such a city's bonuses (civic,
+flat, temple) are `race`'s, and its limit is the slot's
+(`territory::city_source_by_race`; `docs/ATTRITION.md`, "Ambiguous
+ownership"). *Diff-backed* on run1724's 3889: the Inca capital taken on
+3887 holds 29 cells, `who` `fe`, and player 3's `reg_terr[1]` is 48, where
+ours read 03 and 77 before this item. A `race` of −1 on a live city is read
+as agreeing; no capture reaches one.
+
 `World::compute_all_territory (006b5700)`, setup's wholesale recount,
 zeroes all 64 entries for every live slot 0..7. It then sets the budget to
 −1 and calls `compute_reg_territory(r, 1)` for every region r with
