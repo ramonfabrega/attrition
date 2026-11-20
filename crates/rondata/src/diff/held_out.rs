@@ -839,13 +839,15 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4453 (a push after the pushed unit's walk leaves
         // `guy_flags & 2`; 4450a's gaia animal `8/2` on 2014, 16 ours, 18
         // theirs): units 3,662 -> 3,714; guys 3,958 -> 4,010, first 2014 -> 2107.
+        // On item 4448's tree, beside its guard arm: units 3,672 -> 3,724, first
+        // 2014 -> 2107.
         moved: Some(Score {
             states: 4075,
             agreed: [
-                3714, 4075, 4075, 4075, 4075, 3863, 4010, 4075, 4075, 4075, 4075, 3984,
+                3724, 4075, 4075, 4075, 4075, 3863, 4010, 4075, 4075, 4075, 4075, 3984,
             ],
             first: &[
-                ("units", (2014, Some(3549321578), 3787872620)),
+                ("units", (2107, Some(2129234027), 2894235763)),
                 ("groups", (3598, Some(3778361523), 962934390)),
                 ("guys", (2107, Some(882770536), 1991836272)),
                 ("world", (3984, Some(402934873), 4267790267)),

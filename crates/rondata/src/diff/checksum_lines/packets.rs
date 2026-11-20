@@ -1438,7 +1438,7 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// `dest_angle` takes its turn.
 /// **817** on item 4453's (+1): run1296's guys line whole, a push after the
 /// pushed unit's walk leaving `guy_flags & 2`.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 816, 1053);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 817, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
