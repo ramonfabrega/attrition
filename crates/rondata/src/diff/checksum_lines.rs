@@ -1127,7 +1127,9 @@ fn unit_site_field(site: &str) -> &'static str {
         "007303ac" => "order.type",
         "007303be" => "order.node",
         "0047f243" | "00482e93" | "00486e83" | "00483283" | "004860c3" | "004855e3"
-        | "0048560c" | "00486573" | "0047f283" | "004846ba" => "order.flags",
+        | "0048560c" | "00486573" | "0047f283" | "004846ba" | "004875c3" | "004875e9" => {
+            "order.flags"
+        }
         "0047f251" | "00486e91" | "00483291" | "004860d1" | "00486581" | "0047f291"
         | "004846c8" => "order.target",
         "004846d6" => "order.search",
@@ -1139,6 +1141,9 @@ fn unit_site_field(site: &str) -> &'static str {
         "0048329f" => "order.trade",
         "004860df" => "order.cast",
         "0048658f" => "order.guard",
+        "004875d1" => "order.attack_ground",
+        "004875f7" => "order.air",
+        "00487605" => "order.air_attack_ground",
         "005d7f26" => "ox..aid",
         s => guy_site_field(s),
     }

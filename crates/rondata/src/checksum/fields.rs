@@ -222,6 +222,9 @@ pub(crate) fn unit_range_fields(field: &str, b: &[u8]) -> Vec<(String, i64)> {
         "order.trade" => table(TRADE_FIELDS, 0x14),
         "order.cast" => table(CAST_FIELDS, 0x14),
         "order.guard" => table(GUARD_FIELDS, 0x14),
+        "order.attack_ground" => table(sim::checksum::units::ATTACK_GROUND_FIELDS, 0x4),
+        "order.air" => table(sim::checksum::units::AIR_FIELDS, 0x4),
+        "order.air_attack_ground" => table(sim::checksum::units::AIR_ATTACK_GROUND_FIELDS, 0x30),
         "order.group" => table(GROUP_ORDER_FIELDS, 0x54),
         "who..y_internal" => {
             let c = |at: usize| le(&b[at..at + 4]) ^ i64::from(COORD_MASK);
