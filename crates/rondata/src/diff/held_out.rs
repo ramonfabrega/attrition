@@ -323,6 +323,52 @@ mod tests {
         }
     }
 
+    /// Probe (item 4467): row 140's units and guys ranges on
+    /// `RON_PROBE_4467`'s states, ours against run1725's, by field.
+    #[test]
+    fn probe_4467() {
+        let Ok(spec) = std::env::var("RON_PROBE_4467") else {
+            return;
+        };
+        let states: Vec<i64> = spec.split(',').map(|s| s.parse().unwrap()).collect();
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(7) else { panic!("no rcx") };
+        let ranges =
+            crate::testenv::experiment(&home.join("ron-golden/run1725/map-18"), "rontrace.ranges")
+                .expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 140's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for &state in &states {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+                crate::diff::harness::debug_watch(&built, built.sim.frame);
+            }
+            let set = record.first_of(state - 1).expect("set").clone();
+            let all = record.ranges(&set).expect("ranges");
+            for (line, name, ours) in [
+                (0u8, "units", built.sim.checksum_units()),
+                (6u8, "guys", built.sim.checksum_guys()),
+            ] {
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == line).collect();
+                eprintln!("PROBE state {state} {name}: ours {} theirs {}", ours.ranges.len(), theirs.len());
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    if a.bytes != b.bytes {
+                        let f = crate::checksum::fields::differing_fields(name, &a.field, &a.bytes, &b.bytes);
+                        let d: Vec<String> = a.bytes.iter().zip(&b.bytes).enumerate()
+                            .filter(|(_, (x, y))| x != y)
+                            .map(|(i, (x, y))| format!("{i}:{x:02x}/{y:02x}")).collect();
+                        eprintln!("PROBE  {name} range {k} record {} {} len {}/{} {:?} {:?}", a.record, a.field, a.bytes.len(), b.bytes.len(), f, d);
+                    }
+                }
+            }
+        }
+    }
+
     /// **Row 120's barge is born with `form` 0** (item 4435, `docs/RECGAME.md`
     /// §10.3): run1716, the ranges take of run1706's file, holds the units
     /// line's every range on state 2694, where the computer's transport
