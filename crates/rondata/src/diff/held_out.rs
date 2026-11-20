@@ -400,8 +400,9 @@ mod tests {
     /// missile `1/84` (TI 316) in its silo, and
     /// `AirAttackGroundOrder::walk_data@004875a0` hands over five ranges
     /// after the node byte. Every units range on 2587: red without the
-    /// walker at range 2809, record 84, where ours walked `guys.length`
-    /// (`01 00 00 00`) and theirs the flags byte (`04`).
+    /// walker, 3,804 ranges against 3,809, the first unequal at range 2809,
+    /// record 84, where ours walked `guys.length` (`01 00 00 00`) and
+    /// theirs the flags byte (`04`).
     #[test]
     fn row_100_s_missile_walks_its_air_attack_ground_order_on_run1721_s_ranges() {
         let Some(theirs) = units_ranges_agree(5, "run1721", 2587, 2812) else {
