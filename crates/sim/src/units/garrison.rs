@@ -700,6 +700,7 @@ impl Sim {
             heading,
             facing,
             frame_facing,
+            turned: u.movement.turned,
             des_angle,
             mirror: u.movement.mirror != flip,
             body,

@@ -1436,7 +1436,9 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// run1224b's parting on one range fewer: `detect_unit_collision`'s guard
 /// arm runs `update_action` on the blocker, so a bumped guard's
 /// `dest_angle` takes its turn.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 816, 1053);
+/// **817** on item 4453's (+1): run1296's guys line whole, a push after the
+/// pushed unit's walk leaving `guy_flags & 2`.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 817, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -2897,17 +2899,18 @@ pub(super) const PINNED: &[Pinned] = &[
     // `set_new_location(…, 1, 1)`): units (9905, 9905, 34) -> (9905, 9905, 33); guys (2172, 2172,
     // 3) -> (2172, 2172, 2).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (9905, 9905, 33) -> (9905, 9905, 22).
+    // Item 4453, a push after the pushed unit's walk leaves guy_flags 0x2: units (9905, 9905, 22) -> (9905, 9905, 20), guys (2172, 2172, 2) -> (2172, 2172, 0).
     (
         "run1296",
         4632,
         [
-            (9905, 9905, 22),
+            (9905, 9905, 20),
             (2163, 2163, 0),
             (0, 0, 0),
             (0, 0, 0),
             (6, 6, 0),
             (682, 682, 0),
-            (2172, 2172, 2),
+            (2172, 2172, 0),
             (271, 271, 0),
             (27, 27, 0),
             (5, 5, 0),

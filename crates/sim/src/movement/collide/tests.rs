@@ -496,6 +496,51 @@ fn a_push_before_the_pushed_unit_s_process_takes_its_body_s_turn() {
     );
 }
 
+/// **A push after the pushed unit's walk leaves `guy_flags & 2` on the
+/// frame** (item 4453, `docs/CHECKSUM.md` §23.11). `Guy::do_turn@005d97a0:15`
+/// sets the bit on a turn that moves the angle, and only
+/// `Guy::process@005e0230:28` clears it, after `Guy::move`; a pusher
+/// processed later in the frame (`Unit::detect_boat_collision+0x630`)
+/// leaves it for the checksum. run1296's Arquebusiers `1/59` on 4632,
+/// pushed by the Supply Wagon `1/174`, walks `0x12` where this crate
+/// walked `0x10`. A push that does not move the angle sets nothing, and
+/// the pushed unit's next walk clears it.
+#[test]
+fn a_push_after_the_pushed_unit_s_walk_leaves_guy_flags_bit_2() {
+    let (mut sim, a, _b) = pair(
+        ucell_centre(Pos::new(20, 20)),
+        ucell_centre(Pos::new(30, 30)),
+    );
+    sim.units[a].guys.push(crate::units::anim::Guy::fresh(-1));
+    let o = sim.units[a].index;
+    let flags = |sim: &crate::Sim| -> u16 {
+        let r = sim
+            .checksum_guys()
+            .ranges
+            .into_iter()
+            .find(|r| r.field == "guy" && r.record == o)
+            .expect("the unit's figure walks");
+        u16::from_le_bytes([r.bytes[0x92], r.bytes[0x93]])
+    };
+    let mut events = Vec::new();
+    let frame = sim.frame;
+    sim.process_unit(a, frame, &mut events);
+    let start = sim.units[a].movement.facing;
+    assert_eq!(flags(&sim) & 2, 0, "a walked figure carries no turn");
+    sim.push_turn(a, start);
+    assert_eq!(flags(&sim) & 2, 0, "a push along the facing turns nothing");
+    sim.push_turn(a, Angle(start.0.wrapping_add(0x2000_0000)));
+    assert_ne!(sim.units[a].movement.facing, start, "the push turned guy 0");
+    assert_eq!(
+        flags(&sim) & 2,
+        2,
+        "the push's turn stands at the frame's end"
+    );
+    let frame = sim.frame;
+    sim.process_unit(a, frame, &mut events);
+    assert_eq!(flags(&sim) & 2, 0, "the next walk clears it");
+}
+
 /// §4 again, and the half of it that is a **write into the order**:
 /// the probe records the point it refused in `coll_x`/`coll_y`, and
 /// `move_step`'s own stores must not put the stale pair back.

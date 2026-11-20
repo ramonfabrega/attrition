@@ -24,6 +24,10 @@ impl Sim {
     /// [`Sim::process_movement`] on the figures `Guy::process` runs on, in
     /// [`anim::process_walk`]'s order.
     pub(crate) fn process_movement_on(&mut self, i: usize, walk: &[usize]) {
+        // `Guy::process@005e0230:28`'s `guy_flags & 0xfffd`, after
+        // `Guy::move`: the head stands for it because nothing in this
+        // walk sets [`Movement::turned`] (item 4453).
+        self.units[i].movement.turned = false;
         let unit = &self.units[i];
         let m = unit.movement;
         let facing = m.facing;

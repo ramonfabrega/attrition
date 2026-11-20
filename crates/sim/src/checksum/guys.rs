@@ -162,6 +162,10 @@ impl Sim {
             .get(&ty)
             .is_some_and(|nodes| !nodes.is_empty());
         let bits = [
+            (
+                0x2,
+                unit.movement.turned && unit.guys.get(g).is_some_and(|guy| guy.follow.is_none()),
+            ),
             (0x8, self.guy_turns(u, g)),
             (0x10, unit.movement.turning.instant_from_stop),
             (
