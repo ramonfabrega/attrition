@@ -2169,15 +2169,7 @@ impl Sim {
         // `mask_me`'s road arms read, from opposite sides.
         let lays = build::is_city(&self.tables.build_types, ty)
             || crate::movement::roads::connects_to_roads(&self.tables.build_types, ty);
-        // **Column by column**: `mask_me`'s outer loop is `x_size` (`+0x234`)
-        // and its inner `y_size` (`+0x238`), the template read at
-        // `x_size * v + u`. The order is visible: `set_blocked_at` clears a
-        // tile's own `BAD_PATH` and sets it on the eight around, so of two
-        // blocked neighbours only the earlier keeps the bit. Row by row
-        // left the computer's University `1/2006` (run1721, frame 133,
-        // corner (208, 108)) with `BAD_PATH` on (211, 108) where the
-        // original holds it on (208, 111) (item 4441, `docs/RECGAME.md`
-        // §10.3).
+        // Column by column, as `mask_me` loops: the order shows in `BAD_PATH` (PATHFINDER, `tcost`).
         let walk = (0..xs).flat_map(|u| (0..ys).map(move |v| (u, v)));
         for (u, v) in walk {
             let t = Pos::new(corner.x + u, corner.y + v);
