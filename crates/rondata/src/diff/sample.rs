@@ -605,6 +605,14 @@ pub(in crate::diff) mod tests {
         ranges_record("RON_SAMPLE_RANGES_1710", "run1710")
     }
 
+    /// run1724's record (item 4445, `docs/RUNS.md` run1724): the same
+    /// playback to 4,130 under the same hooks, for leaders' 3575 and the
+    /// four lines on 3878. `RON_SAMPLE_RANGES_1724`, else where the take
+    /// left it.
+    fn run1724() -> Option<crate::trace::ranges::Record> {
+        ranges_record("RON_SAMPLE_RANGES_1724", "run1724")
+    }
+
     fn ranges_record(var: &str, run: &str) -> Option<crate::trace::ranges::Record> {
         let path = match std::env::var(var) {
             Ok(p) => std::path::PathBuf::from(p),
@@ -695,6 +703,28 @@ pub(in crate::diff) mod tests {
             "run1710's sets, one a frame"
         );
         assert_eq!(got, pinned, "SAMPLE_RANGES_1710");
+    }
+
+    /// **The sample's lines by range, to 4,130** (item 4445): the same walk
+    /// over run1724's record, pinned per line by [`SAMPLE_RANGES_1724`].
+    /// `RON_SAMPLE_RANGES_DETAIL` and `RON_SAMPLE_RANGES_ALL` print as
+    /// above.
+    #[test]
+    fn the_sample_s_ranges_to_4130_name_each_first_parting() {
+        let Some(rec) = run1724() else { return };
+        let Some((frames, got)) = walk_ranges(rec, SAMPLE_RANGES_1724_WINDOW) else {
+            return;
+        };
+        let pinned: Vec<SampleRange> = SAMPLE_RANGES_1724
+            .iter()
+            .map(|&(l, f, t, o, p, x)| (l, f, t, o, p, x.to_string()))
+            .collect();
+        assert_eq!(
+            frames,
+            SAMPLE_RANGES_1724_WINDOW as usize + 1,
+            "run1724's sets, one a frame"
+        );
+        assert_eq!(got, pinned, "SAMPLE_RANGES_1724");
     }
 
     /// The walk the ranges tests share: our sample from state 0 to
@@ -924,4 +954,11 @@ pub(in crate::diff) mod tests {
     /// 0x0c|0x0d) and world 2921 (`6412 2449` `block.body`) agree. All twelve
     /// lines whole over the window.
     const SAMPLE_RANGES_1710: &[(&str, i64, usize, usize, usize, &str)] = &[];
+
+    /// run1724's last frame, ours: the record holds trace frames −1 to 4129.
+    const SAMPLE_RANGES_1724_WINDOW: i64 = 4130;
+
+    /// Per line that parts on run1724's window, its first parting by range
+    /// (item 4445). Minted below.
+    const SAMPLE_RANGES_1724: &[(&str, i64, usize, usize, usize, &str)] = &[];
 }
