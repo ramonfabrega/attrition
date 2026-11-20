@@ -4151,8 +4151,8 @@ on three packets (a probe, not a test). On a reading: the tint's path from the t
 shader's branch. On the photograph alone: the tables and the warmth row. *Not established:*
 - ~~whether the cold cast is the frame's~~: the sprite's own light and the tileset's tint (item 4286, above);
 - ~~a row that counts a building's warmth (4245a)~~: `RUN1559B_3279_BUILDINGS_WARMTH`, 2 of 2;
-- the 248 texels' vertex colour. The trace keeps no stream for the sprite's draws, so the team's trim is drawn as the
-  grey texel, where the photograph's is red (4286b);
+- ~~the 248 texels' vertex colour (4286b)~~: the owner's `TeamColor::get_build`, by a reading (item 4438, §5.3,
+  "The buildings' team colour");
 - the shadow blended over the frame after the tone map, where the original blends it in HDR.
 
 ## 3.29 The national borders (item 4306)
@@ -4788,6 +4788,27 @@ rows are their pins'.
   pixel is `c·a + n·(1 − a)`, `c` the owner's `TEAM_UNIT`, `a` 128/255,
   `n` the nearer tree's texel or sprite's pixel (`render_states[1]`'s
   `SELECTARG2(TFACTOR)`); a reading, one photograph: **18 of 33**.
+- *The buildings' team colour* (4438, before its count). A building's
+  sprite texels at alpha 248 (§3.28's first `_NONQUAD` draw) are
+  `MODULATE4X(TEXTURE, CURRENT)`, `4·t·d` saturated, before the fake
+  light. `d` is the vertex colour: `GraphicPieces::draw_build@008e7610`
+  writes the owner's `TeamColor::get_build` to `build_sprite_color`, and
+  `SpriteMethod::execute@0091ca30` hands it to the sprite before
+  `Sprite::draw`. `TEAM_BUILD` is `TeamColor::build` (`+0x10`) of the
+  eight, as run1559b's packet holds them (player 0's (102, 0, 0)). *The
+  rows*, on the client's still: the mask is geometry, a building's own
+  key's pixels at a 248 texel outside the interface. Per pixel,
+  chromaticity within 0.05 (`RUN1559B_3279_BUILDINGS_TEAM`): 0/2001
+  6 → 22 of 55, 0/2000 **243 → 73** of 656 → 654. That is a named fall:
+  the band is two or three pixels tall and the photograph's is blended
+  into the roof by its FXAA (4168b), mean (97, 47, 34) against ours'
+  (108, 16, 8). The second reader, committed after that was seen: a
+  pixel is red when its r is over half its sum
+  (`RUN1559B_3279_BUILDINGS_RED`), **0 → 49 of 49 and 0 → 360 of 371**.
+  The draw before is `World::team_trim` off. *Not established:* the
+  `whom` flash and the `graphic_tick` colour `draw_build` also writes;
+  `get_build`'s relative colours under the profile's 0x100 preference;
+  the plaza's red kerb, drawn in theirs and not in ours (4438a).
 - *The constants* and interface are this frame's, pinned, never tuned
   to a count (the inputs: 4089's journal).
 

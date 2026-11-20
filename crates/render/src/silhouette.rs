@@ -536,6 +536,41 @@ pub const TEAM_UNIT: [[u8; 3]; 8] = [
     [255, 105, 0],
 ];
 
+/// **The owners' building colours** (item 4438; `docs/RENDERER.md` §5.3,
+/// "The buildings' team colour"): `TeamColor::build` (`+0x10`) of
+/// `team_colors.list[0..8]` as run1559b's packet holds them. On a
+/// building's sprite draw it is the vertex colour:
+/// `GraphicPieces::draw_build@008e7610` writes the owner's
+/// `TeamColor::get_build` to `build_sprite_color`, and
+/// `SpriteMethod::execute@0091ca30` hands it to the sprite before its draw.
+pub const TEAM_BUILD: [[u8; 3]; 8] = [
+    [102, 0, 0],
+    [26, 57, 172],
+    [128, 0, 128],
+    [0, 89, 0],
+    [98, 96, 0],
+    [0, 92, 108],
+    [120, 120, 120],
+    [112, 48, 0],
+];
+
+/// The owner's building colour. `draw_build` starts from black and takes
+/// the owner's colour only when `who` is not −1, so past the eight, black.
+pub fn team_build(who: u8) -> [u8; 3] {
+    TEAM_BUILD
+        .get(usize::from(who))
+        .copied()
+        .unwrap_or([0, 0, 0])
+}
+
+/// **A building's trim** (item 4438; §5.3): the card's first `_NONQUAD`
+/// draw lays the sprite's alpha-248 texels `MODULATE4X(TEXTURE, CURRENT)`,
+/// `CURRENT` on stage 0 the vertex colour ([`team_build`]): `4·t·d`,
+/// saturated. `rgb` is the texel, 0–255; the result is 0–255.
+pub fn team_trim(rgb: [f32; 3], owner: [u8; 3]) -> [f32; 3] {
+    [0, 1, 2].map(|k| (4.0 * rgb[k] * f32::from(owner[k]) / 255.0).min(255.0))
+}
+
 /// The owner's unit colour; past the eight, white (`team_colors.list[8]`).
 pub fn team_unit(who: u8) -> [u8; 3] {
     TEAM_UNIT
@@ -1394,8 +1429,32 @@ pub const RUN1559B_3279_BUILDINGS_WARMTH: (usize, usize) = (2, 2);
 /// value, the reader committed before the count: 0/2001 **6 of 55**
 /// (mean ours (70, 70, 50), the photograph (131, 18, 13)), 0/2000 **243
 /// of 656** (ours (66, 66, 48), the photograph (97, 47, 34)).
+/// Kept as [`RUN1559B_3279_BUILDINGS_TEAM_BEFORE`], the draw before.
+/// **Item 4438: 0/2001 6 → 22 of 55, 0/2000 243 → 73 of 656 → 654** (a
+/// named fall), the trim drawn in the owner's building colour: ours is
+/// now (128, 1, 0) and (108, 16, 8), the photograph's (131, 18, 13) and
+/// (97, 47, 34). The band is two or three pixels tall and the
+/// photograph's is blended into the roof by its FXAA (4168b): at the best
+/// of 25 one-pixel shifts 0/2000 reads 137. The 243 were the mask pixels
+/// where the photograph's band is roof; [`RUN1559B_3279_BUILDINGS_RED`]
+/// is the row that reads the red.
 pub const RUN1559B_3279_BUILDINGS_TEAM: [((u8, i16), (u32, u32)); 2] =
+    [((0, 2001), (22, 55)), ((0, 2000), (73, 654))];
+/// The minted row, the draw before (`World::team_trim` off).
+pub const RUN1559B_3279_BUILDINGS_TEAM_BEFORE: [((u8, i16), (u32, u32)); 2] =
     [((0, 2001), (6, 55)), ((0, 2000), (243, 656))];
+/// **The buildings' red** (item 4438; §5.3): the same mask's held pixels,
+/// `((who, o), (both, theirs))`: of the photograph's pixels whose r is
+/// over half its r + g + b, those ours reads so too. The reader committed
+/// before its count. **0/2001 49 of 49, 0/2000 360 of 371**; the draw
+/// before 0 of 49 and 0 of 373. Ours reads red on 632 of 0/2000's 654
+/// held pixels, where the photograph's softened band reads so on 371.
+pub const RUN1559B_3279_BUILDINGS_RED: [((u8, i16), (u32, u32)); 2] =
+    [((0, 2001), (49, 49)), ((0, 2000), (360, 371))];
+/// The same, the draw before (`World::team_trim` off): 0 of 49 and 0 of
+/// 373.
+pub const RUN1559B_3279_BUILDINGS_RED_BEFORE: [((u8, i16), (u32, u32)); 2] =
+    [((0, 2001), (0, 49)), ((0, 2000), (0, 373))];
 /// The same reader over every object the row scores, the figures and the
 /// buildings, on the same draw (item 4286): minted at **1 of 33**, the
 /// reader seen to pass (0/2, piece 4576, 0.0044); the next nearest 1/26
