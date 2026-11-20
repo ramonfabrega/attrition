@@ -1009,6 +1009,37 @@ fn the_orphan_check_disbands_or_recruits() {
     assert_eq!(s.units[0].orders.len(), before);
 }
 
+/// **A site no builder stands on and none could be recruited for takes
+/// `build_masks |= 0x2000`** (item 4455; `check_orphaned_buildings@006c9f20`'s
+/// tail, `6ca6c6`), and the recruit's `BUILD_AT` swarm clears it
+/// (`Group::action_swarm_around@0070fbe0`, `7107bb`). run1720's `1/2036`
+/// and run1721's `1/2027`, never started, held `0x2000` in theirs where
+/// ours held 0.
+#[test]
+fn an_orphaned_site_with_no_recruit_is_marked_until_a_builder_is_swarmed() {
+    let at = tile_pos(32, 32);
+    let mut f = fx();
+    let s = &mut f.sim;
+    let b = s.init_build(1, f.farm_rec, at, false);
+    assert!(!s.buildings[b].no_builder, "a site is born unmarked");
+    s.check_orphaned_buildings(1);
+    assert!(s.buildings[b].alive, "no danger: the site keeps");
+    assert!(s.buildings[b].no_builder, "no builder, no recruit: 0x2000");
+
+    let mut u = crate::Unit::new(1, 0, tile_pos(36, 32), 40);
+    u.ty = Some(1); // the citizen record
+    s.units.push(u);
+    s.check_orphaned_buildings(1);
+    assert!(
+        s.units[0]
+            .orders
+            .iter()
+            .any(|o| matches!(o.body, Body::Build(x) if x == b)),
+        "the citizen was swarmed onto the site"
+    );
+    assert!(!s.buildings[b].no_builder, "BUILD_AT's swarm clears 0x2000");
+}
+
 /// A human leader is never swept.
 #[test]
 fn a_human_leader_is_skipped() {

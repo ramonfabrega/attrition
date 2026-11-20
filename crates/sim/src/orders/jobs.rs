@@ -247,6 +247,11 @@ impl Sim {
         if matches!(body, Body::Build(_) | Body::Repair(_)) {
             self.units[u].was_builder = true;
         }
+        // `BUILD_AT`'s clear of the site's `build_masks & 0x2000`
+        // (`andw` at `7107bb`, item 4455), after the member's build order.
+        if matches!(body, Body::Build(_)) {
+            self.buildings[b].no_builder = false;
+        }
         let order = Order {
             flags: if action { flag::ACTION } else { 0 },
             body,
@@ -307,7 +312,12 @@ impl Sim {
         }
         match body {
             Body::Repair(_) => self.add_repair_order(u, b, QueuePos::Last, action),
-            _ => self.add_build_order(u, b, QueuePos::Last, action),
+            _ => {
+                self.add_build_order(u, b, QueuePos::Last, action);
+                // `BUILD_AT`'s clear of the site's `build_masks & 0x2000`
+                // (`andw` at `7107bb`, item 4455).
+                self.buildings[b].no_builder = false;
+            }
         }
     }
 
