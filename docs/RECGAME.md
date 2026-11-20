@@ -566,17 +566,6 @@ slot moves (4432; GROUPS §6.6); units → 2892, a `GARRISON` walks
 target and `search`, groups → 3053, the bell's group is pushed (4440;
 CHECKSUM §17).
 
-**Item 4475: run1724, the captured camp's re-walk on 3904**.
-*Diff-backed*, by a mutation. The Inca camp `3/2011`, taken with the
-capital on 3887, re-walks in theirs on 3904 through `Build::process`'s
-`0x10` arm, 244 draws. The territory pass raised the region's `0x20` when
-it walked the region to its end (`compute_reg_territory@006b0bb0:280`–`282`;
-ECONOMY §17.2), and ours had no such write. On 3904, builds' `2710 2011
-gather_max` ours 0 → theirs' 5, `gather_from.length` 0 → 61, and world's
-61 tiles' `0x1000` clear → set all agree now. The draws 3903 → 3931,
-builds → 3981, world → 3943, units 3906 → 3921, guys → 3932, ammo →
-3936, leaders 3925 → 3945 (`SAMPLE_RANGES_1724`).
-
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte
