@@ -2921,7 +2921,7 @@ differently.**
 gender entry only on the types whose tail it is, for `piece_lengths`, `piece_skeletons`, `piece_releases` and
 `piece_tracks`. The client's `unit_art` listing keeps every entry. Killer:
 `artdata::tests::a_military_type_s_female_entry_is_no_piece_of_its`. **1 line turns, none grow**
-(`PACKETS_SCORE` 841 → 842): run1437's guys line, 5 → 0 ranges. Value diff, run1437 f3894 record 55 (`1/55`,
+(`PACKETS_SCORE` 841 → 842, and 843 → 844 merged with item 4468): run1437's guys line, 5 → 0 ranges. Value diff, run1437 f3894 record 55 (`1/55`,
 Assault Marines, TI 122): `gpiece` theirs 72, ours 6408 → 72, and the same on the line's other four ranges, the odd
 Assault Marines.
 
