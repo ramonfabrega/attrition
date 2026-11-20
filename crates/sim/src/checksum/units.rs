@@ -968,8 +968,8 @@ impl Sim {
 /// reallocates one slot only below 1), and `SimpleArray<Coord>::make_valid@
 /// 0046edd0` at `increment` −1 grows by the capacity itself when that
 /// suffices: 1, 2, 4, 8 as an Airbase's gather list appends. SEAM: an order
-/// `OrdersMemManager::get_obj` recycles keeps the capacity its last use
-/// grew to, which this crate does not carry; this is a fresh object's.
+/// the original's order pool recycles keeps the capacity its last use grew
+/// to, and this crate keeps no pool; this is a fresh object's.
 fn patrol_array_size(n: usize) -> usize {
     n.max(1).next_power_of_two()
 }
