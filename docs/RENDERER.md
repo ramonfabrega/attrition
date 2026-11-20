@@ -4808,7 +4808,10 @@ rows are their pins'.
   The draw before is `World::team_trim` off. *Not established:* the
   `whom` flash and the `graphic_tick` colour `draw_build` also writes;
   `get_build`'s relative colours under the profile's 0x100 preference;
-  the plaza's red kerb, drawn in theirs and not in ours (4438a).
+  the plaza's red kerb, drawn in theirs and not in ours (4438a); on
+  run1715 (Teayo), the plaza's paving grey-green in theirs and beige in
+  ours (4433a), and at the view's left edge, x 0–100, y 570–700, a
+  finished hut in theirs where ours draws blue planes and a citizen (4433b).
 - *The constants* and interface are this frame's, pinned, never tuned
   to a count (the inputs: 4089's journal).
 

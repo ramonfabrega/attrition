@@ -302,6 +302,15 @@ half 1,742 / 1,251 → 1,537 / 1,233; **hinted (item 4427), ours lit 192
 every cell keeps its `pix_width` (9,849 of 9,849). The same path drawn
 unhinted reads 47 again: the six were stem edges the hinter snaps.
 
+**A plate but Napata's (item 4433).** run1715 photographs run1559b's take
+at `camera 212,128`: slot 1's `Teayo` (o 2013), no capital, so no star,
+and three letters `Napata` lacks. **`RUN1715_3279_PLATE`**, read as
+run1559b's row: footprint 59 × 24, theirs dark 735, moved one plate down
+0; **ours dark 728, all 728 on theirs'; theirs lit 144, ours 146, both
+144**. Ours drawn `Teoya` (same letters, same width) reads both dark 697,
+both lit 112. So the anchor, the pads without the star, and the advances
+and glyphs of `T e y o` agree on a second city.
+
 **The bar (item 4410).** `WallOut::draw_health_bar@00640dd0` draws it for a
 member of the console's `play` group (or the mouse-over, or `+0x24`), at
 `world_to_console` of the point; `@00640f20` lifts the point `0x180`,
@@ -575,9 +584,10 @@ Not established:
   name (parked 4416a); the advances
   of `X`, `Z` and anything past ASCII, which no packet's font has drawn:
   since item 4426 they are the face's linear advance rounded, the rule
-  all 77 drawn characters keep, a derivation and not a reading; and a
-  plate for any city but Napata against a photograph (none on disk
-  shows another, parked 4423a). **The glyphs** are the install's face
+  all 77 drawn characters keep, a derivation and not a reading; and
+  ~~a plate for any city but Napata against a photograph (none on disk
+  shows another, parked 4423a)~~ (answered by item 4433: Teayo on
+  run1715, `RUN1715_3279_PLATE`, §3). **The glyphs** are the install's face
   hinted (§3, item 4427), lighting 53 of the row's 53. The DLL's
   FreeType version is not read: its strings carry `FREETYPE_PROPERTIES`
   (2.7.1 and later, where v40 is the default interpreter) and
