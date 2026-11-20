@@ -417,7 +417,11 @@ pub(in crate::diff) mod tests {
     /// 60078, so `8/0`'s 99-frame idle ran out here and `8/1`'s in theirs:
     /// ours took the far arm (413 from the herd centre), theirs the near
     /// one's three draws.
-    const SAMPLE_WALKED: (i64, i64) = (3019, 21044);
+    ///
+    /// Item 4442 (`find_wpath`'s scouting gate; the person's Scout `3/0`
+    /// re-plans its `flags 5` explore on 2892 at a person's prices): 3019
+    /// → 3887, +868.
+    const SAMPLE_WALKED: (i64, i64) = (3887, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -541,20 +545,26 @@ pub(in crate::diff) mod tests {
     /// person's Ashigaru Spearmen `3/27` on 2699): units 2700 → 2888. Item
     /// 4440 (`GarrisonOrder::walk_data@00484690` ported, and the bell's
     /// one-building group pushed on its player's pool): units 2888 → 2892,
-    /// groups 2888 → 3053.
+    /// groups 2888 → 3053. Item 4442 (`find_wpath`'s scouting gate: an
+    /// explore order carrying `ACTION` scouts only under `unit_masks &
+    /// 0x40100`; the person's Scout `3/0` re-plans on 2892 at a person's
+    /// prices): units 2892 → 3878, builds 3029 → 3878, ammo 3022 → 3888,
+    /// deaths 3365 → 3932, groups 3053 → 3935, guys 2920 → 3878, leaders
+    /// 2989 → 3575, cities 3176 → 3888, items 3976 → 7544, goods 4094 →
+    /// 4559, world 2921 → 3878.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 2892),
-        ("builds", 3029),
+        ("units", 3878),
+        ("builds", 3878),
         ("walls", 21044),
-        ("ammo", 3022),
-        ("deaths", 3365),
-        ("groups", 3053),
-        ("guys", 2920),
-        ("leaders", 2989),
-        ("cities", 3176),
-        ("items", 3976),
-        ("goods", 4094),
-        ("world", 2921),
+        ("ammo", 3888),
+        ("deaths", 3932),
+        ("groups", 3935),
+        ("guys", 3878),
+        ("leaders", 3575),
+        ("cities", 3888),
+        ("items", 7544),
+        ("goods", 4559),
+        ("world", 3878),
     ];
 
     /// `(frames our walk holds no wall, shot or death, the first it holds
@@ -888,81 +898,26 @@ pub(in crate::diff) mod tests {
     /// Per line that parts on run1710's window, its first parting by range
     /// (item 4414). Minted at seven rows, each on the frame the sum parts
     /// (`SAMPLE_LINES`): units, builds, ammo, groups, guys, leaders, world.
-    const SAMPLE_RANGES_1710: &[(&str, i64, usize, usize, usize, &str)] = &[
-        // Item 4429: 2112 -> 2700 (computer 2's Citizen `2/1` on its ally
-        // 0's ground bled the peace period on 2111 in ours alone). Item
-        // 4432: 2700 -> 2888 (the person's Ashigaru Spearmen `3/27`, a
-        // squad figure whose group slot (39070, 30774) is refused, is
-        // re-placed round its captain's: order `y`/`dest_y` 30792 -> 30648,
-        // `off_y` 72 -> 696, its seventeen path points (+22, +126) -> 0).
-        // Item 4440: 2888 -> 2892 (computer 4's ten Citizens under the bell
-        // walk `GarrisonOrder::walk_data@00484690`: `4/2`'s flags `04`, the
-        // capital (2000, 4, uid 0), `search` 1; ours 3107 -> 3137 ranges).
-        (
-            "units",
-            2892,
-            3163,
-            3166,
-            1512,
-            "1410 0 path.size..increment: path.length 68|65",
-        ),
-        (
-            "builds",
-            3029,
-            2323,
-            2323,
-            2,
-            "1815 2003 myhits..launch_frames: up 5|7",
-        ),
-        (
-            "ammo",
-            3022,
-            3,
-            3,
-            1,
-            "1 0 rolling..start_roll_angle: +0x7 of 99|99: 44290000|462b0000",
-        ),
-        // Item 4419: 927 -> 961 (a dead building leaves on the push); item
-        // 4422: 961 -> 2888 (the swarm's `form` −1 on slot 195). Item 4440:
-        // 2888 -> 3053 (the bell's `[4/2000]` pushed into player 4's slot 0
-        // on 2887: `stamp` 2701 -> 2887, `list[0]` 2009 -> 2000,
-        // `last_group[4]` 257 -> 256).
-        (
-            "groups",
-            3053,
-            610,
-            610,
-            1,
-            "341 257 id..march: ox 7392|20448, oy 22752|18144, o_angle -1148715008|0",
-        ),
-        (
-            "guys",
-            2920,
-            804,
-            804,
-            2,
-            "379 0 guy: angle 2146133600|2134310912, last_angle 2146133600|2134310912, des_angle -1748041728|2134310912",
-        ),
-        // Item 4429: 2112 -> 2989 (leader 2's `attrition_stamp` and
-        // `attrition_stamp2` 2111|0 go with the ally's bleed).
-        (
-            "leaders",
-            2989,
-            667,
-            667,
-            2,
-            "457 3 oil_patches: +0x0 of 4|4: 0c000000|0d000000",
-        ),
-        // Item 4424: 1716 -> 2921 (the person's type-107 captain out of
-        // its trainer on 1715 with a gather point lit nine fog cells round
-        // (74, 39) in ours alone; the exit lights no disc).
-        (
-            "world",
-            2921,
-            7709,
-            7709,
-            2,
-            "6412 2449 block.body: +0x1a of 96|96: e000e000|0000e000",
-        ),
-    ];
+    /// Units: item 4429 2112 -> 2700 (computer 2's Citizen `2/1` on its
+    /// ally 0's ground bled the peace period on 2111 in ours alone); item
+    /// 4432 2700 -> 2888 (the person's Ashigaru Spearmen `3/27` re-placed
+    /// round its captain's); item 4440 2888 -> 2892 (computer 4's ten
+    /// Citizens under the bell walk `GarrisonOrder::walk_data@00484690`).
+    /// Groups: items 4419 and 4422 927 -> 2888; item 4440 2888 -> 3053 (the
+    /// bell's `[4/2000]` pushed into player 4's slot 0 on 2887). Leaders:
+    /// item 4429 2112 -> 2989. World: item 4424 1716 -> 2921.
+    ///
+    /// Item 4442 (`find_wpath@00688fc0`'s scouting gate, `order.flags & 4
+    /// == 0 || unit_masks & 0x40100`): the person's Scout `3/0` (`TypeIndex`
+    /// 69, land) re-plans its queued explore (`flags 5`) to (40680, 31320)
+    /// on 2892 at a person's prices, seen ground the cheaper: `1410 0
+    /// path.size..increment` `path.length` ours 68 -> 65, theirs 65, and
+    /// `path[61..64]` ours (41448, 32088), (40680, 32856), (39912, 32856),
+    /// (39144, 32856) -> theirs' (39912, 32856), (39144, 32856), (38376,
+    /// 32088), (38376, 31320). Every row went with it: builds 3029 (`1815
+    /// 2003` `up` 5|7), ammo 3022, groups 3053 (`341 257` `ox` 7392|20448),
+    /// guys 2920 (`379 0` `angle`), leaders 2989 (`457 3` `oil_patches`
+    /// 0x0c|0x0d) and world 2921 (`6412 2449` `block.body`) agree. All twelve
+    /// lines whole over the window.
+    const SAMPLE_RANGES_1710: &[(&str, i64, usize, usize, usize, &str)] = &[];
 }

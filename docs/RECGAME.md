@@ -564,7 +564,11 @@ exit lights a disc (4424; VISION §6); units 2112 → 2700, leaders → 2989,
 allies bleed nothing (4429; ATTRITION); units → 2888, a refused
 slot moves (4432; GROUPS §6.6); units → 2892, a `GARRISON` walks
 target and `search`, groups → 3053, the bell's group is pushed (4440;
-CHECKSUM §17).
+CHECKSUM §17); every line whole on the window, the person's Scout `3/0`
+plans its `flags 5` explore at a person's prices, not the scout's (4442;
+PATHFINDER §3): its 2892 path 68|65 long, and the 2892 detour above was
+that gate. The lines now part on 3878 to 3935, the walk's word on 3887;
+no window on disk holds those frames.
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
