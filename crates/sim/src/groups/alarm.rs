@@ -110,9 +110,10 @@ impl Sim {
     /// the bell, and every Citizen in the city's radius takes a
     /// `GARRISONORDER` in front of its REPAIR, so the spill passes the other
     /// three by. `leader_flags2 & 8` is the combat AI's scenario switch,
-    /// never set here (`docs/ARMY.md` §18). SEAMS: the group is not pushed
-    /// on the player's pool (`Groups::push_group`'s slot; run1075's
-    /// widening parts no pool row on 2073 without it); attrition's blow (`Unit::suffer_attrition`
+    /// never set here (`docs/ARMY.md` §18). The group is pushed on the
+    /// player's pool first (`Groups::push_group(who, g, 1)`,
+    /// `take_damage:209`; item 4440, the building arm's twin on the 2017
+    /// sample's 2887). SEAMS: attrition's blow (`Unit::suffer_attrition`
     /// calls `take_damage` with `param_5` 1, which this arm does not read)
     /// does not come through here, and needs a computer Citizen bleeding
     /// on a cell `find_city_at` accepts for its own city — neutral
@@ -131,6 +132,7 @@ impl Sim {
         if !(bd.alive && bd.active) || self.cities.cities[c].alarm {
             return;
         }
+        self.push_building_group(who, b);
         self.action_alarm(who, &[b]);
     }
 

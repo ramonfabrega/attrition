@@ -593,6 +593,8 @@ impl Sim {
     /// `uid2`, item 4230) first held one on the minted game's 3166; a
     /// `CAST_SPELL` (that target, and `x`..`spell`, item 4234) on 3596; a
     /// `GUARD` (that target, and `dx`..`retry`, item 4266) on 12537; a
+    /// `GARRISON` (that target, and `search`, item 4440) on the sample's
+    /// 2888; a
     /// `GROUP_MOVE` or `GROUP_ATTACK_TO` (the move, then the flags again,
     /// `oxx`..`group_angle` and `in_group`, item 4243) on 6907; a `THINK`
     /// (the flags byte, item 4414) on the 2017 sample's 532; any
@@ -686,6 +688,15 @@ impl Sim {
             // `UnitOrder::walk_data@0047f2b0` (`ThinkOrder::vftable@00b48d88`):
             // the flags byte alone (item 4414, the sample's units on 532).
             Body::Think => put("order.flags", vec![o.flags]),
+            // `GarrisonOrder::walk_data@00484690` (item 4440, the sample's
+            // units on 2888): the flags byte, `TargetOrder`'s `ox`, `whom`,
+            // `uid` (`+0x8..+0x12`, the building it goes into) and its own
+            // `search` (`+0x14`, four bytes; the PDB's field list).
+            Body::Garrison { building, search } => {
+                put("order.flags", vec![o.flags]);
+                put("order.target", target(building));
+                put("order.search", i32::from(search).to_le_bytes().to_vec());
+            }
             Body::Build(b) if o.index() == kind::BUILD_AT => {
                 put("order.flags", vec![o.flags]);
                 put("order.target", target(b));
