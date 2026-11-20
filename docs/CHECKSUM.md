@@ -1839,6 +1839,31 @@ pool. The Cruise Missile's arm and `calc_from_dir`'s guided spline are
 `SplineArm::Unwalked`, and the line still refuses a round that carries one.
 A V2's re-planned spline is one of those.
 
+**A crew figure's destination is guy 0's point** (item 4471, diff-backed on
+row 100, run1721; the guys line, and the units line through its figures). On
+tick 2645 the computer's Caravan `1/46` (TI 59, three figures) stands blocked
+on its trade route and is pushed. Its point moves (40382, 12377) → (40382,
+12355) on both sides, `collide_frame` 2645 on both, and the body does not
+move. Guy 0's `des_y` takes 12355 on both sides. Its two crew figures' `des_y`
+read ours 12355, theirs 12377 (guys ranges 435 and 436, units range 1696).
+`squad_size` is the constant 1 (`crate::units::anim::SQUAD_SIZE`), so every
+figure past guy 0 is crew. `Unit::set_new_location@005f8d20`'s tail writes
+`des` into guy 0 alone when `guy_mark` is 1. A crew figure's `des_x`/`des_y`
+(`+0x5c`/`+0x60`) is written only by `Guy::set_new_location@005d86f0:73`–`97`.
+That is the crew loop, which runs on every call for guy 0 whatever its
+`param_3`, and writes the point guy 0 is set to, plus a track figure's offset.
+The other writers are `Guy::clear` and `init_real` (0). A trackless crew
+figure's `des` is therefore guy 0's own `x`/`y`, ours' `movement.body.pos`,
+not the unit's point (`Sim::guy_record_bytes`). Row 100's units go 2,728 →
+2,743, first 2646 → 2743, and its guys 3,308 → 3,323, first 2646 → 2744
+(`row_100_s_caravan_crew_keep_guy_0_s_point_on_run1721_s_ranges`). Row 60's
+guys turn whole, and rows 40, 10, 30, 110 and 130 move forward.
+
+*Not established*: `Guy::copy_data@005d84b0` writes guy 0's `x`/`y` without
+the crew loop, so a copied unit's crew could keep an older `des`. No walk has
+reached it. A track figure's offset arm is held by `Follow::des` and is not
+re-read here.
+
 ## 19. The groups line, ported (item 4116)
 
 **The line is the original's on run 1562's frame 91**: 556 of 556 ranges,
