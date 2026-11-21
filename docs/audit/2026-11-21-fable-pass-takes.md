@@ -159,4 +159,13 @@ nothing was redrawn or uploaded.
 
 Whole, by `tools/gate_run.sh`.
 
-- The quote follows in the commit after the gate, as the record before's did.
+- **`gate-pass-1121.log`: `gate exit 0`** on `04f7466b0`, the pass's
+  commit, 9 of 9 steps: offline 1.0, guard 0.6, merge pins 1.1, release
+  22.1, clock 0.1. `Clock: green beside load`. Admission 11.1 s over
+  1,493 leases; load 2.0 at its start and 7.7 at its end. `Fixture audit:
+  198791 requests, 0 missing fixtures`. `Rows: one driver row at most:
+  steer 7e53811d (working)`; `Driver: 0 landings since the last pass
+  (backstop 20) · context 269 k`. `Builders: 0 reaped`; 78 GB free after
+  it.
+- The paperwork guards had run on the tree before the commit, red three
+  times first ("Not done, and said").
