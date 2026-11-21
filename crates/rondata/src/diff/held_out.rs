@@ -1545,6 +1545,74 @@ mod tests {
         }
     }
 
+    /// **Row 10's Citizen over a peaceful border carries the attrition
+    /// bits** (item 4514, `docs/CHECKSUM.md` §18.3): run1739, the ranges take
+    /// of run1730's file. who=1's `1/6` (TI 50) stands on who=0's ground,
+    /// the two at peace, and its refresh on 3771 takes the peace period, 8.
+    /// `Unit::process_attrition@005e11a0` clears `unit_masks` `0x400080` on
+    /// entry and sets both bits on the peace and assassin arms (`0x80`
+    /// alone on the war arm's period), which this crate kept as
+    /// `Unit::attrition` and `Unit::ignores_supply` and never emitted. Every
+    /// units range on 3770 and 3771, byte for byte: red on the tree before
+    /// the fix at range 467, record 6, `collide_frame..play` byte 32,
+    /// `unit_masks` ours `0x840008`, theirs `0xc40088`.
+    #[test]
+    fn row_10_s_citizen_over_a_peaceful_border_carries_the_attrition_bits_on_run1739_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 0) else {
+            eprintln!("skipping: row 10's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1739/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1739's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 10's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [3770i64, 3771] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_units();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            assert_eq!(ours.ranges.len(), theirs.len(), "units ranges on {state}");
+            // The walker by name: `1/6` on who=0's ground at peace, and
+            // theirs' `unit_masks` (bytes 32..36 of range 467).
+            let u = built
+                .sim
+                .units
+                .iter()
+                .find(|u| u.owner == 1 && u.index == 6)
+                .expect("1/6");
+            assert_eq!(u.type_index, 50);
+            assert_eq!(built.sim.world.owner_at(u.pos), sim::Owner::Player(0));
+            assert!(!built.sim.leaders.at_war[1][0], "1 and 0 at peace");
+            assert_eq!(u.attrition, if state == 3771 { 8 } else { 0 }, "{state}");
+            if state == 3771 {
+                assert_eq!(ours.ranges[467].record, 6);
+                assert_eq!(&theirs[467].bytes[32..36], &0x00c4_0088u32.to_le_bytes());
+            }
+        }
+    }
+
     /// **Row 120's MLRS reads `cavarch_o` −2 in the units line** (item
     /// 4443, `docs/RECGAME.md` §10.3): on 5864 the computer's fire-on-the-move
     /// MLRS `1/35` (type 273) steps an `ExploreTo` with an empty search after
@@ -2867,13 +2935,19 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // 6920, record 3039 `block.present`, ours 1, theirs 0, who=1's
         // `1/43` stepping (632, 813) -> (633, 814) inside the freed cell
         // (39, 50)): world 5,995 -> 6,001, whole.
+        // Moved by item 4514 (`unit_masks` carries the attrition period's
+        // `0x80` and the peace arm's `0x400000`,
+        // `Unit::process_attrition@005e11a0`: run1739, state 3771, units
+        // range 467, record 6, who=1's `1/6` (TI 50) on who=0's ground at
+        // peace, ours 0x840008, theirs 0xc40088): units 5,664 -> 5,792,
+        // first 3771 -> 4880.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5664, 6001, 6001, 5962, 6001, 6001, 5997, 5801, 6001, 6001, 6001, 6001,
+                5792, 6001, 6001, 5962, 6001, 6001, 5997, 5801, 6001, 6001, 6001, 6001,
             ],
             first: &[
-                ("units", (3771, Some(4212870850), 267538306)),
+                ("units", (4880, Some(357474173), 4168261069)),
                 ("ammo", (5178, None, 1427640977)),
                 ("guys", (4880, Some(3110518234), 2759048231)),
                 ("leaders", (3976, Some(2201651438), 3962276079)),
@@ -3164,10 +3238,14 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Freighter `1/135` holding `1/127`, `1/128`, `1/129`, `1/127`'s
         // `inside_down` ours -1, theirs 128): units 3,034 -> 4,422, first
         // 2354 -> 3411.
+        // Moved by item 4514 (`unit_masks` carries the attrition period's
+        // `0x80` and the peace arm's `0x400000`; run1739's leaf, row 10):
+        // units 4,422 -> 4,459, first on 3411, its sums unmoved. No ranges
+        // take of this row.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                4422, 4731, 4731, 4731, 4731, 4731, 4731, 4721, 4731, 4731, 4731, 4731,
+                4459, 4731, 4731, 4731, 4731, 4731, 4731, 4721, 4731, 4731, 4731, 4731,
             ],
             first: &[
                 ("units", (3411, Some(1975420184), 338852346)),
