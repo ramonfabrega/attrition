@@ -692,9 +692,6 @@ impl Sim {
         for i in (0..list.len()).rev() {
             let u = list[i];
             if !self.units[u].alive() || self.units[u].group_ptr != pool {
-                if std::env::var("RON_PROBE_4512").is_ok() && self.units[u].index == 94 {
-                    eprintln!("PROBE seat_normalize drops 1/94 alive {} group_ptr {:?} pool {:?}\n{}", self.units[u].alive(), self.units[u].group_ptr, pool, std::backtrace::Backtrace::force_capture());
-                }
                 let (l, st) = self.seat_parts(seat);
                 Self::seat_remove_at(l, st, i);
             }
@@ -775,9 +772,6 @@ impl Sim {
             let list = self.seat_list(seat).clone();
             for i in (0..list.len()).rev() {
                 if !self.units[list[i]].alive() {
-                    if std::env::var("RON_PROBE_4512").is_ok() && self.units[list[i]].index == 94 {
-                        eprintln!("PROBE seat_get_num drops dead 1/94\n{}", std::backtrace::Backtrace::force_capture());
-                    }
                     let (l, st) = self.seat_parts(seat);
                     Self::seat_remove_at(l, st, i);
                 }
