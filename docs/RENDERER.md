@@ -2234,9 +2234,13 @@ the closing block, and the Aztec pair's starts.
   none (4191c). Not drawn: the body's fade alpha, the skeleton (4191b),
   the slope tilt, `center_z`.
 - **The haze over three live tanks on run1559b's photograph** at 3279
-  (`1/40`, `1/27`, `1/16`): not corpses, not decoys, not movement
-  (item 4458, parked 4458a in its journal); what the original draws
-  there is unread.
+  (`1/40`, `1/27`, `1/16`): not corpses, not decoys (item 4458). **It is
+  the Sherman's `MOVE DUST`, undrawn** (item 4482, parked 4482a): run1559b's
+  packet holds a node-5 emitter of system 98 at each tank's 3279 point,
+  10 particles on `1/27` and `1/16`, 7 on `1/40`'s stopped one, and 1 on
+  the crisp `1/15`, whose earlier emitter stopped with none left.
+  `RUN1559B_3279_TANKS_HAZE` reads the luminance 1 of 4, the control.
+  Why `1/15`'s emitter stopped is unread.
 
 **The photograph of a corpse and a round** (item 4183, run1570; the rule
 before any count, so no count yet). run1570 is run1559b's paused, traced
