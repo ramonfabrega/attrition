@@ -507,6 +507,14 @@ impl Sim {
             self.group_add(&mut g, u);
             let chain = g.list;
             let last = self.orders.last_group[w];
+            // `Army::add_unit@006f9f40:37` hands the stack group to
+            // `Groups::push_group(who, g, 1)`, whose `equals_group`
+            // normalizes the last pushed slot and asks its `get_num`, equal
+            // or not: an emptied last slot's `ox`/`oy` go to 0. Row 60's
+            // who=1 pushes `1/169` into slot 67 on 3598 while slot 68, empty
+            // since 3525, is the last: run1722's record 68 reads `ox`/`oy`
+            // (0, 0) there, where this path kept (33720, 15048) (item 4473).
+            self.push_equals_last(who, last);
             let equal = !chain.is_empty() && self.pool_members(who, last) == chain;
             let s = self.pool_slot_for(who, &chain);
             // `push_group`'s `copy_group` into the slot's own record

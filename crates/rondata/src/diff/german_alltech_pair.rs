@@ -207,5 +207,5 @@ fn run1145c_s_closing_frame_is_widened_whole() {
     // Item 4176: 181 -> 182, +1 firsts: who=1's `attrition_stamp2` standing at 4169, ours 3814 theirs 3844 (parked 4176b).
     // Item 4159's third residue: 182 -> 151, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
     // Item 4435: 151 -> 107, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 107, "run1145c baseline");
+    pin_eq!(w.firsts.len(), 91, "run1145c baseline");
 }

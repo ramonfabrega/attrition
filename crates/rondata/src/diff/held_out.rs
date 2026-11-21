@@ -504,6 +504,70 @@ mod tests {
         }
     }
 
+    /// **Row 60's army push zeroes the emptied last slot's origin** (item
+    /// 4473, `docs/RECGAME.md` §10.3): run1722, the ranges take of run1703's
+    /// file. On 3598 who=1's army 1 takes `1/169` through
+    /// `Army::add_unit@006f9f40:37`'s `Groups::push_group(who, g, 1)`, into
+    /// slot 67, while `last_group` names slot 68 (record 68), empty on both
+    /// sides since its members left. `Group::equals_group@00708000` asks the
+    /// last slot's `get_num@00714700`, whose empty arm writes `ox`/`oy` 0.
+    /// This crate's army push skipped `equals_group`'s side effects. Every
+    /// groups range on 3597 and 3598, byte for byte: red on the tree before
+    /// the fix at range 92 on 3598, record 68 `id..march`, `ox` ours 33720,
+    /// theirs 0 (`oy` 15048, 0).
+    #[test]
+    fn row_60_s_army_push_zeroes_the_empty_last_slot_s_origin_on_run1722_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIRST, 3) else {
+            eprintln!("skipping: row 60's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1722/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1722's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 60's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [3597, 3598] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_groups();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 5).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "groups' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "groups range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Record 68's `ox` (`+0x18`, byte 20 of `id..march`), by name.
+            let k = ours
+                .ranges
+                .iter()
+                .position(|r| r.record == 68 && r.field == "id..march")
+                .expect("record 68");
+            let want: i32 = if state == 3597 { 33720 } else { 0 };
+            assert_eq!(
+                &theirs[k].bytes[20..24],
+                &want.to_le_bytes(),
+                "theirs' record 68 ox on {state}"
+            );
+        }
+    }
+
     /// **Row 120's barge is born with `form` 0** (item 4435, `docs/RECGAME.md`
     /// §10.3): run1716, the ranges take of run1706's file, holds the units
     /// line's every range on state 2694, where the computer's transport
@@ -720,6 +784,50 @@ mod tests {
             &theirs[0x60 - 0x8..0x64 - 0x8],
             &12377i32.to_le_bytes(),
             "theirs' crew des_y"
+        );
+    }
+
+    /// **Row 100's Jet Fighter walks its patrol** (item 4474,
+    /// `docs/CHECKSUM.md` §18): on tick 2742 the computer hands the Jet
+    /// Fighter `1/91` (TI 295) in its airbase an `AIR_PATROL`, and
+    /// `AirPatrolOrder::walk_data@00483ed0` hands over fourteen ranges after
+    /// the node byte. Every units range on 2743: red without the walker at
+    /// range 2939, record 91, where ours walked `guys.length` (`01 00 00
+    /// 00`) and theirs the flags byte (`00`); theirs' `x_pos` element is
+    /// range 2945.
+    #[test]
+    fn row_100_s_jet_fighter_walks_its_air_patrol_order_on_run1721_s_ranges() {
+        let Some(theirs) = units_ranges_agree(5, "run1721", 2743, 2945) else {
+            return;
+        };
+        assert_eq!(theirs, 3168i32.to_le_bytes(), "theirs' x_pos[0]");
+    }
+
+    /// **Row 100's Jet Fighter leaves its base through `Unit::set_angle`**
+    /// (item 4474, `docs/CHECKSUM.md` §18): on tick 2743 `Unit::do_spec_anim`'s
+    /// EXIT turns the plane from its stored 0x55555555 to 0, a turn past 90°,
+    /// so `unit_masks & 2` flips, and `Guy::set_angle(guy 0, 0, 1)` snaps the
+    /// figure's `last_angle`. Every units range on 2744: red without the
+    /// flip at range 2930, record 91, `unit_masks` ours `00 00 04 00`, theirs
+    /// `02 00 04 00`; every guys range: red without the snap at range 760,
+    /// `last_angle` ours `55 55 55 55`, theirs 0.
+    #[test]
+    fn row_100_s_jet_fighter_turns_through_set_angle_at_its_airbase_on_run1721_s_ranges() {
+        let Some(theirs) = units_ranges_agree(5, "run1721", 2744, 2930) else {
+            return;
+        };
+        assert_eq!(
+            &theirs[0x68 - 0x48..0x6c - 0x48],
+            &0x40002i32.to_le_bytes(),
+            "theirs' unit_masks"
+        );
+        let Some(theirs) = line_ranges_agree(5, "run1721", 2744, 6, 760) else {
+            return;
+        };
+        assert_eq!(
+            &theirs[0x1c - 0x8..0x20 - 0x8],
+            &0i32.to_le_bytes(),
+            "theirs' last_angle"
         );
     }
 
@@ -1257,14 +1365,16 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4460 (a trackless crew figure's `des` is guy 0's body
         // point, `Guy::set_new_location`'s crew loop): guys
         // 4,961 -> 4,965, first 3107 -> 3190.
+        // Moved by item 4473 (`Army::add_unit`'s push runs `equals_group`'s
+        // normalize and `get_num` on the last slot): groups 4,964 -> 4,974,
+        // whole. No ranges take of this row; the leaf is row 60's.
         moved: Some(Score {
             states: 4974,
             agreed: [
-                2487, 4974, 4974, 4974, 4974, 4964, 4965, 4974, 4974, 4974, 4974, 4859,
+                2487, 4974, 4974, 4974, 4974, 4974, 4965, 4974, 4974, 4974, 4974, 4859,
             ],
             first: &[
                 ("units", (2487, Some(3429527498), 3877923716)),
-                ("groups", (1854, Some(284774603), 2949074744)),
                 ("guys", (3190, Some(2877806205), 2189546945)),
                 ("world", (4859, Some(155879679), 1707773025)),
             ],
@@ -1326,14 +1436,18 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // 2107, run1722's units range 1429 and guys range 399, record 40 (the
         // Caravan 1/40, TI 59, pushed (-2, -2) on 2106), its first crew
         // figure's `des_x` read ours 37942, theirs 37944 (`des_y` 19990, 19992).
+        // Moved by item 4473 (`Army::add_unit`'s push runs `equals_group`'s
+        // normalize and `get_num` on the last slot): groups 3,863 -> 4,075,
+        // whole. On 3598 who=1's army 1 pushes `1/169` into slot 67 while
+        // slot 68 is the last and empty: run1722's groups range 92, record 68,
+        // `ox`/`oy` ours (33720, 15048), theirs (0, 0).
         moved: Some(Score {
             states: 4075,
             agreed: [
-                3788, 4075, 4075, 4075, 4075, 3863, 4075, 4075, 4075, 4075, 4075, 3984,
+                3788, 4075, 4075, 4075, 4075, 4075, 4075, 4075, 4075, 4075, 4075, 3984,
             ],
             first: &[
                 ("units", (3757, Some(89157210), 2279304812)),
-                ("groups", (3598, Some(3778361523), 962934390)),
                 ("world", (3984, Some(402934873), 4267790267)),
             ],
             over: None,
@@ -1455,16 +1569,26 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // point, `Guy::set_new_location`'s crew loop): units
         // 2,728 -> 2,743, first 2646 -> 2743; guys 3,308 -> 3,323, first 2646
         // -> 2744.
+        // Moved by item 4474 (the units line walks `AirPatrolOrder`'s own
+        // ranges; an airbase exit turns through `Unit::set_angle`): units
+        // 2,743 -> 2,977, first 2743 -> 2758; guys 3,323 -> 3,331, whole. On
+        // 2743, run1721's units range 2939, record 91 (the Jet Fighter 1/91,
+        // TI 295, handed a patrol on 2742): ours walked `guys.length`
+        // 01 00 00 00 after the order's node, theirs the order's flags 00,
+        // `waypoint` 0, `x_pos` (1, 1, -1, 0, [3168]), `y_pos` (1, 1, -1, 0,
+        // [30816]), flags again and the `AirOrder` row. On 2744, units range
+        // 2930, record 91, `unit_masks` read ours 0x40000, theirs 0x40002
+        // (`mirror`), and guys range 760, record 91, `last_angle` ours
+        // 0x55555555, theirs 0.
         moved: Some(Score {
             states: 3331,
             agreed: [
-                2743, 3331, 3331, 3291, 2756, 3331, 3323, 3331, 3331, 3331, 3331, 3331,
+                2977, 3331, 3331, 3291, 2756, 3331, 3331, 3331, 3331, 3331, 3331, 3331,
             ],
             first: &[
-                ("units", (2743, Some(4227177816), 316449748)),
+                ("units", (2758, Some(2109868139), 4117763000)),
                 ("ammo", (3210, None, 252233938)),
                 ("deaths", (2756, Some(1136466598), 3621657254)),
-                ("guys", (2744, Some(3271434361), 1542266661)),
             ],
             over: None,
         }),
@@ -1596,10 +1720,13 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4460 (a trackless crew figure's `des` is guy 0's body
         // point, `Guy::set_new_location`'s crew loop): guys
         // 5,942 -> 5,963, first on 2449.
+        // Moved by item 4474 (`AirPatrolOrder`'s ranges walked; an airbase
+        // exit turns through `Unit::set_angle`): units 2,496 -> 2,712, first
+        // on 1747; guys 5,963 -> 5,990, first on 2449.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                2496, 537, 6001, 5907, 5350, 3066, 5963, 3976, 6001, 6001, 6001, 537,
+                2712, 537, 6001, 5907, 5350, 3066, 5990, 3976, 6001, 6001, 6001, 537,
             ],
             first: &[
                 ("units", (1747, Some(2268899682), 1685366186)),
@@ -1666,7 +1793,17 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
             first: &[("groups", (3352, Some(4005438802), 229385035))],
             over: None,
         },
-        moved: None,
+        // Moved by item 4473 (`Army::add_unit`'s push runs `equals_group`'s
+        // normalize and `get_num` on the last slot): groups
+        // 4,415 -> 4,455; the row is whole. No ranges take of this row.
+        moved: Some(Score {
+            states: 4455,
+            agreed: [
+                4455, 4455, 4455, 4455, 4455, 4455, 4455, 4455, 4455, 4455, 4455, 4455,
+            ],
+            first: &[],
+            over: None,
+        }),
     }),
     // run1733
     // row 70, as found 2026-11-20, ended by the original on 5140: 11 lines whole; world 5,054
@@ -1727,16 +1864,19 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4460 (a trackless crew figure's `des` is guy 0's body
         // point, `Guy::set_new_location`'s crew loop): guys
         // 5,977 -> 6,000, first on 2464.
+        // Moved by item 4473 (`Army::add_unit`'s push runs `equals_group`'s
+        // normalize and `get_num` on the last slot): groups
+        // 3,544 -> 3,553, first 1608 -> 3553.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                2702, 4221, 6001, 4472, 6001, 3544, 6000, 4995, 6001, 6001, 6001, 3999,
+                2702, 4221, 6001, 4472, 6001, 3553, 6000, 4995, 6001, 6001, 6001, 3999,
             ],
             first: &[
                 ("units", (2184, Some(1779962534), 330632884)),
                 ("builds", (4221, Some(3943548441), 1202439769)),
                 ("ammo", (3303, None, 3094479036)),
-                ("groups", (1608, Some(2931878699), 617474571)),
+                ("groups", (3553, Some(2133273625), 271133720)),
                 ("guys", (2464, Some(451796102), 1018289160)),
                 ("leaders", (3176, Some(2352774769), 1606385266)),
                 ("world", (3809, Some(2182316411), 2894561759)),
@@ -1780,18 +1920,23 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4460 (a trackless crew figure's `des` is guy 0's body
         // point, `Guy::set_new_location`'s crew loop): guys
         // 4,591 -> 4,695, first on 1736.
+        // Moved by item 4473 (`Army::add_unit`'s push runs `equals_group`'s
+        // normalize and `get_num` on the last slot): groups
+        // 4,553 -> 4,731, whole.
+        // Moved by item 4474 (`AirPatrolOrder`'s ranges walked; an airbase
+        // exit turns through `Unit::set_angle`): units 1,735 -> 2,100, first
+        // 1735 -> 1742; guys 4,695 -> 4,719, first 1736 -> 2066.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                1735, 553, 4731, 4511, 4084, 4553, 4695, 1976, 4731, 4731, 4731, 553,
+                2100, 553, 4731, 4511, 4084, 4731, 4719, 1976, 4731, 4731, 4731, 553,
             ],
             first: &[
-                ("units", (1735, Some(3081680851), 796971071)),
+                ("units", (1742, Some(1100206902), 2410470946)),
                 ("builds", (553, Some(2297078769), 1047897137)),
                 ("ammo", (2367, Some(1123882197), 1189418202)),
                 ("deaths", (1746, Some(1419733817), 1134652217)),
-                ("groups", (2811, Some(2634708853), 2723050627)),
-                ("guys", (1736, Some(4103418160), 1070804956)),
+                ("guys", (2066, Some(2267796042), 1696846499)),
                 ("leaders", (1376, Some(73709351), 1700509480)),
                 ("world", (553, Some(699267042), 2987457272)),
             ],
@@ -1816,9 +1961,10 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
 
 /// **Parity held out, second, N of 8** (item 4462): the second battery's
 /// games whole on every line and state, and the games taken. As found,
-/// 2026-11-20: 1 of 8, row 150 (run1737).
+/// 2026-11-20: 1 of 8, row 150 (run1737). Item 4473: 1 -> 2, row 50
+/// (run1732) whole with its groups line.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (1, 8);
+pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (2, 8);
 
 /// One battery: its declared table, its pins, where its files and takes
 /// sit, and its line in the handoff.
