@@ -1662,12 +1662,6 @@ mod tests {
                 }
             }
             eprintln!("P {state} lens {} {}", ours.ranges.len(), theirs.len());
-            for u in built.sim.units.iter().filter(|u| u.owner == 1) {
-                let kinds: Vec<u8> = u.orders.iter().map(|o| o.index()).collect();
-                if kinds.contains(&14) || kinds.contains(&8) {
-                    eprintln!("P {state} unit 1/{} TI {} pos {:?} orders {:?}", u.index, u.type_index, u.pos, kinds);
-                }
-            }
         }
     }
 
