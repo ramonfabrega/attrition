@@ -215,6 +215,13 @@ mod tests {
         games_score_as_pinned(&THIRD);
     }
 
+    /// `HELD_OUT_FOURTH[k]` played as `run1760 + k` (item 4510), held as
+    /// the first three are.
+    #[test]
+    fn the_fourth_held_out_games_score_as_pinned() {
+        games_score_as_pinned(&FOURTH);
+    }
+
     fn games_score_as_pinned(b: &Battery) {
         let Some(inst) = crate::testenv::install() else {
             return;
@@ -1668,6 +1675,12 @@ mod tests {
         line_reads_as_pinned(&THIRD);
     }
 
+    /// The fourth battery's line, from its table alone (item 4510).
+    #[test]
+    fn the_fourth_held_out_line_reads_as_pinned() {
+        line_reads_as_pinned(&FOURTH);
+    }
+
     fn line_reads_as_pinned(b: &Battery) {
         let taken = b.scores.iter().flatten().count();
         let whole = b
@@ -1759,6 +1772,14 @@ mod tests {
     #[test]
     fn the_handoff_s_parity_held_out_third_line_is_the_pinned_scores() {
         handoff_line_is_the_pinned_scores(&THIRD);
+    }
+
+    /// **The handoff's fourth parity-held-out line** (item 4510): the
+    /// fourth battery's [`queue_line`], `Parity held out, fourth:`, in the
+    /// first's grammar. Its found half is the estimate (DECISIONS 148 §2).
+    #[test]
+    fn the_handoff_s_parity_held_out_fourth_line_is_the_pinned_scores() {
+        handoff_line_is_the_pinned_scores(&FOURTH);
     }
 
     fn handoff_line_is_the_pinned_scores(b: &Battery) {
@@ -3325,4 +3346,28 @@ pub(crate) const THIRD: Battery = Battery {
     scores: &SCORES_THIRD,
     scores_name: "SCORES_THIRD",
     line: HELD_OUT_THIRD_LINE,
+};
+
+/// **The fourth battery's scores**, `HELD_OUT_FOURTH[k]` played as
+/// `run1760 + k` (item 4510): `None` until the original has played it. The
+/// found column is pinned once and never re-pinned; it is the estimate
+/// (DECISIONS 148 §2).
+#[cfg(test)]
+pub(crate) const SCORES_FOURTH: [Option<FirstScore>; 8] =
+    [None, None, None, None, None, None, None, None];
+
+/// The fourth battery's line: games whole of the eight, and games taken.
+#[cfg(test)]
+pub(crate) const HELD_OUT_FOURTH_LINE: (usize, usize) = (0, 0);
+
+/// The fourth battery (item 4510).
+#[cfg(test)]
+pub(crate) const FOURTH: Battery = Battery {
+    label: "Parity held out, fourth",
+    item: 4510,
+    run: 1760,
+    table: &HELD_OUT_FOURTH,
+    scores: &SCORES_FOURTH,
+    scores_name: "SCORES_FOURTH",
+    line: HELD_OUT_FOURTH_LINE,
 };
