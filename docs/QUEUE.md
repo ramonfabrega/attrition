@@ -31,7 +31,7 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 Blind: never 336 · residue 336 · open 0
 Rubric: ported 738 · replaced by design 331 · open 571 of 3611 · lockstep bytes 78.1 % · ages held 8 of 8 · unit types seen 296 of 302
 Held-out: 8 of 9 whole · shortest 6147
-Parity: 6 of 7 whole · the sample parts first on builds 4321 of 21044 · draws 5273
+Parity: 6 of 7 whole · the sample parts first on ammo 4462 of 21044 · draws 5273
 Parity held out: 8 of 8 whole · 8 taken · lines 64 of 96 as found, 96 now · first partings 2990 3694 711 969 0 134 2694 0 as found, whole whole whole whole whole whole whole whole now · reach 27 % of states as found, 100 % now
 Parity held out, second: 4 of 8 whole · 8 taken · lines 65 of 96 as found, 83 now · first partings 537 1662 3352 5054 4021 1608 553 whole as found, 3771 1662 whole whole whole 3809 3411 whole now · reach 53 % of states as found, 79 % now
 Parity held out, third: 8 of 8 whole · 8 taken · lines 90 of 96 as found, 96 now · first partings 4805 whole whole whole 3831 1976 whole whole as found, whole whole whole whole whole whole whole whole now · reach 88 % of states as found, 100 % now
@@ -52,15 +52,13 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3): four seats out: the chain's builder on 4514 (second, row 10 from units 3771), `lane-4508` (second, row 130, run1754), `lane-4510` (the fourth battery), `lane-4513` (the sample from builds 4321), each Opus 5.5; 4484 landed (run1723, row 40's leaf on 2487: the squad 1/16 to 1/18 boarding 1/70, `inside_down` ours −1 theirs 17, the passenger chain 4511 is building; no fix, no re-pin) and 4504 landed (row 10's world whole: the one-block collision move returns on a freed cell) and the chain took 4514; 4512 landed (row 105's leaders and groups, the third battery 8 of 8) and its seat took 4508; 4505 landed (the sample's gatherer chain, units 4248 → 5273) and its seat took 4513; 4507 landed (row 5's Slinger bays re-fit, ammo whole, the third battery 7 of 8) and its seat took 4510; 4511 landed (row 105's passengers in order of entry: rows 105 and 40 whole, the first battery 8 of 8) and its seat took 4512, the chain's 4504; 4502 landed (row 105's CEO bit, units first 2983 → 3359) and its seat took 4511; 4506 landed (the dust, `RUN1559B_3279_TANKS_HAZE` 1 → 4 of 4, parked 4506a and 4506b) and its seat took 4507. run1723, run1726 and run1753 are taken; 4510's recordings have the game lane, then 4508's run1754; every later take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4509 (second, row 30, after 4504's world leaf), 4485 (second, row 110). 4503 (the sample's draw word) follows 4513 in the sample's seat.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3): four seats out: the chain's builder on 4514 (second, row 10 from units 3771), `lane-4508` (second, row 130, run1754), `lane-4510` (the fourth battery), `lane-4515` (the sample from ammo 4462), each Opus 5.5; 4484 landed (run1723, row 40's leaf on 2487: the squad 1/16 to 1/18 boarding 1/70, `inside_down` ours −1 theirs 17, the passenger chain 4511 is building; no fix, no re-pin) and 4513 landed (the sample's age-behind cost, builds and leaders 4321 → 5293 and 5256) and its seat took 4515; 4504 landed (row 10's world whole: the one-block collision move returns on a freed cell) and the chain took 4514; 4512 landed (row 105's leaders and groups, the third battery 8 of 8) and its seat took 4508; 4505 landed (the sample's gatherer chain, units 4248 → 5273) and its seat took 4513; 4507 landed (row 5's Slinger bays re-fit, ammo whole, the third battery 7 of 8) and its seat took 4510; 4511 landed (row 105's passengers in order of entry: rows 105 and 40 whole, the first battery 8 of 8) and its seat took 4512, the chain's 4504; 4502 landed (row 105's CEO bit, units first 2983 → 3359) and its seat took 4511; 4506 landed (the dust, `RUN1559B_3279_TANKS_HAZE` 1 → 4 of 4, parked 4506a and 4506b) and its seat took 4507. run1723, run1726 and run1753 are taken; 4510's recordings have the game lane, then 4508's run1754; every later take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4509 (second, row 30, after 4504's world leaf), 4485 (second, row 110). 4503 (the sample's draw word) follows 4515 in the sample's seat.
 
-4513. **The 2017 sample: builds and leaders from 4321, then ammo 4462, on run1726's disk** (a rules item, whole; a parity seat's;
-`docs/RECGAME.md` §7). 4505 took run1726 (to 4500, `RNG_MASK=0x8bu`) and linked a gatherer chain one link a unit
-(`Build::add_gatherer@0062f640`; computer 1's Citizen 1/11 `gather_down` ours 12 theirs 8 on 4248): units 4248 → 5273, onto the draw
-word; run1304's packet whole, packets' lines 947 → 948. `Parity:` now parts first on builds 4321. Next, off the take: builds 4321
-(the person's Library 3/2005, queue `cost[0]` ours 200 theirs 180), leaders 4321 (player 3's encrypt `bucket[0]`, 0x13 against
-0x27), then ammo 4462 (ours emits no line, theirs holds 3 ranges). One leaf a landing, builds first, no take. Re-pin `SAMPLE_LINES`;
-the driver writes `Parity:` with its draw word. It stops when two landings running leave the `Parity:` line as it is.
+4515. **The 2017 sample: ammo from 4462, on run1726's disk** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §7). 4513
+built `get_cost`'s age-behind arm (the person's Classical Age cost 180 food against our 200, leaders `bucket[0]` 531 against 551 on
+4321): builds 4321 → 5293, leaders 4321 → 5256; `Parity:` now parts first on ammo 4462. Next, off the take: ammo 4462, where ours
+emits no range and theirs holds 3 (`AmmoData::walk_data`). One leaf a landing, no take. Re-pin `SAMPLE_LINES`; the driver writes
+`Parity:` with its draw word. It stops when two landings running leave the `Parity:` line as it is.
 
 4514. **Parity held out, second: row 10 from units 3771, on run1739's disk** (a rules item, whole; the chain's; `docs/RECGAME.md` §11).
 4504 returned the one-block collision move on a freed cell (`CollCheck::move_unit@00682ad0`; `block.present` ours 1 theirs 0 on
@@ -89,7 +87,7 @@ act: `df -g ~` (stop under 60), then one take of run1735's file as run1742 with 
 then `score_recording` names the leaf of units 2184. Re-pin `SCORES_SECOND[5].moved`, never `found`. It stops when two landings
 running move no column.
 
-4503. **The 2017 sample, from draws 5273, act two** (a rules item, whole; unseated, behind 4513 in the sample's seat;
+4503. **The 2017 sample, from draws 5273, act two** (a rules item, whole; unseated, behind 4515 in the sample's seat;
 `docs/RECGAME.md` §7). 4501 took the first act and moved nothing: theirs' draw 6 on 5273 is the blocked stand on computer 1's Scholar
 1/22, and the cause is a frame earlier. The person's Ashigaru 3/28 hits 1/22 on 5271 and it flees; its first step on 5272 goes
 (+22,+8) to (34174,33056) in theirs and (+8,+23) to (34160,33071) in ours. Both grid searches cover the same three cells, but theirs'
