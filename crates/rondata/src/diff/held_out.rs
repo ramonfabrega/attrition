@@ -1885,68 +1885,6 @@ mod tests {
         }
     }
 
-    /// PROBE 4523 (reverted whole).
-    #[test]
-    fn probe_4523() {
-        if std::env::var("RON_PROBE_4523").is_err() {
-            return;
-        }
-        let inst = crate::testenv::install().expect("install");
-        let (Some(rcx), _) = paths(&SECOND, 0) else {
-            panic!("rcx")
-        };
-        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 10's file");
-        let loaded = crate::load::load(&inst).expect("the install loads");
-        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
-        let mut stream = crate::input::Stream::pump(&rec);
-        while built.sim.frame < 5180 {
-            let f = built.sim.frame;
-            if f >= 5170 {
-                for u in built
-                    .sim
-                    .units
-                    .iter()
-                    .filter(|u| u.owner == 1 && u.index == 114)
-                {
-                    let kinds: Vec<u8> = u.orders.iter().map(|o| o.index()).collect();
-                    eprintln!(
-                        "P f{f} 1/114 alive {} TI {} orders {:?} z {} facing {}",
-                        u.alive(),
-                        u.type_index,
-                        kinds,
-                        u.airframe.z,
-                        u.movement.facing.0
-                    );
-                }
-                for p in &built.sim.combat.projectiles {
-                    eprintln!(
-                        "P f{f} ammo slot {} shooter {:?} owner {} crash {:?} guided {} spline {} gpiece {} land {:?} t{}/{} acc {} angle {} gi {} dx {:#x}",
-                        p.slot,
-                        p.shooter,
-                        p.owner,
-                        p.crash,
-                        p.graphic.guided,
-                        p.spline.is_some(),
-                        p.gpiece,
-                        p.landing,
-                        p.cur_time,
-                        p.total_time,
-                        p.accuracy,
-                        p.angle.0,
-                        p.graphic.graph_index,
-                        p.graphic.dx.bits()
-                    );
-                }
-                eprintln!(
-                    "P f{f} line {:?}",
-                    built.sim.checksum_ammo().map(|l| l.ranges.len())
-                );
-            }
-            stream.apply(built.sim.frame as i32, &mut built);
-            built.sim.command().tick();
-        }
-    }
-
     /// **Row 130's Helicopters set apart keep their `dest_angle` too**
     /// (item 4522, `docs/RECGAME.md` §11): run1754, the ranges take of
     /// run1736's file, where 4508 left the row's units parting on 3515 at
