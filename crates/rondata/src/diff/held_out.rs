@@ -722,6 +722,70 @@ mod tests {
         }
     }
 
+    /// **Row 85's army drops the squad member its sort unpointed** (item
+    /// 4493, `docs/RECGAME.md` §11.1): run1751, the ranges take of run1747's
+    /// file, holds the groups line's every range on 3830 and 3831. On 3830
+    /// computer 1's army 3 (record 68, who=1's slot 4) moves; its
+    /// `Form::categorize` sorts `[117, 121]`, killing the follower-first
+    /// squad `1/119..1/121` — only `1/121` listed, so only its `+0x80`
+    /// cleared — and re-adding it whole. A follower's `GROUP_MOVE` then
+    /// refreshes its order, and `Group::refresh_group_order@00713a50` opens
+    /// with `normalize`, which prunes `1/121`: theirs' record 68 reads `num`
+    /// 3, `[117, 119, 120]`, where this crate kept `num` 4. Every groups
+    /// range on both states, ours against theirs, byte for byte.
+    #[test]
+    fn row_85_s_refresh_prunes_the_member_its_sort_unpointed_on_run1751_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&THIRD, 4) else {
+            eprintln!("skipping: row 85's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1751/map-14"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1751's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 85's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [3830, 3831] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_groups();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 5).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "groups' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "groups range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Record 68's `num` (`+0xc`, byte 8 of `id..march`), by name.
+            let k = ours
+                .ranges
+                .iter()
+                .position(|r| r.record == 68 && r.field == "id..march")
+                .expect("record 68");
+            let want: i32 = if state == 3830 { 2 } else { 3 };
+            assert_eq!(
+                &theirs[k].bytes[8..12],
+                &want.to_le_bytes(),
+                "theirs' record 68 num on {state}"
+            );
+        }
+    }
+
     /// **Row 120's barge is born with `form` 0** (item 4435, `docs/RECGAME.md`
     /// §10.3): run1716, the ranges take of run1706's file, holds the units
     /// line's every range on state 2694, where the computer's transport
@@ -2552,7 +2616,16 @@ pub(crate) const SCORES_THIRD: [Option<FirstScore>; 8] = [
             first: &[("groups", (3831, Some(2097888135), 2964599741))],
             over: None,
         },
-        moved: None,
+        // Moved by item 4493 (`Group::refresh_group_order`'s `normalize`
+        // prunes the seated group: run1751, state 3831, groups range 86,
+        // record 68 `num` ours 4, theirs 3): groups 4,458 -> 4,472, whole;
+        // the game is whole.
+        moved: Some(Score {
+            states: 4472,
+            agreed: [4472; 12],
+            first: &[],
+            over: None,
+        }),
     }),
     // run1748
     // row 105, as found 2026-11-21, ended by the original on 5234: 8 lines whole; units 2,983 of
@@ -2607,9 +2680,10 @@ pub(crate) const SCORES_THIRD: [Option<FirstScore>; 8] = [
 
 /// **Parity held out, third, N of 8** (item 4487): the third battery's
 /// line, games whole of the eight and games taken. As found 2026-11-21:
-/// 5 of 8, rows 25, 45, 65, 125 and 145 whole.
+/// 5 of 8, rows 25, 45, 65, 125 and 145 whole. Item 4493: 6 of 8, row 85
+/// whole (`Group::refresh_group_order`'s prune).
 #[cfg(test)]
-pub(crate) const HELD_OUT_THIRD_LINE: (usize, usize) = (5, 8);
+pub(crate) const HELD_OUT_THIRD_LINE: (usize, usize) = (6, 8);
 
 /// The third battery (item 4487).
 #[cfg(test)]
