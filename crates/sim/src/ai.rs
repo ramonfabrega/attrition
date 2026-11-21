@@ -783,7 +783,7 @@ impl Default for Leader {
 }
 
 impl Leader {
-    /// `SimpleArray<int>::remove@00462e70` (and `remove_position@0046c340`)
+    /// `SimpleArray<int>::remove@00462e70`
     /// on `mil_trainers`' slot `i`: the tail shifts down and the length
     /// drops by one; the block's capacity is untouched, so it is kept
     /// first (item 4512).
