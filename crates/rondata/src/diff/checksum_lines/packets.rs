@@ -4067,12 +4067,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5583, 5423, 1535) -> (5583, 5423, 1530).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2515, 2513, 686) -> (2515, 2515, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (5583, 5423, 1530) -> (5583, 5535, 1936).
-    // Item 4476, `cavarch_uid` kept past a dropped target: units (5583, 5423, 1530) -> (5583, 5423, 1528).
+    // Item 4476, `cavarch_uid` kept past a dropped target: units (5583, 5535, 1936) -> (5583, 5535, 1934) (on 4474's tree).
     (
         "run1420",
         4586,
         [
-            (5583, 5535, 1936),
+            (5583, 5535, 1934),
             (2515, 2515, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4195,12 +4195,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2154, 2151, 568) -> (2154, 2154, 8).
     // Item 4461, a military type's gender piece is named -PACKED, so the Assault Marines' -FEMALE is no piece: guys (1208, 1208, 5) -> (1208, 1208, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (4789, 4529, 2796) -> (4789, 4711, 3186).
-    // Item 4476, `cavarch_uid` kept past a dropped target: units (4789, 4529, 2796) -> (4789, 4529, 2795).
+    // Item 4476, `cavarch_uid` kept past a dropped target: units (4789, 4711, 3186) -> (4789, 4711, 3185) (on 4474's tree).
     (
         "run1437",
         3894,
         [
-            (4789, 4711, 3186),
+            (4789, 4711, 3185),
             (2154, 2154, 8),
             (0, 0, 0),
             (3, 3, 0),
