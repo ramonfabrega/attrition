@@ -724,8 +724,11 @@ pub(in crate::diff) mod tests {
     /// every parting, the frames not read one by one; the first shot still
     /// on 2929. Item 4492 (an attacked city's site keeps clear of the
     /// enemy): 6275 -> 4172, a named fall, the frames not read one by one;
-    /// the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4172, Some(2929));
+    /// the first shot still on 2929. Item 4494 (no hits left, no shot: a
+    /// building at health 0 fires nothing, `Build::do_attack@006228f0`
+    /// `6229be`): 4172 -> 4946, a named rise past every parting, the frames
+    /// not read one by one; the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4946, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
