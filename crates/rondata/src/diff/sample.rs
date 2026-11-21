@@ -439,9 +439,15 @@ pub(in crate::diff) mod tests {
     /// Barracks spiral refuses cells (49, 40) and (52, 42) beside the
     /// person's units, and the jitter on (57, 39) spends theirs' four
     /// `Leader::produce_building+0x1805` against two): 4182 → 4223, +41.
-    /// On 4223 theirs runs four `Guy::inc_time` animations where ours fires
-    /// (`Object::fire_ammo+0x3d5`).
-    const SAMPLE_WALKED: (i64, i64) = (4223, 21044);
+    /// Item 4494 (no hits left, no shot: `Build::do_attack@006228f0`
+    /// returns at `hits_left() == 0`, `622983`..`6229be`, after the
+    /// countdown; computer 1's capital `1/2000`, health 0 of 1200 on 4223,
+    /// fired its 16-frame cycle's round at the person's unit here, its
+    /// `Object::fire_ammo+0x3d5` and `Ammo::init+0xcd9` draws where theirs
+    /// ran four `Guy::inc_time` animations): 4223 -> 4328, +105. On 4328
+    /// both spend `Leader::diplomacy+0x1322`, then theirs one draw at
+    /// `6c0985` before the birds' `Animal::think_bird+0x82`.
+    const SAMPLE_WALKED: (i64, i64) = (4328, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -612,20 +618,27 @@ pub(in crate::diff) mod tests {
     /// 4183 -> 4224, builds 4183 -> 4224, ammo 4192 -> 4224, groups 4188 ->
     /// 4244, guys 4183 -> 4226, leaders 4183 -> 4232, cities 4326 -> 4401,
     /// items 5097 -> 5760, goods 4449 -> 4559, world 4183 -> 4229; deaths
-    /// 4635 -> 4625, a named fall past the new lowest 4224.
+    /// 4635 -> 4625, a named fall past the new lowest 4224. Item 4494 (no
+    /// hits left, no shot: `Build::do_attack@006228f0` returns at
+    /// `hits_left() == 0`, `6229be`; computer 1's capital `1/2000` at
+    /// health 0 on 4223; draws 4223 -> 4328): units 4224 -> 4248, builds
+    /// 4224 -> 4321, ammo 4224 -> 4347, deaths 4625 -> 4643, groups 4244 ->
+    /// 4333, guys 4226 -> 4330, leaders 4232 -> 4321, world 4229 -> 4334;
+    /// cities and goods unchanged; items 5760 -> 5666, a named fall past the
+    /// new lowest 4248.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 4224),
-        ("builds", 4224),
+        ("units", 4248),
+        ("builds", 4321),
         ("walls", 21044),
-        ("ammo", 4224),
-        ("deaths", 4625),
-        ("groups", 4244),
-        ("guys", 4226),
-        ("leaders", 4232),
+        ("ammo", 4347),
+        ("deaths", 4643),
+        ("groups", 4333),
+        ("guys", 4330),
+        ("leaders", 4321),
         ("cities", 4401),
-        ("items", 5760),
+        ("items", 5666),
         ("goods", 4559),
-        ("world", 4229),
+        ("world", 4334),
     ];
 
     /// The headline's other games, each whole on the twelve lines over

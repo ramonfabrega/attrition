@@ -902,6 +902,33 @@ fn a_building_that_fires_shows_itself_to_the_player_it_shot() {
     );
 }
 
+/// **No hits left, no shot** (item 4494, `docs/RECGAME.md` §7):
+/// `Build::do_attack@006228f0` counts `recharging` down at any health
+/// (item 4454), then returns at `hits_left() == 0` (`6229be` → `622c2f`)
+/// before the arrows, the target and `fire_ammo`. The sample's capital
+/// `1/2000` at health 0 on 4223 fired here and not in theirs.
+#[test]
+fn a_building_at_no_health_counts_down_and_does_not_fire() {
+    let mut s = sim();
+    let (b, sc) = stockade_and_scout(&mut s);
+    s.units[sc].pos = Pos::new(22272 + 8 * 192, 16512);
+    s.buildings[b].near = Some(Obj::Unit(sc));
+    let frame = (5 - i64::from(s.buildings[b].index)).rem_euclid(32);
+    s.buildings[b].health = 0;
+    s.buildings[b].recharging = 1;
+    s.process_building_combat(b, frame);
+    assert_eq!(
+        s.buildings[b].recharging, 0,
+        "the countdown runs at health 0 (item 4454)"
+    );
+    s.process_building_combat(b, frame);
+    assert!(s.combat.projectiles.is_empty(), "no hits left, no shot");
+    assert_eq!(s.buildings[b].recharging, 0, "and no reload");
+    s.buildings[b].health = 1;
+    s.process_building_combat(b, frame);
+    assert!(!s.combat.projectiles.is_empty(), "one hit left fires");
+}
+
 /// **A building's search must reach what it takes** (item 4004,
 /// `docs/GOLDEN.md` §192, `find_nearby_target@00648da0`'s `local_24`):
 /// its current target walking out of range is skipped, not kept on its
