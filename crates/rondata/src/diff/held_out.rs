@@ -814,6 +814,22 @@ mod tests {
             let all = record.ranges(&set).expect("the set's ranges");
             let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
             let imgs: Vec<_> = (0..8u8).flat_map(|w| built.sim.leader_image(w)).collect();
+            {
+                let c = &built.sim.ai.ai[1].census;
+                let nz: Vec<_> = c
+                    .reg_xport_peasants
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, v)| **v != 0)
+                    .map(|(r, v)| (r, built.sim.world.region_number(r as u16), *v))
+                    .collect();
+                eprintln!(
+                    "  ours w1 xport_peasants {} reg_xport (slot, number, n) {:?} regions {}",
+                    c.xport_peasants,
+                    nz,
+                    built.sim.world.region_count()
+                );
+            }
             eprintln!("state {state}: ranges ours {} theirs {}", imgs.len(), theirs.len());
             for (k, (img, t)) in imgs.iter().zip(&theirs).enumerate() {
                 let mut at = 0usize;
