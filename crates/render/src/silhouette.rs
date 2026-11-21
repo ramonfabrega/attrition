@@ -1440,6 +1440,9 @@ pub const RUN1559B_3279_BUILDINGS_WARMTH: (usize, usize) = (2, 2);
 /// is the row that reads the red.
 pub const RUN1559B_3279_BUILDINGS_TEAM: [((u8, i16), (u32, u32)); 2] =
     [((0, 2001), (22, 55)), ((0, 2000), (73, 654))];
+/// One tank's reading on [`RUN1559B_3279_TANKS_HAZE`]: `(who, o)`,
+/// `(agree, held)`, and whether its luminance passes.
+pub type TankHaze = ((u8, i16), (u32, u32), bool);
 /// **The three tanks under a haze** (item 4482; `docs/RENDERER.md`
 /// §3.13): on the client's still (before, plain), each of player 1's four
 /// tanks of piece 196 — the three the photograph draws under a tan haze,
@@ -1459,7 +1462,7 @@ pub const RUN1559B_3279_BUILDINGS_TEAM: [((u8, i16), (u32, u32)); 2] =
 /// 59)); 1/16 **1,134 of 2,900**, out ((80, 80, 44) against (139, 121,
 /// 61)); the control 1/15 **1,316 of 2,823**, in ((79, 79, 43) against (82,
 /// 90, 38)). **The luminance reads 1 of 4, the control.**
-pub const RUN1559B_3279_TANKS_HAZE: [((u8, i16), (u32, u32), bool); 4] = [
+pub const RUN1559B_3279_TANKS_HAZE: [TankHaze; 4] = [
     ((1, 40), (1014, 2026), false),
     ((1, 27), (1992, 3318), false),
     ((1, 16), (1134, 2900), false),
