@@ -211,13 +211,27 @@ impl Sim {
     /// dock` on a shore tile lands on the water beside it: run249's Dock,
     /// asked at tile (53, 153), stands at (56, 155), `move_x/y[36]`.
     ///
-    /// SEAM, none reached by a capture on file: the same arm for a
-    /// Woodcutter's Camp or a Mine (`0x1a2`, `0x1a3`) placed by a player,
-    /// and the Oil Well's and Oil Platform's (`0x1a5`, `0x1a6`) snap to a
-    /// seen cell flagged `0x800`. `Sim::init_build` still takes the plain
-    /// snap; the harness's `add` is this function's one caller.
+    /// **The same arm for a Woodcutter's Camp or a Mine** (`0x1a2`,
+    /// `0x1a3`) when `who` is a player (`param_5 >= 0`, `00636304`–`00636328`;
+    /// item 4498, `docs/RECGAME.md` §7): the 2017 sample's person orders a
+    /// Mine at (29695, 10216) on recording frame 5084, whose tile is out of
+    /// every range's reach (`NoMountain`), and theirs builds it on the first
+    /// spiral tile the survey clears, its 205-tile list shuffled on 5083.
+    /// `Group::action_build@00707510` and `GroupData::validate_build@
+    /// 00708620` both snap with the group's `who` before `blocked_site`
+    /// ([`Sim::group_action_build`]).
+    ///
+    /// SEAM, none reached by a capture on file: the Oil Well's and Oil
+    /// Platform's (`0x1a5`, `0x1a6`) snap to a seen cell flagged `0x800`.
+    /// `Objects::init_build@0065d190` snaps with the owner too, and
+    /// `Sim::init_build` still takes the plain snap: the AI's and the
+    /// capture's (`Wall::swap_team`) sites reach it already cleared or
+    /// standing, and no capture on file has one the arm would move.
     pub fn snap_center_placed(&self, ty: usize, pos: Pos, who: Option<Player>) -> Pos {
-        if build::is_dock(&self.tables.build_types, ty) {
+        let types = &self.tables.build_types;
+        let gatherer = who.is_some()
+            && (build::is(types, ty, Ident::Mine) || build::is(types, ty, Ident::Woodcutter));
+        if build::is_dock(types, ty) || gatherer {
             let t = pos.tile();
             let centre = |x: i32, y: i32| {
                 Pos::new(
