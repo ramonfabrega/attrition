@@ -723,15 +723,15 @@ impl Sim {
         let live: Vec<u32> = self.combat.projectiles.iter().map(|q| q.slot).collect();
         let slot = lowest_free_slot(&live);
         p.slot = slot;
-        let held = &mut self.combat.ammo_accuracy;
         let k = slot as usize;
-        if held.len() <= k {
-            held.resize(k + 1, 0);
-        }
         if aimed {
+            let held = &mut self.combat.ammo_accuracy;
+            if held.len() <= k {
+                held.resize(k + 1, 0);
+            }
             held[k] = p.accuracy as i16;
         } else {
-            p.accuracy = i32::from(held[k]);
+            p.accuracy = i32::from(self.combat.ammo_accuracy.get(k).copied().unwrap_or(0));
         }
         p.graphic.graph_index = self.combat.next_ammo_graph_index;
         self.combat.next_ammo_graph_index = self.combat.next_ammo_graph_index.wrapping_add(1);
