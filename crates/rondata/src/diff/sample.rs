@@ -820,6 +820,15 @@ pub(in crate::diff) mod tests {
         ranges_record("RON_SAMPLE_RANGES_1724", "run1724")
     }
 
+    /// run1726's record (item 4505, `docs/RUNS.md` run1726): the same
+    /// playback to 4,500 under the same hooks, keeping units, builds, ammo
+    /// and leaders alone (`RNG_MASK` 0x8b), the four lines that parted
+    /// below the draw word past run1724's end (DECISIONS 148 §5).
+    /// `RON_SAMPLE_RANGES_1726`, else where the take left it.
+    fn run1726() -> Option<crate::trace::ranges::Record> {
+        ranges_record("RON_SAMPLE_RANGES_1726", "run1726")
+    }
+
     fn ranges_record(var: &str, run: &str) -> Option<crate::trace::ranges::Record> {
         let path = match std::env::var(var) {
             Ok(p) => std::path::PathBuf::from(p),
@@ -934,13 +943,49 @@ pub(in crate::diff) mod tests {
         assert_eq!(got, pinned, "SAMPLE_RANGES_1724");
     }
 
+    /// **The sample's kept lines by range, to 4,500** (item 4505): the
+    /// same walk over run1726's record, the four lines of its mask alone,
+    /// pinned per line by [`SAMPLE_RANGES_1726`].
+    /// `RON_SAMPLE_RANGES_DETAIL` and `RON_SAMPLE_RANGES_ALL` print as
+    /// above.
+    #[test]
+    fn the_sample_s_ranges_to_4500_name_each_first_parting() {
+        let Some(rec) = run1726() else { return };
+        let Some((frames, got)) =
+            walk_kept_ranges(rec, SAMPLE_RANGES_1726_WINDOW, SAMPLE_RANGES_1726_KEPT)
+        else {
+            return;
+        };
+        let pinned: Vec<SampleRange> = SAMPLE_RANGES_1726
+            .iter()
+            .map(|&(l, f, t, o, p, x)| (l, f, t, o, p, x.to_string()))
+            .collect();
+        assert_eq!(
+            frames,
+            SAMPLE_RANGES_1726_WINDOW as usize + 1,
+            "run1726's sets, one a frame"
+        );
+        assert_eq!(got, pinned, "SAMPLE_RANGES_1726");
+    }
+
     /// The walk the ranges tests share: our sample from state 0 to
     /// `window`, each frame's twelve lines against the record's set.
     /// `(sets compared, each parting line's first parting)`, or `None` when
     /// the install, the sample or the pieces are absent.
     fn walk_ranges(
+        rec: crate::trace::ranges::Record,
+        window: i64,
+    ) -> Option<(usize, Vec<SampleRange>)> {
+        walk_kept_ranges(rec, window, 0xfff)
+    }
+
+    /// [`walk_ranges`] over a take that keeps the lines of `kept` alone
+    /// (the hook's `RNG_MASK`, one bit a line in `STATE_LINES`' order):
+    /// a line the take dropped is not compared (DECISIONS 148 §4).
+    fn walk_kept_ranges(
         mut rec: crate::trace::ranges::Record,
         window: i64,
+        kept: u16,
     ) -> Option<(usize, Vec<SampleRange>)> {
         use super::super::checksum_lines::packets::{Pieces, STATE_LINES, compare, our_lines};
         let (Some(inst), Some(rcx)) = (install(), sample()) else {
@@ -970,6 +1015,9 @@ pub(in crate::diff) mod tests {
                 }
                 let outcome = compare(&ours, &theirs);
                 for (k, (name, o)) in STATE_LINES.iter().zip(&outcome).enumerate() {
+                    if kept & (1 << k) == 0 {
+                        continue;
+                    }
                     let Some(d) = &o.first else { continue };
                     let text = super::super::checksum_frames::first_text(name, d);
                     if all {
@@ -1257,4 +1305,14 @@ pub(in crate::diff) mod tests {
     /// ours 100 -> theirs' 0 on 4026, one slot run, not two. Whole to 4130:
     /// one row -> none.
     const SAMPLE_RANGES_1724: &[(&str, i64, usize, usize, usize, &str)] = &[];
+
+    /// run1726's last frame, ours: the record holds trace frames −1 to 4499.
+    const SAMPLE_RANGES_1726_WINDOW: i64 = 4500;
+
+    /// run1726's mask: units, builds, ammo and leaders (`RNG_MASK=0x8bu`).
+    const SAMPLE_RANGES_1726_KEPT: u16 = 0x8b;
+
+    /// Per kept line that parts on run1726's window, its first parting by
+    /// range (item 4505). Minted empty.
+    const SAMPLE_RANGES_1726: &[(&str, i64, usize, usize, usize, &str)] = &[];
 }
