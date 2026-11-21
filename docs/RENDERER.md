@@ -2251,6 +2251,16 @@ the closing block, and the Aztec pair's starts.
   for 3262 to 3269, where it holds `cur_time` 1, so the rule would keep its emitter
   running, and the packet's stopped after 3248. Built on our state, the control would haze.
   What gates the original's ensure beyond the slot and the clock is unread.
+  **Drawn from the packet** (item 4506, DECISIONS 148 §6): a still takes
+  the packet's live `MOVE DUST` particles (`World::dust_given`), drawn by
+  the smoke's pass from `UnitMovement.tga` (texture 19), and
+  `RUN1559B_3279_TANKS_HAZE` reads **4 of 4, the control in** (from 1).
+  The packet's emitters were visited once, at frame 3280: each newborn
+  moves at `g · age · drag`, one call's velocity, so the view had not
+  passed them between birth and visit. `render::particle::back_calc` from
+  the state before that visit births the run on the packet's counts and
+  points, 12 of 12 within half a unit (`the_dust_births_are_the_packets`).
+  The live client's rule on its own draws is still 4490a.
 
 **The photograph of a corpse and a round** (item 4183, run1570; the rule
 before any count, so no count yet). run1570 is run1559b's paused, traced

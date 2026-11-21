@@ -6,6 +6,13 @@
 //! scene by its alpha, `MODULATE2X` of the texel and its colour, the fire
 //! added to it (`client::gpu`'s particle pass, after the figures as
 //! draws 216–229 are).
+//!
+//! **A moving tank's dust** (item 4506; §3.13): `MOVE DUST`, system 98,
+//! which the original emits off node 5 of a moving vehicle. Its emitter
+//! starts on the unit's first draw and stops two game frames after its
+//! last, so its state is the view's (DECISIONS 148 §6): a still takes the
+//! packet's live particles ([`World::dust_given`]), drawn here through the
+//! smoke's pass from `UnitMovement.tga`.
 
 use crate::world::World;
 use render::draw::{Drawn, PlacedBuilding};
@@ -13,21 +20,36 @@ use render::particle::{Particle, System, plume, quad};
 use rondata::artdata::resolve_art;
 use std::sync::Arc;
 
-/// `effects_graphics.xml`'s `<PARTICLESYSTEMS>` texture 3, which both
-/// systems' `tex_id` name.
-const TEXTURE: &str = ".\\art\\BuildingFX.tga";
+/// Each system's texture: `effects_graphics.xml`'s `<PARTICLESYSTEMS>`
+/// texture 3 for the fire and the smoke, texture 19 for `MOVE DUST`
+/// (their `tex_id`s).
+const TEXTURES: [&str; 3] = [
+    ".\\art\\BuildingFX.tga",
+    ".\\art\\BuildingFX.tga",
+    ".\\art\\UnitMovement.tga",
+];
 
 /// The two systems a burning slot emits (`quick_particle_lookups[0x86]`
-/// and `[0x85]`), in the order [`ParticleArt::systems`] holds them.
-pub const SYSTEMS: [&str; 2] = ["BUILDING FIRE", "BUILDING SMOKE"];
+/// and `[0x85]`), then the moving tank's dust (system 98), in the order
+/// [`ParticleArt::systems`] holds them.
+pub const SYSTEMS: [&str; 3] = ["BUILDING FIRE", "BUILDING SMOKE", "MOVE DUST"];
+
+/// [`SYSTEMS`]'s index of `MOVE DUST`.
+pub const DUST: usize = 2;
 
 /// The key the particles' texture takes in the GPU's cache.
 pub const PARTICLE_KEY: i32 = -0x302;
 
-/// The systems and their texture, loaded once.
+/// The key `UnitMovement.tga` takes in the GPU's cache.
+pub const DUST_KEY: i32 = -0x303;
+
+/// Each system's key in the GPU's cache, as [`TEXTURES`] names them.
+const KEYS: [i32; 3] = [PARTICLE_KEY, PARTICLE_KEY, DUST_KEY];
+
+/// The systems and their textures, loaded once.
 pub struct ParticleArt {
-    pub systems: [System; 2],
-    pub texture: Arc<render::tga::Image>,
+    pub systems: [System; 3],
+    pub textures: [Arc<render::tga::Image>; 3],
 }
 
 /// **One blend's particles**: two triangles a quad, each vertex its world
@@ -48,22 +70,23 @@ pub fn game_ms(frame: i64) -> u32 {
 }
 
 impl ParticleArt {
-    /// The two systems from the install's `effects_graphics.xml`, and
-    /// `BuildingFX.tga`.
+    /// The three systems from the install's `effects_graphics.xml`, and
+    /// their textures.
     pub fn load(root: &std::path::Path) -> Option<ParticleArt> {
         let xml = std::fs::read_to_string(root.join("Data/effects_graphics.xml")).ok()?;
-        let texture = resolve_art(root, TEXTURE)
-            .and_then(|p| std::fs::read(p).ok())
-            .and_then(|b| render::tga::decode(&b).ok())?;
-        let size = (texture.width, texture.height);
-        let systems = [
-            System::from_xml(&xml, SYSTEMS[0], size)?,
-            System::from_xml(&xml, SYSTEMS[1], size)?,
-        ];
-        Some(ParticleArt {
-            systems,
-            texture: Arc::new(texture),
-        })
+        let texture = |k: usize| {
+            resolve_art(root, TEXTURES[k])
+                .and_then(|p| std::fs::read(p).ok())
+                .and_then(|b| render::tga::decode(&b).ok())
+                .map(Arc::new)
+        };
+        let textures = [texture(0)?, texture(1)?, texture(2)?];
+        let system = |k: usize| {
+            let size = (textures[k].width, textures[k].height);
+            System::from_xml(&xml, SYSTEMS[k], size)
+        };
+        let systems = [system(0)?, system(1)?, system(2)?];
+        Some(ParticleArt { systems, textures })
     }
 }
 
@@ -96,15 +119,25 @@ impl World {
 
     /// **Every particle drawn this frame**, each with its system's index
     /// in [`SYSTEMS`]: the plumes of [`Self::drawn_emitters`], or, when a
-    /// test set them, [`World::particles_given`].
+    /// test set them, [`World::particles_given`]; then the packet's dust,
+    /// [`World::dust_given`].
     pub fn particles(
         &mut self,
         buildings: &[PlacedBuilding],
         list: &[Drawn],
     ) -> Vec<(usize, Particle)> {
-        if let Some(given) = &self.particles_given {
-            return given.clone();
+        let mut out = match &self.particles_given {
+            Some(given) => given.clone(),
+            None => self.plumes(buildings, list),
+        };
+        if let Some(dust) = &self.dust_given {
+            out.extend(dust.iter().map(|p| (DUST, *p)));
         }
+        out
+    }
+
+    /// The burning slots' plumes ([`Self::drawn_emitters`]).
+    fn plumes(&mut self, buildings: &[PlacedBuilding], list: &[Drawn]) -> Vec<(usize, Particle)> {
         let emitters = self.drawn_emitters(buildings, list);
         if emitters.is_empty() || self.particle_art().is_none() {
             return Vec::new();
@@ -115,7 +148,7 @@ impl World {
         let ground = self.ground_under();
         let mut out = Vec::new();
         for e in &emitters {
-            for (k, sys) in art.systems.iter().enumerate() {
+            for (k, sys) in art.systems[..DUST].iter().enumerate() {
                 let key = (u32::from(e.who) << 24)
                     ^ ((e.o as u16 as u32) << 8)
                     ^ (u32::from(e.slot) << 1)
@@ -148,13 +181,15 @@ impl World {
         let mut out: Vec<ParticleMesh> = art
             .systems
             .iter()
-            .map(|s| ParticleMesh {
+            .zip(&art.textures)
+            .zip(KEYS)
+            .map(|((s, texture), key)| ParticleMesh {
                 additive: s.additive,
                 positions: Vec::new(),
                 uvs: Vec::new(),
                 colours: Vec::new(),
-                key: PARTICLE_KEY,
-                texture: art.texture.clone(),
+                key,
+                texture: texture.clone(),
             })
             .collect();
         for (k, p) in &particles {
@@ -377,6 +412,166 @@ pub(crate) mod tests {
             println!("{name}: {lands} of {n} on the packet's z, shifted {shifted}");
             assert_eq!((lands, n, shifted), (want, 72, 0), "{name}");
         }
+    }
+
+    /// One `MOVE DUST` emitter off a packet (`emitters.py` in item 4506's
+    /// lab directory): `(who, o)`, whether it is on the live list, its
+    /// state between visits, and its live particles, each `(time_left,
+    /// pos, vel, angle in degrees)`.
+    pub(crate) struct PacketDust {
+        pub who: (u8, i16),
+        pub live: bool,
+        pub emitter: render::particle::Emitter,
+        pub particles: Vec<(u32, [f32; 3], [f32; 3], f32)>,
+    }
+
+    pub(crate) fn packet_dust(name: &str) -> Option<Vec<PacketDust>> {
+        let home = std::path::PathBuf::from(std::env::var_os("HOME").unwrap_or_default());
+        let path = home
+            .join("ron-data/lab-experiments/2026-11-21-item-4506")
+            .join(format!("{name}-all-emitters.txt"));
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            println!("skipping: no emitters at {}", path.display());
+            return None;
+        };
+        let mut out: Vec<PacketDust> = Vec::new();
+        let mut on = false;
+        for line in text.lines() {
+            let w: Vec<&str> = line.split_whitespace().collect();
+            let after = |key: &str, k: usize| -> &str {
+                w[w.iter().position(|x| *x == key).expect("a key") + k]
+            };
+            let int = |key: &str| after(key, 1).parse::<u32>().expect("a number");
+            let three =
+                |key: &str| [1, 2, 3].map(|k| after(key, k).parse::<f32>().expect("a number"));
+            match w.first().copied() {
+                Some("emitter") => {
+                    on = w[4] == "98";
+                    if on {
+                        let (who, o) = w[2].split_once('/').expect("who/o");
+                        out.push(PacketDust {
+                            who: (who.parse().expect("who"), o.parse().expect("o")),
+                            live: w[1] == "live",
+                            emitter: render::particle::Emitter {
+                                anchor: [0.0; 3],
+                                dir: [0.0; 3],
+                                random: int("random") as u8,
+                                counter: int("counter"),
+                                last_view: int("last_view"),
+                                left_over: int("left_over"),
+                            },
+                            particles: Vec::new(),
+                        });
+                    }
+                }
+                Some("pos") if on => {
+                    let e = &mut out.last_mut().expect("its emitter").emitter;
+                    (e.anchor, e.dir) = (three("pos"), three("vel"));
+                }
+                Some("particle") if on && after("flags", 1) != "0" => {
+                    let angle = after("angle", 1).parse::<f32>().expect("an angle") / 2.0;
+                    out.last_mut().expect("its emitter").particles.push((
+                        int("time_left"),
+                        three("pos"),
+                        three("vel"),
+                        angle,
+                    ));
+                }
+                _ => {}
+            }
+        }
+        Some(out)
+    }
+
+    /// The packet's visit: game frame 3280, where `1/15`'s fresh emitter
+    /// starts and its first particle is born (`start_time` 219760).
+    pub(crate) const DUST_VISIT: (i64, u32) = (3280, 219_760);
+
+    /// **The tanks' dust births are the packet's** (item 4506;
+    /// `docs/RENDERER.md` §3.13). On run1559b's packet the three live
+    /// emitters of `1/27`, `1/16` and `1/28` were each visited at
+    /// [`DUST_VISIT`], and the visit's births are the run of particles a
+    /// `freq` apart up to `last_view`. Their state before it is the
+    /// packet's own: the count less the run, the previous birth (the next
+    /// older particle's), and the run's first birth past it as the
+    /// overshoot. [`render::particle::back_calc`] from that state births
+    /// the run on the same counts and lands each newborn on the packet's
+    /// point within half a unit, passed its whole age in one step with the
+    /// wind off (the packet's x and y velocities are equal to the bit), and
+    /// leaves the packet's count, last birth and overshoot. Made to fail:
+    /// the count shifted by one lands none.
+    #[test]
+    fn the_dust_births_are_the_packets() {
+        use render::particle::back_calc;
+        let root = std::env::var_os("RON_INSTALL")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| std::path::PathBuf::from("../../game"));
+        let Some(art) = ParticleArt::load(&root) else {
+            println!("skipping: no install at {}", root.display());
+            return;
+        };
+        let Some(emitters) = packet_dust("run1559b") else {
+            return;
+        };
+        let dust = &art.systems[DUST];
+        let (frame, now) = DUST_VISIT;
+        let (mut lands, mut shifted, mut runs, mut n) = (0, 0, Vec::new(), 0);
+        for e in emitters.iter().filter(|e| e.live && e.emitter.counter > 1) {
+            let mut born: Vec<(u32, [f32; 3])> = e
+                .particles
+                .iter()
+                .map(|p| (now - (dust.life() - p.0), p.1))
+                .collect();
+            born.sort_by_key(|b| std::cmp::Reverse(b.0));
+            let run = born
+                .iter()
+                .take_while(|b| (e.emitter.last_view - b.0) % dust.freq == 0)
+                .count();
+            let older = born.get(run).expect("an older birth").0;
+            let first = born[run - 1].0;
+            let before = render::particle::Emitter {
+                counter: e.emitter.counter - run as u32,
+                last_view: older,
+                left_over: first - older,
+                ..e.emitter
+            };
+            let flat = |_: f32, _: f32| 0.0;
+            for k in [0u32, 1] {
+                let mut state = render::particle::Emitter {
+                    counter: before.counter + k,
+                    ..before
+                };
+                let ours = back_calc(dust, &mut state, now, frame, [0.0; 3], &flat);
+                assert_eq!(ours.len(), run, "{:?}", e.who);
+                for (rank, (p, _)) in ours.iter().rev().enumerate() {
+                    let theirs = born[rank].1;
+                    let close = (0..3).all(|c| (p.pos[c] - theirs[c]).abs() < 0.5);
+                    if k == 0 {
+                        n += 1;
+                        lands += usize::from(close);
+                        println!(
+                            "{:?} birth {rank}: ours {:?} theirs {theirs:?}",
+                            e.who, p.pos
+                        );
+                    } else {
+                        shifted += usize::from(close);
+                    }
+                }
+                if k == 0 {
+                    assert_eq!(
+                        (state.counter, state.last_view, state.left_over),
+                        (e.emitter.counter, e.emitter.last_view, e.emitter.left_over),
+                        "{:?}",
+                        e.who
+                    );
+                }
+            }
+            runs.push((e.who, run));
+        }
+        println!(
+            "dust births: {lands} of {n} on the packet's point, shifted {shifted}; runs {runs:?}"
+        );
+        assert_eq!((lands, n, shifted), (12, 12, 0));
     }
 
     /// `rise.pdb`'s `RenderEnables` names bit 0x20000 `TL_FAKE_LIGHT`.

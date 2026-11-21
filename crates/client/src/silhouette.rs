@@ -2229,6 +2229,20 @@ mod tests {
         world.run_to(PHOTO_FRAME);
         world.blend = crate::world::Blend::Last;
         world.run_to(PHOTO_FRAME + 1);
+        // Item 4506: the moving tanks' dust, the packet's live particles.
+        let Some(dust) = crate::particle::tests::packet_dust("run1559b") else {
+            return;
+        };
+        world.dust_given = Some(
+            dust.iter()
+                .flat_map(|e| &e.particles)
+                .map(|&(time_left, pos, _, angle)| render::particle::Particle {
+                    pos,
+                    angle,
+                    time_left,
+                })
+                .collect(),
+        );
         let size = (photo.width, photo.height);
         let still = crate::still_of(
             &mut world,
@@ -2237,6 +2251,11 @@ mod tests {
             SilhouetteOrder::Before,
             wgpu::TextureFormat::Rgba8Unorm,
         );
+        if let Some(dir) = std::env::var_os("RON_STILL_DIR") {
+            let out = PathBuf::from(dir).join("still-1559b-tanks-dust.bmp");
+            let bmp = crate::gpu::bmp(&still, (size.0 as u32, size.1 as u32));
+            std::fs::write(&out, bmp).expect("the still writes");
+        }
         let scene = frame_scene(&mut world, &camera, size);
         let w = size.0;
         let mut got = Vec::new();

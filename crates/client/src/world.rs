@@ -313,6 +313,10 @@ pub struct World {
     /// Particles a test lays in place of the plumes (item 4233: the
     /// packets' own, to read the draw apart from the emission).
     pub particles_given: Option<Vec<(usize, render::particle::Particle)>>,
+    /// The moving tanks' `MOVE DUST` particles a still takes from its
+    /// packet (item 4506; DECISIONS 148 §6): the emitters' state is the
+    /// view's, which no walk of the simulation holds.
+    pub dust_given: Option<Vec<render::particle::Particle>>,
     /// Modern's base (`WEATHERELEM age="2"`'s `file2`); `None` where it
     /// does not read, and no weathering is laid.
     weather_mips: Option<std::sync::Arc<render::silhouette::Mips>>,
@@ -1256,6 +1260,7 @@ impl World {
             particle_art: None,
             band_alphas: Default::default(),
             particles_given: None,
+            dust_given: None,
             weather_mips,
             weather_laid: (-1, false, (0, 0), Vec::new()),
             land_oil: (None, false),
