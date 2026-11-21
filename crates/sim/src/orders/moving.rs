@@ -1817,7 +1817,10 @@ impl Sim {
             let here = self.units[u].pos;
             if vector_dist(mo.dest.x - here.x, mo.dest.y - here.y) > 0x5ff {
                 self.group_refresh_order(g, u);
-                self.group_rewrite_leader(g, u, gm.id);
+                // The refresh's `normalize` may have pruned the seat; the
+                // rewrite walks the list as it left it.
+                let g = self.group_of(u).unwrap_or_else(|| g.clone());
+                self.group_rewrite_leader(&g, u, gm.id);
                 return;
             }
             self.ungroup_move_order(u, gm.id);
