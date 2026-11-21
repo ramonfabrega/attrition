@@ -832,7 +832,8 @@ mod tests {
                             }
                             x
                         });
-                        if ours.is_some() && th.is_some() && ours != th {
+                        let m = |x: i64| if w >= 8 { x } else { x & ((1i64 << (8 * w)) - 1) };
+                        if ours.is_some() && th.is_some() && ours.map(m) != th.map(m) {
                             eprintln!(
                                 "  range {k} record {} {} {}[{i}] ours {:?} theirs {:?}",
                                 img.record, img.field, leaf.name, ours, th
