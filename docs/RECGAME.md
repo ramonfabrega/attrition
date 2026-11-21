@@ -1243,7 +1243,7 @@ original's does (`Sim::xport_alias`, `docs/AI.md` §58). Row 105 is not whole: l
 row 10 3,976 → 5,801 (first 1576 → 3976), **row 30 3,748 → 4,548, whole**, row 110 4,995 → 5,995 (first 3176 →
 5344), row 130 1,976 → 4,721 (first 1376 → 4573). The second battery's lines go 78 → 79, and the third's reach 89 % →
 92 %. Nine East Indies pair packets have their leaders line whole (the `reg_gatherers` leaf they parted on), so
-packets' lines go 897 → 906. `row_105_s_rider_to_sea_region_65_lands_in_reg_gatherers_on_run1752_s_ranges` holds every leaders range on
+packets' lines go 899 → 908 on the merged tree. `row_105_s_rider_to_sea_region_65_lands_in_reg_gatherers_on_run1752_s_ranges` holds every leaders range on
 1975 and 1976.
 
 *Not established*: row 5 names no leaf, since its take holds sums. Row 105's next partings are units on 2983 (range
