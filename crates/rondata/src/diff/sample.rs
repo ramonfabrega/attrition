@@ -595,19 +595,24 @@ pub(in crate::diff) mod tests {
     /// 3931): units 3932 -> 4183, builds 3981 -> 4026, ammo 3936 -> 4192,
     /// deaths 3932 -> 4657, groups 3935 -> 4188, guys 3932 -> 4183, leaders
     /// 3945 -> 4183, cities 4201 -> 4326, items 5235 -> 5434, goods 4171 ->
-    /// 4436, world 3943 -> 4183.
+    /// 4436, world 3943 -> 4183. Item 4489 (`get_building_cities@006e06f0`
+    /// counts an assimilated city's library only, `race == who`: the
+    /// person's Library `3/2005` runs one slot while its second library
+    /// stands in the Inca city taken on 3887): builds 4026 -> 4183, onto
+    /// the draw word; deaths 4657 -> 4635, items 5434 -> 5097, named falls
+    /// past builds' new 4183; goods 4436 -> 4449.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 4183),
-        ("builds", 4026),
+        ("builds", 4183),
         ("walls", 21044),
         ("ammo", 4192),
-        ("deaths", 4657),
+        ("deaths", 4635),
         ("groups", 4188),
         ("guys", 4183),
         ("leaders", 4183),
         ("cities", 4326),
-        ("items", 5434),
-        ("goods", 4436),
+        ("items", 5097),
+        ("goods", 4449),
         ("world", 4183),
     ];
 
@@ -689,8 +694,11 @@ pub(in crate::diff) mod tests {
     /// 4488 (a packed Merchant's death takes its draw and leaves its
     /// records, `1/18` on 3931): 5271 -> 4767, a named fall, the frames not
     /// read one by one (the war after 3931 runs on another draw sequence);
-    /// the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4767, Some(2929));
+    /// the first shot still on 2929. Item 4489 (an unassimilated city's
+    /// library adds no research slot): 4767 -> 6275, a named rise past
+    /// every parting, the frames not read one by one; the first shot still
+    /// on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (6275, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
@@ -889,6 +897,7 @@ pub(in crate::diff) mod tests {
             }
             stream.apply(f as i32, &mut built);
             crate::diff::harness::debug_watch(&built, f);
+            crate::diff::harness::debug_builds(&built, f);
             built.tick();
         }
         let got: Vec<SampleRange> = STATE_LINES
@@ -1152,12 +1161,12 @@ pub(in crate::diff) mod tests {
     /// deaths' `12..15 -1` on 3932, its figure and crew member, `cur_anim`
     /// 18 at (31910, 19682) and (31742, 19575), absent in ours before ->
     /// agree; every line but builds whole to 4130, builds 3981 -> 4026.
-    const SAMPLE_RANGES_1724: &[(&str, i64, usize, usize, usize, &str)] = &[(
-        "builds",
-        4026,
-        3346,
-        3346,
-        1,
-        "2810 2005 queue[k]: job_counter 100|0",
-    )];
+    /// Item 4489 (`LeaderData::get_building_cities@006e06f0` takes a city
+    /// only with `race == who`): the person's Library `3/2005` queues
+    /// `TypeIndex` 559 behind 552 on 4025, and its owner's second library
+    /// `3/2015` stands in city `3/2010`, the Inca capital's taken on 3887,
+    /// race 4 (assimilation timer 3887); `2810 2005 queue[k]` `job_counter`
+    /// ours 100 -> theirs' 0 on 4026, one slot run, not two. Whole to 4130:
+    /// one row -> none.
+    const SAMPLE_RANGES_1724: &[(&str, i64, usize, usize, usize, &str)] = &[];
 }

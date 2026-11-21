@@ -3035,6 +3035,39 @@ move to army 1's record 68 by `Army::add_unit@006f9f40`'s last act, `Unit::set_g
 still makes both through `Movement::set_heading` (`orders/jobs.rs`, `do_non_flat_gather`), so on those turns a
 leader's reversal toggles nothing. No packet parts on them yet (parked 4477a).
 
+## 23.15 The groups line's `form` and `order_num`: a plane-led group's move writes nothing (item 4481)
+
+**A group of units whose leader is a plane takes no move at all** (item 4481, diff-backed). After 4477 the groups
+line parted only on the information melee's three packets, four ranges each, all on records 65, 67, 130 and 131:
+pool slots 1 and 3 of who 1 and 2 and 3 of who 2, `army` −1. On run1469 f627 and run1469b f628, theirs' records hold
+`push_group`'s state (`form` −1, `ox`/`oy`/`o_angle` 0, `order_num` 0, `form_num` 0). Ours hold a whole move: `form` 0,
+the origin and its angle, `form_num` 1 and `order_num` 1 or 2. On run1472 f707 every field agrees but `order_num`,
+ours 5, 5, 4, 5 against theirs' 3, 3, 2, 3.
+
+A probe on every `order_num` bump of a pushed record over 600..707 (reverted whole) put each bump on a scripted `add`
+frame, one per spawned unit, all through `think_attack_join_army → add_to_army → go_to_unit → go_to →
+group_action_move_to`. Theirs lack exactly the first two bumps on each record, the joins of the `advanced_fighter`
+(TI 301), `stealth_bomber` (306), `jet_fighter_bomber` (309) and `cruise_missile` (314) on 618..632. They have the
+ones from the `anti-aircraft_missile` (284) on. run1468b's coverage has `Unit::go_to` first entered on f618, so theirs
+reached `go_to` and issued no move.
+
+`Group::action_move_near@00704990:329`–`345` (`action_move_to` is its wrapper): past the split arms and the
+`QUEUE_FIRST` arm, a group with `buildings` clear and a leader (`GroupData::find_leader`) calls that leader's vslot
+`+0xc0`. That slot is `UnitData::is_plane@0046ce40` on all six unit vtables (`vtables.txt`), so the test is domain
+`+0x218 == 2` with `+0x2b4 & 0x20` clear. A plane returns before `form` is written (`:354`), so there is no layout, no
+order, no origin and no `order_num`. Ours had no such return. Its member loop already skipped planes, so the
+parting showed on the record. **The direction: ours acted** (the record's move); theirs returned.
+
+`Sim::group_action_move_to` now returns when `group_find_leader` is a plane, after the `QUEUE_FIRST` arm. Killer:
+`groups::group::tests::a_plane_led_group_s_move_to_leaves_its_record_as_pushed`. The groups line goes whole on run1469,
+run1469b and run1472 (4 → 0 ranges each). Value diff, run1469 f627 record 65: `form` theirs −1, ours 0 → −1;
+run1472 f707 record 65: `order_num` theirs 3, ours 5 → 3.
+
+**Not established.** `action_move_near`'s two split arms (a sea member, or a member inside a building, pushed apart
+and recursed) run ahead of this test in the original. No arm of that shape was found in
+`group_action_move_to`, so a mixed group with a plane leader is not established here. The jet fighter's and the attack helicopter's joins bump nothing on either side (the
+helicopter is no plane), and why the fighter skips `go_to` was not read.
+
 ## 24. Step H: the fifteen, every frame (item 4214)
 
 `DECISIONS.md` entry 132 §7, §10. `CheckSums::check_all@00936560` runs on every turn and prints only inside a dump
