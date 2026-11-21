@@ -245,7 +245,23 @@ impl Sim {
             return false;
         }
         self.mark(super::SITE_ALLY_COIN);
-        if self.rng.roll() & 1 == 0 {
+        let coin = self.rng.roll();
+        if std::env::var_os("RON_PROBE_4496").is_some() {
+            let sc: Vec<i32> = self.leaders.score.iter().map(|s| s.score).collect();
+            eprintln!(
+                "PROBE4496 f{} me={me} t={t} above={above} top={top:?} coin={coin} human={} allies=({}, {}) style={} agree={:?} scores={sc:?}",
+                self.frame,
+                self.cities.nation[t].human,
+                self.num_allies(me),
+                self.num_allies(t),
+                self.ai.lobby.team_style,
+                (
+                    self.leaders.tribute[me].dip[t].agree,
+                    self.leaders.tribute[t].dip[me].agree
+                ),
+            );
+        }
+        if coin & 1 == 0 {
             return false;
         }
         if !self.cities.nation[t].human
