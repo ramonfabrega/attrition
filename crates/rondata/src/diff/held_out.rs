@@ -1084,6 +1084,47 @@ mod tests {
         }
     }
 
+    /// Probe 4512 (reverted whole): every groups range on 4352..4356.
+    #[test]
+    fn probe_4512_row_105_groups() {
+        if std::env::var("RON_PROBE_4512").is_err() {
+            return;
+        }
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&THIRD, 5) else {
+            panic!("rcx")
+        };
+        let ranges =
+            crate::testenv::experiment(&home.join("ron-golden/run1752/map-18"), "rontrace.ranges")
+                .expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 105's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let i32s = |b: &[u8]| -> Vec<i32> { b.chunks(4).map(|c| { let mut a = [0u8; 4]; a[..c.len()].copy_from_slice(c); i32::from_le_bytes(a) }).collect() };
+        for state in [4352, 4353, 4354, 4355, 4356] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_groups();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 5).collect();
+            eprintln!("PROBE {state} ranges ours {} theirs {}", ours.ranges.len(), theirs.len());
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                if a.record == 84 || a.bytes != b.bytes {
+                    eprintln!("PROBE {state} range {k} record {} {} ours {:?} theirs {:?}", a.record, a.field, i32s(&a.bytes), i32s(&b.bytes));
+                }
+            }
+            if ours.ranges.len() != theirs.len() {
+                break;
+            }
+        }
+    }
+
     /// **Row 120's barge is born with `form` 0** (item 4435, `docs/RECGAME.md`
     /// §10.3): run1716, the ranges take of run1706's file, holds the units
     /// line's every range on state 2694, where the computer's transport
