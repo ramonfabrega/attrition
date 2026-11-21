@@ -3894,9 +3894,10 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
 /// (run1732) whole with its groups line. Item 4480: 2 -> 3, row 70
 /// (run1733) whole with its world line (a `DETECT` building's `seen3`).
 /// Item 4470: 3 -> 4, row 90 (run1734) whole with its units and guys
-/// lines.
+/// lines. Item 4524: 4 -> 5, row 130 (run1736) whole with its units line
+/// (the Kremlin's spy, `unit_masks2 & 0x400`).
 #[cfg(test)]
-pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (4, 8);
+pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (5, 8);
 
 /// One battery: its declared table, its pins, where its files and takes
 /// sit, and its line in the handoff.
