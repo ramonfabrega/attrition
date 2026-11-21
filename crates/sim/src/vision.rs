@@ -580,7 +580,20 @@ impl Sim {
         {
             self.update_local_seen_build(b);
         }
-        self.write_sweep(&sw, who, false)
+        // **A `DETECT` building lights `seen3` over its whole disc** (item
+        // 4480, `docs/VISION.md` §4): `Wall::init@0063e9b0` runs
+        // `Object::init@00647750`, whose `has_objmask(0x2000000)` — vslot
+        // `+0x148`, `BuildData::has_objmask@0062e210`, the type's mask with
+        // only `0x40` added for a city — sets `field_0x8 | 0x40`, and
+        // `update_seen`'s cutoff is then `circle_radius[r]`, the range's end.
+        // run1722's Observation Post `1/59` (type 108) on 3984.
+        let detect = self.buildings[b].ty.is_some_and(|t| {
+            self.tables.build_types[t]
+                .combat
+                .as_ref()
+                .is_some_and(|c| c.obj_masks & crate::combat::mask::DETECT != 0)
+        });
+        self.write_sweep(&sw, who, detect)
     }
 
     /// `ObjectData::is_visible_wonder@00471130`: a wonder without the city
