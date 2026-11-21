@@ -3068,9 +3068,10 @@ pub(crate) const SCORES_THIRD: [Option<FirstScore>; 8] = [
 /// **Parity held out, third, N of 8** (item 4487): the third battery's
 /// line, games whole of the eight and games taken. As found 2026-11-21:
 /// 5 of 8, rows 25, 45, 65, 125 and 145 whole. Item 4493: 6 of 8, row 85
-/// whole (`Group::refresh_group_order`'s prune).
+/// whole (`Group::refresh_group_order`'s prune). Item 4507: 7 of 8, row 5
+/// whole (piece 32's bays re-fitted on the original's sweep).
 #[cfg(test)]
-pub(crate) const HELD_OUT_THIRD_LINE: (usize, usize) = (6, 8);
+pub(crate) const HELD_OUT_THIRD_LINE: (usize, usize) = (7, 8);
 
 /// The third battery (item 4487).
 #[cfg(test)]

@@ -1282,8 +1282,9 @@ facing −1,097,334,784, loosing `CHAR_ATTACK2` at frame 22 on a building. Its s
 fitted from run17's twenty headings (`docs/COMBAT.md` §70.2). The original's own `get_position` on run1579's packet,
 swept over all 361 whole degrees, says the three rows held 205, 324 and 345 of them, and this heading is one of the
 misses. The rows are now the sweep's centroids, 361 of 361 each, and equal piece 384's (item 4277) to the digit. Row
-5 is whole: **7 of 8, 92 of 96 lines** as the third battery's moved column. No other row of the three batteries
-moved. `row_5_s_slinger_stone_leaves_from_the_original_s_socket_on_run1753_s_ranges` holds every ammo range on 4804
+5 is whole: **7 of 8, 93 of 96 lines, reach 95 %** as the third battery's moved column, on the tree merged with
+4502. No other row of the three batteries moved; the third pair's window `1/22` on 5633 had pinned the same three
+launch differences, and they close. `row_5_s_slinger_stone_leaves_from_the_original_s_socket_on_run1753_s_ranges` holds every ammo range on 4804
 to 4806.
 
 **At the pass of 2026-11-21** (DECISIONS 148 §2, §3). The three found columns read 0, 1 and 5 of 8 whole, 64, 65

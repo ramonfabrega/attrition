@@ -2092,14 +2092,15 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
                 (7, 7, 168),
                 "every lifetime and twenty-four comparisons per record"
             );
+            // Item 4507: the three launch-geometry differences on 5633
+            // (`1/22`'s Slinger stone, `sx` 4944 against 4945, `sy` 30710
+            // against 30709, and the aim's `angle`) were piece 32's
+            // `CHAR_ATTACK2` bay; re-fitted on the original's 361-heading
+            // sweep, the window's rounds agree on every field.
             assert_eq!(
                 ammo_differences,
-                std::collections::BTreeSet::from([
-                    (5633, (1, 22, 5625), "angle", -1111097344, -1111425024),
-                    (5633, (1, 22, 5625), "sx", 4944, 4945),
-                    (5633, (1, 22, 5625), "sy", 30710, 30709),
-                ]),
-                "three launch-geometry differences remain explicit"
+                std::collections::BTreeSet::new(),
+                "every round's fields agree"
             );
             assert_eq!(
                 ammo_unmodelled,
