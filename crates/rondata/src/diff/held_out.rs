@@ -731,7 +731,7 @@ mod tests {
                             if (fx - cx).abs() <= 24 && (fy - cy).abs() <= 24 {
                                 let det = un.ty.is_some_and(|t| built.sim.tables.unit_types[t].combat.obj_masks & sim::combat::mask::DETECT != 0);
                                 eprintln!("PROBE4480  unit {u} {}/{} ty {:?} fog ({fx},{fy}) pos ({},{}) alive {} on_map {} detect {det}",
-                                    un.owner, un.o, un.ty, un.pos.x, un.pos.y, un.alive(), un.on_map);
+                                    un.owner, un.index, un.ty, un.pos.x, un.pos.y, un.alive(), un.on_map);
                             }
                         }
                         for (k, bd) in built.sim.buildings.iter().enumerate() {
