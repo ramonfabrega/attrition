@@ -811,7 +811,6 @@ impl Sim {
     /// group. A group with no seat has no id to write.
     pub(super) fn repoint_member(&mut self, g: &Group, u: usize) {
         if let Some(pool) = self.gstate(g).and_then(|st| st.pool) {
-            self.p4477(u, "repoint", Some(pool));
             self.units[u].group_ptr = Some(pool);
         }
     }
