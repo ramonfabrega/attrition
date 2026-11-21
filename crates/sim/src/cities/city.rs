@@ -677,6 +677,16 @@ impl Sim {
                 self.die_building(b);
                 continue;
             }
+            // An active city centre (`Object +0x8 & 0x20`) takes neither
+            // arm (`defeat_by@006d1c80`'s walk tests it ahead of
+            // `is_military_trainer`): a capture's old centre is still the
+            // loser's while `close_city` reaches this defeat, and it is
+            // `capture_city`'s own `close(5)` that closes it, not a death
+            // here (item 4521, run1771: computer 1's last Village `1/2007`,
+            // taken as `3/2029` on 5256, kept its cells blocked in theirs).
+            if self.building_is_city(b) {
+                continue;
+            }
             let trainer = self.buildings[b].ty.is_some_and(|t| {
                 matches!(
                     self.tables.build_types[t].ident,
