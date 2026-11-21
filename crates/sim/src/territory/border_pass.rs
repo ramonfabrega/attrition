@@ -24,7 +24,7 @@
 //! gate of `think_civilian_transport` reads that byte (`docs/AI.md` §84).
 
 use crate::Sim;
-use crate::world::{Owner, Terrain};
+use crate::world::{Owner, REGION_VERIFY_GATHER, Terrain};
 
 /// The fixed pass's own state: the owners it writes and every region's
 /// resume index.
@@ -313,6 +313,14 @@ impl Sim {
                 // `compute_reg_territory`'s tail: `leader_flags |= 0x2000000`
                 // on every live leader, the economy's recompute flag.
                 finished_one = true;
+                // And `compute_reg_territory@006b0bb0:280`–`282`: the region
+                // that has just been walked to its end takes `flags |= 0x80`
+                // and `|= 0x20`, so its gather buildings verify their lists
+                // in the objects that follow and re-walk on the next frame,
+                // once the daemon's cycle has traded the bit for `0x10`
+                // (`docs/ECONOMY.md` §17.2; item 4475). `0x80` feeds only
+                // `Borders::add_border_region`, which is not carried.
+                self.world.or_region_flags(r, REGION_VERIFY_GATHER);
                 for l in &mut self.economy.ledgers {
                     l.dirty = true;
                 }
