@@ -3353,12 +3353,134 @@ pub(crate) const THIRD: Battery = Battery {
 /// found column is pinned once and never re-pinned; it is the estimate
 /// (DECISIONS 148 §2).
 #[cfg(test)]
-pub(crate) const SCORES_FOURTH: [Option<FirstScore>; 8] =
-    [None, None, None, None, None, None, None, None];
+pub(crate) const SCORES_FOURTH: [Option<FirstScore>; 8] = [
+    // run1760
+    // row 15, as found 2026-11-21: 12 lines whole.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1761
+    // row 35, as found 2026-11-21: 12 lines whole.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1762
+    // row 55, as found 2026-11-21: 10 lines whole; units 5,833 of 6,001, first 4275; groups 5,989
+    // of 6,001, first 5576.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                5833, 6001, 6001, 6001, 6001, 5989, 6001, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[
+                ("units", (4275, Some(1914015254), 708677162)),
+                ("groups", (5576, Some(4003049513), 3939479638)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1763
+    // row 75, as found 2026-11-21, ended by the original on 5341: 11 lines whole; ammo 4,682 of
+    // 5,342, first 4004.
+    Some(FirstScore {
+        last: Some(5341),
+        found: Score {
+            states: 5342,
+            agreed: [
+                5342, 5342, 5342, 4682, 5342, 5342, 5342, 5342, 5342, 5342, 5342, 5342,
+            ],
+            first: &[("ammo", (4004, Some(3143699460), 3217755213))],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1764
+    // row 95, as found 2026-11-21: 9 lines whole; units 5,303 of 6,001, first 5303; guys 5,909 of
+    // 6,001, first 5909; leaders 5,266 of 6,001, first 5266.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                5303, 6001, 6001, 6001, 6001, 6001, 5909, 5266, 6001, 6001, 6001, 6001,
+            ],
+            first: &[
+                ("units", (5303, Some(1676718193), 3912806517)),
+                ("guys", (5909, Some(1310729884), 912139918)),
+                ("leaders", (5266, Some(871988666), 426802620)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1765
+    // row 115, as found 2026-11-21: 12 lines whole.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1766
+    // row 135, as found 2026-11-21: 12 lines whole.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1767
+    // row 155, as found 2026-11-21: 12 lines whole.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[],
+            over: None,
+        },
+        moved: None,
+    }),
+];
 
 /// The fourth battery's line: games whole of the eight, and games taken.
 #[cfg(test)]
-pub(crate) const HELD_OUT_FOURTH_LINE: (usize, usize) = (0, 0);
+pub(crate) const HELD_OUT_FOURTH_LINE: (usize, usize) = (5, 8);
 
 /// The fourth battery (item 4510).
 #[cfg(test)]
