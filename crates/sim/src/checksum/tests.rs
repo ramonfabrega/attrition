@@ -679,6 +679,46 @@ fn a_garrison_walks_its_target_and_its_search() {
     }
 }
 
+/// **A repair walks `TargetOrder::walk_data@0047f220`'s two ranges** (item
+/// 4479, `docs/RECGAME.md` §7): `RepairOrder` has no walker of its own,
+/// so the flags byte and `ox`, `whom`, `uid` (the building), then the
+/// guys. The 2017 sample's 3921: player 3's unit `3/11` (TI 50), its second
+/// order `0d 00 00 00`, `00`, then `04`, `da 07 00 00 03 00 00 00 31 00`.
+#[test]
+fn a_repair_walks_its_flags_and_its_target() {
+    use crate::orders::{Body, Order, flag};
+    use crate::world::Pos;
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(60, 60), 4);
+    let u = sim.add_unit(crate::Unit::new(3, 50, Pos::new(480, 480), 10));
+    let b = sim.add_building(3, Pos::new(960, 960), 0);
+    sim.buildings[b].index = 2010;
+    sim.buildings[b].uid = 0x31;
+    sim.units[u].orders.push_back(Order {
+        flags: flag::ACTION,
+        body: Body::Repair(b),
+    });
+    let record = sim.units[u].index;
+    let ranges = sim.checksum_units().ranges;
+    let at = ranges
+        .iter()
+        .position(|r| r.record == record && r.field == "order.type")
+        .expect("the order's type");
+    assert_eq!(ranges[at].bytes, 13i32.to_le_bytes(), "REPAIR");
+    let walked: Vec<(&str, Vec<u8>)> = ranges[at + 2..]
+        .iter()
+        .take_while(|r| r.field.starts_with("order."))
+        .map(|r| (r.field, r.bytes.clone()))
+        .collect();
+    assert_eq!(
+        walked,
+        vec![
+            ("order.flags", vec![4]),
+            ("order.target", vec![0xda, 0x07, 0, 0, 3, 0, 0, 0, 0x31, 0]),
+        ],
+        "the sample's 3/11 on 3921"
+    );
+}
+
 /// **A missile's strike walks `AirAttackGroundOrder::walk_data@004875a0`'s
 /// five ranges** (item 4459, `docs/CHECKSUM.md` §18): the flags byte, the
 /// `AttackGroundOrder` point with `accuracy` and `attack_unit`
