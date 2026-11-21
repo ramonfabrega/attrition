@@ -793,8 +793,11 @@ pub(in crate::diff) mod tests {
     /// standing and its 820 draws spent); the first shot still on 2929.
     /// Item 4500 (the three Scholars rise from the captured University
     /// with theirs' forced idle rolls on 5255..5257): 3475 -> 3747, +272;
-    /// the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3747, Some(2929));
+    /// the first shot still on 2929. Item 4513 (an age is cheaper for a
+    /// leader behind a non-allied rival; the person's Classical Age at 180
+    /// food on 4320): 3747 -> 4772, a named rise past the draw word 5273,
+    /// the frames not read one by one; the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4772, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
