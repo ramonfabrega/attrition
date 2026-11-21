@@ -1613,6 +1613,79 @@ mod tests {
         }
     }
 
+    /// **Row 10's Citizen casting the transport is an `xport` peasant**
+    /// (item 4516, `docs/AI.md` §58): run1739, the ranges take of run1730's
+    /// file. who=1's Citizen `1/97` (TI 50) holds `[CAST_SPELL, MOVE_TO]` on
+    /// 3975, and the census of the tick into 3976 counts it:
+    /// `Leader::plan_strategy@006b9620`'s on-map arm for kinds 8 and 0xe
+    /// bumps `xport_peasants` (`incl 0x9c0(%ebx)` at `6bae19`) whatever its
+    /// front order, where this crate's census returned on the kind. Every
+    /// leaders range on 3975 to 3977, byte for byte: red on the tree before
+    /// the fix at range 129, record 1, `who..ally_mask` byte 2488,
+    /// `xport_peasants` ours 2, theirs 3.
+    #[test]
+    fn row_10_s_citizen_casting_the_transport_is_an_xport_peasant_on_run1739_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 0) else {
+            eprintln!("skipping: row 10's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1739/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1739's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 10's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [3975i64, 3976, 3977] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            if state == 3975 {
+                // The caster by name: `1/97`, a Citizen, the cast in front.
+                let u = built
+                    .sim
+                    .units
+                    .iter()
+                    .find(|u| u.alive() && u.owner == 1 && u.index == 97)
+                    .expect("1/97");
+                assert_eq!(u.type_index, 50);
+                let kinds: Vec<u8> = u.orders.iter().map(|o| o.index()).collect();
+                assert_eq!(kinds, [14, 1], "CAST_SPELL, then MOVE_TO");
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_leaders();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                assert_eq!(
+                    at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                    None,
+                    "leaders range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                    a.record,
+                    a.field
+                );
+                assert_eq!(a.bytes.len(), b.bytes.len(), "leaders range {k} on {state}");
+            }
+            assert_eq!(ours.ranges.len(), theirs.len(), "leaders ranges on {state}");
+            if state == 3976 {
+                // Theirs' `xport_peasants` (`+0x9c0`, byte 2488 of who=1's
+                // `who..ally_mask`).
+                assert_eq!(ours.ranges[129].record, 1);
+                assert_eq!(&theirs[129].bytes[2488..2492], &3i32.to_le_bytes());
+            }
+        }
+    }
+
     /// **Row 120's MLRS reads `cavarch_o` −2 in the units line** (item
     /// 4443, `docs/RECGAME.md` §10.3): on 5864 the computer's fire-on-the-move
     /// MLRS `1/35` (type 273) steps an `ExploreTo` with an empty search after
