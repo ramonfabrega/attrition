@@ -830,8 +830,27 @@ impl Sim {
     /// Returns whether the group had a slot for `member`.
     pub fn group_refresh_order(&mut self, g: &Group, member: usize) -> bool {
         // `00713a5a`: `normalize(this)` opens it, and its tail is the
-        // group's speed (§18).
-        self.group_set_speed(g);
+        // group's speed (§18). **On a seated group it is the prune whole**
+        // (item 4493, `docs/GROUPS.md` §23): a member whose `+0x80` no
+        // longer names the group leaves the list before the slot is read.
+        // Row 85's army `1/3` on 3830: `Form::categorize`'s `Group::sort`
+        // kills the follower-first squad `1/119..1/121` — only `1/121` was
+        // listed, so only its `+0x80` is cleared — and re-adds it whole as
+        // `[117, 119, 120, 121]`; a follower's `GROUP_MOVE`
+        // refreshes the order the same tick, and run1751's record 68 reads
+        // `num` 3, `[117, 119, 120]`.
+        let pruned;
+        let g = match Self::seat_of_group(g) {
+            Some(seat) => {
+                self.seat_normalize(seat);
+                pruned = self.seat_group(seat);
+                &pruned
+            }
+            None => {
+                self.group_set_speed(g);
+                g
+            }
+        };
         let Some(i) = g.list.iter().position(|&u| u == member) else {
             return false;
         };

@@ -1214,5 +1214,15 @@ The merged tree after the take (`cc9ffc8b3`: 4478, 4489, 4490) moves none of the
 file. In the three games it ended itself, our walk holds no `game_over` by that tick (`over: None`). `docs/RUNS.md`
 run1743 to run1750 holds every value, and the pins hold both sides of every first parting.
 
-*Not established*: no parting here names its leaf, since the takes hold sums. Row 105 is the only one of the
+**Row 85's leaf (item 4493, run1751, the ranges take of run1747's file).** State 3831, groups range 86, record 68
+(who=1's slot 4, army 3), `id..march`: `num` ours 4, theirs 3; `list` ours `[117, 119, 120, 121]`, theirs `[117,
+119, 120]`. On 3830 army 3 moves, and `Form::categorize`'s `Group::sort` kills the follower-first squad `1/119..1/121`
+(only `1/121` listed, so only its `+0x80` is cleared) and re-adds it whole. A follower's `GROUP_MOVE` then refreshes
+its order, and `Group::refresh_group_order@00713a50` opens with `normalize`, which prunes the member whose `+0x80`
+no longer names the group. This crate's refresh ran only the speed tail; it now prunes a seated group
+(`Sim::group_refresh_order`, `docs/GROUPS.md` §23.4). Row 85 is whole: **6 of 8, 91 of 96 lines**. No other row of
+the three batteries moved. `row_85_s_refresh_prunes_the_member_its_sort_unpointed_on_run1751_s_ranges` holds every
+groups range on 3830 and 3831.
+
+*Not established*: rows 5 and 105 name no leaf, since their takes hold sums. Row 105 is the only one of the
 eight that parts early, on leaders at 1976, and it is the only Modern start (ages 6..6) of the twenty-four.

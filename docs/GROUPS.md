@@ -3361,8 +3361,10 @@ is −1. `action_move_near` writes `form` before `compute_form`
 `Group::sort` runs where `Form::categorize` does, in
 `group_action_move_to`'s layout, after the `QUEUE_NEW` clear and before
 the order loop. So a member the sort brought in is decided by the
-order loop. `army_normalize` and `groups_process` prune by the
-pointer.
+order loop. `army_normalize`, `groups_process` and
+`group_refresh_order` (`00713a50` opens with `normalize`; item 4493,
+`docs/RECGAME.md` §11.1) prune by the pointer. `kill_group_move`, the
+`is_*` queries and `redo_patrol_order` still run the speed tail only.
 
 **SEAM**: five writers of `+0x80 = -1` are not modelled: `do_build`,
 `build_done`, `do_attack` (which saves and restores it),
