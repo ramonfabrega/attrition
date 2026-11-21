@@ -15698,6 +15698,19 @@ Unit tests:
 - `cavarch::tests::an_empty_search_twice_waits_for_the_thirty_two_frame_phase`;
 - `cavarch::tests::the_step_attack_walks_while_the_turret_bears`.
 
+**`cavarch_uid` (`+0xa6`) outlives its target** (item 4476, diff-backed by
+run1722). Every writer of the word writes it only on a find: `fight@005fd4d0`
+at `:220`, `:424`, `:587` and `:1046`, `do_attack@005f1b80:240` and
+`Group::action_spell@006fe1a0:591`, each under `ox ≥ 0`. `do_cast@005ebfe0:475`
+alone writes −1 for none. The clears, `fight:200`, `do_move` and `move_step`,
+write `+0xa2` alone. So a dropped target leaves its uid behind. On row 60's
+3757 the Dragoon `1/21` (TI 189) drops `0/11`: both sides read `cavarch_o` −1
+and `cavarch_who` −1, and the uid reads ours 0, theirs 18. `Unit::cavarch_uid`
+carries the word, and the units line reads it.
+`row_60_s_dragoon_keeps_its_dropped_target_s_uid_on_run1722_s_ranges` holds
+every units range on 3756 and 3757. *Not carried*: `do_cast`'s −1 arm. Ours
+kills a cast whose target is gone before that write.
+
 ### 134.4 The value diff, and the word
 
 **run657 (17165..17177): 225 → 154.**
