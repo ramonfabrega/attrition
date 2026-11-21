@@ -903,7 +903,6 @@ impl Sim {
             st.emptied(frame);
         }
         if self.units[o].group_ptr == pool {
-            if std::env::var("RON_PROBE_4493").is_ok() && self.units[o].owner == 1 && self.units[o].index == 121 { eprintln!("PROBE4493 f{} seat_remove clears\n{}", self.frame, std::backtrace::Backtrace::force_capture()); }
             self.units[o].group_ptr = None;
         }
         self.seat_set_speed(seat);
@@ -946,15 +945,9 @@ impl Sim {
                 }
             }
             let Some(m) = bad else { return };
-            let pr = std::env::var("RON_PROBE_4493").is_ok() && self.frame == 3830;
-            let show = |s: &Self| s.seat_list(seat).iter().map(|&x| (s.units[x].index, s.units[x].group_ptr)).collect::<Vec<_>>();
-            if pr { for x in [117,119,120,121] { if let Some(i) = self.units.iter().position(|u| u.owner==1 && u.index==x) { let u=&self.units[i]; eprintln!("PROBE4493 sq {} captain {} up {:?} down {:?} alive {} on_map {} ptr {:?}", x, u.captain, u.o_up.map(|j| self.units[j].index), u.o_down.map(|j| self.units[j].index), u.alive(), u.on_map, u.group_ptr); } } eprintln!("PROBE4493 sort bad {} before {:?}", self.units[m].index, show(self)); }
             self.seat_kill(seat, m, false, false);
-            if pr { eprintln!("PROBE4493 after kill {:?}", show(self)); }
             self.seat_normalize(seat);
-            if pr { eprintln!("PROBE4493 after normalize {:?}", show(self)); }
             self.seat_add(seat, m, false, true);
-            if pr { eprintln!("PROBE4493 after add {:?}", show(self)); }
         }
     }
 
@@ -1023,7 +1016,6 @@ impl Sim {
             |i| units[i].o_down.filter(|&d| units[d].alive()),
         );
         for f in walked {
-            if std::env::var("RON_PROBE_4493").is_ok() && self.units[f].owner == 1 && self.units[f].index == 121 { eprintln!("PROBE4493 f{} set_group 121 -> {:?}", self.frame, s); }
             self.units[f].group_ptr = s;
         }
     }
@@ -1112,7 +1104,6 @@ impl Sim {
         if !self.pool_is_building_group(who, s) {
             for x in &mut self.units {
                 if x.owner == who && x.group_ptr == Some(s) {
-                    if std::env::var("RON_PROBE_4493").is_ok() && x.index == 121 { eprintln!("PROBE4493 get_open_slot tail clears 121 slot {}", s); }
                     x.group_ptr = None;
                 }
             }

@@ -1801,7 +1801,6 @@ impl Sim {
         //    loses its group outright — `+0x80 = −1` (`5e7ed8`), then the
         //    ungroup (`docs/GROUPS.md` §23).
         let Some(i) = g.list.iter().position(|&m| m == u) else {
-            if std::env::var("RON_PROBE_4493").is_ok() && self.units[u].owner == 1 && self.units[u].index == 121 { eprintln!("PROBE4493 f{} group_move list lost clears", self.frame); }
             self.units[u].group_ptr = None;
             self.ungroup_move_order(u, gm.id);
             return;

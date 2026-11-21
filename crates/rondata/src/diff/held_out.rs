@@ -670,54 +670,6 @@ mod tests {
     /// the fix at range 92 on 3598, record 68 `id..march`, `ox` ours 33720,
     /// theirs 0 (`oy` 15048, 0).
     #[test]
-    fn probe_4493_row_85_groups() {
-        if std::env::var("RON_PROBE_4493").is_err() {
-            return;
-        }
-        let Some(inst) = crate::testenv::install() else {
-            return;
-        };
-        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(&THIRD, 4) else {
-            return;
-        };
-        let ranges = home.join("ron-golden/run1751/map-14/rontrace.ranges");
-        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 85's file");
-        let loaded = crate::load::load(&inst).expect("the install loads");
-        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
-        let mut stream = crate::input::Stream::pump(&rec);
-        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
-        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(3826);
-        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(3831);
-        let want: u32 = std::env::var("RON_PROBE_REC").ok().and_then(|v| v.parse().ok()).unwrap_or(68);
-        for state in lo..=hi {
-            while built.sim.frame < state {
-                stream.apply(built.sim.frame as i32, &mut built);
-                built.sim.command().tick();
-                crate::diff::harness::debug_watch(&built, built.sim.frame);
-                crate::diff::harness::debug_armies(&built, built.sim.frame);
-            }
-            let set = record.first_of(state - 1).expect("the state's set").clone();
-            let all = record.ranges(&set).expect("the set's ranges");
-            let ours = built.sim.checksum_groups();
-            let theirs: Vec<_> = all.iter().filter(|r| r.line == 5).collect();
-            eprintln!("PROBE state {state}: ours {} ranges, theirs {}", ours.ranges.len(), theirs.len());
-            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
-                if a.bytes != b.bytes || a.record as u32 == want {
-                    eprintln!(
-                        "PROBE {state} range {k} record {} {} {}\n  ours   {:02x?}\n  theirs {:02x?}",
-                        a.record,
-                        a.field,
-                        if a.bytes == b.bytes { "same" } else { "DIFF" },
-                        a.bytes,
-                        b.bytes
-                    );
-                }
-            }
-        }
-    }
-
-    #[test]
     fn row_60_s_army_push_zeroes_the_empty_last_slot_s_origin_on_run1722_s_ranges() {
         let Some(inst) = crate::testenv::install() else {
             return;

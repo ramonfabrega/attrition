@@ -477,7 +477,6 @@ impl Sim {
             return;
         }
         let w = who as usize;
-        if std::env::var("RON_PROBE_4493").is_ok() && who == 1 { eprintln!("PROBE4493 f{} army_add_unit slot {} u {}/{} list {:?} ptr121 {:?}", self.frame, slot, self.units[u].owner, self.units[u].index, self.ai.armies[w].list[slot].units.iter().map(|&m| self.units[m].index).collect::<Vec<_>>(), self.units.iter().find(|x| x.owner==1 && x.index==121).map(|x| x.group_ptr)); }
         // `Army::member(o, who)@006f8de0` — the **list**, not the pointer.
         if self.ai.armies[w].list[slot].units.contains(&u) {
             return;
