@@ -122,6 +122,16 @@ pub struct Unit {
     /// `on_map == false`, and it is the whole reason a passenger's orders
     /// stop being stepped (`docs/TRANSPORT.md` §6).
     pub inside_unit: Option<usize>,
+    /// **The order this unit entered its [`Unit::inside_unit`]'s chain**
+    /// (item 4511): `Object::insert_inside@00647e90` appends at the bottom
+    /// (`ObjectData::inside_bottom@00644000`), so the host's `inside_down`
+    /// (`+0x28`) names the first figure aboard, each figure's the one that
+    /// boarded after it, and each figure's `inside_up` (`+0x82`) the one
+    /// before it. [`Sim::cargo_chain`](crate::Sim::cargo_chain) sorts a
+    /// host's riders by it; a building's chain is its
+    /// [`garrison`](crate::cities::building::Building::garrison) list
+    /// instead. 0 on a unit that has never boarded.
+    pub boarded: u32,
     /// **This frame's [`Sim::process_unit`] ran the map arm**: neither
     /// [`Unit::inside`] nor [`Unit::inside_unit`] was set at its head,
     /// where `Unit::process@00610bc0` reads `inside_up` (`:435`). The guys
@@ -1023,6 +1033,7 @@ impl Unit {
             },
             inside: None,
             inside_unit: None,
+            boarded: 0,
             processed_outside: false,
             max_health: health,
             orders: std::collections::VecDeque::new(),

@@ -39655,6 +39655,35 @@ SHA-256 `836429df5b5e2f77116bacddc5b33504e8e216ed0672df5029dbd9f8b068b669`.
 **What it holds**: row 60's leaves for `score_recording`; `SCORES[3].moved` is scored on run1703. Item 4447 read the
 builds leaf here (range 10, record 2000, `build_masks` on 4019, ours 4144, theirs 20528) and moved builds 4,073 → 4,075.
 
+## run1723 — parity held out, row 40's file to its end (4973) with the checksum and ranges hooks, the units line kept (2026-11-21, item 4484, `att-4484`)
+
+`docs/RECGAME.md` §10.3; DECISIONS 148 §3, §4. **What the disk could not answer**: run1702 holds sums only, so row 40's
+one parted line (units 2487) named no leaf, and this row was the one of the first eight with no ranges take. The take
+is run1725's line with the run directory, the file and the mask changed, the arguments `score_recording` printed on
+`0bd32ef70` (`one take for every parted line`): `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1723 --recording ~/ron-golden/recordings/item4413-row040-6000.rcx
+--end-frame 6000 --allow-early-end --cover cover=1 --log-window 0 31 --detail end:MISC --timeout 3600 --stall-seconds
+120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0x1u`, units only (148 §4), waited on with
+`waitrun.sh` in the background. `df -g ~` read 72 GB free at the item's start, 68 at the launch and 62 after.
+- **The run**: pool lane 1, launched 08:43:11 −05:00, exited 08:49:14: **362.1 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 4,974 frames, `last_frame` 4973, **ended early: the game ended itself**, as run1702 did;
+  seed 12345 observed, map 18. Players: tribe 4 (flags 7) and tribe 19 (flags 1). Five settings restored. DLL
+  `3b847bf0…`, defines `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0x1u`. The recording's
+  SHA-256 is run1702's. Minutes waited on another lane: 4 (241 s, item 4505's run1726 on lane 1; one game at a time).
+- **The record**, `~/ron-golden/run1723/map-18/rontrace.ranges`, 859,214,672 bytes, SHA-256
+  `ffb703da0e21503f9a4767a4c8139e301baa6690b85fbd72ae2b7e4b3f868570`: 4,974 sets on trace frames −1 to 4972, the units
+  line alone, 25,015,391 ranges, 458,482,583 bytes, none over (`ranges.py summary`).
+- **Scored** (`score_recording … ~/ron-golden/run1723/map-18`, on `0bd32ef70`): the sums are `SCORES[2].moved`'s,
+  eleven lines whole. Units 2,487, first 2487: **range 823, record 16, `myhits..launch_frames`, byte 8: `inside_down`
+  ours −1, theirs 17**.
+- Filed **in place**, as run1725 is: a held-out take stays out of the corpora. The record stays where the take left it.
+
+Files in place, `~/ron-golden/run1723/map-18/`: `gamelog_p.txt`, 2,422 bytes, SHA-256
+`2e4f57827fd1217f35f39d012eb78cf1af762aa1b207414f5e1ae0a78b2cdcb1`; `rontrace.log`, 140,241,472 bytes, SHA-256
+`ea0ff9fb97e907ac459cb545f0b7d0420fd802d4a88e735d06d542e46f0d0f01`.
+
+**What it holds**: row 40's units leaves for `score_recording`; `SCORES[2].moved` is scored on run1702.
+
 ## run1725 — parity held out, row 140's file to 6000 with the checksum and ranges hooks, all twelve lines kept (2026-11-20, item 4457, `att-4457`)
 
 `docs/RECGAME.md` §10.3; DECISIONS 145 §3, 146 §3. **What the disk could not answer**: run1707 holds sums only, so
@@ -40196,3 +40225,7 @@ Files in place, `~/ron-golden/run1753/map-14/`: `gamelog_p.txt`, 2,444 bytes, SH
   1)`): units 2,983 → 3,359, first 3359 (range 3707, record 127, `myhits..launch_frames` byte 8, `inside_down` ours
   −1, theirs 128); leaders and groups as before. `diff::held_out::tests::row_105_s_ceo_carries_the_ceo_bit_from_its_set_type_on_run1752_s_ranges`
   holds every units range on 2982 and 2983.
+- **Re-scored by item 4511** (a unit host's `inside_down` chain is the order of entry): units 3,359 → 5,235, whole;
+  the first parting 3583 (leaders range 191, record 1, `oil_patches` ours 10, theirs 20), then groups 4355.
+  `diff::held_out::tests::row_105_s_freighter_chains_its_riders_in_the_order_they_boarded_on_run1752_s_ranges` holds
+  every units range on 3358 and 3359.
