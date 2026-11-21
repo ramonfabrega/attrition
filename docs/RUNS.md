@@ -40455,7 +40455,7 @@ take waited one minute for 61, and read 59 after.
   whole; units 4,422, first 3411: **units range 4078, record 158, `orders.count` ours 2, theirs 1** (who=1's
   Strategic Bomber `1/158`, TI 305, TY 255, air; ours' extra order a `STRAFE` on its patrol's front); leaders 4,721,
   first 4573: **leaders range 128, record 1, `flags` byte 3, ours `0x0e`, theirs `0x1e`**.
-- **Re-scored by item 4508** (a computer's bomber searches round itself): units 4,537, first 3515 (range 5857, record
+- **Re-scored by item 4508** (a computer's bomber searches round itself): units 4,537 (4,574 on the tree merged with 4514), first 3515 (range 5857, record
   184, `collide_frame..play` bytes 18 and 19: `dest_angle` ours −406650880, theirs −424345600); leaders as found.
 - Filed **in place**, as run1753 is.
 

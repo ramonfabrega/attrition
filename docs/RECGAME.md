@@ -1223,7 +1223,7 @@ edge, (635, 814..815), round the old point (633, 814). Rows 30 and 110's
 world partings (1662, 3809) are not this: their sums did not move.
 
 **Row 130's computer bomber searches round itself** (item 4508; units
-4,422 → 4,537, first 3411 → 3515): run1754, units range 4078 on 3411,
+4,459 → 4,574 merged with 4514, first 3411 → 3515): run1754, units range 4078 on 3411,
 who=1's bomber `1/158` `orders.count` ours 2, theirs 1;
 `find_new_bomber_target@005eb960`'s `unit_masks & 0x40000` head
 (`docs/journal/2026-11-21-item-4508.md`).

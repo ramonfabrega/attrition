@@ -3164,14 +3164,15 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // range 467, record 6, who=1's `1/6` (TI 50) on who=0's ground at
         // peace, ours 0x840008, theirs 0xc40088): units 5,664 -> 5,792,
         // first 3771 -> 4880.
-        // Moved by item 4508 (on the tree merged with 4514; a computer's bomber searches round itself,
-        // `find_new_bomber_target`'s `unit_masks & 0x40000` head): units
-        // 5,664 -> 5,851, first on 3771, its sums unchanged. No ranges take
-        // of this row names which states went whole.
+        // Moved by item 4508 (a computer's bomber searches round itself,
+        // `find_new_bomber_target`'s `unit_masks & 0x40000` head), measured
+        // on the tree merged with 4514: units 5,792 -> 5,979, first on 4880,
+        // its sums unchanged. No ranges take of this row names which states
+        // went whole.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5851, 6001, 6001, 5962, 6001, 6001, 5997, 5801, 6001, 6001, 6001, 6001,
+                5979, 6001, 6001, 5962, 6001, 6001, 5997, 5801, 6001, 6001, 6001, 6001,
             ],
             first: &[
                 ("units", (4880, Some(357474173), 4168261069)),
@@ -3469,16 +3470,16 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // `0x80` and the peace arm's `0x400000`; run1739's leaf, row 10):
         // units 4,422 -> 4,459, first on 3411, its sums unmoved. No ranges
         // take of this row.
-        // Moved by item 4508 (on the tree merged with 4514; a computer's bomber searches round itself:
+        // Moved by item 4508 (a computer's bomber searches round itself:
         // `find_new_bomber_target@005eb960`'s head puts the point on the
         // plane for `unit_masks & 0x40000`; run1754, state 3411, units range
         // 4078, record 158, who=1's Strategic Bomber `1/158`,
-        // `orders.count` ours 2, theirs 1): units 4,422 -> 4,537, first
-        // 3411 -> 3515.
+        // `orders.count` ours 2, theirs 1), measured on the tree merged with
+        // 4514: units 4,459 -> 4,574, first 3411 -> 3515.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                4537, 4731, 4731, 4731, 4731, 4731, 4731, 4721, 4731, 4731, 4731, 4731,
+                4574, 4731, 4731, 4731, 4731, 4731, 4731, 4721, 4731, 4731, 4731, 4731,
             ],
             first: &[
                 ("units", (3515, Some(2883003395), 31204340)),
