@@ -40099,3 +40099,33 @@ Files in place, `~/ron-golden/run1751/map-14/`: `gamelog_p.txt`, 2,429 bytes, SH
 
 **What it holds**: `diff::held_out::tests::row_85_s_refresh_prunes_the_member_its_sort_unpointed_on_run1751_s_ranges`
 (every groups range on 3830 and 3831).
+
+## run1752 — parity held out, third battery, row 105's file to its end (5234) with the checksum and ranges hooks, all twelve lines kept (2026-11-21, item 4499, `att-4499`)
+
+`docs/RECGAME.md` §11.1; DECISIONS 147 §2. **What the disk could not answer**: run1748 holds sums only, so the
+leaders parting on row 105 (state 1976) named no leaf. The take is run1751's line with the run directory and the
+recording changed: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1752
+--recording ~/ron-golden/recordings/item4487-row105-6000.rcx --end-frame 6000 --allow-early-end --cover cover=1
+--log-window 0 31 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def
+RON_RANGES --tracer-def RNG_MASK=0xfffu`, waited on with `waitrun.sh` in the background. `df -g ~` read 80 GB free
+before it and 71 after.
+- **The run**: pool lane 1, launched 04:19:30 −05:00, exited 04:26:07: **397.2 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 5,235 frames, **ended by the original** on 5234, seed 12345, map 18. The
+  recording's SHA-256 is run1748's (`180bf495…`).
+- **The record**, `~/ron-golden/run1752/map-18/rontrace.ranges`, 4,549,683,032 bytes, SHA-256
+  `80eb960889c7e77b60de85146ff800644bb46cb58f0c7614178ffb5cf9ce2fe0`: 5,235 sets on trace frames −1 to 5233,
+  97,164,928 ranges, 2,994,533,574 bytes, none over (`ranges.py summary`).
+- **Scored** (`score_recording … ~/ron-golden/run1752/map-18`, on `05b3f0659`): the sums are run1748's; leaders
+  4,656, first 1976: **leaders range 129, record 1, `who..ally_mask`, byte 4440: `reg_gatherers[1]` ours 0, theirs
+  1** (who=1's rider bound for sea region 65; `docs/RECGAME.md` §11.1).
+- **Re-scored by item 4499** (`reg_xport_peasants` indexed without a bound): leaders 5,056, first 3583 (range 191,
+  record 1, `oil_patches` ours 10, theirs 20); units 2,983, first 2983 (range 655, record 17, `unit_masks2` ours 0,
+  theirs 65536); builds 5,162 and groups 5,217 as found; eight lines whole.
+- Filed **in place**, as run1751 is.
+
+Files in place, `~/ron-golden/run1752/map-18/`: `gamelog_p.txt`, 2,432 bytes, SHA-256
+`e8be49dc7fa025c0d09db3f0c28a1f12e0d1061775ea7415abe814cbb5ab3aa2`; `rontrace.log`, 149,486,752 bytes, SHA-256
+`20b1c07eef60d43e2083f712a3c3c15e0200ea628be93bf01a801781264d1fd1`.
+
+**What it holds**: `diff::held_out::tests::row_105_s_rider_to_sea_region_65_lands_in_reg_gatherers_on_run1752_s_ranges`
+(every leaders range on 1975 and 1976).
