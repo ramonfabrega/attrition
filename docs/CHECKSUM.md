@@ -1941,8 +1941,46 @@ and run1496 shrink to 28 and 44 ranges parted (`PACKETS_SCORE` 892 → 897).
 *Not established*: the pool starts empty here. `River::init` and
 `River::close` share `Recycler<Spline>`, and no capture shows a river's
 `Spline` reaching a round. The Cruise Missile arm's `knots` size is taken as
-`make_valid(n + 4)`'s, read at `913e96` and never walked. Ammo 3312, the
-row's next parting, is not read.
+`make_valid(n + 4)`'s, read at `913e96` and never walked. ~~Ammo 3312, the
+row's next parting, is not read.~~ Read and built by item 4497: §18.2.
+
+## 18.2 A bomb's accuracy, its slot's last (item 4497)
+
+Diff-backed on row 100, run1721 3312. On 3311 the Strategic Bomber `1/83`
+(TI 305, air) drops two bombs on `0/2000`. The first goes in slot 1 and the second in slot 2. Theirs' record 2
+prints `accuracy` (`AmmoData +0x6`, body bytes 1–2) as 260 (`04 01`), and ours
+printed 0. On 3313 the next bomb, record 1, prints 300 in theirs, against
+0 in ours. Every other byte of both records agrees.
+
+The 260 is the slot's own. `Objects::add_ammo@00658b10` scans the pool for
+the first `Ammo` whose `flags & 3` is clear and mallocs one only when none
+is. It keeps every `Ammo` for the game. `Ammo::Ammo@0067b730` zeroes the
+dword at `+0x4` once, and `Ammo::close@006791a0` clears only the `flags` byte
+(`movb $0x0, 0x4(%edi)` at `6791a6`). `accuracy`'s one writer is
+`Ammo::init@0067bbf0:372` (`movw %ax, 0x6(%edi)` at `67c642`). The bomb arm
+leaves `0x67c289` by falling through to `0x67c293` when `[ebp − 0x30]` is
+set, and its jumps out (`67c3a6`, `67c453`, `67c469`) all land past `67c642`.
+`Ammo::init_crash@0067b800` writes no `+0x6` either, and
+`Objects::kill_guy@00659410` takes its slot from the same pool. So a bomb's
+or a crash's round carries whatever accuracy its slot's last aimed round
+left, and `Ammo::hit_target@00678f90`'s `100 < accuracy` test reads that
+value.
+
+Built: `CombatState::ammo_accuracy` is each slot's last `accuracy`, as an
+`i16`, 0 for a slot never filled. `Sim::add_ammo` writes it, and
+`Sim::add_ammo_unaimed` (the bomb arm and the crash arm) reads it in. All
+ammo ranges agree from 3310 to 3330, and **row 100 is whole**: ammo
+3,312 → 3,331 of 3,331 (`SCORES[5].moved`; the killer is
+`row_100_s_strategic_bomber_drops_its_slot_s_last_accuracy_on_run1721_s_ranges`).
+On the second battery, row 130's ammo turns whole (4,647 → 4,731) and row
+10's goes 5,924 → 5,962, first parting 5148 → 5178, where ours refuses the
+line. Among the packets, run882b's and run883b's ammo turn whole (5 ranges
+parted before on each; `PACKETS_SCORE` 897 → 899). Fifteen widenings
+lose their bombs' `accuracy` rows and gain none. Those are chapters 35, 36, 38, 48, 132 and 134,
+run265's rounds, and the information and modern pairs' word frames.
+
+*Not established*: a slot whose last round was a crash, or a spent arrow
+re-used, is modelled by the same rule, but no diff has walked one.
 
 ## 19. The groups line, ported (item 4116)
 

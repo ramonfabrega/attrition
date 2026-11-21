@@ -705,10 +705,34 @@ impl Sim {
     /// here: chapter two's `0/7` and `0/8` fire together on 677, hold
     /// slots 1 and 2, and the first to come down on 683 takes `1/8` while
     /// the second finds it dead and rolls on.
-    pub(crate) fn add_ammo(&mut self, mut p: combat::Projectile) {
+    pub(crate) fn add_ammo(&mut self, p: combat::Projectile) {
+        self.add_ammo_to_slot(p, true);
+    }
+
+    /// [`Sim::add_ammo`] for an arm that writes no `accuracy` (`+0x6`):
+    /// `Ammo::init@0067bbf0`'s bomb arm, which skips the accuracy block,
+    /// and `Ammo::init_crash@0067b800`. The round carries what its slot's
+    /// `Ammo` last held ([`crate::combat::CombatState::ammo_accuracy`],
+    /// item 4497): run1721's Strategic Bomber `1/83` (TI 305, air) drops on 3311 into slot 2, whose
+    /// last round left 260.
+    pub(crate) fn add_ammo_unaimed(&mut self, p: combat::Projectile) {
+        self.add_ammo_to_slot(p, false);
+    }
+
+    fn add_ammo_to_slot(&mut self, mut p: combat::Projectile, aimed: bool) {
         let live: Vec<u32> = self.combat.projectiles.iter().map(|q| q.slot).collect();
         let slot = lowest_free_slot(&live);
         p.slot = slot;
+        let k = slot as usize;
+        if aimed {
+            let held = &mut self.combat.ammo_accuracy;
+            if held.len() <= k {
+                held.resize(k + 1, 0);
+            }
+            held[k] = p.accuracy as i16;
+        } else {
+            p.accuracy = i32::from(self.combat.ammo_accuracy.get(k).copied().unwrap_or(0));
+        }
         p.graphic.graph_index = self.combat.next_ammo_graph_index;
         self.combat.next_ammo_graph_index = self.combat.next_ammo_graph_index.wrapping_add(1);
         let x = Single::from_i32(p.landing.x - p.launch.x);
@@ -987,7 +1011,7 @@ impl Sim {
                 t => t,
             };
             let _ = (angle, frame);
-            self.add_ammo(combat::Projectile {
+            self.add_ammo_unaimed(combat::Projectile {
                 left: None,
                 shooter,
                 owner: self.owner_of(shooter),
@@ -996,9 +1020,8 @@ impl Sim {
                 landing,
                 cur_time: 0,
                 total_time,
-                // SEAM: the arm writes no `accuracy` (`+0x6`), so the
-                // recycled slot keeps its last round's; only a unit
-                // target's hit test reads it, and a building is struck.
+                // The arm writes no `accuracy` (`+0x6`): the slot's last
+                // round's stands ([`Sim::add_ammo_unaimed`], item 4497).
                 accuracy: 0,
                 angle: crate::movement::find_angle(landing.x - launch.x, landing.y - launch.y),
                 splash_area: p.splash_area,

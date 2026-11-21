@@ -262,7 +262,7 @@ fn maya_information_pair_run1411b_s_closing_frame_is_widened_whole() {
     // Bomber's bays (255): 90 → **8** (`docs/AI.md` §372.4).
     // Item 3802: 8 → **4**, a missile leading along its figure's
     // angle and re-planned every fourth frame (`docs/GOLDEN.md` §152.2).
-    pin_eq!(w.rounds.len(), 4, "the rounds that part");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3726): run1411's closing block 3331,

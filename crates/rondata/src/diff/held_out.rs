@@ -1179,6 +1179,23 @@ mod tests {
         assert_eq!(theirs, 16i32.to_le_bytes(), "theirs' control_verts.size");
     }
 
+    /// **Row 100's Strategic Bomber drops its slot's last accuracy** (item
+    /// 4497, `docs/CHECKSUM.md` §18.1): on tick 3311 the Strategic Bomber
+    /// `1/83` (TI 305, air) drops two bombs on `0/2000`. `Ammo::init`'s
+    /// bomb arm writes no `accuracy` (`+0x6`), and `Objects::add_ammo`
+    /// keeps one `Ammo` per pool slot whose `close` clears only `flags`,
+    /// so the round in slot 2 carries the 260 its slot's last round left.
+    /// Every ammo range on 3312: red at range 53, record 2, ours `00 00`
+    /// and theirs `04 01` at bytes 1 and 2 of the body, with a bomb's
+    /// accuracy 0.
+    #[test]
+    fn row_100_s_strategic_bomber_drops_its_slot_s_last_accuracy_on_run1721_s_ranges() {
+        let Some(theirs) = line_ranges_agree(5, "run1721", 3312, 3, 53) else {
+            return;
+        };
+        assert_eq!(theirs[1..3], 260i16.to_le_bytes(), "theirs' accuracy");
+    }
+
     /// The same for line `line` (0 units, 3 ammo, 4 deaths, 6 guys).
     fn line_ranges_agree(
         k: usize,
@@ -2084,12 +2101,18 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // degree 2, depth 15, ratio 4.0, three control points in 16, six
         // knots `0 0 0 1 1 1` in 16, thirteen points and normals in 128 --
         // the sizes of the nuke's `Spline` of 2617, popped again.
+        // Moved by item 4497 (a bomb's round carries its pool slot's last
+        // `accuracy`): ammo 3,312 -> 3,331, whole; the row is whole. On
+        // 3312, run1721's ammo range 53, record 2: the Strategic Bomber
+        // 1/83 (TI 305, air)'s bomb on 0/2000 dropped on 3311 into slot 2,
+        // `accuracy` ours 0 (`00 00`), theirs 260 (`04 01`), what the
+        // slot's last round left; on 3313 record 1's, ours 0, theirs 300.
         moved: Some(Score {
             states: 3331,
             agreed: [
-                3331, 3331, 3331, 3312, 3331, 3331, 3331, 3331, 3331, 3331, 3331, 3331,
+                3331, 3331, 3331, 3331, 3331, 3331, 3331, 3331, 3331, 3331, 3331, 3331,
             ],
-            first: &[("ammo", (3312, Some(2769606056), 2835076525))],
+            first: &[],
             over: None,
         }),
     }),
@@ -2177,8 +2200,10 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
 /// (`build_masks & 0x2000` on its site 1/2036). Item 4467: 4 -> 5, row 140
 /// whole (a boarder's `last_z` on 4026). Item 4480: 5 -> 6, row 60 whole
 /// (a `DETECT` building's `seen3`, the Observation Post `1/59` on 3984).
+/// Item 4497: 6 -> 7, row 100 whole (a bomb's round carries its pool
+/// slot's last `accuracy`, the Strategic Bomber `1/83` on 3312).
 #[cfg(test)]
-pub(crate) const HELD_OUT_LINE: (usize, usize) = (6, 8);
+pub(crate) const HELD_OUT_LINE: (usize, usize) = (7, 8);
 
 /// **The second battery's scores**, `HELD_OUT_SECOND[k]` played as
 /// `run1730 + k` (item 4462): `None` until the original has played it. The
@@ -2243,15 +2268,18 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4495 (`calc_from_dir`'s spline walked, its sizes
         // the recycled `Spline`'s): ammo 5,907 -> 5,924, first 5135 ->
         // 5148, ours refused there. No ranges take of this row.
+        // Moved by item 4497 (a bomb's round carries its pool slot's last
+        // `accuracy`): ammo 5,924 -> 5,962, first 5148 -> 5178, ours
+        // refused there. No ranges take of this row.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3914, 537, 6001, 5924, 6001, 6001, 5997, 3976, 6001, 6001, 6001, 5995,
+                3914, 537, 6001, 5962, 6001, 6001, 5997, 3976, 6001, 6001, 6001, 5995,
             ],
             first: &[
                 ("units", (1747, Some(2268899682), 1685366186)),
                 ("builds", (537, Some(1374294361), 1810502041)),
-                ("ammo", (5148, Some(2171392214), 4193505523)),
+                ("ammo", (5178, None, 1427640977)),
                 ("guys", (4880, Some(3110518234), 2759048231)),
                 ("leaders", (1576, Some(2345254394), 1305656828)),
                 ("world", (2365, Some(1596373308), 975353592)),
@@ -2496,15 +2524,18 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4495 (`calc_from_dir`'s spline walked, its sizes
         // the recycled `Spline`'s): ammo 4,511 -> 4,647, first on 2367. No
         // ranges are on disk for run1736.
+        // Moved by item 4497 (a bomb's round carries its pool slot's last
+        // `accuracy`): ammo 4,647 -> 4,731, whole. No ranges are on disk
+        // for run1736: on 2367 ours' ammo sum was 1123882197 and is now
+        // theirs' 1189418202.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                3034, 553, 4731, 4647, 4731, 4731, 4731, 1976, 4731, 4731, 4731, 4731,
+                3034, 553, 4731, 4731, 4731, 4731, 4731, 1976, 4731, 4731, 4731, 4731,
             ],
             first: &[
                 ("units", (2354, Some(1655861561), 1211002097)),
                 ("builds", (553, Some(2297078769), 1047897137)),
-                ("ammo", (2367, Some(1123882197), 1189418202)),
                 ("leaders", (1376, Some(73709351), 1700509480)),
             ],
             over: None,

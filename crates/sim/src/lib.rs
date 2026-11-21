@@ -294,6 +294,7 @@ impl Sim {
                 table: combat::Table::uniform(0),
                 projectiles: Vec::new(),
                 spline_pool: Vec::new(),
+                ammo_accuracy: Vec::new(),
                 next_ammo_graph_index: 0,
                 nukes: crate::combat::nuke::Nukes::default(),
                 deaths: Vec::new(),
