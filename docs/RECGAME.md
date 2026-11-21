@@ -1222,14 +1222,9 @@ did not move.
 **Row 10's leaders are whole** (item 4516, 5,801 → 6,001): a casting
 citizen is an `xport` peasant, `docs/AI.md` §58.7.
 
-**Row 10's units and guys are whole** (item 4522, 5,979 → 6,001 and
-5,997 → 6,001): on 4880 who=1's Attack Helicopter `1/140` (TI 311) is set
-apart from its pair, and `Unit::set_new_location(·, ·, 1, 1)` snaps its
-figure's `last_angle` to the heading and leaves `dest_angle`; ours wrote
-`dest_angle` (units range 7447, ours 555024384, theirs −1956511744) and
-left `last_angle` mid-turn (guys range 1030, ours 610064529, theirs
-555024384); `docs/PRODUCTION.md`, "The push's angle". The row parts on
-ammo alone now, 5178, where ours emits no line and theirs holds 3 ranges.
+**Row 10's units and guys are whole** (item 4522): two Attack
+Helicopters set apart keep `dest_angle`, `docs/PRODUCTION.md`, "The
+push's angle". Ammo 5178 is the row's last parting.
 
 **Row 130's computer bomber searches round itself** (item 4508; units
 4,459 → 4,574 merged with 4514, first 3411 → 3515): run1754, units range 4078 on 3411,
