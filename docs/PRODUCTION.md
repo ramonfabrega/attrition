@@ -1677,6 +1677,15 @@ tail, and `Sim::helicopter_climb` in `set_new_location`'s guy half and
 `process_movement`. Five tests in `airbase::tests`, three on run371's
 own numbers.
 
+**The push's angle** (item 4522, diff-backed by run1739's 4880): the
+`param_4` arm is `Guy::set_angle(guy 0, +0x50, 1)` (`005f8d20:156`),
+which writes the figure's `angle` and `last_angle` to the heading and
+never the unit's `dest_angle` (`+0x58`). This crate snapped through
+`Movement::set_facing`, which wrote `dest_angle` and left `last_angle`
+mid-turn; `spread_to` is `set_new_location_turning` now. Row 10's
+Attack Helicopter `1/140`: `dest_angle` −1956511744 kept, `last_angle`
+555024384, the heading.
+
 **Not established**: `find_unit`'s by-cell walk for a ring past one
 (the separation's `0x180` is ring 1, and only two Helicopters are on any
 capture); the separation between a Helicopter and one of an *upgraded*

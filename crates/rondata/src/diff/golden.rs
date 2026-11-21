@@ -8407,7 +8407,7 @@ const WANT_CH36: &[&str] = &[
     "1080 0/8 ammo[4].whom",
     "1080 0/8 ammo[7].ox",
     "1080 0/8 ammo[7].whom",
-    "2675 0/12 dest_angle",
+    // Item 4522: `2675 0/12 dest_angle` left — the Helicopters set apart keep `dest_angle` (`docs/PRODUCTION.md`, "The push's angle"; parked 1484).
     // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 6125 theirs 6085. Item 4159's
     // residue: agrees (the score's units and combat parts, §18.5).
 ];
@@ -8550,7 +8550,7 @@ const WANT_CH35: &[&str] = &[
     "1080 0/8 ammo[4].whom",
     "1080 0/8 ammo[7].ox",
     "1080 0/8 ammo[7].whom",
-    "2675 0/12 dest_angle",
+    // Item 4522: `2675 0/12 dest_angle` left — the Helicopters set apart keep `dest_angle` (`docs/PRODUCTION.md`, "The push's angle"; parked 1484).
     // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 5925 theirs 5885. Item 4159's
     // residue: agrees (the score's units and combat parts, §18.5).
 ];

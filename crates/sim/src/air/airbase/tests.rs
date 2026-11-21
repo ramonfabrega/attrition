@@ -756,6 +756,44 @@ fn two_helicopters_are_set_48_apart_by_the_one_working() {
     }
 }
 
+/// **The pair set apart keep their `dest_angle` and take the heading
+/// into `last_angle`** (item 4522, `docs/RECGAME.md` §11): the separation
+/// moves each through `Unit::set_new_location(x, y, 1, 1)`, whose guy half
+/// is `Guy::set_angle(guy 0, +0x50, 1)` (`005f8d20:156`), which writes the
+/// figure's `angle` and `last_angle` (`005d9010:13`–`16`) and never the
+/// unit's `dest_angle` (`+0x58`). run1739's Attack Helicopter `1/140` on
+/// 4880: heading 555024384 over a figure mid-turn at 610064529, and
+/// `dest_angle` −1956511744 on both sides of the frame. Made to fail
+/// against the snap through `Movement::set_facing`.
+#[test]
+fn a_helicopter_set_apart_keeps_its_dest_angle_and_snaps_last_angle() {
+    let (mut s, b, _) = hangar([0, 0, 0, 0]);
+    let near = heli_at(&mut s, b, Pos::new(8355, 14690));
+    let me = heli_at(&mut s, b, Pos::new(8296, 14639));
+    let (heading, facing, dest) = (
+        crate::movement::Angle(555_024_384),
+        crate::movement::Angle(610_064_529),
+        crate::movement::Angle(-1_956_511_744),
+    );
+    for u in [me, near] {
+        let m = &mut s.units[u].movement;
+        m.heading = heading;
+        m.facing = facing;
+        m.frame_facing = facing;
+        m.des_angle = dest;
+        let at = s.units[u].pos;
+        s.units[u].guys[0].last = Some((at, facing));
+    }
+    s.helicopter_spread(me);
+    assert_eq!(s.units[me].pos, Pos::new(8278, 14624), "set apart");
+    for u in [me, near] {
+        let un = &s.units[u];
+        assert_eq!(un.movement.des_angle, dest, "dest_angle stands");
+        assert_eq!(un.movement.facing, heading, "angle");
+        assert_eq!(un.guys[0].last.map(|l| l.1), Some(heading), "last_angle");
+    }
+}
+
 /// **The tile planner leaves a Helicopter's goal as it is** (item 1048,
 /// `PathFinder::find_tpath@006897d0`'s `68990d`): a goal two cells off
 /// comes back alone, tolerance 0. `find_wpath` answers first on every

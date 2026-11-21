@@ -725,13 +725,12 @@ impl Sim {
         af.z += (ground - af.z + 1000).clamp(-30, 30);
     }
 
-    /// `set_new_location(·, ·, 1, 1)`: guy 0 onto the unit's own facing,
-    /// then the teleport ([`Sim::set_new_location`]'s `move_guys`).
+    /// `set_new_location(·, ·, 1, 1)` ([`Sim::set_new_location_turning`]): guy 0
+    /// snapped to the heading, `last_angle` too, `dest_angle` left (item 4522,
+    /// `docs/PRODUCTION.md`, "The push's angle").
     fn spread_to(&mut self, u: usize, to: Pos) {
         let from = self.units[u].pos;
-        let heading = self.units[u].movement.heading;
-        self.units[u].movement.set_facing(heading);
-        self.set_new_location(u, to, true);
+        self.set_new_location_turning(u, to, true);
         self.moved_to(u, from, false);
     }
 
