@@ -1832,9 +1832,10 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
 /// **Parity held out, N of 8** (DECISIONS 144 §2): the games whole on every
 /// line and state, and the games taken. Item 4455: 3 -> 4, row 80 whole
 /// (`build_masks & 0x2000` on its site 1/2036). Item 4467: 4 -> 5, row 140
-/// whole (a boarder's `last_z` on 4026).
+/// whole (a boarder's `last_z` on 4026). Item 4480: 5 -> 6, row 60 whole
+/// (a `DETECT` building's `seen3`, the Observation Post `1/59` on 3984).
 #[cfg(test)]
-pub(crate) const HELD_OUT_LINE: (usize, usize) = (5, 8);
+pub(crate) const HELD_OUT_LINE: (usize, usize) = (6, 8);
 
 /// **The second battery's scores**, `HELD_OUT_SECOND[k]` played as
 /// `run1730 + k` (item 4462): `None` until the original has played it. The
@@ -2136,9 +2137,10 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
 /// **Parity held out, second, N of 8** (item 4462): the second battery's
 /// games whole on every line and state, and the games taken. As found,
 /// 2026-11-20: 1 of 8, row 150 (run1737). Item 4473: 1 -> 2, row 50
-/// (run1732) whole with its groups line.
+/// (run1732) whole with its groups line. Item 4480: 2 -> 3, row 70
+/// (run1733) whole with its world line (a `DETECT` building's `seen3`).
 #[cfg(test)]
-pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (2, 8);
+pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (3, 8);
 
 /// One battery: its declared table, its pins, where its files and takes
 /// sit, and its line in the handoff.
