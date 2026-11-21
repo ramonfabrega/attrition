@@ -33,8 +33,8 @@ Blind: never 336 · residue 336 · open 0
 Rubric: ported 738 · replaced by design 331 · open 571 of 3611 · lockstep bytes 78.1 % · ages held 8 of 8 · unit types seen 296 of 302
 Held-out: 8 of 9 whole · shortest 6147
 Parity: 6 of 7 whole · the sample parts first on builds 4026 of 21044
-Parity held out: 6 of 8 whole · 8 taken · lines 64 of 96 as found, 91 now · first partings 2990 3694 711 969 0 134 2694 0 as found, whole whole 2487 whole whole 2756 whole whole now · reach 27 % of states as found, 92 % now
-Parity held out, second: 3 of 8 whole · 8 taken · lines 65 of 96 as found, 71 now · first partings 537 1662 3352 5054 4021 1608 553 whole as found, 537 1662 whole whole 4021 2184 553 whole now · reach 53 % of states as found, 57 % now
+Parity held out: 6 of 8 whole · 8 taken · lines 64 of 96 as found, 92 now · first partings 2990 3694 711 969 0 134 2694 0 as found, whole whole 2487 whole whole 2756 whole whole now · reach 27 % of states as found, 92 % now
+Parity held out, second: 4 of 8 whole · 8 taken · lines 65 of 96 as found, 76 now · first partings 537 1662 3352 5054 4021 1608 553 whole as found, 537 1662 whole whole whole 2184 553 whole now · reach 53 % of states as found, 61 % now
 Structure: flat 11 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 21 · largest 3710
 Renderer: K 59 of M 60 · frames 35 of 35 · pieces 1465 of 1478 · resolved 1,237,711 of 1,237,726 objects over 110 lobbies
 Clock: ceilings on GreatLakes lobby, 600 frames off-screen from frame 0 · frame zero 1.5 s · p99 20 ms · slowest 400 ms (frame 1, first sight) · peak 320 MiB
@@ -52,18 +52,12 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3): the pass designed four seats, all cut by `commander` (Opus 5.5) at 94 % of the week: the chain's 4478 (row 100, from deaths 2756; 4480 landed, rows 60 and 70 whole), a parity seat's 4470 (second, row 90's take), a parity seat's 4489 (the sample, builds 4026; 4479 and 4488 landed), the eye's 4490 (the tanks' move dust; 4482 minted the row). 4470 takes the game lane first; every later take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4483 (second, rows 10 and 130), 4484 (row 40's take), 4485 (second, row 110), 4481 (the packets' groups line). 4487 (the third battery) is seated when `Parity held out, second:` reads 4 of 8.
-
-4470. **Parity held out, second: row 90** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §11). 4462 pinned the second
-battery as found: 1 of 8 whole (row 150), 65 of 96 lines. Row 90 (East Indies, Ancient, difficulty 0) is one state from whole on
-units and on guys, both on 4021. First act: `df -g ~` (stop under 60), then a ranges take of run1734's file to 6000 as run1738
-(4435's recipe), then `score_recording` names the leaf. Reading it spends the second battery as an estimate (147 §2). Re-pin
-`SCORES_SECOND[4].moved`, never `found`. It stops when two landings running move no column.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3): the pass designed four seats, all cut by `commander` (Opus 5.5) at 94 % of the week: the chain's 4478 (row 100, from deaths 2756; 4480 landed, rows 60 and 70 whole), a parity seat's 4487 (the third battery, seated at the second's 4 of 8; 4470 landed, row 90 whole), a parity seat's 4489 (the sample, builds 4026; 4479 and 4488 landed), the eye's 4490 (the tanks' move dust; 4482 minted the row). 4487 holds the game lane for its eight recordings; every other take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4483 (second, rows 10 and 130), 4484 (row 40's take), 4485 (second, row 110), 4481 (the packets' groups line).
 
 4489. **The 2017 sample, from builds 4026** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §7). 4488 let a packed Merchant
 die through `Unit::close`'s death draw and leave its `DEATH_OBJS` records (computer 1's 1/18, TI 61, killed walking on 3931;
 `local_1c` needs `unit_masks & 0x80000` clear and `!is_packing`): draws 3931 → 4182, and every line's first parting is 4026 or
-later (units, guys, leaders and world 4183; groups 4188; ammo 4192; cities 4326; goods 4436; deaths 4657; items 5434). run1724's
+later (units, guys, leaders and world 4183; groups 4188; ammo 4192; cities 4326; goods 4436; deaths 4657; the items line on 5434). run1724's
 ranges are whole to 4130 but builds: on 4026, `2810 2005 queue[k] job_counter` ours 100, theirs 0. First act: build 2810's queue on
 4025 and 4026, from the ranges on disk. Run 1726 stays reserved. Re-pin `SAMPLE_LINES`; the driver writes `Parity:`. It stops when
 two landings running move no line's first parting (145 §4).
@@ -90,7 +84,7 @@ run1730's file as run1739, then `score_recording` names the builds and world lea
 fix. Re-pin `SCORES_SECOND[0].moved` and `[6].moved`, never `found`. It stops when two landings running move no column.
 
 4484. **Parity held out: row 40's ranges, then its leaf** (a rules item, whole; unseated; `docs/RECGAME.md` §10.3). Row 40 (East
-Indies, Medieval) parts units on 2487 and guys on 3190 of 4,974 states, world whole since 4480, and it is the one row of the first eight
+Indies, Medieval) parts units on 2487 of 4,974 states, guys and world whole since 4470 and 4480, and it is the one row of the first eight
 with no ranges take. First act: `df -g ~` (stop under 60), then one take of its file under `RON_RANGES` as run1723 (4435's recipe),
 then `score_recording` names the leaf of units 2487. Re-pin `SCORES[2].moved`. It stops when two landings running move no column.
 
@@ -108,8 +102,8 @@ rows (run1469 record 65 `form` 0|−1; run1472 `order_num` 5|3), read on the mer
 two calls, the same gap, no packet parting yet). Re-pin through `tools/repin_packets.py`. It stops when two landings running turn
 no line (145 §4).
 
-4487. **Parity held out, third: rows 5, 25, 45, 65, 85, 105, 125 and 145** (a rules item, whole; seated when the second reads 4 of
-8; `docs/RECGAME.md` §11; DECISIONS 147 §2). The second battery is spent the day a lane reads a parting off it, and the estimate is
+4487. **Parity held out, third: rows 5, 25, 45, 65, 85, 105, 125 and 145** (a rules item, whole; a parity seat's, seated at the second's 4
+of 8; `docs/RECGAME.md` §11; DECISIONS 147 §2; runs 1743 to 1750). The second battery is spent the day a lane reads a parting off it, and the estimate is
 a found column no lane has read. First act: the declaration (`HELD_OUT_THIRD`, the table and its digests) as one commit before any
 recording, as 4413's and 4462's were; then eight files recorded idle by the client's page to 6000 and played under the checksum
 hook, the scores pinned once, and a third parsed line with its reach.

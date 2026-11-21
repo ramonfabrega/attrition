@@ -826,6 +826,77 @@ mod tests {
         }
     }
 
+    /// **Row 90's barge turns to its caster's angle with the snap**
+    /// (item 4470, `docs/RECGAME.md` §11): run1738, the ranges take of
+    /// run1734's file. On 4021 the computer's transport barge (type 320,
+    /// record 14) is born from a land unit by `SpellType::cast_transport`,
+    /// which turns it with `Unit::set_angle(boat, caster +0x50, _, 1)`
+    /// (`00670db0`, the listing's `671027`–`67104f`); the snap reaches
+    /// `Guy::set_angle@005d9010(guy 0, a, 1)`, which writes `angle` and
+    /// `last_angle` (`+0x18`, `+0x1c`) both. This crate's view wrote the
+    /// movement's facing and left guy 0's `last` angle at
+    /// [`sim::movement::Angle::INITIAL`]. Every units and guys range on
+    /// 4021, ours against theirs, byte for byte: red on the tree before the
+    /// fix at units range 498 and guys range 150, record 14's figure,
+    /// `last_angle` ours 1431655765, theirs −609026048.
+    #[test]
+    fn row_90_s_barge_turns_with_the_snap_on_run1738_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 4) else {
+            eprintln!("skipping: row 90's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1738/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1738's ranges record is missing");
+            return;
+        };
+        const STATE: i64 = 4021;
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 90's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        while built.sim.frame < STATE {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let set = record
+            .first_of(STATE - 1)
+            .expect("state 4021's set")
+            .clone();
+        let all = record.ranges(&set).expect("the set's ranges");
+        for (line, ours) in [
+            (0u8, built.sim.checksum_units()),
+            (6u8, built.sim.checksum_guys()),
+        ] {
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == line).collect();
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "line {line}'s ranges on 4021"
+            );
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "line {line} range {k} on 4021, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+        // The barge's figure, by name: type 320, `last_angle` (`+0x1c`,
+        // byte 20 of `GuyData::walk_data`'s range) `0xdbb30000`, its
+        // `angle` (byte 16).
+        let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+        assert_eq!(&theirs[498].bytes[0..4], &320i32.to_le_bytes());
+        assert_eq!(&theirs[498].bytes[16..20], &theirs[498].bytes[20..24]);
+        assert_eq!(&theirs[498].bytes[20..24], &(-609_026_048i32).to_le_bytes());
+    }
+
     /// **Row 120's MLRS reads `cavarch_o` −2 in the units line** (item
     /// 4443, `docs/RECGAME.md` §10.3): on 5864 the computer's fire-on-the-move
     /// MLRS `1/35` (type 273) steps an `ExploreTo` with an empty search after
@@ -1519,15 +1590,16 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // whole disc, `Object::init`'s `has_objmask(0x2000000)` taken for a
         // building too): world 4,859 -> 4,974, whole (no ranges
         // take of this row; measured, not read).
+        // Moved by item 4470 (`cast_transport` turns the boat with
+        // `Unit::set_angle(…, 1)` whole, so its figure's `last_angle` is the
+        // caster's): guys
+        // 4,965 -> 4,974, whole. No ranges take of this row.
         moved: Some(Score {
             states: 4974,
             agreed: [
-                2487, 4974, 4974, 4974, 4974, 4974, 4965, 4974, 4974, 4974, 4974, 4974,
+                2487, 4974, 4974, 4974, 4974, 4974, 4974, 4974, 4974, 4974, 4974, 4974,
             ],
-            first: &[
-                ("units", (2487, Some(3429527498), 3877923716)),
-                ("guys", (3190, Some(2877806205), 2189546945)),
-            ],
+            first: &[("units", (2487, Some(3429527498), 3877923716))],
             over: None,
         }),
     }),
@@ -1886,17 +1958,22 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // groups 3,066 -> 6,001, whole; units 2,712 -> 3,783, first on 1747.
         // Moved by item 4480 (a `DETECT` building lights `seen3`): world
         // 537 -> 5,995, its first parting 537 -> 2365.
+        // Moved by item 4470 (`cast_transport` turns the boat with
+        // `Unit::set_angle(…, 1)` whole, so its figure's `last_angle` is the
+        // caster's): units
+        // 3,783 -> 3,785, first on 1747; guys 5,990 -> 5,997, first
+        // 2449 -> 4880. No ranges take of this row.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3783, 537, 6001, 5907, 5350, 6001, 5990, 3976, 6001, 6001, 6001, 5995,
+                3785, 537, 6001, 5907, 5350, 6001, 5997, 3976, 6001, 6001, 6001, 5995,
             ],
             first: &[
                 ("units", (1747, Some(2268899682), 1685366186)),
                 ("builds", (537, Some(1374294361), 1810502041)),
                 ("ammo", (5135, None, 990220286)),
                 ("deaths", (4686, Some(4192616794), 999637338)),
-                ("guys", (2449, Some(2995814966), 2693759490)),
+                ("guys", (4880, Some(3110518234), 2759048231)),
                 ("leaders", (1576, Some(2345254394), 1305656828)),
                 ("world", (2365, Some(1596373308), 975353592)),
             ],
@@ -1928,14 +2005,17 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4460 (a trackless crew figure's `des` is guy 0's body
         // point, `Guy::set_new_location`'s crew loop): guys
         // 4,525 -> 4,542, first on 2334.
+        // Moved by item 4470 (`cast_transport` turns the boat with
+        // `Unit::set_angle(…, 1)` whole, so its figure's `last_angle` is the
+        // caster's): guys
+        // 4,542 -> 4,548, whole; units stands on 2334, its sum there moved.
         moved: Some(Score {
             states: 4548,
             agreed: [
-                2334, 4548, 4548, 4548, 4548, 4548, 4542, 3748, 4548, 4548, 4548, 4423,
+                2334, 4548, 4548, 4548, 4548, 4548, 4548, 3748, 4548, 4548, 4548, 4423,
             ],
             first: &[
-                ("units", (2334, Some(2937566862), 994488935)),
-                ("guys", (2334, Some(4256556349), 3856065750)),
+                ("units", (2334, Some(3116348967), 994488935)),
                 ("leaders", (1776, Some(740584264), 2366335817)),
                 ("world", (1662, Some(3453374911), 2282901965)),
             ],
@@ -2006,7 +2086,21 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4470 (`cast_transport` turns the boat with
+        // `Unit::set_angle(…, 1)` whole, so its figure's `last_angle` is the
+        // caster's): units
+        // 6,000 -> 6,001 and guys 6,000 -> 6,001; the row is whole. run1738,
+        // the ranges take of this file, on 4021: units range 498 and guys
+        // range 150, the barge's figure (record 14, type 320), `last_angle`
+        // ours 1431655765 (`Angle::INITIAL`), theirs -609026048.
+        moved: Some(Score {
+            states: 6001,
+            agreed: [
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[],
+            over: None,
+        }),
     }),
     // run1735
     // row 110, as found 2026-11-20: 5 lines whole; units 2,702 of 6,001, first 2184; builds
@@ -2042,16 +2136,19 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // groups 3,553 -> 6,001, whole.
         // Moved by item 4480 (a `DETECT` building lights `seen3`): world
         // 3,999 -> 5,379, its first parting on 3809.
+        // Moved by item 4470 (`cast_transport` turns the boat with
+        // `Unit::set_angle(…, 1)` whole, so its figure's `last_angle` is the
+        // caster's): units
+        // 2,702 -> 2,703, first on 2184; guys 6,000 -> 6,001, whole.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                2702, 4221, 6001, 4472, 6001, 6001, 6000, 4995, 6001, 6001, 6001, 5379,
+                2703, 4221, 6001, 4472, 6001, 6001, 6001, 4995, 6001, 6001, 6001, 5379,
             ],
             first: &[
                 ("units", (2184, Some(1779962534), 330632884)),
                 ("builds", (4221, Some(3943548441), 1202439769)),
                 ("ammo", (3303, None, 3094479036)),
-                ("guys", (2464, Some(451796102), 1018289160)),
                 ("leaders", (3176, Some(2352774769), 1606385266)),
                 ("world", (3809, Some(2182316411), 2894561759)),
             ],
@@ -2102,17 +2199,20 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // 1735 -> 1742; guys 4,695 -> 4,719, first 1736 -> 2066.
         // Moved by item 4480 (a `DETECT` building lights `seen3`): world
         // 553 -> 4,731, whole.
+        // Moved by item 4470 (`cast_transport` turns the boat with
+        // `Unit::set_angle(…, 1)` whole, so its figure's `last_angle` is the
+        // caster's): guys
+        // 4,719 -> 4,731, whole. No ranges take of this row.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                2100, 553, 4731, 4511, 4084, 4731, 4719, 1976, 4731, 4731, 4731, 4731,
+                2100, 553, 4731, 4511, 4084, 4731, 4731, 1976, 4731, 4731, 4731, 4731,
             ],
             first: &[
                 ("units", (1742, Some(1100206902), 2410470946)),
                 ("builds", (553, Some(2297078769), 1047897137)),
                 ("ammo", (2367, Some(1123882197), 1189418202)),
                 ("deaths", (1746, Some(1419733817), 1134652217)),
-                ("guys", (2066, Some(2267796042), 1696846499)),
                 ("leaders", (1376, Some(73709351), 1700509480)),
             ],
             over: None,
@@ -2139,8 +2239,10 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
 /// 2026-11-20: 1 of 8, row 150 (run1737). Item 4473: 1 -> 2, row 50
 /// (run1732) whole with its groups line. Item 4480: 2 -> 3, row 70
 /// (run1733) whole with its world line (a `DETECT` building's `seen3`).
+/// Item 4470: 3 -> 4, row 90 (run1734) whole with its units and guys
+/// lines.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (3, 8);
+pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (4, 8);
 
 /// One battery: its declared table, its pins, where its files and takes
 /// sit, and its line in the handoff.

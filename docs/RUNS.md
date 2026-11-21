@@ -39869,3 +39869,36 @@ Files in place, `~/ron-golden/run1737/map-7/`: `gamelog_p.txt`, 2,444 bytes, SHA
 `eb1d7a5f95717250b86dfb8ac397dfab72c65ad87f1f2bf645ff8c3b098d2659`.
 
 **What it holds**: `diff::held_out::the_second_held_out_games_score_as_pinned` (`SCORES_SECOND[7]`).
+
+## run1738 — parity held out, second battery, row 90's file to 6000 with the checksum and ranges hooks, all twelve lines kept (2026-11-20, item 4470, `att-4470`)
+
+`docs/RECGAME.md` §11; DECISIONS 145 §2. **What the disk could not answer**: run1734 holds sums only, so
+units' and guys' one parting on row 90 (state 4021) named no leaf. Theirs' ranges never change, so this game is taken
+once. The take is run1716's line with the run directory and the recording changed: `TMPDIR=<fresh> zsh
+tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1738 --recording
+~/ron-golden/recordings/item4462-row090-6000.rcx --end-frame 6000 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def
+RNG_MASK=0xfffu`, waited on with `waitrun.sh` in the background. `df -g ~` read 94 GB free before it and 84 after.
+- **The run**: pool lane 1, launched 22:17:38 −05:00, exited 22:25:07: **449.4 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 12345 observed, map 18. Players:
+  tribe 4 (flags 7) and tribe 11 (flags 1). Five settings restored. DLL `08d9132e…`, defines `-DRON_AUTOSTART
+  -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0xfffu`. The recording's SHA-256 is run1734's. The lane read
+  `free` before the launch and after the exit.
+- **The record**, `~/ron-golden/run1738/map-18/rontrace.ranges`, 4,233,732,908 bytes, SHA-256
+  `543ab377062bff96141a151dade8bc21e100462a510ba1ff904c66f6d77e057b`: 6,001 sets on trace frames −1 to 5999,
+  84,497,110 ranges, 2,881,193,291 bytes, none over (`ranges.py summary`).
+- **Scored** (`score_recording … ~/ron-golden/run1738/map-18`, on `ee34bf35f`): the sums are run1734's, ten lines
+  whole; units and guys 6,000, first 4021: **units range 498 and guys range 150, record 14, `guy`, byte 20:
+  `last_angle` ours 1431655765 (`Angle::INITIAL`), theirs −609026048**. The figure is type 320, the computer's
+  transport barge at (34104, 32184), born on that tick; its `angle` agrees (0xdbb30000) and theirs' `last_angle`
+  equals it. Units agrees again on 4022.
+- **Re-scored by item 4470** (`cast_transport` turns the boat with `Unit::set_angle(…, 1)` whole): all twelve lines
+  6,001 of 6,001; the row is whole.
+- Filed **in place**, as run1716 is: a held-out take stays out of the corpora.
+
+Files in place, `~/ron-golden/run1738/map-18/`: `gamelog_p.txt`, 2,452 bytes, SHA-256
+`677b7c7def5239ad8950d52ed1cf881811190564feb51726d240cdf4ebc4cce7`; `rontrace.log`, 30,552,832 bytes, SHA-256
+`07f18efd02081dea2b20a9490777d5f9923f7ecc8fdda7111ab0d4ca0f58aba1`.
+
+**What it holds**: `diff::held_out::tests::row_90_s_barge_turns_with_the_snap_on_run1738_s_ranges` (every units and
+guys range on 4021).
