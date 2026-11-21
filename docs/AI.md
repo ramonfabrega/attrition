@@ -15786,6 +15786,7 @@ is held. Each has a unit test that fails under it:
   `do_attack`'s, and no capture has a `v` captain cavarch-targeting a unit.
 - **Which mechanism moved who=1's Merchants and its siege lines in the gap
   17183..17237.**
+- **`cavarch_uid` in the golden comparator** (parked 4476a): the units line reads it, but `diff::unit` does not.
 
 ### 134.6 Coverage
 
