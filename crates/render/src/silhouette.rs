@@ -1462,11 +1462,18 @@ pub type TankHaze = ((u8, i16), (u32, u32), bool);
 /// 59)); 1/16 **1,134 of 2,900**, out ((80, 80, 44) against (139, 121,
 /// 61)); the control 1/15 **1,316 of 2,823**, in ((79, 79, 43) against (82,
 /// 90, 38)). **The luminance reads 1 of 4, the control.**
+/// **Item 4506 drew the dust from run1559b's packet** (`MOVE DUST`'s live
+/// particles, DECISIONS 148 §6): **1 → 4 of 4, the control still in**.
+/// 1/40 1,014 → 1,329 of 2,167, ours Y 70.6 → 111.1 against 110.3; 1/27
+/// 1,992 → 2,386 of 3,363, Y 71.7 → 113.6 against 116.0; 1/16 1,134 →
+/// 2,270 of 3,005, Y 76.3 → 115.5 against 119.2; the control 1/15 1,316
+/// → 1,318 of 2,826, Y 75.2 against 81.8 (its one particle is newborn,
+/// alpha 0). The dust off gives the minted row.
 pub const RUN1559B_3279_TANKS_HAZE: [TankHaze; 4] = [
-    ((1, 40), (1014, 2026), false),
-    ((1, 27), (1992, 3318), false),
-    ((1, 16), (1134, 2900), false),
-    ((1, 15), (1316, 2823), true),
+    ((1, 40), (1329, 2167), true),
+    ((1, 27), (2386, 3363), true),
+    ((1, 16), (2270, 3005), true),
+    ((1, 15), (1318, 2826), true),
 ];
 /// The minted row, the draw before (`World::team_trim` off).
 pub const RUN1559B_3279_BUILDINGS_TEAM_BEFORE: [((u8, i16), (u32, u32)); 2] =
