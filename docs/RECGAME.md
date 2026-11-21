@@ -1215,25 +1215,14 @@ since no take's value of it ever moves.
 **Row 10's world is whole** (item 4504, `SCORES_SECOND[0].moved`, world
 5,995 → 6,001). run1739's leaf on 2365: world range 6920, record 3039
 (cell (39, 50) of the 60-wide map), `block.present` ours 1, theirs 0.
-who=1's `1/43` (TI 104) stood at unit cell (632, 813) with its disc holed
-out by a neighbour and the cell's empty block freed by the sweep; on 2365
-it steps to (633, 814), both discs inside the one cell, and
-`CollCheck::move_unit@00682ad0`'s one-block form finds the block null and
-returns before either pass (`docs/COLLISION.md` §2.4). This crate ran the
-set pass and allocated the block. On 2366 theirs sets only the new disc's
-edge, (635, 814..815), round the old point (633, 814). Rows 30 and 110's
-world partings (1662, 3809) are not this: their sums did not move.
+who=1's `1/43` (TI 104) steps (632, 813) → (633, 814) inside a freed
+cell, and `CollCheck::move_unit@00682ad0`'s one-block form returns on the
+null block, where this crate allocated it (`docs/COLLISION.md` §2.4).
+Rows 30 and 110's world partings (1662, 3809) are not this: their sums
+did not move.
 
-**Row 10's leaders are whole** (item 4516, `SCORES_SECOND[0].moved`,
-leaders 5,801 → 6,001). run1739's leaf on 3976: leaders range 129,
-record 1, `xport_peasants` (byte 2488), ours 2, theirs 3, and no other
-leaf. who=1's Citizen `1/97` (TI 50) holds `[CAST_SPELL, MOVE_TO]` on
-3975, and the census's on-map arm for kinds 8 and 0xe counts it an
-`xport` peasant (`Leader::plan_strategy@006b9620`, `6bae19`;
-`docs/AI.md` §58.7). This crate's census returned on the kind. No other
-row of the three batteries moved. Row 10 now parts first on 4880, units
-and guys: units range 7447 and guys range 1030, record 140, `dest_angle`
-and `last_angle`.
+**Row 10's leaders are whole** (item 4516, 5,801 → 6,001): a casting
+citizen is an `xport` peasant, `docs/AI.md` §58.7.
 
 ### 11.1 Parity held out, third: rows 5 to 145 (item 4487)
 
