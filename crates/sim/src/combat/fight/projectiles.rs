@@ -131,13 +131,6 @@ impl Sim {
         if cycles {
             return;
         }
-        if std::env::var("RON_PROBE_4494").is_ok() && (4200..4240).contains(&frame) {
-            let bd = &self.buildings[b];
-            eprintln!(
-                "PROBE4494 f{frame} fire b={b} who={} o={} hits={} health={} target={target:?} tpos={:?} recharge={}",
-                bd.owner, bd.index, bd.hits, bd.health, self.pos_of(target), bd.recharging
-            );
-        }
         // Fire: `ammo_per_att` ammo at random points in the footprint.
         let centre = self.pos_of(me);
         let tp = self.profile(target);
