@@ -1027,6 +1027,54 @@ mod tests {
         );
     }
 
+    /// Probe, item 4520 (reverted whole): row 130's units ranges parted on
+    /// the states `RON_PROBE_4520=lo-hi` names, against run1754.
+    #[test]
+    fn probe_4520_row_130_units() {
+        let Ok(spec) = std::env::var("RON_PROBE_4520") else {
+            return;
+        };
+        let (lo, hi) = spec.split_once('-').unwrap();
+        let (lo, hi): (i64, i64) = (lo.parse().unwrap(), hi.parse().unwrap());
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 6) else {
+            panic!("row 130's recording");
+        };
+        let ranges = home.join("ron-golden/run1754/map-18/rontrace.ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 130's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+                crate::diff::harness::debug_watch(&built, built.sim.frame);
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_units();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            eprintln!("PROBE state {state}: ours {} ranges, theirs {}", ours.ranges.len(), theirs.len());
+            let mut n = 0;
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                if a.bytes != b.bytes {
+                    n += 1;
+                    if n <= 12 {
+                        let d: Vec<String> = a.bytes.iter().zip(&b.bytes).enumerate()
+                            .filter(|(_, (x, y))| x != y)
+                            .map(|(i, (x, y))| format!("{i}:{x:02x}/{y:02x}"))
+                            .collect();
+                        eprintln!("PROBE   range {k} record {} {} len {}/{} diffs {}", a.record, a.field, a.bytes.len(), b.bytes.len(), d.join(" "));
+                    }
+                }
+            }
+            eprintln!("PROBE   {n} parted");
+        }
+    }
+
     /// **Row 130's computer bomber searches round itself** (item 4508,
     /// `docs/RECGAME.md` §11): who=1's Strategic Bomber `1/158`, on its
     /// patrol to (6240, 7008) and some 10,100 units from it, runs its
