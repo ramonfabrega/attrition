@@ -60,6 +60,20 @@ impl Sim {
             self.buildings[b].visible = 0;
         }
         self.buildings[b].attacking = false;
+        // **No hits left, no shot** (item 4494, `docs/RECGAME.md` §7): past
+        // the countdown and the latch, `do_attack` computes `hits_left`
+        // inline for a `Build` (`622983`..`6229be`: vslot `+0x11c`(0) less
+        // `damage` at `+0x24`, clamped to `[0, max]`; any other kind calls
+        // vslot `+0x114`, `ObjectData::hits_left@006535c0`) and returns at
+        // zero (`6229be` → `622c2f`). Item 4454 let a building at health 0
+        // count its arrows down; this is where it stops. The sample's
+        // capital `1/2000` (computer 1's) stood at health 0 on 4223 and fired
+        // at an enemy unit here, its 16-frame cycle's next shot after
+        // 4207; theirs spent no `Object::fire_ammo` draw that frame and took
+        // the city on 4228.
+        if self.hits_left(me) == 0 {
+            return;
+        }
         let bd = &self.buildings[b];
         let p = self.profile(me);
         // The garrison's arrows: the input the earlier mechanic took, plus
