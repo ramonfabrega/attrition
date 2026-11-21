@@ -1162,7 +1162,24 @@ mod tests {
         line_ranges_agree(k, run, state, 0, range)
     }
 
-    /// The same for line `line` (0 units, 4 deaths, 6 guys).
+    /// **Row 100's Jet Fighter fires a missile off the recycler** (item
+    /// 4495, `docs/CHECKSUM.md` §18.1): on tick 3209 the strafing Jet
+    /// Fighter `1/91` (TI 295) fires a guided round on `0/2000`, and
+    /// `Ammo::init` lays `calc_from_dir`'s spline into the `Spline`
+    /// `Recycler<Spline>::pop` hands it: the nuke's of 2617, which
+    /// `Ammo::close` cleared and pushed, its arrays' sizes kept. Every
+    /// ammo range on 3210: red without the walk (ours refused the line),
+    /// and red at range 8, `control_verts.size`, ours 4 and theirs 16,
+    /// with a fresh `Spline` for every round.
+    #[test]
+    fn row_100_s_jet_fighter_missile_walks_its_recycled_spline_on_run1721_s_ranges() {
+        let Some(theirs) = line_ranges_agree(5, "run1721", 3210, 3, 8) else {
+            return;
+        };
+        assert_eq!(theirs, 16i32.to_le_bytes(), "theirs' control_verts.size");
+    }
+
+    /// The same for line `line` (0 units, 3 ammo, 4 deaths, 6 guys).
     fn line_ranges_agree(
         k: usize,
         run: &str,
@@ -1197,6 +1214,7 @@ mod tests {
         let theirs: Vec<_> = theirs.into_iter().filter(|r| r.line == line).collect();
         let ours = match line {
             0 => built.sim.checksum_units(),
+            3 => built.sim.checksum_ammo().expect("the ammo line"),
             4 => built.sim.checksum_deaths().expect("the deaths line"),
             6 => built.sim.checksum_guys(),
             _ => unreachable!("line {line}"),
@@ -2057,12 +2075,21 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // strafe's flags 00, its target (2000, 0, uid 0), `def` (-1, -1)
         // with `mandatory` 1 and `new_ord` 1, flags again, the `AirOrder`
         // row (2026, 1, 0x640) and `xx`, `yy` (3168, 30816).
+        // Moved by item 4495 (a round's `Spline` comes off
+        // `Recycler<Spline>` with its arrays' sizes, and the ammo line walks
+        // `calc_from_dir`'s spline): ammo 3,291 -> 3,312, first 3210 ->
+        // 3312. On 3210, run1721's ammo ranges 3 to 54, record 1: the Jet
+        // Fighter 1/91's missile on 0/2000 (slot 1, `traj` 2), ours refused
+        // the line, theirs walked `has_path` 01 and its `SplineData`:
+        // degree 2, depth 15, ratio 4.0, three control points in 16, six
+        // knots `0 0 0 1 1 1` in 16, thirteen points and normals in 128 --
+        // the sizes of the nuke's `Spline` of 2617, popped again.
         moved: Some(Score {
             states: 3331,
             agreed: [
-                3331, 3331, 3331, 3291, 3331, 3331, 3331, 3331, 3331, 3331, 3331, 3331,
+                3331, 3331, 3331, 3312, 3331, 3331, 3331, 3331, 3331, 3331, 3331, 3331,
             ],
-            first: &[("ammo", (3210, None, 252233938))],
+            first: &[("ammo", (3312, Some(2769606056), 2835076525))],
             over: None,
         }),
     }),
@@ -2213,15 +2240,18 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // 2449 -> 4880. No ranges take of this row.
         // Moved by item 4491 (`StrafeOrder`'s ranges walked): units
         // 3,785 -> 3,914, first on 1747. No ranges take of this row.
+        // Moved by item 4495 (`calc_from_dir`'s spline walked, its sizes
+        // the recycled `Spline`'s): ammo 5,907 -> 5,924, first 5135 ->
+        // 5148, ours refused there. No ranges take of this row.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3914, 537, 6001, 5907, 6001, 6001, 5997, 3976, 6001, 6001, 6001, 5995,
+                3914, 537, 6001, 5924, 6001, 6001, 5997, 3976, 6001, 6001, 6001, 5995,
             ],
             first: &[
                 ("units", (1747, Some(2268899682), 1685366186)),
                 ("builds", (537, Some(1374294361), 1810502041)),
-                ("ammo", (5135, None, 990220286)),
+                ("ammo", (5148, Some(2171392214), 4193505523)),
                 ("guys", (4880, Some(3110518234), 2759048231)),
                 ("leaders", (1576, Some(2345254394), 1305656828)),
                 ("world", (2365, Some(1596373308), 975353592)),
@@ -2389,15 +2419,18 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // `Unit::set_angle(…, 1)` whole, so its figure's `last_angle` is the
         // caster's): units
         // 2,702 -> 2,703, first on 2184; guys 6,000 -> 6,001, whole.
+        // Moved by item 4495 (`calc_from_dir`'s spline walked, its sizes
+        // the recycled `Spline`'s): ammo 4,472 -> 5,826, first 3303 ->
+        // 4104, ours refused there. No ranges take of this row.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                2703, 4221, 6001, 4472, 6001, 6001, 6001, 4995, 6001, 6001, 6001, 5379,
+                2703, 4221, 6001, 5826, 6001, 6001, 6001, 4995, 6001, 6001, 6001, 5379,
             ],
             first: &[
                 ("units", (2184, Some(1779962534), 330632884)),
                 ("builds", (4221, Some(3943548441), 1202439769)),
-                ("ammo", (3303, None, 3094479036)),
+                ("ammo", (4104, Some(1068803573), 2259329699)),
                 ("leaders", (3176, Some(2352774769), 1606385266)),
                 ("world", (3809, Some(2182316411), 2894561759)),
             ],
@@ -2460,10 +2493,13 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // 2,100 -> 3,034, first 1742 -> 2354. No ranges are on disk for
         // run1736: on 1742 ours' units sum was 1100206902 and is now
         // theirs' 2410470946.
+        // Moved by item 4495 (`calc_from_dir`'s spline walked, its sizes
+        // the recycled `Spline`'s): ammo 4,511 -> 4,647, first on 2367. No
+        // ranges are on disk for run1736.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                3034, 553, 4731, 4511, 4731, 4731, 4731, 1976, 4731, 4731, 4731, 4731,
+                3034, 553, 4731, 4647, 4731, 4731, 4731, 1976, 4731, 4731, 4731, 4731,
             ],
             first: &[
                 ("units", (2354, Some(1655861561), 1211002097)),

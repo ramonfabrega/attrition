@@ -176,10 +176,43 @@ fn a_nuke_spline_s_length_and_normals_are_build_normals() {
     );
     assert_eq!(parts.weights.len(), 17);
     assert_eq!(parts.weights[16].to_i32(), 10);
-    // A guided round's spline is no nuke arm, and its walk is not read.
+    // A guided round's spline is `calc_from_dir`'s arm (item 4495): its
+    // three control points and the uncapped depth, 1,732.05 / 200 = 8.
     let v = |x: i32| [Single::from_i32(x); 3];
     let guided = Spline::from_dir(v(0), v(100), v(1000), Single::from_i32(200));
-    assert_eq!(guided.arm(), crate::combat::SplineArm::Unwalked);
+    assert_eq!(
+        guided.arm(),
+        crate::combat::SplineArm::FromDir {
+            ctl: [v(0), v(100), v(1000)],
+            depth: 8
+        }
+    );
+    // Fresh, its blocks are `increase_size`'s from empty; off the
+    // recycler after the nuke, they are the nuke's (`docs/CHECKSUM.md`
+    // §18.1, run1721 3210: 16, 16 and 128).
+    let fresh = guided.caps();
+    assert_eq!((fresh.ctl, fresh.spline_knots, fresh.knots), (4, 8, 0));
+    let nuke = path.caps();
+    assert_eq!(
+        (
+            nuke.ctl,
+            nuke.knots,
+            nuke.spline_knots,
+            nuke.verts,
+            nuke.normals
+        ),
+        (16, 17, 16, 128, 128)
+    );
+    let reused = guided.recycled(nuke);
+    assert_eq!(
+        (
+            reused.caps().ctl,
+            reused.caps().spline_knots,
+            reused.caps().verts
+        ),
+        (16, 16, 128)
+    );
+    assert_eq!(reused.caps().knots, 17, "`calc_from_dir` writes no knots");
 }
 
 /// **The guided round's two splines on run1469** (item 3802, GOLDEN
