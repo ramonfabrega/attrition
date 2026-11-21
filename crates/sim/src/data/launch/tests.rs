@@ -1481,6 +1481,64 @@ fn the_original_s_release_agrees_at_every_heading_for_item_4159r4() {
     assert!(off.is_empty(), "{} headings disagree: {off:?}", off.len());
 }
 
+/// **The Slingers' rows agree with the original at every heading** (item
+/// 4507, `docs/RECGAME.md` §11.1): `$RON_BAY_SWEEPS_4507` is the directory
+/// holding `sweep-32-0-<anim>-<time>.txt` (`deg r x y z …` at every whole
+/// degree 0..=360) for piece 32's three keys, outside git
+/// (`~/ron-data/lab-experiments/2026-11-21-item-4507/sweeps/`), written by
+/// `init_position` and then `get_position` on run1579's packet. run17's
+/// centroids held 205, 324 and 345 of the 361 headings.
+#[test]
+fn the_original_s_release_agrees_at_every_heading_for_the_slingers() {
+    let Ok(dir) = std::env::var("RON_BAY_SWEEPS_4507") else {
+        eprintln!("skipping: set RON_BAY_SWEEPS_4507 (item 4507's oracle, run1579)");
+        return;
+    };
+    let (mut rows, mut off) = (0, Vec::new());
+    for &(_, a, t, b) in BAYS.iter().filter(|r| r.0 == 32) {
+        let path = format!("{dir}/sweep-32-0-{a}-{t}.txt");
+        let table = std::fs::read_to_string(&path).expect("RON_BAY_SWEEPS_4507");
+        for line in table.lines() {
+            let f: Vec<i64> = line
+                .split_whitespace()
+                .take(5)
+                .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                .collect();
+            let (x, y) = b.offset((f[0] + 180) % 360);
+            if (x, y, i64::from(b.dz)) != (f[2], f[3], f[4]) {
+                off.push(format!(
+                    "a{a} t{t} deg {}: {x},{y} against {},{}",
+                    f[0], f[2], f[3]
+                ));
+            }
+            rows += 1;
+        }
+    }
+    assert_eq!(rows, 3 * 361, "{dir}");
+    assert!(off.is_empty(), "{} headings disagree: {off:?}", off.len());
+}
+
+/// **Row 5's Slinger stone on 4805 leaves where theirs does** (item 4507):
+/// who=1's `1/22` at (5064, 30744), facing −1,097,334,784, `CHAR_ATTACK2`
+/// frame 22, from (4945, 30709) in run1753's ammo range; run17's centroid
+/// put it at (4944, 30710).
+#[test]
+fn row_5_s_slinger_stone_on_4805_leaves_from_theirs_point() {
+    let p = launch_point(
+        Pos::new(5064, 30744),
+        Angle(-1_097_334_784),
+        32,
+        crate::units::anim::ATTACK2,
+        22,
+        0,
+    );
+    assert_eq!((p.x, p.y), (4945, 30709));
+    assert_eq!(
+        release_dz(32, crate::units::anim::ATTACK2, 22, 0),
+        Some(151)
+    );
+}
+
 /// **Every key the widened suite fired from the figure's square now has its
 /// bay** (item 4159's fifth residue, 4159r4a): a probe on [`launch_point`]'s
 /// fallback over `widened_whole walks_back walks_the_gap dates_the_gap
