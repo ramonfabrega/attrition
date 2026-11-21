@@ -9636,7 +9636,11 @@ fn a_scholar_rises_from_its_host_with_the_forced_idle_roll() {
         (marked, seed, sim.rng.seed)
     };
     let (marked, before, after) = rise(true);
-    assert_eq!(marked, vec![before], "one rising mark, on the word it drew from");
+    assert_eq!(
+        marked,
+        vec![before],
+        "one rising mark, on the word it drew from"
+    );
     assert_ne!(before, after, "and the roll is spent");
     let (marked, before, after) = rise(false);
     assert!(marked.is_empty(), "no rising for a militia");
