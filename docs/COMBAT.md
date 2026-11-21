@@ -8441,7 +8441,7 @@ dump, is past the word, and this crate no longer reaches it.
   `hold_frames` for the record's whole life, so the shooter's *number*
   is held 200 frames too, which closed the Korean Medieval pair. The
   harness compares spent records both ways. **A building's arrow
-  sticks too** (item 4515, run1726 4462): the arm asks the round's
+  sticks too** (item 4515; run1726, chapter 133): the arm asks the round's
   piece, not its shooter. A round no animation launches carries no
   piece flag here (`SEAM`).
 - **A dead building's hold under its spent arrow** (4515a).
