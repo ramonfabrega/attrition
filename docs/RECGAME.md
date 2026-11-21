@@ -1222,6 +1222,10 @@ did not move.
 **Row 10's leaders are whole** (item 4516, 5,801 → 6,001): a casting
 citizen is an `xport` peasant, `docs/AI.md` §58.7.
 
+**Row 10's units and guys are whole** (item 4522): two Attack
+Helicopters set apart keep `dest_angle`, `docs/PRODUCTION.md`, "The
+push's angle". Ammo 5178 is the row's last parting.
+
 **Row 130's computer bomber searches round itself** (item 4508; units
 4,459 → 4,574 merged with 4514, first 3411 → 3515): run1754, units range 4078 on 3411,
 who=1's bomber `1/158` `orders.count` ours 2, theirs 1;
