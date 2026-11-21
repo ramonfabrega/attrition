@@ -2162,3 +2162,61 @@ fn an_added_boat_of_no_population_is_never_counted() {
         );
     }
 }
+
+/// **A unit host's chain is the order of entry, not the riders' numbers**
+/// (item 4511, `docs/TRANSPORT.md` §6; `Object::insert_inside@00647e90`
+/// appends at the bottom): the host's `inside_down` (`+0x28`) is the first
+/// figure aboard, each figure's the one after it and its `inside_up`
+/// (`+0x82`) the one before; a figure that leaves closes the gap. run1752
+/// state 3359: the Freighter `1/135` holds `1/127`, `1/128`, `1/129` with
+/// `inside_down` 127, 128, 129, -1, where this crate wrote the last rider
+/// by index on the host and -1 on every rider.
+///
+/// Boarded here as 2, 0, 1 by slot so neither the index order nor its
+/// reverse is the chain.
+#[test]
+fn a_boat_s_chain_is_the_order_its_riders_boarded() {
+    let mut f = fix();
+    let b = barge(&mut f.sim);
+    let riders: Vec<usize> = (0..3)
+        .map(|k| unit(&mut f.sim, 1, f.citizen, tile_pos(28 + k, 14)))
+        .collect();
+    let boat = unit(&mut f.sim, 1, b, tile_pos(32, 14));
+    for k in [2, 0, 1] {
+        f.sim.board(riders[k], boat);
+    }
+    let order = vec![riders[2], riders[0], riders[1]];
+    assert_eq!(f.sim.cargo_chain(boat), order);
+    let o = |s: &Sim, x: usize| (s.units[x].index, s.units[x].owner);
+    // The host's `inside_down`: the head, at byte 8 of its 34.
+    let head = f.sim.unit_object_bytes(boat);
+    assert_eq!(
+        i16::from_le_bytes([head[8], head[9]]),
+        f.sim.units[riders[2]].index
+    );
+    assert_eq!(
+        f.sim.garrison_links(riders[2]),
+        Some((o(&f.sim, boat), Some(o(&f.sim, riders[0]))))
+    );
+    assert_eq!(
+        f.sim.garrison_links(riders[0]),
+        Some((o(&f.sim, riders[2]), Some(o(&f.sim, riders[1]))))
+    );
+    assert_eq!(
+        f.sim.garrison_links(riders[1]),
+        Some((o(&f.sim, riders[0]), None))
+    );
+    // The middle figure leaves: `remove_from_inside` unlinks in place.
+    f.sim.units[riders[0]].inside_unit = None;
+    assert_eq!(f.sim.cargo_chain(boat), vec![riders[2], riders[1]]);
+    assert_eq!(
+        f.sim.garrison_links(riders[1]),
+        Some((o(&f.sim, riders[2]), None))
+    );
+    // One boarding after it goes to the bottom.
+    f.sim.board(riders[0], boat);
+    assert_eq!(
+        f.sim.cargo_chain(boat),
+        vec![riders[2], riders[1], riders[0]]
+    );
+}
