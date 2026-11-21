@@ -1184,3 +1184,30 @@ rows 5, 25, 45, 65, 85, 105, 125 and 145, named before any take (item
 takes hold sums. Rows 10 and 130 are the two lobbies that start past the last age
 (`STARTING_TECHNOLOGY 8`), and both part builds and world together early,
 on 537 and 553. That suggests one cause, but neither row is read.
+
+### 11.1 Parity held out, third: rows 5 to 145 (item 4487)
+
+DECISIONS 147 §2, 2026-11-21. Rows 5, 25, 45, 65, 85, 105, 125 and 145 of the same order, declared in
+`HELD_OUT_THIRD` (`4a1b901a7`) before any file was recorded, each recorded idle by the client's page to 6000 and
+played by the original as `run1743 + k` under the checksum hook. Each is the human against one computer, as its
+lobby stands. The scores are pinned once in `SCORES_THIRD`, on `1f300eaa0`'s tree; this found column is the
+estimate now: **5 of 8 whole, 90 of 96 lines, reach 88 %** (38,662 of 43,758 states), where the second read 1 of
+8, 65 of 96 and 53 %, and the first 0 of 8, 64 of 96 and 27 %.
+
+| row | run | lobby | states | whole | first partings (state) |
+|---|---|---|---|---|---|
+| 5 | run1743 | Great Lakes, difficulty 4 | 6,001 | 11 | ammo 4805 |
+| 25 | run1744 | Himalayas, difficulty 0 | 6,001 | **12** | whole |
+| 45 | run1745 | Great Sahara, Classical | 6,001 | **12** | whole |
+| 65 | run1746 | Great Sahara, Enlightenment | 4,046, ended on 4045 | **12** | whole |
+| 85 | run1747 | Great Lakes, Industrial | 4,472, ended on 4471 | 11 | groups 3831 |
+| 105 | run1748 | East Indies, Modern | 5,235, ended on 5234 | 8 | leaders 1976, units 2983, groups 4355, builds 5162 |
+| 125 | run1749 | Islands, toughest | 6,001 | **12** | whole |
+| 145 | run1750 | Great Sahara, difficulty 3 | 6,001 | **12** | whole |
+
+The merged tree after the take (`cc9ffc8b3`: 4478, 4489, 4490) moves none of the eight. The original refused no
+file. In the three games it ended itself, our walk holds no `game_over` by that tick (`over: None`). `docs/RUNS.md`
+run1743 to run1750 holds every value, and the pins hold both sides of every first parting.
+
+*Not established*: no parting here names its leaf, since the takes hold sums. Row 105 is the only one of the
+eight that parts early, on leaders at 1976, and it is the only Modern start (ages 6..6) of the twenty-four.
