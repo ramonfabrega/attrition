@@ -170,9 +170,10 @@ impl Sim {
     /// record: `COST × TECH_COST_FACTOR`, the **science discount**, no ramp,
     /// Democracy's non-library discount, the British taxation discount,
     /// and the redirect for a good the player does not have
-    /// (`docs/COSTS.md` §"The redirect"). The rest of the discount tail —
-    /// being behind in ages, the lobby's tech-cost setting, the final-tech
-    /// ramp, Incense — is [`cost::Modifiers`]'s
+    /// (`docs/COSTS.md` §"The redirect"), and being behind in ages
+    /// ([`Sim::ages_behind`], item 4513). The rest of the discount tail —
+    /// the lobby's tech-cost setting, the final-tech ramp, Incense — is
+    /// [`cost::Modifiers`]'s
     /// and arrives as the undiscounted price until the layers that produce
     /// it exist, as [`Sim::price_of`] does for a unit.
     ///
@@ -216,6 +217,7 @@ impl Sim {
             crate::economy::cost::Counts::default(),
             &crate::economy::cost::Modifiers {
                 science_ahead: self.science_ahead(who, t),
+                ages_behind: self.ages_behind(who, t),
                 democracy: self.democracy_tech_discount(who, t),
                 industry: self.industry_tech_discount(who, t),
                 german_industry: self.german_industry_tech_discount(who, t),
@@ -235,6 +237,38 @@ impl Sim {
             &holdings.discovered,
             &self.economy.redirects,
         )
+    }
+
+    /// `TypeData::get_cost`'s **age-behind arm** (`006664c3`..`00666683`),
+    /// [`cost::Modifiers::ages_behind`]: for an age (`is_age_type`, vslot
+    /// `+0x34`), the eight leader slots in use (`leader_flags & 1`, the
+    /// slots [`Sim::epoch_catch_up`] walks) other than `who` and not allied
+    /// with it (`LeaderData::is_ally` on the other leader). A first pass
+    /// answers 2 for any whose `ages` exceed `who`'s by more than one; a
+    /// second answers 1 for any ahead at all. Anything that is not an age
+    /// answers 0.
+    ///
+    /// The 2017 sample (item 4513, run1726): the person, still Ancient,
+    /// queues the Classical Age at Library `3/2005` on 4320 behind a
+    /// computer that holds it, and pays 180 food where the full price is
+    /// 200; the 20 stays in its food `bucket`.
+    pub(crate) fn ages_behind(&self, who: Player, t: tech::TypeId) -> i32 {
+        if !matches!(self.tables.tech_tree.kind(t), tech::Kind::Age(_)) {
+            return 0;
+        }
+        let mine = self.tech[who as usize].ages;
+        let rivals = || {
+            (0..self.territory.players.len().min(8))
+                .filter(move |&p| p != who as usize && !self.is_ally(p as Player, who))
+                .map(|p| self.tech[p].ages)
+        };
+        if rivals().any(|a| mine + 1 < a) {
+            2
+        } else if rivals().any(|a| mine < a) {
+            1
+        } else {
+            0
+        }
     }
 
     /// `get_cost`'s industry arm (`00666940`..`006669b0`): the Hanging
