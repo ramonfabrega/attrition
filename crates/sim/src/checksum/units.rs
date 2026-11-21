@@ -357,13 +357,25 @@ impl Sim {
     /// not a captain in any building's [`garrison`](crate::cities::building::Building::garrison),
     /// whose order is the chain's: `Object::insert_inside@00647e90`
     /// appends at the bottom and `Object::remove_from_inside@006480f0`
-    /// unlinks in place (`docs/CITIES.md` §6, item 4257).
+    /// unlinks in place (`docs/CITIES.md` §6, item 4257). **A figure
+    /// riding a unit** is linked the same way along
+    /// [`Sim::cargo_chain`](crate::Sim::cargo_chain), the host above the
+    /// first figure aboard (item 4511: run1752's Freighter `1/135` on 3359).
     pub(crate) fn garrison_links(&self, u: usize) -> Option<(ObjRef, Option<ObjRef>)> {
         let un = &self.units[u];
+        let unit = |x: usize| (self.units[x].index, self.units[x].owner);
+        if let Some(h) = un.inside_unit {
+            let chain = self.cargo_chain(h);
+            let k = chain.iter().position(|&c| c == u)?;
+            let above = match k {
+                0 => unit(h),
+                _ => unit(chain[k - 1]),
+            };
+            return Some((above, chain.get(k + 1).map(|&x| unit(x))));
+        }
         let b = un.inside?;
         let bd = &self.buildings[b];
         let k = bd.garrison.iter().position(|&c| c == u)?;
-        let unit = |x: usize| (self.units[x].index, self.units[x].owner);
         let above = match k {
             0 => (bd.index, bd.owner),
             _ => unit(bd.garrison[k - 1]),
@@ -382,17 +394,18 @@ impl Sim {
         // For a captain inside a building, the captain that entered after
         // it — `Object::insert_inside@00647e90` appends at the bottom
         // (`ObjectData::inside_bottom@00644000`), so the bottom's `+0x28`
-        // names the newcomer; −1 at the tail (item 4257). Otherwise the
-        // last unit seated inside this one (a carrier's chain; no unit
-        // holds another on the scored frame).
+        // names the newcomer; −1 at the tail (item 4257), and the same
+        // along a unit host's chain. Otherwise the head of the chain inside
+        // this one: the first figure aboard (item 4511, run1752's
+        // Freighter `1/135` on 3359, where this was the last by index).
         let inside = match self.garrison_links(u) {
             Some((_, below)) => below.map(|x| (i64::from(x.0), i64::from(x.1))),
-            None => self
-                .units
-                .iter()
-                .filter(|x| x.alive() && x.inside_unit == Some(u))
-                .map(|x| (i64::from(x.index), i64::from(x.owner)))
-                .next_back(),
+            None => self.cargo_chain(u).first().map(|&x| {
+                (
+                    i64::from(self.units[x].index),
+                    i64::from(self.units[x].owner),
+                )
+            }),
         };
         p(0x28, 2, inside.map_or(-1, |x| x.0));
         let (up, down, down_who, up_who) = self.unit_chain_words(u);

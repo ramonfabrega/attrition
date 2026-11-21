@@ -855,6 +855,95 @@ mod tests {
         }
     }
 
+    /// **Row 105's Freighter chains its riders in the order they boarded**
+    /// (item 4511, `docs/RECGAME.md` §11.1): run1752 holds every units
+    /// range on 3358 and 3359. On 3359 who=1's Transport Freighter `1/135`
+    /// (TI 322) is born and three German Infantry (TI 103) go aboard,
+    /// `1/127`, `1/128`, `1/129`. `Object::insert_inside@00647e90` appends
+    /// at the bottom, so theirs prints `inside_down` 127 on the host, 128 on
+    /// `1/127` and 129 on `1/128` (range 3707, `myhits..launch_frames` byte
+    /// 8), and `inside_up` 127 and 128 on the last two (`collide_frame..play`
+    /// byte 58). This crate wrote the last rider by index on the host, −1
+    /// on every rider and the host above each. Every units range on both
+    /// states, ours against theirs, byte for byte: red on the tree before
+    /// the fix, at range 3707.
+    #[test]
+    fn row_105_s_freighter_chains_its_riders_in_the_order_they_boarded_on_run1752_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&THIRD, 5) else {
+            eprintln!("skipping: row 105's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1752/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1752's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 105's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [3358, 3359] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_units();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+        // On 3359, by name: the host, its riders in order, and theirs'
+        // `inside_down` on `1/127`.
+        let find = |o: i16| {
+            (0..built.sim.units.len())
+                .find(|&x| {
+                    let u = &built.sim.units[x];
+                    u.alive() && u.owner == 1 && u.index == o
+                })
+                .expect("the unit")
+        };
+        let boat = find(135);
+        assert_eq!(
+            built.sim.units[boat].type_index, 322,
+            "1/135 is the Freighter"
+        );
+        let chain: Vec<i16> = built
+            .sim
+            .cargo_chain(boat)
+            .iter()
+            .map(|&x| built.sim.units[x].index)
+            .collect();
+        assert_eq!(chain, [127, 128, 129], "1/135's riders, head first");
+        let theirs = record
+            .ranges(&record.first_of(3358).expect("set").clone())
+            .expect("ranges");
+        let units: Vec<_> = theirs.iter().filter(|r| r.line == 0).collect();
+        let ours = built.sim.checksum_units();
+        assert_eq!(
+            (ours.ranges[3707].record, ours.ranges[3707].field),
+            (127, "myhits..launch_frames")
+        );
+        assert_eq!(
+            &units[3707].bytes[8..10],
+            &128i16.to_le_bytes(),
+            "theirs' 1/127 inside_down"
+        );
+    }
+
     /// **Row 105's rider bound for the sea is a gatherer in
     /// `reg_gatherers[1]`** (item 4499, `docs/RECGAME.md` §11.1): run1752,
     /// the ranges take of run1748's file, holds every leaders range on
@@ -2059,12 +2148,17 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // `Unit::set_angle(…, 1)` whole, so its figure's `last_angle` is the
         // caster's): guys
         // 4,965 -> 4,974, whole. No ranges take of this row.
+        // Moved by item 4511 (a unit host's `inside_down` chain is the order
+        // of entry, `Object::insert_inside` appending at the bottom:
+        // run1752, state 3359, units range 3707, record 127, who=1's
+        // Freighter `1/135` holding `1/127`, `1/128`, `1/129`, `1/127`'s
+        // `inside_down` ours -1, theirs 128): units 2,487 -> 4,974, whole.
         moved: Some(Score {
             states: 4974,
             agreed: [
-                2487, 4974, 4974, 4974, 4974, 4974, 4974, 4974, 4974, 4974, 4974, 4974,
+                4974, 4974, 4974, 4974, 4974, 4974, 4974, 4974, 4974, 4974, 4974, 4974,
             ],
-            first: &[("units", (2487, Some(3429527498), 3877923716))],
+            first: &[],
             over: None,
         }),
     }),
@@ -2398,9 +2492,12 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
 /// whole (a boarder's `last_z` on 4026). Item 4480: 5 -> 6, row 60 whole
 /// (a `DETECT` building's `seen3`, the Observation Post `1/59` on 3984).
 /// Item 4497: 6 -> 7, row 100 whole (a bomb's round carries its pool
-/// slot's last `accuracy`, the Strategic Bomber `1/83` on 3312).
+/// slot's last `accuracy`, the Strategic Bomber `1/83` on 3312). Item
+/// 4511: 7 -> 8, row 40 whole (units 2,487 -> 4,974: a unit host's
+/// `inside_down` chain is the order of entry; no ranges take of row 40, so
+/// its value diff is run1752's Freighter `1/135` on 3359).
 #[cfg(test)]
-pub(crate) const HELD_OUT_LINE: (usize, usize) = (7, 8);
+pub(crate) const HELD_OUT_LINE: (usize, usize) = (8, 8);
 
 /// **The second battery's scores**, `HELD_OUT_SECOND[k]` played as
 /// `run1730 + k` (item 4462): `None` until the original has played it. The
@@ -2476,13 +2573,19 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // `job_counter` `0x40000000`, `Wall::activate@0063e4b0:54`): builds
         // 537 -> 6,001, whole. run1739, the ranges take: on 537 builds range
         // 746, the SAM `1/2012`'s `job_counter`, ours 0, theirs 1073741824.
+        // Moved by item 4511 (a unit host's `inside_down` chain is the order
+        // of entry, `Object::insert_inside` appending at the bottom:
+        // run1752, state 3359, units range 3707, record 127, who=1's
+        // Freighter `1/135` holding `1/127`, `1/128`, `1/129`, `1/127`'s
+        // `inside_down` ours -1, theirs 128): units 3,914 -> 5,664, first
+        // 1747 -> 3771.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3914, 6001, 6001, 5962, 6001, 6001, 5997, 5801, 6001, 6001, 6001, 5995,
+                5664, 6001, 6001, 5962, 6001, 6001, 5997, 5801, 6001, 6001, 6001, 5995,
             ],
             first: &[
-                ("units", (1747, Some(2268899682), 1685366186)),
+                ("units", (3771, Some(4212870850), 267538306)),
                 ("ammo", (5178, None, 1427640977)),
                 ("guys", (4880, Some(3110518234), 2759048231)),
                 ("leaders", (3976, Some(2201651438), 3962276079)),
@@ -2524,13 +2627,19 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // bound, so a rider bound for a sea region counts in
         // `reg_gatherers`): leaders
         // 3,748 -> 4,548, whole. No ranges take of this row.
+        // Moved by item 4511 (a unit host's `inside_down` chain is the order
+        // of entry, `Object::insert_inside` appending at the bottom:
+        // run1752, state 3359, units range 3707, record 127, who=1's
+        // Freighter `1/135` holding `1/127`, `1/128`, `1/129`, `1/127`'s
+        // `inside_down` ours -1, theirs 128): units 2,334 -> 4,114, first
+        // 2334 -> 3184.
         moved: Some(Score {
             states: 4548,
             agreed: [
-                2334, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4423,
+                4114, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4423,
             ],
             first: &[
-                ("units", (2334, Some(3116348967), 994488935)),
+                ("units", (3184, Some(2261284178), 566719572)),
                 ("world", (1662, Some(3453374911), 2282901965)),
             ],
             over: None,
@@ -2667,17 +2776,21 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4502 (the CEO bit, `unit_masks2 & 0x10000`, raised
         // at birth and by `set_type` on a type that `is(0x165, 1)`): units
         // 2,703 -> 5,017, first on 2184. No ranges take of this row.
+        // Moved by item 4511 (a unit host's `inside_down` chain is the order
+        // of entry, `Object::insert_inside` appending at the bottom:
+        // run1752, state 3359, units range 3707, record 127, who=1's
+        // Freighter `1/135` holding `1/127`, `1/128`, `1/129`, `1/127`'s
+        // `inside_down` ours -1, theirs 128): units 5,017 -> 5,297, first
+        // 2184 -> 4492.
         // Moved by item 4505 (a gatherer chain is one link a unit,
-        // `Build::add_gatherer@0062f640`): units 5,017 -> 5,024, first on
-        // 2184; the seven states not read one by one. No ranges take of
-        // this row.
+        // `Build::add_gatherer@0062f640`): measured on the merged tree.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5024, 5577, 6001, 5826, 6001, 6001, 6001, 5995, 6001, 6001, 6001, 5379,
+                5297, 5577, 6001, 5826, 6001, 6001, 6001, 5995, 6001, 6001, 6001, 5379,
             ],
             first: &[
-                ("units", (2184, Some(1779962534), 330632884)),
+                ("units", (4492, Some(710203995), 2575096436)),
                 ("builds", (5577, Some(3250328791), 1226052951)),
                 ("ammo", (4104, Some(1068803573), 2259329699)),
                 ("leaders", (5344, Some(3455285082), 543455082)),
@@ -2756,13 +2869,19 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4483 (an AIRDEFENSE-line building finishes with
         // `job_counter` `0x40000000`): builds 553 -> 4,731, whole. No
         // ranges take of this row; row 10's run1739 names the leaf.
+        // Moved by item 4511 (a unit host's `inside_down` chain is the order
+        // of entry, `Object::insert_inside` appending at the bottom:
+        // run1752, state 3359, units range 3707, record 127, who=1's
+        // Freighter `1/135` holding `1/127`, `1/128`, `1/129`, `1/127`'s
+        // `inside_down` ours -1, theirs 128): units 3,034 -> 4,422, first
+        // 2354 -> 3411.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                3034, 4731, 4731, 4731, 4731, 4731, 4731, 4721, 4731, 4731, 4731, 4731,
+                4422, 4731, 4731, 4731, 4731, 4731, 4731, 4721, 4731, 4731, 4731, 4731,
             ],
             first: &[
-                ("units", (2354, Some(1655861561), 1211002097)),
+                ("units", (3411, Some(1975420184), 338852346)),
                 ("leaders", (4573, Some(266446178), 1003136370)),
             ],
             over: None,
@@ -2940,6 +3059,12 @@ pub(crate) const SCORES_THIRD: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
+        // Moved by item 4511 (a unit host's `inside_down` chain is the order
+        // of entry, `Object::insert_inside` appending at the bottom:
+        // run1752, state 3359, units range 3707, record 127, who=1's
+        // Freighter `1/135` holding `1/127`, `1/128`, `1/129`, `1/127`'s
+        // `inside_down` ours -1, theirs 128): units 3,359 -> 5,235, whole;
+        // the row's first parting 3359 -> 3583 (leaders).
         // Moved by item 4502 (the CEO bit, `unit_masks2 & 0x10000`, raised
         // by `set_type` on a type that `is(0x165, 1)`: run1752, state 2983,
         // units range 655, record 17 (`1/17`, 0x163 -> 0x165)
@@ -2956,10 +3081,9 @@ pub(crate) const SCORES_THIRD: [Option<FirstScore>; 8] = [
         moved: Some(Score {
             states: 5235,
             agreed: [
-                3359, 5235, 5235, 5235, 5235, 5217, 5235, 5056, 5235, 5235, 5235, 5235,
+                5235, 5235, 5235, 5235, 5235, 5217, 5235, 5056, 5235, 5235, 5235, 5235,
             ],
             first: &[
-                ("units", (3359, Some(751758837), 98429673)),
                 ("groups", (4355, Some(2731263697), 520406832)),
                 ("leaders", (3583, Some(924078995), 1189499805)),
             ],

@@ -1477,7 +1477,7 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// two ranges each before), and run1359, run1359b and run1359c 13 -> 12:
 /// an AIRDEFENSE-line building finishes with `job_counter` `0x40000000`
 /// (`Wall::activate@0063e4b0:54`).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 924, 1053);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 947, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -2023,11 +2023,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2267, 2266, 375) -> (2267, 2267, 0), world (9290, 9290, 10) -> (9290, 9290, 0).
     // Item 4468, a nuke strike's round keeps its spline and the ammo line walks its SplineData: ammo (287, 9, 286) -> (287, 287, 0).
     // Item 4502, the CEO bit, unit_masks2 & 0x10000, at birth and in set_type: units (6004, 6004, 6) -> (6004, 6004, 5).
+    // Item 4511, a unit host's chain is the order of entry: units (6004, 6004, 5) -> (6004, 6004, 0).
     (
         "run1165",
         3719,
         [
-            (6004, 6004, 5),
+            (6004, 6004, 0),
             (2267, 2267, 0),
             (0, 0, 0),
             (287, 287, 0),
@@ -2077,11 +2078,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9262, 9262, 1) -> (9262, 9262, 0).
     // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2247, 2247, 1) -> (2247, 2247, 0).
     // Item 4502, the CEO bit, unit_masks2 & 0x10000, at birth and in set_type: units (6004, 6004, 6) -> (6004, 6004, 5).
+    // Item 4511, a unit host's chain is the order of entry: units (6004, 6004, 5) -> (6004, 6004, 0).
     (
         "run1166",
         3920,
         [
-            (6004, 6004, 5),
+            (6004, 6004, 0),
             (2247, 2247, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2128,11 +2130,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (1813, 1813, 6) -> (1813, 1813, 0).
     // Item 4502, the CEO bit, unit_masks2 & 0x10000, at birth and in set_type: units (7749, 7749, 51) -> (7749, 7749, 50).
+    // Item 4511, a unit host's chain is the order of entry: units (7749, 7749, 50) -> (7749, 7749, 0).
     (
         "run1169",
         3769,
         [
-            (7749, 7749, 50),
+            (7749, 7749, 0),
             (1813, 1813, 0),
             (0, 0, 0),
             (12, 12, 0),
@@ -2176,11 +2179,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6735, 6735, 60) -> (6735, 6735, 48).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6735, 6735, 48) -> (6735, 6735, 36).
     // Item 4476, `cavarch_uid` kept past a dropped target: units (6735, 6735, 36) -> (6735, 6735, 35).
+    // Item 4511, a unit host's chain is the order of entry: units (6735, 6735, 35) -> (6735, 6735, 0).
     (
         "run1185",
         4582,
         [
-            (6735, 6735, 35),
+            (6735, 6735, 0),
             (1911, 1911, 0),
             (0, 0, 0),
             (3, 3, 0),
@@ -2257,11 +2261,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (10607, 10607, 44) -> (10607, 10607, 37).
     // Item 4451, a reused number keeps its figure array's allocation: units (10607, 10607, 37) -> (10607, 10607, 35), guys (3247, 3247, 2) -> (3247, 3247, 0).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9486, 9486, 1) -> (9486, 9486, 0).
+    // Item 4511, a unit host's chain is the order of entry: units (10607, 10607, 35) -> (10607, 10607, 0).
     (
         "run1217",
         7728,
         [
-            (10607, 10607, 35),
+            (10607, 10607, 0),
             (3412, 3412, 0),
             (0, 0, 0),
             (6, 6, 0),
@@ -2340,11 +2345,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4425, a member compute_dests skips keeps its record offset: groups (592, 592, 4) -> (592, 592, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6445, 6445, 54) -> (6445, 6445, 45).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9162, 9162, 1) -> (9162, 9162, 0).
+    // Item 4511, a unit host's chain is the order of entry: units (6445, 6445, 45) -> (6445, 6445, 0).
     (
         "run1221",
         4287,
         [
-            (6445, 6445, 45),
+            (6445, 6445, 0),
             (1719, 1719, 0),
             (0, 0, 0),
             (6, 6, 0),
@@ -2433,11 +2439,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (7490, 7490, 57) -> (7490, 7490, 38).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (7490, 7490, 38) -> (7490, 7490, 30).
     // Item 4450, `City::calc_gather`'s bytes kept to the reassembly: cities (30, 30, 1) -> (30, 30, 0).
+    // Item 4511, a unit host's chain is the order of entry: units (7490, 7490, 30) -> (7490, 7490, 0).
     (
         "run1235b",
         4127,
         [
-            (7490, 7490, 30),
+            (7490, 7490, 0),
             (1733, 1733, 0),
             (0, 0, 0),
             (12, 12, 0),
@@ -2476,11 +2483,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6610, 6610, 116) -> (6610, 6610, 94).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6610, 6610, 94) -> (6610, 6610, 90).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9312, 9312, 1) -> (9312, 9312, 0).
+    // Item 4511, a unit host's chain is the order of entry: units (6610, 6610, 90) -> (6610, 6610, 0).
     (
         "run1236",
         4179,
         [
-            (6610, 6610, 90),
+            (6610, 6610, 0),
             (1762, 1762, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2560,11 +2568,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6417, 6417, 36) -> (6417, 6417, 29).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6417, 6417, 29) -> (6417, 6417, 25).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9318, 9318, 1) -> (9318, 9318, 0).
+    // Item 4511, a unit host's chain is the order of entry: units (6417, 6417, 25) -> (6417, 6417, 0).
     (
         "run1238c",
         5021,
         [
-            (6417, 6417, 25),
+            (6417, 6417, 0),
             (2494, 2494, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2603,11 +2612,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (622, 622, 5) -> (622, 622, 4).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (622, 622, 4) -> (622, 622, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (5942, 5942, 7) -> (5942, 5942, 5).
+    // Item 4511, a unit host's chain is the order of entry: units (5942, 5942, 5) -> (5942, 5942, 0).
     (
         "run1247",
         4306,
         [
-            (5942, 5942, 5),
+            (5942, 5942, 0),
             (1692, 1692, 0),
             (0, 0, 0),
             (6, 6, 0),
@@ -2731,11 +2741,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4425, a member compute_dests skips keeps its record offset: groups (586, 586, 7) -> (586, 586, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6468, 6468, 88) -> (6468, 6468, 72).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9330, 9330, 1) -> (9330, 9330, 0).
+    // Item 4511, a unit host's chain is the order of entry: units (6468, 6468, 72) -> (6468, 6468, 2).
     (
         "run1264b",
         4919,
         [
-            (6468, 6468, 72),
+            (6468, 6468, 2),
             (1770, 1770, 0),
             (0, 0, 0),
             (3, 3, 0),
@@ -2783,11 +2794,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (11161, 11161, 68) -> (11161, 11161, 49).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (11161, 11161, 49) -> (11161, 11161, 42).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9704, 9704, 1) -> (9704, 9704, 0).
+    // Item 4511, a unit host's chain is the order of entry: units (11161, 11161, 42) -> (11161, 11161, 2).
     (
         "run1266c",
         8700,
         [
-            (11161, 11161, 42),
+            (11161, 11161, 2),
             (3796, 3796, 0),
             (0, 0, 0),
             (6, 6, 0),
@@ -2870,11 +2882,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (9512, 9512, 73) -> (9512, 9512, 55).
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (1938, 1938, 1) -> (1938, 1938, 0).
+    // Item 4511, a unit host's chain is the order of entry: units (9512, 9512, 55) -> (9512, 9512, 0).
     (
         "run1293",
         3606,
         [
-            (9512, 9512, 55),
+            (9512, 9512, 0),
             (1938, 1938, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2919,11 +2932,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4425, a member compute_dests skips keeps its record offset: groups (688, 688, 8) -> (688, 688, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (8216, 8216, 61) -> (8216, 8216, 36).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (8216, 8216, 36) -> (8216, 8216, 25).
+    // Item 4511, a unit host's chain is the order of entry: units (8216, 8216, 25) -> (8216, 8216, 0).
     (
         "run1294",
         4473,
         [
-            (8216, 8216, 25),
+            (8216, 8216, 0),
             (2123, 2123, 0),
             (0, 0, 0),
             (3, 3, 0),
@@ -2972,11 +2986,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (9905, 9905, 33) -> (9905, 9905, 22).
     // Item 4453, a push after the pushed unit's walk leaves guy_flags 0x2: units (9905, 9905, 22) -> (9905, 9905, 20), guys (2172, 2172, 2) -> (2172, 2172, 0).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9470, 9470, 1) -> (9470, 9470, 0).
+    // Item 4511, a unit host's chain is the order of entry: units (9905, 9905, 20) -> (9905, 9905, 0).
     (
         "run1296",
         4632,
         [
-            (9905, 9905, 20),
+            (9905, 9905, 0),
             (2163, 2163, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3018,14 +3033,15 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5488, 5488, 13) -> (5488, 5488, 6).
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (2029, 2029, 1) -> (2029, 2029, 0).
+    // Item 4511, a unit host's chain is the order of entry: units (5488, 5488, 6) -> (5488, 5488, 1).
     // Item 4505, a gatherer chain is one link a unit (`Build::add_gatherer`):
-    // units (5488, 5488, 6) -> (5488, 5488, 5), `507 9 gather_down` ours -1,
+    // units (5488, 5488, 1) -> (5488, 5488, 0), `507 9 gather_down` ours -1,
     // theirs 21 -> agree.
     (
         "run1304",
         3865,
         [
-            (5488, 5488, 5),
+            (5488, 5488, 0),
             (2029, 2029, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3113,11 +3129,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (2140, 2140, 3) -> (2140, 2140, 2).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9476, 9476, 1) -> (9476, 9476, 0).
+    // Item 4511, a unit host's chain is the order of entry: units (8490, 8490, 42) -> (8490, 8490, 2).
     (
         "run1320b",
         5066,
         [
-            (8490, 8490, 42),
+            (8490, 8490, 2),
             (2140, 2140, 2),
             (0, 0, 0),
             (9, 9, 0),
@@ -3200,11 +3217,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (1918, 1918, 2) -> (1918, 1918, 0).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9466, 9466, 1) -> (9466, 9466, 0).
+    // Item 4511, a unit host's chain is the order of entry: units (7276, 7276, 45) -> (7276, 7276, 0).
     (
         "run1324c",
         4904,
         [
-            (7276, 7276, 45),
+            (7276, 7276, 0),
             (1918, 1918, 0),
             (0, 0, 0),
             (15, 15, 0),
@@ -3250,11 +3268,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // (`build_masks` `0x2000`): builds (2521, 2521, 2) -> (2521, 2521, 0).
     // Item 4476, `cavarch_uid` kept past a dropped target: units (10367, 10367, 70) -> (10367, 10367, 68).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9666, 9666, 1) -> (9666, 9666, 0).
+    // Item 4511, a unit host's chain is the order of entry: units (10367, 10367, 68) -> (10367, 10367, 3).
     (
         "run1325c",
         5578,
         [
-            (10367, 10367, 68),
+            (10367, 10367, 3),
             (2521, 2521, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3296,11 +3315,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // 81) -> (6268, 6268, 71); guys (1993, 1993, 10) -> (1993, 1993, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (616, 616, 4) -> (616, 616, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6268, 6268, 71) -> (6268, 6268, 50).
+    // Item 4511, a unit host's chain is the order of entry: units (6268, 6268, 50) -> (6268, 6268, 0).
     (
         "run1326",
         4567,
         [
-            (6268, 6268, 50),
+            (6268, 6268, 0),
             (2161, 2161, 0),
             (0, 0, 0),
             (3, 3, 0),
@@ -3948,11 +3968,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4425, a member compute_dests skips keeps its record offset: groups (694, 694, 12) -> (694, 694, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6512, 6512, 34) -> (6512, 6512, 22).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6512, 6512, 22) -> (6512, 6512, 15).
+    // Item 4511, a unit host's chain is the order of entry: units (6512, 6512, 15) -> (6512, 6512, 0).
     (
         "run1391",
         4174,
         [
-            (6512, 6512, 15),
+            (6512, 6512, 0),
             (1830, 1830, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3999,11 +4020,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // (`build_masks` `0x2000`): builds (2128, 2127, 608) -> (2128, 2127, 607).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2128, 2127, 607) -> (2128, 2128, 0), world (9554, 9554, 8) -> (9554, 9554, 0).
     // Item 4502, the CEO bit, unit_masks2 & 0x10000, at birth and in set_type: units (6953, 6953, 36) -> (6953, 6953, 35).
+    // Item 4511, a unit host's chain is the order of entry: units (6953, 6953, 35) -> (6953, 6953, 0).
     (
         "run1416",
         4016,
         [
-            (6953, 6953, 35),
+            (6953, 6953, 0),
             (2128, 2128, 0),
             (0, 0, 0),
             (18, 18, 1),
@@ -5033,11 +5055,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
     // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2384, 2384, 2) -> (2384, 2384, 0).
+    // Item 4511, a unit host's chain is the order of entry: units (9526, 9526, 30) -> (9526, 9526, 0).
     (
         "run810",
         3631,
         [
-            (9526, 9526, 30),
+            (9526, 9526, 0),
             (2384, 2384, 0),
             (0, 0, 0),
             (156, 156, 0),
@@ -5084,11 +5107,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
     // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2473, 2473, 2) -> (2473, 2473, 0).
+    // Item 4511, a unit host's chain is the order of entry: units (9339, 9339, 35) -> (9339, 9339, 0).
     (
         "run823",
         4238,
         [
-            (9339, 9339, 35),
+            (9339, 9339, 0),
             (2473, 2473, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -5134,11 +5158,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
     // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2473, 2473, 2) -> (2473, 2473, 0).
+    // Item 4511, a unit host's chain is the order of entry: units (9362, 9362, 35) -> (9362, 9362, 0).
     (
         "run825",
         4204,
         [
-            (9362, 9362, 35),
+            (9362, 9362, 0),
             (2473, 2473, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -5383,11 +5408,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2737, 2737, 2) -> (2737, 2737, 0).
     // Item 4502, the CEO bit, unit_masks2 & 0x10000, at birth and in set_type: units (11125, 11125, 76) -> (11125, 11125, 75).
+    // Item 4511, a unit host's chain is the order of entry: units (11125, 11125, 75) -> (11125, 11125, 0).
     (
         "run882b",
         6808,
         [
-            (11125, 11125, 75),
+            (11125, 11125, 0),
             (2737, 2737, 0),
             (0, 0, 0),
             (15, 15, 0),
@@ -5443,11 +5469,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2737, 2737, 2) -> (2737, 2737, 0).
     // Item 4502, the CEO bit, unit_masks2 & 0x10000, at birth and in set_type: units (11180, 11180, 76) -> (11180, 11180, 75).
+    // Item 4511, a unit host's chain is the order of entry: units (11180, 11180, 75) -> (11180, 11180, 0).
     (
         "run883b",
         6821,
         [
-            (11180, 11180, 75),
+            (11180, 11180, 0),
             (2737, 2737, 0),
             (0, 0, 0),
             (36, 36, 0),
@@ -5518,11 +5545,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4425, a member compute_dests skips keeps its record offset: groups (568, 568, 4) -> (568, 568, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (4112, 4112, 15) -> (4112, 4112, 12).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4112, 4112, 12) -> (4112, 4112, 10).
+    // Item 4511, a unit host's chain is the order of entry: units (4112, 4112, 10) -> (4112, 4112, 0).
     (
         "run912e",
         12753,
         [
-            (4112, 4112, 10),
+            (4112, 4112, 0),
             (1508, 1508, 0),
             (0, 0, 0),
             (0, 0, 0),

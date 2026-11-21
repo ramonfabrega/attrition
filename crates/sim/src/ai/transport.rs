@@ -1110,6 +1110,35 @@ impl Sim {
         self.units[boat].health = boat_hits - ((boat_hits * frac) >> 8);
     }
 
+    /// **The stamp `Object::insert_inside@00647e90` would give a figure
+    /// appended to `boat`'s chain now** ([`Unit::boarded`], item 4511): one
+    /// past the last figure aboard. The bottom is the figure that entered
+    /// last, whatever its index.
+    pub(crate) fn board_stamp(&self, boat: usize) -> u32 {
+        self.units
+            .iter()
+            .filter(|x| x.alive() && x.inside_unit == Some(boat))
+            .map(|x| x.boarded)
+            .max()
+            .map_or(1, |m| m + 1)
+    }
+
+    /// **A unit host's `inside_down` chain, head first** (item 4511): the
+    /// live figures whose [`Unit::inside_unit`] is `boat`, in the order
+    /// they entered ([`Unit::boarded`]). `Object::remove_from_inside@
+    /// 006480f0` unlinks in place, so a figure that leaves closes the gap
+    /// and the rest keep their order. run1752, state 3359: who=1's
+    /// Freighter `1/135` holds `1/127`, `1/128`, `1/129` in that order —
+    /// `inside_down` 127 on the host, 128 and 129 on the first two, and
+    /// `inside_up` 135, 127, 128.
+    pub fn cargo_chain(&self, boat: usize) -> Vec<usize> {
+        let mut v: Vec<usize> = (0..self.units.len())
+            .filter(|&x| self.units[x].alive() && self.units[x].inside_unit == Some(boat))
+            .collect();
+        v.sort_by_key(|&x| self.units[x].boarded);
+        v
+    }
+
     /// `Unit::go_inside(o, who, 0)@0061a2e0` with a **unit** for a host —
     /// the boarding half of `docs/CITIES.md` §6's garrison, and the reason a
     /// passenger stops being stepped: `Unit::process` runs no order for a
@@ -1133,6 +1162,8 @@ impl Sim {
     /// SEAM: the `+0x68 & ~0x4000000` beside that clear (the move-facing
     /// bit `add_move_facing_order` sets) is state this crate does not keep.
     pub(crate) fn board(&mut self, u: usize, boat: usize) {
+        // Each figure goes in by its own `insert_inside`, so each is
+        // stamped at the chain's bottom ([`Unit::boarded`], item 4511).
         let mut head = u;
         for _ in 0..self.units.len() {
             let Some(a) = self.units[head].o_up else {
@@ -1146,9 +1177,11 @@ impl Sim {
             let Some(f) = at else { break };
             self.coll_remove(f);
             self.chain_remove(f);
+            let boarded = self.board_stamp(boat);
             {
                 let unit = &mut self.units[f];
                 unit.inside_unit = Some(boat);
+                unit.boarded = boarded;
                 unit.on_map = false;
                 unit.movement.dest = None;
                 unit.combat.target = None;
