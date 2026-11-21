@@ -553,6 +553,7 @@ fn run667_s_closing_frame_is_widened_whole() {
     // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
     // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
     // Item 4435: 55 -> 52, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
+    if std::env::var("RON_PROBE_4521").is_ok() { eprintln!("PROBE667 {:#?}", w.firsts); }
     pin_eq!(w.firsts.len(), 52, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
 }
 
@@ -1719,6 +1720,7 @@ fn run609_s_closing_frame_is_widened_whole() {
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
     // Item 2761: 47 → 45 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 29 -> 27.
+    if std::env::var("RON_PROBE_4521").is_ok() { eprintln!("PROBE609 {:#?}", w.firsts); }
     pin_eq!(
         w.firsts.len(),
         // Item 4185: 42 -> 43, +1, who=0's `defeat_type` on the closing
