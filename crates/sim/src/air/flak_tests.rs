@@ -992,3 +992,44 @@ fn a_building_keeps_a_dead_target_until_do_attack_replaces_it() {
     s.process_building_combat(r, 16);
     assert_eq!(s.buildings[r].target, Some(Obj::Unit(b)), "replaced");
 }
+
+/// **A building's round punctures by its piece** (item 4515,
+/// `docs/COMBAT.md` §46.7): `Ammo::do_damage@00678060`'s puncture arm asks
+/// `GraphicPieces::verify_ammo_flags(+0x8, 1)` of the round's own piece,
+/// whoever fired it, so a building's `BuildingArrow` (`puncture="1"`)
+/// that strikes nothing is left as a spent arrow, as a unit's is. run1726:
+/// gaia's `0/2016` arrow at the person's `3/0` reads `flags 1` on 4462,
+/// where ours had closed it. Made to fail with the building arm's
+/// `punctures` back at `false`.
+#[test]
+fn a_building_s_arrow_into_the_ground_sticks_when_its_piece_punctures() {
+    let fired = |punctures: bool| {
+        let mut s = sim();
+        let (b, sc) = stockade_and_scout(&mut s);
+        s.units[sc].pos = Pos::new(22272 + 8 * 192, 16512);
+        s.buildings[b].near = Some(Obj::Unit(sc));
+        let piece = s.fire_proj(Obj::Building(b));
+        assert!(
+            piece >= combat::FIRST_AMMO_PIECE,
+            "the building has a piece"
+        );
+        if punctures {
+            s.roster.art.casualty_attachments.insert(piece);
+        }
+        let frame = (5 - i64::from(s.buildings[b].index)).rem_euclid(32);
+        s.process_building_combat(b, frame);
+        let p = *s.combat.projectiles.first().expect("it fired");
+        assert_eq!((p.gpiece, p.punctures), (piece, punctures));
+        // Due now, at nothing: `do_damage`'s ground arm.
+        let q = &mut s.combat.projectiles[0];
+        (q.target, q.rolling, q.cur_time) = (None, false, p.total_time - 1);
+        s.process_projectiles(frame + 1);
+        s.combat.projectiles.first().copied()
+    };
+    assert!(
+        fired(false).is_none(),
+        "a piece that does not puncture: closed"
+    );
+    let p = fired(true).expect("a puncturing piece: the spent arrow");
+    assert!(p.spent && p.cur_time == 0, "flags 1, its clock reset");
+}
