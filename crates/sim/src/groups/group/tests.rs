@@ -3946,22 +3946,33 @@ fn stance_skips_a_plane_but_not_a_helicopter() {
 #[test]
 fn a_helicopter_takes_a_group_move_where_a_plane_does_not() {
     // The same `is_plane` split at every action's inner loop
-    // (`group_member_orderable`).
+    // (`group_member_orderable`), on a group the helicopter leads: a
+    // plane leader returns before the loop (item 4481,
+    // `action_move_near@00704990:329`–`345`), so then neither moves.
     let mut s = sim();
     let plane = flier(&mut s, false);
     let heli = flier(&mut s, true);
     let p = spawn(&mut s, 1, plane, Pos::new(0x1000, 0x1000));
     let h = spawn(&mut s, 1, heli, Pos::new(0x1100, 0x1000));
-    let g = group_of(1, &[p, h]);
-    s.group_action_move_to(
-        &g,
-        Pos::new(0x4000, 0x4000),
-        QueuePos::New,
-        true,
-        Angle(0),
-        MoveKind::MoveTo,
-        true,
-    );
+    let move_to = |s: &mut Sim, g: &Group| {
+        s.group_action_move_to(
+            g,
+            Pos::new(0x4000, 0x4000),
+            QueuePos::New,
+            true,
+            Angle(0),
+            MoveKind::MoveTo,
+            true,
+        );
+    };
+    let led_by_plane = group_of(1, &[p, h]);
+    assert_eq!(s.group_find_leader(&led_by_plane), Some(p));
+    move_to(&mut s, &led_by_plane);
+    assert_eq!(s.order_type(p), index::NONE, "a plane leader: no move");
+    assert_eq!(s.order_type(h), index::NONE, "not even the helicopter's");
+    let led_by_heli = group_of(1, &[h, p]);
+    assert_eq!(s.group_find_leader(&led_by_heli), Some(h));
+    move_to(&mut s, &led_by_heli);
     assert_eq!(s.order_type(p), index::NONE, "a plane takes no group move");
     assert_eq!(s.order_type(h), index::MOVE_TO, "a helicopter does");
 }
