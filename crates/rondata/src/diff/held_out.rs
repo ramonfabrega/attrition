@@ -1099,7 +1099,7 @@ mod tests {
     }
 
     /// **Row 100's Jet Fighter fires a missile off the recycler** (item
-    /// 4495, `docs/CHECKSUM.md` §18): on tick 3209 the strafing Jet
+    /// 4495, `docs/CHECKSUM.md` §18.1): on tick 3209 the strafing Jet
     /// Fighter `1/91` (TI 295) fires a guided round on `0/2000`, and
     /// `Ammo::init` lays `calc_from_dir`'s spline into the `Spline`
     /// `Recycler<Spline>::pop` hands it: the nuke's of 2617, which

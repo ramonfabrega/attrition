@@ -2344,7 +2344,7 @@ pub struct Spline {
 }
 
 /// **The six arrays of a `SplineData`, by their `size`** (item 4495,
-/// `docs/CHECKSUM.md` §18): `control_verts` (`+0x64`), `knots` (`+0x80`),
+/// `docs/CHECKSUM.md` §18.1): `control_verts` (`+0x64`), `knots` (`+0x80`),
 /// `spline_knots` (`+0xb8`), `weights` (`+0x9c`), `spline_verts`
 /// (`+0xd4`) and `spline_normals` (`+0xf0`). `Spline::clear@00914410`
 /// zeroes each length and no size, and `Ammo::close@006791a0` hands the

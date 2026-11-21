@@ -26,29 +26,35 @@ fn spline_ranges(path: &Spline) -> Option<Vec<(&'static str, Vec<u8>)>> {
     let one = Single::from_bits(0x3f80_0000);
     let nuke;
     let arm = path.arm();
-    let (ratio, degree, depth, ctl, weights, knots): (i32, u16, u16, &[[Single; 3]], &[Single], &[Single]) =
-        match &arm {
-            SplineArm::Nuke { s, e } => {
-                nuke = Spline::nuke_parts(*s, *e);
-                (
-                    0,
-                    3,
-                    crate::air::MISSILE_FLIGHT as u16,
-                    &nuke.ctl,
-                    &nuke.weights,
-                    &nuke.knots,
-                )
-            }
-            SplineArm::FromDir { ctl, depth } => (
-                0x4080_0000,
-                2,
-                *depth,
-                ctl,
-                &[],
-                &[zero, zero, zero, one, one, one],
-            ),
-            SplineArm::Unwalked => return None,
-        };
+    let (ratio, degree, depth, ctl, weights, knots): (
+        i32,
+        u16,
+        u16,
+        &[[Single; 3]],
+        &[Single],
+        &[Single],
+    ) = match &arm {
+        SplineArm::Nuke { s, e } => {
+            nuke = Spline::nuke_parts(*s, *e);
+            (
+                0,
+                3,
+                crate::air::MISSILE_FLIGHT as u16,
+                &nuke.ctl,
+                &nuke.weights,
+                &nuke.knots,
+            )
+        }
+        SplineArm::FromDir { ctl, depth } => (
+            0x4080_0000,
+            2,
+            *depth,
+            ctl,
+            &[],
+            &[zero, zero, zero, one, one, one],
+        ),
+        SplineArm::Unwalked => return None,
+    };
     let caps = path.caps();
     let n = ctl.len();
     let (normals, length) = path.normals([ctl[n - 2], ctl[n - 1]]);
@@ -84,36 +90,36 @@ fn spline_ranges(path: &Spline) -> Option<Vec<(&'static str, Vec<u8>)>> {
                  name: [&'static str; 5],
                  vs: &[[Single; 3]],
                  cap: u32| {
-            header(
-                out,
-                [name[0], name[1], name[2], name[3]],
-                vs.len(),
-                cap as usize,
-            );
-            for v in vs {
-                out.push((
-                    name[4],
-                    v.iter().flat_map(|c| c.bits().to_le_bytes()).collect(),
-                ));
-            }
-        };
+        header(
+            out,
+            [name[0], name[1], name[2], name[3]],
+            vs.len(),
+            cap as usize,
+        );
+        for v in vs {
+            out.push((
+                name[4],
+                v.iter().flat_map(|c| c.bits().to_le_bytes()).collect(),
+            ));
+        }
+    };
     let floats = |out: &mut Vec<(&'static str, Vec<u8>)>,
                   name: [&'static str; 5],
                   fs: &[Single],
                   cap: u32| {
-            header(
-                out,
-                [name[0], name[1], name[2], name[3]],
-                fs.len(),
-                cap as usize,
-            );
-            if !fs.is_empty() {
-                out.push((
-                    name[4],
-                    fs.iter().flat_map(|c| c.bits().to_le_bytes()).collect(),
-                ));
-            }
-        };
+        header(
+            out,
+            [name[0], name[1], name[2], name[3]],
+            fs.len(),
+            cap as usize,
+        );
+        if !fs.is_empty() {
+            out.push((
+                name[4],
+                fs.iter().flat_map(|c| c.bits().to_le_bytes()).collect(),
+            ));
+        }
+    };
     verts(
         &mut out,
         [
