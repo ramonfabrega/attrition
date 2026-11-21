@@ -433,9 +433,10 @@ impl Sim {
     ///
     /// SEAM: a positive need with a give
     /// of mine (`6c035d`: a coin and a war) is not carried; with nothing
-    /// committed to me, the computer's own proposals (`6c08f4` on: the
-    /// top-scorer arm, read as never the target, then a peace at war and an
-    /// alliance at peace) are not carried; nor the scenario's fixed answers.
+    /// committed to me, the computer's own proposals past the top-scorer
+    /// arm (item 4496 carries that arm; `6c0a3f` on, a peace at war and an
+    /// alliance at peace) are not carried; nor the scenario's fixed
+    /// answers.
     pub(super) fn offers_arm(&mut self, me: usize, t: usize, cleared: bool, rivals: Rivals) {
         let frame = self.frame;
         let aggression = self.ai.ai[me].aggression[t];
@@ -444,7 +445,11 @@ impl Sim {
         }
         let (mp, tp) = (me as Player, t as Player);
         if self.leaders.tribute[t].dip[me].agree != 1 {
-            if self.any_proposals(mp, tp) || aggression != 0 {
+            if self.any_proposals(mp, tp) {
+                return;
+            }
+            // `6c0926`–`6c0a2b`, before `aggression`'s test at `6c0a2e`.
+            if self.top_scorer_alliance(me, t) || aggression != 0 {
                 return;
             }
             // SEAM: the computer's own proposals (`6c0a3f` on).
