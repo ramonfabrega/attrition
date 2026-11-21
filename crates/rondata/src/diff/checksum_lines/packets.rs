@@ -1477,7 +1477,10 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// two ranges each before), and run1359, run1359b and run1359c 13 -> 12:
 /// an AIRDEFENSE-line building finishes with `job_counter` `0x40000000`
 /// (`Wall::activate@0063e4b0:54`).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 947, 1053);
+/// Item 4505: 947 -> 948, units whole on run1304 (`507 9 gather_down` ours
+/// -1, theirs 21 the one range left after item 4511): a gatherer chain is
+/// one link a unit (`Build::add_gatherer@0062f640`).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 948, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
