@@ -349,6 +349,17 @@ pub struct Modifiers {
     /// [`Modifiers::discount`] because the shape is a subtraction rather than a
     /// scale — see [`science_discount`].
     pub science_ahead: i32,
+    /// How many ages the player stands **behind** the most advanced leader
+    /// it is not allied with, capped at 2 — `TypeData::get_cost`'s
+    /// age-behind arm (`006664c3`..`00666683`), which only an age reaches
+    /// (`is_age_type`, vslot `+0x34`, `0x220..0x226`). Two or more behind
+    /// scales by `(50 − d) × 2 / 100`, one behind by `(100 − d) / 100`,
+    /// `d` being `TECH_AGE_BEHIND_KNOWLEDGE_DISCOUNT` on knowledge and
+    /// `TECH_AGE_BEHIND_DISCOUNT` on every other resource; a `d` that would
+    /// take the whole price leaves zero. Right after
+    /// [`Modifiers::science_ahead`], before the final-tech ramp. Zero is
+    /// the identity (item 4513, `docs/COSTS.md`).
+    pub ages_behind: i32,
     /// Non-library technology discount, after Science and before the
     /// British taxation term. Its own truncation (`docs/AI.md` §109).
     pub democracy: i32,
@@ -689,6 +700,7 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     // redirect at the end of `get_cost` carries the discounted number rather
     // than discounting a redirected one.
     cost = science_discount(t, m.science_ahead, cost);
+    cost = age_behind_discount(t, m.ages_behind, r, cost);
 
     if let Some(rs) = m.research {
         // The research arm, in place of the ramp and the military discount.
@@ -1092,6 +1104,33 @@ pub fn pay(
 ///
 /// [`reprice`] is this function's inverse, and the asymmetry between them —
 /// the plus-one, which `reprice` does not have — is recorded there.
+/// `TypeData::get_cost`'s age-behind arm on one resource's price, `behind`
+/// the count [`Modifiers::ages_behind`] carries: the first leader loop
+/// (`006664f5`..`00666548`, `ages + 1 < theirs'`) scales by `(0x32 − d) ×
+/// cost × 2 / 100` when `2d < 100`, else to zero; the second (`ages <
+/// theirs'`) by `(100 − d) × cost / 100` when `d < 100`, else to zero.
+pub fn age_behind_discount(t: &Tuning, behind: i32, r: Resource, cost: i32) -> i32 {
+    if behind <= 0 {
+        return cost;
+    }
+    let d = if r == Resource::Knowledge {
+        t.tech_age_behind_knowledge_discount
+    } else {
+        t.tech_age_behind_discount
+    };
+    if behind >= 2 {
+        if d * 2 < 100 {
+            (0x32 - d) * cost * 2 / 100
+        } else {
+            0
+        }
+    } else if d < 100 {
+        (100 - d) * cost / 100
+    } else {
+        0
+    }
+}
+
 pub const fn science_discount(t: &Tuning, ahead: i32, cost: i32) -> i32 {
     cost - ahead * t.tech_science_discount * cost / 100
 }
