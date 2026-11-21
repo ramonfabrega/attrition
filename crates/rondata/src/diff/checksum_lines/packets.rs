@@ -1472,7 +1472,12 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// run823, run825, run865, run882b and run883b (`reg_gatherers` one range
 /// each before): `reg_xport_peasants` is indexed without a bound, so a
 /// rider bound for a sea region counts in `reg_gatherers`.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 908, 1053);
+/// Item 4483: 908 -> 919, builds whole on run785, run789, run795, run810,
+/// run823, run825, run854, run865, run882b, run883b and run1166 (one or
+/// two ranges each before), and run1359, run1359b and run1359c 13 -> 12:
+/// an AIRDEFENSE-line building finishes with `job_counter` `0x40000000`
+/// (`Wall::activate@0063e4b0:54`).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 919, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -2067,12 +2072,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2247, 2246, 432) -> (2247, 2247, 1), leaders (271, 271, 1) -> (271, 271, 0), world (9262, 9262, 12) -> (9262, 9262, 1).
     // Item 4476, `cavarch_uid` kept past a dropped target: units (6004, 6004, 7) -> (6004, 6004, 6).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9262, 9262, 1) -> (9262, 9262, 0).
+    // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2247, 2247, 1) -> (2247, 2247, 0).
     (
         "run1166",
         3920,
         [
             (6004, 6004, 6),
-            (2247, 2247, 1),
+            (2247, 2247, 0),
             (0, 0, 0),
             (0, 0, 0),
             (10, 10, 0),
@@ -3582,12 +3588,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4441, `mask_me` walks a footprint column by column: world (8007, 8007, 2) -> (8007, 8007, 1).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6464, 6464, 6) -> (6464, 6464, 1).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (8007, 8007, 1) -> (8007, 8007, 0).
+    // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2974, 2974, 13) -> (2974, 2974, 12).
     (
         "run1359",
         5619,
         [
             (6464, 6464, 1),
-            (2974, 2974, 13),
+            (2974, 2974, 12),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3630,12 +3637,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4441, `mask_me` walks a footprint column by column: world (7717, 7717, 2) -> (7717, 7717, 1).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6408, 6408, 6) -> (6408, 6408, 1).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (7717, 7717, 1) -> (7717, 7717, 0).
+    // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2974, 2974, 13) -> (2974, 2974, 12).
     (
         "run1359b",
         5677,
         [
             (6408, 6408, 1),
-            (2974, 2974, 13),
+            (2974, 2974, 12),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3678,12 +3686,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4441, `mask_me` walks a footprint column by column: world (7715, 7715, 2) -> (7715, 7715, 1).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6407, 6407, 6) -> (6407, 6407, 1).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (7715, 7715, 1) -> (7715, 7715, 0).
+    // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2974, 2974, 13) -> (2974, 2974, 12).
     (
         "run1359c",
         5678,
         [
             (6407, 6407, 1),
-            (2974, 2974, 13),
+            (2974, 2974, 12),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4862,12 +4871,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4491, the strafe's ranges walked: units (4969, 4945, 4289) -> (4969, 4969, 0).
     // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
     // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (1731, 1731, 1) -> (1731, 1731, 0).
     (
         "run785",
         2178,
         [
             (4969, 4969, 0),
-            (1731, 1731, 1),
+            (1731, 1731, 0),
             (0, 0, 0),
             (0, 0, 0),
             (28, 28, 0),
@@ -4909,12 +4919,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4491, the strafe's ranges walked: units (5889, 5865, 5207) -> (5889, 5889, 0).
     // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
     // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2157, 2157, 1) -> (2157, 2157, 0).
     (
         "run789",
         2799,
         [
             (5889, 5889, 0),
-            (2157, 2157, 1),
+            (2157, 2157, 0),
             (0, 0, 0),
             (281, 281, 0),
             (0, 0, 0),
@@ -4955,12 +4966,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4491, the strafe's ranges walked: units (5860, 5836, 5145) -> (5860, 5860, 0).
     // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
     // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2059, 2059, 1) -> (2059, 2059, 0).
     (
         "run795",
         2681,
         [
             (5860, 5860, 0),
-            (2059, 2059, 1),
+            (2059, 2059, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -5008,12 +5020,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4495, a guided round walks calc_from_dir's spline in the recycled Spline's sizes: ammo (156, 0, 156) -> (156, 156, 0).
     // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
     // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2384, 2384, 2) -> (2384, 2384, 0).
     (
         "run810",
         3631,
         [
             (9526, 9526, 30),
-            (2384, 2384, 2),
+            (2384, 2384, 0),
             (0, 0, 0),
             (156, 156, 0),
             (0, 0, 0),
@@ -5058,12 +5071,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9552, 9552, 1) -> (9552, 9552, 0).
     // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
     // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2473, 2473, 2) -> (2473, 2473, 0).
     (
         "run823",
         4238,
         [
             (9339, 9339, 35),
-            (2473, 2473, 2),
+            (2473, 2473, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -5107,12 +5121,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9560, 9560, 1) -> (9560, 9560, 0).
     // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
     // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2473, 2473, 2) -> (2473, 2473, 0).
     (
         "run825",
         4204,
         [
             (9362, 9362, 35),
-            (2473, 2473, 2),
+            (2473, 2473, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -5220,12 +5235,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // (`build_masks` `0x2000`): builds (2095, 2095, 5) -> (2095, 2095, 1).
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): groups (640, 640, 1) -> (640, 640, 0).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9344, 9344, 1) -> (9344, 9344, 0).
+    // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2095, 2095, 1) -> (2095, 2095, 0).
     (
         "run854",
         3301,
         [
             (5770, 5770, 0),
-            (2095, 2095, 1),
+            (2095, 2095, 0),
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -5272,12 +5288,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4478, the nuke strikes its units in find_units' order: deaths (28, 28, 7) -> (28, 28, 0).
     // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
     // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2288, 2288, 2) -> (2288, 2288, 0).
     (
         "run865",
         4859,
         [
             (10342, 10342, 0),
-            (2288, 2288, 2),
+            (2288, 2288, 0),
             (0, 0, 0),
             (0, 0, 0),
             (28, 28, 0),
@@ -5352,12 +5369,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4497, a bomb's round carries its pool slot's last accuracy: ammo (15, 15, 5) -> (15, 15, 0).
     // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
     // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2737, 2737, 2) -> (2737, 2737, 0).
     (
         "run882b",
         6808,
         [
             (11125, 11125, 76),
-            (2737, 2737, 2),
+            (2737, 2737, 0),
             (0, 0, 0),
             (15, 15, 0),
             (0, 0, 0),
@@ -5410,12 +5428,13 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4497, a bomb's round carries its pool slot's last accuracy: ammo (36, 36, 5) -> (36, 36, 0).
     // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
     // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
+    // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2737, 2737, 2) -> (2737, 2737, 0).
     (
         "run883b",
         6821,
         [
             (11180, 11180, 76),
-            (2737, 2737, 2),
+            (2737, 2737, 0),
             (0, 0, 0),
             (36, 36, 0),
             (0, 0, 0),

@@ -516,13 +516,15 @@ pub const MAPGEN: Mapgen = Mapgen {
 // call in `cities/city.rs`'s `activate`; its body is `economy/holdings.rs`' `activate_enhancer_byte`.
 // Item 4455: `largest` 3,710 -> 3,711 (+1), a named rise: `build_masks & 0x2000`
 // (`Building::no_builder`) needs its `no_builder: false` in `cities/city.rs`'s building literal.
+// Item 4483: `largest` 3,710 -> 3,711 (+1), a named rise: `Wall::activate`'s AIRDEFENSE counter needs
+// one call in `cities/city.rs`'s `activate`; its body is `economy/holdings.rs`' `activate_air_defense_counter`.
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 11),
     ("test-tails", 0),
     ("sweep-lines", 17_288),
     ("names", 15),
     ("fields", 21),
-    ("largest", 3_710),
+    ("largest", 3_711),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before

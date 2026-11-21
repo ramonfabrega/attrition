@@ -39903,6 +39903,40 @@ Files in place, `~/ron-golden/run1738/map-18/`: `gamelog_p.txt`, 2,452 bytes, SH
 **What it holds**: `diff::held_out::tests::row_90_s_barge_turns_with_the_snap_on_run1738_s_ranges` (every units and
 guys range on 4021).
 
+## run1739 — parity held out, second battery, row 10's file to 6000 with the checksum and ranges hooks, all twelve lines kept (2026-11-21, item 4483, `att-4483`)
+
+`docs/RECGAME.md` §11; DECISIONS 145 §2. **What the disk could not answer**: run1730 holds sums only, so builds'
+parting on row 10 (state 537, never agreeing again) named no leaf. The take is run1738's line with the run directory
+and the recording changed: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1739 --recording ~/ron-golden/recordings/item4462-row010-6000.rcx --end-frame 6000 --allow-early-end
+--cover cover=1 --log-window 0 31 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS
+--tracer-def RON_RANGES --tracer-def RNG_MASK=0xfffu`, waited on with `waitrun.sh` in the background. `df -g ~` read
+64 GB free before it and 64 after (the archive's compression ran meanwhile).
+- **The run**: pool lane 1, launched 06:05:25 −05:00, exited 06:13:01: **456.8 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 12345 observed, map 18. Players:
+  tribe 4 (flags 7) and tribe 19 (flags 1). Five settings restored. DLL `554f5727…`, defines `-DRON_AUTOSTART
+  -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0xfffu`. The recording's SHA-256 is run1730's
+  (`dbc4f27d…`). The lane read `free` before the launch.
+- **The record**, `~/ron-golden/run1739/map-18/rontrace.ranges`, 5,515,820,620 bytes, SHA-256
+  `a6c3f5e97fd125f24a1487abdb2685aeb1a1ec6c1df0b07e40cc80966d6bfaec`: 6,001 sets on trace frames −1 to 5999,
+  120,049,067 ranges, 3,594,450,291 bytes, none over (`ranges.py summary`).
+- **Scored** (`score_recording … ~/ron-golden/run1739/map-18`, on `40096abd2`): the sums are run1730's moved column,
+  six lines whole; builds 537, first 537: **builds range 746, record 2012, `job_counter..demolition`, byte 3:
+  `job_counter` ours 0, theirs 1073741824**. The building is the computer's SAM `1/2012` (`TypeIndex` `0x20d`,
+  range 741), finishing on that tick (`flags` 0x43 → 0x47, `ever_seen_completed` 0 → 2); theirs' `job_counter` reads
+  `0x40000000` on every later frame sliced (538, 1000, 2000, 3000, 4500, 5999, and a second SAM's too). The next
+  partings: leaders 1576 (range 129, record 1, byte 4440: `reg_gatherers[1]` ours 0, theirs 2), units 1747 (range
+  1192, record 37, `inside_down` ours −1, theirs 38), world 2365, guys 4880, ammo 5178.
+- **Re-scored by item 4483** (`Wall::activate`'s AIRDEFENSE-line counter): builds 6,001 of 6,001; seven lines whole.
+- Filed **in place**, as run1716 is: a held-out take stays out of the corpora.
+
+Files in place, `~/ron-golden/run1739/map-18/`: `gamelog_p.txt`, 2,442 bytes, SHA-256
+`51dafc7582c1a42582faeac6222b6a1a90831c225a867332c961ecefe54a2d72`; `rontrace.log`, 261,157,472 bytes, SHA-256
+`04ef89217a8f6550c2bc13a9cd6f3966c62cfb3070bff4a7a3d251fa2fc1ad5e`.
+
+**What it holds**: `diff::held_out::tests::row_10_s_sam_finishes_with_the_air_defense_counter_on_run1739_s_ranges`
+(every builds range on 536 and 537).
+
 ## run1743 — parity held out, third battery, row 5: Great Lakes, difficulty 4 recorded idle by the client, played to 6000 (2026-11-21, item 4487, `att-4487`)
 
 `docs/RECGAME.md` §11.1; DECISIONS 147 §2. **What the disk could not answer**: no take of this lobby's game under a

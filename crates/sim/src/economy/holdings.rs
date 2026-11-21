@@ -305,6 +305,26 @@ impl Sim {
         self.buildings[b].alive && self.buildings[b].active
     }
 
+    /// **`Wall::activate@0063e4b0:54`, the AIRDEFENSE counter.** After both
+    /// counters are zeroed (`:45`, `:46`), `63e54d`–`63e57f` push `0` and
+    /// `0x20b` and ask the type's `is` at `+0x60`: a building of the
+    /// AIRDEFENSE line (AIRDEFENSE, RADAR, SAM) keeps `job_counter` at
+    /// `0x40000000` from the tick it finishes. run1739's SAM `1/2012` reads
+    /// it on 537 and for the rest of the game (item 4483, `docs/RECGAME.md`
+    /// §11). Called from `Sim::activate` after its own zeroing.
+    pub(crate) fn activate_air_defense_counter(&mut self, b: usize) {
+        let Some(ty) = self.buildings[b].ty else {
+            return;
+        };
+        if self.tables.build_types[ty].tree.is_some_and(|bt| {
+            self.tables
+                .tech_tree
+                .is(bt, crate::air::AIRDEFENSE as usize, false)
+        }) {
+            self.buildings[b].job_counter = 0x4000_0000;
+        }
+    }
+
     /// **`Build::activate@00623e20`'s enhancer bytes** (item 4450): a
     /// granary or lumber mill finished inside a city writes that city's
     /// byte at once, `GRANARY_BONUS` at `granary_level` into `+0x56`

@@ -1044,6 +1044,66 @@ mod tests {
         assert_eq!(&theirs[498].bytes[20..24], &(-609_026_048i32).to_le_bytes());
     }
 
+    /// **Row 10's SAM finishes with `job_counter` `0x40000000`** (item 4483,
+    /// `docs/RECGAME.md` §11): run1739, the ranges take of run1730's file.
+    /// On 537 the computer's SAM `1/2012` (`TypeIndex` `0x20d`, builds
+    /// range 746 is its `WallData` 30) finishes, and `Wall::activate@0063e4b0`
+    /// zeroes both counters, then asks the type `is(0x20b, 0)` (`63e54d`–
+    /// `63e57f`, AIRDEFENSE's line) and sets `job_counter` to `0x40000000`,
+    /// which no later frame of the take changes. Every builds range on 536
+    /// and 537, ours against theirs, byte for byte: red on the tree before
+    /// the fix at range 746, `job_counter` ours 0, theirs 1073741824.
+    #[test]
+    fn row_10_s_sam_finishes_with_the_air_defense_counter_on_run1739_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 0) else {
+            eprintln!("skipping: row 10's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1739/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1739's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 10's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [536i64, 537] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = crate::checksum::state::ranges(&built.sim, &look, &tribes)[1]
+                .clone()
+                .expect("the builds line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "builds ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "builds range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // The SAM by name: its type local (range 741) and its
+            // `job_counter`, the first word of `WallData`'s 30 (range 746).
+            assert_eq!(&theirs[741].bytes[..], &0x20di32.to_le_bytes());
+            let want: i32 = if state == 537 { 0x4000_0000 } else { 27_900 };
+            assert_eq!(&theirs[746].bytes[0..4], &want.to_le_bytes(), "{state}");
+        }
+    }
+
     /// **Row 120's MLRS reads `cavarch_o` −2 in the units line** (item
     /// 4443, `docs/RECGAME.md` §10.3): on 5864 the computer's fire-on-the-move
     /// MLRS `1/35` (type 273) steps an `ExploreTo` with an empty search after
@@ -2343,14 +2403,17 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // bound, so a rider bound for a sea region counts in
         // `reg_gatherers`): leaders
         // 3,976 -> 5,801, first 1576 -> 3976. No ranges take of this row.
+        // Moved by item 4483 (an AIRDEFENSE-line building finishes with
+        // `job_counter` `0x40000000`, `Wall::activate@0063e4b0:54`): builds
+        // 537 -> 6,001, whole. run1739, the ranges take: on 537 builds range
+        // 746, the SAM `1/2012`'s `job_counter`, ours 0, theirs 1073741824.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3914, 537, 6001, 5962, 6001, 6001, 5997, 5801, 6001, 6001, 6001, 5995,
+                3914, 6001, 6001, 5962, 6001, 6001, 5997, 5801, 6001, 6001, 6001, 5995,
             ],
             first: &[
                 ("units", (1747, Some(2268899682), 1685366186)),
-                ("builds", (537, Some(1374294361), 1810502041)),
                 ("ammo", (5178, None, 1427640977)),
                 ("guys", (4880, Some(3110518234), 2759048231)),
                 ("leaders", (3976, Some(2201651438), 3962276079)),
@@ -2529,14 +2592,17 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // bound, so a rider bound for a sea region counts in
         // `reg_gatherers`): leaders
         // 4,995 -> 5,995, first 3176 -> 5344. No ranges take of this row.
+        // Moved by item 4483 (an AIRDEFENSE-line building finishes with
+        // `job_counter` `0x40000000`): builds 4,221 -> 5,577, first 4221 ->
+        // 5577. No ranges take of this row.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                2703, 4221, 6001, 5826, 6001, 6001, 6001, 5995, 6001, 6001, 6001, 5379,
+                2703, 5577, 6001, 5826, 6001, 6001, 6001, 5995, 6001, 6001, 6001, 5379,
             ],
             first: &[
                 ("units", (2184, Some(1779962534), 330632884)),
-                ("builds", (4221, Some(3943548441), 1202439769)),
+                ("builds", (5577, Some(3250328791), 1226052951)),
                 ("ammo", (4104, Some(1068803573), 2259329699)),
                 ("leaders", (5344, Some(3455285082), 543455082)),
                 ("world", (3809, Some(2182316411), 2894561759)),
@@ -2611,14 +2677,16 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // bound, so a rider bound for a sea region counts in
         // `reg_gatherers`): leaders
         // 1,976 -> 4,721, first 1376 -> 4573.
+        // Moved by item 4483 (an AIRDEFENSE-line building finishes with
+        // `job_counter` `0x40000000`): builds 553 -> 4,731, whole. No
+        // ranges take of this row; row 10's run1739 names the leaf.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                3034, 553, 4731, 4731, 4731, 4731, 4731, 4721, 4731, 4731, 4731, 4731,
+                3034, 4731, 4731, 4731, 4731, 4731, 4731, 4721, 4731, 4731, 4731, 4731,
             ],
             first: &[
                 ("units", (2354, Some(1655861561), 1211002097)),
-                ("builds", (553, Some(2297078769), 1047897137)),
                 ("leaders", (4573, Some(266446178), 1003136370)),
             ],
             over: None,
@@ -2801,14 +2869,16 @@ pub(crate) const SCORES_THIRD: [Option<FirstScore>; 8] = [
         // `reg_gatherers[1]` ours 0, theirs 1, who=1's rider bound for sea
         // region 65): leaders 4,656 -> 5,056, first 1976 -> 3583; the
         // row's first parting 1976 -> 2983 (units).
+        // Moved by item 4483 (an AIRDEFENSE-line building finishes with
+        // `job_counter` `0x40000000`): builds 5,162 -> 5,235, whole. No
+        // ranges take of this row.
         moved: Some(Score {
             states: 5235,
             agreed: [
-                2983, 5162, 5235, 5235, 5235, 5217, 5235, 5056, 5235, 5235, 5235, 5235,
+                2983, 5235, 5235, 5235, 5235, 5217, 5235, 5056, 5235, 5235, 5235, 5235,
             ],
             first: &[
                 ("units", (2983, Some(794628535), 1924338104)),
-                ("builds", (5162, Some(2385371548), 2688344540)),
                 ("groups", (4355, Some(2731263697), 520406832)),
                 ("leaders", (3583, Some(924078995), 1189499805)),
             ],
