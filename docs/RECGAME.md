@@ -1216,15 +1216,14 @@ since no take's value of it ever moves.
 who=1's `1/43` (TI 104) steps (632, 813) → (633, 814) inside a freed
 cell, and `CollCheck::move_unit@00682ad0`'s one-block form returns on the
 null block, where this crate allocated it (`docs/COLLISION.md` §2.4).
-Rows 30 and 110's world partings (1662, 3809) are not this: their sums
-did not move.
 
 **Row 10's leaders are whole** (item 4516, 5,801 → 6,001): a casting
 citizen is an `xport` peasant, `docs/AI.md` §58.7.
 
 **Row 10's units and guys are whole** (item 4522): two Attack
 Helicopters set apart keep `dest_angle`, `docs/PRODUCTION.md`, "The
-push's angle". Ammo 5178 is the row's last parting.
+push's angle". **Row 10 is whole** (item 4523, ammo 5,962 → 6,001): a
+falling aircraft's round, `docs/CHECKSUM.md` §18.4.
 
 **Row 130's computer bomber searches round itself** (item 4508; units
 4,459 → 4,574 merged with 4514, first 3411 → 3515): run1754, units range 4078 on 3411,
