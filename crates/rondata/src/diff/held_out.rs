@@ -1057,6 +1057,64 @@ mod tests {
         assert_eq!(&theirs[24..28], &11i32.to_le_bytes(), "theirs' o");
     }
 
+    /// PROBE 4491 (reverted whole): units record 91 on both sides.
+    #[test]
+    fn probe_4491_units() {
+        if std::env::var("RON_PROBE_4491").is_err() {
+            return;
+        }
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIRST, 5) else { panic!("rec") };
+        let ranges = crate::testenv::experiment(
+            &home.join("ron-golden/run1721/map-14"),
+            "rontrace.ranges",
+        )
+        .expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("the game's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let lo: i64 = std::env::var("RON_PROBE_LO").map(|v| v.parse().unwrap()).unwrap_or(2756);
+        let hi: i64 = std::env::var("RON_PROBE_HI").map(|v| v.parse().unwrap()).unwrap_or(2758);
+        let who: u8 = std::env::var("RON_PROBE_WHO").map(|v| v.parse().unwrap()).unwrap_or(1);
+        let obj: u32 = std::env::var("RON_PROBE_O").map(|v| v.parse().unwrap()).unwrap_or(91);
+        let hex = |b: &[u8]| b.iter().map(|x| format!("{x:02x}")).collect::<String>();
+        while built.sim.frame < hi {
+            crate::diff::harness::debug_watch(&built, built.sim.frame);
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            let state = built.sim.frame;
+            if state < lo {
+                continue;
+            }
+            let Some(set) = record.first_of(state - 1).cloned() else {
+                eprintln!("P4491 {state}: no set");
+                continue;
+            };
+            let theirs: Vec<_> = record
+                .ranges(&set)
+                .expect("ranges")
+                .into_iter()
+                .filter(|r| r.line == 0)
+                .collect();
+            let ours = built.sim.checksum_units();
+            eprintln!("P4491 {state}: theirs {} ours {}", theirs.len(), ours.ranges.len());
+            let first = ours.ranges.iter().zip(&theirs).position(|(a, b)| a.bytes != b.bytes);
+            eprintln!("P4491 {state}: first unequal {first:?}");
+            let idx: Vec<usize> = ours.ranges.iter().enumerate().filter(|(_, r)| r.record as i64 == obj as i64 || first.is_some_and(|f| r.record == ours.ranges[f].record)).map(|(i, _)| i).collect();
+            let (a, b) = (idx.first().copied().unwrap_or(0), idx.last().copied().unwrap_or(0));
+            for i in a.saturating_sub(1)..(b + 8).min(ours.ranges.len().max(theirs.len())) {
+                let o = ours.ranges.get(i).map(|r| format!("rec {} {} {}", r.record, r.field, hex(&r.bytes))).unwrap_or_default();
+                let t = theirs.get(i).map(|r| hex(&r.bytes)).unwrap_or_default();
+                let m = if ours.ranges.get(i).map(|r| &r.bytes) == theirs.get(i).map(|r| &r.bytes) { " " } else { "*" };
+                eprintln!("P4491 {state} {m} {i}: O {o} | T {t}");
+            }
+            let _ = who;
+        }
+    }
+
     /// Game `k`'s units line on `state`, ours against the ranges take
     /// `run`'s, every range byte for byte; returns theirs' range `range`.
     fn units_ranges_agree(k: usize, run: &str, state: i64, range: usize) -> Option<Vec<u8>> {
