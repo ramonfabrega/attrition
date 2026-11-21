@@ -1652,12 +1652,10 @@ impl Sim {
         // the boat's heading is a reversal, so the original's flag is 1
         // from there (run841's `GROUPDATA` reads 1 on 4482) and ours was
         // 0 until the formation on 4602 came out mirrored.
-        let des_angle = self.units[r].movement.des_angle;
         let turned = crate::groups::group::reversing(crate::movement::Angle(
             angle.0.wrapping_sub(self.units[r].movement.heading.0),
         ));
         self.units[r].movement.set_facing(angle);
-        self.units[r].movement.des_angle = des_angle;
         if turned {
             self.toggle_leader_facing(r);
         }

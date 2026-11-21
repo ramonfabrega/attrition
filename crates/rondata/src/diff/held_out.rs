@@ -1113,6 +1113,88 @@ mod tests {
         );
     }
 
+    /// **Row 130's Attack Helicopter keeps its order's `dest_angle` when
+    /// it is set apart** (item 4520, `docs/RECGAME.md` §11): who=1's
+    /// `1/184` (TI 311, air), on an attack-move whose angle is
+    /// −424345600, is put 48 from its twin by `Unit::work`'s helicopter
+    /// tail on 3515. `Unit::set_new_location(·, ·, 1, 1)` snaps guy 0
+    /// through `Guy::set_angle`, which writes no `UnitData +0x58`; ours
+    /// had written the heading −406650880 there (units range 5857,
+    /// `collide_frame..play` bytes 16..20). Every units range on 3514 and
+    /// 3515 against run1754's record.
+    #[test]
+    fn row_130_s_helicopter_set_apart_keeps_its_dest_angle_on_run1754_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 6) else {
+            eprintln!("skipping: row 130's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1754/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1754's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 130's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [3514, 3515] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_units();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+        // On 3515, by name: the helicopter, its attack-move, both values.
+        let h = (0..built.sim.units.len())
+            .find(|&x| {
+                let u = &built.sim.units[x];
+                u.alive() && u.owner == 1 && u.index == 184
+            })
+            .expect("1/184");
+        assert_eq!(
+            built.sim.units[h].type_index, 311,
+            "1/184 is the Attack Helicopter"
+        );
+        let m = &built.sim.units[h].movement;
+        assert_eq!(m.des_angle, sim::movement::Angle(-424_345_600));
+        assert_eq!(
+            m.heading,
+            sim::movement::Angle(-406_650_880),
+            "the heading it was not given"
+        );
+        let ours = built.sim.checksum_units();
+        assert_eq!(
+            (ours.ranges[5857].record, ours.ranges[5857].field),
+            (184, "collide_frame..play")
+        );
+        let theirs = record
+            .ranges(&record.first_of(3514).expect("set").clone())
+            .expect("ranges");
+        let units: Vec<_> = theirs.iter().filter(|r| r.line == 0).collect();
+        assert_eq!(
+            &units[5857].bytes[16..20],
+            &(-424_345_600i32).to_le_bytes(),
+            "theirs' 1/184 dest_angle"
+        );
+    }
+
     /// **Row 105's rider bound for the sea is a gatherer in
     /// `reg_gatherers[1]`** (item 4499, `docs/RECGAME.md` §11.1): run1752,
     /// the ranges take of run1748's file, holds every leaders range on

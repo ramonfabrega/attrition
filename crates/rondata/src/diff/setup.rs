@@ -1066,10 +1066,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             // `sim::gaia::herd_create_view`'s `set_angle` does, from
             // `Unit::init`'s `0x55555555`.
             if let Some(a) = u.angle.or_else(|| u.guys.first().and_then(|g| g.angle)) {
-                let m = &mut unit.movement;
-                let dest = m.des_angle;
-                m.set_facing(sim::movement::Angle(a as i32));
-                m.des_angle = dest;
+                unit.movement.set_facing(sim::movement::Angle(a as i32));
             }
         }
         // `UnitData::stance` (`sim::units::stance`). A unit stood up from a dump
