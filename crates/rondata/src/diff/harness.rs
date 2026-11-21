@@ -1062,13 +1062,11 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             }
         };
         // `BuildData::gather_down` is the head of the chain of registered
-        // gatherers, by object number; this crate keeps the chain newest
-        // first, so the head is the front of the vector.
+        // gatherers, by object number (`Building::gather_head`).
         if let Some(theirs) = b.gather_down {
             let head = ours
-                .gatherers
-                .first()
-                .map_or(-1, |&u| i64::from(built.sim.units[u].index));
+                .gather_head
+                .map_or(-1, |u| i64::from(built.sim.units[u].index));
             compared::note("BuildDump", &["gather_down"]);
             wrong("gather_down", -1, head, theirs);
         }
@@ -2104,6 +2102,14 @@ fn widen_block_rows(
                 i64::from(un.path_recursion),
                 them.path_recursion,
             ),
+            // Item 4505: the unit's own link down its gatherer chain, by
+            // object number (`docs/ORDERS.md` §6.1).
+            (
+                "gather_down".into(),
+                un.gather_down
+                    .map_or(-1, |n| i64::from(built.sim.units[n].index)),
+                them.gather_down,
+            ),
             ("idle".into(), i64::from(un.idle), them.idle),
             ("stance".into(), i64::from(un.stance), them.stance),
             // **`myhits` is the max, not what is left.** The
@@ -2562,6 +2568,7 @@ fn widened_field(label: &str) -> Option<(&'static str, &'static str)> {
         "orders_y" => ("UnitDump", "orders_y"),
         "tolerance" => ("UnitDump", "tolerance"),
         "path_recursion" => ("UnitDump", "path_recursion"),
+        "gather_down" => ("UnitDump", "gather_down"),
         "idle" => ("UnitDump", "idle"),
         "stance" => ("UnitDump", "stance"),
         "myhits" => ("UnitDump", "myhits"),

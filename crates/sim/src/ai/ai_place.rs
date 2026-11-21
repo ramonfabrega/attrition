@@ -391,7 +391,7 @@ impl Sim {
                     continue;
                 }
             } else if self.world.owner(c).player() != Some(who) {
-                self.ai.ai[who as usize].oil_patches.remove(i);
+                self.ai.ai[who as usize].remove_oil_patch(i);
                 continue;
             }
             let mask = self

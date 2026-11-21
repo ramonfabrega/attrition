@@ -31,10 +31,10 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 Blind: never 336 · residue 336 · open 0
 Rubric: ported 738 · replaced by design 331 · open 571 of 3611 · lockstep bytes 78.1 % · ages held 8 of 8 · unit types seen 296 of 302
 Held-out: 8 of 9 whole · shortest 6147
-Parity: 6 of 7 whole · the sample parts first on units 4248 of 21044 · draws 5273
+Parity: 6 of 7 whole · the sample parts first on ammo 4462 of 21044 · draws 5273
 Parity held out: 8 of 8 whole · 8 taken · lines 64 of 96 as found, 96 now · first partings 2990 3694 711 969 0 134 2694 0 as found, whole whole whole whole whole whole whole whole now · reach 27 % of states as found, 100 % now
-Parity held out, second: 4 of 8 whole · 8 taken · lines 65 of 96 as found, 82 now · first partings 537 1662 3352 5054 4021 1608 553 whole as found, 2365 1662 whole whole whole 3809 3411 whole now · reach 53 % of states as found, 76 % now
-Parity held out, third: 7 of 8 whole · 8 taken · lines 90 of 96 as found, 94 now · first partings 4805 whole whole whole 3831 1976 whole whole as found, whole whole whole whole whole 3583 whole whole now · reach 88 % of states as found, 96 % now
+Parity held out, second: 4 of 8 whole · 8 taken · lines 65 of 96 as found, 83 now · first partings 537 1662 3352 5054 4021 1608 553 whole as found, 3771 1662 whole whole whole 3809 3411 whole now · reach 53 % of states as found, 79 % now
+Parity held out, third: 8 of 8 whole · 8 taken · lines 90 of 96 as found, 96 now · first partings 4805 whole whole whole 3831 1976 whole whole as found, whole whole whole whole whole whole whole whole now · reach 88 % of states as found, 100 % now
 Structure: flat 11 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 21 · largest 3711
 Renderer: K 59 of M 60 · frames 35 of 35 · pieces 1465 of 1478 · resolved 1,237,711 of 1,237,726 objects over 110 lobbies
 Clock: ceilings on GreatLakes lobby, 600 frames off-screen from frame 0 · frame zero 1.5 s · p99 20 ms · slowest 400 ms (frame 1, first sight) · peak 320 MiB
@@ -42,7 +42,7 @@ Start: 161 of 161 lobbies · GreatLakes walked w24000 of 24,000
 Lobby: the page sets 161 of 161 lobbies · starts 161 of 161, walked 600 frames
 Hud: buttons mint the clicked file byte for byte, 2 of 2 keyed orders · the transport press 4 of 4 (4357) · the panel equals run1568's dump, 628 of 628 values · the bar equals the LEADERDATA record, 57,420 of 57,420 values · the clock reads the photographs' time, 3 of 3, and Game::tick on 109 of 109 packets · a wounded unit's panel equals run1571's dump, 840 of 840 values · the HUD draws the panels, 103 of 103 buildings and 36 of 36 citizens' pages, 2,711 of 2,711 buttons, paged as theirs, 468 of 468 states, the idle arms held on 3 packets, the standard panel 398 of 398 buttons, the picks 24 of 24 (4334 to 4349)
 Recording: 50 of 50 round-tripped · the original plays ours: GreatLakes 24,000 of 24,000 frames in lockstep (run1560) · with a person's orders (move_to, queue_up, build): 24,000 of 24,000 frames in lockstep, 299 records whole, each order's effect equal on both sides (run1561, run1561a) · right presses: 300 of 300 frames, each effect equal (run1568) · a box: 300 of 300 (run1569) · an attack: 6,900 of 6,900 frames, 210 records whole, the blow's hits equal (run1571) · a follow: 6,900 of 6,900 (run1573) · a gather point: 7,000 of 7,000 frames, 300 records whole (run1598) · a chat: 7,000 of 7,000 (run1599) · a pause: 7,000 of 7,000 draws, 300 of 300 records whole (run1601) · sell and buy: 7,000 of 7,000 draws, 300 of 300 records whole (run1604) · a city's gather: 7,000 of 7,000, 300 of 300 (run1605) · an unqueue: 7,000 of 7,000, 300 of 300, the capital's queue equal (run1606) · a repeated group: 7,000 of 7,000, 300 of 300 (run1607) · a city's rename: 7,000 of 7,000, 300 of 300 (run1609) · a hot key: 7,000 of 7,000, 300 of 300, slot 0's group 1 equal before and after (run1610, run1611) · a garrison: draws 7,000 of 7,000, the Citizen inside `0/2000` on 6767 on both sides, 300 of 300 records (run1613; 4277) · a buildmask: draws 7,000 of 7,000, the capital's mask and re-queue equal, 300 of 300 records (run1614; 4277) · a come_out: 7,000 of 7,000 frames, 300 of 300 records, the Citizen's exit equal on 6781 (run1616) · a stance: 7,000 of 7,000, 300 of 300 (run1617) · the console's ai off: 7,000 of 7,000, 300 of 300, slot 1's Citizens' retarget equal on 6982 (run1618) · a disband: draws 7,000 of 7,000, 300 of 300 records, the corpse equal (run1623) · an auto-explore: draws 7,500 of 7,500, 700 of 700 records whole, the Scout's path equal from 6819 (run1627) · the picks (follow, gather, attack): 7,500 of 7,500, 700 of 700, each effect equal (run1656) · the picks' other arms (the Move pick's ground order, the guard, the ground `ATTACK_TO`, `BUILD_AT` on a Farm site): 7,500 of 7,500, 700 of 700, 40 of 40 effects (run1663) · a minted `set_transport`: 7,500 of 7,500, 700 of 700, no effect at level 0 on both sides (run1668) · a repair after an attack: 8,500 of 8,500, each effect equal (run1679)
-Checksum: instrument 15 of 15 lines (run1562 f91) · state 9 of 12 lines, 425,499 of 425,499 bytes · packets 107 of 122 · lines 947 of 1,053
+Checksum: instrument 15 of 15 lines (run1562 f91) · state 9 of 12 lines, 425,499 of 425,499 bytes · packets 107 of 122 · lines 948 of 1,053
 
 **Opener: continue the tranche (`commander`, Opus 5.5)** — check the gate log the handoff's pass names (`gate-pass-1121.log`) ends `gate exit 0` and HEAD = origin/main; cut the four seats from the lanes line under "The queue"; a row's take uses the arguments `score_recording` prints (DECISIONS 148 §4), and a booking on the sample writes `Parity:` with its draw word (§5).
 
@@ -52,34 +52,26 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3): four seats out: the chain's builder on 4504 (second, row 10 from world 2365), `lane-4512` (third, row 105 from leaders 3583), `lane-4510` (the fourth battery), `lane-4505` (the sample, ranges to 4500, run1726), each Opus 5.5; 4484 landed (run1723, row 40's leaf on 2487: the squad 1/16 to 1/18 boarding 1/70, `inside_down` ours −1 theirs 17, the passenger chain 4511 is building; no fix, no re-pin) and 4507 landed (row 5's Slinger bays re-fit, ammo whole, the third battery 7 of 8) and its seat took 4510; 4511 landed (row 105's passengers in order of entry: rows 105 and 40 whole, the first battery 8 of 8) and its seat took 4512, the chain's 4504; 4502 landed (row 105's CEO bit, units first 2983 → 3359) and its seat took 4511; 4506 landed (the dust, `RUN1559B_3279_TANKS_HAZE` 1 → 4 of 4, parked 4506a and 4506b) and its seat took 4507. run1723, run1726 and run1753 are taken; 4510's recordings have the game lane; every later take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4508 (second, row 130), 4509 (second, row 30, after 4504's world leaf), 4485 (second, row 110). 4503 (the sample's draw word) follows 4505 in the sample's seat.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3): four seats out: the chain's builder on 4514 (second, row 10 from units 3771), `lane-4508` (second, row 130, run1754), `lane-4510` (the fourth battery), `lane-4515` (the sample from ammo 4462), each Opus 5.5; 4484 landed (run1723, row 40's leaf on 2487: the squad 1/16 to 1/18 boarding 1/70, `inside_down` ours −1 theirs 17, the passenger chain 4511 is building; no fix, no re-pin) and 4513 landed (the sample's age-behind cost, builds and leaders 4321 → 5293 and 5256) and its seat took 4515; 4504 landed (row 10's world whole: the one-block collision move returns on a freed cell) and the chain took 4514; 4512 landed (row 105's leaders and groups, the third battery 8 of 8) and its seat took 4508; 4505 landed (the sample's gatherer chain, units 4248 → 5273) and its seat took 4513; 4507 landed (row 5's Slinger bays re-fit, ammo whole, the third battery 7 of 8) and its seat took 4510; 4511 landed (row 105's passengers in order of entry: rows 105 and 40 whole, the first battery 8 of 8) and its seat took 4512, the chain's 4504; 4502 landed (row 105's CEO bit, units first 2983 → 3359) and its seat took 4511; 4506 landed (the dust, `RUN1559B_3279_TANKS_HAZE` 1 → 4 of 4, parked 4506a and 4506b) and its seat took 4507. run1723, run1726 and run1753 are taken; 4510's recordings have the game lane, then 4508's run1754; every later take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4509 (second, row 30, after 4504's world leaf), 4485 (second, row 110). 4503 (the sample's draw word) follows 4515 in the sample's seat.
 
-4512. **Parity held out, third: row 105 from leaders 3583, then groups 4355, on run1752's disk** (a rules item, whole; a parity seat's;
-`docs/RECGAME.md` §11.1). 4511 linked a host's passengers in order of entry (`inside_down` ours −1 theirs 128 on 3359, range 3707,
-record 127, Freighter 1/135): row 105 units 3,359 → 5,235, whole; row 40 whole, so the first battery reads 8 of 8; packets' lines 924 →
-947. Next, off the same take: leaders 3583 (range 191, record 1, `oil_patches` ours 10 theirs 20), then groups 4355 (`num` ours 49
-theirs 50). One leaf a landing, no take. Parked 4511a (`do_attack`, disembark, disband and delivery still walk slot order) in its
-journal. Re-pin `SCORES_THIRD[5].moved`, never `found`. It stops when two landings running move no column.
+4515. **The 2017 sample: ammo from 4462, on run1726's disk** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §7). 4513
+built `get_cost`'s age-behind arm (the person's Classical Age cost 180 food against our 200, leaders `bucket[0]` 531 against 551 on
+4321): builds 4321 → 5293, leaders 4321 → 5256; `Parity:` now parts first on ammo 4462. Next, off the take: ammo 4462, where ours
+emits no range and theirs holds 3 (`AmmoData::walk_data`). One leaf a landing, no take. Re-pin `SAMPLE_LINES`; the driver writes
+`Parity:` with its draw word. It stops when two landings running leave the `Parity:` line as it is.
 
-4505. **The 2017 sample: ranges past the draw word, then units 4248** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §7).
-`Parity:`'s score stood on units 4248 through four landings while the draw word went 4328 → 5273; builds and leaders part on 4321 and
-ammo on 4462, and run1724's ranges end on 4130 (DECISIONS 148 §5). First act: `df -g ~` (stop under 60), then run1724's recipe as
-run1726 with `--end-frame 4500` and `RNG_MASK=0x8bu` (units, builds, ammo, leaders), then the leaf of units 4248 off the take, with
-builds and leaders on 4321 beside it. Re-pin `SAMPLE_LINES`; the driver writes `Parity:` with its draw word. It stops when two
-landings running leave the `Parity:` line as it is, and 4501 was the first.
+4514. **Parity held out, second: row 10 from units 3771, on run1739's disk** (a rules item, whole; the chain's; `docs/RECGAME.md` §11).
+4504 returned the one-block collision move on a freed cell (`CollCheck::move_unit@00682ad0`; `block.present` ours 1 theirs 0 on
+2365, range 6920, record 3039): row 10's world 5,995 → 6,001, whole; the second battery's lines 82 → 83, reach 76 → 79 %. Next, off
+the same take: units 3771 (`score_recording` names the leaf), then leaders 3976 (range 129, record 1, `who..ally_mask` byte 2488,
+ours 2 theirs 3), guys 4880 (range 1030, record 140, `last_angle`), ammo 5178 (ours emits no line, theirs holds 3 ranges). One leaf a
+landing, no take. Parked 4504a in its journal. Re-pin `SCORES_SECOND[0].moved`, never `found`. It stops when two landings running
+move no column.
 
-4504. **Parity held out, second: row 10 from world 2365, then units 3771, on run1739's disk** (a rules item, whole; the chain's;
-`docs/RECGAME.md` §11). After 4511's passenger chain, units agree 5,664 of 6,001 from 3771, so world is first: 5,995 from 2365 (range
-6920, record 3039, `block.present` ours 1 theirs 0). Then units 3771 (`score_recording` names it), leaders 3976 (range 129, record 1,
-`who..ally_mask` byte 2488, ours 2 theirs 3), guys 4880 (range 1030, record 140, `last_angle`), ammo 5178 (ours emits no line, theirs
-holds 3 ranges). Score it again at the base before the first probe. One leaf a landing, world first; rows 30 and 130 are read by
-their sums after each, since row 30 parts on world 1662. Parked 4483a in its journal. Re-pin `SCORES_SECOND[0].moved`, never `found`.
-It stops when two landings running move no column.
-
-4508. **Parity held out, second: row 130's units and leaders** (a rules item, whole; unseated; `docs/RECGAME.md` §11). Ten lines
-whole; units 3,034 of 4,731 from 2354 and leaders 4,721 from 4573, and its take holds sums. First act: score it again, since a fix on
-row 10 or 105 may have moved it; then `df -g ~` (stop under 60), one take as run1754 with the arguments the scorer prints
-(`RNG_MASK=0x81u`), then the leaf of units 2354. Re-pin `SCORES_SECOND[6].moved`, never `found`. It stops when two landings running
+4508. **Parity held out, second: row 130's units and leaders** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §11). Ten
+lines whole; after 4511 units 4,422 of 4,731 from 3411 and leaders 4,721 from 4573, and its take holds sums. First act: score it
+again; then `df -g ~` (stop under 60), one take as run1754 with the arguments the scorer prints (`RNG_MASK=0x81u`), then the leaf of
+units 3411. Re-pin `SCORES_SECOND[6].moved`, never `found`. It stops when two landings running
 move no column.
 
 4509. **Parity held out, second: row 30's world and units** (a rules item, whole; unseated; `docs/RECGAME.md` §11). Ten lines whole;
@@ -95,7 +87,7 @@ act: `df -g ~` (stop under 60), then one take of run1735's file as run1742 with 
 then `score_recording` names the leaf of units 2184. Re-pin `SCORES_SECOND[5].moved`, never `found`. It stops when two landings
 running move no column.
 
-4503. **The 2017 sample, from draws 5273, act two** (a rules item, whole; unseated, behind 4505 in the sample's seat;
+4503. **The 2017 sample, from draws 5273, act two** (a rules item, whole; unseated, behind 4515 in the sample's seat;
 `docs/RECGAME.md` §7). 4501 took the first act and moved nothing: theirs' draw 6 on 5273 is the blocked stand on computer 1's Scholar
 1/22, and the cause is a frame earlier. The person's Ashigaru 3/28 hits 1/22 on 5271 and it flees; its first step on 5272 goes
 (+22,+8) to (34174,33056) in theirs and (+8,+23) to (34160,33071) in ours. Both grid searches cover the same three cells, but theirs'

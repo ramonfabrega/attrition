@@ -2153,7 +2153,7 @@ impl Sim {
             return;
         }
         if let Some(i) = self.ai.ai[w].mil_trainers.iter().position(|&x| x == b) {
-            self.ai.ai[w].mil_trainers.remove(i);
+            self.ai.ai[w].remove_mil_trainer(i);
         }
     }
 

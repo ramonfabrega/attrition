@@ -341,7 +341,10 @@ pub(crate) const FARM_SITE_AT: Pos = Pos { x: 3456, y: 29760 };
 /// the builder's `GATHER`, killed by the `build`, gives back its hold
 /// doober (`.roster.hold_doobers`, `docs/ORDERS.md` §6.12). Since item
 /// 4124 the Farm's `Build::init` counts `buildings_built`
-/// (`.cities.city_tally`, `docs/CHECKSUM.md` §20).
+/// (`.cities.city_tally`, `docs/CHECKSUM.md` §20). Since item 4505 the
+/// gatherer chain is one link a unit: the builder's leaving the
+/// Woodcutter's chain writes its predecessor's link (`.units{0/2}`), not a
+/// list on the Woodcutter (`.buildings{0/2001}` leaves).
 const PUMPED_PLACES: &[(i64, &[&str])] = &[
     (
         31,
@@ -368,7 +371,6 @@ const PUMPED_PLACES: &[(i64, &[&str])] = &[
     (
         91,
         &[
-            ".buildings{0/2001}",
             ".buildings{0/2007}",
             ".cities.cities",
             ".cities.city_tally",
@@ -384,6 +386,7 @@ const PUMPED_PLACES: &[(i64, &[&str])] = &[
             ".roster.marks",
             ".terrain.object_heads",
             ".units{0/1}",
+            ".units{0/2}",
             ".world.tiles",
         ],
     ),

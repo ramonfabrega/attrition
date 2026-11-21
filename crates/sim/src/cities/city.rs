@@ -1626,7 +1626,7 @@ impl Sim {
             clock: build::ClockMods::default(),
             hit_frame: None,
             fort_source: None,
-            gatherers: Vec::new(),
+            gather_head: None,
             gather_max: None,
             gather_from: Vec::new(),
             mtn: -1,

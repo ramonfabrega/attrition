@@ -295,12 +295,19 @@ punches its own disc out of any neighbour's block until that neighbour's
 sixty-fourth-frame repaint: the second melee's Catapult `1/26`, dead on
 747, holes two Barbarians' discs that run1459's and run1460's packets print.
 
-**Not established**: the original's "no block allocated" return (a cell no
+~~**Not established**: the original's "no block allocated" return (a cell no
 unit has marked, or whose empty block the sweep has freed, §26). The grid
 holds each cell's presence since item 4150, but the form does not ask it:
 it is taken as if the block existed, so a unit whose own bits a neighbour's
 move cleared, and whose cell's block was then freed, repaints here where
-the original does nothing.
+the original does nothing.~~ **Established, item 4504**: the form asks the
+grid's presence (`WorldData::get_coll_block@006b5350` only reads; a null
+block returns before either pass). Diff-backed on run1739's 2365: who=1's
+`1/43` steps (632, 813) → (633, 814) inside the freed cell (39, 50), world
+range 6920 (record 3039, `block.present`) ours 1, theirs 0 before the fix;
+every world range on 2364 to 2366 agrees after it (test
+`row_10_s_walker_steps_inside_a_freed_cell_and_marks_nothing_on_run1739_s_ranges`;
+the unit test `a_move_inside_one_world_cell_with_no_block_marks_nothing`).
 
 ## 3. The object chain
 
@@ -4192,5 +4199,5 @@ world's 2695435849.
 **Not established.** A restored game (`walk_data`'s restore arm allocates
 by the saved presence and stores state 2); a game built from a dump, whose
 grid has no history (presence is what its setup's sets leave); the
-one-block form's null return (§2.4); a frame where the sweep meets a state
-1 block (allocated with no set, which none of the three allocators leaves).
+one-block form's null return (§2.4, ~~not established~~ diff-backed by item
+4504); a frame where the sweep meets a state 1 block (allocated with no set, which none of the three allocators leaves).

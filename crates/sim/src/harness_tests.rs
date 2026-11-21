@@ -4786,6 +4786,80 @@ fn a_knowledge_price_lands_in_food_until_the_classical_age() {
     );
 }
 
+/// `TypeData::get_cost`'s age-behind arm (item 4513): an age priced for a
+/// leader one age behind a rival it is not allied with costs 90 %, two or
+/// more behind 80 % (`(50 − 10) × 2`), knowledge at its own constant; an
+/// ally ahead, or a tech that is not an age, takes nothing. The 2017
+/// sample's person paid 180 food for the Classical Age where 200 is the
+/// price (run1726, Library `3/2005` on 4320).
+#[test]
+fn an_age_is_cheaper_for_a_leader_behind_a_rival_it_is_not_allied_with() {
+    use crate::economy::{Resource, cost};
+    use crate::tech::{self, TypeDef};
+
+    let mut tree = tech::TechTree::new().with_tuning(&Tuning::RON);
+    let ancient = tree.add(TypeDef::age("Ancient Age", 0));
+    let mut classical = TypeDef::age("Classical Age", 0).needs(0, ancient);
+    classical.cost[Resource::Food.index()] = 20;
+    classical.cost[Resource::Timber.index()] = 7;
+    classical.tribe_mask = u32::MAX;
+    let classical = tree.add(classical);
+    let mut coinage = TypeDef::plain("Coinage", 0);
+    coinage.cost[Resource::Timber.index()] = 60;
+    coinage.tribe_mask = u32::MAX;
+    let coinage = tree.add(coinage);
+
+    let mut sim = skirmish(0);
+    sim.set_tech_tree(tree);
+    let full = sim.tech_price(0, classical);
+    let plain = sim.tech_price(0, coinage);
+    let (f, ti) = (Resource::Food.index(), Resource::Timber.index());
+    assert_eq!(
+        (full[f], full[ti]),
+        (200, 70),
+        "level with the rival: {full:?}"
+    );
+
+    sim.tech[1].ages = sim.tech[0].ages + 1;
+    assert_eq!(sim.ages_behind(0, classical), 1);
+    let one = sim.tech_price(0, classical);
+    assert_eq!((one[f], one[ti]), (180, 63), "one age behind: {one:?}");
+    assert_eq!(
+        sim.tech_price(0, coinage),
+        plain,
+        "a plain tech takes nothing"
+    );
+    assert_eq!(
+        sim.ages_behind(1, classical),
+        0,
+        "the leader ahead pays full"
+    );
+
+    sim.tech[1].ages = sim.tech[0].ages + 2;
+    let two = sim.tech_price(0, classical);
+    assert_eq!((two[f], two[ti]), (160, 56), "two ages behind: {two:?}");
+
+    sim.set_diplo(0, 1, 2);
+    sim.set_diplo(1, 0, 2);
+    assert!(sim.is_ally(1, 0));
+    assert_eq!(
+        sim.tech_price(0, classical),
+        full,
+        "an ally ahead takes nothing"
+    );
+
+    let t = &Tuning::RON;
+    assert_eq!(
+        cost::age_behind_discount(t, 1, Resource::Knowledge, 100),
+        80
+    );
+    assert_eq!(
+        cost::age_behind_discount(t, 2, Resource::Knowledge, 100),
+        60
+    );
+    assert_eq!(cost::age_behind_discount(t, 0, Resource::Food, 123), 123);
+}
+
 #[test]
 fn reduced_path_counterexample_stops_at_a_combined_final_flag() {
     // Reduced against the original executable from an injected equality-for-

@@ -1477,7 +1477,10 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// two ranges each before), and run1359, run1359b and run1359c 13 -> 12:
 /// an AIRDEFENSE-line building finishes with `job_counter` `0x40000000`
 /// (`Wall::activate@0063e4b0:54`).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 947, 1053);
+/// Item 4505: 947 -> 948, units whole on run1304 (`507 9 gather_down` ours
+/// -1, theirs 21 the one range left after item 4511): a gatherer chain is
+/// one link a unit (`Build::add_gatherer@0062f640`).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 948, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -3034,11 +3037,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (2029, 2029, 1) -> (2029, 2029, 0).
     // Item 4511, a unit host's chain is the order of entry: units (5488, 5488, 6) -> (5488, 5488, 1).
+    // Item 4505, a gatherer chain is one link a unit (`Build::add_gatherer`):
+    // units (5488, 5488, 1) -> (5488, 5488, 0), `507 9 gather_down` ours -1,
+    // theirs 21 -> agree.
     (
         "run1304",
         3865,
         [
-            (5488, 5488, 1),
+            (5488, 5488, 0),
             (2029, 2029, 0),
             (0, 0, 0),
             (0, 0, 0),

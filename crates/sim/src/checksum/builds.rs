@@ -254,9 +254,8 @@ impl Sim {
         let mut v = vec![0u8; 0x86 - 0x70];
         let mut p = |at, w, x: i64| put(&mut v, 0x70, at, w, x);
         let gather_down = bd
-            .gatherers
-            .first()
-            .map_or(-1, |&u| i64::from(self.units[u].index));
+            .gather_head
+            .map_or(-1, |u| i64::from(self.units[u].index));
         p(0x70, 2, gather_down);
         let (city, city_down) = match bd.city {
             Some(c) => {

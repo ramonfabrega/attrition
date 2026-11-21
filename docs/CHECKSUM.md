@@ -2574,7 +2574,9 @@ with its value diff:
 - A `SimpleArray<int>`'s `size` is its capacity, which grows by ten. Ours
   emitted `max(10, length)`; on run1359's who 1, 12 trainers, ours 12 and
   theirs 20. It now agrees on all 226 for `mil_trainers`, `new_rares` and
-  `oil_patches`.
+  `oil_patches`. A removal keeps the capacity (`Leader::oil_patches_size`,
+  `mil_trainers_size`; run1752's who 1 on 3583, 12 patches to 10, `size`
+  20; item 4512).
 
 Item 4187 gave §17–§20's leaves their values: eight unprinted leaves
 agree on all 226 and leave the list by entry 129 §5 (`PACKET_RELEASED`,

@@ -666,18 +666,26 @@ pub(in crate::diff) mod tests {
     /// draws 5255 -> 5273): deaths 5428 -> 5429, groups 5282 -> 5311, guys
     /// 5256 -> 5273, items 5286 -> 12663, goods 5384 -> 5392; units 4248,
     /// builds 4321, ammo 4462, leaders 4321, cities 5326 and world 5256
-    /// unchanged.
+    /// unchanged. Item 4505 (a gatherer pushed onto a second chain keeps
+    /// the first's link to it, `Build::add_gatherer@0062f640`; computer
+    /// 1's Citizen `1/11` on 4247): units 4248 -> 5273, onto the draw
+    /// word; every other line unchanged. Item 4513 (an age is cheaper for
+    /// a leader behind a non-allied rival, `TypeData::get_cost@00664090`'s
+    /// age-behind arm; the person's Classical Age at Library `3/2005` on
+    /// 4320, `cost[0]` ours 200, theirs 180): builds 4321 -> 5293, leaders
+    /// 4321 -> 5256; items 12663 -> 8734, a named fall past the draw word
+    /// 5273; every other line unchanged, ammo 4462 the lowest.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 4248),
-        ("builds", 4321),
+        ("units", 5273),
+        ("builds", 5293),
         ("walls", 21044),
         ("ammo", 4462),
         ("deaths", 5429),
         ("groups", 5311),
         ("guys", 5273),
-        ("leaders", 4321),
+        ("leaders", 5256),
         ("cities", 5326),
-        ("items", 12663),
+        ("items", 8734),
         ("goods", 5392),
         ("world", 5256),
     ];
@@ -785,8 +793,11 @@ pub(in crate::diff) mod tests {
     /// standing and its 820 draws spent); the first shot still on 2929.
     /// Item 4500 (the three Scholars rise from the captured University
     /// with theirs' forced idle rolls on 5255..5257): 3475 -> 3747, +272;
-    /// the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3747, Some(2929));
+    /// the first shot still on 2929. Item 4513 (an age is cheaper for a
+    /// leader behind a non-allied rival; the person's Classical Age at 180
+    /// food on 4320): 3747 -> 4772, a named rise past the draw word 5273,
+    /// the frames not read one by one; the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4772, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
@@ -818,6 +829,15 @@ pub(in crate::diff) mod tests {
     /// left it.
     fn run1724() -> Option<crate::trace::ranges::Record> {
         ranges_record("RON_SAMPLE_RANGES_1724", "run1724")
+    }
+
+    /// run1726's record (item 4505, `docs/RUNS.md` run1726): the same
+    /// playback to 4,500 under the same hooks, keeping units, builds, ammo
+    /// and leaders alone (`RNG_MASK` 0x8b), the four lines that parted
+    /// below the draw word past run1724's end (DECISIONS 148 §5).
+    /// `RON_SAMPLE_RANGES_1726`, else where the take left it.
+    fn run1726() -> Option<crate::trace::ranges::Record> {
+        ranges_record("RON_SAMPLE_RANGES_1726", "run1726")
     }
 
     fn ranges_record(var: &str, run: &str) -> Option<crate::trace::ranges::Record> {
@@ -934,13 +954,49 @@ pub(in crate::diff) mod tests {
         assert_eq!(got, pinned, "SAMPLE_RANGES_1724");
     }
 
+    /// **The sample's kept lines by range, to 4,500** (item 4505): the
+    /// same walk over run1726's record, the four lines of its mask alone,
+    /// pinned per line by [`SAMPLE_RANGES_1726`].
+    /// `RON_SAMPLE_RANGES_DETAIL` and `RON_SAMPLE_RANGES_ALL` print as
+    /// above.
+    #[test]
+    fn the_sample_s_ranges_to_4500_name_each_first_parting() {
+        let Some(rec) = run1726() else { return };
+        let Some((frames, got)) =
+            walk_kept_ranges(rec, SAMPLE_RANGES_1726_WINDOW, SAMPLE_RANGES_1726_KEPT)
+        else {
+            return;
+        };
+        let pinned: Vec<SampleRange> = SAMPLE_RANGES_1726
+            .iter()
+            .map(|&(l, f, t, o, p, x)| (l, f, t, o, p, x.to_string()))
+            .collect();
+        assert_eq!(
+            frames,
+            SAMPLE_RANGES_1726_WINDOW as usize + 1,
+            "run1726's sets, one a frame"
+        );
+        assert_eq!(got, pinned, "SAMPLE_RANGES_1726");
+    }
+
     /// The walk the ranges tests share: our sample from state 0 to
     /// `window`, each frame's twelve lines against the record's set.
     /// `(sets compared, each parting line's first parting)`, or `None` when
     /// the install, the sample or the pieces are absent.
     fn walk_ranges(
+        rec: crate::trace::ranges::Record,
+        window: i64,
+    ) -> Option<(usize, Vec<SampleRange>)> {
+        walk_kept_ranges(rec, window, 0xfff)
+    }
+
+    /// [`walk_ranges`] over a take that keeps the lines of `kept` alone
+    /// (the hook's `RNG_MASK`, one bit a line in `STATE_LINES`' order):
+    /// a line the take dropped is not compared (DECISIONS 148 §4).
+    fn walk_kept_ranges(
         mut rec: crate::trace::ranges::Record,
         window: i64,
+        kept: u16,
     ) -> Option<(usize, Vec<SampleRange>)> {
         use super::super::checksum_lines::packets::{Pieces, STATE_LINES, compare, our_lines};
         let (Some(inst), Some(rcx)) = (install(), sample()) else {
@@ -970,6 +1026,9 @@ pub(in crate::diff) mod tests {
                 }
                 let outcome = compare(&ours, &theirs);
                 for (k, (name, o)) in STATE_LINES.iter().zip(&outcome).enumerate() {
+                    if kept & (1 << k) == 0 {
+                        continue;
+                    }
                     let Some(d) = &o.first else { continue };
                     let text = super::super::checksum_frames::first_text(name, d);
                     if all {
@@ -1257,4 +1316,29 @@ pub(in crate::diff) mod tests {
     /// ours 100 -> theirs' 0 on 4026, one slot run, not two. Whole to 4130:
     /// one row -> none.
     const SAMPLE_RANGES_1724: &[(&str, i64, usize, usize, usize, &str)] = &[];
+
+    /// run1726's last frame, ours: the record holds trace frames −1 to 4499.
+    const SAMPLE_RANGES_1726_WINDOW: i64 = 4500;
+
+    /// run1726's mask: units, builds, ammo and leaders (`RNG_MASK=0x8bu`).
+    const SAMPLE_RANGES_1726_KEPT: u16 = 0x8b;
+
+    /// Per kept line that parts on run1726's window, its first parting by
+    /// range (item 4505). Minted at four rows on the sums' frames: units
+    /// 4248, `1077 11 collide_frame..play` `gather_down` ours 12, theirs 8,
+    /// computer 1's Citizen `1/11` (`TypeIndex` 50, land, uid #109),
+    /// pushed onto `#2009`'s chain on 4247 while `#2001`'s still held it
+    /// behind `1/13`: this crate kept one list a building and read its
+    /// link off `#2001`'s, where the original's one link a unit had taken
+    /// `#2009`'s next, `1/8`. Built (`Sim::gather_chain`): units whole to
+    /// 4500, one row -> none. Item 4513: builds 4321, `2559 2005 queue[k]`
+    /// `cost[0]` ours 200, theirs 180, and leaders 4321, `473 3 encrypt`
+    /// `bucket[0]` ours 0x213 (531), theirs 0x227 (551), are one price: the
+    /// person (still Ancient) queues the Classical Age behind tech 558 at
+    /// Library `3/2005` on 4320 while a computer holds it, and the
+    /// original's `get_cost` takes `TECH_AGE_BEHIND_DISCOUNT` off; the 20
+    /// food stays in theirs' bucket. Built (`Sim::ages_behind`): both whole
+    /// to 4500, three rows -> one.
+    const SAMPLE_RANGES_1726: &[(&str, i64, usize, usize, usize, &str)] =
+        &[("ammo", 4462, 3, 0, 3, "0 -1 0067ab7e: +0x0 of 0|1: |01")];
 }

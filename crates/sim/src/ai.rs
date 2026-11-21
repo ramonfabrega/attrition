@@ -630,6 +630,18 @@ impl Census {
     }
 }
 
+/// The capacity of a `SimpleArray<int>` holding `n` elements, grown from
+/// empty: the least multiple of ten that holds `n`, and 10 for none
+/// (`docs/CHECKSUM.md` §20, §23.4; item 4188 saw 20 for every array of 11
+/// to 19 elements on the packets). A capacity never shrinks
+/// (`SimpleArray<int>::remove@00462e70` only shortens the length), so an
+/// array that has lost elements reports the larger capacity it once grew
+/// to: [`Leader::oil_patches_size`] and [`Leader::mil_trainers_size`] keep
+/// it (item 4512).
+pub(crate) fn simple_array_size(n: usize) -> usize {
+    n.div_ceil(10).max(1) * 10
+}
+
 /// The per-leader AI state the driver owns — the `LeaderData` fields
 /// `production_step`, `prod_script_run`, `script_step`, `pers`,
 /// `make_list`, the goods picture, and the cadence's `ai_speed`.
@@ -685,6 +697,11 @@ pub struct Leader {
     pub sites: [Site; SITE_SLOTS],
     /// `mil_trainers`: the leader's military trainers, by building index.
     pub mil_trainers: Vec<usize>,
+    /// `mil_trainers`' `SimpleArray<int>` capacity as of its last removal
+    /// ([`Leader::remove_mil_trainer`]): the size the checksum reports is
+    /// the larger of this and the length's own step, because
+    /// `SimpleArray<int>::remove@00462e70` only shortens the length.
+    pub mil_trainers_size: usize,
     /// `tech_frame`, `tech_cat_frame[4]`: written by `Leader::init` and by
     /// `Build::queue_up` at every technology queued (item 1496).
     pub tech_frame: i64,
@@ -726,6 +743,10 @@ pub struct Leader {
     /// (`Leader::produce_building@006e1400`'s arm 4.2, by value, shifting
     /// the tail down); `Leader::init` empties it. `docs/AI.md` §133.
     pub oil_patches: Vec<usize>,
+    /// `oil_patches`' `SimpleArray<int>` capacity as of its last removal
+    /// ([`Leader::remove_oil_patch`]; item 4512: run1752's who=1 holds 12
+    /// patches, arm 4.2 prunes two on 3583, and theirs' `size` stays 20).
+    pub oil_patches_size: usize,
     /// `known_rares` (`LeaderData +0x6d4`): `reg_known_rares` summed.
     /// `Leader::calc_gather@006ceee0` is its one writer and writes it
     /// under its own cadence, so it lags the census by up to a recompute;
@@ -762,6 +783,26 @@ impl Default for Leader {
 }
 
 impl Leader {
+    /// `SimpleArray<int>::remove@00462e70`
+    /// on `mil_trainers`' slot `i`: the tail shifts down and the length
+    /// drops by one; the block's capacity is untouched, so it is kept
+    /// first (item 4512).
+    pub(crate) fn remove_mil_trainer(&mut self, i: usize) {
+        self.mil_trainers_size = self
+            .mil_trainers_size
+            .max(simple_array_size(self.mil_trainers.len()));
+        self.mil_trainers.remove(i);
+    }
+
+    /// [`Leader::remove_mil_trainer`] on `oil_patches`
+    /// (`Leader::produce_building@006e1400`'s arm 4.2 prune).
+    pub(crate) fn remove_oil_patch(&mut self, i: usize) {
+        self.oil_patches_size = self
+            .oil_patches_size
+            .max(simple_array_size(self.oil_patches.len()));
+        self.oil_patches.remove(i);
+    }
+
     /// `Leader::init`'s values for these fields.
     pub const fn new() -> Leader {
         Leader {
@@ -903,6 +944,7 @@ impl Leader {
                 rank: 0,
             }; SITE_SLOTS],
             mil_trainers: Vec::new(),
+            mil_trainers_size: 0,
             tech_frame: 0,
             frame_attacked: 0,
             attacked_by: -1,
@@ -912,6 +954,7 @@ impl Leader {
             tech_cat_frame: [0; 4],
             new_rares: Vec::new(),
             oil_patches: Vec::new(),
+            oil_patches_size: 0,
             known_rares: 0,
             player_flags: 0,
             aggression: [0; 8],

@@ -1543,7 +1543,7 @@ pub(super) fn stage_walk() {
                 || hangar
                 || !b.queue.items.is_empty()
                 || !b.gather.is_empty()
-                || !b.gatherers.is_empty())
+                || b.gather_head.is_some())
             {
                 continue;
             }
@@ -1556,7 +1556,11 @@ pub(super) fn stage_walk() {
             });
             // Item 1278: the gatherer chain, head first (`gather_down`'s
             // walk), which `all_gathering`'s prune reads.
-            let chain: Vec<i16> = b.gatherers.iter().map(|&u| s.units[u].index).collect();
+            let chain: Vec<i16> = s
+                .gather_chain(i)
+                .iter()
+                .map(|&u| s.units[u].index)
+                .collect();
             // The queue by type and price: a job's counter moves every frame.
             let queue: Vec<(usize, [i16; 3])> =
                 b.queue.items.iter().map(|q| (q.ty, q.cost)).collect();

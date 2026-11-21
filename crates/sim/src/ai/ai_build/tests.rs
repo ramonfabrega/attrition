@@ -414,7 +414,11 @@ fn an_enhancer_needs_three_filled_slots_of_its_own_good() {
             }),
         });
         let u = sim.add_unit(u);
-        sim.buildings[b].gatherers.push(u);
+        // Appended at the tail, as the list this replaced was.
+        match sim.gather_chain(b).last() {
+            Some(&t) => sim.units[t].gather_down = Some(u),
+            None => sim.buildings[b].gather_head = Some(u),
+        }
     }
     assert_eq!(sim.cities.cities[c].members.len(), 3);
     let g = value(&mut sim, 0, c, t.granary).expect("three filled slots want a granary");

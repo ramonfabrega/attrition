@@ -2155,6 +2155,10 @@ pub struct UnitDump {
     pub tolerance: Option<i64>,
     /// `UnitData::path_recursion` and `UnitData::idle` (§2.4, §4.5).
     pub path_recursion: Option<i64>,
+    /// `UnitData::gather_down` (`+0x92`): the next unit down the gatherer
+    /// chain the unit was last linked into, by object number; −1 at the
+    /// tail and off every chain (`docs/ORDERS.md` §6.1, item 4505).
+    pub gather_down: Option<i64>,
     pub idle: Option<i64>,
     /// `UnitData::unit_masks` / `unit_masks2` — the bit fields §6.6's
     /// predicates read.
@@ -3589,6 +3593,7 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
         dest_angle: b.int("dest_angle"),
         tolerance: b.int("tolerance"),
         path_recursion: b.int("path_recursion"),
+        gather_down: b.int("gather_down"),
         idle: b.int("idle"),
         unit_masks: b.int("unit_masks"),
         unit_masks2: b.int("unit_masks2"),
