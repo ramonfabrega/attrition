@@ -1104,7 +1104,7 @@ mod tests {
         let mut stream = crate::input::Stream::pump(&rec);
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
         let i32s = |b: &[u8]| -> Vec<i32> { b.chunks(4).map(|c| { let mut a = [0u8; 4]; a[..c.len()].copy_from_slice(c); i32::from_le_bytes(a) }).collect() };
-        for state in [4352, 4353, 4354, 4355, 4356] {
+        for state in [4354, 4355] {
             while built.sim.frame < state {
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
@@ -1113,6 +1113,11 @@ mod tests {
             let all = record.ranges(&set).expect("the set's ranges");
             let ours = built.sim.checksum_groups();
             let theirs: Vec<_> = all.iter().filter(|r| r.line == 5).collect();
+            for (i, u) in built.sim.units.iter().enumerate() {
+                if u.owner == 1 && u.index == 94 {
+                    eprintln!("PROBE {state} unit slot {i} 1/94 ty {:?} health {} group_ptr {:?} inside {:?} on_map {}", u.ty, u.health, u.group_ptr, u.inside_unit, u.on_map);
+                }
+            }
             eprintln!("PROBE {state} ranges ours {} theirs {}", ours.ranges.len(), theirs.len());
             for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
                 if a.record == 84 || a.bytes != b.bytes {
