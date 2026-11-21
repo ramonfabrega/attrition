@@ -61,7 +61,12 @@ pub(super) fn worlds(log: &Log<'_>) -> Vec<World> {
 pub(super) fn ammo(raw: &str) -> BTreeMap<(i64, i64, i64), Ammo> {
     crate::diff::ammo::blocks(raw)
         .into_iter()
-        .filter(|(a, _)| a.flags & 2 != 0)
+        // Live (`flags & 2`) or spent (`flags 1`, item 3679): both hold
+        // their slot, as `golden.rs`' other ammo widenings read them. Live
+        // alone left a spent round of ours "held alone" against a dump
+        // that printed it (item 4515: chapter 133's `1/2008` arrows on
+        // 698 and 713, `flags 1` in both).
+        .filter(|(a, _)| a.flags & 3 != 0)
         .map(|(a, _)| ((a.who, a.o, a.index), a))
         .collect()
 }
