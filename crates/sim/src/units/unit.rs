@@ -760,20 +760,12 @@ impl Movement {
     /// `Guy::set_angle` is not `Guy::do_turn`, so it leaves `guy_flags & 2`
     /// as it found it: the snap is not a turn the body's own `Guy::move`
     /// skips for, and [`Movement::frame_facing`] moves with the facing.
-    ///
-    /// **It leaves [`Movement::des_angle`] (`UnitData::dest_angle`,
-    /// `+0x58`) alone** (item 4520): `Unit::set_angle@00605400` writes
-    /// `+0x50` and the guys, and `Guy::set_angle@005d9010` the guy's
-    /// `+0x64`, `+0x18` and `+0x1c`; neither writes the unit's `+0x58`, and
-    /// neither does `Unit::set_new_location@005f8d20`'s snap. Run1754's
-    /// Attack Helicopter `1/184`, set apart from its twin on 3515, keeps its
-    /// attack-move's `dest_angle` −424345600 there; ours had written its
-    /// heading −406650880.
     pub const fn set_facing(&mut self, facing: movement::Angle) {
         self.flip_mirror(facing);
         self.facing = facing;
         self.frame_facing = facing;
         self.heading = facing;
+        self.des_angle = facing;
         self.crew_des = None;
     }
 
