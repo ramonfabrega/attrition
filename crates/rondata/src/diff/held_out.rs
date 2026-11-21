@@ -2012,6 +2012,71 @@ mod tests {
         );
     }
 
+    /// **Row 130's Kremlin spy carries `unit_masks2 & 0x400`** (item 4524,
+    /// `docs/RECGAME.md` §11): who=1's Kremlin trains its spy `1/169` on
+    /// 4583, and `Build::process@0061edf0:320` ORs the tag into the unit's
+    /// `+0x6c`. This crate held it in a side bool the units line never
+    /// printed (units range 4183, record 169, `unit_masks2` ours 0, theirs
+    /// 1024). Every units range on 4583 and 4584 against run1754's record,
+    /// byte for byte.
+    #[test]
+    fn row_130_s_kremlin_spy_carries_unit_masks2_0x400_on_run1754_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 6) else {
+            eprintln!("skipping: row 130's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1754/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1754's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 130's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        const SPY_TI: i32 = 58;
+        for state in [4583, 4584] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_units();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            // The spy by name: who=1's Spy `1/169`.
+            let u = built
+                .sim
+                .units
+                .iter()
+                .find(|u| u.alive() && u.owner == 1 && u.index == 169)
+                .expect("1/169");
+            assert_eq!(
+                (u.type_index, u.kind.domain),
+                (SPY_TI, sim::territory::attrition::Domain::Land),
+                "1/169's TypeIndex and domain"
+            );
+            assert_eq!(u.unit_masks2 & sim::combat::umask2::KREMLIN_SPY, 0x400);
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                assert_eq!(
+                    at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                    None,
+                    "units range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                    a.record,
+                    a.field
+                );
+            }
+            assert_eq!(ours.ranges.len(), theirs.len(), "units ranges on {state}");
+        }
+    }
+
     /// **Row 120's MLRS reads `cavarch_o` −2 in the units line** (item
     /// 4443, `docs/RECGAME.md` §10.3): on 5864 the computer's fire-on-the-move
     /// MLRS `1/35` (type 273) steps an `ExploreTo` with an empty search after
@@ -3680,10 +3745,13 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // spy-due bit, `leader_flags & 0x10000000`; run1754's leaf, row
         // 130): leaders 5,995 -> 6,000, first 5344 -> 5409. No ranges take
         // of this row names the five states or the one left.
+        // Moved by item 4524 (the Kremlin's spy tag is `unit_masks2 &
+        // 0x400`; run1754's leaf, row 130): units 5,304 -> 5,532, first on
+        // 4492, its sums unmoved. No ranges take of this row.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5304, 5577, 6001, 5826, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 5379,
+                5532, 5577, 6001, 5826, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 5379,
             ],
             first: &[
                 ("units", (4492, Some(710203995), 2575096436)),
@@ -3791,12 +3859,16 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // spy-due bit, `leader_flags & 0x10000000`; run1754, state 4573,
         // leaders range 128, record 1, `flags` byte 3, ours 0x0e, theirs
         // 0x1e): leaders 4,721 -> 4,731, whole.
+        // Moved by item 4524 (the Kremlin's spy tag is `unit_masks2 &
+        // 0x400`, `Build::process@0061edf0:320`; run1754, state 4583, units
+        // range 4183, record 169, who=1's Spy `1/169` (TI 58), `unit_masks2`
+        // ours 0, theirs 1024): units 4,583 -> 4,731, whole; row 130 whole.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                4583, 4731, 4731, 4731, 4731, 4731, 4731, 4731, 4731, 4731, 4731, 4731,
+                4731, 4731, 4731, 4731, 4731, 4731, 4731, 4731, 4731, 4731, 4731, 4731,
             ],
-            first: &[("units", (4583, Some(3725779223), 1703403803))],
+            first: &[],
             over: None,
         }),
     }),
@@ -4153,7 +4225,21 @@ pub(crate) const SCORES_FOURTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4524 (the Kremlin's spy tag is `unit_masks2 &
+        // 0x400`; run1754's leaf, row 130): units 5,303 -> 5,909, first
+        // 5303 -> 5909, beside guys. No ranges take of this row.
+        moved: Some(Score {
+            states: 6001,
+            agreed: [
+                5909, 6001, 6001, 6001, 6001, 6001, 5909, 5266, 6001, 6001, 6001, 6001,
+            ],
+            first: &[
+                ("units", (5909, Some(3899268178), 2012421188)),
+                ("guys", (5909, Some(1310729884), 912139918)),
+                ("leaders", (5266, Some(871988666), 426802620)),
+            ],
+            over: None,
+        }),
     }),
     // run1765
     // row 115, as found 2026-11-21: 12 lines whole.
