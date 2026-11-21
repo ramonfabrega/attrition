@@ -1460,7 +1460,7 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// Item 4478: 881 -> 883, deaths whole on run785 and run865 (4 and 7
 /// ranges parted before): the nuke strikes its units in
 /// `Objects::find_units`' order.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 883, 1053);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 889, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1952,11 +1952,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4441, `mask_me` walks a footprint column by column: world (7597, 7597, 15) -> (7597, 7597, 14).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2140, 2136, 777) -> (2140, 2140, 3), leaders (271, 271, 3) -> (271, 271, 2), world (7597, 7597, 14) -> (7597, 7597, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (6053, 5923, 4240) -> (6053, 6035, 1632).
+    // Item 4491, the strafe's ranges walked: units (6053, 6035, 1632) -> (6053, 6053, 1).
     (
         "run1164",
         4528,
         [
-            (6053, 6035, 1632),
+            (6053, 6053, 1),
             (2140, 2140, 3),
             (0, 0, 0),
             (3, 3, 0),
@@ -4096,11 +4097,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2515, 2513, 686) -> (2515, 2515, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (5583, 5423, 1530) -> (5583, 5535, 1936).
     // Item 4476, `cavarch_uid` kept past a dropped target: units (5583, 5535, 1936) -> (5583, 5535, 1934) (on 4474's tree).
+    // Item 4491, the strafe's ranges walked: units (5583, 5535, 1934) -> (5583, 5583, 0).
     (
         "run1420",
         4586,
         [
-            (5583, 5535, 1934),
+            (5583, 5583, 0),
             (2515, 2515, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4224,11 +4226,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4461, a military type's gender piece is named -PACKED, so the Assault Marines' -FEMALE is no piece: guys (1208, 1208, 5) -> (1208, 1208, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (4789, 4529, 2796) -> (4789, 4711, 3186).
     // Item 4476, `cavarch_uid` kept past a dropped target: units (4789, 4711, 3186) -> (4789, 4711, 3185) (on 4474's tree).
+    // Item 4491, the strafe's ranges walked: units (4789, 4711, 3185) -> (4789, 4789, 0).
     (
         "run1437",
         3894,
         [
-            (4789, 4711, 3185),
+            (4789, 4789, 0),
             (2154, 2154, 8),
             (0, 0, 0),
             (3, 3, 0),
@@ -4325,11 +4328,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4274, 4240, 906) -> (4274, 4240, 900).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (1890, 1887, 478) -> (1890, 1890, 0), world (8276, 8276, 8) -> (8276, 8276, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (4274, 4240, 900) -> (4274, 4268, 853).
+    // Item 4491, the strafe's ranges walked: units (4274, 4268, 853) -> (4274, 4274, 1).
     (
         "run1441",
         3294,
         [
-            (4274, 4268, 853),
+            (4274, 4274, 1),
             (1890, 1890, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4683,11 +4687,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4274, 4240, 906) -> (4274, 4240, 900).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (1890, 1887, 478) -> (1890, 1890, 0), world (8276, 8276, 8) -> (8276, 8276, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (4274, 4240, 900) -> (4274, 4268, 853).
+    // Item 4491, the strafe's ranges walked: units (4274, 4268, 853) -> (4274, 4274, 1).
     (
         "run1559b",
         3294,
         [
-            (4274, 4268, 853),
+            (4274, 4274, 1),
             (1890, 1890, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4743,11 +4748,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4274, 4240, 906) -> (4274, 4240, 900).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (1890, 1887, 478) -> (1890, 1890, 0), world (8276, 8276, 8) -> (8276, 8276, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (4274, 4240, 900) -> (4274, 4268, 853).
+    // Item 4491, the strafe's ranges walked: units (4274, 4268, 853) -> (4274, 4274, 1).
     (
         "run1564",
         3294,
         [
-            (4274, 4268, 853),
+            (4274, 4274, 1),
             (1890, 1890, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4787,11 +4793,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4240, 4200, 430) -> (4240, 4200, 424).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (1890, 1887, 478) -> (1890, 1890, 0), world (8294, 8294, 8) -> (8294, 8294, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (4240, 4200, 424) -> (4240, 4228, 963).
+    // Item 4491, the strafe's ranges walked: units (4240, 4228, 963) -> (4240, 4240, 0).
     (
         "run1570",
         3331,
         [
-            (4240, 4228, 963),
+            (4240, 4240, 0),
             (1890, 1890, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4831,11 +4838,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (4969, 4889, 2804) -> (4969, 4945, 4289).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9108, 9108, 1) -> (9108, 9108, 0).
     // Item 4478, the nuke strikes its units in find_units' order: deaths (28, 28, 4) -> (28, 28, 0).
+    // Item 4491, the strafe's ranges walked: units (4969, 4945, 4289) -> (4969, 4969, 0).
     (
         "run785",
         2178,
         [
-            (4969, 4945, 4289),
+            (4969, 4969, 0),
             (1731, 1731, 1),
             (0, 0, 0),
             (0, 0, 0),
@@ -4875,11 +4883,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4468, a nuke strike's round keeps its spline and the ammo line walks its SplineData: ammo (281, 3, 280) -> (281, 281, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (5889, 5809, 3724) -> (5889, 5865, 5207).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9526, 9526, 1) -> (9526, 9526, 0).
+    // Item 4491, the strafe's ranges walked: units (5889, 5865, 5207) -> (5889, 5889, 0).
     (
         "run789",
         2799,
         [
-            (5889, 5865, 5207),
+            (5889, 5889, 0),
             (2157, 2157, 1),
             (0, 0, 0),
             (281, 281, 0),
@@ -4918,11 +4927,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2059, 2057, 1178) -> (2059, 2059, 1), world (9420, 9420, 9) -> (9420, 9420, 1).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (5860, 5780, 3667) -> (5860, 5836, 5145).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9420, 9420, 1) -> (9420, 9420, 0).
+    // Item 4491, the strafe's ranges walked: units (5860, 5836, 5145) -> (5860, 5860, 0).
     (
         "run795",
         2681,
         [
-            (5860, 5836, 5145),
+            (5860, 5860, 0),
             (2059, 2059, 1),
             (0, 0, 0),
             (0, 0, 0),
@@ -4967,11 +4977,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2384, 2381, 1397) -> (2384, 2384, 2), world (9442, 9442, 9) -> (9442, 9442, 1).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (9526, 9426, 7329) -> (9526, 9496, 8813).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9442, 9442, 1) -> (9442, 9442, 0).
+    // Item 4491, the strafe's ranges walked: units (9526, 9496, 8813) -> (9526, 9526, 30).
     (
         "run810",
         3631,
         [
-            (9526, 9496, 8813),
+            (9526, 9526, 30),
             (2384, 2384, 2),
             (0, 0, 0),
             (156, 0, 156),
@@ -5301,11 +5312,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (11125, 10815, 9496) -> (11125, 11095, 9391).
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (11125, 11095, 9391) -> (11125, 11095, 9390).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9518, 9518, 1) -> (9518, 9518, 0).
+    // Item 4491, the strafe's ranges walked: units (11125, 11095, 9390) -> (11125, 11125, 76).
     (
         "run882b",
         6808,
         [
-            (11125, 11095, 9390),
+            (11125, 11125, 76),
             (2737, 2737, 2),
             (0, 0, 0),
             (15, 15, 5),
@@ -5355,11 +5367,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (11180, 10834, 9384) -> (11180, 11114, 9164).
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (11180, 11114, 9164) -> (11180, 11114, 9163).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9536, 9536, 1) -> (9536, 9536, 0).
+    // Item 4491, the strafe's ranges walked: units (11180, 11114, 9163) -> (11180, 11180, 76).
     (
         "run883b",
         6821,
         [
-            (11180, 11114, 9163),
+            (11180, 11180, 76),
             (2737, 2737, 2),
             (0, 0, 0),
             (36, 36, 5),
