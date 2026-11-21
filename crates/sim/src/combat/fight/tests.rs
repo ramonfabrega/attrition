@@ -4922,10 +4922,12 @@ fn the_death_pool_evicts_the_oldest_record_that_does_not_block() {
 /// computer 1 Merchant `1/18` (`TypeIndex` 61), killed walking its route
 /// on 3931, is packed: theirs takes one draw and leaves two records.
 ///
-/// Made to fail by dropping the packed clause: the packed Merchant dies
-/// without its draw or its record.
+/// Made to fail by dropping the packed clause (the packed Merchant dies
+/// without its draw or its record) or the packing clause (the unpacked
+/// Merchant halfway through its `PACK_MERCHANT` does).
 #[test]
 fn only_an_unpacked_merchant_dies_without_a_death_draw() {
+    use crate::orders::{Body, CastOrder, Order, spell};
     let (mut sim, _) = at_war();
     let merchant = sim.add_unit_type(crate::UnitType {
         hits: 90,
@@ -4935,9 +4937,20 @@ fn only_an_unpacked_merchant_dies_without_a_death_draw() {
         },
         ..crate::UnitType::default()
     });
-    let die = |sim: &mut Sim, packed: bool, x: i32| -> (bool, usize) {
+    let die = |sim: &mut Sim, packed: bool, packing: bool, x: i32| -> (bool, usize) {
         let i = put(sim, 1, merchant, Pos::new(x, 0x1000));
         sim.units[i].combat.packed = packed;
+        if packing {
+            sim.units[i].orders.push_back(Order {
+                flags: 0,
+                body: Body::Cast(CastOrder {
+                    spell: spell::PACK_MERCHANT,
+                    paid: true,
+                    target: None,
+                    at: Pos::new(-1, -1),
+                }),
+            });
+        }
         sim.units[i].health = 0;
         let rng = sim.rng;
         let before = sim.combat.deaths.len();
@@ -4948,14 +4961,19 @@ fn only_an_unpacked_merchant_dies_without_a_death_draw() {
         (sim.rng == once, sim.combat.deaths.len() - before)
     };
     assert_eq!(
-        die(&mut sim, true, 0x1000),
+        die(&mut sim, true, false, 0x1000),
         (true, 1),
         "a packed Merchant draws and leaves its record"
     );
     assert_eq!(
-        die(&mut sim, false, 0x2000),
+        die(&mut sim, false, false, 0x2000),
         (false, 0),
         "an unpacked one, unblocking its four tiles, does neither"
+    );
+    assert_eq!(
+        die(&mut sim, false, true, 0x3000),
+        (true, 1),
+        "an unpacked one packing up dies like the packed"
     );
 }
 
