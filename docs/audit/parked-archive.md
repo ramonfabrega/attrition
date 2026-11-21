@@ -45,7 +45,7 @@ of the item that found it, under `## Parked`, as `- **<item><letter>. title**`
 - (1494) The census at a city's founding, and the human's city
 - (1489) The battery's three first partings — held out, never booked
 - (1483) Group 15 row 9, an equal push onto an army's `last_group` slot
-- (1484) ch35 and ch36's `2675 0/12 dest_angle`
+- ~~(1484) ch35 and ch36's `2675 0/12 dest_angle`~~ (closed by item 4520: a helicopter set apart keeps its order's `dest_angle`, `docs/RECGAME.md` §11)
 - (1486) The no-code document debts 1468 left
 - (1480) who=1's `leader:discovered` 33 against 34
 - (1473) `Group::target_opportunity`'s member `find_melee_target` arm, walked

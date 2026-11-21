@@ -1811,7 +1811,7 @@ fn run763_s_closing_frame_is_widened_whole() {
     // Item 2761: 190 → 186 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 4159's third residue: 161 -> 128, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
     // Item 4435: 128 -> 76, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 67, "run763 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    pin_eq!(w.firsts.len(), 65, "run763 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit) // Item 4520: −2, a helicopter set apart keeps its `dest_angle`
 }
 
 #[test]
@@ -1843,7 +1843,7 @@ fn run762_s_word_frame_is_widened_whole() {
     // Item 4159's residue: 168 -> 167, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     // Item 4159's third residue: 167 -> 137, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
     // Item 4435: 137 -> 80, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 71, "run762 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    pin_eq!(w.firsts.len(), 69, "run762 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit) // Item 4520: −2, a helicopter set apart keeps its `dest_angle`
 }
 
 #[test]
@@ -1919,7 +1919,7 @@ fn run721_s_word_frame_is_widened_whole() {
     pin_eq!(
         w.firsts.len(),
         // Item 4435: re-pinned, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-        63, // Item 2677: −1 (parked 2680). // Item 3172: −16, the Sulphur siege arm (`get_cost`, a Siege Factory unit) // Item 3336: −1, `Wall::set_type`'s hits (`docs/AI.md` §272) // Item 3335: −1, the group change (every attacking type in its trainer's group)
+        62, // Item 2677: −1 (parked 2680). // Item 3172: −16, the Sulphur siege arm (`get_cost`, a Siege Factory unit) // Item 3336: −1, `Wall::set_type`'s hits (`docs/AI.md` §272) // Item 3335: −1, the group change (every attacking type in its trainer's group) // Item 4520: −1, a helicopter set apart keeps its `dest_angle`
         "run721 after find_path relocates a unit off a refusing tile (item 1667: 394 -> 326)"
     );
     let path = dump(RUN721).expect("the replay just read run721");

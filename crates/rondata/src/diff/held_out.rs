@@ -3330,13 +3330,18 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // `xport_peasants`, ours 2, theirs 3, who=1's Citizen `1/97` (TI 50)
         // holding `[CAST_SPELL, MOVE_TO]` on 3975): leaders 5,801 -> 6,001,
         // whole.
+        // Moved by item 4520 (`set_facing` writes no `dest_angle`: a
+        // helicopter set apart keeps its order's; run1754's leaf, row 130),
+        // measured on the tree merged with 4516: units 5,979 -> 5,997, first
+        // on 4880, ours' sum there 357474173 -> 3863584640. No ranges take of
+        // this row names which states went whole.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5979, 6001, 6001, 5962, 6001, 6001, 5997, 6001, 6001, 6001, 6001, 6001,
+                5997, 6001, 6001, 5962, 6001, 6001, 5997, 6001, 6001, 6001, 6001, 6001,
             ],
             first: &[
-                ("units", (4880, Some(357474173), 4168261069)),
+                ("units", (4880, Some(3863584640), 4168261069)),
                 ("ammo", (5178, None, 1427640977)),
                 ("guys", (4880, Some(3110518234), 2759048231)),
             ],

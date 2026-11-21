@@ -8407,7 +8407,7 @@ const WANT_CH36: &[&str] = &[
     "1080 0/8 ammo[4].whom",
     "1080 0/8 ammo[7].ox",
     "1080 0/8 ammo[7].whom",
-    "2675 0/12 dest_angle",
+    // Item 4520: `2675 0/12 dest_angle` left — a helicopter set apart keeps its order's (`docs/RECGAME.md` §11).
     // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 6125 theirs 6085. Item 4159's
     // residue: agrees (the score's units and combat parts, §18.5).
 ];
@@ -8533,8 +8533,9 @@ const V2_LAUNCH: (i64, i64) = (2668, 2704);
 // its own target (`Ammo::check_hit`'s `find_building_at`), and strikes it
 // whole: `1/2006` is gone on 2821 both sides. The blast's own record is
 // `chapter_thirty_five_s_v2_blast_is_compared_field_for_field`'s, none
-// parting. What stands is the birth seats and the second Helicopter's
-// bearing, parked.
+// parting. What stands is the birth seats; the second Helicopter's
+// bearing, parked, is closed by item 4520 (`set_facing` writes no
+// `dest_angle`).
 const WANT_CH35: &[&str] = &[
     // Item 4497: 15 `accuracy` rows left — a bomb's round carries its pool slot's last accuracy (`docs/CHECKSUM.md` §18.2).
     // Item 3804: the helicopter's `g.z`/`g.last_z` rows left — its birth climb (`docs/GOLDEN.md` §152.3).
@@ -8550,7 +8551,7 @@ const WANT_CH35: &[&str] = &[
     "1080 0/8 ammo[4].whom",
     "1080 0/8 ammo[7].ox",
     "1080 0/8 ammo[7].whom",
-    "2675 0/12 dest_angle",
+    // Item 4520: `2675 0/12 dest_angle` left — a helicopter set apart keeps its order's (`docs/RECGAME.md` §11).
     // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 5925 theirs 5885. Item 4159's
     // residue: agrees (the score's units and combat parts, §18.5).
 ];

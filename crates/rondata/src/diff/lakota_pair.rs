@@ -515,7 +515,7 @@ fn run861_s_word_frame_is_widened_whole() {
     // Item 4435: 96 -> 81, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4477: 69 -> 67, the farmer's turn east toggles its group's `facing` (`Unit::set_angle`, docs/CHECKSUM.md §23.14).
     // Item 4508: 67 -> 66, a computer's bomber searches round itself (`find_new_bomber_target`).
-    pin_eq!(w.firsts.len(), 66, "initial run861 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    pin_eq!(w.firsts.len(), 62, "initial run861 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit) // Item 4520: −4, a helicopter set apart keeps its `dest_angle`
     // Item 3333: who=1's `bucket` timber 7707/7282 and metal 6422/5997,
     // standing from 4853, close with an Oil Platform priced by the Oil Wells
     // (`docs/AI.md` §270).
@@ -883,7 +883,7 @@ fn run881_s_word_frame_is_widened_whole() {
     // Item 4435: 135 -> 80, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4477: 60 -> 59, the farmer's turn east toggles its group's `facing` (`Unit::set_angle`, docs/CHECKSUM.md §23.14).
     // Item 4508: 59 -> 57, a computer's bomber searches round itself (`find_new_bomber_target`).
-    pin_eq!(w.firsts.len(), 57, "initial run881 baseline");
+    pin_eq!(w.firsts.len(), 54, "initial run881 baseline"); // Item 4520: −3, a helicopter set apart keeps its `dest_angle`
     // Item 3333: who=1's `bucket` metal 5193/4648, standing from 6446, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
