@@ -77,11 +77,16 @@ impl crate::Sim {
 
     /// The pair a search answers: `cavarch_o` and `cavarch_who` both
     /// written, −1 and −1 for nothing (`find_melee_target`'s head writes
-    /// `*who = −1` before it looks). The uid beside them is not carried.
+    /// `*who = −1` before it looks). The uid beside them is written only
+    /// on a find (`fight@005fd4d0:219`'s `-1 < iVar13`, `:1042`'s early
+    /// return): an empty answer keeps the last target's (item 4476).
     fn cavarch_take(&mut self, u: usize, found: Option<Obj>) {
         self.units[u].cavarch_idle = false;
         self.units[u].cast_target = found;
         self.units[u].cavarch_who = found.map_or(-1, |t| self.owner_of(t) as i8);
+        if let Some(t) = found {
+            self.units[u].cavarch_uid = self.obj_uid(t);
+        }
     }
 
     /// **`Unit::do_move@005f7b30:60-86`** — the fire on the move's gate,

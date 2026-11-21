@@ -426,8 +426,11 @@ pub(in crate::diff) mod tests {
     /// → 3887, +868. Item 4463 (the Inca capital taken on 3887 hands its
     /// building's age, farm slots, flags and `visible` across, keeps the
     /// loser's city slots, and its caravan's route ends that frame): 3887
-    /// → 3903, +16.
-    const SAMPLE_WALKED: (i64, i64) = (3903, 21044);
+    /// → 3903, +16. Item 4475 (a region walked to its end takes `0x20`,
+    /// `compute_reg_territory@006b0bb0:280`–`282`, and the captured Inca
+    /// camp re-walks on 3904 with theirs' 244 shuffle draws): 3903 → 3931,
+    /// +28.
+    const SAMPLE_WALKED: (i64, i64) = (3931, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -576,20 +579,25 @@ pub(in crate::diff) mod tests {
     /// Item 4466 (the capture's members close before the old city; the
     /// line's `0x400000` and make-list city slot): leaders 3888 -> 3889.
     /// Item 4469 (an unassimilated city's cells win as −2): leaders 3889 ->
-    /// 3925, cities 3891 -> 4201, world 3889 -> 3904.
+    /// 3925, cities 3891 -> 4201, world 3889 -> 3904. Item 4475 (a region
+    /// walked to its end takes `0x20`, the captured camp's re-walk on
+    /// 3904): units 3906 -> 3921, builds 3904 -> 3981, ammo 3920 -> 3936,
+    /// guys 3906 -> 3932, leaders 3925 -> 3945, world 3904 -> 3943; groups
+    /// 4004 -> 3935, items 5474 -> 5235, goods 4458 -> 4171, named falls
+    /// past units' new 3921.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 3906),
-        ("builds", 3904),
+        ("units", 3921),
+        ("builds", 3981),
         ("walls", 21044),
-        ("ammo", 3920),
+        ("ammo", 3936),
         ("deaths", 3932),
-        ("groups", 4004),
-        ("guys", 3906),
-        ("leaders", 3925),
+        ("groups", 3935),
+        ("guys", 3932),
+        ("leaders", 3945),
         ("cities", 4201),
-        ("items", 5474),
-        ("goods", 4458),
-        ("world", 3904),
+        ("items", 5235),
+        ("goods", 4171),
+        ("world", 3943),
     ];
 
     /// `(frames our walk holds no wall, shot or death, the first it holds
@@ -617,8 +625,11 @@ pub(in crate::diff) mod tests {
     /// parting, the frames not read one by one; the first shot still on
     /// 2929. Item 4469 (an unassimilated city's cells win as −2, the
     /// captured Inca capital's 29 from 3889): 6309 -> 4473, a named fall,
+    /// the frames not read one by one; the first shot still on 2929. Item
+    /// 4475 (a region walked to its end takes `0x20`, the captured camp's
+    /// re-walk on 3904): 4473 -> 5271, a named rise past every parting,
     /// the frames not read one by one; the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4473, Some(2929));
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (5271, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
@@ -1061,30 +1072,39 @@ pub(in crate::diff) mod tests {
     /// `reg_terr[1]` 77 -> 48; leaders 3889 -> 3925, world 3889 -> 3904,
     /// cities 3891 -> whole to 4130 (`45 9 city_flags` 99|89 was
     /// `0x1000`, the pass's near-border mark from a cell it gave player 3).
+    /// Item 4475 (a region walked to its end takes `flags |= 0x20`,
+    /// `compute_reg_territory@006b0bb0:280`–`282`, so the captured Inca
+    /// camp `3/2011` re-walks on 3904 through `Build::process`'s `0x10`
+    /// arm): builds' `2710 2011 gather_max` ours 0 -> theirs' 5 and
+    /// `2715 2011 gather_from.length` 0 -> 61, world `3624 -1 mask` 61
+    /// tiles' `0x1000` clear -> set on 3904; builds 3904 -> 3981, world
+    /// 3904 -> 3943, units 3906 -> 3921, guys 3906 -> 3932, ammo 3920 ->
+    /// 3936, leaders 3925 -> 3945, groups 4004 -> 3935 (after units' and
+    /// guys' new partings); deaths' 3932 stands.
     const SAMPLE_RANGES_1724: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
-            3906,
-            3644,
-            3648,
-            73,
-            "2038 6 collide_frame..play: dest_angle -541917184|-1260584960, orders_x 32568|32376, orders_y 7032|7608",
+            3921,
+            3680,
+            3678,
+            1471,
+            "2190 11 guys.length: +0x0 of 4|1: 01000000|04",
         ),
         (
             "builds",
-            3904,
-            3064,
-            3000,
-            338,
-            "2710 2011 gather_down..infiltrate2: gather_max 0|5",
+            3981,
+            3326,
+            3326,
+            1,
+            "3255 2010 myhits..launch_frames: up 17|1",
         ),
         (
             "ammo",
-            3920,
+            3936,
             3,
             3,
             1,
-            "1 0 rolling..start_roll_angle: +0x7 of 99|99: 439e0000|b99f0000",
+            "1 0 rolling..start_roll_angle: +0x7 of 99|99: 36a00000|69a00000",
         ),
         (
             "deaths",
@@ -1094,30 +1114,30 @@ pub(in crate::diff) mod tests {
             4,
             "12 -1 00936bff: +0x0 of 0|4: |01000000",
         ),
-        ("groups", 4004, 628, 628, 1, "166 130 id..march: facing 0|1"),
         (
-            "guys",
-            3906,
-            1012,
-            1012,
-            1,
-            "990 12 guy: end_time 30|120, cur_anim 0|1",
+            "groups",
+            3935,
+            622,
+            622,
+            2,
+            "295 201 curr_x: curr_x[1] -120|-117, curr_x[2] 119|116",
         ),
+        ("guys", 3932, 1003, 1003, 1, "696 34 guy: cur_anim 12|13"),
         (
             "leaders",
-            3925,
+            3945,
             667,
             667,
             2,
-            "134 1 who..ally_mask: +0xa54 of 26914|26914: 02000800|01000800",
+            "134 1 who..ally_mask: +0xa54 of 26914|26914: 03000e00|02000e00",
         ),
         (
             "world",
-            3904,
-            7795,
-            7795,
-            1,
-            "3624 -1 mask: +0x6201 of 115200|115200: e138e138|f138f138",
+            3943,
+            7827,
+            7827,
+            2,
+            "4352 673 block.body: +0x1d of 96|96: 70007000|e000e000",
         ),
     ];
 }

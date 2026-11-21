@@ -1117,8 +1117,7 @@ column by column and ours walked it row by row (`docs/PATHFINDER.md`, the
 3,331 (`SCORES[5].moved`). It parts next on 2618, the state ammo parts on:
 range 1392, record 1368, `cell`, byte 20, ours 0x02, theirs 0xff. Units
 still parts first, on 1611: range 1170, record 31, `cavarch_o` ours −1,
-theirs −2, the leaf rows 80 and 120 part on. Diff-backed by run1721's
-ranges; the score of the other seven rows is the gate's.
+theirs −2, the leaf rows 80 and 120 part on. Diff-backed by run1721.
 
 **Row 60's leaders, by leaf (item 4444, run1722).** On 969 who=1's seven
 `resource_cap` words are ours 2400, theirs 3200: its republic, taken on 968,
@@ -1140,8 +1139,8 @@ range 1170. Row 120 is now **whole**; units also moves on rows 40, 60, 80,
 run1720 on 2367, range 2407; run1721 on 1793, range 1581. Unread.~~
 Answered by item 4448.
 
-**Row 60's groups** (item 4473): an army's push zeroes the emptied last
-slot's `ox`/`oy` (`docs/GROUPS.md` §36.2).
+**Row 60** (4473, 4476): an army's push zeroes the emptied last slot's
+`ox`/`oy` (GROUPS §36.2); a dropped cavarch target keeps its uid (AI §134.3).
 
 ## 11. Parity held out, second: eight more lobbies named before the original plays them (item 4462)
 

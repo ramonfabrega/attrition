@@ -2801,6 +2801,17 @@ gather_from.length = 0                               # +0x9c = 0
   re-walked in the same frame's objects. A close inside
   `Objects::process_all` is verified by the buildings after it and
   re-walked on the next frame. `sim::world::World::cycle_gather_flags`.
+- **The second writer of `0x20`: the territory pass** (item 4475).
+  `World::compute_reg_territory@006b0bb0:280`–`282` (`orl $0x80` at
+  `006b1a3d`, `orl $0x20` at `006b1a47`, the arm behind `borders >=
+  size` at `006b1a0d`) raises both bits on a region the pass has just
+  walked to its end. `GameDaemon::check_borders@00732060` calls it only
+  for a region with `borders < size`, so the bit goes up once per
+  region per fix, on the frame its last cell is written. Since
+  `check_borders` runs after the cycle, the region's gather buildings
+  verify in that frame's objects and re-walk on the next.
+  `sim::territory::border_pass` (`Sim::advance_border_pass`). The `0x80`
+  feeds `Borders::add_border_region` and is not carried.
 - **`Build::process@0061edf0`**, `0061f3c1`–`0061f41f`, right after the
   building's own `do_queue` and under the function's `flags & 4` gate
   (`Wall::activate` sets it, so an active building). A gather, non-flat
@@ -2846,9 +2857,14 @@ gather_from.length = 0                               # +0x9c = 0
   next region pass. ~~No capture holds a captured camp.~~ The 2017 sample's Inca camp `3/2011`, taken on 3887,
   is one. Ours re-walks it on 3889 with nothing to take. Theirs re-walks
   it again on state 3904, takes 61 tiles, and sets `gather_max` 5 (run1724;
-  244 draws at `find_gather_tiles` < `Build::process+0x661`). Ours has no
+  244 draws at `find_gather_tiles` < `Build::process+0x661`). ~~Ours has no
   flag that frame. Nothing establishes what set the region's `0x20` in
-  theirs on 3902 or 3903 (item 4472, parked 4472a).
+  theirs on 3902 or 3903 (item 4472, parked 4472a).~~ The territory pass
+  set it, walking the camp's region to its end (§17.2, the second writer;
+  item 4475). With it, ours re-walks on 3904 too, and builds and world
+  agree there (run1724: builds 3904 → 3981, world 3904 → 3943). The
+  frame the region's walk ends is not printed by any dump. That it is
+  3902 or 3903 rests on the re-walk's frame alone.
 - **The mine's stamps.** This crate carries no `MiningList::mtn` or
   `cliff`. A re-walk recomputes the nearest range, which the stamp would
   have named anyway, unless the range has moved out of reach. The cliff
@@ -2860,7 +2876,13 @@ gather_from.length = 0                               # +0x9c = 0
 run346 and 4555's on run347, and by run352's and run355's word blocks.
 **Listing-backed**: the tail, its gate and the region it flags.
 **Export-backed only**: the daemon's cycle and the two re-entries
-(unit-tested, and never exercised by a capture).
+(unit-tested, and never exercised by a capture). ~~never exercised~~
+The `0x10` re-walk that grows is diff-backed since item 4475: the
+sample's camp `3/2011` on run1724's 3904, by its `gather_max` 5, its
+61 `gather_from` entries and the 61 tiles' `0x1000`, and by the draw
+word, which moves 3903 → 3931. **Listing-backed**: the territory pass's
+`or $0x20` (`006b1a47`), whose frame no dump prints. The verify arm is
+still exercised by no capture that a diff reads.
 
 ## French timber capacity (2026-10-02, item 1443)
 

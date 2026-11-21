@@ -656,6 +656,11 @@ impl Sim {
                 self.units[u].spell_time = 0;
                 self.units[u].cast_target = target;
                 self.units[u].cavarch_who = whom;
+                // `action_spell@006fe1a0:588`: the uid under `-1 < ox`
+                // alone (item 4476).
+                if let Some(t) = target {
+                    self.units[u].cavarch_uid = self.obj_uid(t);
+                }
             }
             let pos = if d.flags & craft::CRAFT_FIRST != 0 {
                 while matches!(self.current_order(u).map(|o| o.body), Some(Body::Cast(_))) {
@@ -805,6 +810,7 @@ impl Sim {
         }
         self.units[u].cast_target = Some(t);
         self.units[u].cavarch_who = self.owner_of(t) as i8;
+        self.units[u].cavarch_uid = self.obj_uid(t);
         let (centre, radius) = if d.flags & craft::AREA == 0 {
             let radius = match t {
                 Obj::Building(b) => self.buildings[b].ty.map_or(0, |ty| {

@@ -633,6 +633,9 @@ fn drive(text: &str, out: &mut Paths) {
 /// the units line (run1725's 3937). The dump's reader beside `diff::unit`
 /// is not built, and no widening has measured it (parked 4464c).
 const UNREAD_UNIT_FIELDS_OWED: &[(&str, u32)] = &[
+    // Carried since item 4476 for the units line; the golden reader is its
+    // parked 4476a.
+    ("cavarch_uid", 4476),
     ("hero", 4118),
     ("myarmor", 4464),
     ("play", 4118),
