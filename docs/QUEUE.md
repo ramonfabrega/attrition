@@ -32,7 +32,7 @@ Rubric: ported 738 · replaced by design 331 · open 571 of 3611 · lockstep byt
 Held-out: 8 of 9 whole · shortest 6147
 Parity: 6 of 7 whole · the sample parts first on leaders 5256 of 21044 · draws 5273
 Parity held out: 8 of 8 whole · 8 taken · lines 64 of 96 as found, 96 now · first partings 2990 3694 711 969 0 134 2694 0 as found, whole whole whole whole whole whole whole whole now · reach 27 % of states as found, 100 % now
-Parity held out, second: 4 of 8 whole · 8 taken · lines 65 of 96 as found, 84 now · first partings 537 1662 3352 5054 4021 1608 553 whole as found, 4880 1662 whole whole whole 3809 3515 whole now · reach 53 % of states as found, 82 % now
+Parity held out, second: 4 of 8 whole · 8 taken · lines 65 of 96 as found, 86 now · first partings 537 1662 3352 5054 4021 1608 553 whole as found, 5178 1662 whole whole whole 3809 4573 whole now · reach 53 % of states as found, 85 % now
 Parity held out, third: 8 of 8 whole · 8 taken · lines 90 of 96 as found, 96 now · first partings 4805 whole whole whole 3831 1976 whole whole as found, whole whole whole whole whole whole whole whole now · reach 88 % of states as found, 100 % now
 Parity held out, fourth: 5 of 8 whole · 8 taken · lines 90 of 96 as found, 90 now · first partings whole whole 4275 4004 5266 whole whole whole as found, whole whole 4275 4004 5266 whole whole whole now · reach 91 % of states as found, 91 % now
 Structure: flat 11 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 21 · largest 3711
@@ -52,7 +52,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3): three seats out, Opus 5.5: `lane-4522` (the chain's; second, row 10 from guys and units 4880) and `lane-4520` (second, row 130 from units 3515), each off the disk with no take, and `lane-4521` (the sample from leaders 5256, its take run1771); 4503 follows 4521. The fourth seat is held for disk: every item left needs a take, and the disk hovers at the takes' 60 GB (DECISIONS 148 §4). The fourth seat takes, in this order: 4517 (fourth, row 75), 4509 (second, row 30), 4518 (fourth, row 55), 4485 (second, row 110), 4519 (fourth, row 95). One game at a time on the game lane.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3): three seats out, Opus 5.5: `lane-4523` (the chain's; second, row 10's ammo from 5178) and `lane-4520` (second, row 130 from leaders 4573; its 3515 fell to 4522), each off the disk with no take, and `lane-4521` (the sample from leaders 5256, its take run1771); 4503 follows 4521. The fourth seat is held for disk: every item left needs a take, and the disk hovers at the takes' 60 GB (DECISIONS 148 §4). The fourth seat takes, in this order: 4517 (fourth, row 75), 4509 (second, row 30), 4518 (fourth, row 55), 4485 (second, row 110), 4519 (fourth, row 95). One game at a time on the game lane.
 
 4521. **The 2017 sample: leaders and world from 5256, a take past 4500** (a rules item, whole; a parity seat's, held for disk;
 `docs/RECGAME.md` §7). 4515 made a round stick by its piece's `punctures` whoever fired it (gaia building 0/2016's BuildingArrow flags
@@ -61,12 +61,11 @@ window (0 to 4500). First act: `df -g ~` (stop under 60), then one take as run17
 prints, then the leaf of leaders 5256. Parked 4515a. Re-pin `SAMPLE_LINES`; the driver writes `Parity:` with its draw word. It stops
 when two landings running leave the `Parity:` line as it is.
 
-4522. **Parity held out, second: row 10 from guys and units 4880, on run1739's disk** (a rules item, whole; the chain's;
-`docs/RECGAME.md` §11). 4516 counted a citizen casting a spell or boarding a ship as an xport peasant (`Leader::plan_strategy@006b9620`;
-`xport_peasants` ours 2 theirs 3 on 3976): row 10's leaders whole; the second battery's lines 83 → 84, reach 80 → 82 %. Next, off the
-same take: guys range 1030 and units range 7447 on 4880 (record 140, `last_angle` and `dest_angle`), then ammo 5178 (ours emits no
-line, theirs holds 3 ranges). One leaf a landing, no take. Parked 4516a. Re-pin `SCORES_SECOND[0].moved`, never `found`. It stops
-when two landings running move no column.
+4523. **Parity held out, second: row 10's ammo from 5178, on run1739's disk** (a rules item, whole; the chain's; `docs/RECGAME.md`
+§11). 4522 made `spread_to` a `set_new_location_turning` (two Attack Helicopters set apart keep `dest_angle` and snap `last_angle`):
+row 10's units and guys whole; row 130's units 4,574 → 4,583, first 3515 → 4583; the second battery's lines 84 → 86, reach 82 → 85 %;
+eight widening pins toward agreement. Row 10 now parts on ammo 5178 alone, where ours emits no line and theirs holds 3 ranges. One leaf,
+no take. Re-pin `SCORES_SECOND[0].moved`, never `found`. It stops when two landings running move no column.
 
 4520. **Parity held out, second: row 130 from units 3515, on run1754's disk** (a rules item, whole; a parity seat's;
 `docs/RECGAME.md` §11). 4508 took run1754 and built `find_new_bomber_target`'s search round the plane (Strategic Bomber 1/158

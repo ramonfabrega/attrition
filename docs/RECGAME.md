@@ -1222,12 +1222,15 @@ did not move.
 **Row 10's leaders are whole** (item 4516, 5,801 → 6,001): a casting
 citizen is an `xport` peasant, `docs/AI.md` §58.7.
 
-**Row 130, run1754's leaves**: who=1's bomber `1/158` searches round itself
-(item 4508, `find_new_bomber_target@005eb960`'s `unit_masks & 0x40000` head;
-units first 3411 → 3515). Its leaders line is whole (item 4520, 4,721 → 4,731):
-from its Kremlin's finish on 4573 to the spy on 4583, `leader_flags` holds
-`0x10000000` (range 128, record 1, byte 3: ours `0x0e`, theirs `0x1e`), which
-this crate kept and its checksum never printed.
+**Row 10's units and guys are whole** (item 4522): two Attack
+Helicopters set apart keep `dest_angle`, `docs/PRODUCTION.md`, "The
+push's angle". Ammo 5178 is the row's last parting.
+
+**Row 130, run1754's leaves**: the bomber `1/158` searches round itself
+(item 4508, `find_new_bomber_target@005eb960`; units 3411 → 3515), 4522's
+helicopters (3515 → 4583). Leaders whole (item 4520): from the Kremlin's
+finish on 4573 to its spy on 4583 `leader_flags` holds `0x10000000`, which
+the checksum never printed (range 128, byte 3: ours `0x0e`, theirs `0x1e`).
 
 ### 11.1 Parity held out, third: rows 5 to 145 (item 4487)
 
