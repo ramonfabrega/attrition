@@ -40163,3 +40163,32 @@ Files in place, `~/ron-golden/run1752/map-18/`: `gamelog_p.txt`, 2,432 bytes, SH
 
 **What it holds**: `diff::held_out::tests::row_105_s_rider_to_sea_region_65_lands_in_reg_gatherers_on_run1752_s_ranges`
 (every leaders range on 1975 and 1976).
+
+## run1753 — parity held out, third battery, row 5's file to 6000 with the checksum and ranges hooks, ammo kept (2026-11-21, item 4507, `att-4507`)
+
+`docs/RECGAME.md` §11.1; DECISIONS 148 §4. **What the disk could not answer**: run1743 holds sums only, so the ammo
+parting on row 5 (state 4805) named no leaf. The take is run1752's line with the run directory, the recording and the
+mask changed, the arguments `score_recording` printed on `1404e560c`: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1753 --recording ~/ron-golden/recordings/item4487-row005-6000.rcx
+--end-frame 6000 --allow-early-end --cover cover=1 --log-window 0 31 --detail end:MISC --timeout 3600 --stall-seconds
+120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0x8u`, waited on with `waitrun.sh` in the
+background. `df -g ~` read 72 GB free before it and 69 after.
+- **The run**: pool lane 1, launched 09:08:27 −05:00, exited 09:16:39: **491.4 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 12345, map 14. The
+  recording's SHA-256 is run1743's (`c7237775…`).
+- **The record**, `~/ron-golden/run1753/map-14/rontrace.ranges`, 685,536 bytes, SHA-256
+  `a31f5987674bfc9868751fdc62433b5935de8941b65550eb639aa6b11283c4d0`: lines `['ammo']`, 6,001 sets on trace frames
+  −1 to 5999, 2,172 ranges, 73,124 bytes, none over (`ranges.py summary`).
+- **Scored** (`score_recording … ~/ron-golden/run1753/map-14`, on `1404e560c`): the sums are run1743's; ammo 5,934,
+  first 4805: **ammo range 1, record 0, `rolling..start_roll_angle`, bytes 7, 11, 41 and 84: `launch.x` ours 4944,
+  theirs 4945; `launch.y` ours 30710, theirs 30709**, then the aim's `angle` and `dx` (who=1's Slinger `1/22`,
+  `CHAR_ATTACK2` frame 22; `docs/RECGAME.md` §11.1).
+- **Re-scored by item 4507** (piece 32's bays re-fitted on run1579's sweep): all twelve lines 6,001 of 6,001; whole.
+- Filed **in place**, as run1752 is.
+
+Files in place, `~/ron-golden/run1753/map-14/`: `gamelog_p.txt`, 2,444 bytes, SHA-256
+`6babc638295b59fe90e3541ad98b1fa98bf5e1157ebe61aea64b77205d8e6276`; `rontrace.log`, 33,862,976 bytes, SHA-256
+`8c23caedc9cefb09a1fc92e784c218dda3e64059979f9625abe91ee0c6b88d56`.
+
+**What it holds**: `diff::held_out::tests::row_5_s_slinger_stone_leaves_from_the_original_s_socket_on_run1753_s_ranges`
+(every ammo range on 4804 to 4806).
