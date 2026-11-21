@@ -2240,7 +2240,17 @@ the closing block, and the Aztec pair's starts.
   10 particles on `1/27` and `1/16`, 7 on `1/40`'s stopped one, and 1 on
   the crisp `1/15`, whose earlier emitter stopped with none left.
   `RUN1559B_3279_TANKS_HAZE` reads the luminance 1 of 4, the control.
-  Why `1/15`'s emitter stopped is unread.
+  **The gate is read, and our walk does not reproduce it** (item 4490,
+  parked 4490a). `ensure_emitter@00904e60` extends a live emitter's
+  `end_time` to `frame · 67 + 67`, and `ParticleEmitter::inc_time
+  @008dca70` stops it once `frame · 67` passes that, so it takes two game
+  frames without an ensure to stop an emitter. `GuyOut::draw@005dc490` hands case 3
+  the guy's `cur_time · 200 / 3` (plus `graphic_dt`, clamped to the
+  animation) against `[75, 9000)`. All five emitters started on frame 3136. On our
+  walk, `1/15` stays on slots 7 to 9 with its clock in the window from 3249 to 3279, except
+  for 3262 to 3269, where it holds `cur_time` 1, so the rule would keep its emitter
+  running, and the packet's stopped after 3248. Built on our state, the control would haze.
+  What gates the original's ensure beyond the slot and the clock is unread.
 
 **The photograph of a corpse and a round** (item 4183, run1570; the rule
 before any count, so no count yet). run1570 is run1559b's paused, traced
