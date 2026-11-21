@@ -1446,7 +1446,10 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// **844** at item 4461 (+1, on 4468's 843): run1437's guys line whole, a
 /// military type's gender piece named `-PACKED`, so the Assault Marines'
 /// `-FEMALE` entry is no piece (`docs/CHECKSUM.md` §23.13).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 844, 1053);
+/// **847** at item 4476 (+3): the units lines of run1224b, run1351 and
+/// run1361 whole, and eight more packets parting on fewer units ranges,
+/// none on more: `cavarch_uid` is carried and kept past a dropped target.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 847, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -4568,11 +4571,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5340, 5340, 284) -> (5340, 5340, 276).
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (2736, 2736, 26) -> (2736, 2736, 24).
+    // Item 4476, `cavarch_uid` kept past a dropped target: units (5340, 5340, 276) -> (5340, 5340, 275).
     (
         "run1487",
         1980,
         [
-            (5340, 5340, 276),
+            (5340, 5340, 275),
             (2736, 2736, 24),
             (0, 0, 0),
             (208, 0, 208),
