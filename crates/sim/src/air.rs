@@ -725,13 +725,17 @@ impl Sim {
         af.z += (ground - af.z + 1000).clamp(-30, 30);
     }
 
-    /// `set_new_location(·, ·, 1, 1)`: guy 0 onto the unit's own facing,
-    /// then the teleport ([`Sim::set_new_location`]'s `move_guys`).
+    /// `set_new_location(·, ·, 1, 1)`: guy 0 onto the unit's own heading,
+    /// then the teleport ([`Sim::set_new_location_turning`]). The `param_4`
+    /// arm is `Guy::set_angle(guy 0, +0x50, 1)` (`005f8d20:156`), which
+    /// writes the figure's `angle` and `last_angle` and never the unit's
+    /// `dest_angle` (`+0x58`): run1739's Attack Helicopter `1/140` on 4880
+    /// keeps −1956511744 there, its `last_angle` the heading (item 4522;
+    /// [`crate::Movement::set_facing`] wrote `dest_angle` and left
+    /// `last_angle` mid-turn).
     fn spread_to(&mut self, u: usize, to: Pos) {
         let from = self.units[u].pos;
-        let heading = self.units[u].movement.heading;
-        self.units[u].movement.set_facing(heading);
-        self.set_new_location(u, to, true);
+        self.set_new_location_turning(u, to, true);
         self.moved_to(u, from, false);
     }
 
