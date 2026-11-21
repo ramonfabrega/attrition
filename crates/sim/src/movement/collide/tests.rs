@@ -356,6 +356,65 @@ fn a_move_inside_one_world_cell_sets_its_disc_by_the_old_tile_s_region() {
     );
 }
 
+/// **A move inside one world cell whose block is gone marks nothing**
+/// (`CollCheck::move_unit@00682ad0`, `docs/COLLISION.md` §2.4): the
+/// one-block form looks the cell's block up once, and
+/// `WorldData::get_coll_block@006b5350` only reads, so a null block ends
+/// the call before either pass. A unit whose own disc a neighbour's move
+/// cleared, and whose cell's empty block the sweep then freed (§26),
+/// steps without repainting until its sixty-fourth-frame repaint. Row
+/// 10's `1/43` does this on run1739's 2365 (item 4504).
+///
+/// Written by making it fail: without the null return the set pass runs
+/// and allocates the block, so the new disc's edge is set.
+#[test]
+fn a_move_inside_one_world_cell_with_no_block_marks_nothing() {
+    let mut world = World::new(8, 8);
+    world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(7, 7));
+    let mut sim = Sim::new(Tuning::RON, world, 2);
+    let ty = sim.add_unit_type(UnitType {
+        hits: 40,
+        combat: crate::combat::Profile {
+            block_radius: UNIT_BLOCK_RADIUS,
+            uber_size: 1,
+            ..crate::combat::Profile::default()
+        },
+        ..UnitType::default()
+    });
+    let at = |x: i32, y: i32| Pos::new(x * 48 + 24, y * 48 + 24);
+    let (from, to) = (at(20, 20), at(21, 21));
+    let mut b = Unit::new(0, 1, from, 40);
+    b.ty = Some(ty);
+    let b = sim.add_unit(b);
+    sim.coll_add(b);
+    assert!(sim.movement.coll.block_present(1, 1), "the birth disc's block");
+    // A neighbour's move clears the disc; the sweep frees the empty block.
+    for x in 19..=21 {
+        for y in 19..=21 {
+            sim.movement.coll.set(x, y, false);
+        }
+    }
+    for _ in 0..16 {
+        sim.movement.coll.process_coll_blocks();
+    }
+    assert!(!sim.movement.coll.block_present(1, 1), "the sweep freed it");
+    sim.coll_move(b, from, to);
+    assert!(
+        !sim.movement.coll.block_present(1, 1),
+        "no pass allocates the block"
+    );
+    for x in 19..=22 {
+        for y in 19..=22 {
+            assert!(!sim.movement.coll.get(x, y), "({x}, {y}) stays clear");
+        }
+    }
+    // With the block standing, the form runs both passes as before.
+    sim.coll_add(b);
+    sim.coll_move(b, from, to);
+    assert!(sim.movement.coll.get(22, 22), "the new disc's far corner");
+    assert!(!sim.movement.coll.get(19, 19), "the old disc's far corner");
+}
+
 /// **A snap onto the point the unit already holds still seats the
 /// crew** — `005f8d20` has no early return for an unchanged position,
 /// and `crates/sim` had one until item 210 (`docs/MOVEMENT.md`, "Who
