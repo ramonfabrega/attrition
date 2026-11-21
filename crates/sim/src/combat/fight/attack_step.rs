@@ -678,16 +678,6 @@ impl Sim {
         );
     }
 
-    /// `Objects::add_ammo@00658b10`: the shot takes the **lowest free
-    /// slot** of the pool — it scans from 0 and breaks at the first whose
-    /// `flags & 3` is clear — and the pool is stepped in slot order
-    /// (`Objects::inc_time@0065db70`), so the list is kept sorted by slot
-    /// and a landing removes without disturbing the rest (§46.4).
-    ///
-    /// Which of two shots due on the same frame lands first is decided
-    /// here: chapter two's `0/7` and `0/8` fire together on 677, hold
-    /// slots 1 and 2, and the first to come down on 683 takes `1/8` while
-    /// the second finds it dead and rolls on.
     /// **`Recycler<Spline>::pop@00478360`** (item 4495): the `Spline` a
     /// closed round handed back last, by its arrays' sizes, or a fresh
     /// one's zeros.
@@ -705,6 +695,16 @@ impl Sim {
         }
     }
 
+    /// `Objects::add_ammo@00658b10`: the shot takes the **lowest free
+    /// slot** of the pool — it scans from 0 and breaks at the first whose
+    /// `flags & 3` is clear — and the pool is stepped in slot order
+    /// (`Objects::inc_time@0065db70`), so the list is kept sorted by slot
+    /// and a landing removes without disturbing the rest (§46.4).
+    ///
+    /// Which of two shots due on the same frame lands first is decided
+    /// here: chapter two's `0/7` and `0/8` fire together on 677, hold
+    /// slots 1 and 2, and the first to come down on 683 takes `1/8` while
+    /// the second finds it dead and rolls on.
     pub(crate) fn add_ammo(&mut self, mut p: combat::Projectile) {
         let live: Vec<u32> = self.combat.projectiles.iter().map(|q| q.slot).collect();
         let slot = lowest_free_slot(&live);
