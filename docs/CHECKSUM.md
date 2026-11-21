@@ -2866,6 +2866,7 @@ state this crate holds, or now holds. Only the line left it out.
 | `0x1000`, `0x800`, `0x2000` | `Leader::init`, `gain_tech` and `fix_tech_flags@006d2480`: explore the map (or the Spanish bonus, `Build::activate`), reveal the enemy (or the Space Program), the territory revealed | read live from the held techs, as `Sim::sees_every_cell` reads them |
 | `0x4000` | `SpellType::cast_ambush@00671610:52` sets it; `Leader::verify_spell_flags@006ce190` clears it on an Ambush's or a Forced March's expiry once no hero holds `unit_masks & 0x2000` | `LeadersState::ambush` |
 | `0x8000` | `cast_march@00671500:39`, and `verify_spell_flags` | `LeadersState::forced_march` |
+| `0x10000000` | `Build::activate`'s Kremlin arm with no tagged spy alive, a tagged spy's `Unit::close`; `Build::process` clears it as it trains the spy (`docs/AI.md` §188). Item 4520: run1754's who=1, 4573 to 4582 | `PlayerTech::kremlin_spy_due` |
 
 **`PACKETS_SCORE` goes from 608 to 651 of 1,053.** The leaders line agrees on 43 more packets and parts
 on fewer ranges on 24 more. None parts on more, and no other line moves: 104 ranges fewer over 67 rows.
