@@ -3217,6 +3217,9 @@ impl Sim {
         let mut local =
             crate::combat::Rng::new(figure.x.wrapping_add(figure.y).wrapping_add(z) as u32);
         let bank = (local.get(-0x1e, 0x1e), local.get(-0x1e, 0x1e));
+        let roll_unread = self
+            .current_order(u)
+            .is_some_and(|o| crate::orders::index::is_air_family(o.index()));
         self.add_ammo_unaimed(crate::combat::Projectile {
             left: None,
             shooter: crate::combat::Obj::Unit(u),
@@ -3244,7 +3247,11 @@ impl Sim {
             flame: false,
             punctures: false,
             spent: false,
-            crash: Some(crate::combat::Crash { bank, rolling }),
+            crash: Some(crate::combat::Crash {
+                bank,
+                rolling,
+                roll_unread,
+            }),
             spline: None,
             // `Ammo::init_crash@0067b800:44`: the plane's own vslot
             // `+0x34`, `UnitData::get_gpiece` — its guy 0's piece (item 4175).
