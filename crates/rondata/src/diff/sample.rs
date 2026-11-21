@@ -693,7 +693,11 @@ pub(in crate::diff) mod tests {
     /// 5461, builds 5293 -> 5487, ammo 5299 -> 5969, deaths 5429 -> 6190,
     /// groups 5311 -> 5461, guys 5273 -> 5461, leaders 5256 -> 5326, cities
     /// 5326 -> 5801, items 8734 -> 10910, goods 5392 -> 6395, world 5256 ->
-    /// 5401; leaders 5326 the lowest.
+    /// 5401; leaders 5326 the lowest. Item 4525 (step 7's clear and step
+    /// 10's count of `invaders` gate on the slot's `leader_flags & 1`,
+    /// which the defeat keeps: leader 1's `invaders[3]` on 5326 ours 5,
+    /// held from 5256, theirs 0): leaders 5326 -> 5403; every other line
+    /// unchanged, world 5401 the lowest.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 5461),
         ("builds", 5487),
@@ -702,7 +706,7 @@ pub(in crate::diff) mod tests {
         ("deaths", 6190),
         ("groups", 5461),
         ("guys", 5461),
-        ("leaders", 5326),
+        ("leaders", 5403),
         ("cities", 5801),
         ("items", 10910),
         ("goods", 6395),
@@ -1429,13 +1433,11 @@ pub(in crate::diff) mod tests {
     /// active city centre (`+0x8 & 0x20`). Built: the two flag bits, the
     /// skip, and `process_all@006ed2a0`'s `& 2` gate over `gather` and both
     /// stats passes (leaders 5257, `137 1 flags` `0x8000000` ours clear,
-    /// theirs raised, and the stock): six rows -> one.
-    const SAMPLE_RANGES_1771: &[(&str, i64, usize, usize, usize, &str)] = &[(
-        "leaders",
-        5326,
-        671,
-        671,
-        1,
-        "138 1 who..ally_mask: +0x294 of 26914|26914: 05000000|00000000",
-    )];
+    /// theirs raised, and the stock): six rows -> one. Item 4525: leaders
+    /// 5326, `138 1 who..ally_mask` `+0x294` (`LeaderData +0x29c`,
+    /// `invaders[3]`) ours 5, theirs 0: the defeated leader 1's count,
+    /// which ours froze at its defeat and `plan_strategy@006b9620` clears
+    /// and recounts under `leader_flags & 1`. Built: one row -> none;
+    /// every kept line whole on run1771's window.
+    const SAMPLE_RANGES_1771: &[(&str, i64, usize, usize, usize, &str)] = &[];
 }
