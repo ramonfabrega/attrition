@@ -1792,68 +1792,6 @@ mod tests {
         }
     }
 
-    /// PROBE 4522, reverted whole.
-    #[test]
-    fn probe_4522() {
-        if std::env::var("RON_PROBE_4522").is_err() {
-            return;
-        }
-        let Some(inst) = crate::testenv::install() else { return; };
-        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(&SECOND, 0) else { return; };
-        let ranges = crate::testenv::experiment(&home.join("ron-golden/run1739/map-18"), "rontrace.ranges").unwrap();
-        let rec = crate::recgame::read(&rcx.to_string_lossy()).unwrap();
-        let loaded = crate::load::load(&inst).unwrap();
-        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
-        let mut stream = crate::input::Stream::pump(&rec);
-        let mut record = crate::trace::ranges::Record::open(&ranges).unwrap();
-        let lo: i64 = std::env::var("P_LO").ok().and_then(|s| s.parse().ok()).unwrap_or(4870);
-        let hi: i64 = std::env::var("P_HI").ok().and_then(|s| s.parse().ok()).unwrap_or(4881);
-        let idx: i16 = std::env::var("P_IDX").ok().and_then(|s| s.parse().ok()).unwrap_or(140);
-        for state in lo..=hi {
-            while built.sim.frame < state {
-                stream.apply(built.sim.frame as i32, &mut built);
-                built.sim.command().tick();
-            }
-            for u in built.sim.units.iter().filter(|u| u.alive() && u.index == idx) {
-                let m = &u.movement;
-                eprintln!("{state} ours {}/{} TI {} kind {:?} pos {:?} orders {:?} facing {} heading {} des_angle {} turned {} dest {:?} speed {} turning {:?} inside {:?}/{:?}",
-                    u.owner, u.index, u.type_index, u.kind.domain, u.pos,
-                    u.orders.iter().map(|o| o.index()).collect::<Vec<_>>(),
-                    m.facing.0, m.heading.0, m.des_angle.0, m.turned, m.dest, m.speed, m.turning, u.inside, u.inside_unit);
-                for (g, guy) in u.guys.iter().enumerate() {
-                    eprintln!("   guy {g} last {:?} follow {:?}", guy.last, guy.follow.map(|f| (f.facing.0, f.des_angle.0)));
-                }
-            }
-            let set = record.first_of(state - 1).unwrap().clone();
-            let all = record.ranges(&set).unwrap();
-            for (line, ours) in [(0u8, built.sim.checksum_units()), (6u8, built.sim.checksum_guys())] {
-                let theirs: Vec<_> = all.iter().filter(|r| r.line == line).collect();
-                if ours.ranges.len() != theirs.len() {
-                    eprintln!("{state} line {line} count ours {} theirs {}", ours.ranges.len(), theirs.len());
-                }
-                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
-                    if a.record == idx && (a.field == "collide_frame..play" || a.field == "guy") {
-                        let w = |v: &[u8], o: usize| i32::from_le_bytes(v[o..o + 4].try_into().unwrap());
-                        if a.field == "guy" {
-                            eprintln!("   {state} guys k {k} angle ours {} theirs {} last_angle ours {} theirs {} des_angle ours {} theirs {} x {} {} y {} {} cur_time {} {} flags {:x} {:x}",
-                                w(&a.bytes,0x10), w(&b.bytes,0x10), w(&a.bytes,0x14), w(&b.bytes,0x14), w(&a.bytes,0x5c), w(&b.bytes,0x5c),
-                                w(&a.bytes,4), w(&b.bytes,4), w(&a.bytes,8), w(&b.bytes,8), w(&a.bytes,0x6c), w(&b.bytes,0x6c),
-                                u16::from_le_bytes(a.bytes[0x92..0x94].try_into().unwrap()), u16::from_le_bytes(b.bytes[0x92..0x94].try_into().unwrap()));
-                        } else {
-                            eprintln!("   {state} units k {k} angle ours {} theirs {} dest_angle ours {} theirs {} masks {:x} {:x}",
-                                w(&a.bytes,8), w(&b.bytes,8), w(&a.bytes,0x10), w(&b.bytes,0x10), w(&a.bytes,0x20), w(&b.bytes,0x20));
-                        }
-                    }
-                    if a.bytes != b.bytes {
-                        let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
-                        eprintln!("{state} DIFF line {line} k {k} record {} {} at {:?} len {} {}", a.record, a.field, at, a.bytes.len(), b.bytes.len());
-                    }
-                }
-            }
-        }
-    }
-
     /// **Row 120's MLRS reads `cavarch_o` −2 in the units line** (item
     /// 4443, `docs/RECGAME.md` §10.3): on 5864 the computer's fire-on-the-move
     /// MLRS `1/35` (type 273) steps an `ExploreTo` with an empty search after
