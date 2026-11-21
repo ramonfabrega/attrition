@@ -12188,9 +12188,9 @@ offsets collapse onto §22.2's three vectors:
 
 | key | stones | headings (whole degrees) | `(right, fwd)`, thousandths | `dz` |
 |---|---|---|---|---|
-| `CHAR_ATTACK1`, 21 | 3 | 2 | (69,776, 67,449) | 178 |
-| `CHAR_ATTACK2`, 22 | 20 | 17 | (41,209, 118,012) | 151 |
-| `CHAR_ATTACK3`, 16 | 4 | 4 | (−42,148, 113,222) | 177 |
+| `CHAR_ATTACK1`, 21 | 3 | 2 | ~~(69,776, 67,449)~~ (69,764, 67,823) | 178 |
+| `CHAR_ATTACK2`, 22 | 20 | 17 | ~~(41,209, 118,012)~~ (41,238, 117,982) | 151 |
+| `CHAR_ATTACK3`, 16 | 4 | 4 | ~~(−42,148, 113,222)~~ (−42,142, 113,256) | 177 |
 
 Each row is item 813's `Bay`: the centroid of the region of integer
 `(right, fwd)` that reproduces every stone of its key **exactly** under
@@ -12199,6 +12199,18 @@ Each row is item 813's `Bay`: the centroid of the region of integer
 is the `GUY` record on the stone's first block; the Slingers stand while
 they throw. The regions are 5,467, 823 and 658 lattice points, at steps
 of 10, 5 and 10.
+
+**Re-fitted by item 4507 on the original's own sweep** (`docs/RECGAME.md`
+§11.1). Twenty headings left the regions wide: run17's centroids held 205,
+324 and 345 of the 361 whole degrees, and row 5 of the third held-out
+battery parted its ammo line on 4805 on one of the misses (`1/22`,
+`CHAR_ATTACK2`, launch (4944, 30710) against theirs' (4945, 30709)).
+`get_position.py … --init 0,<anim>,<time>,3 sweep 32 0 <anim> <time>` on
+run1579's packet gives every heading, at the `dz` above. The struck values
+are replaced by `fit_bay.py`'s centroids (1,696, 273 and 592 lattice
+points), 361 of 361 each. They are piece 384's rows (item 4277) to the
+digit: one socket under two piece numbers. Diff-backed by run1753's ammo
+ranges and the sweeps (`data::launch::tests::the_original_s_release_agrees_at_every_heading_for_the_slingers`).
 
 Piece 384's two rows (item 485, run112's slingers) have the first two's
 radii to the unit (97 and 125) and bearings 1.4° and 1.1° short of them:

@@ -2976,13 +2976,24 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // stone of the key. Without them every Slinger stone left the unit's
     // own square and flew a frame long across a boundary: Great Lakes'
     // second word, 4781.
+    //
+    // **Re-fitted on the original's own sweep** (item 4507, `docs/RECGAME.md`
+    // §11.1): twenty headings left each region wide, and run17's centroids
+    // held 205, 324 and 345 of the 361 whole degrees. Row 5 of the third
+    // held-out battery parted its ammo line on 4805 on one of the misses:
+    // who=1's Slinger `1/22` at (5064, 30744), facing −1,097,334,784,
+    // `CHAR_ATTACK2` frame 22, left from (4944, 30710) where theirs left
+    // from (4945, 30709). `get_position.py … --init 0,<anim>,<time>,3 sweep
+    // 32 0 <anim> <time>` on run1579's packet (`init_position` then
+    // `get_position`) prints every heading; each row is now `fit_bay.py`'s
+    // centroid of 1,696, 273 and 592 lattice points, 361 of 361 each.
     (
         32,
         crate::units::anim::ATTACK1,
         21,
         Bay {
-            right: 69_776,
-            fwd: 67_449,
+            right: 69_764,
+            fwd: 67_823,
             dz: 178,
         },
     ),
@@ -2991,8 +3002,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         crate::units::anim::ATTACK2,
         22,
         Bay {
-            right: 41_209,
-            fwd: 118_012,
+            right: 41_238,
+            fwd: 117_982,
             dz: 151,
         },
     ),
@@ -3001,8 +3012,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         crate::units::anim::ATTACK3,
         16,
         Bay {
-            right: -42_148,
-            fwd: 113_222,
+            right: -42_142,
+            fwd: 113_256,
             dz: 177,
         },
     ),
