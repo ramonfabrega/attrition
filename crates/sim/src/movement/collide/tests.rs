@@ -387,7 +387,10 @@ fn a_move_inside_one_world_cell_with_no_block_marks_nothing() {
     b.ty = Some(ty);
     let b = sim.add_unit(b);
     sim.coll_add(b);
-    assert!(sim.movement.coll.block_present(1, 1), "the birth disc's block");
+    assert!(
+        sim.movement.coll.block_present(1, 1),
+        "the birth disc's block"
+    );
     // A neighbour's move clears the disc; the sweep frees the empty block.
     for x in 19..=21 {
         for y in 19..=21 {

@@ -1382,7 +1382,11 @@ mod tests {
                 .position(|r| r.record == 3039 && r.field == "block.present")
                 .expect("cell 3039's presence");
             let present: u8 = if state == 2366 { 1 } else { 0 };
-            assert_eq!(theirs[k].bytes, [present, 0, 0, 0], "theirs' block on {state}");
+            assert_eq!(
+                theirs[k].bytes,
+                [present, 0, 0, 0],
+                "theirs' block on {state}"
+            );
             let u = built
                 .sim
                 .units
@@ -2717,17 +2721,21 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Freighter `1/135` holding `1/127`, `1/128`, `1/129`, `1/127`'s
         // `inside_down` ours -1, theirs 128): units 3,914 -> 5,664, first
         // 1747 -> 3771.
+        // Moved by item 4504 (`CollCheck::move_unit@00682ad0`'s one-block
+        // form returns on a null block: run1739, state 2365, world range
+        // 6920, record 3039 `block.present`, ours 1, theirs 0, who=1's
+        // `1/43` stepping (632, 813) -> (633, 814) inside the freed cell
+        // (39, 50)): world 5,995 -> 6,001, whole.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5664, 6001, 6001, 5962, 6001, 6001, 5997, 5801, 6001, 6001, 6001, 5995,
+                5664, 6001, 6001, 5962, 6001, 6001, 5997, 5801, 6001, 6001, 6001, 6001,
             ],
             first: &[
                 ("units", (3771, Some(4212870850), 267538306)),
                 ("ammo", (5178, None, 1427640977)),
                 ("guys", (4880, Some(3110518234), 2759048231)),
                 ("leaders", (3976, Some(2201651438), 3962276079)),
-                ("world", (2365, Some(1596373308), 975353592)),
             ],
             over: None,
         }),

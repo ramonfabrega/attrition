@@ -1212,6 +1212,18 @@ ours −1, theirs 38.
 sums); the AIRDEFENSE counter's readers in the original are not listed,
 since no take's value of it ever moves.
 
+**Row 10's world is whole** (item 4504, `SCORES_SECOND[0].moved`, world
+5,995 → 6,001). run1739's leaf on 2365: world range 6920, record 3039
+(cell (39, 50) of the 60-wide map), `block.present` ours 1, theirs 0.
+who=1's `1/43` (TI 104) stood at unit cell (632, 813) with its disc holed
+out by a neighbour and the cell's empty block freed by the sweep; on 2365
+it steps to (633, 814), both discs inside the one cell, and
+`CollCheck::move_unit@00682ad0`'s one-block form finds the block null and
+returns before either pass (`docs/COLLISION.md` §2.4). This crate ran the
+set pass and allocated the block. On 2366 theirs sets only the new disc's
+edge, (635, 814..815), round the old point (633, 814). Rows 30 and 110's
+world partings (1662, 3809) are not this: their sums did not move.
+
 ### 11.1 Parity held out, third: rows 5 to 145 (item 4487)
 
 DECISIONS 147 §2, 2026-11-21. Rows 5, 25, 45, 65, 85, 105, 125 and 145 of the same order, declared in

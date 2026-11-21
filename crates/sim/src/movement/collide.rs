@@ -1875,7 +1875,10 @@ impl Sim {
             && lo_y.div_euclid(n) < self.world.height();
         if one_cell {
             if !self.coll_region_ok(ra, Pos::new(lo_x, lo_y))
-                || !self.movement.coll.block_present(lo_x.div_euclid(n), lo_y.div_euclid(n))
+                || !self
+                    .movement
+                    .coll
+                    .block_present(lo_x.div_euclid(n), lo_y.div_euclid(n))
             {
                 return;
             }
