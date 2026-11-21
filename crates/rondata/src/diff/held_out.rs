@@ -1162,6 +1162,58 @@ mod tests {
         line_ranges_agree(k, run, state, 0, range)
     }
 
+    /// Probe (item 4497), reverted whole: row 100's ammo on 3208..=3211.
+    #[test]
+    fn probe_4497_ammo() {
+        if std::env::var("RON_PROBE_4497").is_err() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else { return };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIRST, 5) else { return };
+        let ranges = crate::testenv::experiment(
+            &home.join("ron-golden/run1721/map-14"),
+            "rontrace.ranges",
+        )
+        .expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("the game's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 3313 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            let state = built.sim.frame;
+            if state < 3310 {
+                continue;
+            }
+            eprintln!("=== state {state}");
+            for p in &built.sim.combat.projectiles {
+                eprintln!(
+                    "  ours: shooter {:?} owner {} target {:?} launch {:?} landing {:?} t {}/{} guided {} crash {} spline {} gpiece {} gi {} air {}",
+                    p.shooter, p.owner, p.target, p.launch, p.landing, p.cur_time, p.total_time,
+                    p.graphic.guided, p.crash.is_some(), p.spline.is_some(), p.gpiece,
+                    p.graphic.graph_index, p.air
+                );
+            }
+            match built.sim.checksum_ammo() {
+                Some(l) => {
+                    for r in &l.ranges {
+                        eprintln!("  ours rec {} {} {:02x?}", r.record, r.field, r.bytes);
+                    }
+                }
+                None => eprintln!("  ours: refused"),
+            }
+            if let Some(set) = record.first_of(state - 1).cloned() {
+                let theirs = record.ranges(&set).expect("the set's ranges");
+                for r in theirs.iter().filter(|r| r.line == 3) {
+                    eprintln!("  theirs {:02x?}", r.bytes);
+                }
+            }
+        }
+    }
+
     /// **Row 100's Jet Fighter fires a missile off the recycler** (item
     /// 4495, `docs/CHECKSUM.md` §18.1): on tick 3209 the strafing Jet
     /// Fighter `1/91` (TI 295) fires a guided round on `0/2000`, and
