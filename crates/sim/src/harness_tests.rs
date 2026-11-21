@@ -396,6 +396,35 @@ fn an_allys_ground_takes_no_attrition_and_one_way_is_no_alliance() {
     assert!(!ticks.is_empty());
 }
 
+/// **The period's two `unit_masks` bits** (`Unit::process_attrition@005e11a0`,
+/// item 4514, `docs/CHECKSUM.md` §18.3): the refresh clears `0x400080`, the war
+/// arm's period sets `0x80`, and the peace and assassin arms set both, the
+/// `0x400000` that `Unit::process_supply@005e0560` reads first. The units
+/// line carries them (run1739's who=1 `1/6` on 3771 read `0xc40088`).
+#[test]
+fn the_units_line_carries_the_attrition_period_s_two_bits() {
+    let masks = |sim: &Sim| {
+        let b = sim.unit_record_bytes(0);
+        u32::from_le_bytes([b[32], b[33], b[34], b[35]]) & 0x0040_0080
+    };
+    let mut sim = skirmish(1);
+    sim.add_unit(Unit::new(0, 0, centre_of(Cell::new(15, 0)), 1000));
+    run(&mut sim, 40);
+    assert!(sim.units[0].attrition > T_PEACE && !sim.units[0].ignores_supply);
+    assert_eq!(masks(&sim), 0x80, "the war arm's period");
+
+    sim.leaders.at_war = vec![vec![false; 2]; 2];
+    run(&mut sim, 32);
+    assert_eq!(sim.units[0].attrition, T_PEACE);
+    assert_eq!(masks(&sim), 0x0040_0080, "the peace arm");
+
+    // Outside the border the next refresh clears both.
+    sim.units[0].pos = centre_of(Cell::new(8, 0));
+    run(&mut sim, 32);
+    assert_eq!(sim.units[0].attrition, 0);
+    assert_eq!(masks(&sim), 0, "no period");
+}
+
 #[test]
 fn a_garrisoned_unit_is_not_processed_at_all() {
     let mut sim = skirmish(4);
@@ -4784,6 +4813,80 @@ fn a_knowledge_price_lands_in_food_until_the_classical_age() {
         (classical_price[ti], ancient[ti]),
         "and the timber half of the price is untouched by either"
     );
+}
+
+/// `TypeData::get_cost`'s age-behind arm (item 4513): an age priced for a
+/// leader one age behind a rival it is not allied with costs 90 %, two or
+/// more behind 80 % (`(50 − 10) × 2`), knowledge at its own constant; an
+/// ally ahead, or a tech that is not an age, takes nothing. The 2017
+/// sample's person paid 180 food for the Classical Age where 200 is the
+/// price (run1726, Library `3/2005` on 4320).
+#[test]
+fn an_age_is_cheaper_for_a_leader_behind_a_rival_it_is_not_allied_with() {
+    use crate::economy::{Resource, cost};
+    use crate::tech::{self, TypeDef};
+
+    let mut tree = tech::TechTree::new().with_tuning(&Tuning::RON);
+    let ancient = tree.add(TypeDef::age("Ancient Age", 0));
+    let mut classical = TypeDef::age("Classical Age", 0).needs(0, ancient);
+    classical.cost[Resource::Food.index()] = 20;
+    classical.cost[Resource::Timber.index()] = 7;
+    classical.tribe_mask = u32::MAX;
+    let classical = tree.add(classical);
+    let mut coinage = TypeDef::plain("Coinage", 0);
+    coinage.cost[Resource::Timber.index()] = 60;
+    coinage.tribe_mask = u32::MAX;
+    let coinage = tree.add(coinage);
+
+    let mut sim = skirmish(0);
+    sim.set_tech_tree(tree);
+    let full = sim.tech_price(0, classical);
+    let plain = sim.tech_price(0, coinage);
+    let (f, ti) = (Resource::Food.index(), Resource::Timber.index());
+    assert_eq!(
+        (full[f], full[ti]),
+        (200, 70),
+        "level with the rival: {full:?}"
+    );
+
+    sim.tech[1].ages = sim.tech[0].ages + 1;
+    assert_eq!(sim.ages_behind(0, classical), 1);
+    let one = sim.tech_price(0, classical);
+    assert_eq!((one[f], one[ti]), (180, 63), "one age behind: {one:?}");
+    assert_eq!(
+        sim.tech_price(0, coinage),
+        plain,
+        "a plain tech takes nothing"
+    );
+    assert_eq!(
+        sim.ages_behind(1, classical),
+        0,
+        "the leader ahead pays full"
+    );
+
+    sim.tech[1].ages = sim.tech[0].ages + 2;
+    let two = sim.tech_price(0, classical);
+    assert_eq!((two[f], two[ti]), (160, 56), "two ages behind: {two:?}");
+
+    sim.set_diplo(0, 1, 2);
+    sim.set_diplo(1, 0, 2);
+    assert!(sim.is_ally(1, 0));
+    assert_eq!(
+        sim.tech_price(0, classical),
+        full,
+        "an ally ahead takes nothing"
+    );
+
+    let t = &Tuning::RON;
+    assert_eq!(
+        cost::age_behind_discount(t, 1, Resource::Knowledge, 100),
+        80
+    );
+    assert_eq!(
+        cost::age_behind_discount(t, 2, Resource::Knowledge, 100),
+        60
+    );
+    assert_eq!(cost::age_behind_discount(t, 0, Resource::Food, 123), 123);
 }
 
 #[test]

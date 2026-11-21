@@ -669,18 +669,23 @@ pub(in crate::diff) mod tests {
     /// unchanged. Item 4505 (a gatherer pushed onto a second chain keeps
     /// the first's link to it, `Build::add_gatherer@0062f640`; computer
     /// 1's Citizen `1/11` on 4247): units 4248 -> 5273, onto the draw
-    /// word; every other line unchanged.
+    /// word; every other line unchanged. Item 4513 (an age is cheaper for
+    /// a leader behind a non-allied rival, `TypeData::get_cost@00664090`'s
+    /// age-behind arm; the person's Classical Age at Library `3/2005` on
+    /// 4320, `cost[0]` ours 200, theirs 180): builds 4321 -> 5293, leaders
+    /// 4321 -> 5256; items 12663 -> 8734, a named fall past the draw word
+    /// 5273; every other line unchanged, ammo 4462 the lowest.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 5273),
-        ("builds", 4321),
+        ("builds", 5293),
         ("walls", 21044),
         ("ammo", 4462),
         ("deaths", 5429),
         ("groups", 5311),
         ("guys", 5273),
-        ("leaders", 4321),
+        ("leaders", 5256),
         ("cities", 5326),
-        ("items", 12663),
+        ("items", 8734),
         ("goods", 5392),
         ("world", 5256),
     ];
@@ -788,8 +793,11 @@ pub(in crate::diff) mod tests {
     /// standing and its 820 draws spent); the first shot still on 2929.
     /// Item 4500 (the three Scholars rise from the captured University
     /// with theirs' forced idle rolls on 5255..5257): 3475 -> 3747, +272;
-    /// the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3747, Some(2929));
+    /// the first shot still on 2929. Item 4513 (an age is cheaper for a
+    /// leader behind a non-allied rival; the person's Classical Age at 180
+    /// food on 4320): 3747 -> 4772, a named rise past the draw word 5273,
+    /// the frames not read one by one; the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4772, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
@@ -1323,24 +1331,14 @@ pub(in crate::diff) mod tests {
     /// behind `1/13`: this crate kept one list a building and read its
     /// link off `#2001`'s, where the original's one link a unit had taken
     /// `#2009`'s next, `1/8`. Built (`Sim::gather_chain`): units whole to
-    /// 4500, one row -> none. The three left are the first act's leaves.
-    const SAMPLE_RANGES_1726: &[(&str, i64, usize, usize, usize, &str)] = &[
-        (
-            "builds",
-            4321,
-            3387,
-            3387,
-            1,
-            "2559 2005 queue[k]: cost[0] 200|180",
-        ),
-        ("ammo", 4462, 3, 0, 3, "0 -1 0067ab7e: +0x0 of 0|1: |01"),
-        (
-            "leaders",
-            4321,
-            671,
-            671,
-            1,
-            "473 3 encrypt: +0x0 of 4|4: 13020000|27020000",
-        ),
-    ];
+    /// 4500, one row -> none. Item 4513: builds 4321, `2559 2005 queue[k]`
+    /// `cost[0]` ours 200, theirs 180, and leaders 4321, `473 3 encrypt`
+    /// `bucket[0]` ours 0x213 (531), theirs 0x227 (551), are one price: the
+    /// person (still Ancient) queues the Classical Age behind tech 558 at
+    /// Library `3/2005` on 4320 while a computer holds it, and the
+    /// original's `get_cost` takes `TECH_AGE_BEHIND_DISCOUNT` off; the 20
+    /// food stays in theirs' bucket. Built (`Sim::ages_behind`): both whole
+    /// to 4500, three rows -> one.
+    const SAMPLE_RANGES_1726: &[(&str, i64, usize, usize, usize, &str)] =
+        &[("ammo", 4462, 3, 0, 3, "0 -1 0067ab7e: +0x0 of 0|1: |01")];
 }
