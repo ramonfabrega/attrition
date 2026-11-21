@@ -926,10 +926,9 @@ impl Sim {
                 // `Unit::add_strafe_order@005e48c0` writes the target, its
                 // `uid` (the object's `+0x30`), `mandatory`, the home,
                 // `cruising_alt` and `returning`, and the point.
-                // SEAM: the attack fields past `mandatory` walk `clear`'s
-                // values; a writer through the `get_attack_order` vslot on a
-                // strafe is not carried, and none is walked by run1721 to
-                // its end.
+                // SEAM: the attack fields past the mandatory byte walk `clear`'s
+                // values; a write through the strafe's attack-order vslot
+                // is not carried, and none is walked by run1721 to its end.
                 put("order.flags", vec![o.flags]);
                 let mut t = vec![0u8; 10];
                 match st.target {
