@@ -1007,6 +1007,92 @@ mod tests {
         );
     }
 
+    /// **Row 130's computer bomber searches round itself** (item 4508,
+    /// `docs/RECGAME.md` §11): who=1's Strategic Bomber `1/158`, on its
+    /// patrol to (6240, 7008) and some 10,100 units from it, runs its
+    /// sixteen-frame search on 3410. `find_new_bomber_target`'s head
+    /// overwrites the point with the plane's own position for a unit with
+    /// `unit_masks & 0x40000`, so no building is in reach and the patrol
+    /// stands; ours searched round the point and put a strafe in front of
+    /// it (units range 4078, `orders.count` ours 2, theirs 1). Every
+    /// units range on 3410 and 3411 against run1754's record.
+    #[test]
+    fn row_130_s_computer_bomber_searches_round_itself_on_run1754_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 6) else {
+            eprintln!("skipping: row 130's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1754/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1754's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 130's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [3410, 3411] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_units();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+        // On 3411, by name: the bomber, its one order, and theirs' count.
+        let b = (0..built.sim.units.len())
+            .find(|&x| {
+                let u = &built.sim.units[x];
+                u.alive() && u.owner == 1 && u.index == 158
+            })
+            .expect("1/158");
+        assert_eq!(
+            built.sim.units[b].type_index, 305,
+            "1/158 is the Strategic Bomber"
+        );
+        assert!(
+            matches!(
+                built.sim.units[b]
+                    .orders
+                    .iter()
+                    .map(|o| o.index())
+                    .collect::<Vec<_>>()[..],
+                [sim::orders::index::AIR_PATROL]
+            ),
+            "1/158 keeps its patrol alone"
+        );
+        let ours = built.sim.checksum_units();
+        assert_eq!(
+            (ours.ranges[4078].record, ours.ranges[4078].field),
+            (158, "orders.count")
+        );
+        let theirs = record
+            .ranges(&record.first_of(3410).expect("set").clone())
+            .expect("ranges");
+        let units: Vec<_> = theirs.iter().filter(|r| r.line == 0).collect();
+        assert_eq!(
+            &units[4078].bytes[..],
+            &1i32.to_le_bytes(),
+            "theirs' 1/158 orders.count"
+        );
+    }
+
     /// **Row 105's rider bound for the sea is a gatherer in
     /// `reg_gatherers[1]`** (item 4499, `docs/RECGAME.md` §11.1): run1752,
     /// the ranges take of run1748's file, holds every leaders range on
