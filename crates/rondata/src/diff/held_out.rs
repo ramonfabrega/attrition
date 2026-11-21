@@ -36,6 +36,11 @@ pub(crate) const HELD_OUT_SECOND_ROWS: [usize; 8] = [10, 30, 50, 70, 90, 110, 13
 #[cfg(test)]
 pub(crate) const HELD_OUT_THIRD_ROWS: [usize; 8] = [5, 25, 45, 65, 85, 105, 125, 145];
 
+/// **The fourth battery's rows** (DECISIONS 148 §2, item 4510): the same
+/// order, the rows halfway between the second's and the third's.
+#[cfg(test)]
+pub(crate) const HELD_OUT_FOURTH_ROWS: [usize; 8] = [15, 35, 55, 75, 95, 115, 135, 155];
+
 #[cfg(test)]
 fn fnv(text: &str) -> u64 {
     text.bytes().fold(0xcbf2_9ce4_8422_2325, |h, b| {
@@ -101,9 +106,17 @@ mod tests {
         rows_are_the_table(&HELD_OUT_THIRD_ROWS, &HELD_OUT_THIRD, "3");
     }
 
+    /// **The fourth declaration** (item 4510's first act; DECISIONS 148
+    /// §2): rows 15, 35, …, 155, written out before any file is recorded,
+    /// held the same way. `RON_HELD_OUT_PRINT=4` prints this table as Rust.
+    #[test]
+    fn the_fourth_held_out_eight_are_the_rows_the_rule_names() {
+        rows_are_the_table(&HELD_OUT_FOURTH_ROWS, &HELD_OUT_FOURTH, "4");
+    }
+
     /// `rows` of `lobbies_on_disk` against `table`, column for column;
     /// `RON_HELD_OUT_PRINT=which` (`1` the first battery, `2` the second,
-    /// `3` the third) prints the table instead.
+    /// `3` the third, `4` the fourth) prints the table instead.
     fn rows_are_the_table(rows: &[usize; 8], table: &[HeldOut; 8], which: &str) {
         let Some(dir) = crate::testenv::gamelog_dir() else {
             eprintln!("skipping: no gamelog directory (set RON_GAMELOG_DIR)");
@@ -200,6 +213,13 @@ mod tests {
     #[test]
     fn the_third_held_out_games_score_as_pinned() {
         games_score_as_pinned(&THIRD);
+    }
+
+    /// `HELD_OUT_FOURTH[k]` played as `run1760 + k` (item 4510), held as
+    /// the first three are.
+    #[test]
+    fn the_fourth_held_out_games_score_as_pinned() {
+        games_score_as_pinned(&FOURTH);
     }
 
     fn games_score_as_pinned(b: &Battery) {
@@ -1943,6 +1963,12 @@ mod tests {
         line_reads_as_pinned(&THIRD);
     }
 
+    /// The fourth battery's line, from its table alone (item 4510).
+    #[test]
+    fn the_fourth_held_out_line_reads_as_pinned() {
+        line_reads_as_pinned(&FOURTH);
+    }
+
     fn line_reads_as_pinned(b: &Battery) {
         let taken = b.scores.iter().flatten().count();
         let whole = b
@@ -2034,6 +2060,14 @@ mod tests {
     #[test]
     fn the_handoff_s_parity_held_out_third_line_is_the_pinned_scores() {
         handoff_line_is_the_pinned_scores(&THIRD);
+    }
+
+    /// **The handoff's fourth parity-held-out line** (item 4510): the
+    /// fourth battery's [`queue_line`], `Parity held out, fourth:`, in the
+    /// first's grammar. Its found half is the estimate (DECISIONS 148 §2).
+    #[test]
+    fn the_handoff_s_parity_held_out_fourth_line_is_the_pinned_scores() {
+        handoff_line_is_the_pinned_scores(&FOURTH);
     }
 
     fn handoff_line_is_the_pinned_scores(b: &Battery) {
@@ -2358,6 +2392,109 @@ pub(crate) const HELD_OUT_THIRD: [HeldOut; 8] = [
             "flags 1; tribe 16; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; King Jinheung",
         ],
         digest: 0x3bee6b1c485bb51d,
+    },
+];
+
+/// **The fourth eight, as declared** (item 4510, before any file is
+/// recorded; DECISIONS 148 §2): rows 15, 35, …, 155 of the same order, each
+/// the human (tribe 4, slot 0) against the one computer its lobby seats,
+/// `MAP_SIZE 2`, played as the lobby stands (adding seats or a team is
+/// Ramon's):
+///
+/// | row | first capture | `MAP_STYLE` | seed | computer tribe | `DIFFICULTY` | ages |
+/// |---|---|---|---|---|---|---|
+/// | 15 | run1118 Southwest Mesa | 10 | 12345 | 11 | 0 | 0..7 |
+/// | 35 | run1193 Great Sahara | 7 | 12345 | 6 | 5 | 1..1 |
+/// | 55 | run1272 East Indies | 18 | 12345 | 22 | 5 | 2..2 |
+/// | 75 | run1339 Great Lakes | 14 | 12345 | 13 | 5 | 3..3 |
+/// | 95 | run1400 East Indies | 18 | 12345 | 13 | 4 | 7..7 |
+/// | 115 | run1525b Southwest Mesa | 10 | 12345 | 19 | 2 | 0..7 |
+/// | 135 | run895 Great Sahara | 7 | 12345 | 0 | 2 | 0..7 |
+/// | 155 | run988 Great Sahara | 7 | 12345 | 19 | 2 | 0..7 |
+///
+/// Each is played to 6,000 frames with the human idle, as `run1760 + k`
+/// for `HELD_OUT_FOURTH[k]`.
+#[cfg(test)]
+pub(crate) const HELD_OUT_FOURTH: [HeldOut; 8] = [
+    HeldOut {
+        row: 15,
+        capture: "gamelog-run1118-southwestmesa-cover1-clickfree-diagonal.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 10; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 0; STARTING_TOWN 2; STARTING_RESOURCES 1; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 0; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 11; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; William the Conqueror",
+        ],
+        digest: 0xadc93c529561b286,
+    },
+    HeldOut {
+        row: 35,
+        capture: "gamelog-run1193-greatsahara-roman-classical-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 7; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 5; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 1; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 1; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 6; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Emperor Marcus Aurelius",
+        ],
+        digest: 0xfc723da88040b447,
+    },
+    HeldOut {
+        row: 55,
+        capture: "gamelog-run1272-eastindies-dutch-medieval-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 18; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 5; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 2; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 2; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 22; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Beatrix Wilhelmina Armgard",
+        ],
+        digest: 0x495da748ca8eca83,
+    },
+    HeldOut {
+        row: 75,
+        capture: "gamelog-run1339-greatlakes-russian-gunpowder-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 14; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 5; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 3; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 3; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 13; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Tsar Ivan the Terrible",
+        ],
+        digest: 0x818b52a4edfd1702,
+    },
+    HeldOut {
+        row: 95,
+        capture: "gamelog-run1400-eastindies-russian-information-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 18; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 4; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 7; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 13; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Tsar Ivan the Terrible",
+        ],
+        digest: 0xc31dd4fa7fcdbeaf,
+    },
+    HeldOut {
+        row: 115,
+        capture: "gamelog-run1525b-southwestmesa-lakota-diff2-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 10; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 2; STARTING_TOWN 2; STARTING_RESOURCES 1; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 0; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 19; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Sitting Bull",
+        ],
+        digest: 0xd56ba04094546c0f,
+    },
+    HeldOut {
+        row: 135,
+        capture: "gamelog-run895-greatsahara-aztec-diff2-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 7; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 2; STARTING_TOWN 2; STARTING_RESOURCES 1; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 0; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 0; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Emperor Moctezuma",
+        ],
+        digest: 0x898d6b50a323e659,
+    },
+    HeldOut {
+        row: 155,
+        capture: "gamelog-run988-greatsahara-lakota-diff2-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 7; MAP_SIZE 2; PLAYERS 1; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 2; STARTING_TOWN 2; STARTING_RESOURCES 1; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 0; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 19; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Sitting Bull",
+        ],
+        digest: 0x8cc04d2712f00d75,
     },
 ];
 
@@ -3521,4 +3658,150 @@ pub(crate) const THIRD: Battery = Battery {
     scores: &SCORES_THIRD,
     scores_name: "SCORES_THIRD",
     line: HELD_OUT_THIRD_LINE,
+};
+
+/// **The fourth battery's scores**, `HELD_OUT_FOURTH[k]` played as
+/// `run1760 + k` (item 4510): `None` until the original has played it. The
+/// found column is pinned once and never re-pinned; it is the estimate
+/// (DECISIONS 148 §2).
+#[cfg(test)]
+pub(crate) const SCORES_FOURTH: [Option<FirstScore>; 8] = [
+    // run1760
+    // row 15, as found 2026-11-21: 12 lines whole.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1761
+    // row 35, as found 2026-11-21: 12 lines whole.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1762
+    // row 55, as found 2026-11-21: 10 lines whole; units 5,833 of 6,001, first 4275; groups 5,989
+    // of 6,001, first 5576.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                5833, 6001, 6001, 6001, 6001, 5989, 6001, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[
+                ("units", (4275, Some(1914015254), 708677162)),
+                ("groups", (5576, Some(4003049513), 3939479638)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1763
+    // row 75, as found 2026-11-21, ended by the original on 5341: 11 lines whole; ammo 4,682 of
+    // 5,342, first 4004.
+    Some(FirstScore {
+        last: Some(5341),
+        found: Score {
+            states: 5342,
+            agreed: [
+                5342, 5342, 5342, 4682, 5342, 5342, 5342, 5342, 5342, 5342, 5342, 5342,
+            ],
+            first: &[("ammo", (4004, Some(3143699460), 3217755213))],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1764
+    // row 95, as found 2026-11-21: 9 lines whole; units 5,303 of 6,001, first 5303; guys 5,909 of
+    // 6,001, first 5909; leaders 5,266 of 6,001, first 5266.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                5303, 6001, 6001, 6001, 6001, 6001, 5909, 5266, 6001, 6001, 6001, 6001,
+            ],
+            first: &[
+                ("units", (5303, Some(1676718193), 3912806517)),
+                ("guys", (5909, Some(1310729884), 912139918)),
+                ("leaders", (5266, Some(871988666), 426802620)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1765
+    // row 115, as found 2026-11-21: 12 lines whole.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1766
+    // row 135, as found 2026-11-21: 12 lines whole.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1767
+    // row 155, as found 2026-11-21: 12 lines whole.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 6001,
+            agreed: [
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[],
+            over: None,
+        },
+        moved: None,
+    }),
+];
+
+/// The fourth battery's line: games whole of the eight, and games taken.
+#[cfg(test)]
+pub(crate) const HELD_OUT_FOURTH_LINE: (usize, usize) = (5, 8);
+
+/// The fourth battery (item 4510).
+#[cfg(test)]
+pub(crate) const FOURTH: Battery = Battery {
+    label: "Parity held out, fourth",
+    item: 4510,
+    run: 1760,
+    table: &HELD_OUT_FOURTH,
+    scores: &SCORES_FOURTH,
+    scores_name: "SCORES_FOURTH",
+    line: HELD_OUT_FOURTH_LINE,
 };
