@@ -1857,8 +1857,11 @@ impl Sim {
         // world cell — `|Δ| + 2·size < 16` on both axes and the box's
         // corners share a cell — the original looks the block up once, by
         // the **old** tile's region, and runs both passes on it ungated:
-        // a region that is not the cell's ends the call before either pass.
-        // The two-ended form below is the general one.
+        // a region that is not the cell's ends the call before either pass,
+        // and so does a cell with no block (`WorldData::get_coll_block@006b5350`
+        // only reads): a unit whose own bits a neighbour's move cleared, and
+        // whose cell's empty block the sweep then freed (§26), steps without
+        // marking (item 4504). The two-ended form below is the general one.
         let n = UCELLS_PER_CELL;
         let (lo_x, lo_y) = (a.x.min(b.x) - size, a.y.min(b.y) - size);
         let (hi_x, hi_y) = (a.x.max(b.x) + size, a.y.max(b.y) + size);
@@ -1871,7 +1874,9 @@ impl Sim {
             && lo_x.div_euclid(n) < self.world.width()
             && lo_y.div_euclid(n) < self.world.height();
         if one_cell {
-            if !self.coll_region_ok(ra, Pos::new(lo_x, lo_y)) {
+            if !self.coll_region_ok(ra, Pos::new(lo_x, lo_y))
+                || !self.movement.coll.block_present(lo_x.div_euclid(n), lo_y.div_euclid(n))
+            {
                 return;
             }
             for (dx, dy) in &disc {

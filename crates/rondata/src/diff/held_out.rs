@@ -1366,7 +1366,6 @@ mod tests {
             let all = record.ranges(&set).expect("the set's ranges");
             let ours = built.sim.checksum_world();
             let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
-            assert_eq!(ours.ranges.len(), theirs.len(), "world's ranges on {state}");
             for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
                 assert_eq!(
                     a.bytes, b.bytes,
@@ -1374,6 +1373,7 @@ mod tests {
                     a.record, a.field
                 );
             }
+            assert_eq!(ours.ranges.len(), theirs.len(), "world's ranges on {state}");
             // The cell and the walker by name: record 3039 is world cell
             // (39, 50) on the 60-wide map, and `1/43` steps into it on 2365.
             let k = ours
