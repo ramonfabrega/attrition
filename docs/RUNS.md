@@ -10631,7 +10631,7 @@ priced. A packet at logger 5776 is the state after three search frames.
 parked search: the `CARAVAN` block prints the laid road only, and run346's
 trace proxies no `calc_road_cost`.
 
-**What it settled** (`docs/CARAVAN.md` §11.2, `docs/AI.md` §85):
+**What it settled** (`docs/CARAVAN.md` §12, `docs/AI.md` §85):
 - `road_probe.py` reads `caravans` (VA `0xE3A290`), who=1's slot 1 (`city2`
   0, `city3` 2, `o` 33, `making_road` 1) and walks the open `Tree` and the
   closed `BRTree`. They hold 158 open and 1,279 closed nodes.
@@ -37349,7 +37349,7 @@ SHA-256 `758300fc33970b8cc2d6abd4b0267b5a4b1eb64b858bb8e099ee0c66517df8e1`.
 **What it holds**: the units line's first parting on 6907, named by record and field.
 ## run1598 — the original playing the file a capital's rally point minted (2026-11-14, item 4249, `att-4249`)
 
-`docs/CLIENT_INPUT.md` §11.2. **What the disk could not answer**: whether the original plays a `gather_point` minted
+`docs/CLIENT_INPUT.md` §12. **What the disk could not answer**: whether the original plays a `gather_point` minted
 from a right press, and sends the Citizen trained after it to the point as our walk does. No playback of a minted
 file carries one. The file: `~/ron-golden/recordings/item4249-gathered-greatlakes-24000.rcx`, 59,459 bytes, SHA-256
 `d419163f63fbb82abe40e2f38aef75ab2f1869bdafdc39202b432b7ed179ae01`. It was written by `RON_RCX_OUT=<it> … test
@@ -40256,7 +40256,7 @@ Files in place, `~/ron-golden/run1753/map-14/`: `gamelog_p.txt`, 2,444 bytes, SH
 
 ## run1760 — parity held out, fourth battery, row 15: Southwest Mesa, difficulty 0 recorded idle by the client, played to 6000 (2026-11-21, item 4510, `att-4510`)
 
-`docs/RECGAME.md` §11.2; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
+`docs/RECGAME.md` §12; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
 file our client wrote; the row was declared before any recording (`64617fe79`). The file:
 `~/ron-golden/recordings/item4510-row015-6000.rcx`, 59,216 bytes, SHA-256
 `35c40183206aedb5e694afd9c7a97cb595bb448f5f76eea46076c27376d3f531`: `client --record <file> --headless --page-of
@@ -40278,7 +40278,7 @@ Files in place, `~/ron-golden/run1760/map-10/`: `gamelog_p.txt`, 2,450 bytes, SH
 
 ## run1761 — parity held out, fourth battery, row 35: Great Sahara, Classical recorded idle by the client, played to 6000 (2026-11-21, item 4510, `att-4510`)
 
-`docs/RECGAME.md` §11.2; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
+`docs/RECGAME.md` §12; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
 file our client wrote; the row was declared before any recording (`64617fe79`). The file:
 `~/ron-golden/recordings/item4510-row035-6000.rcx`, 58,871 bytes, SHA-256
 `ba536bc64cc7a8e8ae12c3e1051ef46a9abe81634bec3a1e5ef4584624019db8`: `client --record <file> --headless --page-of
@@ -40300,7 +40300,7 @@ Files in place, `~/ron-golden/run1761/map-7/`: `gamelog_p.txt`, 2,450 bytes, SHA
 
 ## run1762 — parity held out, fourth battery, row 55: East Indies, Medieval recorded idle by the client, played to 6000 (2026-11-21, item 4510, `att-4510`)
 
-`docs/RECGAME.md` §11.2; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
+`docs/RECGAME.md` §12; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
 file our client wrote; the row was declared before any recording (`64617fe79`). The file:
 `~/ron-golden/recordings/item4510-row055-6000.rcx`, 58,894 bytes, SHA-256
 `7b1a73d4e5398849fd044b2fcd0d028db27e315fad94f7bf7719984537c4caf3`: `client --record <file> --headless --page-of
@@ -40322,7 +40322,7 @@ Files in place, `~/ron-golden/run1762/map-18/`: `gamelog_p.txt`, 2,457 bytes, SH
 
 ## run1763 — parity held out, fourth battery, row 75: Great Lakes, Gunpowder recorded idle by the client, played to 6000 (2026-11-21, item 4510, `att-4510`)
 
-`docs/RECGAME.md` §11.2; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
+`docs/RECGAME.md` §12; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
 file our client wrote; the row was declared before any recording (`64617fe79`). The file:
 `~/ron-golden/recordings/item4510-row075-6000.rcx`, 58,895 bytes, SHA-256
 `0a216b7df484a663147d2746580f3f5206edd2637c86cd5bfa77ef40b89cf38c`: `client --record <file> --headless --page-of
@@ -40344,7 +40344,7 @@ Files in place, `~/ron-golden/run1763/map-14/`: `gamelog_p.txt`, 2,432 bytes, SH
 
 ## run1764 — parity held out, fourth battery, row 95: East Indies, Information recorded idle by the client, played to 6000 (2026-11-21, item 4510, `att-4510`)
 
-`docs/RECGAME.md` §11.2; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
+`docs/RECGAME.md` §12; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
 file our client wrote; the row was declared before any recording (`64617fe79`). The file:
 `~/ron-golden/recordings/item4510-row095-6000.rcx`, 58,799 bytes, SHA-256
 `716411e576689f799d46b0b6a218cb3b914df79093d8f6c3cbfb623be32efba6`: `client --record <file> --headless --page-of
@@ -40366,7 +40366,7 @@ Files in place, `~/ron-golden/run1764/map-18/`: `gamelog_p.txt`, 2,451 bytes, SH
 
 ## run1765 — parity held out, fourth battery, row 115: Southwest Mesa, difficulty 2 recorded idle by the client, played to 6000 (2026-11-21, item 4510, `att-4510`)
 
-`docs/RECGAME.md` §11.2; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
+`docs/RECGAME.md` §12; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
 file our client wrote; the row was declared before any recording (`64617fe79`). The file:
 `~/ron-golden/recordings/item4510-row115-6000.rcx`, 59,219 bytes, SHA-256
 `950a40d02871546dc39019a274a7ccfeb885a26aa3630f42061d9218b05a9995`: `client --record <file> --headless --page-of
@@ -40388,7 +40388,7 @@ Files in place, `~/ron-golden/run1765/map-10/`: `gamelog_p.txt`, 2,441 bytes, SH
 
 ## run1766 — parity held out, fourth battery, row 135: Great Sahara, difficulty 2 recorded idle by the client, played to 6000 (2026-11-21, item 4510, `att-4510`)
 
-`docs/RECGAME.md` §11.2; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
+`docs/RECGAME.md` §12; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
 file our client wrote; the row was declared before any recording (`64617fe79`). The file:
 `~/ron-golden/recordings/item4510-row135-6000.rcx`, 59,215 bytes, SHA-256
 `3e9e100828da64b59fb4bb16200186eb6efa27f65bb7c32d367d8edca2daff2c`: `client --record <file> --headless --page-of
@@ -40410,7 +40410,7 @@ Files in place, `~/ron-golden/run1766/map-7/`: `gamelog_p.txt`, 2,447 bytes, SHA
 
 ## run1767 — parity held out, fourth battery, row 155: Great Sahara, difficulty 2 recorded idle by the client, played to 6000 (2026-11-21, item 4510, `att-4510`)
 
-`docs/RECGAME.md` §11.2; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
+`docs/RECGAME.md` §12; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
 file our client wrote; the row was declared before any recording (`64617fe79`). The file:
 `~/ron-golden/recordings/item4510-row155-6000.rcx`, 59,217 bytes, SHA-256
 `473a77bd497a431b1292d479dc9a916d1693b1e4aa6591014c9d4726cb2f2bbd`: `client --record <file> --headless --page-of

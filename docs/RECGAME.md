@@ -1343,7 +1343,7 @@ are leaders on 3583 (range 191, record 1, `oil_patches` ours 10, theirs 20) and 
 `update_ceo_position`. The alias is built for the rider arm and the transport's two accesses. The
 kinds-8/0xe arm's unbounded write (`6bae11`) is still a seam here, and no capture has entered it.
 
-### 11.2 Parity held out, fourth: rows 15 to 155 (item 4510)
+## 12. Parity held out, fourth: eight more lobbies named before the original plays them (item 4510)
 
 DECISIONS 148 §2, 2026-11-21. Rows 15, 35, 55, 75, 95, 115, 135 and 155 of the same order, declared in
 `HELD_OUT_FOURTH` (`64617fe79`, 11:32 −05:00) before any file was recorded (the eight were written between 11:38
