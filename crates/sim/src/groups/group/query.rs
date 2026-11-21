@@ -790,6 +790,32 @@ impl Sim {
     }
 
     pub(crate) fn bump_order_num(&mut self, g: &Group) {
+        // PROBE 4481 (reverted whole).
+        if std::env::var_os("RON_PROBE_4481B").is_some()
+            && g.army.is_none()
+            && (600..=707).contains(&self.frame)
+        {
+            let bt = std::backtrace::Backtrace::force_capture().to_string();
+            let chain: Vec<&str> = bt
+                .lines()
+                .filter_map(|l| l.trim().split_once(": sim::").map(|x| x.1))
+                .filter(|l| !l.contains("backtrace"))
+                .take(9)
+                .collect();
+            eprintln!(
+                "P4481B f{} who {} pool {:?} list {:?} order_num {:?} form {:?}\n    {}",
+                self.frame,
+                g.who,
+                self.gstate(g).and_then(|st| st.pool),
+                g.list
+                    .iter()
+                    .map(|&u| (self.units[u].owner, self.units[u].index, self.units[u].ty))
+                    .collect::<Vec<_>>(),
+                self.gstate(g).map(|st| st.order_num),
+                self.gstate(g).map(|st| st.form),
+                chain.join(" <- ")
+            );
+        }
         if let Some(st) = self.gstate_mut(g) {
             st.order_num += 1;
         }
