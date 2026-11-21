@@ -433,8 +433,15 @@ pub(in crate::diff) mod tests {
     /// draw: `local_1c` needs `unit_masks & 0x80000` clear and
     /// `!is_packing`, `Unit::close@0060ee50:170`–`:194`; computer 1's
     /// Merchant `1/18`, `TypeIndex` 61, land, killed walking on 3931, its
-    /// draw theirs' `Unit::close+0xcb6`): 3931 → 4182, +251.
-    const SAMPLE_WALKED: (i64, i64) = (4182, 21044);
+    /// draw theirs' `Unit::close+0xcb6`): 3931 → 4182, +251. Item 4492
+    /// (an attacked city's site keeps clear of the enemy,
+    /// `produce_building@006e1400` `006e2484`–`006e2575`: computer 1's
+    /// Barracks spiral refuses cells (49, 40) and (52, 42) beside the
+    /// person's units, and the jitter on (57, 39) spends theirs' four
+    /// `Leader::produce_building+0x1805` against two): 4182 → 4223, +41.
+    /// On 4223 theirs runs four `Guy::inc_time` animations where ours fires
+    /// (`Object::fire_ammo+0x3d5`).
+    const SAMPLE_WALKED: (i64, i64) = (4223, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -600,20 +607,25 @@ pub(in crate::diff) mod tests {
     /// person's Library `3/2005` runs one slot while its second library
     /// stands in the Inca city taken on 3887): builds 4026 -> 4183, onto
     /// the draw word; deaths 4657 -> 4635, items 5434 -> 5097, named falls
-    /// past builds' new 4183; goods 4436 -> 4449.
+    /// past builds' new 4183; goods 4436 -> 4449. Item 4492 (an attacked
+    /// city's site keeps clear of the enemy; draws 4182 -> 4223): units
+    /// 4183 -> 4224, builds 4183 -> 4224, ammo 4192 -> 4224, groups 4188 ->
+    /// 4244, guys 4183 -> 4226, leaders 4183 -> 4232, cities 4326 -> 4401,
+    /// items 5097 -> 5760, goods 4449 -> 4559, world 4183 -> 4229; deaths
+    /// 4635 -> 4625, a named fall past the new lowest 4224.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 4183),
-        ("builds", 4183),
+        ("units", 4224),
+        ("builds", 4224),
         ("walls", 21044),
-        ("ammo", 4192),
-        ("deaths", 4635),
-        ("groups", 4188),
-        ("guys", 4183),
-        ("leaders", 4183),
-        ("cities", 4326),
-        ("items", 5097),
-        ("goods", 4449),
-        ("world", 4183),
+        ("ammo", 4224),
+        ("deaths", 4625),
+        ("groups", 4244),
+        ("guys", 4226),
+        ("leaders", 4232),
+        ("cities", 4401),
+        ("items", 5760),
+        ("goods", 4559),
+        ("world", 4229),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -697,8 +709,10 @@ pub(in crate::diff) mod tests {
     /// the first shot still on 2929. Item 4489 (an unassimilated city's
     /// library adds no research slot): 4767 -> 6275, a named rise past
     /// every parting, the frames not read one by one; the first shot still
-    /// on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (6275, Some(2929));
+    /// on 2929. Item 4492 (an attacked city's site keeps clear of the
+    /// enemy): 6275 -> 4172, a named fall, the frames not read one by one;
+    /// the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4172, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
