@@ -504,6 +504,74 @@ mod tests {
         }
     }
 
+    /// **Row 60's Observation Post lights `seen3`** (item 4480,
+    /// `docs/RECGAME.md` §10.3, `docs/VISION.md` §4): run1722, the ranges
+    /// take of run1703's file. On 3984 who=1's Observation Post `1/59`
+    /// (building type 108, LOS 9, the `DETECT` objmask) lights its disc
+    /// round fog cell (91, 79). `Wall::init@0063e9b0` runs
+    /// `Object::init@00647750`, whose `has_objmask(0x2000000)` sets
+    /// `field_0x8 | 0x40` for a building as for a unit, and
+    /// `Object::update_seen@00651b80` then writes `seen3` over the whole
+    /// disc. This crate passed a building's sweep no `seen3`. Every world
+    /// range on 3983 and 3984, byte for byte: red on the tree before the fix
+    /// at range 3627 on 3984, `seen3`, 433 bytes ours 0x00, theirs 0x02.
+    #[test]
+    fn row_60_s_observation_post_lights_seen3_on_run1722_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIRST, 3) else {
+            eprintln!("skipping: row 60's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1722/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1722's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 60's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for (state, lit) in [(3983, 0u8), (3984, 2u8)] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_world();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "world's ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert!(
+                    a.bytes == b.bytes,
+                    "world range {k} on {state}, record {} {}: {} bytes differ",
+                    a.record,
+                    a.field,
+                    a.bytes.iter().zip(&b.bytes).filter(|(x, y)| x != y).count()
+                );
+            }
+            // Theirs' `seen3` at the post's own cell, by name: who=1's bit
+            // arrives on 3984.
+            let k = ours
+                .ranges
+                .iter()
+                .position(|r| r.field == "seen3")
+                .expect("seen3");
+            let fw = built.sim.world.fog_xs() as usize;
+            assert_eq!(fw * fw, theirs[k].bytes.len(), "seen3 is the fog grid");
+            assert_eq!(
+                theirs[k].bytes[79 * fw + 91] & 2,
+                lit,
+                "theirs' seen3 at (91, 79) on {state}"
+            );
+        }
+    }
+
     /// **Row 60's Dragoon keeps its dropped target's uid** (item 4476,
     /// `docs/RECGAME.md` §10.3): run1722, the ranges take of run1703's file.
     /// On 3756 the Dragoon `1/21` (TypeIndex 189, land) holds the
@@ -1518,6 +1586,10 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // Moved by item 4473 (`Army::add_unit`'s push runs `equals_group`'s
         // normalize and `get_num` on the last slot): groups 4,964 -> 4,974,
         // whole. No ranges take of this row; the leaf is row 60's.
+        // Moved by item 4480 (a `DETECT` building lights `seen3` over its
+        // whole disc, `Object::init`'s `has_objmask(0x2000000)` taken for a
+        // building too): world 4,859 -> 4,974, whole (no ranges
+        // take of this row; measured, not read).
         // Moved by item 4470 (`cast_transport` turns the boat with
         // `Unit::set_angle(…, 1)` whole, so its figure's `last_angle` is the
         // caster's): guys
@@ -1525,12 +1597,9 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         moved: Some(Score {
             states: 4974,
             agreed: [
-                2487, 4974, 4974, 4974, 4974, 4974, 4974, 4974, 4974, 4974, 4974, 4859,
+                2487, 4974, 4974, 4974, 4974, 4974, 4974, 4974, 4974, 4974, 4974, 4974,
             ],
-            first: &[
-                ("units", (2487, Some(3429527498), 3877923716)),
-                ("world", (4859, Some(155879679), 1707773025)),
-            ],
+            first: &[("units", (2487, Some(3429527498), 3877923716))],
             over: None,
         }),
     }),
@@ -1600,12 +1669,16 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // (`cavarch_o` 11 -> -1, `cavarch_who` 0 -> -1 on both sides):
         // run1722's units range 788, record 21, `cavarch_uid` ours 0,
         // theirs 18.
+        // Moved by item 4480 (a `DETECT` building lights `seen3` over its
+        // whole disc, `Object::init`'s `has_objmask(0x2000000)` taken for a
+        // building too): world 3,984 -> 4,075, whole; the game is
+        // whole. On 3984 who=1's Observation Post `1/59` (type 108, LOS 9) at
+        // fog cell (91, 79) lights its disc: run1722's world range 3627,
+        // `seen3`, 433 bytes ours 0x00, theirs 0x02, x 80..102, y 68..90.
         moved: Some(Score {
             states: 4075,
-            agreed: [
-                4075, 4075, 4075, 4075, 4075, 4075, 4075, 4075, 4075, 4075, 4075, 3984,
-            ],
-            first: &[("world", (3984, Some(402934873), 4267790267))],
+            agreed: [4075; 12],
+            first: &[],
             over: None,
         }),
     }),
@@ -1831,9 +1904,10 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
 /// **Parity held out, N of 8** (DECISIONS 144 §2): the games whole on every
 /// line and state, and the games taken. Item 4455: 3 -> 4, row 80 whole
 /// (`build_masks & 0x2000` on its site 1/2036). Item 4467: 4 -> 5, row 140
-/// whole (a boarder's `last_z` on 4026).
+/// whole (a boarder's `last_z` on 4026). Item 4480: 5 -> 6, row 60 whole
+/// (a `DETECT` building's `seen3`, the Observation Post `1/59` on 3984).
 #[cfg(test)]
-pub(crate) const HELD_OUT_LINE: (usize, usize) = (5, 8);
+pub(crate) const HELD_OUT_LINE: (usize, usize) = (6, 8);
 
 /// **The second battery's scores**, `HELD_OUT_SECOND[k]` played as
 /// `run1730 + k` (item 4462): `None` until the original has played it. The
@@ -1882,6 +1956,8 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4477 (the farmer's turn east is `Unit::set_angle`
         // whole, so a leader's reversal toggles its group's `facing`):
         // groups 3,066 -> 6,001, whole; units 2,712 -> 3,783, first on 1747.
+        // Moved by item 4480 (a `DETECT` building lights `seen3`): world
+        // 537 -> 5,995, its first parting 537 -> 2365.
         // Moved by item 4470 (`cast_transport` turns the boat with
         // `Unit::set_angle(…, 1)` whole, so its figure's `last_angle` is the
         // caster's): units
@@ -1890,7 +1966,7 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3785, 537, 6001, 5907, 5350, 6001, 5997, 3976, 6001, 6001, 6001, 537,
+                3785, 537, 6001, 5907, 5350, 6001, 5997, 3976, 6001, 6001, 6001, 5995,
             ],
             first: &[
                 ("units", (1747, Some(2268899682), 1685366186)),
@@ -1899,7 +1975,7 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
                 ("deaths", (4686, Some(4192616794), 999637338)),
                 ("guys", (4880, Some(3110518234), 2759048231)),
                 ("leaders", (1576, Some(2345254394), 1305656828)),
-                ("world", (537, Some(993370751), 2782374025)),
+                ("world", (2365, Some(1596373308), 975353592)),
             ],
             over: None,
         }),
@@ -1984,7 +2060,15 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
             first: &[("world", (5054, Some(2368706929), 2281807025))],
             over: None,
         },
-        moved: None,
+        // Moved by item 4480 (a `DETECT` building lights `seen3`): world
+        // 5,054 -> 5,141, whole; the game is whole (no ranges take of this
+        // row; measured, not read).
+        moved: Some(Score {
+            states: 5141,
+            agreed: [5141; 12],
+            first: &[],
+            over: None,
+        }),
     }),
     // run1734
     // row 90, as found 2026-11-20: 10 lines whole; units 6,000 of 6,001, first 4021; guys 6,000
@@ -2050,6 +2134,8 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4477 (the farmer's turn east is `Unit::set_angle`
         // whole, so a leader's reversal toggles its group's `facing`):
         // groups 3,553 -> 6,001, whole.
+        // Moved by item 4480 (a `DETECT` building lights `seen3`): world
+        // 3,999 -> 5,379, its first parting on 3809.
         // Moved by item 4470 (`cast_transport` turns the boat with
         // `Unit::set_angle(…, 1)` whole, so its figure's `last_angle` is the
         // caster's): units
@@ -2057,7 +2143,7 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         moved: Some(Score {
             states: 6001,
             agreed: [
-                2703, 4221, 6001, 4472, 6001, 6001, 6001, 4995, 6001, 6001, 6001, 3999,
+                2703, 4221, 6001, 4472, 6001, 6001, 6001, 4995, 6001, 6001, 6001, 5379,
             ],
             first: &[
                 ("units", (2184, Some(1779962534), 330632884)),
@@ -2111,6 +2197,8 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4474 (`AirPatrolOrder`'s ranges walked; an airbase
         // exit turns through `Unit::set_angle`): units 1,735 -> 2,100, first
         // 1735 -> 1742; guys 4,695 -> 4,719, first 1736 -> 2066.
+        // Moved by item 4480 (a `DETECT` building lights `seen3`): world
+        // 553 -> 4,731, whole.
         // Moved by item 4470 (`cast_transport` turns the boat with
         // `Unit::set_angle(…, 1)` whole, so its figure's `last_angle` is the
         // caster's): guys
@@ -2118,7 +2206,7 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         moved: Some(Score {
             states: 4731,
             agreed: [
-                2100, 553, 4731, 4511, 4084, 4731, 4731, 1976, 4731, 4731, 4731, 553,
+                2100, 553, 4731, 4511, 4084, 4731, 4731, 1976, 4731, 4731, 4731, 4731,
             ],
             first: &[
                 ("units", (1742, Some(1100206902), 2410470946)),
@@ -2126,7 +2214,6 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
                 ("ammo", (2367, Some(1123882197), 1189418202)),
                 ("deaths", (1746, Some(1419733817), 1134652217)),
                 ("leaders", (1376, Some(73709351), 1700509480)),
-                ("world", (553, Some(699267042), 2987457272)),
             ],
             over: None,
         }),
@@ -2150,10 +2237,12 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
 /// **Parity held out, second, N of 8** (item 4462): the second battery's
 /// games whole on every line and state, and the games taken. As found,
 /// 2026-11-20: 1 of 8, row 150 (run1737). Item 4473: 1 -> 2, row 50
-/// (run1732) whole with its groups line. Item 4470: 2 -> 3, row 90
-/// (run1734) whole with its units and guys lines.
+/// (run1732) whole with its groups line. Item 4480: 2 -> 3, row 70
+/// (run1733) whole with its world line (a `DETECT` building's `seen3`).
+/// Item 4470: 3 -> 4, row 90 (run1734) whole with its units and guys
+/// lines.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (3, 8);
+pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (4, 8);
 
 /// One battery: its declared table, its pins, where its files and takes
 /// sit, and its line in the handoff.

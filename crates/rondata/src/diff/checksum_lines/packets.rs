@@ -1453,7 +1453,11 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// run883b and run823 whole, the farmer's turn east toggling its group's
 /// `facing` (`Unit::set_angle` whole, `docs/CHECKSUM.md` §23.14), and
 /// run865's units line whole with item 4474's.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 853, 1053);
+/// **881** at item 4480 (+28): the world lines of twenty-eight packets whole,
+/// none on more ranges, run985b, run1224b, run1263 and run1327 whole with
+/// them: a `DETECT` building lights `seen3` over its disc
+/// (`Object::init`'s `has_objmask(0x2000000)` for a building too).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 881, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -2046,6 +2050,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // (`build_masks` `0x2000`): builds (2247, 2246, 434) -> (2247, 2246, 432).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2247, 2246, 432) -> (2247, 2247, 1), leaders (271, 271, 1) -> (271, 271, 0), world (9262, 9262, 12) -> (9262, 9262, 1).
     // Item 4476, `cavarch_uid` kept past a dropped target: units (6004, 6004, 7) -> (6004, 6004, 6).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9262, 9262, 1) -> (9262, 9262, 0).
     (
         "run1166",
         3920,
@@ -2061,7 +2066,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (30, 30, 0),
             (15, 15, 0),
             (330, 330, 0),
-            (9262, 9262, 1),
+            (9262, 9262, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (7749, 8143, 6789) -> (7749, 8143, 6726); builds (1813,
@@ -2224,6 +2229,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (10607, 10607, 58) -> (10607, 10607, 44).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (10607, 10607, 44) -> (10607, 10607, 37).
     // Item 4451, a reused number keeps its figure array's allocation: units (10607, 10607, 37) -> (10607, 10607, 35), guys (3247, 3247, 2) -> (3247, 3247, 0).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9486, 9486, 1) -> (9486, 9486, 0).
     (
         "run1217",
         7728,
@@ -2239,7 +2245,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (56, 56, 0),
             (0, 0, 0),
             (330, 330, 0),
-            (9486, 9486, 1),
+            (9486, 9486, 0),
         ],
     ),
     // Item 4205, the built start: units (4091, 4338, 3359) -> (4091, 4338, 3296); builds (1817,
@@ -2306,6 +2312,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (1719, 1719, 6) -> (1719, 1719, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (592, 592, 4) -> (592, 592, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6445, 6445, 54) -> (6445, 6445, 45).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9162, 9162, 1) -> (9162, 9162, 0).
     (
         "run1221",
         4287,
@@ -2321,7 +2328,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (33, 33, 0),
             (10, 10, 0),
             (330, 330, 0),
-            (9162, 9162, 1),
+            (9162, 9162, 0),
         ],
     ),
     // Item 4205, the built start: units (11740, 11409, 10463) -> (11740, 11409, 10402); builds
@@ -2354,6 +2361,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (11740, 11740, 3) -> (11740, 11740, 2).
     // Item 4448, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm): units (11740, 11740, 2) -> (11740, 11740, 1).
     // Item 4476, `cavarch_uid` kept past a dropped target: units (11740, 11740, 1) -> (11740, 11740, 0).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (7873, 7873, 1) -> (7873, 7873, 0).
     (
         "run1224b",
         9745,
@@ -2369,7 +2377,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (62, 62, 0),
             (30, 30, 0),
             (120, 120, 0),
-            (7873, 7873, 1),
+            (7873, 7873, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (7490, 7627, 6531) -> (7490, 7627, 6482); builds (1733,
@@ -2440,6 +2448,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4425, a member compute_dests skips keeps its record offset: groups (658, 658, 4) -> (658, 658, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6610, 6610, 116) -> (6610, 6610, 94).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6610, 6610, 94) -> (6610, 6610, 90).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9312, 9312, 1) -> (9312, 9312, 0).
     (
         "run1236",
         4179,
@@ -2455,7 +2464,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (44, 44, 0),
             (15, 15, 0),
             (330, 330, 0),
-            (9312, 9312, 1),
+            (9312, 9312, 0),
         ],
     ),
     // Item 4205, the built start: units (3448, 3542, 2712) -> (3448, 3542, 2651); builds (1650,
@@ -2523,6 +2532,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4425, a member compute_dests skips keeps its record offset: groups (646, 646, 4) -> (646, 646, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6417, 6417, 36) -> (6417, 6417, 29).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6417, 6417, 29) -> (6417, 6417, 25).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9318, 9318, 1) -> (9318, 9318, 0).
     (
         "run1238c",
         5021,
@@ -2538,7 +2548,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (49, 49, 0),
             (10, 10, 0),
             (330, 330, 0),
-            (9318, 9318, 1),
+            (9318, 9318, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (5942, 6521, 5260) -> (5942, 6521, 5195); builds (1692,
@@ -2650,6 +2660,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (3789, 3789, 15) -> (3789, 3789, 0).
     // Item 4448, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm): units (11229, 11229, 1) -> (11229, 11229, 0).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (7867, 7867, 1) -> (7867, 7867, 0).
     (
         "run1263",
         8362,
@@ -2665,7 +2676,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (54, 54, 0),
             (50, 50, 0),
             (120, 120, 0),
-            (7867, 7867, 1),
+            (7867, 7867, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (6468, 7014, 5960) -> (6468, 7014, 5902); builds (1770,
@@ -2692,6 +2703,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (1770, 1770, 4) -> (1770, 1770, 0).
     // Item 4425, a member compute_dests skips keeps its record offset: groups (586, 586, 7) -> (586, 586, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6468, 6468, 88) -> (6468, 6468, 72).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9330, 9330, 1) -> (9330, 9330, 0).
     (
         "run1264b",
         4919,
@@ -2707,7 +2719,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (43, 43, 0),
             (15, 15, 0),
             (330, 330, 0),
-            (9330, 9330, 1),
+            (9330, 9330, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (11161, 11622, 10287) -> (11161, 11622, 10220); builds
@@ -2743,6 +2755,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4425, a member compute_dests skips keeps its record offset: groups (682, 682, 8) -> (682, 682, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (11161, 11161, 68) -> (11161, 11161, 49).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (11161, 11161, 49) -> (11161, 11161, 42).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9704, 9704, 1) -> (9704, 9704, 0).
     (
         "run1266c",
         8700,
@@ -2758,7 +2771,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (54, 54, 0),
             (5, 5, 0),
             (330, 330, 0),
-            (9704, 9704, 1),
+            (9704, 9704, 0),
         ],
     ),
     // Item 4205, the built start: units (4744, 4798, 3764) -> (4744, 4798, 3708); builds (1908,
@@ -2931,6 +2944,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // 3) -> (2172, 2172, 2).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (9905, 9905, 33) -> (9905, 9905, 22).
     // Item 4453, a push after the pushed unit's walk leaves guy_flags 0x2: units (9905, 9905, 22) -> (9905, 9905, 20), guys (2172, 2172, 2) -> (2172, 2172, 0).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9470, 9470, 1) -> (9470, 9470, 0).
     (
         "run1296",
         4632,
@@ -2946,7 +2960,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (27, 27, 0),
             (5, 5, 0),
             (330, 330, 0),
-            (9470, 9470, 1),
+            (9470, 9470, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (5488, 5902, 4705) -> (5488, 5902, 4638); builds (2029,
@@ -3068,6 +3082,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4450, `City::calc_gather`'s bytes kept to the reassembly: cities (39, 39, 1) -> (39, 39, 0).
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (2140, 2140, 3) -> (2140, 2140, 2).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9476, 9476, 1) -> (9476, 9476, 0).
     (
         "run1320b",
         5066,
@@ -3083,7 +3098,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (39, 39, 0),
             (5, 5, 0),
             (330, 330, 0),
-            (9476, 9476, 1),
+            (9476, 9476, 0),
         ],
     ),
     // Item 4205, the built start: units (3933, 4098, 3225) -> (3933, 4098, 3168); builds (1792,
@@ -3154,6 +3169,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (7276, 7276, 56) -> (7276, 7276, 45).
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (1918, 1918, 2) -> (1918, 1918, 0).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9466, 9466, 1) -> (9466, 9466, 0).
     (
         "run1324c",
         4904,
@@ -3169,7 +3185,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (27, 27, 0),
             (20, 20, 0),
             (330, 330, 0),
-            (9466, 9466, 1),
+            (9466, 9466, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (10367, 11043, 9354) -> (10367, 11043, 9288); builds (2521,
@@ -3203,6 +3219,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (2521, 2521, 2) -> (2521, 2521, 0).
     // Item 4476, `cavarch_uid` kept past a dropped target: units (10367, 10367, 70) -> (10367, 10367, 68).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9666, 9666, 1) -> (9666, 9666, 0).
     (
         "run1325c",
         5578,
@@ -3218,7 +3235,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (43, 43, 2),
             (10, 10, 0),
             (330, 330, 0),
-            (9666, 9666, 1),
+            (9666, 9666, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (6268, 6911, 5540) -> (6268, 6911, 5474); builds (2161,
@@ -3291,6 +3308,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (4230, 4230, 14) -> (4230, 4230, 0).
     // Item 4422, the swarm's form -1: groups (574, 574, 2) -> (574, 574, 0).
     // Item 4451, a reused number keeps its figure array's allocation: units (13393, 13393, 10) -> (13393, 13393, 0), guys (3459, 3459, 10) -> (3459, 3459, 0).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (8592, 8592, 1) -> (8592, 8592, 0).
     (
         "run1327",
         10930,
@@ -3306,7 +3324,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (59, 59, 0),
             (25, 25, 0),
             (180, 180, 0),
-            (8592, 8592, 1),
+            (8592, 8592, 0),
         ],
     ),
     // Item 4205, the built start: units (5746, 5891, 4421) -> (5746, 5891, 4373); builds (2354,
@@ -3547,6 +3565,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: units (6464, 6464, 7) -> (6464, 6464, 6), guys (1584, 1584, 1) -> (1584, 1584, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (8007, 8007, 2) -> (8007, 8007, 1).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6464, 6464, 6) -> (6464, 6464, 1).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (8007, 8007, 1) -> (8007, 8007, 0).
     (
         "run1359",
         5619,
@@ -3562,7 +3581,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (48, 48, 0),
             (60, 60, 0),
             (120, 120, 0),
-            (8007, 8007, 1),
+            (8007, 8007, 0),
         ],
     ),
     // Item 4205, the built start: units (6408, 6424, 5583) -> (6408, 6424, 5539); builds (2974,
@@ -3594,6 +3613,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: units (6408, 6408, 7) -> (6408, 6408, 6), guys (1598, 1598, 1) -> (1598, 1598, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (7717, 7717, 2) -> (7717, 7717, 1).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6408, 6408, 6) -> (6408, 6408, 1).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (7717, 7717, 1) -> (7717, 7717, 0).
     (
         "run1359b",
         5677,
@@ -3609,7 +3629,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (48, 48, 0),
             (55, 55, 0),
             (120, 120, 0),
-            (7717, 7717, 1),
+            (7717, 7717, 0),
         ],
     ),
     // Item 4205, the built start: units (6407, 6423, 5580) -> (6407, 6423, 5536); builds (2974,
@@ -3641,6 +3661,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4428, an aircraft's figure z, its number's dead occupant's and the ground coming out: units (6407, 6407, 7) -> (6407, 6407, 6), guys (1598, 1598, 1) -> (1598, 1598, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (7715, 7715, 2) -> (7715, 7715, 1).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6407, 6407, 6) -> (6407, 6407, 1).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (7715, 7715, 1) -> (7715, 7715, 0).
     (
         "run1359c",
         5678,
@@ -3656,7 +3677,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (48, 48, 0),
             (55, 55, 0),
             (120, 120, 0),
-            (7715, 7715, 1),
+            (7715, 7715, 0),
         ],
     ),
     // Item 4205, the built start: units (6810, 6671, 5784) -> (6810, 6671, 5721); builds (2544,
@@ -4805,6 +4826,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4441, `mask_me` walks a footprint column by column: world (9108, 9108, 10) -> (9108, 9108, 9).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (1731, 1729, 938) -> (1731, 1731, 1), world (9108, 9108, 9) -> (9108, 9108, 1).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (4969, 4889, 2804) -> (4969, 4945, 4289).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9108, 9108, 1) -> (9108, 9108, 0).
     (
         "run785",
         2178,
@@ -4820,7 +4842,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (47, 47, 0),
             (15, 15, 0),
             (330, 330, 0),
-            (9108, 9108, 1),
+            (9108, 9108, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (5889, 5855, 5006) -> (5889, 5855, 4979); builds (2157,
@@ -4848,6 +4870,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2157, 2155, 1256) -> (2157, 2157, 1), world (9526, 9526, 9) -> (9526, 9526, 1).
     // Item 4468, a nuke strike's round keeps its spline and the ammo line walks its SplineData: ammo (281, 3, 280) -> (281, 281, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (5889, 5809, 3724) -> (5889, 5865, 5207).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9526, 9526, 1) -> (9526, 9526, 0).
     (
         "run789",
         2799,
@@ -4863,7 +4886,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (52, 52, 0),
             (15, 15, 0),
             (330, 330, 0),
-            (9526, 9526, 1),
+            (9526, 9526, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (5860, 5823, 4887) -> (5860, 5823, 4860); builds (2059,
@@ -4890,6 +4913,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4441, `mask_me` walks a footprint column by column: world (9420, 9420, 11) -> (9420, 9420, 9).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2059, 2057, 1178) -> (2059, 2059, 1), world (9420, 9420, 9) -> (9420, 9420, 1).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (5860, 5780, 3667) -> (5860, 5836, 5145).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9420, 9420, 1) -> (9420, 9420, 0).
     (
         "run795",
         2681,
@@ -4905,7 +4929,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (52, 52, 0),
             (15, 15, 0),
             (330, 330, 0),
-            (9420, 9420, 1),
+            (9420, 9420, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (9526, 9603, 8636) -> (9526, 9603, 8609); builds (2384,
@@ -4938,6 +4962,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4441, `mask_me` walks a footprint column by column: world (9442, 9442, 11) -> (9442, 9442, 9).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2384, 2381, 1397) -> (2384, 2384, 2), world (9442, 9442, 9) -> (9442, 9442, 1).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (9526, 9426, 7329) -> (9526, 9496, 8813).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9442, 9442, 1) -> (9442, 9442, 0).
     (
         "run810",
         3631,
@@ -4953,7 +4978,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (58, 58, 0),
             (10, 10, 0),
             (330, 330, 0),
-            (9442, 9442, 1),
+            (9442, 9442, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (9339, 9413, 8439) -> (9339, 9413, 8412); builds (2473,
@@ -4985,6 +5010,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2473, 2469, 1529) -> (2473, 2473, 2), world (9552, 9552, 9) -> (9552, 9552, 1).
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): groups (676, 676, 1) -> (676, 676, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (9339, 9227, 8403) -> (9339, 9339, 35).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9552, 9552, 1) -> (9552, 9552, 0).
     (
         "run823",
         4238,
@@ -5000,7 +5026,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (58, 58, 0),
             (10, 10, 0),
             (330, 330, 0),
-            (9552, 9552, 1),
+            (9552, 9552, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (9362, 9436, 8403) -> (9362, 9436, 8376); builds (2473,
@@ -5031,6 +5057,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4441, `mask_me` walks a footprint column by column: world (9560, 9560, 11) -> (9560, 9560, 9).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2473, 2469, 1529) -> (2473, 2473, 2), world (9560, 9560, 9) -> (9560, 9560, 1).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (9362, 9250, 8445) -> (9362, 9362, 35).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9560, 9560, 1) -> (9560, 9560, 0).
     (
         "run825",
         4204,
@@ -5046,7 +5073,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (58, 58, 0),
             (10, 10, 0),
             (330, 330, 0),
-            (9560, 9560, 1),
+            (9560, 9560, 0),
         ],
     ),
     // Item 4218, the idle latch (`flags & 0x08`): units (1201, 1312, 1056) -> (1201, 1312, 1053).
@@ -5143,6 +5170,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (2095, 2095, 5) -> (2095, 2095, 1).
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): groups (640, 640, 1) -> (640, 640, 0).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9344, 9344, 1) -> (9344, 9344, 0).
     (
         "run854",
         3301,
@@ -5158,7 +5186,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (36, 36, 0),
             (5, 5, 0),
             (330, 330, 0),
-            (9344, 9344, 1),
+            (9344, 9344, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (10342, 10233, 9575) -> (10342, 10233, 9554); builds (2288,
@@ -5191,6 +5219,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (10342, 10188, 7824) -> (10342, 10188, 7823), groups (640, 640, 2) -> (640, 640, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (10342, 10188, 7824) -> (10342, 10342, 2).
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (10342, 10342, 2) -> (10342, 10342, 0).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9534, 9534, 1) -> (9534, 9534, 0).
     (
         "run865",
         4859,
@@ -5206,7 +5235,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
-            (9534, 9534, 1),
+            (9534, 9534, 0),
         ],
     ),
     // Item 4218, the idle latch (`flags & 0x08`): units (1636, 1776, 294) -> (1636, 1776, 263).
@@ -5266,6 +5295,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (11125, 10815, 9496) -> (11125, 10815, 9495), groups (616, 616, 3) -> (616, 616, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (11125, 10815, 9496) -> (11125, 11095, 9391).
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (11125, 11095, 9391) -> (11125, 11095, 9390).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9518, 9518, 1) -> (9518, 9518, 0).
     (
         "run882b",
         6808,
@@ -5281,7 +5311,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
-            (9518, 9518, 1),
+            (9518, 9518, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (11180, 10557, 9936) -> (11180, 10557, 9912); builds (2737,
@@ -5319,6 +5349,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (11180, 10834, 9384) -> (11180, 10834, 9383), groups (616, 616, 3) -> (616, 616, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (11180, 10834, 9384) -> (11180, 11114, 9164).
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (11180, 11114, 9164) -> (11180, 11114, 9163).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9536, 9536, 1) -> (9536, 9536, 0).
     (
         "run883b",
         6821,
@@ -5334,7 +5365,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
-            (9536, 9536, 1),
+            (9536, 9536, 0),
         ],
     ),
     // Item 4208, the whales' piece: units (2652, 2987, 625) -> (2652, 2987, 343); builds (709, 709,
@@ -5746,6 +5777,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4397, `Setup::reinit_game_units` (every start building's `z` off the whole start's ground): builds (2783, 2783, 2) -> (2783, 2783, 1).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2783, 2783, 1) -> (2783, 2783, 0).
     // Item 4422, the swarm's form -1: groups (544, 544, 1) -> (544, 544, 0).
+    // Item 4480, a `DETECT` building lights `seen3` over its disc: world (7443, 7443, 1) -> (7443, 7443, 0).
     (
         "run985b",
         16762,
@@ -5761,7 +5793,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (33, 33, 0),
             (40, 40, 0),
             (120, 120, 0),
-            (7443, 7443, 1),
+            (7443, 7443, 0),
         ],
     ),
     // Item 4205, the built start: units (3178, 3504, 2770) -> (3178, 3504, 2733); builds (2006,

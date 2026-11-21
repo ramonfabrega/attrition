@@ -32,7 +32,7 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 Blind: never 336 · residue 336 · open 0
 Rubric: ported 738 · replaced by design 331 · open 571 of 3611 · lockstep bytes 78.1 % · ages held 8 of 8 · unit types seen 296 of 302
 Held-out: 8 of 9 whole · shortest 6147
-Parity: 6 of 7 whole · the sample parts first on units 3921 of 21044
+Parity: 6 of 7 whole · the sample parts first on units 3932 of 21044
 Parity held out: 5 of 8 whole · 8 taken · lines 64 of 96 as found, 89 now · first partings 2990 3694 711 969 0 134 2694 0 as found, whole whole 2487 3984 whole 2756 whole whole now · reach 27 % of states as found, 92 % now
 Parity held out, second: 2 of 8 whole · 8 taken · lines 65 of 96 as found, 69 now · first partings 537 1662 3352 5054 4021 1608 553 whole as found, 537 1662 whole 5054 4021 2184 553 whole now · reach 53 % of states as found, 57 % now
 Structure: flat 11 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 21 · largest 3710
@@ -52,7 +52,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3): the pass designed four seats, none out: the chain's 4480 (held out, row 60's `seen3`), a parity seat's 4470 (second, row 90's take), a parity seat's 4479 (the sample, units 3921), the eye's 4482 (three tanks under a haze). 4470 takes the game lane first; every later take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4486 (second, row 70), 4478 (row 100), 4483 (second, rows 10 and 130), 4484 (row 40's take), 4485 (second, row 110), 4481 (the packets' groups line). 4487 (the third battery) is seated when `Parity held out, second:` reads 4 of 8.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3): the pass designed four seats, all cut by `commander` (Opus 5.5) at 94 % of the week: the chain's 4480 (held out, row 60's `seen3`), a parity seat's 4470 (second, row 90's take), a parity seat's 4488 (the sample, draws 3931 and units 3932; 4479 landed), the eye's 4482 (three tanks under a haze). 4470 takes the game lane first; every later take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4486 (second, row 70), 4478 (row 100), 4483 (second, rows 10 and 130), 4484 (row 40's take), 4485 (second, row 110), 4481 (the packets' groups line). 4487 (the third battery) is seated when `Parity held out, second:` reads 4 of 8.
 
 4480. **Parity held out: row 60, the world line from 3984** (a rules item, whole; the chain's; `docs/RECGAME.md` §10.3). The pass's
 score on run1722 (DECISIONS 147 §3): eleven lines agree on all 4,075 states and world on 3,984, so the row is one line and 91 states
@@ -67,13 +67,13 @@ units and on guys, both on 4021. First act: `df -g ~` (stop under 60), then a ra
 (4435's recipe), then `score_recording` names the leaf. Reading it spends the second battery as an estimate (147 §2). Re-pin
 `SCORES_SECOND[4].moved`, never `found`. It stops when two landings running move no column.
 
-4479. **The 2017 sample, from units 3921** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §7). 4475 raised a region's 0x20
-on the frame `World::compute_reg_territory`'s border pass finishes it (`or $0x20` at 006b1a47), so the camp 3/2011, taken on 3887,
-re-walks on 3904 (builds `2710 2011 gather_max` ours 0 → 5, theirs 5; 61 tiles' `0x1000` set): draws 3903 → 3931, builds 3904 → 3981,
-world → 3943, units 3906 → 3921; groups, items and goods fell to 3935, 5235 and 4171, named, past the units' new parting. Next: units
-3921 (`2190 11 guys.length` ours 4, theirs 1); draws 3931 (theirs in `Unit::close`). First act: unit 2190's figures on 3920 and
-3921, from the ranges on disk. Run 1726 stays reserved. Re-pin `SAMPLE_LINES`; the driver writes `Parity:`. It stops when two
-landings running move no line's first parting (145 §4).
+4488. **The 2017 sample, from draws 3931 and units 3932** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §7). 4479 walked
+`TargetOrder::walk_data`'s flags and target for a unit's second order (run1724 3921, units record 11, unit 3/11 TI 50, a REPAIR:
+`order.flags` 04|04 and `order.target` (2010, 3, 0x31) on both sides, ours unchecksummed before): units 3921 → 3932, no sim state
+changed. Units, guys and deaths now part first on 3932, draws on 3931: theirs kills two of player 1's type-18 units on 3931 and ours
+none (deaths 16 ranges to 12, the two at (31910, 19682) and (31742, 19575)). First act: those two units on 3930 and 3931, from the
+ranges on disk. Run 1726 stays reserved. Re-pin `SAMPLE_LINES`; the driver writes `Parity:`. It stops when two landings running move
+no line's first parting (145 §4).
 
 4482. **Three tanks under a haze on run1559b's photograph** (a render item, scoped; the eye's; `docs/RENDERER.md` §3.13). 4458
 stopped on its first act: the three vehicles theirs draws hazy at 3279 are live tanks at full health (`1/40`, `1/27`, `1/16`, piece
