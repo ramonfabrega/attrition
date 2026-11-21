@@ -1211,15 +1211,8 @@ impl Sim {
     /// 0xc0` of it that `valid_target` passes, the best by
     /// `compare_target(t, 1, 0) / (dist / 0xc0 + 1)`.
     ///
-    /// **A computer's bomber searches round itself** (item 4508): the
-    /// head's `unit_masks & 0x40000` test (`5eb96e`..`5eb98a`) overwrites
-    /// the point with the plane's own position before the gate, so the
-    /// gate passes and both the circle and the distances are the plane's.
-    /// Row 130's who=1 Strategic Bomber `1/158`, patrolling to
-    /// (6240, 7008) from some 10,100 units out, found nothing on 3410 in
-    /// theirs, where ours struck a building beside the point (run1754,
-    /// state 3411, units range 4078, `orders.count` ours 2, theirs 1).
-    /// The bit is the unit's ([`Sim::unit_ai_bit`]).
+    /// **A computer's bomber searches round itself**: `5eb96e`..`5eb98a` put the point on the plane
+    /// for the unit's `unit_masks & 0x40000` (item 4508, `docs/RECGAME.md` §11, run1754's 3411).
     ///
     /// SEAM: the first arm (`param_3 ≥ 0`, a search round a current
     /// target at five times the circle). The candidates are taken
