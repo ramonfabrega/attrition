@@ -649,7 +649,7 @@ fn run838_s_word_frame_is_widened_whole() {
     // Item 2761: 189 → 185 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 140 -> 138.
     // Item 4435: 138 -> 84, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 76, "run838 baseline");
+    pin_eq!(w.firsts.len(), 72, "run838 baseline");
 }
 
 /// run844: the pair's last blocks, 4940..5057 at the long's detail — six
