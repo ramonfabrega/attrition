@@ -1034,7 +1034,7 @@ impl Sim {
                 .count() as i32;
         }
         n + chain_gatherers(
-            self.gather_chain(b).into_iter(),
+            self.gather_chain(b),
             skip_decoys,
             |u| self.units[u].decoy,
             |u| self.is_gathering_at(u, b, arrived),
@@ -1050,7 +1050,7 @@ impl Sim {
     /// §52).
     pub(super) fn all_gathering(&mut self, b: usize) -> bool {
         self.check_gatherers(b);
-        all_at_work(self.gather_chain(b).into_iter(), |u| {
+        all_at_work(self.gather_chain(b), |u| {
             match self.units[u].orders.front().map(|o| o.body) {
                 Some(Body::Gather(g)) => Some((g.goto_build, g.wait)),
                 _ => None,
