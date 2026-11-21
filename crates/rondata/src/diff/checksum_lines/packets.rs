@@ -357,9 +357,6 @@ pub(super) fn walk_packets_with(
                 range.field
             );
         }
-        if std::env::var("RON_PROBE_4505").is_ok_and(|v| v == *run) {
-            crate::diff::sample::tests::print_partings(&ours[..1], theirs);
-        }
         let lines = compare(&ours, theirs);
         let empty = StreamRows::new();
         let leaves = leader_leaf_rows(&built.sim, theirs.get("leaders").unwrap_or(&empty));
