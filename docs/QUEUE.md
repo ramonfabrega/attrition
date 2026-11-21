@@ -34,7 +34,7 @@ Held-out: 8 of 9 whole · shortest 6147
 Parity: 6 of 7 whole · the sample parts first on units 4248 of 21044 · draws 5273
 Parity held out: 8 of 8 whole · 8 taken · lines 64 of 96 as found, 96 now · first partings 2990 3694 711 969 0 134 2694 0 as found, whole whole whole whole whole whole whole whole now · reach 27 % of states as found, 100 % now
 Parity held out, second: 4 of 8 whole · 8 taken · lines 65 of 96 as found, 82 now · first partings 537 1662 3352 5054 4021 1608 553 whole as found, 2365 1662 whole whole whole 3809 3411 whole now · reach 53 % of states as found, 76 % now
-Parity held out, third: 6 of 8 whole · 8 taken · lines 90 of 96 as found, 93 now · first partings 4805 whole whole whole 3831 1976 whole whole as found, 4805 whole whole whole whole 3583 whole whole now · reach 88 % of states as found, 93 % now
+Parity held out, third: 7 of 8 whole · 8 taken · lines 90 of 96 as found, 94 now · first partings 4805 whole whole whole 3831 1976 whole whole as found, whole whole whole whole whole 3583 whole whole now · reach 88 % of states as found, 96 % now
 Structure: flat 11 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 21 · largest 3711
 Renderer: K 59 of M 60 · frames 35 of 35 · pieces 1465 of 1478 · resolved 1,237,711 of 1,237,726 objects over 110 lobbies
 Clock: ceilings on GreatLakes lobby, 600 frames off-screen from frame 0 · frame zero 1.5 s · p99 20 ms · slowest 400 ms (frame 1, first sight) · peak 320 MiB
@@ -52,7 +52,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3): four seats out: the chain's builder on 4504 (second, row 10 from world 2365), `lane-4512` (third, row 105 from leaders 3583), `lane-4505` (the sample, ranges to 4500, run1726), `lane-4507` (third, row 5's ammo, run1753), each Opus 5.5; 4484 landed (run1723, row 40's leaf on 2487: the squad 1/16 to 1/18 boarding 1/70, `inside_down` ours −1 theirs 17, the passenger chain 4511 is building; no fix, no re-pin) and 4511 landed (row 105's passengers in order of entry: rows 105 and 40 whole, the first battery 8 of 8) and its seat took 4512, the chain's 4504; 4502 landed (row 105's CEO bit, units first 2983 → 3359) and its seat took 4511; 4506 landed (the dust, `RUN1559B_3279_TANKS_HAZE` 1 → 4 of 4, parked 4506a and 4506b) and its seat took 4507. run1723 and run1726 are taken; 4507 has the game lane next; every later take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4508 (second, row 130), 4509 (second, row 30, after 4504's world leaf), 4485 (second, row 110). 4503 (the sample's draw word) follows 4505 in the sample's seat. 4510 (the fourth battery) is seated when `Parity held out, third:` reads 7 of 8.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3): four seats out: the chain's builder on 4504 (second, row 10 from world 2365), `lane-4512` (third, row 105 from leaders 3583), `lane-4510` (the fourth battery), `lane-4505` (the sample, ranges to 4500, run1726), each Opus 5.5; 4484 landed (run1723, row 40's leaf on 2487: the squad 1/16 to 1/18 boarding 1/70, `inside_down` ours −1 theirs 17, the passenger chain 4511 is building; no fix, no re-pin) and 4507 landed (row 5's Slinger bays re-fit, ammo whole, the third battery 7 of 8) and its seat took 4510; 4511 landed (row 105's passengers in order of entry: rows 105 and 40 whole, the first battery 8 of 8) and its seat took 4512, the chain's 4504; 4502 landed (row 105's CEO bit, units first 2983 → 3359) and its seat took 4511; 4506 landed (the dust, `RUN1559B_3279_TANKS_HAZE` 1 → 4 of 4, parked 4506a and 4506b) and its seat took 4507. run1723, run1726 and run1753 are taken; 4510's recordings have the game lane; every later take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4508 (second, row 130), 4509 (second, row 30, after 4504's world leaf), 4485 (second, row 110). 4503 (the sample's draw word) follows 4505 in the sample's seat.
 
 4512. **Parity held out, third: row 105 from leaders 3583, then groups 4355, on run1752's disk** (a rules item, whole; a parity seat's;
 `docs/RECGAME.md` §11.1). 4511 linked a host's passengers in order of entry (`inside_down` ours −1 theirs 128 on 3359, range 3707,
@@ -67,12 +67,6 @@ ammo on 4462, and run1724's ranges end on 4130 (DECISIONS 148 §5). First act: `
 run1726 with `--end-frame 4500` and `RNG_MASK=0x8bu` (units, builds, ammo, leaders), then the leaf of units 4248 off the take, with
 builds and leaders on 4321 beside it. Re-pin `SAMPLE_LINES`; the driver writes `Parity:` with its draw word. It stops when two
 landings running leave the `Parity:` line as it is, and 4501 was the first.
-
-4507. **Parity held out, third: row 5's ammo line from 4805** (a rules item, whole; unseated; `docs/RECGAME.md` §11.1). Eleven lines
-agree on all 6,001 states and ammo on 5,934, first on 4805 (ours 2964392822, theirs 2975730574). The row is one line from whole and
-the third battery one row from 7 of 8, which calls the fourth. First act: `df -g ~` (stop under 60), then one take of its file as
-run1753 with the arguments the scorer prints (`--end-frame 6000`, `RNG_MASK=0x8u`), then `score_recording` names the leaf. Re-pin
-`SCORES_THIRD[0].moved`, never `found`. It stops when two landings running move no column.
 
 4504. **Parity held out, second: row 10 from world 2365, then units 3771, on run1739's disk** (a rules item, whole; the chain's;
 `docs/RECGAME.md` §11). After 4511's passenger chain, units agree 5,664 of 6,001 from 3771, so world is first: 5,995 from 2365 (range
@@ -109,11 +103,11 @@ bearing does not pass through ours' first waypoint (34728,34536). First act: our
 `Unit::find_path@005fb910` and the A* node writer, from the ranges on disk. Re-pin `SAMPLE_WALKED` and `SAMPLE_LINES`; the driver
 writes `Parity:`. It stops when two landings running leave the `Parity:` line as it is (DECISIONS 148 §5).
 
-4510. **Parity held out, fourth: rows 15, 35, 55, 75, 95, 115, 135 and 155** (a rules item, whole; seated when `Parity held out,
-third:` reads 7 of 8, or on Ramon's word; DECISIONS 148 §2). First act: the declaration, `HELD_OUT_FOURTH` pinned in one commit
-before any file is recorded, as 4487's was. Then each row recorded idle by the client's page to 6000, played by the original as
-`run1760 + k` under the checksum hook with no ranges, and scored once into `SCORES_FOURTH` with its parsed line and its reach. The
-driver writes `Parity held out, fourth:` beside the third.
+4510. **Parity held out, fourth: rows 15, 35, 55, 75, 95, 115, 135 and 155** (a rules item, whole; seated by 4507's 7 of 8;
+DECISIONS 148 §2). First act: the declaration, `HELD_OUT_FOURTH` pinned in one commit before any file is recorded, as 4487's was.
+Then each row recorded idle by the client's page to 6000, played by the original as `run1760 + k` under the checksum hook with no
+ranges, and scored once into `SCORES_FOURTH` with its parsed line and its reach. The driver writes `Parity held out, fourth:`
+beside the third.
 
 ## Direct branch handoff
 

@@ -1288,6 +1288,19 @@ slot, and each rider named the host above and nothing below. It now keeps the or
 `row_105_s_freighter_chains_its_riders_in_the_order_they_boarded_on_run1752_s_ranges` holds every units range on 3358
 and 3359.
 
+**Row 5's leaf (item 4507, run1753, the ammo take of run1743's file, `RNG_MASK=0x8u`).** State 4805, ammo range 1,
+record 0 (slot 0), `rolling..start_roll_angle`: bytes 7 and 11, `launch.x, launch.y`, ours (4944, 30710), theirs
+(4945, 30709), and bytes 41 and 84, the aim's `angle` and `dx`, which follow from the launch. It is the only parted
+range; the stone beside it (slot 1) agrees. The round is who=1's Slinger `1/22` (type 82, piece 32), at (5064, 30744)
+facing −1,097,334,784, loosing `CHAR_ATTACK2` at frame 22 on a building. Its socket is `launch::BAYS`' piece-32 row,
+fitted from run17's twenty headings (`docs/COMBAT.md` §70.2). The original's own `get_position` on run1579's packet,
+swept over all 361 whole degrees, says the three rows held 205, 324 and 345 of them, and this heading is one of the
+misses. The rows are now the sweep's centroids, 361 of 361 each, and equal piece 384's (item 4277) to the digit. Row
+5 is whole: **7 of 8, 93 of 96 lines, reach 95 %** as the third battery's moved column, on the tree merged with
+4502. No other row of the three batteries moved; the third pair's window `1/22` on 5633 had pinned the same three
+launch differences, and they close. `row_5_s_slinger_stone_leaves_from_the_original_s_socket_on_run1753_s_ranges` holds every ammo range on 4804
+to 4806.
+
 **Row 105 whole (item 4512, run1752).** *Leaders, 3583*: range 191, record 1, who=1's `oil_patches` `size` ours 10,
 theirs 20. Both sides prune the list from twelve patches to ten (arm 4.2), length and elements agreeing;
 `SimpleArray<int>::remove@00462e70` only shortens the length, so the capacity stays 20. The leader now keeps each
@@ -1295,8 +1308,8 @@ shrinking array's capacity (`Leader::oil_patches_size`, `mil_trainers_size`). Le
 *Groups, 4355*: range 204, record 84 (who=1's slot 20), `num` ours 49, theirs 50. `think_scout` pushes `1/94`
 (type 200, its `+0x80` naming slot 9) onto slot 22; `Groups::push_group@0070f9e0`'s second walk kills it from slot
 9 alone, so slot 20 keeps listing it. This crate also swept every seat for the leaving squads (since item 465); the
-sweep is gone (`docs/GROUPS.md` §30.3). Groups 5,217 → 5,235, whole, and **row 105 is whole**: the third battery 7
-of 8, lines 93 → 95, reach 93 % → 97 %. The same fix closes golden chapter 41's three `group` rows (902, 968).
+sweep is gone (`docs/GROUPS.md` §30.3). Groups 5,217 → 5,235, whole, and **row 105 is whole**: the third battery 8
+of 8 on the tree merged with 4507. The same fix closes golden chapter 41's three `group` rows (902, 968).
 `row_105_s_pruned_oil_list_keeps_its_capacity_on_run1752_s_ranges` holds every leaders range on 3582 and 3583,
 `row_105_s_pushed_unit_stays_listed_by_the_slot_it_left_on_run1752_s_ranges` every groups range on 4354 and 4355.
 
@@ -1311,7 +1324,7 @@ five, each on run1739's disk: units 1747 (`inside_down`), world 2365 (range 6920
 ranges). Rows 40, 5, 130, 30 and 110 hold sums; each one's take keeps the lines it parts on (`0x1u`, `0x8u`,
 `0x81u`, `0x801u`, `0x88bu`).
 
-*Not established*: row 5 names no leaf, since its take holds sums. ~~Row 105's next partings are units on 3359 (range
+*Not established*: ~~row 5 names no leaf, since its take holds sums~~ (item 4507, above). ~~Row 105's next partings are units on 3359 (range
 3707, record 127, `inside_down` ours −1, theirs 128; item 4502)~~ (whole, item 4511, above). ~~Row 105's next partings
 are leaders on 3583 (range 191, record 1, `oil_patches` ours 10, theirs 20) and groups on 4355 (range 204, record 84,
 `num` ours 49, theirs 50), both on run1752's disk.~~ (whole, item 4512, above.) `go_inside` and `come_out` still do not call

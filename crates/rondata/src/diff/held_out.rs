@@ -786,6 +786,69 @@ mod tests {
         }
     }
 
+    /// **Row 5's Slinger stone leaves from the original's socket** (item
+    /// 4507, `docs/RECGAME.md` §11.1): run1753, the ammo take of run1743's
+    /// file (`RNG_MASK=0x8u`), holds every ammo range on 4804 to 4806. On
+    /// 4805 who=1's Slinger `1/22` (type 82, piece 32) looses its
+    /// `CHAR_ATTACK2` stone at frame 22 from (5064, 30744) facing
+    /// −1,097,334,784, and theirs leaves from (4945, 30709): range 1,
+    /// record 0, `rolling..start_roll_angle` bytes 7 and 11 (`launch.x`,
+    /// `launch.y`), then the aim's angle (byte 41) and `dx` (byte 84) that
+    /// follow from it. Every ammo range on the three states, ours against
+    /// theirs, byte for byte: red on the tree before the re-fit, at range 1
+    /// on 4805, where ours left from (4944, 30710).
+    #[test]
+    fn row_5_s_slinger_stone_leaves_from_the_original_s_socket_on_run1753_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&THIRD, 0) else {
+            eprintln!("skipping: row 5's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1753/map-14"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1753's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 5's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [4804, 4805, 4806] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_ammo().expect("ours' ammo line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 3).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "ammo ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "ammo range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Theirs' slot 0 `launch.x, launch.y`, by name, from 4805.
+            if state >= 4805 {
+                let b = &theirs[1].bytes;
+                let word =
+                    |k: usize| i32::from_le_bytes(b[3 + 4 * k..7 + 4 * k].try_into().unwrap());
+                assert_eq!(
+                    (word(1), word(2)),
+                    (4945, 30709),
+                    "theirs' launch on {state}"
+                );
+            }
+        }
+    }
+
     /// **Row 105's CEO carries the CEO bit from its `set_type`** (item
     /// 4502, `docs/RECGAME.md` §11.1): run1752, the ranges take of
     /// run1748's file, holds every units range on 2982 and 2983. On 2983
@@ -3111,7 +3174,17 @@ pub(crate) const SCORES_THIRD: [Option<FirstScore>; 8] = [
             first: &[("ammo", (4805, Some(2964392822), 2975730574))],
             over: None,
         },
-        moved: None,
+        // Moved by item 4507 (piece 32's three bays re-fitted on the
+        // original's own 361-heading sweep: run1753, state 4805, ammo
+        // range 1, record 0, `launch.x, launch.y` ours 4944, 30710,
+        // theirs 4945, 30709, who=1's Slinger `1/22`): ammo 5,934 ->
+        // 6,001, whole; the game is whole.
+        moved: Some(Score {
+            states: 6001,
+            agreed: [6001; 12],
+            first: &[],
+            over: None,
+        }),
     }),
     // run1744
     // row 25, as found 2026-11-21: 12 lines whole.
@@ -3267,10 +3340,11 @@ pub(crate) const SCORES_THIRD: [Option<FirstScore>; 8] = [
 /// **Parity held out, third, N of 8** (item 4487): the third battery's
 /// line, games whole of the eight and games taken. As found 2026-11-21:
 /// 5 of 8, rows 25, 45, 65, 125 and 145 whole. Item 4493: 6 of 8, row 85
-/// whole (`Group::refresh_group_order`'s prune). Item 4512: 7 of 8, row 105
-/// whole (`push_group` asks only the group `+0x80` names).
+/// whole (`Group::refresh_group_order`'s prune). Item 4507: 7 of 8, row 5
+/// whole (piece 32's bays re-fitted on the original's sweep). Item 4512:
+/// 8 of 8, row 105 whole (`push_group` asks only the group `+0x80` names).
 #[cfg(test)]
-pub(crate) const HELD_OUT_THIRD_LINE: (usize, usize) = (7, 8);
+pub(crate) const HELD_OUT_THIRD_LINE: (usize, usize) = (8, 8);
 
 /// The third battery (item 4487).
 #[cfg(test)]
