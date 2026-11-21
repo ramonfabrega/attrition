@@ -434,9 +434,9 @@ impl Sim {
     /// SEAM: a positive need with a give
     /// of mine (`6c035d`: a coin and a war) is not carried; with nothing
     /// committed to me, the computer's own proposals past the top-scorer
-    /// arm ([`Sim::top_scorer_alliance`], item 4496: `6c0a3f` on, a peace at
-    /// war and an alliance at peace) are not carried; nor the scenario's
-    /// fixed answers.
+    /// arm (item 4496 carries that arm; `6c0a3f` on, a peace at war and an
+    /// alliance at peace) are not carried; nor the scenario's fixed
+    /// answers.
     pub(super) fn offers_arm(&mut self, me: usize, t: usize, cleared: bool, rivals: Rivals) {
         let frame = self.frame;
         let aggression = self.ai.ai[me].aggression[t];
