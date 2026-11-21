@@ -10496,6 +10496,57 @@ fn a_closed_building_s_cell_refuses_the_spiral_only_with_an_enemy_near() {
     assert!(!flagged(&sim), "and the bit is gone");
 }
 
+/// **An attacked city builds away from the enemy** (item 4492,
+/// `Leader::produce_building@006e1400`, `006e2484`–`006e2575`): when the
+/// anchor's city carries `CITY_UNDER_ATTACK` (`city_flags & 2`), a winning
+/// candidate whose cell or one of its eight compass neighbours holds an
+/// object of a leader `who` is at war with is refused. The walk is nine
+/// cells (`move_x/move_y[0..9]`, a byte index stepped by 4 to `0x24`), so
+/// an enemy two cells off refuses nothing. The 2017 sample's computer 1
+/// sited a Barracks at cell (49, 40) on 4182 in ours and elsewhere in the
+/// original, two jitter draws against four.
+#[test]
+fn an_attacked_city_s_site_keeps_clear_of_the_enemy() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b0, c0) = city_at(&mut sim, &t, 0, 8, 8);
+    let place = |sim: &mut Sim| {
+        assert!(sim.produce_building(0, t.granary, b0, Some(c0), false));
+        let g = sim
+            .buildings
+            .iter()
+            .position(|b| b.alive && b.ty == Some(t.granary))
+            .expect("a Granary");
+        sim.buildings[g].pos
+    };
+    let at = place(&mut sim.clone());
+    let c = at.cell();
+    let centre = |dx: i32| {
+        Pos::new(
+            (c.x + dx) * UNITS_PER_CELL + UNITS_PER_CELL / 2,
+            c.y * UNITS_PER_CELL + UNITS_PER_CELL / 2,
+        )
+    };
+    let with_enemy = |dx: i32, war: bool, attacked: bool| {
+        let mut s = sim.clone();
+        s.add_building(1, centre(dx), 8);
+        if war {
+            s.declare_war(0, 1);
+        }
+        s.cities.cities[c0].no_heal = attacked;
+        place(&mut s).cell()
+    };
+    assert_eq!(with_enemy(0, true, false), c, "not under attack: no walk");
+    assert_eq!(with_enemy(0, false, true), c, "no war: no enemy");
+    assert_ne!(with_enemy(0, true, true), c, "an enemy in the cell");
+    assert_ne!(with_enemy(1, true, true), c, "an enemy one cell over");
+    assert_eq!(
+        with_enemy(2, true, true),
+        c,
+        "two cells over is past the nine"
+    );
+}
+
 /// **A Fort's site is scored with the danger of its cell** (item 1716,
 /// `docs/AI.md` §187). `Leader::produce_building`'s Fort arm adds
 /// `danger[who][cell / 2] / 4` (`006e2131`–`006e216b`) ahead of the
