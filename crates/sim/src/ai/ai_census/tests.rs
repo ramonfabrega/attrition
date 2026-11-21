@@ -1055,6 +1055,38 @@ fn invaders_land_on_the_owner_s_record() {
     assert_eq!(f.sim.ai.ai[0].census.invaders[1], 0);
 }
 
+/// A defeated owner keeps its slot's `leader_flags & 1`, the gate of
+/// `plan_strategy@006b9620`'s step 7 and step 10: its `invaders[me]` is
+/// cleared and recounted like any other (item 4525, run1771: leader 1's
+/// `invaders[3]` on 5326, ours 5 frozen at its defeat, theirs 0).
+#[test]
+fn a_defeated_owner_s_invaders_are_cleared_and_counted() {
+    let mut f = fix();
+    build(&mut f.sim, 1, f.village, 20, 20);
+    for x in 8..10 {
+        for y in 8..10 {
+            f.sim
+                .world
+                .set_owner(Cell::new(x, y), Owner::Player(0), Owner::None);
+        }
+    }
+    let u = spawn(&mut f.sim, 1, f.scout, 34, 34);
+    let ty = f.sim.units[u].ty.unwrap();
+    f.sim.tables.unit_types[ty].cols.role = ROLE_MILITARY;
+    f.sim.ai.ai[0].census.resize(f.sim.world.region_count(), 2);
+    f.sim.leaders.defeated[0] = true;
+
+    // Counted on a defeated owner's land.
+    f.sim.census(1);
+    assert_eq!(f.sim.ai.ai[0].census.invaders[1], 1);
+
+    // Home again: the defeated owner's count is cleared, not frozen.
+    f.sim.ai.ai[0].census.invaders[1] = 5;
+    f.sim.units[u].pos = tile_pos(20, 22);
+    f.sim.census(1);
+    assert_eq!(f.sim.ai.ai[0].census.invaders[1], 0);
+}
+
 /// `+0x850 resources_controlled` is the census's bit count of the
 /// leader's `rare` mask (`plan_strategy:1206`–`1222`, an inlined
 /// `BitMask<44>::count@0047cd40`; item 4324): run1578's leader 1 holds
