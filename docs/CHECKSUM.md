@@ -1885,11 +1885,64 @@ The length is also run1471's printed 39,282.046875
 
 *Not established*: the sizes 16 and 128 fit `increase_size` with `increment`
 −1 (4, then doubling). They are read off this one spline, and it may be the
-game's first. A recycled `Spline` keeps its blocks through `clear`, so a
+game's first. ~~A recycled `Spline` keeps its blocks through `clear`, so a
 round that pops a used one walks the earlier sizes. Ours does not model the
-pool. The Cruise Missile's arm and `calc_from_dir`'s guided spline are
-`SplineArm::Unwalked`, and the line still refuses a round that carries one.
-A V2's re-planned spline is one of those.
+pool.~~ Modelled since item 4495 (§18.1). ~~The Cruise Missile's arm and
+`calc_from_dir`'s guided spline are `SplineArm::Unwalked`, and the line still
+refuses a round that carries one.~~ `calc_from_dir`'s is walked since item
+4495 (§18.1); the Cruise Missile's arm is still `SplineArm::Unwalked`, and the
+line refuses a round that carries one.
+
+## 18.1 A guided round's spline, off the recycler (item 4495)
+
+Diff-backed on row 100, run1721 3210. On 3209 the strafing Jet Fighter `1/91` (TI 295) fires a
+guided round on `0/2000`, record 1 (slot 1, `traj` 2). `Ammo::init:759`–`791`
+pops a `Spline`, sets `flags` `0x10` and lays `Spline::calc_from_dir@00913960`
+into it. Ours refused the line for any guided round. Theirs walks the same 99
+bytes as any round, the path byte 01, and 52 ranges of `SplineData`:
+
+- `type`..`depth`: 3, `0x10`, **4.0** (`calc_from_dir` writes `+0x48` after
+  `set_min_seg_length`), `total_spline_length`, 0, −1.0, −1.0, −1, **degree 2,
+  depth 15**. `calc_spline@00912f00` caps the resolution at `3 × 4.0 = 12`
+  and raises it to the degree, but it restores `+0x60` and `+0x62` before it
+  returns. The depth printed is `set_min_seg_length@009125e0`'s uncapped
+  quotient, as a `u16`.
+- `control_verts`: 3 points (`start`, `dir`, `end`) **in a block of 16**.
+- `knots`: empty (`calc_from_dir` zeroes `+0x84`).
+- `spline_knots`: `0 0 0 1 1 1` **in 16**. `weights`: empty.
+- `spline_verts` and `spline_normals`: 13 each, **in 128**.
+
+The blocks are the nuke's. `Ammo::close@006791a0` clears a round's `Spline`
+and pushes it onto `Recycler<Spline>::temp_pool`. `Spline::clear@00914410`
+zeroes every length and no size. `Recycler<Spline>::pop@00478360` hands back
+the top, or mallocs a fresh one when the stack is empty. The nuke's `Spline`
+of 2617 was the only one pushed before 3209, so the missile gets 16, 16 and
+128. Theirs prints exactly those sizes. `Ammo::inc_time@0067d380` re-plans
+into the round's own `Spline` (`:199`), so a re-plan keeps its sizes too.
+
+Built: `Spline` carries its six arrays' sizes (`SplineCaps`) and what its arm
+writes. `Spline::recycled` grows the sizes from the popped ones:
+`increase_size` doubling for the pushed arrays, and
+`Array<Object*>::make_valid@0045da30` for `knots`, which doubles when the
+shortfall is no more than the size and otherwise takes the length.
+`CombatState::spline_pool` is the stack. `Sim::close_ammo` pushes, and every
+`Ammo::init` arm that lays a spline pops (`Sim::spline_pop`). `SplineArm::FromDir`
+keeps the three control points and the depth, and `checksum_ammo` walks it
+with the nuke arm's walker. All 55 ammo ranges on 3210 agree, and so do the
+52 on 3212. Row 100's ammo goes 3,291 → 3,312, first parting 3210 → 3312,
+where both sides print a line (`SCORES[5].moved`; the killer is
+`row_100_s_jet_fighter_missile_walks_its_recycled_spline_on_run1721_s_ranges`).
+On the second battery, ammo moves on row 10 (5,907 → 5,924, first 5135 →
+5148), row 110 (4,472 → 5,826, first 3303 → 4104) and row 130 (4,511 → 4,647).
+The packets' ammo column moves on seven rows, every move toward agreement.
+Five turn whole (run1469, run1469b, run1472, run1484 and run810), and run1487
+and run1496 shrink to 28 and 44 ranges parted (`PACKETS_SCORE` 892 → 897).
+
+*Not established*: the pool starts empty here. `River::init` and
+`River::close` share `Recycler<Spline>`, and no capture shows a river's
+`Spline` reaching a round. The Cruise Missile arm's `knots` size is taken as
+`make_valid(n + 4)`'s, read at `913e96` and never walked. Ammo 3312, the
+row's next parting, is not read.
 
 ## 19. The groups line, ported (item 4116)
 

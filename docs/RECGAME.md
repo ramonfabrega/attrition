@@ -1131,7 +1131,12 @@ slot's `ox`/`oy` (GROUPS §36.2); a dropped cavarch target keeps its uid (AI
 `Objects::find_units@0065a620`'s order (PRODUCTION, the nuke).
 
 **Row 100's units, whole** (4491, run1721 2758): the units line walks a
-strafe's own ranges (CHECKSUM §18). Ammo 3210 is the row's last parting.
+strafe's own ranges (CHECKSUM §18). ~~Ammo 3210 is the row's last parting.~~
+Moved by 4495.
+
+**Row 100's ammo, 3210 → 3312** (4495, run1721 3210): the Jet Fighter's
+guided round walks `calc_from_dir`'s spline in the sizes of the recycled
+`Spline` the nuke left (CHECKSUM §18.1). Ammo 3312 is the row's last parting.
 
 ## 11. Parity held out, second: eight more lobbies named before the original plays them (item 4462)
 
