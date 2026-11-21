@@ -10631,7 +10631,7 @@ priced. A packet at logger 5776 is the state after three search frames.
 parked search: the `CARAVAN` block prints the laid road only, and run346's
 trace proxies no `calc_road_cost`.
 
-**What it settled** (`docs/CARAVAN.md` §11.2, `docs/AI.md` §85):
+**What it settled** (`docs/CARAVAN.md` §12, `docs/AI.md` §85):
 - `road_probe.py` reads `caravans` (VA `0xE3A290`), who=1's slot 1 (`city2`
   0, `city3` 2, `o` 33, `making_road` 1) and walks the open `Tree` and the
   closed `BRTree`. They hold 158 open and 1,279 closed nodes.
@@ -37349,7 +37349,7 @@ SHA-256 `758300fc33970b8cc2d6abd4b0267b5a4b1eb64b858bb8e099ee0c66517df8e1`.
 **What it holds**: the units line's first parting on 6907, named by record and field.
 ## run1598 — the original playing the file a capital's rally point minted (2026-11-14, item 4249, `att-4249`)
 
-`docs/CLIENT_INPUT.md` §11.2. **What the disk could not answer**: whether the original plays a `gather_point` minted
+`docs/CLIENT_INPUT.md` §12. **What the disk could not answer**: whether the original plays a `gather_point` minted
 from a right press, and sends the Citizen trained after it to the point as our walk does. No playback of a minted
 file carries one. The file: `~/ron-golden/recordings/item4249-gathered-greatlakes-24000.rcx`, 59,459 bytes, SHA-256
 `d419163f63fbb82abe40e2f38aef75ab2f1869bdafdc39202b432b7ed179ae01`. It was written by `RON_RCX_OUT=<it> … test
@@ -40253,7 +40253,215 @@ Files in place, `~/ron-golden/run1753/map-14/`: `gamelog_p.txt`, 2,444 bytes, SH
   the first parting 3583 (leaders range 191, record 1, `oil_patches` ours 10, theirs 20), then groups 4355.
   `diff::held_out::tests::row_105_s_freighter_chains_its_riders_in_the_order_they_boarded_on_run1752_s_ranges` holds
   every units range on 3358 and 3359.
+
+## run1760 — parity held out, fourth battery, row 15: Southwest Mesa, difficulty 0 recorded idle by the client, played to 6000 (2026-11-21, item 4510, `att-4510`)
+
+`docs/RECGAME.md` §12; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
+file our client wrote; the row was declared before any recording (`64617fe79`). The file:
+`~/ron-golden/recordings/item4510-row015-6000.rcx`, 59,216 bytes, SHA-256
+`35c40183206aedb5e694afd9c7a97cb595bb448f5f76eea46076c27376d3f531`: `client --record <file> --headless --page-of
+gamelog-run1118-southwestmesa-cover1-clickfree-diagonal.txt --frame 6000`, no order but slot 0's opening preferences, closing on 6000, its donor the first finished
+recording with its version and options in the profile's `Recorded Games/` (`RON_RECGAME_DIR`).
+
+The take: run1743's line (`--recording <file> --end-frame 6000 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --tracer-def RON_CHECKSUMS`, no ranges) with `~/ron-golden/run1760`, chained after the one before it
+and waited on with `waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 11:40:24 −05:00, exited 11:47:54: **449.6 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 12345 observed, map 10. Players: tribe 4 (flags 7) and tribe 11 (flags 1).
+  **The original took the file**: no section refused.
+- **Scored as found** (`the_fourth_held_out_games_score_as_pinned`): all twelve lines 6,001 of 6,001; **whole**.
+- Filed **in place**, as run1700 is. run1760 was the number reserved for row 15.
+
+Files in place, `~/ron-golden/run1760/map-10/`: `gamelog_p.txt`, 2,450 bytes, SHA-256 `26248df1397be73c412f177dc1c1605793d8f1be5960efcb65e44b4e91e77ec5`; `rontrace.log`, 33,625,280 bytes, SHA-256 `1f30b4f6650d246e636a8220ef7cad0b6ba3eed0b062af810fdc843757861b50`.
+
+**What it holds**: `diff::held_out::the_fourth_held_out_games_score_as_pinned` (`SCORES_FOURTH[0]`).
+
+## run1761 — parity held out, fourth battery, row 35: Great Sahara, Classical recorded idle by the client, played to 6000 (2026-11-21, item 4510, `att-4510`)
+
+`docs/RECGAME.md` §12; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
+file our client wrote; the row was declared before any recording (`64617fe79`). The file:
+`~/ron-golden/recordings/item4510-row035-6000.rcx`, 58,871 bytes, SHA-256
+`ba536bc64cc7a8e8ae12c3e1051ef46a9abe81634bec3a1e5ef4584624019db8`: `client --record <file> --headless --page-of
+gamelog-run1193-greatsahara-roman-classical-start.txt --frame 6000`, no order but slot 0's opening preferences, closing on 6000, its donor the first finished
+recording with its version and options in the profile's `Recorded Games/` (`RON_RECGAME_DIR`).
+
+The take: run1743's line (`--recording <file> --end-frame 6000 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --tracer-def RON_CHECKSUMS`, no ranges) with `~/ron-golden/run1761`, chained after the one before it
+and waited on with `waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 11:48:05 −05:00, exited 11:55:22: **437.3 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 12345 observed, map 7. Players: tribe 4 (flags 7) and tribe 6 (flags 1).
+  **The original took the file**: no section refused.
+- **Scored as found** (`the_fourth_held_out_games_score_as_pinned`): all twelve lines 6,001 of 6,001; **whole**.
+- Filed **in place**, as run1700 is. run1761 was the number reserved for row 35.
+
+Files in place, `~/ron-golden/run1761/map-7/`: `gamelog_p.txt`, 2,450 bytes, SHA-256 `1fe9550102bd65f54acce4afd7b1c57da87dfa33c6394834a877bc36a381da18`; `rontrace.log`, 118,671,136 bytes, SHA-256 `1e2ba1f373f94ed805dde21fa49e012912a84ea4fe69e134b5140436bd928ea5`.
+
+**What it holds**: `diff::held_out::the_fourth_held_out_games_score_as_pinned` (`SCORES_FOURTH[1]`).
+
+## run1762 — parity held out, fourth battery, row 55: East Indies, Medieval recorded idle by the client, played to 6000 (2026-11-21, item 4510, `att-4510`)
+
+`docs/RECGAME.md` §12; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
+file our client wrote; the row was declared before any recording (`64617fe79`). The file:
+`~/ron-golden/recordings/item4510-row055-6000.rcx`, 58,894 bytes, SHA-256
+`7b1a73d4e5398849fd044b2fcd0d028db27e315fad94f7bf7719984537c4caf3`: `client --record <file> --headless --page-of
+gamelog-run1272-eastindies-dutch-medieval-start.txt --frame 6000`, no order but slot 0's opening preferences, closing on 6000, its donor the first finished
+recording with its version and options in the profile's `Recorded Games/` (`RON_RECGAME_DIR`).
+
+The take: run1743's line (`--recording <file> --end-frame 6000 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --tracer-def RON_CHECKSUMS`, no ranges) with `~/ron-golden/run1762`, chained after the one before it
+and waited on with `waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 11:55:47 −05:00, exited 12:05:17: **570.3 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 12345 observed, map 18. Players: tribe 4 (flags 7) and tribe 22 (flags 1).
+  **The original took the file**: no section refused.
+- **Scored as found** (`the_fourth_held_out_games_score_as_pinned`): builds, walls, ammo, deaths, guys, leaders, cities, items, goods, world 6,001 of 6,001; **units 5,833**, first parting state 4275, ours 1914015254, theirs 708677162; **groups 5,989**, first parting state 5576, ours 4003049513, theirs 3939479638; 10 lines whole.
+- Filed **in place**, as run1700 is. run1762 was the number reserved for row 55.
+
+Files in place, `~/ron-golden/run1762/map-18/`: `gamelog_p.txt`, 2,457 bytes, SHA-256 `411da091b267e7628324ecb4bd1030fa5398c7b4b0a5e5865065bfd4860d6b23`; `rontrace.log`, 295,118,208 bytes, SHA-256 `c5e0262d2a385dc5b2974415567c54d1a5303146ae76f2994443954f61d26366`.
+
+**What it holds**: `diff::held_out::the_fourth_held_out_games_score_as_pinned` (`SCORES_FOURTH[2]`).
+
+## run1763 — parity held out, fourth battery, row 75: Great Lakes, Gunpowder recorded idle by the client, played to 6000 (2026-11-21, item 4510, `att-4510`)
+
+`docs/RECGAME.md` §12; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
+file our client wrote; the row was declared before any recording (`64617fe79`). The file:
+`~/ron-golden/recordings/item4510-row075-6000.rcx`, 58,895 bytes, SHA-256
+`0a216b7df484a663147d2746580f3f5206edd2637c86cd5bfa77ef40b89cf38c`: `client --record <file> --headless --page-of
+gamelog-run1339-greatlakes-russian-gunpowder-start.txt --frame 6000`, no order but slot 0's opening preferences, closing on 6000, its donor the first finished
+recording with its version and options in the profile's `Recorded Games/` (`RON_RECGAME_DIR`).
+
+The take: run1743's line (`--recording <file> --end-frame 6000 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --tracer-def RON_CHECKSUMS`, no ranges) with `~/ron-golden/run1763`, chained after the one before it
+and waited on with `waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 12:05:41 −05:00, exited 12:12:41: **420.6 s** launch to exit, exit 0,
+  `success`, relaunched once before frame 0 (exit 5, `exit_before_frame_zero`); relaunched once on a page fault after 5.0 s (`wine: Unhandled page fault on read access to 00004ECD at add…`). 5,342 frames, `last_frame` 5341, **ended by the original**, seed 12345 observed, map 14. Players: tribe 4 (flags 7) and tribe 13 (flags 1).
+  **The original took the file**: no section refused.
+- **Scored as found** (`the_fourth_held_out_games_score_as_pinned`): units, builds, walls, deaths, groups, guys, leaders, cities, items, goods, world 5,342 of 5,342; **ammo 4,682**, first parting state 4004, ours 3143699460, theirs 3217755213; 11 lines whole to the original's end.
+- Filed **in place**, as run1700 is. run1763 was the number reserved for row 75.
+
+Files in place, `~/ron-golden/run1763/map-14/`: `gamelog_p.txt`, 2,432 bytes, SHA-256 `80973005677e681bf651af4e799298d9692d4cd0ca3870d641318e2b5d239455`; `rontrace.log`, 196,397,664 bytes, SHA-256 `45e2cc085261fc79ec85fdf26313fbf11c2b1bd4ea065fbb5f812b883f46bbbf`.
+
+**What it holds**: `diff::held_out::the_fourth_held_out_games_score_as_pinned` (`SCORES_FOURTH[3]`).
+
+## run1764 — parity held out, fourth battery, row 95: East Indies, Information recorded idle by the client, played to 6000 (2026-11-21, item 4510, `att-4510`)
+
+`docs/RECGAME.md` §12; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
+file our client wrote; the row was declared before any recording (`64617fe79`). The file:
+`~/ron-golden/recordings/item4510-row095-6000.rcx`, 58,799 bytes, SHA-256
+`716411e576689f799d46b0b6a218cb3b914df79093d8f6c3cbfb623be32efba6`: `client --record <file> --headless --page-of
+gamelog-run1400-eastindies-russian-information-start.txt --frame 6000`, no order but slot 0's opening preferences, closing on 6000, its donor the first finished
+recording with its version and options in the profile's `Recorded Games/` (`RON_RECGAME_DIR`).
+
+The take: run1743's line (`--recording <file> --end-frame 6000 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --tracer-def RON_CHECKSUMS`, no ranges) with `~/ron-golden/run1764`, chained after the one before it
+and waited on with `waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 12:13:07 −05:00, exited 12:20:53: **466.1 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 12345 observed, map 18. Players: tribe 4 (flags 7) and tribe 13 (flags 1).
+  **The original took the file**: no section refused.
+- **Scored as found** (`the_fourth_held_out_games_score_as_pinned`): builds, walls, ammo, deaths, groups, cities, items, goods, world 6,001 of 6,001; **units 5,303**, first parting state 5303, ours 1676718193, theirs 3912806517; **guys 5,909**, first parting state 5909, ours 1310729884, theirs 912139918; **leaders 5,266**, first parting state 5266, ours 871988666, theirs 426802620; 9 lines whole.
+- Filed **in place**, as run1700 is. run1764 was the number reserved for row 95.
+
+Files in place, `~/ron-golden/run1764/map-18/`: `gamelog_p.txt`, 2,451 bytes, SHA-256 `e98bd14678679795ba7ba4541fe3532172dff62a6d9620f1ca8af95c2922c04f`; `rontrace.log`, 184,524,960 bytes, SHA-256 `1ec0d024af0406627d5d2058aab4fe6dbd349dded6c534b2e9d88667dc8ec77e`.
+
+**What it holds**: `diff::held_out::the_fourth_held_out_games_score_as_pinned` (`SCORES_FOURTH[4]`).
+
+## run1765 — parity held out, fourth battery, row 115: Southwest Mesa, difficulty 2 recorded idle by the client, played to 6000 (2026-11-21, item 4510, `att-4510`)
+
+`docs/RECGAME.md` §12; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
+file our client wrote; the row was declared before any recording (`64617fe79`). The file:
+`~/ron-golden/recordings/item4510-row115-6000.rcx`, 59,219 bytes, SHA-256
+`950a40d02871546dc39019a274a7ccfeb885a26aa3630f42061d9218b05a9995`: `client --record <file> --headless --page-of
+gamelog-run1525b-southwestmesa-lakota-diff2-start.txt --frame 6000`, no order but slot 0's opening preferences, closing on 6000, its donor the first finished
+recording with its version and options in the profile's `Recorded Games/` (`RON_RECGAME_DIR`).
+
+The take: run1743's line (`--recording <file> --end-frame 6000 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --tracer-def RON_CHECKSUMS`, no ranges) with `~/ron-golden/run1765`, chained after the one before it
+and waited on with `waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 12:21:09 −05:00, exited 12:29:25: **495.7 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 12345 observed, map 10. Players: tribe 4 (flags 7) and tribe 19 (flags 1).
+  **The original took the file**: no section refused.
+- **Scored as found** (`the_fourth_held_out_games_score_as_pinned`): all twelve lines 6,001 of 6,001; **whole**.
+- Filed **in place**, as run1700 is. run1765 was the number reserved for row 115.
+
+Files in place, `~/ron-golden/run1765/map-10/`: `gamelog_p.txt`, 2,441 bytes, SHA-256 `6fa4b0f18ac21c814d46e5d50ede806b4e113f27bd89952338914442f009b9a5`; `rontrace.log`, 22,528,576 bytes, SHA-256 `13d607dc23c48c5cc81b06c1996f8472d95a280f723f76340bd9597d96cb66bd`.
+
+**What it holds**: `diff::held_out::the_fourth_held_out_games_score_as_pinned` (`SCORES_FOURTH[5]`).
+
+## run1766 — parity held out, fourth battery, row 135: Great Sahara, difficulty 2 recorded idle by the client, played to 6000 (2026-11-21, item 4510, `att-4510`)
+
+`docs/RECGAME.md` §12; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
+file our client wrote; the row was declared before any recording (`64617fe79`). The file:
+`~/ron-golden/recordings/item4510-row135-6000.rcx`, 59,215 bytes, SHA-256
+`3e9e100828da64b59fb4bb16200186eb6efa27f65bb7c32d367d8edca2daff2c`: `client --record <file> --headless --page-of
+gamelog-run895-greatsahara-aztec-diff2-start.txt --frame 6000`, no order but slot 0's opening preferences, closing on 6000, its donor the first finished
+recording with its version and options in the profile's `Recorded Games/` (`RON_RECGAME_DIR`).
+
+The take: run1743's line (`--recording <file> --end-frame 6000 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --tracer-def RON_CHECKSUMS`, no ranges) with `~/ron-golden/run1766`, chained after the one before it
+and waited on with `waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 12:30:09 −05:00, exited 12:38:19: **490.4 s** launch to exit, exit 0,
+  `success`, relaunched once on a page fault after 15.0 s (`wine: Unhandled page fault on read access to 00004ECD at add…`). 6,001 frames, `last_frame` 6000, not ended early, seed 12345 observed, map 7. Players: tribe 4 (flags 7) and tribe 0 (flags 1).
+  **The original took the file**: no section refused.
+- **Scored as found** (`the_fourth_held_out_games_score_as_pinned`): all twelve lines 6,001 of 6,001; **whole**.
+- Filed **in place**, as run1700 is. run1766 was the number reserved for row 135.
+
+Files in place, `~/ron-golden/run1766/map-7/`: `gamelog_p.txt`, 2,447 bytes, SHA-256 `8c2b3edd4a6614ba0b1734257ac7aaedaa48ca922677f9aadd2261667a099289`; `rontrace.log`, 25,795,872 bytes, SHA-256 `e87ab45392cdb27ba4df9b448fd27f7d262c1135ec39228a8e3049f0867fee29`.
+
+**What it holds**: `diff::held_out::the_fourth_held_out_games_score_as_pinned` (`SCORES_FOURTH[6]`).
+
+## run1767 — parity held out, fourth battery, row 155: Great Sahara, difficulty 2 recorded idle by the client, played to 6000 (2026-11-21, item 4510, `att-4510`)
+
+`docs/RECGAME.md` §12; DECISIONS 148 §2. **What the disk could not answer**: no take of this lobby's game under a
+file our client wrote; the row was declared before any recording (`64617fe79`). The file:
+`~/ron-golden/recordings/item4510-row155-6000.rcx`, 59,217 bytes, SHA-256
+`473a77bd497a431b1292d479dc9a916d1693b1e4aa6591014c9d4726cb2f2bbd`: `client --record <file> --headless --page-of
+gamelog-run988-greatsahara-lakota-diff2-start.txt --frame 6000`, no order but slot 0's opening preferences, closing on 6000, its donor the first finished
+recording with its version and options in the profile's `Recorded Games/` (`RON_RECGAME_DIR`).
+
+The take: run1743's line (`--recording <file> --end-frame 6000 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --tracer-def RON_CHECKSUMS`, no ranges) with `~/ron-golden/run1767`, chained after the one before it
+and waited on with `waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 12:38:33 −05:00, exited 12:45:54: **440.1 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 12345 observed, map 7. Players: tribe 4 (flags 7) and tribe 19 (flags 1).
+  **The original took the file**: no section refused.
+- **Scored as found** (`the_fourth_held_out_games_score_as_pinned`): all twelve lines 6,001 of 6,001; **whole**.
+- Filed **in place**, as run1700 is. run1767 was the number reserved for row 155.
+
+Files in place, `~/ron-golden/run1767/map-7/`: `gamelog_p.txt`, 2,440 bytes, SHA-256 `eaa0a5210f9fb7782499f79fbf8f90a7a131cc938df7205328e615af48346e48`; `rontrace.log`, 24,982,944 bytes, SHA-256 `4c505493fbf2ae08c6ff65e67e85a01a25badb619e0d07c4e7ba3dba6ef812cd`.
+
+**What it holds**: `diff::held_out::the_fourth_held_out_games_score_as_pinned` (`SCORES_FOURTH[7]`).
 - **Re-scored by item 4512** (a `SimpleArray<int>` keeps its capacity; `push_group` asks only the group `+0x80`
   names): leaders 5,056 → 5,235 and groups 5,217 → 5,235, **twelve lines whole**.
   `row_105_s_pruned_oil_list_keeps_its_capacity_on_run1752_s_ranges` holds every leaders range on 3582 and 3583,
   `row_105_s_pushed_unit_stays_listed_by_the_slot_it_left_on_run1752_s_ranges` every groups range on 4354 and 4355.
+
+## run1754 — parity held out, second battery, row 130's file to its end (4730) with the checksum and ranges hooks, units and leaders kept (2026-11-21, item 4508, `att-4508`)
+
+`docs/RECGAME.md` §11; DECISIONS 148 §4. **What the disk could not answer**: run1736 holds sums only, so the units
+parting on row 130 (state 3411) and the leaders parting (4573) named no leaf. The take is run1752's line with the run
+directory, the recording and the mask changed, the arguments `score_recording` printed on `30d42faca`: `TMPDIR=<fresh>
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1754 --recording
+~/ron-golden/recordings/item4462-row130-6000.rcx --end-frame 6000 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def
+RNG_MASK=0x81u`, waited on with `waitrun.sh` in the background. `df -g ~` read 57 GB free at the item's start; the
+take waited one minute for 61, and read 59 after.
+- **The run**: pool lane 2, launched 12:19:24 −05:00, exited 12:27:41: **497.0 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 4,731 frames, **ended by the original** on 4730, seed 12345, map 18. DLL
+  `c49fe697…`, defines `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0x81u`. The recording's
+  SHA-256 is run1736's (`baba8acc…`).
+- **The record**, `~/ron-golden/run1754/map-18/rontrace.ranges`, 1,300,522,460 bytes, SHA-256
+  `92f9b913ab195baa114cd3ea4b79e78191ecfe99af2295996c31fc55f1533b6b`: lines `['units', 'leaders']`, 4,731 sets on
+  trace frames −1 to 4729, 30,701,833 ranges, 808,831,787 bytes, none over (`ranges.py summary`). `du -sh` 1.5 GB.
+- **Scored** (`score_recording … ~/ron-golden/run1754/map-18`, on `30d42faca`): the sums are run1736's; ten lines
+  whole; units 4,422, first 3411: **units range 4078, record 158, `orders.count` ours 2, theirs 1** (who=1's
+  Strategic Bomber `1/158`, TI 305, TY 255, air; ours' extra order a `STRAFE` on its patrol's front); leaders 4,721,
+  first 4573: **leaders range 128, record 1, `flags` byte 3, ours `0x0e`, theirs `0x1e`**.
+- **Re-scored by item 4508** (a computer's bomber searches round itself): units 4,537 (4,574 on the tree merged with 4514), first 3515 (range 5857, record
+  184, `collide_frame..play` bytes 18 and 19: `dest_angle` ours −406650880, theirs −424345600); leaders as found.
+- Filed **in place**, as run1753 is.
+
+Files in place, `~/ron-golden/run1754/map-18/`: `gamelog_p.txt`, 2,426 bytes, SHA-256
+`11bb3567e6ba46f000b7c2ddcb6d45e4f7dbfcc96632d3240f238668b589c52b`; `rontrace.log`, 262,757,280 bytes, SHA-256
+`52f10cd1115c6bb316a525d86ddb7d426af58ba1f9963e6bdcbcc0939e14086b`.
+
+**What it holds**: `diff::held_out::tests::row_130_s_computer_bomber_searches_round_itself_on_run1754_s_ranges`
+(every units range on 3410 and 3411).

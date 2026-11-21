@@ -514,7 +514,8 @@ fn run861_s_word_frame_is_widened_whole() {
     // Item 4159's third residue: 99 -> 97, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
     // Item 4435: 96 -> 81, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4477: 69 -> 67, the farmer's turn east toggles its group's `facing` (`Unit::set_angle`, docs/CHECKSUM.md §23.14).
-    pin_eq!(w.firsts.len(), 67, "initial run861 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    // Item 4508: 67 -> 66, a computer's bomber searches round itself (`find_new_bomber_target`).
+    pin_eq!(w.firsts.len(), 66, "initial run861 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
     // Item 3333: who=1's `bucket` timber 7707/7282 and metal 6422/5997,
     // standing from 4853, close with an Oil Platform priced by the Oil Wells
     // (`docs/AI.md` §270).
@@ -587,7 +588,8 @@ fn run866_s_word_frame_is_widened_whole() {
     // Item 4159's third residue: 122 -> 121, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
     // Item 4435: 119 -> 72, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4477: 58 -> 57, the farmer's turn east toggles its group's `facing` (`Unit::set_angle`, docs/CHECKSUM.md §23.14).
-    pin_eq!(w.firsts.len(), 57, "initial run866 baseline");
+    // Item 4508: 57 -> 56, a computer's bomber searches round itself (`find_new_bomber_target`).
+    pin_eq!(w.firsts.len(), 56, "initial run866 baseline");
     // Item 3333: who=1's `bucket` metal 5716/5231, standing from 5129, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row, ours above theirs till now, parts on 5183 with ours below
@@ -682,7 +684,8 @@ fn run867_s_word_frame_is_widened_whole() {
     // Item 4159's third residue: 138 -> 137, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
     // Item 4435: 131 -> 69, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4477: 57 -> 56, the farmer's turn east toggles its group's `facing` (`Unit::set_angle`, docs/CHECKSUM.md §23.14).
-    pin_eq!(w.firsts.len(), 56, "initial run867 baseline");
+    // Item 4508: 56 -> 54, a computer's bomber searches round itself (`find_new_bomber_target`).
+    pin_eq!(w.firsts.len(), 54, "initial run867 baseline");
     // Item 3333: who=1's `bucket` metal 5815/5330, standing from 5401, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
@@ -879,7 +882,8 @@ fn run881_s_word_frame_is_widened_whole() {
     // Item 4159's third residue: 202 -> 142, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
     // Item 4435: 135 -> 80, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4477: 60 -> 59, the farmer's turn east toggles its group's `facing` (`Unit::set_angle`, docs/CHECKSUM.md §23.14).
-    pin_eq!(w.firsts.len(), 59, "initial run881 baseline");
+    // Item 4508: 59 -> 57, a computer's bomber searches round itself (`find_new_bomber_target`).
+    pin_eq!(w.firsts.len(), 57, "initial run881 baseline");
     // Item 3333: who=1's `bucket` metal 5193/4648, standing from 6446, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.

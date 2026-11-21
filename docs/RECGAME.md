@@ -1166,7 +1166,6 @@ recorded idle by the client's page to 6000 and played by the original as
 | 130 | run1736 | East Indies all-tech, ages 8..7 | 4,731, ended on 4730 | 4 | builds and world 553 |
 | 150 | run1737 | Great Sahara, difficulty 4 | 6,001 | **12** | whole |
 
-Since the take, row 130's units line has moved 1,704 → 1,735 (4459's merge; `SCORES_SECOND[6].moved`).
 
 **Row 90 is whole** (item 4470, `SCORES_SECOND[4].moved`). run1738, the
 ranges take of its file to 6000, names the leaf on 4021: units range 498
@@ -1208,8 +1207,7 @@ behind it (1576, 1376) were 4499's `reg_gatherers`. Their next partings are
 units, 1747 and 2354: on row 10 units range 1192, record 37, `inside_down`
 ours −1, theirs 38.
 
-*Not established*: row 130's units parting is not read (its take holds
-sums); the AIRDEFENSE counter's readers in the original are not listed,
+*Not established*: ~~row 130's units parting is not read~~ (4508, below); the AIRDEFENSE counter's readers in the original are not listed,
 since no take's value of it ever moves.
 
 **Row 10's world is whole** (item 4504, `SCORES_SECOND[0].moved`, world
@@ -1223,6 +1221,12 @@ returns before either pass (`docs/COLLISION.md` §2.4). This crate ran the
 set pass and allocated the block. On 2366 theirs sets only the new disc's
 edge, (635, 814..815), round the old point (633, 814). Rows 30 and 110's
 world partings (1662, 3809) are not this: their sums did not move.
+
+**Row 130's computer bomber searches round itself** (item 4508; units
+4,459 → 4,574 merged with 4514, first 3411 → 3515): run1754, units range 4078 on 3411,
+who=1's bomber `1/158` `orders.count` ours 2, theirs 1;
+`find_new_bomber_target@005eb960`'s `unit_masks & 0x40000` head
+(`docs/journal/2026-11-21-item-4508.md`).
 
 ### 11.1 Parity held out, third: rows 5 to 145 (item 4487)
 
@@ -1342,3 +1346,33 @@ are leaders on 3583 (range 191, record 1, `oil_patches` ours 10, theirs 20) and 
 `num` ours 49, theirs 50), both on run1752's disk.~~ (whole, item 4512, above.) `go_inside` and `come_out` still do not call
 `update_ceo_position`. The alias is built for the rider arm and the transport's two accesses. The
 kinds-8/0xe arm's unbounded write (`6bae11`) is still a seam here, and no capture has entered it.
+
+## 12. Parity held out, fourth: eight more lobbies named before the original plays them (item 4510)
+
+DECISIONS 148 §2, 2026-11-21. Rows 15, 35, 55, 75, 95, 115, 135 and 155 of the same order, declared in
+`HELD_OUT_FOURTH` (`64617fe79`, 11:32 −05:00) before any file was recorded (the eight were written between 11:38
+and 11:39), each recorded idle by the client's page to 6000 and played by the original as `run1760 + k` under the
+checksum hook alone, with no ranges. Each is the human against one computer, as its lobby stands. The scores are
+pinned once in `SCORES_FOURTH`, on `691ff3eba`'s tree; this found column is the estimate now: **5 of 8 whole, 90
+of 96 lines, reach 91 %** (43,550 of 47,349 states), where the third read 5 of 8, 90 of 96 and 88 %, the second 1
+of 8, 65 of 96 and 53 %, and the first 0 of 8, 64 of 96 and 27 %.
+
+| row | run | lobby | states | whole | first partings (state) |
+|---|---|---|---|---|---|
+| 15 | run1760 | Southwest Mesa, difficulty 0 | 6,001 | **12** | whole |
+| 35 | run1761 | Great Sahara, Classical | 6,001 | **12** | whole |
+| 55 | run1762 | East Indies, Medieval | 6,001 | 10 | units 4275, groups 5576 |
+| 75 | run1763 | Great Lakes, Gunpowder | 5,342, ended on 5341 | 11 | ammo 4004 |
+| 95 | run1764 | East Indies, Information | 6,001 | 9 | leaders 5266, units 5303, guys 5909 |
+| 115 | run1765 | Southwest Mesa, difficulty 2 | 6,001 | **12** | whole |
+| 135 | run1766 | Great Sahara, difficulty 2 | 6,001 | **12** | whole |
+| 155 | run1767 | Great Sahara, difficulty 2 | 6,001 | **12** | whole |
+
+The original refused no file. In row 75, the one game it ended itself, our walk holds no `game_over` by that tick
+(`over: None`). `docs/RUNS.md` run1760 to run1767 holds every value, and the pins hold both sides of every first
+parting.
+
+*Not established*: no row names a leaf, since each take holds sums only. Row 75 parts first by state (ammo on
+4004, ours 3143699460, theirs 3217755213), then row 55 (units on 4275, ours 1914015254, theirs 708677162), then
+row 95 (leaders on 5266, ours 871988666, theirs 426802620). Each needs a ranges take of its file, keeping the lines
+it parts on (DECISIONS 148 §4), before its leaf can be named.
