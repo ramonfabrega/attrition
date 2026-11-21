@@ -518,6 +518,9 @@ const UNIT_STATS_DIRTY: i64 = 0x400_0000;
 /// `leader_flags & 0x8000000`: the wall stats are stale
 /// ([`crate::cities::CitiesState::wall_stats_dirty`]).
 const WALL_STATS_DIRTY: i64 = 0x800_0000;
+/// `leader_flags & 0x10000000`: the Kremlin's spy is due
+/// ([`crate::tech::PlayerTech::kremlin_spy_due`]).
+const KREMLIN_SPY_DUE: i64 = 0x1000_0000;
 /// `leader_flags & 0x400000`: the first capital loss has been plundered
 /// (`Cities::capture_city@00733380:833`, the only writer; nothing clears
 /// it), as [`crate::cities::city::Tally::capital_plundered`] keeps it.
@@ -703,6 +706,14 @@ impl Sim {
             .unwrap_or(false)
         {
             f |= WALL_STATS_DIRTY;
+        }
+        // The Kremlin's spy-due bit (item 4520; `docs/AI.md` §188): set by
+        // the wonder's activation with no tagged spy alive and by a tagged
+        // spy's close, cleared by `Build::process` as it trains the next.
+        // run1754's who=1 holds it from the Kremlin's finish on 4573 to its
+        // spy `1/169` on 4583 (`flags` byte 3 `0x1e` against our `0x0e`).
+        if self.tech.get(w).is_some_and(|t| t.kremlin_spy_due) {
+            f |= KREMLIN_SPY_DUE;
         }
         // The capital's plunder bit (item 4466): raised on the loser by the
         // first capital capture's plunder arm (`docs/CITIES.md` §8.3).
