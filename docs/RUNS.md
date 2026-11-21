@@ -40200,3 +40200,7 @@ Files in place, `~/ron-golden/run1752/map-18/`: `gamelog_p.txt`, 2,432 bytes, SH
   the first parting 3583 (leaders range 191, record 1, `oil_patches` ours 10, theirs 20), then groups 4355.
   `diff::held_out::tests::row_105_s_freighter_chains_its_riders_in_the_order_they_boarded_on_run1752_s_ranges` holds
   every units range on 3358 and 3359.
+- **Re-scored by item 4512** (a `SimpleArray<int>` keeps its capacity; `push_group` asks only the group `+0x80`
+  names): leaders 5,056 → 5,235 and groups 5,217 → 5,235, **twelve lines whole**.
+  `row_105_s_pruned_oil_list_keeps_its_capacity_on_run1752_s_ranges` holds every leaders range on 3582 and 3583,
+  `row_105_s_pushed_unit_stays_listed_by_the_slot_it_left_on_run1752_s_ranges` every groups range on 4354 and 4355.
