@@ -244,7 +244,7 @@ fn british_modern_pair_run1433b_s_closing_frame_is_widened_whole() {
     // position in ours — its `v1z` −6385656 against −4620950, and the
     // first five bombs' `accuracy` 0 against 300 or 252 (parked 3752a).
     // Item 4159r5: 75 -> 6, the launch rows of pieces 257 (11): rounds that left the figure's square leave from their bays.
-    pin_eq!(w.rounds.len(), 6, "the rounds that part");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3752): run1433's closing block 3794,

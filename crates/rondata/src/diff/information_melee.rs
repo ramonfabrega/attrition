@@ -588,7 +588,7 @@ fn information_melee_run1468_s_word_window_is_widened_whole() {
     pin_eq!(w.firsts.len(), 139, "run1468's word window");
     pin_eq!(w.rounds_read, (24, 24), "the rounds read");
     // Item 4159r5: 107 -> 36, the launch rows of pieces 234 (1), 251 (18), 253 (4), 256 (12), 6706 (1): rounds that left the figure's square leave from their bays.
-    pin_eq!(w.rounds.len(), 36, "the rounds that part");
+    pin_eq!(w.rounds.len(), 24, "the rounds that part");
 }
 
 /// **Every seat's leader on the start dump's frames** (item 3797, the

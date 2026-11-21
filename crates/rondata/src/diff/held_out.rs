@@ -2200,8 +2200,10 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
 /// (`build_masks & 0x2000` on its site 1/2036). Item 4467: 4 -> 5, row 140
 /// whole (a boarder's `last_z` on 4026). Item 4480: 5 -> 6, row 60 whole
 /// (a `DETECT` building's `seen3`, the Observation Post `1/59` on 3984).
+/// Item 4497: 6 -> 7, row 100 whole (a bomb's round carries its pool
+/// slot's last `accuracy`, the Strategic Bomber `1/83` on 3312).
 #[cfg(test)]
-pub(crate) const HELD_OUT_LINE: (usize, usize) = (6, 8);
+pub(crate) const HELD_OUT_LINE: (usize, usize) = (7, 8);
 
 /// **The second battery's scores**, `HELD_OUT_SECOND[k]` played as
 /// `run1730 + k` (item 4462): `None` until the original has played it. The
