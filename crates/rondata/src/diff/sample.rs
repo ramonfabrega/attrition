@@ -468,8 +468,13 @@ pub(in crate::diff) mod tests {
     /// `Unit::come_out+0xbae` on 5255, 5256 and 5257): 5255 -> 5273, +18.
     /// On 5273 theirs starts a unit's step (`Unit::move_step+0x823`,
     /// through `Unit::set_anim+0x56`) at game draw 6 where ours goes on to
-    /// the `Guy::inc_time` wraps.
-    const SAMPLE_WALKED: (i64, i64) = (5273, 21044);
+    /// the `Guy::inc_time` wraps. Item 4521 (that capture's defeat: the
+    /// old Village is left to the capture's own close, not killed by
+    /// `defeat_by@006d1c80`'s walk, which skips an active city centre, so
+    /// its cells stay blocked under `3/2029`; the defeated leader takes
+    /// `0x40` and `leader_flags2 & 2`, and no gather or stats pass behind
+    /// `process_all@006ed2a0`'s `& 2` gate): 5273 -> 5460, +187.
+    const SAMPLE_WALKED: (i64, i64) = (5460, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -680,20 +685,28 @@ pub(in crate::diff) mod tests {
     /// `0/2016` arrow at the person's `3/0`, rolled and missed, lands on
     /// 4461 and reads `flags 1` on 4462 where ours closed it): ammo 4462
     /// -> 5299; every other line unchanged, leaders and world 5256 the
-    /// lowest.
+    /// lowest. Item 4521 (computer 1's last Village `1/2007` taken on 5256:
+    /// the defeat's walk leaves the old centre to the capture, the 2x2
+    /// cells 2623/2624/2683/2684 stay `blocked` 9 under `3/2029`; the
+    /// defeated leader's `leader_flags` 0x01 -> 0x41 and `leader_flags2` 0
+    /// -> 2; no gather, wall or unit stats for it on 5257): units 5273 ->
+    /// 5461, builds 5293 -> 5487, ammo 5299 -> 5969, deaths 5429 -> 6190,
+    /// groups 5311 -> 5461, guys 5273 -> 5461, leaders 5256 -> 5326, cities
+    /// 5326 -> 5801, items 8734 -> 10910, goods 5392 -> 6395, world 5256 ->
+    /// 5401; leaders 5326 the lowest.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 5273),
-        ("builds", 5293),
+        ("units", 5461),
+        ("builds", 5487),
         ("walls", 21044),
-        ("ammo", 5299),
-        ("deaths", 5429),
-        ("groups", 5311),
-        ("guys", 5273),
-        ("leaders", 5256),
-        ("cities", 5326),
-        ("items", 8734),
-        ("goods", 5392),
-        ("world", 5256),
+        ("ammo", 5969),
+        ("deaths", 6190),
+        ("groups", 5461),
+        ("guys", 5461),
+        ("leaders", 5326),
+        ("cities", 5801),
+        ("items", 10910),
+        ("goods", 6395),
+        ("world", 5401),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -806,8 +819,12 @@ pub(in crate::diff) mod tests {
     /// 4515 (a building's round punctures by its piece, so a building's
     /// `BuildingArrow` that strikes nothing stays 200 frames as a spent
     /// arrow): 4772 -> 4723, -49, a named fall, the frames not read one by
-    /// one; the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4723, Some(2929));
+    /// one; the first shot still on 2929. Item 4521 (the defeat on 5256
+    /// keeps the captured Village's cells and stops the defeated leader's
+    /// gather and stats; the draw word 5273 -> 5460): 4723 -> 3624, -1099,
+    /// a named fall, the frames not read one by one; the first shot still
+    /// on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3624, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
@@ -1399,6 +1416,26 @@ pub(in crate::diff) mod tests {
     const SAMPLE_RANGES_1771_KEPT: u16 = 0x8cb;
 
     /// Per kept line that parts on run1771's window, its first parting by
-    /// range (item 4521). Minted on the take.
-    const SAMPLE_RANGES_1771: &[(&str, i64, usize, usize, usize, &str)] = &[];
+    /// range (item 4521). Minted at six rows: leaders and world 5256, units
+    /// and guys 5273, builds 5293, ammo 5299. Leaders 5256, `137 1 flags`
+    /// `leader_flags` ours 0x01, theirs 0x41, `leader_flags2` ours 0,
+    /// theirs 2: computer 1, defeated by the person (`defeated_by` -1 -> 3,
+    /// both sides) as its last Village `1/2007` is taken, takes
+    /// `Leader::defeat@006ecb00`'s `0x40` and `flags2 | 2` in theirs. World
+    /// 5256, `2647 2623 cell` `flags` 0|0x80, `blocked`/`bad`/`solid`
+    /// 0/1/0|9/0x10/9 on the four cells under the Village, held in theirs
+    /// since before 5255: ours' defeat killed the old centre while the
+    /// capture still held it, and `defeat_by@006d1c80`'s walk skips an
+    /// active city centre (`+0x8 & 0x20`). Built: the two flag bits, the
+    /// skip, and `process_all@006ed2a0`'s `& 2` gate over `gather` and both
+    /// stats passes (leaders 5257, `137 1 flags` `0x8000000` ours clear,
+    /// theirs raised, and the stock): six rows -> one.
+    const SAMPLE_RANGES_1771: &[(&str, i64, usize, usize, usize, &str)] = &[(
+        "leaders",
+        5326,
+        671,
+        671,
+        1,
+        "138 1 who..ally_mask: +0x294 of 26914|26914: 05000000|00000000",
+    )];
 }

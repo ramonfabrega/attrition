@@ -111,6 +111,23 @@ fn a_defeat_marks_both_flag_words() {
     assert_eq!(s.leader_flag_words(0).1.unwrap() & 2, 0);
 }
 
+/// `Leaders::process_all@006ed2a0`'s slot step is behind `leader_flags &
+/// 2` whole (item 4521): a defeated leader's stale wall stats
+/// (`0x8000000`) are not answered by the tick, a live one's are.
+#[test]
+fn a_defeated_leader_s_stats_bits_stay_raised() {
+    let mut s = sim();
+    s.defeat(1, crate::leaders::endgame::DEFEAT_CONQUEST, Some(0));
+    s.cities.wall_stats_dirty[0] = true;
+    s.cities.wall_stats_dirty[1] = true;
+    s.roster.unit_stats_dirty[1] = true;
+    s.tick();
+    assert!(!s.cities.wall_stats_dirty[0], "the live slot's is answered");
+    assert!(s.cities.wall_stats_dirty[1], "the defeated slot's stays");
+    assert!(s.roster.unit_stats_dirty[1]);
+    assert_eq!(word(&s, 1, 0x800_0000), 0x800_0000, "and rides the word");
+}
+
 /// A Forced March's bit (`leader_flags & 0x8000`) on the word.
 #[test]
 fn a_forced_march_rides_the_flags_word() {
