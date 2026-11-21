@@ -351,16 +351,6 @@ pub(in crate::diff) mod tests {
                 "the first parting frame {:?}, site {k}: {d}",
                 w.first_sequence
             );
-            // PROBE 4500: both whole sequences on the parting frame.
-            if std::env::var_os("RON_PROBE_4500").is_some() {
-                for i in 0..o.len().max(t.len()) {
-                    eprintln!(
-                        "P4500 {i:>3} ours {:<60} theirs {}",
-                        o.get(i).map_or("-", |x| x.as_str()),
-                        t.get(i).map_or("-", |x| x.as_str())
-                    );
-                }
-            }
         }
         if limit != i64::MAX {
             return;
