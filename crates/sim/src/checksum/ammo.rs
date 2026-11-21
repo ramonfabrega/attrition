@@ -196,10 +196,12 @@ impl Sim {
     pub fn checksum_ammo(&self) -> Option<Line> {
         let mut ranges = Vec::with_capacity(self.combat.projectiles.len() * 3);
         for p in &self.combat.projectiles {
-            // Falling aircraft have a separate display record. A guided
-            // round walks its spline (item 4495); one without a spline is
-            // not read.
-            if p.crash.is_some() || (p.graphic.guided && p.spline.is_none()) {
+            // A falling aircraft's round (item 4523) is the same record,
+            // `Ammo::init_crash@0067b800` writing `rolling` (`+0x5`), the
+            // bank pair (`+0x5c`/`+0x60`, singles) and `start_roll_angle`
+            // (`+0x64`). A guided round walks its spline (item 4495); one
+            // without a spline is not read.
+            if p.graphic.guided && p.spline.is_none() {
                 return None;
             }
             // A spline is walked after the path byte; an arm whose walk is
@@ -223,7 +225,16 @@ impl Sim {
                     | (u8::from(p.harmless) << 4)
             };
             let mut body = Vec::with_capacity(99);
-            body.push(0); // rolling display byte (separate from flag 4)
+            // `+0x5`, the display roll (separate from flag 4): 0 from
+            // `Ammo::init:830`, a crash's `r % 7 − 3`.
+            body.push(p.crash.map_or(0, |c| c.rolling as i8 as u8));
+            let (bank_dx, bank_dy, start_roll) = p.crash.map_or((0, 0, 0), |c| {
+                (
+                    Single::from_i32(c.bank.0).bits() as i32,
+                    Single::from_i32(c.bank.1).bits() as i32,
+                    c.start_roll,
+                )
+            });
             body.extend((p.accuracy as i16).to_le_bytes());
             for word in [
                 p.gpiece,
@@ -249,9 +260,9 @@ impl Sim {
                 1 + i32::from(path.is_some()),
                 p.v1z.bits() as i32,
                 p.graphic.dx.bits() as i32,
-                0,
-                0,
-                0, // bank_dx, bank_dy, start_roll_angle
+                bank_dx,
+                bank_dy,
+                start_roll,
             ] {
                 body.extend(word.to_le_bytes());
             }

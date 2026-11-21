@@ -475,6 +475,56 @@ fn a_plane_shot_down_lays_the_crash_round_run405_prints() {
     }
 }
 
+/// **A crash round's `start_roll_angle` and its rewritten `dx`** (item
+/// 4523): `Ammo::init_crash@0067b800` writes `+0x64` as `−(int)` guy 0's
+/// `bank` on a plane whose current order is of the air family, and 0 on
+/// any other; `Ammo::inc_time@0067d380`'s crash arm rewrites `+0x58`
+/// from the drifted landing on every frame. Chapter thirty-eight's `0/6`
+/// (run405, shot down on its strike) prints `start_roll_angle -55` and,
+/// on its first block, `dx 62.176296` for the landing (22967, 19002),
+/// where the birth's (22944, 18997) gives 60.899.
+#[test]
+fn a_crash_round_rolls_off_its_bank_and_rewrites_its_dx_on_each_drift() {
+    for striking in [true, false] {
+        let mut s = sim();
+        let at = Pos::new(21949, 18537);
+        let b = unit(&mut s, 0, at, bomber());
+        let ty = s.units[b].ty.unwrap();
+        s.tables.unit_types[ty].cols.cat = super::CAT_AIR;
+        s.tables.unit_types[ty].moves = 60;
+        s.units[b].movement.body.pos = at;
+        s.units[b].movement.facing = crate::movement::Angle(1_369_137_312);
+        s.units[b].airframe.z = 1783;
+        // 55.5: truncated toward zero, then negated.
+        s.units[b].airframe.bank = crate::num::single::Single::from_bits(0x425e_0000);
+        if striking {
+            s.units[b].orders.push_back(Order {
+                flags: 0,
+                body: Body::AirAttackGround(crate::orders::AirAttackGroundOrder {
+                    at: Pos::new(29736, 28920),
+                    home: None,
+                    cruising_alt: crate::orders::CRUISING_ALT,
+                    sharp_turn: 0,
+                    returning: false,
+                }),
+            });
+        }
+        assert!(s.crashes(b));
+        let p = s.combat.projectiles[0];
+        assert_eq!(
+            p.crash.map(|c| c.start_roll),
+            Some(if striking { -55 } else { 0 }),
+            "start_roll_angle (on the strike: {striking})"
+        );
+        assert_eq!(p.landing, Pos::new(22944, 18997));
+        assert_eq!(p.graphic.dx.bits(), 0x4273_98d5, "the birth's dx, 60.899");
+        s.process_projectiles(100);
+        let p = s.combat.projectiles[0];
+        assert_eq!((p.cur_time, p.landing), (1, Pos::new(22967, 19002)));
+        assert_eq!(p.graphic.dx.bits(), 0x4278_b487, "dx 62.176296");
+    }
+}
+
 /// **A crash round strikes where it comes down** (item 2677,
 /// `docs/AI.md` §230): `init_crash`'s `splash_area` 2 and its cleared
 /// `0x10` send it through `Ammo::do_damage`'s splash arm when it lands,

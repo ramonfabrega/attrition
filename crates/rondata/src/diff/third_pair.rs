@@ -2094,11 +2094,12 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
         // crash's bank pair are compared on every round (`docs/AI.md` §228);
         // item 3679, twenty-three with the live bit (`flags & 2`).
         // Item 4175: twenty-four, with the round's piece (161 → 168).
+        // Item 4523: twenty-five, with `start_roll_angle` (168 → 175).
         if window == WIDENING_FRENCH_LAKES_CLOSING {
             assert_eq!(
                 ammo_counts,
-                (7, 7, 168),
-                "every lifetime and twenty-four comparisons per record"
+                (7, 7, 175),
+                "every lifetime and twenty-five comparisons per record"
             );
             // Item 4507: the three launch-geometry differences on 5633
             // (`1/22`'s Slinger stone, `sx` 4944 against 4945, `sy` 30710
@@ -2157,10 +2158,11 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             // 298 → 40 rows. Item 3679: 1540 → 1610, twenty-three fields
             // with the live bit (`flags & 2`); the rows unmoved. Item 4175:
             // 1610 → 1680 with the round's piece; the rows unmoved, so the
-            // piece agrees on all 70.
+            // piece agrees on all 70. Item 4523: 1680 → 1750 with
+            // `start_roll_angle`; the rows unmoved.
             assert_eq!(
                 (ammo_counts, ammo_differences.len() - before.len()),
-                ((70, 70, 1680), 40),
+                ((70, 70, 1750), 40),
                 "the rounds past the word"
             );
             assert_eq!(
@@ -2182,11 +2184,12 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             // `ex` 6361 and `angle` −131334144 on both sides, 17243..17245
             // (from ours' (6603, 8854), 6359, −128122880).
             // Item 4175: twenty-four, with the round's piece, 60162 on both
-            // sides (69 → 72).
+            // sides (69 → 72). Item 4523: twenty-five, with
+            // `start_roll_angle` (72 → 75).
             assert_eq!(
                 ammo_counts,
-                (3, 3, 72),
-                "three lifetimes, twenty-four fields each (item 3679: the live bit; 4175: gpiece)"
+                (3, 3, 75),
+                "three lifetimes, twenty-five fields each (item 3679: the live bit; 4175: gpiece; 4523: start_roll_angle)"
             );
             assert_eq!(
                 ammo_differences,
@@ -2214,10 +2217,11 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             // (from ours' (6498, 9100), (6220, 7335), −78708736). Item
             // 3679: twenty-three fields, with the live bit (`flags & 2`).
             // Item 4175: twenty-four, with the round's piece (92 → 96).
+            // Item 4523: twenty-five, with `start_roll_angle` (96 → 100).
             assert_eq!(
                 ammo_counts,
-                (4, 4, 96),
-                "four lifetimes, twenty-four fields each"
+                (4, 4, 100),
+                "four lifetimes, twenty-five fields each"
             );
             assert_eq!(
                 ammo_differences,

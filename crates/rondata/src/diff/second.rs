@@ -2779,7 +2779,8 @@ mod tests {
         // compared on every round (`docs/AI.md` §228). Item 3679:
         // twenty-three, with the live bit (`flags & 2`). Item 4175:
         // twenty-four, with the round's piece (`gpiece`), 3,013 → 3,144.
-        assert_eq!(w.fields, 3144, "twenty-four comparisons per paired record");
+        // Item 4523: twenty-five, with `start_roll_angle`, 3,144 → 3,275.
+        assert_eq!(w.fields, 3275, "twenty-five comparisons per paired record");
         assert!(
             w.firsts
                 .keys()
@@ -2893,7 +2894,8 @@ mod tests {
         pin_eq!(
             (a.theirs, a.ours, a.fields),
             // Item 4175: a field more a paired round, `gpiece`: 30,498 → 31,824.
-            (1326, 1326, 31824),
+            // Item 4523: another, `start_roll_angle`: 31,824 → 33,150.
+            (1326, 1326, 33150),
             "all live rounds and paired fields"
         );
         // Item 3679: twenty-three fields a round with the live bit.
@@ -3003,7 +3005,8 @@ mod tests {
         pin_eq!(
             (a.theirs, a.ours, a.fields),
             // Item 4175: a field more a paired round, `gpiece`: 24,932 → 26,016.
-            (1084, 1084, 26016),
+            // Item 4523: another, `start_roll_angle`: 26,016 → 27,100.
+            (1084, 1084, 27100),
             "all live rounds and paired fields"
         );
         // 279 → 276 at item 2304 (`docs/GOLDEN.md` §83): the Bark's, the
@@ -3100,7 +3103,8 @@ mod tests {
         pin_eq!(
             (a.theirs, a.ours, a.fields),
             // Item 4175: a field more a paired round, `gpiece`: 22,379 → 23,352.
-            (973, 973, 23352),
+            // Item 4523: another, `start_roll_angle`: 23,352 → 24,325.
+            (973, 973, 24325),
             "all live rounds and paired fields"
         );
         // Item 3603: ours' rounds 978 → 975 and the baseline 173 → 106 once

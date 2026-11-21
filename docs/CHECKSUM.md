@@ -569,7 +569,7 @@ Item 4365 emits ordinary ammo sprites in pool-slot order. Each contributes a
 flags byte, 99 bytes from `rolling` through `start_roll_angle`, and a zero
 path byte. Pool slots are reused. The graphic index counts insertions, and
 the horizontal display speed retains its initial value when the endpoint
-changes. Guided paths and falling aircraft still have no emitter. Direct
+changes. Guided paths and ~~falling aircraft~~ still have no emitter (a falling aircraft's round has one: §18.4, item 4523). Direct
 hits without a projectile pass an absent graphic and zero degrees into the
 existing casualty record. Unknown impact sources still refuse the line.
 
@@ -2006,6 +2006,55 @@ reaches either write. The emitter gives that period `0x80`.
 `neutral_attrition` is zero in every shipped scenario, so no file reaches that
 arm. The war arm's `0x80` rests on the reading and the unit test; no ranges
 take has parted on it.
+
+## 18.4 A falling aircraft's round (item 4523)
+
+Diff-backed on row 10, run1739 5178. who=1's Jet Fighter `1/114` (TI 295,
+air) dies on `AIR_PATROL` on 5177, and `Objects::kill_guy` lays its round
+through `Ammo::init_crash@0067b800` in slot 0. Theirs prints it from 5178 as
+an ordinary record: flags 2, the 99 bytes and a zero path byte. Ours refused
+the whole line for any crash round, so it emitted nothing.
+
+`init_crash` writes every word of the record except `accuracy`, which is
+the slot's (§18.2). Three are its own:
+
+- `+0x5` `rolling`: `r % 7 − 3` of its one draw. `Ammo::init:830` writes 0.
+- `+0x5c`/`+0x60` `bank_dx`/`bank_dy`: the two local `Random::get(−30, 30)`,
+  stored as singles. Theirs prints −8.0 and −17.0.
+- `+0x64` `start_roll_angle`: when the plane's current order is of the air
+  family (`67b8c6`–`67b8d3`: `STRAFE`, `AIR_PATROL`, `AIR_ATTACK_GROUND`),
+  `−cvttss2si` of guy 0's `bank` (`**(unit + 0xf4)`, `GuyData +0x44`;
+  `67b8ee`–`67b8fd`). On any other order it writes 0 (`67b902`).
+  `Ammo::init` writes 0 too (`init:265`).
+
+**`+0x58` is rewritten on every drift.** `Ammo::inc_time@0067d380`'s crash
+arm moves the landing by the bank pair and restricts it. It then stores
+`sqrtf((float)(dx² + dy²)) / total_time` again, from the figure's point.
+`init_crash` computes the same quotient at birth (`67bb0d`–`67bb6a`). Ours
+had only the birth's: on 5178 it printed `0x42b8749b` (92.23, from the
+landing (5044, 5969)), where theirs printed `0x42ba5e0d` (93.18, from the
+drifted (5036, 5952)).
+
+Built: `combat::Crash::start_roll`, laid by `Sim::crash_round`; the ammo
+emitter writes `rolling`, the bank pair and `start_roll`; and
+`crash_comes_down` rewrites `graphic.dx`. Every ammo range agrees on
+5176..=5200, and **row 10 is whole**: ammo 5,962 → 6,001
+(`SCORES_SECOND[0].moved`). Killers:
+`row_10_s_jet_fighter_shot_down_falls_as_the_ammo_line_s_record_on_run1739_s_ranges`
+and `air::flak_tests::a_crash_round_rolls_off_its_bank_and_rewrites_its_dx_on_each_drift`.
+
+**The air arm is diff-backed by chapter thirty-eight.** Its value
+comparator (`golden::ammo_flag_rows`) now reads `start_roll_angle`.
+run405's two Bombers, shot down on their strike (`AIR_ATTACK_GROUND`),
+print −55 on 1007 and 1020, and ours computes −55. With the arm mutated to
+0, the widening reads `0/6 ammo[1].start_roll_angle: ours 0 theirs −55`.
+`1/114`'s bank truncates to 0, so run1739 alone could not tell the arm from
+a constant.
+
+*Not established:* `+0x58` on the frame a crash comes down short of
+`total_time`. That arm writes the landing without the quotient, so the
+record keeps the last drift's value. No range is read on such a frame,
+because the round closes in the same `inc_time`.
 
 ## 19. The groups line, ported (item 4116)
 

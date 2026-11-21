@@ -3244,7 +3244,7 @@ impl Sim {
             flame: false,
             punctures: false,
             spent: false,
-            crash: Some(crate::combat::Crash { bank, rolling }),
+            crash: Some(self.crash_of(u, bank, rolling)),
             spline: None,
             // `Ammo::init_crash@0067b800:44`: the plane's own vslot
             // `+0x34`, `UnitData::get_gpiece` — its guy 0's piece (item 4175).

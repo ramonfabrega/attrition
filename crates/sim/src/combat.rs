@@ -593,6 +593,12 @@ pub struct Crash {
     /// `+0x5`, `rolling`: `r % 7 − 3` of the crash's one draw from the
     /// game's stream.
     pub rolling: i32,
+    /// `+0x64`, `start_roll_angle` (item 4523): on a plane whose current
+    /// order is of the air family (`STRAFE`, `AIR_PATROL`,
+    /// `AIR_ATTACK_GROUND`; `67b8c6`–`67b8d3`), `−cvttss2si` of guy 0's
+    /// `bank` (`**(unit + 0xf4)`, `GuyData +0x44`; `67b8ee`–`67b8fd`);
+    /// on any other, 0 (`67b902`). Only the ammo line reads it.
+    pub start_roll: i32,
 }
 
 /// `GRAV_Z` at `0xcab378`: `0xc127cccd`, −10.4875 — written once, by

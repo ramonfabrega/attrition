@@ -4156,8 +4156,10 @@ pub(crate) fn round_rows(
 fn ammo_flag_rows(
     p: &sim::combat::Projectile,
     a: &super::ammo::Ammo,
-) -> [(&'static str, i64, i64); 7] {
-    let (roll, bank) = p.crash.map_or((0, (0, 0)), |c| (c.rolling, c.bank));
+) -> [(&'static str, i64, i64); 8] {
+    let (roll, bank, start_roll) = p
+        .crash
+        .map_or((0, (0, 0), 0), |c| (c.rolling, c.bank, c.start_roll));
     [
         // A spent arrow is `flags 1`, a live round carries `2` (item
         // 3679, `docs/COMBAT.md` §46.7).
@@ -4170,6 +4172,14 @@ fn ammo_flag_rows(
         ("rolling", i64::from(roll), a.rolling),
         ("bank_dx", i64::from(bank.0) * 1_000_000, a.bank_dx),
         ("bank_dy", i64::from(bank.1) * 1_000_000, a.bank_dy),
+        // `init_crash`'s air arm, `−(int)` guy 0's `bank` (item 4523):
+        // chapter thirty-eight's Bombers shot down on their strike print
+        // −55.
+        (
+            "start_roll_angle",
+            i64::from(start_roll),
+            a.start_roll_angle,
+        ),
     ]
 }
 

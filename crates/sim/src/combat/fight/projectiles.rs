@@ -503,6 +503,26 @@ impl Sim {
         false
     }
 
+    /// **The fields `Ammo::init_crash@0067b800` adds to a round** (item
+    /// 4523, `docs/CHECKSUM.md` §18.4): the bank pair and `rolling` its
+    /// caller drew, and `start_roll_angle` (`+0x64`), which is `−cvttss2si`
+    /// of guy 0's `bank` when the plane's current order is of the air
+    /// family (`67b8c6`–`67b8fd`) and 0 otherwise.
+    pub(crate) fn crash_of(&self, u: usize, bank: (i32, i32), rolling: i32) -> combat::Crash {
+        let air = self
+            .current_order(u)
+            .is_some_and(|o| crate::orders::index::is_air_family(o.index()));
+        combat::Crash {
+            bank,
+            rolling,
+            start_roll: if air {
+                self.units[u].airframe.bank.to_i32().wrapping_neg()
+            } else {
+                0
+            },
+        }
+    }
+
     /// **`Ammo::inc_time@0067d380`'s crash arm** (`+0x50 == 1`,
     /// `67d590`–`67d726`; `docs/AI.md` §228), on a frame short of
     /// `total_time`: the landing drifts by the bank pair and is
@@ -524,7 +544,9 @@ impl Sim {
         let mut landing = p.landing;
         if c.bank != (0, 0) {
             landing = self.restrict_pos(Pos::new(landing.x + c.bank.0, landing.y + c.bank.1));
-            self.combat.projectiles[i].landing = landing;
+            let q = &mut self.combat.projectiles[i];
+            q.landing = landing;
+            q.graphic.dx = crash_dx(q.launch, landing, q.total_time);
         }
         let at = combat::arc_point(p.launch, landing, p.cur_time, p.total_time);
         let ground = self.ground_z(at);
@@ -881,4 +903,19 @@ impl Sim {
             })
         })
     }
+}
+
+/// **A crash round's `+0x58`, rewritten on every drift** (item 4523):
+/// `Ammo::inc_time@0067d380`'s crash arm, after the landing moves by the
+/// bank pair and is restricted, stores `sqrtf((float)(dx² + dy²))` from
+/// the figure's point (`+0xc`/`+0x10`) over `total_time` converted
+/// unsigned — the integer sum converted once, as `init_crash`'s own
+/// (`67bb1c`–`67bb6a`). run1739's Jet Fighter `1/114` on 5178: 93.18,
+/// the drifted landing's, where the birth's 92.23 stood here.
+fn crash_dx(launch: Pos, landing: Pos, total_time: i32) -> crate::num::single::Single {
+    use crate::num::single::Single;
+    let (x, y) = (landing.x - launch.x, landing.y - launch.y);
+    Single::from_i32(x.wrapping_mul(x).wrapping_add(y.wrapping_mul(y)))
+        .sqrtss()
+        .divss(Single::from_u32(total_time as u32))
 }
