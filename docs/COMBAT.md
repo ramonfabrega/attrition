@@ -7147,8 +7147,11 @@ still awaits a dedicated byte comparison and independent review.
 Above all of it, `dtype != 0` and the function's own `local_1c`, which is
 set only on the arm that unblocks four tiles for a **Merchant**, a Dutch
 Merchant or a Fur Trapper (type index `0x3d`, `0x3e`, `400` —
-`TypeIndex`'s `MERCHANT`, `MERCHANTDUTCH`, `FURTRAPPER`); those three
-take no death draw. `is_active` here is the slot's allocation flag, not
+`TypeIndex`'s `MERCHANT`, `MERCHANTDUTCH`, `FURTRAPPER`) **unpacked**
+(`unit_masks & 0x80000` clear) and not packing (`:170`–`:194`); that one
+takes no death draw, and a packed one walking dies like any unit (item
+4488, diff-backed: the sample's `1/18` on 3931, two `DEATH_OBJS`
+records). `is_active` here is the slot's allocation flag, not
 its health: the object is still allocated and still on the map while
 `close` runs, and it is `Object::close` at the foot of the function that
 takes it off.
