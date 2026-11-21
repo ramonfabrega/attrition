@@ -160,9 +160,11 @@ pub struct Building {
     pub hit_frame: Option<i64>,
     /// A fort's entry in [`Sim::sources`], while it projects territory.
     pub fort_source: Option<usize>,
-    /// `BuildData::gather_down`'s chain: the units registered as gathering
-    /// here, newest first. `docs/ORDERS.md` §6.1.
-    pub gatherers: Vec<usize>,
+    /// `BuildData::gather_down` (`+0x70`): the head of the gatherer chain,
+    /// by unit slot; the rest of the chain is each member's own
+    /// [`crate::Unit::gather_down`] (`Sim::gather_chain` walks it).
+    /// `docs/ORDERS.md` §6.1.
+    pub gather_head: Option<usize>,
     /// `BuildData::gather_max`: the slot count; `None` is uncapped (the
     /// non-flat count is `docs/ECONOMY.md`'s open item). A flat type gets 1.
     pub gather_max: Option<i32>,
@@ -463,7 +465,7 @@ impl Sim {
             clock: crate::cities::build::ClockMods::default(),
             hit_frame: None,
             fort_source: None,
-            gatherers: Vec::new(),
+            gather_head: None,
             gather_max: None,
             gather_from: Vec::new(),
             mtn: -1,

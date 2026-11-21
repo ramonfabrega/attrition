@@ -170,6 +170,14 @@ pub struct Unit {
     pub line_ok: bool,
     /// `UnitData::path_recursion`.
     pub path_recursion: u8,
+    /// `UnitData::gather_down` (`+0x92`): the next unit down the gatherer
+    /// chain this unit was last linked into, by its slot here; `None` is
+    /// −1. The chain is intrusive in the original, one link a unit, so a
+    /// unit pushed onto a second building's chain while the first still
+    /// links to it carries the first's walk into the second's
+    /// (`Build::add_gatherer@0062f640`; item 4505, `docs/ORDERS.md` §6.1).
+    /// `Unit::init@00612100:280` writes −1 on every birth.
+    pub gather_down: Option<usize>,
     /// `UnitData::orders_x/orders_y`: the final destination of the leading
     /// run of transit moves.
     pub orders_pos: Pos,
@@ -1030,6 +1038,7 @@ impl Unit {
             tolerance: 0,
             line_ok: false,
             path_recursion: 0,
+            gather_down: None,
             orders_pos: pos,
             idle: 0,
             stance: 1,

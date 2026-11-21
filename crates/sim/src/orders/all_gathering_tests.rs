@@ -148,7 +148,7 @@ fn all_gathering_drops_a_dead_member_before_it_reads_the_chain() {
         false,
     );
     sim.units[dead].health = 0;
-    assert_eq!(sim.buildings[camp].gatherers[0], dead, "at the head");
+    assert_eq!(sim.gather_chain(camp)[0], dead, "at the head");
     assert!(sim.all_gathering(camp), "the dead member is not read");
     assert!(!sim.is_gathered_by(camp, dead), "it is pruned");
 }
@@ -196,7 +196,7 @@ fn all_gathering_drops_a_member_walking_a_waypoint_first() {
         true,
     );
     sim.add_gather_order(walker, camp, QueuePos::Last, true);
-    assert_eq!(sim.buildings[camp].gatherers[0], walker, "at the head");
+    assert_eq!(sim.gather_chain(camp)[0], walker, "at the head");
     assert!(
         !sim.is_gathering_at(walker, camp, false),
         "its action is the move"
@@ -267,4 +267,71 @@ fn the_farmer_s_turn_east_toggles_its_group_s_facing() {
         sim.ai.armies[1].list[slot].group.facing,
         "the leader's reversal toggles its group's facing"
     );
+}
+
+/// **A gatherer pushed onto a second chain carries the first's walk with
+/// it** (item 4505; `Build::add_gatherer@0062f640`'s `0062f6d6`–`0062f6e9`
+/// writes the unit's own `UnitData::gather_down` and nothing unlinks it
+/// from a chain that still links to it). The 2017 sample's computer 1
+/// Citizen `1/11`, behind `1/13` in `#2001`'s chain, was pushed onto
+/// `#2009`'s on 4247: its link became `1/8`, `#2009`'s next, and
+/// `#2001`'s walk ran on into `#2009`'s chain. Then `#2001`'s prune drops
+/// every member not gathering there, the moved unit's link left as it
+/// is. Made to fail by keeping a chain per building (the walk of the
+/// first chain stays `[a3, a2, a1]`).
+#[test]
+fn a_gatherer_pushed_onto_a_second_chain_carries_the_first_s_walk() {
+    let mut sim = Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
+    let citizen = sim.add_unit_type(crate::UnitType {
+        hits: 10,
+        worker: Worker::Citizen,
+        ..crate::UnitType::default()
+    });
+    let gatherer = sim.add_build_type(crate::cities::build::BuildType {
+        flags: bflags::GATHERER,
+        ..crate::cities::build::BuildType::default()
+    });
+    let first = sim.add_building(1, Pos::new(0x1000, 0x1000), 1);
+    let second = sim.add_building(1, Pos::new(0x2000, 0x1000), 1);
+    sim.buildings[first].ty = Some(gatherer);
+    sim.buildings[second].ty = Some(gatherer);
+    let put = |sim: &mut Sim, x: i32, camp: usize| {
+        let index = i16::try_from(sim.units.len()).unwrap();
+        let mut u = crate::Unit::new(1, index, Pos::new(x, 0x1000), 10);
+        u.ty = Some(citizen);
+        u.on_map = true;
+        let u = sim.add_unit(u);
+        sim.add_gather_order(u, camp, QueuePos::New, false);
+        u
+    };
+    let a1 = put(&mut sim, 0x1100, first);
+    let a2 = put(&mut sim, 0x1200, first);
+    let a3 = put(&mut sim, 0x1300, first);
+    let b1 = put(&mut sim, 0x2100, second);
+    assert_eq!(sim.gather_chain(first), vec![a3, a2, a1], "newest first");
+    // The job changes under it with no kill: the order now names the
+    // second camp, and the second camp takes it.
+    if let Some(Body::Gather(g)) = sim.units[a2].orders.front_mut().map(|o| &mut o.body) {
+        g.building = second;
+    }
+    assert!(sim.add_gatherer(second, a2), "the second camp takes it");
+    assert_eq!(sim.gather_chain(second), vec![a2, b1]);
+    assert_eq!(
+        sim.units[a2].gather_down,
+        Some(b1),
+        "its own link is the new chain's"
+    );
+    assert_eq!(
+        sim.gather_chain(first),
+        vec![a3, a2, b1],
+        "the first chain walks on into the second's"
+    );
+    sim.check_gatherers(first);
+    assert_eq!(sim.gather_chain(first), vec![a3], "the prune drops both");
+    assert_eq!(
+        sim.gather_chain(second),
+        vec![a2, b1],
+        "and leaves it whole"
+    );
+    assert!(!sim.is_gathered_by(first, a1), "a1 is off every chain");
 }

@@ -5259,16 +5259,12 @@ fn a_gatherer_killed_by_damage_leaves_its_building_s_chain() {
         QueuePos::First,
         false,
     );
-    assert_eq!(
-        sim.buildings[camp].gatherers,
-        vec![dies, stays],
-        "newest first"
-    );
+    assert_eq!(sim.gather_chain(camp), vec![dies, stays], "newest first");
     let hit = combat::Sixteenths { whole: 50, frac: 0 };
     let taken = sim.take_damage(Obj::Unit(dies), hit, Obj::Unit(foe), 1487);
     assert!(matches!(taken, Taken::Died { .. }));
     assert_eq!(
-        sim.buildings[camp].gatherers,
+        sim.gather_chain(camp),
         vec![stays],
         "the dead leave the chain"
     );

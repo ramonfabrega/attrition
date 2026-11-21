@@ -885,50 +885,93 @@ impl Sim {
             || !unit.alive()
             || !unit.on_map
             || self.worker_of(u) == Worker::None
-            || self.buildings[b].gatherers.contains(&u)
+            || self.is_gathered_by(b, u)
         {
             return false;
         }
         self.check_gatherers(b);
-        self.buildings[b].gatherers.insert(0, u);
+        // `0062f6d6`–`0062f6e9`: the unit's link takes the old head and the
+        // head takes the unit. Nothing unlinks it from a chain it was in
+        // before, which keeps linking to it (item 4505).
+        self.units[u].gather_down = self.buildings[b].gather_head;
+        self.buildings[b].gather_head = Some(u);
         true
     }
 
-    /// `Build::remove_gatherer`.
-    pub fn remove_gatherer(&mut self, b: usize, u: usize) {
-        self.buildings[b].gatherers.retain(|&x| x != u);
+    /// The chain from `BuildData::gather_down`, by each member's
+    /// `UnitData::gather_down`: what `is_gathered_by`, `num_gatherers` and
+    /// `all_gathering` walk. A walk that ran into another building's chain
+    /// through a member pushed there walks on through it, as the
+    /// original's does. Bounded by the unit count, which no chain the
+    /// four writers build can reach (none closes a loop).
+    pub fn gather_chain(&self, b: usize) -> Vec<usize> {
+        let mut out = Vec::new();
+        let mut at = self.buildings[b].gather_head;
+        while let Some(u) = at {
+            if out.len() > self.units.len() {
+                break;
+            }
+            out.push(u);
+            at = self.units[u].gather_down;
+        }
+        out
     }
 
-    /// `Build::check_gatherers`: prune the dead, the re-tasked, the off-map.
+    /// `Build::remove_gatherer@0062f8d0`: the head arm takes the unit's
+    /// link and clears it; otherwise walk from the head until the unit is
+    /// the next link, **stopping at a dead member or the end**, then
+    /// splice it out and clear its link (`docs/ORDERS.md` §6.1, R4 G11,
+    /// G12).
+    pub fn remove_gatherer(&mut self, b: usize, u: usize) {
+        let Some(head) = self.buildings[b].gather_head else {
+            return;
+        };
+        if head == u {
+            self.buildings[b].gather_head = self.units[u].gather_down;
+            self.units[u].gather_down = None;
+            return;
+        }
+        let mut prev = head;
+        let mut steps = 0;
+        loop {
+            if !self.units[prev].alive() || steps > self.units.len() {
+                return;
+            }
+            let Some(n) = self.units[prev].gather_down else {
+                return;
+            };
+            if n == u {
+                break;
+            }
+            prev = n;
+            steps += 1;
+        }
+        self.units[prev].gather_down = self.units[u].gather_down;
+        self.units[u].gather_down = None;
+    }
+
+    /// `Build::check_gatherers@0062f710`: prune the dead, the re-tasked,
+    /// the off-map, on the members' own links: a dropped head's link is
+    /// cleared, a dropped middle member's is left as it was
+    /// ([`prune_chain`]).
     pub fn check_gatherers(&mut self, b: usize) {
-        // The list is the chain, its order the links (`+0x70`, then each
-        // member's `+0x92`).
-        let list = self.buildings[b].gatherers.clone();
-        let mut next: Vec<i32> = (1..=list.len())
-            .map(|k| if k < list.len() { k as i32 } else { -1 })
-            .collect();
-        let mut head = if list.is_empty() { -1 } else { 0 };
+        let mut head = self.buildings[b].gather_head.map_or(-1, |u| u as i32);
         prune_chain(
-            &mut next,
+            self,
             &mut head,
-            |n, k| n[k as usize],
-            |n, k, v| n[k as usize] = v,
-            |_, k| {
-                let u = list[k as usize];
-                self.units[u].alive() && self.is_gathering_at(u, b, false) && self.units[u].on_map
+            |s, k| s.units[k as usize].gather_down.map_or(-1, |n| n as i32),
+            |s, k, v| s.units[k as usize].gather_down = usize::try_from(v).ok(),
+            |s, k| {
+                let u = k as usize;
+                s.units[u].alive() && s.is_gathering_at(u, b, false) && s.units[u].on_map
             },
         );
-        let mut keep = Vec::new();
-        while head >= 0 {
-            keep.push(list[head as usize]);
-            head = next[head as usize];
-        }
-        self.buildings[b].gatherers = keep;
+        self.buildings[b].gather_head = usize::try_from(head).ok();
     }
 
-    /// `BuildData::is_gathered_by`.
+    /// `BuildData::is_gathered_by@0062f520`: a walk of the chain.
     pub fn is_gathered_by(&self, b: usize, u: usize) -> bool {
-        self.buildings[b].gatherers.contains(&u)
+        self.gather_chain(b).contains(&u)
     }
 
     /// `UnitData::is_gathering_at(o, who, strict)`: a worker whose **action**
@@ -991,7 +1034,7 @@ impl Sim {
                 .count() as i32;
         }
         n + chain_gatherers(
-            self.buildings[b].gatherers.iter().copied(),
+            self.gather_chain(b).into_iter(),
             skip_decoys,
             |u| self.units[u].decoy,
             |u| self.is_gathering_at(u, b, arrived),
@@ -1007,13 +1050,12 @@ impl Sim {
     /// §52).
     pub(super) fn all_gathering(&mut self, b: usize) -> bool {
         self.check_gatherers(b);
-        all_at_work(
-            self.buildings[b].gatherers.iter().copied(),
-            |u| match self.units[u].orders.front().map(|o| o.body) {
+        all_at_work(self.gather_chain(b).into_iter(), |u| {
+            match self.units[u].orders.front().map(|o| o.body) {
                 Some(Body::Gather(g)) => Some((g.goto_build, g.wait)),
                 _ => None,
-            },
-        )
+            }
+        })
     }
 
     // ------------------------------------------------------------------

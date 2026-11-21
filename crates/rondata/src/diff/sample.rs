@@ -666,9 +666,12 @@ pub(in crate::diff) mod tests {
     /// draws 5255 -> 5273): deaths 5428 -> 5429, groups 5282 -> 5311, guys
     /// 5256 -> 5273, items 5286 -> 12663, goods 5384 -> 5392; units 4248,
     /// builds 4321, ammo 4462, leaders 4321, cities 5326 and world 5256
-    /// unchanged.
+    /// unchanged. Item 4505 (a gatherer pushed onto a second chain keeps
+    /// the first's link to it, `Build::add_gatherer@0062f640`; computer
+    /// 1's Citizen `1/11` on 4247): units 4248 -> 5273, onto the draw
+    /// word; every other line unchanged.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 4248),
+        ("units", 5273),
         ("builds", 4321),
         ("walls", 21044),
         ("ammo", 4462),
@@ -1313,6 +1316,31 @@ pub(in crate::diff) mod tests {
     const SAMPLE_RANGES_1726_KEPT: u16 = 0x8b;
 
     /// Per kept line that parts on run1726's window, its first parting by
-    /// range (item 4505). Minted empty.
-    const SAMPLE_RANGES_1726: &[(&str, i64, usize, usize, usize, &str)] = &[];
+    /// range (item 4505). Minted at four rows on the sums' frames: units
+    /// 4248, `1077 11 collide_frame..play` `gather_down` ours 12, theirs 8,
+    /// computer 1's Citizen `1/11` (`TypeIndex` 50, land, uid #109),
+    /// pushed onto `#2009`'s chain on 4247 while `#2001`'s still held it
+    /// behind `1/13`: this crate kept one list a building and read its
+    /// link off `#2001`'s, where the original's one link a unit had taken
+    /// `#2009`'s next, `1/8`. Built (`Sim::gather_chain`): units whole to
+    /// 4500, one row -> none. The three left are the first act's leaves.
+    const SAMPLE_RANGES_1726: &[(&str, i64, usize, usize, usize, &str)] = &[
+        (
+            "builds",
+            4321,
+            3387,
+            3387,
+            1,
+            "2559 2005 queue[k]: cost[0] 200|180",
+        ),
+        ("ammo", 4462, 3, 0, 3, "0 -1 0067ab7e: +0x0 of 0|1: |01"),
+        (
+            "leaders",
+            4321,
+            671,
+            671,
+            1,
+            "473 3 encrypt: +0x0 of 4|4: 13020000|27020000",
+        ),
+    ];
 }

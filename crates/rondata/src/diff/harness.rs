@@ -1062,13 +1062,11 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             }
         };
         // `BuildData::gather_down` is the head of the chain of registered
-        // gatherers, by object number; this crate keeps the chain newest
-        // first, so the head is the front of the vector.
+        // gatherers, by object number (`Building::gather_head`).
         if let Some(theirs) = b.gather_down {
             let head = ours
-                .gatherers
-                .first()
-                .map_or(-1, |&u| i64::from(built.sim.units[u].index));
+                .gather_head
+                .map_or(-1, |u| i64::from(built.sim.units[u].index));
             compared::note("BuildDump", &["gather_down"]);
             wrong("gather_down", -1, head, theirs);
         }
