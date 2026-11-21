@@ -2953,10 +2953,14 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // 6920, record 3039 `block.present`, ours 1, theirs 0, who=1's
         // `1/43` stepping (632, 813) -> (633, 814) inside the freed cell
         // (39, 50)): world 5,995 -> 6,001, whole.
+        // Moved by item 4508 (a computer's bomber searches round itself,
+        // `find_new_bomber_target`'s `unit_masks & 0x40000` head): units
+        // 5,664 -> 5,851, first on 3771, its sums unchanged. No ranges take
+        // of this row names which states went whole.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5664, 6001, 6001, 5962, 6001, 6001, 5997, 5801, 6001, 6001, 6001, 6001,
+                5851, 6001, 6001, 5962, 6001, 6001, 5997, 5801, 6001, 6001, 6001, 6001,
             ],
             first: &[
                 ("units", (3771, Some(4212870850), 267538306)),
@@ -3250,13 +3254,19 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Freighter `1/135` holding `1/127`, `1/128`, `1/129`, `1/127`'s
         // `inside_down` ours -1, theirs 128): units 3,034 -> 4,422, first
         // 2354 -> 3411.
+        // Moved by item 4508 (a computer's bomber searches round itself:
+        // `find_new_bomber_target@005eb960`'s head puts the point on the
+        // plane for `unit_masks & 0x40000`; run1754, state 3411, units range
+        // 4078, record 158, who=1's Strategic Bomber `1/158`,
+        // `orders.count` ours 2, theirs 1): units 4,422 -> 4,537, first
+        // 3411 -> 3515.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                4422, 4731, 4731, 4731, 4731, 4731, 4731, 4721, 4731, 4731, 4731, 4731,
+                4537, 4731, 4731, 4731, 4731, 4731, 4731, 4721, 4731, 4731, 4731, 4731,
             ],
             first: &[
-                ("units", (3411, Some(1975420184), 338852346)),
+                ("units", (3515, Some(2883003395), 31204340)),
                 ("leaders", (4573, Some(266446178), 1003136370)),
             ],
             over: None,

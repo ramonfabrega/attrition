@@ -40257,3 +40257,35 @@ Files in place, `~/ron-golden/run1753/map-14/`: `gamelog_p.txt`, 2,444 bytes, SH
   names): leaders 5,056 → 5,235 and groups 5,217 → 5,235, **twelve lines whole**.
   `row_105_s_pruned_oil_list_keeps_its_capacity_on_run1752_s_ranges` holds every leaders range on 3582 and 3583,
   `row_105_s_pushed_unit_stays_listed_by_the_slot_it_left_on_run1752_s_ranges` every groups range on 4354 and 4355.
+
+## run1754 — parity held out, second battery, row 130's file to its end (4730) with the checksum and ranges hooks, units and leaders kept (2026-11-21, item 4508, `att-4508`)
+
+`docs/RECGAME.md` §11; DECISIONS 148 §4. **What the disk could not answer**: run1736 holds sums only, so the units
+parting on row 130 (state 3411) and the leaders parting (4573) named no leaf. The take is run1752's line with the run
+directory, the recording and the mask changed, the arguments `score_recording` printed on `30d42faca`: `TMPDIR=<fresh>
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1754 --recording
+~/ron-golden/recordings/item4462-row130-6000.rcx --end-frame 6000 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def
+RNG_MASK=0x81u`, waited on with `waitrun.sh` in the background. `df -g ~` read 57 GB free at the item's start; the
+take waited one minute for 61, and read 59 after.
+- **The run**: pool lane 2, launched 12:19:24 −05:00, exited 12:27:41: **497.0 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 4,731 frames, **ended by the original** on 4730, seed 12345, map 18. DLL
+  `c49fe697…`, defines `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0x81u`. The recording's
+  SHA-256 is run1736's (`baba8acc…`).
+- **The record**, `~/ron-golden/run1754/map-18/rontrace.ranges`, 1,300,522,460 bytes, SHA-256
+  `92f9b913ab195baa114cd3ea4b79e78191ecfe99af2295996c31fc55f1533b6b`: lines `['units', 'leaders']`, 4,731 sets on
+  trace frames −1 to 4729, 30,701,833 ranges, 808,831,787 bytes, none over (`ranges.py summary`). `du -sh` 1.5 GB.
+- **Scored** (`score_recording … ~/ron-golden/run1754/map-18`, on `30d42faca`): the sums are run1736's; ten lines
+  whole; units 4,422, first 3411: **units range 4078, record 158, `orders.count` ours 2, theirs 1** (who=1's
+  Strategic Bomber `1/158`, TI 305, TY 255, air; ours' extra order a `STRAFE` on its patrol's front); leaders 4,721,
+  first 4573: **leaders range 128, record 1, `flags` byte 3, ours `0x0e`, theirs `0x1e`**.
+- **Re-scored by item 4508** (a computer's bomber searches round itself): units 4,537, first 3515 (range 5857, record
+  184, `collide_frame..play` bytes 18 and 19: `dest_angle` ours −406650880, theirs −424345600); leaders as found.
+- Filed **in place**, as run1753 is.
+
+Files in place, `~/ron-golden/run1754/map-18/`: `gamelog_p.txt`, 2,426 bytes, SHA-256
+`11bb3567e6ba46f000b7c2ddcb6d45e4f7dbfcc96632d3240f238668b589c52b`; `rontrace.log`, 262,757,280 bytes, SHA-256
+`52f10cd1115c6bb316a525d86ddb7d426af58ba1f9963e6bdcbcc0939e14086b`.
+
+**What it holds**: `diff::held_out::tests::row_130_s_computer_bomber_searches_round_itself_on_run1754_s_ranges`
+(every units range on 3410 and 3411).
