@@ -1113,6 +1113,69 @@ mod tests {
         );
     }
 
+    /// **Row 130's leaders line carries the Kremlin's spy-due bit** (item
+    /// 4520, `docs/RECGAME.md` §11): who=1's Kremlin finishes on 4573 with no
+    /// tagged spy alive, and `leader_flags & 0x10000000` stands until the
+    /// wonder trains its spy on 4583. This crate kept the bit and its
+    /// checksum never printed it (leaders range 128, record 1, `flags` byte
+    /// 3, ours `0x0e`, theirs `0x1e`). Every leaders range on 4572, 4573,
+    /// 4582 and 4583 against run1754's record.
+    #[test]
+    fn row_130_s_kremlin_spy_due_bit_is_in_the_leaders_flags_on_run1754_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 6) else {
+            eprintln!("skipping: row 130's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1754/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1754's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 130's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for (state, due) in [(4572, false), (4573, true), (4582, true), (4583, false)] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_leaders();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "leaders' ranges on {state}"
+            );
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "leaders range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Record 1's `flags`, by name: byte 3 holds `0x10000000`.
+            assert_eq!(
+                (ours.ranges[128].record, ours.ranges[128].field),
+                (1, "flags")
+            );
+            assert_eq!(
+                theirs[128].bytes[3] & 0x10 != 0,
+                due,
+                "theirs' who=1 spy-due bit on {state}"
+            );
+            assert_eq!(built.sim.tech[1].kremlin_spy_due, due, "ours' on {state}");
+        }
+    }
+
     /// **Row 105's rider bound for the sea is a gatherer in
     /// `reg_gatherers[1]`** (item 4499, `docs/RECGAME.md` §11.1): run1752,
     /// the ranges take of run1748's file, holds every leaders range on
@@ -3554,15 +3617,16 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // 4078, record 158, who=1's Strategic Bomber `1/158`,
         // `orders.count` ours 2, theirs 1), measured on the tree merged with
         // 4514: units 4,459 -> 4,574, first 3411 -> 3515.
+        // Moved by item 4520 (the leaders line's `flags` carry the Kremlin's
+        // spy-due bit, `leader_flags & 0x10000000`; run1754, state 4573,
+        // leaders range 128, record 1, `flags` byte 3, ours 0x0e, theirs
+        // 0x1e): leaders 4,721 -> 4,731, whole.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                4574, 4731, 4731, 4731, 4731, 4731, 4731, 4721, 4731, 4731, 4731, 4731,
+                4574, 4731, 4731, 4731, 4731, 4731, 4731, 4731, 4731, 4731, 4731, 4731,
             ],
-            first: &[
-                ("units", (3515, Some(2883003395), 31204340)),
-                ("leaders", (4573, Some(266446178), 1003136370)),
-            ],
+            first: &[("units", (3515, Some(2883003395), 31204340))],
             over: None,
         }),
     }),
