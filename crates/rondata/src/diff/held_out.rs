@@ -3014,16 +3014,21 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // range 467, record 6, who=1's `1/6` (TI 50) on who=0's ground at
         // peace, ours 0x840008, theirs 0xc40088): units 5,664 -> 5,792,
         // first 3771 -> 4880.
+        // Moved by item 4516 (a citizen whose action is `CAST_SPELL` or
+        // `BOARD_SHIP` is an `xport` peasant, `Leader::plan_strategy@006b9620`
+        // `6bae19`: run1739, state 3976, leaders range 129, record 1,
+        // `xport_peasants`, ours 2, theirs 3, who=1's Citizen `1/97` (TI 50)
+        // holding `[CAST_SPELL, MOVE_TO]` on 3975): leaders 5,801 -> 6,001,
+        // whole.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5792, 6001, 6001, 5962, 6001, 6001, 5997, 5801, 6001, 6001, 6001, 6001,
+                5792, 6001, 6001, 5962, 6001, 6001, 5997, 6001, 6001, 6001, 6001, 6001,
             ],
             first: &[
                 ("units", (4880, Some(357474173), 4168261069)),
                 ("ammo", (5178, None, 1427640977)),
                 ("guys", (4880, Some(3110518234), 2759048231)),
-                ("leaders", (3976, Some(2201651438), 3962276079)),
             ],
             over: None,
         }),

@@ -803,9 +803,10 @@ impl Sim {
         if let Some((c, _)) = found {
             self.ai.ai[w].city_ai[c].busy += 1;
         }
+        if kind == index::BOARD_SHIP || kind == index::CAST_SPELL {
+            return self.census_citizen_casting(w, u);
+        }
         if kind != index::GATHER {
-            // Kinds 8 and 0xe — build and repair from inside a transport —
-            // are a seam; nothing else in the original's table counts here.
             return None;
         }
 
@@ -899,6 +900,31 @@ impl Sim {
         self.census_xport_bump(w, r);
         self.ai.ai[w].census.xport_peasants += 1;
         Some(r)
+    }
+
+    /// **A citizen boarding or casting is an `xport` peasant** (item 4516,
+    /// `docs/AI.md` §58): `Leader::plan_strategy@006b9620`'s on-map arm for
+    /// an action of kind 8 (`BOARD_SHIP`) or 0xe (`CAST_SPELL`, the
+    /// transport cast a citizen makes at the shore). The listing asks the
+    /// unit's front order `is_move` (vslot `+0x14` at `6bad0b`); a move
+    /// counts the cell under its point in `reg_xport_peasants` when that
+    /// cell has a region (`js` at `6bae0f`, `incw 0x10de(%ebx,%esi,2)`) and
+    /// leaves the region in the sweep's local, as the rider arm does; and
+    /// either way `xport_peasants` goes up (`incl 0x9c0(%ebx)` at `6bae19`,
+    /// the `je` from `6bad10` landing on it).
+    fn census_citizen_casting(&mut self, w: usize, u: usize) -> Option<u16> {
+        let mut left = None;
+        if let Some(crate::orders::Order {
+            body: Body::Move(m),
+            ..
+        }) = self.units[u].orders.front()
+            && let Some(r) = self.world.region_of(m.dest.cell())
+        {
+            self.census_xport_bump(w, r);
+            left = Some(r);
+        }
+        self.ai.ai[w].census.xport_peasants += 1;
+        left
     }
 
     /// **`reg_xport_peasants` is indexed without a bound** (item 4499,
