@@ -3129,6 +3129,11 @@ pub(crate) const SCORES_THIRD: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
+        // Moved by item 4512 (a leader's `SimpleArray<int>` keeps its
+        // capacity across a removal: run1752, state 3583, leaders range
+        // 191, record 1, who=1's `oil_patches` pruned from 12 to 10 by arm
+        // 4.2, `size` ours 10, theirs 20): leaders 5,056 -> 5,235, whole;
+        // the row's first parting 3583 -> 4355 (groups).
         // Moved by item 4511 (a unit host's `inside_down` chain is the order
         // of entry, `Object::insert_inside` appending at the bottom:
         // run1752, state 3359, units range 3707, record 127, who=1's
@@ -3151,12 +3156,9 @@ pub(crate) const SCORES_THIRD: [Option<FirstScore>; 8] = [
         moved: Some(Score {
             states: 5235,
             agreed: [
-                5235, 5235, 5235, 5235, 5235, 5217, 5235, 5056, 5235, 5235, 5235, 5235,
+                5235, 5235, 5235, 5235, 5235, 5217, 5235, 5235, 5235, 5235, 5235, 5235,
             ],
-            first: &[
-                ("groups", (4355, Some(2731263697), 520406832)),
-                ("leaders", (3583, Some(924078995), 1189499805)),
-            ],
+            first: &[("groups", (4355, Some(2731263697), 520406832))],
             over: None,
         }),
     }),
