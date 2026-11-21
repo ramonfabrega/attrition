@@ -2986,10 +2986,14 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Freighter `1/135` holding `1/127`, `1/128`, `1/129`, `1/127`'s
         // `inside_down` ours -1, theirs 128): units 5,017 -> 5,297, first
         // 2184 -> 4492.
+        // Moved by item 4505 (a gatherer chain is one link a unit,
+        // `Build::add_gatherer@0062f640`): units 5,297 -> 5,304, first on
+        // 4492, measured on the merged tree; the seven states not read one
+        // by one. No ranges take of this row.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5297, 5577, 6001, 5826, 6001, 6001, 6001, 5995, 6001, 6001, 6001, 5379,
+                5304, 5577, 6001, 5826, 6001, 6001, 6001, 5995, 6001, 6001, 6001, 5379,
             ],
             first: &[
                 ("units", (4492, Some(710203995), 2575096436)),

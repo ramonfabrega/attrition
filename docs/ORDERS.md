@@ -1886,6 +1886,25 @@ true. A death leaves the chain (`Unit::close`'s `close_orders`, GOLDEN §52). `g
 a flat type** (`build_flags & 0x10000000`), else `calc_gather`'s slot output
 (`docs/ECONOMY.md`'s open item).
 
+**The chain is intrusive: one link a unit** (item 4505). The head is
+`BuildData::gather_down` (`+0x70`) and every other link is the member's own
+`UnitData::gather_down` (`+0x92`), an object number. Its writers are four:
+`UnitData::UnitData@00606670` and `Unit::init@00612100:280` write −1,
+`add_gatherer` writes the old head (`0062f6d6`–`0062f6e9`), and
+`remove_gatherer` and `check_gatherers` splice. Nothing unlinks a unit from
+a chain that still links to it, so a unit pushed onto a second building's
+chain carries the first chain's walk into the second's, and the first
+building's next prune drops every member not gathering there, the moved
+unit's link left as it is. On the 2017 sample's 4247, computer 1's Citizen
+`1/11`, behind `1/13` in `#2001`'s chain, was pushed onto `#2009`'s: the
+units line's `1077 11 gather_down` reads theirs 8, `#2009`'s next, where a
+list a building gave 12 (run1726, `SAMPLE_RANGES_1726`). Diff-backed there;
+`Sim::gather_chain` is the walk. **Not established**: a link to a dead
+number. The original resolves the link by object number, so a number
+reused by a newborn makes the walk go through the newborn, whose own link
+`Unit::init` reset; this crate links by slot and reads the dead occupant.
+No capture has shown a chain across a reused number.
+
 `gather_from` (`BuildData+0x98`, a `MiningList`) is filled once, at building
 creation, by `Build::find_gather_tiles@00623350` — and **shuffled off the
 sync stream** as it is. Specified, with its draw count, in

@@ -1560,6 +1560,14 @@ mod tests {
                         i64::from(un.path_recursion),
                         them.path_recursion,
                     ),
+                    // Item 4505: the unit's own link down its gatherer
+                    // chain, by object number (`docs/ORDERS.md` §6.1).
+                    (
+                        "gather_down",
+                        un.gather_down
+                            .map_or(-1, |n| i64::from(built.sim.units[n].index)),
+                        them.gather_down,
+                    ),
                     ("idle", i64::from(un.idle), them.idle),
                     ("collide", i64::from(un.collide), them.collide),
                     ("collide_o", i64::from(un.collide_o), them.collide_o),

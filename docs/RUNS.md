@@ -40192,6 +40192,30 @@ Files in place, `~/ron-golden/run1752/map-18/`: `gamelog_p.txt`, 2,432 bytes, SH
 
 **What it holds**: `diff::held_out::tests::row_105_s_rider_to_sea_region_65_lands_in_reg_gatherers_on_run1752_s_ranges`
 (every leaders range on 1975 and 1976).
+## run1726 — the 2017 sample's playback to 4,500 with the checksum and ranges hooks, units, builds, ammo and leaders kept (2026-11-21, item 4505, `att-4505`)
+
+`docs/RECGAME.md` §7; DECISIONS 148 §4, §5. **What the disk could not answer**: run1724's record ends on 4129, and the
+sample's score stood on units 4248 with builds and leaders on 4321 and ammo on 4462, all below the draw word 5273 and
+none on a range record. **The take**: run1724's line with the end moved to 4500, the log window on units' 4248, and
+the mask cut to the four lines that part below the word (148 §4): `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1726 --recording "<install>/external-recgames/seifer008 - Toughest
+AI 4 v 1.rcx" --end-frame 4500 --cover cover=1 --log-window 4243 4253 --detail end:MISC --timeout 3600
+--stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0x8bu`. It was waited on
+with `waitrun.sh` in the background lane. The game lane read free on all three pool lanes, and no other capture was
+running; `df -g ~` read 72 GB free before it and 68 GB after.
+- Pool lane 1, launched 08:37:20 −05:00 and exited 08:42:53: **333.7 s** launch to exit, exit 0, `success`, 4,501
+  frames, `last_frame` 4500, not ended early. Seed observed 340513920, no page fault, no relaunch, five settings
+  restored. DLL `46c70548…`, defines `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0x8bu`.
+- **The record**, `~/ron-golden/run1726/map-7/rontrace.ranges`, 1,413,761,812 bytes, SHA-256
+  `1f6325b924af5f4ed5b00a371b0c7bd7a912c0f4b2fadc92ef51764176cc138c`; one set on every trace frame −1 to 4499.
+- Filed with `filerun.py run1726 sample2017-playback-ranges-4500`. The record stays where the take left it.
+
+Archive `gamelog-run1726-sample2017-playback-ranges-4500.txt`, 3,774 bytes,
+SHA-256 `68f0d8e068ef19a2c9d88e93e57cbd0441e2b285b84abc9d682a62963ae1d542`; `rontrace-run1726.log`, 57,858,240
+bytes, SHA-256 `5b1edf53016e3381a3083c5b24cc3d2e1a556cc06ae2dfdd76bdc4686273deaf`.
+
+**What it holds**: `diff::sample::tests::the_sample_s_ranges_to_4500_name_each_first_parting`
+(`SAMPLE_RANGES_1726`): each kept line's first parting by range over 0..4500, on the frame its sum parts.
 
 ## run1753 — parity held out, third battery, row 5's file to 6000 with the checksum and ranges hooks, ammo kept (2026-11-21, item 4507, `att-4507`)
 
