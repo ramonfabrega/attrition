@@ -160,7 +160,11 @@ ocean is 65) and are stored `% 0x3f` in the 63-entry arrays.
    met, its first building or wall that is `is_seen(who)` meets both
    ways, inline. `Sim::census_meet`; GOLDEN §149.4.
 7. `invaders[who] = 0` on every active leader (the count of *my* units in
-   *their* land; refilled in step 10).
+   *their* land; refilled in step 10). **Active is the slot's
+   `leader_flags & 1`**, which `Leader::defeat@006ecb00` keeps, so a
+   defeated leader is cleared too (item 4525: run1771's leader 1,
+   `invaders[3]` ours 5 frozen from its defeat on 5256, theirs 0 on 5326;
+   *diff-backed*, a mutation restoring the skip held).
 8. **Zero the per-region arrays**: `reg_active, reg_combat, reg_attack`
    (127), `reg_naval, reg_transports` (63), `reg_defense, reg_attacked,
    reg_land, reg_peasants, reg_free_peasants, reg_xport_peasants,
@@ -200,7 +204,10 @@ ocean is 65) and are stored `% 0x3f` in the 63-entry arrays.
       `cruise`/`nuke` by type `0x139`/`0x13b`; else `air++` and
       `fighters`/`bombers` by type `0x11f`/`0x130`;
     - a non-siege military unit standing on a tile owned by another
-      active leader: `leaders[owner].invaders[who]++`;
+      active leader (`& 1`, a defeated owner included; item 4525, *one
+      reading*: no record on disk parts the arm, run1771 and the hook's
+      sums both quiet under a mutation restoring the skip):
+      `leaders[owner].invaders[who]++`;
     - by base type: `0x34/0x35` (scholar) → `scholars++`, and if inside a
       university (`0x1a4`) `filled_gather_slots[3]++`; `0x3d/0x3e/0x190`
       (merchant) → `merchants++`, `reg_unpack_merch[r]++` unless
@@ -1997,6 +2004,9 @@ folded back into §2's prose.
   `bool_count_inactive`; the raid
   stamp; `get_starting_town_size`'s nomad flag; the tick's origin; the
   `leader_flags` line's position in the dump.
+- **Parked 4525a.** The census's other `defeated` readers (meeting, the
+  ally mask, the wars, the strategy's leader walks) may stand in for the
+  slot's `leader_flags & 1` as step 7's did (§2.3); none parts on disk.
 
 ## 14. ~~Corrections from the implementation, by module~~ — folded, 2026-08-25
 

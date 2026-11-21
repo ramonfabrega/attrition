@@ -564,7 +564,7 @@ exit lights a disc (4424; VISION §6); units 2112 → 2700, leaders → 2989,
 allies bleed nothing (4429; ATTRITION); units → 2888, a refused
 slot moves (4432; GROUPS §6.6); units → 2892, a `GARRISON` walks
 target and `search`, groups → 3053, the bell's group is pushed (4440;
-CHECKSUM §17).
+CHECKSUM §17). Leaders 5326 → 5403: AI §2.3 step 7 (4525).
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
