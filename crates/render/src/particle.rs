@@ -378,6 +378,80 @@ pub fn plume(
     out
 }
 
+/// **A unit's emitter between visits** (item 4506; `docs/RENDERER.md`
+/// §3.13), as `ParticleEmitter` holds it: its anchor (`desc.pos`, node 5's
+/// point for `MOVE DUST`), direction (`desc.vel`), `desc.random`, birth
+/// count (`+0x50`), its last birth (`last_view_time`, `+0x54`) and the
+/// overshoot it carries (`left_over`, `+0x58`), in milliseconds.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Emitter {
+    pub anchor: [f32; 3],
+    pub dir: [f32; 3],
+    pub random: u8,
+    pub counter: u32,
+    pub last_view: u32,
+    pub left_over: u32,
+}
+
+/// **An emitter's births at a visit at `now`** (`ParticleEmitter::back_calc`
+/// as item 4240's `births.py` reads it): from the later of its last birth
+/// and `now` less a life, a birth every `freq` at its anchor, the first
+/// `left_over` past the last birth; an overshoot past `now` is kept for the
+/// next visit when no birth reset it. Each newborn starts by [`start`] off
+/// [`seed`] with its count and is passed its whole age in one step under
+/// `wind`, as run1559b's packet holds the tanks' dust: every one of the
+/// newest births there moves at `g · age · drag`, one call's velocity.
+/// `frame` is the visit's game frame; the angle is drawn from a hash, as
+/// [`plume`]'s.
+pub fn back_calc(
+    sys: &System,
+    e: &mut Emitter,
+    now: u32,
+    frame: i64,
+    wind: [f32; 3],
+    ground: &dyn Fn(f32, f32) -> f32,
+) -> Vec<(Particle, [f32; 3])> {
+    let life = sys.life();
+    let freq = sys.freq.max(1);
+    let from = e.last_view.max(now.saturating_sub(life));
+    let mut at = e.left_over + from;
+    let mut out = Vec::new();
+    while at <= now {
+        e.left_over = 0;
+        let (mut pos, mut vel) = start(
+            sys,
+            e.anchor,
+            e.dir,
+            seed(frame, e.anchor, e.random, e.counter),
+        );
+        let age = now - at;
+        let g = ground(pos[0], pos[1]);
+        sys.step(&mut pos, &mut vel, age as f32, wind, g);
+        let key = mix(e.counter ^ mix(at));
+        let mut angle = 0.0;
+        if sys.rotation > 0 {
+            let r = u32::from(sys.rotation);
+            let turn = (draw(key, 7, r) as f32 - (r / 2) as f32) / FRAME_MS;
+            angle = draw(key, 6, 360) as f32 + turn * age as f32;
+        }
+        out.push((
+            Particle {
+                pos,
+                angle,
+                time_left: life.saturating_sub(age),
+            },
+            vel,
+        ));
+        e.counter += 1;
+        e.last_view = at;
+        at += freq;
+    }
+    if e.left_over == 0 && at > now {
+        e.left_over = at - now;
+    }
+    out
+}
+
 /// **A particle's quad**: its four corners and their texture coordinates,
 /// `right` and `up` the camera's axes in the world (`xvec`, `yvec`), in the
 /// order `Particle::draw` lays them: `−r + u`, `+r + u`, `+r − u`, `−r − u`.
