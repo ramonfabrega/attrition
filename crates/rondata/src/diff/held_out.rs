@@ -1885,6 +1885,83 @@ mod tests {
         }
     }
 
+    /// **Row 10's Jet Fighter shot down falls as the ammo line's record**
+    /// (item 4523, `docs/RECGAME.md` §11): run1739, the ranges take of
+    /// run1730's file. who=1's Jet Fighter `1/114` (TI 295, air) dies on
+    /// `AIR_PATROL` on 5177, and `Ammo::init_crash@0067b800` lays its
+    /// round in slot 0. Theirs prints it from 5178, where ours emitted no
+    /// line. Every ammo range on 5176..=5200, byte for byte, and on 5178
+    /// theirs' `rolling` −2 (`+0x5`), `dx` 93.18 (`+0x58`, the landing's
+    /// first drift), `bank_dx`/`bank_dy` −8.0 and −17.0 and
+    /// `start_roll_angle` 0 (`+0x64`, guy 0's bank truncated).
+    #[test]
+    fn row_10_s_jet_fighter_shot_down_falls_as_the_ammo_line_s_record_on_run1739_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 0) else {
+            eprintln!("skipping: row 10's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1739/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1739's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 10's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 5176i64..=5200 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 3).collect();
+            let ours = built
+                .sim
+                .checksum_ammo()
+                .unwrap_or_else(|| panic!("ours emits the ammo line on {state}"));
+            assert_eq!(ours.ranges.len(), theirs.len(), "ammo ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                assert_eq!(
+                    at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                    None,
+                    "ammo range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                    a.record,
+                    a.field
+                );
+                assert_eq!(a.bytes.len(), b.bytes.len(), "ammo range {k} on {state}");
+            }
+            if state == 5178 {
+                // The crash, by name: `1/114`, TI 295.
+                let p = built.sim.combat.projectiles[0];
+                let sim::combat::Obj::Unit(u) = p.shooter else {
+                    panic!("a unit's round")
+                };
+                let u = &built.sim.units[u];
+                assert_eq!((u.owner, u.index, u.type_index), (1, 114, 295));
+                assert_eq!(u.kind.domain, sim::territory::attrition::Domain::Air);
+                assert!(p.crash.is_some());
+                // Record 0's body: `rolling` at byte 0, then word k at
+                // 3 + 4k: `dx` (20) at 83..87, the bank pair at 87..95,
+                // `start_roll_angle` at 95..99.
+                let body = &theirs[1].bytes;
+                assert_eq!(body[0], (-2i8) as u8, "rolling");
+                assert_eq!(&body[83..87], &0x42ba_5e0du32.to_le_bytes(), "dx");
+                assert_eq!(&body[87..91], &0xc100_0000u32.to_le_bytes(), "bank_dx");
+                assert_eq!(&body[91..95], &0xc188_0000u32.to_le_bytes(), "bank_dy");
+                assert_eq!(&body[95..99], &[0; 4], "start_roll_angle");
+            }
+        }
+    }
+
     /// **Row 130's Helicopters set apart keep their `dest_angle` too**
     /// (item 4522, `docs/RECGAME.md` §11): run1754, the ranges take of
     /// run1736's file, where 4508 left the row's units parting on 3515 at
