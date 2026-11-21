@@ -40196,3 +40196,7 @@ Files in place, `~/ron-golden/run1752/map-18/`: `gamelog_p.txt`, 2,432 bytes, SH
   1)`): units 2,983 → 3,359, first 3359 (range 3707, record 127, `myhits..launch_frames` byte 8, `inside_down` ours
   −1, theirs 128); leaders and groups as before. `diff::held_out::tests::row_105_s_ceo_carries_the_ceo_bit_from_its_set_type_on_run1752_s_ranges`
   holds every units range on 2982 and 2983.
+- **Re-scored by item 4511** (a unit host's `inside_down` chain is the order of entry): units 3,359 → 5,235, whole;
+  the first parting 3583 (leaders range 191, record 1, `oil_patches` ours 10, theirs 20), then groups 4355.
+  `diff::held_out::tests::row_105_s_freighter_chains_its_riders_in_the_order_they_boarded_on_run1752_s_ranges` holds
+  every units range on 3358 and 3359.

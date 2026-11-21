@@ -635,6 +635,36 @@ separates them); and the placement's own fallbacks, which no capture has
 forced (GOLDEN §52 names one).
 
 
+## 6.5 The chain aboard: the order of entry (item 4511, 2026-11-21)
+
+A unit host keeps its passengers in the same doubly-linked chain a building
+keeps its captains in (`docs/CITIES.md` §6). `Object::insert_inside@00647e90`
+appends at the bottom (`ObjectData::inside_bottom@00644000`). So the host's
+`inside_down` (`+0x28`) is the **first** figure aboard, each figure's
+`inside_down` is the one that boarded after it (−1 at the tail), and each
+figure's `inside_up` (`+0x82`) is the one before it, or the host for the
+first. `Object::remove_from_inside@006480f0` unlinks in place.
+
+**Diff-backed** by run1752 (row 105's ranges take), state 3359: who=1's
+Transport Freighter `1/135` (TI 322) is born and three German Infantry (TI
+103) go aboard, `1/127`, `1/128` and `1/129`. Theirs prints `inside_down` 127
+on the host, 128 on `1/127`, 129 on `1/128` and −1 on `1/129`, and
+`inside_up` 135, 127 and 128 (units ranges 3707, 3725, 3728, 3746 and 3951).
+This crate wrote the last rider by slot on the host, −1 on every rider, and
+the host above each.
+
+The order is kept as [`Unit::boarded`], stamped by [`Sim::board`] (one past
+the last figure aboard, for each figure it inserts) and by `repair_damage`'s
+regrown figure. [`Sim::cargo_chain`] reads the host's riders back in that
+order, and the checksum's `garrison_links` links them along it.
+
+*Not established*: on run1752 the boarding order is also the slot order, so
+the capture cannot tell the stamp from a sort by slot. The order is the
+reading's, and the unit test `a_boat_s_chain_is_the_order_its_riders_boarded`
+holds it. The other readers of a host's cargo still walk slot order:
+`do_attack`'s cargo (`orders/do_attack/live.rs`), `eject_contents`'s
+disembark, disband and delivery's riders (parked 4511a).
+
 ## 7. The civilian's island — `Unit::think_civilian_transport(colonise)@005f40d0`
 
 Two callers, both in the unit AI (`Unit::think` → `think_peasant` /

@@ -457,11 +457,14 @@ impl Sim {
             // host's chain; a follower counts in no garrison tally.
             self.coll_remove(n);
             self.chain_remove(n);
+            // A unit host's bottom (item 4511).
+            let boarded = self.board_stamp(b);
             let u = &mut self.units[n];
             if inside.is_some() {
                 u.inside = Some(b);
             } else {
                 u.inside_unit = Some(b);
+                u.boarded = boarded;
             }
             u.on_map = false;
         }
