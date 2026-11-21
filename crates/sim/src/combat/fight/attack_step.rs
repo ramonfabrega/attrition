@@ -688,6 +688,23 @@ impl Sim {
     /// here: chapter two's `0/7` and `0/8` fire together on 677, hold
     /// slots 1 and 2, and the first to come down on 683 takes `1/8` while
     /// the second finds it dead and rolls on.
+    /// **`Recycler<Spline>::pop@00478360`** (item 4495): the `Spline` a
+    /// closed round handed back last, by its arrays' sizes, or a fresh
+    /// one's zeros.
+    pub(crate) fn spline_pop(&mut self) -> combat::SplineCaps {
+        self.combat.spline_pool.pop().unwrap_or_default()
+    }
+
+    /// **`Ammo::close@006791a0`**: the round leaves the pool, and its
+    /// `Spline`, cleared, goes back on `Recycler<Spline>`'s stack (item
+    /// 4495).
+    pub(crate) fn close_ammo(&mut self, k: usize) {
+        let p = self.combat.projectiles.remove(k);
+        if let Some(s) = p.spline {
+            self.combat.spline_pool.push(s.caps());
+        }
+    }
+
     pub(crate) fn add_ammo(&mut self, mut p: combat::Projectile) {
         let live: Vec<u32> = self.combat.projectiles.iter().map(|q| q.slot).collect();
         let slot = lowest_free_slot(&live);
@@ -1139,7 +1156,8 @@ impl Sim {
                 }
             });
             // The spline is kept (item 3802): `Ammo::inc_time` steps it.
-            let path = combat::missile_spline(launch, sz, landing, ez, lead, d);
+            let path = combat::missile_spline(launch, sz, landing, ez, lead, d)
+                .recycled(self.spline_pop());
             spline = Some(path);
             i32::try_from(path.len()).expect("at most SPLINE_MAX")
         } else if let Some(u) = missile_unit {
@@ -1167,12 +1185,13 @@ impl Sim {
                         (self.ground_z(at), self.world.tile_mask(at.tile()))
                     },
                 );
-                let path = combat::Spline::cruise(&ctl[..n]);
+                let path = combat::Spline::cruise(&ctl[..n]).recycled(self.spline_pop());
                 spline = Some(path);
                 i32::try_from(path.len()).expect("at most SPLINE_MAX") - 1
             } else {
                 let path =
-                    combat::Spline::nuke((launch.x, launch.y, sz), (landing.x, landing.y, ez));
+                    combat::Spline::nuke((launch.x, launch.y, sz), (landing.x, landing.y, ez))
+                        .recycled(self.spline_pop());
                 spline = Some(path);
                 i32::try_from(path.len()).expect("at most SPLINE_MAX") - 1
             }

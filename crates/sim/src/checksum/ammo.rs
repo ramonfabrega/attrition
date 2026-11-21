@@ -1,22 +1,11 @@
 //! The occupied ammo pool in slot order. Each ordinary sprite contributes
 //! its flags, its 99-byte display record and the path byte, and a round
-//! that carries a nuke-arm spline its `SplineData` after them (item 4468).
+//! that carries a nuke-arm (item 4468) or `calc_from_dir` (item 4495)
+//! spline its `SplineData` after them.
 use super::{Line, Range};
 use crate::Sim;
 use crate::combat::{Spline, SplineArm};
 use crate::num::single::Single;
-
-/// `Array<T>::increase_size` with increment −1, as 4465 read
-/// `SimpleArray<int>`'s (`docs/CHECKSUM.md` §18): 4 from empty, then
-/// doubling. run1721's nuke spline holds 12 control points in 16 and 121
-/// points in 128.
-fn grown(n: usize) -> usize {
-    let mut cap = 0;
-    while cap < n {
-        cap = if cap == 0 { 4 } else { cap * 2 };
-    }
-    cap
-}
 
 /// **`SplineData::walk_data@009132b0`** of a nuke-arm spline (item 4468,
 /// `docs/CHECKSUM.md` §18): `type`..`depth` (`+0x40`..`+0x64`, 36 bytes),
@@ -26,19 +15,49 @@ fn grown(n: usize) -> usize {
 /// increment, the flags and the elements (`Array<Vector<float>>` one range
 /// an element, `SimpleArray<float>` one for all). `None` for an arm whose
 /// walk is not read.
+///
+/// The `calc_from_dir` arm (item 4495): `max_control_depth_ratio` 4.0, the
+/// degree 2 and the depth `set_min_seg_length` wrote, its three control
+/// points, no `knots`, `clamp_knots`' `0 0 0 1 1 1`. Every array's size is
+/// the `Spline`'s own ([`Spline::caps`]), which a recycled one carries
+/// from its last round.
 fn spline_ranges(path: &Spline) -> Option<Vec<(&'static str, Vec<u8>)>> {
-    let SplineArm::Nuke { s, e } = path.arm() else {
-        return None;
-    };
-    let parts = Spline::nuke_parts(s, e);
-    let n = parts.ctl.len();
-    let (normals, length) = path.normals([parts.ctl[n - 2], parts.ctl[n - 1]]);
+    let zero = Single::ZERO;
+    let one = Single::from_bits(0x3f80_0000);
+    let nuke;
+    let arm = path.arm();
+    let (ratio, degree, depth, ctl, weights, knots): (i32, u16, u16, &[[Single; 3]], &[Single], &[Single]) =
+        match &arm {
+            SplineArm::Nuke { s, e } => {
+                nuke = Spline::nuke_parts(*s, *e);
+                (
+                    0,
+                    3,
+                    crate::air::MISSILE_FLIGHT as u16,
+                    &nuke.ctl,
+                    &nuke.weights,
+                    &nuke.knots,
+                )
+            }
+            SplineArm::FromDir { ctl, depth } => (
+                0x4080_0000,
+                2,
+                *depth,
+                ctl,
+                &[],
+                &[zero, zero, zero, one, one, one],
+            ),
+            SplineArm::Unwalked => return None,
+        };
+    let caps = path.caps();
+    let n = ctl.len();
+    let (normals, length) = path.normals([ctl[n - 2], ctl[n - 1]]);
     let mut out = Vec::new();
     let mut head = Vec::with_capacity(36);
     for word in [
         3,                      // type: `generate_bspline`
         0x10,                   // flags: `Ammo::init`'s
-        0,                      // max_control_depth_ratio
+        ratio,                  // max_control_depth_ratio
         length.bits() as i32,   // total_spline_length
         0,                      // last_knot
         0xbf80_0000_u32 as i32, // curr_dist, −1.0 (`Spline::clear`)
@@ -47,8 +66,8 @@ fn spline_ranges(path: &Spline) -> Option<Vec<(&'static str, Vec<u8>)>> {
     ] {
         head.extend(word.to_le_bytes());
     }
-    head.extend(3u16.to_le_bytes()); // degree
-    head.extend((crate::air::MISSILE_FLIGHT as u16).to_le_bytes()); // depth
+    head.extend(degree.to_le_bytes());
+    head.extend(depth.to_le_bytes());
     out.push(("spline.type..depth", head));
     let header = |out: &mut Vec<(&'static str, Vec<u8>)>,
                   name: [&'static str; 4],
@@ -61,13 +80,15 @@ fn spline_ranges(path: &Spline) -> Option<Vec<(&'static str, Vec<u8>)>> {
             out.push((name[3], vec![0]));
         }
     };
-    let verts =
-        |out: &mut Vec<(&'static str, Vec<u8>)>, name: [&'static str; 5], vs: &[[Single; 3]]| {
+    let verts = |out: &mut Vec<(&'static str, Vec<u8>)>,
+                 name: [&'static str; 5],
+                 vs: &[[Single; 3]],
+                 cap: u32| {
             header(
                 out,
                 [name[0], name[1], name[2], name[3]],
                 vs.len(),
-                grown(vs.len()),
+                cap as usize,
             );
             for v in vs {
                 out.push((
@@ -76,13 +97,15 @@ fn spline_ranges(path: &Spline) -> Option<Vec<(&'static str, Vec<u8>)>> {
                 ));
             }
         };
-    let floats =
-        |out: &mut Vec<(&'static str, Vec<u8>)>, name: [&'static str; 5], fs: &[Single]| {
+    let floats = |out: &mut Vec<(&'static str, Vec<u8>)>,
+                  name: [&'static str; 5],
+                  fs: &[Single],
+                  cap: u32| {
             header(
                 out,
                 [name[0], name[1], name[2], name[3]],
                 fs.len(),
-                fs.len(),
+                cap as usize,
             );
             if !fs.is_empty() {
                 out.push((
@@ -100,7 +123,8 @@ fn spline_ranges(path: &Spline) -> Option<Vec<(&'static str, Vec<u8>)>> {
             "control_verts.flags",
             "control_verts[k]",
         ],
-        &parts.ctl,
+        ctl,
+        caps.ctl,
     );
     floats(
         &mut out,
@@ -111,7 +135,8 @@ fn spline_ranges(path: &Spline) -> Option<Vec<(&'static str, Vec<u8>)>> {
             "knots.flags",
             "knots[..]",
         ],
-        &parts.weights,
+        weights,
+        caps.knots,
     );
     floats(
         &mut out,
@@ -122,7 +147,8 @@ fn spline_ranges(path: &Spline) -> Option<Vec<(&'static str, Vec<u8>)>> {
             "spline_knots.flags",
             "spline_knots[..]",
         ],
-        &parts.knots,
+        knots,
+        caps.spline_knots,
     );
     floats(
         &mut out,
@@ -134,6 +160,7 @@ fn spline_ranges(path: &Spline) -> Option<Vec<(&'static str, Vec<u8>)>> {
             "weights[..]",
         ],
         &[],
+        caps.weights,
     );
     verts(
         &mut out,
@@ -145,6 +172,7 @@ fn spline_ranges(path: &Spline) -> Option<Vec<(&'static str, Vec<u8>)>> {
             "spline_verts[k]",
         ],
         path.points(),
+        caps.verts,
     );
     verts(
         &mut out,
@@ -156,6 +184,7 @@ fn spline_ranges(path: &Spline) -> Option<Vec<(&'static str, Vec<u8>)>> {
             "spline_normals[k]",
         ],
         &normals,
+        caps.normals,
     );
     Some(out)
 }
@@ -164,8 +193,10 @@ impl Sim {
     pub fn checksum_ammo(&self) -> Option<Line> {
         let mut ranges = Vec::with_capacity(self.combat.projectiles.len() * 3);
         for p in &self.combat.projectiles {
-            // Guided paths and falling aircraft have separate display records.
-            if p.graphic.guided || p.crash.is_some() {
+            // Falling aircraft have a separate display record. A guided
+            // round walks its spline (item 4495); one without a spline is
+            // not read.
+            if p.crash.is_some() || (p.graphic.guided && p.spline.is_none()) {
                 return None;
             }
             // A spline is walked after the path byte; an arm whose walk is

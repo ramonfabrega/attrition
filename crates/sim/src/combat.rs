@@ -2335,6 +2335,68 @@ pub struct Spline {
     pts: [[Single; 3]; SPLINE_MAX],
     len: u8,
     arm: SplineArm,
+    /// What the arm writes into each array: the length each must hold.
+    need: SplineCaps,
+    /// Each array's `size`, which [`Spline::clear@00914410`] never
+    /// touches: the `Spline` came off `Recycler<Spline>` holding the
+    /// capacities its last round grew ([`Spline::recycled`]).
+    caps: SplineCaps,
+}
+
+/// **The six arrays of a `SplineData`, by their `size`** (item 4495,
+/// `docs/CHECKSUM.md` §18): `control_verts` (`+0x64`), `knots` (`+0x80`),
+/// `spline_knots` (`+0xb8`), `weights` (`+0x9c`), `spline_verts`
+/// (`+0xd4`) and `spline_normals` (`+0xf0`). `Spline::clear@00914410`
+/// zeroes each length and no size, and `Ammo::close@006791a0` hands the
+/// cleared `Spline` back to `Recycler<Spline>`'s stack, whose `pop@00478360`
+/// gives it to the next round that lays one; `SplineData::walk_data`
+/// prints a non-empty array's size. run1721's Jet Fighter missile on 3209
+/// pops the nuke's `Spline` of 2617: three control points in 16, six
+/// knots in 16, thirteen points in 128.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct SplineCaps {
+    pub ctl: u32,
+    pub knots: u32,
+    pub spline_knots: u32,
+    pub weights: u32,
+    pub verts: u32,
+    pub normals: u32,
+}
+
+impl SplineCaps {
+    /// `increase_size` with increment −1, one push at a time: 4 from
+    /// empty, then doubling, as 4465 read `SimpleArray<int>`'s.
+    fn doubled(cap: u32, n: u32) -> u32 {
+        let mut c = cap;
+        while c < n {
+            c = if c == 0 { 4 } else { c * 2 };
+        }
+        c
+    }
+
+    /// `Array<Object*>::make_valid@0045da30` to `n` with increment −1:
+    /// short by no more than the size, it doubles; else it takes `n`.
+    fn made_valid(cap: u32, n: u32) -> u32 {
+        if cap >= n {
+            cap
+        } else if n - cap <= cap {
+            cap * 2
+        } else {
+            n
+        }
+    }
+
+    /// These capacities after an arm writes `need` into them.
+    pub fn grown(self, need: SplineCaps) -> SplineCaps {
+        SplineCaps {
+            ctl: Self::doubled(self.ctl, need.ctl),
+            knots: Self::made_valid(self.knots, need.knots),
+            spline_knots: Self::doubled(self.spline_knots, need.spline_knots),
+            weights: Self::doubled(self.weights, need.weights),
+            verts: Self::doubled(self.verts, need.verts),
+            normals: Self::doubled(self.normals, need.normals),
+        }
+    }
 }
 
 /// **Which arm of the original laid a [`Spline`]**, so the ammo line can
@@ -2343,10 +2405,15 @@ pub struct Spline {
 /// the points, and only the nuke arm's are read whole.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SplineArm {
-    /// `calc_from_dir` and the Cruise Missile's arm: their header, knot
-    /// arrays and normals are not read for the walk, and the ammo line
-    /// refuses a round that carries one.
+    /// The Cruise Missile's arm: its header, knot arrays and normals are
+    /// not read for the walk, and the ammo line refuses a round that
+    /// carries one.
     Unwalked,
+    /// `calc_from_dir`'s arm ([`Spline::from_dir`], item 4495): its three
+    /// control points and `depth` (`+0x62`), the resolution
+    /// `set_min_seg_length` wrote, which `calc_spline` restores after its
+    /// cap.
+    FromDir { ctl: [[Single; 3]; 3], depth: u16 },
     /// `calc_nuke_spline`'s other arm ([`Spline::nuke`]), from `s` to `e`.
     Nuke {
         s: (i32, i32, i32),
@@ -2392,6 +2459,27 @@ impl Spline {
     /// The arm that laid it.
     pub fn arm(&self) -> SplineArm {
         self.arm
+    }
+
+    /// Each array's `size` ([`SplineCaps`]).
+    pub fn caps(&self) -> SplineCaps {
+        self.caps
+    }
+
+    /// **The arm laid into a `Spline` off `Recycler<Spline>`** (item
+    /// 4495): the same points, in arrays whose sizes start at `from` —
+    /// `Recycler<Spline>::pop@00478360`'s top, or a fresh `Spline`'s
+    /// zeros — and grow by what the arm writes.
+    pub fn recycled(mut self, from: SplineCaps) -> Spline {
+        self.caps = from.grown(self.need);
+        self
+    }
+
+    /// What this arm writes into each array.
+    fn with_need(mut self, need: SplineCaps) -> Spline {
+        self.need = need;
+        self.caps = SplineCaps::default().grown(need);
+        self
     }
 
     /// The points laid, `spline_verts` (`+0xd4`).
@@ -2485,7 +2573,8 @@ impl Spline {
         let ctl = [start, dir, end];
         let zero = Single::from_bits(0);
         let one = Single::from_bits(0x3f80_0000);
-        let mut res = i32::from(polygon_length(&ctl).divss(speed).to_i32() as u16);
+        let depth = polygon_length(&ctl).divss(speed).to_i32() as u16;
+        let mut res = i32::from(depth);
         let cap = Single::from_i32(3)
             .mulss(Single::from_bits(0x4080_0000))
             .to_i32();
@@ -2493,7 +2582,16 @@ impl Spline {
             res = cap;
         }
         res = res.max(DEGREE as i32);
-        Spline::generate(&ctl, DEGREE, &[zero, zero, zero, one, one, one], res)
+        let mut out = Spline::generate(&ctl, DEGREE, &[zero, zero, zero, one, one, one], res);
+        out.arm = SplineArm::FromDir { ctl, depth };
+        let n = out.len() as u32;
+        out.with_need(SplineCaps {
+            ctl: 3,
+            spline_knots: 6,
+            verts: n,
+            normals: n,
+            ..SplineCaps::default()
+        })
     }
 
     /// **`Spline::calc_nuke_spline@00913ad0`'s Cruise Missile arm**
@@ -2530,7 +2628,18 @@ impl Spline {
             }
             *slot = k;
         }
-        Spline::generate(&ctl[..n], DEGREE, &knots[..n + DEGREE + 1], res)
+        let out = Spline::generate(&ctl[..n], DEGREE, &knots[..n + DEGREE + 1], res);
+        // SEAM: the arm's `knots` (`+0x80`) are taken as `make_valid(n +
+        // 4)`'s, the nuke arm's, read at `913e96` but not walked.
+        let m = out.len() as u32;
+        out.with_need(SplineCaps {
+            ctl: n as u32,
+            knots: n as u32 + 5,
+            spline_knots: (n + DEGREE + 1) as u32,
+            verts: m,
+            normals: m,
+            ..SplineCaps::default()
+        })
     }
 
     /// **`Spline::calc_nuke_spline@00913ad0`'s other arm** (`param_4 ==
@@ -2565,7 +2674,15 @@ impl Spline {
             crate::air::MISSILE_FLIGHT,
         );
         out.arm = SplineArm::Nuke { s, e };
-        out
+        let n = out.len() as u32;
+        out.with_need(SplineCaps {
+            ctl: NUKE_CTL as u32,
+            knots: (NUKE_CTL + 5) as u32,
+            spline_knots: (NUKE_CTL + 4) as u32,
+            verts: n,
+            normals: n,
+            ..SplineCaps::default()
+        })
     }
 
     /// [`Spline::nuke`]'s control points, weights and knots.
@@ -2647,6 +2764,8 @@ impl Spline {
             pts: [[zero; 3]; SPLINE_MAX],
             len: 0,
             arm: SplineArm::Unwalked,
+            need: SplineCaps::default(),
+            caps: SplineCaps::default(),
         };
         s.push(ctl[0]);
         let mut t = knots[0].addss(delta);
@@ -3055,6 +3174,13 @@ pub struct CombatState {
     pub table: crate::combat::Table,
     /// Ammo in flight.
     pub projectiles: Vec<crate::combat::Projectile>,
+    /// **`Recycler<Spline>::temp_pool`** (item 4495): the cleared
+    /// `Spline`s a closed round handed back, by their arrays' sizes, top
+    /// last. `Ammo::close@006791a0` pushes; `Ammo::init@0067bbf0` pops for
+    /// a round that lays a spline. SEAM: the pool starts empty here; the
+    /// map's rivers share it (`River::init`, `River::close`), and no
+    /// capture shows a river's `Spline` handed to a round.
+    pub spline_pool: Vec<crate::combat::SplineCaps>,
     pub next_ammo_graph_index: u32,
     /// The nukes' effects and what a nuke writes on its shooter's leader
     /// and silo (`crate::combat::nuke`, item 1091).

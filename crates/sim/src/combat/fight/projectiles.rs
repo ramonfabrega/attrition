@@ -260,7 +260,7 @@ impl Sim {
             // [`Sim::hold_frames_tick`]'s, as for any round.
             if p.spent {
                 if p.cur_time >= SPENT_LIFE {
-                    self.combat.projectiles.remove(i);
+                    self.close_ammo(i);
                 } else {
                     i += 1;
                 }
@@ -303,7 +303,7 @@ impl Sim {
                     .iter()
                     .position(|q| q.slot == p.slot)
                 {
-                    self.combat.projectiles.remove(k);
+                    self.close_ammo(k);
                 }
                 i = self
                     .combat
@@ -341,7 +341,7 @@ impl Sim {
                     // and `close` is not `do_damage`, so a shot that
                     // never meets the ground damages nothing.
                     if (p.total_time.wrapping_mul(3) as u32) < p.cur_time as u32 {
-                        self.combat.projectiles.remove(i);
+                        self.close_ammo(i);
                         continue;
                     }
                     // On along the line, and down the arc (§46.1): the
@@ -354,7 +354,7 @@ impl Sim {
                         || at.x >= self.world.width() * UNITS_PER_CELL
                         || at.y >= self.world.height() * UNITS_PER_CELL
                     {
-                        self.combat.projectiles.remove(i);
+                        self.close_ammo(i);
                         continue;
                     }
                     let z = combat::arc_z(p.v1z, p.sz, p.cur_time);
@@ -390,7 +390,7 @@ impl Sim {
                 .position(|q| q.slot == p.slot)
                 && !self.combat.projectiles[k].spent
             {
-                self.combat.projectiles.remove(k);
+                self.close_ammo(k);
             }
             i = self
                 .combat
@@ -472,7 +472,8 @@ impl Sim {
             let dir = [0, 1, 2].map(|c| ahead[c].subss(from[c]).mulss(two).addss(from[c]));
             let end = [at.x, at.y, tz].map(Single::from_i32);
             let speed = Single::from_i32(200 * combat::UNIT_MOVE_SPEED);
-            let next = combat::Spline::from_dir(from, dir, end, speed);
+            // `inc_time` re-lays the round's own `Spline` (item 4495).
+            let next = combat::Spline::from_dir(from, dir, end, speed).recycled(path.caps());
             let q = &mut self.combat.projectiles[i];
             q.landing = at;
             q.ez = tz;
