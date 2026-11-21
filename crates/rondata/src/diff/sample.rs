@@ -584,9 +584,11 @@ pub(in crate::diff) mod tests {
     /// 3904): units 3906 -> 3921, builds 3904 -> 3981, ammo 3920 -> 3936,
     /// guys 3906 -> 3932, leaders 3925 -> 3945, world 3904 -> 3943; groups
     /// 4004 -> 3935, items 5474 -> 5235, goods 4458 -> 4171, named falls
-    /// past units' new 3921.
+    /// past units' new 3921. Item 4479 (a `REPAIR` order's flags and
+    /// target, `TargetOrder::walk_data@0047f220`, unit `3/11` on 3921):
+    /// units 3921 -> 3932.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 3921),
+        ("units", 3932),
         ("builds", 3981),
         ("walls", 21044),
         ("ammo", 3936),
@@ -1126,16 +1128,14 @@ pub(in crate::diff) mod tests {
     /// tiles' `0x1000` clear -> set on 3904; builds 3904 -> 3981, world
     /// 3904 -> 3943, units 3906 -> 3921, guys 3906 -> 3932, ammo 3920 ->
     /// 3936, leaders 3925 -> 3945, groups 4004 -> 3935 (after units' and
-    /// guys' new partings); deaths' 3932 stands.
+    /// guys' new partings); deaths' 3932 stands. Item 4479 (a `REPAIR`
+    /// walks `TargetOrder::walk_data@0047f220`, the flags and the target):
+    /// units' `2190 11` unit `3/11`'s second order, `order.flags` 04|04 and
+    /// `order.target` (2010, 3, 0x31) on both sides, absent in ours before
+    /// -> agree; units 3921 -> 3932, onto guys' parting; every other line
+    /// unchanged.
     const SAMPLE_RANGES_1724: &[(&str, i64, usize, usize, usize, &str)] = &[
-        (
-            "units",
-            3921,
-            3680,
-            3678,
-            1471,
-            "2190 11 guys.length: +0x0 of 4|1: 01000000|04",
-        ),
+        ("units", 3932, 3633, 3633, 1, "2577 34 guy: cur_anim 12|13"),
         (
             "builds",
             3981,
