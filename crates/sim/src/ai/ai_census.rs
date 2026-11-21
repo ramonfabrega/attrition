@@ -441,14 +441,15 @@ impl Sim {
     }
 
     /// Step 7. `invaders[who]` is cleared on **every** active leader,
-    /// mine included; step 10 refills it.
+    /// mine included; step 10 refills it. Active is the slot's
+    /// `leader_flags & 1` (`plan_strategy@006b9620`), which a seated leader
+    /// holds and `Leader::defeat@006ecb00` keeps: a defeated leader's count
+    /// is cleared too (item 4525, run1771: leader 1's `invaders[3]`, ours 5
+    /// held from its defeat on 5256, theirs 0 on 5326).
     fn census_clear_invaders(&mut self, who: Player) {
         let w = who as usize;
         let players = self.territory.players.len();
         for i in 0..players {
-            if self.leaders.defeated[i] {
-                continue;
-            }
             let inv = &mut self.ai.ai[i].census.invaders;
             inv.resize(players, 0);
             inv[w] = 0;
@@ -664,11 +665,11 @@ impl Sim {
             }
 
             // The invader count: a military unit without `role & 0x10`,
-            // standing on a cell another active leader owns.
+            // standing on a cell another active leader owns (`& 1`, step 7's
+            // gate: a defeated owner counts).
             if roles & (ROLE_MILITARY | ROLE_NO_INVADE) == ROLE_MILITARY
                 && let Some(o) = self.world.owner(self.units[u].pos.cell()).player()
                 && o as usize != w
-                && !self.leaders.defeated[o as usize]
             {
                 let players = self.territory.players.len();
                 let inv = &mut self.ai.ai[o as usize].census.invaders;
