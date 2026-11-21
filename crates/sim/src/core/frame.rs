@@ -71,7 +71,6 @@ impl Sim {
     ///   more tick up to 32 frames after walking out — and, symmetrically,
     ///   takes nothing for up to 32 frames after walking in.
     pub fn tick(&mut self) -> Vec<Tick> {
-        self.p4477b();
         self.in_play = true;
         let frame = self.frame;
         let mut events = Vec::new();
