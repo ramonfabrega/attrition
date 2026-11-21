@@ -3105,6 +3105,10 @@ run1113/1114. `wonderwin_timer` 1 in 30 captures (run652 … run1423c).
   `unit_masks & ~0x4000000` (4204b).
 - **`lost_a_city`'s `param_1`, `param_2` and captor** are derived by its
   callers (`Build::close`), owned by §11.
+- **`Leader::defeat@006ecb00`'s unit loop** (parked 4500a): the loser's
+  planes die (vslot `0x158` under `0xc0` `is_plane`), and every unit
+  loses `unit_masks & 0x40000`. `Sim::defeat` only clears orders. The
+  sample's 5255 defeat (computer 1, no plane) does not reach it.
 - **The pins:** run1200's loss is held by `korean_ancient_pair`'s closing
   walk since item 4185, and run600's closing block by `third_pair` since
   item 4189.

@@ -339,6 +339,14 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x0061_a560), // `Unit::go_inside+0x280`, through `Unit::set_anim`
         sim::units::anim::SITE_GO_INSIDE,
     ),
+    // `Unit::come_out@00617c10+0xbae` — a scholar leaving its host,
+    // through `Unit::set_anim` (item 4500): the 2017 sample's 5255 printed
+    // it bare as `5dac7a`.
+    (
+        0x005d_ac7a,
+        Some(0x0061_87be), // `Unit::come_out+0xbae`, through `Unit::set_anim`
+        sim::units::anim::SITE_COME_OUT_SCHOLAR,
+    ),
     // `Unit::do_move@005f7b30+0x11cf` — an unarmed attack-move standing
     // out its pause, through `Unit::set_anim`; the trace printed it bare as
     // `5dac7a` on golden chapter four's 1416 until item 569

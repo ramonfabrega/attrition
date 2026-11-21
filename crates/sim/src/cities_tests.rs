@@ -9603,6 +9603,50 @@ fn a_scholar_is_seated_facing_north_on_its_frame() {
     );
 }
 
+/// **A scholar rises with its forced idle roll** (item 4500,
+/// `Unit::come_out@00617c10:548`, `6187a1`..`6187b9`): a `SCHOLARS` or
+/// `SCHOLARSKOREAN` unit leaving a building is given `set_anim(CHAR_DEFAULT,
+/// 1, 1)`, one draw marked `Unit::come_out+0xbae`; any other unit leaves
+/// without it. The 2017 sample's 5255: the captured University `1/2014`
+/// ejects Scholar `1/21`, theirs' game draw 6.
+///
+/// Made to fail with the scholar arm dropped from `Sim::come_out`.
+#[test]
+fn a_scholar_rises_from_its_host_with_the_forced_idle_roll() {
+    use crate::units::anim::SITE_COME_OUT_SCHOLAR;
+    let rise = |scholar: bool| {
+        let (mut sim, t, _, militia) = alarm_sim();
+        let (b, _) = city_at(&mut sim, &t, 0, 32, 32);
+        if scholar {
+            sim.tables.unit_types[militia].worker = crate::orders::Worker::Scholar;
+        }
+        let m = sim.init_unit(0, militia, tile_pos(36, 36));
+        sim.go_inside(m, b);
+        sim.trace.trace_phases = true;
+        sim.trace.phase_marks.clear();
+        let seed = sim.rng.seed;
+        assert!(sim.come_out(m));
+        let marked: Vec<u32> = sim
+            .trace
+            .phase_marks
+            .iter()
+            .filter(|(p, _)| p == SITE_COME_OUT_SCHOLAR)
+            .map(|(_, w)| *w)
+            .collect();
+        (marked, seed, sim.rng.seed)
+    };
+    let (marked, before, after) = rise(true);
+    assert_eq!(
+        marked,
+        vec![before],
+        "one rising mark, on the word it drew from"
+    );
+    assert_ne!(before, after, "and the roll is spent");
+    let (marked, before, after) = rise(false);
+    assert!(marked.is_empty(), "no rising for a militia");
+    assert_eq!(before, after, "and no draw");
+}
+
 /// **The garrison chain's words are the original's order** (item 4257,
 /// `Object::insert_inside@00647e90`, which appends at the bottom, and
 /// `Object::remove_from_inside@006480f0`, which unlinks in place):

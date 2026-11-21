@@ -434,6 +434,7 @@ impl Sim {
         }
         self.update_action(captain);
         let host_angle = self.units[captain].movement.heading;
+        let mut out = Vec::new();
         for f in self.squad_of(captain) {
             if f == captain || self.units[f].inside != Some(b) {
                 continue;
@@ -448,6 +449,7 @@ impl Sim {
             // facing, not their own.
             if let Some(s) = self.come_out_unit_host_spot(f, captain) {
                 self.come_out_place(f, s, Some(host_angle), true);
+                out.push(f);
                 // **The member's own `come_out` runs the same tail**
                 // (`Unit::come_out@00617c10:545`, the `o_down` recursion,
                 // then `:552`..`:563`): a computer's unit that is not a
@@ -466,6 +468,18 @@ impl Sim {
                     self.clear_partial_path(f);
                     self.update_action(f);
                 }
+            }
+        }
+        // **A scholar rises** (item 4500): `Unit::come_out@00617c10:548`,
+        // after the `o_down` recursion, gives a `SCHOLARS` or
+        // `SCHOLARSKOREAN` unit `set_anim(CHAR_DEFAULT, 1, 1)` — the forced
+        // idle roll, [`SITE_COME_OUT_SCHOLAR`](crate::units::anim::SITE_COME_OUT_SCHOLAR).
+        // The recursion places each member and runs its own tail before its
+        // caller's, so the deepest member rolls first and the captain last.
+        if self.worker_of(captain) == crate::orders::Worker::Scholar {
+            for &f in out.iter().rev().chain(std::iter::once(&captain)) {
+                self.mark(crate::units::anim::SITE_COME_OUT_SCHOLAR);
+                self.set_anim(f, crate::units::anim::DEFAULT, true, true);
             }
         }
         // **`nukes_launched[owner] += 1`** (`61883d`..`6188fa`,
