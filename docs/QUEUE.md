@@ -57,7 +57,7 @@ lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when
 4489. **The 2017 sample, from builds 4026** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §7). 4488 let a packed Merchant
 die through `Unit::close`'s death draw and leave its `DEATH_OBJS` records (computer 1's 1/18, TI 61, killed walking on 3931;
 `local_1c` needs `unit_masks & 0x80000` clear and `!is_packing`): draws 3931 → 4182, and every line's first parting is 4026 or
-later (units, guys, leaders and world 4183; groups 4188; ammo 4192; cities 4326; goods 4436; deaths 4657; items 5434). run1724's
+later (units, guys, leaders and world 4183; groups 4188; ammo 4192; cities 4326; goods 4436; deaths 4657; the items line on 5434). run1724's
 ranges are whole to 4130 but builds: on 4026, `2810 2005 queue[k] job_counter` ours 100, theirs 0. First act: build 2810's queue on
 4025 and 4026, from the ranges on disk. Run 1726 stays reserved. Re-pin `SAMPLE_LINES`; the driver writes `Parity:`. It stops when
 two landings running move no line's first parting (145 §4).
