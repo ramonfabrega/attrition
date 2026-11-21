@@ -148,6 +148,14 @@ pub mod umask2 {
     /// (`& 0xfffdefff`). SEAM: `get_damage`'s reader of it
     /// (the damage target's `antipater_entrenched`) is not wired.
     pub const ANTIPATER_TRENCH: u32 = 0x1000;
+    /// **`0x400` — the Kremlin's spy** (item 4524, `docs/AI.md` §188,
+    /// `docs/RECGAME.md` §11): `Build::process@0061edf0:318`..`320` ORs it
+    /// into the spy it trains (`*(unit + 0x6c) |= 0x400`, `UnitData
+    /// +0x6c`), its one writer; `Unit::close@0060ee50:81` and
+    /// `Build::activate@00623e20:1402`'s tagged-spy test read it. The tagged spy stands outside the owner's
+    /// `control`. run1754's `1/169` prints `unit_masks2` 1024 from its
+    /// birth on 4583.
+    pub const KREMLIN_SPY: u32 = 0x400;
 }
 
 /// The `obj_masks` bits by the names the shipped `balance.xml` gives them

@@ -1225,11 +1225,11 @@ Helicopters set apart keep `dest_angle`, `docs/PRODUCTION.md`, "The
 push's angle". **Row 10 is whole** (item 4523, ammo 5,962 → 6,001): a
 falling aircraft's round, `docs/CHECKSUM.md` §18.4.
 
-**Row 130, run1754's leaves**: the bomber `1/158` searches round itself
-(item 4508, `find_new_bomber_target@005eb960`; units 3411 → 3515), 4522's
-helicopters (3515 → 4583). Leaders whole (item 4520): from the Kremlin's
-finish on 4573 to its spy on 4583 `leader_flags` holds `0x10000000`, which
-the checksum never printed (range 128, byte 3: ours `0x0e`, theirs `0x1e`).
+**Row 130 is whole**, from run1754's leaves: the bomber `1/158` searches
+round itself (item 4508, `find_new_bomber_target@005eb960`), 4522's
+helicopters, the Kremlin's spy-due `leader_flags & 0x10000000` (item
+4520, leaders range 128), and its spy `1/169`'s `unit_masks2 & 0x400`
+(item 4524, `Build::process@0061edf0:320`; units range 4183 on 4583).
 
 ### 11.1 Parity held out, third: rows 5 to 145 (item 4487)
 
