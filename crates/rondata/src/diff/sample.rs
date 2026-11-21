@@ -674,12 +674,18 @@ pub(in crate::diff) mod tests {
     /// age-behind arm; the person's Classical Age at Library `3/2005` on
     /// 4320, `cost[0]` ours 200, theirs 180): builds 4321 -> 5293, leaders
     /// 4321 -> 5256; items 12663 -> 8734, a named fall past the draw word
-    /// 5273; every other line unchanged, ammo 4462 the lowest.
+    /// 5273; every other line unchanged, ammo 4462 the lowest. Item 4515
+    /// (a building's round punctures by its piece,
+    /// `Ammo::do_damage@00678060`'s `verify_ammo_flags(+0x8, 1)`; gaia's
+    /// `0/2016` arrow at the person's `3/0`, rolled and missed, lands on
+    /// 4461 and reads `flags 1` on 4462 where ours closed it): ammo 4462
+    /// -> 5299; every other line unchanged, leaders and world 5256 the
+    /// lowest.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 5273),
         ("builds", 5293),
         ("walls", 21044),
-        ("ammo", 4462),
+        ("ammo", 5299),
         ("deaths", 5429),
         ("groups", 5311),
         ("guys", 5273),
@@ -796,8 +802,12 @@ pub(in crate::diff) mod tests {
     /// the first shot still on 2929. Item 4513 (an age is cheaper for a
     /// leader behind a non-allied rival; the person's Classical Age at 180
     /// food on 4320): 3747 -> 4772, a named rise past the draw word 5273,
-    /// the frames not read one by one; the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4772, Some(2929));
+    /// the frames not read one by one; the first shot still on 2929. Item
+    /// 4515 (a building's round punctures by its piece, so a building's
+    /// `BuildingArrow` that strikes nothing stays 200 frames as a spent
+    /// arrow): 4772 -> 4723, -49, a named fall, the frames not read one by
+    /// one; the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4723, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
@@ -1338,7 +1348,12 @@ pub(in crate::diff) mod tests {
     /// Library `3/2005` on 4320 while a computer holds it, and the
     /// original's `get_cost` takes `TECH_AGE_BEHIND_DISCOUNT` off; the 20
     /// food stays in theirs' bucket. Built (`Sim::ages_behind`): both whole
-    /// to 4500, three rows -> one.
-    const SAMPLE_RANGES_1726: &[(&str, i64, usize, usize, usize, &str)] =
-        &[("ammo", 4462, 3, 0, 3, "0 -1 0067ab7e: +0x0 of 0|1: |01")];
+    /// to 4500, three rows -> one. Item 4515: ammo 4462, `0 -1 0067ab7e`
+    /// absent in ours, is gaia's `0/2016` `BuildingArrow` stuck in the
+    /// ground (`flags 1`, `cur_time` 0, `ex`/`ey`/`ez` (19677, 42075, 183),
+    /// `total_time` 23 off the rolled arm), which ours closed because a
+    /// building's round never punctured here. Built (the building arm's
+    /// `punctures` off its piece): ammo whole to 4500, one row -> none;
+    /// every kept line whole on run1726's window.
+    const SAMPLE_RANGES_1726: &[(&str, i64, usize, usize, usize, &str)] = &[];
 }
