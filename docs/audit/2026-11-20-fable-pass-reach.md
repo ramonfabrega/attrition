@@ -30,6 +30,9 @@ pass spawned no subagent and took no capture. The pass before it is
   before moved it 1,178. It keeps its seat; the road is long and uneven.
 - **The picture did not change this tranche.** The "fading wrecks" were
   three live tanks under a haze. The render seat reads what they are.
+- **The 06:07 wake was broken for half a day and nobody had armed
+  it.** A booking dropped a blank line the wake's parser needs. It is
+  mended and guarded.
 - **The tranche:** 23 lane sessions, 147.66 USD, 6.42 a landing, no red
   gate of 18. A landing waited 62.0 minutes, down from 71.4.
 - **The week:** 93 % at the pass's start against the stop, 99, on its
@@ -69,6 +72,8 @@ pass spawned no subagent and took no capture. The pass before it is
 - **4458a, 4462a and 4462b are items 4482, 4483 and 4485** (§4). 4472a
   was killed by item 4475. 4464c and 4476a stay parked.
 - **The sample keeps its seat** (§6).
+- **The opener is a paragraph of its own, by a guard** (§8): a wake
+  armed on the drain's queue would have spawned nothing.
 - **Marked rows:** no `FABLE:` marker and no second reading in the
   tranche.
 
@@ -110,7 +115,10 @@ still at the tip is that one, and nothing was redrawn or uploaded.
   `the_handoff_s_parity_line_is_the_pinned_sample` in
   `crates/rondata/src/diff/sample.rs`, seen red on the queue without the
   line. It is in `release_gate.py`'s `COMMANDERS_LINES`.
-  `HANDOFF_LINES` 33 → 34.
+  `HANDOFF_LINES` 33 → 35.
+- `the_opener_is_a_paragraph_of_its_own` in `crates/sim/src/docs_guard.rs`,
+  seen red on the drain's queue, where `handover.py`'s `queue_opener`
+  raised.
 - The held-out lines' reach, in `held_out::queue_line`; both parsed lines
   were red until the queue carried it.
 - The paperwork: entry 147, this record, the queue's handoff and eleven

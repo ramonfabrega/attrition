@@ -161,7 +161,7 @@ is append-only and amended in place, as it always was.
 - 144 extended by 145 — The pass of 2026-11-19: item 4404's game is ratified as parity's seventh with its end tick pinned, a game is declared before the original plays it and parity held out is booked, the sample takes its ranges once, the lake gives up its seat, and the third seat names a city
 - 145 extended by 146 — The pass of 2026-11-19, second: parity held out is ratified at 0 of 8 and parsed on the scoreboard, a held-out game is spent once a lane reads it and a second battery is named, the lanes follow the eight with each game's ranges taken once, a lane lands one act and the driver counts the stop, the client opens every game on one camera, and `tranche.py` reads a booking's parentheses
 - 146 standing — The pass of 2026-11-20: a pass scores every held-out row with ranges on disk by leaf before it designs (rows 80 and 100 part builds on one bit of `build_masks`), the fold of the eight into the headline is recommended and left with Ramon, four seats and the second battery's item with its declaration first, 4450a closed by item 4453, and the eye's seat takes the fading wreck
-- 147 standing — The pass of 2026-11-20, second: the estimate is read by reach (27 % → 53 % of states before the first parting, where games and lines read 0 → 1 and 64 → 65), a third battery is named, the fold is still Ramon's at 11 of 15, the rows nearest whole take the seats (row 60, row 90, row 70), the sample keeps its seat with its rate said, and parity's own count is a parsed line
+- 147 standing — The pass of 2026-11-20, second: the estimate is read by reach (27 % → 53 % of states before the first parting, where games and lines read 0 → 1 and 64 → 65), a third battery is named, the fold is still Ramon's at 11 of 15, the rows nearest whole take the seats (row 60, row 90, row 70), the sample keeps its seat with its rate said, parity's own count is a parsed line, and the queue's opener, which a booking had left unreadable to the wake, is a guarded paragraph
 
 ## 1. Fidelity before divergence
 
@@ -14682,7 +14682,7 @@ line, held to `SAMPLE_LINES` by
 `the_handoff_s_parity_line_is_the_pinned_sample` (seen red on a queue
 without it). It is one of the commander's lines, so a lane's gate
 forgives it and the booking gate does not. The handoff's bound goes
-33 → 34 lines for it.
+33 → 35 lines, one for it and one for §8's blank.
 
 **§6. The sample keeps its seat, and its rate is said.** Six landings
 moved its lowest first parting 3878 → 3921 of 21,044, forty-three states
@@ -14700,3 +14700,17 @@ USD was pasted while item 4477's session was still live. Read after the
 drain it is 147.66 USD over 23 sessions, 6.42 a landing, 62.0 minutes
 waiting a landing (71.4 the tranche before), with no red among 18 gates
 (three of 20 before).
+
+**§8. The queue's opener had stopped being a paragraph, and a wake would
+have spawned nothing.** `tools/handover.py wake` reads the queue's
+`**Opener:` paragraph by its blank lines and refuses a queue with none.
+Item 4462's booking (`bd4658a2c`, 15:25 −05:00) added the second
+battery's parsed line under a bound of 33 lines and took the blank above
+the opener to fit. From that commit to the drain's tip `queue_opener`
+raised on the queue, so a driver ahead
+of the day's line that armed the 06:07 wake would have slept through it.
+No wake was armed in the tranche. The pass found it because its own
+opener sends the commander to that wake at 96 %. The blank is back, the
+bound pays for it, and `the_opener_is_a_paragraph_of_its_own` in
+`docs_guard` holds it (seen red on the drain's queue). The comment on the
+bound said `handover.py` reads both blanks; nothing checked it.

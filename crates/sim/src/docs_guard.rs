@@ -103,9 +103,10 @@ const ITEM_LINES: usize = 8;
 /// twenty"; this is the tolerance. 33 since the pass of 2026-11-19,
 /// second (`docs/DECISIONS.md` entry 145 §1): the scoreboard took one
 /// parsed line, `Parity held out:`, and both blanks round the opener are
-/// read by `tools/handover.py`. 34 since the pass of 2026-11-20, second
-/// (entry 147 §5): the headline's own `Parity:` line, parsed.
-const HANDOFF_LINES: usize = 34;
+/// read by `tools/handover.py`. 35 since the pass of 2026-11-20, second
+/// (entry 147 §5, §8): the headline's own `Parity:` line, parsed, and the
+/// blank before the opener, which the tranche before had spent on a line.
+const HANDOFF_LINES: usize = 35;
 
 /// The queue's **non-item mass**, pinned by section at its size on
 /// 2026-09-07 and may only shrink.
@@ -650,6 +651,36 @@ fn the_handoff_is_short() {
             .rev()
             .find(|l| !l.trim().is_empty())
             .unwrap_or(&"")
+    );
+}
+
+/// **The opener is a paragraph of its own** (the pass of 2026-11-20,
+/// second; `docs/DECISIONS.md` entry 147 §8). `tools/handover.py wake`
+/// reads the queue's `**Opener:` paragraph by its blank lines and refuses
+/// a queue that holds none. The tranche of 2026-11-20 took a second parsed
+/// line under a bound of 33 and paid for it with the blank above the
+/// opener: no guard read it, and a wake armed on that queue would have
+/// spawned nothing.
+#[test]
+fn the_opener_is_a_paragraph_of_its_own() {
+    let q = read("QUEUE.md");
+    let lines: Vec<&str> = q.lines().collect();
+    let at: Vec<usize> = (0..lines.len())
+        .filter(|&k| lines[k].starts_with("**Opener:"))
+        .collect();
+    assert_eq!(
+        at.len(),
+        1,
+        "docs/QUEUE.md holds {} lines starting `**Opener:`; the handoff ends on exactly one",
+        at.len()
+    );
+    let k = at[0];
+    let blank = |j: Option<&&str>| j.is_some_and(|l| l.trim().is_empty());
+    assert!(
+        k > 0 && blank(lines.get(k - 1)) && blank(lines.get(k + 1)),
+        "docs/QUEUE.md's opener (line {}) has a blank line above and below it: \
+         `tools/handover.py wake` reads it as a paragraph and spawns nothing without them",
+        k + 1
     );
 }
 

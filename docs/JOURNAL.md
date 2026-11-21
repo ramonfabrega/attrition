@@ -22385,6 +22385,10 @@ plainly: six landings moved it 43 states, all on one capture of a
 capital. Parity's own count, prose for six records, is a parsed
 `Parity:` line held to the sample's pins. The wreck the pass before saw
 fading was three live tanks under a haze; the eye's seat mints a row on
-their pixels and reads the packet for what they share. The pass moved
-no score and took no capture.
+their pixels and reads the packet for what they share. Writing an
+opener that sends the commander to the 06:07 wake, the pass ran the
+wake's parser on the queue and it raised: a booking had spent the blank
+line above the opener to fit a parsed line, and nothing guarded it. It
+is mended and held by a guard. The pass moved no score and took no
+capture.
 **DECISIONS 147.** `docs/audit/2026-11-20-fable-pass-reach.md`.
