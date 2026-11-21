@@ -8440,18 +8440,11 @@ dump, is past the word, and this crate no longer reaches it.
   slot is not all it holds — `inc_time` bumps a dead shooter's
   `hold_frames` for the record's whole life, so the shooter's *number*
   is held 200 frames too, which closed the Korean Medieval pair. The
-  harness compares spent records both ways. ~~A building's arrow and a
-  round no animation launches carry no piece here and do not stick
-  (`SEAM`).~~ **A building's arrow sticks by its piece** (item 4515,
-  diff-backed by run1726: gaia's `0/2016` `BuildingArrow`, rolled and
-  missed, reads `flags 1` on 4462): the puncture arm asks
-  `verify_ammo_flags(+0x8, 1)` of the round's piece, whoever fired it.
-  A round no animation launches still carries no piece flag here.
-- **A dead building's hold under its spent arrow.** `inc_time` bumps
-  `+0x32` of any inactive shooter, a building too; `hold_frames_tick`
-  bumps a unit's alone, so a building that falls inside its own spent
-  arrow's 200 frames holds its number fewer frames here than there.
-  No window was read for one (item 4515's 4515a).
+  harness compares spent records both ways. **A building's arrow
+  sticks too** (item 4515, run1726 4462): the arm asks the round's
+  piece, not its shooter. A round no animation launches carries no
+  piece flag here (`SEAM`).
+- **A dead building's hold under its spent arrow** (4515a).
 - **`sz` for a piece with a release table and no measured node** takes a
   `dz` of 0, and `ez` for a building target is its tile's `z`. Neither is
   reached by a rolled shot on any capture.
