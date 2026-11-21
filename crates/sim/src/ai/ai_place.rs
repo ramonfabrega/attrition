@@ -30,7 +30,9 @@ use std::sync::OnceLock;
 
 use crate::cities::build::{Ident, flags};
 use crate::orders::{Body, QueuePos, index};
-use crate::world::{Cell, TILES_PER_CELL, Terrain, UNITS_PER_TILE, cell, tile, vector_dist};
+use crate::world::{
+    Cell, MOVE_49, TILES_PER_CELL, Terrain, UNITS_PER_TILE, cell, tile, vector_dist,
+};
 use crate::{Player, Pos, Sim, economy::cost};
 
 /// The two draw sites of `Leader::produce_building@006e1400`, under the
@@ -437,6 +439,24 @@ impl Sim {
             .any(|b| b.alive && b.owner < 8 && self.is_enemy(who, b.owner) && near(b.pos))
     }
 
+    /// `WorldData::get_down` walked to its end, answering "any": a live
+    /// object on the map of a seat under 8 that `who` is at war with,
+    /// standing in `cell` — the chain a unit joins at its own cell and a
+    /// building at its centre's (`produce_building@006e1400`, `006e24f9`–
+    /// `006e254e`).
+    pub(crate) fn enemy_object_in_cell(&self, who: Player, cell: Cell) -> bool {
+        self.units.iter().any(|u| {
+            u.alive()
+                && u.on_map
+                && !u.is_gaia()
+                && u.pos.cell() == cell
+                && self.is_enemy(who, u.owner)
+        }) || self
+            .buildings
+            .iter()
+            .any(|b| b.alive && b.owner < 8 && b.pos.cell() == cell && self.is_enemy(who, b.owner))
+    }
+
     /// `produce_building@006e1400:1060-1086`: the chosen builder is sent
     /// through `Group::action_swarm_around(site, QVar30, BUILD_AT, 1)` on a
     /// one-member group, at **`QUEUE_LAST`** when its action is a
@@ -807,6 +827,28 @@ impl Sim {
                     }
                     wd.flags &= !cell::CLOSED;
                     self.world.set_cell_data(cell, wd);
+                }
+                // **An attacked city builds away from the enemy**
+                // (`006e2484`–`006e2575`, item 4492): when the anchor's city
+                // (`local_68`, `[ebp-0x64]`) carries `CITY_UNDER_ATTACK`
+                // (`city_flags & 2`, `+0x4`), the candidate's cell and its
+                // eight compass neighbours (`move_x/move_y[0..9]`: the index
+                // is a byte offset stepped by 4 to `0x24`, so nine entries,
+                // not the thirty-six the decompile's `int *` reads) are
+                // walked down their object chains (`WorldData::get_down`),
+                // and one object of a seat under 8 that `who` is at war with
+                // refuses the cell and sets the stride to 3 (`006e2569`), the
+                // store skipped.
+                if city.is_some_and(|c| self.cities.cities[c].no_heal)
+                    && MOVE_49[..9].iter().any(|&(dx, dy)| {
+                        let n = Cell::new(cell.x + dx, cell.y + dy);
+                        (0..xs).contains(&n.x)
+                            && (0..ys).contains(&n.y)
+                            && self.enemy_object_in_cell(who, n)
+                    })
+                {
+                    step = 3;
+                    break 'cand;
                 }
                 // `circle_radius[3] < local_2c` — the **current** index, not
                 // the loop's start: once a second candidate has improved on a
