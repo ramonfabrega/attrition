@@ -1975,7 +1975,7 @@ ammo ranges agree from 3310 to 3330, and **row 100 is whole**: ammo
 On the second battery, row 130's ammo turns whole (4,647 → 4,731) and row
 10's goes 5,924 → 5,962, first parting 5148 → 5178, where ours refuses the
 line. Among the packets, run882b's and run883b's ammo turn whole (5 ranges
-parted before on each; `PACKETS_SCORE` 897 → 899). Sixteen golden widenings
+parted before on each; `PACKETS_SCORE` 897 → 899). Fifteen widenings
 lose their bombs' `accuracy` rows and gain none. Those are chapters 35, 36, 38, 48, 132 and 134,
 run265's rounds, and the information and modern pairs' word frames.
 
