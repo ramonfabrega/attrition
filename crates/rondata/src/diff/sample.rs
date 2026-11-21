@@ -625,8 +625,11 @@ pub(in crate::diff) mod tests {
     /// parting, the frames not read one by one; the first shot still on
     /// 2929. Item 4469 (an unassimilated city's cells win as −2, the
     /// captured Inca capital's 29 from 3889): 6309 -> 4473, a named fall,
+    /// the frames not read one by one; the first shot still on 2929. Item
+    /// 4475 (a region walked to its end takes `0x20`, the captured camp's
+    /// re-walk on 3904): 4473 -> 5271, a named rise past every parting,
     /// the frames not read one by one; the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4473, Some(2929));
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (5271, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
