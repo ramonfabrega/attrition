@@ -455,7 +455,7 @@ fn airbase_melee_run1492_s_stride_before_the_word_is_widened_whole() {
     }
     pin_eq!(w.blocks, 4, "every stride block in the window");
     // Item 4435: 123 -> 122, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 122, "run1492's stride before the word");
+    pin_eq!(w.firsts.len(), 121, "run1492's stride before the word");
     pin_eq!(w.rounds_read, (12, 12), "the rounds read");
     pin_eq!(w.rounds.len(), 10, "the rounds that part");
 }
@@ -524,7 +524,7 @@ fn airbase_melee_run1496_s_window_is_widened_whole() {
     pin_eq!(w.blocks, 45, "every block in the window");
     // Item 4415, the oil-well stand's `param_4`: block 1500's `2/7` `cur_time`/`last_time` agree, −2.
     // Item 4435: 118 -> 117, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 117, "run1496's window");
+    pin_eq!(w.firsts.len(), 116, "run1496's window");
     pin_eq!(w.rounds_read, (139, 139), "the rounds read");
     pin_eq!(w.rounds.len(), 15, "the rounds that part");
 }

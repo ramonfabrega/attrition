@@ -787,6 +787,50 @@ mod tests {
         );
     }
 
+    /// **Row 100's Jet Fighter walks its patrol** (item 4474,
+    /// `docs/CHECKSUM.md` §18): on tick 2742 the computer hands the Jet
+    /// Fighter `1/91` (TI 295) in its airbase an `AIR_PATROL`, and
+    /// `AirPatrolOrder::walk_data@00483ed0` hands over fourteen ranges after
+    /// the node byte. Every units range on 2743: red without the walker at
+    /// range 2939, record 91, where ours walked `guys.length` (`01 00 00
+    /// 00`) and theirs the flags byte (`00`); theirs' `x_pos` element is
+    /// range 2945.
+    #[test]
+    fn row_100_s_jet_fighter_walks_its_air_patrol_order_on_run1721_s_ranges() {
+        let Some(theirs) = units_ranges_agree(5, "run1721", 2743, 2945) else {
+            return;
+        };
+        assert_eq!(theirs, 3168i32.to_le_bytes(), "theirs' x_pos[0]");
+    }
+
+    /// **Row 100's Jet Fighter leaves its base through `Unit::set_angle`**
+    /// (item 4474, `docs/CHECKSUM.md` §18): on tick 2743 `Unit::do_spec_anim`'s
+    /// EXIT turns the plane from its stored 0x55555555 to 0, a turn past 90°,
+    /// so `unit_masks & 2` flips, and `Guy::set_angle(guy 0, 0, 1)` snaps the
+    /// figure's `last_angle`. Every units range on 2744: red without the
+    /// flip at range 2930, record 91, `unit_masks` ours `00 00 04 00`, theirs
+    /// `02 00 04 00`; every guys range: red without the snap at range 760,
+    /// `last_angle` ours `55 55 55 55`, theirs 0.
+    #[test]
+    fn row_100_s_jet_fighter_turns_through_set_angle_at_its_airbase_on_run1721_s_ranges() {
+        let Some(theirs) = units_ranges_agree(5, "run1721", 2744, 2930) else {
+            return;
+        };
+        assert_eq!(
+            &theirs[0x68 - 0x48..0x6c - 0x48],
+            &0x40002i32.to_le_bytes(),
+            "theirs' unit_masks"
+        );
+        let Some(theirs) = line_ranges_agree(5, "run1721", 2744, 6, 760) else {
+            return;
+        };
+        assert_eq!(
+            &theirs[0x1c - 0x8..0x20 - 0x8],
+            &0i32.to_le_bytes(),
+            "theirs' last_angle"
+        );
+    }
+
     /// Game `k`'s units line on `state`, ours against the ranges take
     /// `run`'s, every range byte for byte; returns theirs' range `range`.
     fn units_ranges_agree(k: usize, run: &str, state: i64, range: usize) -> Option<Vec<u8>> {
@@ -1525,16 +1569,26 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // point, `Guy::set_new_location`'s crew loop): units
         // 2,728 -> 2,743, first 2646 -> 2743; guys 3,308 -> 3,323, first 2646
         // -> 2744.
+        // Moved by item 4474 (the units line walks `AirPatrolOrder`'s own
+        // ranges; an airbase exit turns through `Unit::set_angle`): units
+        // 2,743 -> 2,977, first 2743 -> 2758; guys 3,323 -> 3,331, whole. On
+        // 2743, run1721's units range 2939, record 91 (the Jet Fighter 1/91,
+        // TI 295, handed a patrol on 2742): ours walked `guys.length`
+        // 01 00 00 00 after the order's node, theirs the order's flags 00,
+        // `waypoint` 0, `x_pos` (1, 1, -1, 0, [3168]), `y_pos` (1, 1, -1, 0,
+        // [30816]), flags again and the `AirOrder` row. On 2744, units range
+        // 2930, record 91, `unit_masks` read ours 0x40000, theirs 0x40002
+        // (`mirror`), and guys range 760, record 91, `last_angle` ours
+        // 0x55555555, theirs 0.
         moved: Some(Score {
             states: 3331,
             agreed: [
-                2743, 3331, 3331, 3291, 2756, 3331, 3323, 3331, 3331, 3331, 3331, 3331,
+                2977, 3331, 3331, 3291, 2756, 3331, 3331, 3331, 3331, 3331, 3331, 3331,
             ],
             first: &[
-                ("units", (2743, Some(4227177816), 316449748)),
+                ("units", (2758, Some(2109868139), 4117763000)),
                 ("ammo", (3210, None, 252233938)),
                 ("deaths", (2756, Some(1136466598), 3621657254)),
-                ("guys", (2744, Some(3271434361), 1542266661)),
             ],
             over: None,
         }),
@@ -1666,10 +1720,13 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4460 (a trackless crew figure's `des` is guy 0's body
         // point, `Guy::set_new_location`'s crew loop): guys
         // 5,942 -> 5,963, first on 2449.
+        // Moved by item 4474 (`AirPatrolOrder`'s ranges walked; an airbase
+        // exit turns through `Unit::set_angle`): units 2,496 -> 2,712, first
+        // on 1747; guys 5,963 -> 5,990, first on 2449.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                2496, 537, 6001, 5907, 5350, 3066, 5963, 3976, 6001, 6001, 6001, 537,
+                2712, 537, 6001, 5907, 5350, 3066, 5990, 3976, 6001, 6001, 6001, 537,
             ],
             first: &[
                 ("units", (1747, Some(2268899682), 1685366186)),
@@ -1866,17 +1923,20 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4473 (`Army::add_unit`'s push runs `equals_group`'s
         // normalize and `get_num` on the last slot): groups
         // 4,553 -> 4,731, whole.
+        // Moved by item 4474 (`AirPatrolOrder`'s ranges walked; an airbase
+        // exit turns through `Unit::set_angle`): units 1,735 -> 2,100, first
+        // 1735 -> 1742; guys 4,695 -> 4,719, first 1736 -> 2066.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                1735, 553, 4731, 4511, 4084, 4731, 4695, 1976, 4731, 4731, 4731, 553,
+                2100, 553, 4731, 4511, 4084, 4731, 4719, 1976, 4731, 4731, 4731, 553,
             ],
             first: &[
-                ("units", (1735, Some(3081680851), 796971071)),
+                ("units", (1742, Some(1100206902), 2410470946)),
                 ("builds", (553, Some(2297078769), 1047897137)),
                 ("ammo", (2367, Some(1123882197), 1189418202)),
                 ("deaths", (1746, Some(1419733817), 1134652217)),
-                ("guys", (1736, Some(4103418160), 1070804956)),
+                ("guys", (2066, Some(2267796042), 1696846499)),
                 ("leaders", (1376, Some(73709351), 1700509480)),
                 ("world", (553, Some(699267042), 2987457272)),
             ],

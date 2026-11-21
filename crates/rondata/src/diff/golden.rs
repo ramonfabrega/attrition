@@ -8468,7 +8468,6 @@ const WANT_CH36: &[&str] = &[
     "1080 0/8 ammo[4].whom",
     "1080 0/8 ammo[7].ox",
     "1080 0/8 ammo[7].whom",
-    "2446 0/11 mirror",
     "2675 0/12 dest_angle",
     "935 0/8 ammo[2].accuracy",
     "936 0/8 ammo[3].accuracy",
@@ -8581,7 +8580,8 @@ const V2_LAUNCH: (i64, i64) = (2668, 2704);
 // at its birth and the silo's one missile took the rest; what stands is
 // the birth seats (`0/10` on 2431, `0/12` on 2659, parked 646's family),
 // `0/11`'s `mirror` on 2446 (chapter thirty-three's unread writer of
-// `unit_masks & 2`), and from 2672 the V2's strike and the second
+// `unit_masks & 2`; item 4474 took it: the exit at an airbase turns
+// through `Unit::set_angle`, whose flip is that writer), and from 2672 the V2's strike and the second
 // Helicopter's attack-move, parked with the word. **After item 1048**:
 // 403 rows. The Helicopter's flight — the planners' straight path for a
 // type that flies like a helicopter, `Unit::work`'s separation of the two
@@ -8625,7 +8625,6 @@ const WANT_CH35: &[&str] = &[
     "1080 0/8 ammo[4].whom",
     "1080 0/8 ammo[7].ox",
     "1080 0/8 ammo[7].whom",
-    "2446 0/11 mirror",
     "2675 0/12 dest_angle",
     "935 0/8 ammo[2].accuracy",
     "936 0/8 ammo[3].accuracy",
