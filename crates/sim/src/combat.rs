@@ -141,7 +141,7 @@ pub mod umask2 {
     /// every other, then call `update_ceo_position(-1, here)` when it is
     /// set ([`crate::Sim::init_ceo_mask`]). run1752's `1/17` upgrades 0x163
     /// to 0x165 on 2983 and prints `unit_masks2` 65536 there.
-    pub const CEO: u32 = 0x10000;
+    pub const CEO_BIT: u32 = 0x10000;
     /// **`0x1000` — Antipater's trench** (item 3919): `cast_entrench`
     /// sets it beside `unit_masks |= 0x2000000` on each unit an Antipater
     /// (0x169) entrenches, and `move_step` clears it with the trench

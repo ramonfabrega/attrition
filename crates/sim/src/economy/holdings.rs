@@ -418,10 +418,10 @@ impl Sim {
         self.find_city_at(who, self.units[h].pos, None)
     }
 
-    /// The CEO bit, `unit_masks2 & 0x10000` ([`crate::combat::umask2::CEO`]),
+    /// The CEO bit, `unit_masks2 & 0x10000` ([`crate::combat::umask2::CEO_BIT`]),
     /// as [`Sim::init_ceo_mask`] wrote it at birth and on every `set_type`.
     pub(crate) fn has_ceo_bit(&self, u: usize) -> bool {
-        self.units[u].unit_masks2 & crate::combat::umask2::CEO != 0
+        self.units[u].unit_masks2 & crate::combat::umask2::CEO_BIT != 0
     }
 
     /// **The CEO bit's writer** (item 4502): `Unit::init@00612100:253`–`264`
@@ -434,7 +434,7 @@ impl Sim {
     /// prints 65536 on 2983 where this crate printed 0.
     pub(crate) fn init_ceo_mask(&mut self, u: usize) {
         const CEO: i32 = 0x165;
-        let bit = crate::combat::umask2::CEO;
+        let bit = crate::combat::umask2::CEO_BIT;
         if self.speed_is(u, CEO, true) {
             self.units[u].unit_masks2 |= bit;
             let here = self.units[u].pos.tile();

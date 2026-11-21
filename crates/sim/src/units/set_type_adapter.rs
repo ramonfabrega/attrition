@@ -195,7 +195,7 @@ impl UnitSetTypeView for SimSetType<'_> {
             self.sim.units[self.u].unit_masks2 |= crate::combat::umask2::MARINE;
         }
         // The CEO bit, set and cleared (item 4502).
-        let ceo = crate::combat::umask2::CEO;
+        let ceo = crate::combat::umask2::CEO_BIT;
         if f as u32 & ceo != 0 {
             self.sim.units[self.u].unit_masks2 |= ceo;
         } else {

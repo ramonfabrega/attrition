@@ -213,7 +213,7 @@ fn the_ceo_s_step_across_a_city_s_edge_marks_the_economy_dirty() {
     sim.units[h].type_index = 0x165;
     // The fixture's tree carries no 0x165, so the bit `init` would raise is
     // raised by hand.
-    sim.units[h].unit_masks2 |= crate::combat::umask2::CEO;
+    sim.units[h].unit_masks2 |= crate::combat::umask2::CEO_BIT;
     sim.units[h].on_map = true;
     let out = tile_pos(60, 60);
     assert_eq!(sim.find_city_at(0, tile_pos(33, 33), None), Some(c));
