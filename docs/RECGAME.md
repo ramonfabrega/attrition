@@ -1231,6 +1231,11 @@ push's angle". Ammo 5178 is the row's last parting.
 helicopters (3515 → 4583). Leaders whole (item 4520): from the Kremlin's
 finish on 4573 to its spy on 4583 `leader_flags` holds `0x10000000`, which
 the checksum never printed (range 128, byte 3: ours `0x0e`, theirs `0x1e`).
+**Row 130 is whole** (item 4524, units 4,583 → 4,731): the Kremlin's spy
+`1/169` (TI 58) carries `unit_masks2 & 0x400` from its birth on 4583
+(`Build::process@0061edf0:320`), held in a side bool here (range 4183:
+ours 0, theirs 1024). The same fix moved rows 110 and 95's units (5,304 →
+5,532; 5,303 → 5,909); neither has a ranges take naming the record.
 
 ### 11.1 Parity held out, third: rows 5 to 145 (item 4487)
 

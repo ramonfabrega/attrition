@@ -40459,6 +40459,9 @@ take waited one minute for 61, and read 59 after.
   184, `collide_frame..play` bytes 18 and 19: `dest_angle` ours −406650880, theirs −424345600); leaders as found.
 - **Re-scored by item 4520** (the leaders line's `flags` carry the Kremlin's spy-due bit `0x10000000`): leaders 4,731,
   whole; units as 4508 left them (3515 is item 4522's).
+- **Re-scored by item 4524** (the Kremlin's spy tag is `unit_masks2 & 0x400`), on `f7f005c8d`: units 4,731, whole;
+  every line 4,731 of 4,731. Before it, on `ca317d99a`: units 4,583, first 4583, **range 4183, record 169,
+  `collide_frame..play` byte 37: `unit_masks2` ours 0, theirs 1024** (who=1's Spy `1/169`, TI 58, land).
 - Filed **in place**, as run1753 is.
 
 Files in place, `~/ron-golden/run1754/map-18/`: `gamelog_p.txt`, 2,426 bytes, SHA-256
@@ -40466,4 +40469,4 @@ Files in place, `~/ron-golden/run1754/map-18/`: `gamelog_p.txt`, 2,426 bytes, SH
 `52f10cd1115c6bb316a525d86ddb7d426af58ba1f9963e6bdcbcc0939e14086b`.
 
 **What it holds**: `diff::held_out::tests::row_130_s_computer_bomber_searches_round_itself_on_run1754_s_ranges`
-(every units range on 3410 and 3411); `row_130_s_kremlin_spy_due_bit_is_in_the_leaders_flags_on_run1754_s_ranges` (every leaders range on 4572, 4573, 4582 and 4583).
+(every units range on 3410 and 3411); `row_130_s_kremlin_spy_due_bit_is_in_the_leaders_flags_on_run1754_s_ranges` (every leaders range on 4572, 4573, 4582 and 4583); `row_130_s_kremlin_spy_carries_unit_masks2_0x400_on_run1754_s_ranges` (every units range on 4583 and 4584).
