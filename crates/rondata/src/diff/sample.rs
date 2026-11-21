@@ -850,6 +850,15 @@ pub(in crate::diff) mod tests {
         ranges_record("RON_SAMPLE_RANGES_1726", "run1726")
     }
 
+    /// run1771's record (item 4521, `docs/RUNS.md` run1771): the same
+    /// playback to 5,350 under the same hooks, keeping units, builds, ammo,
+    /// guys, leaders and world alone (`RNG_MASK` 0x8cb), the six lines that
+    /// part below 5300 on the hook's sums (DECISIONS 148 §4, §5).
+    /// `RON_SAMPLE_RANGES_1771`, else where the take left it.
+    fn run1771() -> Option<crate::trace::ranges::Record> {
+        ranges_record("RON_SAMPLE_RANGES_1771", "run1771")
+    }
+
     fn ranges_record(var: &str, run: &str) -> Option<crate::trace::ranges::Record> {
         let path = match std::env::var(var) {
             Ok(p) => std::path::PathBuf::from(p),
@@ -987,6 +996,31 @@ pub(in crate::diff) mod tests {
             "run1726's sets, one a frame"
         );
         assert_eq!(got, pinned, "SAMPLE_RANGES_1726");
+    }
+
+    /// **The sample's kept lines by range, to 5,350** (item 4521): the
+    /// same walk over run1771's record, the six lines of its mask alone,
+    /// pinned per line by [`SAMPLE_RANGES_1771`].
+    /// `RON_SAMPLE_RANGES_DETAIL` and `RON_SAMPLE_RANGES_ALL` print as
+    /// above.
+    #[test]
+    fn the_sample_s_ranges_to_5350_name_each_first_parting() {
+        let Some(rec) = run1771() else { return };
+        let Some((frames, got)) =
+            walk_kept_ranges(rec, SAMPLE_RANGES_1771_WINDOW, SAMPLE_RANGES_1771_KEPT)
+        else {
+            return;
+        };
+        let pinned: Vec<SampleRange> = SAMPLE_RANGES_1771
+            .iter()
+            .map(|&(l, f, t, o, p, x)| (l, f, t, o, p, x.to_string()))
+            .collect();
+        assert_eq!(
+            frames,
+            SAMPLE_RANGES_1771_WINDOW as usize + 1,
+            "run1771's sets, one a frame"
+        );
+        assert_eq!(got, pinned, "SAMPLE_RANGES_1771");
     }
 
     /// The walk the ranges tests share: our sample from state 0 to
@@ -1356,4 +1390,15 @@ pub(in crate::diff) mod tests {
     /// `punctures` off its piece): ammo whole to 4500, one row -> none;
     /// every kept line whole on run1726's window.
     const SAMPLE_RANGES_1726: &[(&str, i64, usize, usize, usize, &str)] = &[];
+
+    /// run1771's last frame, ours: the record holds trace frames −1 to 5349.
+    const SAMPLE_RANGES_1771_WINDOW: i64 = 5350;
+
+    /// run1771's mask: units, builds, ammo, guys, leaders and world
+    /// (`RNG_MASK=0x8cbu`).
+    const SAMPLE_RANGES_1771_KEPT: u16 = 0x8cb;
+
+    /// Per kept line that parts on run1771's window, its first parting by
+    /// range (item 4521). Minted on the take.
+    const SAMPLE_RANGES_1771: &[(&str, i64, usize, usize, usize, &str)] = &[];
 }
