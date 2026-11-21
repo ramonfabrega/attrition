@@ -1031,6 +1031,22 @@ pub(in crate::diff) mod tests {
                     }
                 }
             }
+            if std::env::var("RON_PROBE_4505").is_ok() && (4244..=4249).contains(&f) {
+                for (bi, b) in built.sim.buildings.iter().enumerate() {
+                    if b.owner != 1 || b.gatherers.is_empty() {
+                        continue;
+                    }
+                    let chain: Vec<String> = b
+                        .gatherers
+                        .iter()
+                        .map(|&u| {
+                            let x = &built.sim.units[u];
+                            format!("{}/{}{}", x.owner, x.index, if x.alive() { "" } else { "+" })
+                        })
+                        .collect();
+                    eprintln!("PROBE4505 f{f} b{bi} #{} {:?}", b.index, chain);
+                }
+            }
             stream.apply(f as i32, &mut built);
             crate::diff::harness::debug_watch(&built, f);
             crate::diff::harness::debug_builds(&built, f);
