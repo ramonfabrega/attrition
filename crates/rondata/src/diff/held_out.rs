@@ -3489,12 +3489,20 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // units range 7447 `dest_angle` ours 555024384, theirs -1956511744,
         // guys range 1030 `last_angle` ours 610064529, theirs 555024384):
         // units 5,979 -> 6,001 and guys 5,997 -> 6,001, whole.
+        // Moved by item 4523 (a falling aircraft's round is the ammo line's
+        // record: `Ammo::init_crash@0067b800`'s `rolling`, bank pair and
+        // `start_roll_angle`, and `+0x58` rewritten on every drift by
+        // `Ammo::inc_time`'s crash arm: run1739, state 5178, ammo record 0,
+        // who=1's Jet Fighter `1/114` (TI 295) shot down on `AIR_PATROL`,
+        // ours no line, theirs 3 ranges, `dx` 0x42ba5e0d where ours' birth
+        // value 0x42b8749b stood): ammo 5,962 -> 6,001, whole; the row is
+        // whole.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                6001, 6001, 6001, 5962, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
             ],
-            first: &[("ammo", (5178, None, 1427640977))],
+            first: &[],
             over: None,
         }),
     }),
@@ -3831,9 +3839,10 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
 /// (run1732) whole with its groups line. Item 4480: 2 -> 3, row 70
 /// (run1733) whole with its world line (a `DETECT` building's `seen3`).
 /// Item 4470: 3 -> 4, row 90 (run1734) whole with its units and guys
-/// lines.
+/// lines. Item 4523: 4 -> 5, row 10 (run1730) whole with its ammo line
+/// (a falling aircraft's round, who=1's Jet Fighter `1/114` on 5178).
 #[cfg(test)]
-pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (4, 8);
+pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (5, 8);
 
 /// One battery: its declared table, its pins, where its files and takes
 /// sit, and its line in the handoff.
