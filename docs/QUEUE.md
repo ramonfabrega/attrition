@@ -52,7 +52,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3): the pass designed four seats, all cut by `commander` (Opus 5.5) at 94 % of the week: the chain's 4478 (row 100, from deaths 2756; 4480 landed, rows 60 and 70 whole), a parity seat's 4487 (the third battery, seated at the second's 4 of 8; 4470 landed, row 90 whole), a parity seat's 4489 (the sample, builds 4026; 4479 and 4488 landed), the eye's 4490 (the tanks' move dust; 4482 minted the row). 4487 holds the game lane for its eight recordings; every other take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4483 (second, rows 10 and 130), 4484 (row 40's take), 4485 (second, row 110), 4481 (the packets' groups line).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3): the pass designed four seats, all cut by `commander` (Opus 5.5) at 94 % of the week: the chain's 4478 (row 100, from deaths 2756; 4480 landed, rows 60 and 70 whole), a parity seat's 4487 (the third battery, seated at the second's 4 of 8; 4470 landed, row 90 whole), a parity seat's 4489 (the sample, builds 4026; 4479 and 4488 landed), the eye's seat to 4481 (the packets' groups line, no take; 4482 and 4490 moved no score, the haze stops, 4490a in its journal). 4487 holds the game lane for its eight recordings; every other take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4483 (second, rows 10 and 130), 4484 (row 40's take), 4485 (second, row 110).
 
 4489. **The 2017 sample, from builds 4026** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §7). 4488 let a packed Merchant
 die through `Unit::close`'s death draw and leave its `DEATH_OBJS` records (computer 1's 1/18, TI 61, killed walking on 3931;
@@ -61,14 +61,6 @@ later (units, guys, leaders and world 4183; groups 4188; ammo 4192; cities 4326;
 ranges are whole to 4130 but builds: on 4026, `2810 2005 queue[k] job_counter` ours 100, theirs 0. First act: build 2810's queue on
 4025 and 4026, from the ranges on disk. Run 1726 stays reserved. Re-pin `SAMPLE_LINES`; the driver writes `Parity:`. It stops when
 two landings running move no line's first parting (145 §4).
-
-4490. **The tanks' move dust on run1559b's photograph** (a render item, scoped; the eye's; `docs/RENDERER.md` §3.13). 4482 minted
-`RUN1559B_3279_TANKS_HAZE` at luminance 1 of 4 (only the control `1/15` passes) and found the haze is no unit state (`1/16` hazy and
-`1/15` crisp both `unit_masks` 0x40008, one type): it is the Sherman's MOVE DUST, particle system 98 off node 5, in the packet's
-`GraphicPieces` emitters (particles `1/27` 10, `1/16` 10, `1/40` 7 from a stopped emitter, `1/15` 1). Ours draws no unit particle
-event. Parked 4482a is this build: `ensure_emitter`, `ParticleEmitter::inc_time`, and the anim clock case 3 compares to [75, 9000),
-then emit on `render::particle`. The score: `TANKS_HAZE` 1 → 4 of 4 at 3279, the control still in. Scoped: say so before touching
-`crates/sim`.
 
 4478. **Parity held out: row 100, from deaths 2756** (a rules item, whole; the chain's; `docs/RECGAME.md` §10.3; CHECKSUM §18). 4474
 walked `AirPatrolOrder::walk_data`'s 14 ranges after `order.node` and set the airbase exit's angle (run1721 2743, Jet Fighter 1/91, TI
@@ -94,7 +86,7 @@ whole since 4477; it parts first on units 2184, with ammo 3303, leaders 3176, wo
 ~` (stop under 60), then a ranges take of run1735's file as run1742, then `score_recording` names the leaf of units 2184. Re-pin
 `SCORES_SECOND[5].moved`, never `found`. It stops when two landings running move no column.
 
-4481. **The packets' groups line after `facing`** (a rules item, whole; unseated; CHECKSUM §23). 4477 made `do_gather`'s turn east
+4481. **The packets' groups line after `facing`** (a rules item, whole; the eye's seat; CHECKSUM §23). 4477 made `do_gather`'s turn east
 `Unit::set_angle` whole, so a leader's reversal toggles its group's `facing` (run854 f3301 groups record 75, ours 0 → 1, theirs 1;
 4431's hypothesis killed: its Citizens are one Mechanized Infantry squad): packets 847 → 853, groups whole on run854, run865, run882b,
 run883b and run823; the second battery's rows 10 and 110 groups whole. What the groups line still parts on: the information melee
