@@ -594,7 +594,7 @@ Three that are not the standard shape, and are the interesting ones:
   4513** (`Sim::ages_behind`, `cost::age_behind_discount`): the arm is
   `TypeData::get_cost@00664090`'s `006664c3`..`00666683`, right after
   `calc_science_discount`, and only an **age** reaches it (vslot `+0x34`,
-  `is_age_type`, `0x220..0x226`, checked in the PE). The predicate is the
+  `is_age_type`, the seven ages, checked in the PE). The predicate is the
   leader slots in use other than the buyer, not allied with it
   (`LeaderData::is_ally` on the other leader), compared on
   `LeaderDataEncrypt::ages`; a first pass takes two or more behind as
