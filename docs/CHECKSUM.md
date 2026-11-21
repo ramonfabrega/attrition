@@ -1754,8 +1754,8 @@ are written only by `clear` (0) and `operator=` in the export, found by name.
 Their offsets have not been grepped, and they walk 0 here.
 ~~`StrafeOrder` and `AirPatrolOrder` still hand over their type and node byte
 alone. No score parts on them yet.~~ `AirPatrolOrder` walks its own since item
-4474 (below); `StrafeOrder` still hands over its type and node byte alone, and
-no score parts on it yet.
+4474 (below); ~~`StrafeOrder` still hands over its type and node byte alone, and
+no score parts on it yet.~~ `StrafeOrder` walks its own since item 4491 (below).
 
 **A plane's patrol walks fourteen ranges, and its exit turns through
 `Unit::set_angle`** (item 4474, diff-backed on row 100, run1721). On 2743 row
@@ -1787,6 +1787,25 @@ hold every units range on 2743, and every units and guys range on 2744.
 the capacity its last use grew to (`clear` does not shrink it), and this crate
 does not carry the pool, so the size walked is a fresh object's (a `SEAM` at
 `patrol_array_size`). No range on disk has shown a recycled patrol yet.
+
+**A strafe walks six ranges** (item 4491, diff-backed on row 100, run1721). On
+2758 row 100's units line parted on range 2907, record 91: on tick 2757 the
+computer hands the patrolling Jet Fighter `1/91` a `STRAFE` (0x10) first in its
+list, and theirs walks `StrafeOrder::walk_data@0047f310` after the node byte.
+That is the flags byte through `TargetOrder`'s vbptr, `ox`, `whom`, `uid`
+(`+0x8..+0x12`; 2000, 0, 0), then `AttackOrder`'s `def_x`..`new_ord`
+(`+0x14..+0x21`; −1, −1, 1, 0, 0, 0, 1). After them come the flags byte again,
+the `AirOrder` row (`+0x28..+0x40`) and `xx`, `yy` (`+0x40..+0x48`; 3168,
+30816). `StrafeOrder::clear@00480040` writes `def` and the four bools after
+`mandatory`, and `Unit::add_strafe_order@005e48c0` writes the rest. Row 100's
+units goes 2,977 → 3,331, **whole**. Row 10's units goes 3,785 → 3,914, and
+row 130's 2,100 → 3,034 (first 1742 → 2354).
+`row_100_s_jet_fighter_walks_its_strafe_order_on_run1721_s_ranges` holds every
+units range on 2758.
+
+*Not established*: the attack fields after `mandatory` walk `clear`'s values.
+A write through the `get_attack_order` vslot on a strafe is not carried. It
+cannot be found by name, and no range on disk shows one.
 
 **The same missile's silo, in the builds line** (item 4465, diff-backed on
 row 100, run1721). On 2588 the silo `1/2022` launches `1/84`: `do_launch`

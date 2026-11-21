@@ -1072,6 +1072,26 @@ mod tests {
         assert_eq!(&theirs[24..28], &11i32.to_le_bytes(), "theirs' o");
     }
 
+    /// **Row 100's Jet Fighter walks its strafe** (item 4491,
+    /// `docs/RECGAME.md` §10.3): on tick 2757 the computer hands the Jet
+    /// Fighter `1/91` (TI 295), on its patrol, a `STRAFE` on player 0's
+    /// building 2000 at (3168, 30816), first in its list, and
+    /// `StrafeOrder::walk_data@0047f310` hands over six ranges after the
+    /// node byte. Every units range on 2758: red without the walker, 3,952
+    /// ranges against 3,958, the first unequal at range 2907, record 91,
+    /// where ours walked the patrol's `order.type` (`11 00 00 00`) and
+    /// theirs the strafe's flags byte (`00`); theirs' `AttackOrder` row is
+    /// range 2909: `def` (−1, −1), `mandatory` 1, `new_ord` 1.
+    #[test]
+    fn row_100_s_jet_fighter_walks_its_strafe_order_on_run1721_s_ranges() {
+        let Some(theirs) = units_ranges_agree(5, "run1721", 2758, 2909) else {
+            return;
+        };
+        let mut want = [-1i32, -1].map(i32::to_le_bytes).concat();
+        want.extend([1, 0, 0, 0, 1]);
+        assert_eq!(theirs, want, "theirs' AttackOrder row");
+    }
+
     /// Game `k`'s units line on `state`, ours against the ranges take
     /// `run`'s, every range byte for byte; returns theirs' range `range`.
     fn units_ranges_agree(k: usize, run: &str, state: i64, range: usize) -> Option<Vec<u8>> {
@@ -1965,15 +1985,20 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // (2712, 31896) then `0/3` at (3384, 31992), the circle walk's
         // order; ours held them swapped, `x` ours 0x0d38, theirs 0x0a98 at
         // byte 8 of record 0, `cur_anim` 0x13 and 0x14 in slot order on both.
+        // Moved by item 4491 (the units line walks `StrafeOrder`'s own
+        // ranges): units 2,977 -> 3,331, whole. On 2758, run1721's units
+        // range 2907, record 91 (the Jet Fighter 1/91, TI 295, handed a
+        // strafe on 2757 over its patrol): ours walked the patrol's
+        // `order.type` 11 00 00 00 after the strafe's node, theirs the
+        // strafe's flags 00, its target (2000, 0, uid 0), `def` (-1, -1)
+        // with `mandatory` 1 and `new_ord` 1, flags again, the `AirOrder`
+        // row (2026, 1, 0x640) and `xx`, `yy` (3168, 30816).
         moved: Some(Score {
             states: 3331,
             agreed: [
-                2977, 3331, 3331, 3291, 3331, 3331, 3331, 3331, 3331, 3331, 3331, 3331,
+                3331, 3331, 3331, 3291, 3331, 3331, 3331, 3331, 3331, 3331, 3331, 3331,
             ],
-            first: &[
-                ("units", (2758, Some(2109868139), 4117763000)),
-                ("ammo", (3210, None, 252233938)),
-            ],
+            first: &[("ammo", (3210, None, 252233938))],
             over: None,
         }),
     }),
@@ -2122,10 +2147,12 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // caster's): units
         // 3,783 -> 3,785, first on 1747; guys 5,990 -> 5,997, first
         // 2449 -> 4880. No ranges take of this row.
+        // Moved by item 4491 (`StrafeOrder`'s ranges walked): units
+        // 3,785 -> 3,914, first on 1747. No ranges take of this row.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3785, 537, 6001, 5907, 6001, 6001, 5997, 3976, 6001, 6001, 6001, 5995,
+                3914, 537, 6001, 5907, 6001, 6001, 5997, 3976, 6001, 6001, 6001, 5995,
             ],
             first: &[
                 ("units", (1747, Some(2268899682), 1685366186)),
@@ -2365,13 +2392,17 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // `Objects::find_units`' order): deaths 4,084 -> 4,731, whole. No
         // ranges are on disk for run1736: on 1746 ours' deaths sum was
         // 1419733817 and is now theirs' 1134652217.
+        // Moved by item 4491 (`StrafeOrder`'s ranges walked): units
+        // 2,100 -> 3,034, first 1742 -> 2354. No ranges are on disk for
+        // run1736: on 1742 ours' units sum was 1100206902 and is now
+        // theirs' 2410470946.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                2100, 553, 4731, 4511, 4731, 4731, 4731, 1976, 4731, 4731, 4731, 4731,
+                3034, 553, 4731, 4511, 4731, 4731, 4731, 1976, 4731, 4731, 4731, 4731,
             ],
             first: &[
-                ("units", (1742, Some(1100206902), 2410470946)),
+                ("units", (2354, Some(1655861561), 1211002097)),
                 ("builds", (553, Some(2297078769), 1047897137)),
                 ("ammo", (2367, Some(1123882197), 1189418202)),
                 ("leaders", (1376, Some(73709351), 1700509480)),
