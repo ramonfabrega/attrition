@@ -7,6 +7,10 @@ use crate::Sim;
 use crate::combat::{Spline, SplineArm};
 use crate::num::single::Single;
 
+/// An arm's walk: `max_control_depth_ratio`, the degree, the depth, the
+/// control points, `knots` and `spline_knots`.
+type ArmWalk<'a> = (i32, u16, u16, &'a [[Single; 3]], &'a [Single], &'a [Single]);
+
 /// **`SplineData::walk_data@009132b0`** of a nuke-arm spline (item 4468,
 /// `docs/CHECKSUM.md` §18): `type`..`depth` (`+0x40`..`+0x64`, 36 bytes),
 /// then `control_verts`, `knots`, `spline_knots`, `weights`,
@@ -26,14 +30,7 @@ fn spline_ranges(path: &Spline) -> Option<Vec<(&'static str, Vec<u8>)>> {
     let one = Single::from_bits(0x3f80_0000);
     let nuke;
     let arm = path.arm();
-    let (ratio, degree, depth, ctl, weights, knots): (
-        i32,
-        u16,
-        u16,
-        &[[Single; 3]],
-        &[Single],
-        &[Single],
-    ) = match &arm {
+    let (ratio, degree, depth, ctl, weights, knots): ArmWalk = match &arm {
         SplineArm::Nuke { s, e } => {
             nuke = Spline::nuke_parts(*s, *e);
             (
