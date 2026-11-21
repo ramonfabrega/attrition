@@ -3013,11 +3013,14 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5488, 5488, 13) -> (5488, 5488, 6).
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (2029, 2029, 1) -> (2029, 2029, 0).
+    // Item 4505, a gatherer chain is one link a unit (`Build::add_gatherer`):
+    // units (5488, 5488, 6) -> (5488, 5488, 5), `507 9 gather_down` ours -1,
+    // theirs 21 -> agree.
     (
         "run1304",
         3865,
         [
-            (5488, 5488, 6),
+            (5488, 5488, 5),
             (2029, 2029, 0),
             (0, 0, 0),
             (0, 0, 0),
