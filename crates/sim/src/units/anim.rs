@@ -254,6 +254,17 @@ pub const SITE_PAUSE_STAND: &str = "Guy::set_anim+0x97a < Unit::do_move+0x11cf";
 /// the phase the container took it in rather than in `inc_time`.
 pub const SITE_GO_INSIDE: &str = "Guy::set_anim+0x97a < Unit::go_inside+0x280";
 
+/// `Guy::set_anim+0x97a` under `Unit::come_out+0xbae` — the **scholar's
+/// rising**, the seating's mirror (item 4500). `Unit::come_out@00617c10:548`,
+/// after the `o_down` recursion and before the computer's wipe: a unit whose
+/// type is `SCHOLARS` (`0x34`) or `SCHOLARSKOREAN` (`0x35`) is given
+/// `set_anim(CHAR_DEFAULT, 1, 1)` (`6187a1`..`6187b9`, the call returning to
+/// `6187be`), so a scholar leaving a building spends its forced idle roll in
+/// the phase it came out in. The 2017 sample's 5255: the person takes
+/// computer 1's last Village, the captured University `1/2014` ejects its
+/// first Scholar `1/21`, and theirs draws here at game draw 6.
+pub const SITE_COME_OUT_SCHOLAR: &str = "Guy::set_anim+0x97a < Unit::come_out+0xbae";
+
 /// `Guy::init_real@005db6b0`'s variant roll, one per guy created.
 pub const SITE_INIT_REAL: &str = "Guy::init_real+0x52";
 
