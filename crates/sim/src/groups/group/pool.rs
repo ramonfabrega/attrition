@@ -317,41 +317,19 @@ impl Sim {
     /// (`docs/ARMY.md` §3.4). The group each member's `+0x80` names is
     /// asked first, and may be cleared ([`Sim::kill_from_named`]).
     pub(super) fn unseat_group(&mut self, g: &Group, pool: u8) {
-        let w = g.who as usize;
-        let mut touched = self.kill_from_named(g.who, &g.list, pool);
-        // `Group::kill`'s own walk: up to the captain, then down `o_down`.
-        let leaving = self.leaving_squads(&g.list);
-        // A pool slot is a group too, and `(*old->vtbl+0x10)` is asked of
-        // whichever one holds the member — so a unit pushed twice leaves
-        // the first slot rather than sitting in two groups at once.
-        for i in 0..self.orders.pushed.len() {
-            self.seat_drop(Seat::Pushed(i), &leaving);
-        }
-        for slot in 0..self.ai.armies[w].list.len() {
-            if self.seat_drop(Seat::Army(g.who, slot), &leaving) && !touched.contains(&slot) {
-                touched.push(slot);
-            }
-        }
+        // **Only the group `+0x80` names is asked** (`Groups::push_group@
+        // 0070f9e0`'s second walk: `+0x80 >= 0` and not the slot written,
+        // then that group's vslot `+0x10`). A member still listed by a slot
+        // its `+0x80` no longer names stays listed there until that slot's
+        // own `normalize` prunes it. Row 105's who=1 unit `1/94` (type
+        // 200), pushed onto slot 22 by `think_scout` on run1752's state
+        // 4355: its `+0x80` named slot 9, so slot 20 (record 84) keeps it,
+        // `num` 50 (item 4512). From item 465 to 4512 this crate also swept
+        // every seat for the leaving squads, which the function never does.
+        let touched = self.kill_from_named(g.who, &g.list, pool);
         for slot in touched {
             self.army_normalize(g.who, slot);
         }
-    }
-
-    /// Every figure of each listed member's squad, `Group::kill`'s own
-    /// walk: up to the captain, then down `o_down`.
-    pub(super) fn leaving_squads(&self, list: &[usize]) -> Vec<usize> {
-        let mut leaving: Vec<usize> = Vec::new();
-        for &m in list {
-            if !self.units[m].alive() {
-                continue;
-            }
-            for f in self.squad_of(self.captain_of(m)) {
-                if !leaving.contains(&f) {
-                    leaving.push(f);
-                }
-            }
-        }
-        leaving
     }
 
     /// `push_group`'s second walk (`0070f9e0`), the kill half, **on the
@@ -403,20 +381,6 @@ impl Sim {
             }
         }
         touched
-    }
-
-    /// Drop every member `leaving` names from a seat's list, shifting the
-    /// per-member arrays with it ([`Self::seat_remove_at`]), last to first.
-    pub(super) fn seat_drop(&mut self, seat: Seat, leaving: &[usize]) -> bool {
-        let (l, st) = self.seat_parts(seat);
-        let mut dropped = false;
-        for i in (0..l.len()).rev() {
-            if leaving.contains(&l[i]) {
-                Self::seat_remove_at(l, st, i);
-                dropped = true;
-            }
-        }
-        dropped
     }
 
     // ------------------------------------------------------------------

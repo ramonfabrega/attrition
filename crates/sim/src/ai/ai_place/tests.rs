@@ -442,6 +442,54 @@ fn an_oil_well_takes_the_nearest_owned_patch_and_prunes_the_unowned() {
     );
 }
 
+/// **A pruned list keeps its capacity** (item 4512): arm 4.2's removal
+/// is `SimpleArray<int>::remove@00462e70`, which only shortens the
+/// length, so twelve patches pruned to ten still report `size` 20 — as
+/// run1752's who=1 does on 3583 — and the next growth is from 20, not
+/// from the length.
+#[test]
+fn a_pruned_oil_list_reports_the_capacity_it_grew_to() {
+    let cells: Vec<(i32, i32)> = (0..12).map(|k| (1 + k, 2 + k % 3 * 5)).collect();
+    let (mut sim, gis) = oil_world(&cells);
+    let size = |sim: &Sim| -> Vec<i64> {
+        sim.leader_image(1)
+            .iter()
+            .filter(|r| r.field == "oil_patches")
+            .flat_map(|r| &r.leaves)
+            .filter(|l| l.name == "length" || l.name == "size")
+            .flat_map(|l| l.values.clone().unwrap_or_default())
+            .collect()
+    };
+    assert_eq!(size(&sim), [12, 20], "twelve, grown to twenty");
+    for &(x, y) in &cells[3..5] {
+        sim.world
+            .set_owner(Cell::new(x, y), crate::Owner::Player(0), crate::Owner::None);
+    }
+    sim.pick_oil_patch(1, Cell::new(6, 6), &well());
+    assert_eq!(sim.ai.ai[1].oil_patches.len(), 10, "two pruned");
+    assert!(!sim.ai.ai[1].oil_patches.contains(&gis[3]));
+    assert_eq!(size(&sim), [10, 20], "the capacity stays");
+    // Eleven more: 21 elements outgrow 20, not 10.
+    for _ in 0..11 {
+        sim.ai.ai[1].oil_patches.push(gis[0]);
+    }
+    assert_eq!(size(&sim), [21, 30]);
+}
+
+/// **`mil_trainers` loses a closed trainer the same way**
+/// (`Wall::decrement_stats@00642da0`'s arm, `SimpleArray<int>::remove`):
+/// its capacity is kept across the removal (item 4512).
+#[test]
+fn a_closed_trainer_leaves_mil_trainers_capacity_in_place() {
+    let mut l = crate::ai::Leader::new();
+    l.mil_trainers = (0..11).collect();
+    l.remove_mil_trainer(4);
+    assert_eq!(l.mil_trainers.len(), 10);
+    assert_eq!(l.mil_trainers_size, 20, "the capacity eleven grew to");
+    l.remove_mil_trainer(0);
+    assert_eq!(l.mil_trainers_size, 20, "never shrinks");
+}
+
 /// **A tie goes to the earlier patch**: the walk is last to first and
 /// the comparison `>=` (`006e19c8`, `jl` skips only a lower score).
 #[test]

@@ -8037,7 +8037,8 @@ const WANT_CH42: &[&str] = &[
 /// (parked 1183), the trireme's attack `order:target`, which this crate
 /// keeps on the unit rather than the order — and three of the chapter's
 /// own: `1/2000`'s `raid_stamp` on 671 (closed by item 2235, a citizen's gather); the
-/// `group` numbers from 902, which this crate hands out in another order.
+/// `group` numbers from 902 (closed by item 4512: `push_group` asks only
+/// the group a member's `+0x80` names, where this crate swept every seat).
 /// The death-object cull (`docs/COMBAT.md` §59.7) is built (item 3205,
 /// `docs/GOLDEN.md` §127): `0/7`'s `death:extra` on 1622 and `0/8`'s on
 /// 1725 left.
@@ -8056,9 +8057,9 @@ const WANT_CH41: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "902 1/6 group",
-    "902 1/7 group",
-    "968 1/0 group",
+    // Item 4512: `push_group`'s second walk asks only the group `+0x80`
+    // names; these rows agree and leave: 902 1/6 group, 902 1/7 group,
+    // 968 1/0 group.
     // **The rounds' fields, compared from item 1257**: the Biplane
     // `1/6`'s rounds keep no target here (`whom`/`ox` −1) where the
     // original's name the Citizen it strafes (979, 1069, 1615). No draw.

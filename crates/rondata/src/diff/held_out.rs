@@ -1075,6 +1075,147 @@ mod tests {
         }
     }
 
+    /// **Row 105's pruned oil list keeps its capacity** (item 4512,
+    /// `docs/RECGAME.md` §11.1): run1752 holds every leaders range on 3582
+    /// and 3583. On 3583 who=1's `oil_patches` goes from twelve patches to
+    /// ten, both sides (arm 4.2 of `Leader::produce_building@006e1400`
+    /// prunes two land patches the leader no longer owns, by
+    /// `SimpleArray<int>::remove@00462e70`), and theirs' `size` stays 20:
+    /// a removal only shortens the length. Every leaders range on both
+    /// states, ours against theirs, byte for byte: red on the tree before
+    /// the fix, at range 191 (record 1 `oil_patches` `size`, ours 10).
+    #[test]
+    fn row_105_s_pruned_oil_list_keeps_its_capacity_on_run1752_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&THIRD, 5) else {
+            eprintln!("skipping: row 105's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1752/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1752's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 105's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [3582, 3583] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_leaders();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "leaders' ranges on {state}"
+            );
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "leaders range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Record 1's `oil_patches`: the length, then the size, by name.
+            let k = ours
+                .ranges
+                .iter()
+                .position(|r| r.record == 1 && r.field == "oil_patches")
+                .expect("record 1's oil_patches");
+            let (n, size): (i32, i32) = if state == 3582 { (12, 20) } else { (10, 20) };
+            assert_eq!(
+                theirs[k].bytes,
+                n.to_le_bytes(),
+                "theirs' length on {state}"
+            );
+            assert_eq!(
+                theirs[k + 1].bytes,
+                size.to_le_bytes(),
+                "theirs' size on {state}"
+            );
+            assert_eq!(built.sim.ai.ai[1].oil_patches.len(), n as usize);
+        }
+    }
+
+    /// **Row 105's pushed unit stays listed by the slot it left**
+    /// (item 4512, `docs/RECGAME.md` §11.1): run1752 holds every groups
+    /// range on 4354 and 4355. On 4355 `think_scout` pushes who=1's `1/94`
+    /// (type 200) onto slot 22. `Groups::push_group@0070f9e0`'s second
+    /// walk kills it only from the group its `+0x80` names, slot 9, so slot
+    /// 20 (record 84), which still lists it, keeps it: `num` 50. Every
+    /// groups range on both states, ours against theirs, byte for byte:
+    /// red on the tree before the fix, at range 204 (`num` ours 49).
+    #[test]
+    fn row_105_s_pushed_unit_stays_listed_by_the_slot_it_left_on_run1752_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&THIRD, 5) else {
+            eprintln!("skipping: row 105's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1752/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1752's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 105's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [4354, 4355] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_groups();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 5).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "groups' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "groups range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Record 84's `num` (byte 8 of `id..march`) and its list, by
+            // name: `1/94` is the 37th member on both states.
+            assert_eq!(
+                theirs[204].bytes[8..12],
+                50i32.to_le_bytes(),
+                "theirs' num on {state}"
+            );
+            assert_eq!(
+                theirs[205].bytes[72..74],
+                94i16.to_le_bytes(),
+                "theirs' 1/94 on {state}"
+            );
+            let u = built
+                .sim
+                .units
+                .iter()
+                .find(|u| u.owner == 1 && u.index == 94)
+                .expect("1/94");
+            let want = if state == 4354 { 9 } else { 22 };
+            assert_eq!(u.group_ptr, Some(want), "1/94's +0x80 on {state}");
+        }
+    }
+
     /// **Row 120's barge is born with `form` 0** (item 4435, `docs/RECGAME.md`
     /// §10.3): run1716, the ranges take of run1706's file, holds the units
     /// line's every range on state 2694, where the computer's transport
@@ -1322,6 +1463,85 @@ mod tests {
             assert_eq!(&theirs[741].bytes[..], &0x20di32.to_le_bytes());
             let want: i32 = if state == 537 { 0x4000_0000 } else { 27_900 };
             assert_eq!(&theirs[746].bytes[0..4], &want.to_le_bytes(), "{state}");
+        }
+    }
+
+    /// **Row 10's walker steps inside a freed cell and marks nothing**
+    /// (item 4504, `docs/COLLISION.md` §2.4): run1739, the ranges take of
+    /// run1730's file. who=1's `1/43` (TI 104) stands at unit cell
+    /// (632, 813) with its disc holed out and cell (39, 50)'s block
+    /// (record 3039) freed by the sweep; on 2365 it steps to (633, 814),
+    /// both discs inside that one cell, and `CollCheck::move_unit@00682ad0`'s
+    /// one-block form finds the block null (`WorldData::get_coll_block@006b5350`
+    /// only reads) and returns before either pass. This crate ran the set
+    /// pass and allocated the block. Every world range on 2364, 2365 and
+    /// 2366, byte for byte: red on the tree before the fix at range 6920 on
+    /// 2365, record 3039 `block.present`, ours 1, theirs 0.
+    #[test]
+    fn row_10_s_walker_steps_inside_a_freed_cell_and_marks_nothing_on_run1739_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 0) else {
+            eprintln!("skipping: row 10's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1739/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1739's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 10's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [2364i64, 2365, 2366] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_world();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "world range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            assert_eq!(ours.ranges.len(), theirs.len(), "world's ranges on {state}");
+            // The cell and the walker by name: record 3039 is world cell
+            // (39, 50) on the 60-wide map, and `1/43` steps into it on 2365.
+            let k = ours
+                .ranges
+                .iter()
+                .position(|r| r.record == 3039 && r.field == "block.present")
+                .expect("cell 3039's presence");
+            let present: u8 = if state == 2366 { 1 } else { 0 };
+            assert_eq!(
+                theirs[k].bytes,
+                [present, 0, 0, 0],
+                "theirs' block on {state}"
+            );
+            let u = built
+                .sim
+                .units
+                .iter()
+                .find(|u| u.owner == 1 && u.index == 43)
+                .expect("1/43");
+            assert_eq!(u.type_index, 104);
+            let at = sim::movement::collide::ucell(u.pos);
+            let want = match state {
+                2364 => (632, 813),
+                2365 => (633, 814),
+                _ => (634, 815),
+            };
+            assert_eq!((at.x, at.y), want, "1/43's unit cell on {state}");
         }
     }
 
@@ -2642,17 +2862,21 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Freighter `1/135` holding `1/127`, `1/128`, `1/129`, `1/127`'s
         // `inside_down` ours -1, theirs 128): units 3,914 -> 5,664, first
         // 1747 -> 3771.
+        // Moved by item 4504 (`CollCheck::move_unit@00682ad0`'s one-block
+        // form returns on a null block: run1739, state 2365, world range
+        // 6920, record 3039 `block.present`, ours 1, theirs 0, who=1's
+        // `1/43` stepping (632, 813) -> (633, 814) inside the freed cell
+        // (39, 50)): world 5,995 -> 6,001, whole.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5664, 6001, 6001, 5962, 6001, 6001, 5997, 5801, 6001, 6001, 6001, 5995,
+                5664, 6001, 6001, 5962, 6001, 6001, 5997, 5801, 6001, 6001, 6001, 6001,
             ],
             first: &[
                 ("units", (3771, Some(4212870850), 267538306)),
                 ("ammo", (5178, None, 1427640977)),
                 ("guys", (4880, Some(3110518234), 2759048231)),
                 ("leaders", (3976, Some(2201651438), 3962276079)),
-                ("world", (2365, Some(1596373308), 975353592)),
             ],
             over: None,
         }),
@@ -3134,6 +3358,16 @@ pub(crate) const SCORES_THIRD: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
+        // Moved by item 4512, second (`Groups::push_group`'s second walk
+        // asks only the group a member's `+0x80` names: run1752, state
+        // 4355, groups range 204, record 84, who=1's slot 20 keeps `1/94`
+        // when `think_scout` pushes it onto slot 22, `num` ours 49, theirs
+        // 50): groups 5,217 -> 5,235, whole; the game is whole.
+        // Moved by item 4512 (a leader's `SimpleArray<int>` keeps its
+        // capacity across a removal: run1752, state 3583, leaders range
+        // 191, record 1, who=1's `oil_patches` pruned from 12 to 10 by arm
+        // 4.2, `size` ours 10, theirs 20): leaders 5,056 -> 5,235, whole;
+        // the row's first parting 3583 -> 4355 (groups).
         // Moved by item 4511 (a unit host's `inside_down` chain is the order
         // of entry, `Object::insert_inside` appending at the bottom:
         // run1752, state 3359, units range 3707, record 127, who=1's
@@ -3155,13 +3389,8 @@ pub(crate) const SCORES_THIRD: [Option<FirstScore>; 8] = [
         // ranges take of this row.
         moved: Some(Score {
             states: 5235,
-            agreed: [
-                5235, 5235, 5235, 5235, 5235, 5217, 5235, 5056, 5235, 5235, 5235, 5235,
-            ],
-            first: &[
-                ("groups", (4355, Some(2731263697), 520406832)),
-                ("leaders", (3583, Some(924078995), 1189499805)),
-            ],
+            agreed: [5235; 12],
+            first: &[],
             over: None,
         }),
     }),
@@ -3199,9 +3428,10 @@ pub(crate) const SCORES_THIRD: [Option<FirstScore>; 8] = [
 /// line, games whole of the eight and games taken. As found 2026-11-21:
 /// 5 of 8, rows 25, 45, 65, 125 and 145 whole. Item 4493: 6 of 8, row 85
 /// whole (`Group::refresh_group_order`'s prune). Item 4507: 7 of 8, row 5
-/// whole (piece 32's bays re-fitted on the original's sweep).
+/// whole (piece 32's bays re-fitted on the original's sweep). Item 4512:
+/// 8 of 8, row 105 whole (`push_group` asks only the group `+0x80` names).
 #[cfg(test)]
-pub(crate) const HELD_OUT_THIRD_LINE: (usize, usize) = (7, 8);
+pub(crate) const HELD_OUT_THIRD_LINE: (usize, usize) = (8, 8);
 
 /// The third battery (item 4487).
 #[cfg(test)]
