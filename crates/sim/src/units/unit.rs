@@ -359,10 +359,6 @@ pub struct Unit {
     /// block of `Unit::think@005f6e40:233`, on an idle special unit with no
     /// group (or a group of one), and `Unit::init`.
     pub explore_queued: bool,
-    /// `unit_flags & 0x400`: the Kremlin's spy, which `Build::process`
-    /// tags as it trains it and which stands outside the owner's `control`
-    /// (`docs/AI.md` §188).
-    pub kremlin_spy: bool,
     /// `ObjectData::mylos` (`+0x3c`): the line of sight in tiles **as
     /// `Unit::update_los` last wrote it** — a cache, not a derivation. The
     /// fog sweep and the follower's spacing read it; [`Sim::update_los`]
@@ -1080,7 +1076,6 @@ impl Unit {
             decoy: false,
             auto_explore: false,
             explore_queued: false,
-            kremlin_spy: false,
             mylos: 0,
             unit_masks2: 0,
             avoid: None,
