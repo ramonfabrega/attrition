@@ -560,6 +560,9 @@ impl Sim {
                     break 'cand;
                 }
                 let sp = self.check_building_wcoord(who, cell, w, h, max, !nocity);
+                if std::env::var_os("RON_PROBE_4492").is_some() && self.frame == 4182 {
+                    eprintln!("PROBE4492 reach idx{} cell({},{}) sp{}", idx, cell.x, cell.y, sp);
+                }
                 if sp <= 1 {
                     break 'cand;
                 }
@@ -789,6 +792,13 @@ impl Sim {
                     }
                     score = (score + plenty) * w1;
                 }
+                if std::env::var_os("RON_PROBE_4492").is_some() && self.frame == 4182 {
+                    eprintln!(
+                        "PROBE4492 spiral f{} who{} rec{} idx{} cell({},{}) anchor({},{}) sp{} score{} best{} val{}",
+                        self.frame, who, rec, idx, cell.x, cell.y, anchor.x, anchor.y, sp, score, best,
+                        self.world.cell_data(cell).val
+                    );
+                }
                 if score < best {
                     break 'cand;
                 }
@@ -971,6 +981,29 @@ impl Sim {
                             ((corner.x + dx) * 2 + bt.x_size) * (UNITS_PER_TILE / 2),
                             ((corner.y + dy) * 2 + bt.y_size) * (UNITS_PER_TILE / 2),
                         );
+                        if std::env::var_os("RON_PROBE_4492").is_some() {
+                            eprintln!(
+                                "PROBE4492 f{} who{} rec{} corner({},{}) d({},{}) c({},{}) tile({},{}) -> {:?} builder {:?}",
+                                self.frame, who, rec, corner.x, corner.y, dx, dy, c.x, c.y,
+                                c.tile().x, c.tile().y,
+                                self.blocked_site(Some(who), rec, c, None), builder
+                            );
+                            let bt = &self.tables.build_types[rec];
+                            let tc = self.tile_corner(rec, c);
+                            eprintln!(
+                                "PROBE4492   ident {:?} size {}x{} city {} fort {} tcorner({},{})",
+                                bt.ident, bt.x_size, bt.y_size,
+                                crate::cities::build::is_city(&self.tables.build_types, rec),
+                                crate::cities::build::is_fort(&self.tables.build_types, rec),
+                                tc.x, tc.y
+                            );
+                            for t in self.footprint(rec, tc) {
+                                eprintln!(
+                                    "PROBE4492   fp ({},{}) mask {:#06x}",
+                                    t.x, t.y, self.world.tile_mask(t)
+                                );
+                            }
+                        }
                         if self.blocked_site(Some(who), rec, c, None)
                             == crate::cities::place::Blocked::Clear
                         {
