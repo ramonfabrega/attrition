@@ -1567,8 +1567,8 @@ the container's owner inside); `launch_frames` 0 (a launcher's clock);
 `gather_down` (the next unit down its building's gatherers, whose head is
 the builds line's); `myarmor` (`Unit::myarmor`, the cache
 `Unit::update_armor` writes at birth, on a new type, in the decoy cast and in
-`calc_unit_stats`; item 4464); `cavarch_uid` (0, the
-target's `uid` with one); `guy_mark` (`anim::SQUAD_SIZE`); `collide_frame`
+`calc_unit_stats`; item 4464); `cavarch_uid`
+(`Unit::cavarch_uid`, the last found target's uid, kept past a drop; item 4476); `guy_mark` (`anim::SQUAD_SIZE`); `collide_frame`
 and `damage_o` (−1, `Unit::init`'s, where the crate keeps 0 for "never");
 `unit_masks` from the 17 bits the crate keeps; the `+0x86` union for a
 caravan or a herd; a move's `off_x`/`off_y` (`x mod 0x300`) and `tolerance`

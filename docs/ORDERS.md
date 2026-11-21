@@ -7867,8 +7867,8 @@ directions):
   of sight for every player in `infiltrated` (`World::set_seen2`) is not
   carried, and no capture has read the fog after a cast.
 - **`flags & 0x80`**, which the caster takes on 756 and loses on 796, and
-  `cavarch_uid` and the order's uid: this crate carries neither the flag
-  nor uids.
+  ~~`cavarch_uid`~~ (carried since item 4476, `docs/AI.md` §134.3) and the
+  order's uid: this crate carries neither the flag nor the order's uid.
 - **The AI's casts.** `Unit::think_spellcaster@005f27a0` — a human spy's
   own Counterintelligence on a valid target in range, and a computer's
   Bribe and Counterintelligence — is still a seam (`docs/SCOUT.md` §13).

@@ -1446,7 +1446,10 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// **844** at item 4461 (+1, on 4468's 843): run1437's guys line whole, a
 /// military type's gender piece named `-PACKED`, so the Assault Marines'
 /// `-FEMALE` entry is no piece (`docs/CHECKSUM.md` §23.13).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 844, 1053);
+/// **847** at item 4476 (+3): the units lines of run1224b, run1351 and
+/// run1361 whole, and eight more packets parting on fewer units ranges,
+/// none on more: `cavarch_uid` is carried and kept past a dropped target.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 847, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -2038,11 +2041,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (2247, 2246, 434) -> (2247, 2246, 432).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2247, 2246, 432) -> (2247, 2247, 1), leaders (271, 271, 1) -> (271, 271, 0), world (9262, 9262, 12) -> (9262, 9262, 1).
+    // Item 4476, `cavarch_uid` kept past a dropped target: units (6004, 6004, 7) -> (6004, 6004, 6).
     (
         "run1166",
         3920,
         [
-            (6004, 6004, 7),
+            (6004, 6004, 6),
             (2247, 2247, 1),
             (0, 0, 0),
             (0, 0, 0),
@@ -2135,11 +2139,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4425, a member compute_dests skips keeps its record offset: groups (640, 640, 4) -> (640, 640, 0).
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6735, 6735, 60) -> (6735, 6735, 48).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6735, 6735, 48) -> (6735, 6735, 36).
+    // Item 4476, `cavarch_uid` kept past a dropped target: units (6735, 6735, 36) -> (6735, 6735, 35).
     (
         "run1185",
         4582,
         [
-            (6735, 6735, 36),
+            (6735, 6735, 35),
             (1911, 1911, 0),
             (0, 0, 0),
             (3, 3, 0),
@@ -2344,11 +2349,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (4271, 4271, 12) -> (4271, 4271, 0).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (11740, 11740, 3) -> (11740, 11740, 2).
     // Item 4448, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm): units (11740, 11740, 2) -> (11740, 11740, 1).
+    // Item 4476, `cavarch_uid` kept past a dropped target: units (11740, 11740, 1) -> (11740, 11740, 0).
     (
         "run1224b",
         9745,
         [
-            (11740, 11740, 1),
+            (11740, 11740, 0),
             (4271, 4271, 0),
             (0, 0, 0),
             (6, 6, 0),
@@ -3192,11 +3198,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (10367, 10367, 82) -> (10367, 10367, 70).
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (2521, 2521, 2) -> (2521, 2521, 0).
+    // Item 4476, `cavarch_uid` kept past a dropped target: units (10367, 10367, 70) -> (10367, 10367, 68).
     (
         "run1325c",
         5578,
         [
-            (10367, 10367, 70),
+            (10367, 10367, 68),
             (2521, 2521, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -3364,11 +3371,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4441, `mask_me` walks a footprint column by column: world (8328, 8328, 2) -> (8328, 8328, 0).
     // Item 4430, a SAME_AS piece's own RData +0x88, the A7V's turret vector at 0.9: units (4745, 4745, 9) -> (4745, 4745, 8), guys (1352, 1352, 1) -> (1352, 1352, 0).
     // Item 4443 (on 4430), the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4745, 4745, 8) -> (4745, 4745, 1).
+    // Item 4476, `cavarch_uid` kept past a dropped target: units (4745, 4745, 1) -> (4745, 4745, 0).
     (
         "run1351",
         4303,
         [
-            (4745, 4745, 1),
+            (4745, 4745, 0),
             (2237, 2237, 0),
             (0, 0, 0),
             (3, 3, 0),
@@ -3673,11 +3681,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4412, a detector building's `flags & 0x40` (`Object::init`'s `DETECT`): builds (2544, 2544, 1) -> (2544, 2544, 0).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6810, 6810, 15) -> (6810, 6810, 1).
+    // Item 4476, `cavarch_uid` kept past a dropped target: units (6810, 6810, 1) -> (6810, 6810, 0).
     (
         "run1361",
         4840,
         [
-            (6810, 6810, 1),
+            (6810, 6810, 0),
             (2544, 2544, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4058,11 +4067,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5583, 5423, 1535) -> (5583, 5423, 1530).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2515, 2513, 686) -> (2515, 2515, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (5583, 5423, 1530) -> (5583, 5535, 1936).
+    // Item 4476, `cavarch_uid` kept past a dropped target: units (5583, 5535, 1936) -> (5583, 5535, 1934) (on 4474's tree).
     (
         "run1420",
         4586,
         [
-            (5583, 5535, 1936),
+            (5583, 5535, 1934),
             (2515, 2515, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4185,11 +4195,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2154, 2151, 568) -> (2154, 2154, 8).
     // Item 4461, a military type's gender piece is named -PACKED, so the Assault Marines' -FEMALE is no piece: guys (1208, 1208, 5) -> (1208, 1208, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (4789, 4529, 2796) -> (4789, 4711, 3186).
+    // Item 4476, `cavarch_uid` kept past a dropped target: units (4789, 4711, 3186) -> (4789, 4711, 3185) (on 4474's tree).
     (
         "run1437",
         3894,
         [
-            (4789, 4711, 3186),
+            (4789, 4711, 3185),
             (2154, 2154, 8),
             (0, 0, 0),
             (3, 3, 0),
@@ -4526,11 +4537,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4400, the `leader_flags` bits: leaders (403, 403, 6) -> (403, 403, 3).
     // Item 4415, the oil-well stand's cur_time: units (4145, 4145, 279) -> (4145, 4145, 278), guys (1381, 1381, 1) -> (1381, 1381, 0).
     // Item 4422, the swarm's form -1: groups (562, 562, 2) -> (562, 562, 0).
+    // Item 4476, `cavarch_uid` kept past a dropped target: units (4145, 4145, 278) -> (4145, 4145, 277).
     (
         "run1484",
         676,
         [
-            (4145, 4145, 278),
+            (4145, 4145, 277),
             (1446, 1446, 22),
             (0, 0, 0),
             (304, 0, 304),
@@ -4563,11 +4575,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5340, 5340, 284) -> (5340, 5340, 276).
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (2736, 2736, 26) -> (2736, 2736, 24).
+    // Item 4476, `cavarch_uid` kept past a dropped target: units (5340, 5340, 276) -> (5340, 5340, 275).
     (
         "run1487",
         1980,
         [
-            (5340, 5340, 276),
+            (5340, 5340, 275),
             (2736, 2736, 24),
             (0, 0, 0),
             (208, 0, 208),
@@ -4600,11 +4613,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5026, 5026, 285) -> (5026, 5026, 282).
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (2180, 2180, 24) -> (2180, 2180, 23).
+    // Item 4476, `cavarch_uid` kept past a dropped target: units (5026, 5026, 282) -> (5026, 5026, 281).
     (
         "run1496",
         1539,
         [
-            (5026, 5026, 282),
+            (5026, 5026, 281),
             (2180, 2180, 23),
             (0, 0, 0),
             (230, 0, 230),
