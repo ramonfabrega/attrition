@@ -691,7 +691,7 @@ impl Sim {
                         self.tables.build_types[t].flags & crate::cities::build::flags::GATHERER
                             != 0
                     })
-                    .map(|_| (b.gatherers.len() as i32, b.gather_max)),
+                    .map(|_| (self.gather_chain(i).len() as i32, b.gather_max)),
                 seen: viewer.is_none_or(|p| self.build_is_seen(i, p)),
                 trains: b.ty.is_some_and(|t| {
                     crate::cities::build::is_training_building(&self.tables.build_types, t)

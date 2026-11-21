@@ -603,19 +603,16 @@ impl Sim {
         v
     }
 
-    /// `UnitData::gather_down` (`+0x92`): the next unit down its building's
-    /// gatherer chain (`Build::add_gatherer`), whose head is the building's
-    /// own `gather_down` (the builds line's); −1 at the tail and off it.
+    /// `UnitData::gather_down` (`+0x92`): the unit's own link down the
+    /// gatherer chain it was last pushed onto (`Build::add_gatherer`),
+    /// whose head is the building's own `gather_down` (the builds line's);
+    /// −1 at the tail and off it. Item 4505: computer 1's Citizen `1/11`,
+    /// pushed onto `#2009`'s chain on the sample's 4247 while `#2001`'s
+    /// still linked to it, reads theirs' 8, the new chain's next.
     fn unit_gather_down(&self, u: usize) -> i64 {
-        for bd in &self.buildings {
-            if let Some(k) = bd.gatherers.iter().position(|&x| x == u) {
-                return bd
-                    .gatherers
-                    .get(k + 1)
-                    .map_or(-1, |&n| i64::from(self.units[n].index));
-            }
-        }
-        -1
+        self.units[u]
+            .gather_down
+            .map_or(-1, |n| i64::from(self.units[n].index))
     }
 
     /// The `uid` (`ObjectData +0x30`) of a combat object.

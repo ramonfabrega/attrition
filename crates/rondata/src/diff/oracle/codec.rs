@@ -40,6 +40,7 @@ record!(UnitDump {
     dest_angle: Option<i64>,
     tolerance: Option<i64>,
     path_recursion: Option<i64>,
+    gather_down: Option<i64>,
     idle: Option<i64>,
     unit_masks: Option<i64>,
     unit_masks2: Option<i64>,

@@ -139,6 +139,7 @@ fn sample(sim: &Sim) -> Sample {
                 orders::Body::Attack(_) | orders::Body::Think => -1,
             });
         }
+        h.eat(u.gather_down.map_or(-1, |g| g as i64));
         h.eat(u.path.len() as i64);
         for p in &u.path {
             h.eat(i64::from(p.to.x));
@@ -160,10 +161,7 @@ fn sample(sim: &Sim) -> Sample {
         h.eat_bool(b.active);
         h.eat_bool(b.started);
         h.eat(b.city.map_or(-1, |c| c as i64));
-        h.eat(b.gatherers.len() as i64);
-        for g in &b.gatherers {
-            h.eat(*g as i64);
-        }
+        h.eat(b.gather_head.map_or(-1, |g| g as i64));
         h.eat(b.garrison.len() as i64);
     }
     h.eat(sim.cities.cities.len() as i64);

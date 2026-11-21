@@ -5041,9 +5041,8 @@ mod tests {
         let pasture = (0..built.sim.buildings.len())
             .find(|&b| built.sim.buildings[b].farm.farm_type & sim::cities::farms::ANIMAL_FARM != 0)
             .expect("run39's AI built one pasture");
-        let herder = *built.sim.buildings[pasture]
-            .gatherers
-            .first()
+        let herder = built.sim.buildings[pasture]
+            .gather_head
             .expect("and put a citizen on it");
         let (who, o) = (
             i64::from(built.sim.units[herder].owner),

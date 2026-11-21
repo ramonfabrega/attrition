@@ -999,9 +999,7 @@ impl Sim {
             self.buildings[fa.build].pos
         } else {
             match self.buildings[fa.build]
-                .gatherers
-                .first()
-                .copied()
+                .gather_head
                 .and_then(|g| self.units.get(g))
             {
                 Some(unit) => unit.pos,
