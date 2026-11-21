@@ -221,12 +221,10 @@ impl Sim {
     /// 00708620` both snap with the group's `who` before `blocked_site`
     /// ([`Sim::group_action_build`]).
     ///
-    /// SEAM, none reached by a capture on file: the Oil Well's and Oil
-    /// Platform's (`0x1a5`, `0x1a6`) snap to a seen cell flagged `0x800`.
-    /// `Objects::init_build@0065d190` snaps with the owner too, and
-    /// `Sim::init_build` still takes the plain snap: the AI's and the
-    /// capture's (`Wall::swap_team`) sites reach it already cleared or
-    /// standing, and no capture on file has one the arm would move.
+    /// SEAM: the Oil Well's and Oil Platform's (`0x1a5`, `0x1a6`) snap to
+    /// a seen cell flagged `0x800`. `Objects::init_build@0065d190` snaps
+    /// with the owner too, and `Sim::init_build` keeps the plain snap
+    /// (`docs/CITIES.md` §2.2, "Not established").
     pub fn snap_center_placed(&self, ty: usize, pos: Pos, who: Option<Player>) -> Pos {
         let types = &self.tables.build_types;
         let gatherer = who.is_some()

@@ -304,8 +304,8 @@ reach. Theirs builds it a tile south, at (29568, 10368), with a 205-tile
 list, and spends 820 `Build::find_gather_tiles+0x10a` draws on 5083; ours
 now does the same, and the draws agree to 5255. **Not established**:
 `Objects::init_build` snaps with the owner too, while `Sim::init_build`
-keeps the plain snap. No AI or capture (`Wall::swap_team`) site on file is
-one the arm would move.
+keeps the plain snap. Whether any AI or capture (`Wall::swap_team`) site
+on file is one the arm would move has not been scanned.
 
 ## 2.3 The tile layer — `TData.mask` and `WData.flags`
 
