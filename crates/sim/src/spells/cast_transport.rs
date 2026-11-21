@@ -338,10 +338,17 @@ impl TransportView for SimTransport<'_> {
     fn heading(&self, g: i32) -> i32 {
         self.sim.units[g as usize].movement.heading.0
     }
+    // **`Unit::set_angle(b, g's +0x50, _, 1)` whole** (`671027`–`67104f`
+    // push the snap): the snap reaches `Guy::set_angle@005d9010(guy 0, a,
+    // 1)`, which writes `angle` and `last_angle` (`+0x18`, `+0x1c`) both,
+    // and `Unit::set_angle@00605400` writes no `dest_angle` (`+0x58`). The
+    // view had written the movement's facing, its `dest_angle` with it, and
+    // left guy 0's `last` angle at `Angle::INITIAL`: row 90's barge parted
+    // the units and guys lines on 4021 by that word alone (item 4470,
+    // `docs/RECGAME.md` §11).
     fn set_angle(&mut self, b: i32, angle: i32) {
-        self.sim.units[b as usize]
-            .movement
-            .set_facing(crate::movement::Angle(angle));
+        self.sim
+            .unit_set_angle_as(b as usize, crate::movement::Angle(angle), true);
     }
     // **The caravan's slot goes with it** (`cast_transport@00670db0:117`–
     // `121`, item 3370): the Merchant Fleet's `+0x86` is the caravan's, so
