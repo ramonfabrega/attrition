@@ -418,11 +418,30 @@ impl Sim {
         self.find_city_at(who, self.units[h].pos, None)
     }
 
-    /// The CEO bit, `unit_masks2 & 0x10000`: `Unit::init@00612100:253`–`264`
-    /// and `Unit::set_type@00612fa0:208`–`219` set it where the type
-    /// `is(0x165, 1)`, taken as the type itself as [`Sim::ceo_city`] takes it.
+    /// The CEO bit, `unit_masks2 & 0x10000` ([`crate::combat::umask2::CEO`]),
+    /// as [`Sim::init_ceo_mask`] wrote it at birth and on every `set_type`.
     pub(crate) fn has_ceo_bit(&self, u: usize) -> bool {
-        self.units[u].type_index == 0x165
+        self.units[u].unit_masks2 & crate::combat::umask2::CEO != 0
+    }
+
+    /// **The CEO bit's writer** (item 4502): `Unit::init@00612100:253`–`264`
+    /// and `Unit::set_type@00612fa0:208`–`219` raise `unit_masks2 & 0x10000`
+    /// on a unit whose type `is(0x165, 1)` (strict: the type itself, or a
+    /// nation's graft of it that is not unique) and clear it on any other;
+    /// a unit left holding it calls `update_ceo_position(this, -1, -1,
+    /// here)`, so a CEO born or made inside a city raises its owner's
+    /// `0x2000000`. run1752's `1/17` (`TypeIndex` 0x163 → 0x165 on 2983)
+    /// prints 65536 on 2983 where this crate printed 0.
+    pub(crate) fn init_ceo_mask(&mut self, u: usize) {
+        const CEO: i32 = 0x165;
+        let bit = crate::combat::umask2::CEO;
+        if self.speed_is(u, CEO, true) {
+            self.units[u].unit_masks2 |= bit;
+            let here = self.units[u].pos.tile();
+            self.update_ceo_position(u, None, Some(here));
+        } else {
+            self.units[u].unit_masks2 &= !bit;
+        }
     }
 
     /// **The CEO's tile step** (`005f8d20:146`–`150`, item 4159r12): a tile
@@ -441,8 +460,9 @@ impl Sim {
     /// or nowhere), and on a difference raise the owner's `0x2000000`, so
     /// the next reassembly falls within eight frames rather than at 512.
     /// `Unit::set_new_location@005f8d20:146`–`150` calls it on a tile
-    /// crossing; `go_inside`, `come_out`, `init` and `set_type` call it
-    /// too (SEAM: those four arms are not built).
+    /// crossing, and `init` and `set_type` from nowhere (`None`) to the
+    /// unit's tile ([`Sim::init_ceo_mask`], item 4502); `go_inside` and
+    /// `come_out` call it too (SEAM: those two arms are not built).
     pub(crate) fn update_ceo_position(&mut self, u: usize, from: Option<Pos>, to: Option<Pos>) {
         if !self.has_ceo_bit(u) {
             return;

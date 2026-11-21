@@ -20,7 +20,7 @@
 //!
 //! Not carried by this adapter: the table unit's `is(0x134)` (read yes, the
 //! crate's old count) and governor-hero answers (no, as the muster count's gap), the `+0x6c`
-//! flags, the CEO bit, `is(0x77)`, the vslots `+0x15c`/`+0x160`, the armor and
+//! flags but the marine mark and the CEO bit (item 4502), the vslots `+0x15c`/`+0x160`, the armor and
 //! speed refreshes the original runs here, and the supply tail
 //! (`game.version` is not modelled): the crate keeps no state for them.
 
@@ -41,12 +41,13 @@ pub(crate) struct SimSetType<'a> {
 
 impl<'a> SimSetType<'a> {
     pub(crate) fn new(sim: &'a mut Sim, u: usize, rec: usize) -> Self {
+        let flags = sim.units[u].unit_masks2 as i32;
         SimSetType {
             sim,
             u,
             rec,
             total: None,
-            flags: 0,
+            flags,
         }
     }
 
@@ -181,7 +182,7 @@ impl UnitSetTypeView for SimSetType<'_> {
 
     fn sub_object_set_type(&mut self, _ty: i32, _mode: i32) {}
     fn is_ceo(&mut self) -> bool {
-        false
+        self.sim.speed_is(self.u, 0x165, true)
     }
     fn flags6c(&mut self) -> i32 {
         self.flags
@@ -193,8 +194,18 @@ impl UnitSetTypeView for SimSetType<'_> {
         if f & crate::combat::umask2::MARINE as i32 != 0 {
             self.sim.units[self.u].unit_masks2 |= crate::combat::umask2::MARINE;
         }
+        // The CEO bit, set and cleared (item 4502).
+        let ceo = crate::combat::umask2::CEO;
+        if f as u32 & ceo != 0 {
+            self.sim.units[self.u].unit_masks2 |= ceo;
+        } else {
+            self.sim.units[self.u].unit_masks2 &= !ceo;
+        }
     }
-    fn update_ceo_position(&mut self) {}
+    fn update_ceo_position(&mut self) {
+        let here = self.sim.units[self.u].pos.tile();
+        self.sim.update_ceo_position(self.u, None, Some(here));
+    }
     fn is_77(&mut self) -> bool {
         self.sim
             .speed_is(self.u, crate::spells::cast_transport::MARINES, false)
