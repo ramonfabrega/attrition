@@ -1301,6 +1301,18 @@ misses. The rows are now the sweep's centroids, 361 of 361 each, and equal piece
 launch differences, and they close. `row_5_s_slinger_stone_leaves_from_the_original_s_socket_on_run1753_s_ranges` holds every ammo range on 4804
 to 4806.
 
+**Row 105 whole (item 4512, run1752).** *Leaders, 3583*: range 191, record 1, who=1's `oil_patches` `size` ours 10,
+theirs 20. Both sides prune the list from twelve patches to ten (arm 4.2), length and elements agreeing;
+`SimpleArray<int>::remove@00462e70` only shortens the length, so the capacity stays 20. The leader now keeps each
+shrinking array's capacity (`Leader::oil_patches_size`, `mil_trainers_size`). Leaders 5,056 → 5,235, whole.
+*Groups, 4355*: range 204, record 84 (who=1's slot 20), `num` ours 49, theirs 50. `think_scout` pushes `1/94`
+(type 200, its `+0x80` naming slot 9) onto slot 22; `Groups::push_group@0070f9e0`'s second walk kills it from slot
+9 alone, so slot 20 keeps listing it. This crate also swept every seat for the leaving squads (since item 465); the
+sweep is gone (`docs/GROUPS.md` §30.3). Groups 5,217 → 5,235, whole, and **row 105 is whole**: the third battery 8
+of 8 on the tree merged with 4507. The same fix closes golden chapter 41's three `group` rows (902, 968).
+`row_105_s_pruned_oil_list_keeps_its_capacity_on_run1752_s_ranges` holds every leaders range on 3582 and 3583,
+`row_105_s_pushed_unit_stays_listed_by_the_slot_it_left_on_run1752_s_ranges` every groups range on 4354 and 4355.
+
 **At the pass of 2026-11-21** (DECISIONS 148 §2, §3). The three found columns read 0, 1 and 5 of 8 whole, 64, 65
 and 90 of 96 lines, and 27, 53 and 88 % by reach. Every game of the twenty-four has an idle human. The fourth
 battery is rows 15, 35, 55, 75, 95, 115, 135 and 155, named before any take (item 4510), taken when this one reads
@@ -1313,8 +1325,8 @@ ranges). Rows 40, 5, 130, 30 and 110 hold sums; each one's take keeps the lines 
 `0x81u`, `0x801u`, `0x88bu`).
 
 *Not established*: ~~row 5 names no leaf, since its take holds sums~~ (item 4507, above). ~~Row 105's next partings are units on 3359 (range
-3707, record 127, `inside_down` ours −1, theirs 128; item 4502)~~ (whole, item 4511, above). Row 105's next partings
+3707, record 127, `inside_down` ours −1, theirs 128; item 4502)~~ (whole, item 4511, above). ~~Row 105's next partings
 are leaders on 3583 (range 191, record 1, `oil_patches` ours 10, theirs 20) and groups on 4355 (range 204, record 84,
-`num` ours 49, theirs 50), both on run1752's disk. `go_inside` and `come_out` still do not call
+`num` ours 49, theirs 50), both on run1752's disk.~~ (whole, item 4512, above.) `go_inside` and `come_out` still do not call
 `update_ceo_position`. The alias is built for the rider arm and the transport's two accesses. The
 kinds-8/0xe arm's unbounded write (`6bae11`) is still a seam here, and no capture has entered it.
