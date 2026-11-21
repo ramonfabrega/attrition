@@ -173,6 +173,7 @@ impl Sim {
     /// membership is maintained elsewhere in this crate and dropping a
     /// dead member from a pool slot mid-frame is a different change.
     pub(crate) fn group_set_speed(&mut self, g: &Group) {
+        if std::env::var("RON_PROBE_4493").is_ok() && self.frame == 3830 && g.who == 1 { eprintln!("PROBE4493 set_speed list {:?} ptrs {:?}\n{}", g.list.iter().map(|&u| self.units[u].index).collect::<Vec<_>>(), g.list.iter().map(|&u| self.units[u].group_ptr).collect::<Vec<_>>(), std::backtrace::Backtrace::force_capture()); }
         let role = self.group_find_role(&g.list);
         let s = self.group_compute_speed(g);
         if let Some(st) = self.gstate_mut(g) {
@@ -639,6 +640,7 @@ impl Sim {
     /// or `GROUP_ATTACK_TO` (`0x15`). A member with no order passes; one
     /// member fighting, or walking to where it will fight, is a no.
     pub(crate) fn group_is_attacking_to(&mut self, g: &Group) -> bool {
+        if std::env::var("RON_PROBE_4493").is_ok() && self.frame == 3830 && g.who == 1 { eprintln!("PROBE4493 is_attacking_to list {:?}", g.list.iter().map(|&u| self.units[u].index).collect::<Vec<_>>()); }
         let mut g = g.clone();
         self.group_normalize(&mut g);
         g.list.iter().all(|&u| {
