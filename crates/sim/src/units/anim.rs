@@ -732,7 +732,10 @@ pub struct Art {
     /// A type absent here keeps `:188`'s `FIRST_AMMO_PIECE`
     /// ([`Sim::fire_proj`]).
     pub fire_proj: BTreeMap<i32, i32>,
-    /// Ammo graphic pieces with flag 1, retained by casualty sprites.
+    /// The ammo graphic pieces whose `ammo_flags & 1` is set (`puncture="1"`,
+    /// `GraphicPieces::verify_ammo_flags@009072e0`): retained by casualty
+    /// sprites, and the pieces a building's round sticks with (item 4515,
+    /// [`crate::combat::Projectile::punctures`]).
     pub casualty_attachments: BTreeSet<i32>,
 }
 

@@ -189,6 +189,8 @@ impl Sim {
             // own `z` (§46.1).
             let sz = self.world.tile_z(centre.tile()) + 0xfa;
             let ez = self.aim_z(target, land_unit);
+            // `Object::fire_ammo`'s building arm (item 4175).
+            let gpiece = self.fire_proj(me);
             self.add_ammo(combat::Projectile {
                 left: None,
                 shooter: me,
@@ -214,15 +216,18 @@ impl Sim {
                 slot: 0,
                 graphic: Default::default(),
                 flame: false,
-                // SEAM: the building's ammo piece's flags are not read, so
-                // its `BuildingArrow` (`puncture="1"`) never sticks here
-                // (item 3679, `docs/COMBAT.md` §46.7).
-                punctures: false,
+                // **The piece decides, not the shooter** (item 4515):
+                // `do_damage@00678060`'s puncture arm asks
+                // `verify_ammo_flags(+0x8, 1)` of the round's own piece, so
+                // a building's `BuildingArrow` (`puncture="1"`, the piece
+                // `FIRST_AMMO_PIECE + 0`) sticks as a unit's arrow does
+                // (run1726: gaia's `0/2016` arrow at the person's `3/0`
+                // reads `flags 1` on 4462, where ours had closed it).
+                punctures: self.roster.art.casualty_attachments.contains(&gpiece),
                 spent: false,
                 crash: None,
                 spline: None,
-                // `Object::fire_ammo`'s building arm (item 4175).
-                gpiece: self.fire_proj(me),
+                gpiece,
             });
         }
         // `do_attack`'s tail after `fire_ammo` (`622b5b`..`622bd0`): the

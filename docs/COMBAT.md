@@ -8440,9 +8440,11 @@ dump, is past the word, and this crate no longer reaches it.
   slot is not all it holds — `inc_time` bumps a dead shooter's
   `hold_frames` for the record's whole life, so the shooter's *number*
   is held 200 frames too, which closed the Korean Medieval pair. The
-  harness compares spent records both ways. A building's arrow and a
-  round no animation launches carry no piece here and do not stick
-  (`SEAM`).
+  harness compares spent records both ways. **A building's arrow
+  sticks too** (item 4515; run1726, chapter 133): the arm asks the round's
+  piece, not its shooter. A round no animation launches carries no
+  piece flag here (`SEAM`).
+- **A dead building's hold under its spent arrow** (4515a).
 - **`sz` for a piece with a release table and no measured node** takes a
   `dz` of 0, and `ez` for a building target is its tile's `z`. Neither is
   reached by a rolled shot on any capture.
