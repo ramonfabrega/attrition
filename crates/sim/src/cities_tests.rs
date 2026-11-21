@@ -3611,6 +3611,48 @@ fn a_capture_carries_max_age_visible_and_traded_with_and_leaves_the_slots() {
     assert_eq!(sim.city_index_in_owner(c2), 1, "the slot stays 1, not 0");
 }
 
+/// **A last city's capture defeats its owner and keeps its footprint**
+/// (item 4521, run1771's 5256: computer 1's last Village `1/2007`, taken as
+/// `3/2029`). The old record's close reaches `Leader::defeat` with the
+/// captor while the old centre is still the loser's; `defeat_by@006d1c80`'s
+/// building walk skips an active city centre (`+0x8 & 0x20`), so it is
+/// `capture_city`'s `close(5)` that closes it, and the cells the new
+/// centre stands on stay blocked. A death there unstamped them.
+#[test]
+fn a_last_city_s_capture_defeats_its_owner_and_keeps_its_cells() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b, _) = city_at(&mut sim, &t, 1, 32, 32);
+    let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+    let cell = sim.buildings[b].pos.cell();
+    assert_ne!(sim.world.cell_data(cell).blocked, 0, "the centre stands");
+    let bd = &mut sim.buildings[b];
+    bd.damage = bd.hits;
+    bd.sync_health();
+    sim.frame = 1000;
+    let hs: Vec<usize> = (0..3)
+        .map(|i| spawn(&mut sim, 0, hoplite, tile_pos(36, 32 + i)))
+        .collect();
+    assert!(sim.check_capture(b, hs[2]));
+    assert!(sim.leaders.defeated[1], "its last city: defeated");
+    assert_eq!(sim.leader_endgame(1).defeated_by, 0);
+    let nc = sim
+        .cities
+        .cities
+        .iter()
+        .position(|c| c.alive && c.owner == 0)
+        .expect("player 0 has the city now");
+    let nb = sim.cities.cities[nc].building;
+    assert!(sim.buildings[nb].alive);
+    assert!(!sim.buildings[b].alive, "the old centre is closed");
+    assert_eq!(sim.buildings[nb].pos.cell(), cell);
+    assert_ne!(
+        sim.world.cell_data(cell).blocked,
+        0,
+        "the new centre's cells stay blocked"
+    );
+}
+
 /// **A capture closes the members before the old city** (item 4466,
 /// run1724's 3887: the Inca capital's library held an epoch). The close
 /// loop of `Cities::capture_city@00733380` skips the city centre, so the
