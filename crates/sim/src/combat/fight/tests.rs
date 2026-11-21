@@ -4913,6 +4913,52 @@ fn the_death_pool_evicts_the_oldest_record_that_does_not_block() {
     );
 }
 
+/// **Only an unpacked Merchant dies without a death draw** (item 4488,
+/// `Unit::close@0060ee50:170`–`:194`). `local_1c`, the flag that skips
+/// the death animation's `Random::get` and its `DEATH_OBJS` records, is
+/// set on the arm that unblocks four tiles, and that arm needs the type
+/// (Merchant, Dutch Merchant, Fur Trapper) **and** `unit_masks & 0x80000`
+/// clear **and** `UnitData::is_packing` answering no. The sample's
+/// computer 1 Merchant `1/18` (`TypeIndex` 61), killed walking its route
+/// on 3931, is packed: theirs takes one draw and leaves two records.
+///
+/// Made to fail by dropping the packed clause: the packed Merchant dies
+/// without its draw or its record.
+#[test]
+fn only_an_unpacked_merchant_dies_without_a_death_draw() {
+    let (mut sim, _) = at_war();
+    let merchant = sim.add_unit_type(crate::UnitType {
+        hits: 90,
+        combat: Profile {
+            roles: combat::role::IS_MERCHANT,
+            ..Profile::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let die = |sim: &mut Sim, packed: bool, x: i32| -> (bool, usize) {
+        let i = put(sim, 1, merchant, Pos::new(x, 0x1000));
+        sim.units[i].combat.packed = packed;
+        sim.units[i].health = 0;
+        let rng = sim.rng;
+        let before = sim.combat.deaths.len();
+        sim.close_unit(i, 2, 3931, None);
+        let mut once = rng;
+        let _ = once.roll();
+        assert!(sim.rng == rng || sim.rng == once, "at most the one draw");
+        (sim.rng == once, sim.combat.deaths.len() - before)
+    };
+    assert_eq!(
+        die(&mut sim, true, 0x1000),
+        (true, 1),
+        "a packed Merchant draws and leaves its record"
+    );
+    assert_eq!(
+        die(&mut sim, false, 0x2000),
+        (false, 0),
+        "an unpacked one, unblocking its four tiles, does neither"
+    );
+}
+
 /// **A dead unit's number is held while its death object lives**
 /// (`docs/COMBAT.md` §59). `DeathObj::inc_time` bumps the dead slot's
 /// `hold_frames` every frame, `Objects::process_all` takes one off, and
