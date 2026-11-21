@@ -824,10 +824,13 @@ mod tests {
                     .map(|(r, v)| (r, built.sim.world.region_number(r as u16), *v))
                     .collect();
                 eprintln!(
-                    "  ours w1 xport_peasants {} reg_xport (slot, number, n) {:?} regions {}",
+                    "  ours w1 xport_peasants {} reg_xport (slot, number, n) {:?} regions {} numbers {:?}",
                     c.xport_peasants,
                     nz,
-                    built.sim.world.region_count()
+                    built.sim.world.region_count(),
+                    (0..built.sim.world.region_count())
+                        .map(|r| built.sim.world.region_number(r as u16))
+                        .collect::<Vec<_>>()
                 );
             }
             eprintln!("state {state}: ranges ours {} theirs {}", imgs.len(), theirs.len());
