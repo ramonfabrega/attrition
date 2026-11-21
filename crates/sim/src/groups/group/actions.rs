@@ -92,17 +92,6 @@ impl Sim {
         ty: usize,
         pos: QueuePos,
     ) -> Option<usize> {
-        if std::env::var_os("RON_PROBE_4498").is_some() {
-            let tree = self.tables.build_types[ty].tree;
-            eprintln!(
-                "PROBE4498 f{} on_map {} alive {} tree {:?} avail {:?}",
-                self.frame,
-                self.group_is_on_map(g),
-                g.list.iter().any(|&u| self.units[u].alive()),
-                tree,
-                tree.map(|t| self.type_avail(g.who, t))
-            );
-        }
         if !self.group_is_on_map(g) || !g.list.iter().any(|&u| self.units[u].alive()) {
             return None;
         }
@@ -110,30 +99,7 @@ impl Sim {
         if self.type_avail(g.who, tree) != crate::tech::AVAILABLE {
             return None;
         }
-        let probe = std::env::var_os("RON_PROBE_4498").is_some();
-        let r = self.place_building(g.who, ty, at);
-        if probe {
-            eprintln!(
-                "PROBE4498 f{} who {} ty {} at ({}, {}) list {:?} -> {:?}",
-                self.frame, g.who, ty, at.x, at.y, g.list, r
-            );
-        }
-        if probe && r.is_err() {
-            let corner = self.tile_corner(ty, at);
-            let centre = self.footprint_centre(ty, corner);
-            eprintln!(
-                "PROBE4498 corner {:?} centre {:?} mountains {} nearest {:?} cliff {:?} arm {:?} range {:?} slots {}",
-                corner,
-                centre,
-                self.terrain.mountains.len(),
-                self.find_nearest_mountain(centre),
-                self.find_nearest_cliff(centre),
-                self.mine_arm(centre),
-                self.mountain_range(centre).map(|r| (r.tiles.len(), r.cells.len())),
-                self.site_gather_count(ty, g.who, corner, None)
-            );
-        }
-        let b = r.ok()?;
+        let b = self.place_building(g.who, ty, at).ok()?;
         self.group_action_swarm_around(g, b, pos, Body::Build(b), true);
         Some(b)
     }
