@@ -1166,7 +1166,6 @@ recorded idle by the client's page to 6000 and played by the original as
 | 130 | run1736 | East Indies all-tech, ages 8..7 | 4,731, ended on 4730 | 4 | builds and world 553 |
 | 150 | run1737 | Great Sahara, difficulty 4 | 6,001 | **12** | whole |
 
-Since the take, row 130's units line has moved 1,704 → 1,735 (4459's merge; `SCORES_SECOND[6].moved`).
 
 **Row 90 is whole** (item 4470, `SCORES_SECOND[4].moved`). run1738, the
 ranges take of its file to 6000, names the leaf on 4021: units range 498
@@ -1208,8 +1207,7 @@ behind it (1576, 1376) were 4499's `reg_gatherers`. Their next partings are
 units, 1747 and 2354: on row 10 units range 1192, record 37, `inside_down`
 ours −1, theirs 38.
 
-*Not established*: row 130's units parting is not read (its take holds
-sums); the AIRDEFENSE counter's readers in the original are not listed,
+*Not established*: ~~row 130's units parting is not read~~ (4508, below); the AIRDEFENSE counter's readers in the original are not listed,
 since no take's value of it ever moves.
 
 **Row 10's world is whole** (item 4504, `SCORES_SECOND[0].moved`, world
@@ -1223,6 +1221,12 @@ did not move.
 
 **Row 10's leaders are whole** (item 4516, 5,801 → 6,001): a casting
 citizen is an `xport` peasant, `docs/AI.md` §58.7.
+
+**Row 130's computer bomber searches round itself** (item 4508; units
+4,459 → 4,574 merged with 4514, first 3411 → 3515): run1754, units range 4078 on 3411,
+who=1's bomber `1/158` `orders.count` ours 2, theirs 1;
+`find_new_bomber_target@005eb960`'s `unit_masks & 0x40000` head
+(`docs/journal/2026-11-21-item-4508.md`).
 
 ### 11.1 Parity held out, third: rows 5 to 145 (item 4487)
 

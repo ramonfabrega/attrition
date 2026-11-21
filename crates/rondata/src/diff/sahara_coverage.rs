@@ -1321,5 +1321,6 @@ fn run817_s_word_frame_is_widened_whole() {
     // Item 3708: 229 → 223, a fort placed but not built no longer
     // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
     // Item 4159's third residue: 223 -> 63, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
-    pin_eq!(w.firsts.len(), 46, "initial run817 baseline");
+    // Item 4508: 46 -> 45, a computer's bomber searches round itself (`find_new_bomber_target`).
+    pin_eq!(w.firsts.len(), 45, "initial run817 baseline");
 }
