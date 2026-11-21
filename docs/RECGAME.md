@@ -1130,6 +1130,9 @@ slot's `ox`/`oy` (GROUPS §36.2); a dropped cavarch target keeps its uid (AI
 **Rows 100, 10 and 130's deaths, whole** (4478, run1721): the nuke strikes in
 `Objects::find_units@0065a620`'s order (PRODUCTION, the nuke).
 
+**Row 100's units, whole** (4491, run1721 2758): the units line walks a
+strafe's own ranges (CHECKSUM §18). Ammo 3210 is the row's last parting.
+
 ## 11. Parity held out, second: eight more lobbies named before the original plays them (item 4462)
 
 DECISIONS 145 §2, 2026-11-20. Rows 10, 30, 50, 70, 90, 110, 130 and 150 of the same order, declared
