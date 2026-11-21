@@ -265,6 +265,68 @@ fn a_stealth_unit_is_hidden_until_a_detector_s_disc_covers_it() {
     assert!(sim.danger_unit_is_seen(s, 1), "seen through it");
 }
 
+/// **A `DETECT` building lights `seen3` over its whole disc** (item 4480,
+/// `docs/VISION.md` §4): `Wall::init@0063e9b0` runs `Object::init@00647750`,
+/// whose `has_objmask(0x2000000)` (`BuildData::has_objmask@0062e210`, the
+/// type's mask) sets the flag `Object::update_seen@00651b80`'s `seen3`
+/// cutoff reads; a building's whole-disc range then ends at the cutoff.
+/// run1722's Observation Post `1/59` on 3984. A plain building on the same
+/// cell lights `seen` and leaves `seen3` dark: the control.
+#[test]
+fn a_detect_building_lights_seen3_over_its_disc() {
+    let (mut sim, _city, barracks) = fx();
+    let mut post = BuildType {
+        ident: Ident::Other,
+        x_size: 2,
+        y_size: 2,
+        hits: 400,
+        los: 4,
+        ..BuildType::default()
+    };
+    post.combat = Some(crate::combat::Profile {
+        obj_masks: crate::combat::mask::DETECT,
+        ..Default::default()
+    });
+    let post = sim.add_build_type(post);
+    assert!(sim.world.set_fog(vec![0; 32 * 32]), "a 16 x 16 world's fog");
+    let at = tile_pos(8, 8);
+    let plain = sim.init_build(1, barracks, at, false);
+    let det = sim.init_build(1, post, at, false);
+    for b in [plain, det] {
+        sim.buildings[b].alive = true;
+        sim.buildings[b].active = true;
+        sim.buildings[b].mylos = 4;
+    }
+    let c = (
+        at.x / crate::vision::UNITS_PER_FOG,
+        at.y / crate::vision::UNITS_PER_FOG,
+    );
+    sim.update_seen_build(plain);
+    assert_ne!(
+        sim.world.seen(c.0, c.1).unwrap_or(0) & (1 << 1),
+        0,
+        "the plain disc lights seen"
+    );
+    assert_eq!(sim.world.seen3(c.0, c.1), 0, "and leaves seen3 dark");
+    sim.update_seen_build(det);
+    // The whole disc (LOS 4 tiles is radius 2 fog cells): the centre and
+    // its four neighbours; beyond the disc stays dark.
+    for (x, y) in [
+        c,
+        (c.0 + 1, c.1),
+        (c.0 - 1, c.1),
+        (c.0, c.1 + 1),
+        (c.0, c.1 - 1),
+    ] {
+        assert_eq!(
+            sim.world.seen3(x, y),
+            1 << 1,
+            "the post's seen3 at ({x}, {y})"
+        );
+    }
+    assert_eq!(sim.world.seen3(c.0 + 3, c.1), 0, "outside the disc");
+}
+
 /// The weights: a city a flat hundred, a fort or a tower its own
 /// remaining hit points halved, a military trainer fifty and anything
 /// else ten.
