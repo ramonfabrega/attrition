@@ -58,7 +58,7 @@ lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when
 through the gatherer spiral of `snap_center@00636190` (recording frame 5084, the order at (29695, 10216): ours refused it as no
 mountain, range 12 at 1267 past the 1152 reach; theirs built it a tile south with 205 tiles and 820 gather-tile draws on 5083): draws
 5083 → 5255; units 4248, builds and leaders 4321, ammo 4462 hold; guys and world 5256, groups 5282, cities 5326, deaths 5428 later;
-items 5403 → 5286, goods 5403 → 5384 and `SAMPLE_OURS_HELD` 4920 → 3475 (named falls past 4248). Next: draws 5255, where theirs loses
+the items line to 5286, goods to 5384 and `SAMPLE_OURS_HELD` 4920 → 3475 (named falls past 4248). Next: draws 5255, where theirs loses
 a city and spends a come-out anim at game draw 6, and ours goes on to the figures' clock wraps. First act: the lost city on 5254 and
 5255, from the ranges on disk. Run 1726 stays reserved. Re-pin `SAMPLE_LINES`; the driver writes `Parity:`. It stops when two
 landings running move no line's first parting (145 §4).
