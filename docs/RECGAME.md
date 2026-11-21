@@ -1242,5 +1242,24 @@ no longer names the group. This crate's refresh ran only the speed tail; it now 
 the three batteries moved. `row_85_s_refresh_prunes_the_member_its_sort_unpointed_on_run1751_s_ranges` holds every
 groups range on 3830 and 3831.
 
-*Not established*: rows 5 and 105 name no leaf, since their takes hold sums. Row 105 is the only one of the
-eight that parts early, on leaders at 1976, and it is the only Modern start (ages 6..6) of the twenty-four.
+**Row 105's leaf (item 4499, run1752, the ranges take of run1748's file).** State 1976, leaders range 129, record
+1 (who=1), `who..ally_mask`, byte 4440: `reg_gatherers[1]` (`+0x1160`) ours 0, theirs 1. That is the only leaf
+parting on 1976 or 1977. 1976 is who=1's first census sweep: theirs counts four region gatherers against
+`gatherers` 3 (3 in region 11, 1 in region 1), and region 1 holds no peasant. One of who=1's citizens rides a sea
+transport whose move ends in **sea region 65**. `Leader::plan_strategy`'s rider arm counts it with `incw
+0x10de(%ebx,%esi,2)` at `6baa2f`, and the only test before that is the sign (`js` at `6baa29`). So
+`reg_xport_peasants[65]` writes `0x10de + 130 = 0x1160`, which is the next `ushort[64]`'s second slot.
+`Unit::think_civilian_transport@005f40d0` reads and writes the same array with no test either. This crate counted
+the rider in its own slot for region 65, and the image drops a number past 63. It now lands the write where the
+original's does (`Sim::xport_alias`, `docs/AI.md` §58). Row 105 is not whole: leaders 4,656 → 5,056, first 1976 →
+3583, and the row's first parting 1976 → 2983 (units). The same alias moved four rows of the second battery on leaders:
+row 10 3,976 → 5,801 (first 1576 → 3976), **row 30 3,748 → 4,548, whole**, row 110 4,995 → 5,995 (first 3176 →
+5344), row 130 1,976 → 4,721 (first 1376 → 4573). The second battery's lines go 78 → 79, and the third's reach 89 % →
+92 %. Nine East Indies pair packets have their leaders line whole (the `reg_gatherers` leaf they parted on), so
+packets' lines go 899 → 908 on the merged tree. `row_105_s_rider_to_sea_region_65_lands_in_reg_gatherers_on_run1752_s_ranges` holds every leaders range on
+1975 and 1976.
+
+*Not established*: row 5 names no leaf, since its take holds sums. Row 105's next partings are units on 2983 (range
+655, record 17, `unit_masks2` ours 0, theirs 65536) and leaders on 3583 (range 191, record 1, `oil_patches` ours 10,
+theirs 20), both on run1752's disk. The alias is built for the rider arm and the transport's two accesses. The
+kinds-8/0xe arm's unbounded write (`6bae11`) is still a seam here, and no capture has entered it.

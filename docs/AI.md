@@ -7283,6 +7283,16 @@ the decompile:
   `div_3_table`, no `>> 2`) goes into the sweep's region local, and if it
   is `≥ 0`, `reg_xport_peasants[r]++` and `xport_peasants++`.
   **Neither arm counts the rider free, busy or in `reg_peasants`.**
+  **The write has no upper bound** (item 4499, run1752 state 1976). At
+  `6baa22`–`6baa2f` the region is `movswl`'d, `js` skips only a negative
+  one, and `incw 0x10de(%ebx,%esi,2)` follows. A sea region's number
+  (`≥ 0x40`) therefore writes past the `ushort[64]` into the next array:
+  `reg_gatherers[number − 64]` (`+0x115e`), then `reg_gather_slots`.
+  `Unit::think_civilian_transport@005f40d0` reads and writes the same
+  array unbounded too. `Sim::xport_alias` maps all three of this crate's
+  sites there. On run1752 who=1's rider bound for sea region 65 is a
+  gatherer in `reg_gatherers[1]`, a region with no peasant
+  (`docs/RECGAME.md` §11.1).
 - **The local is shared.** The `reg_active`/`reg_combat`/`reg_attack`
   block after the worker branch reads the same `WVar31` the second arm
   wrote. So the rider is `active` in the region the boat is going to, not
