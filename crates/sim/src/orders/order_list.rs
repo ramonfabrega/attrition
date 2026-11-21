@@ -191,6 +191,20 @@ impl Sim {
     /// The walk is [`update_action_steps`] (item 2341), which the sweep
     /// `sweep::unit_update_action` holds to the original.
     pub fn update_action(&mut self, u: usize) -> Option<usize> {
+        if let Ok(v) = std::env::var("RON_PROBE_4520_UA")
+            && let Some((f, o)) = v.split_once('/')
+            && f.parse::<i64>().is_ok_and(|f| (f..=f + 1).contains(&self.frame))
+            && o.parse::<usize>().ok() == Some(u)
+        {
+            eprintln!(
+                "PROBEUA f{} u{} orders {:?} heading {:?}\n{}",
+                self.frame,
+                u,
+                self.units[u].orders,
+                self.units[u].movement.heading,
+                std::backtrace::Backtrace::force_capture()
+            );
+        }
         let unit = &mut self.units[u];
         let n = unit.orders.len();
         update_action_steps(
