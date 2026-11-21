@@ -1136,7 +1136,12 @@ Moved by 4495.
 
 **Row 100's ammo, 3210 → 3312** (4495, run1721 3210): the Jet Fighter's
 guided round walks `calc_from_dir`'s spline in the sizes of the recycled
-`Spline` the nuke left (CHECKSUM §18.1). Ammo 3312 is the row's last parting.
+`Spline` the nuke left (CHECKSUM §18.1). ~~Ammo 3312 is the row's last
+parting.~~ Moved by 4497.
+
+**Row 100, whole** (4497, run1721 3312): a bomb's round carries the
+`accuracy` its pool slot's last round left, the Strategic Bomber `1/83`'s
+260 in slot 2 (CHECKSUM §18.2).
 
 ## 11. Parity held out, second: eight more lobbies named before the original plays them (item 4462)
 

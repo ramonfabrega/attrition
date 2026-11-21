@@ -1465,11 +1465,14 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// Item 4491: 886 -> 892, units whole on run1420, run1437, run1570, run785,
 /// run789 and run795, and seven more packets parting on fewer units
 /// ranges: the units line walks a strafe's own ranges.
-/// Item 4499: 897 -> 906, leaders whole on run785, run789, run795, run810,
+/// Item 4497: 897 -> 899, ammo whole on run882b and run883b (5 ranges
+/// parted before on each, one body a round): a bomb's round carries its
+/// pool slot's last `accuracy`.
+/// Item 4499: 899 -> 908, leaders whole on run785, run789, run795, run810,
 /// run823, run825, run865, run882b and run883b (`reg_gatherers` one range
 /// each before): `reg_xport_peasants` is indexed without a bound, so a
 /// rider bound for a sea region counts in `reg_gatherers`.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 906, 1053);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 908, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -5346,6 +5349,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (11125, 11095, 9391) -> (11125, 11095, 9390).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9518, 9518, 1) -> (9518, 9518, 0).
     // Item 4491, the strafe's ranges walked: units (11125, 11095, 9390) -> (11125, 11125, 76).
+    // Item 4497, a bomb's round carries its pool slot's last accuracy: ammo (15, 15, 5) -> (15, 15, 0).
     // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
     // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
     (
@@ -5355,7 +5359,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (11125, 11125, 76),
             (2737, 2737, 2),
             (0, 0, 0),
-            (15, 15, 5),
+            (15, 15, 0),
             (0, 0, 0),
             (616, 616, 0),
             (2832, 2832, 0),
@@ -5403,6 +5407,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (11180, 11114, 9164) -> (11180, 11114, 9163).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9536, 9536, 1) -> (9536, 9536, 0).
     // Item 4491, the strafe's ranges walked: units (11180, 11114, 9163) -> (11180, 11180, 76).
+    // Item 4497, a bomb's round carries its pool slot's last accuracy: ammo (36, 36, 5) -> (36, 36, 0).
     // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
     // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
     (
@@ -5412,7 +5417,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (11180, 11180, 76),
             (2737, 2737, 2),
             (0, 0, 0),
-            (36, 36, 5),
+            (36, 36, 0),
             (0, 0, 0),
             (616, 616, 0),
             (2832, 2832, 0),

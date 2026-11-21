@@ -3211,7 +3211,7 @@ impl Sim {
         let mut local =
             crate::combat::Rng::new(figure.x.wrapping_add(figure.y).wrapping_add(z) as u32);
         let bank = (local.get(-0x1e, 0x1e), local.get(-0x1e, 0x1e));
-        self.add_ammo(crate::combat::Projectile {
+        self.add_ammo_unaimed(crate::combat::Projectile {
             left: None,
             shooter: crate::combat::Obj::Unit(u),
             owner,
