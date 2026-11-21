@@ -429,8 +429,12 @@ pub(in crate::diff) mod tests {
     /// → 3903, +16. Item 4475 (a region walked to its end takes `0x20`,
     /// `compute_reg_territory@006b0bb0:280`–`282`, and the captured Inca
     /// camp re-walks on 3904 with theirs' 244 shuffle draws): 3903 → 3931,
-    /// +28.
-    const SAMPLE_WALKED: (i64, i64) = (3931, 21044);
+    /// +28. Item 4488 (a packed Merchant dies with `Unit::close`'s death
+    /// draw: `local_1c` needs `unit_masks & 0x80000` clear and
+    /// `!is_packing`, `Unit::close@0060ee50:170`–`:194`; computer 1's
+    /// Merchant `1/18`, `TypeIndex` 61, land, killed walking on 3931, its
+    /// draw theirs' `Unit::close+0xcb6`): 3931 → 4182, +251.
+    const SAMPLE_WALKED: (i64, i64) = (4182, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -586,20 +590,25 @@ pub(in crate::diff) mod tests {
     /// 4004 -> 3935, items 5474 -> 5235, goods 4458 -> 4171, named falls
     /// past units' new 3921. Item 4479 (a `REPAIR` order's flags and
     /// target, `TargetOrder::walk_data@0047f220`, unit `3/11` on 3921):
-    /// units 3921 -> 3932.
+    /// units 3921 -> 3932. Item 4488 (a packed Merchant's death takes its
+    /// draw and leaves its `DEATH_OBJS` records, computer 1's `1/18` on
+    /// 3931): units 3932 -> 4183, builds 3981 -> 4026, ammo 3936 -> 4192,
+    /// deaths 3932 -> 4657, groups 3935 -> 4188, guys 3932 -> 4183, leaders
+    /// 3945 -> 4183, cities 4201 -> 4326, items 5235 -> 5434, goods 4171 ->
+    /// 4436, world 3943 -> 4183.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 3932),
-        ("builds", 3981),
+        ("units", 4183),
+        ("builds", 4026),
         ("walls", 21044),
-        ("ammo", 3936),
-        ("deaths", 3932),
-        ("groups", 3935),
-        ("guys", 3932),
-        ("leaders", 3945),
-        ("cities", 4201),
-        ("items", 5235),
-        ("goods", 4171),
-        ("world", 3943),
+        ("ammo", 4192),
+        ("deaths", 4657),
+        ("groups", 4188),
+        ("guys", 4183),
+        ("leaders", 4183),
+        ("cities", 4326),
+        ("items", 5434),
+        ("goods", 4436),
+        ("world", 4183),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -676,8 +685,12 @@ pub(in crate::diff) mod tests {
     /// the frames not read one by one; the first shot still on 2929. Item
     /// 4475 (a region walked to its end takes `0x20`, the captured camp's
     /// re-walk on 3904): 4473 -> 5271, a named rise past every parting,
-    /// the frames not read one by one; the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (5271, Some(2929));
+    /// the frames not read one by one; the first shot still on 2929. Item
+    /// 4488 (a packed Merchant's death takes its draw and leaves its
+    /// records, `1/18` on 3931): 5271 -> 4767, a named fall, the frames not
+    /// read one by one (the war after 3931 runs on another draw sequence);
+    /// the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4767, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
@@ -1133,57 +1146,18 @@ pub(in crate::diff) mod tests {
     /// units' `2190 11` unit `3/11`'s second order, `order.flags` 04|04 and
     /// `order.target` (2010, 3, 0x31) on both sides, absent in ours before
     /// -> agree; units 3921 -> 3932, onto guys' parting; every other line
-    /// unchanged.
-    const SAMPLE_RANGES_1724: &[(&str, i64, usize, usize, usize, &str)] = &[
-        ("units", 3932, 3633, 3633, 1, "2577 34 guy: cur_anim 12|13"),
-        (
-            "builds",
-            3981,
-            3326,
-            3326,
-            1,
-            "3255 2010 myhits..launch_frames: up 17|1",
-        ),
-        (
-            "ammo",
-            3936,
-            3,
-            3,
-            1,
-            "1 0 rolling..start_roll_angle: +0x7 of 99|99: 36a00000|69a00000",
-        ),
-        (
-            "deaths",
-            3932,
-            16,
-            12,
-            4,
-            "12 -1 00936bff: +0x0 of 0|4: |01000000",
-        ),
-        (
-            "groups",
-            3935,
-            622,
-            622,
-            2,
-            "295 201 curr_x: curr_x[1] -120|-117, curr_x[2] 119|116",
-        ),
-        ("guys", 3932, 1003, 1003, 1, "696 34 guy: cur_anim 12|13"),
-        (
-            "leaders",
-            3945,
-            667,
-            667,
-            2,
-            "134 1 who..ally_mask: +0xa54 of 26914|26914: 03000e00|02000e00",
-        ),
-        (
-            "world",
-            3943,
-            7827,
-            7827,
-            2,
-            "4352 673 block.body: +0x1d of 96|96: 70007000|e000e000",
-        ),
-    ];
+    /// unchanged. Item 4488 (`Unit::close@0060ee50:170`–`:194`'s
+    /// `local_1c` exempts only an unpacked Merchant that is not packing):
+    /// computer 1's packed Merchant `1/18` killed walking on 3931 leaves
+    /// deaths' `12..15 -1` on 3932, its figure and crew member, `cur_anim`
+    /// 18 at (31910, 19682) and (31742, 19575), absent in ours before ->
+    /// agree; every line but builds whole to 4130, builds 3981 -> 4026.
+    const SAMPLE_RANGES_1724: &[(&str, i64, usize, usize, usize, &str)] = &[(
+        "builds",
+        4026,
+        3346,
+        3346,
+        1,
+        "2810 2005 queue[k]: job_counter 100|0",
+    )];
 }

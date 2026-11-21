@@ -2187,6 +2187,126 @@ mod tests {
         );
     }
 
+    /// **The three tanks under a haze** (item 4482; `docs/RENDERER.md`
+    /// §3.13, committed before this count): on the client's still (before,
+    /// plain), each of the four tanks [`RUN1559B_3279_TANKS_HAZE`] names,
+    /// its own key's pixels outside the interface. A pixel is held when
+    /// both sides' r + g + b reach [`HUE`]'s dark, and agrees when the
+    /// still's chromaticity lies within [`HUE`]'s 0.05 of the photograph's
+    /// (the team-colour row's reader, item 4438); and each tank passes or
+    /// fails [`LUMA_READER`] on its held pixels' mean luminance (item 4172).
+    /// `1/15` is the control, crisp on both sides. The means and the
+    /// luminance's spread print beside it, for the journal.
+    ///
+    /// Made to fail: a pin of the control out, or of a hazy tank in, is
+    /// red.
+    ///
+    /// [`RUN1559B_3279_TANKS_HAZE`]: render::silhouette::RUN1559B_3279_TANKS_HAZE
+    /// [`LUMA_READER`]: render::silhouette::LUMA_READER
+    #[test]
+    fn the_three_tanks_under_a_haze_on_the_still() {
+        use crate::gpu::SilhouetteOrder;
+        use render::silhouette::{
+            HUE, LUMA_READER, RUN1559B_3279_TANKS_HAZE, chromaticity, luminance,
+        };
+        let install = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let path = photo_path();
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let mut world = match World::open(&install, &crate::world::gamelog_dir()) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        let camera = crate::pinned_camera();
+        world.run_to(PHOTO_FRAME);
+        world.blend = crate::world::Blend::Last;
+        world.run_to(PHOTO_FRAME + 1);
+        let size = (photo.width, photo.height);
+        let still = crate::still_of(
+            &mut world,
+            &camera,
+            (size.0 as u32, size.1 as u32),
+            SilhouetteOrder::Before,
+            wgpu::TextureFormat::Rgba8Unorm,
+        );
+        let scene = frame_scene(&mut world, &camera, size);
+        let w = size.0;
+        let mut got = Vec::new();
+        for &((who, o), _, _) in &RUN1559B_3279_TANKS_HAZE {
+            let k = scene
+                .who
+                .iter()
+                .position(|q| !q.3 && q.0 == who && q.1 == o)
+                .expect("the tank is on the draw list");
+            let key = k as u32 + 1;
+            let (mut held, mut agree) = (0u32, 0u32);
+            let (mut sums, mut squares) = ([[0f64; 3]; 2], [0f64; 2]);
+            for (i, &q) in scene.keys.keys.iter().enumerate() {
+                let (x, y) = ((i % w) as i32, (i / w) as i32);
+                if q != key
+                    || INTERFACE
+                        .iter()
+                        .any(|r| (r.x0..r.x1).contains(&x) && (r.y0..r.y1).contains(&y))
+                {
+                    continue;
+                }
+                let j = i * 4;
+                let a = [0, 1, 2].map(|c| f32::from(still[j + c]));
+                let b = [0, 1, 2].map(|c| f32::from(photo.rgba[j + c]));
+                if a.iter().sum::<f32>() < HUE.dark || b.iter().sum::<f32>() < HUE.dark {
+                    continue;
+                }
+                held += 1;
+                for (side, c) in [a, b].iter().enumerate() {
+                    for ch in 0..3 {
+                        sums[side][ch] += f64::from(c[ch]);
+                    }
+                    squares[side] += f64::from(luminance(*c)).powi(2);
+                }
+                let (p, q) = (chromaticity(a), chromaticity(b));
+                agree += u32::from(
+                    ((p[0] - q[0]).powi(2) + (p[1] - q[1]).powi(2)).sqrt() <= HUE.distance,
+                );
+            }
+            let n = f64::from(held.max(1));
+            let mean = |side: usize| sums[side].map(|v| v / n);
+            let spread = |side: usize| {
+                let m = mean(side);
+                let y = f64::from(luminance(m.map(|v| v as f32)));
+                (squares[side] / n - y * y).max(0.0).sqrt()
+            };
+            let (a, b) = (mean(0), mean(1));
+            let (ya, yb) = (
+                luminance(a.map(|v| v as f32)),
+                luminance(b.map(|v| v as f32)),
+            );
+            let lit = held >= LUMA_READER.min_pixels && LUMA_READER.agrees(ya, yb);
+            println!(
+                "haze {who}/{o} piece {}: held {held}, agree {agree}; mean ours ({:.0}, {:.0}, {:.0}) Y {ya:.1} spread {:.1}, the photograph ({:.0}, {:.0}, {:.0}) Y {yb:.1} spread {:.1}; luminance {}",
+                scene.who[k].2,
+                a[0],
+                a[1],
+                a[2],
+                spread(0),
+                b[0],
+                b[1],
+                b[2],
+                spread(1),
+                if lit { "in" } else { "out" },
+            );
+            got.push(((who, o), (agree, held), lit));
+        }
+        assert_eq!(got, RUN1559B_3279_TANKS_HAZE.to_vec());
+    }
+
     /// **The colour row** (item 4099; `docs/RENDERER.md` §5.3, "The colour
     /// reader", committed before this count): on the row's draw
     /// (`Blend::Last`), each object the traced reader scores, its colours
