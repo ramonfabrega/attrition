@@ -1446,7 +1446,7 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// **844** at item 4461 (+1, on 4468's 843): run1437's guys line whole, a
 /// military type's gender piece named `-PACKED`, so the Assault Marines'
 /// `-FEMALE` entry is no piece (`docs/CHECKSUM.md` §23.13).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 849, 1053);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 850, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -5172,11 +5172,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2288, 2283, 1535) -> (2288, 2288, 2), world (9534, 9534, 11) -> (9534, 9534, 1).
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (10342, 10188, 7824) -> (10342, 10188, 7823), groups (640, 640, 2) -> (640, 640, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (10342, 10188, 7824) -> (10342, 10342, 2).
+    // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (10342, 10342, 2) -> (10342, 10342, 0).
     (
         "run865",
         4859,
         [
-            (10342, 10342, 2),
+            (10342, 10342, 0),
             (2288, 2288, 2),
             (0, 0, 0),
             (0, 0, 0),
@@ -5246,11 +5247,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2737, 2732, 1917) -> (2737, 2737, 2), world (9518, 9518, 11) -> (9518, 9518, 1).
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (11125, 10815, 9496) -> (11125, 10815, 9495), groups (616, 616, 3) -> (616, 616, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (11125, 10815, 9496) -> (11125, 11095, 9391).
+    // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (11125, 11095, 9391) -> (11125, 11095, 9390).
     (
         "run882b",
         6808,
         [
-            (11125, 11095, 9391),
+            (11125, 11095, 9390),
             (2737, 2737, 2),
             (0, 0, 0),
             (15, 15, 5),
@@ -5298,11 +5300,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2737, 2732, 1917) -> (2737, 2737, 2), world (9536, 9536, 11) -> (9536, 9536, 1).
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (11180, 10834, 9384) -> (11180, 10834, 9383), groups (616, 616, 3) -> (616, 616, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (11180, 10834, 9384) -> (11180, 11114, 9164).
+    // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (11180, 11114, 9164) -> (11180, 11114, 9163).
     (
         "run883b",
         6821,
         [
-            (11180, 11114, 9164),
+            (11180, 11114, 9163),
             (2737, 2737, 2),
             (0, 0, 0),
             (36, 36, 5),

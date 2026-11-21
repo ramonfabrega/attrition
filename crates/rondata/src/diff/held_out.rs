@@ -1720,16 +1720,16 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4460 (a trackless crew figure's `des` is guy 0's body
         // point, `Guy::set_new_location`'s crew loop): guys
         // 5,942 -> 5,963, first on 2449.
-        // Moved by item 4477 (the farmer's turn east is `Unit::set_angle`
-        // whole, so a leader's reversal toggles its group's `facing`):
-        // groups 3,066 -> 6,001, whole; units 2,496 -> 3,113, first on 1747.
         // Moved by item 4474 (`AirPatrolOrder`'s ranges walked; an airbase
         // exit turns through `Unit::set_angle`): units 2,496 -> 2,712, first
         // on 1747; guys 5,963 -> 5,990, first on 2449.
+        // Moved by item 4477 (the farmer's turn east is `Unit::set_angle`
+        // whole, so a leader's reversal toggles its group's `facing`):
+        // groups 3,066 -> 6,001, whole; units 2,712 -> 3,783, first on 1747.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                2712, 537, 6001, 5907, 5350, 3066, 5990, 3976, 6001, 6001, 6001, 537,
+                3783, 537, 6001, 5907, 5350, 6001, 5990, 3976, 6001, 6001, 6001, 537,
             ],
             first: &[
                 ("units", (1747, Some(2268899682), 1685366186)),
