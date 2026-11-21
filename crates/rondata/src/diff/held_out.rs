@@ -561,7 +561,7 @@ mod tests {
                 .expect("record 21");
             let f = crate::checksum::fields::range_fields(
                 "units",
-                &ours.ranges[k].field,
+                ours.ranges[k].field,
                 &theirs[k].bytes,
             )
             .expect("record 21's fields");
