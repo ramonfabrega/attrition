@@ -913,6 +913,9 @@ detach record and checksum summaries. It compares the twelve lines on every
 observed state from setup. Output distinguishes a scheduled capture window,
 the recording's closing package and a verified early ending. Exit 0 applies
 only to the stated interval. An invalid receipt or incomplete trace exits 2.
+When the take holds sums and lines part, the last line printed is `one take
+for every parted line:` with the capture arguments that keep those lines'
+ranges and no others (`playback::joined_take`, DECISIONS 148 §4).
 
 The first differing state names every line tied there. Each line's first
 mismatch gives both checksums. With ranges from that take it also gives the
@@ -1259,6 +1262,17 @@ row 10 3,976 → 5,801 (first 1576 → 3976), **row 30 3,748 → 4,548, whole**,
 92 %. Nine East Indies pair packets have their leaders line whole (the `reg_gatherers` leaf they parted on), so
 packets' lines go 899 → 908 on the merged tree. `row_105_s_rider_to_sea_region_65_lands_in_reg_gatherers_on_run1752_s_ranges` holds every leaders range on
 1975 and 1976.
+
+**At the pass of 2026-11-21** (DECISIONS 148 §2, §3). The three found columns read 0, 1 and 5 of 8 whole, 64, 65
+and 90 of 96 lines, and 27, 53 and 88 % by reach. Every game of the twenty-four has an idle human. The fourth
+battery is rows 15, 35, 55, 75, 95, 115, 135 and 155, named before any take (item 4510), taken when this one reads
+7 of 8 now. Scored at the tip, row 105 parts three lines, each with its leaf on run1752's disk: units on 2983
+(below), leaders on 3583 (below) and groups on 4355 (range 204, record 84, `num` ours 49, theirs 50). Row 10 parts
+five, each on run1739's disk: units 1747 (`inside_down`), world 2365 (range 6920, record 3039, `block.present` ours
+1, theirs 0), leaders 3976 (range 129, record 1, `who..ally_mask` byte 2488, ours 2, theirs 3), guys 4880 (range
+1030, record 140, `last_angle` ours 610064529, theirs 555024384) and ammo 5178 (ours emits no line, theirs holds 3
+ranges). Rows 40, 5, 130, 30 and 110 hold sums; each one's take keeps the lines it parts on (`0x1u`, `0x8u`,
+`0x81u`, `0x801u`, `0x88bu`).
 
 *Not established*: row 5 names no leaf, since its take holds sums. Row 105's next partings are units on 2983 (range
 655, record 17, `unit_masks2` ours 0, theirs 65536) and leaders on 3583 (range 191, record 1, `oil_patches` ours 10,

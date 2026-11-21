@@ -158,6 +158,15 @@ game runs before its first parting, 53 % against the first's 27 %; its rows 90 a
 4486); a third battery is named (item 4487); the packets' lines 853 of 1,053 (item 4481); the fold is Ramon's, recommended, 11 of 15
 folded; **orders** — whole by its counters; **renderer** — the wreck was three live tanks under a haze no row counts (item 4482).
 
+**At the pass of 2026-11-21** (entry 148): **checksum** — parity 6 of 7; the sample's lowest first parting 4248 of 21,044 and
+its draw word 5273, both on `Parity:` now; the word moved 945 frames in four landings while the score stood, so the sample's seat
+takes ranges past the word first (item 4505); parity held out 7 of 8 now, the second battery 4 of 8, and the third read 5 of 8 and
+90 of 96 lines as found, 88 % by reach, 6 of 8 now; rows 40 and 5 are one line from whole (items 4484, 4507), rows 105 and 10 hold
+eight leaves on disk (items 4502, 4504); a row's take keeps the lines its score parts on, because the disk reads 75 GB against a
+floor of 60; a fourth battery is named (item 4510); the packets' lines 919 of 1,053; the fold is Ramon's, recommended, 13 of 15
+folded; **orders** — whole by its counters; **renderer** — the haze is a moving vehicle's dust, an emitter the view starts, and the
+eye's seat draws it from the packet's emitters (item 4506).
+
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it
 on one lane, taking textures and team colours next; then the lobby screen

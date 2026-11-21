@@ -497,11 +497,18 @@ since 135 §6): a brief carries no line for it. **A lane lands one act, so
 an item's stop rule is the driver's to count** (DECISIONS 145 §4): two
 landings running on one item's line that move no number end the line. The
 driver says so at the second booking and seats what the lanes line names
-next. **A held-out game's found column is never re-pinned** (DECISIONS 144
+next. **On the sample the number is the `Parity:` line**, its lowest
+first parting or its draw word: a landing that moves some other line's
+first parting and neither of those counts toward the two (DECISIONS 148
+§5: four landings left the score on units 4248). **A row's ranges take
+keeps the lines its score parts on**, by the arguments `score_recording`
+prints, never all twelve: the disk is the limit, and a whole take reads
+9 GB while it runs (DECISIONS 148 §4). **A held-out game's found column is never re-pinned** (DECISIONS 144
 §2, 145 §2): a worker moves `SCORES[k].moved`, the driver writes the
 `Parity held out:` line, and the second battery (rows 10 to 150) is taken
 when the first reads 4 of 8 now, or on Ramon's word; the third (rows 5 to
-145) when the second does (DECISIONS 147 §2).
+145) when the second does (DECISIONS 147 §2); the fourth (rows 15 to 155)
+when the third reads 7 of 8 (DECISIONS 148 §2).
 
 ## Ratification, and the passes
 
@@ -566,12 +573,14 @@ read are in `docs/audit/2026-11-09-loop-retired-clauses.md`, "Retired
    console's `!eval` or an `@` line can reach is struck, never restated
    on scope (Loop 3473).
 9. **Its held-out rows scored by leaf** — `score_recording` on every
-   row not whole whose ranges take is on disk, the leaves pasted into the
-   items it books (DECISIONS 146 §2: three rows took minutes, and two
-   of them parted on one bit no item had named) — **and each battery's
-   reach read off its line**, the states its games run before their first
-   parting, which moved 27 → 53 % between two batteries whose games and
-   lines read alike (DECISIONS 147 §2).
+   row not whole, seconds each: a row whose ranges take is on disk names
+   its leaves, a row that holds sums prints the one take its parted lines
+   ask for, and both are pasted into the items it books (DECISIONS 146 §2:
+   two rows parted on one bit no item had named; 148 §3: five of eight
+   leaves on disk had no item) — **and each battery's reach read off its
+   line**, the states its games run before their first parting, which
+   read 27, 53 and 88 % on three batteries as found (DECISIONS 147 §2,
+   148 §2).
 
 **It never moves what is the user's**: the
 roster, the worker count, the phase, the finish

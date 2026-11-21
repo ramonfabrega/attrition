@@ -162,6 +162,7 @@ is append-only and amended in place, as it always was.
 - 145 extended by 146 — The pass of 2026-11-19, second: parity held out is ratified at 0 of 8 and parsed on the scoreboard, a held-out game is spent once a lane reads it and a second battery is named, the lanes follow the eight with each game's ranges taken once, a lane lands one act and the driver counts the stop, the client opens every game on one camera, and `tranche.py` reads a booking's parentheses
 - 146 standing — The pass of 2026-11-20: a pass scores every held-out row with ranges on disk by leaf before it designs (rows 80 and 100 part builds on one bit of `build_masks`), the fold of the eight into the headline is recommended and left with Ramon, four seats and the second battery's item with its declaration first, 4450a closed by item 4453, and the eye's seat takes the fading wreck
 - 147 standing — The pass of 2026-11-20, second: the estimate is read by reach (27 % → 53 % of states before the first parting, where games and lines read 0 → 1 and 64 → 65), a third battery is named, the fold is still Ramon's at 11 of 15, the rows nearest whole take the seats (row 60, row 90, row 70), the sample keeps its seat with its rate said, parity's own count is a parsed line, and the queue's opener, which a booking had left unreadable to the wake, is a guarded paragraph
+- 148 standing — The pass of 2026-11-21: every held-out row not whole is scored (eight leaves on disk on rows 105 and 10, five with no item; rows 40 and 5 one line from whole), the three batteries read 0, 1 and 5 of 8 as found and 27, 53 and 88 % by reach, a fourth battery is named, the fold is still Ramon's at 13 of 15, a row's ranges take keeps the lines its score parts on because the disk is the limit, the sample's seat reads the `Parity:` line and takes ranges past its draw word first, and the eye's seat draws the dust from the packet's emitters.
 
 ## 1. Fidelity before divergence
 
@@ -14714,3 +14715,170 @@ opener sends the commander to that wake at 96 %. The blank is back, the
 bound pays for it, and `the_opener_is_a_paragraph_of_its_own` in
 `docs_guard` holds it (seen red on the drain's queue). The comment on the
 bound said `handover.py` reads both blanks; nothing checked it.
+
+## 148. A row's take keeps the lines its score parts on, the sample's seat reads the number the scoreboard prints, a fourth battery is named, and the dust is drawn from the packet's emitters (2026-11-21)
+
+**What happened.** `commander` (Opus 5.5) ran twenty-two first-parent
+merges off the pass of 2026-11-20, second (items 4470 and 4478 to 4501,
+with 4483), reached the backstop, drained and gated whole
+(`gate-drain-1121b.log`, exit 0 on `5013bdf5e`, the tip and origin/main).
+The pass ran on the `steer` row from 07:35 −05:00 with no subagent and no
+capture. The tables are in `docs/audit/2026-11-21-fable-pass-takes.md`.
+
+**§1. The fold is still Ramon's, and today it reads 13 of 15.** Entries
+145 §2, 146 §1 and 147 §1 put it to him and no answer is on record, so
+nothing moves. Six of the seven and seven of the first eight are whole.
+All three batteries are spent by entry 145 §2's test, since a lane has
+read a parting off each, so the same recommendation covers them: folded
+together the count is 23 of 31. The recommendation stands on entry
+146 §1's reasons. One limit is said beside it, because the three found
+columns below read like a finish and are not one. Every game of the
+twenty-four has an idle human. The one game with a person's orders, the
+2017 sample, parts on state 4,248 of 21,044, a fifth of its length.
+
+**§2. The third battery read 5 of 8 as found, and a fourth is named.**
+Three found columns stand now, each on eight lobbies nobody tuned for:
+
+| battery | taken | whole, as found | lines, as found | reach, as found | now |
+|---|---|---|---|---|---|
+| first (rows 0 to 140) | 2026-11-19 | 0 of 8 | 64 of 96 | 27 % | 7 of 8, 95 lines, 93 % |
+| second (rows 10 to 150) | 2026-11-20 | 1 of 8 | 65 of 96 | 53 % | 4 of 8, 82 lines, 68 % |
+| third (rows 5 to 145) | 2026-11-21 | 5 of 8 | 90 of 96 | 88 % | 6 of 8, 92 lines, 92 % |
+
+Eight games against eight is still a small sample, and the lobbies differ
+between batteries. The third is spent: items 4493 and 4499 read rows 85
+and 105. **The fourth battery is rows 15, 35, 55, 75, 95, 115, 135 and
+155** of the same order, by the same recipe, named here before any take.
+It is taken when the third reads 7 of 8 now, or on Ramon's word, and its
+declaration is its item's first commit (item 4510). Whether a battery
+adds seats and a team is still his (entry 145 §2).
+
+**§3. The seats, from every row scored.** The pass ran `score_recording`
+at the tip on all seven rows not whole, 9 to 16 seconds each. Two have a
+ranges take on disk, and those name eight leaves:
+
+| row, take | line | agrees | first | range, record | leaf | ours | theirs |
+|---|---|---|---|---|---|---|---|
+| 105, run1752 | units | 2,983 of 5,235 | 2983 | 655, 17 | `unit_masks2` | 0 | 65536 |
+| 105 | leaders | 5,056 | 3583 | 191, 1 | `oil_patches` | 10 | 20 |
+| 105 | groups | 5,217 | 4355 | 204, 84 | `num` | 49 | 50 |
+| 10, run1739 | units | 3,914 of 6,001 | 1747 | 1192, 37 | `inside_down` | −1 | 38 |
+| 10 | world | 5,995 | 2365 | 6920, 3039 | `block.present` | 1 | 0 |
+| 10 | leaders | 5,801 | 3976 | 129, 1 | `who..ally_mask` byte 2488 | 2 | 3 |
+| 10 | guys | 5,997 | 4880 | 1030, 140 | `last_angle` | 610064529 | 555024384 |
+| 10 | ammo | 5,962 | 5178 | — | ours emits no line; theirs holds 3 ranges | — | — |
+
+Items 4502 and 4504 named three of the eight. The other five rows hold
+sums, so the scorer names a line and a state and no leaf:
+
+| row | lines parted | agrees | first |
+|---|---|---|---|
+| 40 (first) | units | 2,487 of 4,974 | 2487 |
+| 5 (third) | ammo | 5,934 of 6,001 | 4805 |
+| 130 (second) | units, leaders | 3,034 and 4,721 of 4,731 | 2354, 4573 |
+| 30 (second) | world, units | 4,423 and 2,334 of 4,548 | 1662, 2334 |
+| 110 (second) | units, world, ammo, leaders, builds | 2,703, 5,379, 5,826, 5,995 and 5,577 of 6,001 | 2184, 3809, 4104, 5344, 5577 |
+
+Rows 40 and 5 are one line from whole each. Row 40 whole makes the first
+battery 8 of 8, and row 5 whole makes the third 7 of 8, which calls the
+fourth. Four seats, as the roster stands:
+
+- **The chain's builder: item 4484**, row 40's units line. One take of
+  one line (§4), then its leaf.
+- **A parity seat: item 4502**, row 105, three leaves on disk.
+- **A parity seat: item 4505**, the sample (§5).
+- **The eye's seat: item 4506** (§6).
+- **Unseated, in this order**: item 4507 (row 5, a take of its ammo
+  line), item 4504 (row 10, five leaves on disk), item 4508 (row 130),
+  item 4509 (row 30, after row 10's world leaf lands, since both part
+  world and one take may name both), item 4485 (row 110), item 4503 (the
+  sample's draw word, behind 4505 in its seat), item 4510 (§2).
+
+**§4. A row's take keeps the lines its score parts on.** Of the
+thirty-three ranges masks `docs/RUNS.md` records, twenty-six keep all
+twelve lines (`0xfffu`), to the game's end. The eleven takes that hold a
+held-out row or the sample keep 38 GB between them, 2.2 to 5.2 each
+(`du -sh`), and one read 9 GB off the disk while it ran (run1752: 80 GB
+free before it, 71 after). The disk read 67 GB at the
+pass's start and 75 after the debug profile was cleaned and both archives
+compressed, against 102 at the end of the pass before. Every item's take
+stops under 60. Five rows and the sample have no take, so the fourth
+whole take would have stopped its lane. A row that parts on one line
+needs that line: the hook's `RNG_MASK` takes one bit a line, and seven
+takes have used a narrow mask before. The scorer prints the arguments now
+(`one take for every parted line: …`, `playback::joined_take`, with a
+test seen red on a wrong mask): row 40 `0x1u`, row 5 `0x8u`, row 130
+`0x81u`, row 30 `0x801u`, row 110 `0x88bu`. What it gives up is said: a
+line whole today that a later fix parts is not on the take, the gate's
+sums say so, and a second take is six minutes of the game lane. Nothing
+is deleted from the archive; that is Ramon's.
+
+**§5. The sample's seat reads the number the scoreboard prints.** The
+sample has two numbers. The draw word is the first frame our draw
+sequence parts from theirs, and the lanes walk it because the trace on
+disk covers every frame. The score, the one `Parity:` prints, is the
+lowest first parting of the twelve lines. In this tranche the word went
+4328 → 5273 over four landings (4496, 4498, 4500 and 4501), and the
+score stood on units 4248 through all four. Builds and leaders part on
+4321 and ammo on 4462, all below the word. Entry 145 §4's rule could not
+fire, because each of the first three moved some other line's first
+parting. Item 4494's journal said what the score needed, a ranges take
+past 4130, where run1724 ends, and each next item was minted "from draws
+N". Three things follow:
+
+- **The seat takes the ranges first: item 4505.** One take to 4500 of
+  the four lines that part below the word (`RNG_MASK=0x8bu`, run1726),
+  then the leaf of units 4248. Item 4503, the draw word's next act,
+  waits behind it in the same seat.
+- **`Parity:` carries the word beside the score** (`· draws 5273`, off
+  `SAMPLE_WALKED`), so both are parsed and a booking can misstate
+  neither. The guard was red on the drain's queue until the line carried
+  it.
+- **On the sample, a landing moves a number when it moves the `Parity:`
+  line**: the lowest first parting or the word. Two landings running
+  that move neither end the line. Item 4501 moved neither and is the
+  first.
+
+**§6. The eye's seat draws the dust from the packet's emitters.** Items
+4482 and 4490 landed with no score and the haze's line stopped by the
+rule. Item 4490 read what starts and stops an emitter and found that our
+walk cannot say it: all five tanks' emitters start on frame 3136 where
+our clocks would have started them earlier, and the control's stops on
+3248 where ours keeps it running. The common start points at the view.
+An emitter begins on its unit's first draw, so its state is written by
+where the camera has been, and no walk of the simulation holds that. The
+pass rules it renderer state. A still takes it from the packet, which
+holds each emitter's start, its end and its live particles. The live
+client runs the rule item 4490 read,
+on its own draws. So item 4506 builds the dust on `render::particle`
+from the packet's emitter list, and `RUN1559B_3279_TANKS_HAZE` reads 1
+of 4 today with the control in. What gates the draw's call is parked as
+4490a and is not this item's. The item stops after one landing that
+leaves the row at 1 of 4. The pass looked at the pair of 2026-11-20
+again. The tranche's only client change is the row's reader, so nothing
+was redrawn or uploaded. The two riflemen's muzzle flash and the framed
+portrait are still unidentified; the item's first act prints the
+packet's emitters for the two riflemen beside the tanks'.
+
+**§7. What the tranche parked.** Eleven findings, none naming a score:
+4470a (three facings written without the snap), 4481a
+(`action_move_near`'s split arms), 4483a (the air-defence counter's
+readers), 4493a and 4493b (four more normalize sites; `seat_normalize`
+ignores `priority`), 4495a (the spline pool's start), 4497a (a crash's
+slot), 4499a (the unbounded write's second arm), 4500a
+(`Leader::defeat`'s unit loop) and 4482a with 4490a (§6). All stay in
+their journals. Two of the journals' notes for the loop are taken into
+`docs/METHOD.md`: a release backtrace prints no frames unless
+`CARGO_PROFILE_RELEASE_DEBUG=line-tables-only` is set (4481, two probe
+runs lost), and a render item reads the packet's emitter lists before it
+reads `UnitData` (4482, 4490). The third, that a release scorer started
+beside a take preceded run1747's stall (4487), is one observation and
+stays in its journal.
+
+**§8. The tranche's three red gates were the driver's own lines.** Of 22
+gates, 3 were red: two stopped at the first step on a number the queue
+referred to and had not booked (`gate-book-4470`, `gate-book-4498`), and
+one at the guard on the scoreboard's lines (`gate-book-4496`). They cost
+2.2 minutes between them and each booking gated green on its next
+commit. No lane's gate was red on a test. A landing waited 49.3 minutes,
+down from 62.0, and cost 5.77 USD against 6.42.

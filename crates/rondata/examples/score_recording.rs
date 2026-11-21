@@ -59,6 +59,7 @@ fn run() -> Result<bool, String> {
         return Err("usage: score_recording INSTALL GAME.rcx TAKE_DIRECTORY|rontrace.log".into());
     };
     let (install, recording, take) = (Path::new(install), Path::new(recording), Path::new(take));
+    let mut sums_only = None;
     let score = if take.is_dir() {
         let capture = Capture::read(take, recording)?;
         let ranges = take.join("rontrace.ranges");
@@ -90,6 +91,9 @@ fn run() -> Result<bool, String> {
                 .collect();
             println!("first differing state {f} ({})", lines.join(", "));
         }
+        if !has_ranges {
+            sums_only = Some((capture.requested, capture.early));
+        }
         score
     } else {
         playback::compare(install, recording, take)?
@@ -107,6 +111,13 @@ fn run() -> Result<bool, String> {
             print!("\n  {detail}");
         }
         println!();
+    }
+    // A take that holds sums names no leaf: one take keeps every parted
+    // line's ranges to the game's end, and no line that is whole.
+    if let Some((requested, early)) = sums_only
+        && let Some(args) = playback::joined_take(&score.first, requested, early)
+    {
+        println!("one take for every parted line: {args}");
     }
     Ok(score.first.iter().all(Option::is_none))
 }

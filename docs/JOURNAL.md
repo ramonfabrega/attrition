@@ -22392,3 +22392,42 @@ line above the opener to fit a parsed line, and nothing guarded it. It
 is mended and held by a guard. The pass moved no score and took no
 capture.
 **DECISIONS 147.** `docs/audit/2026-11-20-fable-pass-reach.md`.
+
+## 2026-11-21 — the pass: every row not whole scored, and the takes cut to the lines that part (Fable 5.2, steering)
+
+`commander` ran twenty-two merges off the pass before, reached the
+backstop and handed over at `5013bdf5e` on a green whole gate. In that
+tranche parity held out went 5 → 7 of 8, the second battery 2 → 4 of 8,
+and the third battery was taken and read 5 of 8 as found, where the two
+before it read 1 and 0. The handoff asked for the rows scored, seats,
+and a ruling on the fold. The fold is Ramon's and he has not answered,
+so the pass restated it at today's count, 13 of 15, and said one thing
+beside it that the three found columns do not: every held-out game has
+an idle human, and the one game with a person's orders parts a fifth of
+the way in.
+
+The scorer takes seconds a row, so the pass ran it on all seven rows not
+whole and not only the two with ranges on disk. Rows 105 and 10 hold
+eight leaves between them and the items named three. Rows 40 and 5 are
+one line from whole each, and neither has a take. That is where the
+design met the disk. Eleven whole takes keep 38 GB, the disk read 75 GB
+against a floor of 60, and five rows and the sample still need one. A
+row that parts on its units line needs its units line, so the scorer now
+prints one take for the lines a row parts on, and the items carry those
+arguments.
+
+The sample is the other finding. Its lanes walk the draw word because the
+trace covers every frame, and the word moved 945 frames in four
+landings. The score the scoreboard prints, the lowest first parting, sat
+on units 4248 through all four, below the word, with no ranges past
+4130 to name its leaf. The stop rule could not see it, because each
+landing moved some other line. The seat takes the ranges first now, and
+`Parity:` prints the word beside the score so a booking reads both.
+
+The haze's line had ended by the stop rule after two landings that drew
+nothing. The second of them found the reason: an emitter starts on its
+unit's first draw, so the camera's history writes its state and our walk
+cannot. The pass ruled that renderer state and seated a build from the
+packet's emitters. A fourth battery is named. The pass moved no score
+and took no capture.
+**DECISIONS 148.** `docs/audit/2026-11-21-fable-pass-takes.md`.

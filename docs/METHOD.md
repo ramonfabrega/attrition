@@ -306,3 +306,12 @@ The bullets `CLAUDE.md` carries word for word went on 2026-11-14 (its
   click-free capture lane (`tools/explore/unattended_capture.py`, a
   `RON_AUTOSTART` tracer build) that needs no TCC grant and no human at
   the menu, and starts most pairs rather than all of them.
+- **A release backtrace prints no frames** unless the probe's run sets
+  `CARGO_PROFILE_RELEASE_DEBUG=line-tables-only`; two probe runs were lost
+  to empty chains before item 4481 found it (DECISIONS 148 §7).
+- **A render item on a particle-shaped effect reads the packet's emitter
+  lists first**, keyed `(who, o)`, with each emitter's `start_time` and
+  `end_time` (`frame · 67`) set beside our walk's state, before it reads
+  `UnitData` or builds: one table named the haze's system where three
+  readings of masks had not, and another showed a build would fail its
+  control (items 4482, 4490).

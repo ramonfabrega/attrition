@@ -689,8 +689,12 @@ pub(in crate::diff) mod tests {
     const PARITY_OTHERS_WHOLE: usize = 6;
 
     /// The queue's `Parity:` line, off the pins: the games whole of the
-    /// declared set, and the sample's lowest first parting with its line
-    /// ([`SAMPLE_LINES`], of [`SAMPLE_HOOK`]'s frames).
+    /// declared set, the sample's lowest first parting with its line
+    /// ([`SAMPLE_LINES`], of [`SAMPLE_HOOK`]'s frames), and the draw
+    /// walk's word beside it ([`SAMPLE_WALKED`]). The word is the walk's
+    /// instrument and the first parting is the score: four landings moved
+    /// the word 4328 -> 5273 while units stood on 4248, and only the
+    /// prose said so (DECISIONS 148 §5).
     fn parity_line() -> String {
         let frames = SAMPLE_HOOK.1;
         let (line, first) = SAMPLE_LINES
@@ -700,7 +704,10 @@ pub(in crate::diff) mod tests {
         let sample = if *first >= frames {
             "the sample whole".to_string()
         } else {
-            format!("the sample parts first on {line} {first} of {frames}")
+            format!(
+                "the sample parts first on {line} {first} of {frames} \u{b7} draws {}",
+                SAMPLE_WALKED.0
+            )
         };
         format!(
             "Parity: {} of {} whole \u{b7} {sample}",

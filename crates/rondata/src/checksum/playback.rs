@@ -21,6 +21,31 @@ pub struct Score {
     pub details: [Option<String>; 12],
 }
 
+/// **One take for every line a score parts on** (DECISIONS 148 §4): the
+/// capture arguments that keep those lines' ranges and no others, to the
+/// recording's requested end. A whole take, all twelve lines to the end,
+/// reads about 9 GB off the disk while it runs and keeps 2 to 5; a row
+/// that parts on one line asks for that line. `None` when no line parts.
+/// The mask's bit is the line's index, as the single-line hints' is.
+pub fn joined_take(
+    first: &[Option<(i32, Option<u32>, u32)>; 12],
+    requested: i32,
+    early: bool,
+) -> Option<String> {
+    let mask = first
+        .iter()
+        .enumerate()
+        .filter(|(_, f)| f.is_some())
+        .fold(0u32, |m, (i, _)| m | 1 << i);
+    (mask != 0).then(|| {
+        format!(
+            "--end-frame {requested}{} --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES \
+             --tracer-def RNG_MASK={mask:#x}u",
+            if early { " --allow-early-end" } else { "" }
+        )
+    })
+}
+
 pub(crate) fn recording_start(
     loaded: &crate::load::Loaded,
     rec: &crate::recgame::RecGame,
@@ -175,6 +200,33 @@ mod combat;
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A take's mask is the parted lines' bits and nothing else: the
+    /// second battery's row 130 parts units and leaders, lines 0 and 7,
+    /// and the original ended it early (the pass of 2026-11-21).
+    #[test]
+    fn a_joined_take_keeps_the_parted_lines_and_no_others() {
+        let mut first = [None; 12];
+        assert_eq!(joined_take(&first, 6000, false), None);
+        first[0] = Some((2354, Some(1), 2));
+        first[7] = Some((4573, None, 3));
+        assert_eq!(
+            joined_take(&first, 6000, true).as_deref(),
+            Some(
+                "--end-frame 6000 --allow-early-end --tracer-def RON_CHECKSUMS \
+                 --tracer-def RON_RANGES --tracer-def RNG_MASK=0x81u"
+            )
+        );
+        first[11] = Some((1662, Some(1), 2));
+        assert_eq!(
+            joined_take(&first, 4500, false).as_deref(),
+            Some(
+                "--end-frame 4500 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES \
+                 --tracer-def RNG_MASK=0x881u"
+            )
+        );
+    }
+
     fn window_score(name: &str) -> Option<Score> {
         let install = crate::testenv::install_root()?;
         let dir = std::path::PathBuf::from(std::env::var_os("HOME").unwrap_or_default())
