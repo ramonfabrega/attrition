@@ -847,6 +847,21 @@ impl Sim {
                             && self.enemy_object_in_cell(who, n)
                     })
                 {
+                    if std::env::var_os("RON_PROBE_4492").is_some() && self.frame == 4182 {
+                        for &(dx, dy) in &MOVE_49[..9] {
+                            let n = Cell::new(cell.x + dx, cell.y + dy);
+                            for (i, u) in self.units.iter().enumerate() {
+                                if u.alive() && u.on_map && !u.is_gaia() && u.pos.cell() == n && self.is_enemy(who, u.owner) {
+                                    eprintln!("PROBE4492 refuse cell({},{}) unit {} owner {} ty {:?} pos({},{})", cell.x, cell.y, i, u.owner, u.ty, u.pos.x, u.pos.y);
+                                }
+                            }
+                            for (i, b) in self.buildings.iter().enumerate() {
+                                if b.alive && b.owner < 8 && b.pos.cell() == n && self.is_enemy(who, b.owner) {
+                                    eprintln!("PROBE4492 refuse cell({},{}) bldg {} owner {} ty {:?}", cell.x, cell.y, i, b.owner, b.ty);
+                                }
+                            }
+                        }
+                    }
                     step = 3;
                     break 'cand;
                 }
@@ -860,6 +875,9 @@ impl Sim {
                 // that one cell is the fuzzed map's thirtieth candidate.
                 if !scored_by_gather && best != 0 && !tower && idx > circle.radius[3] {
                     step = 3;
+                }
+                if std::env::var_os("RON_PROBE_4492").is_some() && self.frame == 4182 {
+                    eprintln!("PROBE4492 best who{} rec{} cell({},{}) score{} city {:?}", who, rec, cell.x, cell.y, score, city);
                 }
                 best = score;
                 best_sp = sp;
