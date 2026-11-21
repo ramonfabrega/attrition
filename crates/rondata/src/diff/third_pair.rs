@@ -553,7 +553,11 @@ fn run667_s_closing_frame_is_widened_whole() {
     // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
     // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
     // Item 4435: 55 -> 52, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 52, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
+    // Item 4521: 52 -> 49, −3 on 17380: the quit human, defeated, takes no
+    // gather behind `process_all@006ed2a0`'s `& 2` gate, so who=0's
+    // `leader:leftover[0..2]` agree (were ours 1600, 2240, 2560 against
+    // theirs' 1440, 1760, 1920, in some order of the three).
+    pin_eq!(w.firsts.len(), 49, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
 }
 
 #[test]
@@ -1739,7 +1743,11 @@ fn run609_s_closing_frame_is_widened_whole() {
         // `idle` and figure clocks agree (were ours 1, 0 and running; theirs
         // 0, 1 and at rest).
         // Item 4340: −1, no `leader:defense` row is left (the human's tally moves, its writers ungated; ch125 and ch131 name that key, here it is inferred).
-        26, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+        // Item 4521: 26 -> 23, −3 on 5639: the quit human is defeated, and
+        // `process_all@006ed2a0`'s `& 2` gate pays it nothing, so who=0's
+        // `leader:leftover[0..2]` agree (were ours 960, 2240, 4160 against
+        // theirs' 800, 2080, 3680, in some order of the three).
+        23, // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
         "run609 closing residue, not whole-record parity"
     );
 }

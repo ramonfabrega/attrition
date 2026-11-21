@@ -90,6 +90,44 @@ fn the_transport_level_rides_the_flags_word() {
     assert_eq!(word(&s, 0, 0x700), 0);
 }
 
+/// `Leader::defeat@006ecb00` past its guards (item 4521): `leader_flags`
+/// trades the live bit `2` for the defeated mark `0x40`, and
+/// `leader_flags2` takes `2`; the captor is `defeated_by`, a range of its
+/// own. The other leader's words are untouched.
+#[test]
+fn a_defeat_marks_both_flag_words() {
+    let mut s = sim();
+    assert_eq!(word(&s, 1, 0x42), 2, "a live leader holds the live bit");
+    assert_eq!(s.leader_flag_words(1).1.unwrap() & 2, 0);
+    s.defeat(1, crate::leaders::endgame::DEFEAT_CONQUEST, Some(0));
+    assert_eq!(
+        word(&s, 1, 0x42),
+        0x40,
+        "the defeated mark, not the live bit"
+    );
+    assert_eq!(s.leader_flag_words(1).1.unwrap() & 0x202, 2, "param_3 is 0");
+    assert_eq!(s.leader_endgame(1).defeated_by, 0);
+    assert_eq!(word(&s, 0, 0x42), 2, "its leader's alone");
+    assert_eq!(s.leader_flag_words(0).1.unwrap() & 2, 0);
+}
+
+/// `Leaders::process_all@006ed2a0`'s slot step is behind `leader_flags &
+/// 2` whole (item 4521): a defeated leader's stale wall stats
+/// (`0x8000000`) are not answered by the tick, a live one's are.
+#[test]
+fn a_defeated_leader_s_stats_bits_stay_raised() {
+    let mut s = sim();
+    s.defeat(1, crate::leaders::endgame::DEFEAT_CONQUEST, Some(0));
+    s.cities.wall_stats_dirty[0] = true;
+    s.cities.wall_stats_dirty[1] = true;
+    s.roster.unit_stats_dirty[1] = true;
+    s.tick();
+    assert!(!s.cities.wall_stats_dirty[0], "the live slot's is answered");
+    assert!(s.cities.wall_stats_dirty[1], "the defeated slot's stays");
+    assert!(s.roster.unit_stats_dirty[1]);
+    assert_eq!(word(&s, 1, 0x800_0000), 0x800_0000, "and rides the word");
+}
+
 /// A Forced March's bit (`leader_flags & 0x8000`) on the word.
 #[test]
 fn a_forced_march_rides_the_flags_word() {
