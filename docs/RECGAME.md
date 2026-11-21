@@ -1200,13 +1200,14 @@ push `0` and `0x20b` before the type's `+0x60`), AIRDEFENSE's line, and
 sets `job_counter` to `0x40000000`; no later frame of the take changes it.
 This crate's `Sim::activate` zeroed it alone. The same fix moved row 110's
 builds 4221 → 5577 and the third battery's row 105 builds whole. The world
-parting the two rows shared was 4480's `seen3`. Their next partings are
-leaders, 1576 and 1376: on row 10 `reg_gatherers[1]` (`LeaderData +0x1160`)
-of who=1, ours 0, theirs 2.
+parting the two rows shared was 4480's `seen3`, and the leaders partings
+behind it (1576, 1376) were 4499's `reg_gatherers`. Their next partings are
+units, 1747 and 2354: on row 10 units range 1192, record 37, `inside_down`
+ours −1, theirs 38.
 
-*Not established*: rows 10 and 130's leaders partings are not read (row
-130's take holds sums); the AIRDEFENSE counter's readers in the original
-are not listed, since no take's value of it ever moves.
+*Not established*: row 130's units parting is not read (its take holds
+sums); the AIRDEFENSE counter's readers in the original are not listed,
+since no take's value of it ever moves.
 
 ### 11.1 Parity held out, third: rows 5 to 145 (item 4487)
 
