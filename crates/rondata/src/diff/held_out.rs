@@ -1012,6 +1012,78 @@ mod tests {
         }
     }
 
+    /// **Row 105's pruned oil list keeps its capacity** (item 4512,
+    /// `docs/RECGAME.md` §11.1): run1752 holds every leaders range on 3582
+    /// and 3583. On 3583 who=1's `oil_patches` goes from twelve patches to
+    /// ten, both sides (arm 4.2 of `Leader::produce_building@006e1400`
+    /// prunes two land patches the leader no longer owns, by
+    /// `SimpleArray<int>::remove@00462e70`), and theirs' `size` stays 20:
+    /// a removal only shortens the length. Every leaders range on both
+    /// states, ours against theirs, byte for byte: red on the tree before
+    /// the fix, at range 191 (record 1 `oil_patches` `size`, ours 10).
+    #[test]
+    fn row_105_s_pruned_oil_list_keeps_its_capacity_on_run1752_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&THIRD, 5) else {
+            eprintln!("skipping: row 105's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1752/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1752's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 105's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [3582, 3583] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_leaders();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "leaders' ranges on {state}"
+            );
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "leaders range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Record 1's `oil_patches`: the length, then the size, by name.
+            let k = ours
+                .ranges
+                .iter()
+                .position(|r| r.record == 1 && r.field == "oil_patches")
+                .expect("record 1's oil_patches");
+            let (n, size): (i32, i32) = if state == 3582 { (12, 20) } else { (10, 20) };
+            assert_eq!(
+                theirs[k].bytes,
+                n.to_le_bytes(),
+                "theirs' length on {state}"
+            );
+            assert_eq!(
+                theirs[k + 1].bytes,
+                size.to_le_bytes(),
+                "theirs' size on {state}"
+            );
+            assert_eq!(built.sim.ai.ai[1].oil_patches.len(), n as usize);
+        }
+    }
+
     /// **Row 120's barge is born with `form` 0** (item 4435, `docs/RECGAME.md`
     /// §10.3): run1716, the ranges take of run1706's file, holds the units
     /// line's every range on state 2694, where the computer's transport

@@ -26,9 +26,9 @@
 //! and the list a held-out line names.
 
 use super::{Line, Range};
-use crate::ai::simple_array_size;
 use crate::Player;
 use crate::Sim;
+use crate::ai::simple_array_size;
 
 /// **`LeaderData`'s walked `[+0x8, +0x692a)`** (`types.txt`, `LeaderData`,
 /// size 0x6ee4): `(name, offset, element width, count)`, 276 leaves. The
