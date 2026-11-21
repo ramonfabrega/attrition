@@ -2102,6 +2102,14 @@ fn widen_block_rows(
                 i64::from(un.path_recursion),
                 them.path_recursion,
             ),
+            // Item 4505: the unit's own link down its gatherer chain, by
+            // object number (`docs/ORDERS.md` §6.1).
+            (
+                "gather_down".into(),
+                un.gather_down
+                    .map_or(-1, |n| i64::from(built.sim.units[n].index)),
+                them.gather_down,
+            ),
             ("idle".into(), i64::from(un.idle), them.idle),
             ("stance".into(), i64::from(un.stance), them.stance),
             // **`myhits` is the max, not what is left.** The
@@ -2560,6 +2568,7 @@ fn widened_field(label: &str) -> Option<(&'static str, &'static str)> {
         "orders_y" => ("UnitDump", "orders_y"),
         "tolerance" => ("UnitDump", "tolerance"),
         "path_recursion" => ("UnitDump", "path_recursion"),
+        "gather_down" => ("UnitDump", "gather_down"),
         "idle" => ("UnitDump", "idle"),
         "stance" => ("UnitDump", "stance"),
         "myhits" => ("UnitDump", "myhits"),

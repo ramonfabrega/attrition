@@ -169,7 +169,7 @@ const UNREAD: &[(&str, &str)] = &[
     ("GAME/FRAME/ANIMALDATA", "aid ox whom"),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA",
-        "air_alt cavarch_uid gather_down guy_mark hero increment inside_up_who length los_x los_y myarmor play size special supply",
+        "air_alt cavarch_uid guy_mark hero increment inside_up_who length los_x los_y myarmor play size special supply",
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/GUY",
