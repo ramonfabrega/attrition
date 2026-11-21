@@ -401,6 +401,92 @@ fn a_rider_is_an_xport_peasant_where_its_boat_is_going() {
     assert_eq!(reg(&cs.reg_active, home), 1, "only the one ashore");
 }
 
+/// **A citizen casting the transport is an `xport` peasant** (item 4516,
+/// `docs/AI.md` §58). `plan_strategy`'s on-map arm for an action of kind
+/// 0xe (and 8) bumps `xport_peasants` whatever the front order is
+/// (`6bae19`), and `reg_xport_peasants` only when the front order is a
+/// move, at the region under its point, which then stands as the unit's
+/// region for the `reg_active` family. run1739's 3975 is the first case:
+/// who=1's Citizen `1/97` (TI 50) holds `[CAST_SPELL, MOVE_TO]`, and the
+/// original's `xport_peasants` is one more than a census that skipped the
+/// kind.
+#[test]
+fn a_citizen_casting_the_transport_is_an_xport_peasant() {
+    let mut f = fix();
+    let home = f.sim.world.region_of(Cell::new(2, 2)).unwrap();
+    let far = f
+        .sim
+        .world
+        .fill_region(Terrain::Land, Cell::new(0, 10), Cell::new(11, 15));
+    build(&mut f.sim, 1, f.village, 20, 20);
+    let caster = spawn(
+        &mut f.sim,
+        1,
+        f.citizen,
+        2 * TILES_PER_CELL,
+        2 * TILES_PER_CELL,
+    );
+    let cast = Order {
+        flags: crate::orders::flag::ACTION,
+        body: Body::Cast(crate::orders::CastOrder {
+            spell: crate::orders::spell::TRANSPORT,
+            paid: false,
+            target: None,
+            at: Pos::new(-1, -1),
+        }),
+    };
+    f.sim.units[caster].orders.push_back(cast);
+
+    // The cast in front: not a move, so no region; the count alone.
+    f.sim.census(1);
+    let cs = &f.sim.ai.ai[1].census;
+    let reg = |v: &[i32], r: u16| Census::reg(v, r);
+    assert_eq!(cs.peasants, 1);
+    assert_eq!(cs.free_peasants, 0, "a caster is busy");
+    assert_eq!(cs.xport_peasants, 1, "the cast is an xport");
+    assert_eq!(
+        (
+            reg(&cs.reg_xport_peasants, home),
+            reg(&cs.reg_xport_peasants, far)
+        ),
+        (0, 0),
+        "no move in front, no region"
+    );
+    assert_eq!(reg(&cs.reg_active, home), 1, "its own tile's region");
+
+    // A transit move in front (no ACTION flag): the cast stays the action,
+    // and the move's point names the region.
+    let dest = tile_pos(4 * TILES_PER_CELL, 12 * TILES_PER_CELL);
+    f.sim.units[caster].orders.push_front(Order {
+        flags: 0,
+        body: Body::Move(crate::orders::MoveOrder {
+            kind: crate::orders::MoveKind::MoveTo,
+            dest,
+            angle: crate::movement::Angle(0),
+            facing: None,
+            has_waypoint: false,
+            waypoint: dest,
+            last: None,
+            pause: 0,
+            retry: 0,
+            attempts: 0,
+            timer: 0,
+            coll: None,
+            orig: None,
+            group: None,
+        }),
+    });
+    f.sim.census(1);
+    let cs = &f.sim.ai.ai[1].census;
+    assert_eq!(cs.xport_peasants, 1);
+    assert_eq!(reg(&cs.reg_xport_peasants, far), 1, "where the move goes");
+    assert_eq!(
+        (reg(&cs.reg_active, home), reg(&cs.reg_active, far)),
+        (0, 1),
+        "the move point's region stands as the unit's"
+    );
+}
+
 #[test]
 fn the_free_busy_split_follows_the_action_kind() {
     let mut f = fix();

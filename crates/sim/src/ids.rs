@@ -192,6 +192,9 @@ pub mod order {
     pub const FLEE_TO: u8 = 4;
     pub const BUILD_AT: u8 = 6;
     pub const GATHER: u8 = 7;
+    /// `BoardOrder` (`docs/ORDERS.md` §1.2). This crate constructs none;
+    /// the census reads the kind (item 4516).
+    pub const BOARD_SHIP: u8 = 8;
     pub const ATTACK: u8 = 10;
     /// `FollowOrder` — [`crate::orders::Body::Follow`], issued by
     /// `Group::action_follow@006fd510` from a player's follow command

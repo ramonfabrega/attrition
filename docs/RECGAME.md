@@ -1213,14 +1213,14 @@ since no take's value of it ever moves.
 **Row 10's world is whole** (item 4504, `SCORES_SECOND[0].moved`, world
 5,995 → 6,001). run1739's leaf on 2365: world range 6920, record 3039
 (cell (39, 50) of the 60-wide map), `block.present` ours 1, theirs 0.
-who=1's `1/43` (TI 104) stood at unit cell (632, 813) with its disc holed
-out by a neighbour and the cell's empty block freed by the sweep; on 2365
-it steps to (633, 814), both discs inside the one cell, and
-`CollCheck::move_unit@00682ad0`'s one-block form finds the block null and
-returns before either pass (`docs/COLLISION.md` §2.4). This crate ran the
-set pass and allocated the block. On 2366 theirs sets only the new disc's
-edge, (635, 814..815), round the old point (633, 814). Rows 30 and 110's
-world partings (1662, 3809) are not this: their sums did not move.
+who=1's `1/43` (TI 104) steps (632, 813) → (633, 814) inside a freed
+cell, and `CollCheck::move_unit@00682ad0`'s one-block form returns on the
+null block, where this crate allocated it (`docs/COLLISION.md` §2.4).
+Rows 30 and 110's world partings (1662, 3809) are not this: their sums
+did not move.
+
+**Row 10's leaders are whole** (item 4516, 5,801 → 6,001): a casting
+citizen is an `xport` peasant, `docs/AI.md` §58.7.
 
 **Row 130's computer bomber searches round itself** (item 4508; units
 4,459 → 4,574 merged with 4514, first 3411 → 3515): run1754, units range 4078 on 3411,
