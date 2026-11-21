@@ -319,7 +319,13 @@ The `seen3` cutoff is a third index into the same range: `0` unless
 or `circle_radius[r]` — every point below it also sets `seen3`. Note the
 `0x1f` clamp writes back into `r` and therefore into the range's own end;
 it is unreachable, since `r ≥ 0x20` needs `<LOS>` of 64 tiles and the
-largest in the file is far below that.
+largest in the file is far below that. **The flag is `Object::init@00647750`'s
+`has_objmask(0x2000000)`, the `DETECT` objmask, for a building as for a
+unit** (item 4480): `Wall::init@0063e9b0` calls it, and
+`BuildData::has_objmask@0062e210` answers the type's mask (a city adds only
+`0x40`). A building's range is the whole circle, so a `DETECT` building's
+whole disc is `seen3`. *Diff-backed*: run1722's Observation Post `1/59`
+(type 108, LOS 9) on 3984, 433 cells round (91, 79).
 
 **`ring_init@00681920` builds the thickened ring**, and the thickening is
 the point: an octagonal ring `r` has diagonal gaps a unit stepping one
@@ -799,8 +805,10 @@ run240's world pin.
   `do_repair`) read as "this object is a placement ghost, not a real
   unit". No capture sets it. The simulation has no such flag and treats
   it as clear.
-- **`SubObjectData.flags & 0x40`**, the whole of `seen3`. Unnamed here,
-  unset in the simulation, and the plane it gates is not modelled.
+- ~~**`SubObjectData.flags & 0x40`**, the whole of `seen3`. Unnamed here,
+  unset in the simulation, and the plane it gates is not modelled.~~
+  Answered in §4: the `DETECT` objmask, for units (`docs/GOLDEN.md` §101)
+  and buildings (item 4480).
 - ~~**`update_los` terms 6–11.** Read, tabulated in §2, not implemented; no
   run reaches one.~~ Term 6 is built and diff-backed on run529 (§2); terms
   7–11 are read and not implemented, and no run reaches one. Each would
