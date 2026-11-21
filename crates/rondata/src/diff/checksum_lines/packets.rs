@@ -1457,7 +1457,10 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// none on more ranges, run985b, run1224b, run1263 and run1327 whole with
 /// them: a `DETECT` building lights `seen3` over its disc
 /// (`Object::init`'s `has_objmask(0x2000000)` for a building too).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 881, 1053);
+/// Item 4478: 881 -> 883, deaths whole on run785 and run865 (4 and 7
+/// ranges parted before): the nuke strikes its units in
+/// `Objects::find_units`' order.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 883, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -4827,6 +4830,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (1731, 1729, 938) -> (1731, 1731, 1), world (9108, 9108, 9) -> (9108, 9108, 1).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (4969, 4889, 2804) -> (4969, 4945, 4289).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9108, 9108, 1) -> (9108, 9108, 0).
+    // Item 4478, the nuke strikes its units in find_units' order: deaths (28, 28, 4) -> (28, 28, 0).
     (
         "run785",
         2178,
@@ -4835,7 +4839,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (1731, 1731, 1),
             (0, 0, 0),
             (0, 0, 0),
-            (28, 28, 4),
+            (28, 28, 0),
             (640, 640, 0),
             (1429, 1429, 0),
             (271, 271, 1),
@@ -5220,6 +5224,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (10342, 10188, 7824) -> (10342, 10342, 2).
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (10342, 10342, 2) -> (10342, 10342, 0).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9534, 9534, 1) -> (9534, 9534, 0).
+    // Item 4478, the nuke strikes its units in find_units' order: deaths (28, 28, 7) -> (28, 28, 0).
     (
         "run865",
         4859,
@@ -5228,7 +5233,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2288, 2288, 2),
             (0, 0, 0),
             (0, 0, 0),
-            (28, 28, 7),
+            (28, 28, 0),
             (640, 640, 0),
             (2210, 2210, 0),
             (271, 271, 1),
