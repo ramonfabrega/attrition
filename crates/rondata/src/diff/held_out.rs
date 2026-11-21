@@ -803,14 +803,14 @@ mod tests {
         let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
         let mut stream = crate::input::Stream::pump(&rec);
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
-        let lo: u32 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(1970);
-        let hi: u32 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(1977);
+        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(1970);
+        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(1977);
         for state in lo..=hi {
             while built.sim.frame < state {
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
             }
-            let set = record.first_of(state as i32 - 1).expect("the state's set").clone();
+            let set = record.first_of(state - 1).expect("the state's set").clone();
             let all = record.ranges(&set).expect("the set's ranges");
             let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
             let imgs: Vec<_> = (0..8u8).flat_map(|w| built.sim.leader_image(w)).collect();
