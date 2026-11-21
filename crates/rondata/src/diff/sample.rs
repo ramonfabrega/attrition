@@ -459,11 +459,17 @@ pub(in crate::diff) mod tests {
     /// at (29695, 10216) on recording frame 5084, refused here `NoMountain`
     /// with range 12 at 1267 past the 1152 reach, stands at (29568, 10368)
     /// with a 205-tile list, theirs' 820 `Build::find_gather_tiles+0x10a`
-    /// after the farm rolls on 5083): 5083 -> 5255, +172. On 5255 theirs
-    /// loses a city (`Leader::lost_a_city`) and spends a `Unit::come_out
-    /// +0xbae` unit's anim at game draw 6 where ours goes on to the
-    /// `Guy::inc_time` wraps.
-    const SAMPLE_WALKED: (i64, i64) = (5255, 21044);
+    /// after the farm rolls on 5083): 5083 -> 5255, +172. Item 4500 (a
+    /// scholar leaving a building takes `set_anim(CHAR_DEFAULT, 1, 1)`,
+    /// `Unit::come_out@00617c10:548`, `6187a1`..`6187b9`: on 5255 the
+    /// person takes computer 1's last Village `1/2007`, computer 1 is
+    /// defeated, and the captured University `1/2014` ejects its Scholars
+    /// `1/21`, `1/22`, `1/23` (`TypeIndex` 52, land) one a frame, theirs'
+    /// `Unit::come_out+0xbae` on 5255, 5256 and 5257): 5255 -> 5273, +18.
+    /// On 5273 theirs starts a unit's step (`Unit::move_step+0x823`,
+    /// through `Unit::set_anim+0x56`) at game draw 6 where ours goes on to
+    /// the `Guy::inc_time` wraps.
+    const SAMPLE_WALKED: (i64, i64) = (5273, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -655,19 +661,24 @@ pub(in crate::diff) mod tests {
     /// 5085 -> 5282, guys 5085 -> 5256, cities 5126 -> 5326, world 5085 ->
     /// 5256; units 4248, builds 4321, ammo 4462 and leaders 4321
     /// unchanged; items 5403 -> 5286 and goods 5403 -> 5384, named falls
-    /// past the unchanged lowest 4248.
+    /// past the unchanged lowest 4248. Item 4500 (a scholar rises from its
+    /// host with the forced idle roll, `Unit::come_out@00617c10:548`;
+    /// draws 5255 -> 5273): deaths 5428 -> 5429, groups 5282 -> 5311, guys
+    /// 5256 -> 5273, items 5286 -> 12663, goods 5384 -> 5392; units 4248,
+    /// builds 4321, ammo 4462, leaders 4321, cities 5326 and world 5256
+    /// unchanged.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 4248),
         ("builds", 4321),
         ("walls", 21044),
         ("ammo", 4462),
-        ("deaths", 5428),
-        ("groups", 5282),
-        ("guys", 5256),
+        ("deaths", 5429),
+        ("groups", 5311),
+        ("guys", 5273),
         ("leaders", 4321),
         ("cities", 5326),
-        ("items", 5286),
-        ("goods", 5384),
+        ("items", 12663),
+        ("goods", 5392),
         ("world", 5256),
     ];
 
@@ -765,7 +776,10 @@ pub(in crate::diff) mod tests {
     /// 5083 where ours refused it): 4920 -> 3475, a named fall, the frames
     /// not read one by one (the war past 5083 runs with the person's mine
     /// standing and its 820 draws spent); the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3475, Some(2929));
+    /// Item 4500 (the three Scholars rise from the captured University
+    /// with theirs' forced idle rolls on 5255..5257): 3475 -> 3747, +272;
+    /// the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3747, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve

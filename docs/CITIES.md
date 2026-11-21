@@ -1612,6 +1612,27 @@ Indies' 17363. Built in `Sim::come_out`'s member loop.
 **How confident**: diff-backed by run630 and the first pair's widenings.
 The human arm (the tail skipped) and the plane arm are a reading.
 
+#### 6.5.4 A scholar rises with its forced idle roll (item 4500, 2026-11-21)
+
+This is the seating's mirror (§6.5.2). `Unit::come_out@00617c10:548`
+runs after the `o_down` recursion and before the computer's tail. A unit
+whose type is `SCHOLARS` (`0x34`) or `SCHOLARSKOREAN` (`0x35`) gets
+`set_anim(CHAR_DEFAULT, 1, 1)` (`6187a1`–`6187b9`, the call returning to
+`6187be`). The `force` makes the idle roll unconditional, so a scholar
+coming out spends one draw in the phase it came out in. Because of the
+recursion, a squad's deepest member rolls first and its captain last.
+Built in `Sim::come_out` (`SITE_COME_OUT_SCHOLAR`).
+
+**How established**: the 2017 sample's 5255 (`docs/RECGAME.md` §7). The
+person takes computer 1's last Village `1/2007`, and computer 1 is
+defeated. The captured University `1/2014` ejects its Scholars `1/21`,
+`1/22` and `1/23` (`TypeIndex` 52, land), one a frame through
+`process_ejection` (§6.6). Theirs draws at `Unit::come_out+0xbae` on 5255,
+5256 and 5257, and the walk agrees on every draw through 5272 (run1651's
+trace). **Diff-backed** for single-figure squads. The member order is
+from the listing alone, since no capture holds a scholar squad of more
+than one.
+
 ### 6.6 Ejecting a building — `eject_contents`, `process_ejection`
 
 `Object::eject_contents(kill_if_stuck, only_type, keep_orders, clear_first)`:
