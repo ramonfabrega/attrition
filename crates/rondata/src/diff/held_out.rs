@@ -3558,13 +3558,18 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // 4078, record 158, who=1's Strategic Bomber `1/158`,
         // `orders.count` ours 2, theirs 1), measured on the tree merged with
         // 4514: units 4,459 -> 4,574, first 3411 -> 3515.
+        // Moved by item 4520 (`set_facing` writes no `dest_angle`: a
+        // helicopter set apart keeps its order's; run1754, state 3515, units
+        // range 5857, record 184, who=1's Attack Helicopter `1/184`,
+        // `dest_angle` ours -406650880, theirs -424345600): units
+        // 4,574 -> 4,583, first 3515 -> 4583.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                4574, 4731, 4731, 4731, 4731, 4731, 4731, 4721, 4731, 4731, 4731, 4731,
+                4583, 4731, 4731, 4731, 4731, 4731, 4731, 4721, 4731, 4731, 4731, 4731,
             ],
             first: &[
-                ("units", (3515, Some(2883003395), 31204340)),
+                ("units", (4583, Some(3725779223), 1703403803)),
                 ("leaders", (4573, Some(266446178), 1003136370)),
             ],
             over: None,
