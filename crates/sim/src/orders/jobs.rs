@@ -439,7 +439,7 @@ impl Sim {
     /// (`num_def_builds`, a flat **200** from `Game::init_data@0058dca0`,
     /// and `total_units`, the live unit count); past it they walk the
     /// object lists instead.
-    pub(super) fn ring_index(range: i32) -> usize {
+    pub(crate) fn ring_index(range: i32) -> usize {
         ((range.max(0) + 0x2ff) / 0x300).min(0x40) as usize
     }
 

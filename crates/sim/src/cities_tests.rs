@@ -11343,6 +11343,54 @@ fn a_closing_first_library_hands_its_queue_to_the_next() {
     assert_eq!(sim.roster.muster[0].queued_by_type[0], 1);
 }
 
+/// **An unassimilated city's library adds no slot** (item 4489,
+/// `docs/AI.md` §102.2): `LeaderData::get_building_cities@006e06f0` counts
+/// a city only when it is live **and** `race == who`, then asks for an
+/// active library on its chain. The sample's Library `3/2005` ran one slot
+/// on 4026 while its owner's second library stood in a city taken from
+/// player 4 and still race 4; ours ran two (slot 1's `job_counter` 100
+/// against theirs' 0).
+///
+/// Made to fail by the `race` term removed: the second city counts on the
+/// second assertion.
+#[test]
+fn an_unassimilated_city_s_library_adds_no_slot() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    sim.tech[0].epoch[tech::Line::Civic as usize] = 1;
+    let (_, a) = city_at(&mut sim, &t, 0, 32, 32);
+    let (_, b) = city_at(&mut sim, &t, 0, 57, 32);
+    for (tx, c) in [(32, a), (57, b)] {
+        let l = sim
+            .place_building(0, t.library, tile_pos(tx, 42))
+            .unwrap_or_else(|e| panic!("the library should place: {e:?}"));
+        assert_eq!(sim.buildings[l].city, Some(c));
+        finish(&mut sim, l);
+    }
+    assert_eq!(sim.building_cities_library(0), 2, "two assimilated cities");
+    // The second city taken and not yet assimilated: its race is the
+    // loser's.
+    sim.cities.cities[b].race = Some(1);
+    assert_eq!(
+        sim.building_cities_library(0),
+        1,
+        "an unassimilated city adds no slot"
+    );
+    // A city whose library is not built adds none either.
+    sim.cities.cities[b].race = Some(0);
+    let lib_b = *sim.cities.cities[b]
+        .members
+        .iter()
+        .find(|&&m| sim.buildings[m].is_library || sim.building_is(m, Ident::Library))
+        .expect("the second library is a member");
+    sim.buildings[lib_b].active = false;
+    assert_eq!(
+        sim.building_cities_library(0),
+        1,
+        "an unbuilt library adds none"
+    );
+}
+
 /// **`ages_queued` and `epochs_queued` follow the queue** (item 3982,
 /// `docs/AI.md` §414): `Build::queue_up@00620f40:518`–`:541` raises the
 /// leader's byte for an age or an epoch, `Build::unqueue@006207c0` takes it

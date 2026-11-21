@@ -1331,18 +1331,10 @@ impl Sim {
                 // its own slot, so deeper slots complete first. Walking the
                 // slots in reverse is that order, and it also keeps the lower
                 // indices stable when a deeper entry is removed.
-                // `LeaderData::get_building_cities@006e06f0` counts the
-                // live cities that hold an active library. Nothing wrote
-                // `Muster::library_cities` before item 1388, so every
-                // research queue ran one slot at a time; a test that sets
-                // the field keeps its value.
-                let cities = self
-                    .cities_of(who)
-                    .into_iter()
-                    .filter(|&c| {
-                        self.count_buildings(c, crate::cities::build::Ident::Library, true) != 0
-                    })
-                    .count();
+                // Nothing wrote `Muster::library_cities` before item 1388,
+                // so every research queue ran one slot at a time; a test
+                // that sets the field keeps its value.
+                let cities = self.building_cities_library(who);
                 let slots = crate::cities::production::parallel_slots(
                     self.roster.muster[who as usize].library_cities.max(cities),
                     queued,
@@ -1482,6 +1474,26 @@ impl Sim {
             1,
         );
         Some((self.queue_target(at, slot), accel))
+    }
+
+    /// `LeaderData::get_building_cities@006e06f0(LIBRARY)`: the leader's
+    /// cities that are live (`city_flags & 1`), **assimilated** (`race ==
+    /// who`) and hold an active library (`CityData::count_buildings(LIBRARY,
+    /// 0, 1)`) — how many slots the first library's queue runs at once.
+    ///
+    /// **An unassimilated city's library does not count** (item 4489,
+    /// `docs/AI.md` §102.2): the sample's Library `3/2005` ran one slot on
+    /// 4026 while its owner's second library stood in the city `3/2010`,
+    /// taken from player 4 on 3887 and still race 4; ours ran two, and
+    /// slot 1's `job_counter` read 100 against 0.
+    pub(crate) fn building_cities_library(&self, who: Player) -> usize {
+        self.cities_of(who)
+            .into_iter()
+            .filter(|&c| {
+                self.cities.cities[c].race == Some(who)
+                    && self.count_buildings(c, crate::cities::build::Ident::Library, true) != 0
+            })
+            .count()
     }
 
     /// [`Sim::advance_slot`] on a clock already read.

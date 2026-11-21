@@ -203,11 +203,12 @@ impl Sim {
     /// cells of [`Sim::nuke_ring_cells`] outward from the point's, each
     /// cell's chain head first, its next link read after the strike.
     ///
-    /// SEAM: the order of several units struck on one frame (the
-    /// original's is `Objects::find_units`' — a cell circle or the
-    /// players' lists, by `total_units`; here the list's index order), a
-    /// struck player at peace declaring war
-    /// (`92c502`, `92c71e`), and the rush rules' early-age exemption.
+    /// The units are struck in `Objects::find_units`' order (item 4478,
+    /// [`Sim::nuke_find_units`]), the whole list taken before the first
+    /// blow, as `92c03d` takes it.
+    ///
+    /// SEAM: a struck player at peace declaring war (`92c502`, `92c71e`),
+    /// and the rush rules' early-age exemption.
     pub(crate) fn nuke_do_damage(&mut self, frame: i64) {
         let mut i = 0;
         while i < self.combat.nukes.blasts.len() {
@@ -227,7 +228,7 @@ impl Sim {
             let Some(r) = ring_radius(t, min, max) else {
                 continue;
             };
-            for u in 0..self.units.len() {
+            for u in self.nuke_find_units(at, r) {
                 let o = Obj::Unit(u);
                 // `Objects::find_units(…, 1)`: the last argument set walks
                 // the eight players' units alone (`who < 8` on both its
@@ -263,6 +264,53 @@ impl Sim {
                 }
             }
         }
+    }
+
+    /// **`Objects::find_units@0065a620(at, SEARCH_ALL, −1, r, 0, FILTER_ALL,
+    /// 0, 0, r, 1)`'s list**, the call `Nuke::do_damage@0092bc80:141` makes
+    /// before its unit loop (item 4478, `docs/RECGAME.md` §10.3). Two walks,
+    /// picked by `circle_radius[(r + 0x2ff) / 0x300] <= game->total_units`
+    /// (`:50`):
+    ///
+    /// - **the circle**: the ring's cells in `circle_x`/`circle_y` order
+    ///   round the point's cell (`div_3_table[x >> 8]`), each cell's unit
+    ///   chain from its head (`WData +0x8`/`+0xa`, then the object's
+    ///   `+0x2c`/`+0x2e`), no distance test;
+    /// - **the lists**: leader by leader, each one's units in `o` order,
+    ///   kept when `vector_dist − R <= r` ([`Sim::find_units_reach`]).
+    ///
+    /// On both, `who < 8` (the last argument) and the object's vslots `+0x8`
+    /// and `+0xbc`; the caller's own tests ([`Sim::nuke_do_damage`]) follow.
+    /// run1721's two Citizens `0/11` and `0/3`, struck on 2755, are the
+    /// circle's order: the nearer cell first, where the unit list holds
+    /// `0/3` first.
+    pub(crate) fn nuke_find_units(&self, at: Pos, r: i32) -> Vec<usize> {
+        let circle = crate::ai::ai_place::circle();
+        let ring = Self::ring_index(r);
+        let mut out = Vec::new();
+        if circle.radius[ring] <= self.total_units() {
+            let c0 = at.cell();
+            for i in 0..circle.radius[ring] {
+                let c = crate::world::Cell::new(c0.x + circle.x[i], c0.y + circle.y[i]);
+                out.extend(
+                    self.cell_chain(c)
+                        .into_iter()
+                        .filter(|&o| self.units[o].owner < 8),
+                );
+            }
+        } else {
+            let mut order: Vec<usize> = (0..self.units.len())
+                .filter(|&o| self.units[o].owner < 8)
+                .collect();
+            order.sort_by_key(|&o| (self.units[o].owner, self.units[o].index));
+            for o in order {
+                let p = self.units[o].pos;
+                if vector_dist(p.x - at.x, p.y - at.y) - self.find_units_reach(o) <= r {
+                    out.push(o);
+                }
+            }
+        }
+        out
     }
 
     /// One object the building arm's walk meets
