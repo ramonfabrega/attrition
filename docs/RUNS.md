@@ -40457,6 +40457,8 @@ take waited one minute for 61, and read 59 after.
   first 4573: **leaders range 128, record 1, `flags` byte 3, ours `0x0e`, theirs `0x1e`**.
 - **Re-scored by item 4508** (a computer's bomber searches round itself): units 4,537 (4,574 on the tree merged with 4514), first 3515 (range 5857, record
   184, `collide_frame..play` bytes 18 and 19: `dest_angle` ours −406650880, theirs −424345600); leaders as found.
+- **Re-scored by item 4520** (`set_facing` writes no `dest_angle`): units 4,583, first 4583 (range 4183, record 169,
+  `unit_masks2` ours 0, theirs 1024); leaders as found, so the row's first parting is leaders 4573.
 - Filed **in place**, as run1753 is.
 
 Files in place, `~/ron-golden/run1754/map-18/`: `gamelog_p.txt`, 2,426 bytes, SHA-256
@@ -40464,4 +40466,4 @@ Files in place, `~/ron-golden/run1754/map-18/`: `gamelog_p.txt`, 2,426 bytes, SH
 `52f10cd1115c6bb316a525d86ddb7d426af58ba1f9963e6bdcbcc0939e14086b`.
 
 **What it holds**: `diff::held_out::tests::row_130_s_computer_bomber_searches_round_itself_on_run1754_s_ranges`
-(every units range on 3410 and 3411).
+(every units range on 3410 and 3411); `row_130_s_helicopter_set_apart_keeps_its_dest_angle_on_run1754_s_ranges` (3514 and 3515).
