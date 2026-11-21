@@ -2331,14 +2331,17 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4497 (a bomb's round carries its pool slot's last
         // `accuracy`): ammo 5,924 -> 5,962, first 5148 -> 5178, ours
         // refused there. No ranges take of this row.
+        // Moved by item 4483 (an AIRDEFENSE-line building finishes with
+        // `job_counter` `0x40000000`, `Wall::activate@0063e4b0:54`): builds
+        // 537 -> 6,001, whole. run1739, the ranges take: on 537 builds range
+        // 746, the SAM `1/2012`'s `job_counter`, ours 0, theirs 1073741824.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3914, 537, 6001, 5962, 6001, 6001, 5997, 3976, 6001, 6001, 6001, 5995,
+                3914, 6001, 6001, 5962, 6001, 6001, 5997, 3976, 6001, 6001, 6001, 5995,
             ],
             first: &[
                 ("units", (1747, Some(2268899682), 1685366186)),
-                ("builds", (537, Some(1374294361), 1810502041)),
                 ("ammo", (5178, None, 1427640977)),
                 ("guys", (4880, Some(3110518234), 2759048231)),
                 ("leaders", (1576, Some(2345254394), 1305656828)),
@@ -2510,14 +2513,17 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4495 (`calc_from_dir`'s spline walked, its sizes
         // the recycled `Spline`'s): ammo 4,472 -> 5,826, first 3303 ->
         // 4104, ours refused there. No ranges take of this row.
+        // Moved by item 4483 (an AIRDEFENSE-line building finishes with
+        // `job_counter` `0x40000000`): builds 4,221 -> 5,577, first 4221 ->
+        // 5577. No ranges take of this row.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                2703, 4221, 6001, 5826, 6001, 6001, 6001, 4995, 6001, 6001, 6001, 5379,
+                2703, 5577, 6001, 5826, 6001, 6001, 6001, 4995, 6001, 6001, 6001, 5379,
             ],
             first: &[
                 ("units", (2184, Some(1779962534), 330632884)),
-                ("builds", (4221, Some(3943548441), 1202439769)),
+                ("builds", (5577, Some(3250328791), 1226052951)),
                 ("ammo", (4104, Some(1068803573), 2259329699)),
                 ("leaders", (3176, Some(2352774769), 1606385266)),
                 ("world", (3809, Some(2182316411), 2894561759)),
@@ -2588,14 +2594,16 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // `accuracy`): ammo 4,647 -> 4,731, whole. No ranges are on disk
         // for run1736: on 2367 ours' ammo sum was 1123882197 and is now
         // theirs' 1189418202.
+        // Moved by item 4483 (an AIRDEFENSE-line building finishes with
+        // `job_counter` `0x40000000`): builds 553 -> 4,731, whole. No
+        // ranges take of this row; row 10's run1739 names the leaf.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                3034, 553, 4731, 4731, 4731, 4731, 4731, 1976, 4731, 4731, 4731, 4731,
+                3034, 4731, 4731, 4731, 4731, 4731, 4731, 1976, 4731, 4731, 4731, 4731,
             ],
             first: &[
                 ("units", (2354, Some(1655861561), 1211002097)),
-                ("builds", (553, Some(2297078769), 1047897137)),
                 ("leaders", (1376, Some(73709351), 1700509480)),
             ],
             over: None,
@@ -2773,7 +2781,21 @@ pub(crate) const SCORES_THIRD: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4483 (an AIRDEFENSE-line building finishes with
+        // `job_counter` `0x40000000`): builds 5,162 -> 5,235, whole. No
+        // ranges take of this row.
+        moved: Some(Score {
+            states: 5235,
+            agreed: [
+                2983, 5235, 5235, 5235, 5235, 5217, 5235, 4656, 5235, 5235, 5235, 5235,
+            ],
+            first: &[
+                ("units", (2983, Some(794628535), 1924338104)),
+                ("groups", (4355, Some(2731263697), 520406832)),
+                ("leaders", (1976, Some(227834778), 1853848475)),
+            ],
+            over: None,
+        }),
     }),
     // run1749
     // row 125, as found 2026-11-21: 12 lines whole.
