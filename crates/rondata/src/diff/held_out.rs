@@ -1098,7 +1098,24 @@ mod tests {
         line_ranges_agree(k, run, state, 0, range)
     }
 
-    /// The same for line `line` (0 units, 4 deaths, 6 guys).
+    /// **Row 100's Jet Fighter fires a missile off the recycler** (item
+    /// 4495, `docs/CHECKSUM.md` §18): on tick 3209 the strafing Jet
+    /// Fighter `1/91` (TI 295) fires a guided round on `0/2000`, and
+    /// `Ammo::init` lays `calc_from_dir`'s spline into the `Spline`
+    /// `Recycler<Spline>::pop` hands it: the nuke's of 2617, which
+    /// `Ammo::close` cleared and pushed, its arrays' sizes kept. Every
+    /// ammo range on 3210: red without the walk (ours refused the line),
+    /// and red at range 8, `control_verts.size`, ours 4 and theirs 16,
+    /// with a fresh `Spline` for every round.
+    #[test]
+    fn row_100_s_jet_fighter_missile_walks_its_recycled_spline_on_run1721_s_ranges() {
+        let Some(theirs) = line_ranges_agree(5, "run1721", 3210, 3, 8) else {
+            return;
+        };
+        assert_eq!(theirs, 16i32.to_le_bytes(), "theirs' control_verts.size");
+    }
+
+    /// The same for line `line` (0 units, 3 ammo, 4 deaths, 6 guys).
     fn line_ranges_agree(
         k: usize,
         run: &str,
@@ -1133,6 +1150,7 @@ mod tests {
         let theirs: Vec<_> = theirs.into_iter().filter(|r| r.line == line).collect();
         let ours = match line {
             0 => built.sim.checksum_units(),
+            3 => built.sim.checksum_ammo().expect("the ammo line"),
             4 => built.sim.checksum_deaths().expect("the deaths line"),
             6 => built.sim.checksum_guys(),
             _ => unreachable!("line {line}"),
