@@ -18753,19 +18753,19 @@ building; the dump's 4583 block is that frame's end state.
 
 1. `Build::activate` — for a building of type `0x21a`: `recharging` = 1 when the call is not a capture
    (`param_1 == 0`), `KREMLIN_SPY` otherwise, and `leader_flags |= 0x10000000` ("the spy is due")
-   unless one of the owner's live spies already carries the Kremlin's tag, `unit_flags & 0x400`. The
+   unless one of the owner's live spies already carries the Kremlin's tag, `unit_masks2 & 0x400` (`UnitData +0x6c`; ~~`unit_flags`~~, item 4524: `:1402` reads `+0x6c`). The
    earlier arm at `:617` also sets the bit, for an uncaptured wonder whose per-type maximum rises.
 2. `Build::process` — a building of type `0x21a`, on `(o + frame) % 15 == 0` and with the owner's
    bit set, takes one off `recharging`; under 1 the bit clears, `recharging` is `KREMLIN_SPY` (the
    file's `30 (0 = disable; ...)` loads as 30) and `Build::train(this, SPY)` runs — no queue, no
-   price, no population test, the type itself and not its upgrade. A unit born takes `0x400` and the
+   price, no population test, the type itself and not its upgrade. A unit born takes `unit_masks2 |= 0x400` (`:320`) and the
    owner's `control` (`LeaderData +0x940`) loses the type's `control_cost` (`+0x2f0`) again.
 3. `Unit::close` — a spy that dies with `0x400` set, for an owner holding the wonder
    (`LeaderData::has_wonder`), sets the bit again; the next slot trains the next.
 
 **Built.** `Sim::kremlin_activate` (`city.rs`'s activate), `Sim::kremlin_spy` (the tick's building
 walk, ahead of the Persian caravan, as the original's order has it), `Sim::kremlin_spy_closed`
-(`fight.rs`'s death arm), `Tuning::kremlin_spy`, `Unit::kremlin_spy`, `PlayerTech::kremlin_spy_due`
+(`fight.rs`'s death arm), `Tuning::kremlin_spy`, ~~`Unit::kremlin_spy`~~ `umask2::KREMLIN_SPY` (item 4524: the tag lives in `unit_masks2`, which the units checksum prints), `PlayerTech::kremlin_spy_due`
 (`nations.rs`, `lib.rs`, `tuning.rs`, `tech.rs`). Test
 `a_kremlin_trains_its_spy_on_the_first_slot_and_again_after_it_dies` (`cities_tests`); dropping the
 tick's call fails it and `run762_s_word_frame_is_widened_whole`.

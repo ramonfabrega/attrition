@@ -7101,7 +7101,11 @@ fn a_kremlin_trains_its_spy_on_the_first_slot_and_again_after_it_dies() {
     }
     let born = spies(&sim);
     assert_eq!(born.len(), 1, "the first slot trains a spy");
-    assert!(sim.units[born[0]].kremlin_spy, "tagged 0x400");
+    assert_ne!(
+        sim.units[born[0]].unit_masks2 & crate::combat::umask2::KREMLIN_SPY,
+        0,
+        "tagged unit_masks2 0x400"
+    );
     assert_eq!(
         sim.roster.muster[0].control, control,
         "outside the population"
