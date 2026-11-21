@@ -801,7 +801,7 @@ fn run702_s_word_frame_is_widened_whole() {
     // logs no `DEATHS` (this one prints no `DEATH_OBJS`; `docs/AI.md` §259).
     // Item 4159's residue: 60 -> 59, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     // Item 4448: 59 -> 56, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
-    pin_eq!(w.firsts.len(), 56, "initial run702 baseline");
+    pin_eq!(w.firsts.len(), 51, "initial run702 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1979).count(),
         47,
@@ -979,10 +979,10 @@ fn run718_s_word_frame_is_widened_whole() {
     // Item 3279: −14, `death:extra` is not a parting on a capture that
     // logs no `DEATHS` (this one prints no `DEATH_OBJS`; `docs/AI.md` §259).
     // Item 3336: −1, `Wall::set_type` leaving the hits to the next `calc_wall_stats` (`docs/AI.md` §272).
-    pin_eq!(w.firsts.len(), 44, "initial run718 baseline");
+    pin_eq!(w.firsts.len(), 38, "initial run718 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 2267).count(),
-        40,
+        34,
         "the keys standing on the window's first block"
     );
     // **The word 2273's value diff** (item 1611, `docs/AI.md` §171). The
@@ -1103,7 +1103,7 @@ fn run766_s_word_frame_is_widened_whole() {
     // Item 3279: −14, `death:extra` is not a parting on a capture that
     // logs no `DEATHS` (this one prints no `DEATH_OBJS`; `docs/AI.md` §259).
     // Item 3336: −1, `Wall::set_type` leaving the hits to the next `calc_wall_stats` (`docs/AI.md` §272).
-    pin_eq!(w.firsts.len(), 48, "initial run766 baseline");
+    pin_eq!(w.firsts.len(), 38, "initial run766 baseline");
 }
 
 pub(crate) const RUN767: &str = "gamelog-run767-greatsahara-persian-alltech-window-2928-3186.txt";
@@ -1157,7 +1157,7 @@ fn run767_s_word_frame_is_widened_whole() {
     // `1/2000`, `1/2028`, `1/2032`, `1/2039` `queue[n].cost[0]` (ours 60 theirs
     // 57 on 2928, 67/64 on 3183) and `1/-1 bucket[0:food]` (18688 against 18712)
     // now agree.
-    pin_eq!(w.firsts.len(), 51, "initial run767 baseline");
+    pin_eq!(w.firsts.len(), 38, "initial run767 baseline");
 }
 
 /// run790, item 1905: the lobby's blocks 3761..4017 at the long's detail —
@@ -1235,7 +1235,7 @@ fn run790_s_word_frame_is_widened_whole() {
     // reaches it — `sheltered` ours 1 against 0. Downstream of the
     // standing `attrition` row, not a new parting of its own.
     // Item 4159's third residue: 85 -> 60, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
-    pin_eq!(w.firsts.len(), 60, "initial run790 baseline");
+    pin_eq!(w.firsts.len(), 42, "initial run790 baseline");
 }
 
 /// run817, item 2055: the lobby's blocks 4260..4341 at run790's detail —
@@ -1321,5 +1321,5 @@ fn run817_s_word_frame_is_widened_whole() {
     // Item 3708: 229 → 223, a fort placed but not built no longer
     // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
     // Item 4159's third residue: 223 -> 63, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
-    pin_eq!(w.firsts.len(), 63, "initial run817 baseline");
+    pin_eq!(w.firsts.len(), 46, "initial run817 baseline");
 }

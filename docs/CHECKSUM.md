@@ -1752,8 +1752,41 @@ holds every units range on 2587.
 *Not established*: the class's `total_time`, `sx`, `sy` and `AirOrder::old`
 are written only by `clear` (0) and `operator=` in the export, found by name.
 Their offsets have not been grepped, and they walk 0 here.
-`StrafeOrder` and `AirPatrolOrder` still hand over their type and node byte
-alone. No score parts on them yet.
+~~`StrafeOrder` and `AirPatrolOrder` still hand over their type and node byte
+alone. No score parts on them yet.~~ `AirPatrolOrder` walks its own since item
+4474 (below); `StrafeOrder` still hands over its type and node byte alone, and
+no score parts on it yet.
+
+**A plane's patrol walks fourteen ranges, and its exit turns through
+`Unit::set_angle`** (item 4474, diff-backed on row 100, run1721). On 2743 row
+100's units line parted on range 2939, record 91, as `guys.length` 1 against
+0: the walks fell out of step again. On tick 2742 the computer hands its Jet
+Fighter `1/91` (TI 295, air, inside its airbase) an `AIR_PATROL` (0x11), and
+theirs walks `AirPatrolOrder::walk_data@00483ed0` after the node byte: the
+flags byte through `PatrolOrder`'s vbptr (`00`), `waypoint` (`+0x3c`, 0),
+`x_pos` and `y_pos` by `SimpleArray<Coord>::walk_data@00483cc0` (each the
+length 1, the size 1, `increment` −1, the flags 0 and the element, 3168 and
+30816), the flags byte again through `AirOrder`'s, and the `AirOrder` row
+(`+0x44..+0x5c`, the home, 1600, 0, 0, 0). The size is the array's capacity:
+`PatrolOrder::clear@00483ac0` keeps it when at least 1 and reallocates one
+slot below that, and `SimpleArray<Coord>::make_valid@0046edd0` at increment −1
+grows by the capacity itself when that is enough, so 1, 2, 4, 8 as the
+points are appended. On 2744 the same jet parted on two fields. Its
+`unit_masks` read ours 0x40000, theirs 0x40002, and its figure's `last_angle`
+read ours 0x55555555, theirs 0. `Unit::do_spec_anim@005e5880`'s EXIT at an
+airbase calls `Unit::set_angle(0, ·, 1)`. That turn from the stored
+0x55555555 is past 90°, so `mirror` flips, and `Guy::set_angle(guy 0, 0, 1)`
+snaps the figure, `last_angle` with it. Ours wrote the heading and facing
+directly. Row 100's units goes 2,743 → 2,977 of 3,331 (first 2743 → 2758) and
+its guys 3,323 → 3,331, whole. Rows 10 and 130 of the second battery move on
+the same two fixes. `row_100_s_jet_fighter_walks_its_air_patrol_order_on_run1721_s_ranges`
+and `row_100_s_jet_fighter_turns_through_set_angle_at_its_airbase_on_run1721_s_ranges`
+hold every units range on 2743, and every units and guys range on 2744.
+
+*Not established*: an order that `OrdersMemManager::get_obj` recycles keeps
+the capacity its last use grew to (`clear` does not shrink it), and this crate
+does not carry the pool, so the size walked is a fresh object's (a `SEAM` at
+`patrol_array_size`). No range on disk has shown a recycled patrol yet.
 
 **The same missile's silo, in the builds line** (item 4465, diff-backed on
 row 100, run1721). On 2588 the silo `1/2022` launches `1/84`: `do_launch`

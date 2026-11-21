@@ -381,7 +381,7 @@ fn run853_s_word_frame_is_widened_whole() {
     }
     // Item 4435: 97 -> 87, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4448: 87 -> 81, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
-    pin_eq!(w.firsts.len(), 81, "initial run853 baseline");
+    pin_eq!(w.firsts.len(), 80, "initial run853 baseline");
     // Item 3333: who=1's `bucket` timber 13437/13252 and metal 11970/11785,
     // standing from 3296, close with an Oil Platform priced by the Oil Wells
     // (`docs/AI.md` §270).
@@ -447,7 +447,7 @@ fn run855_s_word_frame_is_widened_whole() {
     // Item 4159's third residue: 105 -> 101, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
     // Item 4435: 101 -> 89, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4477: 89 -> 87, the farmer's turn east toggles its group's `facing` (`Unit::set_angle`, docs/CHECKSUM.md §23.14).
-    pin_eq!(w.firsts.len(), 87, "initial run855 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    pin_eq!(w.firsts.len(), 78, "initial run855 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
     // Item 3333: who=1's `bucket` timber 8265/8000 and metal 9997/9732,
     // standing from 4538, close with an Oil Platform priced by the Oil Wells
     // (`docs/AI.md` §270).
@@ -514,7 +514,7 @@ fn run861_s_word_frame_is_widened_whole() {
     // Item 4159's third residue: 99 -> 97, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
     // Item 4435: 96 -> 81, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4477: 81 -> 79, the farmer's turn east toggles its group's `facing` (`Unit::set_angle`, docs/CHECKSUM.md §23.14).
-    pin_eq!(w.firsts.len(), 79, "initial run861 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    pin_eq!(w.firsts.len(), 69, "initial run861 baseline"); // Item 3172: −2, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
     // Item 3333: who=1's `bucket` timber 7707/7282 and metal 6422/5997,
     // standing from 4853, close with an Oil Platform priced by the Oil Wells
     // (`docs/AI.md` §270).
@@ -587,7 +587,7 @@ fn run866_s_word_frame_is_widened_whole() {
     // Item 4159's third residue: 122 -> 121, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
     // Item 4435: 119 -> 72, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4477: 72 -> 71, the farmer's turn east toggles its group's `facing` (`Unit::set_angle`, docs/CHECKSUM.md §23.14).
-    pin_eq!(w.firsts.len(), 71, "initial run866 baseline");
+    pin_eq!(w.firsts.len(), 58, "initial run866 baseline");
     // Item 3333: who=1's `bucket` metal 5716/5231, standing from 5129, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row, ours above theirs till now, parts on 5183 with ours below
@@ -682,7 +682,7 @@ fn run867_s_word_frame_is_widened_whole() {
     // Item 4159's third residue: 138 -> 137, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
     // Item 4435: 131 -> 69, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4477: 69 -> 68, the farmer's turn east toggles its group's `facing` (`Unit::set_angle`, docs/CHECKSUM.md §23.14).
-    pin_eq!(w.firsts.len(), 68, "initial run867 baseline");
+    pin_eq!(w.firsts.len(), 57, "initial run867 baseline");
     // Item 3333: who=1's `bucket` metal 5815/5330, standing from 5401, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
@@ -810,7 +810,7 @@ fn run879_s_word_frame_is_widened_whole() {
     // Item 4159's third residue: 161 -> 154, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
     // Item 4435: 147 -> 80, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4477: 80 -> 79, the farmer's turn east toggles its group's `facing` (`Unit::set_angle`, docs/CHECKSUM.md §23.14).
-    pin_eq!(w.firsts.len(), 79, "initial run879 baseline");
+    pin_eq!(w.firsts.len(), 60, "initial run879 baseline");
     // Item 3333: who=1's `bucket` metal 4998/4453, standing from 5976, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
@@ -879,7 +879,7 @@ fn run881_s_word_frame_is_widened_whole() {
     // Item 4159's third residue: 202 -> 142, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
     // Item 4435: 135 -> 80, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4477: 80 -> 79, the farmer's turn east toggles its group's `facing` (`Unit::set_angle`, docs/CHECKSUM.md §23.14).
-    pin_eq!(w.firsts.len(), 79, "initial run881 baseline");
+    pin_eq!(w.firsts.len(), 60, "initial run881 baseline");
     // Item 3333: who=1's `bucket` metal 5193/4648, standing from 6446, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
@@ -953,7 +953,7 @@ fn run882_s_word_frame_is_widened_whole() {
     // Item 4159's third residue: 179 -> 112, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
     // Item 4435: 105 -> 67, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4477: 67 -> 66, the farmer's turn east toggles its group's `facing` (`Unit::set_angle`, docs/CHECKSUM.md §23.14).
-    pin_eq!(w.firsts.len(), 66, "initial run882 baseline");
+    pin_eq!(w.firsts.len(), 53, "initial run882 baseline");
     // Item 3333: who=1's `bucket` metal 5378/4833, standing from 6802, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
@@ -1030,7 +1030,7 @@ fn run883_s_closing_frame_is_widened_whole() {
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 110 -> 103.
     // Item 4435: 103 -> 67, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4477: 67 -> 66, the farmer's turn east toggles its group's `facing` (`Unit::set_angle`, docs/CHECKSUM.md §23.14).
-    pin_eq!(w.firsts.len(), 66, "run883 baseline");
+    pin_eq!(w.firsts.len(), 53, "run883 baseline");
     // Item 3333: who=1's `bucket` metal 5389/4844, standing from 6815, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.

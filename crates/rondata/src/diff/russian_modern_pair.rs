@@ -856,5 +856,5 @@ fn russian_modern_pair_run1149_s_gap_before_5651_is_widened_whole() {
     // `build:extra`) or a figure's `mirror`. The long prints `UNITDATA` and
     // `GUYDATA` alone, so no leader row is compared here.
     // Item 4435: 252 -> 194, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 194, "run1149 gap baseline");
+    pin_eq!(w.firsts.len(), 188, "run1149 gap baseline");
 }

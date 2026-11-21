@@ -2135,13 +2135,13 @@ impl Sim {
         } else {
             Pos::new(at.x - 0xc0, at.y)
         };
-        {
-            let m = &mut self.units[u].movement;
-            m.heading = Angle(0);
-            m.facing = Angle(0);
-            m.frame_facing = Angle(0);
-            m.des_angle = Angle(0);
-        }
+        // `5e5a1c`: `Unit::set_angle(0, ·, 1)`, whole (item 4474, run1721's
+        // Jet Fighter `1/91` on 2744): the mirror flips when 0 is a turn of
+        // 90° or more from the heading it stood inside with (`unit_masks &
+        // 2`, the group arm after it), and `Guy::set_angle(guy 0, 0, 1)`
+        // snaps the figure, `last_angle` with it.
+        self.unit_set_angle_as(u, Angle(0), true);
+        self.units[u].movement.des_angle = Angle(0);
         let from = self.units[u].pos;
         self.set_new_location(u, spot, true);
         self.units[u].movement.body.avg_speed = avg_speed;

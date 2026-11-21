@@ -215,7 +215,7 @@ fn american_information_pair_the_long_s_stride_walks_back_from_the_word() {
     // nine more buildings, `mirror` on more of who=1's units, and groups
     // 69..71 with their pools. No position, order or hit parts.
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 121 -> 120.
-    pin_eq!(w.firsts.len(), 120, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 105, "the stride's baseline");
 }
 
 /// run1409b: the word 2385's window, blocks 2295..2635 at the long's
@@ -371,7 +371,7 @@ fn american_information_pair_run1434b_s_word_frame_is_widened_whole() {
     // (110, 110) and 7 → **0** parting: `1/29`'s round of 3895 leaves
     // (4153, 33763, 605) as theirs, and `0/12` agrees (`docs/AI.md`
     // §372.3). What still parts is the standing families and `mirror`.
-    pin_eq!(w.firsts.len(), 70, "run1434b baseline");
+    pin_eq!(w.firsts.len(), 57, "run1434b baseline");
     pin_eq!(w.rounds_read, (110, 110), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -442,7 +442,7 @@ fn american_information_pair_run1437b_s_word_frame_is_widened_whole() {
     // TOW's rows and the Abrams' tracers: 154 → **68**, the standing
     // families alone (`form`, `mirror`, who=1's groups, pools and buckets,
     // `1/14`'s `g.angle[0]`); no building's `damage` parts (§372.4).
-    pin_eq!(w.firsts.len(), 67, "run1437b baseline");
+    pin_eq!(w.firsts.len(), 49, "run1437b baseline");
     pin_eq!(w.rounds_read, (493, 493), "the rounds read");
     // Every round, both directions: 291 parting. On 4285 the Strategic
     // Bombers' (`1/45`, TI 305; `1/57`, `1/88`) already part on
@@ -516,7 +516,7 @@ fn american_information_pair_run1439_s_gap_is_widened_whole() {
     // `0/2006`'s `damage_frac` parted on 4242, 8 against 11, under the Jet
     // Fighter `1/57`'s splash (`docs/AI.md` §372.4).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 76 -> 75.
-    pin_eq!(w.firsts.len(), 75, "run1439 baseline");
+    pin_eq!(w.firsts.len(), 57, "run1439 baseline");
     pin_eq!(w.rounds_read, (420, 420), "the rounds read");
     // Every round, both directions: **21** parting, on `angle` (the
     // strafers' rounds: theirs carries the figure's own angle), `accuracy`

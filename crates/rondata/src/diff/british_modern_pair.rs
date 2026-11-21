@@ -165,7 +165,7 @@ fn british_modern_pair_the_long_s_stride_is_widened() {
     // on five of who=1's aircraft from 3201: the Lancaster Bombers `1/100`,
     // `1/108` and `1/112` (type 307) and the Helicopters `1/111` and
     // `1/128` (type 310), 0 against 1. No draw parts to the game's end.
-    pin_eq!(w.firsts.len(), 105, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 100, "the stride's baseline");
 }
 
 /// run1433b: the pair's closing window, blocks 3538..3794 at the long's
@@ -234,7 +234,7 @@ fn british_modern_pair_run1433b_s_closing_frame_is_widened_whole() {
     // 3790, the bombs' landings. No draw parts to 3793.
     // Item 4177: 61 -> 63, +2 firsts, the combat rates' own: who=0 `damage_current_frame` 3777 ours 4 theirs 3; who=1 `hits_current_frame` 3777 ours 4 theirs 3 (docs/LEADERS.md §3.5).
     // Item 4159r5: 63 -> 58, the launch rows of pieces 257 (11): rounds that left the figure's square leave from their bays.
-    pin_eq!(w.firsts.len(), 58, "run1433b baseline");
+    pin_eq!(w.firsts.len(), 52, "run1433b baseline");
     pin_eq!(w.rounds_read, (243, 243), "the rounds read");
     // Every round, both directions: 243 a side, 75 parting — every one a
     // Lancaster Bomber's (TI 307, `LANCASTERBOMBER`), `1/100` on 62 rows
