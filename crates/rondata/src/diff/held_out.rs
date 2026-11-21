@@ -2667,10 +2667,14 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4502 (the CEO bit, `unit_masks2 & 0x10000`, raised
         // at birth and by `set_type` on a type that `is(0x165, 1)`): units
         // 2,703 -> 5,017, first on 2184. No ranges take of this row.
+        // Moved by item 4505 (a gatherer chain is one link a unit,
+        // `Build::add_gatherer@0062f640`): units 5,017 -> 5,024, first on
+        // 2184; the seven states not read one by one. No ranges take of
+        // this row.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5017, 5577, 6001, 5826, 6001, 6001, 6001, 5995, 6001, 6001, 6001, 5379,
+                5024, 5577, 6001, 5826, 6001, 6001, 6001, 5995, 6001, 6001, 6001, 5379,
             ],
             first: &[
                 ("units", (2184, Some(1779962534), 330632884)),
