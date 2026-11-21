@@ -161,6 +161,7 @@ is append-only and amended in place, as it always was.
 - 144 extended by 145 — The pass of 2026-11-19: item 4404's game is ratified as parity's seventh with its end tick pinned, a game is declared before the original plays it and parity held out is booked, the sample takes its ranges once, the lake gives up its seat, and the third seat names a city
 - 145 extended by 146 — The pass of 2026-11-19, second: parity held out is ratified at 0 of 8 and parsed on the scoreboard, a held-out game is spent once a lane reads it and a second battery is named, the lanes follow the eight with each game's ranges taken once, a lane lands one act and the driver counts the stop, the client opens every game on one camera, and `tranche.py` reads a booking's parentheses
 - 146 standing — The pass of 2026-11-20: a pass scores every held-out row with ranges on disk by leaf before it designs (rows 80 and 100 part builds on one bit of `build_masks`), the fold of the eight into the headline is recommended and left with Ramon, four seats and the second battery's item with its declaration first, 4450a closed by item 4453, and the eye's seat takes the fading wreck
+- 147 standing — The pass of 2026-11-20, second: the estimate is read by reach (27 % → 53 % of states before the first parting, where games and lines read 0 → 1 and 64 → 65), a third battery is named, the fold is still Ramon's at 11 of 15, the rows nearest whole take the seats (row 60, row 90, row 70), the sample keeps its seat with its rate said, and parity's own count is a parsed line
 
 ## 1. Fidelity before divergence
 
@@ -14579,3 +14580,123 @@ draws only when selected, and not a kerb (parked 4438a stays parked).
 **§6. `tools/gates.py` names three failures of a red and counts the
 rest.** `gate-4435.log` was red on 282 widenings, and the table printed
 every name on one row of 30 kB. A test holds it (red first).
+
+## 147. The estimate is read by how far an unseen game runs, a third battery is named, the nearest rows take the seats, and parity's own count is parsed (2026-11-20)
+
+**What happened.** `commander` (Opus 5.5) ran twenty-three first-parent
+merges off the pass of 2026-11-20 (items 4455 to 4477, with 4431), reached
+the backstop at 4474, drained at 4477 and gated whole
+(`gate-drain-1120b.log`, exit 0 on `d516f0746`, the tip and origin/main).
+The pass ran on the `steer` row from 21:05 −05:00 with no subagent and no
+capture. The tables are in `docs/audit/2026-11-20-fable-pass-reach.md`.
+
+**§1. The fold is still Ramon's, and today it reads 11 of 15.** Entries
+145 §2 and 146 §1 put it to him and no answer is on record, so nothing
+moves. The handoff's "9 of 15" was the count of the pass before: six of
+the seven and five of the eight are whole now. The recommendation stands,
+on entry 146 §1's reasons. One thing it left unread is read: the lobby
+page sets a team (`crates/client/src/lobby.rs`, `Row::Team`), so a battery
+with seats and a team can be recorded by the same recipe as the two taken.
+
+**§2. The estimate is read a third way, by reach, and a third battery is
+named.** Entry 145 §2 made the found column the estimate of how far
+"exactly" reaches on a game nobody tuned for. Read by games and by lines
+it did not move between the two batteries: 0 of 8 and 64 of 96 lines on
+2026-11-19, 1 of 8 and 65 of 96 on 2026-11-20, with thirty-three landings
+between the two takes. Read by **reach** it doubled. Reach is the states
+a game runs before its first parting, summed over a battery, of all its
+states:
+
+| battery | taken | whole, as found | lines, as found | reach, as found | reach now |
+|---|---|---|---|---|---|
+| first (rows 0 to 140) | 2026-11-19 | 0 of 8 | 64 of 96 | 27 % (11,192 of 40,221) | 92 % |
+| second (rows 10 to 150) | 2026-11-20 | 1 of 8 | 65 of 96 | 53 % (22,788 of 42,879) | 57 % |
+
+A game or a line is whole or it is not, so one late parting costs as much
+as a parting on state 0, and the two counts could not see that an unseen
+game now parts twice as far in. The eight lobbies differ between the
+batteries, so the two figures are not one sample measured twice: it is
+eight games against eight. The held-out lines carry the figure from here
+(`reach N % of states as found, M % now`, `held_out::queue_line`), so the
+next battery's is read off the scoreboard.
+
+The second battery is spent the day a lane reads a parting off it, which
+is this tranche (§3). **The third battery is rows 5, 25, 45, 65, 85, 105,
+125 and 145** of the same order, by the same recipe, named here before
+any take. It is taken when the second reads 4 of 8 now, or on Ramon's
+word, and its declaration is its item's first commit (item 4487).
+
+**§3. The seats: the rows nearest whole, and the sample.** The pass ran
+`score_recording` on the two rows not whole whose ranges are on disk:
+
+| row | line, state | the take's range, record | leaf | ours | theirs |
+|---|---|---|---|---|---|
+| 60 | world 3984, of 4,075 | 3627 | `seen3`, 433 bytes from 8247 | 0x00 | 0x02 |
+| 100 | deaths 2756, of 3,331 | 1, 0 | `first_frame..unit_crew`, seven bytes from 8 | 0x38 | 0x98 |
+| 100 | units 2758 | 2907, 91 | `order.type`, a four-byte range against one | 0x11 | 0x00 |
+| 100 | ammo 3210 | — | ours emits no line; theirs holds 55 ranges | — | — |
+
+Row 60 parts on that one line and nothing else: eleven lines agree on
+all 4,075 states and world on the first 3,984. Three rows of the sixteen
+are a line or a state from whole, and they are seated first:
+
+- **The chain's builder: item 4480**, row 60's `seen3` disc, 91 states
+  from 6 of 8. Its leaf is on disk.
+- **A parity seat: item 4470**, the second battery's row 90, one state
+  short on units and on guys. One ranges take, run1738.
+- **A parity seat: item 4479**, the sample (§6).
+- **The eye's seat: item 4482** (§4).
+- **Unseated, in this order**: item 4486 (the second's row 70, eleven
+  lines whole, world from 5054 of 5,141; a take, run1741), item 4478
+  (row 100), item 4483 (rows 10 and 130, §4), item 4484 (row 40's take,
+  run1723, split from 4480 because a lane lands one act), item 4485 (row
+  110), item 4481 (the packets' groups line). Row 30 has no item yet.
+
+**§4. What the tranche parked.**
+
+- **4458a is item 4482.** Item 4458 stopped on its first act: the three
+  vehicles the pass before saw fading are live tanks at full health, and
+  the one `DeathObj` on the frame is outside the crop. The pass looked at
+  the same pair again; the client's picture did not change in the
+  tranche, so no still was redrawn and nothing was uploaded. The item
+  mints a row on the three tanks' pixels first, with the crisp tank
+  `1/15` as its control, and then reads the packet for what differs
+  between the hazy three and the crisp one. It names no mechanism.
+- **4462a is item 4483.** Rows 10 and 130 are the only two lobbies of
+  the sixteen that start past the last age, and both part builds and
+  world together, on 537 and 553. One take of row 10 (run1739) names the
+  leaf for both.
+- **4462b is item 4485**, row 110 as its lobby stands, three seats.
+- **4472a was killed by the export** (item 4475).
+- **4464c and 4476a stay parked.** `UNREAD_UNIT_FIELDS_OWED` holds five
+  unit fields the sim carries and the golden comparator does not read
+  (`cavarch_uid`, `hero`, `myarmor`, `play`, `special`). A reader moves
+  golden floors and no score names one.
+- The rest name no score and stay in their journals.
+
+**§5. Parity's own count is parsed.** Six records said the headline's
+`6 of 7` was prose, and a booking misnamed the sample's first parting
+once (entry 146 §4). The scoreboard carries `Parity:` now: the games
+whole of the declared set and the sample's lowest first parting with its
+line, held to `SAMPLE_LINES` by
+`the_handoff_s_parity_line_is_the_pinned_sample` (seen red on a queue
+without it). It is one of the commander's lines, so a lane's gate
+forgives it and the booking gate does not. The handoff's bound goes
+33 → 34 lines for it.
+
+**§6. The sample keeps its seat, and its rate is said.** Six landings
+moved its lowest first parting 3878 → 3921 of 21,044, forty-three states
+for 40.76 USD. All six are the capture of the Inca capital on 3887: the
+hand-over, the order the members close in, the claim on its cells, the
+region's flag. The stop rule did not fire, because each landing moved a
+first parting. It is the one game with a person's orders and a team, and
+a capture is a thing no idle game reaches, so the seat stays. The six
+landings before these moved it 1,178 states. What that says about the
+17,123 states left is that the road is long and uneven, and it goes to
+Ramon as that.
+
+**§7. The handoff priced twenty-two of twenty-three lanes.** Its 139.46
+USD was pasted while item 4477's session was still live. Read after the
+drain it is 147.66 USD over 23 sessions, 6.42 a landing, 62.0 minutes
+waiting a landing (71.4 the tranche before), with no red among 18 gates
+(three of 20 before).

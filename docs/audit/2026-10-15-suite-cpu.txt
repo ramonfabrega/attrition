@@ -1,11 +1,12 @@
-# Every rondata release test's CPU alone, 2026-11-20, tools/suite_timings.py (tree 667b108a).
+# Every rondata release test's CPU alone, 2026-11-20, tools/suite_timings.py (tree d516f074).
 # /usr/bin/time -l, one test per process, --test-threads 1; CPU seconds (user + sys), instructions retired (1e9), the test; -1 when unread.
-# Sum 7,065 CPU-seconds and 140.42e12 instructions over 2555 tests; the host's load 19.9 at the start and 20.0 at the end.
+# Sum 7,168 CPU-seconds and 142.88e12 instructions over 2571 tests; the host's load 6.4 at the start and 6.4 at the end.
 678.60	11859.81	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 340.78	6474.38	free::ages::the_draw_list_across_the_ages_resolves
 199.37	4888.75	diff::held_out::tests::the_held_out_games_score_as_pinned
 148.65	4234.56	diff::sample::tests::the_sample_s_lines_against_the_hook
 144.32	3295.19	diff::checksum_frames::our_lines_part_from_the_hook_s_on_their_first_frame
+94.77	2294.89	diff::held_out::tests::the_second_held_out_games_score_as_pinned
 91.38	1901.60	lobby::tests::the_page_starts_every_lobby_on_disk
 65.16	1613.29	checksum::playback::combat::the_combat_window_b_matches_every_line_through_closing
 55.90	1314.93	checksum::playback::combat::the_combat_window_a_matches_every_line_through_closing
@@ -1161,6 +1162,7 @@
 1.32	26.06	diff::third::tests::run416_s_word_frame_is_widened_whole
 1.32	27.15	diff::third_pair::run627_s_food_frame_is_widened_whole
 1.32	31.44	diff::checksum_lines::deaths::the_combat_packet_keeps_the_hit_direction_without_an_attachment
+1.32	26.11	diff::held_out::tests::row_100_s_jet_fighter_turns_through_set_angle_at_its_airbase_on_run1721_s_ranges
 1.31	25.57	diff::bantu_modern_pair::bantu_modern_pair_run1405c_s_gap_is_widened_whole
 1.31	26.99	diff::bantu_modern_pair::bantu_modern_pair_the_long_s_late_stride_walks_back_from_4304
 1.31	26.08	diff::persian_gunpowder_pair::persian_gunpowder_pair_run1370b_s_word_frame_is_widened_whole
@@ -1455,6 +1457,7 @@
 0.91	20.61	diff::world::tests::run20_s_pasture_grows_nothing_and_its_five_animals_draw_six
 0.91	16.23	diff::golden::chapter_seventeen_air_s_window_is_widened_whole
 0.91	18.96	diff::maya_information_pair::maya_information_pair_the_long_s_stride_is_widened
+0.91	18.87	diff::held_out::tests::row_60_s_dragoon_keeps_its_dropped_target_s_uid_on_run1722_s_ranges
 0.90	18.18	diff::checksum_lines::packets::japanese_gunpowder_pair_packets
 0.90	15.79	diff::golden::chapter_ten_s_word_frame_is_widened_whole
 0.90	15.66	diff::golden::chapter_thirty_nine_s_word_frame_is_widened_whole
@@ -1469,6 +1472,7 @@
 0.89	15.23	diff::golden::chapter_one_hundred_and_fifteen_s_window_is_widened_whole
 0.89	14.87	diff::golden::chapter_one_hundred_and_twenty_nine_s_window_is_widened_whole
 0.89	15.25	diff::golden::chapter_sixty_five_s_word_frame_is_widened_whole
+0.89	18.01	diff::held_out::tests::row_60_s_army_push_zeroes_the_empty_last_slot_s_origin_on_run1722_s_ranges
 0.88	15.55	diff::golden::chapter_nineteen_s_word_frame_is_widened_whole
 0.88	15.29	diff::golden::chapter_seventy_one_s_word_frame_is_widened_whole
 0.88	18.25	diff::iroquois_word::run932_s_word_frame_is_widened_whole
@@ -1534,6 +1538,7 @@
 0.82	16.93	diff::iroquois_word::run926_s_word_frame_is_widened_whole
 0.82	16.62	diff::sahara_toughest::tests::run471_s_word_frame_is_widened_whole
 0.82	16.01	diff::second::tests::run352_s_word_frame_is_widened_whole
+0.82	15.24	diff::held_out::tests::row_100_s_caravan_crew_keep_guy_0_s_point_on_run1721_s_ranges
 0.81	16.56	diff::build::tests::the_placed_templates_tile_the_map_s_mountains
 0.81	16.11	diff::checksum_lines::packets::chapter75_packets
 0.81	14.37	diff::golden::chapter_one_hundred_and_thirty_three_s_window_is_widened_whole
@@ -1566,6 +1571,8 @@
 0.78	14.01	diff::minted::the_clicked_minted_packages_round_trip_and_stand_on_our_placement_check
 0.78	15.04	diff::minted::the_clicked_script_against_the_right_pressed_playback_parts
 0.78	14.85	diff::minted::the_right_pressed_script_against_the_boxed_playback_parts
+0.78	15.13	diff::held_out::tests::row_140_s_boarder_keeps_its_walk_s_last_z_on_run1725_s_ranges
+0.78	15.47	diff::held_out::tests::row_100_s_jet_fighter_walks_its_air_patrol_order_on_run1721_s_ranges
 0.77	15.76	diff::checksum_lines::packets::chapter100_packets
 0.77	15.87	diff::checksum_lines::packets::chapter94_packets
 0.77	14.43	diff::checksum_lines::the_goods_line_is_the_original_s_range_by_range
@@ -1593,6 +1600,7 @@
 0.74	13.82	diff::golden::chapter_three_s_restage_numbers_its_objects
 0.74	12.34	diff::golden::run265_s_rounds_are_the_original_s_record_for_record
 0.74	15.27	diff::indian_word::run970b_s_word_frame_is_widened_whole
+0.74	14.79	diff::held_out::tests::row_100_s_missile_walks_its_air_attack_ground_order_on_run1721_s_ranges
 0.73	15.48	diff::audit::persian_word_corrections_change_nothing
 0.73	15.39	diff::bantu_word::run978_s_word_frame_is_widened_whole
 0.73	15.64	diff::bantu_word::run978c_s_gap_is_widened_whole
@@ -1611,6 +1619,7 @@
 0.72	12.86	diff::golden::chapter_thirty_three_holds_to_the_golden_word
 0.72	15.73	diff::harness::tests::run73_s_window_clocks_are_the_original_s
 0.72	14.68	diff::third_pair::run609_s_closing_frame_is_widened_whole
+0.72	14.66	diff::held_out::tests::row_140_s_dutch_merchants_keep_their_cached_armour_on_run1725_s_ranges
 0.71	15.35	diff::british_classical_pair::british_classical_pair_captures_say_their_lobby
 0.71	14.97	diff::checksum_lines::packets::turkish_enlightenment_pair_packets
 0.71	12.60	diff::golden::chapter_one_hundred_and_nine_holds_to_the_golden_word
@@ -1885,10 +1894,12 @@
 0.46	9.53	diff::korean_ancient_pair::korean_ancient_pair_captures_say_their_lobby
 0.46	10.94	diff::persian_gunpowder_pair::persian_gunpowder_pair_captures_say_their_lobby
 0.46	9.44	diff::world::tests::run14_s_road_rings_change_no_tile_the_original_does_not
+0.46	9.58	diff::held_out::tests::row_60_s_pushed_caravan_keeps_its_crew_s_des_on_run1722_s_ranges
 0.45	9.45	diff::iroquois_word::run923_s_food_row_is_widened_whole
 0.45	9.40	diff::japanese_industrial_pair::japanese_industrial_pair_a_japanese_barracks_unit_costs_less_by_the_tier
 0.45	10.97	diff::russian_modern_pair::russian_modern_pair_captures_say_their_lobby
 0.45	9.07	diff::sample::tests::the_sample_s_start_built_from_its_header
+0.45	8.80	diff::held_out::tests::row_140_s_dutch_seat_starts_with_both_stats_bits_on_run1725_s_ranges
 0.44	9.99	diff::iroquois_ancient_pair::iroquois_ancient_pair_captures_say_their_lobby
 0.44	9.84	diff::iroquois_enlightenment_pair::iroquois_enlightenment_pair_captures_say_their_lobby
 0.44	10.12	diff::japanese_ancient_pair::japanese_ancient_pair_captures_say_their_lobby
@@ -1928,6 +1939,7 @@
 0.37	7.55	diff::german_industrial_moderate_pair::german_industrial_moderate_pair_captures_say_their_lobby
 0.37	8.39	diff::greek_enlightenment_pair::greek_enlightenment_pair_captures_say_their_lobby
 0.37	8.63	diff::japanese_industrial_pair::japanese_industrial_pair_captures_say_their_lobby
+0.37	6.46	artdata::tests::a_military_type_s_female_entry_is_no_piece_of_its
 0.36	8.40	diff::aztec_alltech_pair::aztec_alltech_pair_captures_say_their_lobby
 0.36	8.48	diff::british_medieval_pair::british_medieval_pair_captures_say_their_lobby
 0.36	4.98	diff::floors::tests::a_widening_s_test_holds_its_pins_under_the_guard
@@ -2021,6 +2033,7 @@
 0.25	4.31	diff::minted::the_came_out_minted_packages_round_trip
 0.25	4.33	diff::minted::the_hotkeyed_minted_packages_round_trip
 0.25	4.32	diff::minted::the_repair_minted_packages_round_trip
+0.25	4.24	diff::held_out::tests::the_second_held_out_eight_are_the_rows_the_rule_names
 0.24	4.23	diff::minted::the_chatted_minted_packages_round_trip
 0.24	4.22	diff::minted::the_gathered_minted_packages_round_trip
 0.24	4.22	diff::minted::the_paused_minted_packages_round_trip
@@ -2556,3 +2569,6 @@
 0.00	0.07	diff::checksum_lines::packets::city_names::the_city_names_score_is_the_table
 0.00	0.03	diff::held_out::tests::the_held_out_line_reads_as_pinned
 0.00	0.03	diff::held_out::tests::the_handoff_s_parity_held_out_line_is_the_pinned_scores
+0.00	0.03	diff::held_out::tests::the_handoff_s_parity_held_out_second_line_is_the_pinned_scores
+0.00	0.03	diff::held_out::tests::the_second_held_out_line_reads_as_pinned
+0.00	0.03	diff::sample::tests::the_handoff_s_parity_line_is_the_pinned_sample

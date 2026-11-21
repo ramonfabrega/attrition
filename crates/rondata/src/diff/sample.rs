@@ -600,6 +600,52 @@ pub(in crate::diff) mod tests {
         ("world", 3943),
     ];
 
+    /// The headline's other games, each whole on the twelve lines over
+    /// its own length and held there by its own test (DECISIONS 142 §1,
+    /// 144 §1): the minted game, the four live windows the client
+    /// recorded, and the demand's game. The sample is the seventh.
+    const PARITY_OTHERS_WHOLE: usize = 6;
+
+    /// The queue's `Parity:` line, off the pins: the games whole of the
+    /// declared set, and the sample's lowest first parting with its line
+    /// ([`SAMPLE_LINES`], of [`SAMPLE_HOOK`]'s frames).
+    fn parity_line() -> String {
+        let frames = SAMPLE_HOOK.1;
+        let (line, first) = SAMPLE_LINES
+            .iter()
+            .min_by_key(|(_, f)| *f)
+            .expect("twelve lines");
+        let sample = if *first >= frames {
+            "the sample whole".to_string()
+        } else {
+            format!("the sample parts first on {line} {first} of {frames}")
+        };
+        format!(
+            "Parity: {} of {} whole \u{b7} {sample}",
+            PARITY_OTHERS_WHOLE + usize::from(*first >= frames),
+            PARITY_OTHERS_WHOLE + 1,
+        )
+    }
+
+    /// **The handoff's parity line is the pinned sample** (the pass of
+    /// 2026-11-20, second; DECISIONS 147 §5). The headline's count stood
+    /// in prose for six records, and a booking named 3888 where
+    /// [`SAMPLE_LINES`] pinned world on 3878 (entry 146 §4). A worker
+    /// re-pins the lines; the driver writes this line at the booking.
+    #[test]
+    fn the_handoff_s_parity_line_is_the_pinned_sample() {
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
+        let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
+        let want = parity_line();
+        let line = q.lines().find(|l| l.starts_with("Parity:"));
+        assert_eq!(
+            line.map(str::trim_end),
+            Some(want.as_str()),
+            "docs/QUEUE.md's handoff carries `{want}` (`diff::sample::SAMPLE_LINES`), \
+             above the `Parity held out:` line"
+        );
+    }
+
     /// `(frames our walk holds no wall, shot or death, the first it holds
     /// one)`. Minted at 0: none on 3,594 of 21,044, the first shot on 2929,
     /// theirs' frame. Item 4429 (an ally's ground bleeds nothing): 3594 →

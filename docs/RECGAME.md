@@ -1168,6 +1168,14 @@ the sixteen with three seats, and it is played as its lobby stands.
 `docs/RUNS.md` run1730 to run1737 holds every value; the pins hold both
 sides of every first parting.
 
+**Reach** (DECISIONS 147 §2). A game or a line is whole or it is not, so
+the two counts read the batteries alike. The states a game runs before its
+first parting, summed over a battery, of all its states, read 27 % on the
+first as found (11,192 of 40,221) and 53 % on this one (22,788 of 42,879).
+Both parsed lines carry it (`held_out::queue_line`). The third battery is
+rows 5, 25, 45, 65, 85, 105, 125 and 145, named before any take (item
+4487), taken when this one reads 4 of 8 now.
+
 *Not established*: no parting here names its leaf, since the take holds
 sums. Rows 10 and 130 are the two lobbies that start past the last age
 (`STARTING_TECHNOLOGY 8`), and both part builds and world together early,

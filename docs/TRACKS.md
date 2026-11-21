@@ -151,6 +151,13 @@ eight fold into the headline is Ramon's, recommended, 9 of 15 folded; **orders**
 on slot 0's capital on 161 of 161 lobbies and the buildings carry the team's colour; theirs fades a wreck under dust and ours draws it
 solid (item 4458).
 
+**At the pass of 2026-11-20, second** (entry 147): **checksum** — parity 6 of 7, parsed on the scoreboard as `Parity:` with the
+sample's lowest first parting, 3921 of 21,044 (item 4479); parity held out 5 of 8 now, 89 of 96 lines, and row 60 is one line and 91
+states from whole (item 4480); the second battery read 1 of 8 and 65 of 96 as found, 2 of 8 now, and by reach, the states an unseen
+game runs before its first parting, 53 % against the first's 27 %; its rows 90 and 70 are a state and a line from whole (items 4470,
+4486); a third battery is named (item 4487); the packets' lines 853 of 1,053 (item 4481); the fold is Ramon's, recommended, 11 of 15
+folded; **orders** — whole by its counters; **renderer** — the wreck was three live tanks under a haze no row counts (item 4482).
+
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it
 on one lane, taking textures and team colours next; then the lobby screen

@@ -500,7 +500,8 @@ driver says so at the second booking and seats what the lanes line names
 next. **A held-out game's found column is never re-pinned** (DECISIONS 144
 §2, 145 §2): a worker moves `SCORES[k].moved`, the driver writes the
 `Parity held out:` line, and the second battery (rows 10 to 150) is taken
-when the first reads 4 of 8 now, or on Ramon's word.
+when the first reads 4 of 8 now, or on Ramon's word; the third (rows 5 to
+145) when the second does (DECISIONS 147 §2).
 
 ## Ratification, and the passes
 
@@ -567,7 +568,10 @@ read are in `docs/audit/2026-11-09-loop-retired-clauses.md`, "Retired
 9. **Its held-out rows scored by leaf** — `score_recording` on every
    row not whole whose ranges take is on disk, the leaves pasted into the
    items it books (DECISIONS 146 §2: three rows took minutes, and two
-   of them parted on one bit no item had named).
+   of them parted on one bit no item had named) — **and each battery's
+   reach read off its line**, the states its games run before their first
+   parting, which moved 27 → 53 % between two batteries whose games and
+   lines read alike (DECISIONS 147 §2).
 
 **It never moves what is the user's**: the
 roster, the worker count, the phase, the finish

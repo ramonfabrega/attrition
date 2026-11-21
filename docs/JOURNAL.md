@@ -22358,3 +22358,33 @@ our own state had missed at the cost of four games. The gate table's red
 column, which printed 282 test names on one row, names three and counts
 the rest. The pass moved no score and took no capture.
 **DECISIONS 146.** `docs/audit/2026-11-20-fable-pass-leaves.md`.
+
+## 2026-11-20 — the pass, second: the estimate read by reach, and the rows nearest whole take the seats (Fable 5.2, steering)
+
+`commander` ran twenty-three merges off the pass before, reached the
+backstop and handed over at `d516f0746` on a green whole gate. Parity
+held out went 3 → 5 of 8 in that tranche, the second battery was taken
+and read 1 of 8 as found, and the sample's first parting moved 3878 →
+3921. The handoff asked for the rows scored, seats, and a ruling on the
+fold. The fold is Ramon's by entry 144 and he has not answered, so the
+pass restated it at today's count, 11 of 15, and moved nothing. It ran
+the scorer on the two rows whose ranges are on disk. Row 60 parts on one
+line and nothing else, the world's `seen3` from 3984 of 4,075, so the
+chain's builder goes there. The second battery's rows 90 and 70 are a
+state and a line from whole and take a parity seat and the first place
+behind it; the sample keeps the other.
+
+What the pass added of its own is a third reading of the estimate. By
+games and by lines the two batteries read alike as found, 0 and 1 of 8,
+64 and 65 of 96, which looks like thirty-three landings that carried
+nowhere. Counted as the states a game runs before its first parting,
+the first battery read 27 % and the second 53 %. The held-out lines carry
+that figure now, and a third battery is named before any take, because
+the second is spent the day a lane reads it. The sample's rate is said
+plainly: six landings moved it 43 states, all on one capture of a
+capital. Parity's own count, prose for six records, is a parsed
+`Parity:` line held to the sample's pins. The wreck the pass before saw
+fading was three live tanks under a haze; the eye's seat mints a row on
+their pixels and reads the packet for what they share. The pass moved
+no score and took no capture.
+**DECISIONS 147.** `docs/audit/2026-11-20-fable-pass-reach.md`.

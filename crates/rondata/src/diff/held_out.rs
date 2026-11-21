@@ -1038,7 +1038,7 @@ mod tests {
                 .min()
                 .map_or("whole".to_string(), |v| v.to_string())
         };
-        let col = |now: bool| -> (usize, String) {
+        let col = |now: bool| -> (usize, String, u64) {
             let scores = b.scores.iter().map(|p| {
                 p.as_ref().map(|p| {
                     if now {
@@ -1049,16 +1049,24 @@ mod tests {
                 })
             });
             let n = scores.clone().flatten().map(|s| lines(&s)).sum();
+            // The reach: the states a game runs before its first parting,
+            // summed over the battery, of all its states (DECISIONS 147 §2).
+            let (ran, of) = scores.clone().flatten().fold((0u64, 0u64), |(ran, of), s| {
+                let first = s.first.iter().map(|f| f.1.0).min();
+                let before = first.map_or(s.states, |f| f.max(0).cast_unsigned());
+                (ran + u64::from(before), of + u64::from(s.states))
+            });
             let firsts: Vec<String> = scores
                 .map(|s| s.map_or("-".to_string(), |s| lowest(&s)))
                 .collect();
-            (n, firsts.join(" "))
+            (n, firsts.join(" "), 100 * ran / of.max(1))
         };
-        let (found, found_firsts) = col(false);
-        let (now, now_firsts) = col(true);
+        let (found, found_firsts, found_reach) = col(false);
+        let (now, now_firsts, now_reach) = col(true);
         format!(
             "{}: {} of {} whole \u{b7} {} taken \u{b7} lines {found} of {} as found, \
-             {now} now \u{b7} first partings {found_firsts} as found, {now_firsts} now",
+             {now} now \u{b7} first partings {found_firsts} as found, {now_firsts} now \u{b7} \
+             reach {found_reach} % of states as found, {now_reach} % now",
             b.label,
             b.line.0,
             b.scores.len(),

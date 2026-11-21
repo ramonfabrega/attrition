@@ -829,6 +829,7 @@ garbage line
             root/'crates/rondata/src/diff/floors.rs',
             root/'crates/rondata/src/diff/endpoint.rs',
             root/'crates/rondata/src/diff/held_out.rs',
+            root/'crates/rondata/src/diff/sample.rs',
             root/'crates/rondata/src/census.rs',
             root/'crates/sim/src/docs_guard.rs'])
         for name in gate.COMMANDERS_LINES:
