@@ -1224,6 +1224,17 @@ set pass and allocated the block. On 2366 theirs sets only the new disc's
 edge, (635, 814..815), round the old point (633, 814). Rows 30 and 110's
 world partings (1662, 3809) are not this: their sums did not move.
 
+**Row 10's leaders are whole** (item 4516, `SCORES_SECOND[0].moved`,
+leaders 5,801 → 6,001). run1739's leaf on 3976: leaders range 129,
+record 1, `xport_peasants` (byte 2488), ours 2, theirs 3, and no other
+leaf. who=1's Citizen `1/97` (TI 50) holds `[CAST_SPELL, MOVE_TO]` on
+3975, and the census's on-map arm for kinds 8 and 0xe counts it an
+`xport` peasant (`Leader::plan_strategy@006b9620`, `6bae19`;
+`docs/AI.md` §58.7). This crate's census returned on the kind. No other
+row of the three batteries moved. Row 10 now parts first on 4880, units
+and guys: units range 7447 and guys range 1030, record 140, `dest_angle`
+and `last_angle`.
+
 ### 11.1 Parity held out, third: rows 5 to 145 (item 4487)
 
 DECISIONS 147 §2, 2026-11-21. Rows 5, 25, 45, 65, 85, 105, 125 and 145 of the same order, declared in

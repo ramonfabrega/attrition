@@ -7387,8 +7387,10 @@ the one-apart cell may have stood there since the city was founded.
 - **A move point with no region.** The original writes `−1` into the
   shared local, and the `reg_active` block would index `−1`. This crate
   keeps the container's region. No capture reaches it.
-- **The on-map `8`/`0xe` arm** (build or repair through a boarded
-  transport) writes the same local. It stays a seam.
+- ~~**The on-map `8`/`0xe` arm** (build or repair through a boarded
+  transport) writes the same local. It stays a seam.~~ Built by item 4516
+  (§58.7): the kinds are `BOARD_SHIP` and `CAST_SPELL`, not build and
+  repair.
 - **Only a plain `MoveTo` was diffed.** The other `is_move` classes are
   read, and all are `Body::Move` here.
 
@@ -7418,6 +7420,44 @@ Reading-only, and owed a blind second reading:
 - the `is_move` class list (only a plain `MoveTo` is diffed);
 - the cell (not tile) indexing of the move point. It agrees on run143's one
   case, and one case does not separate the two.
+
+### 58.7 A citizen casting or boarding is an `xport` peasant (item 4516)
+
+The census's on-map citizen arm splits on the action's kind. After
+`GATHER` (7) comes a branch for kinds 8 and 0xe, `BOARD_SHIP` and
+`CAST_SPELL` (`docs/ORDERS.md` §1.2). A citizen casts at the shore when it
+turns into a transport (`docs/TRANSPORT.md` §6). The listing:
+
+- `6bad0b` asks the unit's front order (`+0xdc`'s head, cached at `+0xcc`)
+  vslot `+0x14`, `is_move`. Not a move: `je 0x6bae19`.
+- A move: `+0xb8` gives the point, and the region of the cell under it
+  goes into the sweep's region local, as the rider arm's does (§58.1). When
+  that region is `≥ 0` (`js` at `6bae0f`), `incw 0x10de(%ebx,%esi,2)`:
+  `reg_xport_peasants`, unbounded as §58.1 says.
+- Either way, `incl 0x9c0(%ebx)` at `6bae19`: `xport_peasants`.
+
+This crate's census returned on any kind but `GATHER`.
+`Sim::census_citizen_casting` is the arm, through `census_xport_bump`.
+
+**The value diff.** run1739 (row 10 of the second held-out battery,
+`docs/RECGAME.md` §11), state 3976, leaders range 129, record 1 (who=1),
+`xport_peasants` (`+0x9c0`, byte 2488 of `who..ally_mask`): ours 2,
+theirs 3. No other leaf parts. On 3975, who=1's Citizen `1/97` (TI 50)
+holds `[CAST_SPELL, MOVE_TO]`. The front order is the cast, so no region
+is counted, and no `reg_xport_peasants` slot parts. With the arm, every
+leaders range agrees from 3970 to 3990, and row 10's leaders go 5,801 →
+6,001, whole.
+
+**Not established.** The kind 8 half: no game reaches a `BoardOrder`
+(`Unit::add_board_order@005e4d10` was never entered on run1739). The move
+half is unit-tested from the listing: a transit move in front of the cast,
+which no take has shown. A front move whose cell has no region writes
+`−1` into the local in the original; this crate keeps the unit's own
+region, as in §58.5.
+
+Diff-backed: `diff::held_out::tests::row_10_s_citizen_casting_the_transport_is_an_xport_peasant_on_run1739_s_ranges`,
+every leaders range on 3975 to 3977. Unit:
+`ai_census::tests::a_citizen_casting_the_transport_is_an_xport_peasant`.
 
 ## 59. A mine's reach is measured to the nearest solid mountain cell (2026-09-23, item 597)
 
