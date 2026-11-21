@@ -713,13 +713,6 @@ mod tests {
                             crate::checksum::fields::range_fields(name, &a.field, &b.bytes)
                         );
                     }
-                    if a.bytes != b.bytes && a.bytes.len() > 1000 {
-                        for (i, (x, y)) in a.bytes.iter().zip(&b.bytes).enumerate() {
-                            if x != y {
-                                eprintln!("PROBE   byte {i} ours {x:#04x} theirs {y:#04x}");
-                            }
-                        }
-                    }
                     if a.bytes != b.bytes {
                         let f = crate::checksum::fields::differing_fields(
                             name, &a.field, &a.bytes, &b.bytes,
