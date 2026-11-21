@@ -841,6 +841,23 @@ mod tests {
                     eprintln!("  theirs     {:02x?}", b.bytes);
                 }
             }
+            for u in [83usize, 84] {
+                let un = &built.sim.units[u];
+                let ti = un.ty.map(|t| built.sim.tables.unit_types[t].type_index);
+                eprintln!("  unit {u} ti {:?} pos {:?} facing {:?}", ti, un.pos, un.movement.facing);
+                for g in &un.guys {
+                    let rel = built.sim.roster.art.releases.get(&g.gpiece).and_then(|m| m.get(&g.anim)).cloned();
+                    eprintln!("    guy {:?}\n      releases {:?}", g, rel);
+                    if let Some(rel) = rel {
+                        for (t, node, ..) in rel {
+                            eprintln!("      t {t} node {node}: pivot {:?} bay {:?} node {:?}",
+                                sim::data::pivot::release_node(g.gpiece, g.anim, t, node).is_some(),
+                                sim::data::launch::bay(g.gpiece, g.anim, t, node),
+                                sim::data::launch::node(g.gpiece, g.anim, t));
+                        }
+                    }
+                }
+            }
             for p in &built.sim.combat.projectiles {
                 eprintln!("  ours proj slot {} shooter {:?} owner {:?} target {:?} launch {:?} landing {:?} angle {:?} dx {:?}", p.slot, p.shooter, p.owner, p.target, p.launch, p.landing, p.angle, p.graphic.dx);
             }
