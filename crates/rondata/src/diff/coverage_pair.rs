@@ -2480,7 +2480,9 @@ fn run1075_s_garrison_window_is_widened_whole() {
     // 75), and groups 71 and 75 no longer trade records on 2296 (`stamp`
     // ours 2090 -> 2294 on 71, theirs 2294); 23 rows leave, one arrives
     // (2552 `group:71.form` ours 0 theirs 9). Merged with 4435: 179.
-    pin_eq!(w.firsts.len(), 171, "initial run1075 baseline");
+    // Item 4478: 171 -> 163, the nuke's ring strikes its units in
+    // `Objects::find_units`' order (`Sim::nuke_find_units`); eight firsts leave.
+    pin_eq!(w.firsts.len(), 163, "initial run1075 baseline");
 }
 
 /// `Ammo::init+0xcd9` (`0x67c8c9`): the first of a round's two landing
