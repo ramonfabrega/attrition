@@ -1457,7 +1457,7 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// none on more ranges, run985b, run1224b, run1263 and run1327 whole with
 /// them: a `DETECT` building lights `seen3` over its disc
 /// (`Object::init`'s `has_objmask(0x2000000)` for a building too).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 881, 1053);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 884, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -4475,6 +4475,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (1777, 1777, 27) -> (1777, 1777, 25).
     // Item 4348, gaia's angles from the start dump: guys (413, 413, 1) -> (413, 413, 0).
     // Item 4400, the `leader_flags` bits: leaders (399, 399, 6) -> (399, 399, 3).
+    // Item 4481, a plane-led group's move writes nothing: groups (556, 556, 4) -> (556, 556, 0).
     (
         "run1469",
         627,
@@ -4484,7 +4485,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (228, 0, 228),
             (0, 0, 0),
-            (556, 556, 4),
+            (556, 556, 0),
             (413, 413, 0),
             (399, 399, 3),
             (9, 9, 0),
@@ -4503,6 +4504,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (1777, 1777, 27) -> (1777, 1777, 25).
     // Item 4348, gaia's angles from the start dump: guys (413, 413, 1) -> (413, 413, 0).
     // Item 4400, the `leader_flags` bits: leaders (399, 399, 6) -> (399, 399, 3).
+    // Item 4481, a plane-led group's move writes nothing: groups (556, 556, 4) -> (556, 556, 0).
     (
         "run1469b",
         628,
@@ -4512,7 +4514,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (190, 0, 190),
             (0, 0, 0),
-            (556, 556, 4),
+            (556, 556, 0),
             (413, 413, 0),
             (399, 399, 3),
             (9, 9, 0),
@@ -4532,6 +4534,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4244, a mine's `mtn`: builds (1777, 1777, 27) -> (1777, 1777, 25).
     // Item 4348, gaia's angles from the start dump: guys (612, 612, 1) -> (612, 612, 0).
     // Item 4400, the `leader_flags` bits: leaders (399, 399, 6) -> (399, 399, 3).
+    // Item 4481, a plane-led group's move writes nothing: groups (568, 568, 4) -> (568, 568, 0).
     (
         "run1472",
         707,
@@ -4541,7 +4544,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (339, 0, 339),
             (4, 4, 0),
-            (568, 568, 4),
+            (568, 568, 0),
             (612, 612, 0),
             (399, 399, 3),
             (9, 9, 0),
