@@ -1477,7 +1477,7 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// two ranges each before), and run1359, run1359b and run1359c 13 -> 12:
 /// an AIRDEFENSE-line building finishes with `job_counter` `0x40000000`
 /// (`Wall::activate@0063e4b0:54`).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 919, 1053);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 924, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -1901,11 +1901,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4422, the swarm's form -1: groups (550, 550, 1) -> (550, 550, 0).
     // Item 4441, `mask_me` walks a footprint column by column: world (7583, 7583, 2) -> (7583, 7583, 0).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (4193, 4193, 4) -> (4193, 4193, 1).
+    // Item 4502, the CEO bit, unit_masks2 & 0x10000, at birth and in set_type: units (4193, 4193, 1) -> (4193, 4193, 0).
     (
         "run1155c",
         3003,
         [
-            (4193, 4193, 1),
+            (4193, 4193, 0),
             (2371, 2371, 0),
             (0, 0, 0),
             (6, 6, 0),
@@ -1970,11 +1971,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2140, 2136, 777) -> (2140, 2140, 3), leaders (271, 271, 3) -> (271, 271, 2), world (7597, 7597, 14) -> (7597, 7597, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (6053, 5923, 4240) -> (6053, 6035, 1632).
     // Item 4491, the strafe's ranges walked: units (6053, 6035, 1632) -> (6053, 6053, 1).
+    // Item 4502, the CEO bit, unit_masks2 & 0x10000, at birth and in set_type: units (6053, 6053, 1) -> (6053, 6053, 0).
     (
         "run1164",
         4528,
         [
-            (6053, 6053, 1),
+            (6053, 6053, 0),
             (2140, 2140, 3),
             (0, 0, 0),
             (3, 3, 0),
@@ -2020,11 +2022,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // (`build_masks` `0x2000`): builds (2267, 2266, 377) -> (2267, 2266, 375).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2267, 2266, 375) -> (2267, 2267, 0), world (9290, 9290, 10) -> (9290, 9290, 0).
     // Item 4468, a nuke strike's round keeps its spline and the ammo line walks its SplineData: ammo (287, 9, 286) -> (287, 287, 0).
+    // Item 4502, the CEO bit, unit_masks2 & 0x10000, at birth and in set_type: units (6004, 6004, 6) -> (6004, 6004, 5).
     (
         "run1165",
         3719,
         [
-            (6004, 6004, 6),
+            (6004, 6004, 5),
             (2267, 2267, 0),
             (0, 0, 0),
             (287, 287, 0),
@@ -2073,11 +2076,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4476, `cavarch_uid` kept past a dropped target: units (6004, 6004, 7) -> (6004, 6004, 6).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9262, 9262, 1) -> (9262, 9262, 0).
     // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2247, 2247, 1) -> (2247, 2247, 0).
+    // Item 4502, the CEO bit, unit_masks2 & 0x10000, at birth and in set_type: units (6004, 6004, 6) -> (6004, 6004, 5).
     (
         "run1166",
         3920,
         [
-            (6004, 6004, 6),
+            (6004, 6004, 5),
             (2247, 2247, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -2123,11 +2127,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (7749, 7749, 65) -> (7749, 7749, 51).
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (1813, 1813, 6) -> (1813, 1813, 0).
+    // Item 4502, the CEO bit, unit_masks2 & 0x10000, at birth and in set_type: units (7749, 7749, 51) -> (7749, 7749, 50).
     (
         "run1169",
         3769,
         [
-            (7749, 7749, 51),
+            (7749, 7749, 50),
             (1813, 1813, 0),
             (0, 0, 0),
             (12, 12, 0),
@@ -3589,11 +3594,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6464, 6464, 6) -> (6464, 6464, 1).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (8007, 8007, 1) -> (8007, 8007, 0).
     // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2974, 2974, 13) -> (2974, 2974, 12).
+    // Item 4502, the CEO bit, unit_masks2 & 0x10000, at birth and in set_type: units (6464, 6464, 1) -> (6464, 6464, 0).
     (
         "run1359",
         5619,
         [
-            (6464, 6464, 1),
+            (6464, 6464, 0),
             (2974, 2974, 12),
             (0, 0, 0),
             (0, 0, 0),
@@ -3638,11 +3644,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6408, 6408, 6) -> (6408, 6408, 1).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (7717, 7717, 1) -> (7717, 7717, 0).
     // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2974, 2974, 13) -> (2974, 2974, 12).
+    // Item 4502, the CEO bit, unit_masks2 & 0x10000, at birth and in set_type: units (6408, 6408, 1) -> (6408, 6408, 0).
     (
         "run1359b",
         5677,
         [
-            (6408, 6408, 1),
+            (6408, 6408, 0),
             (2974, 2974, 12),
             (0, 0, 0),
             (0, 0, 0),
@@ -3687,11 +3694,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (6407, 6407, 6) -> (6407, 6407, 1).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (7715, 7715, 1) -> (7715, 7715, 0).
     // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2974, 2974, 13) -> (2974, 2974, 12).
+    // Item 4502, the CEO bit, unit_masks2 & 0x10000, at birth and in set_type: units (6407, 6407, 1) -> (6407, 6407, 0).
     (
         "run1359c",
         5678,
         [
-            (6407, 6407, 1),
+            (6407, 6407, 0),
             (2974, 2974, 12),
             (0, 0, 0),
             (0, 0, 0),
@@ -3987,11 +3995,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (2128, 2127, 608) -> (2128, 2127, 607).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2128, 2127, 607) -> (2128, 2128, 0), world (9554, 9554, 8) -> (9554, 9554, 0).
+    // Item 4502, the CEO bit, unit_masks2 & 0x10000, at birth and in set_type: units (6953, 6953, 36) -> (6953, 6953, 35).
     (
         "run1416",
         4016,
         [
-            (6953, 6953, 36),
+            (6953, 6953, 35),
             (2128, 2128, 0),
             (0, 0, 0),
             (18, 18, 1),
@@ -5370,11 +5379,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
     // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2737, 2737, 2) -> (2737, 2737, 0).
+    // Item 4502, the CEO bit, unit_masks2 & 0x10000, at birth and in set_type: units (11125, 11125, 76) -> (11125, 11125, 75).
     (
         "run882b",
         6808,
         [
-            (11125, 11125, 76),
+            (11125, 11125, 75),
             (2737, 2737, 0),
             (0, 0, 0),
             (15, 15, 0),
@@ -5429,11 +5439,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
     // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
     // Item 4483, an AIRDEFENSE-line building finishes with `job_counter` `0x40000000` (`Wall::activate`): builds (2737, 2737, 2) -> (2737, 2737, 0).
+    // Item 4502, the CEO bit, unit_masks2 & 0x10000, at birth and in set_type: units (11180, 11180, 76) -> (11180, 11180, 75).
     (
         "run883b",
         6821,
         [
-            (11180, 11180, 76),
+            (11180, 11180, 75),
             (2737, 2737, 0),
             (0, 0, 0),
             (36, 36, 0),

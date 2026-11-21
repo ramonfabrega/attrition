@@ -849,6 +849,75 @@ mod tests {
         }
     }
 
+    /// **Row 105's CEO carries the CEO bit from its `set_type`** (item
+    /// 4502, `docs/RECGAME.md` §11.1): run1752, the ranges take of
+    /// run1748's file, holds every units range on 2982 and 2983. On 2983
+    /// who=1's `1/17` turns from `TypeIndex` 0x163 to 0x165, and
+    /// `Unit::set_type@00612fa0:208`–`219` raises `unit_masks2 & 0x10000`
+    /// on a type that `is(0x165, 1)`: range 655, record 17,
+    /// `collide_frame..play` byte 38 reads 1 on theirs, where this crate
+    /// wrote no such bit. Every units range on both states, ours against
+    /// theirs, byte for byte: red on the tree before the fix, at range 655.
+    #[test]
+    fn row_105_s_ceo_carries_the_ceo_bit_from_its_set_type_on_run1752_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&THIRD, 5) else {
+            eprintln!("skipping: row 105's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1752/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1752's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 105's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [2982, 2983] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_units();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // `1/17`'s type and theirs' `unit_masks2` (`+0x6c`, byte 36 of
+            // `collide_frame..play`), by name.
+            let u = built
+                .sim
+                .units
+                .iter()
+                .find(|x| x.alive() && x.owner == 1 && x.index == 17)
+                .expect("1/17");
+            let (ty, want) = if state == 2982 {
+                (0x163, 0)
+            } else {
+                (0x165, 0x10000)
+            };
+            assert_eq!(u.type_index, ty, "1/17's TypeIndex on {state}");
+            assert_eq!(
+                &theirs[655].bytes[36..40],
+                &(want as u32).to_le_bytes(),
+                "theirs' 1/17 unit_masks2 on {state}"
+            );
+        }
+    }
+
     /// **Row 105's rider bound for the sea is a gatherer in
     /// `reg_gatherers[1]`** (item 4499, `docs/RECGAME.md` §11.1): run1752,
     /// the ranges take of run1748's file, holds every leaders range on
@@ -2658,10 +2727,13 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4483 (an AIRDEFENSE-line building finishes with
         // `job_counter` `0x40000000`): builds 4,221 -> 5,577, first 4221 ->
         // 5577. No ranges take of this row.
+        // Moved by item 4502 (the CEO bit, `unit_masks2 & 0x10000`, raised
+        // at birth and by `set_type` on a type that `is(0x165, 1)`): units
+        // 2,703 -> 5,017, first on 2184. No ranges take of this row.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                2703, 5577, 6001, 5826, 6001, 6001, 6001, 5995, 6001, 6001, 6001, 5379,
+                5017, 5577, 6001, 5826, 6001, 6001, 6001, 5995, 6001, 6001, 6001, 5379,
             ],
             first: &[
                 ("units", (2184, Some(1779962534), 330632884)),
@@ -2937,6 +3009,11 @@ pub(crate) const SCORES_THIRD: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
+        // Moved by item 4502 (the CEO bit, `unit_masks2 & 0x10000`, raised
+        // by `set_type` on a type that `is(0x165, 1)`: run1752, state 2983,
+        // units range 655, record 17 (`1/17`, 0x163 -> 0x165)
+        // `unit_masks2` ours 0, theirs 65536): units 2,983 -> 3,359, first
+        // 2983 -> 3359; the row's first parting 2983 -> 3359 (units).
         // Moved by item 4499 (`reg_xport_peasants` is indexed without a
         // bound: run1752, state 1976, leaders range 129, record 1
         // `reg_gatherers[1]` ours 0, theirs 1, who=1's rider bound for sea
@@ -2948,10 +3025,10 @@ pub(crate) const SCORES_THIRD: [Option<FirstScore>; 8] = [
         moved: Some(Score {
             states: 5235,
             agreed: [
-                2983, 5235, 5235, 5235, 5235, 5217, 5235, 5056, 5235, 5235, 5235, 5235,
+                3359, 5235, 5235, 5235, 5235, 5217, 5235, 5056, 5235, 5235, 5235, 5235,
             ],
             first: &[
-                ("units", (2983, Some(794628535), 1924338104)),
+                ("units", (3359, Some(751758837), 98429673)),
                 ("groups", (4355, Some(2731263697), 520406832)),
                 ("leaders", (3583, Some(924078995), 1189499805)),
             ],
