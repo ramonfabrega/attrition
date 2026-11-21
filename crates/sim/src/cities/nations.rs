@@ -489,7 +489,7 @@ impl Sim {
     /// and the earlier arm at `:617` (`docs/AI.md` §188). The finished
     /// wonder starts its clock at 1 (`captured` false; a captured one
     /// starts at `KREMLIN_SPY`) and, when none of the owner's live spies
-    /// carries the Kremlin's tag (`unit_flags & 0x400`), marks the spy as
+    /// carries the Kremlin's tag (`unit_masks2 & 0x400`), marks the spy as
     /// due (`leader_flags |= 0x10000000`). `:617` sets that flag for any
     /// uncaptured Kremlin the owner has not held before; one Kremlin
     /// exists per game, so the two agree and only the second is written.
@@ -506,7 +506,7 @@ impl Sim {
         let tagged = (0..self.units.len()).any(|u| {
             self.units[u].alive()
                 && self.units[u].owner == who
-                && self.units[u].kremlin_spy
+                && self.units[u].unit_masks2 & crate::combat::umask2::KREMLIN_SPY != 0
                 && self.unit_is_spy(u)
         });
         if !tagged && (who as usize) < self.tech.len() {
@@ -521,7 +521,7 @@ impl Sim {
     /// `recharging` loses one; under 1 the flag clears, the clock rewinds
     /// to `KREMLIN_SPY`, and a `SPY` (the type itself) is trained at the
     /// wonder with no queue and no population test. The unit takes the
-    /// `0x400` tag and its `control_cost` comes off the owner's `control`
+    /// `unit_masks2` `0x400` tag and its `control_cost` comes off the owner's `control`
     /// again: the tagged spy stands outside the population.
     ///
     /// Run762's Kremlin `1/2033` finishes on 4573 (`recharging` 1) and its
@@ -551,7 +551,7 @@ impl Sim {
             return;
         };
         let spy = self.build_train(b, rec);
-        self.units[spy.unit].kremlin_spy = true;
+        self.units[spy.unit].unit_masks2 |= crate::combat::umask2::KREMLIN_SPY;
         self.roster.muster[w].control -= self.tables.unit_types[rec].price.pop;
     }
 
@@ -617,7 +617,7 @@ impl Sim {
     /// building of the type), makes the next one due (`docs/AI.md` §188).
     pub(crate) fn kremlin_spy_closed(&mut self, u: usize) {
         let who = self.units[u].owner as usize;
-        if self.units[u].kremlin_spy
+        if self.units[u].unit_masks2 & crate::combat::umask2::KREMLIN_SPY != 0
             && self.unit_is_spy(u)
             && who < self.tech.len()
             && self.buildings.iter().any(|b| {
