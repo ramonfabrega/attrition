@@ -400,15 +400,6 @@ pub(crate) fn walk_with(
             }
         }
         built.tick();
-        // PROBE 4501: who spent each draw on the probed frame.
-        #[cfg(test)]
-        if std::env::var("RON_PROBE_4501").ok().and_then(|v| v.parse::<i64>().ok())
-            == Some(built.sim.frame - 1)
-        {
-            for (i, (l, w)) in crate::diff::harness::attributed_sites(built).iter().enumerate() {
-                eprintln!("A4501 {i:>3} {w:<16} {l}");
-            }
-        }
         // The harness's frame probes (`RON_DEBUG_UNIT`, `RON_DEBUG_ARMIES`),
         // on the walk too (item 4380); nothing when unset.
         #[cfg(test)]
