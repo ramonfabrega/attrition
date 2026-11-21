@@ -1190,10 +1190,23 @@ Both parsed lines carry it (`held_out::queue_line`). The third battery is
 rows 5, 25, 45, 65, 85, 105, 125 and 145, named before any take (item
 4487), taken when this one reads 4 of 8 now.
 
-*Not established*: no parting here but row 90's names its leaf, since the
-takes hold sums. Rows 10 and 130 are the two lobbies that start past the last age
-(`STARTING_TECHNOLOGY 8`), and both part builds and world together early,
-on 537 and 553. That suggests one cause, but neither row is read.
+**Rows 10 and 130's builds are whole** (item 4483, `SCORES_SECOND[0]` and
+`[6].moved`). run1739, the ranges take of row 10's file to 6000, names the
+leaf on 537: builds range 746, the computer's SAM `1/2012` (`TypeIndex`
+`0x20d`) finishing that tick, `job_counter` ours 0, theirs `0x40000000`,
+every other byte of its record agreeing. `Wall::activate@0063e4b0:54`
+zeroes both counters, then asks the type `is(0x20b, 0)` (`63e54d`–`63e57f`
+push `0` and `0x20b` before the type's `+0x60`), AIRDEFENSE's line, and
+sets `job_counter` to `0x40000000`; no later frame of the take changes it.
+This crate's `Sim::activate` zeroed it alone. The same fix moved row 110's
+builds 4221 → 5577 and the third battery's row 105 builds whole. The world
+parting the two rows shared was 4480's `seen3`. Their next partings are
+leaders, 1576 and 1376: on row 10 `reg_gatherers[1]` (`LeaderData +0x1160`)
+of who=1, ours 0, theirs 2.
+
+*Not established*: rows 10 and 130's leaders partings are not read (row
+130's take holds sums); the AIRDEFENSE counter's readers in the original
+are not listed, since no take's value of it ever moves.
 
 ### 11.1 Parity held out, third: rows 5 to 145 (item 4487)
 
