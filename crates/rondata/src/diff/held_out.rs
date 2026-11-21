@@ -786,55 +786,6 @@ mod tests {
         }
     }
 
-    /// PROBE 4502: row 105's units on a state, every range that parts.
-    #[test]
-    fn probe_4502_row_105_units() {
-        let Ok(states) = std::env::var("RON_PROBE_4502") else {
-            return;
-        };
-        let inst = crate::testenv::install().expect("install");
-        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(&THIRD, 5) else { panic!("rcx") };
-        let ranges =
-            crate::testenv::experiment(&home.join("ron-golden/run1752/map-18"), "rontrace.ranges")
-                .expect("ranges");
-        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 105's file");
-        let loaded = crate::load::load(&inst).expect("the install loads");
-        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
-        let mut stream = crate::input::Stream::pump(&rec);
-        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
-        let line: u8 = std::env::var("RON_PROBE_LINE").ok().and_then(|v| v.parse().ok()).unwrap_or(0);
-        for state in states.split(',').map(|s| s.parse::<i64>().unwrap()) {
-            while built.sim.frame < state {
-                stream.apply(built.sim.frame as i32, &mut built);
-                built.sim.command().tick();
-            }
-            let set = record.first_of(state - 1).expect("set").clone();
-            let all = record.ranges(&set).expect("ranges");
-            let theirs: Vec<_> = all.iter().filter(|r| r.line == line).collect();
-            let ours = match line {
-                0 => built.sim.checksum_units(),
-                5 => built.sim.checksum_groups(),
-                7 => built.sim.checksum_leaders(),
-                _ => panic!("line"),
-            };
-            eprintln!("PROBE state {state} line {line}: ours {} theirs {}", ours.ranges.len(), theirs.len());
-            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
-                if a.bytes != b.bytes {
-                    let d: Vec<String> = a.bytes.iter().zip(&b.bytes).enumerate()
-                        .filter(|(_, (x, y))| x != y)
-                        .map(|(i, (x, y))| format!("{i}:{x:#x}/{y:#x}")).collect();
-                    eprintln!("PROBE  range {k} record {} {} len {}/{}: {}", a.record, a.field, a.bytes.len(), b.bytes.len(), d.join(" "));
-                }
-            }
-            for u in built.sim.units.iter().filter(|x| x.alive()) {
-                if std::env::var("RON_PROBE_O").ok().and_then(|v| v.parse::<i16>().ok()) == Some(u.index) {
-                    eprintln!("PROBE  unit {}/{} TI {} masks2 {:#x} pos {:?} on_map {}", u.owner, u.index, u.type_index, u.unit_masks2, u.pos, u.on_map);
-                }
-            }
-        }
-    }
-
     /// **Row 105's rider bound for the sea is a gatherer in
     /// `reg_gatherers[1]`** (item 4499, `docs/RECGAME.md` §11.1): run1752,
     /// the ranges take of run1748's file, holds every leaders range on
