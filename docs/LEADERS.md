@@ -1929,8 +1929,10 @@ sim reader.
   two hire readers (6bdc8a, 6bdce2) read the leaves since VII-c.
   **SEAMs** left: the third parties' hire arms (6bdd57 cannot pass;
   6bdd87 needs a mutual ally, whose pass ends in the allied arm), style
-  7's alliance gate, the computer's own proposals, the `6c035d` arm, the
-  demand arm, the neutral propagation.
+  7's alliance gate, the computer's own proposals past the top scorer's
+  (item 4496 carries that one, `Sim::top_scorer_alliance` in
+  `leaders/diplomacy/alliance.rs`, its draw at 6c0980 and its emitter), the
+  `6c035d` arm, the demand arm, the neutral propagation.
 - **The alliance** (VII-d): `leaders/diplomacy/alliance.rs` (the gates,
   `num_allies`, `num_team_members` off `LeadersState::team`,
   `is_victory_timer`, `alliance_open`; tests
@@ -2066,13 +2068,19 @@ the leaders line, ours equal (`packets::run1629_take_packet`).
   false arm (every craft ships `PREQ0 None`).
 - ~~`good_deeds`'s `S` term by term~~ (VII-c, 7.2). Not carried: the
   scenario's fixed answers~~, the attack requests' terms~~ (item 4298).
-- **The computer's own alliance proposal draws before it asks who its
+- ~~**The computer's own alliance proposal draws before it asks who its
   target is** (`6c0980`, ahead of the human test `6c0993`, the style test
   and `aggression`'s at `6c0a2e`). With four or more leaders outscoring
   `me` and the top scorer its target, a style-1 game draws `game_random`
   there and the crate does not. No floor has five live leaders standing
   so; a capture that does is its falsifier (the adjudication of
-  2026-11-14, X.1).
+  2026-11-14, X.1).~~ Carried by item 4496 (`Sim::top_scorer_alliance`),
+  diff-backed by run1651's draws: the 2017 sample's computer 4 draws there
+  on 4328 against the person, the top scorer, with four above it, and again
+  on 4520 (computer 1) and 4840 (computer 4); each coin is refused by the
+  drawer's allies. The emitter (an odd coin to a human with neither side
+  allied, style 0, 8 or 11) rests on the listing alone: no capture has
+  reached it.
 - `walk_data` and `load_leaders_chunk` copy `last_spoke` and the rest on a
   load; neither originates a value.
 - ~~**The hires, rehearsed and not filed**~~ (item 4298: a diff on run1629,
@@ -4887,7 +4895,8 @@ victim's owner. Its only stores: `Object::do_damage (0064a480)`,
 `((score[c] << 2) / 3) < score[army owner]` (shift wraps). `process_victory`
 with `victory == 5` defeats the live leader with the strictly lowest score; a
 tie at the minimum defeats nobody. `Leader::diplomacy` counts live leaders
-scoring above me and finds the top scorer.
+scoring above me and finds the top scorer (`Sim::score_rank`, item
+4496; read by the computer's own alliance proposal, §7.6).
 
 ## 18.3 In the crate
 
