@@ -1045,16 +1045,6 @@ pub(in crate::diff) mod tests {
             stream.apply(f as i32, &mut built);
             crate::diff::harness::debug_watch(&built, f);
             crate::diff::harness::debug_builds(&built, f);
-            crate::diff::harness::debug_ammo(&built, f);
-            if std::env::var("RON_PROBE_4515").is_ok() && (4440..=4463).contains(&f) {
-                for p in &built.sim.combat.projectiles {
-                    let sh = match p.shooter {
-                        sim::combat::Obj::Unit(u) => format!("unit {}/{} ty {} pos {:?}", built.sim.units[u].owner, built.sim.units[u].index, built.sim.units[u].ty, built.sim.units[u].pos),
-                        sim::combat::Obj::Building(b) => format!("bld {}/{} ty {}", built.sim.buildings[b].owner, built.sim.buildings[b].index, built.sim.buildings[b].ty),
-                    };
-                    eprintln!("PROBE f{f} slot {} owner {:?} shooter {sh} punct {} crash {} spent {} gpiece {} graph {} flags r{} m{} h{}", p.slot, p.owner, p.punctures, p.crash.is_some(), p.spent, p.gpiece, p.graphic.graph_index, p.rolling, p.missed, p.harmless);
-                }
-            }
             built.tick();
         }
         let got: Vec<SampleRange> = STATE_LINES
