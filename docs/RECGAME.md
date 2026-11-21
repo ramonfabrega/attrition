@@ -1274,6 +1274,20 @@ crossing test reads the bit. Units go 2,983 → 3,359, first 2983 → 3359 (rang
 (3583) and groups (4355) do not move. `row_105_s_ceo_carries_the_ceo_bit_from_its_set_type_on_run1752_s_ranges` holds
 every units range on 2982 and 2983.
 
+**Row 105's Freighter (item 4511, run1752).** State 3359, units range 3707, record 127 (who=1's `1/127`),
+`myhits..launch_frames` byte 8: `inside_down` ours −1, theirs 128. On 3359 who=1's Transport Freighter `1/135` (TI
+322) is born and three German Infantry (TI 103) go aboard, `1/127`, `1/128`, `1/129`. `Object::insert_inside@
+00647e90` appends at the bottom of the host's chain, so theirs links `1/135 → 1/127 → 1/128 → 1/129` by
+`inside_down` and back by `inside_up`. This crate kept no chain for a unit host: the host named its last rider by
+slot, and each rider named the host above and nothing below. It now keeps the order of entry (`Unit::boarded`,
+`Sim::cargo_chain`; `docs/TRANSPORT.md` §6.5). Units go 3,359 → 5,235, whole. The row's first parting goes 3359 →
+3583 (leaders); groups (4355) does not move. The same chain moves five rows of the other two batteries on units:
+**row 40 2,487 → 4,974, whole** (the first battery 7 → 8 of 8); row 10 3,914 → 5,664 (first 1747 → 3771); row 30
+2,334 → 4,114 (first 2334 → 3184); row 110 5,017 → 5,297 (first 2184 → 4492); row 130 3,034 → 4,422 (first 2354 →
+3411). Packets' lines go 924 → 947 (28 rows, every one on units: 23 whole, 5 on fewer ranges).
+`row_105_s_freighter_chains_its_riders_in_the_order_they_boarded_on_run1752_s_ranges` holds every units range on 3358
+and 3359.
+
 **At the pass of 2026-11-21** (DECISIONS 148 §2, §3). The three found columns read 0, 1 and 5 of 8 whole, 64, 65
 and 90 of 96 lines, and 27, 53 and 88 % by reach. Every game of the twenty-four has an idle human. The fourth
 battery is rows 15, 35, 55, 75, 95, 115, 135 and 155, named before any take (item 4510), taken when this one reads
@@ -1285,8 +1299,9 @@ five, each on run1739's disk: units 1747 (`inside_down`), world 2365 (range 6920
 ranges). Rows 40, 5, 130, 30 and 110 hold sums; each one's take keeps the lines it parts on (`0x1u`, `0x8u`,
 `0x81u`, `0x801u`, `0x88bu`).
 
-*Not established*: row 5 names no leaf, since its take holds sums. Row 105's next partings are units on 3359 (range
-3707, record 127, `inside_down` ours −1, theirs 128; item 4502) and leaders on 3583 (range 191, record 1,
-`oil_patches` ours 10, theirs 20), both on run1752's disk. `go_inside` and `come_out` still do not call
+*Not established*: row 5 names no leaf, since its take holds sums. ~~Row 105's next partings are units on 3359 (range
+3707, record 127, `inside_down` ours −1, theirs 128; item 4502)~~ (whole, item 4511, above). Row 105's next partings
+are leaders on 3583 (range 191, record 1, `oil_patches` ours 10, theirs 20) and groups on 4355 (range 204, record 84,
+`num` ours 49, theirs 50), both on run1752's disk. `go_inside` and `come_out` still do not call
 `update_ceo_position`. The alias is built for the rider arm and the transport's two accesses. The
 kinds-8/0xe arm's unbounded write (`6bae11`) is still a seam here, and no capture has entered it.
