@@ -412,13 +412,8 @@ impl CivTransportView for SimCivTransport<'_> {
     }
     fn reg_xport(&self, slot: i32) -> i32 {
         let w = self.sim.units[self.u].owner as usize;
-        self.region(slot).map_or(1, |r| {
-            self.sim.ai.ai[w]
-                .census
-                .reg_xport_peasants
-                .get(r as usize)
-                .map_or(1, |&n| n)
-        })
+        self.region(slot)
+            .map_or(1, |r| self.sim.census_xport_get(w, r).unwrap_or(1))
     }
     fn coord(&mut self, slot: i32, i: i32) -> Cell {
         let r = self.region(slot).expect("a sized slot");
@@ -490,13 +485,8 @@ impl CivTransportView for SimCivTransport<'_> {
     }
     fn bump_reg_xport(&mut self, slot: i32) {
         let w = self.sim.units[self.u].owner as usize;
-        if let Some(r) = self.region(slot)
-            && let Some(n) = self.sim.ai.ai[w]
-                .census
-                .reg_xport_peasants
-                .get_mut(r as usize)
-        {
-            *n += 1;
+        if let Some(r) = self.region(slot) {
+            self.sim.census_xport_bump(w, r);
         }
     }
 }
