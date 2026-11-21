@@ -32,7 +32,7 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 Blind: never 336 · residue 336 · open 0
 Rubric: ported 738 · replaced by design 331 · open 571 of 3611 · lockstep bytes 78.1 % · ages held 8 of 8 · unit types seen 296 of 302
 Held-out: 8 of 9 whole · shortest 6147
-Parity: 6 of 7 whole · the sample parts first on builds 4026 of 21044
+Parity: 6 of 7 whole · the sample parts first on units 4183 of 21044
 Parity held out: 6 of 8 whole · 8 taken · lines 64 of 96 as found, 93 now · first partings 2990 3694 711 969 0 134 2694 0 as found, whole whole 2487 whole whole 2758 whole whole now · reach 27 % of states as found, 92 % now
 Parity held out, second: 4 of 8 whole · 8 taken · lines 65 of 96 as found, 78 now · first partings 537 1662 3352 5054 4021 1608 553 whole as found, 537 1662 whole whole whole 2184 553 whole now · reach 53 % of states as found, 61 % now
 Structure: flat 11 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 21 · largest 3710
@@ -52,15 +52,15 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3): the pass designed four seats, all cut by `commander` (Opus 5.5) at 94 % of the week: the chain's 4491 (row 100, from units 2758; 4480 and 4478 landed), a parity seat's 4487 (the third battery, seated at the second's 4 of 8; 4470 landed, row 90 whole), a parity seat's 4489 (the sample, builds 4026; 4479 and 4488 landed), the eye's seat to 4481 (the packets' groups line, no take; 4482 and 4490 moved no score, the haze stops, 4490a in its journal). 4487 holds the game lane for its eight recordings; every other take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4483 (second, rows 10 and 130), 4484 (row 40's take), 4485 (second, row 110).
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3): the pass designed four seats, all cut by `commander` (Opus 5.5) at 94 % of the week: the chain's 4491 (row 100, from units 2758; 4480 and 4478 landed), a parity seat's 4487 (the third battery, seated at the second's 4 of 8; 4470 landed, row 90 whole), a parity seat's 4492 (the sample, draws 4182; 4479, 4488 and 4489 landed), the eye's seat to 4481 (the packets' groups line, no take; 4482 and 4490 moved no score, the haze stops, 4490a in its journal). 4487 holds the game lane for its eight recordings; every other take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4483 (second, rows 10 and 130), 4484 (row 40's take), 4485 (second, row 110).
 
-4489. **The 2017 sample, from builds 4026** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §7). 4488 let a packed Merchant
-die through `Unit::close`'s death draw and leave its `DEATH_OBJS` records (computer 1's 1/18, TI 61, killed walking on 3931;
-`local_1c` needs `unit_masks & 0x80000` clear and `!is_packing`): draws 3931 → 4182, and every line's first parting is 4026 or
-later (units, guys, leaders and world 4183; groups 4188; ammo 4192; cities 4326; goods 4436; deaths 4657; the items line on 5434). run1724's
-ranges are whole to 4130 but builds: on 4026, `2810 2005 queue[k] job_counter` ours 100, theirs 0. First act: build 2810's queue on
-4025 and 4026, from the ranges on disk. Run 1726 stays reserved. Re-pin `SAMPLE_LINES`; the driver writes `Parity:`. It stops when
-two landings running move no line's first parting (145 §4).
+4492. **The 2017 sample, from draws 4182** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §7). 4489 kept an unassimilated
+city's library from adding a research slot (the `race == who` check in `get_building_cities`; run1724 4026, builds range 2810, Library
+3/2005's queue slot 1, TI 559, `job_counter` ours 100 → 0, theirs 0): builds 4026 → 4183, and run1724's ranges are whole to 4130.
+Builds, units, guys, leaders and world now part first on 4183, groups 4188, ammo 4192, cities 4326, goods 4449, deaths 4635, the
+items line on 5097. Next: draws 4182, where theirs spends four `Leader::produce_building` draws (at +0x1805) against ours' two. First
+act: what both sides' leaders hold on 4181 and 4182, from the ranges on disk. Run 1726 stays reserved. Re-pin `SAMPLE_LINES`; the
+driver writes `Parity:`. It stops when two landings running move no line's first parting (145 §4).
 
 4491. **Parity held out: row 100, from units 2758** (a rules item, whole; the chain's; `docs/RECGAME.md` §10.3). 4478 struck the
 nuke's ring in `Objects::find_units`' order, not slot order (ours `nuke_find_units`; run1721 2756, deaths range 1, record 0, `x`
