@@ -1208,8 +1208,8 @@ behind it (1576, 1376) were 4499's `reg_gatherers`. Their next partings are
 units, 1747 and 2354: on row 10 units range 1192, record 37, `inside_down`
 ours −1, theirs 38.
 
-*Not established*: row 130's units parting is not read (its take holds
-sums); the AIRDEFENSE counter's readers in the original are not listed,
+*Not established*: ~~row 130's units parting is not read (its take holds
+sums)~~ (read by item 4508 on run1754: the computer's bomber, below); the AIRDEFENSE counter's readers in the original are not listed,
 since no take's value of it ever moves.
 
 **Row 10's world is whole** (item 4504, `SCORES_SECOND[0].moved`, world
@@ -1223,6 +1223,32 @@ returns before either pass (`docs/COLLISION.md` §2.4). This crate ran the
 set pass and allocated the block. On 2366 theirs sets only the new disc's
 edge, (635, 814..815), round the old point (633, 814). Rows 30 and 110's
 world partings (1662, 3809) are not this: their sums did not move.
+
+**Row 130's computer bomber searches round itself** (item 4508,
+`SCORES_SECOND[6].moved`, units 4,422 → 4,537, first 3411 → 3515).
+run1754, the ranges take of row 130's file to its end with units and
+leaders kept (`RNG_MASK=0x81u`), names the leaf on 3411: units range
+4078, record 158, `orders.count` ours 2, theirs 1. `1/158` is who=1's
+Strategic Bomber (TI 305, TY 255, air) on an `AIR_PATROL` to (6240,
+7008), some 10,100 units from it; on 3410, `158 + 3410` a multiple of
+sixteen, `Unit::do_air_patrol@005ea620` runs its search and asks
+`Unit::find_new_bomber_target@005eb960` at the patrol's last point.
+The function's head (`5eb96e`–`5eb98a`) tests `unit_masks & 0x40000`,
+the computer's bit, and overwrites the point with the plane's own
+position before the `BOMBER_RESPOND_RANGE · 0x3c0` gate, so both
+`Objects::find_builds`' circle and the `· 0xc0` distances are the
+plane's: theirs found nothing and the patrol stood. This crate searched
+round the point and put a `STRAFE` on a building beside it in front of
+the patrol (`find_new_air_target` already carried the arm). The same fix
+moved row 10's units 5,664 → 5,851, its first on 3771. Row 130's next
+units parting is 3515: units range 5857, record 184, `dest_angle` ours
+−406650880, theirs −424345600. Its leaders parting is 4573: leaders
+range 128, record 1, `flags` byte 3, ours `0x0e`, theirs `0x1e`.
+
+*Not established*: the circle `find_builds` walks against this crate's
+walk over every building; the two answer alike wherever the candidates
+are within `BOMBER_RESPOND_RANGE · 0xc0` of the point, and a tie between
+two candidates may still part on their order (the function's SEAM).
 
 ### 11.1 Parity held out, third: rows 5 to 145 (item 4487)
 
