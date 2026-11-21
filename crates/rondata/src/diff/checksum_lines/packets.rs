@@ -1465,7 +1465,11 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// Item 4491: 886 -> 892, units whole on run1420, run1437, run1570, run785,
 /// run789 and run795, and seven more packets parting on fewer units
 /// ranges: the units line walks a strafe's own ranges.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 897, 1053);
+/// Item 4499: 897 -> 906, leaders whole on run785, run789, run795, run810,
+/// run823, run825, run865, run882b and run883b (`reg_gatherers` one range
+/// each before): `reg_xport_peasants` is indexed without a bound, so a
+/// rider bound for a sea region counts in `reg_gatherers`.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 906, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -4853,6 +4857,8 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9108, 9108, 1) -> (9108, 9108, 0).
     // Item 4478, the nuke strikes its units in find_units' order: deaths (28, 28, 4) -> (28, 28, 0).
     // Item 4491, the strafe's ranges walked: units (4969, 4945, 4289) -> (4969, 4969, 0).
+    // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
+    // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run785",
         2178,
@@ -4864,7 +4870,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (28, 28, 0),
             (640, 640, 0),
             (1429, 1429, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (47, 47, 0),
             (15, 15, 0),
             (330, 330, 0),
@@ -4898,6 +4904,8 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (5889, 5809, 3724) -> (5889, 5865, 5207).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9526, 9526, 1) -> (9526, 9526, 0).
     // Item 4491, the strafe's ranges walked: units (5889, 5865, 5207) -> (5889, 5889, 0).
+    // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
+    // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run789",
         2799,
@@ -4909,7 +4917,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (664, 664, 0),
             (1765, 1765, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (52, 52, 0),
             (15, 15, 0),
             (330, 330, 0),
@@ -4942,6 +4950,8 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (5860, 5780, 3667) -> (5860, 5836, 5145).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9420, 9420, 1) -> (9420, 9420, 0).
     // Item 4491, the strafe's ranges walked: units (5860, 5836, 5145) -> (5860, 5860, 0).
+    // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
+    // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run795",
         2681,
@@ -4953,7 +4963,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (652, 652, 0),
             (1704, 1704, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (52, 52, 0),
             (15, 15, 0),
             (330, 330, 0),
@@ -4993,6 +5003,8 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9442, 9442, 1) -> (9442, 9442, 0).
     // Item 4491, the strafe's ranges walked: units (9526, 9496, 8813) -> (9526, 9526, 30).
     // Item 4495, a guided round walks calc_from_dir's spline in the recycled Spline's sizes: ammo (156, 0, 156) -> (156, 156, 0).
+    // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
+    // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run810",
         3631,
@@ -5004,7 +5016,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (688, 688, 0),
             (2341, 2341, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (58, 58, 0),
             (10, 10, 0),
             (330, 330, 0),
@@ -5041,6 +5053,8 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): groups (676, 676, 1) -> (676, 676, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (9339, 9227, 8403) -> (9339, 9339, 35).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9552, 9552, 1) -> (9552, 9552, 0).
+    // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
+    // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run823",
         4238,
@@ -5052,7 +5066,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (676, 676, 0),
             (2450, 2450, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (58, 58, 0),
             (10, 10, 0),
             (330, 330, 0),
@@ -5088,6 +5102,8 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2473, 2469, 1529) -> (2473, 2473, 2), world (9560, 9560, 9) -> (9560, 9560, 1).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (9362, 9250, 8445) -> (9362, 9362, 35).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9560, 9560, 1) -> (9560, 9560, 0).
+    // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
+    // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run825",
         4204,
@@ -5099,7 +5115,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (688, 688, 0),
             (2471, 2471, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (58, 58, 0),
             (10, 10, 0),
             (330, 330, 0),
@@ -5251,6 +5267,8 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (10342, 10342, 2) -> (10342, 10342, 0).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9534, 9534, 1) -> (9534, 9534, 0).
     // Item 4478, the nuke strikes its units in find_units' order: deaths (28, 28, 7) -> (28, 28, 0).
+    // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
+    // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run865",
         4859,
@@ -5262,7 +5280,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (28, 28, 0),
             (640, 640, 0),
             (2210, 2210, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
@@ -5328,6 +5346,8 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (11125, 11095, 9391) -> (11125, 11095, 9390).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9518, 9518, 1) -> (9518, 9518, 0).
     // Item 4491, the strafe's ranges walked: units (11125, 11095, 9390) -> (11125, 11125, 76).
+    // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
+    // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run882b",
         6808,
@@ -5339,7 +5359,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (616, 616, 0),
             (2832, 2832, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
@@ -5383,6 +5403,8 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (11180, 11114, 9164) -> (11180, 11114, 9163).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9536, 9536, 1) -> (9536, 9536, 0).
     // Item 4491, the strafe's ranges walked: units (11180, 11114, 9163) -> (11180, 11180, 76).
+    // Item 4499, `reg_xport_peasants` indexed without a bound (a rider bound for a sea
+    // region counts in `reg_gatherers`): leaders (271, 271, 1) -> (271, 271, 0).
     (
         "run883b",
         6821,
@@ -5394,7 +5416,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (616, 616, 0),
             (2832, 2832, 0),
-            (271, 271, 1),
+            (271, 271, 0),
             (64, 64, 0),
             (0, 0, 0),
             (330, 330, 0),
@@ -5903,22 +5925,13 @@ pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ("run1484", "aggression cities_built"),
     ("run1487", "aggression cities_built"),
     ("run1496", "aggression cities_built"),
-    ("run785", "reg_gatherers"),
-    ("run789", "reg_gatherers"),
-    ("run795", "reg_gatherers"),
-    ("run810", "reg_gatherers"),
-    ("run823", "reg_gatherers"),
-    ("run825", "reg_gatherers"),
     ("run839", "aggression cities_built flags.leader_flags"),
     ("run842", "aggression cities_built flags.leader_flags"),
     ("run842b", "aggression cities_built flags.leader_flags"),
     // Item 4397: `oil_patches.elements` agrees on every pair packet (the
     // start's walk leaves the oil to `compute_all_territory`), and run854's
     // leaders line is whole (with 4388's `diplos` and 4400's bits).
-    ("run865", "reg_gatherers"),
     ("run870", "aggression cities_built flags.leader_flags"),
-    ("run882b", "reg_gatherers"),
-    ("run883b", "reg_gatherers"),
     ("run938b", "aggression cities_built flags.leader_flags"),
 ];
 
