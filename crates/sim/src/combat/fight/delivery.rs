@@ -1539,8 +1539,13 @@ impl Sim {
     /// and `unit_masks & 1` — the decoy bit — is clear. Above it the
     /// function's own `local_1c`, which is set only on the arm that
     /// unblocks four tiles for a **Merchant**, a Dutch Merchant or a Fur
-    /// Trapper (type index `0x3d`, `0x3e`, `400`); those three take no
-    /// death draw. And above everything, `dtype != 0`: the argument
+    /// Trapper (type index `0x3d`, `0x3e`, `400`) that is **unpacked** —
+    /// `unit_masks & 0x80000` clear — and not packing
+    /// (`UnitData::is_packing@0060aa60`), `Unit::close@0060ee50:170`–`:194`;
+    /// that one takes no death draw. A packed merchant walking its route
+    /// dies like any unit, with a draw and a record (item 4488: the
+    /// sample's `1/18` on 3931, two `DEATH_OBJS` slots, `cur_anim` 18).
+    /// And above everything, `dtype != 0`: the argument
     /// `Object::die` was called with, which combat always fills and the
     /// disband and scripting paths leave at zero.
     ///
@@ -1564,7 +1569,10 @@ impl Sim {
         if !u.on_map || u.decoy {
             return;
         }
-        if self.profile(Obj::Unit(i)).is(combat::role::IS_MERCHANT) {
+        if self.profile(Obj::Unit(i)).is(combat::role::IS_MERCHANT)
+            && !u.combat.packed
+            && !self.is_packing(i)
+        {
             return;
         }
         self.mark(SITE_DEATH_ANIM);
