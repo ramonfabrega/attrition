@@ -1666,17 +1666,19 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4460 (a trackless crew figure's `des` is guy 0's body
         // point, `Guy::set_new_location`'s crew loop): guys
         // 5,942 -> 5,963, first on 2449.
+        // Moved by item 4477 (the farmer's turn east is `Unit::set_angle`
+        // whole, so a leader's reversal toggles its group's `facing`):
+        // groups 3,066 -> 6,001, whole; units 2,496 -> 3,113, first on 1747.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                2496, 537, 6001, 5907, 5350, 3066, 5963, 3976, 6001, 6001, 6001, 537,
+                3113, 537, 6001, 5907, 5350, 6001, 5963, 3976, 6001, 6001, 6001, 537,
             ],
             first: &[
                 ("units", (1747, Some(2268899682), 1685366186)),
                 ("builds", (537, Some(1374294361), 1810502041)),
                 ("ammo", (5135, None, 990220286)),
                 ("deaths", (4686, Some(4192616794), 999637338)),
-                ("groups", (3066, Some(2106809472), 4177681537)),
                 ("guys", (2449, Some(2995814966), 2693759490)),
                 ("leaders", (1576, Some(2345254394), 1305656828)),
                 ("world", (537, Some(993370751), 2782374025)),
@@ -1810,16 +1812,18 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4473 (`Army::add_unit`'s push runs `equals_group`'s
         // normalize and `get_num` on the last slot): groups
         // 3,544 -> 3,553, first 1608 -> 3553.
+        // Moved by item 4477 (the farmer's turn east is `Unit::set_angle`
+        // whole, so a leader's reversal toggles its group's `facing`):
+        // groups 3,553 -> 6,001, whole.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                2702, 4221, 6001, 4472, 6001, 3553, 6000, 4995, 6001, 6001, 6001, 3999,
+                2702, 4221, 6001, 4472, 6001, 6001, 6000, 4995, 6001, 6001, 6001, 3999,
             ],
             first: &[
                 ("units", (2184, Some(1779962534), 330632884)),
                 ("builds", (4221, Some(3943548441), 1202439769)),
                 ("ammo", (3303, None, 3094479036)),
-                ("groups", (3553, Some(2133273625), 271133720)),
                 ("guys", (2464, Some(451796102), 1018289160)),
                 ("leaders", (3176, Some(2352774769), 1606385266)),
                 ("world", (3809, Some(2182316411), 2894561759)),
