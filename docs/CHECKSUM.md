@@ -1691,9 +1691,27 @@ keeps but clear on every unit of frame 91: `0x1`, `0x10`, `0x20`, `0x40`,
 `0x100000`, `0x800000`, `0x2000000` and the carrying nibble `0x78000000`
 — these agree by default here. ~~Not emitted: `0x4` (`Unit::in_danger`,
 which the crate keeps),~~ `0x4` is emitted since item 4251 (§24.3: run1600's
-records 27..29 carry it on 7195). Not emitted: `0x80`, `0x100`, `0x200`, `0x4000`,
-`0x200000`, `0x400000`, `0x1000000`, `0x4000000`, `0x80000000`, which it
+records 27..29 carry it on 7195). Not emitted: ~~`0x80`,~~ `0x100`, `0x200`, `0x4000`,
+`0x200000`, ~~`0x400000`,~~ `0x1000000`, `0x4000000`, `0x80000000`, which it
 does not; every one clear on frame 91.
+
+**The attrition period's two bits** (item 4514, diff-backed on run1739).
+`Unit::process_attrition@005e11a0` clears `0x400080` on entry, every
+thirty-second frame of the unit's phase. Its peace and assassin arms set both
+(`:258`, `:290`), and the war arm's period sets `0x80` alone (`:322`, when
+`UnitData::get_attrition` returns a period). `0x400000` is the flag
+`Unit::process_supply@005e0560` reads before any search, and `0x80` is the
+period `Unit::process_healing@005e0670` tests. The crate held both as
+`Unit::attrition` and `Unit::ignores_supply` and emitted neither. Since item
+4514, `0x80` is emitted when `attrition` is non-zero and `0x400000` with
+`ignores_supply`. The first unit to carry them on a ranges take is who=1's
+`1/6` (TI 50) on row 10's run1739. It stands on who=0's ground with the two at
+peace, and on state 3771 it reads `0xc40088` where ours read `0x840008`
+(units range 467, record 6). *Not established:* the unowned-ground arm, which
+sets the period from `neutral_attrition` and then reads the per-player arrays
+at index −1 before it reaches either write. The emitter gives that period
+`0x80`. `neutral_attrition` is zero in every shipped scenario, so no file
+reaches that arm.
 
 **Made to fail**: the three fields back at item 4109's emission (the bit
 dropped, the union without the caster and doober slots, `play` at −1)
