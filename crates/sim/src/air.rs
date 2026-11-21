@@ -2039,6 +2039,7 @@ impl Sim {
         let spline = (!self.air_line_is(u, crate::air::airbase::CRUISEMISSILE)).then(|| {
             crate::combat::Spline::nuke((launch.x, launch.y, sz), (landing.x, landing.y, ez))
         });
+        let spline = spline.map(|s| s.recycled(self.spline_pop()));
         self.add_ammo(crate::combat::Projectile {
             left: None,
             shooter: me,
