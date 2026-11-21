@@ -1449,7 +1449,11 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// **847** at item 4476 (+3): the units lines of run1224b, run1351 and
 /// run1361 whole, and eight more packets parting on fewer units ranges,
 /// none on more: `cavarch_uid` is carried and kept past a dropped target.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 847, 1053);
+/// **853** at item 4477 (+6): the groups lines of run854, run865, run882b,
+/// run883b and run823 whole, the farmer's turn east toggling its group's
+/// `facing` (`Unit::set_angle` whole, `docs/CHECKSUM.md` §23.14), and
+/// run865's units line whole with item 4474's.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 853, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
