@@ -113,100 +113,110 @@ impl Sim {
             // rebuilt only on the frames the rate is actually reassembled —
             // which makes income appear on exactly the frame it does there
             // (`crates/sim/src/economy/holdings.rs`).
-            if self.holdings_due(player, frame) {
-                self.assemble_holdings(player);
-            }
-            // `Leader::gather@006ce280:58` runs `calc_resource_caps` on
-            // every frame, outside the reassembly gate, and that reads the
-            // Commerce level straight off `LeaderDataEncrypt + 0xf0`. So a
-            // level raised between two reassemblies caps the very next
-            // frame's income: `library who=1 2` at 600 is 2992 on run157's
-            // first block, 605, where the level read at the last
-            // reassembly still said 1392 (item 644, parked 633).
-            self.economy.holdings[who].commerce =
-                self.tech[who].epoch[tech::Line::Commerce.index()].max(0) as usize;
-            // And its wonder arm reads `has_wonder` there too: the
-            // Pyramids `1/2026` activate on Great Lakes' sim-frame 17084
-            // and who=1's food and wealth caps are 300, not 250, on 17085
-            // (`docs/ECONOMY.md` §15).
-            self.economy.holdings[who].wonders = self.wonders_held(player);
-            // And its republic arm asks `has_preq(REPUBLIC_3)`, then 2,
-            // then 1, there too: row 60's computer takes its republic on
-            // 968 and theirs' seven caps are 3200, not 2400, on 969, where
-            // the tier read at the last reassembly held ours to 976
-            // (item 4444, run1722).
-            self.economy.holdings[who].republic =
-                self.government_bonus_level(player, &self.tables.tech_tree.roles.republic_preq);
-            // `do_gather`'s escrow arm reads `escrow_rate` on every frame,
-            // and a human never escrows (`docs/AI.md` §98).
-            self.economy.holdings[who].escrow_rate = if self.cities.nation[who].human {
-                [0; economy::RESOURCES]
-            } else {
-                self.ai.ai[who].census.escrow_rate
-            };
-            economy::process(
-                &self.tables.tuning,
-                &mut self.economy.ledgers[who],
-                &self.economy.holdings[who],
-                player,
-                frame,
-            );
-            // `Leader::gather`'s own tail, every frame: `rare = rare_owned |
-            // rare_conquest`, and a change raises **`0xc000000`**
-            // (`006ce280`, the `operator!=` arm's last line) — the
-            // unit-stats pass below *and* the wall-stats one, which
-            // re-bakes every unfinished building's construction clock.
-            // `rare_owned` only moves on a recompute frame, so this can
-            // only fire on one — but the original tests it every frame and
-            // so does this ([`crate::economy::rares`]).
             //
-            // **The wall half arrived with item 261.** It was `0x4000000`
-            // alone here, and the missing half is a whole rare's building
-            // bonus never reaching a site: Great Lakes' AI collects
-            // Tobacco on 6751 and the original's Tower drops from 100000
-            // to **90909** on 6752, finishing at 7176 where this crate's
-            // ran on (`docs/CITIES.md` §3.2).
-            let rare = self.economy.holdings[who].rare_owned;
-            if self.economy.ledgers[who].rare != rare {
-                // `Leader::calc_gather`'s own border arm, and it is one
-                // bit wide: the writer compares `rare.ptr[2] >> 7` before
-                // and after and calls `Regions::fix_all_borders` only when
-                // **the gem bit** moved, because no other rare is in the
-                // border table. `fix_all_borders` merely zeroes each
-                // region's border stamp, so the recompute it schedules
-                // reads the *new* mask; this crate recomputes on the spot
-                // and therefore assigns first (`docs/ATTRITION.md`,
-                // "Territory"; `docs/audit/2026-09-05-economy-vs-code.md`
-                // R18).
-                let gem = 1u64 << (economy::GEMS - economy::BASE_RARE);
-                let gems_moved = (self.economy.ledgers[who].rare ^ rare) & gem != 0;
-                self.economy.ledgers[who].rare = rare;
-                self.roster.unit_stats_dirty[who] = true;
-                self.cities.wall_stats_dirty[who] = true;
-                if gems_moved {
-                    self.sync_territory();
+            // **All of `Leader::gather`, `calc_wall_stats` and
+            // `calc_unit_stats` sit inside the slot's `leader_flags & 2`
+            // gate too** (`process_all@006ed2a0:18`, `:38`–`:45`): a
+            // defeated leader is paid nothing and its stale stats bits stay
+            // raised (item 4521, run1771: computer 1, defeated on 5256,
+            // holds `0x8000000` and its encrypted stock on 5257).
+            let live = !self.leaders.defeated.get(who).copied().unwrap_or(false);
+            if live {
+                if self.holdings_due(player, frame) {
+                    self.assemble_holdings(player);
                 }
-                // And then `calc_pop_cap(this)` (`006ceee0:353`), whose one
-                // rare arm is Peacocks: Great Sahara's AI holds them, its
-                // cap is 55 where the lobby's Military table gives 50, and
-                // the Mercenaries offer's `cap × 5 / 6 < effective_pop` read
-                // 41 < 44 here against 45 there (item 1147).
-                self.recompute_pop_caps();
-            }
-            // `Leader::process` also answers the wall-stats dirty flag here,
-            // before any building is touched.
-            if self.cities.wall_stats_dirty[who] {
-                self.calc_wall_stats(player);
-            }
-            // And then `0x4000000` — `Leader::calc_unit_stats`, which is
-            // where a rare that appeared in this frame's `Leader::gather`
-            // reaches the units. `Leaders::process_all` runs before
-            // `Objects::process_all`, so the new speed is the one the
-            // frame's own step uses (`docs/ECONOMY.md`, "What an owned
-            // rare does").
-            if self.roster.unit_stats_dirty[who] {
-                self.roster.unit_stats_dirty[who] = false;
-                self.calc_unit_stats(player);
+                // `Leader::gather@006ce280:58` runs `calc_resource_caps` on
+                // every frame, outside the reassembly gate, and that reads the
+                // Commerce level straight off `LeaderDataEncrypt + 0xf0`. So a
+                // level raised between two reassemblies caps the very next
+                // frame's income: `library who=1 2` at 600 is 2992 on run157's
+                // first block, 605, where the level read at the last
+                // reassembly still said 1392 (item 644, parked 633).
+                self.economy.holdings[who].commerce =
+                    self.tech[who].epoch[tech::Line::Commerce.index()].max(0) as usize;
+                // And its wonder arm reads `has_wonder` there too: the
+                // Pyramids `1/2026` activate on Great Lakes' sim-frame 17084
+                // and who=1's food and wealth caps are 300, not 250, on 17085
+                // (`docs/ECONOMY.md` §15).
+                self.economy.holdings[who].wonders = self.wonders_held(player);
+                // And its republic arm asks `has_preq(REPUBLIC_3)`, then 2,
+                // then 1, there too: row 60's computer takes its republic on
+                // 968 and theirs' seven caps are 3200, not 2400, on 969, where
+                // the tier read at the last reassembly held ours to 976
+                // (item 4444, run1722).
+                self.economy.holdings[who].republic =
+                    self.government_bonus_level(player, &self.tables.tech_tree.roles.republic_preq);
+                // `do_gather`'s escrow arm reads `escrow_rate` on every frame,
+                // and a human never escrows (`docs/AI.md` §98).
+                self.economy.holdings[who].escrow_rate = if self.cities.nation[who].human {
+                    [0; economy::RESOURCES]
+                } else {
+                    self.ai.ai[who].census.escrow_rate
+                };
+                economy::process(
+                    &self.tables.tuning,
+                    &mut self.economy.ledgers[who],
+                    &self.economy.holdings[who],
+                    player,
+                    frame,
+                );
+                // `Leader::gather`'s own tail, every frame: `rare = rare_owned |
+                // rare_conquest`, and a change raises **`0xc000000`**
+                // (`006ce280`, the `operator!=` arm's last line) — the
+                // unit-stats pass below *and* the wall-stats one, which
+                // re-bakes every unfinished building's construction clock.
+                // `rare_owned` only moves on a recompute frame, so this can
+                // only fire on one — but the original tests it every frame and
+                // so does this ([`crate::economy::rares`]).
+                //
+                // **The wall half arrived with item 261.** It was `0x4000000`
+                // alone here, and the missing half is a whole rare's building
+                // bonus never reaching a site: Great Lakes' AI collects
+                // Tobacco on 6751 and the original's Tower drops from 100000
+                // to **90909** on 6752, finishing at 7176 where this crate's
+                // ran on (`docs/CITIES.md` §3.2).
+                let rare = self.economy.holdings[who].rare_owned;
+                if self.economy.ledgers[who].rare != rare {
+                    // `Leader::calc_gather`'s own border arm, and it is one
+                    // bit wide: the writer compares `rare.ptr[2] >> 7` before
+                    // and after and calls `Regions::fix_all_borders` only when
+                    // **the gem bit** moved, because no other rare is in the
+                    // border table. `fix_all_borders` merely zeroes each
+                    // region's border stamp, so the recompute it schedules
+                    // reads the *new* mask; this crate recomputes on the spot
+                    // and therefore assigns first (`docs/ATTRITION.md`,
+                    // "Territory"; `docs/audit/2026-09-05-economy-vs-code.md`
+                    // R18).
+                    let gem = 1u64 << (economy::GEMS - economy::BASE_RARE);
+                    let gems_moved = (self.economy.ledgers[who].rare ^ rare) & gem != 0;
+                    self.economy.ledgers[who].rare = rare;
+                    self.roster.unit_stats_dirty[who] = true;
+                    self.cities.wall_stats_dirty[who] = true;
+                    if gems_moved {
+                        self.sync_territory();
+                    }
+                    // And then `calc_pop_cap(this)` (`006ceee0:353`), whose one
+                    // rare arm is Peacocks: Great Sahara's AI holds them, its
+                    // cap is 55 where the lobby's Military table gives 50, and
+                    // the Mercenaries offer's `cap × 5 / 6 < effective_pop` read
+                    // 41 < 44 here against 45 there (item 1147).
+                    self.recompute_pop_caps();
+                }
+                // `Leader::process` also answers the wall-stats dirty flag here,
+                // before any building is touched.
+                if self.cities.wall_stats_dirty[who] {
+                    self.calc_wall_stats(player);
+                }
+                // And then `0x4000000` — `Leader::calc_unit_stats`, which is
+                // where a rare that appeared in this frame's `Leader::gather`
+                // reaches the units. `Leaders::process_all` runs before
+                // `Objects::process_all`, so the new speed is the one the
+                // frame's own step uses (`docs/ECONOMY.md`, "What an owned
+                // rare does").
+                if self.roster.unit_stats_dirty[who] {
+                    self.roster.unit_stats_dirty[who] = false;
+                    self.calc_unit_stats(player);
+                }
             }
             // `Leaders::process_all@006ed2a0`'s tail of the live slot's
             // step (`docs/LEADERS.md` §10.2, §11): the capital countdown
