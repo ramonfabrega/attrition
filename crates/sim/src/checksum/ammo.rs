@@ -199,11 +199,9 @@ impl Sim {
             // A falling aircraft's round (item 4523) is the same record,
             // `Ammo::init_crash@0067b800` writing `rolling` (`+0x5`), the
             // bank pair (`+0x5c`/`+0x60`, singles) and `start_roll_angle`
-            // (`+0x64`), which it reads off the unit only on an air-family
-            // order: that arm is not read and refuses the line. A guided
-            // round walks its spline (item 4495); one without a spline is
-            // not read.
-            if p.crash.is_some_and(|c| c.roll_unread) || (p.graphic.guided && p.spline.is_none()) {
+            // (`+0x64`). A guided round walks its spline (item 4495); one
+            // without a spline is not read.
+            if p.graphic.guided && p.spline.is_none() {
                 return None;
             }
             // A spline is walked after the path byte; an arm whose walk is
@@ -230,10 +228,11 @@ impl Sim {
             // `+0x5`, the display roll (separate from flag 4): 0 from
             // `Ammo::init:830`, a crash's `r % 7 − 3`.
             body.push(p.crash.map_or(0, |c| c.rolling as i8 as u8));
-            let (bank_dx, bank_dy) = p.crash.map_or((0, 0), |c| {
+            let (bank_dx, bank_dy, start_roll) = p.crash.map_or((0, 0, 0), |c| {
                 (
                     Single::from_i32(c.bank.0).bits() as i32,
                     Single::from_i32(c.bank.1).bits() as i32,
+                    c.start_roll,
                 )
             });
             body.extend((p.accuracy as i16).to_le_bytes());
@@ -263,7 +262,7 @@ impl Sim {
                 p.graphic.dx.bits() as i32,
                 bank_dx,
                 bank_dy,
-                0, // start_roll_angle: 0 off `init_crash`'s air arm
+                start_roll,
             ] {
                 body.extend(word.to_le_bytes());
             }

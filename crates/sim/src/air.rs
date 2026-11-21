@@ -3217,9 +3217,14 @@ impl Sim {
         let mut local =
             crate::combat::Rng::new(figure.x.wrapping_add(figure.y).wrapping_add(z) as u32);
         let bank = (local.get(-0x1e, 0x1e), local.get(-0x1e, 0x1e));
-        let roll_unread = self
+        let start_roll = if self
             .current_order(u)
-            .is_some_and(|o| crate::orders::index::is_air_family(o.index()));
+            .is_some_and(|o| crate::orders::index::is_air_family(o.index()))
+        {
+            self.units[u].airframe.bank.to_i32().wrapping_neg()
+        } else {
+            0
+        };
         self.add_ammo_unaimed(crate::combat::Projectile {
             left: None,
             shooter: crate::combat::Obj::Unit(u),
@@ -3250,7 +3255,7 @@ impl Sim {
             crash: Some(crate::combat::Crash {
                 bank,
                 rolling,
-                roll_unread,
+                start_roll,
             }),
             spline: None,
             // `Ammo::init_crash@0067b800:44`: the plane's own vslot
