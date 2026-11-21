@@ -976,6 +976,66 @@ mod tests {
         assert_eq!(&theirs[498].bytes[20..24], &(-609_026_048i32).to_le_bytes());
     }
 
+    /// **Row 10's SAM finishes with `job_counter` `0x40000000`** (item 4483,
+    /// `docs/RECGAME.md` §11): run1739, the ranges take of run1730's file.
+    /// On 537 the computer's SAM `1/2012` (`TypeIndex` `0x20d`, builds
+    /// range 746 is its `WallData` 30) finishes, and `Wall::activate@0063e4b0`
+    /// zeroes both counters, then asks the type `is(0x20b, 0)` (`63e54d`–
+    /// `63e57f`, AIRDEFENSE's line) and sets `job_counter` to `0x40000000`,
+    /// which no later frame of the take changes. Every builds range on 536
+    /// and 537, ours against theirs, byte for byte: red on the tree before
+    /// the fix at range 746, `job_counter` ours 0, theirs 1073741824.
+    #[test]
+    fn row_10_s_sam_finishes_with_the_air_defense_counter_on_run1739_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 0) else {
+            eprintln!("skipping: row 10's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1739/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1739's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 10's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [536i64, 537] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = crate::checksum::state::ranges(&built.sim, &look, &tribes)[1]
+                .clone()
+                .expect("the builds line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "builds ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "builds range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // The SAM by name: its type local (range 741) and its
+            // `job_counter`, the first word of `WallData`'s 30 (range 746).
+            assert_eq!(&theirs[741].bytes[..], &0x20di32.to_le_bytes());
+            let want: i32 = if state == 537 { 0x4000_0000 } else { 27_900 };
+            assert_eq!(&theirs[746].bytes[0..4], &want.to_le_bytes(), "{state}");
+        }
+    }
+
     /// **Row 120's MLRS reads `cavarch_o` −2 in the units line** (item
     /// 4443, `docs/RECGAME.md` §10.3): on 5864 the computer's fire-on-the-move
     /// MLRS `1/35` (type 273) steps an `ExploreTo` with an empty search after
