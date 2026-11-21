@@ -503,6 +503,26 @@ impl Sim {
         false
     }
 
+    /// **The fields `Ammo::init_crash@0067b800` adds to a round** (item
+    /// 4523, `docs/CHECKSUM.md` §18.4): the bank pair and `rolling` its
+    /// caller drew, and `start_roll_angle` (`+0x64`), which is `−cvttss2si`
+    /// of guy 0's `bank` when the plane's current order is of the air
+    /// family (`67b8c6`–`67b8fd`) and 0 otherwise.
+    pub(crate) fn crash_of(&self, u: usize, bank: (i32, i32), rolling: i32) -> combat::Crash {
+        let air = self
+            .current_order(u)
+            .is_some_and(|o| crate::orders::index::is_air_family(o.index()));
+        combat::Crash {
+            bank,
+            rolling,
+            start_roll: if air {
+                self.units[u].airframe.bank.to_i32().wrapping_neg()
+            } else {
+                0
+            },
+        }
+    }
+
     /// **`Ammo::inc_time@0067d380`'s crash arm** (`+0x50 == 1`,
     /// `67d590`–`67d726`; `docs/AI.md` §228), on a frame short of
     /// `total_time`: the landing drifts by the bank pair and is
