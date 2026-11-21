@@ -1852,16 +1852,11 @@ impl Sim {
         }
         let disc = spiral(size);
         let ra = self.world.tregion_alt(from.tile());
-        // **The one-block form** (`CollCheck::move_unit@00682ad0`, its
-        // head, `docs/COLLISION.md` §2.4): when both discs lie inside one
-        // world cell — `|Δ| + 2·size < 16` on both axes and the box's
-        // corners share a cell — the original looks the block up once, by
-        // the **old** tile's region, and runs both passes on it ungated:
-        // a region that is not the cell's ends the call before either pass,
-        // and so does a cell with no block (`WorldData::get_coll_block@006b5350`
-        // only reads): a unit whose own bits a neighbour's move cleared, and
-        // whose cell's empty block the sweep then freed (§26), steps without
-        // marking (item 4504). The two-ended form below is the general one.
+        // **The one-block form** (`CollCheck::move_unit@00682ad0`, its head, `docs/COLLISION.md`
+        // §2.4): when both discs lie inside one world cell — `|Δ| + 2·size < 16` on both axes and
+        // the box's corners share a cell — the original looks the block up once, by the **old**
+        // tile's region, and runs both passes on it ungated; a region not the cell's, or no block
+        // (§26, item 4504), ends the call before either pass. The general form is below.
         let n = UCELLS_PER_CELL;
         let (lo_x, lo_y) = (a.x.min(b.x) - size, a.y.min(b.y) - size);
         let (hi_x, hi_y) = (a.x.max(b.x) + size, a.y.max(b.y) + size);
@@ -1874,11 +1869,9 @@ impl Sim {
             && lo_x.div_euclid(n) < self.world.width()
             && lo_y.div_euclid(n) < self.world.height();
         if one_cell {
-            if !self.coll_region_ok(ra, Pos::new(lo_x, lo_y))
-                || !self
-                    .movement
-                    .coll
-                    .block_present(lo_x.div_euclid(n), lo_y.div_euclid(n))
+            let (cx, cy) = (lo_x.div_euclid(n), lo_y.div_euclid(n));
+            if !self.movement.coll.block_present(cx, cy)
+                || !self.coll_region_ok(ra, Pos::new(lo_x, lo_y))
             {
                 return;
             }
