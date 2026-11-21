@@ -208,3 +208,63 @@ fn all_gathering_drops_a_member_walking_a_waypoint_first() {
         "alive, and still holding its gather"
     );
 }
+
+/// **The farmer's turn east is `Unit::set_angle` whole** (item 4477,
+/// `docs/CHECKSUM.md` §23.14): `Unit::do_gather@005ef2a0:382` turns the
+/// farmer with `set_angle(this, 0x40000000, ., 0)`, whose reversing arm
+/// flips `unit_masks & 2` and toggles `GroupData::facing` when
+/// `find_leader` names the unit. run854's Citizen `1/47`, sole member of
+/// player 1's record 75, turned east at its farm on 3065 and theirs'
+/// record read `facing` 1 on 3301. Made to fail by putting
+/// `Movement::set_heading` back in `face_east`: the mirror flips and the
+/// group's flag stays clear.
+#[test]
+fn the_farmer_s_turn_east_toggles_its_group_s_facing() {
+    let mut sim = Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
+    let citizen = sim.add_unit_type(crate::UnitType {
+        hits: 10,
+        worker: Worker::Citizen,
+        ..crate::UnitType::default()
+    });
+    let farm = sim.add_building(1, Pos::new(0x1000, 0x1000), 1);
+    let mut u = crate::Unit::new(1, 0, Pos::new(0x1400, 0x1000), 10);
+    u.ty = Some(citizen);
+    u.on_map = true;
+    let u = sim.add_unit(u);
+    let slot = sim.init_army(1, None);
+    sim.army_add_unit(1, slot, u);
+    sim.units[u]
+        .movement
+        .set_heading(crate::movement::Angle::WEST);
+    let mirror = sim.units[u].movement.mirror;
+    assert!(!sim.ai.armies[1].list[slot].group.facing);
+    let g = GatherOrder {
+        building: farm,
+        tile: None,
+        wait: 0,
+        goto_build: false,
+        dist_mod: 0,
+        been_there: true,
+    };
+    SimDoGather {
+        s: &mut sim,
+        u,
+        b: farm,
+        g,
+        frame: 0,
+        drew: false,
+    }
+    .face_east();
+    assert_eq!(
+        sim.units[u].movement.heading,
+        crate::movement::Angle(0x4000_0000)
+    );
+    assert_ne!(
+        sim.units[u].movement.mirror, mirror,
+        "the unit's mirror flips"
+    );
+    assert!(
+        sim.ai.armies[1].list[slot].group.facing,
+        "the leader's reversal toggles its group's facing"
+    );
+}

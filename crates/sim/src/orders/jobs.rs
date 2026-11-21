@@ -2806,10 +2806,15 @@ impl DoGatherView for SimDoGather<'_> {
     fn set_anim(&mut self, a: i32) {
         self.s.set_anim(self.u, a as i8, false, true);
     }
+    /// **`Unit::set_angle@00605400` whole** (item 4477, `docs/CHECKSUM.md`
+    /// §23.14): the reversal flips `unit_masks & 2` *and* toggles the
+    /// `+0x80` group's `facing` when this unit is its `find_leader`, then
+    /// `Guy::set_angle(guy 0, angle, 0)`. A bare heading write flipped the
+    /// mirror alone: run854's Citizen `1/47`, the sole member of player 1's
+    /// record 75, turns east at its farm on 3065 and theirs' record reads
+    /// `facing` 1 on 3301 where ours read 0.
     fn face_east(&mut self) {
-        self.s.units[self.u]
-            .movement
-            .set_heading(Angle(0x4000_0000));
+        self.s.unit_set_angle(self.u, Angle(0x4000_0000));
     }
     fn set_new_location(&mut self, x: i32, y: i32) {
         // `world.accepts` is this crate's own guard: the original's

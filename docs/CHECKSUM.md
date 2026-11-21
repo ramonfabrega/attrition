@@ -2983,6 +2983,39 @@ Assault Marines.
 whether the original looks for it), and a fisherman's or a merchant's gender piece, are in no packet here. The
 predicate is read in the listing, and only its military arm is diff-backed.
 
+## 23.14 The groups line's `facing`: the farmer's turn east is `Unit::set_angle` whole (item 4477)
+
+**A farmer's turn east toggles its group's `facing` when it leads the group** (items 4431, 4477, diff-backed). The
+census put `facing` (`GroupData +0x48`, `id..march` byte 68) first on five groups lines: run854 f3301 record 75
+(ours 0, theirs 1), record 70 on run865 4859, run882b 6808 and run883b 6821 (ours 1, theirs 0), and run823 4238
+record 87 (ours 0, theirs 1). On run854, record 75 is player 1's pool slot 11, with one member, the Citizen `1/47`
+(TI 50, land), and every field but `facing` agrees.
+
+A per-frame watch of ours' record 75 beside `1/47`'s `unit_masks & 2` (the mirror) shows the two moving together on
+every change from 1837 until tick 3065. There the mirror flips and the record does not, with `1/47` the record's
+leader. The flip comes from `do_gather`'s turn east to the farm. `Unit::do_gather@005ef2a0:382`, the farm arm after
+`set_anim(CHAR_FARM, 0, 1)`, makes that turn with `set_angle(this, 0x40000000, ., 0)`. On a reversal
+(`0x3fffffff < angle − +0x50 < 0xc0000001`), `Unit::set_angle@00605400` XORs `+0x68` with 2. If `+0x80 >= 0` and the
+record's leader is this unit, it also toggles `+0x48`. The leader is `-1` for an empty record, `list[0]` for a
+building group, and `GroupData::find_leader` otherwise. Then it writes `+0x50` and calls
+`Guy::set_angle(guy 0, angle, 0)`. Ours made the turn with `Movement::set_heading`, which flips the mirror and writes
+the heading and does nothing else. **The direction: theirs acted** (the toggle), and ours made the record without it.
+
+`SimDoGather::face_east` is now `Sim::unit_set_angle`. Killer:
+`orders::all_gathering_tests::the_farmer_s_turn_east_toggles_its_group_s_facing`. **5 lines turn and none grow**
+(`PACKETS_SCORE` 844 → 849). The groups line goes whole on run854 (1 → 0 ranges), run865 (2 → 0), run882b (3 → 0),
+run883b (3 → 0) and run823 (1 → 0). The units line sheds one range on each of run865, run882b and run883b. Value
+diff, run854 f3301 record 75: `facing` theirs 1, ours 0 → 1.
+
+The trail 4431 left closes: on 1828, `1/33`, `1/43` and `1/44` (TI 104, Mechanized Infantry, one squad chain) all
+move to army 1's record 68 by `Army::add_unit@006f9f40`'s last act, `Unit::set_group@00605220`. That function walks up
+`+0x8e` to the captain, then down `+0x90` while `SubObjectData::is_active` holds (vslot `+0xa8` is a COMDAT-folded
+`return this;`). The original does the same thing there, so the walk is not where record 75's 1 comes from.
+
+**Not established.** `Unit::do_non_flat_gather@005f0170:208` and `:402` are `Unit::set_angle` calls too, and ours
+still makes both through `Movement::set_heading` (`orders/jobs.rs`, `do_non_flat_gather`), so on those turns a
+leader's reversal toggles nothing. No packet parts on them yet (parked 4477a).
+
 ## 24. Step H: the fifteen, every frame (item 4214)
 
 `DECISIONS.md` entry 132 §7, §10. `CheckSums::check_all@00936560` runs on every turn and prints only inside a dump
