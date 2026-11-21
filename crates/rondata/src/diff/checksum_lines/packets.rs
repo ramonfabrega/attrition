@@ -1446,7 +1446,7 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// **844** at item 4461 (+1, on 4468's 843): run1437's guys line whole, a
 /// military type's gender piece named `-PACKED`, so the Assault Marines'
 /// `-FEMALE` entry is no piece (`docs/CHECKSUM.md` §23.13).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 844, 1053);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 849, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -4954,6 +4954,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4425, a member compute_dests skips keeps its record offset: groups (676, 676, 5) -> (676, 676, 1).
     // Item 4441, `mask_me` walks a footprint column by column: world (9552, 9552, 11) -> (9552, 9552, 9).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2473, 2469, 1529) -> (2473, 2473, 2), world (9552, 9552, 9) -> (9552, 9552, 1).
+    // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): groups (676, 676, 1) -> (676, 676, 0).
     (
         "run823",
         4238,
@@ -4963,7 +4964,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (676, 676, 1),
+            (676, 676, 0),
             (2450, 2450, 0),
             (271, 271, 1),
             (58, 58, 0),
@@ -5110,6 +5111,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (5770, 5770, 17) -> (5770, 5770, 0).
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (2095, 2095, 5) -> (2095, 2095, 1).
+    // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): groups (640, 640, 1) -> (640, 640, 0).
     (
         "run854",
         3301,
@@ -5119,7 +5121,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
-            (640, 640, 1),
+            (640, 640, 0),
             (1794, 1794, 0),
             (271, 271, 0),
             (36, 36, 0),
@@ -5155,16 +5157,17 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4441, `mask_me` walks a footprint column by column: world (9534, 9534, 12) -> (9534, 9534, 11).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (10342, 10188, 7833) -> (10342, 10188, 7824).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2288, 2283, 1535) -> (2288, 2288, 2), world (9534, 9534, 11) -> (9534, 9534, 1).
+    // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (10342, 10188, 7824) -> (10342, 10188, 7823), groups (640, 640, 2) -> (640, 640, 0).
     (
         "run865",
         4859,
         [
-            (10342, 10188, 7824),
+            (10342, 10188, 7823),
             (2288, 2288, 2),
             (0, 0, 0),
             (0, 0, 0),
             (28, 28, 7),
-            (640, 640, 2),
+            (640, 640, 0),
             (2210, 2210, 0),
             (271, 271, 1),
             (64, 64, 0),
@@ -5227,16 +5230,17 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4441, `mask_me` walks a footprint column by column: world (9518, 9518, 12) -> (9518, 9518, 11).
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (11125, 10815, 9505) -> (11125, 10815, 9496).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2737, 2732, 1917) -> (2737, 2737, 2), world (9518, 9518, 11) -> (9518, 9518, 1).
+    // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (11125, 10815, 9496) -> (11125, 10815, 9495), groups (616, 616, 3) -> (616, 616, 0).
     (
         "run882b",
         6808,
         [
-            (11125, 10815, 9496),
+            (11125, 10815, 9495),
             (2737, 2737, 2),
             (0, 0, 0),
             (15, 15, 5),
             (0, 0, 0),
-            (616, 616, 3),
+            (616, 616, 0),
             (2832, 2832, 0),
             (271, 271, 1),
             (64, 64, 0),
@@ -5277,16 +5281,17 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (11180, 10834, 9393) -> (11180, 10834, 9384).
     // Item 4447, an empty building at its ceiling ejects (`build_masks` `0x4000`): builds (2737, 2732, 1918) -> (2737, 2732, 1917).
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2737, 2732, 1917) -> (2737, 2737, 2), world (9536, 9536, 11) -> (9536, 9536, 1).
+    // Item 4477, the farmer's turn east is Unit::set_angle whole (groups facing): units (11180, 10834, 9384) -> (11180, 10834, 9383), groups (616, 616, 3) -> (616, 616, 0).
     (
         "run883b",
         6821,
         [
-            (11180, 10834, 9384),
+            (11180, 10834, 9383),
             (2737, 2737, 2),
             (0, 0, 0),
             (36, 36, 5),
             (0, 0, 0),
-            (616, 616, 3),
+            (616, 616, 0),
             (2832, 2832, 0),
             (271, 271, 1),
             (64, 64, 0),
