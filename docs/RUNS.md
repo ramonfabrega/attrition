@@ -40070,3 +40070,32 @@ The take: run1700's line with `~/ron-golden/run1750` and this file, chained afte
 Files in place, `~/ron-golden/run1750/map-7/`: `gamelog_p.txt`, 2,443 bytes, SHA-256 `2f1280487baef718fa5a2f3e00045b5f2894ace81db6c915a709f60726f30890`; `rontrace.log`, 33,093,536 bytes, SHA-256 `69b3af05b00f09bf10e5e6efeb170ed0dd796fc8c9514d9f3cfe12d604bf7126`.
 
 **What it holds**: `diff::held_out::the_third_held_out_games_score_as_pinned` (`SCORES_THIRD[7]`).
+
+## run1751 — parity held out, third battery, row 85's file to its end (4471) with the checksum and ranges hooks, all twelve lines kept (2026-11-21, item 4493, `att-4493`)
+
+`docs/RECGAME.md` §11.1; DECISIONS 147 §2. **What the disk could not answer**: run1747 holds sums only, so groups'
+one parting on row 85 (state 3831) named no leaf. The take is run1738's line with the run directory and the
+recording changed: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1751
+--recording ~/ron-golden/recordings/item4487-row085-6000.rcx --end-frame 6000 --allow-early-end --cover cover=1
+--log-window 0 31 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def
+RON_RANGES --tracer-def RNG_MASK=0xfffu`, waited on with `waitrun.sh` in the background. `df -g ~` read 84 GB free
+before it and 78 after.
+- **The run**: pool lane 1, launched 02:48:01 −05:00, exited 02:53:34: **332.6 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 4,472 frames, **ended by the original** on 4471, seed 12345, map 14. The
+  recording's SHA-256 is run1747's (`cce9bd91…`).
+- **The record**, `~/ron-golden/run1751/map-14/rontrace.ranges`, 3,260,562,080 bytes, SHA-256
+  `83b7e00471d9a42e5d9170f5b26d91f772f9b2ac0b0d2a8e833e588e91e25804`: 4,472 sets on trace frames −1 to 4470,
+  65,445,079 ranges, 2,213,004,434 bytes, none over (`ranges.py summary`).
+- **Scored** (`score_recording … ~/ron-golden/run1751/map-14`, on `3455aac85`): the sums are run1747's, eleven lines
+  whole; groups 4,458, first 3831: **groups range 86, record 68, `id..march`, byte 8: `num` ours 4, theirs 3**
+  (`list` ours `[117, 119, 120, 121]`, theirs `[117, 119, 120]`; who=1's slot 4, army 3).
+- **Re-scored by item 4493** (`Group::refresh_group_order`'s `normalize` prunes the seated group): all twelve lines
+  4,472 of 4,472; the row is whole.
+- Filed **in place**, as run1738 is.
+
+Files in place, `~/ron-golden/run1751/map-14/`: `gamelog_p.txt`, 2,429 bytes, SHA-256
+`de2438fa15c8d70245d0fe4b61aa6a6c995e91d3adf742fbb8598f88df3f328c`; `rontrace.log`, 83,794,016 bytes, SHA-256
+`4caf14f50a7bde4848391dc0f2e7da50a19fb55bde8d888d6ca683b361e9f1ba`.
+
+**What it holds**: `diff::held_out::tests::row_85_s_refresh_prunes_the_member_its_sort_unpointed_on_run1751_s_ranges`
+(every groups range on 3830 and 3831).
