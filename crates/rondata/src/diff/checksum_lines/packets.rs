@@ -1465,7 +1465,7 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// Item 4491: 886 -> 892, units whole on run1420, run1437, run1570, run785,
 /// run789 and run795, and seven more packets parting on fewer units
 /// ranges: the units line walks a strafe's own ranges.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 892, 1053);
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 897, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -4488,6 +4488,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4348, gaia's angles from the start dump: guys (413, 413, 1) -> (413, 413, 0).
     // Item 4400, the `leader_flags` bits: leaders (399, 399, 6) -> (399, 399, 3).
     // Item 4481, a plane-led group's move writes nothing: groups (556, 556, 4) -> (556, 556, 0).
+    // Item 4495, a guided round walks calc_from_dir's spline in the recycled Spline's sizes: ammo (228, 0, 228) -> (228, 228, 0).
     (
         "run1469",
         627,
@@ -4495,7 +4496,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (1392, 1392, 102),
             (1777, 1777, 23),
             (0, 0, 0),
-            (228, 0, 228),
+            (228, 228, 0),
             (0, 0, 0),
             (556, 556, 0),
             (413, 413, 0),
@@ -4517,6 +4518,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4348, gaia's angles from the start dump: guys (413, 413, 1) -> (413, 413, 0).
     // Item 4400, the `leader_flags` bits: leaders (399, 399, 6) -> (399, 399, 3).
     // Item 4481, a plane-led group's move writes nothing: groups (556, 556, 4) -> (556, 556, 0).
+    // Item 4495, a guided round walks calc_from_dir's spline in the recycled Spline's sizes: ammo (190, 0, 190) -> (190, 190, 0).
     (
         "run1469b",
         628,
@@ -4524,7 +4526,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (1401, 1401, 102),
             (1777, 1777, 23),
             (0, 0, 0),
-            (190, 0, 190),
+            (190, 190, 0),
             (0, 0, 0),
             (556, 556, 0),
             (413, 413, 0),
@@ -4547,6 +4549,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4348, gaia's angles from the start dump: guys (612, 612, 1) -> (612, 612, 0).
     // Item 4400, the `leader_flags` bits: leaders (399, 399, 6) -> (399, 399, 3).
     // Item 4481, a plane-led group's move writes nothing: groups (568, 568, 4) -> (568, 568, 0).
+    // Item 4495, a guided round walks calc_from_dir's spline in the recycled Spline's sizes: ammo (339, 0, 339) -> (339, 339, 0).
     (
         "run1472",
         707,
@@ -4554,7 +4557,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (2180, 2180, 102),
             (1777, 1777, 23),
             (0, 0, 0),
-            (339, 0, 339),
+            (339, 339, 0),
             (4, 4, 0),
             (568, 568, 0),
             (612, 612, 0),
@@ -4578,6 +4581,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4415, the oil-well stand's cur_time: units (4145, 4145, 279) -> (4145, 4145, 278), guys (1381, 1381, 1) -> (1381, 1381, 0).
     // Item 4422, the swarm's form -1: groups (562, 562, 2) -> (562, 562, 0).
     // Item 4476, `cavarch_uid` kept past a dropped target: units (4145, 4145, 278) -> (4145, 4145, 277).
+    // Item 4495, a guided round walks calc_from_dir's spline in the recycled Spline's sizes: ammo (304, 0, 304) -> (304, 304, 0).
     (
         "run1484",
         676,
@@ -4585,7 +4589,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (4145, 4145, 277),
             (1446, 1446, 22),
             (0, 0, 0),
-            (304, 0, 304),
+            (304, 304, 0),
             (0, 0, 0),
             (562, 562, 0),
             (1381, 1381, 0),
@@ -4616,6 +4620,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (2736, 2736, 26) -> (2736, 2736, 24).
     // Item 4476, `cavarch_uid` kept past a dropped target: units (5340, 5340, 276) -> (5340, 5340, 275).
+    // Item 4495, a guided round walks calc_from_dir's spline in the recycled Spline's sizes: ammo (208, 0, 208) -> (208, 208, 28).
     (
         "run1487",
         1980,
@@ -4623,7 +4628,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (5340, 5340, 275),
             (2736, 2736, 24),
             (0, 0, 0),
-            (208, 0, 208),
+            (208, 208, 28),
             (8, 8, 0),
             (610, 610, 0),
             (1718, 1718, 0),
@@ -4654,6 +4659,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4455, `check_orphaned_buildings` marks a site with no builder
     // (`build_masks` `0x2000`): builds (2180, 2180, 24) -> (2180, 2180, 23).
     // Item 4476, `cavarch_uid` kept past a dropped target: units (5026, 5026, 282) -> (5026, 5026, 281).
+    // Item 4495, a guided round walks calc_from_dir's spline in the recycled Spline's sizes: ammo (230, 0, 230) -> (230, 230, 44).
     (
         "run1496",
         1539,
@@ -4661,7 +4667,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (5026, 5026, 281),
             (2180, 2180, 23),
             (0, 0, 0),
-            (230, 0, 230),
+            (230, 230, 44),
             (2, 2, 0),
             (586, 586, 0),
             (1577, 1577, 0),
@@ -4986,6 +4992,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (9526, 9426, 7329) -> (9526, 9496, 8813).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9442, 9442, 1) -> (9442, 9442, 0).
     // Item 4491, the strafe's ranges walked: units (9526, 9496, 8813) -> (9526, 9526, 30).
+    // Item 4495, a guided round walks calc_from_dir's spline in the recycled Spline's sizes: ammo (156, 0, 156) -> (156, 156, 0).
     (
         "run810",
         3631,
@@ -4993,7 +5000,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (9526, 9526, 30),
             (2384, 2384, 2),
             (0, 0, 0),
-            (156, 0, 156),
+            (156, 156, 0),
             (0, 0, 0),
             (688, 688, 0),
             (2341, 2341, 0),

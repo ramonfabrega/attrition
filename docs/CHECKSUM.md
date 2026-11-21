@@ -1934,6 +1934,9 @@ where both sides print a line (`SCORES[5].moved`; the killer is
 `row_100_s_jet_fighter_missile_walks_its_recycled_spline_on_run1721_s_ranges`).
 On the second battery, ammo moves on row 10 (5,907 → 5,924, first 5135 →
 5148), row 110 (4,472 → 5,826, first 3303 → 4104) and row 130 (4,511 → 4,647).
+The packets' ammo column moves on seven rows, every move toward agreement.
+Five turn whole (run1469, run1469b, run1472, run1484 and run810), and run1487
+and run1496 shrink to 28 and 44 ranges parted (`PACKETS_SCORE` 892 → 897).
 
 *Not established*: the pool starts empty here. `River::init` and
 `River::close` share `Recycler<Spline>`, and no capture shows a river's
