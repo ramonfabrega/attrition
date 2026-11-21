@@ -3181,6 +3181,16 @@ pub struct CombatState {
     /// map's rivers share it (`River::init`, `River::close`), and a
     /// river's `Spline` handed to a round is not modelled.
     pub spline_pool: Vec<crate::combat::SplineCaps>,
+    /// **`AmmoData::accuracy` (`+0x6`) as each pool slot last held it**
+    /// (item 4497): `Objects::add_ammo@00658b10` keeps one `Ammo` per slot
+    /// for the game, `Ammo::Ammo@0067b730` zeroes it once (the dword at
+    /// `+0x4`), and `Ammo::close@006791a0` clears only the `flags` byte
+    /// (`movb $0, 0x4(%edi)`). `Ammo::init@0067bbf0:372` is its one writer,
+    /// past the bomb arm, and `Ammo::init_crash@0067b800` writes it not at
+    /// all, so a bomb's or a crash's round carries its slot's last
+    /// accuracy ([`crate::Sim::add_ammo_unaimed`]). Indexed by slot; a slot
+    /// past the end was never filled and reads 0.
+    pub ammo_accuracy: Vec<i16>,
     pub next_ammo_graph_index: u32,
     /// The nukes' effects and what a nuke writes on its shooter's leader
     /// and silo (`crate::combat::nuke`, item 1091).

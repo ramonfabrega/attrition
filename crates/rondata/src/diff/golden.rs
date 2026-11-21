@@ -802,12 +802,7 @@ fn run265_s_rounds_are_the_original_s_record_for_record() {
 // - on 1080 the rounds in flight at the Barracks' death keep it there
 //   and lose it here — run235's standing family.
 const WANT_RUN265_ROUNDS: &[&str] = &[
-    "1000 0/7 ammo[7].accuracy",
-    "1003 0/7 ammo[6].accuracy",
-    "1061 0/8 ammo[5].accuracy",
-    "1064 0/8 ammo[6].accuracy",
-    "1069 0/8 ammo[4].accuracy",
-    "1072 0/8 ammo[7].accuracy",
+    // Item 4497: 15 `accuracy` rows left — a bomb's round carries its pool slot's last accuracy (`docs/CHECKSUM.md` §18.2).
     "1080 0/8 ammo[0].ox",
     "1080 0/8 ammo[0].whom",
     "1080 0/8 ammo[1].ox",
@@ -820,15 +815,6 @@ const WANT_RUN265_ROUNDS: &[&str] = &[
     "1080 0/8 ammo[4].whom",
     "1080 0/8 ammo[7].ox",
     "1080 0/8 ammo[7].whom",
-    "935 0/8 ammo[2].accuracy",
-    "936 0/8 ammo[3].accuracy",
-    "939 0/8 ammo[0].accuracy",
-    "942 0/8 ammo[1].accuracy",
-    "980 0/7 ammo[0].accuracy",
-    "981 0/7 ammo[1].accuracy",
-    "984 0/7 ammo[2].accuracy",
-    "987 0/7 ammo[3].accuracy",
-    "995 0/7 ammo[5].accuracy",
 ];
 
 /// **Chapter ten, pinned** — the patrol line, an issuer the AI never uses
@@ -6982,6 +6968,7 @@ const WANT_CH135: &[&str] = &[
 /// parts for more than a few frames. who=1's Bomber `1/6` takes
 /// `ATTACKORDER mandatory=0` on the low Fighter on 969 in both (§194).
 const WANT_CH134: &[&str] = &[
+    // Item 4497: 15 `accuracy` rows left — a bomb's round carries its pool slot's last accuracy (`docs/CHECKSUM.md` §18.2).
     "1043 0/12 ammo[3].angle",
     "1043 0/12 ammo[3].sx",
     "1060 0/12 g.angle[0]",
@@ -6991,16 +6978,9 @@ const WANT_CH134: &[&str] = &[
     "1060 0/12 g.y[0]",
     "1060 0/12 heading",
     "1060 0/12 pos",
-    "1060 0/8 ammo[0].accuracy",
     "1061 0/12 dest_angle",
     "1061 0/12 g.last_bank[0]",
     "1061 0/12 orders_y",
-    "1061 0/8 ammo[1].accuracy",
-    "1064 0/8 ammo[2].accuracy",
-    "1067 0/8 ammo[3].accuracy",
-    "1069 0/8 ammo[4].accuracy",
-    "1072 0/8 ammo[5].accuracy",
-    "1075 0/8 ammo[6].accuracy",
     "1076 0/8 ammo[1].ox",
     "1076 0/8 ammo[1].whom",
     "1076 0/8 ammo[2].ox",
@@ -7038,7 +7018,6 @@ const WANT_CH134: &[&str] = &[
     "1114 0/12 ammo[5].sy",
     "1126 0/12 angle:Facing",
     "1126 0/12 angle:Heading",
-    "1195 1/6 ammo[0].accuracy",
     "1308 0/15 ammo[4].angle",
     "1308 0/15 ammo[4].sx",
     "1316 0/15 ammo[0].angle",
@@ -7060,13 +7039,6 @@ const WANT_CH134: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "980 0/7 ammo[2].accuracy",
-    "981 0/7 ammo[3].accuracy",
-    "984 0/7 ammo[4].accuracy",
-    "987 0/7 ammo[0].accuracy",
-    "989 0/7 ammo[1].accuracy",
-    "992 0/7 ammo[5].accuracy",
-    "995 0/7 ammo[6].accuracy",
 ];
 
 /// What parts in run1548's window, blocks 605–1400 (item 3990): the
@@ -7080,7 +7052,7 @@ const WANT_CH134: &[&str] = &[
 /// scramble (796), the re-homes, the deaths (1231) or the Helicopter's
 /// flight home (1262–1318).
 const WANT_CH132: &[&str] = &[
-    "1075 0/8 ammo[6].accuracy",
+    // Item 4497: 15 `accuracy` rows left — a bomb's round carries its pool slot's last accuracy (`docs/CHECKSUM.md` §18.2).
     "1080 0/8 ammo[0].ox",
     "1080 0/8 ammo[0].whom",
     "1080 0/8 ammo[1].ox",
@@ -7096,7 +7068,6 @@ const WANT_CH132: &[&str] = &[
     "1094 0/6 ammo[0].ox",
     "1094 0/6 ammo[0].whom",
     "1094 1/7 death:extra",
-    "1231 0/6 ammo[0].accuracy",
     "605 0/0 form",
     "605 0/1 form",
     "605 0/2 form",
@@ -7108,25 +7079,12 @@ const WANT_CH132: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "852 0/7 ammo[0].accuracy",
-    "853 0/7 ammo[2].accuracy",
-    "856 0/7 ammo[4].accuracy",
-    "859 0/7 ammo[1].accuracy",
-    "861 0/7 ammo[3].accuracy",
-    "864 0/7 ammo[5].accuracy",
     "904 0/6 ammo[2].ox",
     "904 0/6 ammo[2].whom",
     "904 0/6 ammo[3].ox",
     "904 0/6 ammo[3].whom",
     "904 1/6 death:extra",
-    "935 0/8 ammo[0].accuracy",
-    "936 0/8 ammo[1].accuracy",
-    "939 0/8 ammo[2].accuracy",
-    "942 0/8 ammo[3].accuracy",
-    "944 0/8 ammo[4].accuracy",
-    "947 0/8 ammo[5].accuracy",
     "987 1/8 death:extra",
-    "995 0/7 ammo[6].accuracy",
 ];
 
 /// What parts in run1547's window, blocks 605–1000 (item 3989): chapter
@@ -7902,7 +7860,7 @@ fn chapter_forty_eight_s_word_frame_is_widened_whole() {
 /// builders' quarter rate (an aircraft's blow costs none); block 983, the
 /// original's fourth blow, 104/15 → 113/4 and 450 of progress (the carry).
 const WANT_CH48: &[&str] = &[
-    "1468 0/6 ammo[0].accuracy",
+    // Item 4497: 1 `accuracy` rows left — a bomb's round carries its pool slot's last accuracy (`docs/CHECKSUM.md` §18.2).
     "1468 0/6 ammo[0].ex",
     "1468 0/6 ammo[0].sx",
     "1474 0/6 ammo[6].ex",
@@ -8421,27 +8379,12 @@ fn chapter_thirty_eight_s_squad_stands_on_its_points_and_packs_on_its_phase() {
 /// and the Barracks' and the Radar's `damage` and `damage_frac` on 1036
 /// agree.
 const WANT_CH38: &[&str] = &[
+    // Item 4497: 16 `accuracy` rows left — a bomb's round carries its pool slot's last accuracy (`docs/CHECKSUM.md` §18.2).
     // Item 3804: the rounds' `ez` rows, and the Stockade's `v1z`, left — an air target is aimed at its figure's `z` (`docs/GOLDEN.md` §152.3).
     // Item 4159r5: 68 -> 17, the Battery `1/9`'s fifty-one rows left (its turret on 743, its rounds' launch
     // points and flights 754..989, `0/7`'s blow of 784, its bits on 801): the Flak Gun, piece 232, now
     // releases node 0 through its pivot row and node 1 from its bay (parked 1125 closed).
     "619 1/2007 build:constr_time",
-    "786 0/7 ammo[0].accuracy",
-    "787 0/7 ammo[1].accuracy",
-    "806 0/7 ammo[6].accuracy",
-    "832 0/6 ammo[0].accuracy",
-    "833 0/6 ammo[1].accuracy",
-    "836 0/6 ammo[2].accuracy",
-    "844 0/6 ammo[3].accuracy",
-    "847 0/6 ammo[4].accuracy",
-    "919 0/7 ammo[3].accuracy",
-    "922 0/7 ammo[4].accuracy",
-    "924 0/7 ammo[2].accuracy",
-    "927 0/7 ammo[5].accuracy",
-    "930 0/7 ammo[7].accuracy",
-    "969 0/6 ammo[6].accuracy",
-    "975 0/6 ammo[5].accuracy",
-    "980 0/6 ammo[7].accuracy",
 ];
 
 /// Chapter thirty-six's widening rows (item 1078): run390 whole. Chapter
@@ -8449,13 +8392,8 @@ const WANT_CH38: &[&str] = &[
 /// against −1), and the V2s' seats inside their silos on 2926 and 2931
 /// (+24, +24: parked 646's family, run371's `0/10` again).
 const WANT_CH36: &[&str] = &[
+    // Item 4497: 15 `accuracy` rows left — a bomb's round carries its pool slot's last accuracy (`docs/CHECKSUM.md` §18.2).
     // Item 3804: the helicopter's `g.z`/`g.last_z` rows left — its birth climb (`docs/GOLDEN.md` §152.3).
-    "1000 0/7 ammo[7].accuracy",
-    "1003 0/7 ammo[6].accuracy",
-    "1061 0/8 ammo[5].accuracy",
-    "1064 0/8 ammo[6].accuracy",
-    "1069 0/8 ammo[4].accuracy",
-    "1072 0/8 ammo[7].accuracy",
     "1080 0/8 ammo[0].ox",
     "1080 0/8 ammo[0].whom",
     "1080 0/8 ammo[1].ox",
@@ -8469,15 +8407,6 @@ const WANT_CH36: &[&str] = &[
     "1080 0/8 ammo[7].ox",
     "1080 0/8 ammo[7].whom",
     "2675 0/12 dest_angle",
-    "935 0/8 ammo[2].accuracy",
-    "936 0/8 ammo[3].accuracy",
-    "939 0/8 ammo[0].accuracy",
-    "942 0/8 ammo[1].accuracy",
-    "980 0/7 ammo[0].accuracy",
-    "981 0/7 ammo[1].accuracy",
-    "984 0/7 ammo[2].accuracy",
-    "987 0/7 ammo[3].accuracy",
-    "995 0/7 ammo[5].accuracy",
     // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 6125 theirs 6085. Item 4159's
     // residue: agrees (the score's units and combat parts, §18.5).
 ];
@@ -8606,13 +8535,8 @@ const V2_LAUNCH: (i64, i64) = (2668, 2704);
 // parting. What stands is the birth seats and the second Helicopter's
 // bearing, parked.
 const WANT_CH35: &[&str] = &[
+    // Item 4497: 15 `accuracy` rows left — a bomb's round carries its pool slot's last accuracy (`docs/CHECKSUM.md` §18.2).
     // Item 3804: the helicopter's `g.z`/`g.last_z` rows left — its birth climb (`docs/GOLDEN.md` §152.3).
-    "1000 0/7 ammo[7].accuracy",
-    "1003 0/7 ammo[6].accuracy",
-    "1061 0/8 ammo[5].accuracy",
-    "1064 0/8 ammo[6].accuracy",
-    "1069 0/8 ammo[4].accuracy",
-    "1072 0/8 ammo[7].accuracy",
     "1080 0/8 ammo[0].ox",
     "1080 0/8 ammo[0].whom",
     "1080 0/8 ammo[1].ox",
@@ -8626,15 +8550,6 @@ const WANT_CH35: &[&str] = &[
     "1080 0/8 ammo[7].ox",
     "1080 0/8 ammo[7].whom",
     "2675 0/12 dest_angle",
-    "935 0/8 ammo[2].accuracy",
-    "936 0/8 ammo[3].accuracy",
-    "939 0/8 ammo[0].accuracy",
-    "942 0/8 ammo[1].accuracy",
-    "980 0/7 ammo[0].accuracy",
-    "981 0/7 ammo[1].accuracy",
-    "984 0/7 ammo[2].accuracy",
-    "987 0/7 ammo[3].accuracy",
-    "995 0/7 ammo[5].accuracy",
     // Item 4187: `score` (held, `docs/LEADERS.md` §18.5), ours 5925 theirs 5885. Item 4159's
     // residue: agrees (the score's units and combat parts, §18.5).
 ];

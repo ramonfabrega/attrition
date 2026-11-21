@@ -347,7 +347,7 @@ fn japanese_modern_pair_run1424b_s_closing_frame_is_widened_whole() {
     // 256..300, and `1/106`'s `ammo[3]` of 3860 one unit off in `sx` and
     // `ex` (parked 3745a).
     pin_eq!(w.rounds_read, (282, 282), "the rounds read");
-    pin_eq!(w.rounds.len(), 15, "the rounds that part");
+    pin_eq!(w.rounds.len(), 2, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3722): run1403's closing block 3867,

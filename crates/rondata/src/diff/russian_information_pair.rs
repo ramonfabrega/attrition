@@ -287,7 +287,7 @@ fn russian_information_pair_run1401b_s_word_frame_is_widened_whole() {
     // 3975, the MLRS's rack (piece 223, `docs/GOLDEN.md` §177; 3744a): 46
     // → **6**.
     pin_eq!(w.rounds_read, (408, 408), "the rounds read");
-    pin_eq!(w.rounds.len(), 6, "the rounds that part");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// run1423: the stride's last gap, blocks 5895..6101 at run1401b's detail

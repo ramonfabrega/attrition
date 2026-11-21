@@ -381,7 +381,7 @@ fn german_modern_pair_run1418_s_word_frame_is_widened_whole() {
     // `1/107`, `1/113`) over Napata from 4770: `accuracy` ours 0 against
     // theirs 252..256, and `sy`/`ey` one unit apart (3742b).
     pin_eq!(w.rounds_read, (912, 912), "the rounds read");
-    pin_eq!(w.rounds.len(), 32, "the rounds that part");
+    pin_eq!(w.rounds.len(), 20, "the rounds that part");
 }
 
 /// run1422: the pair's closing window, blocks 5048..5305 at the long's
