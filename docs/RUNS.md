@@ -40466,4 +40466,30 @@ Files in place, `~/ron-golden/run1754/map-18/`: `gamelog_p.txt`, 2,426 bytes, SH
 `52f10cd1115c6bb316a525d86ddb7d426af58ba1f9963e6bdcbcc0939e14086b`.
 
 **What it holds**: `diff::held_out::tests::row_130_s_computer_bomber_searches_round_itself_on_run1754_s_ranges`
+(every units range on 3410 and 3411).
+
+## run1771 — the 2017 sample's playback to 5,350 with the checksum and ranges hooks, units, builds, ammo, guys, leaders and world kept (2026-11-21, item 4521, `att-4521`)
+
+`docs/RECGAME.md` §7; DECISIONS 148 §4, §5. **What the disk could not answer**: run1726's record ends on 4499, and
+the sample's score stood on leaders and world 5256, with units and guys on 5273, builds on 5293 and ammo on 5299, all
+past it and none on a range record. **The take**: run1726's line with the end moved to 5350, the log window on
+5256, and the mask cut to the six lines that part below 5300 on the hook's sums (148 §4; `score_recording`'s
+`joined_take` rule): `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1771 --recording "<install>/external-recgames/seifer008 - Toughest AI 4 v 1.rcx" --end-frame 5350
+--cover cover=1 --log-window 5250 5262 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def
+RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0x8cbu`, waited on with `waitrun.sh` in the background
+lane. The game lane read free; `df -g ~` read 60 GB free before it and 51 GB after.
+- Pool lane 1, launched 14:52:00 −05:00 and exited 14:59:15: **435.2 s** launch to exit, exit 0, `success`, 5,351
+  frames, `last_frame` 5350, not ended early. Seed observed 340513920, no page fault, no relaunch, five settings
+  restored. DLL `b85677ef…`, defines `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0x8cbu`.
+- **The record**, `~/ron-golden/run1771/map-7/rontrace.ranges`, 4,323,163,000 bytes, SHA-256
+  `a27f98bf50d3213c5d08025fd7aee1052bb4077e572c850f6ec2ee2892eed5fe`; one set on every trace frame −1 to 5349.
+- Filed with `filerun.py run1771 sample2017-playback-ranges-5350`. The record stays where the take left it.
+
+Archive `gamelog-run1771-sample2017-playback-ranges-5350.txt`, 3,775 bytes,
+SHA-256 `891038f87852b3e613ec0ef23c1e53adddae54ccb85c314a8c092df9f7b7b353`; `rontrace-run1771.log`, 96,948,160
+bytes, SHA-256 `de1d2be705480463d46b61efae2eba767add16cb9afecfe9881eb00e7c78411b`.
+
+**What it holds**: `diff::sample::tests::the_sample_s_ranges_to_5350_name_each_first_parting`
+(`SAMPLE_RANGES_1771`): each kept line's first parting by range over 0..5350, on the frame its sum parts.
 (every units range on 3410 and 3411); `row_130_s_kremlin_spy_due_bit_is_in_the_leaders_flags_on_run1754_s_ranges` (every leaders range on 4572, 4573, 4582 and 4583).

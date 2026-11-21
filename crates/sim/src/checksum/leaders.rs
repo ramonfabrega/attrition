@@ -656,7 +656,15 @@ impl Sim {
             return (Some(DIRTY), Some(0));
         }
         let mut f = 1i64;
-        if !self.leaders.defeated.get(w).copied().unwrap_or(false) {
+        // `Leader::defeat@006ecb00`, past its guards: `leader_flags = (f &
+        // ~2) | 0x40` (the defeated mark its own guard reads) and
+        // `leader_flags2 |= 2` (item 4521, run1771: computer 1 defeated by
+        // the person on 5256). Every caller passes `param_3` 0, so
+        // `leader_flags2 & 0x200` stays clear.
+        let defeated = self.leaders.defeated.get(w).copied().unwrap_or(false);
+        if defeated {
+            f |= 0x40;
+        } else {
             f |= 2;
         }
         if self.cities.nation.get(w).is_some_and(|n| n.human) {
@@ -779,12 +787,13 @@ impl Sim {
             f |= 0x400;
         }
         // `leader_flags2`: the bits this crate keeps, no governments
-        // (`0x800`), no patriots (`0x1000`) and the scenario's transport lock
-        // (`0x20`, `LeaderData::locked_transport`).
+        // (`0x800`), no patriots (`0x1000`), the scenario's transport lock
+        // (`0x20`, `LeaderData::locked_transport`) and the defeat (`2`).
         let t = &self.tech[w];
         let f2 = if t.no_governments { 0x800 } else { 0 }
             | if t.no_patriots { 0x1000 } else { 0 }
-            | if tr.locked { 0x20 } else { 0 };
+            | if tr.locked { 0x20 } else { 0 }
+            | if defeated { 2 } else { 0 };
         (Some(f), Some(f2))
     }
 

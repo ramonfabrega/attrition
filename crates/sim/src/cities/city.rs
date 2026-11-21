@@ -665,16 +665,16 @@ impl Sim {
                 self.capture_city(taker, c, who);
             }
         }
-        for b in 0..self.buildings.len() {
+        // `defeat_by@006d1c80`'s walk, captor arm only; an active centre is the capture's (§10.3).
+        for b in (0..self.buildings.len()).take_while(|_| by.is_some()) {
             if !self.buildings[b].alive || self.buildings[b].owner != who {
                 continue;
             }
-            // `defeat_by@006d1c80`'s walk is its captor arm's: none, none.
-            if by.is_none() {
-                break;
-            }
             if !self.buildings[b].active {
                 self.die_building(b);
+                continue;
+            }
+            if self.building_is_city(b) {
                 continue;
             }
             let trainer = self.buildings[b].ty.is_some_and(|t| {

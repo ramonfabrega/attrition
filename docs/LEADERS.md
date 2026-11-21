@@ -2994,6 +2994,19 @@ landed:
   captor, so a conquest's `defeat_by` saw −1. `CitiesState::capturing`
   carries the taker through the capture's closes (red first: the 4185
   journal).
+- **Step 3's two marks and the live gate** (item 4521, run1771's 5256 and
+  5257; diff-backed): a defeated leader's hashed `leader_flags` carries
+  `0x40` where it drops `2`, and `leader_flags2` carries `2`
+  (`checksum::leaders::leader_flag_words`; `instant` is 0 at every named
+  caller, so `0x200` is never set). `Leaders::process_all`'s slot step
+  sits behind `leader_flags & 2` whole, so `Sim::tick`'s income loop runs
+  `gather`, `calc_wall_stats` and `calc_unit_stats` for a live slot only.
+- **The captor arm's building walk skips an active city centre**
+  (`Object +0x8 & 0x20`, tested ahead of `is_military_trainer`; item
+  4521, diff-backed by run1771's 5256): a last city's capture reaches the
+  defeat through `close_city` while the old centre is still the loser's,
+  and the capture's own `close(5)` closes it, keeping the cells under the
+  new centre blocked.
 - **`Sim::resign`** is `leave_game`'s choice: type 1 with the
   `find_capital` holder (itself under another elimination) while the
   capital clock runs, else type 6. SEAM: the captor arm under a running
@@ -3092,6 +3105,11 @@ run1113/1114. `wonderwin_timer` 1 in 30 captures (run652 … run1423c).
   `wonder_timer`'s `M` and `world[0]`~~ — read by item 4185 (§10.3's
   `scaled_timer`); a capture that runs the clock out would back it.
 - **A re-stamp.** No file shows two `defeat_stamp` values.
+- **The captor walk's other two skips** (parked 4521a): a live, active
+  building whose type answers vslot `+0xfc`, or whose vslot `+0xb8` test
+  answers for 0x1b7 or 0x209, takes neither arm in
+  `defeat_by@006d1c80`. Ours kills it (or hands over a trainer). Neither
+  is named, and no capture's defeat has held one.
 - **Resign under a capital timer.** No `defeat_type` 1 in the archive; it
   would show `defeated_by` = the quitter's own slot.
 - ~~**The territory expiry's frame**~~: ported by item 4185, diffed on
