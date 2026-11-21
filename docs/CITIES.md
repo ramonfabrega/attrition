@@ -296,6 +296,17 @@ tile(x)·192 + (x_size odd ? 96 : 0)`, same for `y`. `tile_corner`: `tx =
 tile(x) − x_size/2`, so the footprint is tiles `[tx, tx+x_size) × [ty,
 ty+y_size)`. `corner_tile` inverts it: `x = (x_size + 2·tx)·96`.
 
+**Built on the player's order (item 4498, `Sim::snap_center_placed`,
+called by `Sim::group_action_build`); diff-backed.** The 2017 sample's
+person orders a Mine at (29695, 10216) on recording frame 5084. Its tile is
+`NoMountain`: range 12's nearest solid cell is 1267 away, past the 1152
+reach. Theirs builds it a tile south, at (29568, 10368), with a 205-tile
+list, and spends 820 `Build::find_gather_tiles+0x10a` draws on 5083; ours
+now does the same, and the draws agree to 5255. **Not established**:
+`Objects::init_build` snaps with the owner too, while `Sim::init_build`
+keeps the plain snap. Whether any AI or capture (`Wall::swap_team`) site
+on file is one the arm would move has not been scanned.
+
 ## 2.3 The tile layer — `TData.mask` and `WData.flags`
 
 One `ushort` per tile (`World +0x138`) and one `WData` per cell (`+0x134`,

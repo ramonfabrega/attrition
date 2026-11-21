@@ -452,10 +452,18 @@ pub(in crate::diff) mod tests {
     /// 1172, the top, with 950, 638, 851 and 1172 above it: theirs'
     /// `Leader::diplomacy+0x4035` after the race coin; the coin 16145 odd,
     /// refused by computer 4's three allies; again on 4520, computer 1, and
-    /// 4840, computer 4): 4328 -> 5083, +755. On 5083 both spend
-    /// `Farms::inc_time+0x1ae` to draw 27; theirs then four
-    /// `Build::find_gather_tiles+0x10a` and ours nothing.
-    const SAMPLE_WALKED: (i64, i64) = (5083, 21044);
+    /// 4840, computer 4): 4328 -> 5083, +755. Item 4498 (a player's Mine
+    /// or Woodcutter's Camp snaps through `snap_center@00636190`'s spiral
+    /// before `blocked_site`, `00636304`–`00636328`, the group's `who`
+    /// passed by `Group::action_build@00707510`: the person's Mine ordered
+    /// at (29695, 10216) on recording frame 5084, refused here `NoMountain`
+    /// with range 12 at 1267 past the 1152 reach, stands at (29568, 10368)
+    /// with a 205-tile list, theirs' 820 `Build::find_gather_tiles+0x10a`
+    /// after the farm rolls on 5083): 5083 -> 5255, +172. On 5255 theirs
+    /// loses a city (`Leader::lost_a_city`) and spends a `Unit::come_out
+    /// +0xbae` unit's anim at game draw 6 where ours goes on to the
+    /// `Guy::inc_time` wraps.
+    const SAMPLE_WALKED: (i64, i64) = (5255, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -640,20 +648,27 @@ pub(in crate::diff) mod tests {
     /// 5135, groups 4333 -> 5085, guys 4330 -> 5085, cities 4401 -> 5126,
     /// goods 4559 -> 5403, world 4334 -> 5085; units 4248, builds 4321 and
     /// leaders 4321 unchanged; items 5666 -> 5403, a named fall past the
-    /// unchanged lowest 4248.
+    /// unchanged lowest 4248. Item 4498 (a player's Mine snaps through
+    /// `snap_center@00636190`'s spiral before `blocked_site`: the person's
+    /// Mine `3/2028`, ordered on recording frame 5084, built a tile south
+    /// with 205 tiles; draws 5083 -> 5255): deaths 5135 -> 5428, groups
+    /// 5085 -> 5282, guys 5085 -> 5256, cities 5126 -> 5326, world 5085 ->
+    /// 5256; units 4248, builds 4321, ammo 4462 and leaders 4321
+    /// unchanged; items 5403 -> 5286 and goods 5403 -> 5384, named falls
+    /// past the unchanged lowest 4248.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 4248),
         ("builds", 4321),
         ("walls", 21044),
         ("ammo", 4462),
-        ("deaths", 5135),
-        ("groups", 5085),
-        ("guys", 5085),
+        ("deaths", 5428),
+        ("groups", 5282),
+        ("guys", 5256),
         ("leaders", 4321),
-        ("cities", 5126),
-        ("items", 5403),
-        ("goods", 5403),
-        ("world", 5085),
+        ("cities", 5326),
+        ("items", 5286),
+        ("goods", 5384),
+        ("world", 5256),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -745,8 +760,12 @@ pub(in crate::diff) mod tests {
     /// not read one by one; the first shot still on 2929. Item 4496 (the
     /// computer's own alliance to the top scorer draws at `6c0980`, three
     /// times to 5083): 4946 -> 4920, a named fall, the frames not read one
-    /// by one; the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4920, Some(2929));
+    /// by one; the first shot still on 2929. Item 4498 (a player's Mine
+    /// snaps through `snap_center`'s spiral, the person's `3/2028` built on
+    /// 5083 where ours refused it): 4920 -> 3475, a named fall, the frames
+    /// not read one by one (the war past 5083 runs with the person's mine
+    /// standing and its 820 draws spent); the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3475, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve

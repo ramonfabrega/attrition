@@ -99,6 +99,11 @@ impl Sim {
         if self.type_avail(g.who, tree) != crate::tech::AVAILABLE {
             return None;
         }
+        // `snap_center(.., who)` ahead of `blocked_site`, in
+        // `validate_build` and in the loop alike (`00707834`): a Dock, Mine
+        // or Woodcutter's Camp on a refused tile moves to the first spiral
+        // tile the same test clears (item 4498).
+        let at = self.snap_center_placed(ty, at, Some(g.who));
         let b = self.place_building(g.who, ty, at).ok()?;
         self.group_action_swarm_around(g, b, pos, Body::Build(b), true);
         Some(b)
