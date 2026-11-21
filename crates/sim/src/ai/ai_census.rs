@@ -896,12 +896,69 @@ impl Sim {
             return None;
         };
         let r = self.world.region_of(m.dest.cell())?;
-        let cs = &mut self.ai.ai[w].census;
-        if let Some(x) = cs.reg_xport_peasants.get_mut(usize::from(r)) {
+        self.census_xport_bump(w, r);
+        self.ai.ai[w].census.xport_peasants += 1;
+        Some(r)
+    }
+
+    /// **`reg_xport_peasants` is indexed without a bound** (item 4499,
+    /// `docs/AI.md` §58). The rider arm's `incw 0x10de(%ebx,%esi,2)` at
+    /// `6baa2f` tests only the region number's sign (`js` at `6baa29`),
+    /// and `Unit::think_civilian_transport@005f40d0` reads and writes the
+    /// same array with no test at all. `LeaderData`'s per-region arrays
+    /// are `ushort[64]` laid end to end, so a sea region's number (`≥
+    /// 0x40`) lands in the arrays after this one: `reg_gatherers`
+    /// (`+0x115e`) at `number − 64`, then `reg_gather_slots` (`+0x11de`)
+    /// at `number − 128`. run1752's state 1976: who=1's rider bound for
+    /// sea region 65 is a gatherer in `reg_gatherers[1]`. The slot
+    /// answered is this crate's region holding that number; `None` for a
+    /// number no region holds, or one past `reg_gather_slots`.
+    pub(crate) fn xport_alias(&self, r: u16) -> Option<(XportCell, usize)> {
+        let n = usize::from(self.world.region_number(r));
+        let (cell, k) = match n {
+            0..=63 => return Some((XportCell::Xport, usize::from(r))),
+            64..=127 => (XportCell::Gatherers, n - 64),
+            128..=191 => (XportCell::GatherSlots, n - 128),
+            _ => return None,
+        };
+        (0..self.world.region_count())
+            .find(|&s| usize::from(self.world.region_number(s as u16)) == k)
+            .map(|s| (cell, s))
+    }
+
+    fn xport_cells(c: &Census, cell: XportCell) -> &Vec<i32> {
+        match cell {
+            XportCell::Xport => &c.reg_xport_peasants,
+            XportCell::Gatherers => &c.reg_gatherers,
+            XportCell::GatherSlots => &c.reg_gather_slots,
+        }
+    }
+
+    /// `reg_xport_peasants[number] += 1`, where the original's write lands.
+    pub(crate) fn census_xport_bump(&mut self, w: usize, r: u16) {
+        let Some((cell, s)) = self.xport_alias(r) else {
+            return;
+        };
+        let c = &mut self.ai.ai[w].census;
+        let v = match cell {
+            XportCell::Xport => &mut c.reg_xport_peasants,
+            XportCell::Gatherers => &mut c.reg_gatherers,
+            XportCell::GatherSlots => &mut c.reg_gather_slots,
+        };
+        if let Some(x) = v.get_mut(s) {
             *x += 1;
         }
-        cs.xport_peasants += 1;
-        Some(r)
+    }
+
+    /// `reg_xport_peasants[number]` as the original reads it: `None` when
+    /// the array is not yet sized, 0 for a number no region holds.
+    pub(crate) fn census_xport_get(&self, w: usize, r: u16) -> Option<i32> {
+        match self.xport_alias(r) {
+            Some((cell, s)) => Self::xport_cells(&self.ai.ai[w].census, cell)
+                .get(s)
+                .copied(),
+            None => Some(0),
+        }
     }
 
     /// Step 11, the building census: the gather slots and the defensive
@@ -1404,6 +1461,15 @@ fn census_zero_scalars(cs: &mut Census) {
     cs.gatherers = 0;
     cs.attacked = 0;
     cs.full_cities = 0;
+}
+
+/// The array an unbounded `reg_xport_peasants` index lands in
+/// ([`Sim::xport_alias`]).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum XportCell {
+    Xport,
+    Gatherers,
+    GatherSlots,
 }
 
 #[cfg(test)]
