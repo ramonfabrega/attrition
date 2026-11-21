@@ -1440,6 +1440,34 @@ pub const RUN1559B_3279_BUILDINGS_WARMTH: (usize, usize) = (2, 2);
 /// is the row that reads the red.
 pub const RUN1559B_3279_BUILDINGS_TEAM: [((u8, i16), (u32, u32)); 2] =
     [((0, 2001), (22, 55)), ((0, 2000), (73, 654))];
+/// One tank's reading on [`RUN1559B_3279_TANKS_HAZE`]: `(who, o)`,
+/// `(agree, held)`, and whether its luminance passes.
+pub type TankHaze = ((u8, i16), (u32, u32), bool);
+/// **The three tanks under a haze** (item 4482; `docs/RENDERER.md`
+/// §3.13): on the client's still (before, plain), each of player 1's four
+/// tanks of piece 196 — the three the photograph draws under a tan haze,
+/// `1/40`, `1/27` and `1/16`, and `1/15` beside them, crisp on both sides,
+/// the control — its own key's pixels outside the interface, as
+/// `((who, o), (agree, held))`, a pixel held when both sides' r + g + b
+/// reach [`HUE`]'s dark and agreeing within its 0.05 in chromaticity: the
+/// team-colour row's reader (item 4438), committed before this count;
+/// and whether the tank passes [`LUMA_READER`] (item 4172) on those held
+/// pixels, the means' luminance within its 1.2. The second reader was added
+/// after the first was seen not to part the hazy three from the control:
+/// the haze is a tan close to the hull's olive in chromaticity, and it is
+/// the light it adds that the eye sees.
+/// Minted at its measured value, `(agree, held)` and the luminance:
+/// 1/40 **1,014 of 2,026**, out (ours (74, 75, 40), the photograph's (124,
+/// 112, 56)); 1/27 **1,992 of 3,318**, out ((76, 75, 43) against (132, 119,
+/// 59)); 1/16 **1,134 of 2,900**, out ((80, 80, 44) against (139, 121,
+/// 61)); the control 1/15 **1,316 of 2,823**, in ((79, 79, 43) against (82,
+/// 90, 38)). **The luminance reads 1 of 4, the control.**
+pub const RUN1559B_3279_TANKS_HAZE: [TankHaze; 4] = [
+    ((1, 40), (1014, 2026), false),
+    ((1, 27), (1992, 3318), false),
+    ((1, 16), (1134, 2900), false),
+    ((1, 15), (1316, 2823), true),
+];
 /// The minted row, the draw before (`World::team_trim` off).
 pub const RUN1559B_3279_BUILDINGS_TEAM_BEFORE: [((u8, i16), (u32, u32)); 2] =
     [((0, 2001), (6, 55)), ((0, 2000), (243, 656))];

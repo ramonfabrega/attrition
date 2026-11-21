@@ -1163,6 +1163,19 @@ recorded idle by the client's page to 6000 and played by the original as
 | 150 | run1737 | Great Sahara, difficulty 4 | 6,001 | **12** | whole |
 
 Since the take, row 130's units line has moved 1,704 → 1,735 (4459's merge; `SCORES_SECOND[6].moved`).
+
+**Row 90 is whole** (item 4470, `SCORES_SECOND[4].moved`). run1738, the
+ranges take of its file to 6000, names the leaf on 4021: units range 498
+and guys range 150, the computer's transport barge (record 14, type 320)
+born that tick, its figure's `last_angle` ours 1431655765
+(`Angle::INITIAL`), theirs −609026048, its `angle` agreeing.
+`SpellType::cast_transport@00670db0` turns the boat with
+`Unit::set_angle(boat, caster +0x50, _, 1)` (`671027`–`67104f` push the
+snap), and `Guy::set_angle@005d9010`'s snap writes `angle` and
+`last_angle` both; the view had written the movement's facing alone.
+The same fix moved the guys lines of rows 10, 30, 110 and 130 and the
+first battery's row 40 (`docs/journal/2026-11-20-item-4470.md`); the
+battery reads 4 of 8 whole, 76 of 96 lines, with 4480's row 70.
 The original refused none of the eight files. Row 110 is the only row of
 the sixteen with three seats, and it is played as its lobby stands.
 `docs/RUNS.md` run1730 to run1737 holds every value; the pins hold both
@@ -1176,7 +1189,7 @@ Both parsed lines carry it (`held_out::queue_line`). The third battery is
 rows 5, 25, 45, 65, 85, 105, 125 and 145, named before any take (item
 4487), taken when this one reads 4 of 8 now.
 
-*Not established*: no parting here names its leaf, since the take holds
-sums. Rows 10 and 130 are the two lobbies that start past the last age
+*Not established*: no parting here but row 90's names its leaf, since the
+takes hold sums. Rows 10 and 130 are the two lobbies that start past the last age
 (`STARTING_TECHNOLOGY 8`), and both part builds and world together early,
 on 537 and 553. That suggests one cause, but neither row is read.
