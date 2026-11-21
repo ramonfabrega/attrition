@@ -796,6 +796,57 @@ mod tests {
     /// `reg_gatherers[1]`, byte 4440 of the record's `who..ally_mask`.
     /// Every leaders range on both states, ours against theirs, byte for
     /// byte: red on the tree before the fix, at range 129.
+    /// PROBE 4507 (reverted whole): row 5's ammo ranges, decoded, both sides.
+    #[test]
+    fn probe_4507_row_5_ammo() {
+        if std::env::var("RON_PROBE_4507").is_err() {
+            return;
+        }
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&THIRD, 0) else { panic!("rcx") };
+        let ranges = home.join("ron-golden/run1753/map-14/rontrace.ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("file");
+        let loaded = crate::load::load(&inst).expect("load");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("record");
+        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(4795);
+        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(4806);
+        let words = |b: &[u8]| -> Vec<i32> {
+            (0..24).map(|k| i32::from_le_bytes(b[3 + 4 * k..7 + 4 * k].try_into().unwrap())).collect()
+        };
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("set").clone();
+            let all = record.ranges(&set).expect("ranges");
+            let ours = built.sim.checksum_ammo();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 3).collect();
+            let ours_r = ours.map(|l| l.ranges).unwrap_or_default();
+            eprintln!("state {state}: ours {} ranges, theirs {}", ours_r.len(), theirs.len());
+            for a in &ours_r {
+                if a.bytes.len() == 99 {
+                    eprintln!("  ours   rec {} acc {} {:?}", a.record, i16::from_le_bytes([a.bytes[1], a.bytes[2]]), words(&a.bytes));
+                } else {
+                    eprintln!("  ours   rec {} {} {:02x?}", a.record, a.field, a.bytes);
+                }
+            }
+            for b in &theirs {
+                if b.bytes.len() == 99 {
+                    eprintln!("  theirs     acc {} {:?}", i16::from_le_bytes([b.bytes[1], b.bytes[2]]), words(&b.bytes));
+                } else {
+                    eprintln!("  theirs     {:02x?}", b.bytes);
+                }
+            }
+            for p in &built.sim.combat.projectiles {
+                eprintln!("  ours proj slot {} shooter {:?} owner {:?} target {:?} launch {:?} landing {:?} angle {:?} dx {:?}", p.slot, p.shooter, p.owner, p.target, p.launch, p.landing, p.angle, p.graphic.dx);
+            }
+        }
+    }
+
     #[test]
     fn row_105_s_rider_to_sea_region_65_lands_in_reg_gatherers_on_run1752_s_ranges() {
         let Some(inst) = crate::testenv::install() else {
