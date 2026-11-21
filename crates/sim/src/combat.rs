@@ -3178,8 +3178,8 @@ pub struct CombatState {
     /// `Spline`s a closed round handed back, by their arrays' sizes, top
     /// last. `Ammo::close@006791a0` pushes; `Ammo::init@0067bbf0` pops for
     /// a round that lays a spline. SEAM: the pool starts empty here; the
-    /// map's rivers share it (`River::init`, `River::close`), and no
-    /// capture shows a river's `Spline` handed to a round.
+    /// map's rivers share it (`River::init`, `River::close`), and a
+    /// river's `Spline` handed to a round is not modelled.
     pub spline_pool: Vec<crate::combat::SplineCaps>,
     pub next_ammo_graph_index: u32,
     /// The nukes' effects and what a nuke writes on its shooter's leader
