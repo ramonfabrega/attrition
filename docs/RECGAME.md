@@ -1263,6 +1263,17 @@ row 10 3,976 → 5,801 (first 1576 → 3976), **row 30 3,748 → 4,548, whole**,
 packets' lines go 899 → 908 on the merged tree. `row_105_s_rider_to_sea_region_65_lands_in_reg_gatherers_on_run1752_s_ranges` holds every leaders range on
 1975 and 1976.
 
+**Row 105's units leaf (item 4502, run1752).** State 2983, units range 655, record 17 (who=1's `1/17`),
+`collide_frame..play` byte 38: `unit_masks2` ours 0, theirs 65536. On 2983 `1/17` turns from `TypeIndex` 0x163
+to 0x165. `Unit::set_type@00612fa0:208`–`219`, like `Unit::init@00612100:253`–`264`, raises `unit_masks2 &
+0x10000` on a type that `is(0x165, 1)` and clears it on any other, and a unit left holding the bit calls
+`update_ceo_position` from nowhere to its own tile. This crate wrote neither the bit nor that call, and decided the
+CEO by its type. Both now follow the original (`Sim::init_ceo_mask`; the set_type adapter's `is_ceo`), and the
+crossing test reads the bit. Units go 2,983 → 3,359, first 2983 → 3359 (range 3707, record 127,
+`myhits..launch_frames` byte 8, `inside_down` ours −1, theirs 128). That is the row's first parting too. Leaders
+(3583) and groups (4355) do not move. `row_105_s_ceo_carries_the_ceo_bit_from_its_set_type_on_run1752_s_ranges` holds
+every units range on 2982 and 2983.
+
 **At the pass of 2026-11-21** (DECISIONS 148 §2, §3). The three found columns read 0, 1 and 5 of 8 whole, 64, 65
 and 90 of 96 lines, and 27, 53 and 88 % by reach. Every game of the twenty-four has an idle human. The fourth
 battery is rows 15, 35, 55, 75, 95, 115, 135 and 155, named before any take (item 4510), taken when this one reads
@@ -1274,7 +1285,8 @@ five, each on run1739's disk: units 1747 (`inside_down`), world 2365 (range 6920
 ranges). Rows 40, 5, 130, 30 and 110 hold sums; each one's take keeps the lines it parts on (`0x1u`, `0x8u`,
 `0x81u`, `0x801u`, `0x88bu`).
 
-*Not established*: row 5 names no leaf, since its take holds sums. Row 105's next partings are units on 2983 (range
-655, record 17, `unit_masks2` ours 0, theirs 65536) and leaders on 3583 (range 191, record 1, `oil_patches` ours 10,
-theirs 20), both on run1752's disk. The alias is built for the rider arm and the transport's two accesses. The
+*Not established*: row 5 names no leaf, since its take holds sums. Row 105's next partings are units on 3359 (range
+3707, record 127, `inside_down` ours −1, theirs 128; item 4502) and leaders on 3583 (range 191, record 1,
+`oil_patches` ours 10, theirs 20), both on run1752's disk. `go_inside` and `come_out` still do not call
+`update_ceo_position`. The alias is built for the rider arm and the transport's two accesses. The
 kinds-8/0xe arm's unbounded write (`6bae11`) is still a seam here, and no capture has entered it.
