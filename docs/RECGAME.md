@@ -1069,28 +1069,13 @@ Answered by item 4439, below: the passenger's landing writes its figures'
 `last`; the later units parting is on 5864.
 
 **A passenger lands with its figures' `last` on its seat** (item 4439,
-run1716, diff-backed on row 120). `Unit::come_out@00617c10` seats a
-passenger with `set_new_location(this, x, y, 1, 1)` (`:519`). That call's
-`param_3` reaches `Guy::set_new_location(guy 0, x, y, 1)`, which copies the
-point and `z` into `last_x`, `last_y` and `last_z` (`005d86f0:66`–`70`), and
-whose crew loop seats each crew figure the same way. The tail then turns the
-passenger to the host's angle with `set_angle(…, 1)` (`:629`). That reaches
-`Guy::set_angle(guy 0, a, 1)`, which writes `last_angle` beside `angle`
-(`005d9010:13`–`16`) and re-seats the crew. This crate's `land_tail` wrote
-none of it, so a passenger whose own walk ran earlier in the frame kept the
-`last` of its boarding until its next walk. On row 120, 3250, run1716's units
-range 159 (record 0, the scout `1/0`'s figure) reads `last_x`, `last_y`,
-`last_z`, `last_angle` as 19080, 39768, −30, −664928256 on theirs and
-30849, 41470, −37, −1553072128 on ours. Our walk puts a passenger ashore on
-each of the five Ancient-start partings the transport fix left: the scout
-`1/0` off barge `1/15` on row 0's 3157, the citizen `1/7` off `1/15` on row
-20's 4180, `1/0` off `1/42` on row 40's guys parting 2444, `1/0` off `1/15`
-on row 120's 3250, and `1/0` off `1/20` on row 140's guys parting 3081. In
-the second column, rows 0 and 20 are **whole**: all twelve lines on all
-6,001 states. Row 120's guys is whole and units moved 5,861 → 5,864 (first
-3250 → 5864). Row 40's guys moved 4,824 → 4,876 (2444 → 2487), and row 140's
-5,994 → 6,000 (3081 → 4026). Parity held out reads 2 of 8, 72 of 96 lines
-with item 4436's row 80 beside it.
+run1716, diff-backed on row 120). `Unit::come_out@00617c10:519` seats a
+passenger with `set_new_location(…, 1, 1)`, which copies each figure's point
+and `z` into `last_*` (`Guy::set_new_location@005d86f0:66`–`70`); its tail's
+`set_angle(…, 1)` (`:629`) writes `last_angle` (`Guy::set_angle@005d9010:13`–`16`).
+`land_tail` wrote none of it. On 3250, run1716's units range 159 (the scout
+`1/0`) read `last_x`, `last_y` 19080, 39768 theirs, 30849, 41470 ours. Rows 0
+and 20 became whole; the rest it moved is journal 4439's.
 `row_120_s_scout_lands_with_its_figure_s_last_on_its_point_on_run1716_s_ranges`
 holds every units and guys range on 3250.
 
@@ -1142,19 +1127,8 @@ Answered by item 4448.
 slot's `ox`/`oy` (GROUPS §36.2); a dropped cavarch target keeps its uid (AI
 §134.3); a `DETECT` building lights `seen3` (VISION §4).
 
-**Row 100's deaths, whole: the nuke strikes in `find_units`' order** (item
-4478, diff-backed on row 100, run1721). On 2756 both sides hold the same two
-bodies, the Citizens (TI 50) `0/11` and `0/3` the ring killed on 2755, in
-swapped slots: theirs' record 0 is `0/11` at (2712, 31896), ours' `0/3` at
-(3384, 31992), `cur_anim` 0x13 and 0x14 in slot order on both (the draw
-follows the blow, not the body). `Nuke::do_damage@0092bc80:141` takes its
-units from `Objects::find_units@0065a620` before the first blow, and that
-walk is a circle of cells round the point when the ring holds no more cells
-than `total_units`, the players' lists otherwise. Ours walked the unit slots
-(`docs/PRODUCTION.md`, the nuke's "Not established"). Built
-(`Sim::nuke_find_units`), deaths goes 2,756 → 3,331 on row 100, 5,350 →
-6,001 on row 10 and 4,084 → 4,731 on row 130: whole on all three. Row 100
-parts first on units 2758.
+**Rows 100, 10 and 130's deaths, whole** (4478, run1721): the nuke strikes in
+`Objects::find_units@0065a620`'s order (PRODUCTION, the nuke).
 
 ## 11. Parity held out, second: eight more lobbies named before the original plays them (item 4462)
 
