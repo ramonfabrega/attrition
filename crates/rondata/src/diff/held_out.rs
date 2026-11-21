@@ -1466,6 +1466,85 @@ mod tests {
         }
     }
 
+    /// **Row 10's walker steps inside a freed cell and marks nothing**
+    /// (item 4504, `docs/COLLISION.md` §2.4): run1739, the ranges take of
+    /// run1730's file. who=1's `1/43` (TI 104) stands at unit cell
+    /// (632, 813) with its disc holed out and cell (39, 50)'s block
+    /// (record 3039) freed by the sweep; on 2365 it steps to (633, 814),
+    /// both discs inside that one cell, and `CollCheck::move_unit@00682ad0`'s
+    /// one-block form finds the block null (`WorldData::get_coll_block@006b5350`
+    /// only reads) and returns before either pass. This crate ran the set
+    /// pass and allocated the block. Every world range on 2364, 2365 and
+    /// 2366, byte for byte: red on the tree before the fix at range 6920 on
+    /// 2365, record 3039 `block.present`, ours 1, theirs 0.
+    #[test]
+    fn row_10_s_walker_steps_inside_a_freed_cell_and_marks_nothing_on_run1739_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 0) else {
+            eprintln!("skipping: row 10's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1739/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1739's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 10's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [2364i64, 2365, 2366] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_world();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "world range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            assert_eq!(ours.ranges.len(), theirs.len(), "world's ranges on {state}");
+            // The cell and the walker by name: record 3039 is world cell
+            // (39, 50) on the 60-wide map, and `1/43` steps into it on 2365.
+            let k = ours
+                .ranges
+                .iter()
+                .position(|r| r.record == 3039 && r.field == "block.present")
+                .expect("cell 3039's presence");
+            let present: u8 = if state == 2366 { 1 } else { 0 };
+            assert_eq!(
+                theirs[k].bytes,
+                [present, 0, 0, 0],
+                "theirs' block on {state}"
+            );
+            let u = built
+                .sim
+                .units
+                .iter()
+                .find(|u| u.owner == 1 && u.index == 43)
+                .expect("1/43");
+            assert_eq!(u.type_index, 104);
+            let at = sim::movement::collide::ucell(u.pos);
+            let want = match state {
+                2364 => (632, 813),
+                2365 => (633, 814),
+                _ => (634, 815),
+            };
+            assert_eq!((at.x, at.y), want, "1/43's unit cell on {state}");
+        }
+    }
+
     /// **Row 120's MLRS reads `cavarch_o` −2 in the units line** (item
     /// 4443, `docs/RECGAME.md` §10.3): on 5864 the computer's fire-on-the-move
     /// MLRS `1/35` (type 273) steps an `ExploreTo` with an empty search after
@@ -2783,17 +2862,21 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Freighter `1/135` holding `1/127`, `1/128`, `1/129`, `1/127`'s
         // `inside_down` ours -1, theirs 128): units 3,914 -> 5,664, first
         // 1747 -> 3771.
+        // Moved by item 4504 (`CollCheck::move_unit@00682ad0`'s one-block
+        // form returns on a null block: run1739, state 2365, world range
+        // 6920, record 3039 `block.present`, ours 1, theirs 0, who=1's
+        // `1/43` stepping (632, 813) -> (633, 814) inside the freed cell
+        // (39, 50)): world 5,995 -> 6,001, whole.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5664, 6001, 6001, 5962, 6001, 6001, 5997, 5801, 6001, 6001, 6001, 5995,
+                5664, 6001, 6001, 5962, 6001, 6001, 5997, 5801, 6001, 6001, 6001, 6001,
             ],
             first: &[
                 ("units", (3771, Some(4212870850), 267538306)),
                 ("ammo", (5178, None, 1427640977)),
                 ("guys", (4880, Some(3110518234), 2759048231)),
                 ("leaders", (3976, Some(2201651438), 3962276079)),
-                ("world", (2365, Some(1596373308), 975353592)),
             ],
             over: None,
         }),
