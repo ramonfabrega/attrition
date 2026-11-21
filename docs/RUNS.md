@@ -39902,3 +39902,171 @@ Files in place, `~/ron-golden/run1738/map-18/`: `gamelog_p.txt`, 2,452 bytes, SH
 
 **What it holds**: `diff::held_out::tests::row_90_s_barge_turns_with_the_snap_on_run1738_s_ranges` (every units and
 guys range on 4021).
+
+## run1743 — parity held out, third battery, row 5: Great Lakes, difficulty 4 recorded idle by the client, played to 6000 (2026-11-21, item 4487, `att-4487`)
+
+`docs/RECGAME.md` §11.1; DECISIONS 147 §2. **What the disk could not answer**: no take of this lobby's game under a
+file our client wrote; the row was declared before any recording (`4a1b901a7`). The file:
+`~/ron-golden/recordings/item4487-row005-6000.rcx`, 59,219 bytes, SHA-256
+`c7237775be6c7ba90a38297807a9a321dfd900c00282ca7c9a2eceb7b43b567f`: `client --record <file> --headless --page-of
+gamelog-run1004-greatlakes-american-diff4-start.txt --frame 6000`, no order but slot 0's opening preferences, closing on 6000, its donor the first finished
+recording with its version and options in the profile's `Recorded Games/` (`RON_RECGAME_DIR`).
+
+The take: run1700's line with `~/ron-golden/run1743` and this file, chained after the one before it and waited on with
+`waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 00:05:28 −05:00, exited 00:13:18: **470.2 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 12345 observed, map 14. Players: tribe 4 (flags 7) and tribe 20 (flags 1).
+  **The original took the file**: no section refused.
+- **Scored as found** (`the_third_held_out_games_score_as_pinned`): walls, builds, units, deaths, groups, guys, leaders, cities, items, goods, world 6,001 of 6,001; **ammo 5,934**, first parting state 4805, ours 2964392822, theirs 2975730574; 11 lines whole. Unmoved on the merged tree `cc9ffc8b3`.
+- Filed **in place**, as run1700 is. run1743 was the number reserved for row 5.
+
+Files in place, `~/ron-golden/run1743/map-14/`: `gamelog_p.txt`, 2,444 bytes, SHA-256 `5763794b438732ec12ac59b09b1633487c11fa614695055d5de1bee943562466`; `rontrace.log`, 32,910,304 bytes, SHA-256 `a093dccac6f4449475d17a213316327e184771f712b298628f7237e2a44a6161`.
+
+**What it holds**: `diff::held_out::the_third_held_out_games_score_as_pinned` (`SCORES_THIRD[0]`).
+
+## run1744 — parity held out, third battery, row 25: Himalayas, difficulty 0 recorded idle by the client, played to 6000 (2026-11-21, item 4487, `att-4487`)
+
+`docs/RECGAME.md` §11.1; DECISIONS 147 §2. **What the disk could not answer**: no take of this lobby's game under a
+file our client wrote; the row was declared before any recording (`4a1b901a7`). The file:
+`~/ron-golden/recordings/item4487-row025-6000.rcx`, 59,216 bytes, SHA-256
+`404171046dfec728f974a6114ce7cb9df777571dcbec2003ac665d1eb5e8dfac`: `client --record <file> --headless --page-of
+gamelog-run1128-himalayas-cover1-clickfree-diagonal.txt --frame 6000`, no order but slot 0's opening preferences, closing on 6000, its donor the first finished
+recording with its version and options in the profile's `Recorded Games/` (`RON_RECGAME_DIR`).
+
+The take: run1700's line with `~/ron-golden/run1744` and this file, chained after the one before it and waited on with
+`waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 00:13:32 −05:00, exited 00:21:26: **473.9 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 12345 observed, map 9. Players: tribe 4 (flags 7) and tribe 11 (flags 1).
+  **The original took the file**: no section refused.
+- **Scored as found** (`the_third_held_out_games_score_as_pinned`): all twelve lines 6,001 of 6,001; **whole**. Unmoved on the merged tree `cc9ffc8b3`.
+- Filed **in place**, as run1700 is. run1744 was the number reserved for row 25.
+
+Files in place, `~/ron-golden/run1744/map-9/`: `gamelog_p.txt`, 2,449 bytes, SHA-256 `e1f72be81431cbbd2cc3309060a287ff4cf43caf8cf76f414e4e1740e6fe6e4a`; `rontrace.log`, 27,081,984 bytes, SHA-256 `a63833c0756e2d339645be4b4fd4eaefba0a782eca47c77a6e1237074712f84e`.
+
+**What it holds**: `diff::held_out::the_third_held_out_games_score_as_pinned` (`SCORES_THIRD[1]`).
+
+## run1745 — parity held out, third battery, row 45: Great Sahara, Classical recorded idle by the client, played to 6000 (2026-11-21, item 4487, `att-4487`)
+
+`docs/RECGAME.md` §11.1; DECISIONS 147 §2. **What the disk could not answer**: no take of this lobby's game under a
+file our client wrote; the row was declared before any recording (`4a1b901a7`). The file:
+`~/ron-golden/recordings/item4487-row045-6000.rcx`, 58,871 bytes, SHA-256
+`69f9e49964c1fa509b74ecd3ff9513466914270706c65def944a862d495fb705`: `client --record <file> --headless --page-of
+gamelog-run1231-greatsahara-spanish-classical-start.txt --frame 6000`, no order but slot 0's opening preferences, closing on 6000, its donor the first finished
+recording with its version and options in the profile's `Recorded Games/` (`RON_RECGAME_DIR`).
+
+The take: run1700's line with `~/ron-golden/run1745` and this file, chained after the one before it and waited on with
+`waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 00:21:53 −05:00, exited 00:29:13: **440.5 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 12345 observed, map 7. Players: tribe 4 (flags 7) and tribe 9 (flags 1).
+  **The original took the file**: no section refused.
+- **Scored as found** (`the_third_held_out_games_score_as_pinned`): all twelve lines 6,001 of 6,001; **whole**. Unmoved on the merged tree `cc9ffc8b3`.
+- Filed **in place**, as run1700 is. run1745 was the number reserved for row 45.
+
+Files in place, `~/ron-golden/run1745/map-7/`: `gamelog_p.txt`, 2,442 bytes, SHA-256 `cb0dcd8ee3c3efed0d2f16b1f57191b48f7c90ddfb383e5194b954f97e09fbf5`; `rontrace.log`, 108,442,624 bytes, SHA-256 `519673c65023a97ea15ee57e02eb3919b2860e2b66d0a6f2dc852eb7c102723c`.
+
+**What it holds**: `diff::held_out::the_third_held_out_games_score_as_pinned` (`SCORES_THIRD[2]`).
+
+## run1746 — parity held out, third battery, row 65: Great Sahara, Enlightenment recorded idle by the client, played to its end (4045) (2026-11-21, item 4487, `att-4487`)
+
+`docs/RECGAME.md` §11.1; DECISIONS 147 §2. **What the disk could not answer**: no take of this lobby's game under a
+file our client wrote; the row was declared before any recording (`4a1b901a7`). The file:
+`~/ron-golden/recordings/item4487-row065-6000.rcx`, 58,840 bytes, SHA-256
+`8f0a59153f1600155fbd70eac25a6bb65daa5751ecbd7e2185e2638f7d40df49`: `client --record <file> --headless --page-of
+gamelog-run1309-greatsahara-inca-enlightenment-start.txt --frame 6000`, no order but slot 0's opening preferences, closing on 6000, its donor the first finished
+recording with its version and options in the profile's `Recorded Games/` (`RON_RECGAME_DIR`).
+
+The take: run1700's line with `~/ron-golden/run1746` and this file, chained after the one before it and waited on with
+`waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 00:29:34 −05:00, exited 00:36:54: **439.7 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 4,046 frames, `last_frame` 4045, **ended by the original**, seed 12345 observed, map 7. Players: tribe 4 (flags 7) and tribe 2 (flags 1).
+  **The original took the file**: no section refused.
+- **Scored as found** (`the_third_held_out_games_score_as_pinned`): all twelve lines 4,046 of 4,046; **whole** to the original's end. Unmoved on the merged tree `cc9ffc8b3`.
+- Filed **in place**, as run1700 is. run1746 was the number reserved for row 65.
+
+Files in place, `~/ron-golden/run1746/map-7/`: `gamelog_p.txt`, 2,430 bytes, SHA-256 `678cb3231e877a6d68e09e36ed896ab4f458a917bd9a2e4f13063a2f142c8612`; `rontrace.log`, 55,931,488 bytes, SHA-256 `1fd1ad06791eb476aebc9ae1b206349c41ed53ab53185f89ffce794cbf26ddc3`.
+
+**What it holds**: `diff::held_out::the_third_held_out_games_score_as_pinned` (`SCORES_THIRD[3]`).
+
+## run1747 — parity held out, third battery, row 85: Great Lakes, Industrial recorded idle by the client, played to its end (4471) (2026-11-21, item 4487, `att-4487`)
+
+`docs/RECGAME.md` §11.1; DECISIONS 147 §2. **What the disk could not answer**: no take of this lobby's game under a
+file our client wrote; the row was declared before any recording (`4a1b901a7`). The file:
+`~/ron-golden/recordings/item4487-row085-6000.rcx`, 58,856 bytes, SHA-256
+`cce9bd91965ae3c1ad99dc81c96afa7408b270bf05ad7a3248babd8f3f01cbd4`: `client --record <file> --headless --page-of
+gamelog-run1371-greatlakes-inca-industrial-start.txt --frame 6000`, no order but slot 0's opening preferences, closing on 6000, its donor the first finished
+recording with its version and options in the profile's `Recorded Games/` (`RON_RECGAME_DIR`).
+
+The take: run1700's line with `~/ron-golden/run1747` and this file, chained after the one before it and waited on with
+`waitrun.sh` in the background. The first launch at 00:37 stalled before frame 0 twice (120 s each, the runner's `RuntimeError`) while this lane's scorer ran beside it; its directory is kept as `~/ron-golden/stalled-run1747-0037`, and the take below ran with nothing beside it.
+- **The run**: pool lane 1, launched 00:47:06 −05:00, exited 00:52:49: **343.1 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 4,472 frames, `last_frame` 4471, **ended by the original**, seed 12345 observed, map 14. Players: tribe 4 (flags 7) and tribe 2 (flags 1).
+  **The original took the file**: no section refused.
+- **Scored as found** (`the_third_held_out_games_score_as_pinned`): eleven lines 4,472 of 4,472; **groups 4,458**, first parting state 3831, ours 2097888135, theirs 2964599741. Unmoved on the merged tree `cc9ffc8b3`.
+- Filed **in place**, as run1700 is. run1747 was the number reserved for row 85.
+
+Files in place, `~/ron-golden/run1747/map-14/`: `gamelog_p.txt`, 2,429 bytes, SHA-256 `f73c934f38e2c0ac439fa7433903a06ce434eed615741ab765ceaa8ec048a74f`; `rontrace.log`, 83,675,744 bytes, SHA-256 `714a3864e007a53e9990a9489d1fa806ab0dd156dbd78fc34a47ad8dd112886c`.
+
+**What it holds**: `diff::held_out::the_third_held_out_games_score_as_pinned` (`SCORES_THIRD[4]`).
+
+## run1748 — parity held out, third battery, row 105: East Indies, Modern recorded idle by the client, played to its end (5234) (2026-11-21, item 4487, `att-4487`)
+
+`docs/RECGAME.md` §11.1; DECISIONS 147 §2. **What the disk could not answer**: no take of this lobby's game under a
+file our client wrote; the row was declared before any recording (`4a1b901a7`). The file:
+`~/ron-golden/recordings/item4487-row105-6000.rcx`, 58,870 bytes, SHA-256
+`180bf4954c21f335d39f2adb5b410abee91cf0ea06a9d5eb061f26f35f1915df`: `client --record <file> --headless --page-of
+gamelog-run1443-eastindies-roman-modern-start.txt --frame 6000`, no order but slot 0's opening preferences, closing on 6000, its donor the first finished
+recording with its version and options in the profile's `Recorded Games/` (`RON_RECGAME_DIR`).
+
+The take: run1700's line with `~/ron-golden/run1748` and this file, chained after the one before it and waited on with
+`waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 00:53:06 −05:00, exited 00:59:28: **382.0 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 5,235 frames, `last_frame` 5234, **ended by the original**, seed 12345 observed, map 18. Players: tribe 4 (flags 7) and tribe 6 (flags 1).
+  **The original took the file**: no section refused.
+- **Scored as found** (`the_third_held_out_games_score_as_pinned`): walls, ammo, deaths, guys, cities, items, goods, world 5,235 of 5,235; **units 2,983**, first parting state 2983, ours 794628535, theirs 1924338104; **builds 5,162**, first 5162, ours 2385371548, theirs 2688344540; **groups 5,217**, first 4355, ours 2731263697, theirs 520406832; **leaders 4,656**, first 1976, ours 227834778, theirs 1853848475; 8 lines whole. Unmoved on the merged tree `cc9ffc8b3`.
+- Filed **in place**, as run1700 is. run1748 was the number reserved for row 105.
+
+Files in place, `~/ron-golden/run1748/map-18/`: `gamelog_p.txt`, 2,432 bytes, SHA-256 `b854d699727375d5b5e2e95d19684e44ac91ecf2a2ac98933a380fac46e788d2`; `rontrace.log`, 150,062,464 bytes, SHA-256 `484889eb8b01985f1d777be9531d9ed7f045fc65c6931ef68730f42a67adcfbf`.
+
+**What it holds**: `diff::held_out::the_third_held_out_games_score_as_pinned` (`SCORES_THIRD[5]`).
+
+## run1749 — parity held out, third battery, row 125: Islands, toughest recorded idle by the client, played to 6000 (2026-11-21, item 4487, `att-4487`)
+
+`docs/RECGAME.md` §11.1; DECISIONS 147 §2. **What the disk could not answer**: no take of this lobby's game under a
+file our client wrote; the row was declared before any recording (`4a1b901a7`). The file:
+`~/ron-golden/recordings/item4487-row125-6000.rcx`, 59,219 bytes, SHA-256
+`48aa09755ad61e02bb64c36bc47bb04b60088a2d153c94d659003617ca4f8313`: `client --record <file> --headless --page-of
+gamelog-run595-islands-french-toughest-start.txt --frame 6000`, no order but slot 0's opening preferences, closing on 6000, its donor the first finished
+recording with its version and options in the profile's `Recorded Games/` (`RON_RECGAME_DIR`).
+
+The take: run1700's line with `~/ron-golden/run1749` and this file, chained after the one before it and waited on with
+`waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 00:59:47 −05:00, exited 01:07:59: **491.3 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 12345 observed, map 18. Players: tribe 4 (flags 7) and tribe 10 (flags 1).
+  **The original took the file**: no section refused.
+- **Scored as found** (`the_third_held_out_games_score_as_pinned`): all twelve lines 6,001 of 6,001; **whole**. Unmoved on the merged tree `cc9ffc8b3`.
+- Filed **in place**, as run1700 is. run1749 was the number reserved for row 125.
+
+Files in place, `~/ron-golden/run1749/map-18/`: `gamelog_p.txt`, 2,445 bytes, SHA-256 `0350ce877123ae286d766c3825bbec27989301d41dae68d6c0968fe7d5cca86e`; `rontrace.log`, 59,833,408 bytes, SHA-256 `72e9f7ead1c0ff034d762e868e9d58770d836e6c6504c70d28bf11b969106ead`.
+
+**What it holds**: `diff::held_out::the_third_held_out_games_score_as_pinned` (`SCORES_THIRD[6]`).
+
+## run1750 — parity held out, third battery, row 145: Great Sahara, difficulty 3 recorded idle by the client, played to 6000 (2026-11-21, item 4487, `att-4487`)
+
+`docs/RECGAME.md` §11.1; DECISIONS 147 §2. **What the disk could not answer**: no take of this lobby's game under a
+file our client wrote; the row was declared before any recording (`4a1b901a7`). The file:
+`~/ron-golden/recordings/item4487-row145-6000.rcx`, 59,216 bytes, SHA-256
+`784970c89df13e06754c3fcc81265f83f7b007fd57b67923ef62d5cb731f2dc0`: `client --record <file> --headless --page-of
+gamelog-run964-greatsahara-korean-diff3-start.txt --frame 6000`, no order but slot 0's opening preferences, closing on 6000, its donor the first finished
+recording with its version and options in the profile's `Recorded Games/` (`RON_RECGAME_DIR`).
+
+The take: run1700's line with `~/ron-golden/run1750` and this file, chained after the one before it and waited on with
+`waitrun.sh` in the background. The first launch at 01:08 exited 5 before frame 0 twice (the runner's one retake spent; `ValueError: process failed: 5`); its directory is kept as `~/ron-golden/stalled-run1750-0108`.
+- **The run**: pool lane 1, launched 01:09:24 −05:00, exited 01:17:16: **472.1 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 12345 observed, map 7. Players: tribe 4 (flags 7) and tribe 16 (flags 1).
+  **The original took the file**: no section refused.
+- **Scored as found** (`the_third_held_out_games_score_as_pinned`): all twelve lines 6,001 of 6,001; **whole**. Unmoved on the merged tree `cc9ffc8b3`.
+- Filed **in place**, as run1700 is. run1750 was the number reserved for row 145.
+
+Files in place, `~/ron-golden/run1750/map-7/`: `gamelog_p.txt`, 2,443 bytes, SHA-256 `2f1280487baef718fa5a2f3e00045b5f2894ace81db6c915a709f60726f30890`; `rontrace.log`, 33,093,536 bytes, SHA-256 `69b3af05b00f09bf10e5e6efeb170ed0dd796fc8c9514d9f3cfe12d604bf7126`.
+
+**What it holds**: `diff::held_out::the_third_held_out_games_score_as_pinned` (`SCORES_THIRD[7]`).

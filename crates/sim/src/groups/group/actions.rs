@@ -352,6 +352,18 @@ impl Sim {
             return;
         }
 
+        // **A plane leads: nothing** (item 4481, `docs/CHECKSUM.md` §23.15).
+        // Past the split arms and the `QUEUE_FIRST` arm, a group of units
+        // (`buildings` clear) with a leader asks it vslot `+0xc0`
+        // (`00704990:329`–`345`), `UnitData::is_plane` on every unit class,
+        // and a plane returns before `form` is written (`:354`): no layout,
+        // no orders, no `ox`/`oy`, `o_angle`, `form_num` or `order_num`. So
+        // `Unit::go_to`'s push of a joining jet leaves the record as
+        // `push_group` made it (run1469's record 65: `form` −1).
+        if self.group_find_leader(g).is_some_and(|l| self.is_plane(l)) {
+            return;
+        }
+
         let to = self.restrict_pos(to);
         // A value that names a seat but holds another list is a group on
         // the stack carrying the seat's record — `action_siege_attack_to`'s

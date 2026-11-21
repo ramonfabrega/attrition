@@ -3946,22 +3946,33 @@ fn stance_skips_a_plane_but_not_a_helicopter() {
 #[test]
 fn a_helicopter_takes_a_group_move_where_a_plane_does_not() {
     // The same `is_plane` split at every action's inner loop
-    // (`group_member_orderable`).
+    // (`group_member_orderable`), on a group the helicopter leads: a
+    // plane leader returns before the loop (item 4481,
+    // `action_move_near@00704990:329`–`345`), so then neither moves.
     let mut s = sim();
     let plane = flier(&mut s, false);
     let heli = flier(&mut s, true);
     let p = spawn(&mut s, 1, plane, Pos::new(0x1000, 0x1000));
     let h = spawn(&mut s, 1, heli, Pos::new(0x1100, 0x1000));
-    let g = group_of(1, &[p, h]);
-    s.group_action_move_to(
-        &g,
-        Pos::new(0x4000, 0x4000),
-        QueuePos::New,
-        true,
-        Angle(0),
-        MoveKind::MoveTo,
-        true,
-    );
+    let move_to = |s: &mut Sim, g: &Group| {
+        s.group_action_move_to(
+            g,
+            Pos::new(0x4000, 0x4000),
+            QueuePos::New,
+            true,
+            Angle(0),
+            MoveKind::MoveTo,
+            true,
+        );
+    };
+    let led_by_plane = group_of(1, &[p, h]);
+    assert_eq!(s.group_find_leader(&led_by_plane), Some(p));
+    move_to(&mut s, &led_by_plane);
+    assert_eq!(s.order_type(p), index::NONE, "a plane leader: no move");
+    assert_eq!(s.order_type(h), index::NONE, "not even the helicopter's");
+    let led_by_heli = group_of(1, &[h, p]);
+    assert_eq!(s.group_find_leader(&led_by_heli), Some(h));
+    move_to(&mut s, &led_by_heli);
     assert_eq!(s.order_type(p), index::NONE, "a plane takes no group move");
     assert_eq!(s.order_type(h), index::MOVE_TO, "a helicopter does");
 }
@@ -4711,5 +4722,66 @@ fn action_unitmask_toggles_on_the_first_member_s_bit() {
     assert!(
         !s.units[a].auto_explore && !s.units[b].auto_explore,
         "mixed: clear"
+    );
+}
+
+/// **A plane-led group's move writes nothing** (item 4481,
+/// `docs/CHECKSUM.md` §23.15; `Group::action_move_near@00704990:329`–`345`):
+/// past the `QUEUE_FIRST` arm, a group of units whose leader is a plane
+/// (`UnitData::is_plane`, vslot `+0xc0`) returns before `form` is written,
+/// so the record keeps `push_group`'s `form`, `ox`/`oy`, `o_angle` and
+/// `order_num`, and the plane takes no order. The same move on a footman's
+/// pushed group writes `form` 0 and bumps `order_num`.
+#[test]
+fn a_plane_led_group_s_move_to_leaves_its_record_as_pushed() {
+    use crate::movement::Angle;
+    let mut s = sim();
+    let foot = fighter(&mut s);
+    let mut plane = UnitType {
+        hits: 100,
+        ..UnitType::default()
+    };
+    plane.combat.domain = Domain::Air;
+    let plane = s.add_unit_type(plane);
+    let jet = spawn(&mut s, 1, plane, Pos::new(0x1000, 0x1000));
+    let man = spawn(&mut s, 1, foot, Pos::new(0x1000, 0x2000));
+    let to = Pos::new(0x3000, 0x3000);
+    let mut flown = group_of(1, &[jet]);
+    assert!(s.push_group(&mut flown, true));
+    let before = s.gstate(&flown).cloned().expect("a seat");
+    s.group_action_move_to(
+        &flown,
+        to,
+        QueuePos::New,
+        false,
+        Angle(0),
+        MoveKind::AttackTo,
+        false,
+    );
+    let after = s.gstate(&flown).expect("a seat");
+    assert_eq!(after.form, before.form, "the plane's record keeps its form");
+    assert_eq!(after.order_num, before.order_num, "and its order_num");
+    assert_eq!(after.o, before.o, "and its origin");
+    assert!(
+        s.current_order(jet).is_none(),
+        "and the plane takes no order"
+    );
+    let mut walked = group_of(1, &[man]);
+    assert!(s.push_group(&mut walked, true));
+    let was = s.gstate(&walked).map(|st| st.order_num).expect("a seat");
+    s.group_action_move_to(
+        &walked,
+        to,
+        QueuePos::New,
+        false,
+        Angle(0),
+        MoveKind::AttackTo,
+        false,
+    );
+    let st = s.gstate(&walked).expect("a seat");
+    assert_eq!(
+        (st.form, st.order_num),
+        (0, was + 1),
+        "the footman's move writes the record"
     );
 }
