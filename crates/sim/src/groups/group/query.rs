@@ -798,8 +798,9 @@ impl Sim {
             let bt = std::backtrace::Backtrace::force_capture().to_string();
             let chain: Vec<&str> = bt
                 .lines()
-                .filter(|l| l.contains("sim::") && !l.contains("backtrace"))
-                .take(12)
+                .filter_map(|l| l.trim().split_once(": sim::").map(|x| x.1))
+                .filter(|l| !l.contains("backtrace"))
+                .take(9)
                 .collect();
             eprintln!(
                 "P4481B f{} who {} pool {:?} list {:?} order_num {:?} form {:?}\n    {}",
