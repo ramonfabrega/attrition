@@ -1012,6 +1012,53 @@ mod tests {
         }
     }
 
+    /// Probe 4512 (reverted whole): every leaders range on 3582 and 3583.
+    #[test]
+    fn probe_4512_row_105_leaders() {
+        if std::env::var("RON_PROBE_4512").is_err() {
+            return;
+        }
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&THIRD, 5) else {
+            panic!("rcx")
+        };
+        let ranges =
+            crate::testenv::experiment(&home.join("ron-golden/run1752/map-18"), "rontrace.ranges")
+                .expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 105's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let mut maxlen = [0usize; 8];
+        for state in [3580, 3581, 3582, 3583, 3584] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+                for (w, l) in maxlen.iter_mut().enumerate() {
+                    if let Some(a) = built.sim.ai.ai.get(w) {
+                        *l = (*l).max(a.oil_patches.len());
+                    }
+                }
+            }
+            for w in 0..built.sim.ai.ai.len().min(8) {
+                eprintln!("PROBE {state} who={w} ours oil_patches {:?} max {}", built.sim.ai.ai[w].oil_patches, maxlen[w]);
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_leaders();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            eprintln!("PROBE {state} ranges ours {} theirs {}", ours.ranges.len(), theirs.len());
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                if a.field == "oil_patches" || a.bytes != b.bytes {
+                    let diffs: Vec<_> = a.bytes.iter().zip(&b.bytes).enumerate().filter(|(_, (x, y))| x != y).map(|(i, (x, y))| (i, *x, *y)).take(12).collect();
+                    eprintln!("PROBE {state} range {k} record {} {} len {}/{} ours {:?} theirs {:?} diffs {:?}", a.record, a.field, a.bytes.len(), b.bytes.len(), &a.bytes[..a.bytes.len().min(48)], &b.bytes[..b.bytes.len().min(48)], diffs);
+                }
+            }
+        }
+    }
+
     /// **Row 120's barge is born with `form` 0** (item 4435, `docs/RECGAME.md`
     /// §10.3): run1716, the ranges take of run1706's file, holds the units
     /// line's every range on state 2694, where the computer's transport
