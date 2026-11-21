@@ -13403,7 +13403,11 @@ ever wrote it**: every research queue ran one slot. The original's count is
 hold at least one `CityData::count_buildings(LIBRARY, 0, 1)` (active). Now
 `process_queues` counts those (`cities_of` and `count_buildings(…,
 Ident::Library, true)`) and takes the larger of that and the field, so the
-tests that set the field keep their value.
+tests that set the field keep their value. **Its `race == who` term was
+dropped until item 4489** (`Sim::building_cities_library`): the 2017
+sample's Library `3/2005` ran two slots on 4026 here and one in theirs,
+its owner's second library standing in the Inca capital taken on 3887 and
+still race 4 (`docs/journal/2026-11-21-item-4489.md`).
 
 ### 102.3 Coverage
 

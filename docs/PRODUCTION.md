@@ -2101,9 +2101,12 @@ damage 0 [destroyed]; 3218, `0/6` gone [alive]; 3240, `0/8` at 56 and
 4/16 [0].
 
 **Not established.**
-- The order of several struck on one frame: `find_units`' (a cell circle
+- ~~The order of several struck on one frame: `find_units`' (a cell circle
   or the players' lists, by `total_units`) and the cell ring's; here each
-  list's index order. Chapter thirty-seven strikes one unit a frame.
+  list's index order. Chapter thirty-seven strikes one unit a frame.~~
+  The units' order is built by item 4478 (`docs/RECGAME.md` §10.3,
+  diff-backed by run1721's circle walk on 2755); the list walk is built from
+  the reading alone, no capture having entered it with two struck.
 - `action_declare` on a struck player at peace; the rush rules' exemption.
 - `World::set_seen2` and `update_local_seen`'s seen cells; the crater's
   heights (`terraform_for_nuke`), which a figure standing in it after the

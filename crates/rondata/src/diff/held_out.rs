@@ -1041,13 +1041,29 @@ mod tests {
         );
     }
 
+    /// **Row 100's nuke strikes its units in `Objects::find_units`' order**
+    /// (item 4478, `docs/RECGAME.md` §10.3): on tick 2755 the ring reaches
+    /// two Citizens (TI 50) of player 0, and the original's circle walk —
+    /// the ring's cells outward, each cell's chain — takes `0/11` at
+    /// (2712, 31896) before `0/3` at (3384, 31992), where the unit slots
+    /// hold `0/3` first. Every deaths range on 2756: red with the slot
+    /// order at range 1, record 0, `x` ours `38 0d`, theirs `98 0a`.
+    #[test]
+    fn row_100_s_nuke_strikes_its_citizens_in_find_units_order_on_run1721_s_ranges() {
+        let Some(theirs) = line_ranges_agree(5, "run1721", 2756, 4, 1) else {
+            return;
+        };
+        assert_eq!(&theirs[8..12], &0xa98i32.to_le_bytes(), "theirs' x");
+        assert_eq!(&theirs[24..28], &11i32.to_le_bytes(), "theirs' o");
+    }
+
     /// Game `k`'s units line on `state`, ours against the ranges take
     /// `run`'s, every range byte for byte; returns theirs' range `range`.
     fn units_ranges_agree(k: usize, run: &str, state: i64, range: usize) -> Option<Vec<u8>> {
         line_ranges_agree(k, run, state, 0, range)
     }
 
-    /// The same for line `line` (0 units, 6 guys).
+    /// The same for line `line` (0 units, 4 deaths, 6 guys).
     fn line_ranges_agree(
         k: usize,
         run: &str,
@@ -1082,6 +1098,7 @@ mod tests {
         let theirs: Vec<_> = theirs.into_iter().filter(|r| r.line == line).collect();
         let ours = match line {
             0 => built.sim.checksum_units(),
+            4 => built.sim.checksum_deaths().expect("the deaths line"),
             6 => built.sim.checksum_guys(),
             _ => unreachable!("line {line}"),
         };
@@ -1809,15 +1826,21 @@ pub(crate) const SCORES: [Option<FirstScore>; 8] = [
         // 2930, record 91, `unit_masks` read ours 0x40000, theirs 0x40002
         // (`mirror`), and guys range 760, record 91, `last_angle` ours
         // 0x55555555, theirs 0.
+        // Moved by item 4478 (the nuke's ring strikes its units in
+        // `Objects::find_units`' order): deaths 2,756 -> 3,331, whole. On
+        // 2756, run1721's deaths ranges 1 and 3, records 0 and 1: the two
+        // Citizens (TI 50) the ring killed on 2755, theirs `0/11` at
+        // (2712, 31896) then `0/3` at (3384, 31992), the circle walk's
+        // order; ours held them swapped, `x` ours 0x0d38, theirs 0x0a98 at
+        // byte 8 of record 0, `cur_anim` 0x13 and 0x14 in slot order on both.
         moved: Some(Score {
             states: 3331,
             agreed: [
-                2977, 3331, 3331, 3291, 2756, 3331, 3331, 3331, 3331, 3331, 3331, 3331,
+                2977, 3331, 3331, 3291, 3331, 3331, 3331, 3331, 3331, 3331, 3331, 3331,
             ],
             first: &[
                 ("units", (2758, Some(2109868139), 4117763000)),
                 ("ammo", (3210, None, 252233938)),
-                ("deaths", (2756, Some(1136466598), 3621657254)),
             ],
             over: None,
         }),
@@ -1953,6 +1976,10 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4474 (`AirPatrolOrder`'s ranges walked; an airbase
         // exit turns through `Unit::set_angle`): units 2,496 -> 2,712, first
         // on 1747; guys 5,963 -> 5,990, first on 2449.
+        // Moved by item 4478 (the nuke's ring strikes its units in
+        // `Objects::find_units`' order): deaths 5,350 -> 6,001, whole. No
+        // ranges are on disk for run1730: on 4686 ours' deaths sum was
+        // 4192616794 and is now theirs' 999637338.
         // Moved by item 4477 (the farmer's turn east is `Unit::set_angle`
         // whole, so a leader's reversal toggles its group's `facing`):
         // groups 3,066 -> 6,001, whole; units 2,712 -> 3,783, first on 1747.
@@ -1966,13 +1993,12 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3785, 537, 6001, 5907, 5350, 6001, 5997, 3976, 6001, 6001, 6001, 5995,
+                3785, 537, 6001, 5907, 6001, 6001, 5997, 3976, 6001, 6001, 6001, 5995,
             ],
             first: &[
                 ("units", (1747, Some(2268899682), 1685366186)),
                 ("builds", (537, Some(1374294361), 1810502041)),
                 ("ammo", (5135, None, 990220286)),
-                ("deaths", (4686, Some(4192616794), 999637338)),
                 ("guys", (4880, Some(3110518234), 2759048231)),
                 ("leaders", (1576, Some(2345254394), 1305656828)),
                 ("world", (2365, Some(1596373308), 975353592)),
@@ -2203,16 +2229,19 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // `Unit::set_angle(…, 1)` whole, so its figure's `last_angle` is the
         // caster's): guys
         // 4,719 -> 4,731, whole. No ranges take of this row.
+        // Moved by item 4478 (the nuke's ring strikes its units in
+        // `Objects::find_units`' order): deaths 4,084 -> 4,731, whole. No
+        // ranges are on disk for run1736: on 1746 ours' deaths sum was
+        // 1419733817 and is now theirs' 1134652217.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                2100, 553, 4731, 4511, 4084, 4731, 4731, 1976, 4731, 4731, 4731, 4731,
+                2100, 553, 4731, 4511, 4731, 4731, 4731, 1976, 4731, 4731, 4731, 4731,
             ],
             first: &[
                 ("units", (1742, Some(1100206902), 2410470946)),
                 ("builds", (553, Some(2297078769), 1047897137)),
                 ("ammo", (2367, Some(1123882197), 1189418202)),
-                ("deaths", (1746, Some(1419733817), 1134652217)),
                 ("leaders", (1376, Some(73709351), 1700509480)),
             ],
             over: None,
