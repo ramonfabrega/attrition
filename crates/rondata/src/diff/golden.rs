@@ -2127,8 +2127,8 @@ fn widen_turrets(
 /// key's first block and row; `None` when the capture is not on disk.
 ///
 /// `ammo` adds the **`AMMO` record, both directions**, for a capture that
-/// dumps it (chapter six, item 648): a live round (`flags & 2`) keyed on
-/// its shooter and pool slot, as chapter five's widening keys it, and a
+/// dumps it (chapter six, item 648): a live round (`flags & 2`) or a
+/// spent one (`flags 1`, item 4515) keyed on its shooter and pool slot, as chapter five's widening keys it, and a
 /// round either side holds alone is a row. The civilians' captures do not
 /// dump `AMMO`, so for them it is off and a round of this crate's would
 /// be compared against nothing.
