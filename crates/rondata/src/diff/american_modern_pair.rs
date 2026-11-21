@@ -453,7 +453,8 @@ fn american_modern_pair_the_long_s_stride_walks_back_from_4488() {
     // `g.z[0]` on 4401 (a Mustang in the Airbase `1/105`, ours 0 against
     // 398).
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 116 -> 115.
-    pin_eq!(w.firsts.len(), 104, "the stride's baseline");
+    // Item 4508: 104 -> 102, a computer's bomber searches round itself (`find_new_bomber_target`).
+    pin_eq!(w.firsts.len(), 102, "the stride's baseline");
 }
 
 /// run1163: the walk back from the word 4488, blocks 4396..4482 at

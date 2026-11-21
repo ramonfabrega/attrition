@@ -1877,7 +1877,8 @@ fn run754_s_word_frame_is_widened_whole() {
     // Item 4159's residue: 143 -> 142, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     // Item 4159's third residue: 142 -> 138, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
     // Item 4435: 138 -> 78, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 71, "run754 keys that part (item 1669)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −9, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    // Item 4508: 71 -> 68, a computer's bomber searches round itself (`find_new_bomber_target`).
+    pin_eq!(w.firsts.len(), 68, "run754 keys that part (item 1669)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −9, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
 }
 
 #[test]
@@ -1914,10 +1915,11 @@ fn run721_s_word_frame_is_widened_whole() {
     // Item 1647 repairs live fleet counts: 2359 -> 951; caras agrees
     // throughout and the caravan agrees through the new word 3439.
     // Item 2761: 179 → 175 with `Unit::close`'s count (`docs/AI.md` §232).
+    // Item 4508: 67 -> 63, a computer's bomber searches round itself (`find_new_bomber_target`).
     pin_eq!(
         w.firsts.len(),
         // Item 4435: re-pinned, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-        67, // Item 2677: −1 (parked 2680). // Item 3172: −16, the Sulphur siege arm (`get_cost`, a Siege Factory unit) // Item 3336: −1, `Wall::set_type`'s hits (`docs/AI.md` §272) // Item 3335: −1, the group change (every attacking type in its trainer's group)
+        63, // Item 2677: −1 (parked 2680). // Item 3172: −16, the Sulphur siege arm (`get_cost`, a Siege Factory unit) // Item 3336: −1, `Wall::set_type`'s hits (`docs/AI.md` §272) // Item 3335: −1, the group change (every attacking type in its trainer's group)
         "run721 after find_path relocates a unit off a refusing tile (item 1667: 394 -> 326)"
     );
     let path = dump(RUN721).expect("the replay just read run721");
@@ -1992,10 +1994,11 @@ fn run721_s_word_frame_is_widened_whole() {
         .map(|(f, _)| *f)
         .filter(|f| *f > 3389)
         .min();
+    // Item 4508: Some(3411) -> Some(3468), a computer's bomber searches round itself (`find_new_bomber_target`).
     pin_eq!(
         first,
         // Item 4435: Some(3391) -> Some(3411), a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-        Some(3411),
+        Some(3468),
         "the first parting past the standing block"
     );
 }
