@@ -170,9 +170,10 @@ impl Sim {
     /// record: `COST × TECH_COST_FACTOR`, the **science discount**, no ramp,
     /// Democracy's non-library discount, the British taxation discount,
     /// and the redirect for a good the player does not have
-    /// (`docs/COSTS.md` §"The redirect"). The rest of the discount tail —
-    /// being behind in ages, the lobby's tech-cost setting, the final-tech
-    /// ramp, Incense — is [`cost::Modifiers`]'s
+    /// (`docs/COSTS.md` §"The redirect"), and being behind in ages
+    /// ([`Sim::ages_behind`], item 4513). The rest of the discount tail —
+    /// the lobby's tech-cost setting, the final-tech ramp, Incense — is
+    /// [`cost::Modifiers`]'s
     /// and arrives as the undiscounted price until the layers that produce
     /// it exist, as [`Sim::price_of`] does for a unit.
     ///

@@ -590,7 +590,21 @@ Three that are not the standard shape, and are the interesting ones:
   The knowledge component uses its own constant, twice the size. Shipped, that
   is 10% and 20% behind by one age, 20% and 40% behind by two.
   `TECH_COLOR_BEHIND_DISCOUNT` is **never read**: `Constants::init` is its only
-  reference in the export (A1 row 62).
+  reference in the export (A1 row 62). **Built and diff-backed since item
+  4513** (`Sim::ages_behind`, `cost::age_behind_discount`): the arm is
+  `TypeData::get_cost@00664090`'s `006664c3`..`00666683`, right after
+  `calc_science_discount`, and only an **age** reaches it (vslot `+0x34`,
+  `is_age_type`, `0x220..0x226`, checked in the PE). The predicate is the
+  leader slots in use other than the buyer, not allied with it
+  (`LeaderData::is_ally` on the other leader), compared on
+  `LeaderDataEncrypt::ages`; a first pass takes two or more behind as
+  `(0x32 − d) × cost × 2 / 100`, a second one behind as `(100 − d) × cost /
+  100`, and a `d` that would take the whole price leaves zero. `d` is the
+  knowledge constant on resource index 3, knowledge. run1726 backs the
+  one-behind arm on food: the 2017 sample's person queues the Classical Age
+  at Library `3/2005` on 4320 and its queue's `cost[0]` is 180 where 200 is
+  the price, the 20 left in its food `bucket`. The two-behind arm and the
+  knowledge constant rest on the listing alone.
 - **Science cheapens every technology, and can make one dearer.**
   `LeaderData::calc_science_discount` subtracts
   `(science_level - age) × TECH_SCIENCE_DISCOUNT × cost / 100`, where
