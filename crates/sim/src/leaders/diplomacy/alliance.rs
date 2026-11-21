@@ -197,6 +197,72 @@ impl Sim {
         }
         Some(price)
     }
+
+    /// **The score's two words at `Leader::diplomacy`'s head** (`6bc9ed`
+    /// to `6bca00`, `local_64` and `local_70`): over the leaders in play
+    /// (`leader_flags & 3 == 3`), how many score above `me`, and the top
+    /// scorer — the last slot at or above the running best, which starts
+    /// at 0, so a tie goes to the later slot and no slot leads while every
+    /// score is negative.
+    pub(super) fn score_rank(&self, me: usize) -> (usize, Option<usize>) {
+        let players = self.territory.players.len().min(8);
+        let score = |l: usize| self.leaders.score.get(l).map_or(0, |s| s.score);
+        let mine = score(me);
+        let (mut above, mut top, mut best) = (0, None, 0);
+        for l in (0..players).filter(|&l| !self.leaders.defeated[l]) {
+            let s = score(l);
+            if s > mine {
+                above += 1;
+            }
+            if best <= s {
+                best = s;
+                top = Some(l);
+            }
+        }
+        (above, top)
+    }
+
+    /// **The computer's own alliance to the top scorer** (item 4496;
+    /// `Leader::diplomacy@006bc950` `6c0926`–`6c09d6`, then `6c0d4b`–
+    /// `6c0d81`): with nothing committed to me and no proposal standing
+    /// (the caller's `any_proposals`), a target that is not my mutual ally,
+    /// is the top scorer, and with four or more leaders outscoring me,
+    /// draws the game's random (`6c0980`, [`super::SITE_ALLY_COIN`])
+    /// **before** it asks whether the target is human. An odd draw, a
+    /// human target, neither side with an ally, and team style 0, 8 or 11:
+    /// `leaders[t].got_diplo_message = frame`, `action_clear_all(me, t)`,
+    /// `action_treaty(me, t, 2)`, `agendas[me][t] |= 8`, `action_respond(me,
+    /// t, 1)`, and the target is done (`6c0d86`). `true` when it emits.
+    ///
+    /// `6c0966`'s `leaders[t].dow[t] < 2` reads the diagonal (stride
+    /// `0x6ef0`), which nothing writes for a non-self target: always true,
+    /// not carried. Style 7's team-8 tests (`6c09ca` on) read the style
+    /// already refused. The console's message (`6c0c58` on, to the console
+    /// player) draws only from the interface's stream (`0xeb697c`).
+    pub(super) fn top_scorer_alliance(&mut self, me: usize, t: usize) -> bool {
+        let (above, top) = self.score_rank(me);
+        if t == me || self.allied_both(me, t) || top != Some(t) || above < 4 {
+            return false;
+        }
+        self.mark(super::SITE_ALLY_COIN);
+        if self.rng.roll() & 1 == 0 {
+            return false;
+        }
+        if !self.cities.nation[t].human
+            || self.num_allies(me) != 0
+            || self.num_allies(t) != 0
+            || !matches!(self.ai.lobby.team_style, 0 | 8 | 11)
+        {
+            return false;
+        }
+        let (mp, tp) = (me as Player, t as Player);
+        self.ai.ai[t].got_diplo_message = self.frame;
+        self.action_clear_all(mp, tp);
+        self.action_treaty(mp, tp, 2);
+        self.leaders.agendas[me][t] |= 8;
+        self.action_respond(mp, tp, 1);
+        true
+    }
 }
 
 #[cfg(test)]
