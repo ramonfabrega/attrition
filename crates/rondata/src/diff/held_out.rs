@@ -1613,58 +1613,6 @@ mod tests {
         }
     }
 
-    #[test]
-    fn probe_4516_leaders() {
-        let Some(inst) = crate::testenv::install() else {
-            return;
-        };
-        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(&SECOND, 0) else {
-            return;
-        };
-        let ranges =
-            crate::testenv::experiment(&home.join("ron-golden/run1739/map-18"), "rontrace.ranges")
-                .unwrap();
-        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 10's file");
-        let loaded = crate::load::load(&inst).expect("the install loads");
-        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
-        let mut stream = crate::input::Stream::pump(&rec);
-        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
-        let lo: i64 = std::env::var("P_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(3970);
-        let hi: i64 = std::env::var("P_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(3977);
-        for state in lo..=hi {
-            while built.sim.frame < state {
-                stream.apply(built.sim.frame as i32, &mut built);
-                built.sim.command().tick();
-            }
-            let Some(set) = record.first_of(state - 1).cloned() else { continue };
-            let all = record.ranges(&set).expect("the set's ranges");
-            let ours = built.sim.checksum_leaders();
-            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
-            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
-                if a.bytes != b.bytes {
-                    let mut d = vec![];
-                    for (i, (x, y)) in a.bytes.iter().zip(&b.bytes).enumerate() {
-                        if x != y {
-                            let name = if a.field == "who..ally_mask" {
-                                sim::checksum::leaders::LEADER_FIELDS
-                                    .iter()
-                                    .find(|f| (f.1 - 8..f.1 - 8 + f.2 * f.3).contains(&i))
-                                    .map(|f| format!("{}[{}]", f.0, (i + 8 - f.1) / f.2))
-                                    .unwrap_or_default()
-                            } else {
-                                String::new()
-                            };
-                            d.push(format!("{i}:{x}|{y} {name}"));
-                        }
-                    }
-                    eprintln!("P {state} range {k} rec {} {}: {}", a.record, a.field, d.join(", "));
-                }
-            }
-            eprintln!("P {state} lens {} {}", ours.ranges.len(), theirs.len());
-        }
-    }
-
     /// **Row 120's MLRS reads `cavarch_o` −2 in the units line** (item
     /// 4443, `docs/RECGAME.md` §10.3): on 5864 the computer's fire-on-the-move
     /// MLRS `1/35` (type 273) steps an `ExploreTo` with an empty search after
