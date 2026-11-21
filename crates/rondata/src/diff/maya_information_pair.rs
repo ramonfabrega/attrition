@@ -177,7 +177,7 @@ fn maya_information_pair_the_long_s_stride_is_widened() {
     // `form` on 27 units, who=1's nine groups' `held` with their pools, and
     // `mirror` on eight of who=1's craft. No position, order or hit parts
     // to the last stride block 3301.
-    pin_eq!(w.firsts.len(), 109, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 101, "the stride's baseline");
 }
 
 /// run1411b: the pair's closing window, blocks 3075..3331 at the long's
@@ -248,7 +248,7 @@ fn maya_information_pair_run1411b_s_closing_frame_is_widened_whole() {
     // block 3331 agrees. Item 3756, piece 170's pivot rows (the Armored
     // Cavalry at art style 0): 57 → 56 keys, theirs' rounds read 243 → 240.
     // Item 4448: 56 -> 53, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
-    pin_eq!(w.firsts.len(), 53, "run1411b baseline");
+    pin_eq!(w.firsts.len(), 45, "run1411b baseline");
     pin_eq!(w.rounds_read, (240, 240), "the rounds read");
     // Every round, both directions: 240 in ours against 243, 121 parting.
     // The first is the Armored Cavalry `1/31`'s (TI 220, piece 874 at the

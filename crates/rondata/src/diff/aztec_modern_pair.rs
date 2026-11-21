@@ -261,7 +261,7 @@ fn aztec_modern_pair_run1429b_s_word_frame_is_widened_whole() {
     // standing families alone (`form`, both leaders' `SITE[i].reg`, who=0's
     // `aggression[1]`, who=1's groups and pools, five `mirror`s); `0/7`'s
     // 3302 damage and the city's and building's rows agree.
-    pin_eq!(w.firsts.len(), 53, "run1429b baseline");
+    pin_eq!(w.firsts.len(), 48, "run1429b baseline");
     // Every round, both directions: 86 against 86 (item 3750: 86 against
     // 104). The six rows left are `1/34`'s and `1/35`'s three rounds on
     // 3313 whose target, the Citizen `0/7` dead that frame, ours drops

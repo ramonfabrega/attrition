@@ -341,7 +341,7 @@ fn egyptian_modern_pair_run1426_s_word_frame_is_widened_whole() {
     // Infantry `1/19`'s round of 3723 leaving (6456, 31752, z 221) against
     // (6417, 31701, z 341), and the Citizen `0/12` struck harder from 3739
     // and dying on 3748 in theirs alone.
-    pin_eq!(w.firsts.len(), 51, "run1426 baseline");
+    pin_eq!(w.firsts.len(), 47, "run1426 baseline");
     pin_eq!(w.rounds_read, (222, 222), "the rounds read");
     // 16 rows part, every one a round's `whom`/`ox` read after its target
     // died (`-1` in ours against the dead unit's number in theirs, 3749,

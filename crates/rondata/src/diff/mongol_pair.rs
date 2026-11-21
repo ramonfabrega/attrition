@@ -303,7 +303,7 @@ fn run780_s_word_frame_is_widened_whole() {
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 97 -> 95.
     // Item 4435: 95 -> 85, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4448: 85 -> 84, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
-    pin_eq!(w.firsts.len(), 84, "initial run780 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    pin_eq!(w.firsts.len(), 80, "initial run780 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
     // Item 1768: 897 keys part on blocks 2201..2457, 129 of them on the
     // window's first block (nothing dumped parts on the word's own block
     // 2208). The word 2207 (ours 9 draws, theirs 8, index 8) is the idle
@@ -362,7 +362,7 @@ fn run788_s_word_frame_is_widened_whole() {
     pin_eq!(
         w.firsts.len(),
         // Item 4435: 104 -> 91, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-        91,
+        87,
         "run788 after item 1868's sea break test (163 -> 151, item 1937: the patrol look and the strike release)"
     );
     // Item 1868: 833 keys part on blocks 2832..3088 before the build, 128 of them
@@ -418,7 +418,7 @@ fn run799_s_word_frame_is_widened_whole() {
     // 4) leaves with the border pass's re-zero (`docs/AI.md` §318.1).
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 133 -> 131.
     // Item 4435: 131 -> 93, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 93, "run799 baseline");
+    pin_eq!(w.firsts.len(), 89, "run799 baseline");
     // Item 1948: 5,308 keys part on blocks 3125..3382 before the build, 182 of
     // them on the window's first block; the word 3131 (ours 62 draws, theirs
     // 65, index 0) is the BMP `1/27`'s cast of the transport (kind 14, spell
@@ -499,7 +499,7 @@ fn run809_s_word_frame_is_widened_whole() {
     // Item 2761: 178 → 174 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 152 -> 150.
     // Item 4435: 150 -> 90, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 90, "run809 baseline");
+    pin_eq!(w.firsts.len(), 84, "run809 baseline");
 }
 
 /// run820: the word 4238's window, blocks 4232..4488 at the long's detail (item 2088).
@@ -577,7 +577,7 @@ fn run820_s_word_frame_is_widened_whole() {
     // Item 4159's residue: 146 -> 145, `score` agrees (the units and combat parts, docs/LEADERS.md §18.5).
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 145 -> 143.
     // Item 4435: 143 -> 89, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 89, "run820 baseline");
+    pin_eq!(w.firsts.len(), 82, "run820 baseline");
 }
 
 /// run838: the word 4603's window, blocks 4597..4852 at the long's detail (item 2193).
@@ -649,7 +649,7 @@ fn run838_s_word_frame_is_widened_whole() {
     // Item 2761: 189 → 185 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 140 -> 138.
     // Item 4435: 138 -> 84, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 84, "run838 baseline");
+    pin_eq!(w.firsts.len(), 76, "run838 baseline");
 }
 
 /// run844: the pair's last blocks, 4940..5057 at the long's detail — six
@@ -712,5 +712,5 @@ fn run844_s_closing_frame_is_widened_whole() {
     // Item 4159's third residue: 186 -> 125, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 125 -> 123.
     // Item 4435: 123 -> 77, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 77, "run844 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    pin_eq!(w.firsts.len(), 68, "run844 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
 }
