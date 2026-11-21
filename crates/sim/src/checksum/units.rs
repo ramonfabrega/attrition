@@ -913,6 +913,66 @@ impl Sim {
                 put("order.air", b);
                 put("order.air_attack_ground", vec![0u8; 0x3c - 0x30]);
             }
+            Body::Strafe(st) => {
+                // `StrafeOrder::walk_data@0047f310` (item 4491, run1721's
+                // units on 2758, the Jet Fighter `1/91` handed a strafe on
+                // 2757 above its patrol): the flags byte through
+                // `TargetOrder`'s vbptr, `ox`, `whom`, `uid` (`+0x8..+0x12`),
+                // `AttackOrder`'s `def_x`..`new_ord` (`+0x14..+0x21`), the
+                // flags byte again through `AirOrder`'s, the `AirOrder` row
+                // (`+0x28..+0x40`) and its own `xx`, `yy` (`+0x40..+0x48`).
+                // `StrafeOrder::clear@00480040` leaves `def` at (−1, −1),
+                // `defensive`, `in_range`, `ever_in_range` 0 and `new_ord` 1;
+                // `Unit::add_strafe_order@005e48c0` writes the target, its
+                // `uid` (the object's `+0x30`), `mandatory`, the home,
+                // `cruising_alt` and `returning`, and the point.
+                // SEAM: the attack fields past `mandatory` walk `clear`'s
+                // values; a writer through the `get_attack_order` vslot on a
+                // strafe is not carried, and none is walked by run1721 to
+                // its end.
+                put("order.flags", vec![o.flags]);
+                let mut t = vec![0u8; 10];
+                match st.target {
+                    Some(obj) => {
+                        let (index, owner) = match obj {
+                            Obj::Unit(v) => (self.units[v].index, self.units[v].owner),
+                            Obj::Building(b) => (self.buildings[b].index, self.buildings[b].owner),
+                        };
+                        put_raw(&mut t, 0, 4, i64::from(index));
+                        put_raw(&mut t, 4, 4, i64::from(owner));
+                        put_raw(&mut t, 8, 2, i64::from(self.obj_uid(obj)));
+                    }
+                    None => {
+                        put_raw(&mut t, 0, 4, -1);
+                        put_raw(&mut t, 4, 4, -1);
+                        put_raw(&mut t, 8, 2, -1);
+                    }
+                }
+                put("order.target", t);
+                let mut fields = Vec::with_capacity(13);
+                fields.extend_from_slice(&(-1i32).to_le_bytes());
+                fields.extend_from_slice(&(-1i32).to_le_bytes());
+                fields.extend([u8::from(st.mandatory), 0, 0, 0, 1]);
+                put("order.attack", fields);
+                put("order.flags", vec![o.flags]);
+                let mut b = vec![0u8; 0x1c - 0x4];
+                let (oxx, whose) = st.home.map_or((-1, -1), |h| {
+                    let bd = &self.buildings[h];
+                    (i64::from(bd.index), i64::from(bd.owner))
+                });
+                let mut p = |at: usize, w, x: i64| put_raw(&mut b, at - 0x4, w, x);
+                p(0x4, 4, oxx);
+                p(0x8, 4, whose);
+                p(0xc, 4, i64::from(st.cruising_alt));
+                p(0x10, 4, i64::from(st.sharp_turn));
+                p(0x18, 4, i64::from(st.returning));
+                put("order.air", b);
+                let at = st.at.unwrap_or(crate::Pos::new(-1, -1));
+                let mut xy = Vec::with_capacity(8);
+                xy.extend_from_slice(&at.x.to_le_bytes());
+                xy.extend_from_slice(&at.y.to_le_bytes());
+                put("order.strafe", xy);
+            }
             Body::AirPatrol(ap) => {
                 // `AirPatrolOrder::walk_data@00483ed0` (item 4474, run1721's
                 // units on 2743, the Jet Fighter `1/91` handed a patrol on
