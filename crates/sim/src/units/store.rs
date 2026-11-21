@@ -650,8 +650,8 @@ impl Sim {
     /// on the second melee's frame 828. A caller that must not convert in
     /// place tests for itself, as `gain_tech`'s upgrade walk does.
     ///
-    /// SEAM: the `is(0x165, 1)` CEO bit and its `update_ceo_position`, the
-    /// `is(0x77, 0)` flag, and the two vslots `+0x15c` and `+0x160` the
+    /// The `is(0x165, 1)` CEO bit and its `update_ceo_position` are
+    /// written (item 4502, [`Sim::init_ceo_mask`]). SEAM: the two vslots `+0x15c` and `+0x160` the
     /// tail calls before `update_armor`/`update_speed` — none has state
     /// here.
     pub(crate) fn unit_set_type(&mut self, u: usize, rec: usize) {

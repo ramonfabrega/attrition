@@ -40163,3 +40163,7 @@ Files in place, `~/ron-golden/run1752/map-18/`: `gamelog_p.txt`, 2,432 bytes, SH
 
 **What it holds**: `diff::held_out::tests::row_105_s_rider_to_sea_region_65_lands_in_reg_gatherers_on_run1752_s_ranges`
 (every leaders range on 1975 and 1976).
+- **Re-scored by item 4502** (the CEO bit, `unit_masks2 & 0x10000`, raised by `set_type` on a type that `is(0x165,
+  1)`): units 2,983 → 3,359, first 3359 (range 3707, record 127, `myhits..launch_frames` byte 8, `inside_down` ours
+  −1, theirs 128); leaders and groups as before. `diff::held_out::tests::row_105_s_ceo_carries_the_ceo_bit_from_its_set_type_on_run1752_s_ranges`
+  holds every units range on 2982 and 2983.

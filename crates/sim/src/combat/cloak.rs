@@ -21,6 +21,8 @@ impl Sim {
     /// on every block and its citizens never.
     pub fn init_iroquois_masks(&mut self, u: usize) {
         self.init_marine_mask(u);
+        // `Unit::init@00612100:253`–`264`, the CEO bit (item 4502).
+        self.init_ceo_mask(u);
         if !self.iroquois(self.units[u].owner) {
             return;
         }
