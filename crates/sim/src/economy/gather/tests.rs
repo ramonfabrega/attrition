@@ -660,3 +660,63 @@ fn a_mine_keeps_the_range_it_was_filled_from() {
     assert!(s.buildings[b].gather_from.is_empty());
     assert_eq!((s.buildings[b].mtn, s.buildings[b].cliff), (-1, -1));
 }
+
+/// **A player's Mine on a tile out of every range's reach moves to the
+/// first spiral tile the survey clears** (item 4498,
+/// `BuildTypeData::snap_center@00636190` `00636304`–`00636328`). The arm
+/// asks `who >= 0` and the Mine's or the Woodcutter's lineage; without a
+/// player, or for a type that gathers nothing, the plain snap stands.
+/// The 2017 sample's person ordered a Mine at (29695, 10216), `NoMountain`
+/// there, and theirs built it a tile south with 205 tiles.
+#[test]
+fn a_player_s_mine_out_of_reach_snaps_to_the_first_tile_in_reach() {
+    use crate::cities::place::Blocked;
+    let mut s = sim();
+    // `e`: no city needed, as the sample's mines stand at city −1.
+    let mine = s.add_build_type(BuildType {
+        flags: flags::parse("gdae"),
+        ..bt(Ident::Mine, 2, 2)
+    });
+    let market = s.add_build_type(BuildType {
+        flags: flags::parse("dae"),
+        ..bt(Ident::Market, 2, 2)
+    });
+    for cy in 0..16 {
+        for cx in 0..16 {
+            s.world
+                .set_owner(Cell::new(cx, cy), Owner::Player(0), Owner::None);
+        }
+    }
+    mountain_cell(&mut s, Cell::new(5, 5));
+    let t = MountainTemplate {
+        tiles: (0..4).flat_map(|v| (0..4).map(move |u| (u, v))).collect(),
+        solid: vec![(0, 0)],
+    };
+    s.place_mountains(&[(Cell::new(5, 5), 0)], &[t]);
+    // Tile (14, 21): its centre 1440 from the solid cell's, past 1152.
+    let asked = tile_pos(14, 21);
+    let plain = s.snap_center(mine, asked);
+    assert_eq!(
+        s.blocked_site(Some(0), mine, asked, None),
+        Blocked::NoMountain,
+        "the asked tile is out of reach"
+    );
+    let moved = s.snap_center_placed(mine, asked, Some(0));
+    assert_ne!(moved, plain, "a player's mine moves");
+    assert_eq!(
+        s.blocked_site(Some(0), mine, moved, None),
+        Blocked::Clear,
+        "onto a tile the survey clears"
+    );
+    assert!(
+        (moved.x - plain.x).abs() <= 2 * UNITS_PER_TILE
+            && (moved.y - plain.y).abs() <= 2 * UNITS_PER_TILE,
+        "within the spiral's second ring: {moved:?} from {plain:?}"
+    );
+    assert_eq!(s.snap_center_placed(mine, asked, None), plain, "no player");
+    assert_eq!(
+        s.snap_center_placed(market, asked, Some(0)),
+        s.snap_center(market, asked),
+        "a type outside the lineages"
+    );
+}
