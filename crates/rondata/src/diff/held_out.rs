@@ -835,7 +835,7 @@ mod tests {
                         let m = |x: i64| if w >= 8 { x } else { x & ((1i64 << (8 * w)) - 1) };
                         let watch = img.record == 1
                             && matches!(leaf.name.as_str(), "gatherers" | "free_peasants" | "reg_gatherers" | "reg_free_peasants" | "reg_peasants")
-                            && (leaf.count == 1 || i < 4);
+                            && (leaf.count == 1 || ours != Some(0) || th != Some(0));
                         if watch && std::env::var("RON_PROBE_WATCH").is_ok() {
                             eprintln!("    w1 {}[{i}] ours {:?} theirs {:?}", leaf.name, ours, th);
                         }
