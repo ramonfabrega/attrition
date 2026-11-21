@@ -3516,16 +3516,20 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // `Build::add_gatherer@0062f640`): units 5,297 -> 5,304, first on
         // 4492, measured on the merged tree; the seven states not read one
         // by one. No ranges take of this row.
+        // Moved by item 4520 (the leaders line's `flags` carry the Kremlin's
+        // spy-due bit, `leader_flags & 0x10000000`; run1754's leaf, row
+        // 130): leaders 5,995 -> 6,000, first 5344 -> 5409. No ranges take
+        // of this row names the five states or the one left.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5304, 5577, 6001, 5826, 6001, 6001, 6001, 5995, 6001, 6001, 6001, 5379,
+                5304, 5577, 6001, 5826, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 5379,
             ],
             first: &[
                 ("units", (4492, Some(710203995), 2575096436)),
                 ("builds", (5577, Some(3250328791), 1226052951)),
                 ("ammo", (4104, Some(1068803573), 2259329699)),
-                ("leaders", (5344, Some(3455285082), 543455082)),
+                ("leaders", (5409, Some(2436184419), 4237637983)),
                 ("world", (3809, Some(2182316411), 2894561759)),
             ],
             over: None,
