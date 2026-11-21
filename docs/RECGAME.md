@@ -1142,6 +1142,20 @@ Answered by item 4448.
 slot's `ox`/`oy` (GROUPS §36.2); a dropped cavarch target keeps its uid (AI
 §134.3); a `DETECT` building lights `seen3` (VISION §4).
 
+**Row 100's deaths, whole: the nuke strikes in `find_units`' order** (item
+4478, diff-backed on row 100, run1721). On 2756 both sides hold the same two
+bodies, the Citizens (TI 50) `0/11` and `0/3` the ring killed on 2755, in
+swapped slots: theirs' record 0 is `0/11` at (2712, 31896), ours' `0/3` at
+(3384, 31992), `cur_anim` 0x13 and 0x14 in slot order on both (the draw
+follows the blow, not the body). `Nuke::do_damage@0092bc80:141` takes its
+units from `Objects::find_units@0065a620` before the first blow, and that
+walk is a circle of cells round the point when the ring holds no more cells
+than `total_units`, the players' lists otherwise. Ours walked the unit slots
+(`docs/PRODUCTION.md`, the nuke's "Not established"). Built
+(`Sim::nuke_find_units`), deaths goes 2,756 → 3,331 on row 100, 5,350 →
+6,001 on row 10 and 4,084 → 4,731 on row 130: whole on all three. Row 100
+parts first on units 2758.
+
 ## 11. Parity held out, second: eight more lobbies named before the original plays them (item 4462)
 
 DECISIONS 145 §2, 2026-11-20. Rows 10, 30, 50, 70, 90, 110, 130 and 150 of the same order, declared
