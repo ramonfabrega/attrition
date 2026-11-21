@@ -1546,7 +1546,7 @@ mod tests {
     }
 
     /// **Row 10's Citizen over a peaceful border carries the attrition
-    /// bits** (item 4514, `docs/CHECKSUM.md` §18): run1739, the ranges take
+    /// bits** (item 4514, `docs/CHECKSUM.md` §18.3): run1739, the ranges take
     /// of run1730's file. who=1's `1/6` (TI 50) stands on who=0's ground,
     /// the two at peace, and its refresh on 3771 takes the peace period, 8.
     /// `Unit::process_attrition@005e11a0` clears `unit_masks` `0x400080` on
@@ -1603,10 +1603,7 @@ mod tests {
                 .find(|u| u.owner == 1 && u.index == 6)
                 .expect("1/6");
             assert_eq!(u.type_index, 50);
-            assert_eq!(
-                built.sim.world.owner_at(u.pos),
-                sim::Owner::Player(0)
-            );
+            assert_eq!(built.sim.world.owner_at(u.pos), sim::Owner::Player(0));
             assert!(!built.sim.leaders.at_war[1][0], "1 and 0 at peace");
             assert_eq!(u.attrition, if state == 3771 { 8 } else { 0 }, "{state}");
             if state == 3771 {
@@ -2938,13 +2935,19 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // 6920, record 3039 `block.present`, ours 1, theirs 0, who=1's
         // `1/43` stepping (632, 813) -> (633, 814) inside the freed cell
         // (39, 50)): world 5,995 -> 6,001, whole.
+        // Moved by item 4514 (`unit_masks` carries the attrition period's
+        // `0x80` and the peace arm's `0x400000`,
+        // `Unit::process_attrition@005e11a0`: run1739, state 3771, units
+        // range 467, record 6, who=1's `1/6` (TI 50) on who=0's ground at
+        // peace, ours 0x840008, theirs 0xc40088): units 5,664 -> 5,792,
+        // first 3771 -> 4880.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5664, 6001, 6001, 5962, 6001, 6001, 5997, 5801, 6001, 6001, 6001, 6001,
+                5792, 6001, 6001, 5962, 6001, 6001, 5997, 5801, 6001, 6001, 6001, 6001,
             ],
             first: &[
-                ("units", (3771, Some(4212870850), 267538306)),
+                ("units", (4880, Some(357474173), 4168261069)),
                 ("ammo", (5178, None, 1427640977)),
                 ("guys", (4880, Some(3110518234), 2759048231)),
                 ("leaders", (3976, Some(2201651438), 3962276079)),
@@ -3235,10 +3238,14 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Freighter `1/135` holding `1/127`, `1/128`, `1/129`, `1/127`'s
         // `inside_down` ours -1, theirs 128): units 3,034 -> 4,422, first
         // 2354 -> 3411.
+        // Moved by item 4514 (`unit_masks` carries the attrition period's
+        // `0x80` and the peace arm's `0x400000`; run1739's leaf, row 10):
+        // units 4,422 -> 4,459, first on 3411, its sums unmoved. No ranges
+        // take of this row.
         moved: Some(Score {
             states: 4731,
             agreed: [
-                4422, 4731, 4731, 4731, 4731, 4731, 4731, 4721, 4731, 4731, 4731, 4731,
+                4459, 4731, 4731, 4731, 4731, 4731, 4731, 4721, 4731, 4731, 4731, 4731,
             ],
             first: &[
                 ("units", (3411, Some(1975420184), 338852346)),

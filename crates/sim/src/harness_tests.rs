@@ -397,7 +397,7 @@ fn an_allys_ground_takes_no_attrition_and_one_way_is_no_alliance() {
 }
 
 /// **The period's two `unit_masks` bits** (`Unit::process_attrition@005e11a0`,
-/// item 4514, `docs/CHECKSUM.md` §18): the refresh clears `0x400080`, the war
+/// item 4514, `docs/CHECKSUM.md` §18.3): the refresh clears `0x400080`, the war
 /// arm's period sets `0x80`, and the peace and assassin arms set both, the
 /// `0x400000` that `Unit::process_supply@005e0560` reads first. The units
 /// line carries them (run1739's who=1 `1/6` on 3771 read `0xc40088`).
@@ -407,10 +407,10 @@ fn the_units_line_carries_the_attrition_period_s_two_bits() {
         let b = sim.unit_record_bytes(0);
         u32::from_le_bytes([b[32], b[33], b[34], b[35]]) & 0x0040_0080
     };
-    let mut sim = skirmish(4);
+    let mut sim = skirmish(1);
     sim.add_unit(Unit::new(0, 0, centre_of(Cell::new(15, 0)), 1000));
     run(&mut sim, 40);
-    assert!(sim.units[0].attrition > 0 && !sim.units[0].ignores_supply);
+    assert!(sim.units[0].attrition > T_PEACE && !sim.units[0].ignores_supply);
     assert_eq!(masks(&sim), 0x80, "the war arm's period");
 
     sim.leaders.at_war = vec![vec![false; 2]; 2];
