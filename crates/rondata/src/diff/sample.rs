@@ -442,7 +442,7 @@ pub(in crate::diff) mod tests {
     /// Item 4494 (no hits left, no shot: `Build::do_attack@006228f0`
     /// returns at `hits_left() == 0`, `622983`..`6229be`, after the
     /// countdown; computer 1's capital `1/2000`, health 0 of 1200 on 4223,
-    /// fired its 16-frame cycle's round at the person's unit here, its
+    /// fired its 16-frame cycle's round at an enemy unit here, its
     /// `Object::fire_ammo+0x3d5` and `Ammo::init+0xcd9` draws where theirs
     /// ran four `Guy::inc_time` animations): 4223 -> 4328, +105. On 4328
     /// both spend `Leader::diplomacy+0x1322`, then theirs one draw at

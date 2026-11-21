@@ -68,7 +68,7 @@ impl Sim {
         // zero (`6229be` → `622c2f`). Item 4454 let a building at health 0
         // count its arrows down; this is where it stops. The sample's
         // capital `1/2000` (computer 1's) stood at health 0 on 4223 and fired
-        // at the person's unit here, its 16-frame cycle's next shot after
+        // at an enemy unit here, its 16-frame cycle's next shot after
         // 4207; theirs spent no `Object::fire_ammo` draw that frame and took
         // the city on 4228.
         if self.hits_left(me) == 0 {
