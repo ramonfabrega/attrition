@@ -144,4 +144,20 @@ still at the tip is that one, and nothing was redrawn or uploaded.
 
 ## The gate
 
-Whole, by `tools/gate_run.sh`, once; quoted here by the commit after it.
+Whole, by `tools/gate_run.sh`, twice: the opener's break (entry 147 §8)
+was found while the first ran.
+
+- **`gate-pass-1120b.log`: `gate exit 0`** on `1383bcfbe`, 9 of 9 steps,
+  release 21.1 minutes. `Fixture audit: 198748 requests, 0 missing
+  fixtures`.
+- **`gate-pass-1120c.log`: `gate exit 0`** on `fcf68acc0`, the tip with
+  the opener's guard, 9 of 9 steps: offline 1.0, guard 0.6, merge pins
+  1.1, release 20.7, clock 0.1. `Clock: green beside load`. Admission
+  10.9 s over 1,479 leases; load 9.4 at its start and 7.9 at its end.
+  `Fixture audit: 198748 requests, 0 missing fixtures`. `Rows: one driver
+  row at most: steer f33709ae (working)`; `Driver: 0 landings since the
+  last pass (backstop 20) · context 287 k`. `Builders: 0 reaped`; 102 GB
+  free after it. The week read 94 % at 21:24 and Fable's 56 %.
+- The paperwork guards had run on the tree before each commit. The
+  tools' own tests were red once first: `COMMANDERS_LINES` named a test
+  in a file its existence check did not read.
