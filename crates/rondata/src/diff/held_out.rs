@@ -786,6 +786,65 @@ mod tests {
         }
     }
 
+    /// PROBE 4499 (reverted whole): every leaders leaf parting on row 105.
+    #[test]
+    fn probe_4499_row_105_leaders() {
+        if std::env::var("RON_PROBE_4499").is_err() {
+            return;
+        }
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&THIRD, 5) else {
+            panic!("row 105's recording");
+        };
+        let ranges = home.join("ron-golden/run1752/map-18/rontrace.ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 105's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let lo: u32 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(1970);
+        let hi: u32 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(1977);
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state as i32 - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            let imgs: Vec<_> = (0..8u8).flat_map(|w| built.sim.leader_image(w)).collect();
+            eprintln!("state {state}: ranges ours {} theirs {}", imgs.len(), theirs.len());
+            for (k, (img, t)) in imgs.iter().zip(&theirs).enumerate() {
+                let mut at = 0usize;
+                for leaf in &img.leaves {
+                    for i in 0..leaf.count {
+                        let w = leaf.width;
+                        let ours = leaf.values.as_ref().and_then(|v| v.get(i)).copied();
+                        let tb = t.bytes.get(at..at + w);
+                        let th = tb.map(|b| {
+                            let mut x = 0i64;
+                            for (j, &c) in b.iter().enumerate() {
+                                x |= i64::from(c) << (8 * j);
+                            }
+                            if w < 8 && x >> (8 * w - 1) & 1 == 1 {
+                                x -= 1i64 << (8 * w);
+                            }
+                            x
+                        });
+                        if ours.is_some() && th.is_some() && ours != th {
+                            eprintln!(
+                                "  range {k} record {} {} {}[{i}] ours {:?} theirs {:?}",
+                                img.record, img.field, leaf.name, ours, th
+                            );
+                        }
+                        at += w;
+                    }
+                }
+            }
+        }
+    }
+
     /// **Row 120's barge is born with `form` 0** (item 4435, `docs/RECGAME.md`
     /// §10.3): run1716, the ranges take of run1706's file, holds the units
     /// line's every range on state 2694, where the computer's transport
