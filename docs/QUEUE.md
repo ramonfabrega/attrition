@@ -52,7 +52,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3): the pass designed four seats, all cut by `commander` (Opus 5.5) at 94 % of the week: the chain's 4478 (row 100, from deaths 2756; 4480 landed, rows 60 and 70 whole), a parity seat's 4470 (second, row 90's take), a parity seat's 4489 (the sample, builds 4026; 4479 and 4488 landed), the eye's 4482 (three tanks under a haze). 4470 takes the game lane first; every later take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4483 (second, rows 10 and 130), 4484 (row 40's take), 4485 (second, row 110), 4481 (the packets' groups line). 4487 (the third battery) is seated when `Parity held out, second:` reads 4 of 8.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3): the pass designed four seats, all cut by `commander` (Opus 5.5) at 94 % of the week: the chain's 4478 (row 100, from deaths 2756; 4480 landed, rows 60 and 70 whole), a parity seat's 4470 (second, row 90's take), a parity seat's 4489 (the sample, builds 4026; 4479 and 4488 landed), the eye's 4490 (the tanks' move dust; 4482 minted the row). 4470 takes the game lane first; every later take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4483 (second, rows 10 and 130), 4484 (row 40's take), 4485 (second, row 110), 4481 (the packets' groups line). 4487 (the third battery) is seated when `Parity held out, second:` reads 4 of 8.
 
 4470. **Parity held out, second: row 90** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §11). 4462 pinned the second
 battery as found: 1 of 8 whole (row 150), 65 of 96 lines. Row 90 (East Indies, Ancient, difficulty 0) is one state from whole on
@@ -68,13 +68,13 @@ ranges are whole to 4130 but builds: on 4026, `2810 2005 queue[k] job_counter` o
 4025 and 4026, from the ranges on disk. Run 1726 stays reserved. Re-pin `SAMPLE_LINES`; the driver writes `Parity:`. It stops when
 two landings running move no line's first parting (145 §4).
 
-4482. **Three tanks under a haze on run1559b's photograph** (a render item, scoped; the eye's; `docs/RENDERER.md` §3.13). 4458
-stopped on its first act: the three vehicles theirs draws hazy at 3279 are live tanks at full health (`1/40`, `1/27`, `1/16`, piece
-196), the tank between them (`1/15`) is crisp, and no `DeathObj` is under any (parked 4458a). First act: mint a row on the three
-tanks' pixels with `1/15` as its control, at its measured value; then read the packet's `UnitData` for the four (`unit_masks`,
-`unit_masks2`, type 196's `+0x2b4`) and its `Underlays` list at their points, for what the hazy three share and the crisp one
-lacks. The title names no mechanism. It stops and says so when the packet holds nothing apart between them; the seat then takes the
-riflemen's muzzle flash on the same crop.
+4490. **The tanks' move dust on run1559b's photograph** (a render item, scoped; the eye's; `docs/RENDERER.md` §3.13). 4482 minted
+`RUN1559B_3279_TANKS_HAZE` at luminance 1 of 4 (only the control `1/15` passes) and found the haze is no unit state (`1/16` hazy and
+`1/15` crisp both `unit_masks` 0x40008, one type): it is the Sherman's MOVE DUST, particle system 98 off node 5, in the packet's
+`GraphicPieces` emitters (particles `1/27` 10, `1/16` 10, `1/40` 7 from a stopped emitter, `1/15` 1). Ours draws no unit particle
+event. Parked 4482a is this build: `ensure_emitter`, `ParticleEmitter::inc_time`, and the anim clock case 3 compares to [75, 9000),
+then emit on `render::particle`. The score: `TANKS_HAZE` 1 → 4 of 4 at 3279, the control still in. Scoped: say so before touching
+`crates/sim`.
 
 4478. **Parity held out: row 100, from deaths 2756** (a rules item, whole; the chain's; `docs/RECGAME.md` §10.3; CHECKSUM §18). 4474
 walked `AirPatrolOrder::walk_data`'s 14 ranges after `order.node` and set the airbase exit's angle (run1721 2743, Jet Fighter 1/91, TI
