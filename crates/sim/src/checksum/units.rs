@@ -629,7 +629,8 @@ impl Sim {
     /// (the flags byte, item 4414) on the 2017 sample's 532; an
     /// `AIR_ATTACK_GROUND` (the flags byte, the ground point, the flags
     /// byte again, the `AirOrder` row and `total_time`..`sy`, item 4459) on
-    /// run1721's 2587; any other kind hands over its type and node byte
+    /// run1721's 2587; a `REPAIR` (that target alone, item 4479) on the
+    /// sample's 3921; any other kind hands over its type and node byte
     /// alone here, its walker not ported (`docs/CHECKSUM.md` §17).
     fn checksum_order(&self, ranges: &mut Vec<Range>, u: usize, k: usize) {
         let unit = &self.units[u];
@@ -729,6 +730,16 @@ impl Sim {
                 put("order.search", i32::from(search).to_le_bytes().to_vec());
             }
             Body::Build(b) if o.index() == kind::BUILD_AT => {
+                put("order.flags", vec![o.flags]);
+                put("order.target", target(b));
+            }
+            // `RepairOrder` has no walker of its own: its bytes fold at
+            // `0047f243` and `0047f251`, both in `TargetOrder::walk_data@
+            // 0047f220` — the flags byte, then `ox`, `whom`, `uid` (`+0x8..
+            // +0x12`, the building repaired) — and the guys follow (run1724,
+            // state 3921: unit `3/11`'s second order, `2010` of player 3,
+            // uid 0x31; item 4479, the sample's units on 3921).
+            Body::Repair(b) => {
                 put("order.flags", vec![o.flags]);
                 put("order.target", target(b));
             }
