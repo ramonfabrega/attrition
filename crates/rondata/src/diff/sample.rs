@@ -444,10 +444,18 @@ pub(in crate::diff) mod tests {
     /// countdown; computer 1's capital `1/2000`, health 0 of 1200 on 4223,
     /// fired its 16-frame cycle's round at an enemy unit here, its
     /// `Object::fire_ammo+0x3d5` and `Ammo::init+0xcd9` draws where theirs
-    /// ran four `Guy::inc_time` animations): 4223 -> 4328, +105. On 4328
-    /// both spend `Leader::diplomacy+0x1322`, then theirs one draw at
-    /// `6c0985` before the birds' `Animal::think_bird+0x82`.
-    const SAMPLE_WALKED: (i64, i64) = (4328, 21044);
+    /// ran four `Guy::inc_time` animations): 4223 -> 4328, +105. Item 4496
+    /// (the computer's own alliance to the top scorer, `Leader::diplomacy@
+    /// 006bc950` `6c0926`–`6c0980`: a target not my mutual ally, the top
+    /// scorer, with four or more leaders outscoring me, draws before the
+    /// human test; on 4328 computer 4, score 592, against the person `3`,
+    /// 1172, the top, with 950, 638, 851 and 1172 above it: theirs'
+    /// `Leader::diplomacy+0x4035` after the race coin; the coin 16145 odd,
+    /// refused by computer 4's three allies; again on 4520, computer 1, and
+    /// 4840, computer 4): 4328 -> 5083, +755. On 5083 both spend
+    /// `Farms::inc_time+0x1ae` to draw 27; theirs then four
+    /// `Build::find_gather_tiles+0x10a` and ours nothing.
+    const SAMPLE_WALKED: (i64, i64) = (5083, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -625,20 +633,27 @@ pub(in crate::diff) mod tests {
     /// 4224 -> 4321, ammo 4224 -> 4347, deaths 4625 -> 4643, groups 4244 ->
     /// 4333, guys 4226 -> 4330, leaders 4232 -> 4321, world 4229 -> 4334;
     /// cities and goods unchanged; items 5760 -> 5666, a named fall past the
-    /// new lowest 4248.
+    /// new lowest 4248. Item 4496 (the computer's own alliance to the top
+    /// scorer draws at `6c0980` before the human test,
+    /// `Sim::top_scorer_alliance`; computer 4 on 4328, four above it, the person
+    /// `3` the top; draws 4328 -> 5083): ammo 4347 -> 4462, deaths 4643 ->
+    /// 5135, groups 4333 -> 5085, guys 4330 -> 5085, cities 4401 -> 5126,
+    /// goods 4559 -> 5403, world 4334 -> 5085; units 4248, builds 4321 and
+    /// leaders 4321 unchanged; items 5666 -> 5403, a named fall past the
+    /// unchanged lowest 4248.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 4248),
         ("builds", 4321),
         ("walls", 21044),
-        ("ammo", 4347),
-        ("deaths", 4643),
-        ("groups", 4333),
-        ("guys", 4330),
+        ("ammo", 4462),
+        ("deaths", 5135),
+        ("groups", 5085),
+        ("guys", 5085),
         ("leaders", 4321),
-        ("cities", 4401),
-        ("items", 5666),
-        ("goods", 4559),
-        ("world", 4334),
+        ("cities", 5126),
+        ("items", 5403),
+        ("goods", 5403),
+        ("world", 5085),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -727,8 +742,11 @@ pub(in crate::diff) mod tests {
     /// the first shot still on 2929. Item 4494 (no hits left, no shot: a
     /// building at health 0 fires nothing, `Build::do_attack@006228f0`
     /// `6229be`): 4172 -> 4946, a named rise past every parting, the frames
-    /// not read one by one; the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4946, Some(2929));
+    /// not read one by one; the first shot still on 2929. Item 4496 (the
+    /// computer's own alliance to the top scorer draws at `6c0980`, three
+    /// times to 5083): 4946 -> 4920, a named fall, the frames not read one
+    /// by one; the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4920, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve

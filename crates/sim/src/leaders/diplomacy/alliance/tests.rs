@@ -208,3 +208,71 @@ fn a_third_party_racing_a_clock_is_noted() {
     sim.set_diplo(0, 2, 2);
     assert_eq!(sim.racing_third_party(1, 0), None, "the target's ally");
 }
+
+/// Six seats at peace, who=1 a computer scoring 10 and who=0 the human top
+/// scorer at 100, `above` more of the rest scoring 20 to 40 (the others 0).
+fn ranked(above: usize) -> Sim {
+    let mut sim = Sim::new(Tuning::RON, World::new(2, 2), 6);
+    sim.cities.nation[0].human = true;
+    for l in 1..6 {
+        sim.cities.nation[l].human = false;
+    }
+    sim.ai.lobby.team_style = 0;
+    sim.frame = 4_328;
+    sim.leaders.score[0].score = 100;
+    sim.leaders.score[1].score = 10;
+    for (i, l) in (2..6).enumerate() {
+        sim.leaders.score[l].score = if i + 1 < above { 20 + 10 * i as i32 } else { 0 };
+    }
+    sim
+}
+
+/// Item 4496's killer: with four leaders outscoring me and the top scorer
+/// the target, the offers arm draws the game's random at `6c0980` (the
+/// sample on 4328, theirs' `Leader::diplomacy+0x4035`), whether or not the
+/// coin then proposes; with three it draws nothing. An odd coin to the
+/// human proposes the alliance; an even one leaves the records alone.
+#[test]
+fn the_top_scorer_is_drawn_for_with_four_above_me() {
+    let (above, top) = ranked(4).score_rank(1);
+    assert_eq!((above, top), (4, Some(0)));
+    let mut sim = ranked(3);
+    assert_eq!(sim.score_rank(1).0, 3);
+    let seed = sim.rng.seed;
+    sim.offers_arm(1, 0, false, Rivals::default());
+    assert_eq!(sim.rng.seed, seed, "three above: no draw");
+    for s in 0..8u32 {
+        let mut sim = ranked(4);
+        sim.rng.seed = s;
+        let mut coin = sim.rng;
+        let odd = coin.roll() & 1 != 0;
+        let before = sim.leaders.tribute[1].dip[0];
+        sim.offers_arm(1, 0, false, Rivals::default());
+        assert_ne!(sim.rng.seed, s, "four above: one draw");
+        let (a, b) = (sim.leaders.tribute[1].dip[0], sim.leaders.tribute[0].dip[1]);
+        if odd {
+            assert_eq!((a.treaty, b.treaty, a.agree), (2, 2, 1), "proposed");
+            assert_eq!(sim.leaders.agendas[1][0] & 8, 8);
+            assert_eq!(sim.ai.ai[0].got_diplo_message, 4_328);
+        } else {
+            assert_eq!(a, before, "an even coin proposes nothing");
+        }
+    }
+}
+
+/// A tie for the top goes to the later slot, and a negative field has no
+/// top scorer (the running best starts at 0).
+#[test]
+fn the_top_scorer_is_the_last_at_the_best() {
+    let mut sim = ranked(0);
+    sim.leaders.score[0].score = 10;
+    assert_eq!(
+        sim.score_rank(1),
+        (0, Some(1)),
+        "0 and 1 tie at 10: the later"
+    );
+    for l in 0..6 {
+        sim.leaders.score[l].score = -1;
+    }
+    assert_eq!(sim.score_rank(1), (0, None));
+}
