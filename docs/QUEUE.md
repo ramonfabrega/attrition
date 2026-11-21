@@ -52,7 +52,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3): four seats out, cut off `0bd32ef70`: the chain's builder on 4484 (held out, row 40's units line, one take, run1723), `lane-4502` (third, row 105, three leaves on disk), `lane-4505` (the sample, ranges to 4500, run1726), `lane-4506` (the dust from the packet's emitters), each Opus 5.5. 4484 takes the game lane first, then 4505; every later take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4507 (third, row 5's ammo), 4504 (second, row 10), 4508 (second, row 130), 4509 (second, row 30, after 4504's world leaf), 4485 (second, row 110). 4503 (the sample's draw word) follows 4505 in the sample's seat. 4510 (the fourth battery) is seated when `Parity held out, third:` reads 7 of 8.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3): four seats out, cut off `0bd32ef70`: the chain's builder on 4484 (held out, row 40's units line, one take, run1723), `lane-4502` (third, row 105, three leaves on disk), `lane-4505` (the sample, ranges to 4500, run1726), `lane-4507` (third, row 5's ammo, run1753), each Opus 5.5; 4506 landed (the dust, `RUN1559B_3279_TANKS_HAZE` 1 → 4 of 4, parked 4506a and 4506b) and its seat took 4507. 4484 takes the game lane first, then 4505, then 4507; every later take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4504 (second, row 10), 4508 (second, row 130), 4509 (second, row 30, after 4504's world leaf), 4485 (second, row 110). 4503 (the sample's draw word) follows 4505 in the sample's seat. 4510 (the fourth battery) is seated when `Parity held out, third:` reads 7 of 8.
 
 4484. **Parity held out: row 40's units line, one take of one line, then its leaf** (a rules item, whole; the chain's;
 `docs/RECGAME.md` §10.3). The pass's score (DECISIONS 148 §3): eleven lines agree on all 4,974 states and units on 2,487, first on
@@ -73,13 +73,6 @@ ammo on 4462, and run1724's ranges end on 4130 (DECISIONS 148 §5). First act: `
 run1726 with `--end-frame 4500` and `RNG_MASK=0x8bu` (units, builds, ammo, leaders), then the leaf of units 4248 off the take, with
 builds and leaders on 4321 beside it. Re-pin `SAMPLE_LINES`; the driver writes `Parity:` with its draw word. It stops when two
 landings running leave the `Parity:` line as it is, and 4501 was the first.
-
-4506. **The moving tanks' dust, drawn from the packet's emitters** (a render item, scoped; the eye's; `docs/RENDERER.md` §3.13).
-4482 named the haze, system 98 `MOVE DUST` off node 5 of a moving vehicle; 4490 found our walk cannot say when an emitter starts or
-stops, because the view starts it (DECISIONS 148 §6). First act: print the packet's emitter lists for the four tanks, and for the two
-riflemen who carry a flash in theirs, with each `start_time` and `end_time`. Then build on `render::particle` from the packet's
-emitters and live particles: births every `freq` at node 5's point, stepped a frame at a time. The row is `RUN1559B_3279_TANKS_HAZE`,
-1 of 4 with the control in. The draw's own gate stays parked as 4490a. It stops after one landing that leaves the row at 1 of 4.
 
 4507. **Parity held out, third: row 5's ammo line from 4805** (a rules item, whole; unseated; `docs/RECGAME.md` §11.1). Eleven lines
 agree on all 6,001 states and ammo on 5,934, first on 4805 (ours 2964392822, theirs 2975730574). The row is one line from whole and
