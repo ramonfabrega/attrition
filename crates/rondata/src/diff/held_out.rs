@@ -639,6 +639,136 @@ mod tests {
         }
     }
 
+    /// Probe (item 4476): row 60's ranges on `RON_PROBE_4476`'s states,
+    /// ours against run1722's, by field, on `RON_PROBE_4476_LINES`.
+    #[test]
+    fn probe_4476() {
+        let Ok(spec) = std::env::var("RON_PROBE_4476") else {
+            return;
+        };
+        let states: Vec<i64> = spec.split(',').map(|s| s.parse().unwrap()).collect();
+        let lines: Vec<u8> = std::env::var("RON_PROBE_4476_LINES")
+            .unwrap_or_else(|_| "5".into())
+            .split(',')
+            .map(|s| s.parse().unwrap())
+            .collect();
+        let whole: Option<i64> = std::env::var("RON_PROBE_4476_RECORD")
+            .ok()
+            .and_then(|v| v.parse().ok());
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIRST, 3) else {
+            panic!("no rcx")
+        };
+        let ranges =
+            crate::testenv::experiment(&home.join("ron-golden/run1722/map-7"), "rontrace.ranges")
+                .expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 60's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for &state in &states {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+                crate::diff::harness::debug_watch(&built, built.sim.frame);
+            }
+            let set = record.first_of(state - 1).expect("set").clone();
+            let all = record.ranges(&set).expect("ranges");
+            for &line in &lines {
+                let (name, ours) = match line {
+                    0 => ("units", built.sim.checksum_units()),
+                    5 => ("groups", built.sim.checksum_groups()),
+                    6 => ("guys", built.sim.checksum_guys()),
+                    11 => ("world", built.sim.checksum_world()),
+                    _ => panic!("line {line}"),
+                };
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == line).collect();
+                eprintln!(
+                    "PROBE state {state} {name}: ours {} theirs {}",
+                    ours.ranges.len(),
+                    theirs.len()
+                );
+                if name == "groups" {
+                    for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                        if a.field == "list" || a.field == "last_group" {
+                            eprintln!(
+                                "PROBE  gl range {k} record {} {} ours {:?} theirs {:?}",
+                                a.record, a.field, a.bytes, b.bytes
+                            );
+                        }
+                    }
+                }
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    if whole.is_some_and(|w| a.record as i64 == w) {
+                        eprintln!(
+                            "PROBE  whole {name} range {k} {} ours {:?}",
+                            a.field,
+                            crate::checksum::fields::range_fields(name, &a.field, &a.bytes)
+                        );
+                        eprintln!(
+                            "PROBE  whole {name} range {k} {} theirs {:?}",
+                            a.field,
+                            crate::checksum::fields::range_fields(name, &a.field, &b.bytes)
+                        );
+                    }
+                    if a.bytes != b.bytes && a.bytes.len() > 1000 && std::env::var("RON_PROBE_4480").is_ok() {
+                        let fw = built.sim.world.fog_xs() as usize;
+                        let d: Vec<(usize, usize, u8, u8)> = a.bytes.iter().zip(&b.bytes).enumerate()
+                            .filter(|(_, (x, y))| x != y)
+                            .map(|(i, (x, y))| (i % fw, i / fw, *x, *y)).collect();
+                        let n = d.len();
+                        let (sx, sy) = d.iter().fold((0, 0), |(p, q), e| (p + e.0, q + e.1));
+                        let (cx, cy) = ((sx / n.max(1)) as i32, (sy / n.max(1)) as i32);
+                        eprintln!("PROBE4480 {} {} differ {n} fw {fw} x {:?}..{:?} y {:?}..{:?} centre ({cx},{cy}) kinds {:?}",
+                            name, a.field, d.iter().map(|e| e.0).min(), d.iter().map(|e| e.0).max(),
+                            d.iter().map(|e| e.1).min(), d.iter().map(|e| e.1).max(),
+                            d.iter().map(|e| (e.2, e.3)).collect::<std::collections::BTreeSet<_>>());
+                        let fog = sim::ids::scale::UNITS_PER_FOG;
+                        for (u, un) in built.sim.units.iter().enumerate() {
+                            let (fx, fy) = (un.pos.x / fog, un.pos.y / fog);
+                            if (fx - cx).abs() <= 24 && (fy - cy).abs() <= 24 {
+                                let det = un.ty.is_some_and(|t| built.sim.tables.unit_types[t].combat.obj_masks & sim::combat::mask::DETECT != 0);
+                                eprintln!("PROBE4480  unit {u} {}/{} ty {:?} fog ({fx},{fy}) pos ({},{}) alive {} on_map {} detect {det}",
+                                    un.owner, un.o, un.ty, un.pos.x, un.pos.y, un.alive(), un.on_map);
+                            }
+                        }
+                        for (k, bd) in built.sim.buildings.iter().enumerate() {
+                            let (fx, fy) = (bd.pos.x / fog, bd.pos.y / fog);
+                            if (fx - cx).abs() <= 24 && (fy - cy).abs() <= 24 {
+                                let bt = bd.ty.map(|t| &built.sim.tables.build_types[t]);
+                                let det = bt.and_then(|t| t.combat.as_ref()).is_some_and(|c| c.obj_masks & sim::combat::mask::DETECT != 0);
+                                eprintln!("PROBE4480  build {k} owner {} ty {:?} {:?} fog ({fx},{fy}) alive {} active {} started {} los {:?} detect {det}",
+                                    bd.owner, bd.ty, bt.map(|t| &t.ident), bd.alive, bd.active, bd.started, bt.map(|t| t.los));
+                            }
+                        }
+                    }
+                    if a.bytes != b.bytes && a.bytes.len() > 1000 && std::env::var("RON_PROBE_4480").is_err() {
+                        for (i, (x, y)) in a.bytes.iter().zip(&b.bytes).enumerate() {
+                            if x != y {
+                                eprintln!("PROBE   byte {i} ours {x:#04x} theirs {y:#04x}");
+                            }
+                        }
+                    }
+                    if a.bytes != b.bytes {
+                        let f = crate::checksum::fields::differing_fields(
+                            name, &a.field, &a.bytes, &b.bytes,
+                        );
+                        eprintln!(
+                            "PROBE  {name} range {k} record {} {} len {}/{} {:?}",
+                            a.record,
+                            a.field,
+                            a.bytes.len(),
+                            b.bytes.len(),
+                            f
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     /// **Row 120's barge is born with `form` 0** (item 4435, `docs/RECGAME.md`
     /// §10.3): run1716, the ranges take of run1706's file, holds the units
     /// line's every range on state 2694, where the computer's transport
