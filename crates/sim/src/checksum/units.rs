@@ -441,7 +441,12 @@ impl Sim {
     /// (`Unit::do_trade`'s, item 4234). `0x4000000` is
     /// [`crate::Unit::explore_queued`], `add_move_facing_order`'s queued
     /// explore (item 4351; on the word since item 4405, the 2017 sample's
-    /// scout `3/0` on 92). `0x200000` (`Unit::init`'s
+    /// scout `3/0` on 92). `0x80` and `0x400000` are the attrition
+    /// period's: `Unit::process_attrition@005e11a0` clears both at each
+    /// refresh, sets `0x80` with a period and `0x400000` on the peace and
+    /// assassin arms, which are [`crate::Unit::attrition`] and
+    /// [`crate::Unit::ignores_supply`] (item 4514, run1739's `1/6` on 3771;
+    /// `docs/CHECKSUM.md` §18.3). `0x200000` (`Unit::init`'s
     /// `can_carry(AIR)`) is not held.
     fn unit_masks_word(&self, u: usize) -> u32 {
         let un = &self.units[u];
@@ -453,6 +458,7 @@ impl Sim {
             (0x10, un.contact),
             (0x20, un.gather_here),
             (0x40, un.waiting_on),
+            (0x80, un.attrition != 0),
             (0x200, un.trade_unloaded),
             (0x400, un.was_builder),
             (0x800, un.cloak),
@@ -464,6 +470,7 @@ impl Sim {
             (0x40000, self.unit_ai_bit(un.owner)),
             (0x80000, un.combat.packed),
             (0x100000, un.half_step),
+            (0x400000, un.ignores_supply),
             (0x800000, un.auto_transport),
             (0x2000000, un.combat.entrenched),
             (0x4000000, un.explore_queued),
