@@ -5,12 +5,6 @@ use super::*;
 impl Sim {
     /// PROBE 4477b (reverted whole): 1/47's mirror and record 75's flag.
     pub(crate) fn p4477b(&self) {
-        if std::env::var_os("RON_PROBE_4477").is_some() {
-            crate::groups::group::P4477_FRAME.with(|f| f.set(self.frame));
-        }
-        self.p4477b0();
-    }
-    pub(crate) fn p4477b0(&self) {
         thread_local!(static LAST: std::cell::RefCell<String> = const { std::cell::RefCell::new(String::new()) });
         if std::env::var_os("RON_PROBE_4477").is_none() || !(1826..=3302).contains(&self.frame) {
             return;

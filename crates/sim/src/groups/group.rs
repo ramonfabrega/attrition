@@ -76,6 +76,3 @@ mod state;
 mod tests;
 pub(crate) use self::query::*;
 pub use self::state::*;
-
-// PROBE 4477 (reverted whole).
-thread_local!(pub(crate) static P4477_FRAME: std::cell::Cell<i64> = const { std::cell::Cell::new(-1) });
