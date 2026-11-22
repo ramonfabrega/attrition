@@ -1241,6 +1241,113 @@ mod tests {
         }
     }
 
+    /// **Row 43's unbuilt Village closes and the borders are fixed** (item
+    /// 4561, `docs/RECGAME.md` §12.3): run1787, the ranges take of row 43's
+    /// file. who=2's Village site (building 2027 at cell (27, 25), placed,
+    /// never started) closes on frame 3221 (state 3222); theirs'
+    /// `Build::close` takes its `is a city` arm (`SubObjectData::flags &
+    /// 0x20`, the whole `VILLAGE` lineage, built or not) and calls
+    /// `Region::fix_borders`, so the next frame's `check_borders` starts the
+    /// pass again from every region's first cell: on 3223 every leader's
+    /// `reg_terr[1]` is zeroed and recounted (who=1's 130, theirs) and every
+    /// city's `bordering` is cleared. Ours carried the Temple's pass of 3210
+    /// on to its end (who=0's 368, cities 3, 4 and 6 at 6). The leaders and
+    /// cities lines on states 3221 to 3226, byte for byte.
+    #[test]
+    fn row_43_s_unbuilt_village_close_fixes_the_borders_on_run1787_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 2) else {
+            eprintln!("skipping: row 43's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1787/map-7");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1787's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 43's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let village = |sim: &sim::Sim| {
+            sim.buildings.iter().position(|b| {
+                b.owner == 2
+                    && b.index == 2027
+                    && b.ty.is_some_and(|t| {
+                        sim.tables.build_types[t].ident == sim::cities::build::Ident::Village
+                    })
+            })
+        };
+        for state in 3221i64..=3226 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            if state == 3221 {
+                // The site by name: who=2's Village, placed and never started.
+                let b = village(&built.sim).expect("who=2's Village site");
+                let site = &built.sim.buildings[b];
+                assert!(site.alive && !site.started && !site.active, "the site");
+                assert_eq!(site.pos.cell(), sim::world::Cell { x: 27, y: 25 });
+                assert_eq!(site.city, None, "an unbuilt site has no city");
+            }
+            if state == 3222 {
+                let b = village(&built.sim).expect("who=2's Village site");
+                assert!(!built.sim.buildings[b].alive, "the site closed");
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for li in [7usize, 8] {
+                let ours = lines[li].as_ref().expect("the line");
+                let theirs: Vec<_> = all.iter().filter(|r| usize::from(r.line) == li).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {li}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                    assert!(
+                        at.is_none() && a.bytes.len() == b.bytes.len(),
+                        "line {li} range {k} on {state}, record {} {}: byte {at:?} ours {:?}, theirs {:?}",
+                        a.record,
+                        a.field,
+                        at.map(|i| a.bytes[i]),
+                        at.map(|i| b.bytes[i])
+                    );
+                }
+            }
+            if state == 3223 {
+                // Theirs by value: who=1's `reg_terr[1]` (`+0x145e + 2`,
+                // byte 5208 of `who..ally_mask`) is the restarted pass's
+                // first frame, 130; who=0's and who=2's are 0.
+                let leaders = lines[7].as_ref().expect("leaders");
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+                for (who, want) in [(0i16, 0u16), (1, 130), (2, 0)] {
+                    let k = leaders
+                        .ranges
+                        .iter()
+                        .position(|r| r.record == who && r.field == "who..ally_mask")
+                        .expect("the leader's range");
+                    let b = &theirs[k].bytes;
+                    assert_eq!(
+                        u16::from_le_bytes([b[5208], b[5209]]),
+                        want,
+                        "theirs' who={who} reg_terr[1]"
+                    );
+                }
+            }
+        }
+    }
+
     /// **The fifth's files carry the declared seats and team** (item
     /// 4527): each `item4527-row<RRR>-6000.rcx` the client recorded, read
     /// back, holds the declaration's three `PLAYER` rows slot for slot —
@@ -2931,6 +3038,75 @@ mod tests {
             assert_eq!(built.sim.units[u].type_index, 136, "1/{o} is a Fusilier");
             let g = built.sim.units[u].guys[0];
             assert_eq!((g.anim, g.end_time), (1, 30), "1/{o}'s figure 0 on 1790");
+        }
+    }
+
+    /// **Row 63's Fusilier round leaves from the original's socket** (item
+    /// 4558, `docs/RECGAME.md` §12.3): on run1782's ranges, every ammo range
+    /// on 3682..=3692 byte for byte. who=1's Fusiliers `1/45` (TI 136, piece
+    /// 1494) loose a `CHAR_ATTACK1` round at `0/1` on 3683; with no
+    /// [`sim::data::launch`] row for the piece it left from its own square
+    /// (8568, 12312, `sz` 468), where theirs leaves from (8633, 12404, 578).
+    #[test]
+    fn row_63_s_fusilier_round_leaves_from_the_original_s_socket_on_run1782() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 3) else {
+            eprintln!("skipping: row 63's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1782/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1782's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 63's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3682..=3692 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let theirs: Vec<_> = record
+                .ranges(&set)
+                .expect("the set's ranges")
+                .into_iter()
+                .filter(|r| r.line == 3)
+                .collect();
+            let ours = built.sim.checksum_ammo().expect("ours' ammo line");
+            assert_eq!(ours.ranges.len(), theirs.len(), "ammo's ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "ammo range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            if state == 3683 {
+                let u = built
+                    .sim
+                    .units
+                    .iter()
+                    .position(|u| u.alive() && u.owner == 1 && u.index == 45)
+                    .expect("1/45");
+                assert_eq!(built.sim.units[u].type_index, 136, "1/45 is a Fusilier");
+                assert_eq!(built.sim.units[u].guys[0].gpiece, 1494, "1/45's piece");
+                let p = built
+                    .sim
+                    .combat
+                    .projectiles
+                    .iter()
+                    .find(|p| p.slot == 1)
+                    .expect("the round in slot 1");
+                assert_eq!((p.launch.x, p.launch.y, p.sz), (8633, 12404, 578));
+            }
         }
     }
 
@@ -7194,10 +7370,17 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // 4,042 and goods 4,002 -> 3,710 are named falls past their unmoved
         // first partings, 3670 and 3710. Our walk no longer holds
         // `game_over` from 5977: `over` 5977 -> none, as the original.
+        // Moved by item 4561 (`Build::close`'s `is a city` arm fixes the
+        // borders for an unbuilt site, `0x628bd3`; run1787's leaf on 3223,
+        // leaders range 1, record 0, who=0's `reg_terr[1]` ours 368, theirs
+        // 0, and cities range 12, record 4, `bordering` ours 6, theirs 0:
+        // who=2's Village site at (27, 25) closes on frame 3221 and theirs'
+        // pass starts again): leaders 3,223 -> 3,372 (first 3223 -> 3302),
+        // cities 3,373 -> 3,379 (first 3223 -> 3376).
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3299, 3345, 6001, 3401, 3374, 3423, 3374, 3223, 3373, 4042, 3710, 3374,
+                3299, 3345, 6001, 3401, 3374, 3423, 3374, 3372, 3379, 4042, 3710, 3374,
             ],
             first: &[
                 ("units", (3299, Some(14876181), 151977493)),
@@ -7206,8 +7389,8 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
                 ("deaths", (3374, Some(3897575467), 982012739)),
                 ("groups", (3376, Some(3865935763), 406744244)),
                 ("guys", (3374, Some(641651763), 4151560086)),
-                ("leaders", (3223, Some(1554705983), 3151556086)),
-                ("cities", (3223, Some(3058186551), 2580035877)),
+                ("leaders", (3302, Some(3480940479), 291631041)),
+                ("cities", (3376, Some(607798839), 2409973377)),
                 ("items", (3670, Some(3687073795), 3707258885)),
                 ("goods", (3710, Some(3114104596), 3160241942)),
                 ("world", (3374, Some(2564315079), 3645396767)),
@@ -7259,19 +7442,19 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // 3,718; groups, guys, items, goods and world whole (1,903, 1,789,
         // 3,435, 2,046, 1,806 -> 4,223); leaders 1,828 -> 4,187, first 3691;
         // cities 2,342 -> 4,194, first 3691.
+        // Moved by item 4558 (piece 1494's release bays, the Fusiliers':
+        // run1782's 3683, ammo range 4, record 1, who=1's `1/45` (TI 136)
+        // left from its own square (8568, 12312, `sz` 468) where theirs
+        // leaves from the `CHAR_ATTACK1` socket (8633, 12404, 578)): units
+        // 4,219, ammo 3,992, deaths 3,718, leaders 4,187 and cities 4,194
+        // -> 4,223, whole; builds 3,978 -> 3,986, first 3789 -> 3986.
+        // Eleven lines whole.
         moved: Some(Score {
             states: 4223,
             agreed: [
-                4219, 3978, 4223, 3992, 3718, 4223, 4223, 4187, 4194, 4223, 4223, 4223,
+                4223, 3986, 4223, 4223, 4223, 4223, 4223, 4223, 4223, 4223, 4223, 4223,
             ],
-            first: &[
-                ("units", (3691, Some(321283673), 3777193581)),
-                ("builds", (3789, Some(788976530), 1677644707)),
-                ("ammo", (3683, Some(1020335138), 981537857)),
-                ("deaths", (3718, Some(3084417171), 3049814147)),
-                ("leaders", (3691, Some(2809192706), 3466453252)),
-                ("cities", (3691, Some(3076083936), 3326562531)),
-            ],
+            first: &[("builds", (3986, Some(575323192), 2239740310))],
             over: None,
         }),
     }),

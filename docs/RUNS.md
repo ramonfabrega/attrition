@@ -40937,6 +40937,8 @@ waited on with `waitrun.sh` in the background. `df -g ~` read 105 GB free before
   3,978, first 3789; ammo 3,992, first 3683 (range 4, record 1, `rolling..start_roll_angle`); deaths 3,718; groups, guys,
   items, goods and world whole; leaders 4,187, first 3691 (range 1, record 0, `who..ally_mask` byte 2646: ours `0x09`,
   theirs `0x0a`); cities 4,194, first 3691 (range 1, record 2, `raid_stamp` ours 3687, theirs 3690).
+- **Re-scored by item 4558** (piece 1494's release bays, the Fusiliers'): eleven lines whole; builds 3,986, first
+  3986 (range 1659, record 2032, `gather_down..infiltrate2` byte 18: `queued` ours 4, theirs 3).
 - Filed by `filerun.py run1782 heldout5-row063-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1782-heldout5-row063-ranges.txt`, 2,846 bytes, SHA-256
   `ccc246ebdfebd117ee36ce9dfc2d95ee77ef131ce13128fcfbb9b60659123951`; `rontrace.log` → `Logs/rontrace-run1782.log`,
@@ -41107,6 +41109,8 @@ it and 73 after.
   world 3374; items 3670; goods 3710.
 - **Re-scored by item 4547** (piece 736's three bays): ammo 3,401, first 3299; units 3,299, first 3299; leaders
   3,223 and cities 3,373, both first 3223 (the row's first parting); groups 3,423, first 3376; deaths 3,374.
+- **Re-scored by item 4561** (an unbuilt Village's close fixes the borders): leaders 3,372, first 3302 (range 129,
+  record 1, `damage_current_frame` ours 0, theirs 1); cities 3,379, first 3376; the row's first parting is 3299.
 - Filed by `filerun.py run1787 heldout5-row043-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1787-heldout5-row043-ranges.txt`, 2,873 bytes, SHA-256
   `89b9a9025c5bbfb4daee2d7ca38babf72970956a8943a8e49fe0796d43162b8b`; `rontrace.log` → `Logs/rontrace-run1787.log`,

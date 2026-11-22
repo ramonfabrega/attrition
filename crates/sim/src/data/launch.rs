@@ -5641,6 +5641,48 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 161,
         },
     ),
+    // **Piece 1494, the Fusiliers** (type 136; item 4558, `docs/RECGAME.md`
+    // §12.3): node 0 at frame 6 of `CHAR_ATTACK1` and `CHAR_ATTACK2`, 8 of
+    // `CHAR_ATTACK3`. Run1579's packet holds no `AttachPos` row for the
+    // piece (`pos_num` 0, scale 1.0), so `get_position.py … --init
+    // 0,<anim>,<time>,3 sweep 1494 0 <anim> <time>` fills them first, and
+    // `fit_bay.py` admits one region a key (177, 5 and 574 lattice points,
+    // 361 of 361 headings). The first and third rows are the centroids; the
+    // second's centroid falls outside its five points and misses four
+    // headings, so the row is the region's middle point. The heights are the
+    // sweep's. Without them row 63 of the fifth held-out battery parted its
+    // ammo line on 3683: who=1's `1/45` left from its own square at (8568,
+    // 12312, 468) where run1782's leaves from (8633, 12404, 578).
+    (
+        1494,
+        crate::units::anim::ATTACK1,
+        6,
+        Bay {
+            right: 20_902,
+            fwd: 111_780,
+            dz: 110,
+        },
+    ),
+    (
+        1494,
+        crate::units::anim::ATTACK2,
+        6,
+        Bay {
+            right: 4_640,
+            fwd: 95_886,
+            dz: 116,
+        },
+    ),
+    (
+        1494,
+        crate::units::anim::ATTACK3,
+        8,
+        Bay {
+            right: 15_834,
+            fwd: 99_875,
+            dz: 115,
+        },
+    ),
     // **Piece 1178, the Crossbowmen in the Asian art style** (`CROSSBOWMEN`,
     // type 172, `122 + 3 × 0x160`; item 3712, `docs/AI.md` §362.2): the
     // Mongols' Crossbowman. run1296's `RON_STATE_FRAME` packet (and run1294's,
