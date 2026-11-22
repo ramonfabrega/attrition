@@ -41002,3 +41002,35 @@ was free at launch and no minutes went to waiting. `df -g ~` read 80 GB free bef
 
 **What it holds**: `diff::held_out::tests::row_123_s_producer_lap_starts_past_the_base_on_run1785_s_ranges` (every
 units, builds and groups range on states 2976 to 2978, who=1's two producers' queues, and the cursor who=2 left).
+## run1784 — parity held out, fifth battery, row 83's file to its end with the checksum and ranges hooks, eleven lines kept (2026-11-22, item 4545, `att-4545`)
+
+`docs/RECGAME.md` §12.3, `docs/CARAVAN.md` §2; DECISIONS 148 §4. **What the disk could not answer**: run1777 holds
+sums only, so row 83's leaders parting on 1956 named no leaf. The take is run1777's file with the scorer's one-take
+line (`score_recording … ~/ron-golden/run1777/map-14`: `--end-frame 6000 --tracer-def RON_CHECKSUMS --tracer-def
+RON_RANGES --tracer-def RNG_MASK=0xffbu`, every line but walls, which is whole):
+`TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1784 --recording ~/ron-golden/recordings/item4527-row083-6000.rcx --end-frame 6000 --cover cover=1
+--log-window 0 31 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def
+RON_RANGES --tracer-def RNG_MASK=0xffbu`, waited on with `waitrun.sh` in the background. The lane was free; no
+minutes were spent waiting on another lane. `df -g ~` read 88 GB free before it and 85 after the filing.
+- **The run**: pool lane 1, launched 07:28:59 −05:00, exited 07:36:15: **436.6 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early. Seed 12345, map 14. The
+  recording's SHA-256 is run1777's (`03bf17de…`). Players: tribe 4 (who 0, flags 7), tribe 9 (who 1), tribe 5
+  (who 2).
+- **The record**, `~/ron-golden/run1784/map-14/rontrace.ranges`, 6,167,211,080 bytes in 6 pieces (`split.py`),
+  SHA-256 `c0ee58f388894bc1d2c6b430ef4d51abb7e08c1e51955da3d960a09addd8c310`, 0.64 GiB on disk.
+- **Scored** (`score_recording … ~/ron-golden/run1784/map-14`, on `ace137007`): the sums are run1777's. **Leaders
+  1,956, first 1956: range 310, record 2 (who=2), `make_list[k]`: ours `t` 561, `val` 72,000, `city` −1 (the
+  slot's stale entry), theirs `t` 59 (Caravan), `val` 980,392, `city` 0.** Builds 1958: range 2461, record 2021,
+  `queued` ours 1, theirs 2. Units and guys 2338: record 31, `end_time` ours 40, theirs 32.
+- **Re-scored by item 4545** (`get_caravan_limit(1)` counts the mutual allies' cities): leaders 3,376, first 3376
+  (range 129, record 1, `ally_mask` byte 2008, ours 0xc6, theirs 0xc2); the first parting is units on 2811 (range
+  2319, record 70, `unit_masks2` ours 0, theirs 262144).
+- Filed by `filerun.py run1784 heldout5-row083-ranges`: `gamelog_p.txt` →
+  `Logs/gamelog-run1784-heldout5-row083-ranges.txt`, 2,869 bytes, SHA-256
+  `a9b435ef5bd053ca7a1b9832b5ce70729ff25450cfd7d673a1485805af3a85f1`; `rontrace.log` → `Logs/rontrace-run1784.log`,
+  558,853,888 bytes, SHA-256 `c5e367ae126f2fad4f7a9a811bbea6f92ffda6f2558fc1ed27c6e8584b04d770`; the record stays
+  in place.
+
+**What it holds**: `diff::held_out::tests::row_83_s_computer_lists_a_caravan_by_its_ally_s_city_on_run1784_s_ranges`
+(every leaders range on states 1955 and 1956).

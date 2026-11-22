@@ -7117,6 +7117,47 @@ fn a_caravan_at_the_limit_is_held_and_the_merchant_behind_it_trains() {
     );
 }
 
+/// **`get_caravan_limit(1)` counts a mutual ally's cities under Trade**
+/// (`LeaderData::get_caravan_limit@006dca50`, item 4545, run1784): `n` is
+/// the leader's own cities plus, with `has_preq(BASE_BONUSTYPES)` held,
+/// every mutual ally's; the bound is `n (n − 1) / 2`. One city of mine and
+/// one of my ally's make one pairing; a one-way alliance, or Trade unheld,
+/// makes none.
+#[test]
+fn the_caravan_limit_counts_a_mutual_ally_s_cities_under_trade() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    sim.tech[0].epoch[tech::Line::Commerce as usize] = 2;
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let _ = city_at(&mut sim, &t, 1, 57, 32);
+    // A tree that names no prerequisite grants the bonus.
+    sim.tables.tech_tree.roles.ally_caravan_preq = None;
+    assert_eq!(sim.caravan_cap(0), 3, "Commerce 2, plus one");
+    assert_eq!(sim.caravan_limit(0), 0, "one city and no ally");
+    sim.leaders.allied[0][1] = true;
+    assert_eq!(sim.caravan_limit(0), 0, "an alliance one way is no ally");
+    sim.make_allies(0, 1);
+    assert_eq!(
+        sim.caravan_limit(0),
+        1,
+        "my city and my ally's: one pairing"
+    );
+    sim.tech[1].epoch[tech::Line::Civic as usize] = 1;
+    let _ = city_at(&mut sim, &t, 1, 32, 57);
+    assert_eq!(sim.caravan_limit(0), 3, "three cities: three pairings");
+    // Trade named and unheld: the ally's cities leave the count.
+    let n = sim.tables.tech_tree.types.len();
+    sim.tables
+        .tech_tree
+        .add(tech::TypeDef::new("Trade", tech::Kind::Final));
+    sim.tables.tech_tree.roles.ally_caravan_preq = Some(n);
+    sim.tech[0].tech.resize(n + 1, false);
+    assert!(!sim.ally_caravan_preq_held(0));
+    assert_eq!(sim.caravan_limit(0), 0, "Trade unheld");
+    sim.tech[0].tech[n] = true;
+    assert_eq!(sim.caravan_limit(0), 3, "Trade held");
+}
+
 /// **The Persians' Market trains a caravan on its fifteen-frame slot**
 /// (`Build::process@0061edf0:362–381`, `docs/AI.md` §146): a finished
 /// Market of a leader with `has_tribe_bonus(0x17)` trains a `CARA` through
