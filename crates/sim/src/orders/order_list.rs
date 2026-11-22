@@ -295,6 +295,16 @@ impl Sim {
         let Some(order) = self.units[u].orders.front().copied() else {
             return;
         };
+        if std::env::var("RON_PROBE_4564_KILL").is_ok_and(|v| {
+            v == format!("{}/{}@{}", self.units[u].owner, self.units[u].index, self.frame)
+        }) {
+            eprintln!(
+                "P4564 KILL {:?} target {:?}\n{}",
+                (order.index(), order.flags),
+                self.units[u].combat.target,
+                std::backtrace::Backtrace::force_capture()
+            );
+        }
         // Before the teardown: a dying **move** carries the mirror its
         // formation was laid out with, and the group's leader hands it back
         // (`docs/GROUPS.md` §6.3). This is the write that makes a group's
