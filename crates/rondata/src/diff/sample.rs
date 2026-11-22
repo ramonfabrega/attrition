@@ -990,8 +990,12 @@ pub(in crate::diff) mod tests {
     /// cities): 3315 -> 3382 on the tree merged with 4549, +67, a named
     /// rise past the draw word 7021; with 4542 in too, 3315 -> 3184,
     /// -131, a named fall past the draw word 7021, the frames not read one
+    /// by one; the first shot still on 2929. Item 4547 (piece 736's
+    /// bays, the Slingers in art style 2): 3184 -> 4792, +1608, a named
+    /// rise past the draw word 7021 (with the three rows keyed off,
+    /// `tools/mutate.py`, the base's 3184 passes), the frames not read one
     /// by one; the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3184, Some(2929));
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4792, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
