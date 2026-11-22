@@ -538,6 +538,19 @@ impl Sim {
     /// `ArrayBase<int>::add` guarded by the linear scan both writers make
     /// first: the patch joins the leader's list once.
     pub(crate) fn add_oil_patch(&mut self, who: Player, gi: usize) {
+        if std::env::var_os("RON_DEBUG_OIL").is_some()
+            && !self.ai.ai[who as usize].oil_patches.contains(&gi)
+        {
+            let c = self.world.goods()[gi].pos.cell();
+            eprintln!(
+                "OIL claim who={who} gi={gi} cell=({},{}) region={:?} in_play={} list={:?}",
+                c.x,
+                c.y,
+                self.world.region_of(c),
+                self.in_play,
+                self.ai.ai[who as usize].oil_patches
+            );
+        }
         let list = &mut self.ai.ai[who as usize].oil_patches;
         if !list.contains(&gi) {
             list.push(gi);
@@ -1071,6 +1084,18 @@ impl RevealFogView for SimRevealFog<'_> {
         self.sim.ai.ai[who as usize].oil_patches[k as usize] as i32
     }
     fn oil_add(&mut self, who: i32, gi: i32) {
+        if std::env::var_os("RON_DEBUG_OIL").is_some() {
+            let g = self.sim.world.goods()[gi as usize];
+            let c = g.pos.cell();
+            eprintln!(
+                "OIL reveal who={who} gi={gi} cell=({},{}) region={:?} in_play={} list={:?}",
+                c.x,
+                c.y,
+                self.sim.world.region_of(c),
+                self.sim.in_play,
+                self.sim.ai.ai[who as usize].oil_patches
+            );
+        }
         self.sim.ai.ai[who as usize].oil_patches.push(gi as usize);
     }
     fn find_goody_at(&mut self, cx: i32, cy: i32) -> i32 {
