@@ -2248,6 +2248,26 @@ impl Sim {
             return false;
         }
         let mut first = None;
+        if std::env::var("RON_PROBE_4563").is_ok() && self.frame == 3985 && who == 1 {
+            for &b in &self.ai.ai[who as usize].mil_trainers {
+                let bd = &self.buildings[b];
+                eprintln!(
+                    "P4563 trainer o={} ty={:?} alive={} active={} of_type={} queued={} damage={} danger={} unassim={} score={} pos={:?}",
+                    bd.index,
+                    bd.ty,
+                    bd.alive,
+                    bd.active,
+                    self.building_of_type(b, wt),
+                    bd.queue.items.len(),
+                    bd.damage,
+                    self.world.danger_at(bd.owner, bd.pos),
+                    self.building_unassimilated(b),
+                    self.trainer_score(b, 1_000_000, false),
+                    bd.pos
+                );
+            }
+            eprintln!("P4563 produce_unit t={t} num={num} escrow={escrow}");
+        }
         for round in 0..num {
             let mut best = None;
             let mut best_score = 0;
