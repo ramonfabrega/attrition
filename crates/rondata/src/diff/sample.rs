@@ -720,8 +720,11 @@ pub(in crate::diff) mod tests {
     /// groups 5461 -> 6022, guys 5461 -> 6017, world 5462 -> 6022, cities
     /// 5801 -> 6151; two named falls past units and draws on 6000 and
     /// 6015: items 10724 -> 7940 and goods 6395 -> 6281 (good 52's
-    /// `ever_seen`, ours leader 2's bit, theirs none). Leaders 5486 the
-    /// lowest.
+    /// `ever_seen`, ours leader 2's bit, theirs none). Item 4533
+    /// (`capture_city@00733380`'s spoils skip Knowledge: the person's
+    /// capture on 5485 pays Metal, `500 3 encrypt bucket[3]` ours 0xb4,
+    /// theirs 0x69, `509 3 bucket[4]` ours 0xa2, theirs 0xed): leaders
+    /// 5486 -> 5891, every other line unchanged. Leaders 5891 the lowest.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 6000),
         ("builds", 6000),
@@ -730,7 +733,7 @@ pub(in crate::diff) mod tests {
         ("deaths", 6190),
         ("groups", 6022),
         ("guys", 6017),
-        ("leaders", 5486),
+        ("leaders", 5891),
         ("cities", 6151),
         ("items", 7940),
         ("goods", 6281),
@@ -1604,7 +1607,9 @@ pub(in crate::diff) mod tests {
     /// mask): leaders 5427 -> 5486 (`500 3 encrypt`), units and builds
     /// 5461 and 5487 -> 6000, ammo 5969 -> 6000, guys 6017, groups and
     /// world 6022, cities 6151; goods 6395 -> 6281, a named fall past
-    /// units' 6000.
+    /// units' 6000. Built (item 4533: a capture's spoils skip Knowledge,
+    /// the person's on 5485 Metal): leaders 5486 -> 5891 (`462 3
+    /// oil_patches`).
     const SAMPLE_RANGES_1772: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
@@ -1649,11 +1654,11 @@ pub(in crate::diff) mod tests {
         ),
         (
             "leaders",
-            5486,
+            5891,
             671,
             671,
-            2,
-            "500 3 encrypt: +0x0 of 4|4: b4000000|69000000",
+            1,
+            "462 3 oil_patches: +0x0 of 4|4: 1e000000|28000000",
         ),
         ("cities", 6151, 51, 51, 1, "15 2 city..ter: gatherers 10|8"),
         (
