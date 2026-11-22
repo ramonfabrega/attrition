@@ -34,7 +34,7 @@ Parity: 6 of 7 whole · the sample parts first on world 5401 of 21044 · draws 5
 Parity held out: 8 of 8 whole · 8 taken · lines 64 of 96 as found, 96 now · first partings 2990 3694 711 969 0 134 2694 0 as found, whole whole whole whole whole whole whole whole now · reach 27 % of states as found, 100 % now
 Parity held out, second: 6 of 8 whole · 8 taken · lines 65 of 96 as found, 89 now · first partings 537 1662 3352 5054 4021 1608 553 whole as found, whole 1662 whole whole whole 3809 whole whole now · reach 53 % of states as found, 88 % now
 Parity held out, third: 8 of 8 whole · 8 taken · lines 90 of 96 as found, 96 now · first partings 4805 whole whole whole 3831 1976 whole whole as found, whole whole whole whole whole whole whole whole now · reach 88 % of states as found, 100 % now
-Parity held out, fourth: 5 of 8 whole · 8 taken · lines 90 of 96 as found, 90 now · first partings whole whole 4275 4004 5266 whole whole whole as found, whole whole 4275 4004 5266 whole whole whole now · reach 91 % of states as found, 91 % now
+Parity held out, fourth: 6 of 8 whole · 8 taken · lines 90 of 96 as found, 91 now · first partings whole whole 4275 4004 5266 whole whole whole as found, whole whole 4275 whole 5266 whole whole whole now · reach 91 % of states as found, 94 % now
 Structure: flat 11 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 21 · largest 3711
 Renderer: K 59 of M 60 · frames 35 of 35 · pieces 1465 of 1478 · resolved 1,237,711 of 1,237,726 objects over 110 lobbies
 Clock: ceilings on GreatLakes lobby, 600 frames off-screen from frame 0 · frame zero 1.5 s · p99 20 ms · slowest 400 ms (frame 1, first sight) · peak 320 MiB
@@ -52,7 +52,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2): four seats out, cut off `43ee59434` on 2026-11-21: the sample's 4526 (lane-4526, world from 5401, one take to 6400), the chain's 4517 (an in-session builder, fourth, row 75's ammo, one line from whole), a parity seat's 4509 (lane-4509, second, row 30), a parity seat's 4518 (lane-4518, fourth, row 55); the lanes Opus 5.5 at high. 4526 takes the game lane first, then 4517; every later take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4528 (the fold), 4527 (the fifth battery, with seats and a team; DECISIONS 150 §3), then 4485 (second, row 110) and 4519 (fourth, row 95), alternating with the fifth's rows. The disk read 117 GB at the pass; every take still stops under 60.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2): four seats out, cut off `43ee59434` on 2026-11-21: the sample's 4526 (lane-4526, world from 5401, one take to 6400), the chain's 4528 (an in-session builder, the fold; 4517 landed row 75 whole, `b52f075dd`), a parity seat's 4509 (lane-4509, second, row 30), a parity seat's 4518 (lane-4518, fourth, row 55); the lanes Opus 5.5 at high. 4526 takes the game lane first; every later take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4527 (the fifth battery, with seats and a team; DECISIONS 150 §3), then 4485 (second, row 110) and 4519 (fourth, row 95), alternating with the fifth's rows. The disk read 117 GB at the pass; every take still stops under 60.
 
 4526. **The 2017 sample: world from 5401, past run1771's end** (a rules item, whole; the sample's seat; `docs/RECGAME.md` §7). The
 sample parts on world 5401, leaders 5403, units, groups and guys 5461 (draws 5460), builds 5487, cities 5801, ammo 5969, deaths 6190
@@ -60,12 +60,6 @@ and goods 6395; run1771 ends on 5350. First act: `df -g ~` (stop under 60), then
 that part below it (`RNG_MASK=0xdfbu`, DECISIONS 149 §2), filed with `filerun.py`; then the leaf of world 5401. One take serves the
 landings to 6395. Re-pin `SAMPLE_LINES` and `SAMPLE_WALKED`; the driver writes `Parity:`. It stops when two landings running leave
 `Parity:` as it is (DECISIONS 148 §5).
-
-4517. **Parity held out, fourth: row 75's ammo from 4004** (a rules item, whole; the chain's seat; `docs/RECGAME.md` §12). Row 75
-(run1763, ended by the original on 5341) is one line from whole: ammo 4,682 of 5,342 from 4004, ours 3143699460, theirs 3217755213.
-First act: `df -g ~` (stop under 60), then one take as run1768 with the arguments `score_recording` prints (`--allow-early-end`,
-`RNG_MASK=0x8u`), filed with `filerun.py`, then the leaf. Re-pin `SCORES_FOURTH`'s row's `moved`, never `found`. It stops when two
-landings running move no column.
 
 4509. **Parity held out, second: row 30's world and units** (a rules item, whole; a parity seat; `docs/RECGAME.md` §11). Ten lines
 whole; world 4,423 of 4,548 from 1662 and units 4,114 from 3184 (scored at the pass; item 4504's world leaf did not move it). First
@@ -90,12 +84,12 @@ stops when two landings running move no column.
 60), one take as run1770 with the arguments the scorer prints (`RNG_MASK=0xc1u`), filed with `filerun.py`, then the leaf. Re-pin
 its `moved`, never `found`. It stops when two landings running move no column.
 
-4528. **The fold: spent batteries count in `Parity:`** (a rules item, scoped; unseated; DECISIONS 150 §1). `sample::parity_line`
+4528. **The fold: spent batteries count in `Parity:`** (a rules item, scoped; the chain's builder; DECISIONS 150 §1). `sample::parity_line`
 counts six and the sample. Make it add each spent battery's whole rows, read from its `SCORES*` table's `moved`, and never its
-`found`. A battery is spent once a lane has read a parting off one of its rows. The first three are spent: 28 of 31 on `43ee59434`.
+`found`. A battery is spent once a lane has read a parting off one of its rows. All four are spent since 4517 read row 75: 34 of 39 on `b52f075dd`.
 Pin which batteries are spent beside the tables. The driver writes the line. It moves the headline's count and no game.
 
-4527. **Parity held out, fifth: rows 3 to 143, with seats and a team** (a rules item, whole; unseated, next after 4528;
+4527. **Parity held out, fifth: rows 3 to 143, with seats and a team** (a rules item, whole; unseated, next;
 `docs/RECGAME.md` §12; DECISIONS 149 §3, 150 §2, §3). First act: read whether the client's lobby page sets more
 than two seats and a team. Then declare rows 3, 23, 43, 63, 83, 103, 123 and 143 of `Start:`'s order, each with its seats and one
 team of two, in a `HELD_OUT_FIFTH` table as the item's first commit, before any file is recorded. Each is recorded idle by the page
