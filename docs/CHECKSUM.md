@@ -2360,7 +2360,7 @@ counter, a slot mark, a setup rule, a never-reached constant, a held leaf and
 - A leader the crate seats from a dump.
 - ~~`mil_trainers`' elements and a `SimpleArray<int>`'s `size` past ten.~~
   Both corrected on the packets (§23.4): the elements are the trainers'
-  object numbers, and the size grows by ten.
+  object numbers, and the size ~~grows by ten~~ doubles (4533).
 - `sites[k].reg` for a kept site at cell `(0, 0)`.
 - `leader_flags` bits `0x10` and `0x80000` (run1100's computers), and every
   `leader_flags2` bit but the two.
@@ -2645,7 +2645,8 @@ with its value diff:
   `SimpleArray<int>` holds the building's object number. On run1359's
   who 1 (frame 5619) ours read 25, 20, 24, 19, … and theirs 2018, 2013,
   2017, 2012, …. It now agrees on all 97 walked leaders that hold one.
-- A `SimpleArray<int>`'s `size` is its capacity, which grows by ten. Ours
+- A `SimpleArray<int>`'s `size` is its capacity, which ~~grows by ten~~
+  doubles from ten (item 4533's journal). Ours
   emitted `max(10, length)`; on run1359's who 1, 12 trainers, ours 12 and
   theirs 20. It now agrees on all 226 for `mil_trainers`, `new_rares` and
   `oil_patches`. A removal keeps the capacity (`Leader::oil_patches_size`,

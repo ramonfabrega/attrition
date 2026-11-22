@@ -28774,7 +28774,7 @@ sheep and peacock herds.
 **What is not established.** ~~Theirs' round's launch point and flight time~~ — answered by item 3609 (run1263's
 packet, above). Still open:
 - the garrisoned units' `g.angle[0]` (parked 3601a);
-- the closing block's `bucket[3:knowledge]` (parked 3609a);
+- ~~the closing block's `bucket[3:knowledge]` (parked 3609a)~~ 4533;
 - piece 131's `CHAR_ATTACK1` keys and `ATTACK2`@22, which no dumped round diffs (they are piece 130's rows, read
   off the packet).
 

@@ -3709,6 +3709,47 @@ fn a_capture_cleans_the_captured_library_s_queue_and_marks_the_capital_plundered
     );
 }
 
+/// **A capture's spoils skip Knowledge and reach Oil** (item 4533, the 2017
+/// sample's 5485: the person took who 4's city, base 75, and the original
+/// paid Metal where the crate paid Knowledge). `capture_city@00733380`
+/// lines 672-688 walk the goods `BASE_GOODTYPES` while `< 6`, skip
+/// `KNOWLEDGE`, and pay the captor's least among those both can use.
+#[test]
+fn a_capture_s_spoils_skip_knowledge_and_reach_oil() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (_, c) = city_at(&mut sim, &t, 1, 32, 32);
+    for w in [0, 1] {
+        sim.economy.holdings[w].available = [true; economy::RESOURCES];
+    }
+    sim.frame = 1000;
+    let held = [1000, 1000, 1000, 10, 40, 30];
+    let spoils = |sim: &mut crate::Sim, held: [i32; 6]| {
+        sim.economy.ledgers[0].bucket = held;
+        sim.plunder_on_capture(0, 1, c, 75, false);
+        (0..economy::RESOURCES)
+            .map(|g| sim.economy.ledgers[0].bucket[g] - held[g])
+            .collect::<Vec<i32>>()
+    };
+    assert_eq!(
+        spoils(&mut sim, held),
+        [0, 0, 0, 0, 0, 75],
+        "Oil, not Knowledge"
+    );
+    // The sample's own: Knowledge least, then Metal.
+    assert_eq!(
+        spoils(&mut sim, [500, 400, 300, 104, 162, 900]),
+        [0, 0, 0, 0, 75, 0],
+        "Metal"
+    );
+    // A tie is the first good walked.
+    assert_eq!(
+        spoils(&mut sim, [500, 162, 300, 104, 162, 900]),
+        [0, 75, 0, 0, 0, 0],
+        "Timber before Metal"
+    );
+}
+
 /// **An unassimilated city's claim wins as −2** (item 4469, run1724's
 /// 3889: the Inca capital taken on 3887). `compute_reg_territory@006b0bb0:
 /// 425`–`:483` compares the city's `race` (`+0x5f`) with the slot whose

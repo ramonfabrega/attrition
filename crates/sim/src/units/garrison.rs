@@ -313,6 +313,10 @@ impl Sim {
         }
         self.track_garrison(captain, 1);
         for f in self.squad_of(captain) {
+            // **A CEO going in leaves its city** (item 4519): `0061a2e0`'s
+            // CEO arm, `update_ceo_position(its tile, -1)`, as `board`'s.
+            let here = self.units[f].pos.tile();
+            self.update_ceo_position(f, Some(here), None);
             // `Object::remove_from_world`: off the map is out of both
             // collision indices (`docs/COLLISION.md` §2, §3).
             self.coll_remove(f);
@@ -772,6 +776,9 @@ impl Sim {
         // 10968), leaves cell 793 an empty block in run1724's world line.
         self.coll_come_out(f, retained);
         self.chain_add(f);
+        // **A CEO coming out enters its city** (item 4519): `00617c10:519`–
+        // `524`, `update_ceo_position(-1, the spot's tile)` for the CEO bit.
+        self.update_ceo_position(f, None, Some(spot.tile()));
         // **And the crew comes out with it.** The original places the
         // unit with `set_new_location(·, ·, 1, 1)` (`00617c10:518`),
         // whose snap flag reaches `Guy::set_new_location(guy 0, spot,

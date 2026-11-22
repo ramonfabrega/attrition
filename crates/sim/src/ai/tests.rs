@@ -301,3 +301,16 @@ fn an_easy_ai_throws_its_stockpile_away() {
     assert_eq!(ledger.escrow[0], 1000 * 450 / 5000);
     assert_eq!(ledger.bucket[1], 450);
 }
+
+/// **A leader's `SimpleArray<int>` doubles from ten** (item 4533): `init(10)`
+/// in `Leader::init`, then `increase_size(-1)` grows by the capacity — the
+/// 2017 sample person's `oil_patches` went 19 -> 21 elements and 20 -> 40
+/// on 5891.
+#[test]
+fn a_leader_s_simple_array_doubles_from_ten() {
+    let sizes: Vec<usize> = [0, 1, 10, 11, 20, 21, 30, 40, 41, 80, 81]
+        .iter()
+        .map(|&n| super::simple_array_size(n))
+        .collect();
+    assert_eq!(sizes, [10, 10, 10, 20, 20, 40, 40, 40, 80, 80, 160]);
+}
