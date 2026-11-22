@@ -732,10 +732,7 @@ mod tests {
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
             }
-            let set = record
-                .first_of(i64::from(state) - 1)
-                .expect("the state's set")
-                .clone();
+            let set = record.first_of(state - 1).expect("the state's set").clone();
             let all = record.ranges(&set).expect("the set's ranges");
             let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
             for li in [0usize, 1, 5] {
