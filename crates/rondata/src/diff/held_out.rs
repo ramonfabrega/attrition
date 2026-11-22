@@ -863,6 +863,77 @@ mod tests {
         }
     }
 
+    /// **Row 103's army record keeps its role when a squad is pushed out**
+    /// (item 4551, `docs/GROUPS.md` §3.4): run1783, the ranges take of row
+    /// 103's file. On 2556 who=2's Infantry `2/69` disembarks and
+    /// `disembark_squad` pushes it; `push_group`'s second walk asks army
+    /// 1's group (pool slot 3, record 131) to `Group::kill@00714110` it,
+    /// which stamps and runs the speed tail and calls no `find_role`. So
+    /// theirs' record 131 lists `2/65`, `2/66`, `2/58` on 2557 and still
+    /// reads `role` 0x150d00, the Infantry's `FOOT | INFANTRY` bits in it;
+    /// ours re-roled it 0x050500 in the army's recount. Every groups range
+    /// on states 2556 to 2558, ours against theirs, byte for byte: red on
+    /// the tree before the fix at range 215 on 2557, record 131, `id..march`
+    /// bytes 49 and 50, ours 0x05 0x05, theirs 0x0d 0x15.
+    #[test]
+    fn row_103_s_army_record_keeps_its_role_when_a_squad_leaves_on_run1783_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 5) else {
+            eprintln!("skipping: row 103's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1783/map-18");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1783's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 103's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [2556i64, 2557, 2558] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_groups();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 5).collect();
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "groups' ranges on {state}"
+            );
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "groups range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Record 131 by name: `num` (byte 8) and `role` (bytes 48..52).
+            let k = ours
+                .ranges
+                .iter()
+                .position(|r| r.record == 131 && r.field == "id..march")
+                .expect("record 131");
+            let word = |n: usize| u32::from_le_bytes(theirs[k].bytes[n..n + 4].try_into().unwrap());
+            let (num, role) = (word(8), word(48));
+            let want = match state {
+                2556 => 4,
+                2557 => 3,
+                _ => 6,
+            };
+            assert_eq!(num, want, "theirs' record 131 `num` on {state}");
+            assert_eq!(role, 0x150d00, "theirs' record 131 `role` on {state}");
+        }
+    }
+
     /// **Row 123's producers lap from 2001 when the cursor is another
     /// player's** (item 4546, `docs/RECGAME.md` §12.3): run1785, the ranges
     /// take of row 123's file. `find_counters[0x1c]` is one array for every
@@ -7084,17 +7155,22 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // 3,295); world 1,792 -> 2,983. On the tree merged with 4545 (the
         // caravan limit's ally term): ammo 2,943, groups 3,058, cities
         // 3,017, every first parting as above.
+        // Moved by item 4551 (`Group::kill` leaves the army record's `role`;
+        // run1783's leaf, groups range 215, record 131 (who=2's army 1,
+        // pool slot 3) on 2557, `role` ours 0x050500, theirs 0x150d00: the
+        // Infantry `2/69` pushed out by `disembark_squad` on 2556 leaves its
+        // `FOOT | INFANTRY` bits): groups 3,058 -> 3,059, first 2557 -> 3057.
         moved: Some(Score {
             states: 3295,
             agreed: [
-                2951, 3049, 3295, 2943, 3112, 3058, 3049, 3093, 3017, 3295, 3295, 2983,
+                2951, 3049, 3295, 2943, 3112, 3059, 3049, 3093, 3017, 3295, 3295, 2983,
             ],
             first: &[
                 ("units", (2910, Some(2052296157), 1774358062)),
                 ("builds", (3049, Some(1208216528), 2776099791)),
                 ("ammo", (2860, Some(4045473920), 460261739)),
                 ("deaths", (3112, Some(2034262564), 2741464787)),
-                ("groups", (2557, Some(984460232), 1342942176)),
+                ("groups", (3057, Some(3104530146), 1865375431)),
                 ("guys", (3049, Some(2458392641), 783291667)),
                 ("leaders", (2910, Some(3614561222), 4268151752)),
                 ("cities", (2910, Some(3208658105), 1568881894)),

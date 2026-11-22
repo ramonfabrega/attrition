@@ -1846,7 +1846,8 @@ group carries the live half of its `GroupData` as `army::Army::group`
 **And the one way out of an army landed 2026-09-18** (§3.4, item 350):
 `Sim::push_group` calls `unseat_group`, which kills each pushed member's
 whole squad out of the army group that held it and re-runs
-`army_normalize`. `a_pushed_group_takes_its_members_out_of_the_army` is
+`army_normalize` (which keeps the record's `role`, as `Group::kill` does:
+`docs/GROUPS.md` §3.4, item 4551). `a_pushed_group_takes_its_members_out_of_the_army` is
 the unit check and `run97_s_window_clocks_are_the_original_s` the
 differential one — the latter now compares each dumped unit's **point and
 its leading move order's goal** beside the four clocks, which is what

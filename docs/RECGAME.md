@@ -1496,7 +1496,7 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 | 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ammo 3192, units 3196 |
 | 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, ended on 4222 | 1 | ~~1582, 1789~~ ammo 3683 |
 | 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | ~~leaders 1956~~ (CARAVAN §2), ~~units 2811~~ (SUPPLY, item 4554), builds 3041 |
-| 103 | run1778 | East Indies, Modern | the computers | 3,295, ended on 3294 | 1 | ~~1750, 1757, 1790~~ groups 2557 |
+| 103 | run1778 | East Indies, Modern | the computers | 3,295, ended on 3294 | 1 | ~~1750, 1757, 1790, 2557 (GROUPS §3.4)~~ ammo 2860 |
 | 123 | run1779 | Great Lakes, Gunpowder | human + added | 6,001 | 3 | ~~builds, groups 2977~~ whole (below) |
 | 143 | run1780 | Great Sahara, difficulty 1 | the computers | 6,001 | **12** | whole |
 

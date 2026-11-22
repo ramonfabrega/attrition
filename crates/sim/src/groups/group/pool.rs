@@ -328,7 +328,18 @@ impl Sim {
         // every seat for the leaving squads, which the function never does.
         let touched = self.kill_from_named(g.who, &g.list, pool);
         for slot in touched {
+            // `Group::kill@00714110` leaves `role` (`+0x34`): it shifts the
+            // list, stamps and runs the speed tail, and calls no
+            // `find_role` (`docs/GROUPS.md` §3.4). The army's recount here
+            // is this crate's (item 350), so the record keeps the word the
+            // leaving squad's bits are still in until its next normalize.
+            // Row 103's who=2 army 1 (slot 3, record 131) loses an Infantry
+            // to `disembark_squad`'s push on 2556 and reads 0x150d00 on
+            // 2557 on run1783 where ours re-roled it to 0x50500 (item 4551).
+            let w = g.who as usize;
+            let role = self.ai.armies[w].list[slot].group.role;
             self.army_normalize(g.who, slot);
+            self.ai.armies[w].list[slot].group.role = role;
         }
     }
 
