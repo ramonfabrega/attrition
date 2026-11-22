@@ -1883,16 +1883,26 @@ mod tests {
         let (Some(rcx), _) = paths(&SECOND, 5) else {
             return;
         };
-        let ranges = crate::testenv::experiment(&home.join("ron-golden/run1742/map-18"), "rontrace.ranges")
-            .expect("run1742");
+        let ranges =
+            crate::testenv::experiment(&home.join("ron-golden/run1742/map-18"), "rontrace.ranges")
+                .expect("run1742");
         let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("file");
         let loaded = crate::load::load(&inst).expect("the install loads");
         let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
         let mut stream = crate::input::Stream::pump(&rec);
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
-        let rec_no: usize = std::env::var("RON_PROBE_REC").ok().and_then(|v| v.parse().ok()).unwrap_or(2853);
-        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(3795);
-        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(3810);
+        let rec_no: usize = std::env::var("RON_PROBE_REC")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(2853);
+        let lo: i64 = std::env::var("RON_PROBE_LO")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(3795);
+        let hi: i64 = std::env::var("RON_PROBE_HI")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(3810);
         let cw = built.sim.world.width() as usize;
         let (cx, cy) = ((rec_no % cw) as i32, (rec_no / cw) as i32);
         eprintln!("PROBE map {cw} wide; record {rec_no} = cell ({cx}, {cy})");
@@ -1905,28 +1915,172 @@ mod tests {
             let all = record.ranges(&set).expect("the set's ranges");
             let ours = built.sim.checksum_world();
             let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
-            for (k, a) in ours.ranges.iter().enumerate() {
-                if a.record as usize == rec_no && a.field.starts_with("block") {
-                    eprintln!("PROBE {state} {} ours {:02x?}", a.field, a.bytes);
-                    eprintln!("PROBE {state} {} thrs {:02x?}", a.field, theirs[k].bytes);
+            let recs = [rec_no, rec_no + 1, rec_no + 2, 2965];
+            for a in &ours.ranges {
+                if recs.contains(&(a.record as usize)) && a.field.starts_with("block") {
+                    eprintln!(
+                        "PROBE {state} r{} {} ours {:02x?}",
+                        a.record, a.field, a.bytes
+                    );
                 }
             }
+            if let Some(k0) = ours
+                .ranges
+                .iter()
+                .position(|a| a.record as usize == rec_no && a.field == "block.present")
+            {
+                for k in (k0..k0 + 8).chain(k0 + 110..k0 + 122) {
+                    if let Some(b) = theirs.get(k) {
+                        let a = ours.ranges.get(k);
+                        eprintln!(
+                            "PROBE {state} k{k} ours {:?} thrs site {:?} {:02x?}",
+                            a.map(|a| (a.record, a.field, a.bytes.len())),
+                            b.site,
+                            &b.bytes[..b.bytes.len().min(32)]
+                        );
+                    }
+                }
+            }
+            let u = &built.sim.units[315];
+            let at = sim::movement::collide::ucell(u.pos);
+            eprintln!(
+                "PROBE {state} host#315 {}/{} TI {} at ({}, {}) pos {:?} on_map {} health {}",
+                u.owner, u.index, u.type_index, at.x, at.y, u.pos, u.on_map, u.health
+            );
             let mut n = 0;
             for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
                 if a.bytes != b.bytes && n < 6 {
                     n += 1;
-                    eprintln!("PROBE {state} differs range {k} record {} {}", a.record, a.field);
+                    eprintln!(
+                        "PROBE {state} differs range {k} record {} {}",
+                        a.record, a.field
+                    );
                 }
             }
             for u in &built.sim.units {
                 let at = sim::movement::collide::ucell(u.pos);
-                if (at.x >> 4) >= cx - 1 && (at.x >> 4) <= cx + 1 && (at.y >> 4) >= cy - 1 && (at.y >> 4) <= cy + 1 {
+                let near = |cx: i32, cy: i32| {
+                    (at.x >> 4) >= cx - 1
+                        && (at.x >> 4) <= cx + 3
+                        && (at.y >> 4) >= cy - 1
+                        && (at.y >> 4) <= cy + 1
+                };
+                if near(cx, cy) || near(25, 49) {
                     eprintln!(
-                        "PROBE {state} unit {}/{} TI {} at ({}, {}) on_map {} inside {:?} inside_unit {:?}",
-                        u.owner, u.index, u.type_index, at.x, at.y, u.on_map, u.inside, u.inside_unit
+                        "PROBE {state} unit {}/{} TI {} at ({}, {}) on_map {} inside {:?} inside_unit {:?} health {}",
+                        u.owner,
+                        u.index,
+                        u.type_index,
+                        at.x,
+                        at.y,
+                        u.on_map,
+                        u.inside,
+                        u.inside_unit,
+                        u.health
                     );
                 }
             }
+        }
+    }
+
+    /// **Row 110's rider leaves an empty block where it boarded** (item
+    /// 4485, `docs/COLLISION.md` §2.4): run1742, the ranges take of
+    /// run1735's file. On 3809 who=1's Freighter `1/61` (TI 322) sinks at
+    /// sea with the Citizen `1/11` (TI 50) aboard, and
+    /// `Object::kill_contents@00645550` closes the rider. Its
+    /// `Object::close@00647160` takes the off-map arm:
+    /// `remove_from_inside`'s `add_to_world` paints its disc at its
+    /// boarding point (543, 763), allocating world cell (33, 47)'s block
+    /// (record 2853), and `remove_from_world` clears it. Theirs holds the
+    /// block, empty. This crate allocated nothing: red on the tree before the
+    /// fix at world range 6794 on 3809, record 2853 `block.present`,
+    /// ours 0, theirs 1. Every world range on 3808, 3809 and 3810, byte for
+    /// byte.
+    #[test]
+    fn row_110_s_rider_leaves_an_empty_block_where_it_boarded_on_run1742_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 5) else {
+            eprintln!("skipping: row 110's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1742/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1742's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 110's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        const CITIZEN_TI: i32 = 50;
+        const FREIGHTER_TI: i32 = 322;
+        let find = |sim: &sim::Sim, o: i16| {
+            sim.units
+                .iter()
+                .rposition(|u| u.owner == 1 && u.index == o)
+                .unwrap_or_else(|| panic!("1/{o}"))
+        };
+        for state in [3808i64, 3809, 3810] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let sim = &built.sim;
+            let (rider, boat) = (find(sim, 11), find(sim, 61));
+            assert_eq!(sim.units[rider].type_index, CITIZEN_TI, "1/11's TypeIndex");
+            assert_eq!(sim.units[boat].type_index, FREIGHTER_TI, "1/61's TypeIndex");
+            let at = sim::movement::collide::ucell(sim.units[rider].movement.body.pos);
+            assert_eq!((at.x, at.y), (543, 763), "1/11's boarding point on {state}");
+            assert!(!sim.units[rider].on_map, "1/11 off the map on {state}");
+            if state == 3808 {
+                assert_eq!(sim.units[rider].inside_unit, Some(boat), "1/11 aboard 1/61");
+                assert!(sim.units[rider].alive() && sim.units[boat].alive());
+            } else {
+                assert!(
+                    !sim.units[rider].alive() && !sim.units[boat].alive(),
+                    "both dead on {state}"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = sim.checksum_world();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
+            // The cell by name: record 2853 is world cell (33, 47) of the
+            // 60-wide map, which holds unit cell (543, 763). Theirs
+            // allocates its block on 3809 and leaves its body empty.
+            let k = ours
+                .ranges
+                .iter()
+                .position(|r| r.record == 2853 && r.field == "block.present")
+                .expect("cell 2853's presence");
+            let present: u8 = if state == 3808 { 0 } else { 1 };
+            assert_eq!(
+                theirs[k].bytes,
+                [present, 0, 0, 0],
+                "theirs' block on {state}"
+            );
+            if state != 3808 {
+                assert!(
+                    theirs[k + 2].bytes.iter().all(|&b| b == 0),
+                    "theirs' body empty on {state}"
+                );
+            }
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                assert_eq!(
+                    at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                    None,
+                    "world range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                    a.record,
+                    a.field
+                );
+            }
+            assert_eq!(ours.ranges.len(), theirs.len(), "world ranges on {state}");
         }
     }
 

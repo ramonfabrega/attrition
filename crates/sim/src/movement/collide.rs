@@ -1799,7 +1799,7 @@ impl Sim {
         }
     }
 
-    fn coll_paint(&mut self, u: usize, at: Pos, on: bool) {
+    pub(crate) fn coll_paint(&mut self, u: usize, at: Pos, on: bool) {
         let size = self.coll_size(u);
         if size == 0 || self.is_air(u) {
             return;
