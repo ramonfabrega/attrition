@@ -3200,6 +3200,8 @@ impl Sim {
                 let level = self.city_level_of(c);
                 self.repair_building(b, level);
             }
+            // The bell's all-clear, under the same veto (item 4560).
+            self.city_all_clear_due(b, c, frame);
         }
         // **`Build::process@0061edf0`'s last statement**, and it is below
         // the `is_active` gate — which is the function's *second*, inlined
