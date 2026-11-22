@@ -6981,11 +6981,13 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // deaths 2,510 -> 3,112; groups 1,963 -> 3,062, first 2557; guys
         // 1,790 -> 3,049; leaders 1,911 -> 3,093, first 2910; cities 1,951
         // -> 3,013, first 2910; items and goods whole (3,045, 1,987 ->
-        // 3,295); world 1,792 -> 2,983.
+        // 3,295); world 1,792 -> 2,983. On the tree merged with 4545 (the
+        // caravan limit's ally term): ammo 2,943, groups 3,058, cities
+        // 3,017, every first parting as above.
         moved: Some(Score {
             states: 3295,
             agreed: [
-                2951, 3049, 3295, 2942, 3112, 3062, 3049, 3093, 3013, 3295, 3295, 2983,
+                2951, 3049, 3295, 2943, 3112, 3058, 3049, 3093, 3017, 3295, 3295, 2983,
             ],
             first: &[
                 ("units", (2910, Some(2052296157), 1774358062)),
