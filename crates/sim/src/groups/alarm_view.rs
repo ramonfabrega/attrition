@@ -76,7 +76,8 @@ pub trait AlarmView: AlarmHead {
     fn data_inside_player(&mut self, p: i32, o: i32) -> i32;
     /// Slot `+0xac`, then the data's short `+0x74`.
     fn data_next_building(&mut self, p: i32, o: i32) -> i32;
-    /// Slot `+0xac`, then the data's short `+0x70`.
+    /// Slot `+0xac`, then the data's short `+0x70`: `BuildData::gather_down`,
+    /// the head of the building's gatherer chain (`docs/ORDERS.md` §6.1).
     fn data_first_unit(&mut self, p: i32, o: i32) -> i32;
     /// Slot `+0xac`, then `ObjectData::num_inside(data, 0)`.
     fn data_num_inside(&mut self, p: i32, o: i32) -> i32;
@@ -108,7 +109,8 @@ pub trait AlarmView: AlarmHead {
     /// `units[p][u]`'s population: 0 for a decoy (`+0x68 & 1`), else its
     /// type's `+0x2f0`.
     fn unit_pop(&self, p: i32, u: i32) -> i32;
-    /// `units[p][u]`'s short `+0x92`: the next unit inside the building.
+    /// `units[p][u]`'s short `+0x92`: `UnitData::gather_down`, the next unit
+    /// down the gatherer chain.
     fn unit_next_inside(&self, p: i32, u: i32) -> i32;
     /// `units[p][u]`'s short `+0x28` and signed byte `+0x3e`.
     fn unit_next_civ(&self, p: i32, u: i32) -> (i32, i32);
@@ -391,11 +393,23 @@ fn bell<V: AlarmView>(v: &mut V, who: i32, c: i32, rang: &mut bool) {
 ///   always armed), the group's refresh slot, the peasant variant, the
 ///   console (no sound) or the error report (the object's slot 0x10 is the
 ///   member being alive and the player's own).
-/// - SEAM: a cell's chain holds units only, so the bell's
-///   building-on-the-chain arm never runs, and the Citizens inside
-///   such a building are not taken.
+/// - **A cell's chain is the whole one** ([`crate::Sim::object_chain`],
+///   `WData::down`'s order, units and buildings; item 4549). A building on
+///   it is tagged [`CHAIN_BUILDING`] `+ b` and answers as a `Build` does on
+///   the PE: vslot `+8` 0, `+0xbc` 1, `+0x1c` 1 (`0041bff0`, `0041e0e0`),
+///   so it enters the bell's building arm, which asks its type's `+0x90`
+///   ([`crate::Sim::is_gather_type`]) and walks its **gatherer chain**,
+///   `+0x70` (`gather_head`) then each member's
+///   `+0x92` (`gather_down`) (`docs/ORDERS.md` §6.1), taking
+///   every Citizen on it with no distance test. The 2017 sample's 6113:
+///   computer 2's bell takes `2/11` and `2/14`, gathering at the
+///   Woodcutter's Camp `2/2001` 21 tiles out.
 /// - SEAM: the tribe's Citizen substitution (the type's slot `+0x68`) is not
 ///   modelled: the Citizen is `PEASANTS`.
+/// A building's index on a cell's chain in [`SimAlarm`]: this plus its
+/// slot, clear of every unit slot.
+pub const CHAIN_BUILDING: i32 = 1 << 24;
+
 pub struct SimAlarm<'a> {
     pub sim: &'a mut crate::Sim,
     pub who: crate::world::Player,
@@ -417,9 +431,30 @@ impl<'a> SimAlarm<'a> {
     }
 
     fn first_of_cell(&self, x: i32, y: i32) -> (i32, i32) {
-        match self.sim.cell_chain(crate::Cell::new(x, y)).first() {
-            Some(&u) => (u as i32, i32::from(self.sim.units[u].owner)),
+        match self.sim.object_chain(crate::Cell::new(x, y)).first() {
+            Some(&o) => self.tag(o),
             None => (-1, -1),
+        }
+    }
+
+    /// A chain object as the view's index and its owner: a unit by its
+    /// slot, a building by [`CHAIN_BUILDING`] `+` its slot.
+    fn tag(&self, o: crate::combat::Obj) -> (i32, i32) {
+        match o {
+            crate::combat::Obj::Unit(u) => (u as i32, i32::from(self.sim.units[u].owner)),
+            crate::combat::Obj::Building(b) => (
+                CHAIN_BUILDING + b as i32,
+                i32::from(self.sim.buildings[b].owner),
+            ),
+        }
+    }
+
+    /// The chain index's object back.
+    fn untag(o: i32) -> crate::combat::Obj {
+        if o >= CHAIN_BUILDING {
+            crate::combat::Obj::Building((o - CHAIN_BUILDING) as usize)
+        } else {
+            crate::combat::Obj::Unit(o as usize)
         }
     }
 }
@@ -502,8 +537,13 @@ impl AlarmView for SimAlarm<'_> {
             None => -1,
         }
     }
-    fn data_first_unit(&mut self, _p: i32, _o: i32) -> i32 {
-        -1
+    fn data_first_unit(&mut self, _p: i32, o: i32) -> i32 {
+        match Self::untag(o) {
+            crate::combat::Obj::Building(b) => {
+                self.sim.buildings[b].gather_head.map_or(-1, |u| u as i32)
+            }
+            crate::combat::Obj::Unit(_) => -1,
+        }
     }
     fn data_num_inside(&mut self, _p: i32, o: i32) -> i32 {
         self.sim.num_inside(o as usize)
@@ -511,20 +551,29 @@ impl AlarmView for SimAlarm<'_> {
     fn data_limit(&mut self, _p: i32, o: i32) -> i32 {
         self.sim.garrison_limit(o as usize)
     }
-    fn data_type_slot90(&mut self, _p: i32, _o: i32) -> bool {
-        false
+    fn data_type_slot90(&mut self, _p: i32, o: i32) -> bool {
+        match Self::untag(o) {
+            crate::combat::Obj::Building(b) => self.sim.is_gather_type(b),
+            crate::combat::Obj::Unit(_) => false,
+        }
     }
     fn eject_peasants(&mut self, _p: i32, o: i32) {
         self.sim.eject_citizens_now(o as usize);
     }
     fn obj_alive(&mut self, _p: i32, o: i32) -> bool {
-        self.sim.units[o as usize].alive()
+        match Self::untag(o) {
+            crate::combat::Obj::Unit(u) => self.sim.units[u].alive(),
+            crate::combat::Obj::Building(_) => false,
+        }
     }
     fn obj_bc(&mut self, _p: i32, o: i32) -> bool {
-        self.sim.units[o as usize].on_map
+        match Self::untag(o) {
+            crate::combat::Obj::Unit(u) => self.sim.units[u].on_map,
+            crate::combat::Obj::Building(_) => true,
+        }
     }
-    fn obj_slot1c(&mut self, _p: i32, _o: i32) -> bool {
-        false
+    fn obj_slot1c(&mut self, _p: i32, o: i32) -> bool {
+        matches!(Self::untag(o), crate::combat::Obj::Building(_))
     }
     fn obj_type(&self, _p: i32, o: i32) -> i32 {
         o
@@ -534,8 +583,8 @@ impl AlarmView for SimAlarm<'_> {
         (t.x, t.y)
     }
     fn obj_chain(&self, _p: i32, o: i32) -> (i32, i32) {
-        match self.sim.units[o as usize].down {
-            Some(d) => (d as i32, i32::from(self.sim.units[d].owner)),
+        match self.sim.chain_words(Self::untag(o)).below {
+            Some(d) => self.tag(d),
             None => (-1, -1),
         }
     }
@@ -545,8 +594,10 @@ impl AlarmView for SimAlarm<'_> {
     fn unit_pop(&self, _p: i32, u: i32) -> i32 {
         self.sim.control_cost(u as usize)
     }
-    fn unit_next_inside(&self, _p: i32, _u: i32) -> i32 {
-        -1
+    fn unit_next_inside(&self, _p: i32, u: i32) -> i32 {
+        self.sim.units[u as usize]
+            .gather_down
+            .map_or(-1, |d| d as i32)
     }
     fn unit_next_civ(&self, p: i32, u: i32) -> (i32, i32) {
         let g = &self.sim.buildings[self.inside_of].garrison;

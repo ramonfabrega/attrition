@@ -8716,7 +8716,11 @@ the listing:
   `(get_radius + 3) / 4` cells round the City's cell, each cell
   `find_city_at` names this city, its object chain: a Citizen of the
   player's on the map within `get_radius` tiles by `vector_dist` (listing
-  `70f62e`..`70f67e`), while room is short; the taken garrison with
+  `70f62e`..`70f67e`), and on a gather building of the chain (a `Build`
+  answers vslot `+8` 0 and `+0x1c` 1; its type's `+0x90`), every Citizen
+  on its gatherer chain, `+0x70` then each `+0x92`, however far (item
+  4549: the 2017 sample's 6113, computer 2's `2/11` and `2/14` 21 tiles
+  out at `2/2001`; the return at `70f78e`), while room is short; the taken garrison with
   `action_garrison(city, QUEUE_NEW, search 1)`; `0x40` set when any was
   taken. The all-clear: the walking Citizens in the radius whose action is
   a GARRISON `repath` and `kill_current_order`; every finished building of
@@ -8858,8 +8862,9 @@ Militia test by the word.
 **What is not established.** The gather's Scholar and University arms,
 the probe's walk past the target's own cell, the movers' `action_move_near`
 and the non-castable arm's oil-rig boarding are read, not reached: M3 is
-one member, assigned at offset 0. The bell's Citizens inside other
-buildings (this crate's cell chain threads units only), the tribe's
+one member, assigned at offset 0. ~~The bell's Citizens inside other
+buildings (this crate's cell chain threads units only)~~ (item 4549: the
+arm walks a gather building's gatherer chain, built above), the tribe's
 Citizen, and `action_alarm_peasant` (a group of units' alarm) are
 SEAMs. `find_garrison_build`'s room test is `num_inside < limit` here,
 `num_inside + control_cost <= limit` in the listing — one for a pop-1
