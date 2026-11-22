@@ -40819,6 +40819,9 @@ and waited on with `waitrun.sh` in the background.
   0, `success`, no relaunch, no page fault. 3,295 frames, `last_frame` 3294, **ended by the original**, map 18. Players: tribe 4 (flags 7, team 8), tribe 14 (flags 1, team 1), tribe 6 (flags 1, team 1).
   **The original took the file**: three seats and the team, as declared.
 - **Scored as found** (`the_fifth_held_out_games_score_as_pinned`): walls 3,295 of 3,295; **units 1,790**, first state 1790, ours 4038452573, theirs 1054592778; **builds 1,854**, first state 1824, ours 512225234, theirs 3008295372; **ammo 2,882**, first state 2860, ours 1, theirs 460261739; **deaths 2,508**, first state 2508, ours 2009468066, theirs 1; **groups 1,963**, first state 1963, ours 321777859, theirs 660866967; **guys 1,790**, first state 1790, ours 2094189105, theirs 2360396383; **leaders 1,757**, first state 1757, ours 2828401504, theirs 1487010739; **cities 1,951**, first state 1951, ours 1722361204, theirs 1721574772; **items 2,728**, first state 2728, ours 3164999615, theirs 3159232445; **goods 1,987**, first state 1987, ours 1178399185, theirs 1567683031; **world 1,791**, first state 1750, ours 1825769550, theirs 1731133486; 1 of 12 lines whole to the original's end. Ours' end: `over` None.
+- **Re-scored by item 4553** (`find_target`'s ally arm reads `strong[8]`/`weak[8]`, built on run1782's row 63; no leaf
+  read here): units 2,951, first 2910; builds 3,049, first 3049; ammo 2,942, first 2860; deaths 3,112; groups 3,062,
+  first 2557; guys 3,049; leaders 3,093, first 2910; cities 3,013, first 2910; items and goods whole; world 2,983.
 - Filed with `filerun.py run1778 heldout5-row103-6000`: `gamelog-run1778-heldout5-row103-6000.txt`, 2,865 bytes, SHA-256
   `b77f25d4f7e0f277e7e76acaf54aa81d1c1cae87b46b2f1ec2f36d0cb92c0d00`; `rontrace-run1778.log`, 121,536,736 bytes, SHA-256 `e487ad976cb69301f18cdc9be2af95a6b9534a7e95661dcd12c44d60dcda6b8e`. The take stays in `~/ron-golden/run1778/`.
 
@@ -40930,6 +40933,10 @@ waited on with `waitrun.sh` in the background. `df -g ~` read 105 GB free before
 - **Re-scored by item 4542** (`get_cost`'s locked-team wonder term): leaders 1,828, first 1828 (range 265,
   record 2, `flags` byte 3: ours `0x00`, theirs `0x02`); units and guys 1789 as found; cities 2,342, first 2182;
   goods 2,046, first 2026; items 3,435; ammo 3,758.
+- **Re-scored by item 4553** (`find_target`'s ally arm reads `strong[8]`/`weak[8]`): units 4,219, first 3691; builds
+  3,978, first 3789; ammo 3,992, first 3683 (range 4, record 1, `rolling..start_roll_angle`); deaths 3,718; groups, guys,
+  items, goods and world whole; leaders 4,187, first 3691 (range 1, record 0, `who..ally_mask` byte 2646: ours `0x09`,
+  theirs `0x0a`); cities 4,194, first 3691 (range 1, record 2, `raid_stamp` ours 3687, theirs 3690).
 - Filed by `filerun.py run1782 heldout5-row063-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1782-heldout5-row063-ranges.txt`, 2,846 bytes, SHA-256
   `ccc246ebdfebd117ee36ce9dfc2d95ee77ef131ce13128fcfbb9b60659123951`; `rontrace.log` → `Logs/rontrace-run1782.log`,
@@ -40969,7 +40976,9 @@ read 99 GB free before it and 87 after the filing.
   in place.
 
 **What it holds**: `diff::held_out::tests::row_103_s_caravan_road_is_laid_the_frame_after_the_budget_on_run1783_s_ranges`
-(every world range on states 1749 to 1751, and the trace's road nodes on 1748 to 1750 node for node).
+(every world range on states 1749 to 1751, and the trace's road nodes on 1748 to 1750 node for node);
+`row_103_s_army_record_keeps_its_role_when_a_squad_leaves_on_run1783_s_ranges` (item 4551: every groups range on
+states 2556 to 2558, record 131's `role` 0x150d00 by name; `docs/GROUPS.md` §3.4).
 
 ## run1785 — parity held out, fifth battery, row 123's file to 6000 with the checksum and ranges hooks, nine lines kept (2026-11-22, item 4546, `worktree-att-4546`)
 
