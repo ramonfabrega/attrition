@@ -13,6 +13,9 @@ name, and no tool owned the step; `archive.sh` is `live.sh`'s). A
 destination that exists is refused, never overwritten (`--force` moves it
 aside as `<name>.replaced-<time>` first). The map directory is the one
 `map-*` under the run unless `--map` names it; two without `--map` refuse.
+A ranges take's `rontrace.ranges` past a gigabyte is split in place into
+pieces and compressed (`tools/trace/split.py`), and the line it prints
+carries the record's bytes and SHA-256 for the ledger.
 """
 import argparse
 import os
@@ -20,6 +23,9 @@ import shutil
 import sys
 import time
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'trace'))
+import split  # noqa: E402
 
 GOLDEN = Path(os.environ.get('RON_GOLDEN_DIR', os.path.expanduser('~/ron-golden')))
 LOGS = Path(os.environ.get('RON_GAMELOG_DIR', os.path.expanduser(
@@ -77,6 +83,22 @@ def file_run(golden, logs, run, tag, style=None, force=False, dry_run=False, out
             print(f'moved aside: {aside}', file=out)
         shutil.copy2(src, dst)
         print(f'{dst} ({dst.stat().st_size} bytes)', file=out)
+    # A ranges take's record stays where the take left it, and past a
+    # gigabyte it is kept in pieces the archive's compression takes
+    # (`tools/trace/split.py`, DECISIONS 149 §1). The take has exited, so no
+    # age is asked. A refusal leaves the record whole and is said, never fatal.
+    record = pairs[1][0].with_name('rontrace.ranges')
+    if record.is_file() and not dry_run:
+        try:
+            done = split.split(record, min_age=0)
+        except split.Refused as e:
+            print(f'the record stays whole: {e}', file=out)
+        else:
+            if done:
+                print(f"{record}: {done['size']} bytes in {done['pieces']} pieces, SHA-256 {done['sha256']}; "
+                      f"{split.gib(done['before'])} on disk before, {split.gib(done['after'])} after"
+                      + ('' if done['compressed'] else '; afsctool is not on this PATH, the pieces are not compressed'),
+                      file=out)
     return pairs
 
 

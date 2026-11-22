@@ -139,6 +139,26 @@ class TheTable(unittest.TestCase):
             self.assertEqual(row['verdict'], 'no receipt')
             self.assertIsNone(row['admission_s'])
 
+    def test_a_gate_the_driver_stopped_is_stopped_whatever_its_fixtures_printed(self):
+        # gate-4524.log and gate-4525.log, 2026-11-21: the driver stopped two
+        # booking gates to book three landings under one, each log ends
+        # `gate exit 143`, and the table read both `9 of 9 … green` off the
+        # receipts the tools' own fixtures print in the offline step.
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / 'gate-stopped.log'
+            f.write_text(SCOPED.replace('exit 0\n', '') + 'Driver: 18 landings since the last pass\ngate exit 143\n')
+            [row] = gates.rows([f])
+            self.assertEqual(row['verdict'], 'stopped (exit 143)')
+            self.assertIsNone(row['steps'])
+            self.assertIsNone(row['release_min'])
+            total = gates.totals([row])
+            self.assertEqual((total['red'], total['stopped']), (0, 1))
+            self.assertIn('1 stopped', gates.render([row], total))
+            # A gate that ran to its end and was red exits non-zero too, and stays red.
+            g = Path(d) / 'gate-red.log'
+            g.write_text(WHOLE_RED + 'gate exit 1\n')
+            self.assertTrue(gates.rows([g])[0]['verdict'].startswith('red: '))
+
     def test_a_red_with_many_failures_names_three_and_counts_the_rest(self):
         # gate-4435.log, 2026-11-19: 282 widenings red on one merge, and
         # the table printed every name on one row of 30 kB (the pass of

@@ -3578,6 +3578,11 @@ words, the frame, the place and the caller, then the entries, then the bytes. A 
   - `--frame` is the logger frame, our `sim.frame`; the set is the first of trace frame F − 1 (§24.1).
 - `rondata::trace::ranges` is the same reader in Rust. `diff::checksum_frames::record` holds the record
   (`RON_RANGES_RECORD`, default `~/ron-golden/run1597/map-14/rontrace.ranges`).
+- **A record past two billion bytes is kept in pieces** (`tools/trace/split.py`, DECISIONS 149 §1):
+  `rontrace.ranges`, `rontrace.ranges.1`, `rontrace.ranges.2`, …, a gigabyte each, because the archive's in-place
+  compression takes no file of 2^31 bytes or more. The pieces in order are the record, byte for byte; both readers
+  open them as one, and a record's bytes and SHA-256 in `docs/RUNS.md` are the concatenation's (`split.py --check`).
+  `tools/gamelog/filerun.py` splits a take's record when it files the take; `split.py --join` is the undo.
 
 ## 25.3 The record (diff-backed)
 

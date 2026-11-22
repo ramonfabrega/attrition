@@ -22431,3 +22431,46 @@ cannot. The pass ruled that renderer state and seated a build from the
 packet's emitters. A fourth battery is named. The pass moved no score
 and took no capture.
 **DECISIONS 148.** `docs/audit/2026-11-21-fable-pass-takes.md`.
+
+## 2026-11-21 — the pass, second: the disk was a tool's refusal, and the records are kept in pieces (Fable 5.2, steering)
+
+`commander` ran twenty merges off the morning's pass in about nine
+hours, reached the backstop and handed over at `ed4649c21` on a green
+whole gate. The first and third batteries came whole in that tranche,
+the second went 4 → 6 of 8, the sample's first parting went from units
+4248 to world 5401, and the fourth battery was taken and read 5 of 8 as
+found. The handoff said every item left needs a take, the disk read 35
+GB against the takes' floor of 60, and what was left to free was the
+archive, which is Ramon's.
+
+The pass ran its first acts and read the compressor's output instead of
+its exit code. `afsctool` had printed `Skipping file … with unsupportable
+size` seventeen times: it takes no file of 2^31 bytes or more. Fourteen
+of the seventeen were ranges records, 48.8 GiB, every one raw, and a 1.9
+GB piece cut from one compressed twelve times over in ten seconds. The
+census tool has flagged such a file by name since October. So the limit
+the morning's pass designed around, and cut the takes' masks for, was
+this refusal.
+
+A record past two billion bytes is now kept as gigabyte pieces beside
+its own name, and both readers open the pieces as one. The split writes
+the pieces aside, compresses them, reads them back and swaps them in
+only when their concatenation has the record's length and SHA-256.
+Thirteen records were split, 46.8 GiB to 4.1, and each was then read
+again from its pieces against the hash its worker wrote in the ledger
+when it took it: thirteen of thirteen. The disk reads 117 GB free.
+Nothing was deleted, and one command a record puts it back. The filing
+tool splits a take's record from now on.
+
+With the disk out of the way the design was short. The five rows not
+whole were scored in seconds each, and three of the queue's items
+carried figures other rows' fixes had since moved. Four seats: the
+sample, and rows 75, 30 and 55. The sample's take runs to 6400 on the
+ten lines that part below it, so one take serves a run of landings where
+the tranche took one each. A fifth battery is named. The fold is put to
+Ramon a fifth time, at 14 of 15.
+
+The gate table had printed two gates the driver stopped as green, off
+receipts the tools' own fixtures print; it reads the gate's last line
+first now. The pass moved no score and took no capture.
+**DECISIONS 149.** `docs/audit/2026-11-21-fable-pass-pieces.md`.

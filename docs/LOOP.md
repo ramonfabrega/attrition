@@ -103,7 +103,10 @@ driver chooses the shape for each step:
   The driver merges it and gates once, at the merge; on a red gate it sends
   the builder the failing test, and the builder fixes in its own context. A
   builder never runs the release gate: whether one waits cleanly on a
-  fifteen-minute gate is untested. lore does not index these
+  fifteen-minute gate is untested. The harness pins a builder's writes
+  to the worktree it was given, so it names its branch
+  `worktree-att-<N>` there and cuts no second tree (item 4514). lore does
+  not index these
   spawns, so their price is the weekly window's delta, read before and
   after.
 - **A ccc lane** — `ccc spawn --name lane-<N> --worktree=att-<N> --model
@@ -508,7 +511,10 @@ prints, never all twelve: the disk is the limit, and a whole take reads
 `Parity held out:` line, and the second battery (rows 10 to 150) is taken
 when the first reads 4 of 8 now, or on Ramon's word; the third (rows 5 to
 145) when the second does (DECISIONS 147 §2); the fourth (rows 15 to 155)
-when the third reads 7 of 8 (DECISIONS 148 §2).
+when the third reads 7 of 8 (DECISIONS 148 §2); the fifth (rows 3 to 143)
+when the fourth does (DECISIONS 149 §3). **A take's end may run past the
+first parting it is taken for** (DECISIONS 149 §2): the mask is what a
+take reads while it runs, and a filed record keeps a twelfth of it.
 
 ## Ratification, and the passes
 
@@ -532,9 +538,11 @@ own clauses in this file — one commit a person can revert. Its first acts (the
 read are in `docs/audit/2026-11-09-loop-retired-clauses.md`, "Retired
 2026-11-14: the pass's first acts, the figures"):
 
-1. **The archives' compression, backgrounded** — `afsctool -c -f -T LZFSE
-   -J8` on `~/ron-data` and `~/ron-golden`, never beside a gate
-   (DECISIONS 77).
+1. **The archives' compression, backgrounded** — `python3
+   tools/trace/split.py --archive`, then `afsctool -c -f -T LZFSE -J8` on
+   `~/ron-data` and `~/ron-golden`, never beside a gate or a take
+   (DECISIONS 77; 149 §1: `afsctool` skips a file of 2^31 bytes, and
+   fourteen records stood raw, 48.8 GiB, until they were split).
 2. **The suite's re-timing beside it** — `python3 tools/suite_timings.py
    <install> --stale-only`, committed (DECISIONS 132 §6: on 2026-11-13
    the file was four days old and 189 tests were untimed, so every lane

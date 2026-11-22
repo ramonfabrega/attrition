@@ -162,7 +162,8 @@ is append-only and amended in place, as it always was.
 - 145 extended by 146 — The pass of 2026-11-19, second: parity held out is ratified at 0 of 8 and parsed on the scoreboard, a held-out game is spent once a lane reads it and a second battery is named, the lanes follow the eight with each game's ranges taken once, a lane lands one act and the driver counts the stop, the client opens every game on one camera, and `tranche.py` reads a booking's parentheses
 - 146 standing — The pass of 2026-11-20: a pass scores every held-out row with ranges on disk by leaf before it designs (rows 80 and 100 part builds on one bit of `build_masks`), the fold of the eight into the headline is recommended and left with Ramon, four seats and the second battery's item with its declaration first, 4450a closed by item 4453, and the eye's seat takes the fading wreck
 - 147 standing — The pass of 2026-11-20, second: the estimate is read by reach (27 % → 53 % of states before the first parting, where games and lines read 0 → 1 and 64 → 65), a third battery is named, the fold is still Ramon's at 11 of 15, the rows nearest whole take the seats (row 60, row 90, row 70), the sample keeps its seat with its rate said, parity's own count is a parsed line, and the queue's opener, which a booking had left unreadable to the wake, is a guarded paragraph
-- 148 standing — The pass of 2026-11-21: every held-out row not whole is scored (eight leaves on disk on rows 105 and 10, five with no item; rows 40 and 5 one line from whole), the three batteries read 0, 1 and 5 of 8 as found and 27, 53 and 88 % by reach, a fourth battery is named, the fold is still Ramon's at 13 of 15, a row's ranges take keeps the lines its score parts on because the disk is the limit, the sample's seat reads the `Parity:` line and takes ranges past its draw word first, and the eye's seat draws the dust from the packet's emitters.
+- 148 extended by 149 — The pass of 2026-11-21: every held-out row not whole is scored (eight leaves on disk on rows 105 and 10, five with no item; rows 40 and 5 one line from whole), the three batteries read 0, 1 and 5 of 8 as found and 27, 53 and 88 % by reach, a fourth battery is named, the fold is still Ramon's at 13 of 15, a row's ranges take keeps the lines its score parts on because the disk is the limit, the sample's seat reads the `Parity:` line and takes ranges past its draw word first, and the eye's seat draws the dust from the packet's emitters.
+- 149 standing — The pass of 2026-11-21, second: the disk stops binding without a file deleted, because the archive's compression skips any file of 2^31 bytes and fourteen ranges records stood raw for it (a record past two billion bytes is kept in gigabyte pieces both readers open as one; thirteen split, 46.8 GiB to 4.1, 56 GB free to 117), the five rows not whole are scored and four seats cut, the sample's take runs to 6400 on the lines that part below it, a fifth battery is named, the fold is still Ramon's at 14 of 15, and the gate table says stopped for a gate the driver stopped.
 
 ## 1. Fidelity before divergence
 
@@ -14882,3 +14883,174 @@ one at the guard on the scoreboard's lines (`gate-book-4496`). They cost
 2.2 minutes between them and each booking gated green on its next
 commit. No lane's gate was red on a test. A landing waited 49.3 minutes,
 down from 62.0, and cost 5.77 USD against 6.42.
+
+## 149. The archive's records are kept in pieces the compressor takes, the takes stop waiting on the disk, four seats are cut from the rows scored, and a fifth battery is named (2026-11-21)
+
+**What happened.** `commander` (Opus 5.5) ran twenty first-parent merges
+off the pass of 2026-11-21 (items 4484, 4502, 4504 to 4508, 4510 to
+4516 and 4520 to 4525), reached the backstop and gated
+whole (`gate-backstop-1121.log`, exit 0 on `ed4649c21`, the tip and
+origin/main). Its handoff said every item left needs a take and the disk
+read 35 GB against the takes' floor of 60, with the archive's deletion
+the one thing left to free. The pass ran on the `steer` row from 18:30
+−05:00 with no subagent and no capture. The tables are in
+`docs/audit/2026-11-21-fable-pass-pieces.md`.
+
+**§1. The disk was held by a tool's refusal, not by the archive's
+size.** The archives are compressed in place at every pass (`afsctool
+-c -T LZFSE`, entry 77), and `afsctool` takes no file of 2^31 bytes or
+more: it prints `Skipping file … with unsupportable size` and goes on.
+The pass's own run printed that line seventeen times. Fourteen were
+ranges records, 48.8 GiB between them and every one raw; the other three
+are text dumps, 10.1 GiB. A 1.9 GB piece cut from one record compressed
+to 151 MiB in ten seconds. `tools/archive_census.py` has flagged such a
+file as `compressible-unsupported` since 2026-10-19 and nothing acted on
+the flag. Entry 148 §4 cut the takes to the lines that part because the
+disk was the limit; the limit was this.
+
+- **A record past two billion bytes is kept in pieces**:
+  `rontrace.ranges`, `rontrace.ranges.1`, `rontrace.ranges.2`, …, a
+  gigabyte each. The pieces in order are the record, byte for byte. A
+  record's bytes and SHA-256 in `docs/RUNS.md` are the concatenation's
+  and stand as written.
+- **Both readers open the pieces as one** (`rondata::trace::ranges`'
+  `Pieces`, `tools/trace/ranges.py`'s). Each has a test seen red on the
+  old reader. The Python one read a split record as no sets at all and
+  said nothing, which is what a tree older than this commit does with a
+  split record.
+- **`tools/trace/split.py` does it and can undo it.** It writes the
+  pieces beside the record as `.part` files, compresses them, reads them
+  back, and renames them into place only when their concatenation has
+  the record's length and SHA-256, the first piece last. `--join` puts a
+  record back in one file; `--check` prints its bytes and SHA-256 from
+  the pieces. A record written in the last ten minutes is refused, since
+  a take may be writing it.
+- **Thirteen records were split**, every one under `~/ron-golden`: 46.84
+  GiB on disk before, 4.06 after. Each was then read again from its
+  pieces, and all thirteen carry the SHA-256 the worker wrote in
+  `docs/RUNS.md` when it took them. The fourteenth is the lab's, under
+  `~/ron-data/lab-experiments`, and was left as it is.
+- **The disk**: 56 GB free at the pass's start, 64 after the debug
+  profile was cleaned, 74 after `afsctool`, 117 after the split.
+- **A take is split when it is filed**: `tools/gamelog/filerun.py` runs
+  the split on the take's record and prints the bytes and SHA-256 for
+  the ledger. A pass runs `split.py --archive` ahead of `afsctool`
+  (`docs/LOOP.md`).
+
+Nothing was deleted, so nothing here was Ramon's to allow; the undo is
+one command a record. What it costs is said: a checkout older than this
+commit reads a split record short, and Codex's branch and the root
+checkout are both older. The takes' stop under 60 GB stays in every
+item. It no longer binds: a take still reads up to 9 GB while it runs
+and keeps about a twelfth of that once filed. Entry 148 §4's mask rule
+stands, because it bounds what a take reads while it runs.
+
+**§2. The seats, from every row scored.** `score_recording` at the tip,
+on the five held-out rows not whole (9 to 16 seconds each; each holds
+sums, so none names a leaf):
+
+| row, run | lines parted | agrees | first | one take |
+|---|---|---|---|---|
+| 75 (fourth), run1763 | ammo | 4,682 of 5,342 | 4004 | `0x8u` |
+| 30 (second), run1731 | world, units | 4,423 and 4,114 of 4,548 | 1662, 3184 | `0x801u` |
+| 55 (fourth), run1762 | units, groups | 5,833 and 5,989 of 6,001 | 4275, 5576 | `0x21u` |
+| 95 (fourth), run1764 | leaders, units, guys | 5,266, 5,909 and 5,909 of 6,001 | 5266, 5909, 5909 | `0xc1u` |
+| 110 (second), run1735 | world, ammo, units, leaders, builds | 5,379, 5,826, 5,532, 6,000 and 5,577 of 6,001 | 3809, 4104, 4492, 5409, 5577 | `0x88bu` |
+
+Three of the queue's items carried older figures: row 30's units read
+2,334 from 2334 and reads 4,114 from 3184, row 110's units 2,703 from
+2184 and reads 5,532 from 4492, and row 95's units 5303 reads 5909. Row
+30's world waited on row 10's world leaf; item 4504 landed it and row
+30's world stands where it was, so the wait is over and the row needs
+its own take.
+
+The sample parts first on world 5401, then leaders 5403, units, groups
+and guys 5461 (the draw word is 5460), builds 5487, cities 5801, ammo
+5969, deaths 6190, goods 6395 and items 10910. Its newest record,
+run1771, ends on 5350. Each of the tranche's three sample landings that
+needed ranges took a take of its own, to 4500 and to 5350. With the disk
+no longer the limit, **the sample's next take runs to 6400 and keeps the
+ten lines that part below it** (`RNG_MASK=0xdfbu`), so one take serves
+the landings from 5401 to 6395.
+
+Four seats, as the roster stands:
+
+- **The sample's seat: item 4526**, world from 5401.
+- **The chain's builder: item 4517**, row 75, one line from whole.
+- **A parity seat: item 4509**, row 30. It holds the most states of any
+  row left: 2,886 between its first parting and its end.
+- **A parity seat: item 4518**, row 55.
+- **Unseated, in this order**: item 4485 (row 110) and item 4519 (row
+  95), then item 4527 (§3).
+
+Item 4503, the sample's draw word from 5273, leaves the queue: item 4521
+moved the word to 5460 on computer 1's defeat, and the frame its first
+act names is behind the score. `docs/audit/queue-ledger.md` has its
+line.
+
+**§3. The fourth battery read 5 of 8 as found, and a fifth is named.**
+
+| battery | taken | whole, as found | lines, as found | reach, as found | now |
+|---|---|---|---|---|---|
+| first (rows 0 to 140) | 2026-11-19 | 0 of 8 | 64 of 96 | 27 % | 8 of 8, 96 lines, 100 % |
+| second (rows 10 to 150) | 2026-11-20 | 1 of 8 | 65 of 96 | 53 % | 6 of 8, 89 lines, 88 % |
+| third (rows 5 to 145) | 2026-11-21 | 5 of 8 | 90 of 96 | 88 % | 8 of 8, 96 lines, 100 % |
+| fourth (rows 15 to 155) | 2026-11-21 | 5 of 8 | 90 of 96 | 91 % | 5 of 8, 90 lines, 91 % |
+
+The found column stopped rising by games, 5 of 8 twice, and rose three
+points by reach. The fourth is spent by entry 145 §2's test once a lane
+reads a parting off it, which the three seats above do. **The fifth
+battery is rows 3, 23, 43, 63, 83, 103, 123 and 143** of the same
+order, by the same recipe, named here before any take. It is taken when
+the fourth reads 7 of 8 now, or on Ramon's word, and its declaration is
+its item's first commit (item 4527). It is idle like the four before it,
+because seats and a team are Ramon's (entry 145 §2) and he has not said.
+Entry 148 §1's limit stands beside it: the one game with a person's
+orders parts on state 5,401 of 21,044.
+
+**§4. The fold is still Ramon's, and today it reads 14 of 15.** This is
+the fifth record to put it to him. Six of the seven and all eight of the
+first battery are whole. All four batteries folded would read 33 of 39.
+The recommendation and its reasons are entry 146 §1's.
+
+**§5. The tranche, measured.** Twenty landings in about nine hours. Of
+seventeen gate logs none was red: fourteen booking gates
+were green, the backstop's whole gate was green, and two were stopped by
+the driver so three landings could be booked under one gate (`gate
+exit 143`). `tools/gates.py` printed those two as `9 of 9 … green`,
+reading the receipts the tools' own fixtures print in the offline step.
+It now reads `gate_run.sh`'s last line first and says `stopped (exit
+143)`, with a test seen red. A landing waited 73.1 minutes against 49.3
+the tranche before, 39.6 of them on its own gate against 30.5, and cost
+7.18 USD against 5.77 (seventeen lane sessions, 122.03 USD; three
+landings were in-session builders and are not priced). Seven of the
+gates ended with the load past the sixteen cores. The worker count is
+Ramon's; the record carries the shape.
+
+**§6. What the tranche parked.** Thirteen findings, none naming a score:
+4484a and 4511a (a host's cargo read in slot order by four readers),
+4502a (`go_inside` and `come_out` without `update_ceo_position`), 4504a
+(the other `coll_*` paths), 4506a (the dust denser than the
+photograph's), 4506b (four riflemen's muzzle flash undrawn), 4508a
+(`find_new_bomber_target`'s walk order), 4512a (a pushed member's stale
+seat), 4514a (the attrition period's war arm has no diff), 4515a (a dead
+building's hold under a spent arrow), 4516a (`BOARD_SHIP` has no diff),
+4521a (the captor walk's two other skips) and 4525a (the census's other
+`defeated` readers). All stay in their journals. Of the journals' notes
+for the loop:
+
+- **A builder's writes are pinned to the worktree the harness gave it**
+  (4514): it names its branch `worktree-att-<N>` there and cuts no
+  second tree. Taken into `docs/LOOP.md`.
+- **A builder's tree was removed mid-item** (4504), which its journal
+  puts to the disk step. The tranche's gate logs show one reap, the
+  merged builder of item 4484 at `gate-4511`, and no line for that tree.
+  The cause is not established. It is not ruled.
+- **A driver's word that arrives mid-gate costs the lane its build**
+  (4520). `docs/LOOP.md` already says a line to a gating lane is sent
+  only when the lane must act before the gate's exit.
+- **A lane's leaf can be another lane's on a different row** (4484 and
+  4511 built one mechanism the same day), and **the lane gate's list
+  left the widening suites to the booking gate** (4522). Each is one
+  observation, no booking gate was red on either, and both stay in
+  their journals.

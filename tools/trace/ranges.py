@@ -54,20 +54,56 @@ ENTRY = struct.Struct("<BBHIII")
 PREFERRED_BASE = 0x400000
 
 
+class Pieces:
+    """A record's bytes across `path`, `path.1`, `path.2`, …: a record past a
+    gigabyte is kept in pieces so the archive's compression takes it
+    (`tools/trace/split.py`, DECISIONS 149 §1), and the pieces in order are
+    the record. A record in one file is one piece."""
+
+    def __init__(self, path):
+        self.files, self.size, self.at = [], 0, 0
+        k = 0
+        while k == 0 or os.path.isfile(f"{path}.{k}"):
+            f = open(path if k == 0 else f"{path}.{k}", "rb")
+            n = os.fstat(f.fileno()).st_size
+            self.files.append((f, self.size, n))
+            self.size += n
+            k += 1
+
+    def seek(self, at):
+        self.at = at
+
+    def read(self, n):
+        out = []
+        while n > 0:
+            hit = next(((f, start, size) for f, start, size in self.files if self.at < start + size), None)
+            if hit is None:
+                break
+            f, start, size = hit
+            f.seek(self.at - start)
+            b = f.read(min(n, start + size - self.at))
+            if not b:
+                break
+            out.append(b)
+            self.at += len(b)
+            n -= len(b)
+        return b"".join(out)
+
+
 class Record:
     """The record's sets, read lazily: `sets()` yields each set's header with
     its file offset; `body(s)` reads its ranges and bytes."""
 
     def __init__(self, path):
         self.path = path
-        self.f = open(path, "rb")
+        self.f = Pieces(path)
         head = self.f.read(32)
         if len(head) < 32:
             raise SystemExit(f"{path}: no header")
         magic, version, self.base, self.mask = struct.unpack("<4I", head[:16])
         if magic != MAGIC or version != VERSION:
             raise SystemExit(f"{path}: not a step R record (magic {magic:#x}, version {version})")
-        self.size = os.path.getsize(path)
+        self.size = self.f.size
 
     def kept(self):
         return [i for i in range(len(LINES)) if (self.mask >> i) & 1]

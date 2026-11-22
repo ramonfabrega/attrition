@@ -10,8 +10,9 @@ timed test), the minutes between the log's own `Gate start:` line and its
 last write (its steps' sum on a log older than that line), the
 `Gate steps:`, `Admission wait:` and `Host load:` receipts, the release
 and clock steps' minutes where the gate printed `Gate minutes:`, and the verdict —
-green, red with the failed tests named, or `no receipt` for a log that
-ends without the gate's last lines (a killed gate). The totals under the
+green, red with the failed tests named, `stopped (exit N)` for a gate the
+driver ended by a signal, or `no receipt` for a log that ends without the
+gate's last lines (a killed gate). The totals under the
 table are what a pass's measurement table carries. Three passes wrote
 this probe by hand (the fortieth, forty-first and forty-second); the
 third use graduates it (CLAUDE.md, "Conventions").
@@ -104,6 +105,16 @@ def row(path):
         if len(out['failed']) > 3:
             named += f" and {len(out['failed']) - 3} more"
         out['verdict'] = ('red: ' + named if out['failed'] else 'red') if red else 'green'
+    # `gate_run.sh`'s own last line outranks every receipt above it. A gate
+    # the driver stopped (a signal: 130, 137, 143) never printed its
+    # receipts, and the ones in its log are the fixtures' of the tools' own
+    # tests: gate-4524 and gate-4525 (2026-11-21) read `9 of 9 … green` off
+    # them, stopped at 20.8 and 4.1 minutes.
+    ended = last(r'^gate exit (\d+)$')
+    if ended in ('130', '137', '143'):
+        out['verdict'] = f'stopped (exit {ended})'
+        out['steps'] = out['release_min'] = out['clock_min'] = None
+        out['admission_s'] = out['leases'] = out['longest_s'] = None
     return out
 
 
@@ -121,6 +132,7 @@ def totals(rows):
                 lane=sum(r['scope'] == 'lane' for r in rows),
                 red=sum(r['verdict'].startswith('red') for r in rows),
                 no_receipt=sum(r['verdict'] == 'no receipt' for r in rows),
+                stopped=sum(r['verdict'].startswith('stopped') for r in rows),
                 minutes=round(sum(minutes), 1), admission_s=round(sum(waits), 1),
                 longest_s=max(longest) if longest else None,
                 past_cores=sum(1 for r in rows if r['load_end'] is not None and r['cores'] and r['load_end'] > r['cores']))
@@ -139,6 +151,7 @@ def render(rows, totals):
                    f"{str(r['longest_s'] if r['longest_s'] is not None else '-'):>6} {load:>11} {r['verdict']}")
     t = totals
     out.append(f"{t['gates']} gates: {t['whole']} whole, {t['scoped']} scoped ({t['widened']} widened), {t['red']} red"
+               + (f", {t['stopped']} stopped" if t['stopped'] else '')
                + (f", {t['no_receipt']} without a receipt" if t['no_receipt'] else '')
                + (f", {t['lane']} lane" if t['lane'] else '') + f"; {t['minutes']} minutes in all")
     out.append(f"admission {t['admission_s']} s summed, longest {t['longest_s']} s; {t['past_cores']} ended past the cores")

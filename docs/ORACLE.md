@@ -2966,6 +2966,15 @@ before and after goes in the pass's record. The race on 1648 left four
 raw windows of 630 MB and four traces of 188 MB; this pass compressed
 them.
 
+**`afsctool` takes no file of 2^31 bytes or more** (`Skipping file …
+with unsupportable size`; the pass of 2026-11-21, second, DECISIONS 149
+§1). Fourteen ranges records stood raw for that, 48.8 GiB. A record past
+two billion bytes is kept in gigabyte pieces, which compress
+(`tools/trace/split.py`; `docs/CHECKSUM.md` §25.2): `filerun.py` splits a
+take's record when it files it, and a pass runs `python3
+tools/trace/split.py --archive` ahead of the line above. Three text dumps
+over the limit stay raw; no reader of a dump takes pieces.
+
 ## The archive's census (2026-10-19)
 
 The disk went from 103 GiB free to 30 in one tranche of sixty-seven

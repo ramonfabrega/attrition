@@ -12,7 +12,8 @@
 //! frame boundary, line by line, without a packet.
 //!
 //! The record is gigabytes and never enters the repo; it is opened by path
-//! and read set by set.
+//! and read set by set. Past a gigabyte it is kept in pieces beside that
+//! path ([`Pieces`]), which this reader opens as one.
 
 use std::io::{Read, Seek, SeekFrom};
 
@@ -63,13 +64,82 @@ pub struct Range {
 /// An open record: its header and every set's, indexed by one pass over
 /// the headers.
 pub struct Record {
-    file: std::fs::File,
+    file: Pieces,
     base: u32,
     /// The lines whose ranges the record keeps, a bit each.
     pub mask: u32,
     pub sets: Vec<RangeSet>,
     /// The record ends inside a set (a take killed mid-write).
     pub truncated: bool,
+}
+
+/// Piece `k` of the record at `path`: the path itself, then `.1`, `.2`, ….
+fn piece(path: &std::path::Path, k: usize) -> std::path::PathBuf {
+    if k == 0 {
+        return path.to_path_buf();
+    }
+    let mut name = path.as_os_str().to_owned();
+    name.push(format!(".{k}"));
+    name.into()
+}
+
+/// A record's bytes across its pieces. The archive is compressed in
+/// place and the compressor takes no file of 2^31 bytes or more, so a
+/// record past a gigabyte is kept as `rontrace.ranges`,
+/// `rontrace.ranges.1`, … (`tools/trace/split.py`, DECISIONS 149 §1). The
+/// pieces in order are the record; one file is one piece.
+struct Pieces {
+    /// Each piece, the offset it starts at and its length.
+    files: Vec<(std::fs::File, u64, u64)>,
+    at: u64,
+}
+
+impl Pieces {
+    fn open(path: &std::path::Path) -> std::io::Result<Pieces> {
+        let mut files = Vec::new();
+        let mut start = 0u64;
+        for k in 0.. {
+            let file = match std::fs::File::open(piece(path, k)) {
+                Ok(file) => file,
+                Err(e) if k > 0 && e.kind() == std::io::ErrorKind::NotFound => break,
+                Err(e) => return Err(e),
+            };
+            let len = file.metadata()?.len();
+            files.push((file, start, len));
+            start += len;
+        }
+        Ok(Pieces { files, at: 0 })
+    }
+
+    fn len(&self) -> u64 {
+        self.files.last().map_or(0, |(_, start, len)| start + len)
+    }
+}
+
+impl Read for Pieces {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        let at = self.at;
+        let Some((file, start, len)) = self.files.iter_mut().find(|(_, s, l)| at < s + l) else {
+            return Ok(0);
+        };
+        let n = buf.len().min((*start + *len - at) as usize);
+        file.seek(SeekFrom::Start(at - *start))?;
+        let got = file.read(&mut buf[..n])?;
+        self.at += got as u64;
+        Ok(got)
+    }
+}
+
+impl Seek for Pieces {
+    fn seek(&mut self, to: SeekFrom) -> std::io::Result<u64> {
+        let at = match to {
+            SeekFrom::Start(n) => Some(n),
+            SeekFrom::Current(d) => self.at.checked_add_signed(d),
+            SeekFrom::End(d) => self.len().checked_add_signed(d),
+        };
+        self.at = at.ok_or_else(|| std::io::Error::other("a seek before the record's start"))?;
+        Ok(self.at)
+    }
 }
 
 fn words<const N: usize>(b: &[u8]) -> [u32; N] {
@@ -79,8 +149,8 @@ fn words<const N: usize>(b: &[u8]) -> [u32; N] {
 impl Record {
     /// Opens a record and reads every set's header.
     pub fn open(path: &std::path::Path) -> std::io::Result<Record> {
-        let mut file = std::fs::File::open(path)?;
-        let size = file.metadata()?.len();
+        let mut file = Pieces::open(path)?;
+        let size = file.len();
         let mut head = [0u8; 32];
         file.read_exact(&mut head)?;
         let h: [u32; 8] = words(&head);
@@ -272,6 +342,35 @@ mod tests {
         assert!(r.first_of(1).is_none());
         let s = r.first_of(-1).unwrap().clone();
         assert_eq!(r.ranges(&s).unwrap()[0].bytes, b"abc");
+    }
+
+    /// A record past a gigabyte is kept in pieces (`tools/trace/split.py`),
+    /// and the pieces in order are the record: 264 bytes at 100 a piece
+    /// puts each cut inside a set's header.
+    #[test]
+    fn a_record_in_pieces_reads_as_the_whole_one() {
+        let p = record(0);
+        let bytes = std::fs::read(&p).unwrap();
+        let _ = std::fs::remove_file(&p);
+        let whole = p.with_extension("pieces");
+        let names: Vec<std::path::PathBuf> = (0..3).map(|k| piece(&whole, k)).collect();
+        for (name, part) in names.iter().zip(bytes.chunks(100)) {
+            std::fs::write(name, part).unwrap();
+        }
+        let r = Record::open(&whole);
+        let got = r.and_then(|mut r| {
+            let sets = r.sets.clone();
+            let bodies: Vec<_> = sets.iter().map(|s| r.ranges(s)).collect::<Result<_, _>>()?;
+            Ok((r.truncated, sets.len(), bodies))
+        });
+        for name in &names {
+            let _ = std::fs::remove_file(name);
+        }
+        let (truncated, sets, bodies) = got.unwrap();
+        assert!(!truncated, "the last piece ends the record");
+        assert_eq!(sets, 2);
+        assert_eq!(bodies[0][0].bytes, b"abc");
+        assert_eq!(bodies[1][0].bytes, b"wxyz");
     }
 
     #[test]

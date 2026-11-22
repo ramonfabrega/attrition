@@ -165,3 +165,7 @@ file; each one is a ten-minute read of the code the row names.
 - **4049** built at the seventy-sixth pass by an Opus 5.5 builder, red first on the farm's old
   shape: a type counts in register only on records some side draws. K re-pinned 59 → 55 on
   four building types no side draws; item 4061 is the scaffold that brings them back.
+- **4503** dropped at the pass of 2026-11-21, second, unbuilt past its first act (DECISIONS 149 §2). It
+  was the sample's draw word from 5273, act two. Item 4501 took the first act and item 4521 moved
+  the word 5273 → 5460 on computer 1's defeat, so the frame its next act names is behind the score.
+  The word's next parting, 5460, is on the take item 4526 makes.

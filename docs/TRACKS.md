@@ -79,13 +79,6 @@ lines): **checksum** — every line but leaders is whole on the minted game, `LE
 kind's file played by the original but spell's; **renderer** — under a mountain 100 of 106, the row
 past the map's edge pinned at 0 of 162. The other tracks stand as the table says.
 
-**At the pass of 2026-11-16** (entry 136): **checksum** — `LEADERS_HELD_OUT` 9, `score` on the
-line; **orders** — `INPUT_KINDS` 25 of 26 kinds and 2,379 of 2,429 orders, the last kind
-`leader_options` (item 4289, from the client's own prefs); a person's whole game first counted,
-`INPUT_WHOLE` 0 of 50 recordings and 363 of 2,429 orders shown, 990 missed, 432 of them a type no
-key binds (item 4290); **renderer** — under a mountain 106 of 106, the buildings' warmth 2 of 2,
-and the land's light taken on the plain ground (item 4292); the auto-explored file's playback is item 4291.
-
 **At the pass of 2026-11-16, second** (entry 137): **checksum** — `LEADERS_HELD_OUT` 6, the last six leaves
 booked on four movers (4159r19, items 4298 to 4300); **orders** — `INPUT_KINDS` 26 of 26, 2,311 of 2,429
 orders shown or of the layer's form, 118 missed on four arms (items 4301 to 4304), `INPUT_WHOLE` 42 of 50;
@@ -166,6 +159,14 @@ eight leaves on disk (items 4502, 4504); a row's take keeps the lines its score 
 floor of 60; a fourth battery is named (item 4510); the packets' lines 919 of 1,053; the fold is Ramon's, recommended, 13 of 15
 folded; **orders** — whole by its counters; **renderer** — the haze is a moving vehicle's dust, an emitter the view starts, and the
 eye's seat draws it from the packet's emitters (item 4506).
+
+**At the pass of 2026-11-21, second** (entry 149): **checksum** — parity 6 of 7; the sample parts first on world 5401 of 21,044,
+draws 5460, and its next take runs to 6400 on the ten lines that part below it (item 4526); parity held out 8 of 8 now, the second
+battery 6 of 8, the third 8 of 8, and the fourth read 5 of 8 and 90 of 96 lines as found, 91 % by reach; rows 75, 30, 55, 95 and
+110 are scored and each needs a take (items 4517, 4509, 4518, 4519, 4485); the disk no longer holds the takes: the archive's
+compression skipped every file of 2^31 bytes, thirteen ranges records are kept in gigabyte pieces, and 56 GB free became 117 with
+nothing deleted; a fifth battery is named (item 4527); the packets' lines 948 of 1,053; the fold is Ramon's, recommended, 14 of 15
+folded; **orders** — whole by its counters; **renderer** — the tanks' dust is drawn from the packet, 4 of 4 (item 4506).
 
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it
