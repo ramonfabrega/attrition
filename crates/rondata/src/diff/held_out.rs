@@ -6438,25 +6438,31 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // Moved by item 4535 (a garrisoned worker whose owner has the
         // militia counts a third of the militia line's attack in a
         // building's arrows, `count_inside@0064dda0`): ammo 3,426 -> 3,330
-        // and items 3,563 -> 3,491, named falls past the first partings,
-        // which stand; the states not read one by one.
+        // and items 3,563 -> 3,491, named falls past the first partings.
+        // Item 4545: leaders 1,956 -> 3,376, first 1956 -> 2811 (units).
+        // run1784, the ranges take: on 1956 leaders range 310, record 2
+        // (who=2), `make_list[k]` `t` ours 561, theirs 59, a Caravan at
+        // `val` 980,392: `get_caravan_limit(1)` counts the mutual ally
+        // who=0's city beside who=2's two (`006dca50`, `docs/CARAVAN.md`
+        // §4). Builds 1,958 -> 3,356, units and guys 2,338 -> 2,811 and
+        // 3,360, world 2,338 -> 3,360, the rest later with it.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                2338, 1958, 6001, 3330, 2941, 2400, 2338, 1956, 2340, 3491, 3952, 2338,
+                2811, 3356, 6001, 3659, 3672, 3385, 3360, 3376, 3576, 4069, 4678, 3360,
             ],
             first: &[
-                ("units", (2338, Some(1361964866), 3925824949)),
-                ("builds", (1958, Some(977573852), 2524157908)),
-                ("ammo", (2404, Some(1723730597), 1867713323)),
-                ("deaths", (2452, Some(1982270641), 1)),
-                ("groups", (2400, Some(4286445278), 2313221958)),
-                ("guys", (2338, Some(3548161827), 1424743536)),
-                ("leaders", (1956, Some(3921751680), 3148426205)),
-                ("cities", (2340, Some(2157784556), 130625532)),
-                ("items", (3026, Some(1796424164), 835927342)),
-                ("goods", (2829, Some(3059258644), 3039073554)),
-                ("world", (2338, Some(858147796), 2819705606)),
+                ("units", (2811, Some(3591515853), 3835244241)),
+                ("builds", (3041, Some(1361096581), 1972547467)),
+                ("ammo", (3430, Some(1053690630), 1480526849)),
+                ("deaths", (3672, Some(1), 1719209194)),
+                ("groups", (3385, Some(3169317724), 1587606356)),
+                ("guys", (3360, Some(707761931), 3390545135)),
+                ("leaders", (3376, Some(1593722807), 1499744384)),
+                ("cities", (3576, Some(534003062), 534461814)),
+                ("items", (4053, Some(912470408), 898052486)),
+                ("goods", (4618, Some(3229390119), 3223622949)),
+                ("world", (3360, Some(3462094353), 1521442267)),
             ],
             over: None,
         }),
@@ -6493,11 +6499,13 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // ranges take: on 1750 world range 1148, record 1124 (cell (44, 18)),
         // `flags` ROAD ours 0x80, theirs 0: a caravan's road whose goal was
         // popped past 0xc80 on 1749, laid on 1750 in theirs
-        // (`astar_caravan_road`'s `6860af`, `docs/ROADS.md` §8.3).
+        // (`astar_caravan_road`'s `6860af`, `docs/ROADS.md` §8.3). Item
+        // 4545 (the caravan limit's ally term): ammo 2,882 -> 2,880, a
+        // named fall past its first parting, which stands.
         moved: Some(Score {
             states: 3295,
             agreed: [
-                1790, 1854, 3295, 2882, 2508, 1963, 1790, 1757, 1951, 2728, 1987, 1792,
+                1790, 1854, 3295, 2880, 2508, 1963, 1790, 1757, 1951, 2728, 1987, 1792,
             ],
             first: &[
                 ("units", (1790, Some(4038452573), 1054592778)),
