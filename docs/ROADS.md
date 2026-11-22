@@ -782,6 +782,11 @@ the diff is `run72_s_road_nodes_are_where_great_lakes_word_parts`:
 - `find_good_at`'s `who = −1` arm is modelled as "a live good that is not
   oil", which is the fast path with the availability test dropped; no
   capture has put a good inside a terraform box.
+- §8.3's goal past the budget is diff-backed on a caravan's search only
+  (run1783). A **building's** goal popped past 0xc80 is recycled and its
+  road not laid (`6860bc`, `param_6 < 0`). That rests on the listing
+  alone, because no capture has a building's search spend the budget
+  (item 4544).
 
 ## 8. What the road costs the stream
 
@@ -856,6 +861,26 @@ the goal go into the `CaravanData`; `traversed` goes with them and is
 never read back, so each resumed frame starts its budget again at
 `0xc80`. `crate::roads::RoadSearch` is the parked half and
 `Sim::step_road` the loop that takes it.
+
+**The goal lays its road only under the budget** (item 4544; diff-backed
+by run1783). The goal's test comes first in the loop (`685d3e`, `jle
+0x6860af`), before the budget's compare at `685d44`. But `6860af`
+compares the same counter (`-0x28(%ebp)`) with 0xc80 again, and lays the
+path only on `jl` (to `686203`). On `jge` it falls into `6860bc`, the
+park arm every node popped past the budget takes: a caravan's popped node
+goes back on the open list and the call answers −1, and a building's is
+recycled. So a goal popped on a frame that has already costed 0xc80
+nodes is parked. The next frame pops it again before it costs anything,
+and lays the road then. `roads::pop_answer` is the decision. Until this
+item the crate tested the goal first and laid on the spending frame.
+
+run1783 (row 103 of the fifth battery, `docs/RECGAME.md` §12.3) has the
+case. A caravan's search costs 3,207, 3,202 and 3,203 nodes on trace
+frames 1747 to 1749, node for node on both sides (`Trace::road_nodes`),
+and pops the goal on 1749. Theirs lays the thirteen cells from (44, 18)
+to (49, 24) on 1750, and the world line's `ROAD` bit on cell 1124 is 0 on
+state 1750 and 0x80 on 1751. Ours laid them a state early, which was the
+row's first world parting.
 
 `can_transport` comes alive with the caravan too (`docs/CARAVAN.md`
 §5.1): an ocean tile stops being refused, and §5.2's ocean arm — dead for
