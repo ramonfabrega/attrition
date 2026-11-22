@@ -11184,7 +11184,10 @@ reaches one fog cell further east. run805 shows the members **born at their seat
 `Unit::set_new_location@005f8d20` brackets a world-cell change (>>8) with `remove_from_world`/`add_to_world`, and
 `add_to_world` ends in `update_seen(0)`; this crate's `set_new_location` did `chain_add` only, so
 `Objects::init_unit`'s seating of members 1.. lit nothing at the new spot. **Built** (`units/store.rs`, `init_unit`'s seating):
-a member whose seat crosses a world cell calls `update_seen(u, false)`. **Not in `set_new_location` itself**: the first
+a member whose seat crosses a world cell calls `update_seen(u, false)`. ~~a world cell (>>8)~~ **The test is a fog
+cell** (item 4509, `docs/RECGAME.md` §11): the world cell is `div_3_table[p >> 8]`, and the relight a seat owes is the
+function's other arm, a tile change whose `p / 0x180` moved calling vslot `+0x174`, `Object::update_seen(param_3 == 0)`.
+`p >> 8` alone missed row 30's decoy member `1/37` (run1755, 1662). **Not in `set_new_location` itself**: the first
 build put the call there (every cell crossing) and moved the successor pair's first draw parting 3188 → 1387 and
 eight pair widenings; the seating alone leaves the pair at 3188 (it seats no member across a cell). Value diff: `1/2006 ever_seen` 0 → 1 on 607, `treaties` 0 → 1 both sides, `ever_seen_completed`
 2 → 3 on 610; the four rows leave and the fog plane has 0 parting cells.
