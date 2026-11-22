@@ -3387,7 +3387,7 @@ pub(super) fn chapter_four_s_word_frame_is_widened_whole() {
                     u.health,
                     u.max_health,
                     u.damage_frac,
-                    i64::from(u.sheltered),
+                    i64::from(u.sheltered()),
                     w.owner_at(u.pos).player().map_or(-1, i64::from)
                 )
             });

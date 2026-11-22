@@ -685,6 +685,101 @@ mod tests {
         assert_eq!(built.sim.caravan_limit(2), 3, "who=2's limit on 1956");
     }
 
+    /// **Row 83's Artillery carries the supply veto's mark** (item 4554,
+    /// `docs/SUPPLY.md`, "Behavioural check (run16)"): run1784, the ranges
+    /// take of row 83's file. who=1's Artillery `1/70` (TI 269, land)
+    /// bleeds on a period of 48 on enemy ground, and on its tick due on
+    /// 2810 `process_supply` answers supplied: `Unit::process@00610bc0:535`
+    /// ORs `0x40000` into `unit_masks2` (`+0x6c`), and `:453` clears it on
+    /// the next 32-frame refresh, frame 2842 (its phase `frame + 70`). Ours
+    /// took the veto and kept it in a separate bool the walk never printed.
+    /// Every units range on 2810 to 2812, 2842 and 2843, ours against
+    /// theirs, byte for byte: red on the tree before the fix at range 2319,
+    /// record 70, `unit_masks2` ours 0, theirs 0x40000.
+    #[test]
+    fn row_83_s_artillery_carries_the_supply_veto_s_mark_on_run1784_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+            eprintln!("skipping: row 83's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1784/map-14"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1784's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 83's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for (state, marked) in [
+            (2810, false),
+            (2811, true),
+            (2812, true),
+            (2842, true),
+            (2843, false),
+        ] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_units();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // The Artillery by name: who=1's record 70, its `unit_masks2`
+            // (`+0x6c`, byte 0x24 of the `collide_frame..play` range).
+            let k = ours
+                .ranges
+                .iter()
+                .enumerate()
+                .filter(|(_, r)| r.record == 70 && r.field == "who..y_internal")
+                .find(|(k, _)| theirs[*k].bytes[0] == 1)
+                .map(|(k, _)| k)
+                .expect("1/70");
+            assert_eq!(
+                &theirs[k + 1].bytes[..],
+                &269i32.to_le_bytes(),
+                "1/70's TypeIndex"
+            );
+            let body = (k..ours.ranges.len())
+                .find(|&j| ours.ranges[j].field == "collide_frame..play")
+                .expect("1/70's body");
+            let masks2 = u32::from_le_bytes(theirs[body].bytes[0x24..0x28].try_into().unwrap());
+            assert_eq!(
+                masks2,
+                if marked { 0x4_0000 } else { 0 },
+                "theirs' unit_masks2 on {state}"
+            );
+            let u = built
+                .sim
+                .units
+                .iter()
+                .position(|u| u.alive() && u.owner == 1 && u.index == 70)
+                .expect("1/70");
+            let unit = &built.sim.units[u];
+            assert_eq!(
+                built.unit_type_names[unit.ty.expect("its type")],
+                "Artillery"
+            );
+            assert_eq!(unit.attrition, 48, "1/70's period on {state}");
+            assert_eq!(unit.sheltered(), marked, "ours' veto on {state}");
+        }
+    }
+
     /// **Row 103's caravan road is laid on the frame after the budget**
     /// (item 4544, `docs/ROADS.md` §8.3): run1783, the ranges take of
     /// row 103's file. A caravan's road search costs 3,207, 3,202 and
@@ -6799,13 +6894,18 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // who=0's city beside who=2's two (`006dca50`, `docs/CARAVAN.md`
         // §4). Builds 1,958 -> 3,356, units and guys 2,338 -> 2,811 and
         // 3,360, world 2,338 -> 3,360, the rest later with it.
+        // Item 4554: units 2,811 -> 3,359, first 2811 -> 3359. run1784, the
+        // ranges take: on 2811 units range 2319, record 70, who=1's
+        // Artillery (TI 269) `unit_masks2` ours 0, theirs 0x40000, the
+        // supply veto's mark (`Unit::process@00610bc0:535`,
+        // `docs/SUPPLY.md`). The row's first parting is builds 3041.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                2811, 3356, 6001, 3659, 3672, 3385, 3360, 3376, 3576, 4069, 4678, 3360,
+                3359, 3356, 6001, 3659, 3672, 3385, 3360, 3376, 3576, 4069, 4678, 3360,
             ],
             first: &[
-                ("units", (2811, Some(3591515853), 3835244241)),
+                ("units", (3359, Some(1240030600), 4018231023)),
                 ("builds", (3041, Some(1361096581), 1972547467)),
                 ("ammo", (3430, Some(1053690630), 1480526849)),
                 ("deaths", (3672, Some(1), 1719209194)),

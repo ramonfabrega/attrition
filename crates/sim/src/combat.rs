@@ -164,6 +164,14 @@ pub mod umask2 {
     /// `control`. run1754's `1/169` prints `unit_masks2` 1024 from its
     /// birth on 4583.
     pub const KREMLIN_SPY: u32 = 0x400;
+    /// **`0x40000` — the supply veto's mark** (item 4554, `docs/SUPPLY.md`
+    /// §"Behavioural check (run16)"): `Unit::process@00610bc0:535` ORs it
+    /// in when the attrition tick falls due on the unit's period
+    /// (`(frame + o) % +0x9e == 0`) and `process_supply` answers supplied,
+    /// and `:453` clears it on the 32-frame refresh just before
+    /// `process_attrition`. `Unit::init`'s zero is the only other writer
+    /// at `+0x6c`; [`crate::Unit::sheltered`] reads it.
+    pub const SUPPLIED: u32 = 0x4_0000;
 }
 
 /// The `obj_masks` bits by the names the shipped `balance.xml` gives them
