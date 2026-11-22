@@ -74,7 +74,7 @@ fn sample(sim: &Sim) -> Sample {
         h.eat(i64::from(u.squad_size));
         h.eat(i64::from(u.attrition));
         h.eat_bool(u.on_map);
-        h.eat_bool(u.sheltered);
+        h.eat_bool(u.sheltered());
         h.eat(i64::from(u.idle));
         h.eat(i64::from(u.stance));
         h.eat(i64::from(u.movement.facing.0));
