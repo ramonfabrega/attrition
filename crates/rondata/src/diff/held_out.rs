@@ -904,11 +904,7 @@ mod tests {
             let all = record.ranges(&set).expect("the set's ranges");
             let ours = built.sim.checksum_groups();
             let theirs: Vec<_> = all.iter().filter(|r| r.line == 5).collect();
-            assert_eq!(
-                ours.ranges.len(),
-                theirs.len(),
-                "groups' ranges on {state}"
-            );
+            assert_eq!(ours.ranges.len(), theirs.len(), "groups' ranges on {state}");
             for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
                 assert_eq!(
                     a.bytes, b.bytes,
