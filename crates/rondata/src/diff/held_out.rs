@@ -1714,12 +1714,34 @@ mod tests {
         let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
         let mut stream = crate::input::Stream::pump(&rec);
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let log = crate::testenv::experiment(&map, "rontrace.log").expect("log");
+        let trace = crate::trace::Trace::read(&log).expect("reads").expect("parses");
         let names = crate::diff::checksum_lines::packets::STATE_LINES;
         for state in lo..=hi {
             while built.sim.frame < state {
                 stream.apply(built.sim.frame as i32, &mut built);
                 crate::diff::harness::debug_watch(&built, built.sim.frame);
+                let f = built.sim.frame;
+                let watch = f >= lo - 2;
+                if watch {
+                    eprintln!("P4564 word entering {f}: ours {:08x} theirs {:?}", built.sim.rng.seed, trace.frame_draws(f).first().map(|d| format!("{:08x}", d.seed)));
+                    built.sim.trace.trace_phases = true;
+                    built.sim.trace.phase_marks.clear();
+                }
+                let seed0 = built.sim.rng.seed;
                 built.sim.command().tick();
+                if watch {
+                    built.sim.trace.trace_phases = false;
+                    let _ = seed0;
+                    let ours = crate::diff::report::mark_sites(&built.sim.trace.phase_marks, built.sim.rng.seed).unwrap_or_default();
+                    let theirs = trace.labels(f);
+                    eprintln!("P4564 draws {f}: ours {} theirs {}", ours.len(), theirs.len());
+                    for k in 0..ours.len().max(theirs.len()) {
+                        let a = ours.get(k).map(String::as_str).unwrap_or("-");
+                        let b = theirs.get(k).map(String::as_str).unwrap_or("-");
+                        eprintln!("P4564   {f} {k:3} {} {a:50} | {b}", if a == b { " " } else { "*" });
+                    }
+                }
             }
             let Some(set) = record.first_of(state - 1).cloned() else {
                 eprintln!("P4564 {state}: no set");
