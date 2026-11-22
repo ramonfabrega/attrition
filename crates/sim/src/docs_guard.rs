@@ -106,7 +106,9 @@ const ITEM_LINES: usize = 8;
 /// read by `tools/handover.py`. 35 since the pass of 2026-11-20, second
 /// (entry 147 §5, §8): the headline's own `Parity:` line, parsed, and the
 /// blank before the opener, which the tranche before had spent on a line.
-const HANDOFF_LINES: usize = 35;
+/// 36 since item 4527 (2026-11-22): the fifth battery's parsed line,
+/// `Parity held out, fifth:`, which entry 150 §3 has the driver write.
+const HANDOFF_LINES: usize = 36;
 
 /// The queue's **non-item mass**, pinned by section at its size on
 /// 2026-09-07 and may only shrink.
