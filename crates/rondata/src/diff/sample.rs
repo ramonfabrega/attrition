@@ -936,8 +936,11 @@ pub(in crate::diff) mod tests {
     /// computer 1 back in computer 2's stored `ally_mask` on 5427; units
     /// whole to 6000, the draws to 6015): 3729 -> 3206, a named fall past
     /// the draw word, the frames not read one by one; the first shot
-    /// still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3206, Some(2929));
+    /// still on 2929. Item 4533 (the capture's spoils skip Knowledge; a
+    /// leader's array doubles from ten): 3206 -> 3215, +9, a named rise
+    /// past the draw word 6015, the frames not read one by one; the first
+    /// shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3215, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
