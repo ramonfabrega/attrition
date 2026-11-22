@@ -202,6 +202,12 @@ mod tests {
             let all = record.ranges(&set).expect("the set's ranges");
             let theirs: Vec<_> = all.iter().filter(|r| r.line == line_no).collect();
             eprintln!("PROBE state {state} ours {} ranges {} theirs {}", line.adler(), line.ranges.len(), theirs.len());
+            for (i, u) in built.sim.units.iter().enumerate().filter(|(_, u)| u.alive() && u.owner == 1) {
+                let name = u.ty.and_then(|t| built.unit_type_names.get(t)).map_or("?", String::as_str);
+                if name.contains("Caravan") || name.contains("Fleet") || name.contains("Merchant") {
+                    eprintln!("PROBE {state} van slot {i} {}/{} TI {} {name} hp {}/{} at ({}, {}) caravan {:?} inside {:?} orders {:?}", u.owner, u.index, u.type_index, u.health, u.max_health, u.pos.x, u.pos.y, u.caravan, u.inside_unit, u.orders.iter().map(|o| format!("{o:?}").chars().take(40).collect::<String>()).collect::<Vec<_>>());
+                }
+            }
             let mut who = 0u8;
             for (k, (a, b)) in line.ranges.iter().zip(&theirs).enumerate() {
                 if a.field == "who..y_internal" {
