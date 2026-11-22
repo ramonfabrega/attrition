@@ -2306,6 +2306,97 @@ mod tests {
         }
     }
 
+    /// **Row 30's Freighter heads its cell once more as it dies into its
+    /// oil platform** (item 4530, `docs/COLLISION.md` §3.2): on 3184
+    /// who=1's Transport Freighter `1/90` (TI 322, sea), carrying the
+    /// Citizen `1/45` (TI 50), reaches the platform it built and dies into
+    /// it. `Object::close@00647160` finds it off the map and calls
+    /// `Object::remove_from_inside@006480f0`, which ends in
+    /// `Object::add_to_world`: the boat heads its own cell, over the
+    /// Freighter `1/121` standing there, and `remove_from_world` takes it
+    /// off again, leaving `1/121`'s `up_who` 1 (units range 4108, record
+    /// 121, ours -1 before). Every units range on 3183 to 3185 agrees.
+    #[test]
+    fn row_30_s_freighter_heads_its_cell_as_it_dies_into_its_platform_on_run1755_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 1) else {
+            eprintln!("skipping: row 30's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1755/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1755's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 30's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        const FREIGHTER_TI: i32 = 322;
+        const CITIZEN_TI: i32 = 50;
+        let find = |sim: &sim::Sim, o: i16| {
+            sim.units
+                .iter()
+                .rposition(|u| u.owner == 1 && u.index == o)
+                .unwrap_or_else(|| panic!("1/{o}"))
+        };
+        for state in [3183, 3184, 3185] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let (boat, other, rider) = (
+                find(&built.sim, 90),
+                find(&built.sim, 121),
+                find(&built.sim, 45),
+            );
+            let sim = &built.sim;
+            assert_eq!(
+                (sim.units[boat].type_index, sim.units[boat].kind.domain),
+                (FREIGHTER_TI, sim::territory::attrition::Domain::Sea),
+                "1/90's TypeIndex and domain"
+            );
+            assert_eq!(sim.units[other].type_index, FREIGHTER_TI, "1/121's TypeIndex");
+            assert_eq!(sim.units[rider].type_index, CITIZEN_TI, "1/45's TypeIndex");
+            if state == 3183 {
+                assert!(sim.units[boat].alive(), "1/90 alive on 3183");
+                assert_eq!(sim.units[rider].inside_unit, Some(boat), "1/45 aboard 1/90");
+                assert_eq!(
+                    (sim.units[boat].pos.cell(), sim.unit_chain_words(boat)),
+                    (sim.units[other].pos.cell(), (121, -1, 0, 1)),
+                    "1/90 under 1/121 on one cell"
+                );
+            } else {
+                assert!(!sim.units[boat].alive(), "1/90 gone on {state}");
+                assert_eq!(
+                    sim.unit_chain_words(other),
+                    (-1, -1, 0, 1),
+                    "1/121's four words on {state}"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_units();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                assert_eq!(
+                    at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                    None,
+                    "units range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                    a.record,
+                    a.field
+                );
+            }
+            assert_eq!(ours.ranges.len(), theirs.len(), "units ranges on {state}");
+        }
+    }
+
     /// **Row 120's MLRS reads `cavarch_o` −2 in the units line** (item
     /// 4443, `docs/RECGAME.md` §10.3): on 5864 the computer's fire-on-the-move
     /// MLRS `1/35` (type 273) steps an `ExploreTo` with an empty search after
