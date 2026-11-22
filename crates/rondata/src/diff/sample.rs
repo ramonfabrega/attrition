@@ -125,6 +125,7 @@ pub fn compare_lobby(a: &Lobby, b: LobbyRef<'_, '_>) -> Vec<String> {
 pub(in crate::diff) mod tests {
     use super::super::*;
     use super::*;
+    use crate::diff::held_out::{Battery, SPENT};
     use crate::testenv::install;
 
     /// The sample, under the install's `external-recgames/` (the one `.rcx`
@@ -726,19 +727,93 @@ pub(in crate::diff) mod tests {
     /// recorded, and the demand's game. The sample is the seventh.
     const PARITY_OTHERS_WHOLE: usize = 6;
 
+    /// Whether the sample is whole: its lowest first parting at or past
+    /// [`SAMPLE_HOOK`]'s frames.
+    fn sample_whole() -> bool {
+        SAMPLE_LINES
+            .iter()
+            .map(|(_, f)| *f)
+            .min()
+            .expect("twelve lines")
+            >= SAMPLE_HOOK.1
+    }
+
+    /// `(whole, of)` held out: each spent battery's rows whole now, by
+    /// `held_out::whole_now` (its `now` column, never its found), of its
+    /// declared rows.
+    fn held_out_count(spent: &[&Battery]) -> (usize, usize) {
+        spent.iter().fold((0, 0), |(w, of), b| {
+            (w + b.whole_now(), of + b.scores.len())
+        })
+    }
+
+    /// `(whole, of)` for the headline over `spent` (DECISIONS 150 §1): the
+    /// six, the sample, and [`held_out_count`].
+    fn parity_count(spent: &[&Battery]) -> (usize, usize) {
+        let (w, of) = held_out_count(spent);
+        (
+            PARITY_OTHERS_WHOLE + usize::from(sample_whole()) + w,
+            PARITY_OTHERS_WHOLE + 1 + of,
+        )
+    }
+
+    /// **The fold counts each spent battery's whole rows, and nothing
+    /// else** (item 4528, DECISIONS 150 §1). Off the pins: the six, the
+    /// sample, and each spent battery's rows whole now, which its own
+    /// pinned line ([`Battery::line`]) states and `line_reads_as_pinned`
+    /// checks against its table. A battery off [`SPENT`] adds nothing, and
+    /// dropping one from the list drops exactly its rows.
+    #[test]
+    fn the_fold_counts_the_spent_batteries_whole_rows() {
+        let base = (
+            PARITY_OTHERS_WHOLE + usize::from(sample_whole()),
+            PARITY_OTHERS_WHOLE + 1,
+        );
+        let pinned: usize = SPENT.iter().map(|b| b.line.0).sum();
+        let rows: usize = SPENT.iter().map(|b| b.scores.len()).sum();
+        assert_eq!(
+            parity_count(SPENT),
+            (base.0 + pinned, base.1 + rows),
+            "the headline folds each spent battery's whole rows"
+        );
+        assert_eq!(parity_count(&[]), base, "no battery spent, none folds");
+        let (last, rest) = SPENT.split_last().expect("a battery spent");
+        let (w, of) = parity_count(SPENT);
+        assert_eq!(
+            parity_count(rest),
+            (w - last.whole_now(), of - last.scores.len()),
+            "{} off the list folds none of its rows",
+            last.label
+        );
+        // Each battery on the list is spent: a row of it parted as found,
+        // which is what a lane reads a parting off (entry 145 §2).
+        for b in SPENT {
+            assert!(
+                b.scores.iter().flatten().any(|p| !p.found.first.is_empty()),
+                "{} is on SPENT with no row that parted as found",
+                b.label
+            );
+        }
+    }
+
     /// The queue's `Parity:` line, off the pins: the games whole of the
     /// declared set, the sample's lowest first parting with its line
     /// ([`SAMPLE_LINES`], of [`SAMPLE_HOOK`]'s frames), and the draw
     /// walk's word beside it ([`SAMPLE_WALKED`]). The word is the walk's
     /// instrument and the first parting is the score: four landings moved
     /// the word 4328 -> 5273 while units stood on 4248, and only the
-    /// prose said so (DECISIONS 148 §5).
+    /// prose said so (DECISIONS 148 §5). Since item 4528 the count folds
+    /// each spent battery's rows whole now ([`SPENT`], DECISIONS 150 §1),
+    /// and the held-out half beside it says how many of the count are
+    /// theirs.
     fn parity_line() -> String {
         let frames = SAMPLE_HOOK.1;
         let (line, first) = SAMPLE_LINES
             .iter()
             .min_by_key(|(_, f)| *f)
             .expect("twelve lines");
+        let (whole, of) = parity_count(SPENT);
+        let (held, held_of) = held_out_count(SPENT);
         let sample = if *first >= frames {
             "the sample whole".to_string()
         } else {
@@ -747,11 +822,7 @@ pub(in crate::diff) mod tests {
                 SAMPLE_WALKED.0
             )
         };
-        format!(
-            "Parity: {} of {} whole \u{b7} {sample}",
-            PARITY_OTHERS_WHOLE + usize::from(*first >= frames),
-            PARITY_OTHERS_WHOLE + 1,
-        )
+        format!("Parity: {whole} of {of} whole \u{b7} held out {held} of {held_of} \u{b7} {sample}")
     }
 
     /// **The handoff's parity line is the pinned sample** (the pass of
