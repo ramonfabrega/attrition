@@ -40497,3 +40497,37 @@ bytes, SHA-256 `de1d2be705480463d46b61efae2eba767add16cb9afecfe9881eb00e7c78411b
 **What it holds**: `diff::sample::tests::the_sample_s_ranges_to_5350_name_each_first_parting`
 (`SAMPLE_RANGES_1771`): each kept line's first parting by range over 0..5350, on the frame its sum parts.
 (every units range on 3410 and 3411); `row_130_s_kremlin_spy_due_bit_is_in_the_leaders_flags_on_run1754_s_ranges` (every leaders range on 4572, 4573, 4582 and 4583).
+
+## run1769 — parity held out, fourth battery, row 55's file to 6000 with the checksum and ranges hooks, units and groups kept (2026-11-21, item 4518, `att-4518`)
+
+`docs/RECGAME.md` §12.1; DECISIONS 148 §4. **What the disk could not answer**: run1762 holds sums only, so the units
+parting on row 55 (state 4275) and the groups parting (5576) named no leaf. The take is run1762's file with the
+scorer's line (`score_recording … ~/ron-golden/run1762/map-18`: `--end-frame 6000 --tracer-def RON_CHECKSUMS
+--tracer-def RON_RANGES --tracer-def RNG_MASK=0x21u`): `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1769 --recording ~/ron-golden/recordings/item4510-row055-6000.rcx
+--end-frame 6000 --allow-early-end --cover cover=1 --log-window 0 31 --detail end:MISC --timeout 3600 --stall-seconds
+120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0x21u`, launched after two quiet minutes
+on every lane (4526's run1772 held lane 1 before it) and waited on with `waitrun.sh` in the background. `df -g ~`
+read 106 GB free before it and 102 after.
+- **The run**: pool lane 1, launched 20:04:11 −05:00, exited 20:11:29: **437.8 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 12345, map 18. The
+  recording's SHA-256 is run1762's (`7b1a73d4…`).
+- **The record**, `~/ron-golden/run1769/map-18/rontrace.ranges`, 1,324,828,356 bytes, SHA-256
+  `90a385e102932234f765c1134081825123ccafb156439d48c2c4808758e7d879`: 6,001 sets on trace frames −1 to 5999,
+  33,756,368 ranges, 784,140,855 bytes, none over (`ranges.py summary`); units and groups.
+- **Scored** (`score_recording … ~/ron-golden/run1769/map-18`, on `43ee59434`): the sums are run1762's; units 5,833,
+  first 4275: **units range 3947, record 142, `myhits..launch_frames` byte 0: `myhits` ours 172, theirs 192** (who=1's
+  Dutch Merchant Fleet `1/142`, TI 318, born on 4275 off the Armed Caravan `1/64`); groups 5,989, first 5576: range
+  191, record 83, `id..march` byte 8, `num` ours 42, theirs 43.
+- **Re-scored by item 4518** (a boat is born through `Unit::update_hits`): units 6,001, whole; groups 5,989, first 5576,
+  as found; eleven lines whole.
+- Filed by `filerun.py run1769 eastindies-dutch-medieval-row055-ranges`: `gamelog_p.txt` →
+  `Logs/gamelog-run1769-eastindies-dutch-medieval-row055-ranges.txt`, `rontrace.log` → `Logs/rontrace-run1769.log`;
+  the record, under the split size, stays in place.
+
+Files in place, `~/ron-golden/run1769/map-18/`: `gamelog_p.txt`, 2,456 bytes, SHA-256
+`bf4fd2c1967558070b2f683eb5ea5ed6041e5b481d74f4e9444d436601a103d3`; `rontrace.log`, 298,728,352 bytes, SHA-256
+`23a4aebe15d26555275701689b623061d5183fcc87d7bcdd6130f0602a211523`.
+
+**What it holds**: `diff::held_out::tests::row_55_s_dutch_merchant_fleet_is_born_with_its_update_hits_on_run1769_s_ranges`
+(every units range on 4274 and 4275).
