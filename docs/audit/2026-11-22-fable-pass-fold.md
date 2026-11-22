@@ -158,4 +158,19 @@ rules items. The pairs of 2026-11-20 were not redrawn or uploaded.
 
 ## The gate
 
-Whole, by `tools/gate_run.sh`.
+Whole, by `tools/gate_run.sh`, once.
+
+- **`gate-pass-1122.log`: `gate exit 0`** on `aeb11b8bf`, the pass's
+  commit, 9 of 9 steps: offline 1.0, guard 0.9, merge pins 1.1, release
+  21.9, clock 0.1. `Clock: green beside load`. Admission 12.4 s over
+  1,537 leases; load 2.4 at its start and 8.1 at its end. `Fixture
+  audit: 201378 requests, 0 missing fixtures`. `Rows: one driver row at
+  most: steer 478d015e (working)`; `Driver: 0 landings since the last
+  pass (backstop 20) · context 285 k`; `Trunk: origin/main is
+  origin/worktree-replan-pdb`. `Builders: 0 reaped`; 114 GB free after
+  it.
+- **The trunk's refusal was made to fire through the script first**:
+  with the local tracking ref of `origin/main` set back to `a5c5f8204`,
+  `gate_run.sh` wrote `gate exit 92` and the `Trunk:` line naming 137
+  commits and the push, and touched no tree. The ref was restored by a
+  fetch.
