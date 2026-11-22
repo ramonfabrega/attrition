@@ -1379,6 +1379,24 @@ mod tests {
                 crate::diff::harness::debug_watch(&built, built.sim.frame);
                 built.sim.command().tick();
             }
+            {
+                let sim = &built.sim;
+                for (b, bl) in sim.buildings.iter().enumerate() {
+                    if bl.owner == 2 && bl.index == 2010 {
+                        let ty = bl.ty.map(|t| sim.tables.build_types[t].ident);
+                        let tgt = bl.target;
+                        eprintln!("P4565 {state} B 2/2010 #{b} {ty:?} pos {:?} alive {} active {} target {tgt:?} recharging {}", bl.pos, bl.alive, bl.active, bl.recharging);
+                    }
+                }
+                for o in [46i16, 49] {
+                    if let Some(u) = sim.unit_by_o(1, o) {
+                        let un = &sim.units[u];
+                        let ti = un.ty.map(|t| sim.tables.unit_types[t].type_index);
+                        let nm = un.ty.map(|t| sim.tables.unit_types[t].tree);
+                        eprintln!("P4565 {state} U 1/{o} TI {ti:?} {nm:?} {:?} pos {:?} alive {}", un.kind.domain, un.pos, un.alive());
+                    }
+                }
+            }
             let Some(set) = record.first_of(state - 1).cloned() else {
                 eprintln!("P4565 {state}: no set");
                 continue;
