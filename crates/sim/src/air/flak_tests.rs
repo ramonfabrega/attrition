@@ -792,14 +792,21 @@ fn a_building_s_hit_records_its_own_object_number() {
 /// (item 1131, `622a3f`): a moving target weighs a quarter, so the
 /// Radar leaves it for a still plane beside it on a frame that is not
 /// its phase. run404's `1/2007` turns from `0/7` to `0/6` on trace
-/// tick 836.
+/// tick 836. Moving is `UnitData::is_moving`, a move at the head of the
+/// orders (item 4565), not a destination held.
 #[test]
 fn an_unordered_building_re_finds_its_target_on_every_call() {
     let mut s = sim();
     let r = radar(&mut s, true);
     let a = unit(&mut s, 0, Pos::new(22900, 16000), striking_bomber());
     let b = unit(&mut s, 0, Pos::new(22900, 17000), striking_bomber());
-    s.units[a].movement.dest = Some(Pos::new(30000, 16000));
+    s.units[a].orders.push_back(crate::orders::new_move_order(
+        1,
+        crate::movement::Angle(0),
+        None,
+        None,
+        None,
+    ));
     s.buildings[r].target = Some(Obj::Unit(a));
     let frame = 16;
     assert_ne!(
