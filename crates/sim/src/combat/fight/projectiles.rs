@@ -445,8 +445,16 @@ impl Sim {
     /// (12848, 14983) against the target's (12792, 14712), a frame before
     /// the arc ours flew would have landed.
     ///
-    /// SEAM: a ground unit's figure height (`guys[0] +0x14`) is read as its
-    /// object's, which this crate carries; an aircraft's is its airframe's.
+    /// **A unit target's height is its first figure's** (item 4537,
+    /// `docs/CHECKSUM.md` §18.5): both the close test and the re-plan read
+    /// `guys[0] +0x14` when the target's vslot `+0x1c` answers 0 (a unit;
+    /// `Window::get_button` in `Unit::vftable`, `Buffer::is_pending_load`
+    /// in `Build::vftable`), and the object's own `+0xc` otherwise. A
+    /// ground figure's `z` is the ground under its point,
+    /// `TerrainOut::find_data_z` ([`Sim::guy_z`]), not the tile's object
+    /// height that `Ammo::init`'s `ez` takes: run1742's Citizen `1/2` (TI
+    /// 50), fleeing `2/35`'s (TI 330) two rounds, re-plans them on 4104 to
+    /// `ez` 36 where its tile reads 34.
     pub(super) fn guided_closes(&mut self, i: usize) -> bool {
         let p = self.combat.projectiles[i];
         let Some(path) = p.spline else {
@@ -462,8 +470,16 @@ impl Sim {
         let pt = path.point(cur).map(Single::to_i32);
         let at = self.pos_of(t);
         let tz = match t {
-            Obj::Unit(u) if self.units[u].kind.domain == Domain::Air => self.units[u].airframe.z,
-            _ => self.world.object_z(at.tile()),
+            Obj::Unit(u) => {
+                let unit = &self.units[u];
+                let body = unit
+                    .guys
+                    .first()
+                    .and_then(|g| g.follow)
+                    .map_or(unit.movement.body, |f| f.body);
+                self.guy_z(u, 0, body.pos, false)
+            }
+            Obj::Building(_) => self.world.object_z(at.tile()),
         };
         let radius = match t {
             Obj::Unit(_) => self.profile(t).target_size,
