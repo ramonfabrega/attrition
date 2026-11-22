@@ -1193,6 +1193,15 @@ mod tests {
                 );
                 let mut n = 0;
                 for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    if li == 1
+                        && (a.record == 2032 || a.record == 2035)
+                        && a.field.starts_with("queue")
+                    {
+                        eprintln!(
+                            "P4563   q range {k} record {} {}: ours {:?} theirs {:?}",
+                            a.record, a.field, a.bytes, b.bytes
+                        );
+                    }
                     if a.bytes != b.bytes && n < 12 {
                         n += 1;
                         eprintln!(

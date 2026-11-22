@@ -1072,6 +1072,26 @@ impl ScriptHost<'_> {
                         self.sim.buildings[b].active && self.building_is(b, producer)
                     })
                 });
+                if std::env::var("RON_PROBE_4563").is_ok()
+                    && (3980..=3987).contains(&self.sim.frame)
+                {
+                    let lap: Vec<_> = self.lap_builds(w, cursor).collect();
+                    let cands: Vec<_> = lap
+                        .iter()
+                        .copied()
+                        .filter(|&o| {
+                            self.sim.building_by_o(w, o).is_some_and(|b| {
+                                self.sim.buildings[b].active && self.building_is(b, producer)
+                            })
+                        })
+                        .collect();
+                    eprintln!(
+                        "P4563 train f{} who={w} num={num} ty={ty} t={t} cursor={cursor} mark={} found={found:?} cands={cands:?} afford={}",
+                        self.sim.frame,
+                        self.sim.roster.marks[w as usize].build,
+                        self.affordable(w, t)
+                    );
+                }
                 let Some(o) = found else { return NO };
                 self.sim.ai.script_env.find_counters[counter::TRAIN_PRODUCER] = i32::from(o);
                 self.sim.building_by_o(w, o).unwrap_or(0)
