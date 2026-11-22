@@ -382,34 +382,36 @@ fn bell<V: AlarmView>(v: &mut V, who: i32, c: i32, rang: &mut bool) {
     }
 }
 
+/// A building's index on a cell's chain in [`SimAlarm`]: this plus its
+/// slot, clear of every unit slot.
+pub const CHAIN_BUILDING: i32 = 1 << 24;
+
 /// This crate's [`AlarmView`]: `who`'s buildings `list`, the stack group the
 /// bell builds, and the world as the crate keeps it. A member and a
-/// city-chain building are building indices, a cell's chain and a building's
-/// garrison unit indices; the original's one object index is told apart by
-/// which method asks. Where the crate models less than the original:
+/// city-chain building are building indices, a building's garrison and
+/// gatherer chain unit indices, and a cell's chain either; the original's
+/// one object index is told apart by which method asks.
+///
+/// **A cell's chain is the whole one** ([`crate::Sim::object_chain`],
+/// `WData::down`'s order, units and buildings; item 4549). A building on
+/// it is tagged [`CHAIN_BUILDING`] `+ b` and answers as a `Build` does on
+/// the PE: vslot `+8` 0, `+0xbc` 1, `+0x1c` 1 (`0041bff0`, `0041e0e0`),
+/// so it enters the bell's building arm, which asks its type's `+0x90`
+/// ([`crate::Sim::is_gather_type`]) and walks its **gatherer chain**,
+/// `+0x70` (`gather_head`) then each member's `+0x92` (`gather_down`)
+/// (`docs/ORDERS.md` §6.1), taking every Citizen on it with no distance
+/// test. The 2017 sample's 6113: computer 2's bell takes `2/11` and
+/// `2/14`, gathering at the Woodcutter's Camp `2/2001` 21 tiles out.
+///
+/// Where the crate models less than the original:
 ///
 /// - SEAM: the scenario's ignore-orders sweep is not modelled (no list, so
 ///   the head's loop never runs), nor the group's armed flag (a group here is
 ///   always armed), the group's refresh slot, the peasant variant, the
 ///   console (no sound) or the error report (the object's slot 0x10 is the
 ///   member being alive and the player's own).
-/// - **A cell's chain is the whole one** ([`crate::Sim::object_chain`],
-///   `WData::down`'s order, units and buildings; item 4549). A building on
-///   it is tagged [`CHAIN_BUILDING`] `+ b` and answers as a `Build` does on
-///   the PE: vslot `+8` 0, `+0xbc` 1, `+0x1c` 1 (`0041bff0`, `0041e0e0`),
-///   so it enters the bell's building arm, which asks its type's `+0x90`
-///   ([`crate::Sim::is_gather_type`]) and walks its **gatherer chain**,
-///   `+0x70` (`gather_head`) then each member's
-///   `+0x92` (`gather_down`) (`docs/ORDERS.md` §6.1), taking
-///   every Citizen on it with no distance test. The 2017 sample's 6113:
-///   computer 2's bell takes `2/11` and `2/14`, gathering at the
-///   Woodcutter's Camp `2/2001` 21 tiles out.
 /// - SEAM: the tribe's Citizen substitution (the type's slot `+0x68`) is not
 ///   modelled: the Citizen is `PEASANTS`.
-/// A building's index on a cell's chain in [`SimAlarm`]: this plus its
-/// slot, clear of every unit slot.
-pub const CHAIN_BUILDING: i32 = 1 << 24;
-
 pub struct SimAlarm<'a> {
     pub sim: &'a mut crate::Sim,
     pub who: crate::world::Player,
