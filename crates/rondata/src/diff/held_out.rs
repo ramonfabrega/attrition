@@ -223,14 +223,6 @@ pub(crate) struct Scripted {
     pub farm_at: sim::Pos,
 }
 
-/// A row's human: scripted, or idle with the reason the rule gave.
-#[cfg(test)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum Human {
-    Scripted(Scripted),
-    Idle(&'static str),
-}
-
 /// The packages a [`Scripted`] human issues, in `RECGAME.md` §9.1's
 /// fields: the move a right-click's (`orders` 1, `form`/`width` −1) but
 /// `queued` 2, a plain click's; the `queue_up` one Citizen; the `build` a
@@ -544,24 +536,24 @@ mod tests {
                 let ty = built.sim.units[u].ty.unwrap_or(0);
                 eprintln!(
                     "row {row}: unit 0/0 {} TI {}",
-                    built.unit_type_names[ty],
-                    built.type_index[built.unit_tree[ty]]
+                    built.unit_type_names[ty], built.type_index[built.unit_tree[ty]]
                 );
             }
             if print {
                 println!("    // row {row}");
                 match &got {
-                    Ok(h) => println!("    Human::Scripted({h:?}),"),
-                    Err(why) => println!("    Human::Idle({why:?}),"),
+                    Ok(h) => println!("    {h:?},"),
+                    Err(why) => println!("    // idle: {why}"),
                 }
                 continue;
             }
-            let got = got.map_or_else(|why| format!("Idle({why:?})"), |h| format!("{h:?}"));
-            let want = match &HELD_OUT_SIXTH_HUMANS[k] {
-                Human::Scripted(h) => format!("{h:?}"),
-                Human::Idle(why) => format!("Idle({why:?})"),
-            };
-            assert_eq!(got, want, "row {row}: the human the rule names");
+            // A row the rule refuses fails here with its reason: it is
+            // recorded idle, and the declaration says so.
+            assert_eq!(
+                got,
+                Ok(HELD_OUT_SIXTH_HUMANS[k]),
+                "row {row}: the human the rule names"
+            );
         }
     }
 
@@ -577,6 +569,78 @@ mod tests {
         };
         let h = script_rule(&built).expect("run53's start serves the rule");
         assert_eq!(scripted_orders(&h), crate::script::script());
+    }
+
+    /// **The sixth's files are minted** (item 4566): opt-in by
+    /// `RON_SIXTH_DRAFTS=<dir>`, where `row<RRR>.rcx` is the client's idle
+    /// recording of the row (`client --record --headless --page-of
+    /// <capture> --seat <tribe> --team <a>=<t> --team <b>=<t> --frame 1`):
+    /// its header, donor and frame-0 package are the client's. The start
+    /// built from that header must give [`script_rule`] the declared
+    /// human; the packages are then minted again with
+    /// [`scripted_orders`], closing on [`SIXTH_FRAMES`], and written to
+    /// `RON_SIXTH_OUT/item4566-row<RRR>-12000.rcx`, never over a file.
+    #[test]
+    fn the_sixth_s_files_are_minted() {
+        let (Some(drafts), Some(out)) = (
+            std::env::var_os("RON_SIXTH_DRAFTS"),
+            std::env::var_os("RON_SIXTH_OUT"),
+        ) else {
+            eprintln!("skipping: RON_SIXTH_DRAFTS and RON_SIXTH_OUT name no directories");
+            return;
+        };
+        let inst = crate::testenv::install().expect("an install");
+        let loaded = crate::load::load(&inst).unwrap();
+        for (k, held) in HELD_OUT_SIXTH.iter().enumerate() {
+            let draft = std::path::Path::new(&drafts).join(format!("row{:03}.rcx", held.row));
+            let mut rec = crate::recgame::read(&draft.to_string_lossy()).expect("the draft");
+            let built = crate::checksum::playback::recording_start(&loaded, &rec);
+            let h = HELD_OUT_SIXTH_HUMANS[k];
+            assert_eq!(
+                script_rule(&built),
+                Ok(h),
+                "row {}: the file's start",
+                held.row
+            );
+            let leader =
+                crate::commands::decode(&rec.packages[0].data).expect("frame 0")[0].clone();
+            rec.packages =
+                crate::recgame::minted_packages(leader, &scripted_orders(&h), SIXTH_FRAMES)
+                    .expect("the script mints");
+            let path = std::path::Path::new(&out)
+                .join(format!("item4566-row{:03}-{SIXTH_FRAMES}.rcx", held.row));
+            let mut f = std::fs::File::create_new(&path).expect("an unused path");
+            std::io::Write::write_all(&mut f, &crate::recgame::write_gz(&rec)).unwrap();
+            eprintln!("wrote {}", path.display());
+        }
+    }
+
+    /// **The sixth's files carry the declared seats, team and orders**
+    /// (item 4566): each file's active slots are the declared rows', and
+    /// its packages are the frame-0 order, [`scripted_orders`] of the
+    /// row's human, and the closing package on [`SIXTH_FRAMES`].
+    #[test]
+    fn the_sixth_s_files_carry_the_declared_seats_team_and_orders() {
+        files_carry_the_declared_seats_and_team(&SIXTH);
+        for (k, held) in HELD_OUT_SIXTH.iter().enumerate() {
+            let (Some(rcx), _) = paths(&SIXTH, k) else {
+                continue;
+            };
+            let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("the file");
+            let h = HELD_OUT_SIXTH_HUMANS[k];
+            let orders: Vec<_> = rec.packages[1..rec.packages.len() - 1]
+                .iter()
+                .map(|p| (p.frame, p.play, crate::commands::decode(&p.data).unwrap()))
+                .collect();
+            assert_eq!(orders, scripted_orders(&h), "row {}: the orders", held.row);
+            let last = rec.packages.last().unwrap();
+            assert_eq!(
+                (last.frame, last.data.len()),
+                (SIXTH_FRAMES, 0),
+                "row {}: the closing package",
+                held.row
+            );
+        }
     }
 
     /// `rows` of `lobbies_on_disk`, each with `seats[k]` added on the page,
@@ -721,7 +785,7 @@ mod tests {
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
         let rcx = crate::testenv::experiment(
             &home.join("ron-golden/recordings"),
-            &format!("item{}-row{:03}-6000.rcx", b.item, b.table[k].row),
+            &format!("item{}-row{:03}-{}.rcx", b.item, b.table[k].row, b.frames),
         );
         let run = home.join(format!("ron-golden/run{}", b.run + k));
         let map = std::fs::read_dir(&run)
@@ -774,6 +838,19 @@ mod tests {
     #[test]
     fn the_fifth_held_out_games_score_as_pinned() {
         games_score_as_pinned(&FIFTH);
+    }
+
+    /// `HELD_OUT_SIXTH[k]` played as `run1788 + k` (item 4566), held as
+    /// the first five are, on every state to 12,000.
+    #[test]
+    fn the_sixth_held_out_games_score_as_pinned() {
+        games_score_as_pinned(&SIXTH);
+    }
+
+    /// The sixth battery's line, from its table alone (item 4566).
+    #[test]
+    fn the_sixth_held_out_line_reads_as_pinned() {
+        line_reads_as_pinned(&SIXTH);
     }
 
     /// **A battery a lane has read a parting off is on [`SPENT`]** (the
@@ -1726,13 +1803,17 @@ mod tests {
     /// game declared before it was written.
     #[test]
     fn the_fifth_s_files_carry_the_declared_seats_and_team() {
+        files_carry_the_declared_seats_and_team(&FIFTH);
+    }
+
+    fn files_carry_the_declared_seats_and_team(b: &Battery) {
         let field = |row: &str, key: &str| -> i64 {
             row.split("; ")
                 .find_map(|kv| kv.strip_prefix(key)?.strip_prefix(' ')?.parse().ok())
                 .unwrap_or_else(|| panic!("{key} in {row}"))
         };
-        for (k, held) in HELD_OUT_FIFTH.iter().enumerate() {
-            let (Some(rcx), _) = paths(&FIFTH, k) else {
+        for (k, held) in b.table.iter().enumerate() {
+            let (Some(rcx), _) = paths(b, k) else {
                 eprintln!("skipping: row {} has no file", held.row);
                 continue;
             };
@@ -7284,6 +7365,9 @@ pub(crate) struct Battery {
     /// The pins' name, for a failure's message.
     pub scores_name: &'static str,
     pub line: (usize, usize),
+    /// The recordings' closing frame (`item<N>-row<RRR>-<frames>.rcx`):
+    /// 6,000 for the first five, [`SIXTH_FRAMES`] for the sixth.
+    pub frames: i32,
 }
 
 /// **A held-out row whole now**: its `now` column ([`FirstScore::moved`]
@@ -7320,6 +7404,7 @@ pub(crate) const FIRST: Battery = Battery {
     scores: &SCORES,
     scores_name: "SCORES",
     line: HELD_OUT_LINE,
+    frames: 6000,
 };
 
 /// The second battery (item 4462).
@@ -7332,6 +7417,7 @@ pub(crate) const SECOND: Battery = Battery {
     scores: &SCORES_SECOND,
     scores_name: "SCORES_SECOND",
     line: HELD_OUT_SECOND_LINE,
+    frames: 6000,
 };
 
 /// **The third battery's scores**, `HELD_OUT_THIRD[k]` played as
@@ -7534,6 +7620,7 @@ pub(crate) const THIRD: Battery = Battery {
     scores: &SCORES_THIRD,
     scores_name: "SCORES_THIRD",
     line: HELD_OUT_THIRD_LINE,
+    frames: 6000,
 };
 
 /// **The fourth battery's scores**, `HELD_OUT_FOURTH[k]` played as
@@ -7719,6 +7806,7 @@ pub(crate) const FOURTH: Battery = Battery {
     scores: &SCORES_FOURTH,
     scores_name: "SCORES_FOURTH",
     line: HELD_OUT_FOURTH_LINE,
+    frames: 6000,
 };
 
 /// **The fifth battery's scores**, `HELD_OUT_FIFTH[k]` played as
@@ -8145,6 +8233,7 @@ pub(crate) const FIFTH: Battery = Battery {
     scores: &SCORES_FIFTH,
     scores_name: "SCORES_FIFTH",
     line: HELD_OUT_FIFTH_LINE,
+    frames: 6000,
 };
 
 /// **The spent batteries, folded into the headline** (DECISIONS 150 §1).
@@ -8260,74 +8349,101 @@ pub(crate) const HELD_OUT_SIXTH: [HeldOut; 8] = [
 
 /// **The sixth's humans, as declared** (item 4566, before any file): each
 /// row's [`Scripted`] human as [`script_rule`] reads it off the row's start
-/// built from the page's block. No row is idle: every start has a unit `0`
+/// built from the page's block. No row is idle (a row the rule refused
+/// would be recorded idle, and this table would say so): every start has a unit `0`
 /// with a heading in its own region, a building `2000`, the Citizen and
 /// the Farm available and affordable, and a clear Farm site within
 /// [`FARM_REACH`] tiles of the capital.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SIXTH_HUMANS: [Human; 8] = [
+pub(crate) const HELD_OUT_SIXTH_HUMANS: [Scripted; 8] = [
     // row 13
-    Human::Scripted(Scripted {
+    Scripted {
         scout: 0,
         scout_to: sim::Pos { x: 37176, y: 35736 },
         capital: 2000,
         builder: 5,
         farm_at: sim::Pos { x: 38112, y: 34464 },
-    }),
+    },
     // row 33
-    Human::Scripted(Scripted {
+    Scripted {
         scout: 0,
         scout_to: sim::Pos { x: 8184, y: 31128 },
         capital: 2000,
         builder: 13,
         farm_at: sim::Pos { x: 5280, y: 30048 },
-    }),
+    },
     // row 53
-    Human::Scripted(Scripted {
+    Scripted {
         scout: 0,
         scout_to: sim::Pos { x: 22008, y: 41880 },
         capital: 2000,
         builder: 3,
         farm_at: sim::Pos { x: 18912, y: 39840 },
-    }),
+    },
     // row 73
-    Human::Scripted(Scripted {
+    Scripted {
         scout: 0,
         scout_to: sim::Pos { x: 10488, y: 30360 },
         capital: 2000,
         builder: 10,
         farm_at: sim::Pos { x: 6240, y: 29088 },
-    }),
+    },
     // row 93
-    Human::Scripted(Scripted {
+    Scripted {
         scout: 0,
         scout_to: sim::Pos { x: 43320, y: 41112 },
         capital: 2000,
         builder: 10,
         farm_at: sim::Pos { x: 42912, y: 41568 },
-    }),
+    },
     // row 113
-    Human::Scripted(Scripted {
+    Scripted {
         scout: 0,
         scout_to: sim::Pos { x: 6648, y: 29592 },
         capital: 2000,
         builder: 11,
         farm_at: sim::Pos { x: 3168, y: 29856 },
-    }),
+    },
     // row 133
-    Human::Scripted(Scripted {
+    Scripted {
         scout: 0,
         scout_to: sim::Pos { x: 34872, y: 37272 },
         capital: 2000,
         builder: 8,
         farm_at: sim::Pos { x: 37728, y: 34464 },
-    }),
+    },
     // row 153
-    Human::Scripted(Scripted {
+    Scripted {
         scout: 0,
         scout_to: sim::Pos { x: 5880, y: 31896 },
         capital: 2000,
         builder: 4,
         farm_at: sim::Pos { x: 2208, y: 30624 },
-    }),
+    },
 ];
+
+/// **The sixth battery's scores**, `HELD_OUT_SIXTH[k]` played as
+/// `run1788 + k` (item 4566): `None` until the original has played it. The
+/// found column is pinned once and never re-pinned; it is the estimate
+/// (DECISIONS 151 §6, 152 §4).
+#[cfg(test)]
+pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] =
+    [None, None, None, None, None, None, None, None];
+
+/// The sixth battery's line: games whole of the eight, and games taken.
+#[cfg(test)]
+pub(crate) const HELD_OUT_SIXTH_LINE: (usize, usize) = (0, 0);
+
+/// The sixth battery (item 4566): three seats, a team and a scripted human
+/// a row, recorded to [`SIXTH_FRAMES`].
+#[cfg(test)]
+pub(crate) const SIXTH: Battery = Battery {
+    label: "Parity held out, sixth",
+    item: 4566,
+    run: 1788,
+    table: &HELD_OUT_SIXTH,
+    scores: &SCORES_SIXTH,
+    scores_name: "SCORES_SIXTH",
+    line: HELD_OUT_SIXTH_LINE,
+    frames: SIXTH_FRAMES,
+};
