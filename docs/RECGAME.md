@@ -1493,7 +1493,7 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 |---|---|---|---|---|---|---|
 | 3 | run1773 | Great Sahara, difficulty 3 | human + added | 6,001 | 1 | units, builds, ammo 3857 |
 | 23 | run1774 | Atlantic Sea Power | the computers | 6,001 | 10 | **leaders 0**, units 5695 |
-| 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~ammo 3192, units 3196~~ leaders, cities 3223 (below) |
+| 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~ammo 3192~~ leaders 3223 |
 | 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, ended on 4222 | 1 | leaders 1582, units 1789 |
 | 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | ~~leaders 1956~~ (CARAVAN §2), ~~units 2811~~ (SUPPLY, item 4554), builds 3041 |
 | 103 | run1778 | East Indies, Modern | the computers | 3,295, ended on 3294 | 1 | ~~world 1750~~ (ROADS §8.3), leaders 1757 |
@@ -1501,9 +1501,8 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 | 143 | run1780 | Great Sahara, difficulty 1 | the computers | 6,001 | **12** | whole |
 
 The original ended rows 63 and 103 itself, both with the two computers allied against the idle human; our walk
-holds no `game_over` by either end (`over: None`). ~~In row 43 our walk holds `game_over` from 5977, where the
-original plays to 6000.~~ Since item 4547's bays it holds none either (below). `docs/RUNS.md` run1773 to run1780 holds every value, and the pins hold both sides of every
-first parting.
+holds no `game_over` by either end (`over: None`). `docs/RUNS.md` run1773 to run1780 holds every value, and the
+pins hold both sides of every first parting.
 
 *Not established*: no row names a leaf, since each take holds sums only. Row 23 is whole (§12.6). Row 63's leaders on
 1582: the locked team's wonder term (`docs/COSTS.md`, item 4542). Every other row parts first between 1582 and 3857,
@@ -1514,13 +1513,7 @@ left the one shared `find_counters[0x1c]` at 2011, who=1's count (its mark); `fi
 cursor to 2000 and starts at 2001, so who=1's three trainings on 2976 went 2007, 2000, 2007, where ours went 2000
 first. The lap resets now (`ai_host::lap`, `find_unit`'s too; AI §11): twelve lines whole.
 
-**Row 43's Slinger stones (item 4547, run1787).** The leaf was ammo record 0 on 3192: who=2's Slinger `2/30` (TI 82,
-piece 736, `32 + 2 × 0x160`) loosed at `1/14` on `CHAR_ATTACK1` frame 21 from its own square (8472, 23832, 516), where
-theirs left from (8571, 23834, 690) and landed a frame sooner (`total_time` 5 against 6). Piece 736 had no row in
-`launch::BAYS`. `get_position.py`'s sweep of its three keys on run1579's packet is piece 1440's regions to the point,
-so its bays are 1440's centroids (361 of 361 headings each). Ammo 3192 → 3299 and units 3196 → 3299, and our walk's
-`game_over` from 5977 is gone; the row parts first on leaders and cities at 3223. *Not established*: why the stones
-end the game; the leaders leaf on 3223 (record 0, byte 5208, ours `0x0170`, theirs 0) is not read.
+**Row 43 (item 4547, run1787).** who=2's Slinger, piece 736, had no bay; its sweep is 1440's (`launch::BAYS`).
 
 ### 12.4 Row 95: a CEO going in leaves its city (item 4519)
 
