@@ -705,7 +705,11 @@ pub(in crate::diff) mod tests {
     /// items 10910 -> 10724, a named fall past units, groups and guys on
     /// 5461 (the danger read alone gives 12663; the fog test's attack
     /// callers bring it to 10724; no range record reaches it, DANGER §8);
-    /// leaders 5403 the lowest.
+    /// leaders 5403 the lowest. Item 4529 (`Leader::new_rare@006d9e70`
+    /// gates its recipients on `leader_flags & 1`, which the defeated
+    /// computer 1 keeps: run1772's `190 1 new_rares` ours 0x0b, theirs
+    /// 0x0c on 5403): leaders 5403 -> 5427, every other line unchanged;
+    /// leaders 5427 the lowest.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 5461),
         ("builds", 5487),
@@ -714,7 +718,7 @@ pub(in crate::diff) mod tests {
         ("deaths", 6190),
         ("groups", 5461),
         ("guys", 5461),
-        ("leaders", 5403),
+        ("leaders", 5427),
         ("cities", 5801),
         ("items", 10724),
         ("goods", 6395),
@@ -1572,7 +1576,13 @@ pub(in crate::diff) mod tests {
     /// 1's `ever_seen` bit; `WallData::is_seen@00642bd0` and
     /// `WorldData::is_seen@006b55c0` mask by the stored `ally_mask`
     /// (`LeaderData +0x6929`), which the census rewrites without a
-    /// defeated leader. Built (item 4526): world 5401 -> 5462.
+    /// defeated leader. Built (item 4526): world 5401 -> 5462. Item 4529:
+    /// leaders 5403, `190 1 new_rares` count ours 0x0b, theirs 0x0c, and
+    /// `194 1` theirs one entry more, good 31: `Leader::new_rare@006d9e70`
+    /// hands an ally's find to every slot with `leader_flags & 1`, which a
+    /// defeated leader keeps, where ours skipped the defeated. Built:
+    /// leaders 5403 -> 5427, `271 2 who..ally_mask` (`+0x6929`) ours 0x15,
+    /// theirs 0x17.
     const SAMPLE_RANGES_1772: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
@@ -1617,11 +1627,11 @@ pub(in crate::diff) mod tests {
         ("guys", 5461, 1343, 1343, 1, "719 36 guy: cur_time 0|1"),
         (
             "leaders",
-            5403,
+            5427,
             671,
             671,
-            2,
-            "190 1 new_rares: +0x0 of 4|4: 0b000000|0c000000",
+            1,
+            "271 2 who..ally_mask: +0x6921 of 26914|26914: 15|17",
         ),
         (
             "cities",
