@@ -3141,6 +3141,46 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 168,
         },
     ),
+    // **Piece 736, the Slingers in art style 2** (`32 + 2 × 0x160`; item
+    // 4547, `docs/RECGAME.md` §12.3): who=2's Slinger on row 43 of the
+    // fifth held-out battery, piece 32's keys. `get_position.py … --init
+    // 0,<anim>,<time>,3 sweep 736 0 <anim> <time>` on run1579's packet
+    // prints every heading, and `fit_bay.py` finds piece 1440's regions to
+    // the point (534, 319 and 28 lattice points), so the rows are 1440's
+    // centroids, 361 of 361 headings each. Without them row 43's stones
+    // left the figure's own square: `2/30`'s on 3191 at `1/14` from (8472,
+    // 23832, 516) in 6 frames where theirs left from (8571, 23834, 690) in
+    // 5, the ammo line's first parting on 3192.
+    (
+        736,
+        crate::units::anim::ATTACK1,
+        21,
+        Bay {
+            right: 71_298,
+            fwd: 69_592,
+            dz: 174,
+        },
+    ),
+    (
+        736,
+        crate::units::anim::ATTACK2,
+        22,
+        Bay {
+            right: 32_704,
+            fwd: 120_229,
+            dz: 144,
+        },
+    ),
+    (
+        736,
+        crate::units::anim::ATTACK3,
+        16,
+        Bay {
+            right: -47_065,
+            fwd: 114_687,
+            dz: 168,
+        },
+    ),
     // **Piece 1088, the Slingers in the Asian art style** (`32 + 3 ×
     // 0x160`; item 3578, `docs/AI.md` §312): the Koreans' Slinger, whose
     // `UNIT_CONTINENT` is 3. run1221's `RON_STATE_FRAME=4287` packet on
