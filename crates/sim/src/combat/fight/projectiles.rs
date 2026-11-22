@@ -87,39 +87,6 @@ impl Sim {
             p.most_shots,
             garrison_attack,
         );
-        if std::env::var("RON_PROBE_4535").is_ok() && bd.owner == 0 && bd.index == 2000 {
-            let g: Vec<String> = bd
-                .garrison
-                .iter()
-                .map(|&c| {
-                    let u = &self.units[c];
-                    let pu = self.profile(Obj::Unit(c));
-                    format!(
-                        "{}/{} alive{} siege{} masks{:#x} att{} range{}",
-                        u.owner,
-                        u.index,
-                        u.alive(),
-                        u.kind.siege,
-                        pu.obj_masks,
-                        self.attack_of(Obj::Unit(c)),
-                        pu.max_range
-                    )
-                })
-                .collect();
-            eprintln!(
-                "PROBE4535 f{frame} att{} base{} most{} gin{} gsum{} arrows{} recharge{} tgt{:?} near{:?} g[{}]",
-                self.attack_of(me),
-                self.base_garrison_arrows(b),
-                p.most_shots,
-                bd.garrison_attack,
-                self.garrison_attack_sum(b),
-                arrows,
-                p.recharge,
-                bd.target,
-                bd.near,
-                g.join("; ")
-            );
-        }
         if arrows == 0 {
             return;
         }
