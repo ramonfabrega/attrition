@@ -1374,7 +1374,7 @@ of 8, 65 of 96 and 53 %, and the first 0 of 8, 64 of 96 and 27 %.
 | 35 | run1761 | Great Sahara, Classical | 6,001 | **12** | whole |
 | 55 | run1762 | East Indies, Medieval | 6,001 | 10 → **12** | ~~units 4275~~ (item 4518), ~~groups 5576~~ (item 4531) |
 | 75 | run1763 | Great Lakes, Gunpowder | 5,342, ended on 5341 | 11 | ammo 4004 |
-| 95 | run1764 | East Indies, Information | 6,001 | 9 → **12** | ~~leaders 5266~~ (item 4519, §12.4), ~~units 5909~~ (item 4524; item 4536, §12.5), ~~guys 5909~~ (item 4536, §12.5) |
+| 95 | run1764 | East Indies, Information | 6,001 | 9 → **12** | ~~leaders 5266~~ (item 4519, §12.4), ~~units, guys 5909~~ (items 4524, 4536, §12.5) |
 | 115 | run1765 | Southwest Mesa, difficulty 2 | 6,001 | **12** | whole |
 | 135 | run1766 | Great Sahara, difficulty 2 | 6,001 | **12** | whole |
 | 155 | run1767 | Great Sahara, difficulty 2 | 6,001 | **12** | whole |
@@ -1538,38 +1538,11 @@ at range 128 on 5266 (`[3, 7, 130, 1, …]` against `[3, 7, 130, 3, …]`) and r
 *Not established*: the `come_out` arm has no diff yet. It is built from the reading alone, at both of ours' exits. The
 CEO does not leave the freighter before 6000 in ours, and no capture shows a CEO garrisoning a building. Units and guys
 part on 5909: range 2689 (units) and 720 (guys), record 99, guy byte 26, `turret_angles[0]` and
-`des_turret_angles[0]` both ours 45023232, theirs 44564480. run1770 holds both lines' ranges to 6000. ~~That
-parting~~ (named and closed, item 4536, §12.5).
+`des_turret_angles[0]` both ours 45023232, theirs 44564480. run1770 holds both lines' ranges to 6000. Closed, §12.5.
 
 ### 12.5 Row 95: the MLRS bears from its pivot node (item 4536)
 
-**How it was established.** run1770's ranges (§12.4) hold units and guys to 6000. On 5909 one range of each parts:
-**units range 2689 and guys range 720, record 99, the figure's bytes 26 and 42**, the high words of
-`turret_angles[0]` (`+0x20`) and `des_turret_angles[0]` (`+0x30`): ours 687 << 16, theirs 680 << 16. Every other
-range of both lines agrees on 5908 and 5909. The figure's `type` is 273, so the record is who=1's **MLRS `1/99`
-(TI 273, land)**, its one figure piece 223. A probe (one env guard, `6cefc4b61` and `323995ab4`, reverted whole)
-printed its cast order (spell 652) through 5907 and, on 5908, an attack on who=0's object 2000, `in_range` set.
-That tick aims the turret on both sides, from 0 to the bearing; the two bearings differ by 7 of 65,536 turns.
-
-**The direction: ours bore from the wrong point.** `Guy::set_all_pivots@005d8bc0` takes each restricted node's
-bearing from the unit's point **plus the node's own vector** (`docs/COMBAT.md` §54.1). `pivot::NODES` had no row for
-piece 223: item 3975 pinned the MLRS's eight release rows off run883b's packet and kept their pivot entries unread,
-so ours bore from the launcher's own square. The same packet's `(4, 0, 0)` entry (`get_position.py … entries 223`)
-is `(0.46, 33.99, 21.77)` (`0x3eeb851e 0x4207f5c2`), `RData +0x88` 0.69, which `pivot::scale` already carried.
-
-**The build.** `pivot::NODES` gains `(223, 4)` at `(460_000, 33_989_998)` millionths. Nothing else changes: the
-bearing, its rotation and the scale are §54's integer form.
-
-**Diff-backed**: `row_95_s_mlrs_bears_from_its_pivot_node_on_run1770_s_ranges` compares every units and guys range on
-5908 and 5909, byte for byte, and names record 99's figure by `type` 273 and its turret at 0 on 5908 and 680 << 16
-on 5909, and ours' `1/99` by TI 273 and piece 223. **Mutation** (`tools/mutate.py`, the row zeroed): held, exit 101,
-four failed: that test at guys range 720 on 5909 (byte 26 `0xaf` against `0xa8`), row 95's score pin back on units
-and guys 5909, and the fourth battery's line and its handoff line. **Moved**: units and guys 5,909 → 6,001; **row 95
-has twelve lines whole**, and the fourth battery is 8 of 8.
-
-**Oracle-backed**: the original's `get_position(223, 4, 0, 0, d)` under unicorn on run883b's packet (`sweep 223 4 0
-0`), every whole degree `0..=360`, against `pivot::offset_at`: 361 of 361 agree
-(`data::pivot::tests::the_original_s_mlrs_node_agrees_on_every_degree`, the table `RON_NODE_SWEEP_4536` outside git,
-SHA-256 `a1ebddee…`; red on a table with one cell perturbed).
-
-*Not established*: another nation's MLRS piece; only 223 is measured.
+5909's leaf: record 99, who=1's MLRS (TI 273, piece 223), `turret_angles[0]` ours 687 << 16, theirs 680 << 16.
+`pivot::NODES` lacked `(223, 4)` (`docs/COMBAT.md` §54.1), now built off run883b's packet. Diff-backed by
+`row_95_s_mlrs_bears_from_its_pivot_node_on_run1770_s_ranges`; units and guys 5,909 → 6,001, row 95 whole. Story:
+`docs/journal/2026-11-22-item-4536.md`.
