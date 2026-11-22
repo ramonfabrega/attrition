@@ -4092,6 +4092,10 @@ fn the_original_s_release_agrees_at_every_heading_for_piece_736() {
 /// Royal Mameluke (148, the sample). Five are pivot pieces, whose node-0
 /// rounds take [`crate::data::pivot::release_node`]'s row; the other three
 /// take a [`BAYS`] row. Red on the tree before the rows: every key fell back.
+/// **Two keys stay unrowed, named**: the Royal Mameluke's `CHAR_ATTACKWALK`
+/// frames 7 and 21, which no packet on disk serves (none of the 145 stores
+/// the piece, and `init_position` stops on every one for want of the
+/// animation; parked 4559a).
 #[test]
 fn every_key_the_held_out_games_fired_from_the_figure_s_square_has_its_row() {
     let keys: [(i32, i8, u32, i8); 55] = [
@@ -4156,10 +4160,70 @@ fn every_key_the_held_out_games_fired_from_the_figure_s_square_has_its_row() {
         .filter(|&&(p, a, t, n)| {
             bay(p, a, t, n).is_none() && crate::data::pivot::release_node(p, a, t, n).is_none()
         })
+        .copied()
         .collect();
+    let unread = [
+        (148, crate::units::anim::ATTACKWALK, 7, 0),
+        (148, crate::units::anim::ATTACKWALK, 21, 0),
+    ];
+    assert_eq!(missing, unread, "{} keys fall back", missing.len());
+}
+
+/// **Item 4559's plain rows agree with the original at every heading**
+/// (`docs/RECGAME.md` §12.3): `$RON_BAY_SWEEPS_4559` is the directory
+/// holding `sweep-<piece>-0-<anim>-<time>.txt` (`deg i x y z` at every whole
+/// degree 0..=360) for the American Bombard (921), the Native American
+/// Bowmen (1528) and the Machine Gun (73), 35 keys, outside git
+/// (`~/ron-data/lab-experiments/2026-11-22-item-4559/sweeps/`), written by
+/// `init_position` and then `get_position` on run1579's packet. Every file is
+/// read and each key looked up as [`launch_point`] looks it up.
+#[test]
+fn the_original_s_release_agrees_at_every_heading_for_item_4559() {
+    let Ok(dir) = std::env::var("RON_BAY_SWEEPS_4559") else {
+        eprintln!("skipping: set RON_BAY_SWEEPS_4559 (item 4559's oracle, run1579)");
+        return;
+    };
+    let mut names: Vec<_> = std::fs::read_dir(&dir)
+        .expect("RON_BAY_SWEEPS_4559")
+        .map(|e| e.expect("entry").file_name().into_string().expect("utf-8"))
+        .filter(|n| n.starts_with("sweep-") && n.ends_with(".txt"))
+        .collect();
+    names.sort();
+    let (mut files, mut rows, mut off) = (0, 0, Vec::new());
+    for name in names {
+        // `sweep-<piece>-<node>-<anim>-<time>.txt`
+        let f: Vec<&str> = name[..name.len() - ".txt".len()].split('-').collect();
+        let (piece, node, anim, time): (i32, i8, i8, u32) = (
+            f[1].parse().expect("piece"),
+            f[2].parse().expect("node"),
+            f[3].parse().expect("anim"),
+            f[4].parse().expect("time"),
+        );
+        let b = bay(piece, anim, time, node).unwrap_or_else(|| panic!("no bay for {name}"));
+        let table = std::fs::read_to_string(format!("{dir}/{name}")).expect("sweep");
+        for line in table.lines() {
+            let c: Vec<i64> = line
+                .split_whitespace()
+                .take(5)
+                .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                .collect();
+            let (x, y) = b.offset((c[0] + 180) % 360);
+            if (x, y, i64::from(b.dz)) != (c[2], c[3], c[4]) {
+                off.push(format!(
+                    "{name} deg {}: {x},{y},{} against {},{},{}",
+                    c[0], b.dz, c[2], c[3], c[4]
+                ));
+            }
+            rows += 1;
+        }
+        files += 1;
+    }
+    assert_eq!(files, 35, "{dir}");
+    assert_eq!(rows, 35 * 361, "{dir}");
     assert!(
-        missing.is_empty(),
-        "{} keys fall back: {missing:?}",
-        missing.len()
+        off.is_empty(),
+        "{} headings disagree: {:?}",
+        off.len(),
+        &off[..off.len().min(20)]
     );
 }
