@@ -2171,6 +2171,107 @@ mod tests {
         }
     }
 
+    /// **Row 110's rider leaves an empty block where it boarded** (item
+    /// 4485, `docs/COLLISION.md` §3.2): run1742, the ranges take of
+    /// run1735's file. On 3809 who=1's Freighter `1/61` (TI 322) sinks at
+    /// sea with the Citizen `1/11` (TI 50) aboard, and
+    /// `Object::kill_contents@00645550` closes the rider. Its
+    /// `Object::close@00647160` takes the off-map arm:
+    /// `remove_from_inside`'s `add_to_world` paints its disc at its
+    /// boarding point (543, 763), allocating world cell (33, 47)'s block
+    /// (record 2853), and `remove_from_world` clears it. Theirs holds the
+    /// block, empty. This crate allocated nothing: red on the tree before the
+    /// fix at world range 6794 on 3809, record 2853 `block.present`,
+    /// ours 0, theirs 1. Every world range on 3808, 3809 and 3810, byte for
+    /// byte.
+    #[test]
+    fn row_110_s_rider_leaves_an_empty_block_where_it_boarded_on_run1742_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 5) else {
+            eprintln!("skipping: row 110's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1742/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1742's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 110's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        const CITIZEN_TI: i32 = 50;
+        const FREIGHTER_TI: i32 = 322;
+        let find = |sim: &sim::Sim, o: i16| {
+            sim.units
+                .iter()
+                .rposition(|u| u.owner == 1 && u.index == o)
+                .unwrap_or_else(|| panic!("1/{o}"))
+        };
+        for state in [3808i64, 3809, 3810] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let sim = &built.sim;
+            let (rider, boat) = (find(sim, 11), find(sim, 61));
+            assert_eq!(sim.units[rider].type_index, CITIZEN_TI, "1/11's TypeIndex");
+            assert_eq!(sim.units[boat].type_index, FREIGHTER_TI, "1/61's TypeIndex");
+            let at = sim::movement::collide::ucell(sim.units[rider].movement.body.pos);
+            assert_eq!((at.x, at.y), (543, 763), "1/11's boarding point on {state}");
+            assert!(!sim.units[rider].on_map, "1/11 off the map on {state}");
+            if state == 3808 {
+                assert_eq!(sim.units[rider].inside_unit, Some(boat), "1/11 aboard 1/61");
+                assert!(sim.units[rider].alive() && sim.units[boat].alive());
+            } else {
+                assert!(
+                    !sim.units[rider].alive() && !sim.units[boat].alive(),
+                    "both dead on {state}"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = sim.checksum_world();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
+            // The cell by name: record 2853 is world cell (33, 47) of the
+            // 60-wide map, which holds unit cell (543, 763). Theirs
+            // allocates its block on 3809 and leaves its body empty.
+            let k = ours
+                .ranges
+                .iter()
+                .position(|r| r.record == 2853 && r.field == "block.present")
+                .expect("cell 2853's presence");
+            let present: u8 = if state == 3808 { 0 } else { 1 };
+            assert_eq!(
+                theirs[k].bytes,
+                [present, 0, 0, 0],
+                "theirs' block on {state}"
+            );
+            if state != 3808 {
+                assert!(
+                    theirs[k + 2].bytes.iter().all(|&b| b == 0),
+                    "theirs' body empty on {state}"
+                );
+            }
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                assert_eq!(
+                    at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                    None,
+                    "world range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                    a.record,
+                    a.field
+                );
+            }
+            assert_eq!(ours.ranges.len(), theirs.len(), "world ranges on {state}");
+        }
+    }
+
     /// **Row 10's walker steps inside a freed cell and marks nothing**
     /// (item 4504, `docs/COLLISION.md` §2.4): run1739, the ranges take of
     /// run1730's file. who=1's `1/43` (TI 104) stands at unit cell
@@ -4765,17 +4866,24 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4524 (the Kremlin's spy tag is `unit_masks2 &
         // 0x400`; run1754's leaf, row 130): units 5,304 -> 5,532, first on
         // 4492, its sums unmoved. No ranges take of this row.
+        // Moved by item 4485 (a rider closed aboard its sunk boat takes
+        // `Object::close@00647160`'s off-map arm, `remove_from_inside`'s
+        // `add_to_world` painting its boarding disc and `remove_from_world`
+        // clearing it: run1742, state 3809, world range 6794, record 2853
+        // (cell (33, 47)) `block.present`, who=1's Citizen `1/11` (TI 50)
+        // dying aboard the Freighter `1/61` (TI 322), ours 0, theirs 1):
+        // world 5,379 -> 5,601, first 3809 -> 5601.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5532, 5577, 6001, 5826, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 5379,
+                5532, 5577, 6001, 5826, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 5601,
             ],
             first: &[
                 ("units", (4492, Some(710203995), 2575096436)),
                 ("builds", (5577, Some(3250328791), 1226052951)),
                 ("ammo", (4104, Some(1068803573), 2259329699)),
                 ("leaders", (5409, Some(2436184419), 4237637983)),
-                ("world", (3809, Some(2182316411), 2894561759)),
+                ("world", (5601, Some(3728895985), 3060364311)),
             ],
             over: None,
         }),

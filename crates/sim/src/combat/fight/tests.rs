@@ -993,6 +993,72 @@ fn a_unit_killed_on_the_map_takes_its_rider_with_it() {
     assert_eq!(sim.rng, once, "one death draw, the boat's");
 }
 
+/// **A rider closed aboard its sunk boat leaves an empty block where it
+/// boarded** (item 4485, `docs/COLLISION.md` §3.2): the rider's
+/// `Object::close@00647160` takes the off-map arm, whose
+/// `remove_from_inside` paints its disc at its retained point (allocating
+/// the null block there) and whose `remove_from_world` clears it. run1742's
+/// 3809: world cell (33, 47) holds an empty block for the Citizen `1/11`.
+///
+/// Made to fail by dropping [`Sim::close_inside_disc`] from
+/// `kill_contents`: the cell stays without a block.
+#[test]
+fn a_rider_closed_aboard_its_sunk_boat_leaves_an_empty_block_where_it_boarded() {
+    let (mut sim, ty) = at_war();
+    let walker = sim.add_unit_type(crate::UnitType {
+        hits: 100,
+        combat: Profile {
+            uber_size: 1,
+            block_radius: 48,
+            ..Profile::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let boat = put(&mut sim, 0, ty, Pos::new(0x2000, 0x2000));
+    let foe = put(&mut sim, 1, ty, Pos::new(0x2100, 0x2000));
+    // Boarded at (0x1000, 0x1000), unit cell (85, 85), world cell (5, 5):
+    // off the map from its birth, so nothing has painted there.
+    let mut u = crate::Unit::new(0, 2, Pos::new(0x1000, 0x1000), 100);
+    u.ty = Some(walker);
+    u.kind = sim.tables.unit_types[walker].kind;
+    u.on_map = false;
+    u.inside_unit = Some(boat);
+    let rider = sim.add_unit(u);
+    assert_eq!(sim.coll_size(rider), 1);
+    let at = crate::movement::collide::ucell(sim.units[rider].movement.body.pos);
+    let cell = (at.x >> 4, at.y >> 4);
+    assert!(
+        !sim.movement.coll.block_present(cell.0, cell.1),
+        "no block before"
+    );
+    sim.units[boat].health = 1;
+    let taken = sim.take_damage_typed(
+        Obj::Unit(boat),
+        Sixteenths { whole: 5, frac: 0 },
+        Obj::Unit(foe),
+        10,
+        1,
+        false,
+        None,
+    );
+    assert!(matches!(taken, Taken::Died { .. }), "the boat sinks");
+    assert!(!sim.units[rider].alive(), "its rider goes with it");
+    assert!(
+        sim.movement.coll.block_present(cell.0, cell.1),
+        "the boarding cell's block is allocated"
+    );
+    for dx in -1..=1 {
+        for dy in -1..=1 {
+            assert!(
+                !sim.movement.coll.get(at.x + dx, at.y + dy),
+                "({}, {}) clear",
+                at.x + dx,
+                at.y + dy
+            );
+        }
+    }
+}
+
 /// **A hit is answered by the victim's captain, never by the figure that
 /// took it.** `Unit::target_opportunity@005fffc0`'s opening `while`
 /// breaks on `is_captain` and otherwise re-enters on
