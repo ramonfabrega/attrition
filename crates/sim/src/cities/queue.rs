@@ -88,14 +88,6 @@ impl Sim {
     ) -> Result<usize, crate::cities::production::QueueFail> {
         let at = self.queue_home(at);
         let who = self.buildings[at].owner;
-        if std::env::var("RON_PROBE_4563").is_ok() && self.frame == 3985 && who == 1 {
-            eprintln!(
-                "P4563 queue_up_with f{} at o={} ty={ty} escrow={escrow}\n{}",
-                self.frame,
-                self.buildings[at].index,
-                std::backtrace::Backtrace::force_capture()
-            );
-        }
         // `BuildData::can_make`: not active, or in an unassimilated city, makes
         // nothing.
         if !self.buildings[at].active
@@ -787,14 +779,6 @@ impl Sim {
     ) -> Result<usize, crate::cities::production::QueueFail> {
         let at = self.queue_home(at);
         let who = self.buildings[at].owner;
-        if std::env::var("RON_PROBE_4563").is_ok() && self.frame == 3985 && who == 1 {
-            eprintln!(
-                "P4563 queue_up_with f{} at o={} tech={t:?} escrow={escrow}\n{}",
-                self.frame,
-                self.buildings[at].index,
-                std::backtrace::Backtrace::force_capture()
-            );
-        }
         if !self.buildings[at].active
             || !self.buildings[at].alive
             || self.building_unassimilated(at)
