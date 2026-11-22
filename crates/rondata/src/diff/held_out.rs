@@ -1971,45 +1971,6 @@ mod tests {
         }
     }
 
-    #[test]
-    fn probe_4542() {
-        if std::env::var("RON_PROBE_4542").is_err() {
-            return;
-        }
-        let inst = crate::testenv::install().expect("install");
-        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(&FIFTH, 3) else { panic!("rcx") };
-        let ranges = home.join("ron-golden/run1782/map-18/rontrace.ranges");
-        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 63's file");
-        let loaded = crate::load::load(&inst).expect("the install loads");
-        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
-        let mut stream = crate::input::Stream::pump(&rec);
-        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
-        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(1579);
-        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(1583);
-        let ints = |b: &[u8]| -> Vec<i32> {
-            b.chunks(4).map(|c| { let mut a = [0u8; 4]; a[..c.len()].copy_from_slice(c); i32::from_le_bytes(a) }).collect()
-        };
-        for state in lo..=hi {
-            while (built.sim.frame as i64) < state {
-                stream.apply(built.sim.frame as i32, &mut built);
-                built.sim.command().tick();
-            }
-            let set = record.first_of(state as i32 - 1).expect("set").clone();
-            let all = record.ranges(&set).expect("ranges");
-            let ours = built.sim.checksum_leaders();
-            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
-            eprintln!("== state {state}: ours {} ranges, theirs {}", ours.ranges.len(), theirs.len());
-            for (k, a) in ours.ranges.iter().enumerate() {
-                if !a.field.starts_with("make_list") { continue; }
-                let t = theirs.get(k).map(|b| ints(&b.bytes));
-                let o = ints(&a.bytes);
-                let mark = if t.as_ref() == Some(&o) { " " } else { "*" };
-                eprintln!("{mark} k{k} rec{} {} ours {:?} theirs {:?}", a.record, a.field, o, t);
-            }
-        }
-    }
-
     /// **Row 95's MLRS bears from its pivot node** (item 4536,
     /// `docs/RECGAME.md` §12.5): on run1770's ranges, every units and guys
     /// range on 5908 and 5909 byte for byte. On 5908 who=1's MLRS `1/99`
