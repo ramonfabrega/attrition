@@ -1348,6 +1348,89 @@ mod tests {
         }
     }
 
+    /// PROBE 4565 (reverted whole): row 43's every parted range, decoded,
+    /// over `RON_PROBE_4565=lo-hi` states on run1787.
+    #[test]
+    fn probe_4565_row_43_partings() {
+        let Ok(win) = std::env::var("RON_PROBE_4565") else {
+            return;
+        };
+        let (lo, hi) = win.split_once('-').expect("lo-hi");
+        let (lo, hi): (i64, i64) = (lo.parse().unwrap(), hi.parse().unwrap());
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 2) else {
+            panic!("row 43's recording");
+        };
+        let map = home.join("ron-golden/run1787/map-7");
+        let ranges = crate::testenv::experiment(&map, "rontrace.ranges").expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 43's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let names = crate::diff::checksum_lines::packets::STATE_LINES;
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                crate::diff::harness::debug_watch(&built, built.sim.frame);
+                built.sim.command().tick();
+            }
+            let Some(set) = record.first_of(state - 1).cloned() else {
+                eprintln!("P4565 {state}: no set");
+                continue;
+            };
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (li, name) in names.iter().enumerate() {
+                let Some(ours) = lines[li].as_ref() else { continue };
+                let theirs: Vec<_> = all.iter().filter(|r| usize::from(r.line) == li).collect();
+                if ours.ranges.len() != theirs.len() {
+                    eprintln!("P4565 {state} {name}: ranges ours {} theirs {}", ours.ranges.len(), theirs.len());
+                }
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    if a.bytes == b.bytes {
+                        continue;
+                    }
+                    let x = crate::checksum::fields::range_fields(name, a.field, &a.bytes);
+                    let y = crate::checksum::fields::range_fields(name, a.field, &b.bytes);
+                    let d = match (x, y) {
+                        (Some(x), Some(y)) if a.bytes.len() == b.bytes.len() => x
+                            .iter()
+                            .zip(&y)
+                            .filter(|(p, q)| p.1 != q.1)
+                            .map(|(p, q)| format!("{} {}|{}", p.0, p.1, q.1))
+                            .collect::<Vec<_>>()
+                            .join(", "),
+                        _ => a
+                            .bytes
+                            .iter()
+                            .zip(&b.bytes)
+                            .enumerate()
+                            .filter(|(_, (p, q))| p != q)
+                            .take(16)
+                            .map(|(i, (p, q))| format!("+{i} {p:02x}|{q:02x}"))
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                            + &format!(" len {}|{}", a.bytes.len(), b.bytes.len()),
+                    };
+                    // The record's head range, for its who.
+                    let head = ours.ranges[..=k]
+                        .iter()
+                        .rev()
+                        .find(|r| r.record == a.record && r.field.starts_with("who"))
+                        .and_then(|r| crate::checksum::fields::range_fields(name, r.field, &r.bytes))
+                        .map(|f| f.iter().take(3).map(|(n, v)| format!("{n}={v}")).collect::<Vec<_>>().join(" "))
+                        .unwrap_or_default();
+                    eprintln!("P4565 {state} {name} range {k} record {} {} [{head}]: {d}", a.record, a.field);
+                }
+            }
+        }
+    }
+
     /// **The fifth's files carry the declared seats and team** (item
     /// 4527): each `item4527-row<RRR>-6000.rcx` the client recorded, read
     /// back, holds the declaration's three `PLAYER` rows slot for slot —
