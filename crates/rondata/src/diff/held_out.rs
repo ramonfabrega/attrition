@@ -926,8 +926,15 @@ mod tests {
                 .position(|r| r.record == 2 && r.field == "flags")
                 .expect("who=2's flags");
             let reveal = theirs_leaders[k].bytes[1] & 0x08 != 0;
-            assert_eq!(reveal, state != 5401, "theirs' who=2 leader_flags & 0x800 on {state}");
-            assert_eq!(leaders.ranges[k].bytes, theirs_leaders[k].bytes, "who=2's flags");
+            assert_eq!(
+                reveal,
+                state != 5401,
+                "theirs' who=2 leader_flags & 0x800 on {state}"
+            );
+            assert_eq!(
+                leaders.ranges[k].bytes, theirs_leaders[k].bytes,
+                "who=2's flags"
+            );
             if state == 5401 {
                 continue;
             }
@@ -940,7 +947,10 @@ mod tests {
                 .expect("1/2030");
             let bd = &sim.buildings[b];
             assert_eq!(bd.ty, Some(13), "1/2030's type");
-            assert!(bd.active && bd.started && bd.city.is_none(), "1/2030 finished, no city");
+            assert!(
+                bd.active && bd.started && bd.city.is_none(),
+                "1/2030 finished, no city"
+            );
             assert_eq!(bd.ever_seen & 0x4, 0, "who=2 never saw 1/2030");
             let ours = sim.checksum_world();
             let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
@@ -954,7 +964,11 @@ mod tests {
                     .position(|r| r.record == 2 && r.field == "danger")
                     .expect("who=2's danger row");
                 assert_eq!(k, 3631, "the booking's range");
-                assert_eq!(theirs[k].bytes[2328..2332], [0x32, 0, 0, 0], "theirs' (12, 19)");
+                assert_eq!(
+                    theirs[k].bytes[2328..2332],
+                    [0x32, 0, 0, 0],
+                    "theirs' (12, 19)"
+                );
             }
             for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
                 let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);

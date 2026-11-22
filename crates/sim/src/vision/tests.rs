@@ -1159,7 +1159,10 @@ fn a_viewer_s_reveal_sees_a_building_its_side_never_saw() {
     s.ai.lobby.reveal_map = 3;
     assert!(s.build_is_seen(b, 1), "the lobby's reveal");
     s.buildings[b].started = false;
-    assert!(!s.build_is_seen(b, 1), "unstarted and no ally: the first clause refuses");
+    assert!(
+        !s.build_is_seen(b, 1),
+        "unstarted and no ally: the first clause refuses"
+    );
     s.buildings[b].started = true;
     s.ai.lobby.reveal_map = 0;
     let ut = s.add_unit_type(crate::UnitType {
