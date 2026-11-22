@@ -1753,7 +1753,7 @@ impl Sim {
     }
 
     /// **`Object::close@00647160`'s off-map arm, on the occupancy index**
-    /// (item 4485, `docs/COLLISION.md` §2.4). An object that closes while
+    /// (item 4485, `docs/COLLISION.md` §3.2). An object that closes while
     /// it is active (`+0x8 & 1`) and inside something (vslot `+0xbc`,
     /// `UnitData::is_on_map@0046ce30`, answers 0 while `inside_up` holds
     /// its host) takes `Object::remove_from_inside@006480f0`, which splices

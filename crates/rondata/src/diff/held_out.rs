@@ -1871,7 +1871,7 @@ mod tests {
     }
 
     /// **Row 110's rider leaves an empty block where it boarded** (item
-    /// 4485, `docs/COLLISION.md` §2.4): run1742, the ranges take of
+    /// 4485, `docs/COLLISION.md` §3.2): run1742, the ranges take of
     /// run1735's file. On 3809 who=1's Freighter `1/61` (TI 322) sinks at
     /// sea with the Citizen `1/11` (TI 50) aboard, and
     /// `Object::kill_contents@00645550` closes the rider. Its
@@ -4455,17 +4455,24 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Moved by item 4524 (the Kremlin's spy tag is `unit_masks2 &
         // 0x400`; run1754's leaf, row 130): units 5,304 -> 5,532, first on
         // 4492, its sums unmoved. No ranges take of this row.
+        // Moved by item 4485 (a rider closed aboard its sunk boat takes
+        // `Object::close@00647160`'s off-map arm, `remove_from_inside`'s
+        // `add_to_world` painting its boarding disc and `remove_from_world`
+        // clearing it: run1742, state 3809, world range 6794, record 2853
+        // (cell (33, 47)) `block.present`, who=1's Citizen `1/11` (TI 50)
+        // dying aboard the Freighter `1/61` (TI 322), ours 0, theirs 1):
+        // world 5,379 -> 5,601, first 3809 -> 5601.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5532, 5577, 6001, 5826, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 5379,
+                5532, 5577, 6001, 5826, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 5601,
             ],
             first: &[
                 ("units", (4492, Some(710203995), 2575096436)),
                 ("builds", (5577, Some(3250328791), 1226052951)),
                 ("ammo", (4104, Some(1068803573), 2259329699)),
                 ("leaders", (5409, Some(2436184419), 4237637983)),
-                ("world", (3809, Some(2182316411), 2894561759)),
+                ("world", (5601, Some(3728895985), 3060364311)),
             ],
             over: None,
         }),

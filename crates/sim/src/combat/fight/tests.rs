@@ -994,7 +994,7 @@ fn a_unit_killed_on_the_map_takes_its_rider_with_it() {
 }
 
 /// **A rider closed aboard its sunk boat leaves an empty block where it
-/// boarded** (item 4485, `docs/COLLISION.md` §2.4): the rider's
+/// boarded** (item 4485, `docs/COLLISION.md` §3.2): the rider's
 /// `Object::close@00647160` takes the off-map arm, whose
 /// `remove_from_inside` paints its disc at its retained point (allocating
 /// the null block there) and whose `remove_from_world` clears it. run1742's
