@@ -186,7 +186,7 @@ y 5..9 of world cell (40, 54) from 3791 (world range 7413, record 3280,
 `held_out::tests::row_30_s_aa_gun_repaints_its_disc_as_it_boards_its_transport_on_run1755_s_ranges`,
 and the unit test
 `transport::tests::a_walker_that_casts_its_barge_on_its_phase_frame_repaints_its_disc`).
-`Sim::coll_repaint` takes a live unit inside something, which
+`Sim::repaints_off_map` (beside the dead boat) takes a live unit inside something, which
 `Sim::process_unit` reaches on that one frame alone. *Not established*: a
 squad garrisoning a building in its own work takes the same arm by the
 reading; no capture has diffed it.

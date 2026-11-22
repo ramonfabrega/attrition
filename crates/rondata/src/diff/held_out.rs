@@ -2538,7 +2538,10 @@ mod tests {
                 assert_eq!((3790 + 114) % 64, 0, "3790 is 1/114's repaint frame");
             } else {
                 let boat = find(&built.sim, 152);
-                assert_eq!(sim.units[boat].type_index, FREIGHTER_TI, "1/152's TypeIndex");
+                assert_eq!(
+                    sim.units[boat].type_index, FREIGHTER_TI,
+                    "1/152's TypeIndex"
+                );
                 assert_eq!(sim.units[gun].inside_unit, Some(boat), "1/114 aboard 1/152");
             }
             let set = record.first_of(state - 1).expect("the state's set").clone();

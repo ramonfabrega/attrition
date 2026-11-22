@@ -1695,31 +1695,8 @@ impl Sim {
     /// SEAM: `crates/sim` marks one figure a unit (§2), so this repaints guy
     /// 0's disc and no other's; `squad_size` is thereby always satisfied.
     pub(crate) fn coll_repaint(&mut self, u: usize) {
-        // **And a boat that stepped ashore in its own work repaints too**
-        // (item 1223, `docs/GOLDEN.md` §52): `Unit::process@00610bc0` runs
-        // `Guy::process` over the dead boat's figure after the think that
-        // killed it, and `Guy::process@005e0230`'s tail asks nothing of the
-        // unit but its type — so on its sixty-fourth frame, standing, the
-        // figure re-marks the disc `Object::close` has just cleared, and
-        // nothing owns the bits after. [`Sim::process_unit`] reaches here
-        // for a dead unit on that one arm alone.
-        let dead_boat = !self.units[u].alive()
-            && !self.units[u].on_map
-            && self.units[u].kind.domain == crate::territory::attrition::Domain::Sea;
-        // **And so does a unit that went inside in its own work** (item
-        // 4532): `Unit::process` tests `inside_up` before the think, not
-        // after it, so the figures of a unit the think put inside take
-        // `Guy::process` that frame, and its repaint marks the disc
-        // `Object::insert_inside`'s `remove_from_world` has just cleared,
-        // at the figure's retained point. run1755's 3790: who=1's
-        // Anti-Aircraft Gun `1/114` casts its Freighter and boards it on
-        // its phase frame, and theirs holds its whole 5×5 on world cell
-        // (40, 54) from 3791. [`Sim::process_unit`] reaches here for an
-        // inside unit on that one frame alone.
-        let went_inside = self.units[u].alive()
-            && !self.units[u].on_map
-            && (self.units[u].inside.is_some() || self.units[u].inside_unit.is_some());
-        if !(self.units[u].alive() && self.units[u].on_map) && !dead_boat && !went_inside {
+        // Off the map, only [`Sim::repaints_off_map`]'s two arms repaint.
+        if !(self.units[u].alive() && self.units[u].on_map) && !self.repaints_off_map(u) {
             return;
         }
         // `avg_speed` (`GuyData +0x84`) is `Guy::move`'s running quarter of

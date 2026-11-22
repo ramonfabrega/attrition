@@ -257,4 +257,32 @@ impl Sim {
         }
         self.process_movement(i);
     }
+
+    /// **The two units off the map whose figure still takes
+    /// `Guy::process`'s sixty-fourth-frame repaint** ([`Sim::coll_repaint`],
+    /// `docs/COLLISION.md` §2.2). `Unit::process@00610bc0` tests
+    /// `inside_up` (`+0x82`) once, before the `+0x188` think, and runs the
+    /// guy loops after it with no test between; `Guy::process@005e0230`'s
+    /// tail asks nothing of the unit but its type. So a unit the think
+    /// took off the map repaints, on its phase and standing, the disc that
+    /// took it off has just cleared, and nothing owns the bits after.
+    /// [`Sim::process_unit`] reaches the repaint for each on that one frame
+    /// alone.
+    pub(crate) fn repaints_off_map(&self, u: usize) -> bool {
+        let unit = &self.units[u];
+        // A boat that stepped ashore in its own work (item 1223,
+        // `docs/GOLDEN.md` §52): `Object::close` has cleared the disc.
+        let dead_boat = !unit.alive()
+            && !unit.on_map
+            && unit.kind.domain == crate::territory::attrition::Domain::Sea;
+        // A unit that went inside in its own work (item 4532):
+        // `Object::insert_inside`'s `remove_from_world` has cleared the disc,
+        // and the repaint marks it at the figure's retained point. run1755's
+        // 3790: who=1's Anti-Aircraft Gun `1/114` casts its Freighter and
+        // boards it on its phase frame, and theirs holds its whole 5×5 on
+        // world cell (40, 54) from 3791.
+        let went_inside =
+            unit.alive() && !unit.on_map && (unit.inside.is_some() || unit.inside_unit.is_some());
+        dead_boat || went_inside
+    }
 }
