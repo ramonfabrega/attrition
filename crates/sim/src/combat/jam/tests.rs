@@ -47,7 +47,10 @@ fn special(s: &mut Sim, who: crate::Player, index: i16, at: Pos, tree: usize) ->
     // The lineage after the birth: the tree this fixture carries has no
     // node 0x4b for the muster's researched bit to read.
     s.tables.unit_types[ty].tree = Some(tree);
-    assert!(s.units[u].special.is_some(), "the birth takes a specials slot");
+    assert!(
+        s.units[u].special.is_some(),
+        "the birth takes a specials slot"
+    );
     u
 }
 
