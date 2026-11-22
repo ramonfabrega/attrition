@@ -1316,50 +1316,12 @@ pub(in crate::diff) mod tests {
             .ok()
             .and_then(|v| v.parse().ok());
         let rec_game = crate::recgame::read(&rcx).expect("the sample parses");
-        // PROBE 4557
-        let probe = std::env::var("RON_PROBE_4557").ok().map(|v| {
-            let (lo, hi) = v.split_once('-').unwrap();
-            let (lo, hi): (i32, i32) = (lo.parse().unwrap(), hi.parse().unwrap());
-            for pk in &rec_game.packages {
-                if pk.frame >= lo && pk.frame <= hi {
-                    let cmds = crate::commands::decode(&pk.data);
-                    eprintln!("PROBE4557 pkg f{} play {} {:?}", pk.frame, pk.play, cmds);
-                }
-            }
-            hi as i64
-        });
         let (mut built, _) = sample_start(&inst, &rec_game);
         let mut stream = crate::input::Stream::pump(&rec_game);
         let mut seen: Vec<Option<FirstSeen>> = vec![None; 12];
         let mut frames = 0usize;
         while built.sim.frame <= window {
             let f = built.sim.frame;
-            if probe == Some(f) {
-                let at = sim::Pos::new(4433, 30955);
-                for (b, bd) in built.sim.buildings.iter().enumerate() {
-                    let d = (bd.pos.x - at.x).abs() + (bd.pos.y - at.y).abs();
-                    if d < 1500 {
-                        eprintln!(
-                            "PROBE4557 f{f} building {}/{} ty {:?} at ({}, {}) alive {} active {} covers {}",
-                            bd.owner, bd.index, bd.ty, bd.pos.x, bd.pos.y, bd.alive, bd.active,
-                            built.sim.covers_tile(b, at.tile())
-                        );
-                    }
-                }
-                for (u, ud) in built.sim.units.iter().enumerate() {
-                    let d = (ud.pos.x - at.x).abs() + (ud.pos.y - at.y).abs();
-                    if d < 1500 && ud.alive() {
-                        eprintln!("PROBE4557 f{f} unit {}/{} ti {} at ({}, {})", ud.owner, ud.index, ud.type_index, ud.pos.x, ud.pos.y);
-                    }
-                    let _ = u;
-                }
-                for (b, bd) in built.sim.buildings.iter().enumerate() {
-                    if bd.owner == 3 && !bd.gather.is_empty() {
-                        eprintln!("PROBE4557 f{f} gather {}/{} {:?}", bd.owner, bd.index, bd.gather);
-                    }
-                    let _ = b;
-                }
-            }
             if let Some(theirs) = super::super::checksum_frames::record::stream_at(&mut rec, f) {
                 frames += 1;
                 let ours = our_lines(&built.sim, &pieces);
