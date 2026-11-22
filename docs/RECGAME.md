@@ -1495,7 +1495,7 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 | 23 | run1774 | Atlantic Sea Power | the computers | 6,001 | 10 | **leaders 0**, units 5695 |
 | 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~3192~~ leaders 3223 |
 | 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, ended on 4222 | **12** | ~~1582, 1789, 3683, 3986~~ whole |
-| 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | ~~1956, 2811, 3041, 3359~~ units 3645 |
+| 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | ~~1956, 2811, 3041, 3359, 3645~~ cities 3656 |
 | 103 | run1778 | East Indies, Modern | the computers | 3,295, ended on 3294 | 1 | ~~1750, 1757, 1790, 2557 (GROUPS §3.4), ammo 2860~~ world 2983 |
 | 123 | run1779 | Great Lakes, Gunpowder | human + added | 6,001 | 3 | ~~builds, groups 2977~~ whole (below) |
 | 143 | run1780 | Great Sahara, difficulty 1 | the computers | 6,001 | **12** | whole |
@@ -1514,6 +1514,7 @@ first. The lap resets now (`ai_host::lap`, `find_unit`'s too; AI §11): twelve l
 
 **Bays (4547, 4559).** 736 takes 1440's; 4559 rows eight (`launch::BAYS`, `pivot::RELEASES`; 1224 is 169's). 4561:
 an unbuilt Village's close fixes borders.
+4568: a taken city's survivors re-home (`City::close`'s `find_city` walk; row 83's Barracks `2/2036`, 3645).
 
 ### 12.4 Row 95: a CEO going in leaves its city (item 4519)
 
