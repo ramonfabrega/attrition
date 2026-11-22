@@ -1503,7 +1503,12 @@ impl Sim {
                 .map(|p| p as Player)
                 .filter(|&p| {
                     p != who
-                        && !self.leaders.defeated.get(p as usize).copied().unwrap_or(true)
+                        && !self
+                            .leaders
+                            .defeated
+                            .get(p as usize)
+                            .copied()
+                            .unwrap_or(true)
                         && self.is_ally(who, p)
                 })
                 .map(|p| standing(p) + unbuilt(p))

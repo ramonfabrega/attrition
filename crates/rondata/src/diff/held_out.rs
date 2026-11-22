@@ -2018,7 +2018,11 @@ mod tests {
             let all = record.ranges(&set).expect("the set's ranges");
             let ours = built.sim.checksum_leaders();
             let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
-            assert_eq!(ours.ranges.len(), theirs.len(), "leaders' ranges on {state}");
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "leaders' ranges on {state}"
+            );
             for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
                 assert_eq!(
                     a.bytes, b.bytes,
@@ -2052,7 +2056,11 @@ mod tests {
                     })
                     .count()
             };
-            assert_eq!((unbuilt(1), unbuilt(2)), (0, 1), "unbuilt wonders on {state}");
+            assert_eq!(
+                (unbuilt(1), unbuilt(2)),
+                (0, 1),
+                "unbuilt wonders on {state}"
+            );
         }
         // The team term is 1, so the count is 1 and the halved step adds 45
         // to each of the two goods' 300.
