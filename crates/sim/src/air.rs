@@ -1573,7 +1573,13 @@ impl Sim {
     ///     an enemy's stands within 0x900 (find_building, SEARCH_ENEMY);
     ///     (damage / 100 + 1000), doubled when L is_ally the owner,
     ///     / (vector_dist(city building - base) / 768 + 1)
-    ///   and, when L is an enemy, its forts and its wonders (SEAM, below)
+    ///   and, when L is_enemy the owner (L's own view), its forts below
+    ///   L's fort_mark, (damage / 100 + 1000) / (d / 768 + 1), never
+    ///   doubled, and its wonders below L's wonder_mark but the Forbidden
+    ///   City's line, damage / 1000 + 1000, ×10 while the owner's team
+    ///   trails on wonder points, ×100 above difficulty 2 while a non-ally
+    ///   is winning by wonders, / (d / 768 + 1); each under the same
+    ///   AIRDEFENSE skip (item 4562)
     /// a target: each unit of the base's chain whose type is of the air
     ///   domain is cleared (Unit::clear_orders), and when
     ///   vector_dist(target - base) < get_speed(it, 1) * mana(it)
@@ -1582,9 +1588,14 @@ impl Sim {
     ///   add_air_patrol_order(target, the base, action 0)
     /// ```
     ///
+    /// **A wonder out of reach grounds the base** (item 4562, run1784):
+    /// who=2's Airbase `2/2018` on 3358 scores who=1's wonder `1/2026`
+    /// at 217 (10,000 / 46) over who=2's own city; the wonder is past
+    /// the Biplane `2/117`'s reach, so the plane's orders are cleared and
+    /// it takes none, where the city alone had sent it on patrol.
+    ///
     /// SEAM: `leader_flags2 & 8`, the combat AI's scenario switch, which
-    /// no staging sets; the forts' and wonders' loops (`64fa71`..`64fda4`), which this crate
-    /// keeps no list for; the AIRDEFENSE search's radius, read as twelve
+    /// no staging sets; the AIRDEFENSE search's radius, read as twelve
     /// tiles from `find_building`'s tile arithmetic and not run.
     fn computer_sortie(&mut self, b: usize) {
         let owner = self.buildings[b].owner;
