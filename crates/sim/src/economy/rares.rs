@@ -620,6 +620,12 @@ impl Sim {
                     .map(|c| (c.owner, c.pos.cell().x, c.pos.cell().y))
                     .collect::<Vec<_>>()
             );
+            eprintln!(
+                "OIL gems who0={} borders0={:?} rares0={:#x}",
+                self.has_rare(0, crate::economy::GEMS),
+                self.territory.borders.first(),
+                self.economy.ledgers[0].rare
+            );
             let t = &self.tables.tuning;
             for cell in [crate::world::Cell::new(16, 42), crate::world::Cell::new(2, 43)] {
                 let here = cell.centre_tile();
