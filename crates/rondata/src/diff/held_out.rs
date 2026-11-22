@@ -1303,9 +1303,17 @@ mod tests {
             }
             let k = at.expect("1/142 on 4275");
             assert_eq!(ours.ranges[k + 1].field, "type");
-            assert_eq!(&theirs[k + 1].bytes[..], &318i32.to_le_bytes(), "1/142's TypeIndex");
+            assert_eq!(
+                &theirs[k + 1].bytes[..],
+                &318i32.to_le_bytes(),
+                "1/142's TypeIndex"
+            );
             assert_eq!(ours.ranges[k + 3].field, "myhits..launch_frames");
-            assert_eq!(&theirs[k + 3].bytes[..4], &192i32.to_le_bytes(), "theirs' myhits");
+            assert_eq!(
+                &theirs[k + 3].bytes[..4],
+                &192i32.to_le_bytes(),
+                "theirs' myhits"
+            );
             let fleet = built
                 .sim
                 .units
