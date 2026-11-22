@@ -40497,3 +40497,38 @@ bytes, SHA-256 `de1d2be705480463d46b61efae2eba767add16cb9afecfe9881eb00e7c78411b
 **What it holds**: `diff::sample::tests::the_sample_s_ranges_to_5350_name_each_first_parting`
 (`SAMPLE_RANGES_1771`): each kept line's first parting by range over 0..5350, on the frame its sum parts.
 (every units range on 3410 and 3411); `row_130_s_kremlin_spy_due_bit_is_in_the_leaders_flags_on_run1754_s_ranges` (every leaders range on 4572, 4573, 4582 and 4583).
+
+## run1768 — parity held out, fourth battery, row 75's file to the original's end (5341) with the checksum and ranges hooks, ammo kept (2026-11-21, item 4517, `att-4517`)
+
+`docs/RECGAME.md` §12; DECISIONS 148 §4. **What the disk could not answer**: run1763 holds sums only, so the ammo
+parting on row 75 (state 4004) named no leaf. The take is run1739's line with the run directory, the recording, the
+log window and the mask changed, the arguments `score_recording` printed on `43ee59434`: `TMPDIR=<fresh> zsh
+tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1768 --recording
+~/ron-golden/recordings/item4510-row075-6000.rcx --end-frame 6000 --allow-early-end --cover cover=1 --log-window 3998
+4010 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES
+--tracer-def RNG_MASK=0x8u`, waited on with `waitrun.sh` in the background. The lane read held by lane 4526's take at
+19:41 and free at 19:49; `df -g ~` read 105 GB free before the launch and 108 after.
+- **The run**: pool lane 1, launched 19:49:43 −05:00, exited 19:56:09: **385.7 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 5,342 frames, `last_frame` 5341, **ended by the original**, as run1763 did,
+  seed 12345, map 14. Players: tribe 4 (flags 7) and tribe 13 (flags 1). Five settings restored. DLL `6011010c…`,
+  defines `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0x8u`. The recording's SHA-256 is
+  run1763's (`0a216b7d…`).
+- **The record**, `~/ron-golden/run1768/map-14/rontrace.ranges`, 773,352 bytes, SHA-256
+  `ec513f03fe98fe19a86e19d60e775c165ee3c3a01c4e444945adde98efc02552`: lines `['ammo']`, 5,342 sets on trace frames
+  −1 to 5340, 5,211 ranges, 175,437 bytes, none over (`ranges.py summary`). Under a gigabyte, so `filerun.py` left it
+  whole.
+- **Scored** (`score_recording … ~/ron-golden/run1768/map-14`, on `43ee59434`): the sums are run1763's; eleven lines
+  whole; ammo 4,682, first 4004: **ammo range 1, record 0, `rolling..start_roll_angle`, bytes 7, 41, 83 and 84:
+  `launch.x` ours 3922, theirs 3923**, then the aim's angle and `dx`. The round is the game's first, who=1's
+  Crossbowmen `1/163` (TI 172, land, piece 122) loosing `CHAR_ATTACK3` at frame 6 from (3960, 34440).
+- **Re-scored by item 4517** (piece 122's sockets from the original's sweep): ammo 5,342 of 5,342; **twelve lines
+  whole** to the original's end.
+- Filed with `filerun.py run1768 greatlakes-russian-gunpowder-row075-ranges-6000`. The record stays where the take left
+  it.
+
+Archive `gamelog-run1768-greatlakes-russian-gunpowder-row075-ranges-6000.txt`, 2,432 bytes, SHA-256
+`0f4ec37953dcc02ce55528a529d80c84d41a27f64760f772e1af2d9f0a012bb6`; `rontrace-run1768.log`, 198,172,224 bytes,
+SHA-256 `99e35cb417ef06d1dd5ba3f32de971b9fd32334e82914d3bf05e728d6454f107`.
+
+**What it holds**: `diff::held_out::tests::row_75_s_crossbow_bolt_leaves_from_the_original_s_socket_on_run1768_s_ranges`
+(every ammo range on 4003 to 4013).

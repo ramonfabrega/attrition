@@ -408,7 +408,8 @@ fn russian_gunpowder_pair_run1357b_s_closing_window_is_widened_whole() {
     // (3779, 31724)), and its Bombards' (TY 267) height 269 against 373
     // (parked 3688a). No draw parts.
     // Item 4159r5: 153 -> 123, the launch rows of pieces 217 (11): rounds that left the figure's square leave from their bays.
-    pin_eq!(w.rounds.len(), 123, "the rounds that part");
+    // Item 4517: 123 -> 0, piece 122's sockets from the original's sweep: the Crossbowmen's bolts leave from its bays.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **The closing state** (item 3688): run1340's closing block 5342, the

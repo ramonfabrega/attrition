@@ -1375,7 +1375,21 @@ The original refused no file. In row 75, the one game it ended itself, our walk 
 (`over: None`). `docs/RUNS.md` run1760 to run1767 holds every value, and the pins hold both sides of every first
 parting.
 
-*Not established*: no row names a leaf, since each take holds sums only. Row 75 parts first by state (ammo on
-4004, ours 3143699460, theirs 3217755213), then row 55 (units on 4275, ours 1914015254, theirs 708677162), then
-row 95 (leaders on 5266, ours 871988666, theirs 426802620). Each needs a ranges take of its file, keeping the lines
-it parts on (DECISIONS 148 §4), before its leaf can be named.
+*Not established*: ~~no row names a leaf, since each take holds sums only.~~ ~~Row 75 parts first by state (ammo on
+4004, ours 3143699460, theirs 3217755213), then~~ (row 75 named and whole, item 4517, below) row 55 parts first
+(units on 4275, ours 1914015254, theirs 708677162), then row 95 (leaders on 5266, ours 871988666, theirs 426802620).
+Each needs a ranges take of its file, keeping the lines it parts on (DECISIONS 148 §4), before its leaf can be named.
+
+**Row 75's leaf (item 4517, run1768, the ammo take of run1763's file, `RNG_MASK=0x8u`).** State 4004, ammo range 1,
+record 0 (slot 0), `rolling..start_roll_angle`: byte 7, `launch.x`, ours 3922, theirs 3923, and bytes 41, 83 and 84,
+the aim's `angle` and `dx`, which follow from the launch. It is the game's first round: who=1's Crossbowmen `1/163`
+(TI 172, land, piece 122) at (3960, 34440) facing −475,070,464, loosing `CHAR_ATTACK3` at frame 6 at the human's unit.
+Its socket was item 3347's planar row in `launch::MEASURED`, one bolt off run982. The original's own `get_position`
+on run1579's packet, swept over all 361 whole degrees for each of piece 122's three keys, admits one `launch::Bay`
+region a key (133, 688 and 417 lattice points); the rows are their centroids, (11,399, 84,486), (14,863, 64,484) and
+(15,287, 75,439), heights 166, 134 and 161, and they are piece 1178's rows (item 3712, the Asian style) over its scale
+1.04 to the unit, an independent fit agreeing. run982's three bolts still land on their dump's points. Row 75 is
+whole: **ammo 4,682 → 5,342, twelve lines to the original's end**, and the fourth battery's moved column reads 6 of 8.
+`row_75_s_crossbow_bolt_leaves_from_the_original_s_socket_on_run1768_s_ranges` holds every ammo range on 4003 to
+4013, and `data::launch::tests::the_original_s_release_agrees_at_every_heading_for_the_crossbowmen` the sweeps
+(`RON_BAY_SWEEPS_4517`, outside git).

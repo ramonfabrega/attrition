@@ -1539,6 +1539,64 @@ fn row_5_s_slinger_stone_on_4805_leaves_from_theirs_point() {
     );
 }
 
+/// **The Crossbowmen's rows agree with the original at every heading**
+/// (item 4517, `docs/RECGAME.md` §12): `$RON_BAY_SWEEPS_4517` is the
+/// directory holding `sweep-122-0-<anim>-<time>.txt` (`deg r x y z …` at
+/// every whole degree 0..=360) for piece 122's three keys, outside git
+/// (`~/ron-data/lab-experiments/2026-11-21-item-4517/sweeps/`), written by
+/// `init_position` and then `get_position` on run1579's packet. Until then
+/// they were item 3347's planar one-shot rows in [`super::MEASURED`].
+#[test]
+fn the_original_s_release_agrees_at_every_heading_for_the_crossbowmen() {
+    let Ok(dir) = std::env::var("RON_BAY_SWEEPS_4517") else {
+        eprintln!("skipping: set RON_BAY_SWEEPS_4517 (item 4517's oracle, run1579)");
+        return;
+    };
+    let (mut rows, mut off) = (0, Vec::new());
+    for &(_, a, t, b) in BAYS.iter().filter(|r| r.0 == 122) {
+        let path = format!("{dir}/sweep-122-0-{a}-{t}.txt");
+        let table = std::fs::read_to_string(&path).expect("RON_BAY_SWEEPS_4517");
+        for line in table.lines() {
+            let f: Vec<i64> = line
+                .split_whitespace()
+                .take(5)
+                .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                .collect();
+            let (x, y) = b.offset((f[0] + 180) % 360);
+            if (x, y, i64::from(b.dz)) != (f[2], f[3], f[4]) {
+                off.push(format!(
+                    "a{a} t{t} deg {}: {x},{y} against {},{}",
+                    f[0], f[2], f[3]
+                ));
+            }
+            rows += 1;
+        }
+    }
+    assert_eq!(rows, 3 * 361, "{dir}");
+    assert!(off.is_empty(), "{} headings disagree: {off:?}", off.len());
+}
+
+/// **Row 75's crossbow bolt on 4004 leaves where theirs does** (item 4517):
+/// who=1's Crossbowmen `1/163` at (3960, 34440), facing −475,070,464,
+/// `CHAR_ATTACK3` frame 6, from (3923, 34374) in run1768's ammo range; item
+/// 3347's planar row put it at (3922, 34374).
+#[test]
+fn row_75_s_crossbow_bolt_on_4004_leaves_from_theirs_point() {
+    let p = launch_point(
+        Pos::new(3960, 34440),
+        Angle(-475_070_464),
+        122,
+        crate::units::anim::ATTACK3,
+        6,
+        0,
+    );
+    assert_eq!((p.x, p.y), (3923, 34374));
+    assert_eq!(
+        release_dz(122, crate::units::anim::ATTACK3, 6, 0),
+        Some(161)
+    );
+}
+
 /// **Every key the widened suite fired from the figure's square now has its
 /// bay** (item 4159's fifth residue, 4159r4a): a probe on [`launch_point`]'s
 /// fallback over `widened_whole walks_back walks_the_gap dates_the_gap
@@ -3521,7 +3579,8 @@ fn an_unmeasured_piece_launches_from_the_unit() {
 /// keys the event walk never reaches. **49**, the Musketeer's two from
 /// run971 (item 3336), are [`BAYS`] rows since run1344b's 92 rounds
 /// turned them (item 3691). **122**, the
-/// Crossbowman's three, are run982's (item 3347): keys 5, 3 and 6. The
+/// Crossbowman's three, were run982's (item 3347): keys 5, 3 and 6; they
+/// are [`BAYS`] rows since run1579's sweep (item 4517). The
 /// Dragoon's, **139**, left for `pivot::RELEASES` (item 3359), the
 /// Cavalry Archer's, **138**, too (item 3633), and the Horse Archer's,
 /// **842** (item 3338), for `pivot::SAME_AS` (item 3658).
@@ -3532,9 +3591,6 @@ fn the_table_is_every_release_event_a_capture_has_measured() {
     assert_eq!(
         keys,
         vec![
-            (122, crate::units::anim::ATTACK1, 5),
-            (122, crate::units::anim::ATTACK2, 3),
-            (122, crate::units::anim::ATTACK3, 6),
             (472, crate::units::anim::ATTACK1, 12),
             (472, crate::units::anim::ATTACK2, 9),
             (472, crate::units::anim::ATTACK3, 15),
