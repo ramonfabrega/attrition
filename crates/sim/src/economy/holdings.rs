@@ -461,8 +461,11 @@ impl Sim {
     /// the next reassembly falls within eight frames rather than at 512.
     /// `Unit::set_new_location@005f8d20:146`–`150` calls it on a tile
     /// crossing, and `init` and `set_type` from nowhere (`None`) to the
-    /// unit's tile ([`Sim::init_ceo_mask`], item 4502); `go_inside` and
-    /// `come_out` call it too (SEAM: those two arms are not built).
+    /// unit's tile ([`Sim::init_ceo_mask`], item 4502); `go_inside` from the
+    /// unit's tile to nowhere and `come_out` from nowhere to the spot's
+    /// (item 4519: `Sim::board` and `Sim::go_inside`, `land_passenger` and
+    /// `come_out_place`). Row 95's CEO `1/19` boards its own Transport
+    /// Freighter on 5266 and dirties who=1's economy there (run1770).
     pub(crate) fn update_ceo_position(&mut self, u: usize, from: Option<Pos>, to: Option<Pos>) {
         if !self.has_ceo_bit(u) {
             return;

@@ -1183,6 +1183,11 @@ impl Sim {
         // Bounded by the list: a cycle would hang the original.
         for _ in 0..self.units.len() {
             let Some(f) = at else { break };
+            // **A CEO going in leaves its city** (item 4519): `Unit::go_inside
+            // @0061a2e0`'s first statement, for a unit with the CEO bit
+            // (`+0x6c & 0x10000`), is `update_ceo_position(its tile, -1)`.
+            let here = self.units[f].pos.tile();
+            self.update_ceo_position(f, Some(here), None);
             self.coll_remove(f);
             self.chain_remove(f);
             let boarded = self.board_stamp(boat);
@@ -1588,6 +1593,10 @@ impl Sim {
     fn land_passenger(&mut self, r: usize, at: crate::Pos) {
         self.units[r].inside_unit = None;
         self.units[r].pos = at;
+        // **A CEO coming out enters its city** (item 4519): `Unit::come_out
+        // @00617c10:519`–`524`, after `set_new_location`, is
+        // `update_ceo_position(-1, the spot's tile)` for the CEO bit.
+        self.update_ceo_position(r, None, Some(at.tile()));
         // `Movement::at` alone would zero the speed and the turn rate,
         // and a unit put ashore with no speed stands there for ever;
         // `come_out`'s building arm carries the same two across.

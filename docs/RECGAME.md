@@ -1374,7 +1374,7 @@ of 8, 65 of 96 and 53 %, and the first 0 of 8, 64 of 96 and 27 %.
 | 35 | run1761 | Great Sahara, Classical | 6,001 | **12** | whole |
 | 55 | run1762 | East Indies, Medieval | 6,001 | 10 → **12** | ~~units 4275~~ (item 4518), ~~groups 5576~~ (item 4531) |
 | 75 | run1763 | Great Lakes, Gunpowder | 5,342, ended on 5341 | 11 | ammo 4004 |
-| 95 | run1764 | East Indies, Information | 6,001 | 9 | leaders 5266, units 5303, guys 5909 |
+| 95 | run1764 | East Indies, Information | 6,001 | 9 → 10 | ~~leaders 5266~~ (item 4519, §12.4), units 5909 (item 4524), guys 5909 |
 | 115 | run1765 | Southwest Mesa, difficulty 2 | 6,001 | **12** | whole |
 | 135 | run1766 | Great Sahara, difficulty 2 | 6,001 | **12** | whole |
 | 155 | run1767 | Great Sahara, difficulty 2 | 6,001 | **12** | whole |
@@ -1385,7 +1385,7 @@ parting.
 
 *Not established*: ~~no row names a leaf, since each take holds sums only.~~ ~~Row 75 parts first by state (ammo on
 4004, ours 3143699460, theirs 3217755213), then~~ (row 75 named and whole, item 4517, below) ~~row 55 parts first
-(units on 4275, ours 1914015254, theirs 708677162), then~~ (row 55's units named and closed, item 4518, §12.1) row 95 (leaders on 5266, ours 871988666, theirs 426802620).
+(units on 4275, ours 1914015254, theirs 708677162), then~~ (row 55's units named and closed, item 4518, §12.1) ~~row 95 (leaders on 5266, ours 871988666, theirs 426802620)~~ (named and closed, item 4519, §12.4).
 Each needs a ranges take of its file, keeping the lines it parts on (DECISIONS 148 §4), before its leaf can be named.
 
 **Row 75's leaf (item 4517, run1768, the ammo take of run1763's file, `RNG_MASK=0x8u`).** State 4004, ammo range 1,
@@ -1509,3 +1509,33 @@ first parting.
 569079079, theirs 568292647: the frame-0 state of a start whose two computers are one team, the shape of no lobby
 on disk until now. Every other row parts first between 1582 and 3857. Each needs a ranges take of its file, keeping
 the lines it parts on, before its leaf can be named.
+
+### 12.4 Row 95: a CEO going in leaves its city (item 4519)
+
+**How it was established.** run1770 is run1764's file again, with the ranges of units, guys and leaders kept to 6000
+(`RNG_MASK=0xc1u`, the scorer's line). Its sums are run1764's. On 5266 one leaders range parts: **range 128, record 1
+(who=1), `flags` byte 3: ours `0x01`, theirs `0x03`**, so theirs' `leader_flags` holds `0x2000000`, the economy's dirty
+bit (`docs/ECONOMY.md`, the rate's lazy period), and ours' does not. Every other leaders range agrees, and the units
+and guys lines agree on 5265 and 5266. Theirs' trace on that frame has `Unit::do_cast` reaching
+`Objects::init_unit`. In ours on the same frame, who=1's **CEO `1/19` (TI 357)**, which held a cast order (spell 650)
+on 5265, is inside the newborn **Transport Freighter `1/184` (TI 322)**.
+
+**The direction: ours skipped a call.** `Unit::go_inside@0061a2e0` opens, for a unit with the CEO bit (`+0x6c &
+0x10000`), with `Unit::update_ceo_position@005f96b0(its tile, -1)`. That function `find_city_at`s the owner's city on
+each side's tile centre and raises `0x2000000` when the two differ. The CEO stands in its city, and `-1` is no city,
+so the bit rises. `come_out@00617c10:519`–`524` makes the mirror call after `set_new_location`, `(-1, the spot's
+tile)`. Ours built the tile-crossing, `init` and `set_type` arms only.
+
+**The build.** `Sim::board` and `Sim::go_inside` call `update_ceo_position(unit, its tile, None)` for each figure going
+in. `land_passenger` and `come_out_place` call `(None, the spot's tile)` once the figure is placed.
+
+**Diff-backed**: `row_95_s_ceo_dirties_its_economy_as_it_boards_its_freighter_on_run1770_s_ranges` compares every
+leaders range on 5265 and 5266, byte for byte. It names record 1's dirty bit, clear on 5265 and set on 5266, and the CEO
+`1/19` aboard on 5266 alone. **Mutation** (`tools/mutate.py`, `board`'s call removed): held, exit 101, failing that test
+at range 128 on 5266 (`[3, 7, 130, 1, …]` against `[3, 7, 130, 3, …]`) and row 95's score pin. **Moved**: leaders
+5,266 → 6,001, whole; **row 95 has ten lines whole**.
+
+*Not established*: the `come_out` arm has no diff yet. It is built from the reading alone, at both of ours' exits. The
+CEO does not leave the freighter before 6000 in ours, and no capture shows a CEO garrisoning a building. Units and guys
+part on 5909: range 2689 (units) and 720 (guys), record 99, guy byte 26, `turret_angles[0]` and
+`des_turret_angles[0]` both ours 45023232, theirs 44564480. run1770 holds both lines' ranges to 6000.

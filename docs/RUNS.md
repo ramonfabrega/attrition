@@ -40567,6 +40567,38 @@ Files in place, `~/ron-golden/run1769/map-18/`: `gamelog_p.txt`, 2,456 bytes, SH
 (every units range on 4274 and 4275);
 `diff::held_out::tests::row_55_s_army_keeps_the_member_whose_number_a_newborn_took_on_run1769_s_ranges` (every groups
 range on 5575 and 5576).
+## run1770 — parity held out, fourth battery, row 95's file to 6000 with the checksum and ranges hooks, units, guys and leaders kept (2026-11-21, item 4519, `att-4519`)
+
+`docs/RECGAME.md` §12.4; DECISIONS 148 §4. **What the disk could not answer**: run1764 holds sums only, so the leaders
+parting on row 95 (state 5266) and the units and guys parting (5909) named no leaf. The take is run1764's file with the
+scorer's line (`score_recording … ~/ron-golden/run1764/map-18`: `--end-frame 6000 --tracer-def RON_CHECKSUMS
+--tracer-def RON_RANGES --tracer-def RNG_MASK=0xc1u`): `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1770 --recording ~/ron-golden/recordings/item4510-row095-6000.rcx
+--end-frame 6000 --allow-early-end --cover cover=1 --log-window 0 31 --detail end:MISC --timeout 3600 --stall-seconds
+120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0xc1u`. It launched after two quiet
+minutes on every lane: 4527's take held lane 1 for 1,112 s before it. It was waited on with `waitrun.sh` in the
+background. `df -g ~` read 89 GB free before it and 85 after.
+- **The run**: pool lane 1, launched 23:08:21 −05:00, exited 23:15:42: **440.8 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 12345, map 18. The
+  recording's SHA-256 is run1764's (`716411e5…`).
+- **The record**, `~/ron-golden/run1770/map-18/rontrace.ranges`, 1,770,769,756 bytes, SHA-256
+  `9447cdf2bb346a920c288d783845f97a8f73b841fa809cfc42eb9f26d4060331`: 6,001 sets on trace frames −1 to 5999,
+  40,565,671 ranges, 1,121,135,271 bytes, none over (`ranges.py summary`); units, guys and leaders.
+- **Scored** (`score_recording … ~/ron-golden/run1770/map-18`, on `3e2d93318`): the sums are run1764's; leaders 5,266,
+  first 5266: **leaders range 128, record 1, `flags` byte 3: ours `0x01`, theirs `0x03`** (who=1's `0x2000000`, as the
+  CEO `1/19` boards its Transport Freighter `1/184`); units and guys 5,909, first 5909: units range 2689 and guys range
+  720, record 99, guy byte 26, `turret_angles[0]` ours 45023232, theirs 44564480.
+- **Re-scored by item 4519** (a CEO going in asks `update_ceo_position`): leaders 6,001, whole; units and guys 5,909,
+  first 5909, as found; ten lines whole.
+- Filed by `filerun.py run1770 eastindies-russian-information-row095-ranges`: `gamelog_p.txt` →
+  `Logs/gamelog-run1770-eastindies-russian-information-row095-ranges.txt`, 2,451 bytes, SHA-256
+  `86de987bb8dd4c6608b42eb1b309c5b29a7879d0a2eff76cebbf684b2c65b14a`; `rontrace.log` → `Logs/rontrace-run1770.log`,
+  185,021,888 bytes, SHA-256 `666b433f53d1bc68ae4728aeb66d87eab450ca5867376b9b5efae687cdbd0805`; the record, under the
+  split size, stays in place.
+
+**What it holds**: `diff::held_out::tests::row_95_s_ceo_dirties_its_economy_as_it_boards_its_freighter_on_run1770_s_ranges`
+(every leaders range on 5265 and 5266).
+
 ## run1772 — the 2017 sample's playback to 6,400 with the checksum and ranges hooks, every line but walls and items kept (2026-11-21, item 4526, `att-4526`)
 
 `docs/RECGAME.md` §7; DECISIONS 149 §2. **What the disk could not answer**: run1771's record ends on 5349, and the
