@@ -3918,13 +3918,19 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // (94, 87) to (97, 91), ours 0x00, theirs 0x02, who=1's decoy
         // member `1/37` (TI 100) seated 144 east of its captain `1/36`):
         // world 4,423 -> 4,495, first 1662 -> 3791.
+        // Moved by item 4530 (a boat that dies into its oil platform heads
+        // its cell once more, `Object::remove_from_inside@006480f0`'s
+        // `add_to_world` before `Object::close`'s `remove_from_world`:
+        // run1755, state 3184, units range 4108, record 121, who=1's
+        // Freighter `1/121` (TI 322) over `1/90`, `up_who` ours -1,
+        // theirs 1): units 4,114 -> 4,530, first 3184 -> 3813.
         moved: Some(Score {
             states: 4548,
             agreed: [
-                4114, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4495,
+                4530, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4495,
             ],
             first: &[
-                ("units", (3184, Some(2261284178), 566719572)),
+                ("units", (3813, Some(3469061096), 2450171507)),
                 ("world", (3791, Some(1932277774), 1952529533)),
             ],
             over: None,
