@@ -1756,6 +1756,14 @@ impl Sim {
                     if std::env::var("RON_PROBE_4553").is_ok()
                         && (1780..=1790).contains(&self.frame)
                     {
+                        let a = &self.ai.ai[who as usize];
+                        eprintln!(
+                            "T4553 strong {:?} weak {:?} defmod {:#x} tribute {}",
+                            a.strong,
+                            a.weak,
+                            a.defense_mod,
+                            self.is_tribute_period(who, i as crate::Player)
+                        );
                         let cc = &self.cities.cities[c];
                         eprintln!(
                             "T4553 f{} who {who} slot {slot} pass {pass} L {i} k {k} city {c} b {} founder {:?} draw {}",
