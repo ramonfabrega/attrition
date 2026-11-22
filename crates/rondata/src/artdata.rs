@@ -3041,6 +3041,55 @@ pub fn art_files(install: &Install, ext: &str) -> Vec<PathBuf> {
 mod tests {
     use super::*;
 
+    #[test]
+    fn probe_4559_pieces() {
+        if std::env::var("RON_PROBE_4559").is_err() {
+            return;
+        }
+        let Some(install) = crate::testenv::install() else {
+            return;
+        };
+        let units = install.units().unwrap();
+        let graphs: Vec<String> = units
+            .records
+            .iter()
+            .map(|r| r.text("GRAPH").unwrap_or_default().trim().to_string())
+            .collect();
+        let names: Vec<String> = units
+            .records
+            .iter()
+            .map(|r| r.text("NAME").unwrap_or_default().trim().to_string())
+            .collect();
+        let rel = piece_releases(&install, &graphs, &BTreeSet::new());
+        let piv = pivot_restrictions(&install, &graphs);
+        let by_graph = graph_types(&graphs);
+        let art = unit_art(&install, &graphs);
+        for want in [1224, 198, 1528, 231, 73, 921, 1193, 148] {
+            for e in art.iter().filter(|e| e.pieces.contains(&want)) {
+                println!("PROBE4559 piece {want} entry {} model {} scale {:?}", e.name, e.model, e.scale);
+                if let Some(p) = PieceName::parse(&e.name) {
+                    if let Some(tys) = by_graph.get(&p.graph.to_ascii_uppercase()) {
+                        for &ty in tys {
+                            if p.piece(ty) == want {
+                                println!(
+                                    "PROBE4559 piece {want} TI {ty} name {} graph {} pivots {:?}",
+                                    names[(ty - 0x32) as usize],
+                                    graphs[(ty - 0x32) as usize],
+                                    piv.get(&ty)
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+            for (slot, rows) in rel.get(&want).into_iter().flatten() {
+                for r in rows {
+                    println!("PROBE4559 piece {want} slot {slot} release {:?}", r);
+                }
+            }
+        }
+    }
+
     /// **The release frame is `starttime / 67`, floored at 1** (item 542,
     /// `docs/COMBAT.md` §50.1): `GraphicEvents::init_unit_events@008e2520`
     /// at `008e296d`–`008e299f`. Every release a capture had measured
