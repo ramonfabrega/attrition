@@ -1506,8 +1506,7 @@ original plays to 6000. `docs/RUNS.md` run1773 to run1780 holds every value, and
 first parting.
 
 *Not established*: no row names a leaf, since each take holds sums only. Row 23 is whole (§12.6). Row 63's leaders on
-1582: the locked team's wonder term (`docs/COSTS.md`, item 4542). Row 63's units on 1789: the ally arm's `strong[]` (`docs/ARMY.md`
-§12, item 4553). Every other row parts first between 1582 and 3857, and needs a ranges take before its leaf is named.
+1582: the locked team's wonder term (`docs/COSTS.md`, item 4542). Row 63's units on 1789: ARMY §12 (item 4553). Every other row parts first between 1582 and 3857, and needs a ranges take before its leaf is named.
 
 **Row 123 whole (item 4546, run1785).** The leaf was who=1's producer 2000's `queued` on 2977, ours 3, theirs 2. who=2
 left the one shared `find_counters[0x1c]` at 2011, who=1's count (its mark); `find_build@009e2970` resets such a
