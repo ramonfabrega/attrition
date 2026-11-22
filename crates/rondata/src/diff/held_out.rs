@@ -686,6 +686,60 @@ mod tests {
         }
     }
 
+    /// Probe (item 4546, reverted whole): row 123's draws against run1779's
+    /// trace, frame by frame, and its builds and groups ranges around 2977.
+    #[test]
+    fn probe_4546_row_123() {
+        let Ok(spec) = std::env::var("RON_PROBE_4546") else {
+            return;
+        };
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let mut parts = spec.split(',').map(|s| s.parse::<i64>().unwrap());
+        let (lo, hi) = (parts.next().unwrap(), parts.next().unwrap());
+        let (Some(rcx), Some(log)) = paths(&FIFTH, 6) else {
+            return;
+        };
+        let tr = crate::trace::Trace::read(&log).unwrap().unwrap();
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        built.sim.trace.trace_phases = true;
+        let mut first_count = None;
+        let mut first_seq = None;
+        while built.sim.frame <= hi {
+            let f = built.sim.frame as i64;
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.tick();
+            let ours = built.frame_sites.last().map_or(Vec::new(), |(_, v)| v.clone());
+            let theirs = tr.labels(f);
+            if first_count.is_none() && ours.len() != theirs.len() {
+                first_count = Some(f);
+            }
+            if first_seq.is_none() && ours != theirs {
+                first_seq = Some(f);
+            }
+            if f >= lo {
+                eprintln!("P4546 f{f} draws ours {} theirs {}", ours.len(), theirs.len());
+                if ours != theirs {
+                    let n = ours.len().max(theirs.len());
+                    let ds = tr.frame_draws(f);
+                    for i in 0..n {
+                        eprintln!(
+                            "P4546   {i}: ours {:?} theirs {:?} seed {:08x}",
+                            ours.get(i),
+                            theirs.get(i),
+                            ds.get(i).map_or(0, |d| d.seed)
+                        );
+                    }
+                }
+            }
+        }
+        eprintln!("P4546 first count parting {first_count:?}, first sequence parting {first_seq:?}");
+    }
+
     /// **The fifth's files carry the declared seats and team** (item
     /// 4527): each `item4527-row<RRR>-6000.rcx` the client recorded, read
     /// back, holds the declaration's three `PLAYER` rows slot for slot —
