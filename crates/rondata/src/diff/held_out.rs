@@ -641,6 +641,82 @@ mod tests {
         assert_eq!(theirs[128].bytes[3], 0x0f, "theirs' leader_flags byte 3");
     }
 
+    /// **Row 110's losing wonder site closes without the unit-stats bit**
+    /// (item 4540, `docs/RECGAME.md` §11): run1742, the ranges take of
+    /// run1735's file. On 5408 who=2's wonder `2/2030` finishes and
+    /// who=1's site of the same type, unfinished, closes with it.
+    /// `Build::close@00628980`'s wonder arm (`close_wonder`, `leader_flags
+    /// |= 0x4000000`) is gated on `BuildData::wonder >= 0` (`+0x76`), the
+    /// slot only an activation's `Wonders::init_wonder` gives, so the site
+    /// raises the close's wall bit alone. Every leaders range on 5408 to
+    /// 5410, ours against theirs, byte for byte: red on the tree before the
+    /// fix at range 128 on 5409, record 1 `flags`, byte 3 ours `0e`,
+    /// theirs `0a`.
+    #[test]
+    fn row_110_s_losing_wonder_site_closes_without_the_unit_stats_bit_on_run1742_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 5) else {
+            eprintln!("skipping: row 110's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1742/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1742's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 110's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 5408..=5410 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            let ours = built.sim.checksum_leaders();
+            assert_eq!(ours.ranges.len(), theirs.len(), "leaders ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "leaders range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            if state == 5409 {
+                // who=1's `leader_flags`, by name: the economy and wall
+                // bits, not the unit-stats one.
+                assert_eq!(
+                    (ours.ranges[128].record, ours.ranges[128].field),
+                    (1, "flags")
+                );
+                assert_eq!(theirs[128].bytes[3], 0x0a, "theirs' leader_flags byte 3");
+                // The two buildings: who=2's wonder up, who=1's site gone.
+                let sim = &built.sim;
+                let won = sim
+                    .buildings
+                    .iter()
+                    .position(|b| b.owner == 2 && b.index == 2030)
+                    .expect("2/2030");
+                let ty = sim.buildings[won].ty.expect("its type");
+                assert!(sim.is_wonder_building(ty) && sim.buildings[won].active);
+                assert!(
+                    sim.buildings
+                        .iter()
+                        .any(|b| b.owner == 1 && b.ty == Some(ty) && !b.alive && !b.active),
+                    "who=1's unfinished site of the type, closed"
+                );
+            }
+        }
+    }
+
     /// **Row 140's Dutch merchants keep their cached armour for a frame**
     /// (item 4464, `docs/RECGAME.md` §10.3): on 3937 the Dutch seat (who=1)
     /// reaches its first age (`ages` 0 -> 1) inside the objects pass, and

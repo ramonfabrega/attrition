@@ -140,7 +140,15 @@ vtable `+0x160` calls on a unit: `Unit::init` (after the packed bit, before
 Herbal Lore among them** — beside its militia
 arm, and the **wonder** arms of `Build::activate@00623e20:1970` (`TypeIndex
 0x20e..0x21e`, every other building jumping past to `00626f11`) and
-`Build::close@00628980:319`. So a gained tech reaches the fog at the next
+`Build::close@00628980:319` — **the close's only for a wonder that holds
+its slot** (item 4540): the arm, `close_wonder` and the Colossus's
+`calc_pop_cap` with it, is gated on `BuildData::wonder` (`+0x76`) `>= 0`,
+which `Build::init@00629740` writes −1, only the activation's
+`Wonders::init_wonder@0073c860` makes a slot, and `close:369` puts back.
+An unfinished site of the type, closed when a rival finishes it, raises
+the close's wall bit alone: run1742's 5408, who=1's site, theirs'
+`leader_flags` byte 3 `0a` on 5409 where this crate's read `0e`
+(diff-backed, `held_out`'s row 110 test). So a gained tech reaches the fog at the next
 leader pass: run529's 29 rows of `mylos` part on 9783 with the term
 computed live and agree with the cache.
 

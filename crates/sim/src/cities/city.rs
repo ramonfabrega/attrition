@@ -2932,16 +2932,27 @@ impl Sim {
         self.buildings[b].sync_health();
         self.cities.wall_stats_dirty[who as usize] = true;
         // `Build::close@00628980:319`: a wonder's close raises `0x4000000`
-        // beside `Wonders::close_wonder` (`docs/VISION.md` §2).
-        if self.buildings[b]
-            .ty
-            .is_some_and(|t| self.is_wonder_building(t))
-        {
+        // beside `Wonders::close_wonder` (`docs/VISION.md` §2) — **only for
+        // a wonder that holds its slot** (item 4540). The arm is gated on
+        // `BuildData::wonder` (`+0x76`) `>= 0` (`close:315`), which
+        // `Build::init@00629740:53` writes −1 and only `Build::activate`'s
+        // `Wonders::init_wonder` (`activate:1269`) makes a slot; `close:369`
+        // puts −1 back. So an unfinished wonder site's close — the losing
+        // seat's, when another finishes the same wonder — raises nothing:
+        // run1742's 5408, who=1's site closes as who=2's activates, and
+        // theirs' `leader_flags` byte 3 reads `0a` where this read `0e`.
+        // `active` is that slot here, as `forbidden_city_close` reads it.
+        let holds_slot = self.buildings[b].active
+            && self.buildings[b]
+                .ty
+                .is_some_and(|t| self.is_wonder_building(t));
+        if holds_slot {
             self.roster.unit_stats_dirty[who as usize] = true;
         }
         self.forbidden_city_close(b);
-        // `Build::close@00628980:326`–`328`: so does a Colossus closed.
-        if self.buildings[b].ty.is_some_and(|t| self.is_colossus(t)) {
+        // `Build::close@00628980:326`–`328`: so does a Colossus closed, in
+        // the same `wonder >= 0` arm.
+        if holds_slot && self.buildings[b].ty.is_some_and(|t| self.is_colossus(t)) {
             self.recompute_pop_caps();
         }
         self.trace.removed.push(b);
