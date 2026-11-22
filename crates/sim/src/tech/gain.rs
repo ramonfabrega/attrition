@@ -699,6 +699,7 @@ impl Sim {
         // (`docs/VISION.md` §2).
         self.cities.wall_stats_dirty[who as usize] = true;
         self.roster.unit_stats_dirty[who as usize] = true;
+        if std::env::var("RON_PROBE_4540").is_ok() { eprintln!("W {} {} apply_gained", self.frame, who); }
         // No eager `calc_attrition` here: the original recomputes `att` at
         // the head of `calc_unit_stats` on the next fold, so a tech gained
         // on frame f shows from f + 1 (`docs/LEADERS.md` §5.3, fault 3; item
