@@ -2154,6 +2154,56 @@ mod tests {
         }
     }
 
+    /// Probe, item 4509: row 30's world `seen` on 1662, both sides.
+    #[test]
+    fn probe_4509_row_30_seen() {
+        if std::env::var("RON_PROBE_4509").is_err() {
+            return;
+        }
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 1) else { panic!("row 30's file") };
+        let ranges = crate::testenv::experiment(&home.join("ron-golden/run1755/map-18"), "rontrace.ranges")
+            .expect("run1755");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 30's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(1655);
+        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(1663);
+        let cells = [(94usize, 87usize), (95, 88), (96, 89), (97, 90), (97, 91)];
+        for state in lo..=hi {
+            while (built.sim.frame as i64) < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state as i32 - 1).expect("set").clone();
+            let all = record.ranges(&set).expect("ranges");
+            let ours = built.sim.checksum_world();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
+            for name in ["seen", "seen2", "seen3"] {
+                let k = ours.ranges.iter().position(|r| r.field == name).expect("plane");
+                let (a, b) = (&ours.ranges[k].bytes, &theirs[k].bytes);
+                let row: Vec<String> = cells
+                    .iter()
+                    .map(|&(x, y)| format!("{:02x}|{:02x}", a[y * 120 + x], b[y * 120 + x]))
+                    .collect();
+                let nd = a.iter().zip(b.iter()).filter(|(x, y)| x != y).count();
+                eprintln!("PROBE {state} {name} k{k} {row:?} differ {nd}");
+            }
+            for u in built.sim.units.iter().filter(|u| u.alive()) {
+                let (cx, cy) = (u.pos.x / 4, u.pos.y / 4);
+                if (cx - 47).abs() <= 12 && (cy - 44).abs() <= 12 {
+                    eprintln!(
+                        "PROBE {state} unit {}/{} TI {} {:?} pos ({}, {}) cell ({cx}, {cy}) on_map {}",
+                        u.owner, u.index, u.type_index, u.kind.domain, u.pos.x, u.pos.y, u.on_map
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 120's MLRS reads `cavarch_o` −2 in the units line** (item
     /// 4443, `docs/RECGAME.md` §10.3): on 5864 the computer's fire-on-the-move
     /// MLRS `1/35` (type 273) steps an `ExploreTo` with an empty search after
