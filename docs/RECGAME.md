@@ -1513,7 +1513,7 @@ cursor to 2000 and starts at 2001, so who=1's three trainings on 2976 went 2007,
 first. The lap resets now (`ai_host::lap`, `find_unit`'s too; AI §11): twelve lines whole.
 
 **Bays (4547, 4559).** 736 takes 1440's; 4559 rows eight (`launch::BAYS`, `pivot::RELEASES`; 1224 is 169's). 4561:
-an unbuilt Village's close fixes borders. 4565: target weights (COMBAT §12.3).
+an unbuilt Village's close fixes borders. 4565: COMBAT §12.3.
 
 ### 12.4 Row 95: a CEO going in leaves its city (item 4519)
 

@@ -1056,8 +1056,9 @@ pub(in crate::diff) mod tests {
     /// Item 4565 (`compare_target`'s building arms read the target's
     /// `damage` and `is_moving`): 3174 -> 4751, +1577, a named rise past
     /// the draw word 7410, the frames not read one by one; the first shot
-    /// still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4751, Some(2929));
+    /// still on 2929. On the tree merged with 4559 (the eight pieces'
+    /// bays): 4751 -> 3174, -1577, measured; the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3174, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve

@@ -7728,25 +7728,32 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // leaders 3,372 -> 3,374 (first 3302 -> 3374), goods 3,710 ->
         // 4,099; items 4,042 -> 4,036 (first 3670 -> 3660) and goods' first
         // 3710 -> 3665 are named falls past the row's first parting, 3361.
+        // On the tree merged with 4559 (the two items' numbers above are
+        // each against the tree before the other), measured: units 3,442
+        // (first 3442), builds 3,483, ammo 3,492 (first 3444), leaders
+        // 3,489 (first 3459), groups 3,485, cities 3,583, items 4,042
+        // (first 3670), goods 4,100 (first 4054), world 3,444 (first 3443);
+        // the row's first parting 3442; our walk holds `game_over` from
+        // 5784 (`over` 5972 -> 5784), past it.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3299, 3452, 6001, 3471, 3459, 3484, 3442, 3460, 3561, 4034, 4325, 3444,
+                3442, 3483, 6001, 3492, 3459, 3485, 3442, 3489, 3583, 4042, 4100, 3444,
             ],
             first: &[
-                ("units", (3299, Some(14876181), 151977493)),
-                ("builds", (3299, Some(3013899671), 1891857812)),
-                ("ammo", (3299, Some(3106682425), 149042284)),
+                ("units", (3442, Some(3009799658), 2726487947)),
+                ("builds", (3483, Some(2414959173), 3865730099)),
+                ("ammo", (3444, Some(2390306150), 917253843)),
                 ("deaths", (3459, Some(1145338834), 660303772)),
-                ("groups", (3463, Some(190796204), 465851824)),
+                ("groups", (3485, Some(2373860445), 1521040534)),
                 ("guys", (3442, Some(372435881), 153938856)),
-                ("leaders", (3302, Some(3480940479), 291631041)),
-                ("cities", (3561, Some(4170401852), 1465534271)),
-                ("items", (3658, Some(3707258885), 3687073795)),
-                ("goods", (4102, Some(3168892696), 3160241942)),
+                ("leaders", (3459, Some(3840408477), 2734422939)),
+                ("cities", (3583, Some(1806321478), 1256146505)),
+                ("items", (3670, Some(3687073795), 3707258885)),
+                ("goods", (4054, Some(3168892696), 3160241942)),
                 ("world", (3443, Some(2679318386), 2167809738)),
             ],
-            over: Some(5972),
+            over: Some(5784),
         }),
     }),
     // run1776
