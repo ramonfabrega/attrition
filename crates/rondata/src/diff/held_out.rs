@@ -1995,7 +1995,7 @@ mod tests {
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
             }
-            let set = record.first_of(state as i32 - 1).expect("set").clone();
+            let set = record.first_of(state - 1).expect("set").clone();
             let all = record.ranges(&set).expect("ranges");
             let ours = built.sim.checksum_leaders();
             let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
