@@ -1738,9 +1738,13 @@ mod tests {
                         continue;
                     }
                     let x = crate::checksum::fields::range_fields(name, a.field, &a.bytes);
-                    let y = crate::checksum::fields::range_fields(name, a.field, &b.bytes);
+                    let y = if a.bytes.len() == b.bytes.len() {
+                        crate::checksum::fields::range_fields(name, a.field, &b.bytes)
+                    } else {
+                        None
+                    };
                     let d = match (x, y) {
-                        (Some(x), Some(y)) if a.bytes.len() == b.bytes.len() => x
+                        (Some(x), Some(y)) => x
                             .iter()
                             .zip(&y)
                             .filter(|(p, q)| p.1 != q.1)
