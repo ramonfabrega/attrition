@@ -9132,9 +9132,10 @@ Item 1200's nine, on `f937c042`, the same way:
 | a strafer's round rolls | the widening (1530), its unit test |
 
 **What is not established.**
-- The silo's sortie arm, the forts' and wonders' values, the
-  `AIRDEFENSE` search's radius and `STEALTHBOMBER`: no staging reaches
-  them.
+- The silo's sortie arm, ~~the forts' and wonders' values~~ (built,
+  item 4562; the wonders' held by run1784, `docs/RECGAME.md` §12.3, the
+  forts' from the listing alone), the `AIRDEFENSE` search's radius and
+  `STEALTHBOMBER`: no staging reaches them.
 - The spill's land non-siege and land-siege shares against a capture:
   the unit test holds them, and run436's Catapult parted before its first
   spill.

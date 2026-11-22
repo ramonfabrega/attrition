@@ -525,13 +525,15 @@ pub const MAPGEN: Mapgen = Mapgen {
 // Item 4556: `largest` 3,702 -> 3,707 (+5), a named rise: `air.rs`' `walls_inc_time` carries
 // `Wall::inc_time`'s site refresh (three lines) and says so (two); `cities/city.rs`' end-of-frame
 // `refresh_site_hits` is gone.
+// Item 4562: `largest` 3,707 -> 3,756 (+49), a named rise: `air.rs`' `computer_sortie` carries
+// `Object::do_launch`'s forts' and wonders' loops (`64fa71`..`64fda4`), its SEAM gone.
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 11),
     ("test-tails", 0),
     ("sweep-lines", 17_288),
     ("names", 15),
     ("fields", 21),
-    ("largest", 3_707),
+    ("largest", 3_756),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before
