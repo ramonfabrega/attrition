@@ -185,6 +185,24 @@ unit's half-cell at (22,22) 585|375. *Diff-backed* by run1772
 (`the_sample_s_ranges_to_6400_name_each_first_parting`), and by
 `a_defeated_ally_s_eyes_leave_the_stored_ally_mask`.
 
+**`ever_seen` is one of four arms, and the other three are the viewer's**
+(item 4550). `WallData::is_seen`'s second clause, past the `started` or
+ally test, is `reveal_map == 3 || ever_seen & ally_mask || leader_flags &
+0x800 || num_units[0x141]`: a lobby that reveals the map, the Space Program
+or `REVEAL_ENEMY_BONUS` (the bit `gain_tech` sets), or a Fouché standing
+sees every started enemy building whatever its own byte says. This crate
+read `ever_seen` alone until then. Row 110's who=2 holds the bit from its
+Space Program between the rebuilds of 5400 and 5600, and on 5600 the
+original stopped halving every building of who=1's that who=2's side had
+never seen: who=2's row parted at 51 half-cells around who=1's cities, each
+ours at about half theirs where an unseen building's ring or centre fell —
+(12, 19), the Barracks-line `1/2030`'s (type 13, no city) north-west
+neighbour, ours 37, theirs 50. *Diff-backed* by run1742
+(`row_110_s_space_program_sees_every_enemy_building_in_the_danger_map_on_run1742_s_ranges`,
+every world range on 5600 and 5601). The `0x800` arm is the one a capture
+entered; the reveal and the Fouché ride the same expression, read from the
+listing and no capture.
+
 **The AI reads the map whole and `calc_cost` eighths it.** Five producers —
 `produce_unit@006cb9e0:142`, `:236`, `:380`, `produce_tech@006ca980:138`,
 `:236`, `produce_building@006e1400:533`, `found_cities@006c7a60:235` and
@@ -288,12 +306,14 @@ not that nothing did.
   ever-seen fog bit a building takes, so a unit standing on ground the
   viewer has explored and left counts double here.
 - `BuildData::is_seen`'s first two arms — the `visible` bitmask and
-  infiltration — and `WallData::is_seen`'s own five: `reveal_map == 3`,
-  `leader_flags & 0x800`, ~~owning a `TRANSPORTGALLEON`~~ owning a
+  infiltration — and `WallData::is_seen`'s own five: ~~`reveal_map == 3`,
+  `leader_flags & 0x800`, owning a `TRANSPORTGALLEON` owning a
   Fouché (`num_units[0x141]` is `TypeIndex` 371: the array starts at
-  `BASE_UNITTYPES`; `docs/AI.md` §141), and the
-  city-between-two-humans arm. This crate reads the fog instead, which is
-  the same stand-in `docs/GOODY.md` §7.2 makes for `ItemData::is_seen`.
+  `BASE_UNITTYPES`; `docs/AI.md` §141)~~ (carried since item 4550, §5;
+  the `0x800` arm diff-backed by run1742, the reveal and the Fouché still
+  a reading), and the city-between-two-humans arm. This crate reads the
+  fog instead, which is the same stand-in `docs/GOODY.md` §7.2 makes for
+  `ItemData::is_seen`.
 - The `LEADER_VALID` / `LEADER_ACTIVE` split. Every capture has two leaders
   and both bits on both, so "owners are the valid ones and viewers the
   active ones" rests on the reading; a capture with a defeated leader would

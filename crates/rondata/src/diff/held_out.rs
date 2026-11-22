@@ -5619,12 +5619,19 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // 1554, record 2040 `build_masks`, who=1's Tower `1/2040` (type
         // 111), ours 4096, theirs -28672): units 5,577 -> 6,001 and builds
         // 5,577 -> 6,001, whole.
+        // Moved by item 4550 (`WallData::is_seen@00642bd0`'s second clause
+        // takes the viewer's `leader_flags & 0x800`, its Fouché and the
+        // lobby's reveal beside `ever_seen`, so who=2's Space Program sees
+        // every started building of who=1's in the danger map's rebuild:
+        // run1742, state 5601, world range 3631, record 2 `danger` byte
+        // 2328, half-cell (12, 19), the ring of who=1's `1/2030` (type 13),
+        // ours 37, theirs 50): world 5,601 -> 6,001, whole.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 5601,
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
             ],
-            first: &[("world", (5601, Some(3728895985), 3060364311))],
+            first: &[],
             over: None,
         }),
     }),
