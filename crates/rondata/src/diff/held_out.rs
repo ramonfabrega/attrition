@@ -4623,13 +4623,14 @@ pub(crate) const SCORES_FOURTH: [Option<FirstScore>; 8] = [
         },
         // Moved by item 4518 (a boat is born through `Unit::update_hits`: the
         // Dutch Merchant Fleet 1/142's myhits 172 -> 192 on 4275): units
-        // 5,833 -> 6,001, whole; eleven lines whole, groups as found.
+        // 5,833 -> 6,001, whole. Moved by item 4531 (a seated group's list
+        // holds object numbers: group 83's num 42 -> 43 on 5576, the short
+        // 44 now the newborn Elite Javelineers): groups 5,989 -> 6,001,
+        // whole; twelve lines whole.
         moved: Some(Score {
             states: 6001,
-            agreed: [
-                6001, 6001, 6001, 6001, 6001, 5989, 6001, 6001, 6001, 6001, 6001, 6001,
-            ],
-            first: &[("groups", (5576, Some(4003049513), 3939479638))],
+            agreed: [6001; 12],
+            first: &[],
             over: None,
         }),
     }),
@@ -4736,9 +4737,10 @@ pub(crate) const SCORES_FOURTH: [Option<FirstScore>; 8] = [
     }),
 ];
 
-/// The fourth battery's line: games whole of the eight, and games taken.
+/// The fourth battery's line: games whole of the eight, and games taken
+/// (6 -> 7, item 4531: row 55 whole).
 #[cfg(test)]
-pub(crate) const HELD_OUT_FOURTH_LINE: (usize, usize) = (6, 8);
+pub(crate) const HELD_OUT_FOURTH_LINE: (usize, usize) = (7, 8);
 
 /// The fourth battery (item 4510).
 #[cfg(test)]
