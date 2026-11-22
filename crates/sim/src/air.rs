@@ -1573,13 +1573,11 @@ impl Sim {
     ///     an enemy's stands within 0x900 (find_building, SEARCH_ENEMY);
     ///     (damage / 100 + 1000), doubled when L is_ally the owner,
     ///     / (vector_dist(city building - base) / 768 + 1)
-    ///   and, when L is_enemy the owner (L's own view), its forts below
-    ///   L's fort_mark, (damage / 100 + 1000) / (d / 768 + 1), never
-    ///   doubled, and its wonders below L's wonder_mark but the Forbidden
-    ///   City's line, damage / 1000 + 1000, ×10 while the owner's team
-    ///   trails on wonder points, ×100 above difficulty 2 while a non-ally
-    ///   is winning by wonders, / (d / 768 + 1); each under the same
-    ///   AIRDEFENSE skip (item 4562)
+    ///   when L is_enemy the owner, the same skip, L's forts below its
+    ///   fort_mark: (damage / 100 + 1000) / (d / 768 + 1), never doubled;
+    ///   its wonders below its wonder_mark but is(0x213): damage / 1000 +
+    ///   1000, ×10 while the owner's team trails on wonder points, ×100 at
+    ///   difficulty > 2 with a non-ally winning, / (d / 768 + 1) (item 4562)
     /// a target: each unit of the base's chain whose type is of the air
     ///   domain is cleared (Unit::clear_orders), and when
     ///   vector_dist(target - base) < get_speed(it, 1) * mana(it)
@@ -1588,11 +1586,9 @@ impl Sim {
     ///   add_air_patrol_order(target, the base, action 0)
     /// ```
     ///
-    /// **A wonder out of reach grounds the base** (item 4562, run1784):
-    /// who=2's Airbase `2/2018` on 3358 scores who=1's wonder `1/2026`
-    /// at 217 (10,000 / 46) over who=2's own city; the wonder is past
-    /// the Biplane `2/117`'s reach, so the plane's orders are cleared and
-    /// it takes none, where the city alone had sent it on patrol.
+    /// run1784: who=2's Airbase `2/2018` on 3358 scores who=1's wonder
+    /// `1/2026` at 217 over its own city, past the Biplane `2/117`'s
+    /// reach: the plane's orders are cleared and it takes none.
     ///
     /// SEAM: `leader_flags2 & 8`, the combat AI's scenario switch, which
     /// no staging sets; the AIRDEFENSE search's radius, read as twelve
@@ -1654,9 +1650,7 @@ impl Sim {
             if !self.is_enemy(l, owner) {
                 continue;
             }
-            // The forts (`64fa71`..`64fb6a`): each record below `L`'s
-            // `fort_mark` in use, the same AIRDEFENSE skip, `(damage / 100 +
-            // 1000) / (d / 0x300 + 1)`, never doubled.
+            // The forts (`64fa71`..`64fb6a`).
             for f in self.forts_of(l) {
                 let at = self.buildings[f].pos;
                 if !stealth && self.enemy_air_defense_near(owner, at) {
@@ -1669,13 +1663,8 @@ impl Sim {
                     target = Some((l, f));
                 }
             }
-            // The wonders (`64fb6a`..`64fda4`): each record below `L`'s
-            // `wonder_mark` in use but the Forbidden City's line (`is(0x213)`),
-            // the same AIRDEFENSE skip, `damage / 1000 + 1000` (`0x10624dd3`,
-            // `sar 6` at `64fc9e`: a thousandth, where the silo's is a
-            // hundredth), ×10 while my team's wonder points trail my
-            // enemies', ×100 above difficulty 2 while a non-ally is winning
-            // by wonders, `/ (d / 0x300 + 1)`.
+            // The wonders (`64fb6a`..`64fda4`); a thousandth (`0x10624dd3`,
+            // `sar 6` at `64fc9e`) where the silo's is a hundredth.
             for w in self.wonders_of(l) {
                 if self.building_is(w, crate::cities::build::Ident::ForbiddenCity) {
                     continue;
