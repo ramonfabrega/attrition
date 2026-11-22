@@ -607,6 +607,20 @@ impl Sim {
     /// patches in the goods list's order, which is the order the original's
     /// per-cell scan reaches them in only where it reaches them by cell.
     pub fn claim_oil_from_owners(&mut self) {
+        if std::env::var_os("RON_DEBUG_OIL").is_some() {
+            let a = self.world.owner(crate::world::Cell::new(2, 43)).player();
+            let b = self.world.owner(crate::world::Cell::new(16, 42)).player();
+            eprintln!(
+                "OIL call in_play={} walks_setup={} owner(2,43)={a:?} owner(16,42)={b:?} cities={:?}",
+                self.in_play,
+                self.cities.walks_setup,
+                self.cities
+                    .cities
+                    .iter()
+                    .map(|c| (c.owner, c.pos.cell().x, c.pos.cell().y))
+                    .collect::<Vec<_>>()
+            );
+        }
         // **A land patch joins in the per-cell scan's own order** (item
         // 1538, `docs/AI.md` §147): `compute_reg_territory` walks the land
         // regions in order and each region's cells row-major
