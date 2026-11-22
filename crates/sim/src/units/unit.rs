@@ -360,7 +360,7 @@ pub struct Unit {
     /// group (or a group of one), and `Unit::init`.
     pub explore_queued: bool,
     /// **`unit_masks & 0x80000000`: the jam shown** (item 4541,
-    /// `docs/COMBAT.md` §8.7). `Unit::process@00610bc0`'s caster arm is its
+    /// `docs/COMBAT.md` §8.6). `Unit::process@00610bc0`'s caster arm is its
     /// one writer: on the unit's 32-frame phase, a `SPECIALFORCES` unit
     /// that carries [`crate::combat::umask2::JAMMER`] takes this bit and
     /// drops that one; one that carries neither drops this.

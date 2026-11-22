@@ -74,7 +74,7 @@ impl Sim {
         if self.hits_left(me) == 0 {
             return;
         }
-        // **Jammed, no shot** (item 4541, `docs/COMBAT.md` §8.7): past the
+        // **Jammed, no shot** (item 4541, `docs/COMBAT.md` §8.6): past the
         // hits test and before the garrison's arrows (`6229c6`..`622a1c`),
         // `ObjectData::is_jammed` (vslot `+0xe0`) is asked; a jammer marks
         // itself and the building and the call returns, and none clears

@@ -76,7 +76,7 @@ pub mod umask2 {
     /// `fight`, parked 2100).
     pub const MASK2_BARK: u32 = 0x4;
     /// **`8` — a jammer that jammed a building** (item 4541,
-    /// `docs/COMBAT.md` §8.7): `Build::do_attack@006228f0` ORs it into the
+    /// `docs/COMBAT.md` §8.6): `Build::do_attack@006228f0` ORs it into the
     /// special forces unit `ObjectData::is_jammed@00653660` names
     /// (`*(unit + 0x6c) |= 8`), and `Unit::process@00610bc0`'s caster arm
     /// trades it for `unit_masks & 0x80000000` on the unit's 32-frame

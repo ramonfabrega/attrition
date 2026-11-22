@@ -1,4 +1,4 @@
-//! **Jamming** (item 4541, `docs/COMBAT.md` §8.7): an enemy special forces
+//! **Jamming** (item 4541, `docs/COMBAT.md` §8.6): an enemy special forces
 //! unit standing near an anti-air object. `ObjectData::is_jammed@00653660`
 //! finds the jammer; `Build::do_attack@006228f0` holds a jammed building's
 //! shot and marks both sides; `Unit::process@00610bc0`'s caster arm trades

@@ -1,4 +1,4 @@
-//! Jamming (item 4541, `docs/COMBAT.md` §8.7).
+//! Jamming (item 4541, `docs/COMBAT.md` §8.6).
 
 use crate::combat::{self, Obj, mask, umask2};
 use crate::world::Pos;

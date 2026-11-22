@@ -110,7 +110,7 @@ pub struct Building {
     /// `build_masks & 0x4000`: eject one squad a frame.
     pub eject_pending: bool,
     /// **`build_masks & 0x8000`: jammed** (item 4541, `docs/COMBAT.md`
-    /// §8.7). `Build::do_attack@006228f0` is its one writer: past the hits
+    /// §8.6). `Build::do_attack@006228f0` is its one writer: past the hits
     /// test it asks `ObjectData::is_jammed@00653660` (vslot `+0xe0`), sets
     /// the bit and returns without a shot when an enemy special forces unit
     /// stands within reach, and clears it otherwise ([`crate::Sim::is_jammed`]).

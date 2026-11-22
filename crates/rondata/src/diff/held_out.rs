@@ -773,7 +773,7 @@ mod tests {
     }
 
     /// **Row 110's Elite Special Forces jam who=1's Tower** (item 4541,
-    /// `docs/COMBAT.md` §8.7): run1742, the ranges take of run1735's file.
+    /// `docs/COMBAT.md` §8.6): run1742, the ranges take of run1735's file.
     /// who=2's Elite Special Forces `2/0` (TI 77, land, specials slot 0)
     /// stands beside who=1's Tower `1/2040` (type 111, `ANTI_AIR`) when the
     /// Tower's 32-frame `Build::do_attack@006228f0` runs on 5576.
