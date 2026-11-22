@@ -1148,11 +1148,16 @@ impl Sim {
                         // `jle` (`64987d`): a score of 0 — a candidate
                         // `compare_target` answered 0 for — is never the
                         // winner, even the first (item 2001).
-                        if std::env::var("RON_PROBE_4565_FT").is_ok_and(|v| v.parse::<i64>().ok() == Some(self.frame))
+                        if std::env::var("RON_PROBE_4565_FT")
+                            .is_ok_and(|v| v.parse::<i64>().ok() == Some(self.frame))
                             && matches!(attacker, Obj::Building(_))
                         {
                             let (ow, oo) = self.obj_o_who(o);
-                            eprintln!("FT4565 f{} att {attacker:?} r{r} cell {cell:?} cand {oo}/{ow} {o:?} dist {dist} raw {} targeted {targeted} in_range {in_range} value {value} score {score} best {best:?}", self.frame, self.attack_dist(attacker, o));
+                            eprintln!(
+                                "FT4565 f{} att {attacker:?} r{r} cell {cell:?} cand {oo}/{ow} {o:?} dist {dist} raw {} targeted {targeted} in_range {in_range} value {value} score {score} best {best:?}",
+                                self.frame,
+                                self.attack_dist(attacker, o)
+                            );
                         }
                         if score > best.map_or(0, |(b, _)| b) {
                             best = Some((score, o));
@@ -1325,7 +1330,8 @@ impl Sim {
     pub fn compare_target(&self, attacker: Obj, target: Obj, in_range: bool, ai: bool) -> i32 {
         let ap = self.profile(attacker);
         let tp = self.profile(target);
-        let pr = std::env::var("RON_PROBE_4565_FT").is_ok_and(|v| v.parse::<i64>().ok() == Some(self.frame))
+        let pr = std::env::var("RON_PROBE_4565_FT")
+            .is_ok_and(|v| v.parse::<i64>().ok() == Some(self.frame))
             && matches!(attacker, Obj::Building(_));
         let is_build = matches!(target, Obj::Building(_));
         let aa = is_build && tp.has(mask::ANTI_AIR);
@@ -1401,7 +1407,11 @@ impl Sim {
         }
         let t_attack = self.attack_of(target);
         let left = self.hits_left(target);
-        if pr { eprintln!("CT4565 {target:?} cost4 {v} t_attack {t_attack} left {left} ai {ai} in_range {in_range}"); }
+        if pr {
+            eprintln!(
+                "CT4565 {target:?} cost4 {v} t_attack {t_attack} left {left} ai {ai} in_range {in_range}"
+            );
+        }
         if t_attack != 0 && left != 0 && !aa {
             // A raider looks at an active building's worth, not its threat:
             // `iVar5 == 0 || !bVar17 || iVar4 == 0` takes the formula, and
@@ -1426,24 +1436,41 @@ impl Sim {
                 ap.most_shots,
                 self.buildings[b].garrison_attack + self.garrison_attack_sum(b),
             );
-            if pr { eprintln!("CT4565 {target:?} current, arrows {arrows} v {v}"); }
+            if pr {
+                eprintln!("CT4565 {target:?} current, arrows {arrows} v {v}");
+            }
             if arrows < 2 {
                 v = v.wrapping_mul(2);
             } else {
                 v /= 2;
             }
         }
-        if matches!(attacker, Obj::Building(_))
-            && let Obj::Unit(u) = target
-        {
-            if self.units[u].damage_frac != 0 || self.units[u].health < self.hits_of(target) {
+        // **A building's three target arms read the target's own
+        // object** (item 4565, `docs/COMBAT.md` §12.3; the listing
+        // `64eb6e`..`64ebc6`): `cmpl $0, 0x24(%ecx)` is `ObjectData::damage`
+        // of the target, unit or building, not its health against the
+        // type's hits; `call *0xd8` is `UnitData::is_moving`, the head
+        // order a move ([`Sim::is_moving`]), not a destination held; and
+        // `call *0xcc`, `UnitData::is_supply`. A building answers both
+        // slots with `Window::get_button`'s fold, zero. Row 43's Village
+        // `2/2010` held the wounded Spearmen `1/46` (damage 4, its
+        // `myhits` 126 over the type's 120) over `1/49`, which walks
+        // under an attack order, on run1787's 3298.
+        if matches!(attacker, Obj::Building(_)) {
+            let damaged = match target {
+                Obj::Unit(u) => self.units[u].max_health != self.units[u].health,
+                Obj::Building(b) => self.buildings[b].damage != 0,
+            };
+            if damaged {
                 v = v.wrapping_mul(3) / 2;
             }
-            if self.units[u].movement.dest.is_some() {
-                v /= 4;
-            }
-            if tp.is(role::IS_SUPPLY) {
-                v = v.wrapping_mul(5000);
+            if let Obj::Unit(u) = target {
+                if self.is_moving(u) {
+                    v /= 4;
+                }
+                if tp.is(role::IS_SUPPLY) {
+                    v = v.wrapping_mul(5000);
+                }
             }
         }
         let dmg = {
@@ -1480,7 +1507,9 @@ impl Sim {
         // **`0064ef4b`, both arms.** A human multiplies; a computer
         // leader on the lobby's own difficulty divides, and a candidate it
         // cannot hurt at all scores zero rather than dividing by nothing.
-        if pr { eprintln!("CT4565 {target:?} dmg {dmg} v {v}"); }
+        if pr {
+            eprintln!("CT4565 {target:?} dmg {dmg} v {v}");
+        }
         if ai {
             if dmg == 0 {
                 return 0;
@@ -1666,7 +1695,12 @@ impl Sim {
             // 3385): every unit target's score, Bark or not, is divided
             // by its [`crate::Unit::full`] plus one, `idiv` toward zero.
             if let Obj::Unit(u) = target {
-                if pr { eprintln!("CT4565 {target:?} role {} full {} v {v}", tp.combat_role, self.units[u].full); }
+                if pr {
+                    eprintln!(
+                        "CT4565 {target:?} role {} full {} v {v}",
+                        tp.combat_role, self.units[u].full
+                    );
+                }
                 v /= i32::from(self.units[u].full) + 1;
             }
         }
@@ -1694,14 +1728,5 @@ impl Sim {
             v = 2;
         }
         v
-    }
-
-    pub(super) fn hits_of(&self, o: Obj) -> i32 {
-        match o {
-            Obj::Unit(i) => self.units[i]
-                .ty
-                .map_or(self.units[i].health, |t| self.tables.unit_types[t].hits),
-            Obj::Building(b) => self.buildings[b].hits,
-        }
     }
 }
