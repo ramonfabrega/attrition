@@ -284,7 +284,6 @@ impl Sim {
             nubian: self.tables.tuning.nubian_hit_points,
             spy: self.tables.tuning.spy_upgrade_hp,
             supply: self.tables.tuning.supply_hp_upgrade,
-            ..Default::default()
         };
         let mut v = TypeHits {
             sim: self,
