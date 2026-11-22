@@ -3420,7 +3420,14 @@ impl Sim {
     }
 
     /// The plunder of `Cities::capture_city` — `docs/CITIES.md` §8.3.
-    fn plunder_on_capture(&mut self, a: Player, o: Player, c: usize, base: i32, was_capital: bool) {
+    pub(crate) fn plunder_on_capture(
+        &mut self,
+        a: Player,
+        o: Player,
+        c: usize,
+        base: i32,
+        was_capital: bool,
+    ) {
         if base == 0 && !was_capital {
             return;
         }
@@ -3433,12 +3440,29 @@ impl Sim {
         let russian = self.cities.nation[o as usize].russians
             && self.tables.tuning.russian_plunder_steal != 0;
         let first_capital = was_capital && !self.cities.city_tally[o as usize].capital_plundered;
-        let usable: Vec<usize> = (0..5)
-            .filter(|g| {
-                self.economy.holdings[a as usize].available[*g]
-                    && self.economy.holdings[o as usize].available[*g]
+        // Every arm walks the six goods (`BASE_GOODTYPES` while `< 6`) that
+        // both leaders can use, **Knowledge skipped** (`capture_city@00733380`
+        // lines 672-688, 754-772, 898-910, 982-995; item 4533).
+        let knowledge = crate::economy::Resource::Knowledge.index();
+        let usable: Vec<usize> = (0..crate::economy::RESOURCES)
+            .filter(|&g| {
+                g != knowledge
+                    && self.economy.holdings[a as usize].available[g]
+                    && self.economy.holdings[o as usize].available[g]
             })
             .collect();
+        // The good `who` holds least of among them: the first strictly under
+        // the 999999 seed, `BASE_GOODTYPES` (Food) when none is.
+        let least = |sim: &Self, who: Player| {
+            let mut best = (0, 999_999);
+            for &g in &usable {
+                let b = sim.economy.ledgers[who as usize].bucket[g];
+                if b < best.1 {
+                    best = (g, b);
+                }
+            }
+            best.0
+        };
         if !first_capital {
             let (take, steal) = if !russian {
                 (
@@ -3452,18 +3476,12 @@ impl Sim {
             } else {
                 (if hero { base } else { 0 }, base)
             };
-            if take > 0
-                && let Some(&g) = usable
-                    .iter()
-                    .min_by_key(|g| self.economy.ledgers[a as usize].bucket[**g])
-            {
+            if take != 0 {
+                let g = least(self, a);
                 self.economy.ledgers[a as usize].bucket[g] += take;
             }
-            if steal > 0
-                && let Some(&g) = usable
-                    .iter()
-                    .min_by_key(|g| self.economy.ledgers[o as usize].bucket[**g])
-            {
+            if steal != 0 {
+                let g = least(self, o);
                 self.economy.ledgers[o as usize].bucket[g] += steal;
             }
         } else {
