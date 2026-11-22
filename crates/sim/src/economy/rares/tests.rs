@@ -168,6 +168,27 @@ fn a_human_s_reveal_records_nothing_on_either_side() {
     );
 }
 
+/// **A defeated ally still learns the rare** (item 4529): the
+/// recipient's gate is `leader_flags & 1`, the seat, which
+/// `Leader::defeat@006ecb00` keeps, never the `& 2` it clears. run1772:
+/// computer 1, defeated on 5256, takes its ally's good 31 on 5403.
+#[test]
+fn a_defeated_ally_still_learns_the_rare() {
+    let (mut s, u) = sea_sim();
+    let citrus = good_under(&mut s, u, 26);
+    s.cities.nation[0].human = false;
+    s.leaders.allied[0][1] = true;
+    s.leaders.allied[1][0] = true;
+    s.leaders.defeated[0] = true;
+    s.new_rare(1, citrus);
+    assert_eq!(s.ai.ai[1].new_rares, vec![citrus], "the finder");
+    assert_eq!(
+        s.ai.ai[0].new_rares,
+        vec![citrus],
+        "the defeated ally, still seated"
+    );
+}
+
 /// **`reveal_fog`'s rare arm marks the good seen** (`reveal_fog:87`–`88`,
 /// item 3332): the revealer's bit of `ever_seen`, and nobody else's —
 /// the byte `think_merchant` tests before it scores a good.

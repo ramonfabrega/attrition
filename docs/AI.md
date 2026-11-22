@@ -159,6 +159,16 @@ ocean is 65) and are stored `% 0x3f` in the 63-entry arrays.
    computer leader, `ally_mask |= bit` if allied both ways; and if not yet
    met, its first building or wall that is `is_seen(who)` meets both
    ways, inline. `Sim::census_meet`; GOLDEN §149.4.
+   **Two other writers re-add a seated ally between censuses** (item
+   4529): `Leader::gain_tech@006dcb60:437`, on gaining `ALLY_LOS`'s
+   prerequisite (`bonustypes +0xac0`, Mathematics), and
+   `Leader::fix_tech_flags@006d2480` (from `lose_tech`), each OR every
+   slot with `leader_flags & 1` that `is_ally` names, a defeated ally
+   too, where step 6 tests `& 2`. The decompile prints `gain_tech`'s store
+   as `local_c[0x82506].field_0x11` off `who × 0x6eec`, which is `+0x6929`
+   at a 0x1c stride. Diff-backed by run1772 (computer 2 on 5427, `271 2
+   who..ally_mask` 0x15 → 0x17 in theirs; `Sim::gain_tech`). The
+   `fix_tech_flags` arm is not built (no `lose_tech` is reached here).
 7. `invaders[who] = 0` on every active leader (the count of *my* units in
    *their* land; refilled in step 10). **Active is the slot's
    `leader_flags & 1`**, which `Leader::defeat@006ecb00` keeps, so a

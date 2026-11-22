@@ -729,9 +729,13 @@ impl Sim {
     /// * the **caller** is not a plain human — `leader_flags & 0xc != 4`,
     ///   so a human's own reveals record nothing unless the AI is driving
     ///   it (`& 8`, never set here);
-    /// * the recipient is in the game, is this leader or a mutual ally, and
-    ///   is not a human (`leader_flags & 4`) unless the caller is that
-    ///   AI-driven human;
+    /// * the recipient is seated (`leader_flags & 1`, every slot this
+    ///   loop walks — **a defeated ally still learns the rare**: the gate
+    ///   is never `& 2`, which `Leader::defeat@006ecb00` clears and bit 1
+    ///   survives; item 4529, run1772: computer 1, defeated on 5256, takes
+    ///   good 31 on 5403), is this leader or a mutual ally, and is not a
+    ///   human (`leader_flags & 4`) unless the caller is that AI-driven
+    ///   human;
     /// * the good is not already in the list — a linear scan, which is why
     ///   the list stays short and ordered;
     /// * `type_avail(good, strict)` is non-zero, and the good is neither
@@ -751,7 +755,7 @@ impl Sim {
             return;
         }
         for w in 0..self.territory.players.len() {
-            if self.leaders.defeated[w] || self.cities.nation[w].human {
+            if self.cities.nation[w].human {
                 continue;
             }
             if w != who as usize

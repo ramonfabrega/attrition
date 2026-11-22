@@ -614,6 +614,12 @@ for L in leaders:
     L.new_rares.add(g)
 ```
 
+**`L.leader_flags & 1` is the seat, and a defeated leader keeps it**
+(item 4529): `Leader::defeat@006ecb00` clears `& 2` alone, so an ally's
+find still reaches a defeated computer. Ours had gated on `defeated`
+until then. run1772 diffs it: computer 1, defeated on 5256, takes good
+31 on 5403 (`190 1 new_rares` 0x0b → 0x0c, both sides after the build).
+
 **`FISH` and `WHALES` are excluded, and that is the whole design.** They are
 the two rares `LeaderData::calc_rare` pays to a *fishing boat* rather than a
 merchant (this document, step 6), so a coastline full of fish buys no
