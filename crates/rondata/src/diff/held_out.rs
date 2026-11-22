@@ -2563,16 +2563,12 @@ mod tests {
 
     fn line_reads_as_pinned(b: &Battery) {
         let taken = b.scores.iter().flatten().count();
-        let whole = b
-            .scores
-            .iter()
-            .flatten()
-            .filter(|p| {
-                let s = p.moved.unwrap_or(p.found);
-                s.first.is_empty() && s.agreed == [s.states; 12]
-            })
-            .count();
-        assert_eq!((whole, taken), b.line, "{}: N of 8, T taken", b.label);
+        assert_eq!(
+            (b.whole_now(), taken),
+            b.line,
+            "{}: N of 8, T taken",
+            b.label
+        );
     }
 
     /// The queue's line for [`SCORES`]: the games whole of the eight, the
@@ -4074,6 +4070,30 @@ pub(crate) struct Battery {
     pub line: (usize, usize),
 }
 
+/// **A held-out row whole now**: its `now` column ([`FirstScore::moved`]
+/// where a fix has moved it, else as found) parts on no line and agrees on
+/// every state of all twelve. The one predicate: each battery's line
+/// ([`Battery::line`], checked by `line_reads_as_pinned`) and the
+/// headline's fold (`sample::parity_line`, DECISIONS 150 §1) both count
+/// with it, so the two cannot disagree on a row.
+#[cfg(test)]
+pub(crate) fn whole_now(p: &FirstScore) -> bool {
+    let s = p.moved.unwrap_or(p.found);
+    s.first.is_empty() && s.agreed == [s.states; 12]
+}
+
+#[cfg(test)]
+impl Battery {
+    /// The battery's rows whole now, by [`whole_now`].
+    pub(crate) fn whole_now(&self) -> usize {
+        self.scores
+            .iter()
+            .flatten()
+            .filter(|p| whole_now(p))
+            .count()
+    }
+}
+
 /// The first battery (item 4413).
 #[cfg(test)]
 pub(crate) const FIRST: Battery = Battery {
@@ -4470,3 +4490,14 @@ pub(crate) const FOURTH: Battery = Battery {
     scores_name: "SCORES_FOURTH",
     line: HELD_OUT_FOURTH_LINE,
 };
+
+/// **The spent batteries, folded into the headline** (DECISIONS 150 §1).
+/// A battery is spent once a lane has read a parting off one of its rows
+/// (entry 145 §2); its `now` column then counts in `Parity:` row by row,
+/// by [`whole_now`], beside the six and the sample, and its found column
+/// never folds. The first, second and third were spent on `43ee59434`;
+/// the fourth since item 4517 read row 75's ammo (`b52f075dd`). A battery
+/// declared and not yet spent stays off this list; the fifth (item 4527)
+/// joins by one entry here once a lane reads a parting off one of its rows.
+#[cfg(test)]
+pub(crate) const SPENT: &[&Battery] = &[&FIRST, &SECOND, &THIRD, &FOURTH];
