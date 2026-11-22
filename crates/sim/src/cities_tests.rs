@@ -9504,7 +9504,10 @@ fn a_computer_s_city_sounds_its_own_all_clear_when_no_stranger_is_in_sight() {
     let due = (1000..1060).find(|f| (f + 100 + o) % 60 == 0).unwrap();
 
     sim.city_all_clear_due(b, c, due);
-    assert!(sim.cities.cities[c].alarm, "a stranger in sight holds the bell");
+    assert!(
+        sim.cities.cities[c].alarm,
+        "a stranger in sight holds the bell"
+    );
 
     // The stranger walks off, far past the radius.
     assert!(sim.set_new_location(stranger, tile_pos(90, 90), true));
@@ -9517,7 +9520,10 @@ fn a_computer_s_city_sounds_its_own_all_clear_when_no_stranger_is_in_sight() {
 
     // Through the building's own process, the tail's city block.
     sim.process_building_whole(b, due + 60);
-    assert!(!sim.cities.cities[c].alarm, "the all-clear: city_flags & ~0x40");
+    assert!(
+        !sim.cities.cities[c].alarm,
+        "the all-clear: city_flags & ~0x40"
+    );
     assert_eq!(sim.units[inside].inside, None, "the garrison out");
     assert!(sim.buildings[b].garrison.is_empty());
 }

@@ -7325,10 +7325,14 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // 6023: `Wall::inc_time@0063fb60:48`..`56` refreshes a site in the
         // leader walk, ahead of the ammo list (`docs/CITIES.md` §3.4). The
         // row's first parting is units 3359.
+        // Item 4560 (`Build::process@0061edf0`'s all-clear, a computer's
+        // city emptying on its 60-frame phase with no stranger in sight):
+        // ammo 3,659 -> 3,651, a named fall past the first partings; every
+        // first parting unchanged.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3359, 3360, 6001, 3659, 3672, 3385, 3360, 3376, 3576, 4069, 4678, 3360,
+                3359, 3360, 6001, 3651, 3672, 3385, 3360, 3376, 3576, 4069, 4678, 3360,
             ],
             first: &[
                 ("units", (3359, Some(1240030600), 4018231023)),

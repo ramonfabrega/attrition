@@ -181,13 +181,15 @@ impl Sim {
         self.action_alarm(who, &[b]);
     }
 
-    /// `ObjectsData::find@0065c6b0(city point, SEARCH_NON_FRIENDLY (6),
-    /// who, get_radius × 0xc0, ·, FILTER_SEEN (17), who, ·, first = 1)
-    /// >= 0`, as [`Sim::city_all_clear_due`] asks it: an object of
-    /// another player below eight (`Search::valid_search@0067daa0`'s case
-    /// 6, allies included), in use (`+8 & 1`), that `who` sees (`valid_filter
-    /// @0067dbb0`'s arm 16, `0067e1d5`: the object's vslot `+0x48`,
-    /// `is_seen(who, 0)`, which is [`Sim::target_seen_by`]), at `vector_dist`
+    /// Whether `ObjectsData::find@0065c6b0(city point,
+    /// SEARCH_NON_FRIENDLY (6), who, get_radius × 0xc0, ·, FILTER_SEEN
+    /// (17), who, ·, first = 1)` finds anything, as
+    /// [`Sim::city_all_clear_due`] asks it: an object of another player
+    /// below eight (`Search::valid_search@0067daa0`'s case 6, allies
+    /// included), in use (`+8 & 1`), that `who` sees
+    /// (`valid_filter@0067dbb0`'s arm 16, `0067e1d5`: the object's vslot
+    /// `+0x48`, `is_seen(who, 0)`, which is [`Sim::target_seen_by`]), at
+    /// `vector_dist`
     /// of its own point from the city's at most the range (`65c84f`..
     /// `65c88b`). Under ten cells of `0x300` the walk is the circle's cells'
     /// chains (`WData::down`, [`Sim::object_chain`]); at ten or more it is

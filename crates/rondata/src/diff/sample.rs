@@ -1816,14 +1816,7 @@ pub(in crate::diff) mod tests {
             12,
             "5 2 first_frame..unit_crew: +0x0 of 71|71: 411c0000|c7190000",
         ),
-        (
-            "groups",
-            7262,
-            634,
-            634,
-            1,
-            "146 128 id..march: facing 1|0",
-        ),
+        ("groups", 7262, 634, 634, 1, "146 128 id..march: facing 1|0"),
         (
             "guys",
             7107,
