@@ -1597,6 +1597,63 @@ fn row_75_s_crossbow_bolt_on_4004_leaves_from_theirs_point() {
     );
 }
 
+/// **Piece 1494's bays agree with the original at every heading** (item
+/// 4558): `get_position.py … --init 0,<anim>,<time>,3 sweep 1494 0 <anim>
+/// <time>` on run1579's packet, one file a key, `deg i x y z` at every whole
+/// degree 0..=360. `$RON_BAY_SWEEPS_4558` is the directory holding
+/// `sweep-1494-0-<anim>-<time>.txt`, outside git
+/// (`~/ron-data/lab-experiments/2026-11-22-item-4558/sweeps/`).
+#[test]
+fn the_original_s_release_agrees_at_every_heading_for_the_fusiliers() {
+    let Ok(dir) = std::env::var("RON_BAY_SWEEPS_4558") else {
+        eprintln!("skipping: set RON_BAY_SWEEPS_4558 (item 4558's oracle, run1579)");
+        return;
+    };
+    let (mut rows, mut off) = (0, Vec::new());
+    for &(_, a, t, b) in BAYS.iter().filter(|r| r.0 == 1494) {
+        let path = format!("{dir}/sweep-1494-0-{a}-{t}.txt");
+        let table = std::fs::read_to_string(&path).expect("RON_BAY_SWEEPS_4558");
+        for line in table.lines() {
+            let f: Vec<i64> = line
+                .split_whitespace()
+                .take(5)
+                .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                .collect();
+            let (x, y) = b.offset((f[0] + 180) % 360);
+            if (x, y, i64::from(b.dz)) != (f[2], f[3], f[4]) {
+                off.push(format!(
+                    "a{a} t{t} deg {}: {x},{y} against {},{}",
+                    f[0], f[2], f[3]
+                ));
+            }
+            rows += 1;
+        }
+    }
+    assert_eq!(rows, 3 * 361, "{dir}");
+    assert!(off.is_empty(), "{} headings disagree: {off:?}", off.len());
+}
+
+/// **Row 63's Fusilier round on 3683 leaves where theirs does** (item
+/// 4558): who=1's Fusiliers `1/45` at (8568, 12312), facing 1,608,581,120,
+/// `CHAR_ATTACK1` frame 6, from (8633, 12404) and 110 over the figure in
+/// run1782's ammo range; with no row it left from its own square.
+#[test]
+fn row_63_s_fusilier_round_on_3683_leaves_from_theirs_point() {
+    let p = launch_point(
+        Pos::new(8568, 12312),
+        Angle(1_608_581_120),
+        1494,
+        crate::units::anim::ATTACK1,
+        6,
+        0,
+    );
+    assert_eq!((p.x, p.y), (8633, 12404));
+    assert_eq!(
+        release_dz(1494, crate::units::anim::ATTACK1, 6, 0),
+        Some(110)
+    );
+}
+
 /// **Every key the widened suite fired from the figure's square now has its
 /// bay** (item 4159's fifth residue, 4159r4a): a probe on [`launch_point`]'s
 /// fallback over `widened_whole walks_back walks_the_gap dates_the_gap
