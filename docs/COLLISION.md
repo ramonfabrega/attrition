@@ -494,8 +494,9 @@ item 4530). `Object::close@00647160` on an object off the map (vslot
 `+0xbc` 0) calls `Object::remove_from_inside@006480f0`, which, for an
 object inside something (`+0x82 >= 0`), splices it out and ends in
 `Object::add_to_world` on the point it went in at; then `close` takes
-`remove_from_world`. Neither paints a disc off the map, so the chain is
-what is left: the object heading that cell keeps `up_who` the closer's
+`remove_from_world`. ~~Neither paints a disc off the map~~ (the splice
+writes `inside_up` −1 before `add_to_world`, so both walk the disc: item
+4485, below), and on the chain the object heading that cell keeps `up_who` the closer's
 owner, and the closer's number keeps the head's owner in `down_who`.
 `Sim::boat_dies_into` threads the boat back before `transport_dies` takes
 it off. Diff-backed on run1755's 3184: who=1's Freighter `1/90` dies into
@@ -505,6 +506,31 @@ its oil platform under the Freighter `1/121`, whose `up_who` reads 1
 *Not established*: every other off-map close — a unit dying inside a
 building or a boat — takes the same arm there; this crate threads only the
 boat into its platform.
+
+**A rider closed aboard its sunk boat leaves an empty block where it
+boarded** (2026-11-22, item 4485). `Object::kill_contents@00645550` closes
+each rider, and the rider's `Object::close@00647160` takes the off-map arm
+(vslot `+0xbc`, `UnitData::is_on_map@0046ce30`, is `inside_up < 0`).
+`Object::remove_from_inside@006480f0` writes `inside_up` −1 **before**
+its `add_to_world`, so that walk's `is_active` and `is_on_map` gates both
+pass. It paints the disc at the figure's retained point, the one it
+boarded from, under §2's region gate, and allocates each null block it
+reaches. `remove_from_world@00647970` then clears the same disc. The bits
+come out clear, and the blocks stand until `process_coll_blocks` frees
+them. `Sim::close_inside_disc`, called by `kill_contents` per rider.
+Diff-backed on run1742's 3809: who=1's Citizen `1/11` (TI 50) dies aboard
+its sunk Freighter `1/61` (TI 322), and world range 6794 (record 2853, cell
+(33, 47), holding the boarding point (543, 763)) read `block.present` ours
+0, theirs 1, its body empty. After the fix every world range on 3808 to 3810
+agrees (`held_out::tests::row_110_s_rider_leaves_an_empty_block_where_it_boarded_on_run1742_s_ranges`;
+the unit test `a_rider_closed_aboard_its_sunk_boat_leaves_an_empty_block_where_it_boarded`).
+*Not established*: `kill_contents` calls `Unit::come_out(p, 0)` first, and
+this crate does not. A rider the ring around its boat seats paints and
+clears the same boarding disc (`come_out`'s own `remove_from_inside`, then
+`move_unit`'s clear pass), and it also allocates the block at its spot. No
+capture has diffed that arm. Every other off-map close takes the paint as
+well: a unit dying inside a building, and the boat into its platform above. This
+crate paints only for the sunk boat's riders.
 
 ## 4. `Unit::detect_unit_collision`
 

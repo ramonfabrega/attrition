@@ -110,7 +110,9 @@ overrides them: Nile Delta and Sea Power give the player triple 48/8/8, and New
 World gives the colonized triple 32/4/4. The territory pass picks the player
 triple for a region whose `Region::flags` has bit 4 set, and the colonized
 triple otherwise. **Bit 4 is the player region**: `World::analyze_map` sets it
-once at setup on every land region a starting city stands in. The harness reads
+once at setup on every land region a starting city stands in, after every
+empire is built, so each `build_cities` pass before it reads the colonized
+triple (`docs/RECGAME.md` §12.6, item 4534). The harness reads
 the six from the start dump, and on the three style dumps the setup's borders
 come out cell-for-cell the original's (`docs/AI.md` §407, item 3963).
 

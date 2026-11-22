@@ -1505,9 +1505,9 @@ holds no `game_over` by either end (`over: None`). In row 43 our walk holds `gam
 original plays to 6000. `docs/RUNS.md` run1773 to run1780 holds every value, and the pins hold both sides of every
 first parting.
 
-*Not established*: no row names a leaf, since each take holds sums only. Row 23 parts on leaders at state 0, ours
+*Not established*: no row names a leaf, since each take holds sums only. ~~Row 23 parts on leaders at state 0, ours
 569079079, theirs 568292647: the frame-0 state of a start whose two computers are one team, the shape of no lobby
-on disk until now. Every other row parts first between 1582 and 3857. Each needs a ranges take of its file, keeping
+on disk until now.~~ Whole (§12.6). Every other row parts first between 1582 and 3857. Each needs a ranges take of its file, keeping
 the lines it parts on, before its leaf can be named.
 
 ### 12.4 Row 95: a CEO going in leaves its city (item 4519)
@@ -1539,3 +1539,8 @@ at range 128 on 5266 (`[3, 7, 130, 1, …]` against `[3, 7, 130, 3, …]`) and r
 CEO does not leave the freighter before 6000 in ours, and no capture shows a CEO garrisoning a building. Units and guys
 part on 5909: range 2689 (units) and 720 (guys), record 99, guy byte 26, `turret_angles[0]` and
 `des_turret_angles[0]` both ours 45023232, theirs 44564480. run1770 holds both lines' ranges to 6000.
+
+### 12.6 Row 23: setup claims under the colonized limit (item 4534)
+
+`analyze_map` sets the player-region bit after every `build_empire` (`Setup::build_game@005ac190:881`), so who=0's
+setup pass gives (16, 42) to no one: run1781's `oil_patches` `[2, 5]`. `docs/journal/2026-11-22-item-4534.md`.

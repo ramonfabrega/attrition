@@ -235,7 +235,8 @@ it (**not built**).
    `Herd::create_units@007417f0`** (44 draws here), the scripts.
    **`compute_all_territory` built** (item 4063: `sync_territory`,
    `settle_borders`; it changes no owner here — `build_cities`' own pass
-   is the last writer of every one). **Its per-cell goods scan, the
+   is the last writer of every one, but past the colonized reach on a
+   style with an override: `docs/RECGAME.md` §12.6). **Its per-cell goods scan, the
    rares' half, built** (item 4093): before the first frame
    `settle_borders` runs `Sim::claim_rares_from_owners`, here and at
    `build_cities`' own call, so a rare on a cell a leader owns and has
