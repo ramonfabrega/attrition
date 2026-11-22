@@ -1094,6 +1094,30 @@ mod tests {
                     }
                 }
             }
+            if let (Ok(who_want), Some(ob)) = (std::env::var("RON_PROBE_CHAIN"), lines[1].as_ref()) {
+                let who_want: i64 = who_want.parse().unwrap_or(2);
+                let tb: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+                let mut who_o = -1i64;
+                let mut who_t = -1i64;
+                let mut ty = -1i64;
+                for (a, r) in ob.ranges.iter().zip(&tb) {
+                    if a.field == "who..y_internal" {
+                        who_o = i64::from(a.bytes[0]);
+                        who_t = i64::from(r.bytes[0]);
+                    }
+                    if a.field == "orig_type" {
+                        ty = i64::from(i32::from_le_bytes(a.bytes[..4].try_into().unwrap()));
+                    }
+                    if a.field == "gather_down..infiltrate2" && (who_o == who_want || who_t == who_want) {
+                        let g = |b: &[u8], at: usize| i64::from(i16::from_le_bytes([b[at], b[at + 1]]));
+                        let mark = if a.bytes != r.bytes { " <<" } else { "" };
+                        eprintln!(
+                            "P4562C state {state} o {} who {who_o}/{who_t} prevty {ty} city {}/{} down {}/{}{mark}",
+                            a.record, g(&a.bytes, 2), g(&r.bytes, 2), g(&a.bytes, 4), g(&r.bytes, 4)
+                        );
+                    }
+                }
+            }
             if let Ok(spec) = std::env::var("RON_PROBE_BUILD") {
                 let want: i64 = spec.parse().unwrap_or(2036);
                 for (bi, b) in built.sim.buildings.iter().enumerate() {
