@@ -73,6 +73,24 @@ Market itself, with no queue and no price, on its fifteen-frame slot while
 `caras` is under `get_caravan_limit(1)` (`Build::process@0061edf0:362–381`,
 `docs/AI.md` §146).
 
+**The limit counts an ally's cities** (item 4545, run1784).
+`LeaderData::get_caravan_limit@006dca50` with argument 1 bounds the Commerce
+cap and its bonuses by the pairings `n (n − 1) / 2`. `n` starts at the
+leader's own `city_num` (`+0x3f8`). When the leader holds
+`has_preq(BASE_BONUSTYPES)` (Trade in the shipped file, the gate §4 puts on
+a foreign partner), the loop over the eight slots adds the `city_num` of
+every other seated slot (`leader_flags & 1`) that is a mutual ally
+(`diplos == 2` both ways). The gate is the leader's own Trade, never the
+ally's. `Sim::caravan_limit` builds it. The make list's caravan arm
+(`create_units@006c40a0`) offers a caravan only under this limit. Row 83 of
+the fifth battery (`docs/RECGAME.md` §12.3) is the diff that backs it: who=2
+holds two cities and its ally who=0 one. Its limit is three pairings where
+ours had counted one, and on 1956 theirs lists a Caravan (TI 59, `val`
+980,392) in the fifth slot. `row_83_s_computer_lists_a_caravan_by_its_ally_s_city_on_run1784_s_ranges`
+holds every leaders range on 1955 and 1956. Not established: an ally that is
+defeated and still seated. Its `city_num` is read as its cities left, and no
+capture has one with a city.
+
 `init_caravan` takes the first slot below the mark whose `alive` bit is
 clear, else the mark itself; `Caravans::close_caravan@0073e350` clears
 the record and walks the mark back down past every dead slot at the top.
