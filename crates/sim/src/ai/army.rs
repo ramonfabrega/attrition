@@ -367,6 +367,18 @@ impl Sim {
     /// stay behind at an index another member now holds (item 1493: army
     /// 65's `off[31]`, `[61]`, `[62]` on run653 block 14357).
     pub(crate) fn army_keep_units(&mut self, w: usize, slot: usize, keep: Vec<usize>) {
+        if std::env::var("RON_PROBE_4531_AT").ok().and_then(|v| v.parse::<i64>().ok())
+            == Some(self.frame)
+            && keep.len() != self.ai.armies[w].list[slot].units.len()
+        {
+            eprintln!(
+                "PROBE keep_units f{} army {w}/{slot} {} -> {}\n{}",
+                self.frame,
+                self.ai.armies[w].list[slot].units.len(),
+                keep.len(),
+                std::backtrace::Backtrace::force_capture()
+            );
+        }
         let a = &mut self.ai.armies[w].list[slot];
         for i in (0..a.units.len()).rev() {
             if keep.contains(&a.units[i]) {

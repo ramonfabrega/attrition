@@ -622,6 +622,13 @@ impl Sim {
     /// Drop list index `i` and the per-member arrays' entry with it — the
     /// shift `Group::kill` and `normalize` both do over all five arrays.
     pub(super) fn seat_remove_at(list: &mut Vec<usize>, st: &mut GroupState, i: usize) {
+        if std::env::var_os("RON_PROBE_4531_AT").is_some() {
+            eprintln!(
+                "PROBE seat_remove_at {i} of {}\n{}",
+                list.len(),
+                std::backtrace::Backtrace::force_capture()
+            );
+        }
         list.remove(i);
         if i < st.off.len() {
             st.off.remove(i);
