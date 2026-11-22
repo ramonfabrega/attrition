@@ -5782,12 +5782,16 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // Moved by item 4534 (the walked setup leaves the player-region bit to
         // `analyze_map`; run1781's leaf, who=0's `oil_patches` on state 0, ours
         // [5, 2], theirs [2, 5]): leaders 0 -> 6,001, whole; eleven lines whole.
+        // Moved by item 4538 (`Unit::update_hits`' Copper arm; run1781's leaf,
+        // units range 957, record 15, who=2's Fishermen `2/15` (TI 317) on
+        // 5695, `myhits` ours 170, theirs 204): units 5,695 -> 6,001, whole;
+        // twelve lines whole.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5695, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
             ],
-            first: &[("units", (5695, Some(1829564320), 64286658))],
+            first: &[],
             over: None,
         }),
     }),
@@ -5879,7 +5883,29 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4538 (`Unit::update_hits`' Copper arm): ammo 3,426 ->
+        // 3,427, a state past the line's first parting (2404) and past the
+        // row's (1956); every first parting as found.
+        moved: Some(Score {
+            states: 6001,
+            agreed: [
+                2338, 1958, 6001, 3427, 2941, 2400, 2338, 1956, 2340, 3563, 3952, 2338,
+            ],
+            first: &[
+                ("units", (2338, Some(1361964866), 3925824949)),
+                ("builds", (1958, Some(977573852), 2524157908)),
+                ("ammo", (2404, Some(1723730597), 1867713323)),
+                ("deaths", (2452, Some(1982270641), 1)),
+                ("groups", (2400, Some(4286445278), 2313221958)),
+                ("guys", (2338, Some(3548161827), 1424743536)),
+                ("leaders", (1956, Some(3921751680), 3148426205)),
+                ("cities", (2340, Some(2157784556), 130625532)),
+                ("items", (3026, Some(1796424164), 835927342)),
+                ("goods", (2829, Some(3059258644), 3039073554)),
+                ("world", (2338, Some(858147796), 2819705606)),
+            ],
+            over: None,
+        }),
     }),
     // run1778
     // row 103, as found 2026-11-21, ended by the original on 3294: 1 line whole; units 1,790 of
@@ -5955,8 +5981,9 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
 ];
 
 /// The fifth battery's line: games whole of the eight, and games taken.
+/// Item 4538 made row 23 whole: 1 -> 2.
 #[cfg(test)]
-pub(crate) const HELD_OUT_FIFTH_LINE: (usize, usize) = (1, 8);
+pub(crate) const HELD_OUT_FIFTH_LINE: (usize, usize) = (2, 8);
 
 /// The fifth battery (item 4527): three seats and one team of two a row.
 #[cfg(test)]
