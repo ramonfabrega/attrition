@@ -151,7 +151,7 @@ units 7055 of 21,044, draws 7105, 158 states a landing over six and slowing; par
 reach 81 %; five rows scored: row 63 is one field from whole (item 4563), the sample and row 43 name one pair of fields and take one
 seat (items 4565, 4564), row 103's first shot is a piece with no bay and the games on disk field eight such, built in one act (item
 4559); the sixth battery keeps its trigger and is recorded to 12,000, because every held-out game ends on 6,000 and the sample parts
-past it (item 4566); the packets' lines 950 of 1,053; **orders** — whole by its counters; **renderer** — as it stood, no landing.
+past it, its human scripted on Ramon's word (item 4566); the packets' lines 950 of 1,053; **orders** — whole by its counters; **renderer** — as it stood, no landing.
 
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it

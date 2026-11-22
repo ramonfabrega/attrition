@@ -22560,11 +22560,14 @@ can seat it without a pass. One thing in its recipe changes. Every
 held-out game has been recorded to 6,000 frames, six minutes and forty
 seconds of play, and four batteries read whole inside that. The sample
 parts on state 7055, past the end of all forty. The sixth is recorded
-to 12,000. Whether its human plays is still Ramon's.
+to 12,000. Ramon answered on the row while the gate ran: 12,000
+stands, and the sixth's human plays from a script.
 
 The sample's seat moved the line at every landing and less each time:
 507, 259, 93 and 34 states over its last four. The rule that stops a
-seat did not fire and is not changed; the rate goes to Ramon. Three
+seat did not fire and is not changed; the rate went to Ramon, who
+asked what to do, and the answer is to let the sixth's first scores
+say whether the seat belongs on its rows. Three
 booking gates were red on paperwork, and the one a builder brought in
 was `cargo fmt`, which the reflex never asked. It asks now. The pass
 moved no score and took no capture.

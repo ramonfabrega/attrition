@@ -15,19 +15,21 @@ spawned no subagent and took no capture. The pass before it is
 - **The headline is 41 of 47, up from 39.** Two more games agree with
   the original on every state. Nineteen landings in eight hours, 7.54
   USD each on the lanes, down from 8.17.
-- **I changed one thing you may want to reverse: the next unseen
-  battery is recorded to 12,000 frames, not 6,000.** Every unseen game
-  so far stops at 6,000, which is under seven minutes of play, and four
-  batteries are whole inside that. The one long game we have, the
-  person's, first differs at state 7,055, past the end of all forty.
-  So the batteries have been measuring only the opening. Say "6,000"
-  before the battery is declared and it stays as it was.
-- **Still your call: whether that battery's human plays.** It is idle
-  unless you say so.
+- **The next unseen battery is recorded to 12,000 frames, not 6,000,
+  and you confirmed it.** Every unseen game so far stops at 6,000,
+  which is under seven minutes of play, and four batteries are whole
+  inside that. The one long game we have, the person's, first differs
+  at state 7,055, past the end of all forty. So the batteries have
+  been measuring only the opening.
+- **That battery's human plays from a script, on your word.** You
+  allowed removing the seat too; I kept it, since a person's orders
+  are the thing untested.
 - **The person's game is moving slowly.** It gained 947 states over six
   landings, and less each time: 507, 259, 93, then 34. It has 13,989
   states to go. At this tranche's average that is about 89 landings and
-  650 USD; at the last landing's pace it is several times that.
+  650 USD; at the last landing's pace it is several times that. You
+  asked what to do: nothing yet. The sixth battery's first scores say
+  whether that seat belongs on its games instead (entry 152 §5).
 - **Two queued items were the same bug.** The person's game and one
   battery game differ on the same two fields. They now share one seat.
 - **One fix replaces eight.** Three times a lane found a unit whose
@@ -72,7 +74,10 @@ spawned no subagent and took no capture. The pass before it is
 - **The sixth battery keeps its trigger, 4 of 8** (§4). Its item is
   written, so the driver seats it with no pass.
 - **The sixth is recorded to 12,000** (§4), with each row's reach in
-  its first 6,001 states beside the whole.
+  its first 6,001 states beside the whole. Ramon confirmed it.
+- **The sixth's human is scripted** (§4; Ramon, on the row). The item's
+  first act reads whether the minting serves a held-out lobby.
+- **The sample's seat is re-decided on the sixth's found column** (§5).
 - **The sample's stop rule stands** (§5). Every landing moved the line.
 - **The reflex asks the format** (§6).
 - **The fourteen parked findings stay in their journals** (§8). None
@@ -93,7 +98,7 @@ rules items. The pairs of 2026-11-20 were not redrawn or uploaded.
 | 4563 fifth, row 63 | rules, whole; a parity seat's | the fifth's 3 → 4 of 8 | the one leaf on run1782, no take | two landings running move no column |
 | 4562 fifth, row 83 | rules, whole; a parity seat's | row 83's column, eleven lines | the leaf on run1784, no take | two landings running move no column |
 | 4559 fifth, row 103, and eight bays | rules, whole; the chain's | row 103's column; what else moves | a test that lists the eight pieces, red; then 4558's recipe on each | two landings running move no column |
-| 4566 the sixth battery, to 12,000 | rules, whole; unseated until the fifth reads 4 of 8 | none; a found column | the declaration, before any file | it is pinned |
+| 4566 the sixth battery, to 12,000, a scripted human | rules, whole; unseated until the fifth reads 4 of 8 | none; a found column | whether the minting serves a held-out lobby; then the declaration, before any file | it is pinned |
 | 4564 fifth, row 43 | rules, whole; unseated behind 4565 | row 43's column | scored again at 4565's booking | two landings running move no column |
 | 4548 fifth, row 3 | rules, whole; unseated | row 3's column, eleven lines | a take, `0xffbu`, to 6000 | two landings running move no column |
 
@@ -127,7 +132,8 @@ rules items. The pairs of 2026-11-20 were not redrawn or uploaded.
   rows of the fifth were ended by the original before 6,000, both with
   the computers allied against the human.
 - **Whether a scripted human can be recorded on a held-out lobby is
-  still unread**, as at the pass before.
+  still unread**, as at the pass before, and Ramon has now asked for
+  one. It is item 4566's first act.
 - **The sample's rate is two figures, not a forecast.** Nothing says
   which of 158 and 34 states a landing the next ten will resemble.
 - **Why a lane waits 46 minutes on its own gate is measured, not
@@ -149,3 +155,18 @@ rules items. The pairs of 2026-11-20 were not redrawn or uploaded.
 ## The gate
 
 Whole, by `tools/gate_run.sh`, once.
+
+- **`gate-pass-1122b.log`: `gate exit 0`** on `a182ae5ad`, the pass's
+  commit, 9 of 9 steps: offline 1.0, guard 0.5, merge pins 1.1, release
+  21.9, clock 0.1. `Clock: green beside load`. Admission 12.7 s over
+  1,551 leases; load 3.0 at its start and 7.9 at its end. `Fixture
+  audit: 202284 requests, 0 missing fixtures`. `Rows: one driver row at
+  most: steer 327c5727 (working)`; `Driver: 0 landings since the last
+  pass (backstop 20) · context 288 k`; `Trunk: origin/main is
+  origin/worktree-replan-pdb`. `Builders: 0 reaped`; 110 GB free after
+  it.
+- **Ramon's two answers came while that gate ran**, and the commit
+  that quotes it carries them: documents only (entry 152 §4 and §5,
+  item 4566, the handoff's lead, one clause of the loop, the tracks'
+  paragraph, the journal, this record). It ran no whole gate; the
+  reflex, `tools/guard.sh`, was green on it.

@@ -166,7 +166,7 @@ is append-only and amended in place, as it always was.
 - 149 extended by 150 — The pass of 2026-11-21, second: the disk stops binding without a file deleted, because the archive's compression skips any file of 2^31 bytes and fourteen ranges records stood raw for it (a record past two billion bytes is kept in gigabyte pieces both readers open as one; thirteen split, 46.8 GiB to 4.1, 56 GB free to 117), the five rows not whole are scored and four seats cut, the sample's take runs to 6400 on the lines that part below it, a fifth battery is named, the fold is still Ramon's at 14 of 15, and the gate table says stopped for a gate the driver stopped.
 - 150 extended by 151 — Ramon folds the spent batteries into the headline (28 of 31 on the pins of 43ee59434; item 4528 builds the count) and the fifth battery adds seats and a team, its first act reading whether the lobby page sets a team, and starts now with the seats alternating between batteries
 - 151 extended by 152 — The pass of 2026-11-22: the fifth battery was spent at item 4534 and folds, so the headline reads 39 of 47 on the pins that read 37 of 39 (a guard reads the row tests against the spent list); the sample's seat was stopped against its rule and reopens (every one of its four landings moved the `Parity:` line); the gate refuses while `origin/main` is behind the pushed tip (137 commits at the drain); the handoff's bound is 36 and the queue's preamble is read against it; entry 150 §1 to §3 confirmed; seven rows scored and four seats cut; a sixth battery is named, taken when the fifth reads 4 of 8
-- 152 standing — The pass of 2026-11-22, second: items 4565 and 4564 named one pair of fields (`targeted`, `attack_ox`) on the sample and on row 43, so one seat carries both; a probe of `launch_point`'s fallback over the forty held-out games and the sample lists eight pieces with no bay, and item 4559 builds them in one act; the sixth battery keeps its trigger, its item 4566 is written, and its games run to 12,000, past the state the sample parts on; the sample's seat moved 158 states a landing; `tools/guard.sh` asks `cargo fmt`
+- 152 standing — The pass of 2026-11-22, second: items 4565 and 4564 named one pair of fields (`targeted`, `attack_ox`) on the sample and on row 43, so one seat carries both; a probe of `launch_point`'s fallback over the forty held-out games and the sample lists eight pieces with no bay, and item 4559 builds them in one act; the sixth battery keeps its trigger, its item 4566 is written, and its games run to 12,000, past the state the sample parts on, with a scripted human (Ramon, the same day); the sample's seat moved 158 states a landing; `tools/guard.sh` asks `cargo fmt`
 
 ## 1. Fidelity before divergence
 
@@ -15404,11 +15404,23 @@ to 12,000**, and its found column is pinned on every state, with each
 row's reach inside its first 6,001 states written beside it so the
 fifth's 48 % has its like. It costs about two hours of the game lane
 where a battery cost one, and a walk twice as long in the suite. The
-length is the pass's own rule to change; Ramon is told first in the
-record, and until the declaration is committed a word from him makes
-it 6,000 again. The human stays idle unless he says otherwise, as §6
-of entry 151 left it. Chosen over taking the sixth today at 3 of 8:
-nothing is gained by the hours, and the four seats are full.
+length is the pass's own rule to change, and Ramon was told first.
+Chosen over taking the sixth today at 3 of 8: nothing is gained by the
+hours, and the four seats are full.
+
+**Ramon answered both on the `steer` row while the pass's gate ran**:
+"12k frames sounds ok", and of entry 151 §6's question, "im ok with
+removing human or scripting human yes". So the length stands, and
+**the sixth's human plays from a script**. Removing the seat is not
+taken: a game carrying a person's orders is the limit no battery has
+touched, and a game with no person in it leaves it untouched. Whether
+step 4's minting (`recgame::minted_packages`, RECGAME §9) serves a
+held-out lobby is unread: its three orders name objects read off one
+lobby's built start. Item 4566's first act reads it, and its
+declaration names each row's orders before any file is recorded. If
+the minting cannot serve a row, that commit says so, the row is
+recorded idle, and the script becomes an item of its own, as entry 150
+§2 arranged for the team.
 
 **§5. The sample's seat is moving, and slowing.** Its six landings
 moved the first parting 6108 → 7055: +6, +48, +507, +259, +93 and +34
@@ -15419,7 +15431,15 @@ tranche's mean, and four hundred at the last landing's. The stop rule
 of entry 148 §5 has not fired and is not changed: every landing moved
 the line. The figure goes to Ramon because the seat is the one game in
 the set a person played, and §3's three pieces say what waits past
-8000.
+8000. He asked what to do about it. Nothing changes now: the seat is
+one of four and its leaf is row 43's too. **The sixth's found column
+decides.** If its rows part past 6,000 on leaves of the sample's kind,
+the sample's seat works those rows, eight first partings on short
+walks where the sample offers one on a long one, and the sample is
+scored again at each booking. If they run whole to 12,000 under a
+script, the sample's trouble is what a person's own orders reach, and
+the script grows toward them. The driver puts the reading to the pass
+after the sixth is pinned.
 
 **§6. The reflex asks the format.** Three of the tranche's fifteen
 booking gates were red, each on paperwork, each mended by a second

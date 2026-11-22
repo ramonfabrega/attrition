@@ -522,8 +522,8 @@ when the first reads 4 of 8 now, or on Ramon's word; the third (rows 5 to
 when the third reads 7 of 8 (DECISIONS 148 §2); the fifth (rows 3 to 143)
 when the fourth does (DECISIONS 149 §3); the sixth (rows 13 to 153) when
 the fifth reads 4 of 8 (DECISIONS 151 §6), recorded to 12,000 where the
-five before stop on 6,000 (DECISIONS 152 §4: the sample parts past the
-end of every held-out game). **A battery is spent when a row
+five before stop on 6,000, its human scripted (DECISIONS 152 §4: the
+sample parts past the end of every held-out game; Ramon, 2026-11-22). **A battery is spent when a row
 of it has a leaf test, and `held_out::SPENT` then holds it**: a guard reads
 the tests' names, and the booking that lands a row's first leaf adds the
 battery and writes `Parity:` (151 §2: the fifth stood off the list for
