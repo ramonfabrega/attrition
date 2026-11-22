@@ -109,6 +109,14 @@ pub struct Building {
     pub under_attack: u8,
     /// `build_masks & 0x4000`: eject one squad a frame.
     pub eject_pending: bool,
+    /// **`build_masks & 0x8000`: jammed** (item 4541, `docs/COMBAT.md`
+    /// §8.7). `Build::do_attack@006228f0` is its one writer: past the hits
+    /// test it asks `ObjectData::is_jammed@00653660` (vslot `+0xe0`), sets
+    /// the bit and returns without a shot when an enemy special forces unit
+    /// stands within reach, and clears it otherwise ([`crate::Sim::is_jammed`]).
+    /// `Wall::inc_time@0063fb60` reads it beside `near_o` for an anti-air
+    /// building's wind-down.
+    pub jammed: bool,
     /// **`build_masks & 0x2000`: no builder could be found** (item 4455).
     /// One writer sets it, `Leader::check_orphaned_buildings@006c9f20`'s
     /// tail (`orw %cx, 0x60(%eax)` at `6ca6c6`), on a computer's
@@ -448,6 +456,7 @@ impl Sim {
             helpers: 0,
             under_attack: 0,
             eject_pending: false,
+            jammed: false,
             no_builder: false,
             hold_frames: 0,
             fort_slot: None,

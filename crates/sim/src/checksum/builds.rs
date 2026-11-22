@@ -181,6 +181,7 @@ impl Sim {
             (0x1000, bd.activated),
             (0x2000, bd.no_builder),
             (0x4000, bd.eject_pending),
+            (0x8000, bd.jammed),
         ]
         .iter()
         .filter(|(_, on)| *on)
