@@ -41044,6 +41044,11 @@ minutes were spent waiting on another lane. `df -g ~` read 88 GB free before it 
   `docs/CITIES.md` §3.4): record 2037 is who=2's Taj Mahal site (`TypeIndex` 0x21b), a 19-point round on 3041 after
   its progress; theirs keeps 6023 (`site_hits` at the pre-blow `job_counter` 76,214) until 3042's walk prints
   6017. Builds 3,356 → 3,360, first 3041 → 3360. The row's first parting is units on 3359.
+- **Re-scored by item 4562** (the computer's sortie scores an enemy's forts and wonders, `Object::do_launch`
+  `64fa71`..`64fda4`, `docs/GOLDEN.md` §50): record 117 on 3359 is who=2's Biplane (`TypeIndex` 0x11f), `orders.count`
+  ours 1 (an `AIR_PATROL` over its city), theirs 0; the Airbase `2/2018`'s sortie on 3358 takes who=1's whole wonder
+  `1/2026` at 217 (×10, 46 steps of 768), out of the plane's reach. Units 3,359 → 3,645, builds 3,360 → 3,645,
+  goods 4,678 → 4,272 (a named fall). The row's first parting is units, builds, guys and cities on 3645.
 - Filed by `filerun.py run1784 heldout5-row083-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1784-heldout5-row083-ranges.txt`, 2,869 bytes, SHA-256
   `a9b435ef5bd053ca7a1b9832b5ce70729ff25450cfd7d673a1485805af3a85f1`; `rontrace.log` → `Logs/rontrace-run1784.log`,
@@ -41051,7 +41056,9 @@ minutes were spent waiting on another lane. `df -g ~` read 88 GB free before it 
   in place.
 
 **What it holds**: `diff::held_out::tests::row_83_s_computer_lists_a_caravan_by_its_ally_s_city_on_run1784_s_ranges`
-(every leaders range on states 1955 and 1956).
+(every leaders range on states 1955 and 1956), and
+`row_83_s_airbase_keeps_its_biplane_when_a_wonder_outscores_the_city_on_run1784_s_ranges` (every units and builds
+range on 3358 to 3360).
 ## run1786 — the 2017 sample's playback to 8,000 with the checksum and ranges hooks, every line but walls kept (2026-11-22, item 4555, `att-4555`)
 
 `docs/RECGAME.md` §7; DECISIONS 148 §5. **What the disk could not answer**: run1772's record ends on 6399, and the
