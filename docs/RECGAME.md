@@ -1507,8 +1507,7 @@ first parting.
 
 *Not established*: no row names a leaf, since each take holds sums only. ~~Row 23 parts on leaders at state 0, ours
 569079079, theirs 568292647: the frame-0 state of a start whose two computers are one team, the shape of no lobby
-on disk until now.~~ Row 23's leaders are whole (§12.6, item 4534: the team was not the cause; who=0's oil claim
-at setup was). Every other row parts first between 1582 and 3857. Each needs a ranges take of its file, keeping
+on disk until now.~~ Whole (§12.6). Every other row parts first between 1582 and 3857. Each needs a ranges take of its file, keeping
 the lines it parts on, before its leaf can be named.
 
 ### 12.4 Row 95: a CEO going in leaves its city (item 4519)
@@ -1541,36 +1540,7 @@ CEO does not leave the freighter before 6000 in ours, and no capture shows a CEO
 part on 5909: range 2689 (units) and 720 (guys), record 99, guy byte 26, `turret_angles[0]` and
 `des_turret_angles[0]` both ours 45023232, theirs 44564480. run1770 holds both lines' ranges to 6000.
 
-### 12.6 Row 23: setup claims under the colonized limit until `analyze_map` runs (item 4534)
+### 12.6 Row 23: setup claims under the colonized limit (item 4534)
 
-**The leaf** (run1781, `docs/RUNS.md`): on state 0, leaders range 58, record 0, `oil_patches` (`LeaderData
-+0x6e88`, a `SimpleArray<int>`), ours `[5, 2]`, theirs `[2, 5]`. These are who=0's two oil patches: gi 5 at (16, 42)
-and gi 2 at (2, 43), both in land region 4. Who=0 is the idle human, team 8. Its city is at (5, 39). The allied team
-of the booking was not the cause.
-
-**The mechanism.** `World::compute_reg_territory@006b0bb0` walks a region's point list (`Region +0x7c`, row-major
-as `Regions::rebuild_coords@0067f800` writes it) and appends a cell's oil patch to its new owner's list. So in one
-pass (16, 42), on row 42, leads (2, 43). Theirs leads with gi 2, so (16, 42) joined at a later pass. The limits
-that pass reads are built once at its top (`:114–123`): the style's player triple when `Region +0x8 & 4`, the
-colonized triple otherwise. Atlantic Sea Power's player base is 48 and its colonized base is the rules' 44.
-`Setup::build_game@005ac190` calls `World::analyze_map` (`:881`, which sets bit 4 on every land region holding a
-city) only after the whole `build_empire` loop, then `compute_all_territory` (`:883`). So who=0's own pass in
-`build_cities` reads 44. (2, 43), raw distance 20 from the city, joins there. (16, 42), raw distance 48, joins only
-at line 883's pass, under 48. Ours ran `analyze_player_regions` in every setup fix (`sync_territory`), so region 4
-was a player region already at who=0's own pass, and both patches joined there in cell order.
-
-**What was ruled out first**, each by a probe on ours (one env guard, reverted whole): no reveal reaches either cell
-before the claim. The city's `update_seen(0)` disc is radius 7 fog cells about fog (10, 78), and the original's is
-the same (`Object::update_seen@00651b80`, `los × 0xc0 / 0x180`). `Object::update_seen_ally@006537a0` writes `seen2`
-directly and calls no `reveal_fog`. Gems, the other arm that moves a limit inside a pass, is not held: who=0 holds
-no rare at any setup claim.
-
-**The build.** `sync_territory` runs the player-region arm only on a world built from a dump (`!cities.walks_setup`).
-The walked setup leaves the bit to `Sim::analyze_map` at the chain's own step, as the original does.
-`row_23_s_setup_claims_oil_under_the_colonized_limit_on_run1781_s_ranges` compares every leaders range on state 0.
-It is red with the gate removed at range 58, ours `[5, 0, 0, 0, 2, …]`.
-
-**Diff-backed**: the leaf, and the order the build produces, by run1781's ranges. **Reading only**: that the
-intermediate owners of every walked setup on a style with an override (Nile Delta, Sea Power, New World) now follow
-the colonized triple until line 883. No capture prints a setup pass's owners. The 22 `diff::start` tests and every
-other battery row are unchanged by the build.
+`analyze_map` sets the player-region bit after every `build_empire` (`Setup::build_game@005ac190:881`), so who=0's
+setup pass gives (16, 42) to no one: run1781's `oil_patches` `[2, 5]`. `docs/journal/2026-11-22-item-4534.md`.
