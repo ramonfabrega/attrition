@@ -572,8 +572,11 @@ impl Sim {
     /// A waypoint with `action` ≠ 0 takes [`Sim::gather_waypoint`]'s verdict
     /// first (item 3915, run1509).
     ///
-    /// SEAM: an enemy found at the point (the attack arms) and a caravan's
-    /// trade arm; no capture sets one.
+    /// An enemy's building at the last point takes
+    /// [`Sim::gather_enemy_building`] (item 4557).
+    ///
+    /// SEAM: an enemy **unit** found at the point (`619c10`..`619d6f`) and
+    /// a caravan's trade arm; no capture sets one.
     pub(crate) fn gather_route(
         &mut self,
         captain: usize,
@@ -769,6 +772,83 @@ impl Sim {
         best.map(|(_, o)| o)
     }
 
+    /// **The routing's enemy arm** (`Unit::come_out@00617c10`,
+    /// `61994e`..`619a9f`; item 4557): the last point is on `tb`, an
+    /// enemy's building, and the trainee is armed. On the point's `action`
+    /// (`local_9f0`, the record's `+0xc`):
+    ///
+    /// - **0, a ground point**: stance 5 sends the squad's group (`Group::
+    ///   action_move_to@0070fba0`), or a lone trainee (`add_move_order`),
+    ///   to the point under `MOVE_TO`; any other stance, a type that is
+    ///   not `is_siege` (the type's vslot `+0x10c`) sends the group, or a
+    ///   lone trainee whose `uber_size` is at most 1, under `ATTACK_TO`.
+    ///   Each is `QUEUE_NEW`, `set_angle` 0 and no action bit, to the
+    ///   point **itself** (`619a04`: the pushes are `(x, y, QUEUE_NEW, 0,
+    ///   0, ATTACK_TO, 0, −1, −1, 0)`), never its free spot. A siege type,
+    ///   or a lone trainee of a squad type, attacks the building:
+    ///   `add_attack_order(tb, QUEUE_LAST, 1, 0)` (`619a18`), and down the
+    ///   `o_down` chain.
+    /// - **Any other**: `add_attack_order(tb, QUEUE_LAST, 1, 1)` and down
+    ///   the chain.
+    ///
+    /// The 2017 sample's Bushi `3/15`, `3/16`, `3/28` (`TI` 158), out of
+    /// the person's Barracks `3/2041` on 6927, whose gather point (4433,
+    /// 30955) is on player 2's `2/2010`: the group's `ox`/`oy` is the
+    /// point, the members' orders carry flags 1 (run1786 on 6928).
+    /// SEAM: `find_any_building_at`'s seen filter.
+    fn gather_enemy_building(
+        &mut self,
+        captain: usize,
+        tb: usize,
+        last: GatherPoint,
+        group: Option<&crate::groups::group::Group>,
+    ) {
+        let point = last.pos;
+        let action = if last.action == 0 {
+            let kind = if self.units[captain].stance == 5 {
+                Some(MoveKind::MoveTo)
+            } else if !self.is_siege_unit(captain) {
+                Some(MoveKind::AttackTo)
+            } else {
+                None
+            };
+            let squad = self.units[captain]
+                .ty
+                .is_some_and(|t| self.tables.unit_types[t].combat.uber_size > 1);
+            match (kind, group) {
+                (Some(kind), Some(g)) => {
+                    self.group_action_move_to(
+                        g,
+                        point,
+                        QueuePos::New,
+                        false,
+                        Angle(0),
+                        kind,
+                        false,
+                    );
+                    return;
+                }
+                (Some(MoveKind::MoveTo), None) => {
+                    self.add_move_order(captain, point, MoveKind::MoveTo, QueuePos::New, false);
+                    return;
+                }
+                (Some(kind), None) if !squad => {
+                    self.add_move_order(captain, point, kind, QueuePos::New, false);
+                    return;
+                }
+                _ => false,
+            }
+        } else {
+            true
+        };
+        let target = crate::combat::Obj::Building(tb);
+        for f in std::iter::once(captain)
+            .chain(self.squad_of(captain).into_iter().filter(|&f| f != captain))
+        {
+            self.add_attack_order(f, target, QueuePos::Last, true, action);
+        }
+    }
+
     /// The routing's last point: `last` itself for the building and unit
     /// tests, `spot` its free spot for the move, `prev` the leg's origin.
     fn gather_route_last(
@@ -832,6 +912,14 @@ impl Sim {
                 for f in self.squad_of(captain) {
                     self.add_garrison_order(f, tb, false, QueuePos::Last, false);
                 }
+                return;
+            }
+            // **The enemy arm** (`61994e`..`619fe2`, item 4557): an armed
+            // trainee (`+0x1e8`) whose last point is on an enemy's
+            // building ends the routing here, whatever the arms above did.
+            let armed = self.profile(crate::combat::Obj::Unit(captain)).attack != 0;
+            if armed && self.is_enemy(who, owner) {
+                self.gather_enemy_building(captain, tb, last, group);
                 return;
             }
             if !open {
