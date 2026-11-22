@@ -1094,6 +1094,35 @@ mod tests {
                     }
                 }
             }
+            if let Ok(spec) = std::env::var("RON_PROBE_BUILD") {
+                let want: i64 = spec.parse().unwrap_or(2036);
+                for (bi, b) in built.sim.buildings.iter().enumerate() {
+                    if i64::from(b.index) == want {
+                        eprintln!(
+                            "P4562B state {state} ours b{bi} who {:?} o {} pos {:?} alive {} started {} orig_ty {:?} city {:?} hits {} chits {} ctime {}",
+                            b.owner, b.index, b.pos, b.alive, b.started,
+                            b.orig_ty.map(|t| format!("{:?}", built.sim.tables.build_types[t].ident)),
+                            b.city, b.hits, b.construct_hits, b.constr_time
+                        );
+                    }
+                }
+                for r in all.iter().filter(|r| r.line == 1 && i64::from(r.record) == want) {
+                    if let Some(f) = crate::checksum::fields::range_fields("builds", &r.field, &r.bytes) {
+                        eprintln!("P4562B state {state} theirs {} {:?}", r.field, f);
+                    }
+                }
+            }
+            for li in 0usize..12 {
+                if let (Some(ours), true) = (lines[li].as_ref(), std::env::var("RON_PROBE_DEC").is_ok()) {
+                    let names: Vec<&str> = crate::checksum::CHECKSUM_LINES.iter().map(|l| l.0).collect();
+                    let theirs: Vec<_> = all.iter().filter(|r| usize::from(r.line) == li).collect();
+                    for (a, b) in ours.ranges.iter().zip(&theirs) {
+                        if a.bytes != b.bytes {
+                            let d = crate::checksum::fields::differing_fields(names[li], &a.field, &a.bytes, &b.bytes);
+                            eprintln!("P4562D state {state} {} record {} {} {:?}", names[li], a.record, a.field, d);
+                        }
+                    }
+                }
             for li in 0usize..12 {
                 let Some(ours) = lines[li].as_ref() else {
                     continue;
