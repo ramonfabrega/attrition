@@ -2292,11 +2292,50 @@ mod tests {
         let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
         let mut stream = crate::input::Stream::pump(&rec);
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let draws_from: Option<i64> = std::env::var("RON_PROBE_4553_DRAWS")
+            .ok()
+            .map(|v| v.parse().unwrap());
+        let trace = draws_from.map(|_| {
+            crate::trace::Trace::read(&home.join("ron-golden/run1782/map-18/rontrace.log"))
+                .expect("read")
+                .expect("trace")
+        });
         for state in lo..=hi {
             while built.sim.frame < state {
                 crate::diff::harness::debug_watch(&built, built.sim.frame);
                 stream.apply(built.sim.frame as i32, &mut built);
+                let f = built.sim.frame;
+                let before = built.sim.rng.seed;
+                built.sim.trace.trace_phases = draws_from.is_some_and(|d| f >= d);
                 built.sim.command().tick();
+                if let (Some(t), true) = (&trace, built.sim.trace.trace_phases) {
+                    let ours = crate::diff::report::mark_sites(
+                        &built.sim.trace.phase_marks,
+                        built.sim.rng.seed,
+                    )
+                    .unwrap_or_default();
+                    let fd = t.frame_draws(f);
+                    let theirs = t.labels(f);
+                    let s0 = fd.first().map(|d| d.seed);
+                    eprintln!(
+                        "D4553 f{f} word ours {before:#x} theirs {s0:x?} n ours {} theirs {}",
+                        ours.len(),
+                        theirs.len()
+                    );
+                    if ours != theirs {
+                        let n = ours.len().max(theirs.len());
+                        for i in 0..n {
+                            let v = fd.get(i).and_then(|d| d.value().map(|v| v % 100));
+                            eprintln!(
+                                "D4553 f{f} #{i} ours {:?} theirs {:?} p {:?} up {:x?}",
+                                ours.get(i),
+                                theirs.get(i),
+                                v,
+                                fd.get(i).map(|d| d.up)
+                            );
+                        }
+                    }
+                }
             }
             let set = record.first_of(state - 1).expect("the state's set").clone();
             let all = record.ranges(&set).expect("the set's ranges");
