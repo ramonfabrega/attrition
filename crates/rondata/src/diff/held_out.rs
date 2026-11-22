@@ -620,8 +620,8 @@ mod tests {
         let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
         let mut stream = crate::input::Stream::pump(&rec);
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
-        let lo: u32 = std::env::var("P_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(1740);
-        let hi: u32 = std::env::var("P_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(1760);
+        let lo: i64 = std::env::var("P_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(1740);
+        let hi: i64 = std::env::var("P_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(1760);
         let w = built.sim.world.width();
         eprintln!("PROBE width {w} height {}", built.sim.world.height());
         for state in lo..=hi {
@@ -629,7 +629,7 @@ mod tests {
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
             }
-            let set = record.first_of(state as i64 - 1).expect("the state's set").clone();
+            let set = record.first_of(state - 1).expect("the state's set").clone();
             let all = record.ranges(&set).expect("the set's ranges");
             let ours = built.sim.checksum_world();
             let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
