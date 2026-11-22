@@ -761,9 +761,13 @@ pub(in crate::diff) mod tests {
     /// -> 6162, ammo 6156 -> 7023, deaths 6186 -> 7085, groups 6153 ->
     /// 6928, guys 6115, leaders 6119, cities 6151 and world 6116 -> 7021,
     /// items 7372 -> 7544, goods 6542 -> 7423; builds 6162 the lowest.
+    /// Item 4552 (`Wall::check_ever_seen@0063ce70` filters an unstarted
+    /// building with the owner's stored `+0x6929`: the Temple `2/2025`
+    /// placed on 6161, `2515 2025 ever_seen` ours 7, theirs 5, seat 2's
+    /// byte 5): builds 6162 -> 7021; units 6669 the lowest.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 6669),
-        ("builds", 6162),
+        ("builds", 7021),
         ("walls", 21044),
         ("ammo", 7023),
         ("deaths", 7085),
@@ -1699,13 +1703,9 @@ pub(in crate::diff) mod tests {
     /// orders), deaths 6190 -> 6186. Built (item 4549: the bell's
     /// building arm takes `2/11` and `2/14` off `2/2001`'s gatherer chain
     /// on 6113): units 6114 and builds 6114 -> past 6400 and 6162 (`2515
-    /// 2025 ever_seen` 7|5); every other line past the window.
-    const SAMPLE_RANGES_1772: &[(&str, i64, usize, usize, usize, &str)] = &[(
-        "builds",
-        6162,
-        4102,
-        4102,
-        1,
-        "2515 2025 job_counter..demolition: ever_seen 7|5",
-    )];
+    /// 2025 ever_seen` 7|5); every other line past the window. Built
+    /// (item 4552: the unstarted scan takes the owner's stored ally
+    /// byte, seat 2's 5): builds 6162 -> past the window; no kept line
+    /// parts below 6400.
+    const SAMPLE_RANGES_1772: &[(&str, i64, usize, usize, usize, &str)] = &[];
 }
