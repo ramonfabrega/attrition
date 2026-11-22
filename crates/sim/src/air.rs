@@ -2889,14 +2889,28 @@ impl Sim {
     /// **`Wall::inc_time@0063fb60` for one leader's buildings**, which
     /// `Objects::inc_time@0065db70` runs after that leader's units and
     /// before the next leader's ([`Sim::guys_inc_time`]), in object order
-    /// from 2000. Only its anti-air arm changes the simulation
-    /// ([`Sim::wall_anti_air`], `docs/COMBAT.md` §84).
+    /// from 2000. Two of its arms change the simulation: an unfinished
+    /// site's hit points refreshed from its progress, and the anti-air
+    /// arm ([`Sim::wall_anti_air`], `docs/COMBAT.md` §84).
+    ///
+    /// **The site's refresh is its first statement** —
+    /// `Wall::inc_time@0063fb60:48`..`56`, `if (!is_active) update_hits(this,
+    /// 0)` — so it runs here, **ahead of `Ammo::inc_time`'s list**, and a
+    /// round landing on a site later in the frame takes `lost × 50` off
+    /// `job_counter` without touching `construct_hits` until the next
+    /// frame's walk (item 4556, `docs/CITIES.md` §3.3). run1784's Taj Mahal
+    /// site `2/2037` took a 19-point blow on 3041 and printed
+    /// `construct_hits` 6023, `site_hits` at the pre-blow 76,214; ours,
+    /// refreshing after the ammo list, printed 6017, at 75,264.
     pub(crate) fn walls_inc_time(&mut self, who: u8) {
         let mut mine: Vec<usize> = (0..self.buildings.len())
             .filter(|&b| self.buildings[b].owner == who && self.buildings[b].alive)
             .collect();
         mine.sort_by_key(|&b| self.buildings[b].index);
         for b in mine {
+            if !self.buildings[b].active {
+                self.update_hits(b);
+            }
             self.wall_anti_air(b);
         }
     }

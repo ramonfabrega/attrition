@@ -3233,19 +3233,6 @@ impl Sim {
         bd.sync_health();
     }
 
-    /// The sites' hit points refreshed from their progress — `Wall::inc_time`
-    /// after every object has been processed.
-    pub(crate) fn refresh_site_hits(&mut self) {
-        for b in 0..self.buildings.len() {
-            if self.buildings[b].alive
-                && !self.buildings[b].active
-                && self.buildings[b].ty.is_some()
-            {
-                self.update_hits(b);
-            }
-        }
-    }
-
     // ------------------------------------------------------------------
     // Capture
     // ------------------------------------------------------------------
