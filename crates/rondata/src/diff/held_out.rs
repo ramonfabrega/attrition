@@ -6226,7 +6226,32 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4542 (`get_cost`'s locked-team wonder term; run1782's
+        // leaf, leaders range 171, record 1, who=1's Colosseum (TI 530)
+        // make-list entry on 1582, `val` ours 66,750, theirs 53,400): leaders
+        // 1,582 -> 1,828; cities 1,958 -> 2,342, items 2,179 -> 3,435, goods
+        // 1,965 -> 2,046; ammo 3,780 -> 3,758, a named fall past its first
+        // parting (3321, unmoved).
+        moved: Some(Score {
+            states: 4223,
+            agreed: [
+                1789, 1810, 4223, 3758, 3481, 1903, 1789, 1828, 2342, 3435, 2046, 1806,
+            ],
+            first: &[
+                ("units", (1789, Some(2509609850), 1943706443)),
+                ("builds", (1810, Some(3537404403), 1462992888)),
+                ("ammo", (3321, Some(1), 3987474659)),
+                ("deaths", (3481, Some(1), 2307460364)),
+                ("groups", (1903, Some(3874615139), 167898819)),
+                ("guys", (1789, Some(3120588302), 1384277471)),
+                ("leaders", (1828, Some(1133770057), 673903947)),
+                ("cities", (2182, Some(3853398966), 1166094884)),
+                ("items", (2027, Some(1138496331), 1141379917)),
+                ("goods", (2026, Some(2099573197), 1799680457)),
+                ("world", (1806, Some(1643701640), 1687741832)),
+            ],
+            over: None,
+        }),
     }),
     // run1777
     // row 83, as found 2026-11-21: 1 line whole; units 2,338 of 6,001, first 2338; builds 1,958 of
@@ -6310,7 +6335,30 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4542 (`get_cost`'s locked-team wonder term, built on
+        // row 63's leaf; row 103's two computers are allied too, no leaf read
+        // here): leaders 1,757 -> 1,911; ammo 2,882 -> 2,900, deaths 2,508 ->
+        // 2,510, items 2,728 -> 3,045; world stays first at 1750.
+        moved: Some(Score {
+            states: 3295,
+            agreed: [
+                1790, 1854, 3295, 2900, 2510, 1963, 1790, 1911, 1951, 3045, 1987, 1791,
+            ],
+            first: &[
+                ("units", (1790, Some(4038452573), 1054592778)),
+                ("builds", (1824, Some(512225234), 3008295372)),
+                ("ammo", (2860, Some(1), 460261739)),
+                ("deaths", (2510, Some(1), 1937378451)),
+                ("groups", (1963, Some(321777859), 660866967)),
+                ("guys", (1790, Some(2094189105), 2360396383)),
+                ("leaders", (1911, Some(1718948112), 2104168730)),
+                ("cities", (1951, Some(1722361204), 1721574772)),
+                ("items", (3045, Some(3159232445), 3167883199)),
+                ("goods", (1987, Some(1178399185), 1567683031)),
+                ("world", (1750, Some(1825769550), 1731133486)),
+            ],
+            over: None,
+        }),
     }),
     // run1779
     // row 123, as found 2026-11-21: 3 lines whole; units 3,020 of 6,001, first 2986; builds 2,977
