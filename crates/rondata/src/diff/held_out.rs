@@ -1433,7 +1433,11 @@ mod tests {
             let all = record.ranges(&set).expect("the set's ranges");
             let ours = built.sim.checksum_leaders();
             let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
-            assert_eq!(ours.ranges.len(), theirs.len(), "leaders' ranges on {state}");
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "leaders' ranges on {state}"
+            );
             for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
                 assert_eq!(
                     a.bytes, b.bytes,
@@ -1453,7 +1457,11 @@ mod tests {
                 .find(|u| u.alive() && u.owner == 1 && u.index == 19)
                 .expect("1/19");
             assert_eq!(ceo.type_index, 357, "1/19 is the CEO");
-            assert_eq!(ceo.inside_unit.is_some(), state == 5266, "1/19 aboard on {state}");
+            assert_eq!(
+                ceo.inside_unit.is_some(),
+                state == 5266,
+                "1/19 aboard on {state}"
+            );
         }
     }
 
