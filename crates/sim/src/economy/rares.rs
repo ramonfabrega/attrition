@@ -538,19 +538,6 @@ impl Sim {
     /// `ArrayBase<int>::add` guarded by the linear scan both writers make
     /// first: the patch joins the leader's list once.
     pub(crate) fn add_oil_patch(&mut self, who: Player, gi: usize) {
-        if std::env::var_os("RON_DEBUG_OIL").is_some()
-            && !self.ai.ai[who as usize].oil_patches.contains(&gi)
-        {
-            let c = self.world.goods()[gi].pos.cell();
-            eprintln!(
-                "OIL claim who={who} gi={gi} cell=({},{}) region={:?} in_play={} list={:?}",
-                c.x,
-                c.y,
-                self.world.region_of(c),
-                self.in_play,
-                self.ai.ai[who as usize].oil_patches
-            );
-        }
         let list = &mut self.ai.ai[who as usize].oil_patches;
         if !list.contains(&gi) {
             list.push(gi);
@@ -607,40 +594,6 @@ impl Sim {
     /// patches in the goods list's order, which is the order the original's
     /// per-cell scan reaches them in only where it reaches them by cell.
     pub fn claim_oil_from_owners(&mut self) {
-        if std::env::var_os("RON_DEBUG_OIL").is_some() {
-            let a = self.world.owner(crate::world::Cell::new(2, 43)).player();
-            let b = self.world.owner(crate::world::Cell::new(16, 42)).player();
-            eprintln!(
-                "OIL call in_play={} walks_setup={} owner(2,43)={a:?} owner(16,42)={b:?} cities={:?}",
-                self.in_play,
-                self.cities.walks_setup,
-                self.cities
-                    .cities
-                    .iter()
-                    .map(|c| (c.owner, c.pos.cell().x, c.pos.cell().y))
-                    .collect::<Vec<_>>()
-            );
-            eprintln!(
-                "OIL gems who0={} borders0={:?} rares0={:#x}",
-                self.has_rare(0, crate::economy::GEMS),
-                self.territory.borders.first(),
-                self.economy.ledgers[0].rare
-            );
-            let t = &self.tables.tuning;
-            for cell in [crate::world::Cell::new(16, 42), crate::world::Cell::new(2, 43)] {
-                let here = cell.centre_tile();
-                let lim = self.world.region_territory_limits(self.world.region_of(cell).unwrap_or(0));
-                for s in self.territory.sources.iter() {
-                    let d = crate::world::vector_dist(here.x - s.pos.tile().x, here.y - s.pos.tile().y);
-                    let l = lim.map_or(s.limit, |l| s.limit_in(l));
-                    let c = crate::territory::cost(t, s.kind, crate::territory::contract(d), s.bonuses);
-                    eprintln!(
-                        "OIL src cell=({},{}) owner={} pos={:?} bonuses={} limit={l} steps={:?} d={d} cost={c:?} cap={}",
-                        cell.x, cell.y, s.owner, s.pos.tile(), s.bonuses, s.steps, crate::territory::cost_cap(t)
-                    );
-                }
-            }
-        }
         // **A land patch joins in the per-cell scan's own order** (item
         // 1538, `docs/AI.md` §147): `compute_reg_territory` walks the land
         // regions in order and each region's cells row-major
@@ -959,12 +912,6 @@ pub trait RevealFogView {
 /// cell.
 pub fn reveal_fog_steps<V: RevealFogView>(v: &mut V, fx: i32, fy: i32, who: i32, unit: i32) {
     let (cx, cy) = (fx >> 1, fy >> 1);
-    if std::env::var_os("RON_DEBUG_OIL").is_some() && matches!((cx, cy), (2, 43) | (16, 42)) {
-        eprintln!(
-            "OIL see who={who} fog=({fx},{fy}) cell=({cx},{cy}) flags={:#x} unit={unit}",
-            v.cell_flags(cx, cy)
-        );
-    }
     if v.tile_marked(fx, fy) {
         let gi = v.find_good_at((2 * fx + 1) >> 2, (2 * fy + 1) >> 2, who);
         if gi >= 0 && v.good_alive(gi) {
@@ -1124,18 +1071,6 @@ impl RevealFogView for SimRevealFog<'_> {
         self.sim.ai.ai[who as usize].oil_patches[k as usize] as i32
     }
     fn oil_add(&mut self, who: i32, gi: i32) {
-        if std::env::var_os("RON_DEBUG_OIL").is_some() {
-            let g = self.sim.world.goods()[gi as usize];
-            let c = g.pos.cell();
-            eprintln!(
-                "OIL reveal who={who} gi={gi} cell=({},{}) region={:?} in_play={} list={:?}",
-                c.x,
-                c.y,
-                self.sim.world.region_of(c),
-                self.sim.in_play,
-                self.sim.ai.ai[who as usize].oil_patches
-            );
-        }
         self.sim.ai.ai[who as usize].oil_patches.push(gi as usize);
     }
     fn find_goody_at(&mut self, cx: i32, cy: i32) -> i32 {

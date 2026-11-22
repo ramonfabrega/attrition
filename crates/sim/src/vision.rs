@@ -560,16 +560,6 @@ impl Sim {
     /// where the original, which could see them, went round
     /// (`docs/PATHFINDER.md` §5, `docs/SCOUT.md`).
     pub fn update_seen_build(&mut self, b: usize) -> usize {
-        if std::env::var_os("RON_DEBUG_OIL").is_some() && self.buildings[b].owner == 0 && !self.in_play {
-            eprintln!(
-                "OIL build_seen b={b} ty={:?} has_fog={} alive={} mylos={} pos={:?}",
-                self.buildings[b].ty,
-                self.world.has_fog(),
-                self.buildings[b].alive,
-                self.buildings[b].mylos,
-                self.buildings[b].pos
-            );
-        }
         if !self.world.has_fog() || !self.buildings[b].alive {
             return 0;
         }
@@ -668,18 +658,6 @@ impl Sim {
     /// is `World::set_seen`'s `param_4` for the whole range.
     fn write_sweep(&mut self, sw: &Sweep, who: crate::Player, detect: bool) -> usize {
         let mask = 1u8 << who;
-        if std::env::var_os("RON_DEBUG_OIL").is_some() && who == 0 && !self.in_play {
-            eprintln!(
-                "OIL sweep who=0 centre={:?} radius={} range={}..{} ring={} fog={}x{}",
-                sw.centre,
-                sw.radius,
-                sw.start,
-                sw.end,
-                sw.ring,
-                self.world.fog_xs(),
-                self.world.fog_ys()
-            );
-        }
         let (cx, cy) = sw.centre;
         let (fw, fh) = (self.world.fog_xs(), self.world.fog_ys());
         // The hoisted test: the whole disc on the grid, so the per-point
