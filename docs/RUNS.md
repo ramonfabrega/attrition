@@ -41043,6 +41043,34 @@ minutes were spent waiting on another lane. `df -g ~` read 88 GB free before it 
   in place.
 
 **What it holds**: `diff::held_out::tests::row_83_s_computer_lists_a_caravan_by_its_ally_s_city_on_run1784_s_ranges`
+(every leaders range on states 1955 and 1956).
+## run1786 — the 2017 sample's playback to 8,000 with the checksum and ranges hooks, every line but walls kept (2026-11-22, item 4555, `att-4555`)
+
+`docs/RECGAME.md` §7; DECISIONS 148 §5. **What the disk could not answer**: run1772's record ends on 6399, and the
+sample's score stood on units 6669, groups 6928, builds, guys, leaders, cities and world 7021, ammo 7023, deaths
+7085, goods 7423 and items 7544, all past it and none on a range record. **The take**: run1772's line with the end
+moved to 8000, the log window on 6663, and the mask cut to the eleven lines that part below 8000 on the hook's sums:
+`TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1786 --recording
+"<install>/external-recgames/seifer008 - Toughest AI 4 v 1.rcx" --end-frame 8000 --cover cover=1 --log-window 6663
+6675 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES
+--tracer-def RNG_MASK=0xffbu`, waited on with `waitrun.sh` in the background lane. The game lane read free; `df -g ~`
+read 91 GB free before it and 79 GB after (before the split).
+- Pool lane 1, launched 09:38:18 −05:00 and exited 09:48:12: **594.1 s** launch to exit, exit 0, `success`, 8,001
+  frames, `last_frame` 8000, not ended early. Seed observed 340513920, no page fault, no relaunch, five settings
+  restored. DLL `6e30b733…`, defines `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0xffbu`.
+  The recording's SHA-256 is `df7830d7…`.
+- **The record**, `~/ron-golden/run1786/map-7/rontrace.ranges`, 7,343,761,240 bytes in seven pieces, SHA-256
+  `0a47b946d288fafdb06678ff423df7cc0bed9aec7ae79740ccfaa6964a0e453c`; 6.84 GiB on disk before the split, 0.65 after;
+  one set on every trace frame −1 to 7999.
+- Filed with `filerun.py run1786 sample2017-playback-ranges-8000`.
+
+Archive `gamelog-run1786-sample2017-playback-ranges-8000.txt`, 3,775 bytes,
+SHA-256 `d830e578dbf52dd5833270e0f6c8854b4218ae4b39d6c862c48171d6c55f7644`; `rontrace-run1786.log`, 134,658,432
+bytes, SHA-256 `627e49bf69c91e831ff7f15ee6e3aa1137be505962686ccb57b08e2bcc0b0e2f`.
+
+**What it holds**: `diff::sample::tests::the_sample_s_ranges_to_8000_name_each_first_parting`
+(`SAMPLE_RANGES_1786`): each kept line's first parting by range over 0..8000, on the frame its sum parts — eleven
+rows, every one on the hook's frame.
 (every leaders range on states 1955 and 1956);
 `row_83_s_artillery_carries_the_supply_veto_s_mark_on_run1784_s_ranges` (every units range on 2810 to 2812, 2842
 and 2843, item 4554).
