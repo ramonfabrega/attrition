@@ -377,6 +377,21 @@ fn a_caravan_s_search_stops_at_the_budget_and_the_next_frame_resumes_it() {
     );
 }
 
+/// **A goal popped past the budget parks** (`astar_caravan_road@00685990`,
+/// `6860af`: the goal lays its path only while the counter is under
+/// 0xc80; item 4544). Made to fail by testing the goal before the budget,
+/// as this crate did until item 4544: the goal at 0xc80 then lays.
+/// run1783's ranges hold the consequence end to end
+/// (`rondata::diff::held_out`, row 103's caravan road).
+#[test]
+fn a_goal_popped_past_the_budget_parks_and_under_it_lays() {
+    assert_eq!(pop_answer(true, WORK_CAP), PopAnswer::Park, "the goal at 0xc80");
+    assert_eq!(pop_answer(true, WORK_CAP + 3), PopAnswer::Park, "run1783's 3,203");
+    assert_eq!(pop_answer(true, WORK_CAP - 1), PopAnswer::Lay, "the goal under it");
+    assert_eq!(pop_answer(false, WORK_CAP), PopAnswer::Park, "any node at 0xc80");
+    assert_eq!(pop_answer(false, 0), PopAnswer::Expand, "a node under it");
+}
+
 /// **Between two regions, only the step off land pays the sea**
 /// (`calc_road_cost@00686300`, `docs/CARAVAN.md` §11, item 1115). With
 /// `pathfinder +0x8c` clear, `+0xa8` is added when the node's parent
