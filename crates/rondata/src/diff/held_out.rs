@@ -5771,9 +5771,12 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
 /// (run1730) whole with its ammo line (a falling aircraft's round, who=1's
 /// Jet Fighter `1/114` on 5178). Item 4532: 6 -> 7, row 30 (run1731) whole
 /// with its world and units lines (a unit that boards in its own think
-/// repaints its disc, who=1's Anti-Aircraft Gun `1/114` on 3790).
+/// repaints its disc, who=1's Anti-Aircraft Gun `1/114` on 3790). Item
+/// 4550: 7 -> 8, row 110 (run1735) whole with its world line (who=2's
+/// Space Program sees every started building of who=1's in the danger
+/// map's rebuild of 5600).
 #[cfg(test)]
-pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (7, 8);
+pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (8, 8);
 
 /// One battery: its declared table, its pins, where its files and takes
 /// sit, and its line in the handoff.
