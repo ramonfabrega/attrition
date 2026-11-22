@@ -170,4 +170,19 @@ counts either. The pairs of 2026-11-20 were not redrawn or uploaded.
 
 ## The gate
 
-Whole, by `tools/gate_run.sh`. Quoted when it has run.
+Whole, by `tools/gate_run.sh`, twice.
+
+- **`gate-pass-1121b.log`: `gate exit 1`** on `0931eab72`, the pass's
+  commit, 2 of 9 steps, red at the offline step after 1.1 minutes
+  ("Not done, and said").
+- **`gate-pass-1121c.log`: `gate exit 0`** on `e2341a3d8`, the second
+  commit, 9 of 9 steps: offline 1.1, guard 1.0, merge pins 1.1, release
+  23.0, clock 0.2. `Clock: green beside load`. Admission 13.8 s over
+  1,514 leases; load 5.5 at its start and 8.8 at its end. `Fixture audit:
+  199139 requests, 0 missing fixtures`. `Rows: one driver row at most:
+  steer 15976cba (working)`; `Driver: 0 landings since the last pass
+  (backstop 20) · context 314 k`. `Builders: 0 reaped`; 123 GB free
+  after it.
+- The release step read the split records through the new reader: nine
+  of the thirteen are named by a test, and every one of those tests was
+  green.
