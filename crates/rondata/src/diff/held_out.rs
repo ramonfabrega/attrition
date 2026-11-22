@@ -2482,6 +2482,102 @@ mod tests {
         }
     }
 
+    /// **Row 30's Anti-Aircraft Gun repaints its disc as it casts its
+    /// transport** (item 4532, `docs/COLLISION.md` §2.2): on 3790 who=1's
+    /// `1/114` (TI 281, `BLOCK_RADIUS` 2), standing at unit cell (653, 871),
+    /// casts the Transport Freighter `1/152` (TI 322) and boards it in its
+    /// own work. `Unit::process@00610bc0` still runs `Guy::process` over
+    /// its figure after the think, and `Guy::process@005e0230`'s tail asks
+    /// nothing of the unit: on `(frame + o) % 64 == 0` (3790 + 114 = 64 ×
+    /// 61) a standing figure re-marks its whole disc, the one
+    /// `remove_from_world` has just cleared. World cell (40, 54) (record
+    /// 3280) holds the full 5×5 at x 11..15, y 5..9 in theirs from 3791;
+    /// this crate cleared it (`block.body` byte 22 ours 0x00, theirs 0xe0).
+    /// Every world range on 3790 to 3792 agrees.
+    #[test]
+    fn row_30_s_aa_gun_repaints_its_disc_as_it_boards_its_transport_on_run1755_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 1) else {
+            eprintln!("skipping: row 30's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1755/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1755's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 30's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        const AAGUN_TI: i32 = 281;
+        const FREIGHTER_TI: i32 = 322;
+        let find = |sim: &sim::Sim, o: i16| {
+            sim.units
+                .iter()
+                .rposition(|u| u.owner == 1 && u.index == o)
+                .unwrap_or_else(|| panic!("1/{o}"))
+        };
+        for state in [3790i64, 3791, 3792] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let gun = find(&built.sim, 114);
+            let sim = &built.sim;
+            assert_eq!(sim.units[gun].type_index, AAGUN_TI, "1/114's TypeIndex");
+            let at = sim::movement::collide::ucell(sim.units[gun].pos);
+            assert_eq!((at.x, at.y), (653, 871), "1/114's unit cell on {state}");
+            if state == 3790 {
+                assert!(sim.units[gun].on_map, "1/114 on the map on 3790");
+                assert_eq!((3790 + 114) % 64, 0, "3790 is 1/114's repaint frame");
+            } else {
+                let boat = find(&built.sim, 152);
+                assert_eq!(sim.units[boat].type_index, FREIGHTER_TI, "1/152's TypeIndex");
+                assert_eq!(sim.units[gun].inside_unit, Some(boat), "1/114 aboard 1/152");
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_world();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
+            // The cell by name: record 3280 is world cell (40, 54) of the
+            // 60-wide map; words 11..15 of its body are unit columns
+            // x 11..15, bits y. Theirs holds the gun's disc (y 5..9) whole
+            // from 3791, over the two columns' y 11..14 another unit keeps.
+            let k = ours
+                .ranges
+                .iter()
+                .position(|r| r.record == 3280 && r.field == "block.body")
+                .expect("cell 3280's body");
+            let words: Vec<u16> = theirs[k].bytes[22..32]
+                .chunks(2)
+                .map(|c| u16::from_le_bytes([c[0], c[1]]))
+                .collect();
+            let want: [u16; 5] = if state == 3790 {
+                [0x7be0, 0x7800, 0, 0, 0]
+            } else {
+                [0x7be0, 0x7be0, 0x03e0, 0x03e0, 0x03e0]
+            };
+            assert_eq!(words, want, "theirs' columns x 11..15 on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                assert_eq!(
+                    at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                    None,
+                    "world range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                    a.record,
+                    a.field
+                );
+            }
+            assert_eq!(ours.ranges.len(), theirs.len(), "world ranges on {state}");
+        }
+    }
+
     /// **Row 120's MLRS reads `cavarch_o` −2 in the units line** (item
     /// 4443, `docs/RECGAME.md` §10.3): on 5864 the computer's fire-on-the-move
     /// MLRS `1/35` (type 273) steps an `ExploreTo` with an empty search after
