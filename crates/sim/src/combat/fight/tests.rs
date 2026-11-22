@@ -1027,7 +1027,10 @@ fn a_rider_closed_aboard_its_sunk_boat_leaves_an_empty_block_where_it_boarded() 
     assert_eq!(sim.coll_size(rider), 1);
     let at = crate::movement::collide::ucell(sim.units[rider].movement.body.pos);
     let cell = (at.x >> 4, at.y >> 4);
-    assert!(!sim.movement.coll.block_present(cell.0, cell.1), "no block before");
+    assert!(
+        !sim.movement.coll.block_present(cell.0, cell.1),
+        "no block before"
+    );
     sim.units[boat].health = 1;
     let taken = sim.take_damage_typed(
         Obj::Unit(boat),
