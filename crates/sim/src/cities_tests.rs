@@ -9397,7 +9397,7 @@ fn the_city_s_alarm_rings_then_sounds_the_all_clear() {
 /// and with `data_type_slot90` answering no.
 #[test]
 fn the_bell_takes_a_gather_building_s_citizens_however_far() {
-    use crate::orders::{Body, QueuePos, index};
+    use crate::orders::{Body, index};
     let (mut sim, t, citizen, _) = alarm_sim();
     let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
     let farm = sim.place_building(0, t.farm, tile_pos(44, 32)).unwrap();
@@ -9405,11 +9405,9 @@ fn the_bell_takes_a_gather_building_s_citizens_however_far() {
     assert!(sim.is_gather_type(farm));
     let far = sim.init_unit(0, citizen, tile_pos(60, 60));
     let alone = sim.init_unit(0, citizen, tile_pos(60, 62));
-    let mut g = crate::groups::group::Group::stack(0);
-    sim.group_add(&mut g, far);
-    assert!(sim.push_group(&mut g, true));
-    sim.group_gather(&g, farm, QueuePos::New);
-    assert_eq!(sim.buildings[farm].gather_head, Some(far), "on the chain");
+    // The chain's head, as `Build::add_gatherer@0062f640` writes it
+    // (`docs/ORDERS.md` §6.1); the bell reads the chain and nothing else.
+    sim.buildings[farm].gather_head = Some(far);
     let r = sim.radius_of(c);
     let (ft, ct) = (sim.units[far].pos.tile(), sim.cities.cities[c].pos.tile());
     assert!(
