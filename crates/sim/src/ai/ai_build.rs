@@ -353,7 +353,7 @@ impl Sim {
                         l.escrow,
                     );
                     let val = inc.wrapping_mul(l.val) / 256;
-                    if std::env::var("RON_PROBE_4542").is_ok() && (t == 530 || t == 533) {
+                    if std::env::var("RON_PROBE_4542").is_ok() && t == 530 {
                         eprintln!("PROBE4542 make frame {} who {who} c {c} pass {pass} rec {rec} lval {} inc {inc} val {val} mult {} esc {}", self.frame, l.val, l.mult, l.escrow);
                     }
                     self.ai.ai[w]
