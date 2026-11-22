@@ -925,6 +925,12 @@ pub trait RevealFogView {
 /// cell.
 pub fn reveal_fog_steps<V: RevealFogView>(v: &mut V, fx: i32, fy: i32, who: i32, unit: i32) {
     let (cx, cy) = (fx >> 1, fy >> 1);
+    if std::env::var_os("RON_DEBUG_OIL").is_some() && matches!((cx, cy), (2, 43) | (16, 42)) {
+        eprintln!(
+            "OIL see who={who} fog=({fx},{fy}) cell=({cx},{cy}) flags={:#x} unit={unit}",
+            v.cell_flags(cx, cy)
+        );
+    }
     if v.tile_marked(fx, fy) {
         let gi = v.find_good_at((2 * fx + 1) >> 2, (2 * fy + 1) >> 2, who);
         if gi >= 0 && v.good_alive(gi) {
