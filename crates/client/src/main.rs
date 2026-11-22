@@ -10,7 +10,7 @@
 //!        [--still OUT.bmp] [--frames N] [--play] [--trace OUT.json] [--record OUT.rcx]
 //!        [--look X,Y] [--zoom F] [--silhouette OUT.bmp] [--rest]
 //!        [--lobby] [--headless] [--page-still OUT.bmp] [--select O[,O…]]
-//!        [--page-of CAPTURE]
+//!        [--page-of CAPTURE] [--seat TRIBE]… [--team SEAT=TEAM]…
 //! client --read-trace SESSION.json
 //! ```
 //!
@@ -24,7 +24,10 @@
 //! own keys (item 4215): in a window the page opens on it, and with
 //! `--still` or `--headless` the game starts from it at once. With
 //! `--record OUT.rcx --headless` it records that game idle to `--frame`
-//! and draws nothing (item 4413).
+//! and draws nothing (item 4413). `--seat TRIBE` adds a computer seat of
+//! that nation and `--team SEAT=TEAM` sets a seat's team, each by the
+//! page's own keys after the capture's lobby, seats first, in the order
+//! given (item 4527, the fifth battery's seats and team).
 //!
 //! `--still` draws one frame off-screen and writes it; otherwise a window
 //! opens (arrows pan, `+`/`-` zoom, space plays, `Q` or Escape quits), and
@@ -182,6 +185,10 @@ struct Args {
     /// own keys, and the game started from it (item 4215): in a window the
     /// page opens on it; off-screen the game starts at once.
     page_of: Option<String>,
+    /// Seats added to the `--page-of` lobby, by nation (item 4527).
+    seats: Vec<u8>,
+    /// Teams set on the `--page-of` lobby, `(seat, team)` (item 4527).
+    teams: Vec<(usize, i32)>,
     /// Slot 0's objects selected before `--still` draws, with the HUD
     /// (item 4197): `--select O[,O…]`.
     select: Vec<i16>,
@@ -213,6 +220,8 @@ fn parse() -> Result<Args, String> {
         headless: false,
         page_still: None,
         page_of: None,
+        seats: Vec::new(),
+        teams: Vec::new(),
         select: Vec::new(),
         trace: std::env::temp_dir().join(format!("attrition-client-{}.json", std::process::id())),
     };
@@ -248,6 +257,17 @@ fn parse() -> Result<Args, String> {
             "--headless" => a.headless = true,
             "--page-still" => a.page_still = Some(v()?.into()),
             "--page-of" => a.page_of = Some(v()?),
+            "--seat" => a
+                .seats
+                .push(v()?.parse().map_err(|e| format!("--seat: {e}"))?),
+            "--team" => {
+                let s = v()?;
+                let (seat, team) = s.split_once('=').ok_or("--team SEAT=TEAM")?;
+                a.teams.push((
+                    seat.parse().map_err(|e| format!("--team: {e}"))?,
+                    team.parse().map_err(|e| format!("--team: {e}"))?,
+                ));
+            }
             "--select" => {
                 a.select = v()?
                     .split(',')
@@ -285,6 +305,9 @@ fn parse() -> Result<Args, String> {
             }
             _ => return Err(format!("unknown argument {k}")),
         }
+    }
+    if a.page_of.is_none() && !(a.seats.is_empty() && a.teams.is_empty()) {
+        return Err("--seat and --team add to a --page-of lobby".into());
     }
     a.frame = initial_frame.unwrap_or(if a.record.is_some() { 1 } else { 3294 });
     if let Some(path) = &a.record {
@@ -1041,7 +1064,18 @@ fn main() {
     let made = if args.page_of.is_some() || (args.lobby && shown) {
         let roster = rondata::lobby::Roster::read(&args.install);
         let made = match &args.page_of {
-            Some(name) => roster.and_then(|r| lobby::Page::of_capture(&args.logs.join(name), r)),
+            Some(name) => roster.and_then(|r| {
+                let mut page = lobby::Page::of_capture(&args.logs.join(name), r)?;
+                for &tribe in &args.seats {
+                    let seat = page.choices.seats.len();
+                    page.press(&rondata::lobby::Event::AddSeat)?;
+                    page.press(&rondata::lobby::Event::Nation { seat, tribe })?;
+                }
+                for &(seat, team) in &args.teams {
+                    page.press(&rondata::lobby::Event::Team { seat, team })?;
+                }
+                Ok(page)
+            }),
             None => roster.and_then(lobby::Page::new),
         };
         match made {

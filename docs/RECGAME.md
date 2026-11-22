@@ -659,8 +659,16 @@ pairs in the profile's `Recorded Games/` that differ in that byte alone
 (East Indies, styles 0 and 1, difficulties 5, 5 and 0) carry equal rules,
 run state, semaphore and markers (`mint_4387_the_demand_s_game`'s `MINT
 pair` rows), and no Great Lakes game at style 0 has been recorded, so a
-style-1 donor serves a style-0 lobby. It is read from the user's install at
-run time and never kept.
+style-1 donor serves a style-0 lobby. **`PLAYERS` does not move them
+either** (item 4527): the 23 finished donors that seat three on a lobby
+another donor seats two on (17 Great Lakes, 6 East Indies) carry equal
+rules, run state, semaphore and markers, and no donor of the profile's
+1,654 seats three on any of the fifth battery's lobbies (§12.3), so a
+donor may differ in `PLAYERS` too
+(`the_borrowed_sections_move_with_neither_team_style_nor_players`, over
+`RON_RECGAME_DIR`; seen red with one side's run state bent). No donor
+seats four or more, so the widening is measured from two seats to three
+alone. It is read from the user's install at run time and never kept.
 
 **Against the original's own recording of this lobby's game**
 (`Playback - 2026.08.25 00'39'07 (Tue)`, 24,001 packages over frames
@@ -718,8 +726,8 @@ The playback's pace at the trace-only recipe is **11.7 frames a second**
   writes it, replays the same (both takes used 11); what reads
   `graphic_tick`; whether a playback without `camera` and `player_speed`
   differs in anything beyond units over 300 frames and draws over 24,000. The Types stretch is still not derived, so our file
-  needs a donor with the same options: one exists only for a lobby this
-  install has recorded. Multiplayer, CtW and scenario recordings are out of
+  needs a donor with the same options but for `TEAM_STYLE` and `PLAYERS`:
+  one exists only for a lobby this install has recorded. Multiplayer, CtW and scenario recordings are out of
   scope.
 
 ## 9. Minted orders: one list of packages, both sides (item 4059, 2026-11-10)
@@ -1453,3 +1461,51 @@ as shorts read the same way, but none is rebound here and no diff reaches them: 
 and a stack group's selection. Nothing has been read on what theirs' army 5 does with the javelineers after 5576. A
 whole `normalize` would drop them, since their `+0x80` is not 83, but its first call on group 83 has not been located on
 either side. Both sides' groups and units lines agree to 6000.
+
+### 12.3 Parity held out, fifth: rows 3 to 143, three seats and a team (item 4527)
+
+DECISIONS 149 §3, 150 §2 and §3, 2026-11-21. Rows 3, 23, 43, 63, 83, 103, 123 and 143 of the same order, each with
+one seat and one team of two added, declared in `HELD_OUT_FIFTH` (`aece988eb`, 21:55 −05:00) before any file was
+recorded (the eight were written between 21:59 and 22:01). **The page sets both**: `Event::AddSeat` adds a computer
+seat up to eight, `Event::Team` sets a seat's team from 0 to 8 (8 none), and the page's own rows make each by keys
+(`docs/LOBBY.md` §2, §3). Teams 0 to 3 ally (`LeaderData::is_team`), and these rows' `TEAM_STYLE 1` locks them.
+
+**Three seats, because the map holds three.** Every row is `MAP_SIZE 2`, which `rules.xml`'s `mapsizes` names
+"Small (2/3-player)"; a fourth seat would move `MAP_SIZE` and leave the row's lobby. Each row keeps its human (seat 0,
+tribe 4) and its computer (seat 1) and adds a computer of nation 0, 1, 2, 3, 5, 6, 7 or 8 (`HELD_OUT_FIFTH_SEATS`),
+named by its nation's first leader. The team alternates: the human and the added computer are team 0 on rows 3, 43,
+83 and 123, against the row's computer; the two computers are team 1 on rows 23, 63, 103 and 143, against the human.
+The declaration's columns are the page's block after the row's own events and the additions, each through
+`Choices::apply`.
+
+**The recorder needed a widening.** No finished donor seats three on any of the eight lobbies, so none could be
+written until `donor_serves` let a donor differ in `PLAYERS` (§8.2). Each file is `client --record <file> --headless
+--page-of <capture> --seat <tribe> --team <a>=<t> --team <b>=<t> --frame 6000`; `--seat` and `--team` press the
+page's keys after the capture's lobby (`Page::press`). `the_fifth_s_files_carry_the_declared_seats_and_team` reads
+each file back against the declaration's rows.
+
+Each was played by the original as `run1773 + k` under the checksum hook alone, with no ranges, between 22:05 and
+23:07 −05:00, all on pool lane 1 at the first launch, and pinned once in `SCORES_FIFTH` on `87ad488ce`'s tree. That
+found column is the estimate: **1 of 8 whole, 30 of 96 lines, reach 48 %** (21,315 of 43,524 states), where the
+fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original seated three and the team on every take.
+
+| row | run | lobby | team | states | whole | lowest partings (state) |
+|---|---|---|---|---|---|---|
+| 3 | run1773 | Great Sahara, difficulty 3 | human + added | 6,001 | 1 | units, builds, ammo 3857 |
+| 23 | run1774 | Atlantic Sea Power | the computers | 6,001 | 10 | **leaders 0**, units 5695 |
+| 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ammo 3192, units 3196 |
+| 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, ended on 4222 | 1 | leaders 1582, units 1789 |
+| 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | leaders 1956, builds 1958 |
+| 103 | run1778 | East Indies, Modern | the computers | 3,295, ended on 3294 | 1 | world 1750, leaders 1757 |
+| 123 | run1779 | Great Lakes, Gunpowder | human + added | 6,001 | 3 | builds, groups 2977 |
+| 143 | run1780 | Great Sahara, difficulty 1 | the computers | 6,001 | **12** | whole |
+
+The original ended rows 63 and 103 itself, both with the two computers allied against the idle human; our walk
+holds no `game_over` by either end (`over: None`). In row 43 our walk holds `game_over` from 5977, where the
+original plays to 6000. `docs/RUNS.md` run1773 to run1780 holds every value, and the pins hold both sides of every
+first parting.
+
+*Not established*: no row names a leaf, since each take holds sums only. Row 23 parts on leaders at state 0, ours
+569079079, theirs 568292647: the frame-0 state of a start whose two computers are one team, the shape of no lobby
+on disk until now. Every other row parts first between 1582 and 3857. Each needs a ranges take of its file, keeping
+the lines it parts on, before its leaf can be named.
