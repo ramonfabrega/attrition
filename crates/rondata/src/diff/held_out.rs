@@ -187,52 +187,41 @@ mod tests {
         let loaded = crate::load::load(&inst).expect("the install loads");
         let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
         let mut stream = crate::input::Stream::pump(&rec);
-        let mut prev: std::collections::BTreeMap<(u8, i16, &'static str, usize), Vec<u8>> =
-            Default::default();
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let ranges = home.join("ron-golden/run1769/map-18/rontrace.ranges");
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let line_no: u8 = std::env::var("RON_PROBE_4518_LINE").ok().and_then(|v| v.parse().ok()).unwrap_or(0);
+        let watch: Vec<i16> = std::env::var("RON_PROBE_4518_O").ok().map(|v| v.split(',').filter_map(|x| x.parse().ok()).collect()).unwrap_or_default();
         for state in lo..=hi {
             while built.sim.frame < state as _ {
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
             }
-            let line = built.sim.checksum_units();
-            let groups = built.sim.checksum_groups();
-            eprintln!("PROBE state {state} units {} groups {} ranges {}", line.adler(), groups.adler(), line.ranges.len());
-            let mut cur: std::collections::BTreeMap<(u8, i16, &'static str, usize), Vec<u8>> =
-                Default::default();
+            let line = if line_no == 0 { built.sim.checksum_units() } else { built.sim.checksum_groups() };
+            let set = record.first_of(state as i64 - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == line_no).collect();
+            eprintln!("PROBE state {state} ours {} ranges {} theirs {}", line.adler(), line.ranges.len(), theirs.len());
             let mut who = 0u8;
-            let mut seen: std::collections::HashMap<(i16, &'static str), usize> = Default::default();
-            for r in &line.ranges {
-                if r.field == "who..y_internal" {
-                    who = r.bytes[0];
+            for (k, (a, b)) in line.ranges.iter().zip(&theirs).enumerate() {
+                if a.field == "who..y_internal" {
+                    who = a.bytes[0];
                 }
-                let n = seen.entry((r.record, r.field)).or_default();
-                cur.insert((who, r.record, r.field, *n), r.bytes.clone());
-                *n += 1;
-            }
-            if state > lo {
-                for (k, v) in &cur {
-                    match prev.get(k) {
-                        None => eprintln!("PROBE {state} new {}/{} {} #{}", k.0, k.1, k.2, k.3),
-                        Some(p) if p != v => {
-                            let diffs: Vec<String> = p
-                                .iter()
-                                .zip(v)
-                                .enumerate()
-                                .filter(|(_, (a, b))| a != b)
-                                .map(|(i, (a, b))| format!("{i}:{a}->{b}"))
-                                .collect();
-                            eprintln!("PROBE {state} changed {}/{} {} #{} len {} {}", k.0, k.1, k.2, k.3, v.len(), diffs.join(" "));
-                        }
-                        _ => {}
-                    }
+                if watch.contains(&a.record) {
+                    eprintln!("PROBE {state} watch {who}/{} {} ours {:?} theirs {:?}", a.record, a.field, a.bytes, b.bytes);
                 }
-                for k in prev.keys() {
-                    if !cur.contains_key(k) {
-                        eprintln!("PROBE {state} gone {}/{} {} #{}", k.0, k.1, k.2, k.3);
-                    }
+                if a.bytes != b.bytes {
+                    let diffs: Vec<String> = a
+                        .bytes
+                        .iter()
+                        .zip(&b.bytes)
+                        .enumerate()
+                        .filter(|(_, (x, y))| x != y)
+                        .map(|(i, (x, y))| format!("{i}:{x}/{y}"))
+                        .collect();
+                    eprintln!("PROBE {state} part range {k} {who}/{} {} lens {}/{} {}", a.record, a.field, a.bytes.len(), b.bytes.len(), diffs.join(" "));
                 }
             }
-            prev = cur;
         }
         for u in built.sim.units.iter().filter(|u| u.alive() && u.owner < 9) {
             let name = u.ty.and_then(|t| built.unit_type_names.get(t)).map_or("?", String::as_str);
