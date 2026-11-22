@@ -1072,26 +1072,6 @@ impl ScriptHost<'_> {
                         self.sim.buildings[b].active && self.building_is(b, producer)
                     })
                 });
-                if std::env::var("RON_PROBE_4546").is_ok() {
-                    let lap: Vec<_> = self
-                        .lap_builds(w, cursor)
-                        .filter_map(|o| {
-                            let b = self.sim.building_by_o(w, o)?;
-                            Some((
-                                o,
-                                self.sim.buildings[b].ty,
-                                self.sim.buildings[b].active,
-                                self.building_is(b, producer),
-                                self.sim.buildings[b].queue.items.len(),
-                            ))
-                        })
-                        .filter(|x| x.3)
-                        .collect();
-                    eprintln!(
-                        "P4546 f{} train who {w} t {t} num {num} producer {producer} cursor {cursor} found {found:?} lap {lap:?}",
-                        self.sim.frame
-                    );
-                }
                 let Some(o) = found else { return NO };
                 self.sim.ai.script_env.find_counters[counter::TRAIN_PRODUCER] = i32::from(o);
                 self.sim.building_by_o(w, o).unwrap_or(0)
