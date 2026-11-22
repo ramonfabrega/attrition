@@ -170,26 +170,16 @@ disc `Object::close` has just cleared, and nothing owns the bits after.
 At the waterline of a coastal cell the region gate marks nothing; at the
 lake's tile (75, 162) on the golden start it marks 28 water cells.
 
-**So does a unit that went inside in its own think** (2026-11-21, item
-4532). `Unit::process` tests `inside_up` (`+0x82`) once, before the think;
-the guy loops after it ask nothing, so a unit that casts its transport
-(`SpellType::cast_transport@00670db0`, whose last act is `go_inside` and
-with it `Object::insert_inside`'s `remove_from_world`) still has its
-figures processed that frame, and a standing figure on its phase frame
-re-marks the whole disc at its retained point — the disc the boarding has
-just cleared, which nothing owns after (the passenger's own `come_out`
-clears it, §25). Diff-backed on run1755's 3790: who=1's Anti-Aircraft Gun
-`1/114` (`BLOCK_RADIUS` 2) casts the Freighter `1/152` at unit cell (653,
-871) on `(3790 + 114) % 64 == 0`, and theirs holds its 5×5 at x 11..15,
-y 5..9 of world cell (40, 54) from 3791 (world range 7413, record 3280,
-`block.body` byte 22 ours 0x00, theirs 0xe0 before the fix;
-`held_out::tests::row_30_s_aa_gun_repaints_its_disc_as_it_boards_its_transport_on_run1755_s_ranges`,
-and the unit test
-`transport::tests::a_walker_that_casts_its_barge_on_its_phase_frame_repaints_its_disc`).
-`Sim::repaints_off_map` (beside the dead boat) takes a live unit inside something, which
-`Sim::process_unit` reaches on that one frame alone. *Not established*: a
-squad garrisoning a building in its own work takes the same arm by the
-reading; no capture has diffed it.
+**So does a unit that went inside in its own think** (item 4532).
+`Unit::process` tests `inside_up` before the think only, so a unit that
+boards there (`cast_transport@00670db0` ends in `go_inside`) still has its
+figures processed, and on its phase frame a standing figure re-marks the
+disc `insert_inside`'s `remove_from_world` has just cleared, at its
+retained point, owned by nothing after. Diff-backed on run1755's 3790:
+who=1's Anti-Aircraft Gun `1/114` casts its Freighter, and theirs holds
+its 5×5 in world cell (40, 54) from 3791 (record 3280, `block.body`).
+`Sim::repaints_off_map`. *Not established*: a squad garrisoning a
+building in its own work, which takes the same arm by the reading.
 
 **How it was found, and what it cost while it was missing.** run69's AI
 woodcutter `1/9` walked west through unit cell `(849, 366)` on frame 1885
