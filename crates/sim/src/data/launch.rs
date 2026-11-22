@@ -47,49 +47,9 @@ pub struct Node {
 /// A piece with no row here launches from the unit's own position, which
 /// is what every shot in this crate did before run109.
 const MEASURED: &[(i32, i8, u32, Node)] = &[
-    // **122 is `CROSSBOWMEN`** (unit type 172; item 3347, run982 on the
-    // French Great Sahara seed, `AMMO=5` over `[13416, 14093]`): the three
-    // first rounds of who=1's archers on 13822–13839, each the guy's pose on
-    // the block before its first print against the round's `sx, sy, sz` —
-    // `1/41`'s `CHAR_ATTACK2` frame 3, guy (10008, 30984) at −1120927744,
-    // (9943, 30974, 707) over a guy `z` of 573; `1/42`'s `CHAR_ATTACK1`
-    // frame 5, (9624, 31176) at −1057882112, (9540, 31165, 769) over 603;
-    // and `1/43`'s `CHAR_ATTACK3` frame 6, (9672, 30984) at −1130299392,
-    // (9596, 30977, 758) over 597. One shot each: the radius is the only
-    // one that fits and the bearing the middle of its exact fits. The
-    // Cavalry Archer's three rows, piece 138, left for `pivot::RELEASES`
-    // (item 3633): its `<RESTRICTION>` makes it a pivot piece, and its
-    // rounds turn with the rider (`docs/AI.md` §330).
-    (
-        122,
-        crate::units::anim::ATTACK1,
-        5,
-        Node {
-            bearing: 77_676_544,
-            radius: 84,
-            dz: 166,
-        },
-    ),
-    (
-        122,
-        crate::units::anim::ATTACK2,
-        3,
-        Node {
-            bearing: 157_679_616,
-            radius: 65,
-            dz: 134,
-        },
-    ),
-    (
-        122,
-        crate::units::anim::ATTACK3,
-        6,
-        Node {
-            bearing: 123_879_424,
-            radius: 76,
-            dz: 161,
-        },
-    ),
+    // Piece 122, the Crossbowmen (item 3347's three rows off run982, one bolt
+    // each), is [`BAYS`] since item 4517: the original's sweep at every
+    // heading, where the planar rows stood a unit off at row 75's 4004.
     // Piece 842, the Horse Archer (item 3338), left for `pivot::SAME_AS`
     // (item 3658): its `AttachPos` rows are piece 138's, a pivot piece's, so
     // its rounds turn with the rider's turret.
@@ -5598,6 +5558,49 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 161,
         },
     ),
+    // **Piece 122, the Crossbowmen** (`CROSSBOWMEN`, type 172; item 4517,
+    // `docs/RECGAME.md` §12): node 0 at frame 5 of `CHAR_ATTACK1`, 3 of
+    // `CHAR_ATTACK2` and 6 of `CHAR_ATTACK3`. `get_position.py … --init
+    // 0,<anim>,<time>,3 sweep 122 0 <anim> <time>` on run1579's packet gives
+    // the original's offset at all 361 whole degrees, and `fit_bay.py` admits
+    // one region a key (133, 688 and 417 lattice points, 361 of 361
+    // headings); the rows are the centroids, the heights the sweep's. They
+    // are piece 1178's rows below over its scale 1.04, to the unit: one
+    // socket under two styles. Until then they were item 3347's planar
+    // [`Node`]s, one bolt each off run982, and row 75 of the fourth held-out
+    // battery parted its ammo line on 4004 at a heading they missed by a
+    // unit: who=1's `1/163`'s `CHAR_ATTACK3` bolt left (3922, 34374) where
+    // run1768's leaves (3923, 34374).
+    (
+        122,
+        crate::units::anim::ATTACK1,
+        5,
+        Bay {
+            right: 11_399,
+            fwd: 84_486,
+            dz: 166,
+        },
+    ),
+    (
+        122,
+        crate::units::anim::ATTACK2,
+        3,
+        Bay {
+            right: 14_863,
+            fwd: 64_484,
+            dz: 134,
+        },
+    ),
+    (
+        122,
+        crate::units::anim::ATTACK3,
+        6,
+        Bay {
+            right: 15_287,
+            fwd: 75_439,
+            dz: 161,
+        },
+    ),
     // **Piece 1178, the Crossbowmen in the Asian art style** (`CROSSBOWMEN`,
     // type 172, `122 + 3 × 0x160`; item 3712, `docs/AI.md` §362.2): the
     // Mongols' Crossbowman. run1296's `RON_STATE_FRAME` packet (and run1294's,
@@ -5606,8 +5609,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // `tools/recomp/fit_bay.py` on each key's sweep finds one region (1177,
     // 491 and 223 lattice points); the rows are their centroids, and the
     // heights 173, 140 and 168 are the sweep's and run1386's `sz − z`.
-    // Piece 122's planar [`MEASURED`] rows are the default style's and never
-    // reached it. Without these who=1's `1/43` loosed its bolt of 3981 at the
+    // Piece 122's rows above are the default style's and never reached it.
+    // Without these who=1's `1/43` loosed its bolt of 3981 at the
     // human's `0/2004` from its own square (6120, 11208, 19) against the
     // original's (6103, 11142, 159), flew 11 frames against 10, and the
     // building was struck a frame late.
