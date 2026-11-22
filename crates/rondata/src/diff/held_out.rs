@@ -6536,21 +6536,25 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // `flags` ROAD ours 0x80, theirs 0: a caravan's road whose goal was
         // popped past 0xc80 on 1749, laid on 1750 in theirs
         // (`astar_caravan_road`'s `6860af`, `docs/ROADS.md` §8.3).
+        // Moved by item 4542 (`get_cost`'s locked-team wonder term, built on
+        // row 63's leaf; row 103's two computers are allied too, no leaf read
+        // here): leaders 1,757 -> 1,911; ammo 2,882 -> 2,900, deaths 2,508 ->
+        // 2,510, items 2,728 -> 3,045; world first at 1792 as 4544 left it.
         moved: Some(Score {
             states: 3295,
             agreed: [
-                1790, 1854, 3295, 2882, 2508, 1963, 1790, 1757, 1951, 2728, 1987, 1792,
+                1790, 1854, 3295, 2900, 2510, 1963, 1790, 1911, 1951, 3045, 1987, 1792,
             ],
             first: &[
                 ("units", (1790, Some(4038452573), 1054592778)),
                 ("builds", (1824, Some(512225234), 3008295372)),
                 ("ammo", (2860, Some(1), 460261739)),
-                ("deaths", (2508, Some(2009468066), 1)),
+                ("deaths", (2510, Some(1), 1937378451)),
                 ("groups", (1963, Some(321777859), 660866967)),
                 ("guys", (1790, Some(2094189105), 2360396383)),
-                ("leaders", (1757, Some(2828401504), 1487010739)),
+                ("leaders", (1911, Some(1718948112), 2104168730)),
                 ("cities", (1951, Some(1722361204), 1721574772)),
-                ("items", (2728, Some(3164999615), 3159232445)),
+                ("items", (3045, Some(3159232445), 3167883199)),
                 ("goods", (1987, Some(1178399185), 1567683031)),
                 ("world", (1792, Some(1791915805), 1130854131)),
             ],
