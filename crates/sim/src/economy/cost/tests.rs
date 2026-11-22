@@ -282,11 +282,11 @@ fn the_pyramids_take_a_third_off_a_city() {
 #[test]
 fn a_wonder_is_ramped_by_every_wonder_held_and_halved() {
     // The count, held 0..=8, and the space-race arm's two tails.
-    let c: Vec<i32> = (0..=8).map(|n| wonder_count(n, SpaceRace::None)).collect();
+    let c: Vec<i32> = (0..=8).map(|n| wonder_count(n, 0, SpaceRace::None)).collect();
     assert_eq!(c, [0, 2, 4, 6, 9, 12, 15, 19, 23]);
-    assert_eq!(wonder_count(1, SpaceRace::Own), 4, "my own site: held + 1");
-    assert_eq!(wonder_count(4, SpaceRace::Own), 11, "the tail reads held");
-    assert_eq!(wonder_count(1, SpaceRace::Team), 3, "a teammate's: a step");
+    assert_eq!(wonder_count(1, 0, SpaceRace::Own), 4, "my own site: held + 1");
+    assert_eq!(wonder_count(4, 0, SpaceRace::Own), 11, "the tail reads held");
+    assert_eq!(wonder_count(1, 0, SpaceRace::Team), 3, "a teammate's: a step");
     // An odd support amount, so the halving truncates past three.
     let wonder = Price {
         kind: Kind::Building,
@@ -301,7 +301,7 @@ fn a_wonder_is_ramped_by_every_wonder_held_and_halved() {
     };
     let at = |held: i32| {
         let counts = Counts {
-            of_type: wonder_count(held, SpaceRace::None),
+            of_type: wonder_count(held, 0, SpaceRace::None),
             of_group: 0,
         };
         cost_of(&T, &wonder, Resource::Wealth, counts, &m)
@@ -315,7 +315,7 @@ fn a_wonder_is_ramped_by_every_wonder_held_and_halved() {
     assert_eq!(at(7), 200 + 45 * 19 / 2);
     // Without the flag the same count is an ordinary building's steps.
     let counts = Counts {
-        of_type: wonder_count(4, SpaceRace::None),
+        of_type: wonder_count(4, 0, SpaceRace::None),
         of_group: 0,
     };
     assert_eq!(plain(&wonder, Resource::Wealth, counts), 200 + 45 * 9);
@@ -339,7 +339,7 @@ fn an_egyptian_wonder_costs_a_quarter_less() {
             ..Modifiers::default()
         };
         let counts = Counts {
-            of_type: wonder_count(4, SpaceRace::None),
+            of_type: wonder_count(4, 0, SpaceRace::None),
             of_group: 0,
         };
         cost_of(&T, &wonder, Resource::Wealth, counts, &m)
