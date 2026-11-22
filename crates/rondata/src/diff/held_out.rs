@@ -713,10 +713,36 @@ mod tests {
         let rules = inst.rules().unwrap();
         let tribes = inst.tribe_defs(&rules).unwrap();
         let mut prev: Option<[Option<sim::checksum::Line>; 12]> = None;
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let mut record = crate::trace::ranges::Record::open(
+            &home.join("ron-golden/run1785/map-14/rontrace.ranges"),
+        )
+        .expect("run1785's record");
         while built.sim.frame <= hi {
             let f = built.sim.frame as i64;
             if f >= lo {
                 let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+                let set = record.first_of(f - 1).expect("the state's set").clone();
+                let all = record.ranges(&set).expect("the set's ranges");
+                for li in [0usize, 1, 5] {
+                    let Some(ours) = &lines[li] else { continue };
+                    let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == li).collect();
+                    eprintln!(
+                        "P4546 VS state {f} line {li}: ours {} ranges, theirs {}",
+                        ours.ranges.len(),
+                        theirs.len()
+                    );
+                    let mut shown = 0;
+                    for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                        if a.bytes != b.bytes && shown < 12 {
+                            shown += 1;
+                            eprintln!(
+                                "P4546 VS   state {f} line {li} range {k} record {} {}: ours {:?} theirs {:?}",
+                                a.record, a.field, a.bytes, b.bytes
+                            );
+                        }
+                    }
+                }
                 if let Some(p) = &prev {
                     for li in [1usize, 5] {
                         let (Some(a), Some(b)) = (&p[li], &lines[li]) else {
