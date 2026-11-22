@@ -520,13 +520,15 @@ pub const MAPGEN: Mapgen = Mapgen {
 // one call in `cities/city.rs`'s `activate`; its body is `economy/holdings.rs`' `activate_air_defense_counter`.
 // Item 4533: `largest` 3,711 -> 3,710 (-1): `plunder_on_capture` moved whole to `cities/capture.rs`
 // (`cities/city.rs` 3,729 -> 3,642), and item 4532 took `movement/collide.rs` 3,711 -> 3,701.
+// Item 4541: `largest` 3,710 -> 3,702 (-8): `air.rs`' never-jammed `is_jammed` stub is gone for
+// `combat/jam.rs`' `Sim::is_jammed`, and its two SEAM paragraphs say so in fewer lines.
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 11),
     ("test-tails", 0),
     ("sweep-lines", 17_288),
     ("names", 15),
     ("fields", 21),
-    ("largest", 3_710),
+    ("largest", 3_702),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before
