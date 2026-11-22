@@ -2203,9 +2203,21 @@ mod tests {
                     }
                 }
             }
-            for u in built.sim.units.iter().filter(|u| u.alive()) {
+            if state >= 1661 {
+                let k = ours.ranges.iter().position(|r| r.field == "seen").expect("plane");
+                let (a, b) = (&ours.ranges[k].bytes, &theirs[k].bytes);
+                let pts: Vec<(usize, usize, u8, u8)> = (0..a.len())
+                    .filter(|&i| a[i] != b[i])
+                    .map(|i| (i % 120, i / 120, a[i], b[i]))
+                    .collect();
+                eprintln!("PROBE {state} seen diffs {pts:?}");
+                for b2 in built.sim.buildings.iter().filter(|b2| b2.owner == 1) {
+                    eprintln!("PROBE {state} bldg 1/{} pos ({}, {}) fog ({}, {})", b2.index, b2.pos.x, b2.pos.y, b2.pos.x / 8, b2.pos.y / 8);
+                }
+            }
+            for u in built.sim.units.iter().filter(|u| u.alive() && state >= 1661) {
                 let (cx, cy) = (u.pos.x / 16, u.pos.y / 16);
-                if (cx - 47).abs() <= 10 && (cy - 44).abs() <= 10 {
+                if u.owner == 1 {
                     eprintln!(
                         "PROBE {state} unit {}/{} TI {} {:?} pos ({}, {}) cell ({cx}, {cy}) on_map {}",
                         u.owner, u.index, u.type_index, u.kind.domain, u.pos.x, u.pos.y, u.on_map
