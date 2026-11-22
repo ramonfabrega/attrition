@@ -1166,6 +1166,12 @@ impl Sim {
     /// with `last_group` slot 1.
     pub(crate) fn city_struck_alarm(&mut self, b: usize, c: usize) {
         let who = self.buildings[b].owner;
+        if std::env::var_os("RON_PROBE_4549").is_some() && who == 2 {
+            eprintln!(
+                "PROBE4549 alarm f{} b{b} c{c} human {} diff {} is_city {} alarm {} cb {}",
+                self.frame, self.cities.nation[who as usize].human, self.ai_difficulty(), self.building_is_city(b), self.cities.cities[c].alarm, self.cities.cities[c].building
+            );
+        }
         if self.cities.nation[who as usize].human
             || self.ai_difficulty() < 2
             || !self.building_is_city(b)
@@ -1249,6 +1255,12 @@ impl Sim {
         }
         let mut hit = hit;
         let owner = self.buildings[b].owner;
+        if std::env::var_os("RON_PROBE_4549").is_some() && owner == 2 && (6100..=6114).contains(&frame) {
+            eprintln!(
+                "PROBE4549 damage_building f{frame} b{b} idx {} by {:?} by_owner {:?} attrition {attrition} city {:?} hit {}/{} dmg {}",
+                self.buildings[b].index, by, by.map(|o| self.owner_of(o)), self.buildings[b].city, hit.whole, hit.frac, self.buildings[b].damage
+            );
+        }
         if !attrition
             && let Some(by) = by
             && self.owner_of(by) != owner
