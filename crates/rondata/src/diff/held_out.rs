@@ -1849,6 +1849,84 @@ mod tests {
         }
     }
 
+    /// **Row 95's MLRS bears from its pivot node** (item 4536,
+    /// `docs/RECGAME.md` §12.5): on run1770's ranges, every units and guys
+    /// range on 5908 and 5909 byte for byte. On 5908 who=1's MLRS `1/99`
+    /// (TI 273, figure piece 223) takes its attack on who=0's 2000, and
+    /// `Guy::set_all_pivots@005d8bc0` bears from the unit's point plus
+    /// node 4's vector: theirs' `turret_angles[0]` and `des_turret_angles
+    /// [0]` read 680 << 16 on 5909, where the launcher's own square gave
+    /// 687 << 16.
+    #[test]
+    fn row_95_s_mlrs_bears_from_its_pivot_node_on_run1770_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FOURTH, 4) else {
+            eprintln!("skipping: row 95's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1770/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1770's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 95's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [5908, 5909] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            for (line, ours) in [
+                (0, built.sim.checksum_units()),
+                (6, built.sim.checksum_guys()),
+            ] {
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == line).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "{}' ranges on {state}",
+                    ours.name
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{} range {k} on {state}, record {} {}",
+                        ours.name, a.record, a.field
+                    );
+                }
+                // Who=1's record 99, its figure: `type` at byte 0,
+                // `turret_angles[0]` at byte 24 (`+0x20`), `des_turret_
+                // angles[0]` at byte 40 (`+0x30`).
+                let k = ours
+                    .ranges
+                    .iter()
+                    .position(|r| r.record == 99 && r.field == "guy")
+                    .expect("record 99's figure");
+                assert_eq!(&theirs[k].bytes[..4], &273i32.to_le_bytes(), "TI");
+                let turret = if state == 5909 { 680i32 << 16 } else { 0 };
+                assert_eq!(&theirs[k].bytes[24..28], &turret.to_le_bytes(), "turret");
+                assert_eq!(&theirs[k].bytes[40..44], &turret.to_le_bytes(), "des");
+            }
+            let mlrs = built
+                .sim
+                .units
+                .iter()
+                .find(|u| u.alive() && u.owner == 1 && u.index == 99)
+                .expect("1/99");
+            assert_eq!(mlrs.type_index, 273, "1/99 is the MLRS");
+            assert_eq!(mlrs.guys[0].gpiece, 223, "its figure's piece");
+        }
+    }
+
     /// **Row 55's army keeps a member whose number a newborn took** (item
     /// 4531, `docs/RECGAME.md` §12.2): run1769 holds every groups range to
     /// 6000. On 5576 who=1's Elite Javelineers `1/44` (TI 84) leave their
@@ -2420,6 +2498,78 @@ mod tests {
                 );
             }
             assert_eq!(ours.ranges.len(), theirs.len(), "world ranges on {state}");
+        }
+    }
+
+    /// **Row 110's Citizen takes the civilian heal on a whole unit**
+    /// (item 4539, `docs/COMBAT.md` §72.2): run1742, the ranges take of
+    /// run1735's file. who=1's French Citizen `1/9` (TI 50), one point
+    /// down, on 4491, where `9 + 4491` is both the supply heal's 20 and
+    /// the civilian heal's 45. `Unit::process_healing@005e0670` reads
+    /// `has_damage(1)` once at its head, so the civilian heal lands after
+    /// the supply heal made it whole and writes `healing` 45. Red on the
+    /// tree before the fix at units range 487 on 4492, record 9
+    /// `myhits..launch_frames` byte 24, ours 20, theirs 45. Every units
+    /// range on 4490..=4494, byte for byte.
+    #[test]
+    fn row_110_s_citizen_takes_the_civilian_heal_on_a_whole_unit_on_run1742_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 5) else {
+            eprintln!("skipping: row 110's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1742/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1742's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 110's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 4490i64..=4494 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            let ours = built.sim.checksum_units();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                assert_eq!(
+                    at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                    None,
+                    "units range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                    a.record,
+                    a.field
+                );
+                assert_eq!(a.bytes.len(), b.bytes.len(), "units range {k} on {state}");
+            }
+            if state == 4492 {
+                // The Citizen by name, and theirs' `healing` (`+0x38`).
+                assert_eq!(ours.ranges[487].record, 9);
+                assert_eq!(ours.ranges[487].field, "myhits..launch_frames");
+                assert_eq!(theirs[487].bytes[24..26], 45i16.to_le_bytes(), "healing");
+                let sim = &built.sim;
+                let c = sim
+                    .units
+                    .iter()
+                    .position(|u| u.alive() && u.owner == 1 && u.index == 9)
+                    .expect("1/9");
+                let u = &sim.units[c];
+                assert_eq!(u.type_index, 50);
+                assert_eq!(u.kind.domain, sim::territory::attrition::Domain::Land);
+                assert_eq!(u.healing, 45);
+                assert_eq!(u.health, u.max_health, "made whole on 4491");
+            }
         }
     }
 
@@ -5122,13 +5272,19 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // 4104, ammo range 1, record 2 `ez`, who=2's `2/35` (TI 330)
         // re-planning on who=1's Citizen `1/2` (TI 50), ours 34, theirs 36):
         // ammo 5,826 -> 6,001, whole.
+        // Moved by item 4539 (`Unit::process_healing@005e0670` reads
+        // `has_damage(1)` once at its head, so the civilian heal lands on a
+        // unit the supply heal just made whole: run1742, state 4492, units
+        // range 487, record 9 `myhits..launch_frames` byte 24 `healing`,
+        // who=1's French Citizen `1/9` (TI 50) 84 -> 85 of 85 on 4491,
+        // ours 20, theirs 45): units 5,532 -> 5,577, first 4492 -> 5577.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5532, 5577, 6001, 6001, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 5601,
+                5577, 5577, 6001, 6001, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 5601,
             ],
             first: &[
-                ("units", (4492, Some(710203995), 2575096436)),
+                ("units", (5577, Some(918696023), 1119301727)),
                 ("builds", (5577, Some(3250328791), 1226052951)),
                 ("leaders", (5409, Some(2436184419), 4237637983)),
                 ("world", (5601, Some(3728895985), 3060364311)),
@@ -5653,16 +5809,17 @@ pub(crate) const SCORES_FOURTH: [Option<FirstScore>; 8] = [
         // 0x400`; run1754's leaf, row 130): units 5,303 -> 5,909, first
         // 5303 -> 5909, beside guys. Moved by item 4519 (a CEO going in
         // asks `update_ceo_position`; run1770's leaders range 128):
-        // leaders 5,266 -> 6,001, whole; ten lines whole.
+        // leaders 5,266 -> 6,001, whole; ten lines whole. Moved by item
+        // 4536 (the MLRS bears from piece 223's pivot node; run1770's
+        // units range 2689 and guys range 720, record 99, on 5909:
+        // `turret_angles[0]` ours 687 << 16, theirs 680 << 16): units and
+        // guys 5,909 -> 6,001, whole; twelve lines whole.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5909, 6001, 6001, 6001, 6001, 6001, 5909, 6001, 6001, 6001, 6001, 6001,
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
             ],
-            first: &[
-                ("units", (5909, Some(3899268178), 2012421188)),
-                ("guys", (5909, Some(1310729884), 912139918)),
-            ],
+            first: &[],
             over: None,
         }),
     }),
@@ -5711,9 +5868,9 @@ pub(crate) const SCORES_FOURTH: [Option<FirstScore>; 8] = [
 ];
 
 /// The fourth battery's line: games whole of the eight, and games taken
-/// (6 -> 7, item 4531: row 55 whole).
+/// (6 -> 7, item 4531: row 55 whole; 7 -> 8, item 4536: row 95 whole).
 #[cfg(test)]
-pub(crate) const HELD_OUT_FOURTH_LINE: (usize, usize) = (7, 8);
+pub(crate) const HELD_OUT_FOURTH_LINE: (usize, usize) = (8, 8);
 
 /// The fourth battery (item 4510).
 #[cfg(test)]
@@ -5883,13 +6040,15 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        // Moved by item 4538 (`Unit::update_hits`' Copper arm): ammo 3,426 ->
-        // 3,427, a state past the line's first parting (2404) and past the
-        // row's (1956); every first parting as found.
+        // Moved by item 4535 (a garrisoned worker whose owner has the
+        // militia counts a third of the militia line's attack in a
+        // building's arrows, `count_inside@0064dda0`): ammo 3,426 -> 3,330
+        // and items 3,563 -> 3,491, named falls past the first partings,
+        // which stand; the states not read one by one.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                2338, 1958, 6001, 3427, 2941, 2400, 2338, 1956, 2340, 3563, 3952, 2338,
+                2338, 1958, 6001, 3330, 2941, 2400, 2338, 1956, 2340, 3491, 3952, 2338,
             ],
             first: &[
                 ("units", (2338, Some(1361964866), 3925824949)),

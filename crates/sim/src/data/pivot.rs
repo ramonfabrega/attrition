@@ -602,6 +602,20 @@ const NODES: &[(i32, i32, Node)] = &[
             py: -1_480_000,
         },
     ),
+    // **Piece 223, the MLRS** (unit type 273; item 4536, `docs/RECGAME.md`
+    // §12.5): run883b's packet reads its `(4, 0, 0)` entry as `(0.46,
+    // 33.99, 21.77)` (`0x3eeb851e 0x4207f5c2`), `RData +0x88` 0.69. Item
+    // 3975 kept the piece's release rows and read no pivot: row 95's
+    // `1/99` bore on who=0's 2000 from the launcher's own square on 5908,
+    // its turret 687 turns of 2¹⁶ against the original's 680.
+    (
+        223,
+        4,
+        Node {
+            px: 460_000,
+            py: 33_989_998,
+        },
+    ),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -4380,7 +4394,9 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // Node 1 is past the piece's one restriction, so `get_position` takes
     // its non-pivot arm (`0090b750:53`, `node & 3 < param_7`): the rack's
     // entry alone, turned by the figure's facing ([`release_point`]). The
-    // pivot entries are kept as the packet holds them and read by nothing.
+    // pivot entries are kept as the packet holds them and read by nothing;
+    // the bearing reads the piece's own `(4, 0, 0)` row in [`NODES`] (item
+    // 4536).
     // Without them run1542's rockets left from the launcher's own square,
     // 240 low (`2/155`'s of 649: ours (17736, 16104, 501) against the
     // original's (17714, 16065, 741)), and every blast landed elsewhere.

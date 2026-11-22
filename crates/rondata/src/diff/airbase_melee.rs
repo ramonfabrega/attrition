@@ -457,8 +457,6 @@ fn airbase_melee_run1492_s_stride_before_the_word_is_widened_whole() {
     // Item 4435: 123 -> 122, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     pin_eq!(w.firsts.len(), 121, "run1492's stride before the word");
     pin_eq!(w.rounds_read, (12, 12), "the rounds read");
-    // 10 -> 6: present on the base f330bc8e, measured by item 4538 with
-    // its own update_hits arms reverted; not this item's.
     pin_eq!(w.rounds.len(), 6, "the rounds that part");
 }
 
@@ -528,7 +526,5 @@ fn airbase_melee_run1496_s_window_is_widened_whole() {
     // Item 4435: 118 -> 117, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     pin_eq!(w.firsts.len(), 116, "run1496's window");
     pin_eq!(w.rounds_read, (139, 139), "the rounds read");
-    // 15 -> 8: present on the base f330bc8e, measured by item 4538 with
-    // its own update_hits arms reverted; not this item's.
     pin_eq!(w.rounds.len(), 8, "the rounds that part");
 }

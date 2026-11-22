@@ -1480,7 +1480,9 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// Item 4505: 947 -> 948, units whole on run1304 (`507 9 gather_down` ours
 /// -1, theirs 21 the one range left after item 4511): a gatherer chain is
 /// one link a unit (`Build::add_gatherer@0062f640`).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 948, 1053);
+/// The merge under item 4535 (4537's guided rounds, by its subject; not
+/// bisected): 948 -> 950, ammo whole on run1487 and run1496.
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 950, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -4674,6 +4676,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // (`build_masks` `0x2000`): builds (2736, 2736, 26) -> (2736, 2736, 24).
     // Item 4476, `cavarch_uid` kept past a dropped target: units (5340, 5340, 276) -> (5340, 5340, 275).
     // Item 4495, a guided round walks calc_from_dir's spline in the recycled Spline's sizes: ammo (208, 0, 208) -> (208, 208, 28).
+    // Item 4537, on item 4535's merged tree (a guided round's re-plan and close test read a unit target's first figure's z; not bisected, the arm of 4535 off moves nothing): ammo (208, 208, 28) -> (208, 208, 0).
     // Item 4514, unit_masks carries the attrition period's 0x80 and the peace arm's 0x400000: units (5340, 5340, 275) -> (5340, 5340, 274).
     // Present on the base f330bc8e, measured by item 4538 with its own update_hits arms reverted: ammo (208, 208, 28) -> (208, 208, 0).
     (
@@ -4715,6 +4718,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // (`build_masks` `0x2000`): builds (2180, 2180, 24) -> (2180, 2180, 23).
     // Item 4476, `cavarch_uid` kept past a dropped target: units (5026, 5026, 282) -> (5026, 5026, 281).
     // Item 4495, a guided round walks calc_from_dir's spline in the recycled Spline's sizes: ammo (230, 0, 230) -> (230, 230, 44).
+    // Item 4537, on item 4535's merged tree (a guided round's re-plan and close test read a unit target's first figure's z; not bisected, the arm of 4535 off moves nothing): ammo (230, 230, 44) -> (230, 230, 0).
     // Item 4514, unit_masks carries the attrition period's 0x80 and the peace arm's 0x400000: units (5026, 5026, 281) -> (5026, 5026, 280).
     // Present on the base f330bc8e, measured by item 4538 with its own update_hits arms reverted: ammo (230, 230, 44) -> (230, 230, 0).
     (
