@@ -877,8 +877,11 @@ centre and the new one's, and it raises `0x2000000` when the two differ.
 `-1`. Without it, a CEO walking into a city waits up to 512 frames to be
 paid for. run1161b has it on frame 3799: who=1's CEO `1/19` crosses from
 tile (190, 209) to (191, 210), and the reassembly falls on 3807. The crate
-builds the tile-crossing arm (`Sim::update_ceo_position`). The other four
-arms are a SEAM.
+builds the tile-crossing arm (`Sim::update_ceo_position`), `init` and
+`set_type`'s (item 4502), and `go_inside`'s and `come_out`'s (item 4519,
+`docs/RECGAME.md` §12.3): row 95's CEO `1/19` casts its Transport Freighter
+and boards it on 5266, and the original's `leader_flags` gains `0x2000000`
+there (run1770's leaders range 128).
 
 **Taxes, into wealth.** `CityData::get_taxes` is:
 
