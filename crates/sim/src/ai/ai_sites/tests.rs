@@ -182,6 +182,38 @@ fn kit(w: i32, h: i32, players: usize) -> (Sim, Kit) {
     )
 }
 
+/// **Mathematics ORs every seated ally into the stored `ally_mask`**
+/// (`Leader::gain_tech@006dcb60:437`, item 4529): the gate is the seat
+/// (`leader_flags & 1`) and `is_ally` (`diplos` 2 both ways), so a
+/// defeated ally comes back in, and an alliance one way only does not.
+/// run1772: computer 2 gains it on 5427 and theirs' mask reads 0x17.
+#[test]
+fn mathematics_puts_a_defeated_ally_back_in_the_stored_mask() {
+    let (mut sim, _kit) = kit(8, 8, 3);
+    let mut tree = sim.tables.tech_tree.clone();
+    let math = tree.types.len();
+    tree.types.push(TypeDef::new("Mathematics", Kind::Final));
+    let other = tree.types.len();
+    tree.types.push(TypeDef::new("Other", Kind::Final));
+    tree.roles.ally_los_preq = Some(math);
+    sim.set_tech_tree(tree);
+    for p in &mut sim.tech {
+        p.tech.resize(other + 1, false);
+    }
+    sim.leaders.allied[1][0] = true;
+    sim.leaders.allied[0][1] = true;
+    sim.leaders.defeated[0] = true;
+    sim.leaders.allied[1][2] = true;
+    sim.ai.ai[1].census.ally_mask = 0b010;
+    sim.gain_tech(1, other);
+    assert_eq!(sim.ai.ai[1].census.ally_mask, 0b010, "another tech: no arm");
+    sim.gain_tech(1, math);
+    assert_eq!(
+        sim.ai.ai[1].census.ally_mask, 0b011,
+        "the defeated ally, seated, in; the one-way ally out"
+    );
+}
+
 /// **`was_seen`'s leader arm** (`docs/AI.md` §141): on a fog grid with
 /// nothing lit and an unowned cell, a leader sees nothing — until it
 /// holds `EXPLORE_MAP_BONUS`'s prerequisite (Electronics, `leader_flags

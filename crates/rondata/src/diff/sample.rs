@@ -474,8 +474,11 @@ pub(in crate::diff) mod tests {
     /// `defeat_by@006d1c80`'s walk, which skips an active city centre, so
     /// its cells stay blocked under `3/2029`; the defeated leader takes
     /// `0x40` and `leader_flags2 & 2`, and no gather or stats pass behind
-    /// `process_all@006ed2a0`'s `& 2` gate): 5273 -> 5460, +187.
-    const SAMPLE_WALKED: (i64, i64) = (5460, 21044);
+    /// `process_all@006ed2a0`'s `& 2` gate): 5273 -> 5460, +187. Item 4529
+    /// (`Leader::gain_tech@006dcb60`'s `ALLY_LOS` arm: Mathematics ORs
+    /// every seated ally, the defeated computer 1 too, into the stored
+    /// `ally_mask` the fog and danger tests read): 5460 -> 6015, +555.
+    const SAMPLE_WALKED: (i64, i64) = (6015, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -709,20 +712,29 @@ pub(in crate::diff) mod tests {
     /// gates its recipients on `leader_flags & 1`, which the defeated
     /// computer 1 keeps: run1772's `190 1 new_rares` ours 0x0b, theirs
     /// 0x0c on 5403): leaders 5403 -> 5427, every other line unchanged;
-    /// leaders 5427 the lowest.
+    /// leaders 5427 the lowest. Item 4529, second (`gain_tech@006dcb60`'s
+    /// `ALLY_LOS` arm: computer 2 gains Mathematics on 5427 and ORs the
+    /// seated, defeated computer 1 back into its stored `ally_mask`,
+    /// `271 2 who..ally_mask` ours 0x15, theirs 0x17): leaders 5427 ->
+    /// 5486, units 5461 -> 6000, builds 5487 -> 6000, ammo 5969 -> 6000,
+    /// groups 5461 -> 6022, guys 5461 -> 6017, world 5462 -> 6022, cities
+    /// 5801 -> 6151; two named falls past units and draws on 6000 and
+    /// 6015: items 10724 -> 7940 and goods 6395 -> 6281 (good 52's
+    /// `ever_seen`, ours leader 2's bit, theirs none). Leaders 5486 the
+    /// lowest.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 5461),
-        ("builds", 5487),
+        ("units", 6000),
+        ("builds", 6000),
         ("walls", 21044),
-        ("ammo", 5969),
+        ("ammo", 6000),
         ("deaths", 6190),
-        ("groups", 5461),
-        ("guys", 5461),
-        ("leaders", 5427),
-        ("cities", 5801),
-        ("items", 10724),
-        ("goods", 6395),
-        ("world", 5462),
+        ("groups", 6022),
+        ("guys", 6017),
+        ("leaders", 5486),
+        ("cities", 6151),
+        ("items", 7940),
+        ("goods", 6281),
+        ("world", 6022),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -913,7 +925,12 @@ pub(in crate::diff) mod tests {
     /// stored `ally_mask`, which drops the defeated computer 1): 3624 ->
     /// 3729, +105, a named rise past the draw word 5460, the frames not
     /// read one by one; the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3729, Some(2929));
+    /// Item 4529 (`gain_tech@006dcb60`'s `ALLY_LOS` arm puts the defeated
+    /// computer 1 back in computer 2's stored `ally_mask` on 5427; units
+    /// whole to 6000, the draws to 6015): 3729 -> 3206, a named fall past
+    /// the draw word, the frames not read one by one; the first shot
+    /// still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3206, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
@@ -1582,31 +1599,36 @@ pub(in crate::diff) mod tests {
     /// hands an ally's find to every slot with `leader_flags & 1`, which a
     /// defeated leader keeps, where ours skipped the defeated. Built:
     /// leaders 5403 -> 5427, `271 2 who..ally_mask` (`+0x6929`) ours 0x15,
-    /// theirs 0x17.
+    /// theirs 0x17. Built (item 4529, second: `gain_tech@006dcb60`'s
+    /// `ALLY_LOS` arm, Mathematics ORs every seated ally into the stored
+    /// mask): leaders 5427 -> 5486 (`500 3 encrypt`), units and builds
+    /// 5461 and 5487 -> 6000, ammo 5969 -> 6000, guys 6017, groups and
+    /// world 6022, cities 6151; goods 6395 -> 6281, a named fall past
+    /// units' 6000.
     const SAMPLE_RANGES_1772: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
-            5461,
-            4482,
-            4418,
-            2948,
-            "1414 0 collide_frame..play: dest_angle 1745223680|-1360134144, orders_x 37368|28920, orders_y 12024|12792",
+            6000,
+            4512,
+            4512,
+            2,
+            "2974 28 myhits..launch_frames: targeted 1|0",
         ),
         (
             "builds",
-            5487,
-            3855,
-            3855,
+            6000,
+            3992,
+            3992,
             1,
-            "1121 2003 myhits..launch_frames: up 4|36",
+            "12 2000 gather_down..infiltrate2: recharging 30|15, attack_ox 28|34",
         ),
         (
             "ammo",
-            5969,
+            6000,
             3,
             3,
             1,
-            "1 0 rolling..start_roll_angle: +0x7 of 99|99: 8b5d0000|2f5e0000",
+            "1 0 rolling..start_roll_angle: +0x13 of 99|99: f85e0000|685e0000",
         ),
         (
             "deaths",
@@ -1616,46 +1638,39 @@ pub(in crate::diff) mod tests {
             2,
             "0 -1 00936bff: +0x0 of 0|4: |01000000",
         ),
+        ("groups", 6022, 622, 622, 1, "146 128 id..march: facing 0|1"),
         (
-            "groups",
-            5461,
-            628,
-            628,
-            2,
-            "161 131 id..march: ox 37344|28896, oy 12000|12768, o_angle 1745223680|-1360134144",
+            "guys",
+            6017,
+            1406,
+            1406,
+            3,
+            "203 27 guy: end_time 80|30, cur_anim 31|29",
         ),
-        ("guys", 5461, 1343, 1343, 1, "719 36 guy: cur_time 0|1"),
         (
             "leaders",
-            5427,
+            5486,
             671,
             671,
-            1,
-            "271 2 who..ally_mask: +0x6921 of 26914|26914: 15|17",
+            2,
+            "500 3 encrypt: +0x0 of 4|4: b4000000|69000000",
         ),
-        (
-            "cities",
-            5801,
-            51,
-            51,
-            1,
-            "8 7 city..ter: peasant_dist 1|2, filled 46|47, space[2] 46|45",
-        ),
+        ("cities", 6151, 51, 51, 1, "15 2 city..ter: gatherers 10|8"),
         (
             "goods",
-            6395,
+            6281,
             265,
             265,
             1,
-            "200 40 ever_seen: +0x0 of 1|1: 0c|08",
+            "260 52 ever_seen: +0x0 of 1|1: 04|00",
         ),
         (
             "world",
-            5462,
-            7643,
-            7643,
+            6022,
+            7729,
+            7729,
             1,
-            "5670 1869 block.body: +0x11 of 96|96: 00000700|07000700",
+            "7317 3210 block.body: +0x19 of 96|96: 57007000|1f003800",
         ),
     ];
 }
