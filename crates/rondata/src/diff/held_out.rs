@@ -781,7 +781,7 @@ mod tests {
     }
 
     /// **Row 83's Taj Mahal site keeps its hit points through a blow until
-    /// the next walk** (item 4556, `docs/CITIES.md` §3.3): run1784, the
+    /// the next walk** (item 4556, `docs/CITIES.md` §3.4): run1784, the
     /// ranges take of row 83's file. who=2's unfinished Taj Mahal `2/2037`
     /// (`TypeIndex` 0x21b) takes a 19-point round on 3041, after its
     /// builders' progress put `job_counter` at 76,214: the blow takes
@@ -7022,7 +7022,7 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // ranges take: on 3041 builds range 3157, record 2037, who=2's Taj
         // Mahal site (`TypeIndex` 0x21b) `construct_hits` ours 6017, theirs
         // 6023: `Wall::inc_time@0063fb60:48`..`56` refreshes a site in the
-        // leader walk, ahead of the ammo list (`docs/CITIES.md` §3.3). The
+        // leader walk, ahead of the ammo list (`docs/CITIES.md` §3.4). The
         // row's first parting is units 3359.
         moved: Some(Score {
             states: 6001,

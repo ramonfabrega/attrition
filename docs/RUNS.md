@@ -41029,6 +41029,10 @@ minutes were spent waiting on another lane. `df -g ~` read 88 GB free before it 
 - **Re-scored by item 4554** (the supply veto's mark is `unit_masks2`'s `0x40000`, `docs/SUPPLY.md`): record 70 is
   who=1's Artillery (TI 269), its tick vetoed on 2810; units 2,811 → 3,359, first 3359. The row's first parting
   is builds on 3041 (range 3157, record 2037, `construct_hits` ours 6017, theirs 6023, item 4545's score).
+- **Re-scored by item 4556** (`Wall::inc_time`'s site refresh runs in the leader walk, ahead of the ammo list,
+  `docs/CITIES.md` §3.4): record 2037 is who=2's Taj Mahal site (`TypeIndex` 0x21b), a 19-point round on 3041 after
+  its progress; theirs keeps 6023 (`site_hits` at the pre-blow `job_counter` 76,214) until 3042's walk prints
+  6017. Builds 3,356 → 3,360, first 3041 → 3360. The row's first parting is units on 3359.
 - Filed by `filerun.py run1784 heldout5-row083-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1784-heldout5-row083-ranges.txt`, 2,869 bytes, SHA-256
   `a9b435ef5bd053ca7a1b9832b5ce70729ff25450cfd7d673a1485805af3a85f1`; `rontrace.log` → `Logs/rontrace-run1784.log`,

@@ -2898,7 +2898,7 @@ impl Sim {
     /// 0)` — so it runs here, **ahead of `Ammo::inc_time`'s list**, and a
     /// round landing on a site later in the frame takes `lost × 50` off
     /// `job_counter` without touching `construct_hits` until the next
-    /// frame's walk (item 4556, `docs/CITIES.md` §3.3). run1784's Taj Mahal
+    /// frame's walk (item 4556, `docs/CITIES.md` §3.4). run1784's Taj Mahal
     /// site `2/2037` took a 19-point blow on 3041 and printed
     /// `construct_hits` 6023, `site_hits` at the pre-blow 76,214; ours,
     /// refreshing after the ammo list, printed 6017, at 75,264.

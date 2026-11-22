@@ -746,11 +746,20 @@ Three smaller things the same run pinned:
 ## 3.4 Hit points during construction — `Wall::update_hits@0063f0d0`
 
 Called from `Wall::init`, from `activate`, and **every frame while not
-active** from `Wall::inc_time` — which `Objects::inc_time` drives from
-`Game::do_frame` right after `process_all`, so the order within a frame is:
-all units' `do_build`, all buildings' `Wall::process`, then every site's hit
-points refreshed from the new `job_counter`. The sim reads the result through
-`BuildData::hits(0)` = `construct_hits`, `hits(1)` = `myhits`.
+active** from `Wall::inc_time` (`@0063fb60:48`..`56`, its first statement) —
+which `Objects::inc_time@0065db70` drives from `Game::do_frame` right after
+`process_all`, so the order within a frame is: all units' `do_build`, all
+buildings' `Wall::process`, then every site's hit points refreshed from the
+new `job_counter`. **The refresh is in `Objects::inc_time`'s leader walk** —
+per leader, its units' `inc_time` and `execute_events`, then its buildings'
+vslot `+0xa0` — **ahead of `Ammo::inc_time`'s list.** A round that lands on a
+site later in the same frame takes `whole × 50` off `job_counter` and leaves
+`construct_hits` at the pre-blow figure until the next frame's walk (item
+4556, diff-backed: run1784's Taj Mahal site `2/2037` took a 19-point round on
+3041 and printed 6023, `site_hits` at the pre-blow 76,214, then 6017 on 3042;
+`row_83_s_taj_mahal_site_keeps_its_hits_through_a_blow_on_run1784_s_ranges`).
+The sim reads the result through `BuildData::hits(0)` = `construct_hits`,
+`hits(1)` = `myhits`.
 
 ```
 h = type.hits
