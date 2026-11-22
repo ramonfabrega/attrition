@@ -296,7 +296,10 @@ impl Sim {
             return;
         };
         if std::env::var("RON_PROBE_4564_KILL").is_ok_and(|v| {
-            v == format!("{}/{}@{}", self.units[u].owner, self.units[u].index, self.frame)
+            v == format!(
+                "{}/{}@{}",
+                self.units[u].owner, self.units[u].index, self.frame
+            )
         }) {
             eprintln!(
                 "P4564 KILL {:?} target {:?}\n{}",
