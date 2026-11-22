@@ -1244,6 +1244,80 @@ mod tests {
         }
     }
 
+    /// **Row 55's Merchant Fleet is born through `Unit::update_hits`**
+    /// (item 4518, `docs/RECGAME.md` §12): run1769 holds every units range
+    /// to 6000. On 4275 who=1's Armed Caravan `1/64` casts its transport and
+    /// the Merchant Fleet `1/142` (TI 318) is born; who=1 is the Dutch (tribe
+    /// 22), so `Unit::init@00612100:580`'s `update_hits` adds the merchant
+    /// kinds' `ages × DUTCH_HP_BONUS`: `myhits` 192, where the raw type's 172
+    /// parted the line.
+    #[test]
+    fn row_55_s_dutch_merchant_fleet_is_born_with_its_update_hits_on_run1769_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FOURTH, 2) else {
+            eprintln!("skipping: row 55's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1769/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1769's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 55's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [4274, 4275] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_units();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // The fleet by name: who=1's record 142, its `type` and `myhits`.
+            let at = ours
+                .ranges
+                .iter()
+                .enumerate()
+                .filter(|(_, r)| r.record == 142 && r.field == "who..y_internal")
+                .find(|(k, _)| theirs[*k].bytes[0] == 1)
+                .map(|(k, _)| k);
+            if state == 4274 {
+                assert_eq!(at, None, "1/142 is not yet born on 4274");
+                continue;
+            }
+            let k = at.expect("1/142 on 4275");
+            assert_eq!(ours.ranges[k + 1].field, "type");
+            assert_eq!(&theirs[k + 1].bytes[..], &318i32.to_le_bytes(), "1/142's TypeIndex");
+            assert_eq!(ours.ranges[k + 3].field, "myhits..launch_frames");
+            assert_eq!(&theirs[k + 3].bytes[..4], &192i32.to_le_bytes(), "theirs' myhits");
+            let fleet = built
+                .sim
+                .units
+                .iter()
+                .position(|u| u.alive() && u.owner == 1 && u.index == 142)
+                .expect("1/142");
+            let ty = built.sim.units[fleet].ty.expect("its type");
+            assert_eq!(built.unit_type_names[ty], "Merchant Fleet");
+            assert_eq!(built.sim.tables.unit_types[ty].hits, 172, "the raw type");
+        }
+    }
+
     /// **Row 105's pruned oil list keeps its capacity** (item 4512,
     /// `docs/RECGAME.md` §11.1): run1752 holds every leaders range on 3582
     /// and 3583. On 3583 who=1's `oil_patches` goes from twelve patches to
@@ -4279,7 +4353,17 @@ pub(crate) const SCORES_FOURTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4518 (a boat is born through `Unit::update_hits`: the
+        // Dutch Merchant Fleet 1/142's myhits 172 -> 192 on 4275): units
+        // 5,833 -> 6,001, whole; eleven lines whole, groups as found.
+        moved: Some(Score {
+            states: 6001,
+            agreed: [
+                6001, 6001, 6001, 6001, 6001, 5989, 6001, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[("groups", (5576, Some(4003049513), 3939479638))],
+            over: None,
+        }),
     }),
     // run1763
     // row 75, as found 2026-11-21, ended by the original on 5341: 11 lines whole; ammo 4,682 of
