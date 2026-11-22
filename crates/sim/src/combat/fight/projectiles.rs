@@ -74,6 +74,14 @@ impl Sim {
         if self.hits_left(me) == 0 {
             return;
         }
+        // **Jammed, no shot** (item 4541, `docs/COMBAT.md` §8.7): past the
+        // hits test and before the garrison's arrows (`6229c6`..`622a1c`),
+        // `ObjectData::is_jammed` (vslot `+0xe0`) is asked; a jammer marks
+        // itself and the building and the call returns, and none clears
+        // the building's bit. Row 110's Tower `1/2040` on run1742's 5576.
+        if self.building_jam(b) {
+            return;
+        }
         let bd = &self.buildings[b];
         let p = self.profile(me);
         // The garrison's arrows: the input the earlier mechanic took, plus

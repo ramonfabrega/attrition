@@ -3188,6 +3188,7 @@ pub mod cloak;
 pub mod damage;
 pub mod fight;
 pub mod hero_radius_view;
+pub mod jam;
 pub mod nuke;
 pub mod object_attack_view;
 pub mod plunder;
