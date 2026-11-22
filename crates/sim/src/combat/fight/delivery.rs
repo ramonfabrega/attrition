@@ -1735,6 +1735,9 @@ impl Sim {
     /// run1483's Freighter `1/54` and the Elite Special Forces `1/0`
     /// aboard it. A boat off the map (inside an oil platform) takes the
     /// `remove_from_inside` arm instead ([`Sim::boat_dies_into`]).
+    ///
+    /// Each rider's own close is the off-map arm,
+    /// [`Sim::close_inside_disc`] (item 4485).
     pub(crate) fn kill_contents(&mut self, boat: usize) {
         if !self.units[boat].on_map {
             return;
@@ -1743,9 +1746,38 @@ impl Sim {
             .filter(|&r| self.units[r].inside_unit == Some(boat) && self.units[r].alive())
             .collect();
         for r in riders {
+            self.close_inside_disc(r);
             self.units[r].inside_unit = None;
             self.die_quietly(r);
         }
+    }
+
+    /// **`Object::close@00647160`'s off-map arm, on the occupancy index**
+    /// (item 4485, `docs/COLLISION.md` §3.2). An object that closes while
+    /// it is active (`+0x8 & 1`) and inside something (vslot `+0xbc`,
+    /// `UnitData::is_on_map@0046ce30`, answers 0 while `inside_up` holds
+    /// its host) takes `Object::remove_from_inside@006480f0`, which splices
+    /// it out, writes `inside_up` −1 and ends in
+    /// `Object::add_to_world@0064d8c0`. Its disc walk is gated on
+    /// `is_active` and `is_on_map`, and both now answer 1, so it paints
+    /// the disc at the figure's **retained** point, the one it boarded
+    /// from, under §2's region gate, allocating each null block it
+    /// reaches. Then `remove_from_world@00647970` clears the same disc. The
+    /// bits come out clear and the blocks stay allocated until
+    /// `process_coll_blocks` frees them. run1742's 3809: who=1's Citizen
+    /// `1/11` (TI 50) dies aboard its sunk Freighter `1/61` (TI 322),
+    /// and world cell (33, 47), holding its boarding point (543, 763),
+    /// holds an empty block in theirs.
+    ///
+    /// SEAM: `kill_contents` calls `Unit::come_out(p, 0)` before the death,
+    /// and this crate does not. A rider the ring around its boat seats
+    /// paints and clears its boarding disc the same way (its
+    /// `remove_from_inside`, then `move_unit`'s clear pass), and then
+    /// dies on the spot.
+    pub(crate) fn close_inside_disc(&mut self, r: usize) {
+        let at = self.units[r].movement.body.pos;
+        self.coll_paint(r, at, true);
+        self.coll_paint(r, at, false);
     }
 
     /// `DeathObj body_fade_end`, in frames: a land unit whose death piece
