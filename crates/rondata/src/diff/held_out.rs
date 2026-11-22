@@ -1241,6 +1241,96 @@ mod tests {
         }
     }
 
+    /// Probe (item 4561, reverted whole): row 43's lines on run1787 around
+    /// 3223, every parted byte, and our border pass.
+    #[test]
+    fn probe_4561_row_43_leaders_and_cities() {
+        if std::env::var("RON_PROBE_4561").is_err() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 2) else {
+            return;
+        };
+        let map = home.join("ron-golden/run1787/map-7");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            return;
+        };
+        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(3215);
+        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(3226);
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 43's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let t = &built.sim.territory;
+            let bp = t.border_pass.as_ref().map(|b| b.index.clone());
+            eprintln!(
+                "P4561 state {state} pass {:?} fixed {} reg_terr {:?}",
+                bp,
+                t.borders_fixed,
+                t.reg_terr.iter().map(|r| r.iter().take(8).copied().collect::<Vec<_>>()).collect::<Vec<_>>()
+            );
+            let Some(set) = record.first_of(state - 1).cloned() else {
+                eprintln!("P4561 state {state} no set");
+                continue;
+            };
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for li in 0usize..12 {
+                let Some(ours) = lines[li].as_ref() else { continue };
+                let theirs: Vec<_> = all.iter().filter(|r| usize::from(r.line) == li).collect();
+                if ours.ranges.len() != theirs.len() {
+                    eprintln!("P4561 state {state} line {li} count ours {} theirs {}", ours.ranges.len(), theirs.len());
+                }
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    if a.bytes == b.bytes {
+                        continue;
+                    }
+                    let mut diffs = Vec::new();
+                    for (i, (x, y)) in a.bytes.iter().zip(&b.bytes).enumerate() {
+                        if x != y {
+                            let name = if li == 7 && a.field == "who..ally_mask" {
+                                let off = 0x8 + i;
+                                sim::checksum::leaders::LEADER_FIELDS
+                                    .iter()
+                                    .find(|(_, o, w, c)| *o <= off && off < o + w * c)
+                                    .map(|(n, o, w, _)| format!("={n}[{}]+{}", (off - o) / w, (off - o) % w))
+                                    .unwrap_or_default()
+                            } else {
+                                String::new()
+                            };
+                            diffs.push(format!("{i}{name}:{x:#04x}/{y:#04x}"));
+                        }
+                    }
+                    if diffs.len() > 40 {
+                        diffs.truncate(40);
+                        diffs.push("...".into());
+                    }
+                    eprintln!(
+                        "P4561 state {state} line {li} range {k} record {} {} len {}/{} {}",
+                        a.record,
+                        a.field,
+                        a.bytes.len(),
+                        b.bytes.len(),
+                        diffs.join(" ")
+                    );
+                }
+            }
+        }
+    }
+
     /// **The fifth's files carry the declared seats and team** (item
     /// 4527): each `item4527-row<RRR>-6000.rcx` the client recorded, read
     /// back, holds the declaration's three `PLAYER` rows slot for slot —
