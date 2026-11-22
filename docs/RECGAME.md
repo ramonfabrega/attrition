@@ -1501,8 +1501,8 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 | 143 | run1780 | Great Sahara, difficulty 1 | the computers | 6,001 | **12** | whole |
 
 The original ended rows 63 and 103 itself, both with the two computers allied against the idle human; our walk
-holds no `game_over` by either end (`over: None`). In row 43 our walk holds `game_over` from 5977, where the
-original plays to 6000. `docs/RUNS.md` run1773 to run1780 holds every value, and the pins hold both sides of every
+holds no `game_over` by either end (`over: None`). ~~In row 43 our walk holds `game_over` from 5977, where the
+original plays to 6000.~~ Since item 4547's bays it holds none either (below). `docs/RUNS.md` run1773 to run1780 holds every value, and the pins hold both sides of every
 first parting.
 
 *Not established*: no row names a leaf, since each take holds sums only. Row 23 is whole (§12.6). Row 63's leaders on
@@ -1518,8 +1518,9 @@ first. The lap resets now (`ai_host::lap`, `find_unit`'s too; AI §11): twelve l
 piece 736, `32 + 2 × 0x160`) loosed at `1/14` on `CHAR_ATTACK1` frame 21 from its own square (8472, 23832, 516), where
 theirs left from (8571, 23834, 690) and landed a frame sooner (`total_time` 5 against 6). Piece 736 had no row in
 `launch::BAYS`. `get_position.py`'s sweep of its three keys on run1579's packet is piece 1440's regions to the point,
-so its bays are 1440's centroids (361 of 361 headings each). Ammo 3192 → 3299 and units 3196 → 3299; the row parts
-first on leaders and cities at 3223.
+so its bays are 1440's centroids (361 of 361 headings each). Ammo 3192 → 3299 and units 3196 → 3299, and our walk's
+`game_over` from 5977 is gone; the row parts first on leaders and cities at 3223. *Not established*: why the stones
+end the game; the leaders leaf on 3223 (record 0, byte 5208, ours `0x0170`, theirs 0) is not read.
 
 ### 12.4 Row 95: a CEO going in leaves its city (item 4519)
 
