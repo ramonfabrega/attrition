@@ -1669,14 +1669,7 @@ pub(in crate::diff) mod tests {
             1,
             "1 0 rolling..start_roll_angle: +0x7 of 99|99: e85c0000|3e5c0000",
         ),
-        (
-            "deaths",
-            6186,
-            0,
-            2,
-            2,
-            "0 0 valid: +0x0 of 4|0: 01000000|",
-        ),
+        ("deaths", 6186, 0, 2, 2, "0 0 valid: +0x0 of 4|0: 01000000|"),
         (
             "groups",
             6153,
