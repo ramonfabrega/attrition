@@ -899,6 +899,98 @@ mod tests {
         }
     }
 
+    /// **Row 83's Barracks re-homes when its city is taken** (item 4568,
+    /// `docs/RECGAME.md` §12.3): run1784, the ranges take of row 83's file.
+    /// who=2's city `2/2020` falls on frame 3644; its chain was 2020, 2027,
+    /// the Barracks 2036, the wonder 2037 and 2039, and every member but the
+    /// Barracks closes with it. `Cities::capture_city@00733380:1157` closes
+    /// the old record on the chain the member closes left, and
+    /// `City::close@00737550` sends each live non-centre building in it to
+    /// `Build::find_city`: theirs' state 3645 has `2/2036`'s `city` 1 at the
+    /// tail of who=2's city 1, `2/2029`'s `city_down` 2036. Ours cleared the
+    /// list first and left it on the dead slot 2. Every units, builds, guys
+    /// and cities range on 3644 to 3646, ours against theirs, byte for byte:
+    /// red on the tree before the fix at builds record 2029, `city_down` ours
+    /// −1, theirs 2036, on 3645.
+    #[test]
+    fn row_83_s_barracks_re_homes_when_its_city_is_taken_on_run1784_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+            eprintln!("skipping: row 83's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1784/map-14"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1784's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 83's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3644..=3646 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (li, name) in [(0u8, "units"), (1, "builds"), (6, "guys"), (8, "cities")] {
+                let ours = lines[usize::from(li)].as_ref().expect(name);
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == li).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{name} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+            // The Barracks and its new chain by name, on theirs' side:
+            // who=2's `2/2036` (`city`, `+0x72`) and `2/2029` (`city_down`,
+            // `+0x74`), each the bytes of its record's `BuildData` range.
+            let builds = lines[1].as_ref().expect("builds");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+            let field = |o: i32, at: usize| -> i16 {
+                let mut who = -1i16;
+                for (k, a) in builds.ranges.iter().enumerate() {
+                    if a.field == "who..y_internal" {
+                        who = i16::from(theirs[k].bytes[0]);
+                    }
+                    if who == 2 && i64::from(a.record) == i64::from(o) && a.field == "gather_down..infiltrate2" {
+                        return i16::from_le_bytes([theirs[k].bytes[at], theirs[k].bytes[at + 1]]);
+                    }
+                }
+                panic!("2/{o}'s BuildData on {state}");
+            };
+            let (city, down) = if state == 3644 { (2, 2037) } else { (1, -1) };
+            assert_eq!(field(2036, 2), city, "2/2036's city on {state}");
+            assert_eq!(field(2036, 4), down, "2/2036's city_down on {state}");
+            let after = if state == 3644 { -1 } else { 2036 };
+            assert_eq!(field(2029, 4), after, "2/2029's city_down on {state}");
+            let b = built.sim.building_by_o(2, 2036).expect("2/2036");
+            assert_eq!(
+                built.sim.tables.build_types[built.sim.buildings[b].orig_ty.expect("its type")].ident,
+                sim::cities::build::Ident::Barracks
+            );
+            assert_eq!(
+                built.sim.building_by_o(2, 2020).is_some(),
+                state == 3644,
+                "2/2020, the city, stands on 3644 alone"
+            );
+        }
+    }
+
     /// **Row 83's Airbase keeps its Biplane in when an enemy wonder out of
     /// reach outscores the city** (item 4562, `docs/RECGAME.md` §12.3):
     /// run1784, the ranges take of row 83's file. who=2's computer sortie
@@ -8012,23 +8104,33 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // over the city, out of the plane's reach, and adds no patrol
         // (`Object::do_launch@0064f3b0`, `64fa71`..`64fda4`). The row's
         // first parting is units 3645.
+        // Item 4568: units 3,645 -> 3,662, first 3645 -> 3662; builds 3,645
+        // -> 3,695; ammo 3,684 -> 3,710; guys 3,645 -> 3,663; leaders 3,647
+        // -> 3,674; cities 3,645 -> 3,656; world 3,650 -> 3,668; items 5,165
+        // -> 4,129 and goods 4,272 -> 4,155, named falls past the first
+        // partings. run1784, the ranges take: on 3645 builds record 2029
+        // (who=2) `city_down` ours -1, theirs 2036, and 2036's `city` ours 2,
+        // theirs 1: who=2's city `2/2020` falls on 3644 and its Barracks
+        // `2/2036` stays its owner's; `City::close@00737550` sends it to
+        // `Build::find_city`, where ours had cleared the chain first. The
+        // row's first parting is cities 3656.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3645, 3645, 6001, 3684, 3672, 3662, 3645, 3647, 3645, 5165, 4272, 3650,
+                3662, 3695, 6001, 3710, 3672, 3662, 3663, 3674, 3656, 4129, 4155, 3668,
             ],
             first: &[
-                ("units", (3645, Some(318540629), 803638108)),
-                ("builds", (3645, Some(1006551761), 3383935437)),
-                ("ammo", (3647, Some(2635336534), 2519862016)),
-                ("deaths", (3672, Some(1866272046), 1719209194)),
+                ("units", (3662, Some(2263308614), 3663092386)),
+                ("builds", (3662, Some(2125117544), 3277305961)),
+                ("ammo", (3665, Some(2841584632), 2939692204)),
+                ("deaths", (3672, Some(1706167525), 1719209194)),
                 ("groups", (3662, Some(700922587), 4145494656)),
-                ("guys", (3645, Some(3483417659), 3029711938)),
-                ("leaders", (3647, Some(4281099886), 731604646)),
-                ("cities", (3645, Some(2240167329), 2373860785)),
-                ("items", (4100, Some(912470408), 898052486)),
-                ("goods", (4165, Some(3292828967), 3189019939)),
-                ("world", (3650, Some(633510249), 589470057)),
+                ("guys", (3663, Some(2600191005), 3603350278)),
+                ("leaders", (3674, Some(1864656474), 2352703069)),
+                ("cities", (3656, Some(2160737707), 2090745256)),
+                ("items", (4129, Some(898052486), 912470408)),
+                ("goods", (4087, Some(3194787109), 3189019939)),
+                ("world", (3666, Some(282235351), 271225303)),
             ],
             over: None,
         }),
