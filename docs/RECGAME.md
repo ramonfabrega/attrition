@@ -1512,8 +1512,8 @@ left the one shared `find_counters[0x1c]` at 2011, who=1's count (its mark); `fi
 cursor to 2000 and starts at 2001, so who=1's three trainings on 2976 went 2007, 2000, 2007, where ours went 2000
 first. The lap resets now (`ai_host::lap`, `find_unit`'s too; AI §11): twelve lines whole.
 
-**Row 43.** 4547: the Slinger's bay (`launch::BAYS`). 4561: an unbuilt Village's close fixes borders. 4565:
-the Village's target weights (COMBAT §12.3).
+**Row 43.** 4547: the Slinger's bay (`launch::BAYS`). 4561: an unbuilt Village's close fixes borders. 4565: target
+weights (COMBAT §12.3).
 
 ### 12.4 Row 95: a CEO going in leaves its city (item 4519)
 
