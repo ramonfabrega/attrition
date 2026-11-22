@@ -10017,6 +10017,10 @@ stays idle. Nothing is named for it.
 - **`ATTACK_GROUND`**: `set_all_pivots` bears on the order's point. This
   crate writes nothing for it.
 - **`des_node_flags`** is not carried: nothing in the simulation reads it.
+- **The Royal Mameluke's (piece 148) `CHAR_ATTACKWALK` rows and `(4, 0, 0)`
+  pivot** (item 4559, parked 4559a): no packet of the 145 on disk serves
+  either, so its two walking keys (frames 7 and 21) still leave from the
+  figure's square, and its `NODES` row is its `CHAR_ATTACK1` pivot entry.
 
 ### 55.6 Coverage
 

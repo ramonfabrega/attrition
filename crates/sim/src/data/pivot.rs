@@ -616,6 +616,50 @@ const NODES: &[(i32, i32, Node)] = &[
             py: 33_989_998,
         },
     ),
+    // **Item 4559's pivot pieces** (`docs/RECGAME.md` §12.3), each one
+    // `<RESTRICTION node="4">`: the Tank `T34` (piece 198, unit type 248)
+    // off run1165's packet, `(0.0, −7.71, 36.82)` (`0xc0f6b851`); the
+    // Anti-Aircraft Gun (231, type 281) off run1155c's, `(0.0, 22.30, 25.07)`
+    // (`0x41b26666`; run1169's, run1351's, run1355's and run1359's agree);
+    // the Asian Horse Archer (1193, type 187) off run991d's, `(−0.06, −1.48,
+    // 32.63)`, piece 137's. **The Royal Mameluke's (148, type 198) is read
+    // on no packet**: none of the 145 on disk stores the piece or serves
+    // `init_position` its `CHAR_DEFAULT`. Its row is its own `CHAR_ATTACK1`
+    // pivot entry, `(0.0, −1.48)` on both frames (run1579, `--init`), the
+    // French Dragoon's `(4, 0, 0)` too, whose `CHAR_ATTACK3` pivot rows are
+    // 148's `CHAR_ATTACK1` bit for bit (parked 4559a).
+    (
+        198,
+        4,
+        Node {
+            px: 0,
+            py: -7_710_000,
+        },
+    ),
+    (
+        231,
+        4,
+        Node {
+            px: 0,
+            py: 22_299_999,
+        },
+    ),
+    (
+        1193,
+        4,
+        Node {
+            px: -60_000,
+            py: -1_480_000,
+        },
+    ),
+    (
+        148,
+        4,
+        Node {
+            px: 0,
+            py: -1_480_000,
+        },
+    ),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -671,6 +715,13 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (192, (9, 10)),
     (193, (9, 10)),
     (195, (9, 10)),
+    // Item 4559: `RData +0x88` 0.8 for the Tank `T34` (198, `0x3f4ccccd`),
+    // 0.85 for the Anti-Aircraft Gun (231, `0x3f59999a`) and 1.1 for the
+    // Asian Armored Scout Car (1224, `0x3f8ccccd`, a [`SAME_AS`] piece of
+    // 169's), on run1579's packet.
+    (198, (4, 5)),
+    (231, (17, 20)),
+    (1224, (11, 10)),
 ];
 
 /// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
@@ -816,6 +867,18 @@ const SAME_AS: &[(i32, i32)] = &[
     // run1579 lacks the animation and stops in `prepend_content_dir`.
     (158, 139),
     (1899, 139),
+    // **Piece 1224, the Asian set's Armored Scout Car
+    // (`ARMOREDCAR-ASIAN-AGE0`, unit type 218 in art style 3)** (item 4559,
+    // `docs/RECGAME.md` §12.3): `unit_graphics.xml` gives it piece 169's
+    // `armcar.bh3`, its anim files, its scale 1.1 and its eighteen
+    // `<RELEASEEVENT>`s, and `init_position` on run1579's packet writes its
+    // eight `CHAR_ATTACK2` keys' pivot and release rows as 169's off
+    // run1417's packet (item 3738) bit for bit, and every cell of the pivot
+    // arm agrees
+    // (`tests::the_original_s_release_agrees_on_every_cell_for_item_4559`).
+    // Its `CHAR_ATTACKWALK` rows and `(4, 0, 0)` are 169's by the art alone:
+    // run1579 lacks both animations.
+    (1224, 169),
 ];
 
 /// The piece whose rows `piece` reads: [`SAME_AS`]'s, or its own.
@@ -4754,6 +4817,230 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             node: 0,
             pivot: [0, -1_480_000, 31_049_999],
             at: [-4_858_376, -28_888_451, 11_957_130],
+            float_lands: &[],
+        },
+    ),
+    // **Item 4559's pivot pieces** (`docs/RECGAME.md` §12.3; DECISIONS 152
+    // §3): node-0 rounds the held-out games and the 2017 sample loosed from
+    // the figure's own square. The Tank `T34` (198, `T34-DEFAULT-AGE0`,
+    // `mediumtank_russian.bh3`) off run1165's packet, its seven entries
+    // (frames 4, 21 and 1 of `CHAR_ATTACK1`..`3`); the Anti-Aircraft Gun
+    // (231, `AAGUN-DEFAULT-AGE0`) off run1155c's five (frame 5 of
+    // `CHAR_ATTACKWALK` and `CHAR_ATTACK2`); the Asian Horse Archer (1193,
+    // `HORSEARCHER-ASIAN-AGE0`, `horsearcher_asian.bh3`) off run991d's nine
+    // (frames 18, 18, 16 and 18), whose pivot rows are piece 137's and
+    // release rows its own model's; and the Royal Mameluke (148,
+    // `ROYALMAMELUKE-DEFAULT-AGE0`) by `init_position` on run1579's packet
+    // for its six `CHAR_ATTACK1`..`3` events (frames 8, 21; 5, 18; 12, 16).
+    // run1579's `--init` writes 198's, 231's `CHAR_ATTACK2` and 1193's three
+    // attack keys as the stored rows bit for bit. 148's two
+    // `CHAR_ATTACKWALK` events (frames 7 and 21) are on no packet (4559a).
+    // `float_lands` from `get_position`'s pivot arm under unicorn on the
+    // same packets at every cell
+    // (`tests::the_original_s_release_agrees_on_every_cell_for_item_4559`).
+    (
+        198,
+        crate::units::anim::ATTACK1,
+        4,
+        Release {
+            piece: 198,
+            node: 0,
+            pivot: [0, -7_710_000, 36_820_000],
+            at: [-471_236, -72_427_795, 3_033_665],
+            float_lands: &[
+                (41, 243, 250, 91),
+                (49, 145, 46, -250),
+                (131, 243, -91, 250),
+                (139, 145, 250, 46),
+                (221, 243, -250, -91),
+                (229, 145, -46, 250),
+                (311, 243, 91, -250),
+                (319, 145, -250, -46),
+            ],
+        },
+    ),
+    (
+        198,
+        crate::units::anim::ATTACK2,
+        21,
+        Release {
+            piece: 198,
+            node: 0,
+            pivot: [0, -7_649_394, 36_820_000],
+            at: [-439_319, -64_464_256, 3_033_665],
+            float_lands: &[],
+        },
+    ),
+    (
+        198,
+        crate::units::anim::ATTACK3,
+        1,
+        Release {
+            piece: 198,
+            node: 0,
+            pivot: [0, -7_710_000, 36_820_000],
+            at: [-472_226, -72_674_988, 3_033_665],
+            float_lands: &[],
+        },
+    ),
+    (
+        231,
+        crate::units::anim::ATTACKWALK,
+        5,
+        Release {
+            piece: 231,
+            node: 0,
+            pivot: [0, 22_223_484, 25_039_696],
+            at: [0, -17_949_919, 35_114_143],
+            float_lands: &[],
+        },
+    ),
+    (
+        231,
+        crate::units::anim::ATTACK2,
+        5,
+        Release {
+            piece: 231,
+            node: 0,
+            pivot: [0, 22_266_060, 25_039_696],
+            at: [0, -17_949_919, 35_114_143],
+            float_lands: &[
+                (42, 101, 16, -126),
+                (138, 259, 16, 126),
+                (155, 34, 49, 10),
+                (205, 326, -49, 10),
+                (222, 101, -16, 126),
+                (318, 259, -16, -126),
+            ],
+        },
+    ),
+    (
+        1193,
+        crate::units::anim::ATTACKWALK,
+        18,
+        Release {
+            piece: 1193,
+            node: 0,
+            pivot: [-60_000, -2_676_834, 34_506_775],
+            at: [577_225, -16_320_717, 15_752_338],
+            float_lands: &[(82, 186, 65, -4), (308, 321, 88, 4)],
+        },
+    ),
+    (
+        1193,
+        crate::units::anim::ATTACK1,
+        18,
+        Release {
+            piece: 1193,
+            node: 0,
+            pivot: [-60_000, -1_480_000, 32_630_001],
+            at: [1_322_394, -17_432_364, 13_891_037],
+            float_lands: &[(176, 155, 45, 63)],
+        },
+    ),
+    (
+        1193,
+        crate::units::anim::ATTACK2,
+        16,
+        Release {
+            piece: 1193,
+            node: 0,
+            pivot: [-60_000, -919_060, 31_409_014],
+            at: [1_600_198, -19_470_568, 11_654_627],
+            float_lands: &[(11, 295, 79, 52), (191, 295, -79, -52), (281, 295, 52, -79)],
+        },
+    ),
+    (
+        1193,
+        crate::units::anim::ATTACK3,
+        18,
+        Release {
+            piece: 1193,
+            node: 0,
+            pivot: [-60_000, -1_480_000, 32_630_001],
+            at: [3_391_179, -16_833_715, 14_928_272],
+            float_lands: &[(129, 155, 77, 0), (219, 155, 0, 77), (309, 155, -77, 0)],
+        },
+    ),
+    (
+        148,
+        crate::units::anim::ATTACK1,
+        8,
+        Release {
+            piece: 148,
+            node: 0,
+            pivot: [0, -1_480_000, 31_049_999],
+            at: [-8_290_159, -24_743_139, 13_600_361],
+            float_lands: &[],
+        },
+    ),
+    (
+        148,
+        crate::units::anim::ATTACK1,
+        21,
+        Release {
+            piece: 148,
+            node: 0,
+            pivot: [0, -1_480_000, 31_049_999],
+            at: [8_681_150, -24_508_844, 9_568_398],
+            float_lands: &[
+                (84, 207, 117, 3),
+                (186, 15, 3, -131),
+                (276, 15, 131, 3),
+                (354, 207, 3, -117),
+            ],
+        },
+    ),
+    (
+        148,
+        crate::units::anim::ATTACK2,
+        5,
+        Release {
+            piece: 148,
+            node: 0,
+            pivot: [0, 4_805_934, 29_922_840],
+            at: [-8_287_596, -23_357_670, 15_824_871],
+            float_lands: &[
+                (15, 219, 120, -56),
+                (75, 249, 56, 108),
+                (105, 219, 56, 120),
+                (345, 249, 108, -56),
+            ],
+        },
+    ),
+    (
+        148,
+        crate::units::anim::ATTACK2,
+        18,
+        Release {
+            piece: 148,
+            node: 0,
+            pivot: [0, 2_121_474, 32_393_387],
+            at: [7_804_588, -19_097_317, 19_372_738],
+            float_lands: &[],
+        },
+    ),
+    (
+        148,
+        crate::units::anim::ATTACK3,
+        12,
+        Release {
+            piece: 148,
+            node: 0,
+            pivot: [4_308_261, -1_638_021, 31_049_999],
+            at: [-11_660_448, -21_473_318, 13_589_687],
+            float_lands: &[],
+        },
+    ),
+    (
+        148,
+        crate::units::anim::ATTACK3,
+        16,
+        Release {
+            piece: 148,
+            node: 0,
+            pivot: [4_308_261, -1_638_021, 31_049_999],
+            at: [-9_952_581, 3_353_412, 25_517_426],
             float_lands: &[],
         },
     ),

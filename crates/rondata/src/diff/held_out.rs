@@ -1049,6 +1049,77 @@ mod tests {
         }
     }
 
+    /// **Row 103's Armored Scout Car fires from its turret's muzzle** (item
+    /// 4559, `docs/RECGAME.md` §12.3): run1783, the ranges take of row 103's
+    /// file. On 2859 who=1's Armored Scout Car `1/35` (unit 223 of our
+    /// array; TI 218, the Asian art style's piece 1224) looses its
+    /// `CHAR_ATTACK2` round; with no row for the piece it left from its own
+    /// square, and the ammo line parted on 2860 at `launch.x`, ours 8952,
+    /// theirs 8994. The piece is 169's model, anims and scale
+    /// (`sim::data::pivot`'s `SAME_AS`), so the round leaves through the
+    /// pivot arm, from (8994, 15803, 236): every ammo range on 2858..=2870
+    /// byte for byte.
+    #[test]
+    fn row_103_s_armored_scout_car_fires_from_its_turret_on_run1783_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 5) else {
+            eprintln!("skipping: row 103's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1783/map-18");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1783's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 103's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 2858..=2870 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            if state == 2860 {
+                let p = built
+                    .sim
+                    .combat
+                    .projectiles
+                    .iter()
+                    .find(|p| p.slot == 0)
+                    .expect("the round in slot 0");
+                let sim::combat::Obj::Unit(u) = p.shooter else {
+                    panic!("a unit's round");
+                };
+                let x = &built.sim.units[u];
+                assert_eq!((x.owner, x.index), (1, 35), "the shooter is 1/35");
+                assert_eq!(x.type_index, 218, "1/35 is an Armored Scout Car");
+                assert_eq!(x.guys[0].gpiece, 1224, "1/35's piece");
+                assert_eq!((p.launch.x, p.launch.y, p.sz), (8994, 15803, 236));
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let theirs: Vec<_> = record
+                .ranges(&set)
+                .expect("the set's ranges")
+                .into_iter()
+                .filter(|r| r.line == 3)
+                .collect();
+            let ours = built.sim.checksum_ammo().expect("ours' ammo line");
+            assert_eq!(ours.ranges.len(), theirs.len(), "ammo's ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "ammo range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+    }
+
     /// **Row 123's producers lap from 2001 when the cursor is another
     /// player's** (item 4546, `docs/RECGAME.md` §12.3): run1785, the ranges
     /// take of row 123's file. `find_counters[0x1c]` is one array for every
@@ -7634,6 +7705,17 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // who=2's Village site at (27, 25) closes on frame 3221 and theirs'
         // pass starts again): leaders 3,223 -> 3,372 (first 3223 -> 3302),
         // cities 3,373 -> 3,379 (first 3223 -> 3376).
+        // Moved by item 4559 (the eight pieces with no bay; row 43's is the
+        // Native American Bowmen, piece 1528, whose 788 rounds left from the
+        // figure's square from 3360, past this row's first parting at 3299,
+        // which stands): builds 3,345 -> 3,452, deaths 3,374 -> 3,459 (first
+        // 3374 -> 3459), groups 3,423 -> 3,484 (first 3376 -> 3463), guys
+        // 3,374 -> 3,442 (first 3374 -> 3442), leaders 3,372 -> 3,460,
+        // cities 3,379 -> 3,561 (first 3376 -> 3561), goods 3,710 -> 4,325
+        // (first 3710 -> 4102), world 3,374 -> 3,444 (first 3374 -> 3443).
+        // Items 4,042 -> 4,034 (first 3670 -> 3658) is a named fall, and our
+        // walk holds `game_over` from 5972 again where the original plays to
+        // 6000 (`over` none -> 5972), both past the first parting.
         // Moved by item 4565 (`compare_target`'s building arms read the
         // target's `damage` and `UnitData::is_moving`, `64eb6e`..`64ebc6`;
         // run1787's leaf on 3299, builds range 1549, record 2010, who=2's
@@ -7649,22 +7731,22 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3374, 3376, 6001, 3373, 3374, 3423, 3374, 3374, 3379, 4036, 4099, 3374,
+                3299, 3452, 6001, 3471, 3459, 3484, 3442, 3460, 3561, 4034, 4325, 3444,
             ],
             first: &[
-                ("units", (3374, Some(2598719191), 1136443106)),
-                ("builds", (3376, Some(2327036792), 883868612)),
-                ("ammo", (3361, Some(222323816), 4246037124)),
-                ("deaths", (3374, Some(3897575467), 982012739)),
-                ("groups", (3376, Some(3865935763), 406744244)),
-                ("guys", (3374, Some(641651763), 4151560086)),
-                ("leaders", (3374, Some(304611925), 838795989)),
-                ("cities", (3376, Some(607798839), 2409973377)),
-                ("items", (3660, Some(3707258885), 3687073795)),
-                ("goods", (3665, Some(3160241942), 3114104596)),
-                ("world", (3374, Some(2564315079), 3645396767)),
+                ("units", (3299, Some(14876181), 151977493)),
+                ("builds", (3299, Some(3013899671), 1891857812)),
+                ("ammo", (3299, Some(3106682425), 149042284)),
+                ("deaths", (3459, Some(1145338834), 660303772)),
+                ("groups", (3463, Some(190796204), 465851824)),
+                ("guys", (3442, Some(372435881), 153938856)),
+                ("leaders", (3302, Some(3480940479), 291631041)),
+                ("cities", (3561, Some(4170401852), 1465534271)),
+                ("items", (3658, Some(3707258885), 3687073795)),
+                ("goods", (4102, Some(3168892696), 3160241942)),
+                ("world", (3443, Some(2679318386), 2167809738)),
             ],
-            over: None,
+            over: Some(5972),
         }),
     }),
     // run1776
@@ -7788,10 +7870,15 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // city emptying on its 60-frame phase with no stranger in sight):
         // ammo 3,659 -> 3,651, a named fall past the first partings; every
         // first parting unchanged.
+        // Item 4559 (the eight pieces with no bay; row 83's are the
+        // Anti-Aircraft Gun, 231, from 3997 and the Machine Gun, 73, from
+        // 4252, both past the row's first parting, units 3359): goods 4,678
+        // -> 4,572 (first 4618 -> 4572), a named fall; every other column
+        // unmoved.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3359, 3360, 6001, 3651, 3672, 3385, 3360, 3376, 3576, 4069, 4678, 3360,
+                3359, 3360, 6001, 3651, 3672, 3385, 3360, 3376, 3576, 4069, 4572, 3360,
             ],
             first: &[
                 ("units", (3359, Some(1240030600), 4018231023)),
@@ -7803,7 +7890,7 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
                 ("leaders", (3376, Some(1593722807), 1499744384)),
                 ("cities", (3576, Some(534003062), 534461814)),
                 ("items", (4053, Some(912470408), 898052486)),
-                ("goods", (4618, Some(3229390119), 3223622949)),
+                ("goods", (4572, Some(3229390119), 3223622949)),
                 ("world", (3360, Some(3462094353), 1521442267)),
             ],
             over: None,
@@ -7864,22 +7951,20 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // pool slot 3) on 2557, `role` ours 0x050500, theirs 0x150d00: the
         // Infantry `2/69` pushed out by `disembark_squad` on 2556 leaves its
         // `FOOT | INFANTRY` bits): groups 3,058 -> 3,059, first 2557 -> 3057.
+        // Moved by item 4559 (the eight pieces with no bay; row 103's are the
+        // Asian Armored Scout Car, piece 1224, `SAME_AS` 169 in
+        // `sim::data::pivot`, and the Tank, 198. run1783's leaf on 2860, ammo
+        // range 1, who=1's `1/223` (TI 218) `CHAR_ATTACK2` round left from
+        // its own square, `launch.x` ours 0x..22f8, theirs 0x..2322): units
+        // 2,951, builds 3,049, ammo 2,943, deaths 3,112, groups 3,059, guys
+        // 3,049, leaders 3,093 and cities 3,017 -> 3,295, all whole to the
+        // original's end; world 2,983 (first 2983) unmoved.
         moved: Some(Score {
             states: 3295,
             agreed: [
-                2951, 3049, 3295, 2943, 3112, 3059, 3049, 3093, 3017, 3295, 3295, 2983,
+                3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295, 2983,
             ],
-            first: &[
-                ("units", (2910, Some(2052296157), 1774358062)),
-                ("builds", (3049, Some(1208216528), 2776099791)),
-                ("ammo", (2860, Some(4045473920), 460261739)),
-                ("deaths", (3112, Some(2034262564), 2741464787)),
-                ("groups", (3057, Some(3104530146), 1865375431)),
-                ("guys", (3049, Some(2458392641), 783291667)),
-                ("leaders", (2910, Some(3614561222), 4268151752)),
-                ("cities", (2910, Some(3208658105), 1568881894)),
-                ("world", (2983, Some(3105834113), 1025917694)),
-            ],
+            first: &[("world", (2983, Some(3105834113), 1025917694))],
             over: None,
         }),
     }),
