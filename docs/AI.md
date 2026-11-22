@@ -24540,8 +24540,9 @@ and run662's `1/80` of 17309 and `1/90` of 17311 (the latter from (6456, 9240, 1
 rows past its word 337 → 298.
 
 **Not established.** `1/42`'s Crossbowman round is 1 off in `sx` (6767 against 6768) and its `angle` (−358154240
-against −358678528) with the same landing and flight (parked 3359a): `launch::MEASURED`'s piece 122 rows are
-single-pose fits and the piece may be a `Bay`'s whole-degree turn. Ours' turret is not compared: no widening reads
+against −358678528) with the same landing and flight (parked 3359a): ~~`launch::MEASURED`'s piece 122 rows are
+single-pose fits and the piece may be a `Bay`'s whole-degree turn.~~ It is: piece 122's rows are `launch::BAYS` rows
+from the original's sweep since item 4517 (`docs/RECGAME.md` §12); this round is not re-read against them. Ours' turret is not compared: no widening reads
 `turret_angles`, and run985b's is the only `GUYS=4` block of the lobby. The Horse Archer's piece 842 (parked 3338a)
 has the same shape — its heights are its pivot's sums too (run973g's rows: 225, 228, 208, the dump's) — ~~and is not
 carried here~~ — carried by item 3658 as piece 138's rows (§338).
