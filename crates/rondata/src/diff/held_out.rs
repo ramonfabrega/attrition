@@ -603,6 +603,86 @@ mod tests {
         }
     }
 
+    /// **Row 83's computer lists a caravan by its ally's city** (item
+    /// 4545, `docs/CARAVAN.md` §4): run1784, the ranges take of row 83's
+    /// file. On 1956 who=2 (the added computer, team 0 with the human)
+    /// rebuilds its make list, and theirs' fifth slot is a Caravan (TI 59,
+    /// `CARA`) at `val` 980,392, city 0. `create_units@006c40a0`'s caravan
+    /// arm offers one only while `get_caravan_limit(1)` exceeds the
+    /// caravans queued and standing, and that limit's `n` is who=2's two
+    /// cities plus its mutual ally who=0's one under
+    /// `has_preq(BASE_BONUSTYPES)` (`006dca50`): three pairings. Ours
+    /// counted who=2's alone, one pairing, so the arm offered nothing and
+    /// the slot kept its stale entry. Every leaders range on 1955 and 1956,
+    /// ours against theirs, byte for byte: red on the tree before the fix
+    /// at range 310, record 2, `make_list[k]`, `t` ours 561, theirs 59.
+    #[test]
+    fn row_83_s_computer_lists_a_caravan_by_its_ally_s_city_on_run1784_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+            eprintln!("skipping: row 83's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1784/map-14"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1784's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 83's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        assert_eq!(built.sim.ai.lobby.team_style, 1, "row 83 locks its teams");
+        for state in [1955, 1956] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_leaders();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "leaders' ranges on {state}"
+            );
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "leaders range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Who=2's fifth make-list slot: range 310, `t`, `val`, `escrow`, `city`.
+            assert_eq!(ours.ranges[310].field, "make_list[k]");
+            assert_eq!(ours.ranges[310].record, 2);
+            let word = |n: usize| {
+                i32::from_le_bytes(theirs[310].bytes[4 * n..4 * n + 4].try_into().unwrap())
+            };
+            let slot = (word(0), word(1), word(2), word(3));
+            if state == 1956 {
+                assert_eq!(slot, (59, 980_392, 1, 0), "theirs' Caravan entry");
+            } else {
+                assert_ne!(slot.0, 59, "no Caravan entry before 1956");
+            }
+            // Who=2's two cities and its mutual ally who=0's one make three
+            // pairings; its own two made one.
+            assert_eq!(
+                (built.sim.cities_of(0).len(), built.sim.cities_of(2).len()),
+                (1, 2),
+                "the allies' cities on {state}"
+            );
+            assert!(built.sim.is_ally(2, 0) && !built.sim.is_ally(2, 1));
+            assert_eq!(built.sim.caravan_limit(2), 3, "who=2's limit on {state}");
+        }
+    }
+
     /// **Row 103's caravan road is laid on the frame after the budget**
     /// (item 4544, `docs/ROADS.md` §8.3): run1783, the ranges take of
     /// row 103's file. A caravan's road search costs 3,207, 3,202 and

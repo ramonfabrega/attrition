@@ -7137,7 +7137,11 @@ fn the_caravan_limit_counts_a_mutual_ally_s_cities_under_trade() {
     sim.leaders.allied[0][1] = true;
     assert_eq!(sim.caravan_limit(0), 0, "an alliance one way is no ally");
     sim.make_allies(0, 1);
-    assert_eq!(sim.caravan_limit(0), 1, "my city and my ally's: one pairing");
+    assert_eq!(
+        sim.caravan_limit(0),
+        1,
+        "my city and my ally's: one pairing"
+    );
     sim.tech[1].epoch[tech::Line::Civic as usize] = 1;
     let _ = city_at(&mut sim, &t, 1, 32, 57);
     assert_eq!(sim.caravan_limit(0), 3, "three cities: three pairings");

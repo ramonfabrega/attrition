@@ -1814,7 +1814,7 @@ impl Sim {
     /// defeated ally too, whose count is its cities left (item 4545,
     /// run1784: who=2's one city and its ally who=0's let the AI list a
     /// caravan on 1956; `docs/CARAVAN.md` §4).
-    pub(crate) fn caravan_limit(&self, who: Player) -> i32 {
+    pub fn caravan_limit(&self, who: Player) -> i32 {
         let mut n = self.cities_of(who).len() as i32;
         if self.ally_caravan_preq_held(who) {
             n += (0..self.territory.players.len())
