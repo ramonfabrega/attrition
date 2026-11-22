@@ -1514,7 +1514,6 @@ first. The lap resets now (`ai_host::lap`, `find_unit`'s too; AI §11): twelve l
 
 **Bays (4547, 4559).** 736 takes 1440's; 4559 rows eight (`launch::BAYS`, `pivot::RELEASES`; 1224 is 169's). 4561:
 an unbuilt Village's close fixes borders. 4565: COMBAT §12.3.
-4568: a taken city's survivors re-home (`City::close`'s `find_city` walk; row 83's Barracks `2/2036`, 3645).
 
 ### 12.4 Row 95: a CEO going in leaves its city (item 4519)
 
