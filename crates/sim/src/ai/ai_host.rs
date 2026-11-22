@@ -786,25 +786,16 @@ impl ScriptHost<'_> {
         int(n as i32)
     }
 
-    /// One lap over the leader's unit numbers from `cursor + 1`, wrapping
-    /// to 0.
+    /// One lap over the leader's unit numbers ([`lap`] from 0).
     fn lap_units(&self, w: Player, cursor: i32) -> impl Iterator<Item = i16> + '_ {
         let mark = i32::from(self.sim.roster.marks[w as usize].unit);
-        let start = (cursor + 1).clamp(0, mark.max(0));
-        (start..mark)
-            .chain(0..start.min(mark))
-            .filter_map(|o| i16::try_from(o).ok())
+        lap(0, mark, cursor).filter_map(|o| i16::try_from(o).ok())
     }
 
-    /// One lap over the leader's building numbers from `cursor + 1`,
-    /// wrapping to 2000.
+    /// One lap over the leader's building numbers ([`lap`] from 2000).
     fn lap_builds(&self, w: Player, cursor: i32) -> impl Iterator<Item = i16> + '_ {
-        let base = i32::from(BUILD_BASE);
         let mark = i32::from(self.sim.roster.marks[w as usize].build);
-        let start = (cursor + 1).clamp(base, mark.max(base));
-        (start..mark)
-            .chain(base..start.min(mark))
-            .filter_map(|o| i16::try_from(o).ok())
+        lap(i32::from(BUILD_BASE), mark, cursor).filter_map(|o| i16::try_from(o).ok())
     }
 
     fn find_unit(&mut self, who: i32, ty: &str) -> Value {
@@ -1315,6 +1306,28 @@ impl Sim {
     pub fn place_city_ai(&mut self, who: Player) {
         self.place_city_ai_impl(who);
     }
+}
+
+/// One lap over a leader's object numbers `base..mark` from `cursor + 1`,
+/// wrapping to `base` — the walk of `ScenarioFuncSet::find_build@009e2970`
+/// (`base` 2000, `mark` the player's build count at `Objects +0x184`) and
+/// `find_unit@009e2850` (`base` 0, `+0x15c`). **A cursor at or past `mark`,
+/// or under zero, is first reset to `base`**, so the lap starts at `base + 1`
+/// and reaches `base` last (item 4546; `docs/AI.md` §11, `docs/RECGAME.md` §12.3). `find_counters` is
+/// one array across players, so the cursor another player's find left is
+/// at or past this one's count whenever that player owns as many or more.
+///
+/// A cursor in `0..base` for the builds lap starts at `base` here; the
+/// original would walk that player's unit slots from `cursor + 1` before
+/// wrapping, and no counter this crate writes holds such a value.
+fn lap(base: i32, mark: i32, cursor: i32) -> impl Iterator<Item = i32> {
+    let cursor = if cursor < 0 || cursor >= mark {
+        base
+    } else {
+        cursor
+    };
+    let start = (cursor + 1).clamp(base, mark.max(base));
+    (start..mark).chain(base..start.min(mark))
 }
 
 #[cfg(test)]

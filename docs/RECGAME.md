@@ -1497,7 +1497,7 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 | 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, ended on 4222 | 1 | leaders 1582, units 1789 |
 | 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | leaders 1956, builds 1958 |
 | 103 | run1778 | East Indies, Modern | the computers | 3,295, ended on 3294 | 1 | ~~world 1750~~ (ROADS §8.3), leaders 1757 |
-| 123 | run1779 | Great Lakes, Gunpowder | human + added | 6,001 | 3 | builds, groups 2977 |
+| 123 | run1779 | Great Lakes, Gunpowder | human + added | 6,001 | 3 | ~~builds, groups 2977~~ whole (below) |
 | 143 | run1780 | Great Sahara, difficulty 1 | the computers | 6,001 | **12** | whole |
 
 The original ended rows 63 and 103 itself, both with the two computers allied against the idle human; our walk
@@ -1508,6 +1508,11 @@ first parting.
 *Not established*: no row names a leaf, since each take holds sums only. Row 23 is whole (§12.6). Row 63's leaders on
 1582: the locked team's wonder term (`docs/COSTS.md`, item 4542). Every other row parts first between 1582 and 3857,
 and needs a ranges take before its leaf is named.
+
+**Row 123 whole (item 4546, run1785).** The leaf was who=1's producer 2000's `queued` on 2977, ours 3, theirs 2. who=2
+left the one shared `find_counters[0x1c]` at 2011, who=1's count (its mark); `find_build@009e2970` resets such a
+cursor to 2000 and starts at 2001, so who=1's three trainings on 2976 went 2007, 2000, 2007, where ours went 2000
+first. The lap resets now (`ai_host::lap`, `find_unit`'s too; AI §11): twelve lines whole.
 
 ### 12.4 Row 95: a CEO going in leaves its city (item 4519)
 

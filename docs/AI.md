@@ -1684,8 +1684,11 @@ what a five-minute hang guard should be, and what `was_city_attacked`'s
 Ratified directly: `get_type_index` matches `TypeData+0x60 name` under
 flag 0 (`+0xb0 type_name` under 1), so the scripts' type names are the
 display names, not `TYPENAME` — `rondata` must carry both; the internal
-`find_unit` clamps its cursor and laps once from `cursor + 1`, wrapping to
-0, and `find_counters[]` is global rotating state the interpreter's host
+`find_unit` ~~clamps its cursor and~~ laps once from `cursor + 1`, wrapping to
+0 — **a cursor at or past the player's count, or under zero, is reset to 0
+first** (`find_build@009e2970` to 2000), so the lap starts at 1 (2001); item
+4546, diff-backed by run1785's row 123 on 2977 (RECGAME §12.3) for the
+builds lap — and `find_counters[]` is global rotating state the interpreter's host
 must model; `population` returns `control`; `get_starting_town_size` is
 version-gated; `ScriptTimers::check` removes the timer it reports
 expired; `research_tech_with_cost` returns 1 for an owned tech and seeds
