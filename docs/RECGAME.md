@@ -659,8 +659,16 @@ pairs in the profile's `Recorded Games/` that differ in that byte alone
 (East Indies, styles 0 and 1, difficulties 5, 5 and 0) carry equal rules,
 run state, semaphore and markers (`mint_4387_the_demand_s_game`'s `MINT
 pair` rows), and no Great Lakes game at style 0 has been recorded, so a
-style-1 donor serves a style-0 lobby. It is read from the user's install at
-run time and never kept.
+style-1 donor serves a style-0 lobby. **`PLAYERS` does not move them
+either** (item 4527): the 23 finished donors that seat three on a lobby
+another donor seats two on (17 Great Lakes, 6 East Indies) carry equal
+rules, run state, semaphore and markers, and no donor of the profile's
+1,654 seats three on any of the fifth battery's lobbies (§12.1), so a
+donor may differ in `PLAYERS` too
+(`the_borrowed_sections_move_with_neither_team_style_nor_players`, over
+`RON_RECGAME_DIR`; seen red with one side's run state bent). No donor
+seats four or more, so the widening is measured from two seats to three
+alone. It is read from the user's install at run time and never kept.
 
 **Against the original's own recording of this lobby's game**
 (`Playback - 2026.08.25 00'39'07 (Tue)`, 24,001 packages over frames
@@ -718,8 +726,8 @@ The playback's pace at the trace-only recipe is **11.7 frames a second**
   writes it, replays the same (both takes used 11); what reads
   `graphic_tick`; whether a playback without `camera` and `player_speed`
   differs in anything beyond units over 300 frames and draws over 24,000. The Types stretch is still not derived, so our file
-  needs a donor with the same options: one exists only for a lobby this
-  install has recorded. Multiplayer, CtW and scenario recordings are out of
+  needs a donor with the same options but for `TEAM_STYLE` and `PLAYERS`:
+  one exists only for a lobby this install has recorded. Multiplayer, CtW and scenario recordings are out of
   scope.
 
 ## 9. Minted orders: one list of packages, both sides (item 4059, 2026-11-10)
@@ -1393,3 +1401,28 @@ whole: **ammo 4,682 → 5,342, twelve lines to the original's end**, and the fou
 `row_75_s_crossbow_bolt_leaves_from_the_original_s_socket_on_run1768_s_ranges` holds every ammo range on 4003 to
 4013, and `data::launch::tests::the_original_s_release_agrees_at_every_heading_for_the_crossbowmen` the sweeps
 (`RON_BAY_SWEEPS_4517`, outside git).
+
+### 12.1 Parity held out, fifth: rows 3 to 143, three seats and a team (item 4527)
+
+DECISIONS 149 §3, 150 §2 and §3, 2026-11-21. Rows 3, 23, 43, 63, 83, 103, 123 and 143 of the same order, each with
+one seat and one team of two added, declared in `HELD_OUT_FIFTH` (`aece988eb`, 21:55 −05:00) before any file was
+recorded (the eight were written between 21:59 and 22:01). **The page sets both**: `Event::AddSeat` adds a computer
+seat up to eight, `Event::Team` sets a seat's team from 0 to 8 (8 none), and the page's own rows make each by keys
+(`docs/LOBBY.md` §2, §3). Teams 0 to 3 ally (`LeaderData::is_team`), and these rows' `TEAM_STYLE 1` locks them.
+
+**Three seats, because the map holds three.** Every row is `MAP_SIZE 2`, which `rules.xml`'s `mapsizes` names
+"Small (2/3-player)"; a fourth seat would move `MAP_SIZE` and leave the row's lobby. Each row keeps its human (seat 0,
+tribe 4) and its computer (seat 1) and adds a computer of nation 0, 1, 2, 3, 5, 6, 7 or 8 (`HELD_OUT_FIFTH_SEATS`),
+named by its nation's first leader. The team alternates: the human and the added computer are team 0 on rows 3, 43,
+83 and 123, against the row's computer; the two computers are team 1 on rows 23, 63, 103 and 143, against the human.
+The declaration's columns are the page's block after the row's own events and the additions, each through
+`Choices::apply`.
+
+**The recorder needed a widening.** No finished donor seats three on any of the eight lobbies, so none could be
+written until `donor_serves` let a donor differ in `PLAYERS` (§8.2). Each file is `client --record <file> --headless
+--page-of <capture> --seat <tribe> --team <a>=<t> --team <b>=<t> --frame 6000`; `--seat` and `--team` press the
+page's keys after the capture's lobby (`Page::press`). `the_fifth_s_files_carry_the_declared_seats_and_team` reads
+each file back against the declaration's rows.
+
+Each is played by the original as `run1773 + k` under the checksum hook alone, with no ranges, and pinned once in
+`SCORES_FIFTH`; that found column is the estimate. The table of the takes follows when they are scored.
