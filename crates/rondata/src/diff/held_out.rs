@@ -1096,10 +1096,6 @@ mod tests {
                     panic!("a unit's round");
                 };
                 let x = &built.sim.units[u];
-                eprintln!(
-                    "ROW103 launch ({}, {}) sz {}",
-                    p.launch.x, p.launch.y, p.sz
-                );
                 assert_eq!((x.owner, x.index), (1, 35), "the shooter is 1/35");
                 assert_eq!(x.type_index, 218, "1/35 is an Armored Scout Car");
                 assert_eq!(x.guys[0].gpiece, 1224, "1/35's piece");
