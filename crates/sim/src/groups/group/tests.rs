@@ -1696,14 +1696,12 @@ fn a_squad_pushed_out_of_an_army_leaves_the_record_s_role() {
     assert!(s.push_group(&mut group_of(1, &[c]), true));
     assert_eq!(s.ai.armies[1].list[slot].units, vec![a, b], "c left");
     assert_eq!(
-        s.ai.armies[1].list[slot].group.role,
-        both,
+        s.ai.armies[1].list[slot].group.role, both,
         "Group::kill left the record's role"
     );
     s.army_normalize(1, slot);
     assert_eq!(
-        s.ai.armies[1].list[slot].group.role,
-        s.tables.unit_types[t].cols.role,
+        s.ai.armies[1].list[slot].group.role, s.tables.unit_types[t].cols.role,
         "the next normalize re-roles it"
     );
 }

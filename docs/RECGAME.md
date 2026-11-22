@@ -1493,7 +1493,7 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 |---|---|---|---|---|---|---|
 | 3 | run1773 | Great Sahara, difficulty 3 | human + added | 6,001 | 1 | units, builds, ammo 3857 |
 | 23 | run1774 | Atlantic Sea Power | the computers | 6,001 | 10 | **leaders 0**, units 5695 |
-| 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~ammo 3192~~ leaders 3223 |
+| 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~3192~~ leaders 3223 |
 | 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, ended on 4222 | 1 | ~~1582, 1789~~ ammo 3683 |
 | 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | ~~leaders 1956~~ (CARAVAN §2), ~~units 2811~~ (SUPPLY, item 4554), builds 3041 |
 | 103 | run1778 | East Indies, Modern | the computers | 3,295, ended on 3294 | 1 | ~~1750, 1757, 1790, 2557 (GROUPS §3.4)~~ ammo 2860 |
@@ -1512,7 +1512,7 @@ left the one shared `find_counters[0x1c]` at 2011, who=1's count (its mark); `fi
 cursor to 2000 and starts at 2001, so who=1's three trainings on 2976 went 2007, 2000, 2007, where ours went 2000
 first. The lap resets now (`ai_host::lap`, `find_unit`'s too; AI §11): twelve lines whole.
 
-**Row 43 (item 4547, run1787).** who=2's Slinger, piece 736, had no bay; its sweep is 1440's (`launch::BAYS`).
+**Row 43 (item 4547).** who=2's Slinger, piece 736, had no bay; it is 1440's (`launch::BAYS`).
 
 ### 12.4 Row 95: a CEO going in leaves its city (item 4519)
 
