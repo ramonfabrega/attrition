@@ -9484,8 +9484,9 @@ fn the_city_s_alarm_rings_then_sounds_the_all_clear() {
 /// garrison comes out and `city_flags & 0x40` clears. The 2017 sample's
 /// Village `0/2000` on 7020 (run1786 on 7021).
 ///
-/// Made to fail with the arm's call off, with the period at 200 for a
-/// computer, and with the stranger test answering none.
+/// Made to fail with the arm's call in `process_building_tail` off, with
+/// the period at 200 for a computer, and with the stranger test answering
+/// none.
 #[test]
 fn a_computer_s_city_sounds_its_own_all_clear_when_no_stranger_is_in_sight() {
     let (mut sim, t, citizen, _) = alarm_sim();
@@ -9514,7 +9515,8 @@ fn a_computer_s_city_sounds_its_own_all_clear_when_no_stranger_is_in_sight() {
     assert!(sim.cities.cities[c].alarm, "city_flags & 2 vetoes the test");
     sim.cities.cities[c].no_heal = false;
 
-    sim.city_all_clear_due(b, c, due + 60);
+    // Through the building's own process, the tail's city block.
+    sim.process_building_whole(b, due + 60);
     assert!(!sim.cities.cities[c].alarm, "the all-clear: city_flags & ~0x40");
     assert_eq!(sim.units[inside].inside, None, "the garrison out");
     assert!(sim.buildings[b].garrison.is_empty());
