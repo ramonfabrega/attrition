@@ -336,7 +336,6 @@ impl CheckUpgradeView for SimUpgrade<'_> {
         // on the next frame.
         let owner = self.sim.cities.cities[self.c].owner as usize;
         self.sim.cities.wall_stats_dirty[owner] = true;
-        if std::env::var("RON_PROBE_4540").is_ok() { eprintln!("W {} {} city_upgrade c{}", self.sim.frame, owner, self.c); }
     }
     fn find_buildings(&mut self) {
         self.sim.find_buildings(self.c);

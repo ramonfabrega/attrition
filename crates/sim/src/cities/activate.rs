@@ -135,7 +135,6 @@ impl ActivateHeadView for SimHead<'_> {
     fn mask_me(&mut self) {}
     fn flag_wall_stats(&mut self) {
         self.sim.cities.wall_stats_dirty[self.who as usize] = true;
-        if std::env::var("RON_PROBE_4540").is_ok() { eprintln!("W {} {} head_flag b{}", self.sim.frame, self.who, self.b); }
     }
     /// `last_building_finished[who][type] = o` (`docs/LEADERS.md` §19);
     /// `ScenarioData::last_build_built_o`, the trigger layer's, is not

@@ -2518,7 +2518,6 @@ impl Sim {
         // so every unit's line of sight is refreshed at the next
         // `Leader::process`; any other building jumps past it to `00626f11`
         // (`docs/VISION.md` §2).
-        if std::env::var("RON_PROBE_4540").is_ok() { eprintln!("W {} {} activate b{} ty {} wonder {}", self.frame, who, b, ty, self.is_wonder_building(ty)); }
         if self.is_wonder_building(ty) {
             self.roster.unit_stats_dirty[who as usize] = true;
         }
@@ -2932,7 +2931,6 @@ impl Sim {
         self.buildings[b].damage = self.buildings[b].hits_now();
         self.buildings[b].sync_health();
         self.cities.wall_stats_dirty[who as usize] = true;
-        if std::env::var("RON_PROBE_4540").is_ok() { eprintln!("W {} {} close b{}", self.frame, who, b); }
         // `Build::close@00628980:319`: a wonder's close raises `0x4000000`
         // beside `Wonders::close_wonder` (`docs/VISION.md` §2).
         if self.buildings[b]

@@ -191,7 +191,6 @@ impl Sim {
                     let gems_moved = (self.economy.ledgers[who].rare ^ rare) & gem != 0;
                     self.economy.ledgers[who].rare = rare;
                     self.roster.unit_stats_dirty[who] = true;
-if std::env::var("RON_PROBE_4540").is_ok() { eprintln!("W {} {} {}", self.frame, who, "rare"); }
                     self.cities.wall_stats_dirty[who] = true;
                     if gems_moved {
                         self.sync_territory();
