@@ -7055,17 +7055,22 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // 3,295); world 1,792 -> 2,983. On the tree merged with 4545 (the
         // caravan limit's ally term): ammo 2,943, groups 3,058, cities
         // 3,017, every first parting as above.
+        // Moved by item 4551 (`Group::kill` leaves the army record's `role`;
+        // run1783's leaf, groups range 215, record 131 (who=2's army 1,
+        // pool slot 3) on 2557, `role` ours 0x050500, theirs 0x150d00: the
+        // Infantry `2/69` pushed out by `disembark_squad` on 2556 leaves its
+        // `FOOT | INFANTRY` bits): groups 3,058 -> 3,059, first 2557 -> 3057.
         moved: Some(Score {
             states: 3295,
             agreed: [
-                2951, 3049, 3295, 2943, 3112, 3058, 3049, 3093, 3017, 3295, 3295, 2983,
+                2951, 3049, 3295, 2943, 3112, 3059, 3049, 3093, 3017, 3295, 3295, 2983,
             ],
             first: &[
                 ("units", (2910, Some(2052296157), 1774358062)),
                 ("builds", (3049, Some(1208216528), 2776099791)),
                 ("ammo", (2860, Some(4045473920), 460261739)),
                 ("deaths", (3112, Some(2034262564), 2741464787)),
-                ("groups", (2557, Some(984460232), 1342942176)),
+                ("groups", (3057, Some(3104530146), 1865375431)),
                 ("guys", (3049, Some(2458392641), 783291667)),
                 ("leaders", (2910, Some(3614561222), 4268151752)),
                 ("cities", (2910, Some(3208658105), 1568881894)),
