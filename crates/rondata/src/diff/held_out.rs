@@ -4864,3 +4864,57 @@ pub(crate) const FOURTH: Battery = Battery {
 /// joins by one entry here once a lane reads a parting off one of its rows.
 #[cfg(test)]
 pub(crate) const SPENT: &[&Battery] = &[&FIRST, &SECOND, &THIRD, &FOURTH];
+
+/// Item 4519's probe: who=1's units around row 95's leaders parting.
+#[cfg(test)]
+mod probe_4519 {
+    #[test]
+    fn probe_4519_row_95_units_around_5266() {
+        if std::env::var_os("RON_PROBE_4519").is_none() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let rcx = home.join("ron-golden/recordings/item4510-row095-6000.rcx");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 95's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(5262);
+        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(5267);
+        while built.sim.frame < lo {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        while built.sim.frame <= hi {
+            let f = built.sim.frame;
+            for w in 0..2 {
+                eprintln!("P4519 {f} dirty who={w} {}", built.sim.economy.ledgers[w].dirty);
+            }
+            for (k, u) in built.sim.units.iter().enumerate() {
+                if !u.alive() {
+                    continue;
+                }
+                let name = u.ty.map_or("-", |t| built.unit_type_names[t].as_str());
+                eprintln!(
+                    "P4519 {f} u {}/{} slot{k} uid{} TI{} {name} pos{:?} inside{:?} in_unit{:?} idle{} cast{} orders{} {:?}",
+                    u.owner,
+                    u.index,
+                    u.uid,
+                    u.type_index,
+                    u.pos,
+                    u.inside,
+                    u.inside_unit,
+                    u.idle,
+                    u.casting,
+                    u.orders.len(),
+                    u.orders.front().map(|o| format!("{o:?}").chars().take(60).collect::<String>()),
+                );
+            }
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+    }
+}
