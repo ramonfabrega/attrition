@@ -685,6 +685,66 @@ mod tests {
         assert_eq!(built.sim.caravan_limit(2), 3, "who=2's limit on 1956");
     }
 
+    /// **Row 83's units: the supply veto's mark on 2811** (item 4554,
+    /// probe): every units range on 2805 to 2812, ours against theirs.
+    #[test]
+    fn row_83_s_units_on_2811_on_run1784_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+            eprintln!("skipping: row 83's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1784/map-14"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1784's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 83's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let mut bad = 0;
+        for state in 2795..=2812 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_units();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            let mut who = 0u8;
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                if a.field == "who..y_internal" {
+                    who = b.bytes[0];
+                }
+                if a.bytes != b.bytes {
+                    bad += 1;
+                    eprintln!(
+                        "PROBE4554 state {state} range {k} record {} who {who} {}: ours {:02x?} theirs {:02x?}",
+                        a.record, a.field, a.bytes, b.bytes
+                    );
+                }
+            }
+        }
+        for (i, u) in built.sim.units.iter().enumerate() {
+            if u.alive() && u.index == 70 {
+                let ty = u.ty.map(|t| built.unit_type_names[t].clone());
+                eprintln!(
+                    "PROBE4554 slot {i} {}/{} TI {} {:?} pos {:?} attrition {} sheltered {} ignores {} masks2 {:#x}",
+                    u.owner, u.index, u.type_index, ty, u.pos, u.attrition, u.sheltered, u.ignores_supply, u.unit_masks2
+                );
+            }
+        }
+        assert_eq!(bad, 0, "units ranges parting");
+    }
+
     /// **Row 103's caravan road is laid on the frame after the budget**
     /// (item 4544, `docs/ROADS.md` §8.3): run1783, the ranges take of
     /// row 103's file. A caravan's road search costs 3,207, 3,202 and
