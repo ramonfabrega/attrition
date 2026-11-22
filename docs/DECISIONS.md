@@ -163,7 +163,8 @@ is append-only and amended in place, as it always was.
 - 146 standing — The pass of 2026-11-20: a pass scores every held-out row with ranges on disk by leaf before it designs (rows 80 and 100 part builds on one bit of `build_masks`), the fold of the eight into the headline is recommended and left with Ramon, four seats and the second battery's item with its declaration first, 4450a closed by item 4453, and the eye's seat takes the fading wreck
 - 147 standing — The pass of 2026-11-20, second: the estimate is read by reach (27 % → 53 % of states before the first parting, where games and lines read 0 → 1 and 64 → 65), a third battery is named, the fold is still Ramon's at 11 of 15, the rows nearest whole take the seats (row 60, row 90, row 70), the sample keeps its seat with its rate said, parity's own count is a parsed line, and the queue's opener, which a booking had left unreadable to the wake, is a guarded paragraph
 - 148 extended by 149 — The pass of 2026-11-21: every held-out row not whole is scored (eight leaves on disk on rows 105 and 10, five with no item; rows 40 and 5 one line from whole), the three batteries read 0, 1 and 5 of 8 as found and 27, 53 and 88 % by reach, a fourth battery is named, the fold is still Ramon's at 13 of 15, a row's ranges take keeps the lines its score parts on because the disk is the limit, the sample's seat reads the `Parity:` line and takes ranges past its draw word first, and the eye's seat draws the dust from the packet's emitters.
-- 149 standing — The pass of 2026-11-21, second: the disk stops binding without a file deleted, because the archive's compression skips any file of 2^31 bytes and fourteen ranges records stood raw for it (a record past two billion bytes is kept in gigabyte pieces both readers open as one; thirteen split, 46.8 GiB to 4.1, 56 GB free to 117), the five rows not whole are scored and four seats cut, the sample's take runs to 6400 on the lines that part below it, a fifth battery is named, the fold is still Ramon's at 14 of 15, and the gate table says stopped for a gate the driver stopped.
+- 149 extended by 150 — The pass of 2026-11-21, second: the disk stops binding without a file deleted, because the archive's compression skips any file of 2^31 bytes and fourteen ranges records stood raw for it (a record past two billion bytes is kept in gigabyte pieces both readers open as one; thirteen split, 46.8 GiB to 4.1, 56 GB free to 117), the five rows not whole are scored and four seats cut, the sample's take runs to 6400 on the lines that part below it, a fifth battery is named, the fold is still Ramon's at 14 of 15, and the gate table says stopped for a gate the driver stopped.
+- 150 standing — Ramon folds the spent batteries into the headline (28 of 31 on the pins of 43ee59434; item 4528 builds the count) and the fifth battery adds seats and a team, its first act reading whether the lobby page sets a team
 
 ## 1. Fidelity before divergence
 
@@ -15054,3 +15055,43 @@ for the loop:
   left the widening suites to the booking gate** (4522). Each is one
   observation, no booking gate was red on either, and both stay in
   their journals.
+
+## 150. Ramon folds the spent batteries into the headline, and the fifth battery adds seats and a team (2026-11-21)
+
+**What happened.** Five pass records put two questions to Ramon (entries
+145 §2, 146 §1, 147, 148 and 149 §3 and §4): whether the held-out games
+fold into the headline's count, and whether a battery adds seats and a
+team to its rows. He answered both on the `commander` row on 2026-11-21,
+after the driver laid out the batteries' found and now columns: "yes,
+we fold, and fifth battery should add seats/teams definitely."
+
+**§1. The fold.** A held-out battery joins parity's declared set once it
+is spent, which entry 145 §2 defines: a lane has read a parting off one
+of its rows. Its `now` column then counts in the headline, row by row,
+beside the six and the sample. The found column never folds and stays
+the estimate, written as each battery's line writes it today. On the
+pins of `43ee59434` the first, second and third batteries are spent, and
+the headline reads **28 of 31** (six of the seven, eight, six and eight
+of the eight). The fourth folds when a seat on it reads a parting off
+one of its rows, which items 4517 and 4518 do (entry 149 §3). Folded
+whole, it reads 33 of 39. Entry 146 §1 read "the eight" as the first
+battery, and §1 extends it by 145 §2's own test to every battery so
+spent. The `Parity:` line is built by `sample::parity_line` from the
+pins, so the fold is a build: item 4528 counts each spent battery's
+whole rows from its `SCORES*` table, and the driver writes the line.
+The fifth battery folds by the same rule.
+
+**§2. The fifth battery adds seats and a team.** Its rows stay entry
+149 §3's (3, 23, 43, 63, 83, 103, 123 and 143 of the order `Start:`
+counts), and its trigger stays the fourth reading 7 of 8 now. Ramon's
+word settles the shape here, not the timing. What changes is the
+recipe: each row is recorded with more than two seats, and at least
+one team of two. The reason is entry 145 §2's limit. Of 718 captures on
+disk with a lobby block, 688 seat two players, and only the sample has
+allies, and the namesake's sixth check was found passed as `false` only
+because the sample has allies. Whether the client's lobby page can set
+a team is unread (entry 146 §1). So item 4527's first act reads it, and
+its declaration, still the item's first commit before any file is
+recorded, names each row's seats and team. If the page cannot set a
+team, the item says so in that commit and declares seats alone, and the
+team becomes an item of its own, booked on the page.
