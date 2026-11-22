@@ -1496,7 +1496,7 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 | 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~3192~~ leaders 3223 |
 | 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, ended on 4222 | **12** | ~~1582, 1789, 3683, 3986~~ whole |
 | 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | ~~1956, 2811, 3041 (CITIES §3.4)~~ units 3359 |
-| 103 | run1778 | East Indies, Modern | the computers | 3,295, ended on 3294 | **12** | ~~1750, 1757, 1790, 2557 (GROUPS §3.4), ammo 2860, world 2983~~ whole (below) |
+| 103 | run1778 | East Indies, Modern | the computers | 3,295, ended on 3294 | **12** | ~~1750, 1757, 1790, 2557 (GROUPS §3.4), ammo 2860, world 2983~~ whole (COLLISION §2) |
 | 123 | run1779 | Great Lakes, Gunpowder | human + added | 6,001 | 3 | ~~builds, groups 2977~~ whole (below) |
 | 143 | run1780 | Great Sahara, difficulty 1 | the computers | 6,001 | **12** | whole |
 
@@ -1511,10 +1511,6 @@ pins hold both sides of every first parting.
 left the one shared `find_counters[0x1c]` at 2011, who=1's count (its mark); `find_build@009e2970` resets such a
 cursor to 2000 and starts at 2001, so who=1's three trainings on 2976 went 2007, 2000, 2007, where ours went 2000
 first. The lap resets now (`ai_host::lap`, `find_unit`'s too; AI §11): twelve lines whole.
-
-**Row 103 whole (item 4567, run1783).** The last leaf was the world's collision blocks on 2983. who=1's President
-`1/14`, aboard a Freighter, became the CEO, and its crew loop's `kill_guy` clears by the figure's cell's plain
-`region` (COLLISION §2). Figure 2 stood on a coastal cell's ocean half. Twelve lines are whole to 3294.
 
 **Bays (4547, 4559).** 736 takes 1440's; 4559 rows eight (`launch::BAYS`, `pivot::RELEASES`; 1224 is 169's). 4561:
 an unbuilt Village's close fixes borders.
