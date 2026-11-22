@@ -1269,10 +1269,32 @@ mod tests {
         let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
         let mut stream = crate::input::Stream::pump(&rec);
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let snap = |sim: &sim::Sim| -> Vec<(bool, bool, bool)> {
+            sim.buildings.iter().map(|b| (b.alive, b.active, b.started)).collect()
+        };
+        let mut prev: Vec<(bool, bool, bool)> = Vec::new();
         for state in lo..=hi {
             while built.sim.frame < state {
+                if built.sim.frame >= lo - 30 && prev.is_empty() {
+                    prev = snap(&built.sim);
+                }
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
+                if !prev.is_empty() {
+                    let now = snap(&built.sim);
+                    for (i, n) in now.iter().enumerate() {
+                        let p = prev.get(i).copied().unwrap_or((false, false, false));
+                        if p != *n {
+                            let b = &built.sim.buildings[i];
+                            let ty = b.ty.map(|t| format!("{:?}", built.sim.tables.build_types[t].ident));
+                            eprintln!(
+                                "P4561 frame {} building {i} who {} index {} ty {:?} {:?} -> {:?} pos {:?}",
+                                built.sim.frame, b.owner, b.index, ty, p, n, b.pos.cell()
+                            );
+                        }
+                    }
+                    prev = now;
+                }
             }
             let t = &built.sim.territory;
             let bp = t.border_pass.as_ref().map(|b| b.index.clone());
