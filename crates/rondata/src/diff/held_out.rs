@@ -863,6 +863,131 @@ mod tests {
         }
     }
 
+    /// Probe (item 4547), reverted whole: row 43's lines on run1787
+    /// (or run1775's draws alone) around 3192, every parted range and the
+    /// frames' draws.
+    #[test]
+    #[ignore]
+    fn probe_4547() {
+        if std::env::var("RON_PROBE_4547").is_err() {
+            return;
+        }
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 2) else {
+            panic!("row 43's recording");
+        };
+        let run = std::env::var("RON_PROBE_RUN").unwrap_or_else(|_| "run1775".into());
+        let map = home.join(format!("ron-golden/{run}/map-7"));
+        let ranges = crate::testenv::experiment(&map, "rontrace.ranges");
+        let log = crate::testenv::experiment(&map, "rontrace.log").expect("log");
+        let tr = crate::trace::Trace::read(&log).expect("reads").expect("a trace");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 43's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = ranges
+            .as_ref()
+            .map(|r| crate::trace::ranges::Record::open(r).expect("the record opens"));
+        let env = |k: &str, d: i64| std::env::var(k).ok().and_then(|v| v.parse().ok()).unwrap_or(d);
+        let lo: i64 = env("RON_PROBE_LO", 3188);
+        let hi: i64 = env("RON_PROBE_HI", 3193);
+        let lines: Vec<usize> = std::env::var("RON_PROBE_LINES")
+            .ok()
+            .map(|v| v.split(',').filter_map(|x| x.parse().ok()).collect())
+            .unwrap_or_else(|| vec![3]);
+        built.sim.trace.trace_phases = true;
+        while built.sim.frame < hi {
+            let f = built.sim.frame;
+            let seed = built.sim.rng.seed;
+            stream.apply(f as i32, &mut built);
+            built.tick();
+            crate::diff::harness::debug_watch(&built, built.sim.frame);
+            let state = built.sim.frame;
+            if f >= lo - 1 {
+                let theirs = tr.labels(f);
+                let ours = built.frame_sites.last().map_or(&[][..], |(_, v)| v);
+                eprintln!(
+                    "f{f} seed {seed:#010x} draws ours {} theirs {}",
+                    ours.len(),
+                    theirs.len()
+                );
+                if theirs != ours {
+                    for (k, (a, b)) in ours.iter().zip(&theirs).enumerate() {
+                        if a != b {
+                            eprintln!("  first parted draw {k}: ours {a} theirs {b}");
+                            break;
+                        }
+                    }
+                    for x in ours {
+                        eprintln!("   ours   {x}");
+                    }
+                    for x in &theirs {
+                        eprintln!("   theirs {x}");
+                    }
+                }
+                if let Some(record) = record.as_mut()
+                    && state >= lo
+                {
+                    let set = record.first_of(state - 1).expect("the state's set").clone();
+                    let all = record.ranges(&set).expect("the set's ranges");
+                    let ls = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+                    for &li in &lines {
+                        let Some(ours) = ls[li].as_ref() else {
+                            eprintln!("state {state} line {li}: ours none");
+                            continue;
+                        };
+                        let theirs: Vec<_> =
+                            all.iter().filter(|r| usize::from(r.line) == li).collect();
+                        if ours.ranges.len() != theirs.len() {
+                            eprintln!(
+                                "state {state} line {li}: ranges ours {} theirs {}",
+                                ours.ranges.len(),
+                                theirs.len()
+                            );
+                        }
+                        let mut n = 0;
+                        for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                            if a.bytes != b.bytes || std::env::var("RON_PROBE_ALL").is_ok() {
+                                n += 1;
+                                if n <= 60 {
+                                    let d: Vec<String> = a
+                                        .bytes
+                                        .iter()
+                                        .zip(&b.bytes)
+                                        .enumerate()
+                                        .filter(|(_, (x, y))| x != y)
+                                        .map(|(i, (x, y))| format!("{i}:{x:#04x}/{y:#04x}"))
+                                        .take(16)
+                                        .collect();
+                                    eprintln!(
+                                        "state {state} line {li} range {k} record {} {} len {}/{} diffs(ours/theirs) {}",
+                                        a.record,
+                                        a.field,
+                                        a.bytes.len(),
+                                        b.bytes.len(),
+                                        d.join(" ")
+                                    );
+                                    if std::env::var("RON_PROBE_BYTES").is_ok() {
+                                        eprintln!("    ours   {:02x?}", a.bytes);
+                                        eprintln!("    theirs {:02x?}", b.bytes);
+                                    }
+                                }
+                            }
+                        }
+                        eprintln!(
+                            "state {state} line {li}: {n} parted ranges of {}",
+                            ours.ranges.len()
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     /// **Row 123's producers lap from 2001 when the cursor is another
     /// player's** (item 4546, `docs/RECGAME.md` §12.3): run1785, the ranges
     /// take of row 123's file. `find_counters[0x1c]` is one array for every
