@@ -2215,15 +2215,21 @@ impl Sim {
             return self.queue_batch(best, rec, num, escrow);
         }
         if fort {
-            // Fort-trained: the leader's forts.
+            // **Fort-trained: the leader's fort records, in record order**
+            // (`produce_unit@006cb9e0`'s fort arm, the `forts[who]` walk
+            // below `+0x428`, each record in use, `+6 & 1`; item 4563,
+            // `docs/AI.md` §29.5). A closed fort's record is the first a
+            // new fort takes (`Forts::init_fort@0073ed70`), so record
+            // order is not object order: on row 63's 3985 who=1's two
+            // forts tie and the record walk reaches 2035 first. The
+            // original asks no room here — a full queue is `queue_up`'s
+            // refusal — and its best starts at −1, so a zero score still
+            // wins an empty walk; the first of equals stands (`<`).
             let mut best = None;
-            let mut best_score = 0;
-            for b in 0..self.buildings.len() {
+            let mut best_score = -1;
+            for b in self.forts_of(who) {
                 let bd = &self.buildings[b];
-                if bd.owner != who || !bd.alive || !bd.active || !self.unit_queue_has_room(b, rec) {
-                    continue;
-                }
-                if !self.building_of_type(b, wt) {
+                if !bd.alive || !bd.active || !self.building_of_type(b, wt) {
                     continue;
                 }
                 let score = self.trainer_score(b, 1_000_000, false);
