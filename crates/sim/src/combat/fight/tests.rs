@@ -6588,3 +6588,97 @@ fn a_citizen_s_think_raises_its_leader_s_0x80000_until_the_slot_s_step() {
     sim.tick();
     assert_eq!(bit(&sim, 0), 0x8_0000, "a defeated slot keeps it");
 }
+
+/// **A building weighs a target by its own object** (item 4565,
+/// `Object::compare_target@0064e5c0`, the listing `64eb6e`..`64ebc6`): a
+/// target with `ObjectData::damage` not zero takes `×3/2`, whatever its
+/// health against the type's hits; one whose head order is a move
+/// (`UnitData::is_moving`) takes `/4`, whether or not it holds a
+/// destination, and one walking under an attack order does not; a damaged
+/// building takes the `×3/2` too. Row 43's Village `2/2010` on run1787's
+/// 3298: the Spearmen `1/46` at 122 of its 126 (the type's 120) against
+/// `1/49`, unhurt, whose head order is a move with no destination set.
+#[test]
+fn a_building_weighs_a_target_by_its_damage_and_its_head_order() {
+    use crate::orders::{Body, Order};
+    let (mut sim, _) = at_war();
+    let ty = sim.add_unit_type(crate::UnitType {
+        hits: 100,
+        combat: Profile {
+            cost: 100,
+            attack: 15,
+            max_range: 4,
+            uber_size: 1,
+            ..Profile::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let b = sim.add_building(1, Pos::new(3000, 3000), 0);
+    sim.buildings[b].started = true;
+    sim.buildings[b].active = true;
+    sim.buildings[b].health = 1200;
+    sim.buildings[b].combat = Some(Profile {
+        attack: 10,
+        max_range: 6,
+        cost: 100,
+        x_size: 2,
+        y_size: 2,
+        ..Profile::default()
+    });
+    let weigh = |sim: &Sim, t: Obj| sim.compare_target(Obj::Building(b), t, false, false);
+    // Hits 100 on the type; the unit's own `myhits` 106, above it.
+    let t = put(&mut sim, 0, ty, Pos::new(3400, 3000));
+    sim.units[t].max_health = 106;
+    sim.units[t].health = 106;
+    let whole = weigh(&sim, Obj::Unit(t));
+    sim.units[t].health = 102;
+    let wounded = weigh(&sim, Obj::Unit(t));
+    assert!(
+        wounded > whole,
+        "damage 4 at health 102 over the type's 100: {wounded} against {whole}"
+    );
+    sim.units[t].health = 106;
+    // A move at the head, no destination held: moving.
+    sim.units[t]
+        .orders
+        .push_back(crate::orders::new_move_order(1, Angle(0), None, None, None));
+    sim.units[t].movement.dest = None;
+    let moving = weigh(&sim, Obj::Unit(t));
+    assert!(moving < whole, "a head move: {moving} against {whole}");
+    // An attack at the head, walking to its target: not moving.
+    sim.units[t].orders.clear();
+    sim.units[t].orders.push_back(Order {
+        flags: 0,
+        body: Body::Attack(crate::orders::AttackOrder {
+            target: Some((0, 1, 0)),
+            mandatory: false,
+            defensive: false,
+            def: None,
+            in_range: false,
+            ever_in_range: false,
+            new_ord: true,
+        }),
+    });
+    sim.units[t].movement.dest = Some(Pos::new(3000, 3000));
+    assert_eq!(weigh(&sim, Obj::Unit(t)), whole, "an attack at the head");
+    // A damaged building target.
+    let other = sim.add_building(0, Pos::new(3600, 3600), 0);
+    sim.buildings[other].started = true;
+    sim.buildings[other].active = true;
+    sim.buildings[other].health = 500;
+    sim.buildings[other].combat = Some(Profile {
+        cost: 100,
+        attack: 10,
+        x_size: 2,
+        y_size: 2,
+        ..Profile::default()
+    });
+    let standing = weigh(&sim, Obj::Building(other));
+    assert!(standing > 15, "off the floor: {standing}");
+    sim.buildings[other].damage = 40;
+    let struck = weigh(&sim, Obj::Building(other));
+    assert!(
+        struck > standing,
+        "a damaged building: {struck} against {standing}"
+    );
+}

@@ -491,9 +491,14 @@ pub(in crate::diff) mod tests {
     /// all-clear: computer 0's Village `0/2000`, its bell up and no
     /// stranger in sight, empties on 7020, and its Citizens' four
     /// `Guy::move+0x19f` on 7021 are theirs' draws 8 to 11): 7021 -> 7105,
-    /// +84. On 7105 ours spends `Ammo::do_damage+0xc59` and `+0xc7e` at
-    /// draw 19 where theirs runs `Farms::inc_time+0x1ae`.
-    const SAMPLE_WALKED: (i64, i64) = (7105, 21044);
+    /// +84. On 7105 ours spent `Ammo::do_damage+0xc59` and `+0xc7e` at
+    /// draw 19 where theirs ran `Farms::inc_time+0x1ae`: the round of a
+    /// building that had shot another target. Item 4565
+    /// (`compare_target`'s building arms read the target's `damage` and
+    /// `UnitData::is_moving`, `64eb6e`..`64ebc6`: the building `2000`
+    /// whose range is 1108 keeps theirs' Bushi `3/43` on 7054 over its
+    /// current `3/45`, `attack_ox` 43): 7105 -> 7410, +305.
+    const SAMPLE_WALKED: (i64, i64) = (7410, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -788,20 +793,27 @@ pub(in crate::diff) mod tests {
     /// `0 1 city_flags` ours 0x59, theirs 0x19 on 7021): units, builds and
     /// ammo -> 7055, guys -> 7107, leaders -> 7075, cities -> 7293, world
     /// -> 7110, groups 7097 -> 7262, deaths 7085 -> 7234; units, builds
-    /// and ammo 7055 the lowest.
+    /// and ammo 7055 the lowest. Item 4565 (`compare_target`'s building
+    /// arms read the target's `damage` and `UnitData::is_moving`: on 7054
+    /// the building `2000` of builds range 1108 drops its current Bushi
+    /// `3/45` for `3/43`, `1108 2000 attack_ox` ours 45, theirs 43 on
+    /// 7055): units 7055 -> 7411, builds 7055 -> 7446, ammo 7055 -> 7571,
+    /// deaths 7234 -> 7710, groups 7262 -> 7483, guys 7107 -> 7411,
+    /// leaders 7075 -> 7407, cities 7293 -> 7539, items 7544 -> 9299,
+    /// goods 7423 -> 7706, world 7110 -> 7413; leaders 7407 the lowest.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 7055),
-        ("builds", 7055),
+        ("units", 7411),
+        ("builds", 7446),
         ("walls", 21044),
-        ("ammo", 7055),
-        ("deaths", 7234),
-        ("groups", 7262),
-        ("guys", 7107),
-        ("leaders", 7075),
-        ("cities", 7293),
-        ("items", 7544),
-        ("goods", 7423),
-        ("world", 7110),
+        ("ammo", 7571),
+        ("deaths", 7710),
+        ("groups", 7483),
+        ("guys", 7411),
+        ("leaders", 7407),
+        ("cities", 7539),
+        ("items", 9299),
+        ("goods", 7706),
+        ("world", 7413),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -1041,7 +1053,11 @@ pub(in crate::diff) mod tests {
     /// frames not read one by one; the first shot still on 2929. On the
     /// tree merged with 4558 and 4561: 3226 -> 3174, -52, measured, a
     /// named fall past the draw word 7105; the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3174, Some(2929));
+    /// Item 4565 (`compare_target`'s building arms read the target's
+    /// `damage` and `is_moving`): 3174 -> 4751, +1577, a named rise past
+    /// the draw word 7410, the frames not read one by one; the first shot
+    /// still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (4751, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
@@ -1785,87 +1801,86 @@ pub(in crate::diff) mod tests {
     /// 2000 gather_down..infiltrate2` `attack_ox`), ammo 7023 -> 7055,
     /// deaths 7085 -> 7234, groups 7097 -> 7262, guys 7021 -> 7107,
     /// leaders 7021 -> 7075, cities 7021 -> 7293, world 7021 -> 7110.
+    /// Built (item 4565: `compare_target`'s building arms read the
+    /// target's `damage` and `is_moving`; `1108 2000 attack_ox` 45|43 on
+    /// 7055 agrees): units 7055 -> 7411 (`868 38 guy` `end_time`), builds
+    /// 7055 -> 7446, ammo 7055 -> 7571, deaths 7234 -> 7710, groups 7262
+    /// -> 7483, guys 7107 -> 7411, leaders 7075 -> 7407 (`43 0
+    /// make_list[k]`), cities 7293 -> 7539, goods 7423 -> 7706, world
+    /// 7110 -> 7413; items leaves the window (9299 on the hook's sums).
     const SAMPLE_RANGES_1786: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
-            7055,
-            4637,
-            4637,
-            2,
-            "3375 43 myhits..launch_frames: targeted 0|1",
+            7411,
+            4916,
+            4924,
+            229,
+            "868 38 guy: end_time 80|30, cur_anim 31|29",
         ),
         (
             "builds",
-            7055,
-            4243,
-            4243,
+            7446,
+            4543,
+            4543,
             1,
-            "1108 2000 gather_down..infiltrate2: attack_ox 45|43",
+            "361 2011 myhits..launch_frames: up -1|12",
         ),
         (
             "ammo",
-            7055,
-            9,
-            9,
+            7571,
+            3,
+            3,
             1,
-            "1 0 rolling..start_roll_angle: +0x1 of 99|99: 3801f5ea|3b01f5ea",
+            "1 0 rolling..start_roll_angle: +0x7 of 99|99: 32160000|30160000",
         ),
         (
             "deaths",
-            7234,
-            24,
-            26,
-            12,
-            "5 2 first_frame..unit_crew: +0x0 of 71|71: 411c0000|c7190000",
+            7710,
+            10,
+            8,
+            6,
+            "1 1 first_frame..unit_crew: +0x0 of 71|71: ac1b0000|1d1e0000",
         ),
-        ("groups", 7262, 634, 634, 1, "146 128 id..march: facing 1|0"),
+        (
+            "groups",
+            7483,
+            628,
+            628,
+            3,
+            "263 197 id..march: o_angle 2145648640|2144600064",
+        ),
         (
             "guys",
-            7107,
-            1470,
-            1470,
-            2,
-            "675 22 guy: end_time 30|70, cur_anim 29|30",
+            7411,
+            1560,
+            1560,
+            4,
+            "275 38 guy: end_time 80|30, cur_anim 31|29",
         ),
         (
             "leaders",
-            7075,
+            7407,
             675,
             675,
-            2,
-            "271 2 who..ally_mask: +0xa54 of 26914|26914: 02000000|01000000",
+            3,
+            "43 0 make_list[k]: +0x0 of 40|40: bc010000|b6010000",
         ),
-        (
-            "cities",
-            7293,
-            62,
-            62,
-            1,
-            "23 2 city..ter: raid_stamp 7292|7291",
-        ),
-        (
-            "items",
-            7544,
-            20,
-            20,
-            1,
-            "0 16 ever_seen: +0x0 of 1|1: 08|00",
-        ),
+        ("cities", 7539, 64, 64, 2, "1 1 city..ter: scouted 0|8"),
         (
             "goods",
-            7423,
+            7706,
             265,
             265,
             1,
-            "190 38 ever_seen: +0x0 of 1|1: 08|0c",
+            "165 33 ever_seen: +0x0 of 1|1: 17|1f",
         ),
         (
             "world",
-            7110,
-            7793,
-            7793,
-            1,
-            "4262 581 block.body: +0x2 of 96|96: 00007000|e000e000",
+            7413,
+            7781,
+            7781,
+            3,
+            "5253 1418 block.body: +0xd of 96|96: 1c001cfc|0e000efc",
         ),
     ];
 }

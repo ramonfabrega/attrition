@@ -1454,8 +1454,8 @@ impl Sim {
         // `call *0xcc`, `UnitData::is_supply`. A building answers both
         // slots with `Window::get_button`'s fold, zero. Row 43's Village
         // `2/2010` held the wounded Spearmen `1/46` (damage 4, its
-        // `myhits` 126 over the type's 120) over `1/49`, which walks
-        // under an attack order, on run1787's 3298.
+        // `myhits` 126 over the type's 120) over `1/49`, whose head order
+        // is a move and which held no destination, on run1787's 3298.
         if matches!(attacker, Obj::Building(_)) {
             let damaged = match target {
                 Obj::Unit(u) => self.units[u].max_health != self.units[u].health,

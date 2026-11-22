@@ -41071,6 +41071,10 @@ read 91 GB free before it and 79 GB after (before the split).
   `0a47b946d288fafdb06678ff423df7cc0bed9aec7ae79740ccfaa6964a0e453c`; 6.84 GiB on disk before the split, 0.65 after;
   one set on every trace frame −1 to 7999.
 - Filed with `filerun.py run1786 sample2017-playback-ranges-8000`.
+- **Re-scored by item 4565** (`compare_target`'s building arms read the target's `damage` and `is_moving`): on
+  7055 `1108 2000 attack_ox` ours 45 → 43, theirs 43; the first partings by range: leaders 7407 (`43 0 make_list[k]`),
+  units and guys 7411, world 7413, builds 7446, groups 7483, cities 7539, ammo 7571, goods 7706, deaths 7710; items past
+  8000.
 
 Archive `gamelog-run1786-sample2017-playback-ranges-8000.txt`, 3,775 bytes,
 SHA-256 `d830e578dbf52dd5833270e0f6c8854b4218ae4b39d6c862c48171d6c55f7644`; `rontrace-run1786.log`, 134,658,432
@@ -41111,6 +41115,9 @@ it and 73 after.
   3,223 and cities 3,373, both first 3223 (the row's first parting); groups 3,423, first 3376; deaths 3,374.
 - **Re-scored by item 4561** (an unbuilt Village's close fixes the borders): leaders 3,372, first 3302 (range 129,
   record 1, `damage_current_frame` ours 0, theirs 1); cities 3,379, first 3376; the row's first parting is 3299.
+- **Re-scored by item 4565** (the Village `2/2010` keeps the wounded Spearmen `1/46`): on 3299 builds range 1549,
+  record 2010, `attack_ox` ours 49 → 46, theirs 46; units 3,374, builds 3,376, leaders 3,374, all first 3374/3376;
+  ammo first 3361, the row's first parting. `row_43_s_village_holds_the_wounded_spearmen_on_run1787_s_ranges`.
 - Filed by `filerun.py run1787 heldout5-row043-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1787-heldout5-row043-ranges.txt`, 2,873 bytes, SHA-256
   `89b9a9025c5bbfb4daee2d7ca38babf72970956a8943a8e49fe0796d43162b8b`; `rontrace.log` → `Logs/rontrace-run1787.log`,
