@@ -724,7 +724,11 @@ pub(in crate::diff) mod tests {
     /// (`capture_city@00733380`'s spoils skip Knowledge: the person's
     /// capture on 5485 pays Metal, `500 3 encrypt bucket[3]` ours 0xb4,
     /// theirs 0x69, `509 3 bucket[4]` ours 0xa2, theirs 0xed): leaders
-    /// 5486 -> 5891, every other line unchanged. Leaders 5891 the lowest.
+    /// 5486 -> 5891, every other line unchanged. Item 4533, second (a
+    /// leader's `SimpleArray<int>` doubles from ten: the person's
+    /// `oil_patches` 21 elements, `462 3` size ours 30, theirs 40): leaders
+    /// 5891 -> 6005, past units, builds and ammo, which are the lowest on
+    /// 6000.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 6000),
         ("builds", 6000),
@@ -733,7 +737,7 @@ pub(in crate::diff) mod tests {
         ("deaths", 6190),
         ("groups", 6022),
         ("guys", 6017),
-        ("leaders", 5891),
+        ("leaders", 6005),
         ("cities", 6151),
         ("items", 7940),
         ("goods", 6281),
@@ -1609,7 +1613,8 @@ pub(in crate::diff) mod tests {
     /// world 6022, cities 6151; goods 6395 -> 6281, a named fall past
     /// units' 6000. Built (item 4533: a capture's spoils skip Knowledge,
     /// the person's on 5485 Metal): leaders 5486 -> 5891 (`462 3
-    /// oil_patches`).
+    /// oil_patches`). Built (item 4533, second: the capacity doubles from
+    /// ten): leaders 5891 -> 6005 (`1 0 who..ally_mask`).
     const SAMPLE_RANGES_1772: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
@@ -1654,11 +1659,11 @@ pub(in crate::diff) mod tests {
         ),
         (
             "leaders",
-            5891,
+            6005,
             671,
             671,
-            1,
-            "462 3 oil_patches: +0x0 of 4|4: 1e000000|28000000",
+            2,
+            "1 0 who..ally_mask: +0xa54 of 26914|26914: 00000200|01000200",
         ),
         ("cities", 6151, 51, 51, 1, "15 2 city..ter: gatherers 10|8"),
         (
