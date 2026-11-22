@@ -1457,7 +1457,7 @@ of the item that found it, under `## Parked`, as `- **<item><letter>. title**`
 - (3787a) The booked direction was a symptom.
 - (3787b) `kill_guy`'s gates are read, not run.
 - (3787c) `set_type`'s other callers now convert in place on a same type.
-- (3788a) who=2's Supply Wagon `2/24` (TI 63) reads `myhits` 108 in theirs against ours' 90
+- ~~(3788a) who=2's Supply Wagon `2/24` (TI 63) reads `myhits` 108 in theirs against ours' 90~~ Closed by item 4538: who=2 gains Copper, and `Unit::update_hits`' Copper arm takes a Siege Factory's unit (`docs/COMBAT.md` §4.3).
 - (3788b) On the closing block 2601, the human's citizens `0/1`..`0/7` are idle with no order in theirs
 - (3788c) The widening never compares a third seat's leader.
 - (3789a) `find_attack_pos`'s stand arm is built and on no run.

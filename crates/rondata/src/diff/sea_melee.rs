@@ -313,7 +313,9 @@ fn sea_melee_run1483_s_word_window_is_widened_whole() {
     // Item 4435: 164 -> 159, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     pin_eq!(w.firsts.len(), 159, "run1483's word window");
     pin_eq!(w.rounds_read, (8, 8), "the rounds read");
-    pin_eq!(w.rounds.len(), 4, "the rounds that part");
+    // 4 -> 0: present on the base f330bc8e, measured by item 4538 with
+    // its own update_hits arms reverted; not this item's.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// run1484: run1483's game with a window at every frame of 660..680 and
@@ -451,7 +453,9 @@ fn sea_melee_run1486_s_window_is_widened_whole() {
     // Item 4435: 111 -> 110, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     pin_eq!(w.firsts.len(), 110, "run1486's window");
     pin_eq!(w.rounds_read, (381, 381), "the rounds read");
-    pin_eq!(w.rounds.len(), 24, "the rounds that part");
+    // 24 -> 16: present on the base f330bc8e, measured by item 4538 with
+    // its own update_hits arms reverted; not this item's.
+    pin_eq!(w.rounds.len(), 16, "the rounds that part");
 }
 
 /// run1487: run1483's game with a window at every frame of 1975..2001 and
@@ -523,7 +527,9 @@ fn sea_melee_run1487_s_window_is_widened_whole() {
     // Item 4435: 144 -> 140, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     pin_eq!(w.firsts.len(), 140, "run1487's window");
     pin_eq!(w.rounds_read, (121, 121), "the rounds read");
-    pin_eq!(w.rounds.len(), 6, "the rounds that part");
+    // 6 -> 0: present on the base f330bc8e, measured by item 4538 with
+    // its own update_hits arms reverted; not this item's.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **Every seat's leader on the start dump's frames** (item 3847, the

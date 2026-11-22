@@ -33873,7 +33873,7 @@ lines (`melee` `add` twins, who 1 on row 76, who 2 on row 86), the lobby `PLAYER
 
 **What it holds**: on 1700, who=2's bucket reads `[834, 936, 1256, 1143, 1256, 0]` against ours' (then) `[834, 899,
 1120, 1143, 1227, 0]`, and who=1 agrees. who=2's Supply Wagon `2/24` reads `myhits` 108 from logger frame 2135
-(parked 3788a).
+(parked 3788a; closed by item 4538, Copper's `update_hits` arm).
 
 ## run1461b — the first melee, a held Gunpowder age on Great Sahara: the leaders' window 595..1700 (2026-10-29, item 3788, `att-3788`)
 

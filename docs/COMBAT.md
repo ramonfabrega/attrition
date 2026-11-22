@@ -353,9 +353,10 @@ The squad's hit points: `type.hits` (for citizens, the age-variant type's),
 `rare` byte 2 bit 2, `TypeIndex` 24, on a type of domain 1 (`+0x218`) or
 trained at 0x1ae or 0x1af; Bananas is byte 4 bit 7, `TypeIndex` 45, on every
 type. **Copper is diff-backed**: run1781's Fishermen `2/15` is 204 from 5695,
-170 × 120 %, when its leader gains Copper and `calc_unit_stats` re-runs this.
-Bananas, and Copper's Siege Factory arm, rest on the listing alone; no capture
-holds a Bananas holder), `× (iroquois_extra_hits + 100) / 100` (Iroquois barracks
+170 × 120 %, when its leader gains Copper and `calc_unit_stats` re-runs this;
+**and the Siege Factory arm** by run1413's Supply Wagon `2/24` (TI 63), 108
+on block 2201 where the type is 90 (parked 3788a). Bananas rests on the listing
+alone; no capture holds a Bananas holder), `× (iroquois_extra_hits + 100) / 100` (Iroquois barracks
 units), `+ ages × dutch_hp_bonus` (the Dutch kinds; **carried, item 3329**,
 diff-backed: run963b's Dutch merchants `1/1`, `1/2` and caravan `1/14` are
 `myhits` 135 on a type of 125 in the Classical age, ours 125 before it, `docs/AI.md`
