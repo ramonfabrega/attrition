@@ -40472,6 +40472,39 @@ Files in place, `~/ron-golden/run1754/map-18/`: `gamelog_p.txt`, 2,426 bytes, SH
 (every units range on 3410 and 3411); `row_130_s_kremlin_spy_due_bit_is_in_the_leaders_flags_on_run1754_s_ranges` (every leaders range on 4572, 4573, 4582 and 4583); `row_130_s_kremlin_spy_carries_unit_masks2_0x400_on_run1754_s_ranges` (every units range on 4583 and 4584).
 (every units range on 3410 and 3411).
 
+## run1755 — parity held out, second battery, row 30's file to its end (4547) with the checksum and ranges hooks, units and world kept (2026-11-21, item 4509, `att-4509`)
+
+`docs/RECGAME.md` §11. **What the disk could not answer**: run1731 holds sums only, so the world parting on row 30
+(state 1662) and the units parting (3184) named no leaf. The take is run1754's line with the run directory, the
+recording, the log window and the mask changed, the mask the one `score_recording` printed on `43ee59434`:
+`TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1755 --recording
+~/ron-golden/recordings/item4462-row030-6000.rcx --end-frame 6000 --allow-early-end --cover cover=1 --log-window 1658
+1666 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES
+--tracer-def RNG_MASK=0x801u`, waited on with `waitrun.sh` in the background. It waited its turn behind 4526's
+run1772 (19:41 to 19:49) and the take after it (19:49 to 19:56). `df -g ~` read 114 GB free at the item's start, 108
+before the take and 104 after.
+- **The run**: pool lane 1, launched 19:56:39 −05:00, exited 20:02:11: **331.8 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 4,548 frames, **ended by the original** on 4547, seed 12345, map 18. DLL
+  `41448101…`, defines `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0x801u`. The recording's
+  SHA-256 is run1731's (`0119e78c…`).
+- **The record**, `~/ron-golden/run1755/map-18/rontrace.ranges`, 2,899,392,888 bytes, SHA-256
+  `71676bcef739aa4c98839b78dd68d319d8c4c599218a039c8adbed2898dcd525`, split by `filerun.py` into three pieces, 2.70
+  GiB on disk before and 0.24 GiB after.
+- **Scored** (`score_recording … ~/ron-golden/run1755/map-18`, on `43ee59434`): the sums are run1731's; ten lines
+  whole. World 4,423, first 1662: **world range 3625, `seen`, byte 10534, ours 0x00, theirs 0x02**, five bytes, fog
+  cells (94, 87) to (97, 91). Units 4,114, first 3184: **units range 4108, record 121, `myhits..launch_frames` byte 31,
+  `up_who` ours −1, theirs 1**.
+- **Re-scored by item 4509** (a seated squad member lights its disc on a fog-cell crossing): world 4,495, first 3791,
+  **range 7413, record 3280, `block.body` byte 22, ours 0x00, theirs 0xe0** (ten bytes); units as found.
+- Filed with `filerun.py run1755 heldout2-row30-ranges-4547`. The record stays in pieces where the take left it.
+
+Archive `gamelog-run1755-heldout2-row30-ranges-4547.txt`, 2,433 bytes, SHA-256
+`2e915830a9ac6440871b6df033077f3c4f2b43ccc6d0d691f90d55a5be9ece69`; `rontrace-run1755.log`, 103,170,944 bytes,
+SHA-256 `8b8bb8b29a8111fbe4e208b0e2d4e20e77cea2635f3f01304211a26a9f397496`.
+
+**What it holds**: `diff::held_out::tests::row_30_s_decoy_member_lights_its_disc_on_run1755_s_ranges` (every world
+range on 1661, 1662 and 1663).
+
 ## run1771 — the 2017 sample's playback to 5,350 with the checksum and ranges hooks, units, builds, ammo, guys, leaders and world kept (2026-11-21, item 4521, `att-4521`)
 
 `docs/RECGAME.md` §7; DECISIONS 148 §4, §5. **What the disk could not answer**: run1726's record ends on 4499, and
@@ -40531,6 +40564,31 @@ Files in place, `~/ron-golden/run1769/map-18/`: `gamelog_p.txt`, 2,456 bytes, SH
 
 **What it holds**: `diff::held_out::tests::row_55_s_dutch_merchant_fleet_is_born_with_its_update_hits_on_run1769_s_ranges`
 (every units range on 4274 and 4275).
+## run1772 — the 2017 sample's playback to 6,400 with the checksum and ranges hooks, every line but walls and items kept (2026-11-21, item 4526, `att-4526`)
+
+`docs/RECGAME.md` §7; DECISIONS 149 §2. **What the disk could not answer**: run1771's record ends on 5349, and the
+sample's score stood on world 5401, leaders 5403, units, groups and guys 5461, builds 5487, cities 5801, ammo 5969,
+deaths 6190 and goods 6395, all past it and none on a range record. **The take**: run1771's line with the end moved
+to 6400, the log window on 5401, and the mask cut to the ten lines that part below 6400 on the hook's sums (149 §2):
+`TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1772 --recording
+"<install>/external-recgames/seifer008 - Toughest AI 4 v 1.rcx" --end-frame 6400 --cover cover=1 --log-window 5395
+5407 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES
+--tracer-def RNG_MASK=0xdfbu`, waited on with `waitrun.sh` in the background lane. The game lane read free; `df -g ~`
+read 114 GB free before it and 105 GB after.
+- Pool lane 1, launched 19:41:27 −05:00 and exited 19:49:14: **466.9 s** launch to exit, exit 0, `success`, 6,401
+  frames, `last_frame` 6400, not ended early. Seed observed 340513920, no page fault, no relaunch, five settings
+  restored. DLL `be4a2341…`, defines `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0xdfbu`.
+- **The record**, `~/ron-golden/run1772/map-7/rontrace.ranges`, 5,672,989,540 bytes in six pieces, SHA-256
+  `513405889a48d0d5a2d739d4dd9d4aa5a7444e52b029e4e5207a4a35f6658439`; 5.30 GiB on disk before the split, 0.49 after;
+  one set on every trace frame −1 to 6399.
+- Filed with `filerun.py run1772 sample2017-playback-ranges-6400`.
+
+Archive `gamelog-run1772-sample2017-playback-ranges-6400.txt`, 3,774 bytes,
+SHA-256 `24286192d453ccb972c0cf8b4e1235cc11372b45c52bee145b47d4d6c281298c`; `rontrace-run1772.log`, 108,547,520
+bytes, SHA-256 `2a41d3b5f69fda15eb18d82d64e5a4e9817d6083c838d831913666ae573a9c49`.
+
+**What it holds**: `diff::sample::tests::the_sample_s_ranges_to_6400_name_each_first_parting`
+(`SAMPLE_RANGES_1772`): each kept line's first parting by range over 0..6400, on the frame its sum parts.
 ## run1768 — parity held out, fourth battery, row 75's file to the original's end (5341) with the checksum and ranges hooks, ammo kept (2026-11-21, item 4517, `att-4517`)
 
 `docs/RECGAME.md` §12; DECISIONS 148 §4. **What the disk could not answer**: run1763 holds sums only, so the ammo

@@ -2307,6 +2307,87 @@ mod tests {
         }
     }
 
+    /// **Row 30's decoy member lights its disc where it is seated** (item
+    /// 4509, `docs/GOLDEN.md` §72): on 1662 who=1's General casts a decoy
+    /// squad of three TI 100 figures, and `Objects::init_unit` seats the
+    /// member `1/37` 144 east of its captain `1/36`, across a fog cell
+    /// (x 90 -> 91) but inside one `p >> 8` column.
+    /// `Unit::set_new_location@005f8d20` calls `Object::update_seen(0)`
+    /// (vslot `+0x174`) on the fog crossing, lighting `seen` on (94, 87) to
+    /// (97, 91) for who=1. Every world range on 1661 to 1663 agrees.
+    #[test]
+    fn row_30_s_decoy_member_lights_its_disc_on_run1755_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 1) else {
+            eprintln!("skipping: row 30's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1755/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1755's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 30's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        const DECOY_TI: i32 = 100;
+        for state in [1661, 1662, 1663] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_world();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
+            if state >= 1662 {
+                // The member by name: who=1's decoy `1/37`, east of `1/36`.
+                let find = |o: i16| {
+                    built
+                        .sim
+                        .units
+                        .iter()
+                        .find(|u| u.alive() && u.owner == 1 && u.index == o)
+                        .unwrap_or_else(|| panic!("1/{o}"))
+                };
+                let (m, c) = (find(37), find(36));
+                assert_eq!(
+                    (m.type_index, m.kind.domain, m.decoy),
+                    (DECOY_TI, sim::territory::attrition::Domain::Land, true),
+                    "1/37's TypeIndex, domain and decoy bit"
+                );
+                assert_eq!(
+                    (m.pos.x - c.pos.x, m.pos.y - c.pos.y),
+                    (144, 0),
+                    "seated east"
+                );
+                assert_eq!(
+                    (m.pos.x / 0x180, c.pos.x / 0x180),
+                    (91, 90),
+                    "across a fog cell"
+                );
+                assert_eq!(m.pos.x >> 8, c.pos.x >> 8, "inside one p >> 8 column");
+            }
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                assert_eq!(
+                    at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                    None,
+                    "world range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                    a.record,
+                    a.field
+                );
+            }
+            assert_eq!(ours.ranges.len(), theirs.len(), "world ranges on {state}");
+        }
+    }
+
     /// **Row 120's MLRS reads `cavarch_o` −2 in the units line** (item
     /// 4443, `docs/RECGAME.md` §10.3): on 5864 the computer's fire-on-the-move
     /// MLRS `1/35` (type 273) steps an `ExploreTo` with an empty search after
@@ -2645,16 +2726,12 @@ mod tests {
 
     fn line_reads_as_pinned(b: &Battery) {
         let taken = b.scores.iter().flatten().count();
-        let whole = b
-            .scores
-            .iter()
-            .flatten()
-            .filter(|p| {
-                let s = p.moved.unwrap_or(p.found);
-                s.first.is_empty() && s.agreed == [s.states; 12]
-            })
-            .count();
-        assert_eq!((whole, taken), b.line, "{}: N of 8, T taken", b.label);
+        assert_eq!(
+            (b.whole_now(), taken),
+            b.line,
+            "{}: N of 8, T taken",
+            b.label
+        );
     }
 
     /// The queue's line for [`SCORES`]: the games whole of the eight, the
@@ -3826,14 +3903,20 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // Freighter `1/135` holding `1/127`, `1/128`, `1/129`, `1/127`'s
         // `inside_down` ours -1, theirs 128): units 2,334 -> 4,114, first
         // 2334 -> 3184.
+        // Moved by item 4509 (a seated squad member lights its disc on a
+        // fog-cell crossing, `Unit::set_new_location@005f8d20`'s `+0x174`
+        // arm: run1755, state 1662, world range 3625 `seen`, fog cells
+        // (94, 87) to (97, 91), ours 0x00, theirs 0x02, who=1's decoy
+        // member `1/37` (TI 100) seated 144 east of its captain `1/36`):
+        // world 4,423 -> 4,495, first 1662 -> 3791.
         moved: Some(Score {
             states: 4548,
             agreed: [
-                4114, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4423,
+                4114, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4495,
             ],
             first: &[
                 ("units", (3184, Some(2261284178), 566719572)),
-                ("world", (1662, Some(3453374911), 2282901965)),
+                ("world", (3791, Some(1932277774), 1952529533)),
             ],
             over: None,
         }),
@@ -4154,6 +4237,30 @@ pub(crate) struct Battery {
     /// The pins' name, for a failure's message.
     pub scores_name: &'static str,
     pub line: (usize, usize),
+}
+
+/// **A held-out row whole now**: its `now` column ([`FirstScore::moved`]
+/// where a fix has moved it, else as found) parts on no line and agrees on
+/// every state of all twelve. The one predicate: each battery's line
+/// ([`Battery::line`], checked by `line_reads_as_pinned`) and the
+/// headline's fold (`sample::parity_line`, DECISIONS 150 §1) both count
+/// with it, so the two cannot disagree on a row.
+#[cfg(test)]
+pub(crate) fn whole_now(p: &FirstScore) -> bool {
+    let s = p.moved.unwrap_or(p.found);
+    s.first.is_empty() && s.agreed == [s.states; 12]
+}
+
+#[cfg(test)]
+impl Battery {
+    /// The battery's rows whole now, by [`whole_now`].
+    pub(crate) fn whole_now(&self) -> usize {
+        self.scores
+            .iter()
+            .flatten()
+            .filter(|p| whole_now(p))
+            .count()
+    }
 }
 
 /// The first battery (item 4413).
@@ -4562,3 +4669,14 @@ pub(crate) const FOURTH: Battery = Battery {
     scores_name: "SCORES_FOURTH",
     line: HELD_OUT_FOURTH_LINE,
 };
+
+/// **The spent batteries, folded into the headline** (DECISIONS 150 §1).
+/// A battery is spent once a lane has read a parting off one of its rows
+/// (entry 145 §2); its `now` column then counts in `Parity:` row by row,
+/// by [`whole_now`], beside the six and the sample, and its found column
+/// never folds. The first, second and third were spent on `43ee59434`;
+/// the fourth since item 4517 read row 75's ammo (`b52f075dd`). A battery
+/// declared and not yet spent stays off this list; the fifth (item 4527)
+/// joins by one entry here once a lane reads a parting off one of its rows.
+#[cfg(test)]
+pub(crate) const SPENT: &[&Battery] = &[&FIRST, &SECOND, &THIRD, &FOURTH];

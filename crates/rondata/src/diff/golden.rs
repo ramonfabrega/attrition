@@ -7471,7 +7471,9 @@ const WANT_CH86: &[&str] = &[
 
 /// What parts in run880's window, blocks 1100–1218.
 ///
-/// The standing `form` rows and the added Scout's first disc (`1103 world:seen2`, 7 cells, the first (59, 54) ours 3 theirs 1).
+/// The standing `form` rows and a `world:seen2` row. ~~The added Scout's first disc (`1103 world:seen2`, 7 cells, the first
+/// (59, 54) ours 3 theirs 1)~~ agrees since item 4509 (a seated squad member lights its disc on a fog-cell crossing,
+/// `docs/GOLDEN.md` §72); the `seen2` row's first parting is 1213 now.
 /// **The control Spy `0/7`'s chase of a walking target no longer parts** (item 2881, 19 rows struck): the original's
 /// sixteen-frame review (`Unit::work`'s `(frame + o) & 0xf` gate, `check_target_path`'s cast arm) `repath`s the approach on 1177
 /// because the target's head order is a move, and `do_cast` re-aims it the same frame; this crate carries the arm.
@@ -7489,7 +7491,7 @@ const WANT_CH85: &[&str] = &[
     "1100 1/3 form",
     "1100 1/4 form",
     "1100 1/5 form",
-    "1103 0/-1 world:seen2",
+    "1213 0/-1 world:seen2",
 ];
 
 /// **run877 whole, both directions** (item 2755, `docs/GOLDEN.md` §102).

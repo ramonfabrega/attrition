@@ -5969,10 +5969,10 @@ pub(super) const PINNED: &[Pinned] = &[
 /// none absent. Each is a finding (`docs/CHECKSUM.md` §23.4).
 pub(super) const PACKET_LEAF_PARTINGS: &[(&str, &str)] = &[
     ("ch94p", "aggression cities_built flags.leader_flags"),
-    (
-        "ch95pkt",
-        "aggression cities_built explored flags.leader_flags",
-    ),
+    // Item 4509: `explored` agrees on ch95pkt once a seated squad member
+    // lights its disc on a fog-cell crossing (`Unit::set_new_location`'s
+    // `+0x174` arm, `docs/GOLDEN.md` §72).
+    ("ch95pkt", "aggression cities_built flags.leader_flags"),
     // Item 4465: `explored` agrees on run1164, run1166 and run1426b once a nuke's
     // launch relights its silo's fog (`update_local_seen_build` with `visible` 0xff).
     ("run1164", "encrypt.bucket[2] encrypt.bucket[5]"),

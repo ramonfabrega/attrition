@@ -602,17 +602,23 @@ impl Sim {
                     ) {
                         let before = self.units[u].pos;
                         self.set_new_location(u, spot, true);
-                        // **`Unit::set_new_location@005f8d20`'s world-cell
-                        // change** brackets the write with `remove_from_world`
-                        // and `add_to_world`, which ends in `update_seen(0)`:
-                        // the seated member lights the disc at its own spot
-                        // (`docs/GOLDEN.md` §72). Only this seating is
-                        // built: the same call on every cell crossing moved
-                        // the successor pair's first draw parting 3188 → 1387.
-                        let (a, b) = (before, self.units[u].pos);
-                        if (a.x >> 8, a.y >> 8) != (b.x >> 8, b.y >> 8) {
-                            self.update_seen(u, false);
-                        }
+                        // **The seated member lights the disc at its own
+                        // spot** (`docs/GOLDEN.md` §72) when
+                        // `Unit::set_new_location@005f8d20` crosses a **fog
+                        // cell**: a tile change whose `p / 0x180` moved calls
+                        // vslot `+0x174`, `Object::update_seen(param_3 ==
+                        // 0)`, the whole disc for this call's `param_3` of 1.
+                        // The world-cell arm (`div_3_table[p >> 8]`,
+                        // `add_to_world`'s `update_seen(0)`) lights the same
+                        // disc and implies the fog crossing. This read
+                        // `p >> 8` on both axes, so the decoy squad's member
+                        // `1/37` seated 144 east of its captain inside one
+                        // `p >> 8` column, but across a fog cell, lit nothing
+                        // (row 30, run1755 on 1662; `docs/journal/2026-11-21-item-4509.md`).
+                        // Only this seating is built: the same call on every
+                        // cell crossing moved the successor pair's first draw
+                        // parting 3188 → 1387.
+                        self.moved_to(u, before, false);
                     }
                 }
                 (Some(_), None) => unreachable!("a head is set with its own index"),
