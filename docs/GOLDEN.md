@@ -8727,6 +8727,27 @@ the listing:
   the City's chain has each Militia inside `cast_civilian`ed, then
   `Object::eject_contents(0, PEASANTS, 0, 0)` (listing `70f20e`..`70f227`);
   `0x40` cleared.
+- **The city building's own all-clear** (item 4560; `Build::process@
+  0061edf0`, `620065`..`620167`, after the city heal and under its
+  `city_flags & 2` veto): a city whose bell is up asks on its own phase,
+  `(frame + 100 + o) % period == 0` with period 60 for a computer and 200
+  for a human whose `leader_options +0x1c & 0x20` is set (a human without
+  it never asks), `ObjectsData::find@0065c6b0(city point,
+  SEARCH_NON_FRIENDLY, who, get_radius × 0xc0, ·, FILTER_SEEN, who, ·,
+  1)`; finding nothing, it presses `Group::action_alarm` on a stack group
+  of itself alone (no `push_group`), which is the all-clear above.
+  `SEARCH_NON_FRIENDLY` is `Search::valid_search@0067daa0`'s case 6, any
+  player but the searcher, allies included; `FILTER_SEEN` (17, the PDB's
+  `FilterIndex`) is `valid_filter@0067dbb0`'s arm 16 at `0067e1d5` (the
+  jump table at `0067e57c`, read from the PE), the object's vslot `+0x48`,
+  `is_seen(who, 0)`; the distance is `vector_dist` of the object's own
+  point from the city's (`65c84f`..`65c88b`), the walk the circle of
+  `(range + 0x2ff) / 0x300` cells' chains under ten and every live
+  leader's objects at ten or more. Diff-backed by the 2017 sample: computer
+  0's Village `0/2000` held its Citizens inside from its bell until 7020,
+  `(7020 + 100 + 2000) % 60 == 0`, when theirs emptied it (run1786 on
+  7021: `city_flags` 0x59 → 0x19, the leader's `0x2000000`, the garrison
+  on the tiles round it); `Sim::city_all_clear_due`.
 - **`eject_contents@0064cd20` with a type** is immediate — only a negative
   type defers through the building's `0x4000` — and it has a Civilian arm
   of its own: a Militia it puts out takes a Civilian at `QUEUE_FIRST` on the
@@ -8869,7 +8890,10 @@ Citizen, and `action_alarm_peasant` (a group of units' alarm) are
 SEAMs. `find_garrison_build`'s room test is `num_inside < limit` here,
 `num_inside + control_cost <= limit` in the listing — one for a pop-1
 Citizen. `eject_contents`' own Civilian arm (a Militia put out unconverted)
-is read and built, and unreached: the all-clear converts first.
+is read and built, and unreached: the all-clear converts first. The city
+building's own all-clear (item 4560) is diff-backed on a computer's
+60-frame arm with the circle walk; the human's option arm, the walk at ten
+cells or more and a seen-filter refusal are one reading.
 
 ## 50. Chapter forty-one — CENSUS row 7's last seven: a computer's Airbase sends its Biplane over its City under attack, and a trireme's hits on a Barracks spill onto the Citizen repairing it (item 1182)
 
