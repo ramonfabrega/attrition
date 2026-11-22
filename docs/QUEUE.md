@@ -35,7 +35,7 @@ Parity held out: 8 of 8 whole · 8 taken · lines 64 of 96 as found, 96 now · f
 Parity held out, second: 8 of 8 whole · 8 taken · lines 65 of 96 as found, 96 now · first partings 537 1662 3352 5054 4021 1608 553 whole as found, whole whole whole whole whole whole whole whole now · reach 53 % of states as found, 100 % now
 Parity held out, third: 8 of 8 whole · 8 taken · lines 90 of 96 as found, 96 now · first partings 4805 whole whole whole 3831 1976 whole whole as found, whole whole whole whole whole whole whole whole now · reach 88 % of states as found, 100 % now
 Parity held out, fourth: 8 of 8 whole · 8 taken · lines 90 of 96 as found, 96 now · first partings whole whole 4275 4004 5266 whole whole whole as found, whole whole whole whole whole whole whole whole now · reach 91 % of states as found, 100 % now
-Parity held out, fifth: 4 of 8 whole · 8 taken · lines 30 of 96 as found, 54 now · first partings 3857 0 3192 1582 1956 1750 2977 whole as found, 3857 whole 3299 whole 3359 2860 whole whole now · reach 48 % of states as found, 81 % now
+Parity held out, fifth: 4 of 8 whole · 8 taken · lines 30 of 96 as found, 62 now · first partings 3857 0 3192 1582 1956 1750 2977 whole as found, 3857 whole 3299 whole 3359 2983 whole whole now · reach 48 % of states as found, 82 % now
 Structure: flat 11 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 21 · largest 3707
 Renderer: K 59 of M 60 · frames 35 of 35 · pieces 1465 of 1478 · resolved 1,237,711 of 1,237,726 objects over 110 lobbies
 Clock: ceilings on GreatLakes lobby, 600 frames off-screen from frame 0 · frame zero 1.5 s · p99 20 ms · slowest 400 ms (frame 1, first sight) · peak 320 MiB
@@ -53,7 +53,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2, 151 §5, 152 §1 to §4): four seats out: the sample's 4565 (units from 7055, with row 43's leaf), a parity seat's 4562 (fifth, row 83, landed at 3645 and taking the update past 4563's `docs/RECGAME.md`), the chain's 4559 (row 103's ammo and the eight pieces with no bay), and 4566 (the sixth battery), seated at 4563's booking, which wrote `Parity held out, fifth:` 4 of 8 (row 63 whole, 4,223 of 4,223 on run1782); its eight plays on the game lane, runs 1788 to 1795. Unseated, in this order: 4564 (row 43) at 4565's booking, scored again there; 4548 (row 3), whose first act is a take. Every take waits its turn, one game at a time. The sample's stop reads the `Parity:` line's first parting and its draw word, never the games' count (151 §1). The disk read 105 GB at the pass; every take still stops under 60.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2, 151 §5, 152 §1 to §4): four seats out: the sample's 4565 (units from 7055, with row 43's leaf), a parity seat's 4562 (fifth, row 83, landed at 3645 and taking the update past 4563's `docs/RECGAME.md`), the chain's 4567 (row 103's world from 2983, after 4559 built the eight pieces' rows), and 4566 (the sixth battery), seated at 4563's booking, which wrote `Parity held out, fifth:` 4 of 8 (row 63 whole, 4,223 of 4,223 on run1782); its eight plays on the game lane, runs 1788 to 1795. Unseated, in this order: 4564 (row 43) at 4565's booking, scored again there; 4548 (row 3), whose first act is a take. Every take waits its turn, one game at a time. The sample's stop reads the `Parity:` line's first parting and its draw word, never the games' count (151 §1). The disk read 105 GB at the pass; every take still stops under 60.
 
 4565. **The 2017 sample: units from 7055, and row 43's from 3299** (a rules item, whole; the sample's seat; `docs/RECGAME.md` §7,
 §12.3). One pair of fields parts both games (DECISIONS 152 §2): the sample on 7055, units range 3375, record 43, `targeted` 0|1 and
@@ -68,13 +68,10 @@ part on 3359: range 7702, record 117, `orders.count` ours 1, theirs 0. Builds pa
 ours −1, theirs 117, `launch_frames` 0|15. run1784 holds every line: no take. Re-pin `SCORES_FIFTH[4].moved`, never `found`. It
 stops when two landings running move no column.
 
-4559. **Parity held out, fifth: row 103's ammo from 2860, and the eight pieces with no bay** (a rules item, whole; the chain's
-builder; `docs/RECGAME.md` §12.3, `docs/COMBAT.md` §22). The round on 2860 is who=1's unit 223, piece 1224, fired from
-`launch_point`'s fallback (`launch.x` ours 0x…22f8, theirs 0x…2322, the landing agreeing): the leaf of items 4547 and 4558 a third
-time. The pass's probe over the forty held-out games and the sample lists eight such pieces, 55 keys (DECISIONS 152 §3; the keys
-under `~/ron-data/lab-experiments/2026-11-22-pass-second/`): 1224 and 198 (row 103), 1528 (row 43, from 3360), 231 and 73 (row 83,
-from 3997), 921, 1193 and 148 (the sample, past 8000). Build all eight by 4558's recipe, red first on a test that lists them; 148
-is 4159r5a's. Re-pin `SCORES_FIFTH[5].moved` and what else moves. It stops when two landings running move no column.
+4567. **Parity held out, fifth: row 103's world from 2983** (a rules item, whole; the chain's builder; `docs/RECGAME.md` §12.3).
+Item 4559 built the eight pieces' rows (journal) and row 103 came whole on eleven lines to its end on 3294; world parts on 2983
+(Adler ours 3105834113, theirs 1025917694). run1783 holds every line: no take. Re-pin `SCORES_FIFTH[5].moved`, never `found`;
+whole, the fifth reads 5 of 8. It stops when two landings running move no column.
 
 4566. **Parity held out, sixth: rows 13 to 153, to 12,000** (a rules item, whole; seated at 4563's booking, the fifth at 4 of 8;
 `docs/RECGAME.md` §12). DECISIONS 151 §6 and 152 §4: rows 13, 33, 53, 73, 93, 113, 133 and 153 of the
@@ -86,7 +83,7 @@ and says so. Each is played by the original under the checksum hook alone. Pin `
 
 4564. **Parity held out, fifth: row 43, after item 4565** (a rules item, whole; unseated; `docs/RECGAME.md` §12.3). Its lowest leaf
 is item 4565's (DECISIONS 152 §2), so it takes no seat beside it. At 4565's booking the driver scores row 43 again and writes here
-the leaf it then names. Piece 1528 fires from the fallback from 3360 on our walk, which item 4559 mends. run1787 holds every line:
+the leaf it then names. Item 4559 gave piece 1528 its bays: row 43's columns moved past 3299, items fell 4,042 → 4,034 and our walk now ends the game on 5972 where theirs plays to 6000, both pinned. run1787 holds every line:
 no take. Re-pin `SCORES_FIFTH[2].moved`, never `found`. It stops when two landings running move no column.
 
 4548. **Parity held out, fifth: row 3's units, builds and ammo from 3857** (a rules item, whole; unseated; `docs/RECGAME.md` §12.3).
