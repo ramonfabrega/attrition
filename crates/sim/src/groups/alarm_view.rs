@@ -642,10 +642,6 @@ impl AlarmView for SimAlarm<'_> {
         self.group.list.contains(&(u as usize))
     }
     fn group_add(&mut self, u: i32, _who: i32) {
-        if std::env::var_os("RON_PROBE_4549").is_some() {
-            let un = &self.sim.units[u as usize];
-            eprintln!("PROBE4549 add {}/{} #{u} at ({}, {}) tile {:?}", un.owner, un.index, un.pos.x, un.pos.y, un.pos.tile());
-        }
         self.sim.group_add(&mut self.group, u as usize);
     }
     fn group_count(&self) -> i32 {
