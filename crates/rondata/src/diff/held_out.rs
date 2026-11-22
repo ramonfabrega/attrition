@@ -406,6 +406,72 @@ mod tests {
         games_score_as_pinned(&FIFTH);
     }
 
+    /// **Row 23's setup claims oil under the colonized limit** (item 4534,
+    /// `docs/RECGAME.md` §12.3): run1781 holds every leaders range from
+    /// state 0. `Setup::build_game@005ac190:881` runs `World::analyze_map`
+    /// after the whole `build_empire` loop, so who=0's own `build_cities`
+    /// pass reads region 4's colonized triple (base 44): gi 2 at (2, 43),
+    /// raw distance 20, joins its `oil_patches` there, and gi 5 at (16, 42),
+    /// raw distance 48, only at line 883's pass under the player triple's
+    /// 48. Every leaders range on state 0, ours against theirs, byte for
+    /// byte: red on the tree before the fix at range 58, record 0's
+    /// `oil_patches`, ours `[5, 2]`.
+    #[test]
+    fn row_23_s_setup_claims_oil_under_the_colonized_limit_on_run1781_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 1) else {
+            eprintln!("skipping: row 23's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1781/map-20"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1781's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 23's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let built = crate::checksum::playback::recording_start(&loaded, &rec);
+        assert_eq!(built.sim.frame, 0, "the start, before its first frame");
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let set = record.first_of(-1).expect("state 0's set").clone();
+        let all = record.ranges(&set).expect("the set's ranges");
+        let ours = built.sim.checksum_leaders();
+        let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+        assert_eq!(ours.ranges.len(), theirs.len(), "leaders' ranges on 0");
+        for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+            assert_eq!(
+                a.bytes, b.bytes,
+                "leaders range {k} on 0, record {} {}",
+                a.record, a.field
+            );
+        }
+        // Record 0's list by value: gi 2, then gi 5, on both sides.
+        let data: Vec<u8> = [2i32, 5].iter().flat_map(|v| v.to_le_bytes()).collect();
+        let k = ours
+            .ranges
+            .iter()
+            .position(|r| r.record == 0 && r.field == "oil_patches" && r.bytes.len() == 8)
+            .expect("record 0's oil_patches data");
+        assert_eq!(theirs[k].bytes, data, "theirs' list");
+        assert_eq!(built.sim.ai.ai[0].oil_patches, vec![2, 5]);
+        let cell = |gi: usize| built.sim.world.goods()[gi].pos.cell();
+        assert_eq!(cell(2), sim::world::Cell::new(2, 43));
+        assert_eq!(cell(5), sim::world::Cell::new(16, 42));
+        // Region 4: the player triple now, the colonized one before.
+        let lim = built
+            .sim
+            .world
+            .territory_limits()
+            .expect("Sea Power's limits");
+        assert_eq!(built.sim.world.region_of(cell(5)), Some(4));
+        assert_eq!(built.sim.world.region_territory_limits(4), Some(lim.player));
+        assert_eq!((lim.player[0], lim.colonized[0]), (48, 44));
+    }
+
     /// **The fifth's files carry the declared seats and team** (item
     /// 4527): each `item4527-row<RRR>-6000.rcx` the client recorded, read
     /// back, holds the declaration's three `PLAYER` rows slot for slot —
@@ -5610,7 +5676,17 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4534 (the walked setup leaves the player-region bit to
+        // `analyze_map`; run1781's leaf, who=0's `oil_patches` on state 0, ours
+        // [5, 2], theirs [2, 5]): leaders 0 -> 6,001, whole; eleven lines whole.
+        moved: Some(Score {
+            states: 6001,
+            agreed: [
+                5695, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[("units", (5695, Some(1829564320), 64286658))],
+            over: None,
+        }),
     }),
     // run1775
     // row 43, as found 2026-11-21: 1 line whole; units 3,290 of 6,001, first 3196; builds 3,345 of

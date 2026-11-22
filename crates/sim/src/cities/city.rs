@@ -899,7 +899,7 @@ impl Sim {
     /// 1106); [`Sim::settle_borders`] is setup's wholesale pass.
     pub fn sync_territory(&mut self) {
         self.fix_borders();
-        if !self.in_play {
+        if !self.in_play && !self.cities.walks_setup {
             self.analyze_player_regions();
         }
         let before = self.world.owners();
@@ -994,9 +994,9 @@ impl Sim {
     /// `compute_reg_territory:114` reads to give the region the style's
     /// player territory limits rather than its colonized ones. The
     /// original runs it once, in `Setup::build_game` just before the
-    /// setup's `compute_all_territory`; here every setup fix runs it, and
-    /// the bit only grows, so the last fix before the first frame — which
-    /// sees every starting city — leaves exactly the original's flags.
+    /// setup's `compute_all_territory` (`:881`), after every `build_empire`;
+    /// here a dump-built world's setup fixes run it (the bit only grows);
+    /// the walked setup's do not (item 4534, `docs/RECGAME.md` §12.6).
     /// The whole function, tallies, bit `8` and sea class with it, is
     /// [`Sim::analyze_map`] (item 4147), which the composed chain's setup
     /// runs once at its step; this arm alone serves a world built from a
