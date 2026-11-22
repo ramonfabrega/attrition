@@ -170,6 +170,76 @@ mod tests {
     /// so the scores below skipped with `0 missing fixtures` on the gate's
     /// log. Seen with `HOME` pointed at an empty directory: sixteen requests
     /// missing, where the audit had counted none.
+    /// Scratch probe, item 4518 (reverted whole): ours' units ranges that
+    /// change on row 55's walk around 4275.
+    #[test]
+    fn probe_4518_row_55_units() {
+        if std::env::var("RON_PROBE_4518").is_err() {
+            return;
+        }
+        let inst = crate::testenv::install().expect("install");
+        let (Some(rcx), _) = paths(&FOURTH, 2) else {
+            panic!("row 55's recording");
+        };
+        let lo: u32 = std::env::var("RON_PROBE_4518_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(4272);
+        let hi: u32 = std::env::var("RON_PROBE_4518_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(4277);
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 55's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut prev: std::collections::BTreeMap<(u8, i16, &'static str, usize), Vec<u8>> =
+            Default::default();
+        for state in lo..=hi {
+            while built.sim.frame < state as _ {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let line = built.sim.checksum_units();
+            let groups = built.sim.checksum_groups();
+            eprintln!("PROBE state {state} units {} groups {} ranges {}", line.adler(), groups.adler(), line.ranges.len());
+            let mut cur: std::collections::BTreeMap<(u8, i16, &'static str, usize), Vec<u8>> =
+                Default::default();
+            let mut who = 0u8;
+            let mut seen: std::collections::HashMap<(i16, &'static str), usize> = Default::default();
+            for r in &line.ranges {
+                if r.field == "who..y_internal" {
+                    who = r.bytes[0];
+                }
+                let n = seen.entry((r.record, r.field)).or_default();
+                cur.insert((who, r.record, r.field, *n), r.bytes.clone());
+                *n += 1;
+            }
+            if state > lo {
+                for (k, v) in &cur {
+                    match prev.get(k) {
+                        None => eprintln!("PROBE {state} new {}/{} {} #{}", k.0, k.1, k.2, k.3),
+                        Some(p) if p != v => {
+                            let diffs: Vec<String> = p
+                                .iter()
+                                .zip(v)
+                                .enumerate()
+                                .filter(|(_, (a, b))| a != b)
+                                .map(|(i, (a, b))| format!("{i}:{a}->{b}"))
+                                .collect();
+                            eprintln!("PROBE {state} changed {}/{} {} #{} len {} {}", k.0, k.1, k.2, k.3, v.len(), diffs.join(" "));
+                        }
+                        _ => {}
+                    }
+                }
+                for k in prev.keys() {
+                    if !cur.contains_key(k) {
+                        eprintln!("PROBE {state} gone {}/{} {} #{}", k.0, k.1, k.2, k.3);
+                    }
+                }
+            }
+            prev = cur;
+        }
+        for u in built.sim.units.iter().filter(|u| u.alive() && u.owner < 9) {
+            let name = u.ty.and_then(|t| built.unit_type_names.get(t)).map_or("?", String::as_str);
+            eprintln!("PROBE unit {}/{} TI {} TY {:?} {name} at ({}, {})", u.owner, u.index, u.type_index, u.ty, u.pos.x, u.pos.y);
+        }
+    }
+
     fn paths(b: &Battery, k: usize) -> (Option<std::path::PathBuf>, Option<std::path::PathBuf>) {
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
         let rcx = crate::testenv::experiment(
