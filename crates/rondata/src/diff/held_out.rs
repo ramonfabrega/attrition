@@ -679,8 +679,10 @@ mod tests {
                 "the allies' cities on {state}"
             );
             assert!(built.sim.is_ally(2, 0) && !built.sim.is_ally(2, 1));
-            assert_eq!(built.sim.caravan_limit(2), 3, "who=2's limit on {state}");
         }
+        // After the ranges, so a limit without the ally term parts on range
+        // 310 first.
+        assert_eq!(built.sim.caravan_limit(2), 3, "who=2's limit on 1956");
     }
 
     /// **Row 103's caravan road is laid on the frame after the budget**
