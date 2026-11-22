@@ -472,6 +472,48 @@ mod tests {
         assert_eq!((lim.player[0], lim.colonized[0]), (48, 44));
     }
 
+    #[test]
+    fn probe_4538() {
+        let Ok(spec) = std::env::var("RON_PROBE_4538") else {
+            return;
+        };
+        let states: Vec<i64> = spec.split(',').map(|s| s.parse().unwrap()).collect();
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 1) else { panic!("rcx") };
+        let ranges = crate::testenv::experiment(&home.join("ron-golden/run1781/map-20"), "rontrace.ranges").expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 23's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in states {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_units();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            eprintln!("state {state}: ours {} theirs {}", ours.ranges.len(), theirs.len());
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                if a.record == 15 || a.bytes != b.bytes {
+                    eprintln!("  {k} rec {} {} ours {:?} theirs {:?}{}", a.record, a.field,
+                        &a.bytes[..a.bytes.len().min(24)], &b.bytes[..b.bytes.len().min(24)],
+                        if a.bytes != b.bytes { "  <<" } else { "" });
+                }
+            }
+            for u in built.sim.units.iter().filter(|u| u.alive() && u.index == 15) {
+                let ty = u.ty.unwrap();
+                eprintln!("  ours {}/{} ty {} {} raw hits {} unit_hits {}", u.owner, u.index, ty,
+                    built.unit_type_names[ty], built.sim.tables.unit_types[ty].hits,
+                    built.sim.unit_hits(u.owner, ty));
+                eprintln!("  {:?}", u);
+            }
+        }
+    }
+
     /// **The fifth's files carry the declared seats and team** (item
     /// 4527): each `item4527-row<RRR>-6000.rcx` the client recorded, read
     /// back, holds the declaration's three `PLAYER` rows slot for slot —
