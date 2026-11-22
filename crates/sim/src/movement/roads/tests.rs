@@ -385,10 +385,26 @@ fn a_caravan_s_search_stops_at_the_budget_and_the_next_frame_resumes_it() {
 /// (`rondata::diff::held_out`, row 103's caravan road).
 #[test]
 fn a_goal_popped_past_the_budget_parks_and_under_it_lays() {
-    assert_eq!(pop_answer(true, WORK_CAP), PopAnswer::Park, "the goal at 0xc80");
-    assert_eq!(pop_answer(true, WORK_CAP + 3), PopAnswer::Park, "run1783's 3,203");
-    assert_eq!(pop_answer(true, WORK_CAP - 1), PopAnswer::Lay, "the goal under it");
-    assert_eq!(pop_answer(false, WORK_CAP), PopAnswer::Park, "any node at 0xc80");
+    assert_eq!(
+        pop_answer(true, WORK_CAP),
+        PopAnswer::Park,
+        "the goal at 0xc80"
+    );
+    assert_eq!(
+        pop_answer(true, WORK_CAP + 3),
+        PopAnswer::Park,
+        "run1783's 3,203"
+    );
+    assert_eq!(
+        pop_answer(true, WORK_CAP - 1),
+        PopAnswer::Lay,
+        "the goal under it"
+    );
+    assert_eq!(
+        pop_answer(false, WORK_CAP),
+        PopAnswer::Park,
+        "any node at 0xc80"
+    );
     assert_eq!(pop_answer(false, 0), PopAnswer::Expand, "a node under it");
 }
 

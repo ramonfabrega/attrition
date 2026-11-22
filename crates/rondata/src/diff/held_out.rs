@@ -6221,7 +6221,31 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Item 4544: world 1,791 -> 1,792, first 1750 -> 1792. run1783, the
+        // ranges take: on 1750 world range 1148, record 1124 (cell (44, 18)),
+        // `flags` ROAD ours 0x80, theirs 0: a caravan's road whose goal was
+        // popped past 0xc80 on 1749, laid on 1750 in theirs
+        // (`astar_caravan_road`'s `6860af`, `docs/ROADS.md` §8.3).
+        moved: Some(Score {
+            states: 3295,
+            agreed: [
+                1790, 1854, 3295, 2882, 2508, 1963, 1790, 1757, 1951, 2728, 1987, 1792,
+            ],
+            first: &[
+                ("units", (1790, Some(4038452573), 1054592778)),
+                ("builds", (1824, Some(512225234), 3008295372)),
+                ("ammo", (2860, Some(1), 460261739)),
+                ("deaths", (2508, Some(2009468066), 1)),
+                ("groups", (1963, Some(321777859), 660866967)),
+                ("guys", (1790, Some(2094189105), 2360396383)),
+                ("leaders", (1757, Some(2828401504), 1487010739)),
+                ("cities", (1951, Some(1722361204), 1721574772)),
+                ("items", (2728, Some(3164999615), 3159232445)),
+                ("goods", (1987, Some(1178399185), 1567683031)),
+                ("world", (1792, Some(1791915805), 1130854131)),
+            ],
+            over: None,
+        }),
     }),
     // run1779
     // row 123, as found 2026-11-21: 3 lines whole; units 3,020 of 6,001, first 2986; builds 2,977
