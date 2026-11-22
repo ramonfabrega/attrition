@@ -1093,6 +1093,93 @@ mod tests {
         }
     }
 
+    /// **Row 43's Slinger stones leave from piece 736's sockets** (item
+    /// 4547, `docs/RECGAME.md` §12.3): run1787, the ranges take of row 43's
+    /// file. who=2's Slingers `2/30` and `2/29` (TI 82, land, piece 736,
+    /// `32 + 2 × 0x160`) loose at who=1's `1/14` on 3191 and 3192 on
+    /// `CHAR_ATTACK1` frame 21; theirs' stones leave from (8571, 23834) and
+    /// (8714, 24012), 174 over the ground, where ours left the figure's own
+    /// square. Every ammo and units range on states 3191 to 3197, byte for
+    /// byte.
+    #[test]
+    fn row_43_s_slinger_stones_leave_from_piece_736_s_sockets_on_run1787_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 2) else {
+            eprintln!("skipping: row 43's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1787/map-7");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1787's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 43's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3191i64..=3197 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            if state == 3191 {
+                // The two shooters by name: who=2's Slingers on piece 736.
+                for o in [29, 30] {
+                    let u = built.sim.unit_by_o(2, o).expect("who=2's Slinger");
+                    let ty = built.sim.units[u].ty.expect("a type");
+                    assert_eq!(built.sim.tables.unit_types[ty].type_index, 82, "2/{o}'s TI");
+                    assert_eq!(built.sim.units[u].guys[0].gpiece, 736, "2/{o}'s piece");
+                    assert_eq!(
+                        built.sim.units[u].kind.domain,
+                        sim::territory::attrition::Domain::Land
+                    );
+                }
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for li in [0usize, 3] {
+                let ours = lines[li].as_ref().expect("the line");
+                let theirs: Vec<_> = all.iter().filter(|r| usize::from(r.line) == li).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {li}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "line {li} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+            // Theirs' launch points by value: record 0's on 3192 and record
+            // 2's on 3193, `launch.x`/`launch.y`/`sz` at bytes 7, 11, 15.
+            let word = |b: &[u8], at: usize| i32::from_le_bytes(b[at..at + 4].try_into().unwrap());
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 3).collect();
+            let named = match state {
+                3192 => Some((1, 0, (8571, 23834, 690))),
+                3193 => Some((7, 2, (8714, 24012, 668))),
+                _ => None,
+            };
+            if let Some((k, slot, (x, y, z))) = named {
+                let ammo = lines[3].as_ref().expect("ammo");
+                assert_eq!(ammo.ranges[k].record, slot);
+                assert_eq!(ammo.ranges[k].field, "rolling..start_roll_angle");
+                let b = &theirs[k].bytes;
+                assert_eq!((word(b, 7), word(b, 11), word(b, 15)), (x, y, z), "theirs' launch");
+            }
+        }
+    }
+
     /// **The fifth's files carry the declared seats and team** (item
     /// 4527): each `item4527-row<RRR>-6000.rcx` the client recorded, read
     /// back, holds the declaration's three `PLAYER` rows slot for slot —
