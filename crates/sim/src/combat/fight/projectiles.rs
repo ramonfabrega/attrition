@@ -446,7 +446,7 @@ impl Sim {
     /// the arc ours flew would have landed.
     ///
     /// **A unit target's height is its first figure's** (item 4537,
-    /// `docs/CHECKSUM.md` §18.5): both the close test and the re-plan read
+    /// `docs/CHECKSUM.md` §18.1): both the close test and the re-plan read
     /// `guys[0] +0x14` when the target's vslot `+0x1c` answers 0 (a unit;
     /// `Window::get_button` in `Unit::vftable`, `Buffer::is_pending_load`
     /// in `Build::vftable`), and the object's own `+0xc` otherwise. A

@@ -15678,8 +15678,8 @@ spends `Farms::inc_time+0x1ae`: a round lands in theirs. The `2/15` round, whose
 hypothesis, not the booking.
 
 **What is not established**: the launch's middle point is the integer `sin_component` pair, and the pitch rotation
-is not carried (`missile_spline`'s SEAM; `2/14` is parked, pitch 0). A ground unit's figure z is read as its
-object's. An air target's initial `ez`. A building target's arm, whose radius is `0xc0` and which never re-plans,
+is not carried (`missile_spline`'s SEAM; `2/14` is parked, pitch 0). ~~A ground unit's figure z is read as its
+object's.~~ Built by item 4537: the figure's own z, `docs/CHECKSUM.md` §18.1. An air target's initial `ez`. A building target's arm, whose radius is `0xc0` and which never re-plans,
 is built but no capture reaches it.
 
 ## 152.3 A helicopter's rockets leave its pods at its own altitude — 640 → 648 (item 3804, run1469)
