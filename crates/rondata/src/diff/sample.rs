@@ -738,19 +738,26 @@ pub(in crate::diff) mod tests {
     /// units 6000 -> 6108, builds 6000 -> 6114, ammo 6000 -> 6156, groups
     /// 6022 -> 6153, guys 6017 -> 6115, leaders 6005 -> 6119, world 6022
     /// -> 6116; items 7940 -> 9433 and goods 6281 -> 6407, named rises
-    /// past the draw word; units 6108 the lowest.
+    /// past the draw word; units 6108 the lowest. Item 4543
+    /// (`UnitData::get_attrition@00608fd0`'s aged-up arm reads each
+    /// leader's `ages`, `*(+0x6eb8) +0xdc ^ 0x62766`, which ours never
+    /// fed: the person's Bushi `3/37` on computer 0's ground on 6108,
+    /// leader 0's `ages` 2 against the person's 1, `3107 37 attrition`
+    /// ours 48, theirs 24): units 6108 -> 6114, deaths 6190 -> 6186;
+    /// items 9433 -> 7372 and goods 6407 -> 6542, past the draw word;
+    /// units, builds and draws 6114 the lowest.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 6108),
+        ("units", 6114),
         ("builds", 6114),
         ("walls", 21044),
         ("ammo", 6156),
-        ("deaths", 6190),
+        ("deaths", 6186),
         ("groups", 6153),
         ("guys", 6115),
         ("leaders", 6119),
         ("cities", 6151),
-        ("items", 9433),
-        ("goods", 6407),
+        ("items", 7372),
+        ("goods", 6542),
         ("world", 6116),
     ];
 
@@ -1630,15 +1637,18 @@ pub(in crate::diff) mod tests {
     /// units' 6000. Built (item 4533: a capture's spoils skip Knowledge,
     /// the person's on 5485 Metal): leaders 5486 -> 5891 (`462 3
     /// oil_patches`). Built (item 4533, second: the capacity doubles from
-    /// ten): leaders 5891 -> 6005 (`1 0 who..ally_mask`).
+    /// ten): leaders 5891 -> 6005 (`1 0 who..ally_mask`). Built (item
+    /// 4543: the aged-up arm reads both leaders' `ages`, `3107 37
+    /// attrition` 48|24 on 6108): units 6108 -> 6114 (`1665 11`, its
+    /// orders), deaths 6190 -> 6186.
     const SAMPLE_RANGES_1772: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
-            6108,
-            4442,
-            4442,
-            1,
-            "3107 37 collide_frame..play: attrition 48|24",
+            6114,
+            4497,
+            4479,
+            2399,
+            "1665 11 collide_frame..play: dest_angle 424673280|-1289682944, orders_x 9576|6168, orders_y 29832|30936",
         ),
         (
             "builds",
@@ -1658,11 +1668,11 @@ pub(in crate::diff) mod tests {
         ),
         (
             "deaths",
-            6190,
-            2,
+            6186,
             0,
             2,
-            "0 -1 00936bff: +0x0 of 0|4: |01000000",
+            2,
+            "0 0 valid: +0x0 of 4|0: 01000000|",
         ),
         (
             "groups",
