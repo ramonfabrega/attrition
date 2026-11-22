@@ -109,6 +109,25 @@ impl Page {
         Ok(page)
     }
 
+    /// **One event made by the page's own keys** (item 4527): the keys a
+    /// person presses for `e` (`keys_for`), each through `key`, and the
+    /// page's choices afterwards asserted to be what `Choices::apply` of
+    /// `e` alone gives. `--seat` and `--team` add the fifth battery's seat
+    /// and team to a `--page-of` lobby this way.
+    pub fn press(&mut self, e: &Event) -> Result<(), String> {
+        let mut want = self.choices.clone();
+        want.apply(e, &self.roster)?;
+        for k in self.keys_for(e) {
+            if let Outcome::Refused(e, why) = self.key(k) {
+                return Err(format!("{e:?} refused: {why}"));
+            }
+        }
+        if self.choices != want {
+            return Err(format!("{e:?}: the page's keys made another lobby"));
+        }
+        Ok(())
+    }
+
     /// The page holding `choices`.
     pub fn on(choices: Choices, roster: Roster) -> Page {
         Page {
@@ -477,6 +496,33 @@ mod tests {
     fn install() -> Option<PathBuf> {
         let root = PathBuf::from(std::env::var_os("RON_INSTALL")?);
         root.join("Data/rules.xml").is_file().then_some(root)
+    }
+
+    /// **`press` adds a seat and a team by the page's keys** (item 4527):
+    /// the harness lobby, a third seat of nation 0 and the human and that
+    /// seat on team 0, as `--seat 0 --team 0=0 --team 2=0` does. The block
+    /// prints three rows, the third the Aztecs' first leader, and the two
+    /// on team 0. A team past `NO_TEAM` is refused and leaves the page.
+    #[test]
+    fn press_adds_a_seat_and_a_team_by_the_page_s_keys() {
+        let Some(root) = install() else {
+            eprintln!("skipping: no install (set RON_INSTALL)");
+            return;
+        };
+        let mut page = Page::new(Roster::read(&root).unwrap()).unwrap();
+        assert_eq!(page.choices.seats.len(), 2);
+        page.press(&Event::AddSeat).unwrap();
+        page.press(&Event::Nation { seat: 2, tribe: 0 }).unwrap();
+        page.press(&Event::Team { seat: 0, team: 0 }).unwrap();
+        page.press(&Event::Team { seat: 2, team: 0 }).unwrap();
+        let teams: Vec<i32> = page.choices.seats.iter().map(|s| s.team).collect();
+        assert_eq!(teams, [0, rondata::lobby::NO_TEAM, 0]);
+        let block = page.choices.block();
+        assert_eq!(block.matches("BEGIN PLAYER").count(), 3);
+        assert!(block.contains("PLAYERS 2"), "{block}");
+        let before = page.choices.clone();
+        assert!(page.press(&Event::Team { seat: 1, team: 9 }).is_err());
+        assert_eq!(page.choices, before);
     }
 
     /// **The page's own keys set every lobby on disk** (item 4184): for

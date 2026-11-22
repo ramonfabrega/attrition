@@ -879,7 +879,7 @@ paid for. run1161b has it on frame 3799: who=1's CEO `1/19` crosses from
 tile (190, 209) to (191, 210), and the reassembly falls on 3807. The crate
 builds the tile-crossing arm (`Sim::update_ceo_position`), `init` and
 `set_type`'s (item 4502), and `go_inside`'s and `come_out`'s (item 4519,
-`docs/RECGAME.md` §12.3): row 95's CEO `1/19` casts its Transport Freighter
+`docs/RECGAME.md` §12.4): row 95's CEO `1/19` casts its Transport Freighter
 and boards it on 5266, and the original's `leader_flags` gains `0x2000000`
 there (run1770's leaders range 128).
 

@@ -280,7 +280,7 @@ fn russian_information_pair_run1401b_s_word_frame_is_widened_whole() {
     // Item 4159's residue: 168 -> 164, item 4177's four combat-rate firsts agree (4177a).
     // Item 4435: 160 -> 111, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4508: 102 -> 100, a computer's bomber searches round itself (`find_new_bomber_target`).
-    // Item 4519: 100 -> 96, a CEO going in or coming out asks `update_ceo_position` (`docs/RECGAME.md` §12.3).
+    // Item 4519: 100 -> 96, a CEO going in or coming out asks `update_ceo_position` (`docs/RECGAME.md` §12.4).
     pin_eq!(w.firsts.len(), 96, "run1401b baseline");
     // Every round, both directions: 408 in ours against 227. Item 3744:
     // 408 against 408, 98 parting — the MLRS `1/99`'s launch point (40,
@@ -360,7 +360,7 @@ fn russian_information_pair_run1423_s_gap_is_widened_whole() {
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 163 -> 159.
     // Item 4435: 159 -> 114, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4508: 105 -> 102, a computer's bomber searches round itself (`find_new_bomber_target`).
-    // Item 4519: 102 -> 98, a CEO going in or coming out asks `update_ceo_position` (`docs/RECGAME.md` §12.3).
+    // Item 4519: 102 -> 98, a CEO going in or coming out asks `update_ceo_position` (`docs/RECGAME.md` §12.4).
     pin_eq!(w.firsts.len(), 98, "run1423 baseline");
     pin_eq!(w.rounds_read, (408, 408), "the rounds read");
     // 94 parting: the MLRS `1/99`'s launch point from 5913 (3744a). Item
@@ -435,7 +435,7 @@ fn russian_information_pair_run1423b_s_gap_is_widened_whole() {
     // Item 4253, a scholar's seating sets its figure's angle (`go_inside`'s `set_angle(0, _, 1)`): 170 -> 167.
     // Item 4435: 167 -> 124, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4508: 115 -> 102, a computer's bomber searches round itself (`find_new_bomber_target`).
-    // Item 4519: 102 -> 98, a CEO going in or coming out asks `update_ceo_position` (`docs/RECGAME.md` §12.3).
+    // Item 4519: 102 -> 98, a CEO going in or coming out asks `update_ceo_position` (`docs/RECGAME.md` §12.4).
     pin_eq!(w.firsts.len(), 98, "run1423b baseline");
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
@@ -509,7 +509,7 @@ fn russian_information_pair_run1423c_s_closing_frame_is_widened_whole() {
     // Item 4435: 144 -> 107, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4448: 107 -> 106, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
     // Item 4508: 97 -> 96, a computer's bomber searches round itself (`find_new_bomber_target`).
-    // Item 4519: 96 -> 92, a CEO going in or coming out asks `update_ceo_position` (`docs/RECGAME.md` §12.3).
+    // Item 4519: 96 -> 92, a CEO going in or coming out asks `update_ceo_position` (`docs/RECGAME.md` §12.4).
     pin_eq!(w.firsts.len(), 92, "run1423c baseline");
     // Item 4159r5: (29, 30) -> (29, 29), the launch rows of pieces 210 (3): rounds that left the figure's square leave from their bays.
     pin_eq!(w.rounds_read, (29, 29), "the rounds read");

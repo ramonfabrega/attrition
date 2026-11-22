@@ -445,6 +445,12 @@ installer's. That moved no other lobby.
   4336).
   The style-7 refusal is equivalent at frame 0 (a seat on team 8 already
   fails the `0..4` test), so no lobby can tell it apart.
+- **Two allied computers under `TEAM_STYLE 1` part the leaders line at
+  state 0** on one take of four (item 4527, `docs/RECGAME.md` §12.3): run1774, Atlantic
+  Sea Power with the two computers on team 1, ours 569079079, theirs
+  568292647. The other three with the two computers on team 1 (run1776,
+  run1778, run1780) and the four with the human and a computer on team 0
+  agree on leaders at state 0. No leaf is named: the take holds sums only.
 - **Diff-backed on 35 lobbies** (item 4034, §5): Great Lakes at 34
   lobbies besides the harness's, among them every starting age 0 to 7,
   difficulties 0 to 5, `STARTING_RESOURCES` 7 (19 lobbies) and AI seats

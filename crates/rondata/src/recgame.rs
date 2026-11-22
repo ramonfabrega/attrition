@@ -842,16 +842,25 @@ pub fn from_lobby(
 }
 
 /// **`TEAM_STYLE`'s byte** in [`RecGame::options`] ([`OPTION_KEYS`]'s
-/// first): the one option a donor may differ in (item 4387).
+/// first): an option a donor may differ in (item 4387).
 pub const TEAM_STYLE_OPTION: usize = 0;
+
+/// **`PLAYERS`' byte** in [`RecGame::options`] (the seats less one): the
+/// other option a donor may differ in (item 4527).
+pub const PLAYERS_OPTION: usize = 3;
 
 /// Whether `donor` may lend its borrowed sections to a lobby of this
 /// `version` and these `options` ([`from_lobby`], `docs/RECGAME.md` §8.2):
 /// the same version and the same thirty option bytes, but for
-/// `TEAM_STYLE` — the rules section does not move with it (item 4382: both
-/// East Indies pairs on disk that differ in that byte alone carry equal
-/// rules, run state and semaphore), and no Great Lakes game at style 0 has
-/// ever been recorded.
+/// `TEAM_STYLE` and `PLAYERS` — the borrowed sections do not move with
+/// either. `TEAM_STYLE`: item 4382, both East Indies pairs on disk that
+/// differ in that byte alone carry equal rules, run state and semaphore,
+/// and no Great Lakes game at style 0 has ever been recorded. `PLAYERS`:
+/// item 4527, the 23 donors that seat three on a lobby another donor
+/// seats two on (17 Great Lakes, 6 East Indies) carry rules, run state,
+/// semaphore and markers equal to it, and no donor seats three on any of
+/// the fifth battery's lobbies
+/// (`the_borrowed_sections_move_with_neither_team_style_nor_players`).
 pub fn donor_serves(donor: &RecGame, version: &str, options: &[u8; 30]) -> bool {
     donor.version == version
         && donor
@@ -859,7 +868,7 @@ pub fn donor_serves(donor: &RecGame, version: &str, options: &[u8; 30]) -> bool 
             .iter()
             .zip(options)
             .enumerate()
-            .all(|(k, (d, o))| k == TEAM_STYLE_OPTION || d == o)
+            .all(|(k, (d, o))| k == TEAM_STYLE_OPTION || k == PLAYERS_OPTION || d == o)
 }
 
 /// The package stream of a game with no input, played to `last` frames:
@@ -950,11 +959,11 @@ pub fn minted_packages(
 
 #[cfg(test)]
 pub(crate) mod tests {
-    /// **A donor may differ in `TEAM_STYLE` alone** (item 4387,
-    /// `docs/RECGAME.md` §8.2): any other option byte, or the version,
-    /// refuses it.
+    /// **A donor may differ in `TEAM_STYLE` and `PLAYERS` alone** (items
+    /// 4387 and 4527, `docs/RECGAME.md` §8.2): any other option byte, or
+    /// the version, refuses it.
     #[test]
-    fn a_donor_may_differ_in_team_style_alone() {
+    fn a_donor_may_differ_in_team_style_and_players_alone() {
         let donor = super::RecGame {
             version: "v".into(),
             options: [1; 30],
@@ -964,12 +973,76 @@ pub(crate) mod tests {
         assert!(super::donor_serves(&donor, "v", &ours));
         ours[super::TEAM_STYLE_OPTION] = 0;
         assert!(super::donor_serves(&donor, "v", &ours));
+        ours[super::PLAYERS_OPTION] = 2;
+        assert!(super::donor_serves(&donor, "v", &ours));
         assert!(!super::donor_serves(&donor, "w", &ours));
-        for k in 1..30 {
+        for k in (1..30).filter(|&k| k != super::PLAYERS_OPTION) {
             let mut o = ours;
             o[k] = 2;
             assert!(!super::donor_serves(&donor, "v", &o), "option {k}");
         }
+    }
+
+    /// **The borrowed sections move with neither `TEAM_STYLE` nor
+    /// `PLAYERS`** (item 4527, `docs/RECGAME.md` §8.2): every finished
+    /// recording under `RON_RECGAME_DIR` (the profile's `Recorded Games/`;
+    /// the default directory holds no donor) against the first of its
+    /// group, a group being one version and one set of option bytes but
+    /// for those two. Rules, run state, semaphore and markers are equal
+    /// across every group, and at least one pair differs in `PLAYERS`, so
+    /// the claim is not vacuous. On 2026-11-21: 1,654 finished in 87
+    /// groups, 23 pairs across `PLAYERS` in two of them (Great Lakes, East
+    /// Indies). Seen red with one side's run state bent. Opt-in by
+    /// the variable: a machine without the profile skips, loudly.
+    #[test]
+    fn the_borrowed_sections_move_with_neither_team_style_nor_players() {
+        if std::env::var_os("RON_RECGAME_DIR").is_none() {
+            eprintln!("skipping: RON_RECGAME_DIR names no profile's Recorded Games");
+            return;
+        }
+        let mut groups: std::collections::BTreeMap<(String, [u8; 30]), (String, RecGame)> =
+            Default::default();
+        let (mut finished, mut across, mut parted) = (0, 0, Vec::new());
+        for f in recordings_on_disk() {
+            let Ok(mut r) = read(&f) else { continue };
+            if !r.truncated.is_empty() || r.rules.is_none() {
+                continue;
+            }
+            finished += 1;
+            r.packages.clear();
+            let mut key = r.options;
+            key[TEAM_STYLE_OPTION] = 0;
+            key[PLAYERS_OPTION] = 0;
+            let Some((fa, a)) = groups.get(&(r.version.clone(), key)) else {
+                groups.insert((r.version.clone(), key), (f, r));
+                continue;
+            };
+            if a.options[PLAYERS_OPTION] != r.options[PLAYERS_OPTION] {
+                across += 1;
+            }
+            let same = (
+                a.rules == r.rules,
+                a.run_state == r.run_state,
+                a.semaphore_bits == r.semaphore_bits && a.semaphore == r.semaphore,
+                a.markers == r.markers,
+            );
+            if same != (true, true, true, true) {
+                parted.push(format!("{fa} | {f}: {same:?}"));
+            }
+        }
+        eprintln!(
+            "{finished} finished, {} groups, {across} pairs across PLAYERS",
+            groups.len()
+        );
+        assert_eq!(
+            parted,
+            Vec::<String>::new(),
+            "rules, run state, semaphore, markers"
+        );
+        assert!(
+            across > 0,
+            "no pair differs in PLAYERS: the claim is vacuous here"
+        );
     }
 
     use super::*;
