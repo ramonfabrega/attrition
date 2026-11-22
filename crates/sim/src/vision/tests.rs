@@ -1075,3 +1075,52 @@ fn an_animal_is_seen_through_the_ever_seen_plane() {
     s.tech[1].power = Some(9);
     assert!(s.target_seen_by(1, t), "a Spanish viewer reads was_seen");
 }
+
+/// **`ally_mask` is the stored byte, `LeaderData +0x6929`** (item 4526,
+/// `docs/DANGER.md` §5): `WallData::is_seen@00642bd0` and
+/// `WorldData::is_seen@006b55c0` both mask by it, and the census rewrites
+/// it without a defeated leader (`plan_strategy@006b9620`, `leader_flags &
+/// 2`). So who=1, still allied with who=2 in `diplos`, stops seeing through
+/// who=2's eyes once its stored byte drops who=2's bit: a building only
+/// who=2 has laid eyes on, and a fog cell only who=2 lights. The 2017
+/// sample's diff: computer 1's buildings, taken by the person at its
+/// defeat, stayed seen by computers 0, 2 and 4, and world parted on 5401.
+///
+/// **Made to fail on purpose**: through [`crate::Sim::seen_ally_mask`],
+/// the dropped rows answer seen.
+#[test]
+fn a_defeated_ally_s_eyes_leave_the_stored_ally_mask() {
+    let mut world = World::new(40, 40);
+    world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 39));
+    assert!(world.set_fog(vec![0; 80 * 80]));
+    let mut s = crate::Sim::new(Tuning::RON, world, 3);
+    let t = s.add_build_type(crate::cities::build::BuildType {
+        los: 4,
+        x_size: 2,
+        y_size: 2,
+        ..crate::cities::build::BuildType::default()
+    });
+    let at = Pos::new(20 * 0x300 + 0x180, 20 * 0x300 + 0x180);
+    let b = s.add_building(0, at, 0);
+    s.buildings[b].ty = Some(t);
+    s.buildings[b].started = true;
+    s.buildings[b].ever_seen = 0b100;
+    s.make_allies(1, 2);
+    let (fx, fy) = (at.x / UNITS_PER_FOG, at.y / UNITS_PER_FOG);
+    s.world.clear_seen();
+    s.world.set_seen(fx, fy, 0b100);
+    for (stored, seen) in [(0b110u32, true), (0b010, false)] {
+        s.ai.ai[1].census.ally_mask = stored;
+        assert!(s.is_ally(1, 2), "the alliance stands in `diplos`");
+        assert_eq!(
+            s.build_is_seen(b, 1),
+            seen,
+            "stored {stored:#05b}: who=2's ever_seen bit"
+        );
+        assert_eq!(
+            s.world_is_seen_fog(fx, fy, 1),
+            seen,
+            "stored {stored:#05b}: who=2's fog bit"
+        );
+    }
+}

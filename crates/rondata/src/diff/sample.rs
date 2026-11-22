@@ -697,7 +697,14 @@ pub(in crate::diff) mod tests {
     /// 10's count of `invaders` gate on the slot's `leader_flags & 1`,
     /// which the defeat keeps: leader 1's `invaders[3]` on 5326 ours 5,
     /// held from 5256, theirs 0): leaders 5326 -> 5403; every other line
-    /// unchanged, world 5401 the lowest.
+    /// unchanged, world 5401 the lowest. Item 4526 (`build_is_seen` and
+    /// the fog test mask by the stored `ally_mask`, `LeaderData +0x6929`,
+    /// which drops a defeated ally: run1772's danger rebuild of 5400,
+    /// `3629 0 danger` `+0x858` ours 20, theirs 8): world 5401 -> 5462;
+    /// items 10910 -> 10724, a named fall past units, groups and guys on
+    /// 5461 (the danger read alone gives 12663; the fog test's attack
+    /// callers bring it to 10724; no range record reaches it, DANGER §8);
+    /// leaders 5403 the lowest.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 5461),
         ("builds", 5487),
@@ -708,9 +715,9 @@ pub(in crate::diff) mod tests {
         ("guys", 5461),
         ("leaders", 5403),
         ("cities", 5801),
-        ("items", 10910),
+        ("items", 10724),
         ("goods", 6395),
-        ("world", 5401),
+        ("world", 5462),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -827,8 +834,11 @@ pub(in crate::diff) mod tests {
     /// keeps the captured Village's cells and stops the defeated leader's
     /// gather and stats; the draw word 5273 -> 5460): 4723 -> 3624, -1099,
     /// a named fall, the frames not read one by one; the first shot still
-    /// on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3624, Some(2929));
+    /// on 2929. Item 4526 (`build_is_seen` and the fog test mask by the
+    /// stored `ally_mask`, which drops the defeated computer 1): 3624 ->
+    /// 3729, +105, a named rise past the draw word 5460, the frames not
+    /// read one by one; the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3729, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
@@ -878,6 +888,15 @@ pub(in crate::diff) mod tests {
     /// `RON_SAMPLE_RANGES_1771`, else where the take left it.
     fn run1771() -> Option<crate::trace::ranges::Record> {
         ranges_record("RON_SAMPLE_RANGES_1771", "run1771")
+    }
+
+    /// run1772's record (item 4526, `docs/RUNS.md` run1772): the same
+    /// playback to 6,400 under the same hooks, keeping the ten lines that
+    /// part below 6400 on the hook's sums (`RNG_MASK` 0xdfb: all but walls
+    /// and items; DECISIONS 149 §2). `RON_SAMPLE_RANGES_1772`, else where
+    /// the take left it.
+    fn run1772() -> Option<crate::trace::ranges::Record> {
+        ranges_record("RON_SAMPLE_RANGES_1772", "run1772")
     }
 
     fn ranges_record(var: &str, run: &str) -> Option<crate::trace::ranges::Record> {
@@ -1042,6 +1061,31 @@ pub(in crate::diff) mod tests {
             "run1771's sets, one a frame"
         );
         assert_eq!(got, pinned, "SAMPLE_RANGES_1771");
+    }
+
+    /// **The sample's kept lines by range, to 6,400** (item 4526): the
+    /// same walk over run1772's record, the ten lines of its mask alone,
+    /// pinned per line by [`SAMPLE_RANGES_1772`].
+    /// `RON_SAMPLE_RANGES_DETAIL` and `RON_SAMPLE_RANGES_ALL` print as
+    /// above.
+    #[test]
+    fn the_sample_s_ranges_to_6400_name_each_first_parting() {
+        let Some(rec) = run1772() else { return };
+        let Some((frames, got)) =
+            walk_kept_ranges(rec, SAMPLE_RANGES_1772_WINDOW, SAMPLE_RANGES_1772_KEPT)
+        else {
+            return;
+        };
+        let pinned: Vec<SampleRange> = SAMPLE_RANGES_1772
+            .iter()
+            .map(|&(l, f, t, o, p, x)| (l, f, t, o, p, x.to_string()))
+            .collect();
+        assert_eq!(
+            frames,
+            SAMPLE_RANGES_1772_WINDOW as usize + 1,
+            "run1772's sets, one a frame"
+        );
+        assert_eq!(got, pinned, "SAMPLE_RANGES_1772");
     }
 
     /// The walk the ranges tests share: our sample from state 0 to
@@ -1440,4 +1484,97 @@ pub(in crate::diff) mod tests {
     /// and recounts under `leader_flags & 1`. Built: one row -> none;
     /// every kept line whole on run1771's window.
     const SAMPLE_RANGES_1771: &[(&str, i64, usize, usize, usize, &str)] = &[];
+
+    /// run1772's last frame, ours: the record holds trace frames −1 to 6399.
+    const SAMPLE_RANGES_1772_WINDOW: i64 = 6400;
+
+    /// run1772's mask: every line but walls and items (`RNG_MASK=0xdfbu`).
+    const SAMPLE_RANGES_1772_KEPT: u16 = 0xdfb;
+
+    /// Per kept line that parts on run1772's window, its first parting by
+    /// range (item 4526). Minted at ten rows, each on the frame the hook's
+    /// sums part (`SAMPLE_LINES`): world 5401, leaders 5403, units, groups
+    /// and guys 5461, builds 5487, cities 5801, ammo 5969, deaths 6190,
+    /// goods 6395. World 5401, `3629 0 danger` `+0x858` ours 20, theirs 8:
+    /// the rebuild of 5400, the person's 13 buildings taken off computer 1
+    /// at its defeat seen by computers 0, 2 and 4 in ours through computer
+    /// 1's `ever_seen` bit; `WallData::is_seen@00642bd0` and
+    /// `WorldData::is_seen@006b55c0` mask by the stored `ally_mask`
+    /// (`LeaderData +0x6929`), which the census rewrites without a
+    /// defeated leader. Built (item 4526): world 5401 -> 5462.
+    const SAMPLE_RANGES_1772: &[(&str, i64, usize, usize, usize, &str)] = &[
+        (
+            "units",
+            5461,
+            4482,
+            4418,
+            2948,
+            "1414 0 collide_frame..play: dest_angle 1745223680|-1360134144, orders_x 37368|28920, orders_y 12024|12792",
+        ),
+        (
+            "builds",
+            5487,
+            3855,
+            3855,
+            1,
+            "1121 2003 myhits..launch_frames: up 4|36",
+        ),
+        (
+            "ammo",
+            5969,
+            3,
+            3,
+            1,
+            "1 0 rolling..start_roll_angle: +0x7 of 99|99: 8b5d0000|2f5e0000",
+        ),
+        (
+            "deaths",
+            6190,
+            2,
+            0,
+            2,
+            "0 -1 00936bff: +0x0 of 0|4: |01000000",
+        ),
+        (
+            "groups",
+            5461,
+            628,
+            628,
+            2,
+            "161 131 id..march: ox 37344|28896, oy 12000|12768, o_angle 1745223680|-1360134144",
+        ),
+        ("guys", 5461, 1343, 1343, 1, "719 36 guy: cur_time 0|1"),
+        (
+            "leaders",
+            5403,
+            671,
+            671,
+            2,
+            "190 1 new_rares: +0x0 of 4|4: 0b000000|0c000000",
+        ),
+        (
+            "cities",
+            5801,
+            51,
+            51,
+            1,
+            "8 7 city..ter: peasant_dist 1|2, filled 46|47, space[2] 46|45",
+        ),
+        (
+            "goods",
+            6395,
+            265,
+            265,
+            1,
+            "200 40 ever_seen: +0x0 of 1|1: 0c|08",
+        ),
+        (
+            "world",
+            5462,
+            7643,
+            7643,
+            1,
+            "5670 1869 block.body: +0x11 of 96|96: 00000700|07000700",
+        ),
+    ];
 }

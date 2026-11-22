@@ -609,7 +609,15 @@ impl Sim {
     ///     return 0
     /// ```
     ///
-    /// `ally_mask` is `LeaderData +0x6929` ([`Sim::seen_ally_mask`]).
+    /// `ally_mask` is `LeaderData +0x6929` **as stored**
+    /// ([`Sim::stored_ally_mask`]), both clauses: the census rewrites it
+    /// skipping a defeated leader (`plan_strategy@006b9620`, `leader_flags
+    /// & 2`), so a defeated ally's own `ever_seen` bit stops seeing for its
+    /// friends. It read [`Sim::seen_ally_mask`], which still counts the
+    /// defeated ally, until item 4526: the 2017 sample's thirteen buildings
+    /// the person took off computer 1 at its defeat (5256) stayed seen by
+    /// computers 0, 2 and 4, and their danger rows stood at about two and a
+    /// half times theirs on the rebuild of 5400 (`docs/DANGER.md` §5).
     /// While `seen` never forgot, the fog plane under a building answered
     /// as `ever_seen` does; the hundredth-frame clear (§10) parts them.
     ///
@@ -626,7 +634,7 @@ impl Sim {
         if bd.visible & Self::who_bit(who) != 0 {
             return true;
         }
-        let mask = self.seen_ally_mask(who);
+        let mask = self.stored_ally_mask(who);
         (bd.started || mask & Self::who_bit(bd.owner) != 0) && bd.ever_seen & mask != 0
     }
 
@@ -677,7 +685,10 @@ impl Sim {
         let Some(bits) = self.world.seen(fx, fy) else {
             return true;
         };
-        bits & self.seen_ally_mask(who) != 0
+        // `this_00->ally_mask`, `LeaderData +0x6929` as stored (`types.txt`),
+        // which the census rewrites without a defeated leader: item 4526,
+        // as in [`Sim::build_is_seen`].
+        bits & self.stored_ally_mask(who) != 0
     }
 
     /// `1 << (who & 0x1f)`, **truncated to the byte `ObjectData::visible`

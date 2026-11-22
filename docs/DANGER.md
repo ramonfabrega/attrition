@@ -171,6 +171,20 @@ item 3367** (`Sim::build_is_seen`, `docs/AI.md` §284): it had read the fog
 plane, which a leader with `leader_flags & 0x1000` sees whole, so the Spanish
 never halved a human building's danger.
 
+**`ally_mask` is the stored byte** (item 4526): `LeaderData +0x6929`
+(`types.txt`), which `WallData::is_seen` reads in both its clauses and
+`WorldData::is_seen@006b55c0` (`UnitData::is_seen`'s fog test) reads too.
+The census rewrites it (`plan_strategy@006b9620`) and skips a leader whose
+`leader_flags & 2` is clear, so **a defeated ally's eyes stop counting for
+its friends** while `diplos` still calls it an ally. Ours computed the mask
+from `diplos` until item 4526. On the 2017 sample's rebuild of 5400, the
+person's 13 buildings taken off computer 1 at its defeat, which only
+computer 1 had seen, stayed seen by computers 0, 2 and 4. Their danger
+cells stood at 2.5 times theirs (a ring write of 5 against 2), and one
+unit's half-cell at (22,22) 585|375. *Diff-backed* by run1772
+(`the_sample_s_ranges_to_6400_name_each_first_parting`), and by
+`a_defeated_ally_s_eyes_leave_the_stored_ally_mask`.
+
 **The AI reads the map whole and `calc_cost` eighths it.** Five producers —
 `produce_unit@006cb9e0:142`, `:236`, `:380`, `produce_tech@006ca980:138`,
 `:236`, `produce_building@006e1400:533`, `found_cities@006c7a60:235` and
@@ -283,7 +297,15 @@ not that nothing did.
 - The `LEADER_VALID` / `LEADER_ACTIVE` split. Every capture has two leaders
   and both bits on both, so "owners are the valid ones and viewers the
   active ones" rests on the reading; a capture with a defeated leader would
-  separate them.
+  separate them. (The 2017 sample has one from 5256, computer 1, and its
+  map agrees through 5461 since item 4526. No cell is shown to depend on
+  the split.)
+- **The stored mask's other readers** (item 4526): the fog test's attack
+  callers (`set_attacking`, `target_seen_by`) take the stored byte with
+  `WorldData::is_seen`. On the sample that moves items by sum 12663 →
+  10724 against the danger read alone, past units, groups and guys on
+  5461. No range record reaches 10724, so which read is behind that move is
+  not established.
 - `obj_base[1]`, taken as 2000 because every dumped building's `o` is in
   `[2000, 3000)`.
 
