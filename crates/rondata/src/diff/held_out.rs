@@ -1397,6 +1397,66 @@ mod tests {
         }
     }
 
+    /// **Row 95's CEO dirties its economy as it boards** (item 4519,
+    /// `docs/RECGAME.md` §12.3): on run1770's ranges, every leaders range
+    /// on 5265 and 5266 byte for byte. On 5266 who=1's `leader_flags`
+    /// (range 128, record 1) gains `0x2000000`: the CEO `1/19` (TI 357)
+    /// is inside its newborn Transport Freighter, and `Unit::go_inside
+    /// @0061a2e0`'s CEO arm left its city.
+    #[test]
+    fn row_95_s_ceo_dirties_its_economy_as_it_boards_its_freighter_on_run1770_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FOURTH, 4) else {
+            eprintln!("skipping: row 95's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1770/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1770's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 95's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [5265, 5266] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_leaders();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "leaders' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "leaders range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Who=1's flags: the dirty bit is byte 3's `0x02`.
+            assert_eq!(ours.ranges[128].field, "flags");
+            assert_eq!(ours.ranges[128].record, 1);
+            let dirty = theirs[128].bytes[3] & 0x02 != 0;
+            assert_eq!(dirty, state == 5266, "who=1's 0x2000000 on {state}");
+            let ceo = built
+                .sim
+                .units
+                .iter()
+                .find(|u| u.alive() && u.owner == 1 && u.index == 19)
+                .expect("1/19");
+            assert_eq!(ceo.type_index, 357, "1/19 is the CEO");
+            assert_eq!(ceo.inside_unit.is_some(), state == 5266, "1/19 aboard on {state}");
+        }
+    }
+
     /// **Row 55's army keeps a member whose number a newborn took** (item
     /// 4531, `docs/RECGAME.md` §12.2): run1769 holds every groups range to
     /// 6000. On 5576 who=1's Elite Javelineers `1/44` (TI 84) leave their
@@ -4779,16 +4839,17 @@ pub(crate) const SCORES_FOURTH: [Option<FirstScore>; 8] = [
         },
         // Moved by item 4524 (the Kremlin's spy tag is `unit_masks2 &
         // 0x400`; run1754's leaf, row 130): units 5,303 -> 5,909, first
-        // 5303 -> 5909, beside guys. No ranges take of this row.
+        // 5303 -> 5909, beside guys. Moved by item 4519 (a CEO going in
+        // asks `update_ceo_position`; run1770's leaders range 128):
+        // leaders 5,266 -> 6,001, whole; ten lines whole.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5909, 6001, 6001, 6001, 6001, 6001, 5909, 5266, 6001, 6001, 6001, 6001,
+                5909, 6001, 6001, 6001, 6001, 6001, 5909, 6001, 6001, 6001, 6001, 6001,
             ],
             first: &[
                 ("units", (5909, Some(3899268178), 2012421188)),
                 ("guys", (5909, Some(1310729884), 912139918)),
-                ("leaders", (5266, Some(871988666), 426802620)),
             ],
             over: None,
         }),
