@@ -1018,9 +1018,6 @@ impl Sim {
             // compare, and the original listed it at `escrow 1`.
             escrow = 1;
         }
-        if std::env::var("RON_PROBE_4542").is_ok() && bt.wonder {
-            eprintln!("PROBE4542 final frame {} who {who} rec {rec} val {v}", self.frame);
-        }
         Some(Listing {
             val: v,
             escrow,
