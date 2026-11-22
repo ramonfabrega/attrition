@@ -1181,7 +1181,9 @@ has the militia tech, counts `(militia upgrade type's attack / 10 + 2) / 3`
 — a third, rounded *(second reading; an earlier draft had militia counting
 nothing)*. If `base == 0`: `g += a / 2`. `g /= a`;
 `arrows = base + min(g, most_shots)`. A tower with three archers inside
-reloads in a third of the time.
+reloads in a third of the time. The militia arm is built (item 4535,
+`garrison_attack_sum`) and diff-backed: run1772's Village `0/2000` holds
+five Citizens on 5999 and reloads in 15, not 30.
 
 ---
 
