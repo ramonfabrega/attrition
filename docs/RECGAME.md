@@ -1233,10 +1233,6 @@ Helicopters set apart keep `dest_angle`, `docs/PRODUCTION.md`, "The
 push's angle". **Row 10 is whole** (item 4523, ammo 5,962 → 6,001): a
 falling aircraft's round, `docs/CHECKSUM.md` §18.4.
 
-**Row 110's ammo is whole** (item 4537, 5,826 → 6,001, from run1742's
-leaf on 4104): a guided round re-planning on a unit reads its first
-figure's height, `docs/CHECKSUM.md` §18.1.
-
 **Row 130 is whole**, from run1754's leaves: the bomber `1/158` searches
 round itself (item 4508, `find_new_bomber_target@005eb960`), 4522's
 helicopters, the Kremlin's spy-due `leader_flags & 0x10000000` (item
