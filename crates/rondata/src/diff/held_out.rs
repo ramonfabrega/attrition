@@ -2416,6 +2416,98 @@ mod tests {
         }
     }
 
+    /// **Row 110's guided rounds re-plan to the Citizen's figure height**
+    /// (item 4537, `docs/CHECKSUM.md` §18.1): run1742, the ranges take of
+    /// run1735's file. who=2's `2/35` (TI 330, sea) has two guided rounds
+    /// in slots 2 and 3 on who=1's fleeing Citizen `1/2` (TI 50), and on
+    /// 4104 `Ammo::inc_time@0067d380`'s spline arm re-plans both to the
+    /// Citizen's point. Their `ez` is `guys[0] +0x14`, the ground under the
+    /// figure (36), where the tile's object height reads 34. Red on the
+    /// tree before the fix at ammo range 1 on 4104, record 2
+    /// `rolling..start_roll_angle` byte 27 (`ez`), ours 0x22, theirs 0x24.
+    /// Every ammo range on 4100..=4140, byte for byte.
+    #[test]
+    fn row_110_s_guided_rounds_re_plan_to_the_citizen_s_figure_height_on_run1742_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 5) else {
+            eprintln!("skipping: row 110's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1742/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1742's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 110's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 4100i64..=4140 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 3).collect();
+            let ours = built
+                .sim
+                .checksum_ammo()
+                .unwrap_or_else(|| panic!("ours emits the ammo line on {state}"));
+            assert_eq!(ours.ranges.len(), theirs.len(), "ammo ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                assert_eq!(
+                    at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                    None,
+                    "ammo range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                    a.record,
+                    a.field
+                );
+                assert_eq!(a.bytes.len(), b.bytes.len(), "ammo range {k} on {state}");
+            }
+            if state == 4104 {
+                // The shooter and the target by name.
+                let sim = &built.sim;
+                let p = sim
+                    .combat
+                    .projectiles
+                    .iter()
+                    .find(|p| p.slot == 2)
+                    .expect("slot 2's round");
+                let (sim::combat::Obj::Unit(s), Some(sim::combat::Obj::Unit(t))) =
+                    (p.shooter, p.target)
+                else {
+                    panic!("a unit's round on a unit")
+                };
+                let (s, t) = (&sim.units[s], &sim.units[t]);
+                assert_eq!((s.owner, s.index, s.type_index), (2, 35, 330));
+                assert_eq!(s.kind.domain, sim::territory::attrition::Domain::Sea);
+                assert_eq!((t.owner, t.index, t.type_index), (1, 2, 50));
+                assert_eq!(t.kind.domain, sim::territory::attrition::Domain::Land);
+                // Record 2's `ez` (word 6, bytes 27..31): the figure's 36,
+                // where the tile's object height under it is 34.
+                assert_eq!(theirs[1].bytes[27..31], 36i32.to_le_bytes(), "ez");
+                assert_eq!(
+                    (p.landing.x, p.landing.y),
+                    (21558, 42096),
+                    "the Citizen's point"
+                );
+                assert_eq!(p.ez, 36);
+                assert_eq!(
+                    sim.world.object_z(p.landing.tile()),
+                    34,
+                    "the tile's height"
+                );
+            }
+        }
+    }
+
     /// **Row 10's walker steps inside a freed cell and marks nothing**
     /// (item 4504, `docs/COLLISION.md` §2.4): run1739, the ranges take of
     /// run1730's file. who=1's `1/43` (TI 104) stands at unit cell
@@ -5017,15 +5109,20 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // (cell (33, 47)) `block.present`, who=1's Citizen `1/11` (TI 50)
         // dying aboard the Freighter `1/61` (TI 322), ours 0, theirs 1):
         // world 5,379 -> 5,601, first 3809 -> 5601.
+        // Moved by item 4537 (a guided round's re-plan and close test read a
+        // unit target's height as `guys[0] +0x14`, the ground under its
+        // figure, `Ammo::inc_time@0067d380`'s spline arm: run1742, state
+        // 4104, ammo range 1, record 2 `ez`, who=2's `2/35` (TI 330)
+        // re-planning on who=1's Citizen `1/2` (TI 50), ours 34, theirs 36):
+        // ammo 5,826 -> 6,001, whole.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5532, 5577, 6001, 5826, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 5601,
+                5532, 5577, 6001, 6001, 6001, 6001, 6001, 6000, 6001, 6001, 6001, 5601,
             ],
             first: &[
                 ("units", (4492, Some(710203995), 2575096436)),
                 ("builds", (5577, Some(3250328791), 1226052951)),
-                ("ammo", (4104, Some(1068803573), 2259329699)),
                 ("leaders", (5409, Some(2436184419), 4237637983)),
                 ("world", (5601, Some(3728895985), 3060364311)),
             ],
