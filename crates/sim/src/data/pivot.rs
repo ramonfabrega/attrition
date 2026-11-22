@@ -4394,7 +4394,9 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
     // Node 1 is past the piece's one restriction, so `get_position` takes
     // its non-pivot arm (`0090b750:53`, `node & 3 < param_7`): the rack's
     // entry alone, turned by the figure's facing ([`release_point`]). The
-    // pivot entries are kept as the packet holds them and read by nothing.
+    // pivot entries are kept as the packet holds them and read by nothing;
+    // the bearing reads the piece's own `(4, 0, 0)` row in [`NODES`] (item
+    // 4536).
     // Without them run1542's rockets left from the launcher's own square,
     // 240 low (`2/155`'s of 649: ours (17736, 16104, 501) against the
     // original's (17714, 16065, 741)), and every blast landed elsewhere.

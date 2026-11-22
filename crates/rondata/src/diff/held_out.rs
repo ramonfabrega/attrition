@@ -5434,9 +5434,9 @@ pub(crate) const SCORES_FOURTH: [Option<FirstScore>; 8] = [
 ];
 
 /// The fourth battery's line: games whole of the eight, and games taken
-/// (6 -> 7, item 4531: row 55 whole).
+/// (6 -> 7, item 4531: row 55 whole; 7 -> 8, item 4536: row 95 whole).
 #[cfg(test)]
-pub(crate) const HELD_OUT_FOURTH_LINE: (usize, usize) = (7, 8);
+pub(crate) const HELD_OUT_FOURTH_LINE: (usize, usize) = (8, 8);
 
 /// The fourth battery (item 4510).
 #[cfg(test)]

@@ -40590,6 +40590,9 @@ background. `df -g ~` read 89 GB free before it and 85 after.
   720, record 99, guy byte 26, `turret_angles[0]` ours 45023232, theirs 44564480.
 - **Re-scored by item 4519** (a CEO going in asks `update_ceo_position`): leaders 6,001, whole; units and guys 5,909,
   first 5909, as found; ten lines whole.
+- **Re-scored by item 4536** (the MLRS `1/99`, TI 273, bears from piece 223's pivot node): units and guys 6,001,
+  whole; **twelve lines whole**. The 5909 leaf was the figure's turret, set on 5908 as it took its attack on who=0's
+  2000: `turret_angles[0]` and `des_turret_angles[0]` ours 687 << 16 before, 680 << 16 now, theirs 680 << 16.
 - Filed by `filerun.py run1770 eastindies-russian-information-row095-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1770-eastindies-russian-information-row095-ranges.txt`, 2,451 bytes, SHA-256
   `86de987bb8dd4c6608b42eb1b309c5b29a7879d0a2eff76cebbf684b2c65b14a`; `rontrace.log` → `Logs/rontrace-run1770.log`,
@@ -40597,7 +40600,8 @@ background. `df -g ~` read 89 GB free before it and 85 after.
   split size, stays in place.
 
 **What it holds**: `diff::held_out::tests::row_95_s_ceo_dirties_its_economy_as_it_boards_its_freighter_on_run1770_s_ranges`
-(every leaders range on 5265 and 5266).
+(every leaders range on 5265 and 5266) and `row_95_s_mlrs_bears_from_its_pivot_node_on_run1770_s_ranges` (every units
+and guys range on 5908 and 5909).
 
 ## run1772 — the 2017 sample's playback to 6,400 with the checksum and ranges hooks, every line but walls and items kept (2026-11-21, item 4526, `att-4526`)
 
