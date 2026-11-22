@@ -904,11 +904,7 @@ mod tests {
             let all = record.ranges(&set).expect("the set's ranges");
             let ours = built.sim.checksum_groups();
             let theirs: Vec<_> = all.iter().filter(|r| r.line == 5).collect();
-            assert_eq!(
-                ours.ranges.len(),
-                theirs.len(),
-                "groups' ranges on {state}"
-            );
+            assert_eq!(ours.ranges.len(), theirs.len(), "groups' ranges on {state}");
             for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
                 assert_eq!(
                     a.bytes, b.bytes,
@@ -2725,6 +2721,75 @@ mod tests {
             assert_eq!(built.sim.units[u].type_index, 136, "1/{o} is a Fusilier");
             let g = built.sim.units[u].guys[0];
             assert_eq!((g.anim, g.end_time), (1, 30), "1/{o}'s figure 0 on 1790");
+        }
+    }
+
+    /// **Row 63's Fusilier round leaves from the original's socket** (item
+    /// 4558, `docs/RECGAME.md` §12.3): on run1782's ranges, every ammo range
+    /// on 3682..=3692 byte for byte. who=1's Fusiliers `1/45` (TI 136, piece
+    /// 1494) loose a `CHAR_ATTACK1` round at `0/1` on 3683; with no
+    /// [`sim::data::launch`] row for the piece it left from its own square
+    /// (8568, 12312, `sz` 468), where theirs leaves from (8633, 12404, 578).
+    #[test]
+    fn row_63_s_fusilier_round_leaves_from_the_original_s_socket_on_run1782() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 3) else {
+            eprintln!("skipping: row 63's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1782/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1782's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 63's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3682..=3692 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let theirs: Vec<_> = record
+                .ranges(&set)
+                .expect("the set's ranges")
+                .into_iter()
+                .filter(|r| r.line == 3)
+                .collect();
+            let ours = built.sim.checksum_ammo().expect("ours' ammo line");
+            assert_eq!(ours.ranges.len(), theirs.len(), "ammo's ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "ammo range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            if state == 3683 {
+                let u = built
+                    .sim
+                    .units
+                    .iter()
+                    .position(|u| u.alive() && u.owner == 1 && u.index == 45)
+                    .expect("1/45");
+                assert_eq!(built.sim.units[u].type_index, 136, "1/45 is a Fusilier");
+                assert_eq!(built.sim.units[u].guys[0].gpiece, 1494, "1/45's piece");
+                let p = built
+                    .sim
+                    .combat
+                    .projectiles
+                    .iter()
+                    .find(|p| p.slot == 1)
+                    .expect("the round in slot 1");
+                assert_eq!((p.launch.x, p.launch.y, p.sz), (8633, 12404, 578));
+            }
         }
     }
 
@@ -7024,19 +7089,19 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // 3,718; groups, guys, items, goods and world whole (1,903, 1,789,
         // 3,435, 2,046, 1,806 -> 4,223); leaders 1,828 -> 4,187, first 3691;
         // cities 2,342 -> 4,194, first 3691.
+        // Moved by item 4558 (piece 1494's release bays, the Fusiliers':
+        // run1782's 3683, ammo range 4, record 1, who=1's `1/45` (TI 136)
+        // left from its own square (8568, 12312, `sz` 468) where theirs
+        // leaves from the `CHAR_ATTACK1` socket (8633, 12404, 578)): units
+        // 4,219, ammo 3,992, deaths 3,718, leaders 4,187 and cities 4,194
+        // -> 4,223, whole; builds 3,978 -> 3,986, first 3789 -> 3986.
+        // Eleven lines whole.
         moved: Some(Score {
             states: 4223,
             agreed: [
-                4219, 3978, 4223, 3992, 3718, 4223, 4223, 4187, 4194, 4223, 4223, 4223,
+                4223, 3986, 4223, 4223, 4223, 4223, 4223, 4223, 4223, 4223, 4223, 4223,
             ],
-            first: &[
-                ("units", (3691, Some(321283673), 3777193581)),
-                ("builds", (3789, Some(788976530), 1677644707)),
-                ("ammo", (3683, Some(1020335138), 981537857)),
-                ("deaths", (3718, Some(3084417171), 3049814147)),
-                ("leaders", (3691, Some(2809192706), 3466453252)),
-                ("cities", (3691, Some(3076083936), 3326562531)),
-            ],
+            first: &[("builds", (3986, Some(575323192), 2239740310))],
             over: None,
         }),
     }),
