@@ -603,6 +603,63 @@ mod tests {
         }
     }
 
+    /// Probe (item 4544, reverted whole): row 103's world line about 1750.
+    #[test]
+    fn probe_4544_row_103_world() {
+        if std::env::var("RON_PROBE_4544").is_err() {
+            return;
+        }
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 5) else {
+            panic!("row 103's recording");
+        };
+        let ranges = home.join("ron-golden/run1783/map-18/rontrace.ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 103's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let lo: u32 = std::env::var("P_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(1740);
+        let hi: u32 = std::env::var("P_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(1760);
+        let w = built.sim.world.width();
+        eprintln!("PROBE width {w} height {}", built.sim.world.height());
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state as i64 - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_world();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
+            let mut n = 0;
+            for (a, b) in ours.ranges.iter().zip(&theirs) {
+                if a.bytes != b.bytes {
+                    n += 1;
+                    if n <= 12 {
+                        let r = a.record as i32;
+                        eprintln!(
+                            "PROBE {state} rec {r} ({}, {}) {} ours {:02x?} theirs {:02x?}",
+                            r % w,
+                            r / w,
+                            a.field,
+                            &a.bytes[..a.bytes.len().min(24)],
+                            &b.bytes[..b.bytes.len().min(24)]
+                        );
+                    }
+                }
+            }
+            let c = sim::world::Cell::new(1124 % w, 1124 / w);
+            eprintln!(
+                "PROBE {state} counts ours {} theirs {} parted {n}; cell 1124 flags {:#x}",
+                ours.ranges.len(),
+                theirs.len(),
+                built.sim.world.cell_data(c).flags
+            );
+        }
+    }
+
     /// **The fifth's files carry the declared seats and team** (item
     /// 4527): each `item4527-row<RRR>-6000.rcx` the client recorded, read
     /// back, holds the declaration's three `PLAYER` rows slot for slot —
