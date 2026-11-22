@@ -5513,7 +5513,31 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4535 (a garrisoned worker whose owner has the
+        // militia counts a third of the militia line's attack in a
+        // building's arrows, `count_inside@0064dda0`): ammo 3,426 -> 3,330
+        // and items 3,563 -> 3,491, named falls past the first partings,
+        // which stand; the states not read one by one.
+        moved: Some(Score {
+            states: 6001,
+            agreed: [
+                2338, 1958, 6001, 3330, 2941, 2400, 2338, 1956, 2340, 3491, 3952, 2338,
+            ],
+            first: &[
+                ("units", (2338, Some(1361964866), 3925824949)),
+                ("builds", (1958, Some(977573852), 2524157908)),
+                ("ammo", (2404, Some(1723730597), 1867713323)),
+                ("deaths", (2452, Some(1982270641), 1)),
+                ("groups", (2400, Some(4286445278), 2313221958)),
+                ("guys", (2338, Some(3548161827), 1424743536)),
+                ("leaders", (1956, Some(3921751680), 3148426205)),
+                ("cities", (2340, Some(2157784556), 130625532)),
+                ("items", (3026, Some(1796424164), 835927342)),
+                ("goods", (2829, Some(3059258644), 3039073554)),
+                ("world", (2338, Some(858147796), 2819705606)),
+            ],
+            over: None,
+        }),
     }),
     // run1778
     // row 103, as found 2026-11-21, ended by the original on 3294: 1 line whole; units 1,790 of
