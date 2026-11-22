@@ -136,6 +136,106 @@ impl Sim {
         self.action_alarm(who, &[b]);
     }
 
+    /// **The city building's all-clear** — `Build::process@0061edf0`'s
+    /// arm after the city heal (`620065`..`620167`), under the same
+    /// `city_flags & 2` veto ([`crate::cities::City::no_heal`]): a city
+    /// whose bell is up (`& 0x40`) asks, on its own phase, whether a
+    /// stranger is still in sight, and sounds the all-clear when none is
+    /// (item 4560).
+    ///
+    /// ```text
+    /// period = 60 for a computer (leader_flags & 4 clear);
+    ///          200 for a human whose leader_options +0x1c & 0x20 is set;
+    ///          a human without it: no test
+    /// (frame + 100 + o) % period == 0, and
+    /// ObjectsData::find(city point, SEARCH_NON_FRIENDLY, who,
+    ///                   get_radius × 0xc0, o, FILTER_SEEN, who, ·, 1) < 0:
+    ///   a stack group of this building alone (no push_group),
+    ///   Group::action_alarm on it — the all-clear
+    /// ```
+    ///
+    /// The 2017 sample's computer 0: its Village `0/2000` rang on the
+    /// person's raid and holds its Citizens inside; on 7020, `(7020 + 100
+    /// + 2000) % 60 == 0` with no stranger in its radius, theirs empties it
+    /// (run1786 on 7021: `city_flags` 0x59 → 0x19, the leader's
+    /// `0x2000000`, the garrison out on the tiles round it).
+    pub(crate) fn city_all_clear_due(&mut self, b: usize, c: usize, frame: i64) {
+        let who = self.buildings[b].owner;
+        let city = &self.cities.cities[c];
+        if city.no_heal || !city.alarm {
+            return;
+        }
+        let period = if !self.cities.nation[who as usize].human {
+            60
+        } else if self.leader_options(who).flags & 0x20 != 0 {
+            200
+        } else {
+            return;
+        };
+        if (frame + 100 + self.buildings[b].index as i64) % period != 0 {
+            return;
+        }
+        if self.stranger_in_sight(c, who) {
+            return;
+        }
+        self.action_alarm(who, &[b]);
+    }
+
+    /// Whether `ObjectsData::find@0065c6b0(city point,
+    /// SEARCH_NON_FRIENDLY (6), who, get_radius × 0xc0, ·, FILTER_SEEN
+    /// (17), who, ·, first = 1)` finds anything, as
+    /// [`Sim::city_all_clear_due`] asks it: an object of another player
+    /// below eight (`Search::valid_search@0067daa0`'s case 6, allies
+    /// included), in use (`+8 & 1`), that `who` sees
+    /// (`valid_filter@0067dbb0`'s arm 16, `0067e1d5`: the object's vslot
+    /// `+0x48`, `is_seen(who, 0)`, which is [`Sim::target_seen_by`]), at
+    /// `vector_dist`
+    /// of its own point from the city's at most the range (`65c84f`..
+    /// `65c88b`). Under ten cells of `0x300` the walk is the circle's cells'
+    /// chains (`WData::down`, [`Sim::object_chain`]); at ten or more it is
+    /// every live leader's units and buildings.
+    fn stranger_in_sight(&self, c: usize, who: Player) -> bool {
+        use crate::combat::Obj;
+        let at = self.cities.cities[c].pos;
+        let range = self.radius_of(c) * 0xc0;
+        let hit = |o: Obj| {
+            let (owner, alive) = match o {
+                Obj::Unit(u) => (self.units[u].owner, self.units[u].alive()),
+                Obj::Building(b) => (self.buildings[b].owner, self.buildings[b].alive),
+            };
+            if owner >= 8 || !alive || owner == who || !self.target_seen_by(who, o) {
+                return false;
+            }
+            let p = self.pos_of(o);
+            crate::world::vector_dist((p.x - at.x).abs(), (p.y - at.y).abs()) <= range
+        };
+        let ring = (range + 0x2ff) / 0x300;
+        if range >= 0 && ring < 10 {
+            let circ = crate::ai::ai_place::circle();
+            let cell = at.cell();
+            for k in 0..circ.radius[ring as usize] {
+                let x = cell.x + circ.x[k];
+                let y = cell.y + circ.y[k];
+                if self.object_chain(crate::Cell { x, y }).into_iter().any(hit) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        let live = |o: &Obj| {
+            let owner = match *o {
+                Obj::Unit(u) => self.units[u].owner,
+                Obj::Building(b) => self.buildings[b].owner,
+            };
+            owner < 8 && self.player_alive(owner)
+        };
+        (0..self.units.len())
+            .map(Obj::Unit)
+            .chain((0..self.buildings.len()).map(Obj::Building))
+            .filter(live)
+            .any(hit)
+    }
+
     /// `ObjectsData::find_building@0065d260(pos, SEARCH_FRIENDLY, who, -1,
     /// 0x200, FILTER_CAN_GARRISON, u, who)`: the list walk (a negative
     /// range), every player that is `who` or an ally in object order, each

@@ -9475,6 +9475,92 @@ fn the_city_s_alarm_rings_then_sounds_the_all_clear() {
     assert!(sim.buildings[b].garrison.is_empty());
 }
 
+/// **A computer's city sounds its own all-clear when no stranger is in
+/// sight** (item 4560, `docs/GOLDEN.md` §49; `Build::process@0061edf0`,
+/// `620065`..`620167`): with the bell up and the city not under attack,
+/// on `(frame + 100 + o) % 60 == 0` a computer's city building asks
+/// `ObjectsData::find(SEARCH_NON_FRIENDLY, radius × 0xc0, FILTER_SEEN)`
+/// and, finding nothing, rings `Group::action_alarm` on itself: the
+/// garrison comes out and `city_flags & 0x40` clears. The 2017 sample's
+/// Village `0/2000` on 7020 (run1786 on 7021).
+///
+/// Made to fail with the arm's call in `process_building_tail` off, with
+/// the period at 200 for a computer, and with the stranger test answering
+/// none.
+#[test]
+fn a_computer_s_city_sounds_its_own_all_clear_when_no_stranger_is_in_sight() {
+    let (mut sim, t, citizen, _) = alarm_sim();
+    sim.cities.nation[0].human = false;
+    let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
+    let inside = sim.init_unit(0, citizen, tile_pos(36, 36));
+    sim.go_inside(inside, b);
+    // The bell is up (it sets `0x40` only when it calls someone out, so
+    // the test raises it by hand over the one already inside).
+    sim.cities.cities[c].alarm = true;
+    assert_eq!(sim.units[inside].inside, Some(b));
+    let stranger = sim.init_unit(1, citizen, tile_pos(36, 32));
+    let o = i64::from(sim.buildings[b].index);
+    // The first frame of the city's phase past 1000.
+    let due = (1000..1060).find(|f| (f + 100 + o) % 60 == 0).unwrap();
+
+    sim.city_all_clear_due(b, c, due);
+    assert!(
+        sim.cities.cities[c].alarm,
+        "a stranger in sight holds the bell"
+    );
+
+    // The stranger walks off, far past the radius.
+    assert!(sim.set_new_location(stranger, tile_pos(90, 90), true));
+    sim.city_all_clear_due(b, c, due + 1);
+    assert!(sim.cities.cities[c].alarm, "off the phase, nothing");
+    sim.cities.cities[c].no_heal = true;
+    sim.city_all_clear_due(b, c, due);
+    assert!(sim.cities.cities[c].alarm, "city_flags & 2 vetoes the test");
+    sim.cities.cities[c].no_heal = false;
+
+    // Through the building's own process, the tail's city block.
+    sim.process_building_whole(b, due + 60);
+    assert!(
+        !sim.cities.cities[c].alarm,
+        "the all-clear: city_flags & ~0x40"
+    );
+    assert_eq!(sim.units[inside].inside, None, "the garrison out");
+    assert!(sim.buildings[b].garrison.is_empty());
+}
+
+/// **A human's city sounds no all-clear of its own unless its leader
+/// option `+0x1c & 0x20` is set, and then on a 200-frame phase**
+/// (item 4560; `Build::process@0061edf0`, `62012b`..`62013c`).
+///
+/// Made to fail with the human's arm taking the computer's 60.
+#[test]
+fn a_human_s_city_sounds_its_own_all_clear_only_under_its_option() {
+    let (mut sim, t, citizen, _) = alarm_sim();
+    sim.cities.nation[0].human = true;
+    let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
+    let inside = sim.init_unit(0, citizen, tile_pos(36, 36));
+    sim.go_inside(inside, b);
+    sim.cities.cities[c].alarm = true;
+    let o = i64::from(sim.buildings[b].index);
+    let due200 = (1000..1200).find(|f| (f + 100 + o) % 200 == 0).unwrap();
+    let due60 = (1000..1200)
+        .find(|f| (f + 100 + o) % 60 == 0 && (f + 100 + o) % 200 != 0)
+        .unwrap();
+    sim.city_all_clear_due(b, c, due200);
+    assert!(sim.cities.cities[c].alarm, "no option: no test");
+    let mut opts = sim.leader_options(0);
+    opts.flags |= 0x20;
+    if sim.roster.leader_options.is_empty() {
+        sim.roster.leader_options.resize(1, Default::default());
+    }
+    sim.roster.leader_options[0] = opts;
+    sim.city_all_clear_due(b, c, due60);
+    assert!(sim.cities.cities[c].alarm, "a human's phase is 200, not 60");
+    sim.city_all_clear_due(b, c, due200);
+    assert!(!sim.cities.cities[c].alarm, "the option's all-clear");
+    assert_eq!(sim.units[inside].inside, None);
+}
+
 /// **The bell takes a gather building's Citizens however far they stand**
 /// (item 4549, `docs/GOLDEN.md` §49; `Group::action_alarm@0070ec30`'s
 /// building arm, whose chain walk returns from `member` at `70f78e`: a

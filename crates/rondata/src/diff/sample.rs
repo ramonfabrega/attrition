@@ -487,8 +487,13 @@ pub(in crate::diff) mod tests {
     /// from the Woodcutter's Camp `2/2001`, and theirs' `Unit::do_move+0xe84`
     /// on 6114 is `2/11`'s walk to garrison): 6114 -> 7021, +907. On 7021
     /// theirs runs four `Guy::move+0x19f` animations at draw 8 where ours
-    /// runs `Guy::inc_time+0x271`.
-    const SAMPLE_WALKED: (i64, i64) = (7021, 21044);
+    /// runs `Guy::inc_time+0x271`. Item 4560 (`Build::process@0061edf0`'s
+    /// all-clear: computer 0's Village `0/2000`, its bell up and no
+    /// stranger in sight, empties on 7020, and its Citizens' four
+    /// `Guy::move+0x19f` on 7021 are theirs' draws 8 to 11): 7021 -> 7105,
+    /// +84. On 7105 ours spends `Ammo::do_damage+0xc59` and `+0xc7e` at
+    /// draw 19 where theirs runs `Farms::inc_time+0x1ae`.
+    const SAMPLE_WALKED: (i64, i64) = (7105, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -777,20 +782,26 @@ pub(in crate::diff) mod tests {
     /// `QUEUE_NEW`, no action bit; `263 197 id..march` `ox` ours 4440,
     /// theirs 4433): units 6928 -> 7021, groups 6928 -> 7097; the draw
     /// word 7021 the lowest, units, builds, guys, leaders, cities and world
-    /// tied there.
+    /// tied there. Item 4560 (`Build::process@0061edf0`'s all-clear: with
+    /// no stranger in sight, computer 0's Village `0/2000` sounds it on
+    /// 7020, `(7020 + 100 + 2000) % 60 == 0`, and its garrison comes out;
+    /// `0 1 city_flags` ours 0x59, theirs 0x19 on 7021): units, builds and
+    /// ammo -> 7055, guys -> 7107, leaders -> 7075, cities -> 7293, world
+    /// -> 7110, groups 7097 -> 7262, deaths 7085 -> 7234; units, builds
+    /// and ammo 7055 the lowest.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 7021),
-        ("builds", 7021),
+        ("units", 7055),
+        ("builds", 7055),
         ("walls", 21044),
-        ("ammo", 7023),
-        ("deaths", 7085),
-        ("groups", 7097),
-        ("guys", 7021),
-        ("leaders", 7021),
-        ("cities", 7021),
+        ("ammo", 7055),
+        ("deaths", 7234),
+        ("groups", 7262),
+        ("guys", 7107),
+        ("leaders", 7075),
+        ("cities", 7293),
         ("items", 7544),
         ("goods", 7423),
-        ("world", 7021),
+        ("world", 7110),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -1024,7 +1035,12 @@ pub(in crate::diff) mod tests {
     /// 4555, 3174 -> 3903, +729, a named rise past the draw word 7021, the
     /// frames not read one by one; the first shot still on 2929. On the
     /// tree merged with both (the driver's merge of 4547 onto 4557):
-    /// 3174, measured; the first shot still on 2929.
+    /// 3174, measured; the first shot still on 2929. Item 4560
+    /// (`Build::process`'s all-clear empties computer 0's Village on
+    /// 7020): 3174 -> 3226, +52, a named rise past the draw word 7105, the
+    /// frames not read one by one; the first shot still on 2929. On the
+    /// tree merged with 4558 and 4561: 3226 -> 3174, -52, measured, a
+    /// named fall past the draw word 7105; the first shot still on 2929.
     const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3174, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
@@ -1763,71 +1779,69 @@ pub(in crate::diff) mod tests {
     /// `come_out`'s enemy arm, the Bushi `3/15`, `3/16`, `3/28` out of
     /// `3/2041` attack-move to the point on `2/2010` itself): units 6928 ->
     /// 7021 (`28 1 who..y_internal`), groups 6928 -> 7097 (`0 0
-    /// id..march`).
+    /// id..march`). Built (item 4560: `Build::process`'s all-clear,
+    /// computer 0's Village `0/2000` empties on 7020): units and builds
+    /// 7021 -> 7055 (`3375 43 myhits..launch_frames` `targeted`, `1108
+    /// 2000 gather_down..infiltrate2` `attack_ox`), ammo 7023 -> 7055,
+    /// deaths 7085 -> 7234, groups 7097 -> 7262, guys 7021 -> 7107,
+    /// leaders 7021 -> 7075, cities 7021 -> 7293, world 7021 -> 7110.
     const SAMPLE_RANGES_1786: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
-            7021,
-            4579,
-            4584,
-            4359,
-            "28 1 who..y_internal: z 131|115, x 23208|24600, y 42408|43032",
+            7055,
+            4637,
+            4637,
+            2,
+            "3375 43 myhits..launch_frames: targeted 0|1",
         ),
         (
             "builds",
-            7021,
+            7055,
             4243,
             4243,
-            6,
-            "7 2000 myhits..launch_frames: inside_down 3|-1",
+            1,
+            "1108 2000 gather_down..infiltrate2: attack_ox 45|43",
         ),
         (
             "ammo",
-            7023,
+            7055,
             9,
             9,
             1,
-            "1 0 rolling..start_roll_angle: +0x7 of 99|99: ce150000|fa140000",
+            "1 0 rolling..start_roll_angle: +0x1 of 99|99: 3801f5ea|3b01f5ea",
         ),
         (
             "deaths",
-            7085,
-            30,
-            30,
-            1,
-            "3 1 first_frame..unit_crew: +0x4 of 71|71: 11000000|12000000",
+            7234,
+            24,
+            26,
+            12,
+            "5 2 first_frame..unit_crew: +0x0 of 71|71: 411c0000|c7190000",
         ),
-        (
-            "groups",
-            7097,
-            628,
-            628,
-            1,
-            "0 0 id..march: ox 18144|15072, oy 21984|24288, o_angle -1191706624|-1295384576",
-        ),
+        ("groups", 7262, 634, 634, 1, "146 128 id..march: facing 1|0"),
         (
             "guys",
-            7021,
-            1477,
-            1477,
-            12,
-            "15 1 guy: x 23208|24600, y 42408|43032, z 123|115, des_x 23208|24600, des_y 42408|43032, last_x 23208|24600, last_y 42408|43032, last_z 123|115, cur_time 7|8, last_time 6|7",
+            7107,
+            1470,
+            1470,
+            2,
+            "675 22 guy: end_time 30|70, cur_anim 29|30",
         ),
         (
             "leaders",
-            7021,
+            7075,
             675,
             675,
             2,
-            "0 0 flags: +0x3 of 8|8: 00000000|02000000",
+            "271 2 who..ally_mask: +0xa54 of 26914|26914: 02000000|01000000",
         ),
         (
             "cities",
-            7021,
-            57,
-            57,
+            7293,
+            62,
+            62,
             1,
-            "0 1 city_flags: +0x0 of 2|2: 594e|194e",
+            "23 2 city..ter: raid_stamp 7292|7291",
         ),
         (
             "items",
@@ -1847,11 +1861,11 @@ pub(in crate::diff) mod tests {
         ),
         (
             "world",
-            7021,
-            7733,
-            7705,
-            108,
-            "3293 3269 cell: +0x8 of 21|21: ffff0000|08000000",
+            7110,
+            7793,
+            7793,
+            1,
+            "4262 581 block.body: +0x2 of 96|96: 00007000|e000e000",
         ),
     ];
 }
