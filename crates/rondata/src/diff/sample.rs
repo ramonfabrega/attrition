@@ -962,8 +962,11 @@ pub(in crate::diff) mod tests {
     /// shot still on 2929. Item 4543 (attrition's aged-up arm reads both
     /// leaders' `ages`): 3289 -> 3176, -113, a named fall past the draw
     /// word 6114, the frames not read one by one; the first shot still on
-    /// 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3176, Some(2929));
+    /// 2929. Item 4542 (`get_cost`'s locked-team wonder term: an ally's
+    /// wonders ramp a wonder's price): 3176 -> 3182, +6, a named rise past
+    /// the draw word 6114, the frames not read one by one; the first shot
+    /// still on 2929; the lines' first partings unchanged.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3182, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
