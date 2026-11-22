@@ -2951,8 +2951,9 @@ impl Sim {
         }
         self.forbidden_city_close(b);
         // `Build::close@00628980:326`–`328`: so does a Colossus closed, in
-        // the same `wonder >= 0` arm.
-        if holds_slot && self.buildings[b].ty.is_some_and(|t| self.is_colossus(t)) {
+        // the same `wonder >= 0` arm; `0x20f` is inside the arm's type range,
+        // so its slot is its activation alone.
+        if self.buildings[b].active && self.buildings[b].ty.is_some_and(|t| self.is_colossus(t)) {
             self.recompute_pop_caps();
         }
         self.trace.removed.push(b);
