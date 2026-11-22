@@ -836,7 +836,11 @@ impl Sim {
         }
         let old = self.buildings[b].ever_seen;
         let started = self.buildings[b].started;
-        let mine = self.seen_ally_mask(who);
+        // `leaders.list[owner] +0x6929` as stored — `Leader::init`'s, then
+        // the census's (`plan_strategy` step 5), never one computed from
+        // the diplomacy here (item 4552: the sample's Temple `2/2025` on
+        // 6162, seat 2's byte 5 where `is_ally` reads 23).
+        let mine = self.stored_ally_mask(who);
         // `game->everyone_mask` — the bits of the leaders in this game, so
         // the scan stops once every one of them has seen it.
         let all = ((1u16 << self.territory.players.len().min(8)) - 1) as u8;
@@ -897,7 +901,9 @@ impl Sim {
             if o == who {
                 continue;
             }
-            let m = self.seen_ally_mask(o);
+            // Each other leader's stored byte, as the scan's (`*pbVar8`
+            // steps `leaders.list[o] +0x6929`).
+            let m = self.stored_ally_mask(o);
             if now & m != 0 && old & m == 0 {
                 met = true;
                 if !self.has_met(who, w) {

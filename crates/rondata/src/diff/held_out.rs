@@ -603,6 +603,88 @@ mod tests {
         }
     }
 
+    /// **Row 83's computer lists a caravan by its ally's city** (item
+    /// 4545, `docs/CARAVAN.md` §4): run1784, the ranges take of row 83's
+    /// file. On 1956 who=2 (the added computer, team 0 with the human)
+    /// rebuilds its make list, and theirs' fifth slot is a Caravan (TI 59,
+    /// `CARA`) at `val` 980,392, city 0. `create_units@006c40a0`'s caravan
+    /// arm offers one only while `get_caravan_limit(1)` exceeds the
+    /// caravans queued and standing, and that limit's `n` is who=2's two
+    /// cities plus its mutual ally who=0's one under
+    /// `has_preq(BASE_BONUSTYPES)` (`006dca50`): three pairings. Ours
+    /// counted who=2's alone, one pairing, so the arm offered nothing and
+    /// the slot kept its stale entry. Every leaders range on 1955 and 1956,
+    /// ours against theirs, byte for byte: red on the tree before the fix
+    /// at range 310, record 2, `make_list[k]`, `t` ours 561, theirs 59.
+    #[test]
+    fn row_83_s_computer_lists_a_caravan_by_its_ally_s_city_on_run1784_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+            eprintln!("skipping: row 83's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1784/map-14"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1784's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 83's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        assert_eq!(built.sim.ai.lobby.team_style, 1, "row 83 locks its teams");
+        for state in [1955, 1956] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_leaders();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "leaders' ranges on {state}"
+            );
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "leaders range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Who=2's fifth make-list slot: range 310, `t`, `val`, `escrow`, `city`.
+            assert_eq!(ours.ranges[310].field, "make_list[k]");
+            assert_eq!(ours.ranges[310].record, 2);
+            let word = |n: usize| {
+                i32::from_le_bytes(theirs[310].bytes[4 * n..4 * n + 4].try_into().unwrap())
+            };
+            let slot = (word(0), word(1), word(2), word(3));
+            if state == 1956 {
+                assert_eq!(slot, (59, 980_392, 1, 0), "theirs' Caravan entry");
+            } else {
+                assert_ne!(slot.0, 59, "no Caravan entry before 1956");
+            }
+            // Who=2's two cities and its mutual ally who=0's one make three
+            // pairings; its own two made one.
+            assert_eq!(
+                (built.sim.cities_of(0).len(), built.sim.cities_of(2).len()),
+                (1, 2),
+                "the allies' cities on {state}"
+            );
+            assert!(built.sim.is_ally(2, 0) && !built.sim.is_ally(2, 1));
+        }
+        // After the ranges, so a limit without the ally term parts on range
+        // 310 first.
+        assert_eq!(built.sim.caravan_limit(2), 3, "who=2's limit on 1956");
+    }
+
     /// **Row 103's caravan road is laid on the frame after the budget**
     /// (item 4544, `docs/ROADS.md` §8.3): run1783, the ranges take of
     /// row 103's file. A caravan's road search costs 3,207, 3,202 and
@@ -683,6 +765,107 @@ mod tests {
                 u16::from(want),
                 "ours' ROAD on {state}"
             );
+        }
+    }
+
+    /// **Row 123's producers lap from 2001 when the cursor is another
+    /// player's** (item 4546, `docs/RECGAME.md` §12.3): run1785, the ranges
+    /// take of row 123's file. `find_counters[0x1c]` is one array for every
+    /// player; who=2's `train_unit_with_cost` on 2951 left it at 2011, past
+    /// who=1's count (its mark is 2011 too). On 2976 who=1's script trains
+    /// three of type 50 at its two producers, 2000 and 2007.
+    /// `ScenarioFuncSet::find_build@009e2970` resets a cursor at or past the
+    /// player's count to 2000 and starts at 2001, so theirs queue at 2007,
+    /// 2000, 2007; ours started at 2000 and went 2000, 2007, 2000. Every
+    /// builds, groups and units range on states 2976 to 2978, ours against
+    /// theirs, byte for byte: red on the tree before the fix at builds range
+    /// 261, record 2000, `queued` ours 3, theirs 2.
+    #[test]
+    fn row_123_s_producer_lap_starts_past_the_base_on_run1785_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 6) else {
+            eprintln!("skipping: row 123's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1785/map-14");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1785's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 123's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [2976i64, 2977, 2978] {
+            while built.sim.frame < state {
+                if built.sim.frame == 2976 {
+                    // The cursor who=2 left, at who=1's count.
+                    let train = sim::ai::ai_host::counter::TRAIN_PRODUCER;
+                    assert_eq!(built.sim.ai.script_env.find_counters[train], 2011);
+                    assert_eq!(built.sim.roster.marks[1].build, 2011, "who=1's count");
+                }
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for li in [0usize, 1, 5] {
+                let ours = lines[li].as_ref().expect("the line");
+                let theirs: Vec<_> = all.iter().filter(|r| usize::from(r.line) == li).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {li}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "line {li} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+            // The two producers by name: who=1's 2000 and 2007 (builds
+            // ranges 261 and 479 on 2977, `queued` at byte 18): empty on
+            // 2976, two queued apiece on 2977 and 2978, theirs and ours (one
+            // at 2000 queued earlier on frame 2976, before the three calls).
+            let want = if state == 2976 { [0, 0] } else { [2, 2] };
+            for (o, n) in [2000, 2007].into_iter().zip(want) {
+                let b = built.sim.building_by_o(1, o).expect("who=1's producer");
+                assert!(built.sim.buildings[b].active, "{o} active");
+                assert_eq!(
+                    built.sim.buildings[b].queue.items.len(),
+                    n,
+                    "ours' {o} on {state}"
+                );
+            }
+            if state == 2977 {
+                let builds = lines[1].as_ref().expect("builds");
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+                for (k, o) in [(261, 2000), (479, 2007)] {
+                    assert_eq!(builds.ranges[k].record, o);
+                    assert_eq!(builds.ranges[k].field, "gather_down..infiltrate2");
+                    assert_eq!(theirs[k].bytes[0x82 - 0x70], 2, "theirs' {o} `queued`");
+                }
+                // who=1's `last_group` after the three pushes: slot 1
+                // (65) on both sides; before the fix ours stood at 64.
+                let groups = lines[5].as_ref().expect("groups");
+                let k = groups.ranges.len() - 8 + 1;
+                assert_eq!(groups.ranges[k].field, "last_group");
+                assert_eq!(
+                    groups.ranges[k].bytes,
+                    65i32.to_le_bytes(),
+                    "who=1's last_group"
+                );
+            }
         }
     }
 
@@ -6722,25 +6905,31 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // Moved by item 4535 (a garrisoned worker whose owner has the
         // militia counts a third of the militia line's attack in a
         // building's arrows, `count_inside@0064dda0`): ammo 3,426 -> 3,330
-        // and items 3,563 -> 3,491, named falls past the first partings,
-        // which stand; the states not read one by one.
+        // and items 3,563 -> 3,491, named falls past the first partings.
+        // Item 4545: leaders 1,956 -> 3,376, first 1956 -> 2811 (units).
+        // run1784, the ranges take: on 1956 leaders range 310, record 2
+        // (who=2), `make_list[k]` `t` ours 561, theirs 59, a Caravan at
+        // `val` 980,392: `get_caravan_limit(1)` counts the mutual ally
+        // who=0's city beside who=2's two (`006dca50`, `docs/CARAVAN.md`
+        // §4). Builds 1,958 -> 3,356, units and guys 2,338 -> 2,811 and
+        // 3,360, world 2,338 -> 3,360, the rest later with it.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                2338, 1958, 6001, 3330, 2941, 2400, 2338, 1956, 2340, 3491, 3952, 2338,
+                2811, 3356, 6001, 3659, 3672, 3385, 3360, 3376, 3576, 4069, 4678, 3360,
             ],
             first: &[
-                ("units", (2338, Some(1361964866), 3925824949)),
-                ("builds", (1958, Some(977573852), 2524157908)),
-                ("ammo", (2404, Some(1723730597), 1867713323)),
-                ("deaths", (2452, Some(1982270641), 1)),
-                ("groups", (2400, Some(4286445278), 2313221958)),
-                ("guys", (2338, Some(3548161827), 1424743536)),
-                ("leaders", (1956, Some(3921751680), 3148426205)),
-                ("cities", (2340, Some(2157784556), 130625532)),
-                ("items", (3026, Some(1796424164), 835927342)),
-                ("goods", (2829, Some(3059258644), 3039073554)),
-                ("world", (2338, Some(858147796), 2819705606)),
+                ("units", (2811, Some(3591515853), 3835244241)),
+                ("builds", (3041, Some(1361096581), 1972547467)),
+                ("ammo", (3430, Some(1053690630), 1480526849)),
+                ("deaths", (3672, Some(1), 1719209194)),
+                ("groups", (3385, Some(3169317724), 1587606356)),
+                ("guys", (3360, Some(707761931), 3390545135)),
+                ("leaders", (3376, Some(1593722807), 1499744384)),
+                ("cities", (3576, Some(534003062), 534461814)),
+                ("items", (4053, Some(912470408), 898052486)),
+                ("goods", (4618, Some(3229390119), 3223622949)),
+                ("world", (3360, Some(3462094353), 1521442267)),
             ],
             over: None,
         }),
@@ -6782,6 +6971,9 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // row 63's leaf; row 103's two computers are allied too, no leaf read
         // here): leaders 1,757 -> 1,911; ammo 2,882 -> 2,900, deaths 2,508 ->
         // 2,510, items 2,728 -> 3,045; world first at 1792 as 4544 left it.
+        // Item 4545 (the caravan limit's ally term), on the tree merged
+        // with 4542: ammo 2,900 -> 2,899, a named fall past its first
+        // parting at 2860, which stands.
         // Moved by item 4553 (built on row 63's leaf, `find_target`'s ally
         // arm reading `strong[8]`/`weak[8]`; row 103's two computers are
         // allied too, no leaf read here): units 1,790 -> 2,951, first 2910;
@@ -6834,7 +7026,22 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4546 (`find_build`'s lap resets a cursor past the
+        // leader's count to 2000 and starts at 2001; run1785's leaf, builds
+        // range 261, record 2000, `queued` on 2977, ours 3, theirs 2: who=2
+        // left `find_counters[0x1c]` at 2011, who=1's count (its mark),
+        // and who=1's three `train_unit_with_cost` calls on 2976 went to
+        // 2000, 2007, 2000 in ours, 2007, 2000, 2007 in theirs): builds and
+        // groups 2,977 -> 6,001, units 3,020 -> 6,001, and every later line
+        // with them; twelve lines whole.
+        moved: Some(Score {
+            states: 6001,
+            agreed: [
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[],
+            over: None,
+        }),
     }),
     // run1780
     // row 143, as found 2026-11-21: 12 lines whole.
@@ -6853,9 +7060,9 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
 ];
 
 /// The fifth battery's line: games whole of the eight, and games taken.
-/// Item 4538 made row 23 whole: 1 -> 2.
+/// Item 4538 made row 23 whole: 1 -> 2. Item 4546 made row 123 whole: 2 -> 3.
 #[cfg(test)]
-pub(crate) const HELD_OUT_FIFTH_LINE: (usize, usize) = (2, 8);
+pub(crate) const HELD_OUT_FIFTH_LINE: (usize, usize) = (3, 8);
 
 /// The fifth battery (item 4527): three seats and one team of two a row.
 #[cfg(test)]

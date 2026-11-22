@@ -1684,8 +1684,11 @@ what a five-minute hang guard should be, and what `was_city_attacked`'s
 Ratified directly: `get_type_index` matches `TypeData+0x60 name` under
 flag 0 (`+0xb0 type_name` under 1), so the scripts' type names are the
 display names, not `TYPENAME` — `rondata` must carry both; the internal
-`find_unit` clamps its cursor and laps once from `cursor + 1`, wrapping to
-0, and `find_counters[]` is global rotating state the interpreter's host
+`find_unit` ~~clamps its cursor and~~ laps once from `cursor + 1`, wrapping to
+0 — **a cursor at or past the player's count, or under zero, is reset to 0
+first** (`find_build@009e2970` to 2000), so the lap starts at 1 (2001); item
+4546, diff-backed by run1785's row 123 on 2977 (RECGAME §12.3) for the
+builds lap — and `find_counters[]` is global rotating state the interpreter's host
 must model; `population` returns `control`; `get_starting_town_size` is
 version-gated; `ScriptTimers::check` removes the timer it reports
 expired; `research_tech_with_cost` returns 1 for an owned tech and seeds
@@ -16746,8 +16749,8 @@ read further here.
 **Mutations** (`tools/mutate.py` on `472c74ec`): the tick's call dropped, the `caras` limit dropped, and the slot's phase without
 the Market's `o` — each held by `coverage_pair_first_parting` and run672's widening; the first by the unit test too.
 
-**What is not established.** `get_caravan_limit(1)`'s `has_preq(BASE_BONUSTYPES)` arm (allied cities count toward the pairings),
-the Colossus, Taj Mahal, Silk and Nubian bonuses — `Sim::caravan_limit` carries none of them, and none is reached here. `Build::
+**What is not established.** ~~`get_caravan_limit(1)`'s `has_preq(BASE_BONUSTYPES)` arm (allied cities count toward the pairings)~~
+(built by item 4545, `docs/CARAVAN.md` §2), the Colossus, Taj Mahal, Silk and Nubian bonuses — `Sim::caravan_limit` carries none of them, and none is reached here. `Build::
 process`'s second early return (vslot `+0x60` true: the building's `0x200` flag path) is not modelled; the arm runs for every active
 building in ours. A Persian *human*: the arm is the leader's, not the AI's, and no capture has a Persian human.
 
@@ -20176,8 +20179,9 @@ field-row. What stands on run834 is the standing block and one family: leader
 `hits`/`damage_frac` behind it and `1/58`'s `sheltered`. That is the shape of
 parked 2108 on the coverage lobby's run817, and it is parked 2137.
 
-**Not established.** The allies' cities that `get_caravan_limit(1)` adds under
-`has_preq(BASE_BONUSTYPES)` (no capture has an ally). The Colossus, Taj and
+**Not established.** ~~The allies' cities that `get_caravan_limit(1)` adds under
+`has_preq(BASE_BONUSTYPES)` (no capture has an ally).~~ Built by item 4545 on
+run1784 (`docs/CARAVAN.md` §2). The Colossus, Taj and
 Silk arms are reached by no walk: no lobby's AI holds one of them with a done
 Caravan at the limit. A Dutch caravan's own count, `get_units`' graft walk
 over `CARADUTCH`, is reached by no walk either.

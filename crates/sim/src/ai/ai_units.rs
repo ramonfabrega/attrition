@@ -1805,11 +1805,24 @@ impl Sim {
             .unwrap_or(0)
     }
 
-    /// `LeaderData::get_caravan_limit(1)`: [`Self::caravan_cap`], bounded
-    /// by the cities' pairings. The allies' cities `has_preq(BASE_BONUSTYPES)`
-    /// adds to the count are not carried.
-    pub(crate) fn caravan_limit(&self, who: Player) -> i32 {
-        let n = self.cities_of(who).len() as i32;
+    /// `LeaderData::get_caravan_limit(1)` (`006dca50`): [`Self::caravan_cap`],
+    /// bounded by the pairings `n (n − 1) / 2` of `n` cities. `n` is the
+    /// leader's own `city_num`, and with `has_preq(BASE_BONUSTYPES)` held
+    /// ("Caravans to allied & peaceful nations allowed", Trade in the
+    /// shipped file) every other seated slot (`leader_flags & 1`) that is a
+    /// mutual ally (`diplos == 2` both ways) adds its own `city_num` — a
+    /// defeated ally too, whose count is its cities left (item 4545,
+    /// run1784: who=2's one city and its ally who=0's let the AI list a
+    /// caravan on 1956; `docs/CARAVAN.md` §4).
+    pub fn caravan_limit(&self, who: Player) -> i32 {
+        let mut n = self.cities_of(who).len() as i32;
+        if self.ally_caravan_preq_held(who) {
+            n += (0..self.territory.players.len())
+                .map(|p| p as Player)
+                .filter(|&p| p != who && self.is_ally(who, p))
+                .map(|p| self.cities_of(p).len() as i32)
+                .sum::<i32>();
+        }
         self.caravan_cap(who).min(n * (n - 1) / 2)
     }
 
