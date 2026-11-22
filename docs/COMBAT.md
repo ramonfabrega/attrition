@@ -1709,7 +1709,8 @@ listing `64eb6e`–`64ebc6`: "damaged" is the target's own
 health against the type's hits; "moving" is `UnitData::is_moving` (vslot
 `+0xd8`), the head order a move, not a destination held; a building
 answers that slot and `is_supply`'s `+0xcc` with zero. Diff-backed by
-run1787's 3299, row 43's Village `2/2010`.)* Then `dmg =
+run1787's 3299, row 43's Village `2/2010`, and run1786's 7055; a damaged
+building target's `×3/2` is the listing alone, parked 4565a.)* Then `dmg =
 get_damage(o, who, ~~angle 0~~ the bearing (§46.5), splash 0,
 check_overkill 0 (§53.2))`: `v ×= dmg` (AI: `v /= dmg`, or 0). Building
 targets (not raiding): armed and not human → `+1,000,000` with the SIEGE mask

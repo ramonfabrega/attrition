@@ -6626,18 +6626,20 @@ fn a_building_weighs_a_target_by_its_damage_and_its_head_order() {
         ..Profile::default()
     });
     let weigh = |sim: &Sim, t: Obj| sim.compare_target(Obj::Building(b), t, false, false);
-    // Hits 100 on the type; the unit's own `myhits` 106, above it.
+    // Hits 100 on the type; health 102 on both weighings, so the
+    // `attack × 100 / hits_left` term is the same: whole at `myhits` 102,
+    // damage 4 at `myhits` 106.
     let t = put(&mut sim, 0, ty, Pos::new(3400, 3000));
-    sim.units[t].max_health = 106;
-    sim.units[t].health = 106;
-    let whole = weigh(&sim, Obj::Unit(t));
+    sim.units[t].max_health = 102;
     sim.units[t].health = 102;
+    let whole = weigh(&sim, Obj::Unit(t));
+    sim.units[t].max_health = 106;
     let wounded = weigh(&sim, Obj::Unit(t));
     assert!(
         wounded > whole,
         "damage 4 at health 102 over the type's 100: {wounded} against {whole}"
     );
-    sim.units[t].health = 106;
+    sim.units[t].max_health = 102;
     // A move at the head, no destination held: moving.
     sim.units[t]
         .orders
