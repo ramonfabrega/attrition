@@ -40939,13 +40939,16 @@ waited on with `waitrun.sh` in the background. `df -g ~` read 105 GB free before
   theirs `0x0a`); cities 4,194, first 3691 (range 1, record 2, `raid_stamp` ours 3687, theirs 3690).
 - **Re-scored by item 4558** (piece 1494's release bays, the Fusiliers'): eleven lines whole; builds 3,986, first
   3986 (range 1659, record 2032, `gather_down..infiltrate2` byte 18: `queued` ours 4, theirs 3).
+- **Re-scored by item 4563** (`produce_unit`'s fort arm walks the fort records): **twelve lines whole, 4,223 of
+  4,223**. The leaf was who=1's TI 58 on 3985 at the Fort 2032 where theirs queues at 2035 (record 0 against 1).
 - Filed by `filerun.py run1782 heldout5-row063-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1782-heldout5-row063-ranges.txt`, 2,846 bytes, SHA-256
   `ccc246ebdfebd117ee36ce9dfc2d95ee77ef131ce13128fcfbb9b60659123951`; `rontrace.log` → `Logs/rontrace-run1782.log`,
   232,922,080 bytes, SHA-256 `579418042b5fea32713e9ae91c45da09c94f03c759a649c18858dd0cf6df2c68`.
 
 **What it holds**: `diff::held_out::tests::row_63_s_colosseum_is_priced_by_its_ally_s_wonder_site_on_run1782_s_ranges`
-(every leaders range on 1581 and 1582).
+(every leaders range on 1581 and 1582); `row_63_s_fort_pick_walks_the_fort_records_on_run1782` (every units, builds
+and groups range on 3984 to 3987).
 ## run1783 — parity held out, fifth battery, row 103's file to its end with the checksum and ranges hooks, eleven lines kept (2026-11-22, item 4544, `att-4544`)
 
 `docs/RECGAME.md` §12.3, `docs/ROADS.md` §8.3; DECISIONS 148 §4. **What the disk could not answer**: run1778 holds

@@ -3252,6 +3252,93 @@ mod tests {
         }
     }
 
+    /// **Row 63's Fort pick walks the fort records** (item 4563,
+    /// `docs/AI.md` §29.5, `docs/RECGAME.md` §12.3): on run1782's ranges,
+    /// every units, builds and groups range on 3984..=3987 byte for byte.
+    /// On 3985 who=1's `produce_unit` sends one TI 58 (unit type 8) down the
+    /// fort arm; its two Forts, 2032 and 2035, tie at three queued, and the
+    /// original's walk over `forts[1]` reaches 2035's record first. Ours
+    /// walked object order and queued at 2032: builds range 1659, record
+    /// 2032, `queued` ours 4, theirs 3, on 3986.
+    #[test]
+    fn row_63_s_fort_pick_walks_the_fort_records_on_run1782() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 3) else {
+            eprintln!("skipping: row 63's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1782/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1782's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 63's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3984i64..=3987 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for li in [0usize, 1, 5] {
+                let ours = lines[li].as_ref().expect("the line");
+                let theirs: Vec<_> = all.iter().filter(|r| usize::from(r.line) == li).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {li}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "line {li} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+            // The two Forts by name, and their records: 2035's below 2032's.
+            let fort = |o: i16| {
+                let b = built.sim.building_by_o(1, o).expect("who=1's Fort");
+                let bd = &built.sim.buildings[b];
+                let ty = bd.ty.expect("a type");
+                assert!(
+                    sim::cities::build::is_fort(&built.sim.tables.build_types, ty),
+                    "{o} is a fort"
+                );
+                (bd.fort_slot.expect("a fort record"), bd.queue.items.len())
+            };
+            let (s32, q32) = fort(2032);
+            let (s35, q35) = fort(2035);
+            assert!(
+                s35 < s32,
+                "2035's record ({s35}) stands below 2032's ({s32})"
+            );
+            let want = if state <= 3985 { (3, 3) } else { (3, 4) };
+            assert_eq!((q32, q35), want, "2032 and 2035 queued on {state}");
+            if state == 3986 {
+                let builds = lines[1].as_ref().expect("builds");
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+                for (k, o, n) in [(1659, 2032, 3), (1753, 2035, 4)] {
+                    assert_eq!(builds.ranges[k].record, o);
+                    assert_eq!(builds.ranges[k].field, "gather_down..infiltrate2");
+                    assert_eq!(theirs[k].bytes[0x82 - 0x70], n, "theirs' {o} `queued`");
+                }
+            }
+        }
+    }
+
     /// **Row 63's Colosseum is priced by its ally's wonder site** (item
     /// 4542, `docs/COSTS.md`, the team term): on run1782's ranges, every leaders
     /// range on 1581 and 1582 byte for byte. Row 63's `TEAM_STYLE 1` locks
@@ -7631,12 +7718,19 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // 4,219, ammo 3,992, deaths 3,718, leaders 4,187 and cities 4,194
         // -> 4,223, whole; builds 3,978 -> 3,986, first 3789 -> 3986.
         // Eleven lines whole.
+        // Moved by item 4563 (`produce_unit`'s fort arm walks the leader's
+        // fort records: run1782's 3986, builds range 1659, record 2032,
+        // `queued` ours 4, theirs 3, and range 1753, record 2035, ours 3,
+        // theirs 4: who=1's TI 58 on 3985 went to the Fort 2032, first in
+        // object order, where theirs' record walk reaches 2035 first, the
+        // two tied at three queued): builds 3,986 -> 4,223. Row 63 whole,
+        // twelve lines.
         moved: Some(Score {
             states: 4223,
             agreed: [
-                4223, 3986, 4223, 4223, 4223, 4223, 4223, 4223, 4223, 4223, 4223, 4223,
+                4223, 4223, 4223, 4223, 4223, 4223, 4223, 4223, 4223, 4223, 4223, 4223,
             ],
-            first: &[("builds", (3986, Some(575323192), 2239740310))],
+            first: &[],
             over: None,
         }),
     }),
@@ -7849,8 +7943,9 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
 
 /// The fifth battery's line: games whole of the eight, and games taken.
 /// Item 4538 made row 23 whole: 1 -> 2. Item 4546 made row 123 whole: 2 -> 3.
+/// Item 4563 made row 63 whole: 3 -> 4.
 #[cfg(test)]
-pub(crate) const HELD_OUT_FIFTH_LINE: (usize, usize) = (3, 8);
+pub(crate) const HELD_OUT_FIFTH_LINE: (usize, usize) = (4, 8);
 
 /// The fifth battery (item 4527): three seats and one team of two a row.
 #[cfg(test)]
