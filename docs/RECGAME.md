@@ -1424,5 +1424,28 @@ written until `donor_serves` let a donor differ in `PLAYERS` (§8.2). Each file 
 page's keys after the capture's lobby (`Page::press`). `the_fifth_s_files_carry_the_declared_seats_and_team` reads
 each file back against the declaration's rows.
 
-Each is played by the original as `run1773 + k` under the checksum hook alone, with no ranges, and pinned once in
-`SCORES_FIFTH`; that found column is the estimate. The table of the takes follows when they are scored.
+Each was played by the original as `run1773 + k` under the checksum hook alone, with no ranges, between 22:05 and
+23:07 −05:00, all on pool lane 1 at the first launch, and pinned once in `SCORES_FIFTH` on `87ad488ce`'s tree. That
+found column is the estimate: **1 of 8 whole, 30 of 96 lines, reach 48 %** (21,315 of 43,524 states), where the
+fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original seated three and the team on every take.
+
+| row | run | lobby | team | states | whole | lowest partings (state) |
+|---|---|---|---|---|---|---|
+| 3 | run1773 | Great Sahara, difficulty 3 | human + added | 6,001 | 1 | units, builds, ammo 3857 |
+| 23 | run1774 | Atlantic Sea Power | the computers | 6,001 | 10 | **leaders 0**, units 5695 |
+| 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ammo 3192, units 3196 |
+| 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, ended on 4222 | 1 | leaders 1582, units 1789 |
+| 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | leaders 1956, builds 1958 |
+| 103 | run1778 | East Indies, Modern | the computers | 3,295, ended on 3294 | 1 | world 1750, leaders 1757 |
+| 123 | run1779 | Great Lakes, Gunpowder | human + added | 6,001 | 3 | builds, groups 2977 |
+| 143 | run1780 | Great Sahara, difficulty 1 | the computers | 6,001 | **12** | whole |
+
+The original ended rows 63 and 103 itself, both with the two computers allied against the idle human; our walk
+holds no `game_over` by either end (`over: None`). In row 43 our walk holds `game_over` from 5977, where the
+original plays to 6000. `docs/RUNS.md` run1773 to run1780 holds every value, and the pins hold both sides of every
+first parting.
+
+*Not established*: no row names a leaf, since each take holds sums only. Row 23 parts on leaders at state 0, ours
+569079079, theirs 568292647: the frame-0 state of a start whose two computers are one team, the shape of no lobby
+on disk until now. Every other row parts first between 1582 and 3857. Each needs a ranges take of its file, keeping
+the lines it parts on, before its leaf can be named.
