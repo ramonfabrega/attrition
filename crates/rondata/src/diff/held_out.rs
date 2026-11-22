@@ -7928,9 +7928,9 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
 
 /// The fifth battery's line: games whole of the eight, and games taken.
 /// Item 4538 made row 23 whole: 1 -> 2. Item 4546 made row 123 whole: 2 -> 3.
-/// Item 4563 made row 63 whole: 3 -> 4.
+/// Item 4563 made row 63 whole: 3 -> 4. Item 4567 made row 103 whole: 4 -> 5.
 #[cfg(test)]
-pub(crate) const HELD_OUT_FIFTH_LINE: (usize, usize) = (4, 8);
+pub(crate) const HELD_OUT_FIFTH_LINE: (usize, usize) = (5, 8);
 
 /// The fifth battery (item 4527): three seats and one team of two a row.
 #[cfg(test)]
