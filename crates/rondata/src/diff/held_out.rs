@@ -709,8 +709,43 @@ mod tests {
         built.sim.trace.trace_phases = true;
         let mut first_count = None;
         let mut first_seq = None;
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().unwrap();
+        let tribes = inst.tribe_defs(&rules).unwrap();
+        let mut prev: Option<[Option<sim::checksum::Line>; 12]> = None;
         while built.sim.frame <= hi {
             let f = built.sim.frame as i64;
+            if f >= lo {
+                let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+                if let Some(p) = &prev {
+                    for li in [1usize, 5] {
+                        let (Some(a), Some(b)) = (&p[li], &lines[li]) else {
+                            continue;
+                        };
+                        eprintln!(
+                            "P4546 state {f} line {li} ranges {} (was {})",
+                            b.ranges.len(),
+                            a.ranges.len()
+                        );
+                        for (k, r) in b.ranges.iter().enumerate() {
+                            let was = a
+                                .ranges
+                                .iter()
+                                .find(|x| x.record == r.record && x.field == r.field);
+                            if was.map(|x| &x.bytes) != Some(&r.bytes) {
+                                eprintln!(
+                                    "P4546   state {f} line {li} range {k} record {} {}: {:?} -> {:?}",
+                                    r.record,
+                                    r.field,
+                                    was.map(|x| &x.bytes),
+                                    r.bytes
+                                );
+                            }
+                        }
+                    }
+                }
+                prev = Some(lines);
+            }
             stream.apply(built.sim.frame as i32, &mut built);
             built.tick();
             let ours = built.frame_sites.last().map_or(Vec::new(), |(_, v)| v.clone());
