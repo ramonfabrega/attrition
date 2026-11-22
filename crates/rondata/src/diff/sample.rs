@@ -880,6 +880,15 @@ pub(in crate::diff) mod tests {
         ranges_record("RON_SAMPLE_RANGES_1771", "run1771")
     }
 
+    /// run1772's record (item 4526, `docs/RUNS.md` run1772): the same
+    /// playback to 6,400 under the same hooks, keeping the ten lines that
+    /// part below 6400 on the hook's sums (`RNG_MASK` 0xdfb: all but walls
+    /// and items; DECISIONS 149 §2). `RON_SAMPLE_RANGES_1772`, else where
+    /// the take left it.
+    fn run1772() -> Option<crate::trace::ranges::Record> {
+        ranges_record("RON_SAMPLE_RANGES_1772", "run1772")
+    }
+
     fn ranges_record(var: &str, run: &str) -> Option<crate::trace::ranges::Record> {
         let path = match std::env::var(var) {
             Ok(p) => std::path::PathBuf::from(p),
@@ -1042,6 +1051,31 @@ pub(in crate::diff) mod tests {
             "run1771's sets, one a frame"
         );
         assert_eq!(got, pinned, "SAMPLE_RANGES_1771");
+    }
+
+    /// **The sample's kept lines by range, to 6,400** (item 4526): the
+    /// same walk over run1772's record, the ten lines of its mask alone,
+    /// pinned per line by [`SAMPLE_RANGES_1772`].
+    /// `RON_SAMPLE_RANGES_DETAIL` and `RON_SAMPLE_RANGES_ALL` print as
+    /// above.
+    #[test]
+    fn the_sample_s_ranges_to_6400_name_each_first_parting() {
+        let Some(rec) = run1772() else { return };
+        let Some((frames, got)) =
+            walk_kept_ranges(rec, SAMPLE_RANGES_1772_WINDOW, SAMPLE_RANGES_1772_KEPT)
+        else {
+            return;
+        };
+        let pinned: Vec<SampleRange> = SAMPLE_RANGES_1772
+            .iter()
+            .map(|&(l, f, t, o, p, x)| (l, f, t, o, p, x.to_string()))
+            .collect();
+        assert_eq!(
+            frames,
+            SAMPLE_RANGES_1772_WINDOW as usize + 1,
+            "run1772's sets, one a frame"
+        );
+        assert_eq!(got, pinned, "SAMPLE_RANGES_1772");
     }
 
     /// The walk the ranges tests share: our sample from state 0 to
@@ -1440,4 +1474,91 @@ pub(in crate::diff) mod tests {
     /// and recounts under `leader_flags & 1`. Built: one row -> none;
     /// every kept line whole on run1771's window.
     const SAMPLE_RANGES_1771: &[(&str, i64, usize, usize, usize, &str)] = &[];
+
+    /// run1772's last frame, ours: the record holds trace frames −1 to 6399.
+    const SAMPLE_RANGES_1772_WINDOW: i64 = 6400;
+
+    /// run1772's mask: every line but walls and items (`RNG_MASK=0xdfbu`).
+    const SAMPLE_RANGES_1772_KEPT: u16 = 0xdfb;
+
+    /// Per kept line that parts on run1772's window, its first parting by
+    /// range (item 4526). Minted at ten rows, each on the frame the hook's
+    /// sums part (`SAMPLE_LINES`): world 5401, leaders 5403, units, groups
+    /// and guys 5461, builds 5487, cities 5801, ammo 5969, deaths 6190,
+    /// goods 6395.
+    const SAMPLE_RANGES_1772: &[(&str, i64, usize, usize, usize, &str)] = &[
+        (
+            "units",
+            5461,
+            4482,
+            4418,
+            2948,
+            "1414 0 collide_frame..play: dest_angle 1745223680|-1360134144, orders_x 37368|28920, orders_y 12024|12792",
+        ),
+        (
+            "builds",
+            5487,
+            3855,
+            3855,
+            1,
+            "1121 2003 myhits..launch_frames: up 4|36",
+        ),
+        (
+            "ammo",
+            5969,
+            3,
+            3,
+            1,
+            "1 0 rolling..start_roll_angle: +0x7 of 99|99: 8b5d0000|2f5e0000",
+        ),
+        (
+            "deaths",
+            6190,
+            2,
+            0,
+            2,
+            "0 -1 00936bff: +0x0 of 0|4: |01000000",
+        ),
+        (
+            "groups",
+            5461,
+            628,
+            628,
+            2,
+            "161 131 id..march: ox 37344|28896, oy 12000|12768, o_angle 1745223680|-1360134144",
+        ),
+        ("guys", 5461, 1343, 1343, 1, "719 36 guy: cur_time 0|1"),
+        (
+            "leaders",
+            5403,
+            671,
+            671,
+            2,
+            "190 1 new_rares: +0x0 of 4|4: 0b000000|0c000000",
+        ),
+        (
+            "cities",
+            5801,
+            51,
+            51,
+            1,
+            "8 7 city..ter: peasant_dist 1|2, filled 46|47, space[2] 46|45",
+        ),
+        (
+            "goods",
+            6395,
+            265,
+            265,
+            1,
+            "200 40 ever_seen: +0x0 of 1|1: 0c|08",
+        ),
+        (
+            "world",
+            5401,
+            7675,
+            7675,
+            3,
+            "3629 0 danger: +0x858 of 3600|3600: 14000000|08000000",
+        ),
+    ];
 }

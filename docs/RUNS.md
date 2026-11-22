@@ -40497,3 +40497,29 @@ bytes, SHA-256 `de1d2be705480463d46b61efae2eba767add16cb9afecfe9881eb00e7c78411b
 **What it holds**: `diff::sample::tests::the_sample_s_ranges_to_5350_name_each_first_parting`
 (`SAMPLE_RANGES_1771`): each kept line's first parting by range over 0..5350, on the frame its sum parts.
 (every units range on 3410 and 3411); `row_130_s_kremlin_spy_due_bit_is_in_the_leaders_flags_on_run1754_s_ranges` (every leaders range on 4572, 4573, 4582 and 4583).
+
+## run1772 — the 2017 sample's playback to 6,400 with the checksum and ranges hooks, every line but walls and items kept (2026-11-21, item 4526, `att-4526`)
+
+`docs/RECGAME.md` §7; DECISIONS 149 §2. **What the disk could not answer**: run1771's record ends on 5349, and the
+sample's score stood on world 5401, leaders 5403, units, groups and guys 5461, builds 5487, cities 5801, ammo 5969,
+deaths 6190 and goods 6395, all past it and none on a range record. **The take**: run1771's line with the end moved
+to 6400, the log window on 5401, and the mask cut to the ten lines that part below 6400 on the hook's sums (149 §2):
+`TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1772 --recording
+"<install>/external-recgames/seifer008 - Toughest AI 4 v 1.rcx" --end-frame 6400 --cover cover=1 --log-window 5395
+5407 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES
+--tracer-def RNG_MASK=0xdfbu`, waited on with `waitrun.sh` in the background lane. The game lane read free; `df -g ~`
+read 114 GB free before it and 105 GB after.
+- Pool lane 1, launched 19:41:27 −05:00 and exited 19:49:14: **466.9 s** launch to exit, exit 0, `success`, 6,401
+  frames, `last_frame` 6400, not ended early. Seed observed 340513920, no page fault, no relaunch, five settings
+  restored. DLL `be4a2341…`, defines `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0xdfbu`.
+- **The record**, `~/ron-golden/run1772/map-7/rontrace.ranges`, 5,672,989,540 bytes in six pieces, SHA-256
+  `513405889a48d0d5a2d739d4dd9d4aa5a7444e52b029e4e5207a4a35f6658439`; 5.30 GiB on disk before the split, 0.49 after;
+  one set on every trace frame −1 to 6399.
+- Filed with `filerun.py run1772 sample2017-playback-ranges-6400`.
+
+Archive `gamelog-run1772-sample2017-playback-ranges-6400.txt`, 3,774 bytes,
+SHA-256 `24286192d453ccb972c0cf8b4e1235cc11372b45c52bee145b47d4d6c281298c`; `rontrace-run1772.log`, 108,547,520
+bytes, SHA-256 `2a41d3b5f69fda15eb18d82d64e5a4e9817d6083c838d831913666ae573a9c49`.
+
+**What it holds**: `diff::sample::tests::the_sample_s_ranges_to_6400_name_each_first_parting`
+(`SAMPLE_RANGES_1772`): each kept line's first parting by range over 0..6400, on the frame its sum parts.
