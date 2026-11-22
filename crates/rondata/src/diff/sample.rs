@@ -1307,17 +1307,6 @@ pub(in crate::diff) mod tests {
             .ok()
             .and_then(|v| v.parse().ok());
         let rec_game = crate::recgame::read(&rcx).expect("the sample parses");
-        // PROBE 4555
-        if let Ok(v) = std::env::var("RON_PROBE_4555") {
-            let (lo, hi) = v.split_once('-').unwrap();
-            let (lo, hi): (i32, i32) = (lo.parse().unwrap(), hi.parse().unwrap());
-            for pk in &rec_game.packages {
-                if pk.frame >= lo && pk.frame <= hi {
-                    let cmds = crate::commands::decode(&pk.data);
-                    eprintln!("PROBE4555 pkg f{} play {} {:?}", pk.frame, pk.play, cmds);
-                }
-            }
-        }
         let (mut built, _) = sample_start(&inst, &rec_game);
         let mut stream = crate::input::Stream::pump(&rec_game);
         let mut seen: Vec<Option<FirstSeen>> = vec![None; 12];
