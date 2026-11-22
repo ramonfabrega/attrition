@@ -41077,7 +41077,8 @@ bytes, SHA-256 `627e49bf69c91e831ff7f15ee6e3aa1137be505962686ccb57b08e2bcc0b0e2f
 **What it holds**: `diff::sample::tests::the_sample_s_ranges_to_8000_name_each_first_parting`
 (`SAMPLE_RANGES_1786`): each kept line's first parting by range over 0..8000, on the frame its sum parts — eleven
 rows, every one on the hook's frame. Item 4555 moved its units row 6669 → 6928; item 4557 (`come_out`'s enemy arm)
-units 6928 → 7021 and groups 6928 → 7097.
+units 6928 → 7021 and groups 6928 → 7097; item 4560 (`Build::process`'s all-clear, computer 0's Village on 7020)
+units, builds and ammo → 7055, guys → 7107, leaders → 7075, world → 7110, groups → 7262, cities → 7293, deaths → 7234.
 (every leaders range on states 1955 and 1956);
 `row_83_s_artillery_carries_the_supply_veto_s_mark_on_run1784_s_ranges` (every units range on 2810 to 2812, 2842
 and 2843, item 4554).

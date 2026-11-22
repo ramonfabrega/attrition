@@ -8892,8 +8892,12 @@ SEAMs. `find_garrison_build`'s room test is `num_inside < limit` here,
 Citizen. `eject_contents`' own Civilian arm (a Militia put out unconverted)
 is read and built, and unreached: the all-clear converts first. The city
 building's own all-clear (item 4560) is diff-backed on a computer's
-60-frame arm with the circle walk; the human's option arm, the walk at ten
-cells or more and a seen-filter refusal are one reading.
+60-frame arm and its phase (the arm off: run1651's draws back to 7021);
+the stranger test is not (answering none, and the seen filter off, each
+leave the sample's draws at 7105; the frame `0/2000`'s bell rang is not
+read), and is held by the unit test alone; the seen filter,
+the human's option arm and the walk at ten cells or more are one
+reading.
 
 ## 50. Chapter forty-one — CENSUS row 7's last seven: a computer's Airbase sends its Biplane over its City under attack, and a trireme's hits on a Barracks spill onto the Citizen repairing it (item 1182)
 
