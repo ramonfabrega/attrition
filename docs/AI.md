@@ -3693,6 +3693,53 @@ before the test was kept.
   two coincide in ordering but not in value, and a dump comparison would
   have to translate.
 
+### 29.5 The fort arm walks the fort records (2026-11-22, item 4563)
+
+`Leader::produce_unit@006cb9e0` has three arms: the city arm (a type whose
+`where` is not a military trainer, walked over the city's chain), the
+**fort arm** (a `where` that `is(0x1bb, 0)`, the Fort lineage) and the
+military-trainer arm over `mil_trainers` (§29.1). The fort arm walks
+**`forts[who]`** (`forts.field_0x10 + who·0x1c`), the leader's fort records
+below `LeaderData+0x428`, each in use (`+6 & 1`), the object at `+2`. It
+asks, per record: the object alive (`+8 & 1`), vslots `+0x20` and `+0x4c`
+(`is_active`), and `ObjectData::is(where, 0)` (vslot `+0xb8`, inlined to the
+type's `+0x60` for a plain `Build`). The score is the military arm's:
+`1,000,000 / (queued + 1) / (damage + 1)`, `/5` unassimilated,
+`/(danger + 1)` at the building's half-cell. The best starts at −1 and is
+replaced on `<`, so the first record of equals stands and a zero score still
+wins. **There is no room test** here (the military arm's `queued < 4` is
+that arm's alone): a full queue is `Build::queue_up`'s refusal.
+
+Record order is not object order. `Forts::init_fort@0073ed70` gives a new
+fort the first record not in use, and appends only when every record below
+the mark is held, so a fort built after one was lost takes the lost one's
+record. This crate walked every building in slot order, which is object
+order on a fresh game. Since item 4563 the arm walks `forts_of(who)` (the
+records item 4341 built for `Army::find_target`), with no room test and the
+best from −1 (`ai_units.rs`, `produce_unit`).
+
+**What moved it.** Row 63 of the fifth battery (run1782), state 3986:
+builds range 1659, record 2032, `queued` ours 4, theirs 3; range 1753,
+record 2035, ours 3, theirs 4. On 3985 who=1's make list sends one TI 58
+(unit type 8, 70 and 70 paid) down the fort arm. Its two Forts tie at three
+queued, no damage, the same score. 2035 holds record 0 and 2032 record 1,
+so theirs queues at 2035; ours took 2032, first in object order. With the
+walk, row 63 scores twelve lines whole, 4,223 of 4,223
+(`docs/RECGAME.md` §12.3).
+
+**Coverage.** *Diff-backed*: the record order and the tie, by
+`diff::held_out::tests::row_63_s_fort_pick_walks_the_fort_records_on_run1782`
+(every units, builds and groups range on 3984 to 3987, byte for byte). The
+record a fort holds is the builds line's `0x78`, so its value is diff-backed
+on every state the builds line agrees. *Reading alone*: the missing room
+test and the −1 start; no capture has a full fort queue or a zero-score
+fort.
+
+**Not established.** The city arm carries the same two differences from
+its original (ours asks `unit_queue_has_room` and starts at 0; the original
+does neither, `produce_unit@006cb9e0` lines 54–170). No capture reaches
+them, so they are left as they stand (parked 4563a).
+
 ---
 
 ## 30. The University the AI buys and the original does not (2026-09-06)
