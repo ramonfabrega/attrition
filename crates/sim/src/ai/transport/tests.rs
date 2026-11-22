@@ -1133,6 +1133,53 @@ fn a_boat_that_dies_off_its_phase_frame_leaves_its_cell_clear() {
     );
 }
 
+/// **A walker that casts its barge on its phase frame repaints its disc**
+/// (item 4532, `docs/COLLISION.md` §2.2): `Unit::process@00610bc0` asks
+/// `inside_up` before the think and not after, so the figure of a unit
+/// that boarded in its own work takes `Guy::process`, whose
+/// sixty-fourth-frame tail re-marks the whole disc
+/// `Object::insert_inside`'s `remove_from_world` has just cleared.
+/// run1755's 3790: who=1's Anti-Aircraft Gun `1/114` casts its Freighter
+/// on `(3790 + 114) % 64 == 0` and theirs holds its 5×5 after. Off the
+/// phase the boarding leaves the disc clear.
+///
+/// Made to fail by leaving `coll_repaint`'s guard at alive and on the
+/// map (or the dead boat): the disc is clear on the phase frame too.
+#[test]
+fn a_walker_that_casts_its_barge_on_its_phase_frame_repaints_its_disc() {
+    for (off, marked) in [(0, true), (1, false)] {
+        let mut f = fix();
+        barge(&mut f.sim);
+        let mut gun = UnitType {
+            hits: 40,
+            ..UnitType::default()
+        };
+        gun.combat.block_radius = 96;
+        let gun = f.sim.add_unit_type(gun);
+        let u = unit(&mut f.sim, 1, gun, tile_pos(30, 14));
+        f.sim.init_guys(u, Some(gun));
+        f.sim.units[u].auto_transport = true;
+        f.sim.coll_add(u);
+        let c = crate::movement::collide::ucell(f.sim.units[u].pos);
+        // The disc's landward edge, two unit cells from the gun and far
+        // from any cell the barge's own radius-1 disc takes.
+        let edge = [(c.x - 2, c.y - 2), (c.x - 2, c.y), (c.x - 2, c.y + 2)];
+        assert!(edge.iter().all(|&(x, y)| f.sim.movement.coll.get(x, y)));
+        assert!(!f.sim.set_new_location(u, tile_pos(33, 14), false));
+        let o = i64::from(f.sim.units[u].index);
+        f.sim.frame = 64 * 100 - o + off;
+        f.sim.process_unit(u, f.sim.frame, &mut Vec::new());
+        assert!(f.sim.units[u].inside_unit.is_some(), "the gun is aboard");
+        for (x, y) in edge {
+            assert_eq!(
+                f.sim.movement.coll.get(x, y),
+                marked,
+                "({x}, {y}) {off} frames past the phase"
+            );
+        }
+    }
+}
+
 /// **A squad's passenger takes the boat's orders through a group**
 /// (item 1223, `docs/TRANSPORT.md` §6.4): `eject_contents`'
 /// `uber_size > 1` arm resets the boat's move orders to their own point,

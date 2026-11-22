@@ -299,7 +299,8 @@ fn run963c_s_word_frame_is_widened_whole() {
     // Item 4159 (residue 11): −3, who=1's `num_units[270]` and `[271]` (TypeIndex 320/321,
     // `TRANSPORTBARGE`, `TRANSPORTGALLEON`) and `score`: a Barge's upgrade moves no count.
     // Item 4435: 71 -> 68, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 68, "keys that part in the window");
+    // Item 4518: 68 -> 62 (a Dutch boat's birth hits, `Unit::update_hits`).
+    pin_eq!(w.firsts.len(), 62, "keys that part in the window");
 }
 
 /// run963d: the word 23782's window to the trace's last frame, blocks

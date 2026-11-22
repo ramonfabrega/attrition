@@ -2039,6 +2039,13 @@ pub fn load_tables(
         Some([Preq::Of(t), ..]) => Some(*t),
         _ => None,
     };
+    // `ALLY_LOS` is the fifth (`0x2b0`, `bonustypes +0xac0`): the gain
+    // `gain_tech` turns into a seated ally's bit of the stored `ally_mask`.
+    // Mathematics in the shipped file.
+    tree.roles.ally_los_preq = match bonus_preqs.get(4) {
+        Some([Preq::Of(t), ..]) => Some(*t),
+        _ => None,
+    };
     // `EXPLORE_MAP_BONUS` is the seventh (`0x2b2`) and `REVEAL_ENEMY_BONUS`
     // the ninth (`0x2b4`): the two prerequisites `gain_tech` turns into
     // `leader_flags & 0x1000` and `& 0x800`, the bits `WorldData::was_seen`

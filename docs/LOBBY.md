@@ -176,7 +176,7 @@ team, after `--page-of`'s lobby, seats first, each by the page's own keys
 (`Page::press`, which asserts the keys made what `Choices::apply` of the
 event gives). `press_adds_a_seat_and_a_team_by_the_page_s_keys` holds it.
 The fifth held-out battery's eight files were recorded this way
-(`docs/RECGAME.md` §12.1); a lobby no capture holds is not scored by the
+(`docs/RECGAME.md` §12.3); a lobby no capture holds is not scored by the
 counter.
 
 **Red, three ways.** A bent seed (12346) builds another `Sim`. On the

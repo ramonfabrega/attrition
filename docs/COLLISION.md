@@ -170,6 +170,17 @@ disc `Object::close` has just cleared, and nothing owns the bits after.
 At the waterline of a coastal cell the region gate marks nothing; at the
 lake's tile (75, 162) on the golden start it marks 28 water cells.
 
+**So does a unit that went inside in its own think** (item 4532).
+`Unit::process` tests `inside_up` before the think only, so a unit that
+boards there (`cast_transport@00670db0` ends in `go_inside`) still has its
+figures processed, and on its phase frame a standing figure re-marks the
+disc `insert_inside`'s `remove_from_world` has just cleared, at its
+retained point, owned by nothing after. Diff-backed on run1755's 3790:
+who=1's Anti-Aircraft Gun `1/114` casts its Freighter, and theirs holds
+its 5×5 in world cell (40, 54) from 3791 (record 3280, `block.body`).
+`Sim::repaints_off_map`. *Not established*: a squad garrisoning a
+building in its own work, which takes the same arm by the reading.
+
 **How it was found, and what it cost while it was missing.** run69's AI
 woodcutter `1/9` walked west through unit cell `(849, 366)` on frame 1885
 and left it for `(848, 365)` on 1889; the diagonal step's clear pass took
@@ -477,6 +488,23 @@ holds the rule's arms on a hand-built map.
   `chain_remove` has always had.
 - The world line's `WData::down`/`down_who` bytes: the cells still hold
   the map's pair, not the head (`docs/START.md`'s 28 cells).
+
+**An object closed off the map heads its cell once more** (2026-11-21,
+item 4530). `Object::close@00647160` on an object off the map (vslot
+`+0xbc` 0) calls `Object::remove_from_inside@006480f0`, which, for an
+object inside something (`+0x82 >= 0`), splices it out and ends in
+`Object::add_to_world` on the point it went in at; then `close` takes
+`remove_from_world`. Neither paints a disc off the map, so the chain is
+what is left: the object heading that cell keeps `up_who` the closer's
+owner, and the closer's number keeps the head's owner in `down_who`.
+`Sim::boat_dies_into` threads the boat back before `transport_dies` takes
+it off. Diff-backed on run1755's 3184: who=1's Freighter `1/90` dies into
+its oil platform under the Freighter `1/121`, whose `up_who` reads 1
+(units range 4108, record 121;
+`held_out::tests::row_30_s_freighter_heads_its_cell_as_it_dies_into_its_platform_on_run1755_s_ranges`).
+*Not established*: every other off-map close — a unit dying inside a
+building or a boat — takes the same arm there; this crate threads only the
+boat into its platform.
 
 ## 4. `Unit::detect_unit_collision`
 

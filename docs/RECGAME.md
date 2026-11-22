@@ -663,7 +663,7 @@ style-1 donor serves a style-0 lobby. **`PLAYERS` does not move them
 either** (item 4527): the 23 finished donors that seat three on a lobby
 another donor seats two on (17 Great Lakes, 6 East Indies) carry equal
 rules, run state, semaphore and markers, and no donor of the profile's
-1,654 seats three on any of the fifth battery's lobbies (§12.1), so a
+1,654 seats three on any of the fifth battery's lobbies (§12.3), so a
 donor may differ in `PLAYERS` too
 (`the_borrowed_sections_move_with_neither_team_style_nor_players`, over
 `RON_RECGAME_DIR`; seen red with one side's run state bent). No donor
@@ -1372,7 +1372,7 @@ of 8, 65 of 96 and 53 %, and the first 0 of 8, 64 of 96 and 27 %.
 |---|---|---|---|---|---|
 | 15 | run1760 | Southwest Mesa, difficulty 0 | 6,001 | **12** | whole |
 | 35 | run1761 | Great Sahara, Classical | 6,001 | **12** | whole |
-| 55 | run1762 | East Indies, Medieval | 6,001 | 10 | units 4275, groups 5576 |
+| 55 | run1762 | East Indies, Medieval | 6,001 | 10 → **12** | ~~units 4275~~ (item 4518), ~~groups 5576~~ (item 4531) |
 | 75 | run1763 | Great Lakes, Gunpowder | 5,342, ended on 5341 | 11 | ammo 4004 |
 | 95 | run1764 | East Indies, Information | 6,001 | 9 | leaders 5266, units 5303, guys 5909 |
 | 115 | run1765 | Southwest Mesa, difficulty 2 | 6,001 | **12** | whole |
@@ -1384,8 +1384,8 @@ The original refused no file. In row 75, the one game it ended itself, our walk 
 parting.
 
 *Not established*: ~~no row names a leaf, since each take holds sums only.~~ ~~Row 75 parts first by state (ammo on
-4004, ours 3143699460, theirs 3217755213), then~~ (row 75 named and whole, item 4517, below) row 55 parts first
-(units on 4275, ours 1914015254, theirs 708677162), then row 95 (leaders on 5266, ours 871988666, theirs 426802620).
+4004, ours 3143699460, theirs 3217755213), then~~ (row 75 named and whole, item 4517, below) ~~row 55 parts first
+(units on 4275, ours 1914015254, theirs 708677162), then~~ (row 55's units named and closed, item 4518, §12.1) row 95 (leaders on 5266, ours 871988666, theirs 426802620).
 Each needs a ranges take of its file, keeping the lines it parts on (DECISIONS 148 §4), before its leaf can be named.
 
 **Row 75's leaf (item 4517, run1768, the ammo take of run1763's file, `RNG_MASK=0x8u`).** State 4004, ammo range 1,
@@ -1402,7 +1402,67 @@ whole: **ammo 4,682 → 5,342, twelve lines to the original's end**, and the fou
 4013, and `data::launch::tests::the_original_s_release_agrees_at_every_heading_for_the_crossbowmen` the sweeps
 (`RON_BAY_SWEEPS_4517`, outside git).
 
-### 12.1 Parity held out, fifth: rows 3 to 143, three seats and a team (item 4527)
+### 12.1 Row 55: a boat is born through `Unit::update_hits` (item 4518)
+
+**How it was established.** run1769 is run1762's file again, with the ranges of units and groups kept to 6000
+(`RNG_MASK=0x21u`, the scorer's line). Its sums are run1762's. On 4275 the units line grows from 6,052 ranges to
+6,074 on both sides, and one range parts: **range 3947, record 142, `myhits..launch_frames` byte 0, `myhits`
+(`+0x20`, the unit's max hit points): ours 172, theirs 192.** The unit is who=1's **Merchant Fleet `1/142`, `TI` 318**,
+a sea unit, born on 4275. Its caster is the Armed Caravan `1/64` (TI 60): on 4274 it holds a cast order, and on 4275 it
+is inside the fleet. Both caravans read 145/145 on both sides. Every other field of the fleet agrees, its damage
+(`+0x24`) at 0 included.
+
+**The direction: ours dropped a term.** Who=1 is tribe 22, the Dutch (`has_tribe_bonus(0x16)`).
+`Unit::init@00612100:580` calls vslot `+0x15c`, which `Unit::vftable` names `Unit::update_hits@0060e930`, for every
+unit `Objects::init_unit` makes. A boat is one of them. That function's Dutch arm (`0060eab4`..`0060eb98`) adds
+`ages × DUTCH_HP_BONUS` to a merchant kind, a caravan (`UnitTypeData::is_caravan`, `unit_flags2 & 8`) or a supply
+unit. Ours' ordinary birth took `Sim::unit_hits` (`units/store.rs`), which carries that arm. `transport_boat`
+(`ai/transport.rs`) took the type's raw `HITS`, 172. It now takes `unit_hits`, and the fleet is 192.
+
+**Diff-backed**: `row_55_s_dutch_merchant_fleet_is_born_with_its_update_hits_on_run1769_s_ranges` compares every
+units range on 4274 and 4275, byte for byte, and names theirs' `1/142` by `TI` 318 and `myhits` 192.
+**Moved**: units 5,833 → 6,001, whole; row 55 has eleven lines whole. ~~Groups part as found, on 5576: range 191,
+record 83, `id..march` byte 8, `num` ours 42, theirs 43.~~ (closed, item 4531, §12.2)
+
+*Not established*: which term of the arm the fleet enters by. Ours' fleet type carries `unit_flags2 & 8`, so it
+enters as a caravan. This follows from ours' total, not from a read of theirs' predicate. No capture has a Marines
+caster's boat born to a Dutch or Nubian owner, where `marines` re-runs `update_hits` after this birth.
+
+### 12.2 Row 55: a group's list holds object numbers, so a reused number rejoins it (item 4531)
+
+**How it was established.** On run1769's ranges, the groups line agrees through 5575 and parts on 5576 in one slot:
+**range 191, record 83 (who=1's slot 19, army 5's group), `id..march` byte 8, `num`: ours 42, theirs 43.** Every other
+field of the record agrees. The list differs by one entry: theirs keeps the short 44 at index 31, and ours dropped it.
+The units line agrees on both states. `RON_DEBUG_UNIT=1/44` names the units. On 5575 no live `1/44` exists: the member
+at index 31 is dead on both sides, and neither had pruned it. On 5576 **Elite Javelineers `1/44` (TI 84)** are born
+into that number, at (35352, 41208), with no army.
+
+**The direction: ours dropped a member theirs kept.** A probe's backtrace on 5576 (one env guard, two commits,
+`6e0616103` and `1b2117753`, reverted whole in `a9b1ecf0d`) names ours' only prune: `build_train → come_out →
+push_group → get_open_slot → get_num` on slot 83. The javelineers leave their building, and the open-slot search runs
+`get_num` over who=1's slots. `Group::get_num@00714700`'s large arm (43 members, not under four) drops a member only
+when `objects[who][short] +8 & 1` is clear. The list at `+0x8cc` is shorts, so on 5576 short 44 names the newborn, which
+is active, and theirs keeps it. Ours' list held the dead occupant's slot in `Sim::units`, because a reused number takes
+a new slot. So ours read the member as dead and dropped it.
+
+**The build.** `Sim::add_unit` (`Unit::init`) now calls `seat_lists_take_the_number`. On a birth, every army's list and
+every pool slot of the owner that still names a dead occupant of the new unit's number names the new unit instead.
+`add_unit` already carries `path_recursion` and the chain words across a reused number the same way (§37.2 of
+`docs/GROUPS.md`).
+
+**Diff-backed**: `row_55_s_army_keeps_the_member_whose_number_a_newborn_took_on_run1769_s_ranges` compares every
+groups range on 5575 and 5576, byte for byte. It names record 83's `num` 43 and short 44 at index 31, and ours' member
+31: dead on 5575, the Elite Javelineers on 5576. **Mutation** (`tools/mutate.py`, the call removed): held, exit 101,
+the one failed test that one, at range 191 on 5576. **Moved**: groups 5,989 → 6,001, whole; **row 55 has twelve lines
+whole**, and the fourth battery is 7 of 8 whole.
+
+*Not established*: the rebind covers the seated lists alone (army lists and pool slots). Other lists the original keeps
+as shorts read the same way, but none is rebound here and no diff reaches them: a hotkey group, a building's garrison,
+and a stack group's selection. Nothing has been read on what theirs' army 5 does with the javelineers after 5576. A
+whole `normalize` would drop them, since their `+0x80` is not 83, but its first call on group 83 has not been located on
+either side. Both sides' groups and units lines agree to 6000.
+
+### 12.3 Parity held out, fifth: rows 3 to 143, three seats and a team (item 4527)
 
 DECISIONS 149 §3, 150 §2 and §3, 2026-11-21. Rows 3, 23, 43, 63, 83, 103, 123 and 143 of the same order, each with
 one seat and one team of two added, declared in `HELD_OUT_FIFTH` (`aece988eb`, 21:55 −05:00) before any file was

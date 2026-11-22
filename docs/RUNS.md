@@ -40531,6 +40531,42 @@ bytes, SHA-256 `de1d2be705480463d46b61efae2eba767add16cb9afecfe9881eb00e7c78411b
 (`SAMPLE_RANGES_1771`): each kept line's first parting by range over 0..5350, on the frame its sum parts.
 (every units range on 3410 and 3411); `row_130_s_kremlin_spy_due_bit_is_in_the_leaders_flags_on_run1754_s_ranges` (every leaders range on 4572, 4573, 4582 and 4583).
 
+## run1769 — parity held out, fourth battery, row 55's file to 6000 with the checksum and ranges hooks, units and groups kept (2026-11-21, item 4518, `att-4518`)
+
+`docs/RECGAME.md` §12.1; DECISIONS 148 §4. **What the disk could not answer**: run1762 holds sums only, so the units
+parting on row 55 (state 4275) and the groups parting (5576) named no leaf. The take is run1762's file with the
+scorer's line (`score_recording … ~/ron-golden/run1762/map-18`: `--end-frame 6000 --tracer-def RON_CHECKSUMS
+--tracer-def RON_RANGES --tracer-def RNG_MASK=0x21u`): `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1769 --recording ~/ron-golden/recordings/item4510-row055-6000.rcx
+--end-frame 6000 --allow-early-end --cover cover=1 --log-window 0 31 --detail end:MISC --timeout 3600 --stall-seconds
+120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0x21u`, launched after two quiet minutes
+on every lane (4526's run1772 held lane 1 before it) and waited on with `waitrun.sh` in the background. `df -g ~`
+read 106 GB free before it and 102 after.
+- **The run**: pool lane 1, launched 20:04:11 −05:00, exited 20:11:29: **437.8 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 12345, map 18. The
+  recording's SHA-256 is run1762's (`7b1a73d4…`).
+- **The record**, `~/ron-golden/run1769/map-18/rontrace.ranges`, 1,324,828,356 bytes, SHA-256
+  `90a385e102932234f765c1134081825123ccafb156439d48c2c4808758e7d879`: 6,001 sets on trace frames −1 to 5999,
+  33,756,368 ranges, 784,140,855 bytes, none over (`ranges.py summary`); units and groups.
+- **Scored** (`score_recording … ~/ron-golden/run1769/map-18`, on `43ee59434`): the sums are run1762's; units 5,833,
+  first 4275: **units range 3947, record 142, `myhits..launch_frames` byte 0: `myhits` ours 172, theirs 192** (who=1's
+  Dutch Merchant Fleet `1/142`, TI 318, born on 4275 off the Armed Caravan `1/64`); groups 5,989, first 5576: range
+  191, record 83, `id..march` byte 8, `num` ours 42, theirs 43.
+- **Re-scored by item 4518** (a boat is born through `Unit::update_hits`): units 6,001, whole; groups 5,989, first 5576,
+  as found; eleven lines whole.
+- **Re-scored by item 4531** (a seated group's list holds object numbers): groups 6,001, whole; **twelve lines whole**.
+- Filed by `filerun.py run1769 eastindies-dutch-medieval-row055-ranges`: `gamelog_p.txt` →
+  `Logs/gamelog-run1769-eastindies-dutch-medieval-row055-ranges.txt`, `rontrace.log` → `Logs/rontrace-run1769.log`;
+  the record, under the split size, stays in place.
+
+Files in place, `~/ron-golden/run1769/map-18/`: `gamelog_p.txt`, 2,456 bytes, SHA-256
+`bf4fd2c1967558070b2f683eb5ea5ed6041e5b481d74f4e9444d436601a103d3`; `rontrace.log`, 298,728,352 bytes, SHA-256
+`23a4aebe15d26555275701689b623061d5183fcc87d7bcdd6130f0602a211523`.
+
+**What it holds**: `diff::held_out::tests::row_55_s_dutch_merchant_fleet_is_born_with_its_update_hits_on_run1769_s_ranges`
+(every units range on 4274 and 4275);
+`diff::held_out::tests::row_55_s_army_keeps_the_member_whose_number_a_newborn_took_on_run1769_s_ranges` (every groups
+range on 5575 and 5576).
 ## run1772 — the 2017 sample's playback to 6,400 with the checksum and ranges hooks, every line but walls and items kept (2026-11-21, item 4526, `att-4526`)
 
 `docs/RECGAME.md` §7; DECISIONS 149 §2. **What the disk could not answer**: run1771's record ends on 5349, and the
@@ -40593,7 +40629,7 @@ SHA-256 `99e35cb417ef06d1dd5ba3f32de971b9fd32334e82914d3bf05e728d6454f107`.
 
 ## run1773 — parity held out, fifth battery, row 3: Great Sahara, difficulty 3, three seats and a team, recorded idle by the client, played to 6000 (2026-11-21, item 4527, `att-4527`)
 
-`docs/RECGAME.md` §12.1; DECISIONS 149 §3, 150 §2. **What the disk could not answer**: no take of this lobby's game
+`docs/RECGAME.md` §12.3; DECISIONS 149 §3, 150 §2. **What the disk could not answer**: no take of this lobby's game
 with a third seat and a team; the row was declared before any recording (`aece988eb`). The file:
 `~/ron-golden/recordings/item4527-row003-6000.rcx`, 59,217 bytes, SHA-256
 `a6452adbee544c471153e8bd86878626a49f4f816c546d3dfc55e93c75bd2068`: `client --record <file> --headless --page-of
@@ -40614,7 +40650,7 @@ and waited on with `waitrun.sh` in the background.
 
 ## run1774 — parity held out, fifth battery, row 23: Atlantic Sea Power, difficulty 0, three seats and a team, recorded idle by the client, played to 6000 (2026-11-21, item 4527, `att-4527`)
 
-`docs/RECGAME.md` §12.1; DECISIONS 149 §3, 150 §2. **What the disk could not answer**: no take of this lobby's game
+`docs/RECGAME.md` §12.3; DECISIONS 149 §3, 150 §2. **What the disk could not answer**: no take of this lobby's game
 with a third seat and a team; the row was declared before any recording (`aece988eb`). The file:
 `~/ron-golden/recordings/item4527-row023-6000.rcx`, 59,222 bytes, SHA-256
 `1e122f96a581073c4c21d91253f076bf0f0629f83e3132bf5ad440e15889fe01`: `client --record <file> --headless --page-of
@@ -40635,7 +40671,7 @@ and waited on with `waitrun.sh` in the background.
 
 ## run1775 — parity held out, fifth battery, row 43: Great Sahara, Ancient, three seats and a team, recorded idle by the client, played to 6000 (2026-11-21, item 4527, `att-4527`)
 
-`docs/RECGAME.md` §12.1; DECISIONS 149 §3, 150 §2. **What the disk could not answer**: no take of this lobby's game
+`docs/RECGAME.md` §12.3; DECISIONS 149 §3, 150 §2. **What the disk could not answer**: no take of this lobby's game
 with a third seat and a team; the row was declared before any recording (`aece988eb`). The file:
 `~/ron-golden/recordings/item4527-row043-6000.rcx`, 58,916 bytes, SHA-256
 `310335f1bbc0e1e01bfeff48bf11e99494ac0e35ee0aa1ac6e134516178fe4b6`: `client --record <file> --headless --page-of
@@ -40656,7 +40692,7 @@ and waited on with `waitrun.sh` in the background.
 
 ## run1776 — parity held out, fifth battery, row 63: East Indies, Enlightenment, three seats and a team, recorded idle by the client, played to 6000 (2026-11-21, item 4527, `att-4527`)
 
-`docs/RECGAME.md` §12.1; DECISIONS 149 §3, 150 §2. **What the disk could not answer**: no take of this lobby's game
+`docs/RECGAME.md` §12.3; DECISIONS 149 §3, 150 §2. **What the disk could not answer**: no take of this lobby's game
 with a third seat and a team; the row was declared before any recording (`aece988eb`). The file:
 `~/ron-golden/recordings/item4527-row063-6000.rcx`, 58,847 bytes, SHA-256
 `643146548b9cab75d7c8600d622d3867f96e2562576d5dd29adabe3bb5fc8279`: `client --record <file> --headless --page-of
@@ -40677,7 +40713,7 @@ and waited on with `waitrun.sh` in the background.
 
 ## run1777 — parity held out, fifth battery, row 83: Great Lakes, Industrial, three seats and a team, recorded idle by the client, played to 6000 (2026-11-21, item 4527, `att-4527`)
 
-`docs/RECGAME.md` §12.1; DECISIONS 149 §3, 150 §2. **What the disk could not answer**: no take of this lobby's game
+`docs/RECGAME.md` §12.3; DECISIONS 149 §3, 150 §2. **What the disk could not answer**: no take of this lobby's game
 with a third seat and a team; the row was declared before any recording (`aece988eb`). The file:
 `~/ron-golden/recordings/item4527-row083-6000.rcx`, 58,863 bytes, SHA-256
 `03bf17de598fd03dbe3a93d82b433ad99df3e277976b2e85c5d49824af1c1d78`: `client --record <file> --headless --page-of
@@ -40698,7 +40734,7 @@ and waited on with `waitrun.sh` in the background.
 
 ## run1778 — parity held out, fifth battery, row 103: East Indies, Modern, three seats and a team, recorded idle by the client, played to 6000 (2026-11-21, item 4527, `att-4527`)
 
-`docs/RECGAME.md` §12.1; DECISIONS 149 §3, 150 §2. **What the disk could not answer**: no take of this lobby's game
+`docs/RECGAME.md` §12.3; DECISIONS 149 §3, 150 §2. **What the disk could not answer**: no take of this lobby's game
 with a third seat and a team; the row was declared before any recording (`aece988eb`). The file:
 `~/ron-golden/recordings/item4527-row103-6000.rcx`, 58,876 bytes, SHA-256
 `ce7e6070b05580b8b778abe1825e0f0ed0c00d437b1ad106d5cbf2bf7f51984a`: `client --record <file> --headless --page-of
@@ -40719,7 +40755,7 @@ and waited on with `waitrun.sh` in the background.
 
 ## run1779 — parity held out, fifth battery, row 123: Great Lakes, Gunpowder, three seats and a team, recorded idle by the client, played to 6000 (2026-11-21, item 4527, `att-4527`)
 
-`docs/RECGAME.md` §12.1; DECISIONS 149 §3, 150 §2. **What the disk could not answer**: no take of this lobby's game
+`docs/RECGAME.md` §12.3; DECISIONS 149 §3, 150 §2. **What the disk could not answer**: no take of this lobby's game
 with a third seat and a team; the row was declared before any recording (`aece988eb`). The file:
 `~/ron-golden/recordings/item4527-row123-6000.rcx`, 59,036 bytes, SHA-256
 `fa3d5d78bb5e9449a415a2da0ce92e8c66feae5f264b98c24d363e284d2d00a8`: `client --record <file> --headless --page-of
@@ -40740,7 +40776,7 @@ and waited on with `waitrun.sh` in the background.
 
 ## run1780 — parity held out, fifth battery, row 143: Great Sahara, difficulty 1, three seats and a team, recorded idle by the client, played to 6000 (2026-11-21, item 4527, `att-4527`)
 
-`docs/RECGAME.md` §12.1; DECISIONS 149 §3, 150 §2. **What the disk could not answer**: no take of this lobby's game
+`docs/RECGAME.md` §12.3; DECISIONS 149 §3, 150 §2. **What the disk could not answer**: no take of this lobby's game
 with a third seat and a team; the row was declared before any recording (`aece988eb`). The file:
 `~/ron-golden/recordings/item4527-row143-6000.rcx`, 59,222 bytes, SHA-256
 `9d59ff99cd8b9581c81a0687211bccf31f71248eba086ecc14412c4203dc149f`: `client --record <file> --headless --page-of
