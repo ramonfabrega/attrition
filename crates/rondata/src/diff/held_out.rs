@@ -2294,14 +2294,63 @@ mod tests {
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
         for state in lo..=hi {
             while built.sim.frame < state {
+                crate::diff::harness::debug_watch(&built, built.sim.frame);
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
             }
-            let set = record
-                .first_of(state - 1)
-                .expect("the state's set")
-                .clone();
+            let set = record.first_of(state - 1).expect("the state's set").clone();
             let all = record.ranges(&set).expect("the set's ranges");
+            if let Ok(recs) = std::env::var("RON_PROBE_4553_REC") {
+                let og = built.sim.checksum_guys();
+                let tg: Vec<_> = all.iter().filter(|r| r.line == 6).collect();
+                for r in recs.split(',').map(|x| x.parse::<i16>().unwrap()) {
+                    let pick = |v: Vec<(usize, &[u8])>| -> Vec<String> {
+                        v.iter()
+                            .map(|(g, b)| {
+                                let f = crate::checksum::fields::guy_range_fields("guy", b);
+                                let keep = [
+                                    "x",
+                                    "y",
+                                    "angle",
+                                    "cur_time",
+                                    "end_time",
+                                    "last_time",
+                                    "gpiece",
+                                    "cur_anim",
+                                    "stopped",
+                                    "guy_flags",
+                                    "variation",
+                                ];
+                                format!(
+                                    "g{g}:{}",
+                                    f.iter()
+                                        .filter(|(n, _)| keep.contains(&n.as_str()))
+                                        .map(|(n, v)| format!("{n}={v}"))
+                                        .collect::<Vec<_>>()
+                                        .join(",")
+                                )
+                            })
+                            .collect()
+                    };
+                    let o: Vec<(usize, &[u8])> = og
+                        .ranges
+                        .iter()
+                        .filter(|x| x.record == r && x.field == "guy")
+                        .enumerate()
+                        .map(|(g, x)| (g, x.bytes.as_slice()))
+                        .collect();
+                    let t: Vec<(usize, &[u8])> = og
+                        .ranges
+                        .iter()
+                        .zip(&tg)
+                        .filter(|(x, _)| x.record == r && x.field == "guy")
+                        .enumerate()
+                        .map(|(g, (_, y))| (g, y.bytes.as_slice()))
+                        .collect();
+                    eprintln!("R4553 {state} rec {r} ours {:?}", pick(o));
+                    eprintln!("R4553 {state} rec {r} thrs {:?}", pick(t));
+                }
+            }
             for (line, ours) in [
                 (0, built.sim.checksum_units()),
                 (6, built.sim.checksum_guys()),
