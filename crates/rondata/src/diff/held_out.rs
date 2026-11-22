@@ -897,6 +897,14 @@ mod tests {
                 built.sim.command().tick();
             }
             let sim = &built.sim;
+            {
+                let set = record.first_of(state - 1).expect("the state's set").clone();
+                let all = record.ranges(&set).expect("the set's ranges");
+                for r in all.iter().filter(|r| r.line == 7 && r.field == "flags") {
+                    eprintln!("{state} theirs leaders record {} flags {:02x?}", r.record, r.bytes);
+                }
+                eprintln!("{state} b2030 ident {:?}", sim.buildings.iter().find(|b| b.owner == 2 && b.index == 2030).and_then(|b| b.ty).map(|t| sim.tables.build_types[t].ident));
+            }
             if state == 5600 {
                 let rx = sim.world.reg_xs();
                 eprintln!("reg_xs {} reg_ys {}", rx, sim.world.reg_ys());
