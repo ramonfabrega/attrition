@@ -323,6 +323,9 @@ fn bell<V: AlarmView>(v: &mut V, who: i32, c: i32, rang: &mut bool) {
     let (cx, cy) = v.city_cell(who, c);
     let r = v.city_radius(who, c);
     let rc = cells_of(r);
+    if std::env::var_os("RON_PROBE_4549").is_some() {
+        eprintln!("PROBE4549 bell who {who} c {c} cb {cb} room {room} limit {limit} cell ({cx},{cy}) tile {:?} r {r} rc {rc}", v.city_tile(who, c));
+    }
     v.group_clear();
     let circ = circle();
     let (w, h) = v.world_wh();
@@ -338,6 +341,9 @@ fn bell<V: AlarmView>(v: &mut V, who: i32, c: i32, rang: &mut bool) {
         let (mut idx, mut p) = v.get_down(x, y);
         if idx < 0 {
             continue;
+        }
+        if std::env::var_os("RON_PROBE_4549").is_some() {
+            eprintln!("PROBE4549 bell cell ({x},{y}) first {idx}/{p} room {room}");
         }
         while room < limit {
             if p == who {
@@ -372,6 +378,9 @@ fn bell<V: AlarmView>(v: &mut V, who: i32, c: i32, rang: &mut bool) {
                 break;
             }
         }
+    }
+    if std::env::var_os("RON_PROBE_4549").is_some() {
+        eprintln!("PROBE4549 bell end room {room} limit {limit} count {}", v.group_count());
     }
     if v.group_count() != 0 {
         v.action_garrison(cb, who);
