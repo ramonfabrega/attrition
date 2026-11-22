@@ -1015,9 +1015,10 @@ pub(in crate::diff) mod tests {
     /// named fall past the draw word 7021; the first shot still on 2929.
     /// Item 4557 (`come_out`'s enemy arm sends the Bushi out of
     /// `3/2041` to the point on `2/2010` itself): 3244 -> 3174, -70, a
-    /// named fall past the draw word 7021, on its own branch; the merged
-    /// tree's figure is re-measured below.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3174, Some(2929));
+    /// named fall past the draw word 7021, on its own branch; on the tree
+    /// merged with 4553, 3174 -> 3175, +1, a named rise past the draw word
+    /// 7021, the frames not read one by one; the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3175, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
