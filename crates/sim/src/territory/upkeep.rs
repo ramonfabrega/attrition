@@ -358,7 +358,16 @@ impl Sim {
     pub(crate) fn attrition_for(&self, i: usize) -> crate::territory::attrition::Outcome {
         let unit = &self.units[i];
         let ground = self.world.owner_at(unit.pos);
-        let victim = &self.territory.players[unit.owner as usize];
+        // **The aged-up arm's two ages** (item 4543; `docs/ATTRITION.md`
+        // §3): `UnitData::get_attrition@00608fd0` reads each leader's
+        // `ages` word, `*(leaders[p] +0x6eb8) +0xdc ^ 0x62766`, the ground
+        // owner's less the unit owner's ([`tech::PlayerTech::ages`]). The
+        // record never held an age of its own.
+        let aged = |p: Player| crate::territory::attrition::PlayerState {
+            age: self.tech.get(p as usize).map_or(0, |t| t.ages),
+            ..self.territory.players[p as usize]
+        };
+        let victim = &aged(unit.owner);
         // `get_attrition`'s Foraging arm asks `UnitData::is_idle@0046fa40`:
         // an empty order list (item 4159's third residue).
         let kind = crate::territory::attrition::UnitKind {
@@ -392,7 +401,7 @@ impl Sim {
             unit.owner,
             victim,
             &situation,
-            |p| self.territory.players[p as usize],
+            aged,
         )
     }
 }

@@ -240,6 +240,30 @@ fn leaving_the_border_stops_the_bleeding_only_at_the_next_refresh() {
 }
 
 #[test]
+fn a_ground_owner_an_age_ahead_halves_the_period() {
+    // `UnitData::get_attrition@00608fd0`'s aged-up arm: the ground owner's
+    // `ages` less the unit owner's, each the leader's `+0x6eb8 +0xdc` word
+    // (`PlayerTech::ages`); at or past zero, strength becomes `((25 × ahead
+    // + 100) × strength + 99) / 100`, rounded up. One step of strength 1
+    // and one age ahead is 2: the 2017 sample's Bushi `3/37` on computer
+    // 0's ground on 6108, leader 0's `ages` 2 against the person's 1, 24
+    // where 48 (item 4543).
+    let period = |owner_ages: i32, victim_ages: i32| {
+        let mut sim = skirmish(1);
+        sim.tech[1].ages = owner_ages;
+        sim.tech[0].ages = victim_ages;
+        sim.units
+            .push(Unit::new(0, 0, centre_of(Cell::new(15, 0)), 100));
+        run(&mut sim, 1);
+        sim.units[0].attrition
+    };
+    assert_eq!(period(1, 1), 48, "the same age: the strength as it is");
+    assert_eq!(period(2, 1), 24, "one age ahead: strength 1 rounds up to 2");
+    assert_eq!(period(3, 1), 24, "two ahead: (150 + 99) / 100, still 2");
+    assert_eq!(period(1, 2), 48, "behind: no bump");
+}
+
+#[test]
 fn entering_the_border_costs_nothing_until_the_next_refresh() {
     // The same fact from the other side, and the one that makes a raid work:
     // dash in, dash out, and the border may never notice.
