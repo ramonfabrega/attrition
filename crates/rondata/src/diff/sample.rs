@@ -834,8 +834,11 @@ pub(in crate::diff) mod tests {
     /// keeps the captured Village's cells and stops the defeated leader's
     /// gather and stats; the draw word 5273 -> 5460): 4723 -> 3624, -1099,
     /// a named fall, the frames not read one by one; the first shot still
-    /// on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3624, Some(2929));
+    /// on 2929. Item 4526 (`build_is_seen` and the fog test mask by the
+    /// stored `ally_mask`, which drops the defeated computer 1): 3624 ->
+    /// 3729, +105, a named rise past the draw word 5460, the frames not
+    /// read one by one; the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3729, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
