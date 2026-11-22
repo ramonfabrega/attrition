@@ -899,14 +899,6 @@ impl Sim {
     /// 1106); [`Sim::settle_borders`] is setup's wholesale pass.
     pub fn sync_territory(&mut self) {
         self.fix_borders();
-        // **The walked setup leaves the bit to `analyze_map`** (item 4534):
-        // `Setup::build_game@005ac190:881` runs `World::analyze_map` after
-        // the whole `build_empire` loop, so every `build_cities`' own
-        // `compute_all_territory` reads the colonized triple, and a cell
-        // past it joins only at line 883's pass. Run1781's who=0 on Atlantic
-        // Sea Power: (16, 42), raw distance 48, is past the colonized 44 at
-        // its city's pass and inside the player 48 at line 883's, so gi 2 at
-        // (2, 43) leads its `oil_patches`.
         if !self.in_play && !self.cities.walks_setup {
             self.analyze_player_regions();
         }
@@ -1002,13 +994,9 @@ impl Sim {
     /// `compute_reg_territory:114` reads to give the region the style's
     /// player territory limits rather than its colonized ones. The
     /// original runs it once, in `Setup::build_game` just before the
-    /// setup's `compute_all_territory`; here every setup fix of a world
-    /// built from a dump runs it, and the bit only grows, so the last fix
-    /// before the first frame — which sees every starting city — leaves
-    /// exactly the original's flags. **The walked setup does not**
-    /// (`cities.walks_setup`, item 4534): its `build_cities` passes run
-    /// before the bit exists, as the original's do, and [`Sim::analyze_map`]
-    /// sets it at its own step.
+    /// setup's `compute_all_territory` (`:881`), after every `build_empire`;
+    /// here a dump-built world's setup fixes run it (the bit only grows);
+    /// the walked setup's do not (item 4534, `docs/RECGAME.md` §12.6).
     /// The whole function, tallies, bit `8` and sea class with it, is
     /// [`Sim::analyze_map`] (item 4147), which the composed chain's setup
     /// runs once at its step; this arm alone serves a world built from a
