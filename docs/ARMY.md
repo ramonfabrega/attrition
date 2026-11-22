@@ -1012,7 +1012,10 @@ Otherwise **my** `defense_mod` (`+0x7a8`, `0x100` = ×1) is the switch
 - **not at war** (`diplos` both non-zero): qualifies only if allied both
   ways, **my** `weak[L] == 0`, `strong[L] != 0`, not a tribute period,
   and `defense_mod >= 0x100` — an ally's cities are scored as places to
-  defend, the `attacked` multipliers below making them worth anything;
+  defend, the `attacked` multipliers below making them worth anything.
+  `strong`/`weak` are `LeaderData +0x230`/`+0x250`, carried since item
+  4553 (and in §9's retarget); diff-backed by run1782's 1788, who=1's
+  `strong[2]` 0: three score draws, not six;
 - **at war**: only if `defense_mod <= 0x100`; and if my `wonderwin_timer
   != 0 || popwin_timer != 0` set **`about_to_win = 1`** (a ×100 below).
   The `popwin_timer` half is built (`sim::victory`, `docs/AI.md` §126):
@@ -2118,6 +2121,9 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
   5496, so step 4 (§6) keeps the muster at (24,45); theirs' leader plans
   to (24,49), the halfway arm. Whether theirs' `reg`, head orders or
   `num_units` differ is a packet's question at `RON_STATE_FRAME=5621`.
+- **§9's retarget reads `strong[tw]`/`weak[tw]` with no walk holding it**
+  (item 4553, parked 4553a): built with the leader gate's pair; with
+  `strong` forced back to 1 the fifth battery's scores fail nothing.
 
 ## 19. Second reading — landed, 2026-08-25
 

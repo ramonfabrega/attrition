@@ -13,9 +13,10 @@
 //!
 //! What the sim does not keep is answered the way the sim has always
 //! answered it (`army::seams`): no stop bit, the semaphore bytes zero (so
-//! the difficulty is the game's), `+0x230` set, `+0x250` clear and no
-//! tribute period (so an allied leader passes on `defense_mod` alone), the
-//! second wonder timer zero. The sweep draws every one of them.
+//! the difficulty is the game's), and the second wonder timer zero.
+//! `+0x230` and `+0x250` are the leader's own `strong[8]` and `weak[8]`
+//! (item 4553), and the tribute period is `Sim::is_tribute_period`. The
+//! sweep draws every one of them.
 
 /// The call ended at the draw the sweep stops at (the coin, or the score).
 #[derive(Debug, PartialEq, Eq)]
@@ -417,11 +418,15 @@ impl TargetGateView for SimGate<'_> {
     fn lcflags(&self, a: i32) -> i32 {
         self.lflags(a as usize)
     }
-    fn x230(&self, _a: usize, _b: usize) -> i32 {
-        1
+    // `LeaderData::strong[8]` (`+0x230`) and `weak[8]` (`+0x250`), the
+    // record `Leader::diplomacy` writes and the leaders line compares
+    // (item 4553: run1782's 1788, who=1's `strong[2]` 0 refuses its ally's
+    // three cities, where the constant 1 scored them and drew three more).
+    fn x230(&self, a: usize, b: usize) -> i32 {
+        self.sim.ai.ai[a].strong[b]
     }
-    fn x250(&self, _a: usize, _b: usize) -> i32 {
-        0
+    fn x250(&self, a: usize, b: usize) -> i32 {
+        self.sim.ai.ai[a].weak[b]
     }
     fn ncities(&self, a: usize) -> i32 {
         self.sim.cities_of(a as crate::Player).len() as i32

@@ -1000,7 +1000,13 @@ pub(in crate::diff) mod tests {
     /// kill is the front's): 3184 -> 3244, +60, a named rise past the draw
     /// word 7021, the frames not read one by one; the first shot still on
     /// 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3244, Some(2929));
+    /// Item 4553 (`find_target`'s ally arm reads the leader's
+    /// `strong[8]`/`weak[8]`): on its own branch 3315 -> 3314, -1; on the
+    /// tree merged with 4545, 3184 -> 3174, -10, a named fall past the
+    /// draw word 7021, the frames not read one by one; the first shot still
+    /// on 2929. On the tree merged with 4555 too, 3244 -> 3174, -70, a
+    /// named fall past the draw word 7021; the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3174, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
