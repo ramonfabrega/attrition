@@ -1493,7 +1493,7 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 |---|---|---|---|---|---|---|
 | 3 | run1773 | Great Sahara, difficulty 3 | human + added | 6,001 | 1 | units, builds, ammo 3857 |
 | 23 | run1774 | Atlantic Sea Power | the computers | 6,001 | 10 | **leaders 0**, units 5695 |
-| 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ammo 3192, units 3196 |
+| 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~3192~~ leaders 3223 |
 | 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, ended on 4222 | 1 | ~~1582, 1789~~ ammo 3683 |
 | 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | ~~leaders 1956~~ (CARAVAN §2), ~~units 2811~~ (SUPPLY, item 4554), builds 3041 |
 | 103 | run1778 | East Indies, Modern | the computers | 3,295, ended on 3294 | 1 | ~~1750, 1757, 1790, 2557 (GROUPS §3.4)~~ ammo 2860 |
@@ -1501,9 +1501,8 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 | 143 | run1780 | Great Sahara, difficulty 1 | the computers | 6,001 | **12** | whole |
 
 The original ended rows 63 and 103 itself, both with the two computers allied against the idle human; our walk
-holds no `game_over` by either end (`over: None`). In row 43 our walk holds `game_over` from 5977, where the
-original plays to 6000. `docs/RUNS.md` run1773 to run1780 holds every value, and the pins hold both sides of every
-first parting.
+holds no `game_over` by either end (`over: None`). `docs/RUNS.md` run1773 to run1780 holds every value, and the
+pins hold both sides of every first parting.
 
 *Not established*: no row names a leaf, since each take holds sums only. Row 23 is whole (§12.6). Row 63's leaders on
 1582: the locked team's wonder term (`docs/COSTS.md`, item 4542). Row 63's units on 1789: ARMY §12 (item 4553). Every other row parts first between 1582 and 3857, and needs a ranges take before its leaf is named.
@@ -1512,6 +1511,8 @@ first parting.
 left the one shared `find_counters[0x1c]` at 2011, who=1's count (its mark); `find_build@009e2970` resets such a
 cursor to 2000 and starts at 2001, so who=1's three trainings on 2976 went 2007, 2000, 2007, where ours went 2000
 first. The lap resets now (`ai_host::lap`, `find_unit`'s too; AI §11): twelve lines whole.
+
+**Row 43 (item 4547).** who=2's Slinger, piece 736, had no bay; it is 1440's (`launch::BAYS`).
 
 ### 12.4 Row 95: a CEO going in leaves its city (item 4519)
 

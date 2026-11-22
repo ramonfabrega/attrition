@@ -3951,3 +3951,73 @@ fn run437_biplane_rounds_leave_from_its_nose_guns() {
         );
     }
 }
+
+/// **Row 43's Slinger stones on 3191 and 3192 leave where theirs do**
+/// (item 4547, `docs/RECGAME.md` §12.3): who=2's Slingers `2/30` at
+/// (8472, 23832), facing 570,228,736, and `2/29` at (8616, 24024), facing
+/// 448,200,704, both on piece 736 (`32 + 2 × 0x160`) and `CHAR_ATTACK1`
+/// frame 21, from (8571, 23834) and (8714, 24012), 174 over the figure, in
+/// run1787's ammo ranges. With no row they left the figure's own square.
+#[test]
+fn row_43_s_slinger_stones_leave_from_theirs_point() {
+    for (x, y, facing, want) in [
+        (8472, 23832, 570_228_736, (8571, 23834)),
+        (8616, 24024, 448_200_704, (8714, 24012)),
+    ] {
+        let p = launch_point(
+            Pos::new(x, y),
+            Angle(facing),
+            736,
+            crate::units::anim::ATTACK1,
+            21,
+            0,
+        );
+        assert_eq!((p.x, p.y), want);
+    }
+    assert_eq!(
+        release_dz(736, crate::units::anim::ATTACK1, 21, 0),
+        Some(174)
+    );
+}
+
+/// **Piece 736's rows agree with the original at every heading** (item
+/// 4547): `$RON_BAY_SWEEPS_4547` is the directory holding
+/// `sweep-736-0-<anim>-<time>.txt` for the piece's three keys, outside git
+/// (`~/ron-data/lab-experiments/2026-11-22-item-4547/sweeps/`), written by
+/// `init_position` and then `get_position` on run1579's packet. `fit_bay.py`
+/// finds piece 1440's regions to the point (534, 319 and 28 lattice
+/// points), so the rows are 1440's centroids.
+#[test]
+fn the_original_s_release_agrees_at_every_heading_for_piece_736() {
+    let Ok(dir) = std::env::var("RON_BAY_SWEEPS_4547") else {
+        eprintln!("skipping: set RON_BAY_SWEEPS_4547 (item 4547's oracle, run1579)");
+        return;
+    };
+    let (mut rows, mut off) = (0, Vec::new());
+    for (a, t) in [
+        (crate::units::anim::ATTACK1, 21),
+        (crate::units::anim::ATTACK2, 22),
+        (crate::units::anim::ATTACK3, 16),
+    ] {
+        let b = bay(736, a, t, 0).expect("piece 736's bay");
+        let path = format!("{dir}/sweep-736-0-{a}-{t}.txt");
+        let table = std::fs::read_to_string(&path).expect("RON_BAY_SWEEPS_4547");
+        for line in table.lines() {
+            let f: Vec<i64> = line
+                .split_whitespace()
+                .take(5)
+                .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                .collect();
+            let (x, y) = b.offset((f[0] + 180) % 360);
+            if (x, y, i64::from(b.dz)) != (f[2], f[3], f[4]) {
+                off.push(format!(
+                    "a{a} t{t} deg {}: {x},{y} against {},{}",
+                    f[0], f[2], f[3]
+                ));
+            }
+            rows += 1;
+        }
+    }
+    assert_eq!(rows, 3 * 361, "{dir}");
+    assert!(off.is_empty(), "{} headings disagree: {off:?}", off.len());
+}

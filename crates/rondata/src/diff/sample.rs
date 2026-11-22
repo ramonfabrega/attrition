@@ -1018,7 +1018,14 @@ pub(in crate::diff) mod tests {
     /// named fall past the draw word 7021, on its own branch; on the tree
     /// merged with 4553, 3174 -> 3175, +1, a named rise past the draw word
     /// 7021, the frames not read one by one; the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3175, Some(2929));
+    /// Item 4547 (piece 736's bays, the Slingers in art style 2): 3184 ->
+    /// 4792 on its own branch, +1608 (with the three rows keyed off,
+    /// `tools/mutate.py`, 3184 passes); on the tree merged with 4553 and
+    /// 4555, 3174 -> 3903, +729, a named rise past the draw word 7021, the
+    /// frames not read one by one; the first shot still on 2929. On the
+    /// tree merged with both (the driver's merge of 4547 onto 4557):
+    /// 3174, measured; the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3174, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
