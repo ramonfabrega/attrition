@@ -904,11 +904,7 @@ mod tests {
             let all = record.ranges(&set).expect("the set's ranges");
             let ours = built.sim.checksum_groups();
             let theirs: Vec<_> = all.iter().filter(|r| r.line == 5).collect();
-            assert_eq!(
-                ours.ranges.len(),
-                theirs.len(),
-                "groups' ranges on {state}"
-            );
+            assert_eq!(ours.ranges.len(), theirs.len(), "groups' ranges on {state}");
             for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
                 assert_eq!(
                     a.bytes, b.bytes,
@@ -2725,6 +2721,124 @@ mod tests {
             assert_eq!(built.sim.units[u].type_index, 136, "1/{o} is a Fusilier");
             let g = built.sim.units[u].guys[0];
             assert_eq!((g.anim, g.end_time), (1, 30), "1/{o}'s figure 0 on 1790");
+        }
+    }
+
+    /// Probe (item 4558): row 63's ammo ranges, field by field, both sides.
+    #[test]
+    fn probe_4558_row_63_ammo() {
+        let Ok(lo) = std::env::var("RON_PROBE_4558") else {
+            return;
+        };
+        let mut it = lo.split('-').map(|v| v.parse::<i64>().unwrap());
+        let (lo, hi) = (it.next().unwrap(), it.next().unwrap());
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 3) else {
+            panic!("row 63's recording");
+        };
+        let dir = home.join("ron-golden/run1782/map-18");
+        let ranges = crate::testenv::experiment(&dir, "rontrace.ranges").expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 63's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        const NAMES: [&str; 24] = [
+            "gpiece",
+            "launch.x",
+            "launch.y",
+            "sz",
+            "landing.x",
+            "landing.y",
+            "ez",
+            "cur_time",
+            "total_time",
+            "angle",
+            "splash_area",
+            "slot",
+            "graph_index",
+            "owner",
+            "o",
+            "num_guys",
+            "whom",
+            "ox",
+            "traj",
+            "v1z",
+            "dx",
+            "bank_dx",
+            "bank_dy",
+            "start_roll",
+        ];
+        let decode = |b: &[u8]| -> Vec<(String, i64)> {
+            let mut v = vec![("rolling".to_string(), b[0] as i8 as i64)];
+            v.push(("accuracy".into(), i16::from_le_bytes([b[1], b[2]]) as i64));
+            for (k, n) in NAMES.iter().enumerate() {
+                let o = 3 + 4 * k;
+                if o + 4 <= b.len() {
+                    v.push((
+                        n.to_string(),
+                        i32::from_le_bytes(b[o..o + 4].try_into().unwrap()) as i64,
+                    ));
+                }
+            }
+            v
+        };
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 3).collect();
+            let ours = built.sim.checksum_ammo().expect("ours' ammo");
+            println!(
+                "== state {state}: ours {} theirs {}",
+                ours.ranges.len(),
+                theirs.len()
+            );
+            for (k, a) in ours.ranges.iter().enumerate() {
+                let b = theirs.get(k).map(|r| r.bytes.clone()).unwrap_or_default();
+                if a.field == "rolling..start_roll_angle" {
+                    let (da, db) = (
+                        decode(&a.bytes),
+                        if b.len() > 3 { decode(&b) } else { vec![] },
+                    );
+                    let diff: Vec<String> = da
+                        .iter()
+                        .enumerate()
+                        .filter(|(i, x)| db.get(*i).map(|y| y.1) != Some(x.1))
+                        .map(|(i, x)| format!("{} {}/{:?}", x.0, x.1, db.get(i).map(|y| y.1)))
+                        .collect();
+                    println!(
+                        "  r{k} rec {} body: {}",
+                        a.record,
+                        da.iter()
+                            .map(|x| format!("{}={}", x.0, x.1))
+                            .collect::<Vec<_>>()
+                            .join(" ")
+                    );
+                    if !diff.is_empty() {
+                        println!("  r{k} PARTS: {}", diff.join(", "));
+                    }
+                } else if a.bytes != b {
+                    println!(
+                        "  r{k} rec {} {} PARTS ours {:?} theirs {:?}",
+                        a.record, a.field, a.bytes, b
+                    );
+                } else {
+                    println!("  r{k} rec {} {} {:?}", a.record, a.field, a.bytes);
+                }
+            }
+            for k in ours.ranges.len()..theirs.len() {
+                let b = &theirs[k].bytes;
+                println!(
+                    "  r{k} THEIRS ONLY len {} {:?}",
+                    b.len(),
+                    if b.len() > 3 { decode(b) } else { vec![] }
+                );
+            }
         }
     }
 
