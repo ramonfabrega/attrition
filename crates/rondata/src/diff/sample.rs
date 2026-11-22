@@ -770,14 +770,21 @@ pub(in crate::diff) mod tests {
     /// Citizen `3/55`, `[BUILD_AT 2041 (finished), MOVE_TO, BUILD_AT
     /// 2042]` on 6668, keeps one order on the Stable `3/2042`, `3574 55
     /// orders.count` ours 2, theirs 1): units 6669 -> 6928; every other
-    /// line unchanged; units and groups 6928 the lowest.
+    /// line unchanged; units and groups 6928 the lowest. Item 4557
+    /// (`Unit::come_out@00617c10`'s enemy arm: the person's Barracks
+    /// `3/2041` has its point (4433, 30955) on player 2's `2/2010`, and
+    /// the three Bushi it trains on 6927 attack-move to the point itself,
+    /// `QUEUE_NEW`, no action bit; `263 197 id..march` `ox` ours 4440,
+    /// theirs 4433): units 6928 -> 7021, groups 6928 -> 7097; the draw
+    /// word 7021 the lowest, units, builds, guys, leaders, cities and world
+    /// tied there.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 6928),
+        ("units", 7021),
         ("builds", 7021),
         ("walls", 21044),
         ("ammo", 7023),
         ("deaths", 7085),
-        ("groups", 6928),
+        ("groups", 7097),
         ("guys", 7021),
         ("leaders", 7021),
         ("cities", 7021),
@@ -1734,15 +1741,19 @@ pub(in crate::diff) mod tests {
     /// guys, leaders, cities and world 7021, ammo 7023, deaths 7085, goods
     /// 7423, items 7544. Built (item 4555: `check_build_order`'s kill is
     /// the front's, `3/55` keeps one `BUILD_AT 2042`): units 6669 -> 6928
-    /// (`2909 15 collide_frame..play` `dest_angle`).
+    /// (`2909 15 collide_frame..play` `dest_angle`). Built (item 4557:
+    /// `come_out`'s enemy arm, the Bushi `3/15`, `3/16`, `3/28` out of
+    /// `3/2041` attack-move to the point on `2/2010` itself): units 6928 ->
+    /// 7021 (`28 1 who..y_internal`), groups 6928 -> 7097 (`0 0
+    /// id..march`).
     const SAMPLE_RANGES_1786: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
-            6928,
-            4601,
-            4601,
-            40,
-            "2909 15 collide_frame..play: dest_angle -2057830400|-2057699328",
+            7021,
+            4579,
+            4584,
+            4359,
+            "28 1 who..y_internal: z 131|115, x 23208|24600, y 42408|43032",
         ),
         (
             "builds",
@@ -1770,11 +1781,11 @@ pub(in crate::diff) mod tests {
         ),
         (
             "groups",
-            6928,
-            616,
-            616,
+            7097,
+            628,
+            628,
             1,
-            "263 197 id..march: ox 4440|4433, oy 30936|30955, o_angle -2057830400|-2057699328",
+            "0 0 id..march: ox 18144|15072, oy 21984|24288, o_angle -1191706624|-1295384576",
         ),
         (
             "guys",

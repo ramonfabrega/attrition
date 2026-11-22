@@ -8304,6 +8304,56 @@ fn a_squad_trained_under_a_friendly_building_s_point_garrisons_it() {
     }
 }
 
+/// **A squad trained under a point on an enemy's building attack-moves
+/// to the point itself** (item 4557, `come_out`'s enemy arm: the 2017
+/// sample's Bushi out of `3/2041` on 6927, the point (4433, 30955) on
+/// `2/2010`). The group's move is `QUEUE_NEW` with no action bit, and its
+/// origin is the point as pressed — off the 48-grid — never the free spot
+/// the squad's own sweep would snap it to.
+#[test]
+fn a_squad_trained_under_an_enemy_building_s_point_attack_moves_to_the_point_itself() {
+    let mut sim = world_sim();
+    let (t, b, squad) = rally_barracks(&mut sim);
+    let _ = city_at(&mut sim, &t, 1, 56, 56);
+    let theirs = sim.place_building(1, t.barracks, tile_pos(56, 49)).unwrap();
+    finish(&mut sim, theirs);
+    sim.declare_war(0, 1);
+    let there = sim.buildings[theirs].pos;
+    let point = Pos::new(there.x + 7, there.y - 19);
+    assert_ne!(point.x % 48, 24, "the point is off the 48-grid");
+    assert!(sim.covers_tile(theirs, point.tile()));
+    sim.action_gather_point(0, &[b], point, 0, false);
+    let cap = sim.build_train(b, squad).unit;
+    let mut ids = Vec::new();
+    for m in sim.squad_members(cap) {
+        let Some(crate::orders::Order {
+            flags,
+            body: crate::orders::Body::Move(mv),
+        }) = sim.units[m].orders.front()
+        else {
+            panic!("member {m} has no move: {:?}", sim.units[m].orders);
+        };
+        assert_eq!(mv.kind, crate::orders::MoveKind::AttackTo, "member {m}");
+        assert_eq!(
+            flags & crate::orders::flag::ACTION,
+            0,
+            "member {m}: no action bit"
+        );
+        let g = mv.group.expect("a group move");
+        assert_eq!(
+            g.orig, point,
+            "member {m}: the group's point is the point itself"
+        );
+        assert_eq!(
+            sim.units[m].orders.len(),
+            1,
+            "member {m}: QUEUE_NEW, one order"
+        );
+        ids.push(g.id);
+    }
+    assert!(ids.iter().all(|&i| i == ids[0]), "one group: {ids:?}");
+}
+
 /// **A lone unit not made at a Barracks, Stable or Dock walks to its
 /// point with a plain move** (run312's Citizen `0/10` on 760, a
 /// `MOVEORDER` to the Woodcutter's point and no gather order).
