@@ -1297,35 +1297,6 @@ pub(in crate::diff) mod tests {
                     }
                 }
             }
-            // RON_PROBE_4552=<index>:<lo>-<hi> — one building's sight bits.
-            if let Some((ix, lo, hi)) = std::env::var("RON_PROBE_4552").ok().and_then(|v| {
-                let (a, r) = v.split_once(':')?;
-                let (l, h) = r.split_once('-')?;
-                Some((a.parse::<i16>().ok()?, l.parse::<i64>().ok()?, h.parse::<i64>().ok()?))
-            }) {
-                if (lo..=hi).contains(&f) {
-                    let sim = &built.sim;
-                    for b in sim.buildings.iter().filter(|b| b.alive && b.index == ix) {
-                        let ty = b.ty.map_or(-1, |t| t as i64);
-                        let ident = b.ty.map_or_else(String::new, |t| format!("{:?}", sim.tables.build_types[t].ident));
-                        let (xs, ys) = b.ty.map_or((0, 0), |t| (sim.tables.build_types[t].x_size, sim.tables.build_types[t].y_size));
-                        let c = b.ty.map_or(b.pos, |t| sim.tile_corner(t, b.pos));
-                        let mut cells = Vec::new();
-                        for v in 0..ys {
-                            for u in 0..xs {
-                                let (hx, hy) = ((c.x + u) >> 1, (c.y + v) >> 1);
-                                cells.push(format!("({hx},{hy})={}", sim.world.seen(hx, hy).unwrap_or(0)));
-                            }
-                        }
-                        cells.dedup();
-                        eprintln!(
-                            "P4552 f{f} B {}/{} ty{ty} {ident} pos({},{}) corner({},{}) {xs}x{ys} started{} active{} es{} esc{} vis{} seen[{}]",
-                            b.owner, b.index, b.pos.x, b.pos.y, c.x, c.y, b.started, b.active,
-                            b.ever_seen, b.ever_seen_completed, b.visible, cells.join(" ")
-                        );
-                    }
-                }
-            }
             stream.apply(f as i32, &mut built);
             crate::diff::harness::debug_watch(&built, f);
             crate::diff::harness::debug_builds(&built, f);
