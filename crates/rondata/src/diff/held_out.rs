@@ -4105,15 +4105,19 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // run1755, state 3184, units range 4108, record 121, who=1's
         // Freighter `1/121` (TI 322) over `1/90`, `up_who` ours -1,
         // theirs 1): units 4,114 -> 4,530, first 3184 -> 3813.
+        // Moved by item 4532 (a unit that boards in its own think still
+        // takes `Guy::process`'s sixty-fourth-frame repaint, `Unit::process`
+        // testing `inside_up` before the think: run1755, state 3791, world
+        // range 7413, record 3280 `block.body`, who=1's Anti-Aircraft Gun
+        // `1/114` (TI 281) casting its Freighter `1/152` on its phase frame,
+        // byte 22 ours 0x00, theirs 0xe0): world 4,495 -> 4,548, whole;
+        // units 4,530 -> 4,548, whole. The row is whole.
         moved: Some(Score {
             states: 4548,
             agreed: [
-                4530, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4495,
+                4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548,
             ],
-            first: &[
-                ("units", (3813, Some(3469061096), 2450171507)),
-                ("world", (3791, Some(1932277774), 1952529533)),
-            ],
+            first: &[],
             over: None,
         }),
     }),
@@ -4414,9 +4418,11 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
 /// lines. Item 4524: 4 -> 5, row 130 (run1736) whole with its units line
 /// (the Kremlin's spy, `unit_masks2 & 0x400`). Item 4523: 5 -> 6, row 10
 /// (run1730) whole with its ammo line (a falling aircraft's round, who=1's
-/// Jet Fighter `1/114` on 5178).
+/// Jet Fighter `1/114` on 5178). Item 4532: 6 -> 7, row 30 (run1731) whole
+/// with its world and units lines (a unit that boards in its own think
+/// repaints its disc, who=1's Anti-Aircraft Gun `1/114` on 3790).
 #[cfg(test)]
-pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (6, 8);
+pub(crate) const HELD_OUT_SECOND_LINE: (usize, usize) = (7, 8);
 
 /// One battery: its declared table, its pins, where its files and takes
 /// sit, and its line in the handoff.
