@@ -2270,6 +2270,97 @@ mod tests {
         }
     }
 
+    /// Probe (item 4553, reverted whole): `RON_PROBE_4553=lo-hi` diffs every
+    /// units and guys range on run1782's states lo..=hi, field by field.
+    #[test]
+    fn probe_4553_row_63_units_and_guys() {
+        let Ok(win) = std::env::var("RON_PROBE_4553") else {
+            return;
+        };
+        let (lo, hi) = win.split_once('-').expect("lo-hi");
+        let (lo, hi): (u32, u32) = (lo.parse().unwrap(), hi.parse().unwrap());
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 3) else {
+            panic!("row 63's recording");
+        };
+        let ranges =
+            crate::testenv::experiment(&home.join("ron-golden/run1782/map-18"), "rontrace.ranges")
+                .expect("run1782");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 63's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record
+                .first_of(state as i32 - 1)
+                .expect("the state's set")
+                .clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            for (line, ours) in [
+                (0, built.sim.checksum_units()),
+                (6, built.sim.checksum_guys()),
+            ] {
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == line).collect();
+                if ours.ranges.len() != theirs.len() {
+                    eprintln!(
+                        "P4553 {state} {} len ours {} theirs {}",
+                        ours.name,
+                        ours.ranges.len(),
+                        theirs.len()
+                    );
+                }
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    if a.bytes == b.bytes {
+                        continue;
+                    }
+                    let (fa, fb) = if line == 6 {
+                        (
+                            crate::checksum::fields::guy_range_fields(a.field, &a.bytes),
+                            crate::checksum::fields::guy_range_fields(a.field, &b.bytes),
+                        )
+                    } else {
+                        (
+                            crate::checksum::fields::unit_range_fields(a.field, &a.bytes),
+                            crate::checksum::fields::unit_range_fields(a.field, &b.bytes),
+                        )
+                    };
+                    let diffs: Vec<String> = fa
+                        .iter()
+                        .zip(&fb)
+                        .filter(|(x, y)| x.1 != y.1)
+                        .map(|(x, y)| format!("{} ours {} theirs {}", x.0, x.1, y.1))
+                        .collect();
+                    let u = built
+                        .sim
+                        .units
+                        .iter()
+                        .position(|u| u.alive() && u.index == a.record);
+                    let who = u.map(|u| {
+                        let x = &built.sim.units[u];
+                        format!(
+                            "who={} ti={} pos={:?} hp={}",
+                            x.owner, x.type_index, x.pos, x.health
+                        )
+                    });
+                    eprintln!(
+                        "P4553 {state} {} k {k} record {} {} [{}] {:?}",
+                        ours.name,
+                        a.record,
+                        a.field,
+                        diffs.join("; "),
+                        who
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 63's Colosseum is priced by its ally's wonder site** (item
     /// 4542, `docs/COSTS.md`, the team term): on run1782's ranges, every leaders
     /// range on 1581 and 1582 byte for byte. Row 63's `TEAM_STYLE 1` locks
