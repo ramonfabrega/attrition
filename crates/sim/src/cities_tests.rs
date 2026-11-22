@@ -3731,7 +3731,11 @@ fn a_capture_s_spoils_skip_knowledge_and_reach_oil() {
             .map(|g| sim.economy.ledgers[0].bucket[g] - held[g])
             .collect::<Vec<i32>>()
     };
-    assert_eq!(spoils(&mut sim, held), [0, 0, 0, 0, 0, 75], "Oil, not Knowledge");
+    assert_eq!(
+        spoils(&mut sim, held),
+        [0, 0, 0, 0, 0, 75],
+        "Oil, not Knowledge"
+    );
     // The sample's own: Knowledge least, then Metal.
     assert_eq!(
         spoils(&mut sim, [500, 400, 300, 104, 162, 900]),
