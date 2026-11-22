@@ -379,6 +379,14 @@ pub struct Roles {
     /// row) — **Tactics** in the shipped file. Held, a Spy or a General
     /// trains in half the time (`ObjectData::train_time@006508c0`).
     pub spy_general_faster_preq: Option<TypeId>,
+    /// `ALLY_LOS`'s one prerequisite, the fifth of `rules.xml`'s
+    /// `TECHBONUSES` (`0x2b0`, `bonustypes +0xac0`) and **Mathematics** in
+    /// the shipped file. `Leader::gain_tech@006dcb60:437` ORs every seated
+    /// (`leader_flags & 1`) mutual ally into the stored `ally_mask`
+    /// (`LeaderData +0x6929`) when the tech it gains is this one — a
+    /// defeated ally too, which the census's own loop (`& 2`) strips again
+    /// at its next run (item 4529). `None` leaves the arm unreached.
+    pub ally_los_preq: Option<TypeId>,
     /// `EXPLORE_MAP_BONUS`'s one prerequisite, the seventh of `rules.xml`'s
     /// `TECHBONUSES` (`0x2b2`) and **Electronics** in the shipped file.
     /// `Leader::gain_tech@006dcb60` sets `leader_flags |= 0x1000` when the

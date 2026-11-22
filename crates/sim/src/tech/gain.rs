@@ -262,6 +262,24 @@ impl Sim {
             frame,
         );
         self.pay_arriving_goods(who, &had_preq, &events);
+        // `:437`–`:452`: gaining `ALLY_LOS`'s prerequisite (Mathematics) ORs
+        // each other slot with `leader_flags & 1` that `is_ally` names —
+        // `diplos` 2 both ways — into the stored `ally_mask`. The gate is
+        // the seat, never `& 2`: a defeated ally comes back in until the
+        // census's next rewrite (item 4529, run1772: computer 2 on 5427,
+        // `271 2 who..ally_mask` 0x15 -> 0x17 in theirs).
+        if self.tables.tech_tree.roles.ally_los_preq == Some(t) {
+            let w = who as usize;
+            let mut bits = 0u32;
+            for u in 0..self.territory.players.len().min(8) {
+                if u != w && self.leaders.allied[w][u] && self.leaders.allied[u][w] {
+                    bits |= 1 << u;
+                }
+            }
+            if let Some(l) = self.ai.ai.get_mut(w) {
+                l.census.ally_mask |= bits;
+            }
+        }
         // Step 9's government arm (`006de29e`–`006de2e4`): with `gov`
         // written, a gained `is(0x274, 0)` — Capitalism — after frame 0
         // takes `CAPITALISM_OIL_GIFT` into the oil bucket (`bucket_add`, a
