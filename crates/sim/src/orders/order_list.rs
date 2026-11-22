@@ -370,22 +370,6 @@ impl Sim {
         self.update_action(u);
     }
 
-    /// Remove the order the cursor sits on, `i` places behind the current
-    /// one. Only `check_build_order` walks a cursor, and only onto a
-    /// `BUILD_AT`, which carries no per-kind teardown — so this is
-    /// [`Sim::kill_current_order`]'s generic tail applied at an index.
-    pub(super) fn remove_order_at(&mut self, u: usize, i: usize) {
-        if self.units[u].orders.remove(i).is_none() {
-            return;
-        }
-        if i == 0 {
-            self.new_head(u);
-        }
-        self.units[u].movement.dest = None;
-        self.clear_partial_path(u);
-        self.update_action(u);
-    }
-
     /// `Unit::kill_current_path@005e31d0`: pop the stack until an entry
     /// with the final flag is popped — **and then free the suspended
     /// search**.
