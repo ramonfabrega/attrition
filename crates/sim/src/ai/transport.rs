@@ -1569,6 +1569,17 @@ impl Sim {
             }
         }
         self.units[boat].inside = None;
+        // **And the boat heads its own cell once more** (item 4530,
+        // `docs/COLLISION.md` §3.2): `remove_from_inside` ends in
+        // `Object::add_to_world(boat)` (`006480f0`, after the splice), on
+        // the point it went in at, and `Object::close` then takes
+        // `remove_from_world` (`006471d6`). Off the map, neither paints a
+        // disc (both gate on vslot `+0xbc`), so the chain is all that is
+        // left of it: the object at the cell's head takes `up_who` the
+        // boat's owner and keeps it. run1755's 3184: who=1's Freighter
+        // `1/90` dies into its oil platform under `1/121`, whose `up_who`
+        // reads 1 there.
+        self.chain_add(boat);
         self.transport_dies(boat);
     }
 
