@@ -603,53 +603,6 @@ mod tests {
         }
     }
 
-    /// Probe (item 4545): row 83's leaders on run1784's ranges.
-    #[test]
-    fn probe_4545_row_83_leaders() {
-        if std::env::var("RON_PROBE_4545").is_err() {
-            return;
-        }
-        let Some(inst) = crate::testenv::install() else {
-            return;
-        };
-        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(&FIFTH, 4) else {
-            return;
-        };
-        let ranges = crate::testenv::experiment(&home.join("ron-golden/run1784/map-14"), "rontrace.ranges")
-            .expect("run1784");
-        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 83's file");
-        let loaded = crate::load::load(&inst).expect("the install loads");
-        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
-        let mut stream = crate::input::Stream::pump(&rec);
-        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
-        let lo: u32 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(1954);
-        let hi: u32 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(1957);
-        let who: u32 = std::env::var("RON_PROBE_WHO").ok().and_then(|v| v.parse().ok()).unwrap_or(2);
-        eprintln!("PROBE team_style {}", built.sim.ai.lobby.team_style);
-        for state in lo..=hi {
-            while built.sim.frame < state {
-                stream.apply(built.sim.frame as i32, &mut built);
-                built.sim.command().tick();
-            }
-            let set = record.first_of(state - 1).expect("the state's set").clone();
-            let all = record.ranges(&set).expect("the set's ranges");
-            let ours = built.sim.checksum_leaders();
-            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
-            eprintln!("PROBE state {state}: ranges ours {} theirs {}", ours.ranges.len(), theirs.len());
-            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
-                let words = |v: &[u8]| -> Vec<i32> {
-                    v.chunks(4).filter(|c| c.len() == 4).map(|c| i32::from_le_bytes(c.try_into().unwrap())).collect()
-                };
-                if a.bytes != b.bytes {
-                    eprintln!("PROBE {state} DIFF range {k} rec {} {}: ours {:?} theirs {:?}", a.record, a.field, words(&a.bytes), words(&b.bytes));
-                } else if a.record as u32 == who && a.field == "make_list[k]" {
-                    eprintln!("PROBE {state} same  range {k} rec {} {}: {:?}", a.record, a.field, words(&a.bytes));
-                }
-            }
-        }
-    }
-
     /// **Row 103's caravan road is laid on the frame after the budget**
     /// (item 4544, `docs/ROADS.md` §8.3): run1783, the ranges take of
     /// row 103's file. A caravan's road search costs 3,207, 3,202 and
