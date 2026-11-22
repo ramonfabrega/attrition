@@ -621,9 +621,19 @@ impl Sim {
     /// While `seen` never forgot, the fog plane under a building answered
     /// as `ever_seen` does; the hundredth-frame clear (§10) parts them.
     ///
+    /// **The second clause's other three arms are the viewer's** (item
+    /// 4550): `reveal_map == 3`, `leader_flags & 0x800` (the Space Program,
+    /// or `REVEAL_ENEMY_BONUS`) and `num_units[0x141]` (a Fouché standing)
+    /// each stand in for `ever_seen`, which is [`Sim::sees_every_unit`]
+    /// beside the lobby's reveal. They read `ever_seen` alone until then:
+    /// run1742's who=2 finished its Space Program between the rebuilds of
+    /// 5400 and 5600, and its danger row kept halving every building of
+    /// who=1's its side had never seen — half-cell (12, 19) ours 37,
+    /// theirs 50 on 5601 (`docs/DANGER.md` §5).
+    ///
     /// SEAM: a building's `visible` byte is never set here (§9.1), and
-    /// infiltration, the two leader arms and the `flags & 0x20` arm under
-    /// the semaphore are not carried. Each can only *refuse* further here.
+    /// infiltration and the `flags & 0x20` arm under the semaphore are not
+    /// carried. Each can only *refuse* further here.
     pub fn build_is_seen(&self, b: usize, who: crate::Player) -> bool {
         let bd = &self.buildings[b];
         if bd.owner == who {
@@ -635,7 +645,10 @@ impl Sim {
             return true;
         }
         let mask = self.stored_ally_mask(who);
-        (bd.started || mask & Self::who_bit(bd.owner) != 0) && bd.ever_seen & mask != 0
+        (bd.started || mask & Self::who_bit(bd.owner) != 0)
+            && (self.ai.lobby.reveal_map == 3
+                || bd.ever_seen & mask != 0
+                || self.sees_every_unit(who))
     }
 
     /// `WorldData::is_seen@006b55c0` at one object's position: does `who`'s

@@ -1124,3 +1124,59 @@ fn a_defeated_ally_s_eyes_leave_the_stored_ally_mask() {
         );
     }
 }
+
+/// **`ever_seen` is one of four arms of `WallData::is_seen`'s second
+/// clause** (item 4550, `docs/DANGER.md` §5): `reveal_map == 3`, the
+/// viewer's `leader_flags & 0x800` and its `num_units[0x141]` (a Fouché
+/// standing) each see a started enemy building no ally of the viewer has
+/// laid eyes on. The first clause still holds: an unstarted building of a
+/// side the viewer is not allied with is unseen whatever the viewer holds.
+/// run1742's who=2, holding `0x800` from its Space Program, stopped
+/// halving who=1's buildings in its danger row on 5600.
+///
+/// **Made to fail on purpose**: with `ever_seen` alone (the tree before
+/// item 4550), the reveal and the Fouché answer unseen.
+#[test]
+fn a_viewer_s_reveal_sees_a_building_its_side_never_saw() {
+    let mut world = World::new(40, 40);
+    world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 39));
+    assert!(world.set_fog(vec![0; 80 * 80]));
+    let mut s = crate::Sim::new(Tuning::RON, world, 3);
+    let t = s.add_build_type(crate::cities::build::BuildType {
+        los: 4,
+        x_size: 2,
+        y_size: 2,
+        ..crate::cities::build::BuildType::default()
+    });
+    let at = Pos::new(20 * 0x300 + 0x180, 20 * 0x300 + 0x180);
+    let b = s.add_building(0, at, 0);
+    s.buildings[b].ty = Some(t);
+    s.buildings[b].started = true;
+    s.buildings[b].ever_seen = 0b001;
+    s.ai.ai[1].census.ally_mask = 0b010;
+    s.ai.ai[2].census.ally_mask = 0b100;
+    assert!(!s.build_is_seen(b, 1), "never seen, nothing held: unseen");
+    s.ai.lobby.reveal_map = 3;
+    assert!(s.build_is_seen(b, 1), "the lobby's reveal");
+    s.buildings[b].started = false;
+    assert!(
+        !s.build_is_seen(b, 1),
+        "unstarted and no ally: the first clause refuses"
+    );
+    s.buildings[b].started = true;
+    s.ai.lobby.reveal_map = 0;
+    let ut = s.add_unit_type(crate::UnitType {
+        hits: 20,
+        moves: 40,
+        los: 1,
+        ..crate::UnitType::default()
+    });
+    let mut f = crate::Unit::new(1, 0, Pos::new(0x180, 0x180), 20);
+    f.ty = Some(ut);
+    f.type_index = 0x32 + 0x141;
+    let f = s.add_unit(f);
+    assert!(s.build_is_seen(b, 1), "a Fouché standing: num_units[0x141]");
+    assert!(!s.build_is_seen(b, 2), "and only for its own side");
+    s.units[f].type_index = 0x32 + 0x140;
+    assert!(!s.build_is_seen(b, 1), "another type: unseen");
+}
