@@ -1056,7 +1056,15 @@ impl Sim {
     /// type `ty` born at `at`: its index, or none when the list is full.
     pub(crate) fn transport_boat(&mut self, who: Player, ty: usize, at: Pos) -> Option<usize> {
         let index = self.find_free(who, UNIT_BASE, BUILD_BASE)?;
-        let mut boat = Unit::new(who, index, at, self.tables.unit_types[ty].hits);
+        // **`Unit::update_hits`, not the type's raw `HITS`** (item 4518):
+        // `Unit::init@00612100:580` calls vslot `+0x15c` (`Unit::update_hits`)
+        // for every unit `Objects::init_unit` makes, the boat with them, so a
+        // Dutch caravan's Merchant Fleet takes the merchant kinds' `ages ×
+        // DUTCH_HP_BONUS`. run1769, state 4275: who=1's fleet `1/142` (TI
+        // 318), cast by the Armed Caravan `1/64`, is born with `myhits` 192 in
+        // theirs where this crate's raw 172 parted the units line
+        // (`docs/RECGAME.md` §12).
+        let mut boat = Unit::new(who, index, at, self.unit_hits(who, ty));
         boat.kind = self.tables.unit_types[ty].kind;
         boat.ty = Some(ty);
         boat.type_index = self.tables.unit_types[ty].type_index;
@@ -1561,6 +1569,17 @@ impl Sim {
             }
         }
         self.units[boat].inside = None;
+        // **And the boat heads its own cell once more** (item 4530,
+        // `docs/COLLISION.md` §3.2): `remove_from_inside` ends in
+        // `Object::add_to_world(boat)` (`006480f0`, after the splice), on
+        // the point it went in at, and `Object::close` then takes
+        // `remove_from_world` (`006471d6`). Off the map, neither paints a
+        // disc (both gate on vslot `+0xbc`), so the chain is all that is
+        // left of it: the object at the cell's head takes `up_who` the
+        // boat's owner and keeps it. run1755's 3184: who=1's Freighter
+        // `1/90` dies into its oil platform under `1/121`, whose `up_who`
+        // reads 1 there.
+        self.chain_add(boat);
         self.transport_dies(boat);
     }
 

@@ -1315,6 +1315,88 @@ mod tests {
         }
     }
 
+    /// **Row 55's Merchant Fleet is born through `Unit::update_hits`**
+    /// (item 4518, `docs/RECGAME.md` §12): run1769 holds every units range
+    /// to 6000. On 4275 who=1's Armed Caravan `1/64` casts its transport and
+    /// the Merchant Fleet `1/142` (TI 318) is born; who=1 is the Dutch (tribe
+    /// 22), so `Unit::init@00612100:580`'s `update_hits` adds the merchant
+    /// kinds' `ages × DUTCH_HP_BONUS`: `myhits` 192, where the raw type's 172
+    /// parted the line.
+    #[test]
+    fn row_55_s_dutch_merchant_fleet_is_born_with_its_update_hits_on_run1769_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FOURTH, 2) else {
+            eprintln!("skipping: row 55's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1769/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1769's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 55's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [4274, 4275] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_units();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // The fleet by name: who=1's record 142, its `type` and `myhits`.
+            let at = ours
+                .ranges
+                .iter()
+                .enumerate()
+                .filter(|(_, r)| r.record == 142 && r.field == "who..y_internal")
+                .find(|(k, _)| theirs[*k].bytes[0] == 1)
+                .map(|(k, _)| k);
+            if state == 4274 {
+                assert_eq!(at, None, "1/142 is not yet born on 4274");
+                continue;
+            }
+            let k = at.expect("1/142 on 4275");
+            assert_eq!(ours.ranges[k + 1].field, "type");
+            assert_eq!(
+                &theirs[k + 1].bytes[..],
+                &318i32.to_le_bytes(),
+                "1/142's TypeIndex"
+            );
+            assert_eq!(ours.ranges[k + 3].field, "myhits..launch_frames");
+            assert_eq!(
+                &theirs[k + 3].bytes[..4],
+                &192i32.to_le_bytes(),
+                "theirs' myhits"
+            );
+            let fleet = built
+                .sim
+                .units
+                .iter()
+                .position(|u| u.alive() && u.owner == 1 && u.index == 142)
+                .expect("1/142");
+            let ty = built.sim.units[fleet].ty.expect("its type");
+            assert_eq!(built.unit_type_names[ty], "Merchant Fleet");
+            assert_eq!(built.sim.tables.unit_types[ty].hits, 172, "the raw type");
+        }
+    }
+
     /// **Row 105's pruned oil list keeps its capacity** (item 4512,
     /// `docs/RECGAME.md` §11.1): run1752 holds every leaders range on 3582
     /// and 3583. On 3583 who=1's `oil_patches` goes from twelve patches to
@@ -2303,6 +2385,100 @@ mod tests {
                 );
             }
             assert_eq!(ours.ranges.len(), theirs.len(), "world ranges on {state}");
+        }
+    }
+
+    /// **Row 30's Freighter heads its cell once more as it dies into its
+    /// oil platform** (item 4530, `docs/COLLISION.md` §3.2): on 3184
+    /// who=1's Transport Freighter `1/90` (TI 322, sea), carrying the
+    /// Citizen `1/45` (TI 50), reaches the platform it built and dies into
+    /// it. `Object::close@00647160` finds it off the map and calls
+    /// `Object::remove_from_inside@006480f0`, which ends in
+    /// `Object::add_to_world`: the boat heads its own cell, over the
+    /// Freighter `1/121` standing there, and `remove_from_world` takes it
+    /// off again, leaving `1/121`'s `up_who` 1 (units range 4108, record
+    /// 121, ours -1 before). Every units range on 3183 to 3185 agrees.
+    #[test]
+    fn row_30_s_freighter_heads_its_cell_as_it_dies_into_its_platform_on_run1755_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 1) else {
+            eprintln!("skipping: row 30's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1755/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1755's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 30's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        const FREIGHTER_TI: i32 = 322;
+        const CITIZEN_TI: i32 = 50;
+        let find = |sim: &sim::Sim, o: i16| {
+            sim.units
+                .iter()
+                .rposition(|u| u.owner == 1 && u.index == o)
+                .unwrap_or_else(|| panic!("1/{o}"))
+        };
+        for state in [3183, 3184, 3185] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let (boat, other, rider) = (
+                find(&built.sim, 90),
+                find(&built.sim, 121),
+                find(&built.sim, 45),
+            );
+            let sim = &built.sim;
+            assert_eq!(
+                (sim.units[boat].type_index, sim.units[boat].kind.domain),
+                (FREIGHTER_TI, sim::territory::attrition::Domain::Sea),
+                "1/90's TypeIndex and domain"
+            );
+            assert_eq!(
+                sim.units[other].type_index, FREIGHTER_TI,
+                "1/121's TypeIndex"
+            );
+            assert_eq!(sim.units[rider].type_index, CITIZEN_TI, "1/45's TypeIndex");
+            if state == 3183 {
+                assert!(sim.units[boat].alive(), "1/90 alive on 3183");
+                assert_eq!(sim.units[rider].inside_unit, Some(boat), "1/45 aboard 1/90");
+                assert_eq!(
+                    (sim.units[boat].pos.cell(), sim.unit_chain_words(boat)),
+                    (sim.units[other].pos.cell(), (121, -1, 0, 1)),
+                    "1/90 under 1/121 on one cell"
+                );
+            } else {
+                assert!(!sim.units[boat].alive(), "1/90 gone on {state}");
+                assert_eq!(
+                    sim.unit_chain_words(other),
+                    (-1, -1, 0, 1),
+                    "1/121's four words on {state}"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_units();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                assert_eq!(
+                    at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                    None,
+                    "units range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                    a.record,
+                    a.field
+                );
+            }
+            assert_eq!(ours.ranges.len(), theirs.len(), "units ranges on {state}");
         }
     }
 
@@ -3827,13 +4003,19 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // (94, 87) to (97, 91), ours 0x00, theirs 0x02, who=1's decoy
         // member `1/37` (TI 100) seated 144 east of its captain `1/36`):
         // world 4,423 -> 4,495, first 1662 -> 3791.
+        // Moved by item 4530 (a boat that dies into its oil platform heads
+        // its cell once more, `Object::remove_from_inside@006480f0`'s
+        // `add_to_world` before `Object::close`'s `remove_from_world`:
+        // run1755, state 3184, units range 4108, record 121, who=1's
+        // Freighter `1/121` (TI 322) over `1/90`, `up_who` ours -1,
+        // theirs 1): units 4,114 -> 4,530, first 3184 -> 3813.
         moved: Some(Score {
             states: 4548,
             agreed: [
-                4114, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4495,
+                4530, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4548, 4495,
             ],
             first: &[
-                ("units", (3184, Some(2261284178), 566719572)),
+                ("units", (3813, Some(3469061096), 2450171507)),
                 ("world", (3791, Some(1932277774), 1952529533)),
             ],
             over: None,
@@ -4457,7 +4639,17 @@ pub(crate) const SCORES_FOURTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4518 (a boat is born through `Unit::update_hits`: the
+        // Dutch Merchant Fleet 1/142's myhits 172 -> 192 on 4275): units
+        // 5,833 -> 6,001, whole; eleven lines whole, groups as found.
+        moved: Some(Score {
+            states: 6001,
+            agreed: [
+                6001, 6001, 6001, 6001, 6001, 5989, 6001, 6001, 6001, 6001, 6001, 6001,
+            ],
+            first: &[("groups", (5576, Some(4003049513), 3939479638))],
+            over: None,
+        }),
     }),
     // run1763
     // row 75, as found 2026-11-21, ended by the original on 5341: 11 lines whole; ammo 4,682 of

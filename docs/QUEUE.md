@@ -32,9 +32,9 @@ Rubric: ported 738 · replaced by design 331 · open 571 of 3611 · lockstep byt
 Held-out: 8 of 9 whole · shortest 6147
 Parity: 34 of 39 whole · held out 28 of 32 · the sample parts first on leaders 5403 of 21044 · draws 5460
 Parity held out: 8 of 8 whole · 8 taken · lines 64 of 96 as found, 96 now · first partings 2990 3694 711 969 0 134 2694 0 as found, whole whole whole whole whole whole whole whole now · reach 27 % of states as found, 100 % now
-Parity held out, second: 6 of 8 whole · 8 taken · lines 65 of 96 as found, 89 now · first partings 537 1662 3352 5054 4021 1608 553 whole as found, whole 3184 whole whole whole 3809 whole whole now · reach 53 % of states as found, 91 % now
+Parity held out, second: 6 of 8 whole · 8 taken · lines 65 of 96 as found, 89 now · first partings 537 1662 3352 5054 4021 1608 553 whole as found, whole 3791 whole whole whole 3809 whole whole now · reach 53 % of states as found, 93 % now
 Parity held out, third: 8 of 8 whole · 8 taken · lines 90 of 96 as found, 96 now · first partings 4805 whole whole whole 3831 1976 whole whole as found, whole whole whole whole whole whole whole whole now · reach 88 % of states as found, 100 % now
-Parity held out, fourth: 6 of 8 whole · 8 taken · lines 90 of 96 as found, 91 now · first partings whole whole 4275 4004 5266 whole whole whole as found, whole whole 4275 whole 5266 whole whole whole now · reach 91 % of states as found, 94 % now
+Parity held out, fourth: 6 of 8 whole · 8 taken · lines 90 of 96 as found, 92 now · first partings whole whole 4275 4004 5266 whole whole whole as found, whole whole 5576 whole 5266 whole whole whole now · reach 91 % of states as found, 97 % now
 Structure: flat 11 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 21 · largest 3711
 Renderer: K 59 of M 60 · frames 35 of 35 · pieces 1465 of 1478 · resolved 1,237,711 of 1,237,726 objects over 110 lobbies
 Clock: ceilings on GreatLakes lobby, 600 frames off-screen from frame 0 · frame zero 1.5 s · p99 20 ms · slowest 400 ms (frame 1, first sight) · peak 320 MiB
@@ -52,7 +52,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2): four seats out on 2026-11-21, the lanes Opus 5.5 at high: the sample's 4529 (lane-4529, leaders from 5403, no take), the chain's 4530 (an in-session builder, row 30's units, no take), a parity seat's 4518 (lane-4518, fourth, row 55), a parity seat's 4527 (lane-4527, the fifth battery with seats and a team; DECISIONS 150 §3). Landed since the pass: 4517, 4526, 4509, 4528. One game at a time on the game lane. Unseated, for the parity seat that stops first, in this order: 4485 (second, row 110), 4519 (fourth, row 95), alternating with the fifth's rows. The disk read 84 GB at gate-4517; every take still stops under 60.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2): four seats out on 2026-11-21, the lanes Opus 5.5 at high: the sample's 4529 (lane-4529, leaders from 5403, no take), the chain's 4532 (an in-session builder, row 30's world, no take), a parity seat's 4531 (lane-4531, fourth, row 55's groups, no take), a parity seat's 4527 (lane-4527, the fifth battery with seats and a team; DECISIONS 150 §3). Landed since the pass: 4517, 4526, 4509, 4528, 4518, 4530. One game at a time on the game lane. Unseated, for the parity seat that stops first, in this order: 4485 (second, row 110), 4519 (fourth, row 95), alternating with the fifth's rows. The disk read 84 GB at gate-4517; every take still stops under 60.
 
 4529. **The 2017 sample: leaders from 5403** (a rules item, whole; the sample's seat; `docs/RECGAME.md` §7). Item 4526 moved world
 5401 → 5462 (`build_is_seen` and the fog test take the stored `ally_mask`), and the sample parts first on leaders 5403 (draws
@@ -60,16 +60,16 @@ lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when
 Items 10910 → 10724 is a named fall (the fog test's attack callers). Re-pin `SAMPLE_LINES` and `SAMPLE_WALKED`; the driver writes
 `Parity:`. It stops when two landings running leave `Parity:` as it is (DECISIONS 148 §5).
 
-4530. **Parity held out, second: row 30's units from 3184** (a rules item, whole; the chain's builder; `docs/RECGAME.md` §11). Item
-4509 moved world 4,423 → 4,495 and its first parting 1662 → 3791 (a decoy member's seating relights through the fog-cell arm).
-Units part first on 3184: run1755's range 4108, record 121, `up_who` ours −1, theirs 1. Then world 3791: range 7413, record 3280,
-`block.body`. No take: run1755 holds both. Re-pin `SCORES_SECOND[1].moved`, never `found`. It stops when two landings running
-move no column.
+4532. **Parity held out, second: row 30's world from 3791** (a rules item, whole; the chain's builder; `docs/RECGAME.md` §11).
+Item 4530 moved units 4,114 → 4,530, first 3184 → 3813 (a boat dying into its oil platform heads its cell once more). World parts
+first on 3791: run1755's range 7413, record 3280, cell (40, 54), `block.body` bytes 22 to 31. Theirs holds a whole 5×5 collision
+block where a transport is cast and boarded; ours clears one column. Units 3813 may follow from it. No take: run1755 holds both.
+Re-pin `SCORES_SECOND[1].moved`, never `found`. It stops when two landings running move no column.
 
-4518. **Parity held out, fourth: row 55's units from 4275** (a rules item, whole; a parity seat; `docs/RECGAME.md` §12). Row 55
-(run1762): units 5,833 of 6,001 from 4275 and groups 5,989 from 5576. First act: score it again, since a fix on another row may
-have moved it; then `df -g ~` (stop under 60), one take as run1769 with the arguments the scorer prints (`RNG_MASK=0x21u`), filed
-with `filerun.py`, then the leaf. Re-pin its `moved`, never `found`. It stops when two landings running move no column.
+4531. **Parity held out, fourth: row 55's groups from 5576** (a rules item, whole; a parity seat; `docs/RECGAME.md` §12). Item 4518
+made units whole (a transport boat now born with the Dutch age bonus to its hits), so row 55 is one line from whole: groups
+from 5576, run1769's range 191, record 83, `id..march` byte 8, `num` ours 42, theirs 43. No take: run1769 holds the groups ranges
+to 6000. Re-pin its `moved`, never `found`. It stops when two landings running move no column.
 
 4485. **Parity held out, second: row 110, three seats** (a rules item, whole; unseated; `docs/RECGAME.md` §11). The East Indies
 Information melee is the one lobby of the thirty-two with three seats, played as its lobby stands (parked 4462b). Five lines part:
