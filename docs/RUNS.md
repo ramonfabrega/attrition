@@ -41106,6 +41106,8 @@ it and 73 after.
   world 3374; items 3670; goods 3710.
 - **Re-scored by item 4547** (piece 736's three bays): ammo 3,401, first 3299; units 3,299, first 3299; leaders
   3,223 and cities 3,373, both first 3223 (the row's first parting); groups 3,423, first 3376; deaths 3,374.
+- **Re-scored by item 4561** (an unbuilt Village's close fixes the borders): leaders 3,372, first 3302 (range 129,
+  record 1, `damage_current_frame` ours 0, theirs 1); cities 3,379, first 3376; the row's first parting is 3299.
 - Filed by `filerun.py run1787 heldout5-row043-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1787-heldout5-row043-ranges.txt`, 2,873 bytes, SHA-256
   `89b9a9025c5bbfb4daee2d7ca38babf72970956a8943a8e49fe0796d43162b8b`; `rontrace.log` → `Logs/rontrace-run1787.log`,

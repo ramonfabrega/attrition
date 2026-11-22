@@ -1244,7 +1244,7 @@ mod tests {
     /// **Row 43's unbuilt Village closes and the borders are fixed** (item
     /// 4561, `docs/RECGAME.md` §12.3): run1787, the ranges take of row 43's
     /// file. who=2's Village site (building 2027 at cell (27, 25), placed,
-    /// never started) closes on the frame state 3222 ends; theirs'
+    /// never started) closes on frame 3221 (state 3222); theirs'
     /// `Build::close` takes its `is a city` arm (`SubObjectData::flags &
     /// 0x20`, the whole `VILLAGE` lineage, built or not) and calls
     /// `Region::fix_borders`, so the next frame's `check_borders` starts the
@@ -7301,10 +7301,17 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // 4,042 and goods 4,002 -> 3,710 are named falls past their unmoved
         // first partings, 3670 and 3710. Our walk no longer holds
         // `game_over` from 5977: `over` 5977 -> none, as the original.
+        // Moved by item 4561 (`Build::close`'s `is a city` arm fixes the
+        // borders for an unbuilt site, `0x628bd3`; run1787's leaf on 3223,
+        // leaders range 1, record 0, who=0's `reg_terr[1]` ours 368, theirs
+        // 0, and cities range 12, record 4, `bordering` ours 6, theirs 0:
+        // who=2's Village site at (27, 25) closes on frame 3221 and theirs'
+        // pass starts again): leaders 3,223 -> 3,372 (first 3223 -> 3302),
+        // cities 3,373 -> 3,379 (first 3223 -> 3376).
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3299, 3345, 6001, 3401, 3374, 3423, 3374, 3223, 3373, 4042, 3710, 3374,
+                3299, 3345, 6001, 3401, 3374, 3423, 3374, 3372, 3379, 4042, 3710, 3374,
             ],
             first: &[
                 ("units", (3299, Some(14876181), 151977493)),
@@ -7313,8 +7320,8 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
                 ("deaths", (3374, Some(3897575467), 982012739)),
                 ("groups", (3376, Some(3865935763), 406744244)),
                 ("guys", (3374, Some(641651763), 4151560086)),
-                ("leaders", (3223, Some(1554705983), 3151556086)),
-                ("cities", (3223, Some(3058186551), 2580035877)),
+                ("leaders", (3302, Some(3480940479), 291631041)),
+                ("cities", (3376, Some(607798839), 2409973377)),
                 ("items", (3670, Some(3687073795), 3707258885)),
                 ("goods", (3710, Some(3114104596), 3160241942)),
                 ("world", (3374, Some(2564315079), 3645396767)),

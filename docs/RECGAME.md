@@ -1512,7 +1512,8 @@ left the one shared `find_counters[0x1c]` at 2011, who=1's count (its mark); `fi
 cursor to 2000 and starts at 2001, so who=1's three trainings on 2976 went 2007, 2000, 2007, where ours went 2000
 first. The lap resets now (`ai_host::lap`, `find_unit`'s too; AI §11): twelve lines whole.
 
-**Row 43 (item 4547).** who=2's Slinger, piece 736, had no bay; it is 1440's (`launch::BAYS`).
+**Row 43 (item 4547).** who=2's Slinger, piece 736, had no bay; it is 1440's (`launch::BAYS`). **Item 4561**: who=2's
+unbuilt Village closes on frame 3221 (state 3222); `Build::close`'s city arm fixes the borders built or not (`0x628bd3`).
 
 ### 12.4 Row 95: a CEO going in leaves its city (item 4519)
 

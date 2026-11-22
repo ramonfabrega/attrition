@@ -2999,8 +2999,8 @@ impl Sim {
                 // restarts the border pass from every region's first cell,
                 // and the next frame's `check_borders` zeroes each leader's
                 // `reg_terr` and every city's `bordering` there. Row 43's
-                // who=2 Village site at (27, 25) closes on the frame state
-                // 3222 ends; theirs' who=1 `reg_terr[1]` reads 130 on 3223,
+                // who=2 Village site at (27, 25) closes on frame 3221
+                // (state 3222); theirs' who=1 `reg_terr[1]` reads 130 on 3223,
                 // the restarted pass's first frame. `close_city` ends in its
                 // own fix, so the arm above needs no second.
                 self.sync_territory();
