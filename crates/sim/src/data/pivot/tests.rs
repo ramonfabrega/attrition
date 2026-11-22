@@ -2712,6 +2712,33 @@ fn the_original_s_node_agrees_on_every_degree() {
     eprintln!("{rows} degrees agree");
 }
 
+/// **The MLRS's pivot node on every degree** (item 4536, `docs/RECGAME.md`
+/// §12.5): `get_position(223, node 4, anim 0, time 0, d)` for `d =
+/// 0..=360`, the original's under unicorn on run883b's packet
+/// (`get_position.py … sweep 223 4 0 0`), `cvttss2si` of each component.
+/// The table is `$RON_NODE_SWEEP_4536`, outside git
+/// (`~/ron-data/lab-experiments/2026-11-22-item-4536/node-223-n4.txt`). A
+/// machine without it says so.
+#[test]
+fn the_original_s_mlrs_node_agrees_on_every_degree() {
+    let Ok(path) = std::env::var("RON_NODE_SWEEP_4536") else {
+        eprintln!("skipping: set RON_NODE_SWEEP_4536 (item 4536's oracle, run883b)");
+        return;
+    };
+    let table = std::fs::read_to_string(&path).expect("RON_NODE_SWEEP_4536");
+    let mut degrees = 0;
+    for line in table.lines() {
+        let f: Vec<i32> = line
+            .split_whitespace()
+            .take(4)
+            .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+            .collect();
+        assert_eq!(offset_at(223, 4, f[0]), (f[2], f[3]), "node 4 at {}", f[0]);
+        degrees += 1;
+    }
+    assert_eq!(degrees, 361);
+}
+
 /// **The gate is the event's, whatever the vectors** (item 1117,
 /// `docs/COMBAT.md` §85): `execute_game_events`' `008e4c28`–`008e4c4c`
 /// hold a release on node `n` of a piece with restrictions while

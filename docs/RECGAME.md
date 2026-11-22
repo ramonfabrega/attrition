@@ -1374,7 +1374,7 @@ of 8, 65 of 96 and 53 %, and the first 0 of 8, 64 of 96 and 27 %.
 | 35 | run1761 | Great Sahara, Classical | 6,001 | **12** | whole |
 | 55 | run1762 | East Indies, Medieval | 6,001 | 10 → **12** | ~~units 4275~~ (item 4518), ~~groups 5576~~ (item 4531) |
 | 75 | run1763 | Great Lakes, Gunpowder | 5,342, ended on 5341 | 11 | ammo 4004 |
-| 95 | run1764 | East Indies, Information | 6,001 | 9 → 10 | ~~leaders 5266~~ (item 4519, §12.4), units 5909 (item 4524), guys 5909 |
+| 95 | run1764 | East Indies, Information | 6,001 | 9 → **12** | ~~leaders 5266~~ (4519, §12.4), ~~units, guys 5909~~ (4524, 4536, §12.5) |
 | 115 | run1765 | Southwest Mesa, difficulty 2 | 6,001 | **12** | whole |
 | 135 | run1766 | Great Sahara, difficulty 2 | 6,001 | **12** | whole |
 | 155 | run1767 | Great Sahara, difficulty 2 | 6,001 | **12** | whole |
@@ -1536,9 +1536,14 @@ at range 128 on 5266 (`[3, 7, 130, 1, …]` against `[3, 7, 130, 3, …]`) and r
 5,266 → 6,001, whole; **row 95 has ten lines whole**.
 
 *Not established*: the `come_out` arm has no diff yet. It is built from the reading alone, at both of ours' exits. The
-CEO does not leave the freighter before 6000 in ours, and no capture shows a CEO garrisoning a building. Units and guys
-part on 5909: range 2689 (units) and 720 (guys), record 99, guy byte 26, `turret_angles[0]` and
-`des_turret_angles[0]` both ours 45023232, theirs 44564480. run1770 holds both lines' ranges to 6000.
+CEO does not leave the freighter before 6000 in ours, and no capture shows a CEO garrisoning a building. ~~Units and guys
+part on 5909~~ (closed, §12.5).
+
+### 12.5 Row 95: the MLRS bears from its pivot node (item 4536)
+
+5909: record 99, the MLRS `1/99` (TI 273, piece 223), `turret_angles[0]` ours 687 << 16, theirs 680 << 16.
+`pivot::NODES` lacked `(223, 4)`; built off run883b, diff-backed by
+`row_95_s_mlrs_bears_from_its_pivot_node_on_run1770_s_ranges`. Story: its journal.
 
 ### 12.6 Row 23: setup claims under the colonized limit (item 4534)
 
