@@ -530,7 +530,11 @@ fn gunpowder_melee_run1413_s_word_window_is_widened_whole() {
     // Item 4204: 160 -> 131, −29 on 2601, the head quit's `clear_orders`:
     //   `0/1`..`0/7` `orders.len`/`order:length` 0 = 0, `idle` 1 = 1; the
     //   walker `0/3` stops at theirs' (38119, 36586) (was ours (38136, 36600)).
-    pin_eq!(w.firsts.len(), 131, "run1413's word window");
+    // Item 4538: 131 -> 128, −3 on 2201, `Unit::update_hits`' Copper arm on
+    //   a Siege Factory's unit: who=2's Supply Wagon `2/24` (TI 63) `myhits`,
+    //   `hits:myhits` 90 and `hits_left` 87 in ours (now 108 and 105), theirs
+    //   108 and 105 — 90 × 120 % (parked 3788a, closed).
+    pin_eq!(w.firsts.len(), 128, "run1413's word window");
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }

@@ -472,6 +472,91 @@ mod tests {
         assert_eq!((lim.player[0], lim.colonized[0]), (48, 44));
     }
 
+    /// **Row 23's Fishermen takes Copper's hit points** (item 4538,
+    /// `docs/RECGAME.md` §12.6): run1781 holds every units range to 6000.
+    /// On 5695 who=2's leader holds Copper (`TypeIndex` 24, `rare` byte 2
+    /// bit 2), the mask's change raises `0x4000000`, and `Leader::process`'s
+    /// `calc_unit_stats@006cf970` re-runs `Unit::update_hits@0060e930` on
+    /// every unit: the Fishermen `2/15` (TI 317, a sea type) takes
+    /// `(COPPER_FACTORY_HP + 100) × 170 / 100` = 204. Every units range on
+    /// 5694 and 5695, ours against theirs, byte for byte: red on the tree
+    /// before the arm at range 957, record 15's `myhits`, ours 170.
+    #[test]
+    fn row_23_s_fishermen_takes_copper_s_hit_points_on_run1781_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 1) else {
+            eprintln!("skipping: row 23's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1781/map-20"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1781's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 23's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for (state, hits, copper) in [(5694, 170i32, false), (5695, 204, true)] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_units();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // The Fishermen by name: who=2's record 15, its `type` and `myhits`.
+            let k = ours
+                .ranges
+                .iter()
+                .enumerate()
+                .filter(|(_, r)| r.record == 15 && r.field == "who..y_internal")
+                .find(|(k, _)| theirs[*k].bytes[0] == 2)
+                .map(|(k, _)| k)
+                .expect("2/15");
+            assert_eq!(ours.ranges[k + 1].field, "type");
+            assert_eq!(
+                &theirs[k + 1].bytes[..],
+                &317i32.to_le_bytes(),
+                "2/15's TypeIndex"
+            );
+            assert_eq!(ours.ranges[k + 3].field, "myhits..launch_frames");
+            assert_eq!(
+                &theirs[k + 3].bytes[..4],
+                &hits.to_le_bytes(),
+                "theirs' myhits on {state}"
+            );
+            assert_eq!(
+                built.sim.has_rare(2, sim::economy::COPPER),
+                copper,
+                "who=2's Copper on {state}"
+            );
+            let boat = built
+                .sim
+                .units
+                .iter()
+                .position(|u| u.alive() && u.owner == 2 && u.index == 15)
+                .expect("2/15");
+            let ty = built.sim.units[boat].ty.expect("its type");
+            assert_eq!(built.unit_type_names[ty], "Fishermen");
+            assert_eq!(built.sim.tables.unit_types[ty].hits, 170, "the raw type");
+        }
+    }
+
     /// **The fifth's files carry the declared seats and team** (item
     /// 4527): each `item4527-row<RRR>-6000.rcx` the client recorded, read
     /// back, holds the declaration's three `PLAYER` rows slot for slot —
@@ -5935,12 +6020,16 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // Moved by item 4534 (the walked setup leaves the player-region bit to
         // `analyze_map`; run1781's leaf, who=0's `oil_patches` on state 0, ours
         // [5, 2], theirs [2, 5]): leaders 0 -> 6,001, whole; eleven lines whole.
+        // Moved by item 4538 (`Unit::update_hits`' Copper arm; run1781's leaf,
+        // units range 957, record 15, who=2's Fishermen `2/15` (TI 317) on
+        // 5695, `myhits` ours 170, theirs 204): units 5,695 -> 6,001, whole;
+        // twelve lines whole.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5695, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
             ],
-            first: &[("units", (5695, Some(1829564320), 64286658))],
+            first: &[],
             over: None,
         }),
     }),
@@ -6132,8 +6221,9 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
 ];
 
 /// The fifth battery's line: games whole of the eight, and games taken.
+/// Item 4538 made row 23 whole: 1 -> 2.
 #[cfg(test)]
-pub(crate) const HELD_OUT_FIFTH_LINE: (usize, usize) = (1, 8);
+pub(crate) const HELD_OUT_FIFTH_LINE: (usize, usize) = (2, 8);
 
 /// The fifth battery (item 4527): three seats and one team of two a row.
 #[cfg(test)]

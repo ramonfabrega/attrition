@@ -1549,3 +1549,4 @@ part on 5909~~ (closed, §12.5).
 
 `analyze_map` sets the player-region bit after every `build_empire` (`Setup::build_game@005ac190:881`), so who=0's
 setup pass gives (16, 42) to no one: run1781's `oil_patches` `[2, 5]`. `docs/journal/2026-11-22-item-4534.md`.
+Units whole (item 4538): Copper's `update_hits` arm, `docs/COMBAT.md` §4.3.

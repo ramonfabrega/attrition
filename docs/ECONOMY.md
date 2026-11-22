@@ -391,6 +391,14 @@ its `pop_cap` is **55** where the Military table gives 50. The Mercenaries
 offer's `cap × 5 / 6 < effective_pop` test then read 41 < 44 here against
 45 there, and the word it moved was 12783 (`docs/AI.md` §91).
 
+**Copper**, rare bit 18 (`TypeIndex` 24), and **Bananas**, bit 39
+(`TypeIndex` 45), are the two rares `Unit::update_hits@0060e930` reads (item
+4538, `docs/COMBAT.md` §4.3): the same `0x4000000` fold re-runs it in
+`calc_unit_stats`, so a holder's live units take the new pool on the frame
+the bit arrives. run1781 is the capture: on 5695 who=2's leader gains Copper,
+and its Fishermen `2/15` reads `myhits` 204 where it read 170, `170 × 120 /
+100`. Bananas has no capture.
+
 ### The territory tax
 
 ```
