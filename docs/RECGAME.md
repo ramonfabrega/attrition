@@ -1494,7 +1494,7 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 | 3 | run1773 | Great Sahara, difficulty 3 | human + added | 6,001 | 1 | units, builds, ammo 3857 |
 | 23 | run1774 | Atlantic Sea Power | the computers | 6,001 | 10 | **leaders 0**, units 5695 |
 | 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~3192~~ leaders 3223 |
-| 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, ended on 4222 | 11 | ~~1582, 1789, 3683~~ builds 3986 |
+| 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, ended on 4222 | **12** | ~~1582, 1789, 3683, builds 3986~~ whole (below) |
 | 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | ~~1956, 2811, 3041 (CITIES §3.4)~~ units 3359 |
 | 103 | run1778 | East Indies, Modern | the computers | 3,295, ended on 3294 | 1 | ~~1750, 1757, 1790, 2557 (GROUPS §3.4)~~ ammo 2860 |
 | 123 | run1779 | Great Lakes, Gunpowder | human + added | 6,001 | 3 | ~~builds, groups 2977~~ whole (below) |
@@ -1511,6 +1511,11 @@ COSTS (4542); units 1789, ARMY §12 (4553); ammo 3683, the Fusiliers' bays (`dat
 left the one shared `find_counters[0x1c]` at 2011, who=1's count (its mark); `find_build@009e2970` resets such a
 cursor to 2000 and starts at 2001, so who=1's three trainings on 2976 went 2007, 2000, 2007, where ours went 2000
 first. The lap resets now (`ai_host::lap`, `find_unit`'s too; AI §11): twelve lines whole.
+
+**Row 63 whole (item 4563, run1782).** The leaf was builds range 1659, record 2032, `queued` on 3986, ours 4, theirs
+3 (and 2035's, ours 3, theirs 4). On 3985 who=1's `produce_unit` sends one TI 58 down the fort arm; its Forts 2032 and
+2035 tie at three queued. The original walks the fort records (`forts[who]`), where 2035 holds record 0 and 2032
+record 1; ours walked object order. The arm walks `forts_of` now (AI §29.5): twelve lines whole, 4,223 of 4,223.
 
 **Row 43 (item 4547).** who=2's Slinger (piece 736) takes 1440's bay (`launch::BAYS`). 4561: an unbuilt Village's
 close fixes borders.

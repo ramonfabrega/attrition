@@ -2218,7 +2218,7 @@ impl Sim {
             // **Fort-trained: the leader's fort records, in record order**
             // (`produce_unit@006cb9e0`'s fort arm, the `forts[who]` walk
             // below `+0x428`, each record in use, `+6 & 1`; item 4563,
-            // `docs/AI.md` §29.1). A closed fort's record is the first a
+            // `docs/AI.md` §29.5). A closed fort's record is the first a
             // new fort takes (`Forts::init_fort@0073ed70`), so record
             // order is not object order: on row 63's 3985 who=1's two
             // forts tie and the record walk reaches 2035 first. The
