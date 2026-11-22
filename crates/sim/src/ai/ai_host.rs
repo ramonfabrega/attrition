@@ -1315,7 +1315,7 @@ impl Sim {
 /// or under zero, is first reset to `base`**, so the lap starts at `base + 1`
 /// and reaches `base` last (item 4546; `docs/AI.md` §11, `docs/RECGAME.md` §12.3). `find_counters` is
 /// one array across players, so the cursor another player's find left is
-/// past this one's count whenever that player owns more objects.
+/// at or past this one's count whenever that player owns as many or more.
 ///
 /// A cursor in `0..base` for the builds lap starts at `base` here; the
 /// original would walk that player's unit slots from `cursor + 1` before

@@ -1510,7 +1510,7 @@ first parting.
 on disk until now.~~ Whole (§12.6). Every other row parts first between 1582 and 3857, and needs a ranges take before its leaf is named.
 
 **Row 123 whole (item 4546, run1785).** The leaf was who=1's producer 2000's `queued` on 2977, ours 3, theirs 2. who=2
-left the one shared `find_counters[0x1c]` at 2011, past who=1's eight buildings; `find_build@009e2970` resets such a
+left the one shared `find_counters[0x1c]` at 2011, who=1's count (its mark); `find_build@009e2970` resets such a
 cursor to 2000 and starts at 2001, so who=1's three trainings on 2976 went 2007, 2000, 2007, where ours went 2000
 first. The lap resets now (`ai_host::lap`, `find_unit`'s too; AI §11): twelve lines whole.
 

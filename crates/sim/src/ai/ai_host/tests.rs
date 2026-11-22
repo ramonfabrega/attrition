@@ -185,8 +185,8 @@ fn a_raid_is_the_city_s_raid_stamp_and_an_attack_its_attack_stamp() {
 /// `find_unit@009e2850`'s opening: a counter at or past the player's count,
 /// or under zero, is reset to 2000 (to 0), and the walk starts one past it,
 /// so `base` itself is reached last). `find_counters` is one array for every
-/// player: row 123's who=2 left `TRAIN_PRODUCER` at 2011, past who=1's
-/// eight buildings, and who=1's three `train_unit_with_cost` calls on 2976
+/// player: row 123's who=2 left `TRAIN_PRODUCER` at 2011, exactly who=1's
+/// count (its mark 2011), and who=1's three `train_unit_with_cost` calls on 2976
 /// went to 2007, 2000, 2007 in the original (run1785).
 #[test]
 fn a_cursor_past_the_leader_s_count_laps_from_one_past_the_base() {
@@ -200,7 +200,14 @@ fn a_cursor_past_the_leader_s_count_laps_from_one_past_the_base() {
         laps(2000, 2008, 2007),
         [2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007]
     );
-    // Past the count (another player's object): reset to 2000, so 2001 first.
+    // At the count (row 123's case, 2011 of 2011) and past it: reset to
+    // 2000, so 2001 first.
+    assert_eq!(
+        laps(2000, 2011, 2011),
+        [
+            2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2000
+        ]
+    );
     assert_eq!(
         laps(2000, 2008, 2011),
         [2001, 2002, 2003, 2004, 2005, 2006, 2007, 2000]

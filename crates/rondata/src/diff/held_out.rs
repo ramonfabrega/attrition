@@ -690,7 +690,7 @@ mod tests {
     /// player's** (item 4546, `docs/RECGAME.md` §12.3): run1785, the ranges
     /// take of row 123's file. `find_counters[0x1c]` is one array for every
     /// player; who=2's `train_unit_with_cost` on 2951 left it at 2011, past
-    /// who=1's eight buildings (2000..2008). On 2976 who=1's script trains
+    /// who=1's count (its mark is 2011 too). On 2976 who=1's script trains
     /// three of type 50 at its two producers, 2000 and 2007.
     /// `ScenarioFuncSet::find_build@009e2970` resets a cursor at or past the
     /// player's count to 2000 and starts at 2001, so theirs queue at 2007,
@@ -721,13 +721,13 @@ mod tests {
         let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
         let mut stream = crate::input::Stream::pump(&rec);
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
-        for state in [2976u32, 2977, 2978] {
+        for state in [2976i64, 2977, 2978] {
             while built.sim.frame < state {
                 if built.sim.frame == 2976 {
-                    // The cursor who=2 left, past who=1's count.
+                    // The cursor who=2 left, at who=1's count.
                     let train = sim::ai::ai_host::counter::TRAIN_PRODUCER;
                     assert_eq!(built.sim.ai.script_env.find_counters[train], 2011);
-                    assert_eq!(built.sim.roster.marks[1].build, 2008, "who=1's count");
+                    assert_eq!(built.sim.roster.marks[1].build, 2011, "who=1's count");
                 }
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
@@ -755,9 +755,10 @@ mod tests {
                 }
             }
             // The two producers by name: who=1's 2000 and 2007 (builds
-            // ranges 261 and 479 on 2977, `queued` at byte 18), two queued
-            // apiece from 2977, theirs and ours.
-            let want = if state == 2976 { [1, 0] } else { [2, 2] };
+            // ranges 261 and 479 on 2977, `queued` at byte 18): empty on
+            // 2976, two queued apiece on 2977 and 2978, theirs and ours (one
+            // at 2000 queued earlier on frame 2976, before the three calls).
+            let want = if state == 2976 { [0, 0] } else { [2, 2] };
             for (o, n) in [2000, 2007].into_iter().zip(want) {
                 let b = built.sim.building_by_o(1, o).expect("who=1's producer");
                 assert!(built.sim.buildings[b].active, "{o} active");
@@ -6694,7 +6695,7 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // Moved by item 4546 (`find_build`'s lap resets a cursor past the
         // leader's count to 2000 and starts at 2001; run1785's leaf, builds
         // range 261, record 2000, `queued` on 2977, ours 3, theirs 2: who=2
-        // left `find_counters[0x1c]` at 2011, past who=1's eight buildings,
+        // left `find_counters[0x1c]` at 2011, who=1's count (its mark),
         // and who=1's three `train_unit_with_cost` calls on 2976 went to
         // 2000, 2007, 2000 in ours, 2007, 2000, 2007 in theirs): builds and
         // groups 2,977 -> 6,001, units 3,020 -> 6,001, and every later line

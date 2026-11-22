@@ -40957,7 +40957,7 @@ was free at launch and no minutes went to waiting. `df -g ~` read 80 GB free bef
   2,977, first 2977: range 261, record 2000, `gather_down..infiltrate2` byte 18 (`queued`): ours 3, theirs 2**; groups
   2,977, first 2977: range 549, `last_group` (who=1): ours 64, theirs 65; units 3,020, first 2986: range 153, record
   0, `group` ours 65, theirs 64; guys, leaders and world 3294, cities 3376, items 4280, goods 5107.
-- **Re-scored by item 4546** (`find_build`'s lap resets a cursor past the leader's count to 2000 and starts at
+- **Re-scored by item 4546** (`find_build`'s lap resets a cursor at or past the leader's count to 2000 and starts at
   2001): **twelve lines whole**, 6,001 of 6,001 states each.
 - Filed by `filerun.py run1785 heldout5-row123-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1785-heldout5-row123-ranges.txt`, 2,892 bytes, SHA-256
