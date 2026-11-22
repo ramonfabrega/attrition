@@ -7014,7 +7014,36 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
             ],
             over: Some(5977),
         },
-        moved: None,
+        // Moved by item 4547 (piece 736's three bays, piece 1440's centroids
+        // on run1579's sweep; run1787's leaf, ammo range 1, record 0, who=2's
+        // Slinger `2/30` (TI 82) stone on 3192, `launch` ours (8472, 23832,
+        // 516), theirs (8571, 23834, 690)): ammo 3,355 -> 3,401 (first 3192 ->
+        // 3299), units 3,290 -> 3,299 (first 3196 -> 3299), leaders 3,218 ->
+        // 3,223 (first 3196 -> 3223), groups 3,395 -> 3,423 (first 3198 ->
+        // 3376), deaths 3,247 -> 3,374 (first 3247 -> 3374). Items 4,262 ->
+        // 4,042 and goods 4,002 -> 3,710 are named falls past their unmoved
+        // first partings, 3670 and 3710. Our walk no longer holds
+        // `game_over` from 5977: `over` 5977 -> none, as the original.
+        moved: Some(Score {
+            states: 6001,
+            agreed: [
+                3299, 3345, 6001, 3401, 3374, 3423, 3374, 3223, 3373, 4042, 3710, 3374,
+            ],
+            first: &[
+                ("units", (3299, Some(14876181), 151977493)),
+                ("builds", (3299, Some(3013899671), 1891857812)),
+                ("ammo", (3299, Some(3106682425), 149042284)),
+                ("deaths", (3374, Some(3897575467), 982012739)),
+                ("groups", (3376, Some(3865935763), 406744244)),
+                ("guys", (3374, Some(641651763), 4151560086)),
+                ("leaders", (3223, Some(1554705983), 3151556086)),
+                ("cities", (3223, Some(3058186551), 2580035877)),
+                ("items", (3670, Some(3687073795), 3707258885)),
+                ("goods", (3710, Some(3114104596), 3160241942)),
+                ("world", (3374, Some(2564315079), 3645396767)),
+            ],
+            over: None,
+        }),
     }),
     // run1776
     // row 63, as found 2026-11-21, ended by the original on 4222: 1 line whole; units 1,789 of

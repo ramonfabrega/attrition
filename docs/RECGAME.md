@@ -1493,7 +1493,7 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 |---|---|---|---|---|---|---|
 | 3 | run1773 | Great Sahara, difficulty 3 | human + added | 6,001 | 1 | units, builds, ammo 3857 |
 | 23 | run1774 | Atlantic Sea Power | the computers | 6,001 | 10 | **leaders 0**, units 5695 |
-| 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ammo 3192, units 3196 |
+| 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~ammo 3192, units 3196~~ leaders, cities 3223 (below) |
 | 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, ended on 4222 | 1 | leaders 1582, units 1789 |
 | 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | ~~leaders 1956~~ (CARAVAN §2), ~~units 2811~~ (SUPPLY, item 4554), builds 3041 |
 | 103 | run1778 | East Indies, Modern | the computers | 3,295, ended on 3294 | 1 | ~~world 1750~~ (ROADS §8.3), leaders 1757 |
@@ -1513,6 +1513,13 @@ and needs a ranges take before its leaf is named.
 left the one shared `find_counters[0x1c]` at 2011, who=1's count (its mark); `find_build@009e2970` resets such a
 cursor to 2000 and starts at 2001, so who=1's three trainings on 2976 went 2007, 2000, 2007, where ours went 2000
 first. The lap resets now (`ai_host::lap`, `find_unit`'s too; AI §11): twelve lines whole.
+
+**Row 43's Slinger stones (item 4547, run1787).** The leaf was ammo record 0 on 3192: who=2's Slinger `2/30` (TI 82,
+piece 736, `32 + 2 × 0x160`) loosed at `1/14` on `CHAR_ATTACK1` frame 21 from its own square (8472, 23832, 516), where
+theirs left from (8571, 23834, 690) and landed a frame sooner (`total_time` 5 against 6). Piece 736 had no row in
+`launch::BAYS`. `get_position.py`'s sweep of its three keys on run1579's packet is piece 1440's regions to the point,
+so its bays are 1440's centroids (361 of 361 headings each). Ammo 3192 → 3299 and units 3196 → 3299; the row parts
+first on leaders and cities at 3223.
 
 ### 12.4 Row 95: a CEO going in leaves its city (item 4519)
 
