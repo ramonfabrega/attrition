@@ -510,10 +510,10 @@ impl Sim {
         self.nuke_do_damage(frame);
         self.mark("guys_inc_time");
         // `Objects::inc_time`: every guy's animation clock first — leader
-        // order, no rotation (`anim.rs`) — then the ammo list, then the
-        // farms' crop cells (`farms.rs`), and the sites' hit points
-        // refreshed from the progress the builders just made,
-        // `Wall::inc_time`.
+        // order, no rotation (`anim.rs`), each leader's buildings after its
+        // units, where `Wall::inc_time` refreshes a site's hit points from
+        // the progress the builders just made (item 4556) — then the ammo
+        // list, then the farms' crop cells (`farms.rs`).
         self.guys_inc_time();
         self.mark("projectiles");
         // `Ammo::inc_time`'s own per-frame bump of a **dead** shooter's
@@ -530,7 +530,6 @@ impl Sim {
         // surf's (`docs/ORDERS.md` §6.12).
         self.hold_doobers_inc_time();
         self.mark("end");
-        self.refresh_site_hits();
         // `Game::do_frame`'s last step before the increment, after
         // `Leaders::end_process_all` and `Achieve::capture_data`: every
         // slot in use folds its combat rates on a fiftieth frame

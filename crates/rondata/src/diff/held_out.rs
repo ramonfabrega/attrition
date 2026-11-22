@@ -780,6 +780,125 @@ mod tests {
         }
     }
 
+    /// **Row 83's Taj Mahal site keeps its hit points through a blow until
+    /// the next walk** (item 4556, `docs/CITIES.md` §3.4): run1784, the
+    /// ranges take of row 83's file. who=2's unfinished Taj Mahal `2/2037`
+    /// (`TypeIndex` 0x21b) takes a 19-point round on 3041, after its
+    /// builders' progress put `job_counter` at 76,214: the blow takes
+    /// `19 × 50` off it, to 75,264. `Wall::inc_time@0063fb60:48`..`56`
+    /// refreshes a site's `construct_hits` in `Objects::inc_time`'s leader
+    /// walk, ahead of the ammo list, so theirs prints 6023 (`site_hits` at
+    /// 76,214) on 3041 and 6017 on 3042; ours refreshed after the ammo list
+    /// and printed 6017 on 3041. Every builds range on 3040 to 3042, ours
+    /// against theirs, byte for byte: red on the tree before the fix at
+    /// range 3157, record 2037, `construct_hits` ours 6017, theirs 6023.
+    #[test]
+    fn row_83_s_taj_mahal_site_keeps_its_hits_through_a_blow_on_run1784_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+            eprintln!("skipping: row 83's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1784/map-14"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1784's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 83's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        // (state, theirs' `damage`, theirs' `construct_hits`, ours'
+        // `job_counter`).
+        for (state, damage, hits, jc) in [
+            (3040, 0, 6022, None),
+            (3041, 19, 6023, Some(75_264)),
+            (3042, 19, 6017, Some(75_264)),
+        ] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[1].as_ref().expect("builds");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "builds' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "builds range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // The site by name: who=2's record 2037, its type, its
+            // object's `damage` (`+0x24`, byte 4 of `myhits..launch_frames`)
+            // and its `construct_hits` (`+0x54`, byte 12 of
+            // `job_counter..demolition`).
+            let k = ours
+                .ranges
+                .iter()
+                .enumerate()
+                .filter(|(_, r)| r.record == 2037 && r.field == "who..y_internal")
+                .find(|(k, _)| theirs[*k].bytes[0] == 2)
+                .map(|(k, _)| k)
+                .expect("2/2037");
+            assert_eq!(ours.ranges[k + 1].field, "type");
+            assert_eq!(
+                &theirs[k + 1].bytes[..],
+                &0x21bi32.to_le_bytes(),
+                "2/2037's TypeIndex"
+            );
+            let word = |field: &str, at: usize| {
+                let j = (k..ours.ranges.len())
+                    .find(|&j| ours.ranges[j].field == field)
+                    .expect("2/2037's range");
+                i32::from_le_bytes(theirs[j].bytes[at..at + 4].try_into().unwrap())
+            };
+            assert_eq!(
+                word("myhits..launch_frames", 4),
+                damage,
+                "theirs' damage on {state}"
+            );
+            assert_eq!(
+                word("job_counter..demolition", 12),
+                hits,
+                "theirs' construct_hits on {state}"
+            );
+            let b = built.sim.building_by_o(2, 2037).expect("2/2037");
+            let bd = &built.sim.buildings[b];
+            assert_eq!(
+                loaded.build_type_names[bd.ty.expect("its type")],
+                "Taj Mahal"
+            );
+            assert!(!bd.active, "2/2037 is a site on {state}");
+            if let Some(jc) = jc {
+                assert_eq!(bd.job_counter, jc, "ours' job_counter on {state}");
+            }
+            if state == 3041 {
+                // theirs' 6023 is the site's figure at the pre-blow 76,214.
+                assert_eq!(
+                    sim::cities::build::site_hits(
+                        bd.hits,
+                        75_264 + 19 * 50,
+                        built.sim.construct_time_of(b),
+                        true
+                    ),
+                    6023
+                );
+            }
+        }
+    }
+
     /// **Row 103's caravan road is laid on the frame after the budget**
     /// (item 4544, `docs/ROADS.md` §8.3): run1783, the ranges take of
     /// row 103's file. A caravan's road search costs 3,207, 3,202 and
@@ -7200,14 +7319,20 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // Artillery (TI 269) `unit_masks2` ours 0, theirs 0x40000, the
         // supply veto's mark (`Unit::process@00610bc0:535`,
         // `docs/SUPPLY.md`). The row's first parting is builds 3041.
+        // Item 4556: builds 3,356 -> 3,360, first 3041 -> 3360. run1784, the
+        // ranges take: on 3041 builds range 3157, record 2037, who=2's Taj
+        // Mahal site (`TypeIndex` 0x21b) `construct_hits` ours 6017, theirs
+        // 6023: `Wall::inc_time@0063fb60:48`..`56` refreshes a site in the
+        // leader walk, ahead of the ammo list (`docs/CITIES.md` §3.4). The
+        // row's first parting is units 3359.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3359, 3356, 6001, 3659, 3672, 3385, 3360, 3376, 3576, 4069, 4678, 3360,
+                3359, 3360, 6001, 3659, 3672, 3385, 3360, 3376, 3576, 4069, 4678, 3360,
             ],
             first: &[
                 ("units", (3359, Some(1240030600), 4018231023)),
-                ("builds", (3041, Some(1361096581), 1972547467)),
+                ("builds", (3360, Some(3237376937), 1895526959)),
                 ("ammo", (3430, Some(1053690630), 1480526849)),
                 ("deaths", (3672, Some(1), 1719209194)),
                 ("groups", (3385, Some(3169317724), 1587606356)),
