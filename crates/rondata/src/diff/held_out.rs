@@ -2744,6 +2744,9 @@ mod tests {
         let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
         let mut stream = crate::input::Stream::pump(&rec);
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for p in [1494, 1457] {
+            println!("releases {p}: {:?}", built.sim.roster.art.releases.get(&p));
+        }
         const NAMES: [&str; 24] = [
             "gpiece",
             "launch.x",
