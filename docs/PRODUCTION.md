@@ -1256,7 +1256,26 @@ and `do_air_patrol`; five tests in `air::launch_tests`.
   captured; so is a point after an action-3 one, appended to a patrol the
   strike has closed~~ — "The launch commands" below (item 976): a point
   after an action-3 one is a fresh patrol that ends the strike;
-- an enemy at the point (the attack arms) and a caravan's trade arm;
+- ~~an enemy at the point (the attack arms)~~ — **an enemy's building at
+  the last point is built** (item 4557, `Sim::gather_enemy_building`,
+  `come_out@00617c10` `61994e`..`619a9f`): an armed trainee (`+0x1e8`)
+  ends the routing there. With the point's `action` 0, stance 5 sends
+  the squad's group (or a lone trainee) to the point under `MOVE_TO`,
+  any other stance under `ATTACK_TO` unless the type `is_siege` (the
+  type's vslot `+0x10c`); either is `QUEUE_NEW`, `set_angle` 0 and no
+  action bit, to **the point itself** (the pushes at `619a04`), never
+  its free spot. A siege type, a lone trainee of a squad type, or any
+  `action` ≠ 0 takes `add_attack_order` on the building down the
+  `o_down` chain. **Diff-backed** on the group arm by run1786: the
+  2017 sample's Bushi `3/15`, `3/16`, `3/28` (`TI` 158) out of the
+  person's Barracks `3/2041` on 6927, whose point (4433, 30955) is on
+  player 2's `2/2010`: the group `263 197`'s `ox`/`oy` on 6928 is the
+  point (ours had been the squad sweep's 48-grid centre, 4440/30936),
+  and the members' orders carry flags 1. The stance-5, lone, siege and
+  attack-order arms are one reading. **Not established**: an enemy
+  **unit** at the point (`619c10`..`619d6f`), the caravan's trade arm,
+  and `find_any_building_at`'s seen filter (an unseen enemy building is
+  found here);
   ~~the third re-seat (`619aa3`..`619be7`: a unit found at a ground
   point)~~ (built, item 955), ~~with the lone arm's second sweep~~ (built,
   item 945);

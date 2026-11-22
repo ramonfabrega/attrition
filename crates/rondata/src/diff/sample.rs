@@ -1006,8 +1006,11 @@ pub(in crate::diff) mod tests {
     /// by one; the first shot still on 2929. Item 4555 (`check_build_order`'s
     /// kill is the front's): 3184 -> 3244, +60, a named rise past the draw
     /// word 7021, the frames not read one by one; the first shot still on
-    /// 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3244, Some(2929));
+    /// 2929. Item 4557 (`come_out`'s enemy arm sends the Bushi out of
+    /// `3/2041` to the point on `2/2010` itself): 3244 -> 3174, -70, a
+    /// named fall past the draw word 7021, the frames not read one by one;
+    /// the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3174, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
