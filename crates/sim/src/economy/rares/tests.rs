@@ -600,6 +600,38 @@ fn a_nubian_merchant_is_born_with_half_again() {
     assert_eq!(s.unit_hits(1, merchant), 90, "not Nubian");
 }
 
+/// **A Copper holder's ships take a fifth more, and a Bananas holder's
+/// every unit a tenth** (`Unit::update_hits@0060e930`'s two rare arms,
+/// item 4538): run1781's Fishermen `2/15` is 204 from 5695, the type's
+/// 170 × 120 %. Copper asks the type's domain (`+0x218 == 1`), so a land
+/// type of the same holder takes the type's; Bananas asks nothing of the
+/// type; the two compound, Copper first, each truncated.
+#[test]
+fn a_copper_holder_s_ships_take_a_fifth_more_and_bananas_every_unit_a_tenth() {
+    use crate::territory::attrition::Domain;
+    let (mut s, _) = sea_sim();
+    let ty = crate::UnitType {
+        hits: 170,
+        type_index: 317,
+        ..crate::UnitType::default()
+    };
+    let boat = s.add_unit_type(ty.clone());
+    let foot = s.add_unit_type(ty);
+    s.tables.unit_types[boat].combat.domain = Domain::Sea;
+    s.tables.unit_types[foot].combat.domain = Domain::Land;
+    let bit = |good: usize| 1u64 << (good - economy::BASE_RARE);
+    assert_eq!(s.unit_hits(0, boat), 170, "no rare");
+    s.economy.ledgers[0].rare = bit(economy::COPPER);
+    assert_eq!(s.unit_hits(0, boat), 204, "Copper on a sea type");
+    assert_eq!(s.unit_hits(0, foot), 170, "Copper on a land type");
+    assert_eq!(s.unit_hits(1, boat), 170, "another leader");
+    s.economy.ledgers[0].rare = bit(economy::BANANAS);
+    assert_eq!(s.unit_hits(0, boat), 187, "Bananas on a sea type");
+    assert_eq!(s.unit_hits(0, foot), 187, "Bananas on a land type");
+    s.economy.ledgers[0].rare = bit(economy::COPPER) | bit(economy::BANANAS);
+    assert_eq!(s.unit_hits(0, boat), 224, "204 × 110 %, truncated");
+}
+
 /// **A supply unit's hits climb with the supply upgrades its leader
 /// holds** (`Unit::update_hits`' last term, `SUPPLY_HP_UPGRADE`
 /// `[0, 20, 40, 60]`; `docs/AI.md` §157): the Persian wagon `1/67` is 150
