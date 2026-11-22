@@ -2367,7 +2367,7 @@ impl Sim {
         let Some(price) = self.type_price(who, t) else {
             return f;
         };
-        if std::env::var("RON_PROBE_4542").is_ok() && t == 530 {
+        if std::env::var("RON_PROBE_4542").is_ok() && (t == 530 || t == 533) {
             eprintln!("PROBE4542 income frame {} who {who} n {n} price {:?} income {:?} avail {:?}", self.frame, price, self.economy.ledgers[w].income, self.economy.holdings[w].available);
         }
         for (g, &p) in price.iter().enumerate() {
