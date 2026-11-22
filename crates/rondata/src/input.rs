@@ -1501,15 +1501,6 @@ impl Stream {
 
     /// A turn pump's stream with nothing in it yet: the client's, which
     /// [`Stream::push`] feeds as a person issues orders (item 4145).
-    /// Probe 4533: the inputs on `frame`, debug-printed.
-    pub fn probe_at(&self, frame: i32) -> Vec<String> {
-        self.input
-            .iter()
-            .filter(|i| i.frame == frame)
-            .map(|i| format!("{i:?}"))
-            .collect()
-    }
-
     pub fn pump_empty() -> Stream {
         Stream {
             input: Vec::new(),

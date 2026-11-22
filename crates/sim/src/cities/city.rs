@@ -2712,7 +2712,6 @@ impl Sim {
                 if self.cities.nation[who].germans {
                     amount = (self.tables.tuning.german_completion_bonus + 100) * amount / 100;
                 }
-                if std::env::var("RON_PROBE_4533").is_ok() && (5480..=5487).contains(&self.frame) { eprintln!("PROBE4533 f{} gather_slots b{b} who{who} good{i} amount{amount} fresh{fresh}", self.frame); }
                 self.economy.ledgers[who].bucket[i] += amount;
             }
         }
@@ -3434,7 +3433,6 @@ impl Sim {
         let russian = self.cities.nation[o as usize].russians
             && self.tables.tuning.russian_plunder_steal != 0;
         let first_capital = was_capital && !self.cities.city_tally[o as usize].capital_plundered;
-        if std::env::var("RON_PROBE_4533").is_ok() && (5480..=5487).contains(&self.frame) { eprintln!("PROBE4533 f{} city_spoils a{a} o{o} base{base} first{first_capital}", self.frame); }
         let usable: Vec<usize> = (0..5)
             .filter(|g| {
                 self.economy.holdings[a as usize].available[*g]
@@ -3558,7 +3556,6 @@ impl Sim {
         } else {
             0
         };
-        if std::env::var("RON_PROBE_4533").is_ok() && (5480..=5487).contains(&self.frame) { eprintln!("PROBE4533 f{} plunder_kill b{b} killer{killer} owner{owner} good{g} v{v} hero{hero}", self.frame); }
         if no.russians && self.tables.tuning.russian_plunder_steal != 0 && killer != owner {
             self.economy.ledgers[owner as usize].bucket[g] += v;
             self.economy.ledgers[killer as usize].bucket[g] += hero;
