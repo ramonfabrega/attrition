@@ -1752,17 +1752,6 @@ mod tests {
             for (li, name) in names.iter().enumerate() {
                 let Some(ours) = lines[li].as_ref() else { continue };
                 let theirs: Vec<_> = all.iter().filter(|r| usize::from(r.line) == li).collect();
-                if let Ok(w) = std::env::var("RON_PROBE_4564_RAW") {
-                    let (a, b) = w.split_once('-').unwrap();
-                    let (a, b): (usize, usize) = (a.parse().unwrap(), b.parse().unwrap());
-                    if li == 0 {
-                        for k in a..=b.min(theirs.len() - 1) {
-                            let hex: String = theirs[k].bytes.iter().map(|x| format!("{x:02x}")).collect();
-                            let o = ours.ranges.get(k).map(|r| format!("{} {}", r.record, r.field)).unwrap_or_default();
-                            eprintln!("P4564 RAW {state} {k} theirs len {} {hex} | ours here: {o}", theirs[k].bytes.len());
-                        }
-                    }
-                }
                 if ours.ranges.len() != theirs.len() {
                     eprintln!("P4564 {state} {name}: ranges ours {} theirs {}", ours.ranges.len(), theirs.len());
                 }
