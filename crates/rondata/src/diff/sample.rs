@@ -996,8 +996,11 @@ pub(in crate::diff) mod tests {
     /// cities): 3315 -> 3382 on the tree merged with 4549, +67, a named
     /// rise past the draw word 7021; with 4542 in too, 3315 -> 3184,
     /// -131, a named fall past the draw word 7021, the frames not read one
-    /// by one; the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3184, Some(2929));
+    /// by one; the first shot still on 2929. Item 4555 (`check_build_order`'s
+    /// kill is the front's): 3184 -> 3244, +60, a named rise past the draw
+    /// word 7021, the frames not read one by one; the first shot still on
+    /// 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3244, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
