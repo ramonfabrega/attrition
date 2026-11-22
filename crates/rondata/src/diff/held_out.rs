@@ -1722,20 +1722,6 @@ mod tests {
                 stream.apply(built.sim.frame as i32, &mut built);
                 crate::diff::harness::debug_watch(&built, built.sim.frame);
                 let f = built.sim.frame;
-                if f >= lo - 2 {
-                    for o in [62, 63, 64, 65] {
-                        if let Some(u) = built.sim.unit_by_o(2, o) {
-                            let x = &built.sim.units[u];
-                            let up = x.o_up.map(|v| (built.sim.units[v].owner, built.sim.units[v].index));
-                            let mut cap = u;
-                            while let Some(v) = built.sim.units[cap].o_up {
-                                if v == cap { break; }
-                                cap = v;
-                            }
-                            eprintln!("P4564 SQUAD f{f} 2/{o} captain {} o_up {:?} squad_captain {} stance {:?} waiting {} retargets {:?} orders {:?}", x.captain, up, built.sim.units[cap].index, x.combat.stance, x.waiting, built.sim.combat.retargets, x.orders.iter().map(|q| (q.index(), q.flags)).collect::<Vec<_>>());
-                        }
-                    }
-                }
                 let watch = f >= lo - 2;
                 if watch {
                     eprintln!("P4564 word entering {f}: ours {:08x} theirs {:?}", built.sim.rng.seed, trace.frame_draws(f).first().map(|d| format!("{:08x}", d.seed)));
