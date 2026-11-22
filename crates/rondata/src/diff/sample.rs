@@ -984,6 +984,9 @@ pub(in crate::diff) mod tests {
     /// 2929. Item 4549 (the bell takes a gather building's gatherer
     /// chain): 3176 -> 3315, +139, a named rise past the draw word 7021,
     /// the frames not read one by one; the first shot still on 2929.
+    /// Item 4542 (`get_cost`'s locked-team wonder term) moved it 3176 ->
+    /// 3182 on its own branch; on the tree merged with 4549 it reads 3315,
+    /// both builds in.
     const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3315, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's

@@ -991,7 +991,8 @@ counts **every** wonder the leader holds or has started:
 ```
 held  = get_wonders + get_unbuilt_wonders    # standing entries under wonder_mark,
                                              # plus the leader's unbuilt wonder sites
-count = 0                                    # the team term, teams unlocked
+count = 0                                    # the team term, teams unlocked;
+                                             # locked: allies' standing + unbuilt
 if held > 3: count += held - 3
 if held > 6: count += held - 6
 if type is SUPERCOLLIDER or SPACEPROGRAM:
@@ -1027,10 +1028,22 @@ capture reaches it, since an easy AI stops at one wonder (`docs/AI.md` §75).
 The one-wonder case is diff-backed by run289's `MAKE` rows on block 20782
 (`run289_s_word_frame_is_widened_whole`) and by the draw stream to 23182.
 
+**The team term** (item 4542). With teams locked (`Game::teams_locked@00594880`:
+a `team_style` other than 0, 8 and 11) the count starts at `get_team_wonders −
+held + get_team_unbuilt_wonders` (`00665886`..`0066589f`); both team counts walk
+the active leaders that are this one or a mutual ally, so the term is the allies'
+standing wonders and unbuilt sites, and the tails still read `held`. Built in
+`Sim::wonder_ramp_count`. **Diff-backed** by run1782 (row 63, `TEAM_STYLE 1`, the
+two computers allied): on 1582 who=2's one unbuilt wonder puts who=1's Colosseum
+(TI 530) at 345 Timber and 345 of good 4 where the unlocked count gave 300, so
+`check_income`'s Timber quotient is 17 (income 320), its factor 20 where it was 25,
+and the make-list entry reads 53,400, the original's, where it read 66,750
+(`row_63_s_colosseum_is_priced_by_its_ally_s_wonder_site_on_run1782_s_ranges`).
+
 **What is not established**:
-- **The team term.** With teams locked the count starts at
-  `team_wonders − held + team_unbuilt`. This crate carries no
-  teams-locked lobby flag, and a solo team's term is 0 either way.
+- ~~**The team term.**~~ Built and diff-backed above (item 4542). The allies'
+  *standing* half is from the listing alone: run1782's ally holds a site, no
+  standing wonder.
 - **`get_unbuilt_wonders` is counted off the buildings**: every alive,
   inactive wonder of the leader's. The original reads its own list
   (`unbuilt_wonders`, written by the site's placement and by
