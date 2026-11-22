@@ -622,6 +622,16 @@ impl Sim {
             }
             return;
         }
+        if std::env::var("RON_PROBE_4544").is_ok() && c.x == 44 && c.y == 18 {
+            eprintln!(
+                "PROBE road set frame {} tile ({}, {}) p4 {p4} p5 {p5} cellflags {:#x}\n{}",
+                self.frame,
+                t.x,
+                t.y,
+                self.world.cell_data(c).flags,
+                std::backtrace::Backtrace::force_capture()
+            );
+        }
         self.world
             .set_tile_mask(t, (m & !tile::SURFACE_OCEAN) | tile::SURFACE_ROAD);
         let mut d = self.world.cell_data(c);
