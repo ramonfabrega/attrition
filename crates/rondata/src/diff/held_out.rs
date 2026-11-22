@@ -399,6 +399,62 @@ mod tests {
         games_score_as_pinned(&FOURTH);
     }
 
+    /// `HELD_OUT_FIFTH[k]` played as `run1773 + k` (item 4527), held as
+    /// the first four are.
+    #[test]
+    fn the_fifth_held_out_games_score_as_pinned() {
+        games_score_as_pinned(&FIFTH);
+    }
+
+    /// **The fifth's files carry the declared seats and team** (item
+    /// 4527): each `item4527-row<RRR>-6000.rcx` the client recorded, read
+    /// back, holds the declaration's three `PLAYER` rows slot for slot —
+    /// `flags`, `tribe`, `who`, `team`, `handicap`, `play` — no fourth
+    /// active slot, and `PLAYERS 2`, so what the original plays is the
+    /// game declared before it was written.
+    #[test]
+    fn the_fifth_s_files_carry_the_declared_seats_and_team() {
+        let field = |row: &str, key: &str| -> i64 {
+            row.split("; ")
+                .find_map(|kv| kv.strip_prefix(key)?.strip_prefix(' ')?.parse().ok())
+                .unwrap_or_else(|| panic!("{key} in {row}"))
+        };
+        for (k, held) in HELD_OUT_FIFTH.iter().enumerate() {
+            let (Some(rcx), _) = paths(&FIFTH, k) else {
+                eprintln!("skipping: row {} has no file", held.row);
+                continue;
+            };
+            let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("the file");
+            assert_eq!(
+                rec.options[crate::recgame::PLAYERS_OPTION],
+                2,
+                "row {}",
+                held.row
+            );
+            let active: Vec<_> = rec.slots.iter().filter(|s| s.active()).collect();
+            assert_eq!(active.len(), held.players.len(), "row {}: seats", held.row);
+            for (slot, row) in active.iter().zip(held.players) {
+                let got = (
+                    i64::from(slot.flags),
+                    i64::from(slot.tribe),
+                    i64::from(slot.who),
+                    i64::from(slot.team),
+                    i64::from(slot.handicap),
+                    i64::from(slot.play),
+                );
+                let want = (
+                    field(row, "flags"),
+                    field(row, "tribe"),
+                    field(row, "who"),
+                    field(row, "team"),
+                    field(row, "handicap"),
+                    field(row, "play"),
+                );
+                assert_eq!(got, want, "row {}: {row}", held.row);
+            }
+        }
+    }
+
     fn games_score_as_pinned(b: &Battery) {
         let Some(inst) = crate::testenv::install() else {
             return;
@@ -2819,6 +2875,12 @@ mod tests {
         line_reads_as_pinned(&FOURTH);
     }
 
+    /// The fifth battery's line, from its table alone (item 4527).
+    #[test]
+    fn the_fifth_held_out_line_reads_as_pinned() {
+        line_reads_as_pinned(&FIFTH);
+    }
+
     fn line_reads_as_pinned(b: &Battery) {
         let taken = b.scores.iter().flatten().count();
         assert_eq!(
@@ -2914,6 +2976,14 @@ mod tests {
     #[test]
     fn the_handoff_s_parity_held_out_fourth_line_is_the_pinned_scores() {
         handoff_line_is_the_pinned_scores(&FOURTH);
+    }
+
+    /// **The handoff's fifth parity-held-out line** (item 4527): the fifth
+    /// battery's [`queue_line`], `Parity held out, fifth:`, in the first's
+    /// grammar. Its found half is the estimate (DECISIONS 149 §3, 150 §2).
+    #[test]
+    fn the_handoff_s_parity_held_out_fifth_line_is_the_pinned_scores() {
+        handoff_line_is_the_pinned_scores(&FIFTH);
     }
 
     fn handoff_line_is_the_pinned_scores(b: &Battery) {
@@ -4849,6 +4919,30 @@ pub(crate) const FOURTH: Battery = Battery {
     scores: &SCORES_FOURTH,
     scores_name: "SCORES_FOURTH",
     line: HELD_OUT_FOURTH_LINE,
+};
+
+/// **The fifth battery's scores**, `HELD_OUT_FIFTH[k]` played as
+/// `run1773 + k` (item 4527): `None` until the original has played it. The
+/// found column is pinned once and never re-pinned; it is the estimate
+/// (DECISIONS 149 §3, 150 §2).
+#[cfg(test)]
+pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] =
+    [None, None, None, None, None, None, None, None];
+
+/// The fifth battery's line: games whole of the eight, and games taken.
+#[cfg(test)]
+pub(crate) const HELD_OUT_FIFTH_LINE: (usize, usize) = (0, 0);
+
+/// The fifth battery (item 4527): three seats and one team of two a row.
+#[cfg(test)]
+pub(crate) const FIFTH: Battery = Battery {
+    label: "Parity held out, fifth",
+    item: 4527,
+    run: 1773,
+    table: &HELD_OUT_FIFTH,
+    scores: &SCORES_FIFTH,
+    scores_name: "SCORES_FIFTH",
+    line: HELD_OUT_FIFTH_LINE,
 };
 
 /// **The spent batteries, folded into the headline** (DECISIONS 150 §1).

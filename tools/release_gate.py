@@ -242,6 +242,8 @@ COMMANDERS_LINES = (
     'the_handoff_s_parity_held_out_third_line_is_the_pinned_scores',
     # The fourth battery's line (item 4510; DECISIONS 148 §2).
     'the_handoff_s_parity_held_out_fourth_line_is_the_pinned_scores',
+    # The fifth battery's line (item 4527; DECISIONS 149 §3, 150 §2).
+    'the_handoff_s_parity_held_out_fifth_line_is_the_pinned_scores',
     # Parity's own line (the pass of 2026-11-20, second; DECISIONS 147 §5).
     'the_handoff_s_parity_line_is_the_pinned_sample',
     # The rubric's line (the forty-ninth pass, Ramon's: the steer's pin).
