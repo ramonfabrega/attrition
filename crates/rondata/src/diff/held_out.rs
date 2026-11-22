@@ -780,6 +780,88 @@ mod tests {
         }
     }
 
+    /// Probe 4556 (reverted whole).
+    #[test]
+    fn probe_4556_row_83_builds() {
+        if std::env::var("RON_PROBE_4556").is_err() {
+            return;
+        }
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+            panic!("rcx")
+        };
+        let ranges =
+            crate::testenv::experiment(&home.join("ron-golden/run1784/map-14"), "rontrace.ranges")
+                .expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 83's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let lo: i64 = std::env::var("RON_PROBE_LO")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(3000);
+        let hi: i64 = std::env::var("RON_PROBE_HI")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(3042);
+        let o_watch: i32 = std::env::var("RON_PROBE_O")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(2037);
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[1].as_ref().expect("builds");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+            if ours.ranges.len() != theirs.len() {
+                eprintln!(
+                    "P4556 {state} count ours {} theirs {}",
+                    ours.ranges.len(),
+                    theirs.len()
+                );
+            }
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                if a.bytes != b.bytes {
+                    eprintln!(
+                        "P4556 {state} range {k} record {} {} ours {:?} theirs {:?}",
+                        a.record, a.field, a.bytes, b.bytes
+                    );
+                }
+            }
+            for (b, bd) in built.sim.buildings.iter().enumerate() {
+                if bd.alive && bd.index == o_watch {
+                    eprintln!(
+                        "P4556 {state} b{b} who {} o {} ty {:?} name {} active {} construct_hits {} damage {} helpers {} tile ({}, {})",
+                        bd.owner,
+                        bd.index,
+                        bd.ty,
+                        bd.ty
+                            .and_then(|t| loaded.build_type_names.get(t))
+                            .map(|s| s.as_str())
+                            .unwrap_or("?"),
+                        bd.active,
+                        bd.construct_hits,
+                        bd.damage,
+                        bd.helpers,
+                        bd.pos.x,
+                        bd.pos.y
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 103's caravan road is laid on the frame after the budget**
     /// (item 4544, `docs/ROADS.md` §8.3): run1783, the ranges take of
     /// row 103's file. A caravan's road search costs 3,207, 3,202 and
