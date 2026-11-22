@@ -1106,9 +1106,15 @@ mod tests {
                         );
                     }
                 }
-                for r in all.iter().filter(|r| r.line == 1 && i64::from(r.record) == want) {
-                    if let Some(f) = crate::checksum::fields::range_fields("builds", &r.field, &r.bytes) {
-                        eprintln!("P4562B state {state} theirs {} {:?}", r.field, f);
+                if let Some(ob) = lines[1].as_ref() {
+                    let tb: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+                    for (a, r) in ob.ranges.iter().zip(&tb) {
+                        if i64::from(a.record) != want {
+                            continue;
+                        }
+                        let fo = crate::checksum::fields::range_fields("builds", &a.field, &a.bytes);
+                        let ft = crate::checksum::fields::range_fields("builds", &a.field, &r.bytes);
+                        eprintln!("P4562B state {state} {} ours {:?} theirs {:?}", a.field, fo, ft);
                     }
                 }
             }
