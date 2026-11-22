@@ -5504,16 +5504,23 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // raises the wall bit alone: run1742, state 5409, leaders range 128,
         // record 1 `flags` byte 3, who=1's site of who=2's wonder `2/2030`,
         // ours 0x0e, theirs 0x0a): leaders 6,000 -> 6,001, whole.
+        // Moved by item 4541 (`ObjectData::is_jammed@00653660`: an enemy
+        // special forces unit within `GENERAL_RADIUS × 0x180` of an
+        // anti-air building jams it, `Build::do_attack@006228f0` marking
+        // `build_masks |= 0x8000` and the jammer's `unit_masks2 |= 8`, and
+        // `Unit::process@00610bc0`'s caster arm trading the 8 for
+        // `unit_masks |= 0x80000000` on the unit's phase: run1742, state
+        // 5577, units range 1673, record 0 `unit_masks2`, who=2's Elite
+        // Special Forces `2/0` (TI 77), ours 0, theirs 8; builds range
+        // 1554, record 2040 `build_masks`, who=1's Tower `1/2040` (type
+        // 111), ours 4096, theirs -28672): units 5,577 -> 6,001 and builds
+        // 5,577 -> 6,001, whole.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5577, 5577, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 5601,
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 5601,
             ],
-            first: &[
-                ("units", (5577, Some(918696023), 1119301727)),
-                ("builds", (5577, Some(3250328791), 1226052951)),
-                ("world", (5601, Some(3728895985), 3060364311)),
-            ],
+            first: &[("world", (5601, Some(3728895985), 3060364311))],
             over: None,
         }),
     }),
