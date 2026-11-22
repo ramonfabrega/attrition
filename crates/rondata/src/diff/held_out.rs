@@ -1971,6 +1971,95 @@ mod tests {
         }
     }
 
+    /// **Row 63's Colosseum is priced by its ally's wonder site** (item
+    /// 4542, `docs/RECGAME.md` §12.7): on run1782's ranges, every leaders
+    /// range on 1581 and 1582 byte for byte. Row 63's `TEAM_STYLE 1` locks
+    /// the teams, so `TypeData::get_cost@00664090`'s wonder count starts
+    /// from `get_team_wonders − held + get_team_unbuilt_wonders`
+    /// (`00665886`..`0066589f`): who=2's one unbuilt wonder ramps who=1's
+    /// Colosseum (TI 530) to 345 Timber, `check_income`'s Timber quotient
+    /// goes 15 → 17, and the make list's entry reads 53,400 on 1582, where
+    /// the unlocked count gave 300 Timber and 66,750.
+    #[test]
+    fn row_63_s_colosseum_is_priced_by_its_ally_s_wonder_site_on_run1782_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 3) else {
+            eprintln!("skipping: row 63's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1782/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1782's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 63's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        assert_eq!(built.sim.ai.lobby.team_style, 1, "row 63 locks its teams");
+        let colosseum = built
+            .sim
+            .tables
+            .build_types
+            .iter()
+            .position(|b| b.tree == Some(530))
+            .expect("the Colosseum's record");
+        for state in [1581, 1582] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_leaders();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "leaders' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "leaders range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Who=1's third make-list slot: range 171, `t` then `val`.
+            assert_eq!(ours.ranges[171].field, "make_list[k]");
+            assert_eq!(ours.ranges[171].record, 1);
+            let word = |n: usize| {
+                i32::from_le_bytes(theirs[171].bytes[4 * n..4 * n + 4].try_into().unwrap())
+            };
+            if state == 1582 {
+                assert_eq!((word(0), word(1)), (530, 53_400), "theirs' Colosseum entry");
+            } else {
+                assert_ne!(word(0), 530, "no Colosseum entry before 1582");
+            }
+            // Who=2, a mutual ally, holds the one unbuilt wonder; who=1 none.
+            assert!(built.sim.is_ally(1, 2));
+            let unbuilt = |p: u8| {
+                built
+                    .sim
+                    .buildings
+                    .iter()
+                    .filter(|b| {
+                        b.alive
+                            && !b.active
+                            && b.owner == p
+                            && b.ty.is_some_and(|t| built.sim.tables.build_types[t].wonder)
+                    })
+                    .count()
+            };
+            assert_eq!((unbuilt(1), unbuilt(2)), (0, 1), "unbuilt wonders on {state}");
+            // The team term is 1, so the count is 1 and the halved step
+            // adds 45 to each of the two goods' 300.
+            let price = built.sim.building_price(1, colosseum);
+            assert_eq!(price, [0, 345, 0, 0, 345, 0], "who=1's Colosseum on {state}");
+        }
+    }
+
     /// **Row 95's MLRS bears from its pivot node** (item 4536,
     /// `docs/RECGAME.md` §12.5): on run1770's ranges, every units and guys
     /// range on 5908 and 5909 byte for byte. On 5908 who=1's MLRS `1/99`

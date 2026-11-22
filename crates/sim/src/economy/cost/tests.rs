@@ -287,6 +287,11 @@ fn a_wonder_is_ramped_by_every_wonder_held_and_halved() {
     assert_eq!(wonder_count(1, 0, SpaceRace::Own), 4, "my own site: held + 1");
     assert_eq!(wonder_count(4, 0, SpaceRace::Own), 11, "the tail reads held");
     assert_eq!(wonder_count(1, 0, SpaceRace::Team), 3, "a teammate's: a step");
+    // Item 4542: teams locked, the allies' wonders are the team term, added
+    // before the tails, which read `held` alone.
+    assert_eq!(wonder_count(0, 1, SpaceRace::None), 1, "an ally's site");
+    assert_eq!(wonder_count(4, 2, SpaceRace::None), 11, "the tails read held");
+    assert_eq!(wonder_count(1, 1, SpaceRace::Team), 4, "and the race's step");
     // An odd support amount, so the halving truncates past three.
     let wonder = Price {
         kind: Kind::Building,
