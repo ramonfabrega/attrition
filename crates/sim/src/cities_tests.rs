@@ -4057,6 +4057,63 @@ fn a_finished_wonder_disbands_the_rivals_sites_of_its_type() {
     }
 }
 
+/// **An unfinished wonder site's close raises no `0x4000000`** (item 4540,
+/// `Build::close@00628980:315`–`369`, `docs/VISION.md` §2): the close's
+/// wonder arm — `close_wonder`, the unit-stats bit, the Colossus's pop cap —
+/// is gated on `BuildData::wonder >= 0`, the slot only `Build::activate`'s
+/// `Wonders::init_wonder` gives. run1742's 5408: who=2's wonder `2/2030`
+/// finishes, who=1's site of the type closes with it, and theirs' who=1
+/// `leader_flags` byte 3 reads `0a` (the wall bit) on 5409, not `0e`. A
+/// finished wonder's close still raises it.
+#[test]
+fn an_unfinished_wonder_site_s_close_raises_no_unit_stats_bit() {
+    let mut sim = world_sim();
+    let mut tree = tech::TechTree::new();
+    let line: Vec<tech::TypeId> = (0..17)
+        .map(|i| {
+            tree.add(tech::TypeDef::new(
+                &format!("WONDER{i}"),
+                tech::Kind::Building {
+                    auto: false,
+                    wonder: true,
+                },
+            ))
+        })
+        .collect();
+    tree.roles.wonder_line = line.clone();
+    sim.set_tech_tree(tree);
+    let t = install_types(&mut sim);
+    let mut w = bt(Ident::Temple, None, "jam", 4, 4, 420, 1200, 0);
+    w.ident = Ident::default();
+    w.wonder = true;
+    w.tree = Some(line[tech::wonder::PYRAMIDS]);
+    let pyramids = sim.add_build_type(w);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let _ = city_at(&mut sim, &t, 1, 56, 56);
+    let mine = sim.place_building(0, pyramids, tile_pos(32, 25)).unwrap();
+    let theirs = sim.place_building(1, pyramids, tile_pos(56, 49)).unwrap();
+    sim.roster.unit_stats_dirty[0] = false;
+    sim.roster.unit_stats_dirty[1] = false;
+    sim.cities.wall_stats_dirty[1] = false;
+    finish(&mut sim, mine);
+    assert!(!sim.buildings[theirs].alive, "the rival's site goes");
+    assert!(
+        sim.roster.unit_stats_dirty[0],
+        "the finished wonder's activation"
+    );
+    assert!(
+        !sim.roster.unit_stats_dirty[1],
+        "the unfinished site's close holds no slot"
+    );
+    assert!(
+        sim.cities.wall_stats_dirty[1],
+        "the close's wall bit stands"
+    );
+    sim.roster.unit_stats_dirty[0] = false;
+    sim.close_building(mine, false);
+    assert!(sim.roster.unit_stats_dirty[0], "a finished wonder's close");
+}
+
 /// **Tikal's temple bonus is `has_wonder(0x214)`'s** (item 2106): a held,
 /// finished Tikal multiplies a templed city's `TEMPLE_UPGRADE_HP` by
 /// `TIKAL_TEMPLE_HP` (Great Sahara's six templed cities, `myhits` 16250 →
