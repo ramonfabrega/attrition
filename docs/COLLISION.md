@@ -170,6 +170,17 @@ disc `Object::close` has just cleared, and nothing owns the bits after.
 At the waterline of a coastal cell the region gate marks nothing; at the
 lake's tile (75, 162) on the golden start it marks 28 water cells.
 
+**So does a unit that went inside in its own think** (item 4532).
+`Unit::process` tests `inside_up` before the think only, so a unit that
+boards there (`cast_transport@00670db0` ends in `go_inside`) still has its
+figures processed, and on its phase frame a standing figure re-marks the
+disc `insert_inside`'s `remove_from_world` has just cleared, at its
+retained point, owned by nothing after. Diff-backed on run1755's 3790:
+who=1's Anti-Aircraft Gun `1/114` casts its Freighter, and theirs holds
+its 5×5 in world cell (40, 54) from 3791 (record 3280, `block.body`).
+`Sim::repaints_off_map`. *Not established*: a squad garrisoning a
+building in its own work, which takes the same arm by the reading.
+
 **How it was found, and what it cost while it was missing.** run69's AI
 woodcutter `1/9` walked west through unit cell `(849, 366)` on frame 1885
 and left it for `(848, 365)` on 1889; the diagonal step's clear pass took
