@@ -112,10 +112,6 @@ impl crate::Sim {
         for (i, owner, _o, hx, hy) in rows {
             // `(attack * 5) / 10` as the original writes it.
             let v = (self.attack_of(Obj::Unit(i)) * 5) / 10;
-            if std::env::var("RON_DEBUG_DANGER").is_ok() && (17..=20).contains(&hy) && (19..=29).contains(&hx) {
-                let u = &self.units[i];
-                eprintln!("DANGER unit f{} {}/{} ty {:?} pos ({},{}) attack {} v {}", self.frame, u.owner, u.index, u.ty, u.pos.x, u.pos.y, self.attack_of(Obj::Unit(i)), v);
-            }
             let idx = self.danger_index(hx, hy);
             let Some(idx) = idx else { continue };
             for &viewer in &viewers {
@@ -148,10 +144,6 @@ impl crate::Sim {
             })
             .collect();
         for (b, owner, hx, hy, v) in rows {
-            if std::env::var("RON_DEBUG_DANGER").is_ok() && (16..=21).contains(&hy) && (18..=30).contains(&hx) {
-                let bd = &self.buildings[b];
-                eprintln!("DANGER build f{} {}/{} ty {:?} half ({},{}) v {}", self.frame, bd.owner, b, bd.ty, hx, hy, v);
-            }
             for &viewer in &viewers {
                 for (dx, dy) in SPREAD {
                     if let Some(idx) = self.danger_index(hx + dx, hy + dy) {
@@ -183,28 +175,6 @@ impl crate::Sim {
     /// `seen` is the object's own `is_seen(viewer)`, which only the enemy
     /// arm reads.
     fn do_danger(&mut self, seen: bool, owner: Player, viewer: Player, idx: i32, value: i32) {
-        // PROBE 4526: RON_DEBUG_DANGER=<frame>
-        if viewer == 0
-            && std::env::var("RON_DEBUG_DANGER")
-                .ok()
-                .and_then(|v| v.parse::<i64>().ok())
-                .is_some_and(|f| f == self.frame)
-            && (17..=20).contains(&(idx / 30))
-            && (19..=29).contains(&(idx % 30))
-        {
-            eprintln!(
-                "DANGER f{} hx{} hy{} owner {} viewer {} value {} seen {} diplo {}/{}",
-                self.frame,
-                idx % 30,
-                idx / 30,
-                owner,
-                viewer,
-                value,
-                seen,
-                self.diplo(owner, viewer),
-                self.diplo(viewer, owner)
-            );
-        }
         if viewer == owner {
             self.world.add_danger(viewer, idx, -value);
             return;
