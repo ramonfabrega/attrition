@@ -4674,6 +4674,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // (`build_masks` `0x2000`): builds (2736, 2736, 26) -> (2736, 2736, 24).
     // Item 4476, `cavarch_uid` kept past a dropped target: units (5340, 5340, 276) -> (5340, 5340, 275).
     // Item 4495, a guided round walks calc_from_dir's spline in the recycled Spline's sizes: ammo (208, 0, 208) -> (208, 208, 28).
+    // Item 4537, on item 4535's merged tree (a guided round's re-plan and close test read a unit target's first figure's z; not bisected, the arm of 4535 off moves nothing): ammo (208, 208, 28) -> (208, 208, 0).
     // Item 4514, unit_masks carries the attrition period's 0x80 and the peace arm's 0x400000: units (5340, 5340, 275) -> (5340, 5340, 274).
     (
         "run1487",
@@ -4682,7 +4683,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (5340, 5340, 274),
             (2736, 2736, 24),
             (0, 0, 0),
-            (208, 208, 28),
+            (208, 208, 0),
             (8, 8, 0),
             (610, 610, 0),
             (1718, 1718, 0),
@@ -4714,6 +4715,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // (`build_masks` `0x2000`): builds (2180, 2180, 24) -> (2180, 2180, 23).
     // Item 4476, `cavarch_uid` kept past a dropped target: units (5026, 5026, 282) -> (5026, 5026, 281).
     // Item 4495, a guided round walks calc_from_dir's spline in the recycled Spline's sizes: ammo (230, 0, 230) -> (230, 230, 44).
+    // Item 4537, on item 4535's merged tree (a guided round's re-plan and close test read a unit target's first figure's z; not bisected, the arm of 4535 off moves nothing): ammo (230, 230, 44) -> (230, 230, 0).
     // Item 4514, unit_masks carries the attrition period's 0x80 and the peace arm's 0x400000: units (5026, 5026, 281) -> (5026, 5026, 280).
     (
         "run1496",
@@ -4722,7 +4724,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (5026, 5026, 280),
             (2180, 2180, 23),
             (0, 0, 0),
-            (230, 230, 44),
+            (230, 230, 0),
             (2, 2, 0),
             (586, 586, 0),
             (1577, 1577, 0),
