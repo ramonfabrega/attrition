@@ -1364,7 +1364,7 @@ of 8, 65 of 96 and 53 %, and the first 0 of 8, 64 of 96 and 27 %.
 |---|---|---|---|---|---|
 | 15 | run1760 | Southwest Mesa, difficulty 0 | 6,001 | **12** | whole |
 | 35 | run1761 | Great Sahara, Classical | 6,001 | **12** | whole |
-| 55 | run1762 | East Indies, Medieval | 6,001 | 10 | units 4275, groups 5576 |
+| 55 | run1762 | East Indies, Medieval | 6,001 | 10 → **11** | ~~units 4275~~ (item 4518), groups 5576 |
 | 75 | run1763 | Great Lakes, Gunpowder | 5,342, ended on 5341 | 11 | ammo 4004 |
 | 95 | run1764 | East Indies, Information | 6,001 | 9 | leaders 5266, units 5303, guys 5909 |
 | 115 | run1765 | Southwest Mesa, difficulty 2 | 6,001 | **12** | whole |
@@ -1376,8 +1376,8 @@ The original refused no file. In row 75, the one game it ended itself, our walk 
 parting.
 
 *Not established*: ~~no row names a leaf, since each take holds sums only.~~ ~~Row 75 parts first by state (ammo on
-4004, ours 3143699460, theirs 3217755213), then~~ (row 75 named and whole, item 4517, below) row 55 parts first
-(units on 4275, ours 1914015254, theirs 708677162), then row 95 (leaders on 5266, ours 871988666, theirs 426802620).
+4004, ours 3143699460, theirs 3217755213), then~~ (row 75 named and whole, item 4517, below) ~~row 55 parts first
+(units on 4275, ours 1914015254, theirs 708677162), then~~ (row 55's units named and closed, item 4518, §12.1) row 95 (leaders on 5266, ours 871988666, theirs 426802620).
 Each needs a ranges take of its file, keeping the lines it parts on (DECISIONS 148 §4), before its leaf can be named.
 
 **Row 75's leaf (item 4517, run1768, the ammo take of run1763's file, `RNG_MASK=0x8u`).** State 4004, ammo range 1,
@@ -1393,3 +1393,29 @@ whole: **ammo 4,682 → 5,342, twelve lines to the original's end**, and the fou
 `row_75_s_crossbow_bolt_leaves_from_the_original_s_socket_on_run1768_s_ranges` holds every ammo range on 4003 to
 4013, and `data::launch::tests::the_original_s_release_agrees_at_every_heading_for_the_crossbowmen` the sweeps
 (`RON_BAY_SWEEPS_4517`, outside git).
+
+### 12.1 Row 55: a boat is born through `Unit::update_hits` (item 4518)
+
+**How it was established.** run1769 is run1762's file again, with the ranges of units and groups kept to 6000
+(`RNG_MASK=0x21u`, the scorer's line). Its sums are run1762's. On 4275 the units line grows from 6,052 ranges to
+6,074 on both sides, and one range parts: **range 3947, record 142, `myhits..launch_frames` byte 0, `myhits`
+(`+0x20`, the unit's max hit points): ours 172, theirs 192.** The unit is who=1's **Merchant Fleet `1/142`, `TI` 318**,
+a sea unit, born on 4275. Its caster is the Armed Caravan `1/64` (TI 60): on 4274 it holds a cast order, and on 4275 it
+is inside the fleet. Both caravans read 145/145 on both sides. Every other field of the fleet agrees, its damage
+(`+0x24`) at 0 included.
+
+**The direction: ours dropped a term.** Who=1 is tribe 22, the Dutch (`has_tribe_bonus(0x16)`).
+`Unit::init@00612100:580` calls vslot `+0x15c`, which `Unit::vftable` names `Unit::update_hits@0060e930`, for every
+unit `Objects::init_unit` makes. A boat is one of them. That function's Dutch arm (`0060eab4`..`0060eb98`) adds
+`ages × DUTCH_HP_BONUS` to a merchant kind, a caravan (`UnitTypeData::is_caravan`, `unit_flags2 & 8`) or a supply
+unit. Ours' ordinary birth took `Sim::unit_hits` (`units/store.rs`), which carries that arm. `transport_boat`
+(`ai/transport.rs`) took the type's raw `HITS`, 172. It now takes `unit_hits`, and the fleet is 192.
+
+**Diff-backed**: `row_55_s_dutch_merchant_fleet_is_born_with_its_update_hits_on_run1769_s_ranges` compares every
+units range on 4274 and 4275, byte for byte, and names theirs' `1/142` by `TI` 318 and `myhits` 192.
+**Moved**: units 5,833 → 6,001, whole; row 55 has eleven lines whole. Groups part as found, on 5576: range 191,
+record 83, `id..march` byte 8, `num` ours 42, theirs 43.
+
+*Not established*: which term of the arm the fleet enters by. Ours' fleet type carries `unit_flags2 & 8`, so it
+enters as a caravan. This follows from ours' total, not from a read of theirs' predicate. No capture has a Marines
+caster's boat born to a Dutch or Nubian owner, where `marines` re-runs `update_hits` after this birth.

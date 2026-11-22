@@ -248,8 +248,13 @@ impl Sim {
     /// and asks false. run1314's Transport Galleon `1/105` is 160, the
     /// type's 90 + 70 (`docs/AI.md` §341).
     ///
-    /// SEAM: the other terms — Copper and Bananas, the Dutch — which no
-    /// scored nation or holding takes.
+    /// **The Dutch** (`0060eab4`..`0060eb98`): a merchant kind, a caravan or
+    /// a supply unit of a leader with tribe bonus 0x16 adds `ages ×
+    /// DUTCH_HP_BONUS`. run1769's Merchant Fleet `1/142` is 192 at its
+    /// birth on 4275, where the raw type was 172 (item 4518).
+    ///
+    /// SEAM: the other terms — Copper and Bananas — which no scored nation
+    /// or holding takes.
     /// The Spy's upgrades are carried (item 1585), and the General's
     /// (item 1614).
     pub fn unit_hits(&self, who: Player, rec: usize) -> i32 {

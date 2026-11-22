@@ -1056,7 +1056,15 @@ impl Sim {
     /// type `ty` born at `at`: its index, or none when the list is full.
     pub(crate) fn transport_boat(&mut self, who: Player, ty: usize, at: Pos) -> Option<usize> {
         let index = self.find_free(who, UNIT_BASE, BUILD_BASE)?;
-        let mut boat = Unit::new(who, index, at, self.tables.unit_types[ty].hits);
+        // **`Unit::update_hits`, not the type's raw `HITS`** (item 4518):
+        // `Unit::init@00612100:580` calls vslot `+0x15c` (`Unit::update_hits`)
+        // for every unit `Objects::init_unit` makes, the boat with them, so a
+        // Dutch caravan's Merchant Fleet takes the merchant kinds' `ages ×
+        // DUTCH_HP_BONUS`. run1769, state 4275: who=1's fleet `1/142` (TI
+        // 318), cast by the Armed Caravan `1/64`, is born with `myhits` 192 in
+        // theirs where this crate's raw 172 parted the units line
+        // (`docs/RECGAME.md` §12).
+        let mut boat = Unit::new(who, index, at, self.unit_hits(who, ty));
         boat.kind = self.tables.unit_types[ty].kind;
         boat.ty = Some(ty);
         boat.type_index = self.tables.unit_types[ty].type_index;
