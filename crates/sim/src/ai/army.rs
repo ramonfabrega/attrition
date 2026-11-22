@@ -34,7 +34,7 @@ use crate::{Player, Sim};
 ///
 /// | seam | stands in for | what it costs |
 /// | --- | --- | --- |
-/// | `GLOBAL_GOVERNMENT_BONUS`, `weak[]`/`strong[]`, the tribute period | leader and city fields the sim does not keep | the multipliers they gate are ×1; a leader at peace is never a target (`pop_issues`, `wonderwin_timer`, `score` and `num_wonders` are read since items 4354 and 4360) |
+/// | `GLOBAL_GOVERNMENT_BONUS` | a leader field the sim does not keep | the multiplier it gates is ×1 (`pop_issues`, `wonderwin_timer`, `score` and `num_wonders` are read since items 4354 and 4360; `weak[]`/`strong[]` since item 4553, the tribute period is `is_tribute_period`) |
 /// | `is(SUPPLYWAGON)` | the lineage test behind `num_standard` and the caps | `unit_flags2 & 0x40` without `0x20` — the supply-or-hero bit less the generals; a government patriot `FROM General` (The Despot) carries both and is not counted, as the lineage would not count it. The *joiner's* arm in the caps is `is_supply` alone (`army_admits`, §213 of `docs/AI.md`) |
 /// | `leader_flags & 8`, `leader_flags2 & 8` | the two stop bits (§18) | never set |
 /// | `Region::flags & 8` | `go_here`'s resource-region bit | bit 1 never set; `do_transporting` does not read it |
@@ -3128,8 +3128,8 @@ pub(crate) fn do_marching_steps<V: MarchView>(v: &mut V) {
 /// held when `do_marching` began. Where the crate models less than the
 /// original, the answer is the crate's rule: no "under attack" slot (a
 /// non-enemy unit is always dropped), a building is a city centre (with no
-/// city when it has none), and the weak/strong/tribute tests are seams
-/// (`weak` clear, `strong` set, no tribute: the ally test decides).
+/// city when it has none), and the weak/strong tests read the leader's own
+/// `weak[8]`/`strong[8]` (item 4553).
 struct MarchSim<'a> {
     sim: &'a mut Sim,
     who: Player,
@@ -3210,11 +3210,13 @@ impl MarchView for MarchSim<'_> {
     fn ally(&mut self) -> bool {
         self.sim.is_ally(self.who, self.tw())
     }
+    // `leaders.list[me].weak[tw]` and `strong[tw]` (`+0x250`, `+0x230`),
+    // the record the leaders line compares (item 4553).
     fn weak(&mut self) -> bool {
-        false
+        self.sim.ai.ai[self.who as usize].weak[self.tw() as usize] != 0
     }
     fn strong(&mut self) -> bool {
-        true
+        self.sim.ai.ai[self.who as usize].strong[self.tw() as usize] != 0
     }
     fn tribute(&mut self) -> bool {
         self.sim.is_tribute_period(self.who, self.tw())
