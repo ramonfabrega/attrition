@@ -1305,13 +1305,6 @@ pub(in crate::diff) mod tests {
             }) {
                 if (lo..=hi).contains(&f) {
                     let sim = &built.sim;
-                    if f == lo {
-                        let n = sim.territory.players.len().min(8);
-                        let m: Vec<String> = (0..n)
-                            .map(|w| format!("{w}:ally{} stored{}", (0..n).filter(|&o| o != w && sim.is_ally(w as sim::Player, o as sim::Player)).fold(1u32 << w, |m, o| m | 1 << o), sim.ai.ai.get(w).map_or(-1, |l| l.census.ally_mask as i64)))
-                            .collect();
-                        eprintln!("P4552 f{f} masks {}", m.join(" "));
-                    }
                     for b in sim.buildings.iter().filter(|b| b.alive && b.index == ix) {
                         let ty = b.ty.map_or(-1, |t| t as i64);
                         let ident = b.ty.map_or_else(String::new, |t| format!("{:?}", sim.tables.build_types[t].ident));
