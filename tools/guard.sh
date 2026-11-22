@@ -38,6 +38,11 @@ if [ "$1" = "--built" ]; then PROFILE=(--release); shift; fi
 # second; `diff::floors::tests::the_pinned_shape_is_the_tree_s` stays the
 # authority and runs below and in the release suite.
 sh tools/source_pins.sh
+# The format, with nothing built (the pass of 2026-11-22, second; DECISIONS
+# 152 §6): an in-session builder never runs the gate, so this script is the
+# only place its tree is asked, and it was not. Item 4551's merge went red
+# on `cargo fmt --check` at the booking gate's fourth step. About a second.
+cargo fmt --check
 (cd tools/explore && python3 -m unittest -q test_brief test_queueledger test_sweep_gen.FamilyRegistrations)
 if [ -n "$RON_LANE" ]; then
   # The journal's gate quote cannot exist before the lane's gate has run (3277).

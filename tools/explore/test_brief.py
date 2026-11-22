@@ -757,6 +757,18 @@ class TheReflexReadsTheQueue(unittest.TestCase):
         for suite in ('test_brief', 'test_queueledger'):
             self.assertIn(suite, code)
 
+    def test_the_reflex_checks_the_format_before_it_builds(self):
+        # The pass of 2026-11-22, second (DECISIONS 152 §6): an in-session
+        # builder never runs the gate, its only reflex is this script, and
+        # the script did not ask `cargo fmt`. Item 4551's merge was red at
+        # the booking gate's fourth step (`gate-book-4553-4551.log`). The
+        # check sits before the first `cargo test`, so it costs no build.
+        guard = (ROOT / 'tools/guard.sh').read_text()
+        code = [l.strip() for l in guard.split('\n') if not l.lstrip().startswith('#')]
+        self.assertIn('cargo fmt --check', code)
+        first_build = next(i for i, l in enumerate(code) if l.startswith('cargo test'))
+        self.assertLess(code.index('cargo fmt --check'), first_build)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -99,7 +99,8 @@ driver chooses the shape for each step:
 - **An in-session builder** — the Agent tool with `isolation: worktree`.
   Its brief is the goal, the score it moves, what is ruled out and where to
   read, with the machine facts; never the frame. It builds red first, runs
-  `tools/guard.sh` and its own tests, and hands back its branch and tip.
+  `tools/guard.sh` (which asks `cargo fmt` since DECISIONS 152 §6) and
+  its own tests, and hands back its branch and tip.
   The driver merges it and gates once, at the merge; on a red gate it sends
   the builder the failing test, and the builder fixes in its own context. A
   builder never runs the release gate: whether one waits cleanly on a
@@ -520,7 +521,9 @@ when the first reads 4 of 8 now, or on Ramon's word; the third (rows 5 to
 145) when the second does (DECISIONS 147 §2); the fourth (rows 15 to 155)
 when the third reads 7 of 8 (DECISIONS 148 §2); the fifth (rows 3 to 143)
 when the fourth does (DECISIONS 149 §3); the sixth (rows 13 to 153) when
-the fifth reads 4 of 8 (DECISIONS 151 §6). **A battery is spent when a row
+the fifth reads 4 of 8 (DECISIONS 151 §6), recorded to 12,000 where the
+five before stop on 6,000 (DECISIONS 152 §4: the sample parts past the
+end of every held-out game). **A battery is spent when a row
 of it has a leaf test, and `held_out::SPENT` then holds it**: a guard reads
 the tests' names, and the booking that lands a row's first leaf adds the
 battery and writes `Parity:` (151 §2: the fifth stood off the list for
@@ -602,7 +605,12 @@ the tree is removed, DECISIONS 151 §7).
    leaves on disk had no item) — **and each battery's reach read off its
    line**, the states its games run before their first parting, which
    read 27, 53 and 88 % on three batteries as found (DECISIONS 147 §2,
-   148 §2).
+   148 §2). **The leaves are then read against each other, and against
+   the table a fix would add a row to** (DECISIONS 152 §2, §3): two rows
+   that name the same fields take one seat, and a leaf whose fix is a
+   table row is booked as every row the games on disk ask of that table
+   (the sample and row 43 named one pair of fields in two items; three
+   landings each found one piece with no bay where a lister found eight).
 
 **It never moves what is the user's**: the
 roster, the worker count, the phase, the finish

@@ -79,23 +79,6 @@ lines): **checksum** — every line but leaders is whole on the minted game, `LE
 kind's file played by the original but spell's; **renderer** — under a mountain 100 of 106, the row
 past the map's edge pinned at 0 of 162. The other tracks stand as the table says.
 
-**At the pass of 2026-11-17** (entry 139): **checksum** — `LEADERS_HELD_OUT` 1, the demand's walk at 5496 of 6,081
-(item 4331); parity's leaders line agrees on 23,965 of the minted game's 24,000 frames (item 4333), and a second
-game for its declared set is booked, the 2017 sample, a person's whole game (item 4336); **orders** — `INPUT_WHOLE`
-50 of 50, every recorded order shown, on scenes made by hand until that walk exists; the panel's filter equals the
-original's on 1,238 of 1,238 buttons and the HUD does not draw it yet (item 4334); **renderer** — the cracked
-ground 2,287 of 2,387, the faded land in HDR; the pass's look left the nine deep tiles for the whitecaps and the
-fish (item 4335).
-
-**At the pass of 2026-11-17, second** (entry 140): **checksum** — `LEADERS_HELD_OUT` 1, the demand's walk at 5622 of 6,081
-(item 4354, a packet at 5621 first); parity's nine compared lines agree on 24,000 of the minted game's 24,000 frames, and the
-three uncompared ones (walls, ammo, deaths) are empty in the original's trace on every frame, ours uncounted (item 4355): parity
-stays 0 of 1 until they are; the 2017 sample's start is built whole from its header and walked to 444 of 21,044 (item 4351, its
-second act the hook's take); **orders** — the HUD draws the panel, the pages, the standard panel and the picks as the original's,
-and no pick has been played (item 4352); **renderer** — the lake's fish stand dark where theirs do; the pass's look left the
-herd's churn for the broad strokes far out (item 4353), after which the seat leaves the lake for what shows in play, the
-borders first.
-
 **At the pass of 2026-11-18** (entry 142): **checksum** — parity reads 5 of 6 games: the minted game and four live windows the client
 recorded and the original played back (Codex, items 4362 to 4373), two with combat, so the ammo and deaths records are exercised; the sixth, the
 2017 sample, parts on state 0 on four lines and is read from there (item 4384); `LEADERS_HELD_OUT` 1, the demand's walk at 5677 of 6,081 after
@@ -162,6 +145,13 @@ fifth, three seats and a team a row, read 1 of 8 and 30 of 96 lines as found, 48
 103, 83, 123, 43 and 3 are scored (items 4541, 4542, 4544 to 4548), row 110 three leaves from whole and each fifth row one take;
 a sixth battery is named, taken when the fifth reads 4 of 8; the packets' lines 950 of 1,053; **orders** — whole by its counters;
 **renderer** — as it stood, no landing.
+
+**At the pass of 2026-11-22, second** (entry 152): **checksum** — parity 41 of 47 (rows 110 and 123 whole); the sample parts first on
+units 7055 of 21,044, draws 7105, 158 states a landing over six and slowing; parity held out 8, 8, 8, 8 and 3 of 8 now, the fifth's
+reach 81 %; five rows scored: row 63 is one field from whole (item 4563), the sample and row 43 name one pair of fields and take one
+seat (items 4565, 4564), row 103's first shot is a piece with no bay and the games on disk field eight such, built in one act (item
+4559); the sixth battery keeps its trigger and is recorded to 12,000, because every held-out game ends on 6,000 and the sample parts
+past it (item 4566); the packets' lines 950 of 1,053; **orders** — whole by its counters; **renderer** — as it stood, no landing.
 
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it

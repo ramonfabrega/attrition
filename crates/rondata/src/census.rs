@@ -358,9 +358,11 @@ pub const RUBRIC_GROUPS: usize = 112;
 // --record`, after item 4394's `update_all_seen`); replaced and open stand.
 // 737 → 738 ported and 572 → 571 open at the pass of 2026-11-19, second
 // (`tools/rubric.py --record`, after item 4415's `Unit::set_new_location`).
-pub const RUBRIC_TERRITORY_PORTED: usize = 738;
+// 738 → 739 ported and 571 → 570 open at the pass of 2026-11-22, second
+// (`tools/rubric.py --record`, after item 4541's `ObjectData::is_jammed`).
+pub const RUBRIC_TERRITORY_PORTED: usize = 739;
 pub const RUBRIC_TERRITORY_REPLACED: usize = 331;
-pub const RUBRIC_TERRITORY_OPEN: usize = 571;
+pub const RUBRIC_TERRITORY_OPEN: usize = 570;
 /// **Lockstep since the fifty-first pass** (Ramon, 2026-10-22: the rubric
 /// answers how close the port is to a 1:1 sim). The ages and the unit types
 /// below are read from the dumps of **lockstep games** only — a game whose

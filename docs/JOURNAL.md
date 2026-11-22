@@ -22522,3 +22522,50 @@ on the tip, re-pinned by another lane twenty-seven minutes before the
 builder made them. The commit was pushed to its branch and the tree
 removed. The pass moved no score and took no capture.
 **DECISIONS 151.** `docs/audit/2026-11-22-fable-pass-fold.md`.
+
+## 2026-11-22 — the pass, second: two items held one leaf, and eight pieces had no bay (Fable 5.2, steering)
+
+`commander` ran nineteen merges off the morning's pass in eight hours,
+drained one short of the backstop and handed over at `e5fc6b3e0` on a
+green whole gate, with main at the tip this time. Rows 110 and 123
+came whole and the headline went 39 → 41 of 47. The fifth battery's
+lines went 32 → 53 and the sample's first parting 6108 → 7055. The
+handoff asked for five items seated and a ruling on the sixth battery.
+
+The pass scored the five open rows of the fifth before it seated
+anything, and read the reports against each other, which no one had.
+Two things came of that. The sample's item and row 43's, cut at two
+bookings from two lanes' journals, name the same pair of fields on one
+state: a unit's `targeted` flag and the object a city is shooting at.
+Two lanes would have read one mechanism twice. One seat carries both
+scores now and row 43's item waits behind it. And row 63 turned out to
+be one field from whole, eleven lines agreeing to the game's end, so
+it sits first: the landing that closes it makes the fifth 4 of 8, the
+sixth battery's trigger.
+
+The second thing started as a hunch. Two landings in the tranche had
+each traced a parted round to a figure piece with no launch socket and
+added that one piece, and row 103's leaf had the same shape. A lister
+for exactly this has existed for a week; item 4558's journal notes it
+"still stands". The pass ran it over the forty held-out games and the
+sample with a scratch print. Its first run printed nothing, and the
+test count on the next line said why: the filter had matched no test.
+Run properly it lists eight pieces and 1,234 rounds, and with the
+frame beside the print, row 103's first shot on state 2860 is one of
+them. So that item builds all eight in one act instead of meeting
+them one landing at a time.
+
+The sixth battery keeps its trigger and gets its item, so the driver
+can seat it without a pass. One thing in its recipe changes. Every
+held-out game has been recorded to 6,000 frames, six minutes and forty
+seconds of play, and four batteries read whole inside that. The sample
+parts on state 7055, past the end of all forty. The sixth is recorded
+to 12,000. Whether its human plays is still Ramon's.
+
+The sample's seat moved the line at every landing and less each time:
+507, 259, 93 and 34 states over its last four. The rule that stops a
+seat did not fire and is not changed; the rate goes to Ramon. Three
+booking gates were red on paperwork, and the one a builder brought in
+was `cargo fmt`, which the reflex never asked. It asks now. The pass
+moved no score and took no capture.
+**DECISIONS 152.** `docs/audit/2026-11-22-fable-pass-leaves.md`.

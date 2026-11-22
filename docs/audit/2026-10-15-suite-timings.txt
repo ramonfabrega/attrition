@@ -1,7 +1,7 @@
-# Every rondata release test timed alone, 2026-11-22, tools/suite_timings.py (tree 252444c8).
+# Every rondata release test timed alone, 2026-11-22, tools/suite_timings.py (tree e5fc6b3e).
 # One test per process, --test-threads 1, sequential, RON_INSTALL set; seconds then the test.
-# Sum 6,235 s over 2629 tests; --stale-only merged. Top 10 = 1251 s, top 30 = 1868, top 100 = 2462; 1128 tests under 1 s.
-# By module: mapgen 687 s / 133 tests, held_out 641 s / 73 tests, golden 363 s / 346 tests, audit 321 s / 124 tests, sample 271 s / 13 tests.
+# Sum 6,290 s over 2644 tests; --stale-only merged. Top 10 = 1251 s, top 30 = 1888, top 100 = 2490; 1133 tests under 1 s.
+# By module: mapgen 687 s / 133 tests, held_out 662 s / 87 tests, golden 363 s / 346 tests, audit 321 s / 124 tests, sample 305 s / 14 tests.
 216.02	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 199.71	diff::held_out::tests::the_held_out_games_score_as_pinned
 148.69	diff::sample::tests::the_sample_s_lines_against_the_hook
@@ -18,6 +18,7 @@
 50.51	diff::start_walk::recording::the_demand_s_game_to_its_end_on_run1691
 49.73	diff::coverage::every_key_the_dump_prints_is_read_or_pinned
 44.29	checksum::playback::tests::the_long_window_game_agrees_through_its_closing_state
+34.02	diff::sample::tests::the_sample_s_ranges_to_8000_name_each_first_parting
 31.00	diff::start_walk::recording::the_demand_s_game_is_whole_on_run1683
 26.54	diff::sample::tests::the_sample_s_ranges_to_3100_name_each_first_parting
 26.53	mapgen::tests::great_lakes_s_heights_are_the_start_dump_s_grid
@@ -410,6 +411,7 @@
 3.35	diff::mongol_pair::run775_mongol_pair_closing_state
 3.34	diff::coverage_pair::run1075_s_garrison_window_is_widened_whole
 3.33	diff::golden::chapter_thirty_five_s_word_frame_is_widened_whole
+3.33	diff::held_out::tests::row_110_s_space_program_sees_every_enemy_building_in_the_danger_map_on_run1742_s_ranges
 3.31	diff::testkit::indexed_road_setups_preserve_every_initial_field_except_audit_bodies
 3.31	diff::british_medieval_pair::british_medieval_pair_run1376b_s_closing_frame_is_widened_whole
 3.30	diff::german_modern_pair::german_modern_pair_run1418_s_word_frame_is_widened_whole
@@ -557,6 +559,7 @@
 2.59	diff::world::tests::run240_s_every_priced_step_is_the_original_s
 2.59	diff::world::tests::a_pasture_herder_walks_only_on_its_own_256_frame_phase
 2.59	diff::build::tests::run10_s_opening_trains_the_original_s_citizens_on_its_frames
+2.59	diff::held_out::tests::row_110_s_special_forces_jam_the_tower_on_run1742_s_ranges
 2.58	diff::turkish_word::run1005_s_word_frame_is_widened_whole
 2.58	diff::lakota_enlightenment_pair::lakota_enlightenment_pair_run1364b_s_closing_frame_is_widened_whole
 2.58	diff::audit::roman_word_corrections_change_nothing
@@ -715,6 +718,7 @@
 2.20	diff::audit::american_industrial_pair_corrections_change_nothing
 2.19	diff::lakota_medieval_pair::lakota_medieval_pair_first_parting
 2.19	diff::checksum_lines::packets::french_word_packets
+2.19	diff::held_out::tests::row_83_s_artillery_carries_the_supply_veto_s_mark_on_run1784_s_ranges
 2.18	diff::checksum_lines::packets::spanish_gunpowder_pair_packets
 2.18	diff::russian_gunpowder_pair::russian_gunpowder_pair_run1340b_s_word_frame_is_widened_whole
 2.18	diff::third::tests::run457_s_gap_is_widened_whole
@@ -843,6 +847,7 @@
 1.95	diff::japanese_enlightenment_pair::japanese_enlightenment_pair_run1366_s_closing_state
 1.95	diff::indian_enlightenment_pair::indian_enlightenment_pair_run1312_s_closing_state
 1.95	diff::minted::the_city_gathered_minted_script_s_effects_on_our_walk
+1.94	diff::held_out::tests::row_63_s_fusilier_round_leaves_from_the_original_s_socket_on_run1782
 1.94	diff::minted::the_hotkeyed_minted_script_s_effects_on_our_walk
 1.94	diff::golden::chapter_seven_b_s_control_scout_search_is_priced_as_the_original
 1.94	diff::checksum_lines::packets::indian_sahara_word_packets
@@ -1019,6 +1024,7 @@
 1.70	diff::lakota_gunpowder_pair::lakota_gunpowder_pair_run1289_s_closing_state
 1.70	diff::diplomacy_take::run1645_s_taunt_parts_from_the_old_seat
 1.70	diff::start_walk::recording::the_demand_s_units_part_by_range_on_run1695
+1.70	diff::held_out::tests::row_103_s_army_record_keeps_its_role_when_a_squad_leaves_on_run1783_s_ranges
 1.69	diff::checksum_lines::packets::maya_ancient_pair_packets
 1.69	diff::persian_medieval_pair::persian_medieval_pair_the_long_s_stride_walks_back_from_4038
 1.69	diff::inca_sahara_word::run1006b_inca_sahara_closing_state
@@ -1103,6 +1109,7 @@
 1.57	diff::egyptian_gunpowder_pair::egyptian_gunpowder_pair_run1254b_s_word_frame_is_widened_whole
 1.57	diff::checksum_lines::packets::american_information_pair_packets
 1.57	checksum::playback::combat::both_occupied_sprite_pools_match_every_record_in_window_a
+1.57	diff::held_out::tests::row_43_s_slinger_stones_leave_from_piece_736_s_sockets_on_run1787_s_ranges
 1.56	diff::third_pair::run616_s_word_frame_is_widened_whole
 1.56	diff::audit::iroquois_sahara_word_corrections_change_nothing
 1.56	diff::golden::chapter_one_hundred_and_five_s_window_is_widened_whole
@@ -1177,6 +1184,7 @@
 1.46	diff::golden::chapter_ninety_nine_s_window_is_widened_whole
 1.46	diff::aztec_medieval_pair::aztec_medieval_pair_first_parting
 1.46	diff::golden::chapter_sixty_seven_s_word_frame_is_widened_whole
+1.46	diff::held_out::tests::row_63_s_army_skips_an_ally_it_does_not_call_strong_on_run1782
 1.45	diff::persian_gunpowder_pair::persian_gunpowder_pair_run1370b_s_word_frame_is_widened_whole
 1.45	diff::sahara_coverage::run702_s_word_frame_is_widened_whole
 1.45	diff::golden::chapter_thirty_one_s_word_frame_is_widened_whole
@@ -1201,6 +1209,7 @@
 1.43	diff::third::tests::run417_s_word_frame_is_widened_whole
 1.43	diff::second::tests::run420_s_word_frame_is_widened_whole
 1.43	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_run1237b_s_closing_frame_is_widened_whole
+1.42	diff::held_out::tests::row_83_s_taj_mahal_site_keeps_its_hits_through_a_blow_on_run1784_s_ranges
 1.42	diff::iroquois_word::run897b_iroquois_closing_state
 1.42	diff::audit::chinese_medieval_pair_corrections_change_nothing
 1.42	diff::audit::roman_gunpowder_pair_corrections_change_nothing
@@ -1255,6 +1264,7 @@
 1.34	diff::golden::chapter_one_hundred_and_thirty_two_s_window_is_widened_whole
 1.34	diff::minted::the_bucket_reader_reads_a_known_dump
 1.34	diff::checksum_lines::deaths::the_combat_packet_keeps_the_hit_direction_without_an_attachment
+1.34	diff::held_out::tests::row_123_s_producer_lap_starts_past_the_base_on_run1785_s_ranges
 1.33	diff::held_out::tests::row_100_s_jet_fighter_turns_through_set_angle_at_its_airbase_on_run1721_s_ranges
 1.33	diff::golden::chapter_one_hundred_and_thirty_four_s_window_is_widened_whole
 1.33	diff::second::tests::run414_s_word_frame_is_widened_whole
@@ -1656,12 +1666,14 @@
 0.81	diff::second::tests::run349_s_word_frame_is_widened_whole
 0.81	diff::minted::the_right_pressed_script_against_the_boxed_playback_parts
 0.81	diff::golden::chapter_one_hundred_and_thirty_five_holds_to_the_golden_word
+0.80	diff::held_out::tests::row_103_s_caravan_road_is_laid_the_frame_after_the_budget_on_run1783_s_ranges
 0.80	diff::held_out::tests::row_100_s_jet_fighter_walks_its_strafe_order_on_run1721_s_ranges
 0.80	diff::minted::the_clicked_script_against_the_right_pressed_playback_parts
 0.80	diff::checksum_lines::packets::chapter95_packets
 0.80	diff::american_lakes_word::run1009_s_word_frame_is_widened_whole
 0.80	blind::tests::the_ranges_hook_keeps_a_due_set_s_ranges
 0.80	diff::held_out::tests::row_100_s_jet_fighter_walks_its_air_patrol_order_on_run1721_s_ranges
+0.79	diff::held_out::tests::row_83_s_computer_lists_a_caravan_by_its_ally_s_city_on_run1784_s_ranges
 0.79	diff::held_out::tests::row_100_s_nuke_strikes_its_citizens_in_find_units_order_on_run1721_s_ranges
 0.79	diff::japanese_modern_pair::japanese_modern_pair_the_long_s_stride_walks_back_from_the_word
 0.79	diff::american_lakes_word::american_lakes_word_first_parting
@@ -1717,6 +1729,7 @@
 0.74	diff::golden::chapter_twenty_four_holds_to_the_golden_word
 0.74	diff::checksum_lines::the_cities_line_is_the_original_s_range_by_range
 0.74	diff::world::tests::run72_s_world_after_the_market_s_road_is_the_original_s
+0.73	diff::held_out::tests::row_43_s_unbuilt_village_close_fixes_the_borders_on_run1787_s_ranges
 0.73	diff::held_out::tests::row_140_s_dutch_merchants_keep_their_cached_armour_on_run1725_s_ranges
 0.73	diff::inca_enlightenment_pair::inca_enlightenment_pair_the_long_s_stride_walks_back_from_3095
 0.73	diff::golden::chapter_one_hundred_and_seven_holds_to_the_golden_word
@@ -1737,6 +1750,7 @@
 0.72	diff::gunpowder_melee::gunpowder_melee_s_arquebusiers_squad_skips_the_held_bombard_number
 0.72	diff::golden::chapter_eighty_staging_reaches_the_stealth_arm
 0.72	diff::golden::chapter_forty_eight_holds_to_the_golden_word
+0.71	diff::held_out::tests::row_63_s_colosseum_is_priced_by_its_ally_s_wonder_site_on_run1782_s_ranges
 0.71	diff::held_out::tests::row_5_s_slinger_stone_leaves_from_the_original_s_socket_on_run1753_s_ranges
 0.71	diff::egyptian_word::run967b_s_gap_is_widened_whole
 0.71	diff::iroquois_word::run930_s_squad_is_widened_whole
@@ -2556,6 +2570,7 @@
 0.01	diff::held_out::tests::the_fifth_held_out_line_reads_as_pinned
 0.01	trace::ranges::tests::a_record_in_pieces_reads_as_the_whole_one
 0.01	recgame::tests::a_donor_may_differ_in_team_style_and_players_alone
+0.01	diff::held_out::tests::a_battery_with_a_row_s_leaf_test_is_spent
 0.00	recgame::tests::the_borrowed_sections_move_with_neither_team_style_nor_players
 0.00	diff::held_out::tests::the_handoff_s_parity_held_out_fifth_line_is_the_pinned_scores
 0.00	diff::sample::tests::the_fold_counts_the_spent_batteries_whole_rows
