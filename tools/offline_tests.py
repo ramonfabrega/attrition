@@ -71,6 +71,7 @@ SUITES = (
     'test_unitaddr',
     'test_unitat',
     'test_filerun',
+    'test_split',
     'test_runwiring',
     'test_births',
     'test_recomp_flags',

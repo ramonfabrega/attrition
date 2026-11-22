@@ -154,7 +154,11 @@ counts either. The pairs of 2026-11-20 were not redrawn or uploaded.
 - **The idle human is named again, not mended.**
 - **The driver's own cost is not summed**, as before.
 - **The blind list was not scanned**: open 0.
-- **The guards caught the pass twice**: the queue ledger refused item
+- **The pass's first gate was red** (`gate-pass-1121b.log`, exit 1 at
+  the offline step, 1.1 minutes): `tools/explore/test_split.py` was not
+  in `tools/offline_tests.py`'s list, and the guard that holds every
+  suite to that list said so. A second commit registered it.
+- **The guards caught the pass twice more**: the queue ledger refused item
   4503's line until it said `dropped`, and the tracks' section and the
   handoff were each over the ceiling, 442 and 165 bytes. The tracks'
   paragraph for the pass of 2026-11-16 was retired; its story is entry
