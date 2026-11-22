@@ -349,7 +349,13 @@ Darius, Wellington, Blücher, Memnon) are a `SEAM`.
 The squad's hit points: `type.hits` (for citizens, the age-variant type's),
 `+ americans_marine_hp_bonus` (entrenched marines), `× (copper_factory_hp +
 100) / 100` (ships and factory units with Copper), `× (bananas_hp_bonus +
-100) / 100`, `× (iroquois_extra_hits + 100) / 100` (Iroquois barracks
+100) / 100` (**both carried, item 4538**, `0060e9b0`..`0060ea46`: Copper is
+`rare` byte 2 bit 2, `TypeIndex` 24, on a type of domain 1 (`+0x218`) or
+trained at 0x1ae or 0x1af; Bananas is byte 4 bit 7, `TypeIndex` 45, on every
+type. **Copper is diff-backed**: run1781's Fishermen `2/15` is 204 from 5695,
+170 × 120 %, when its leader gains Copper and `calc_unit_stats` re-runs this.
+Bananas, and Copper's Siege Factory arm, rest on the listing alone; no capture
+holds a Bananas holder), `× (iroquois_extra_hits + 100) / 100` (Iroquois barracks
 units), `+ ages × dutch_hp_bonus` (the Dutch kinds; **carried, item 3329**,
 diff-backed: run963b's Dutch merchants `1/1`, `1/2` and caravan `1/14` are
 `myhits` 135 on a type of 125 in the Classical age, ours 125 before it, `docs/AI.md`

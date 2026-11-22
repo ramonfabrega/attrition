@@ -9646,8 +9646,9 @@ them.
 - The Despotism tiers: the three rows name one government here, so the
   else-chain's order is not visible (15 each).
 - The Porcelain Tower's `calc_rare` term and its pass in `calc_gather`.
-- `Unit::update_hits`' other terms (the American marines, Copper, Bananas,
-  the Iroquois, the Dutch, the Spy, General and supply upgrades).
+- `Unit::update_hits`' other terms (the American marines, ~~Copper, Bananas,~~
+  the Iroquois, the Dutch, the Spy, General and supply upgrades). (Copper and
+  Bananas carried by item 4538, `docs/COMBAT.md` §4.3.)
 
 ## 55. Chapter forty-six — three arms a unit test alone held: a squad's barge ashore, `all_gathering`'s prune, and `leech_codes`' early return (items 1278, 1291)
 

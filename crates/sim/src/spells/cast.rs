@@ -253,7 +253,7 @@ impl Sim {
     /// DUTCH_HP_BONUS`. run1769's Merchant Fleet `1/142` is 192 at its
     /// birth on 4275, where the raw type was 172 (item 4518).
     ///
-    /// **Copper and Bananas** (`0060e9a4`..`0060ea36`, item 4538): a leader
+    /// **Copper and Bananas** (`0060e9b0`..`0060ea46`, item 4538): a leader
     /// holding Copper ([`crate::economy::COPPER`]) gives a sea type
     /// (`+0x218 == 1`) or a Siege Factory's (`+0x40` 0x1ae or 0x1af)
     /// `(COPPER_FACTORY_HP + 100) × hits / 100`, and one holding Bananas

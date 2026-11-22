@@ -40885,6 +40885,9 @@ the background. `df -g ~` read 74 GB free before it and 73 after.
   `myhits..launch_frames` byte 0: `myhits` ours 170, theirs 204.
 - **Re-scored by item 4534** (the walked setup leaves the player-region bit to `analyze_map`): leaders 6,001, whole;
   units 5,695, first 5695, as found; eleven lines whole.
+- **Re-scored by item 4538** (`Unit::update_hits`' Copper arm): units 6,001, whole; **twelve lines whole**. The
+  leaf on 5695 was who=2's Fishermen `2/15` (TI 317, a sea type), `myhits` ours 170, theirs 204: who=2's leader
+  gains Copper (`rare` byte 2 bit 2) on that state, and `calc_unit_stats` re-runs `update_hits`.
 - Filed by `filerun.py run1781 heldout5-row023-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1781-heldout5-row023-ranges.txt`, 2,876 bytes, SHA-256
   `343f45814b47293e57882335f2de613cac02136b0edac564adb0646711e92dd3`; `rontrace.log` → `Logs/rontrace-run1781.log`,
@@ -40892,4 +40895,5 @@ the background. `df -g ~` read 74 GB free before it and 73 after.
   split size, stays in place.
 
 **What it holds**: `diff::held_out::tests::row_23_s_setup_claims_oil_under_the_colonized_limit_on_run1781_s_ranges`
-(every leaders range on state 0).
+(every leaders range on state 0), and `row_23_s_fishermen_takes_copper_s_hit_points_on_run1781_s_ranges` (every
+units range on 5694 and 5695; item 4538).
