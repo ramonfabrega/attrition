@@ -283,7 +283,9 @@ impl Sim {
                 self.note_attrition_arm(self.units[i].owner, frame);
             }
             let unit = &mut self.units[i];
-            unit.sheltered = false;
+            // `Unit::process@00610bc0:453`, the refresh's clear of the
+            // veto's mark (item 4554).
+            unit.unit_masks2 &= !crate::combat::umask2::SUPPLIED;
             match outcome {
                 crate::territory::attrition::Outcome::Exempt(_) => {
                     unit.attrition = 0;
@@ -313,7 +315,9 @@ impl Sim {
             && self.supplied_at(unit.owner, unit.pos);
 
         if sheltered {
-            self.units[i].sheltered = true;
+            // `:535`: the vetoed tick ORs the mark into `unit_masks2`, the
+            // word the units walk prints (item 4554).
+            self.units[i].unit_masks2 |= crate::combat::umask2::SUPPLIED;
             return None;
         }
         Some(self.suffer_attrition(i, frame))
