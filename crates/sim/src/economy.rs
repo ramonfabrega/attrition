@@ -317,6 +317,19 @@ pub const PEACOCKS: usize = 25;
 /// its phase of `UNIT_HEAL_RATE` (item 3854, [`crate::Sim::ship_heal`]).
 pub const CITRUS: usize = 26;
 
+/// `TypeIndex::COPPER` — the first rare `Unit::update_hits@0060e930` reads:
+/// `+0x6da6 & 4`, else `+0x6dce & 4`, byte 2 bit 2 of `rare` or of
+/// `rare_conquest`, which is bit `24 - `[`BASE_RARE`]` = 18`
+/// (`enums/TypeIndex.txt`: 24, `COPPER`). A sea unit or a Siege Factory's
+/// of its holder takes `COPPER_FACTORY_HP` more hit points (item 4538).
+pub const COPPER: usize = 24;
+
+/// `TypeIndex::BANANAS` — the second rare `Unit::update_hits@0060e930`
+/// reads: `+0x6da8 & 0x80`, else `+0x6dd0 & 0x80`, byte 4 bit 7, which is
+/// bit `45 - `[`BASE_RARE`]` = 39` (`enums/TypeIndex.txt`: 45, `BANANAS`).
+/// Every unit of its holder takes `BANANAS_HP_BONUS` more hit points.
+pub const BANANAS: usize = 45;
+
 /// What one `resourcerules.xml` record pays whoever stands on it —
 /// `GoodTypeData`'s two `(BONUS_TYPE, BONUS_NUM)` pairs, which is the whole
 /// of what `LeaderData::calc_rare@006e08d0` reads off the good.

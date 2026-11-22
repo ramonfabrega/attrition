@@ -1330,6 +1330,14 @@ pub struct Tuning {
     pub red_fort_fort_hps: i32,
     /// Percent more on a Nubian market.
     pub nubian_hit_points: i32,
+    /// Percent more on a sea unit (`UnitTypeData +0x218 == 1`) or a Siege
+    /// Factory's (`+0x40` 0x1ae or 0x1af) of a leader holding Copper —
+    /// `Unit::update_hits@0060e930`'s first rare arm. Ships as 20 (item
+    /// 4538: run1781's Fishermen `2/15`, 170 → 204 on 5695).
+    pub copper_factory_hp: i32,
+    /// Percent more on every unit of a leader holding Bananas —
+    /// `Unit::update_hits@0060e930`'s second rare arm. Ships as 10.
+    pub bananas_hp_bonus: i32,
     /// Percent more on an Iroquois Barracks unit that is armed or a Scout
     /// (`Unit::update_hits@0060e930`'s `has_tribe_bonus(0x12)` arm).
     pub iroquois_extra_hits: i32,
@@ -1936,6 +1944,8 @@ impl Tuning {
         taj_building_hp: 100,
         red_fort_fort_hps: 33,
         nubian_hit_points: 50,
+        copper_factory_hp: 20,
+        bananas_hp_bonus: 10,
         iroquois_extra_hits: 5,
         iroquois_food: 2,
         dutch_hp_bonus: 10,
@@ -2922,6 +2932,8 @@ impl Tuning {
             ("TAJ_BUILDING_HP", Slot::Value(T.taj_building_hp)),
             ("RED_FORT_FORT_HPS", Slot::Value(T.red_fort_fort_hps)),
             ("NUBIAN_HIT_POINTS", Slot::Value(T.nubian_hit_points)),
+            ("COPPER_FACTORY_HP", Slot::Value(T.copper_factory_hp)),
+            ("BANANAS_HP_BONUS", Slot::Value(T.bananas_hp_bonus)),
             ("IROQUOIS_EXTRA_HITS", Slot::Value(T.iroquois_extra_hits)),
             ("IROQUOIS_FOOD", Slot::Value(T.iroquois_food)),
             ("DUTCH_HP_BONUS", Slot::Value(T.dutch_hp_bonus)),

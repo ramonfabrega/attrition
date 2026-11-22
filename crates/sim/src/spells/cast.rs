@@ -253,8 +253,14 @@ impl Sim {
     /// DUTCH_HP_BONUS`. run1769's Merchant Fleet `1/142` is 192 at its
     /// birth on 4275, where the raw type was 172 (item 4518).
     ///
-    /// SEAM: the other terms — Copper and Bananas — which no scored nation
-    /// or holding takes.
+    /// **Copper and Bananas** (`0060e9a4`..`0060ea36`, item 4538): a leader
+    /// holding Copper ([`crate::economy::COPPER`]) gives a sea type
+    /// (`+0x218 == 1`) or a Siege Factory's (`+0x40` 0x1ae or 0x1af)
+    /// `(COPPER_FACTORY_HP + 100) × hits / 100`, and one holding Bananas
+    /// gives every type `(BANANAS_HP_BONUS + 100) × hits / 100`, both
+    /// truncated and both before the national terms. run1781's Fishermen
+    /// `2/15` is 204 from 5695, the type's 170 × 120 %, when its leader's
+    /// Copper raises `0x4000000` and `calc_unit_stats` re-runs this.
     /// The Spy's upgrades are carried (item 1585), and the General's
     /// (item 1614).
     pub fn unit_hits(&self, who: Player, rec: usize) -> i32 {
@@ -271,6 +277,8 @@ impl Sim {
     fn update_hits_of(&self, who: Player, rec: usize, marine: bool) -> i32 {
         let k = crate::units::unit_update_hits_view::UnitHitsK {
             marine: self.tables.tuning.americans_marine_hp_bonus,
+            copper: self.tables.tuning.copper_factory_hp,
+            bananas: self.tables.tuning.bananas_hp_bonus,
             iroquois: self.tables.tuning.iroquois_extra_hits,
             dutch: self.tables.tuning.dutch_hp_bonus,
             nubian: self.tables.tuning.nubian_hit_points,
@@ -1897,8 +1905,7 @@ mod tests;
 /// [`crate::units::unit_update_hits_view::UnitHitsView`] on a unit type of the
 /// port: the unit is its type, always a captain; the marines' bit is the
 /// caller's (the unit's `unit_masks2 & 0x200`); the Copper and Bananas
-/// terms are the SEAM (no staged nation takes them) and ask false,
-/// and the patch gate is taken as passed (the shipped build is past it).
+/// bits are the leader's [`Sim::has_rare`] (item 4538), and the patch gate is taken as passed (the shipped build is past it).
 struct TypeHits<'a> {
     sim: &'a Sim,
     who: Player,
@@ -1935,10 +1942,14 @@ impl crate::units::unit_update_hits_view::UnitHitsView for TypeHits<'_> {
         self.marine
     }
     fn copper_bit(&mut self) -> bool {
-        false
+        self.sim.has_rare(self.who, crate::economy::COPPER)
     }
     fn type_218(&mut self) -> i32 {
-        0
+        match self.t().combat.domain {
+            crate::territory::attrition::Domain::Land => 0,
+            crate::territory::attrition::Domain::Sea => 1,
+            crate::territory::attrition::Domain::Air => 2,
+        }
     }
     fn trainer(&mut self) -> i32 {
         self.t()
@@ -1948,7 +1959,7 @@ impl crate::units::unit_update_hits_view::UnitHitsView for TypeHits<'_> {
             .map_or(0, |w| w as i32)
     }
     fn bananas_bit(&mut self) -> bool {
-        false
+        self.sim.has_rare(self.who, crate::economy::BANANAS)
     }
     fn has_tribe(&mut self, n: i32) -> bool {
         match n {
