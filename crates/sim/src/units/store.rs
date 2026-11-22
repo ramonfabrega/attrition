@@ -614,7 +614,7 @@ impl Sim {
                         // `p >> 8` on both axes, so the decoy squad's member
                         // `1/37` seated 144 east of its captain inside one
                         // `p >> 8` column, but across a fog cell, lit nothing
-                        // (row 30, run1755 on 1662; `docs/RECGAME.md` §11).
+                        // (row 30, run1755 on 1662; `docs/journal/2026-11-21-item-4509.md`).
                         // Only this seating is built: the same call on every
                         // cell crossing moved the successor pair's first draw
                         // parting 3188 → 1387.

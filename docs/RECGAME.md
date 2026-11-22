@@ -1231,18 +1231,6 @@ helicopters, the Kremlin's spy-due `leader_flags & 0x10000000` (item
 4520, leaders range 128), and its spy `1/169`'s `unit_masks2 & 0x400`
 (item 4524, `Build::process@0061edf0:320`; units range 4183 on 4583).
 
-**Row 30's world on 1662** (item 4509, `SCORES_SECOND[1].moved`, world 4,423 → 4,495, first 1662 → 3791).
-run1755, the ranges take of row 30's file to its end (4547), names the leaf: world range 3625 `seen`, five fog cells
-(94, 87), (95, 88), (96, 89), (97, 90) and (97, 91), ours 0x00, theirs 0x02. who=1's General `1/16` (TI 353)
-casts a decoy squad of three TI 100 figures that tick. `Objects::init_unit` seats member `1/37` 144 east of
-captain `1/36`, at (34968, 35976). That crosses a fog cell (x 90 → 91) inside one `p >> 8` column.
-`Unit::set_new_location@005f8d20` relights on the fog crossing (vslot `+0x174`, `Object::update_seen(param_3 == 0)`),
-and its radius-6 disc, lit before `cast_create_decoy` cuts `mylos` to 1, reaches the five cells. This crate's
-seating tested `p >> 8` (`docs/GOLDEN.md` §72, amended). *Diff-backed*:
-`row_30_s_decoy_member_lights_its_disc_on_run1755_s_ranges`, every world range on 1661 to 1663. Row 30's next
-partings are units on 3184 (range 4108, record 121, `up_who` ours −1, theirs 1) and world on 3791 (range 7413,
-record 3280, `block.body`).
-
 ### 11.1 Parity held out, third: rows 5 to 145 (item 4487)
 
 DECISIONS 147 §2, 2026-11-21. Rows 5, 25, 45, 65, 85, 105, 125 and 145 of the same order, declared in

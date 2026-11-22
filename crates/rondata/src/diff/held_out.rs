@@ -2155,7 +2155,7 @@ mod tests {
     }
 
     /// **Row 30's decoy member lights its disc where it is seated** (item
-    /// 4509, `docs/RECGAME.md` §11): on 1662 who=1's General casts a decoy
+    /// 4509, `docs/GOLDEN.md` §72): on 1662 who=1's General casts a decoy
     /// squad of three TI 100 figures, and `Objects::init_unit` seats the
     /// member `1/37` 144 east of its captain `1/36`, across a fog cell
     /// (x 90 -> 91) but inside one `p >> 8` column.
