@@ -602,6 +602,20 @@ const NODES: &[(i32, i32, Node)] = &[
             py: -1_480_000,
         },
     ),
+    // **Piece 223, the MLRS** (unit type 273; item 4536, `docs/RECGAME.md`
+    // §12.5): run883b's packet reads its `(4, 0, 0)` entry as `(0.46,
+    // 33.99, 21.77)` (`0x3eeb851e 0x4207f5c2`), `RData +0x88` 0.69. Item
+    // 3975 kept the piece's release rows and read no pivot: row 95's
+    // `1/99` bore on who=0's 2000 from the launcher's own square on 5908,
+    // its turret 687 turns of 2¹⁶ against the original's 680.
+    (
+        223,
+        4,
+        Node {
+            px: 460_000,
+            py: 33_989_998,
+        },
+    ),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
