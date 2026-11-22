@@ -1945,6 +1945,20 @@ and run1496 shrink to 28 and 44 ranges parted (`PACKETS_SCORE` 892 → 897).
 `make_valid(n + 4)`'s, read at `913e96` and never walked. ~~Ammo 3312, the
 row's next parting, is not read.~~ Read and built by item 4497: §18.2.
 
+**A unit target's height is its first figure's** (item 4537, 2026-11-22). Diff-backed on row 110, run1742 4104. who=2's
+`2/35` (TI 330, sea) has two guided rounds in slots 2 and 3 on who=1's fleeing Citizen `1/2` (TI 50). On 4104 both
+re-plan to the Citizen's point (21558, 42096). Theirs' `ez` (record 2, word 6, byte 27) and the new end point's `z`
+read 36, ours 34. `Ammo::inc_time@0067d380`'s spline arm asks the target's vslot `+0x1c` (`Window::get_button`,
+0, in `Unit::vftable`; `Buffer::is_pending_load`, 1, in `Build::vftable`). A unit's height is then
+`guys[0] +0x14`, and a building's is the object's own `+0xc`. The close test's `|dz|` reads the same value. A ground
+figure's `z` is the ground under its point, `TerrainOut::find_data_z(x, y, 0)` (`Sim::guy_z`). Ours read the
+tile's object height there, which is what `Ammo::init`'s `ez` takes, and 34 is that tile's. A ship's figure stands
+at 0. Built: `guided_closes` reads `Sim::guy_z` of guy 0 for any unit target. Every ammo range on 4100..=4140 agrees
+(`row_110_s_guided_rounds_re_plan_to_the_citizen_s_figure_height_on_run1742_s_ranges`), and row 110's ammo goes
+5,826 → 6,001, whole (`SCORES_SECOND[5].moved`). The unit test is
+`a_guided_round_re_plans_to_its_unit_target_s_figure_height`. *Not established*: a sea target's 0 and a building
+target's `+0xc`. No capture re-plans or closes on either.
+
 ## 18.2 A bomb's accuracy, its slot's last (item 4497)
 
 Diff-backed on row 100, run1721 3312. On 3311 the Strategic Bomber `1/83`

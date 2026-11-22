@@ -1059,6 +1059,56 @@ fn a_rider_closed_aboard_its_sunk_boat_leaves_an_empty_block_where_it_boarded() 
     }
 }
 
+/// **A guided round re-plans to its unit target's first figure's height**
+/// (item 4537, `docs/CHECKSUM.md` §18.1): `Ammo::inc_time@0067d380`'s
+/// spline arm reads `guys[0] +0x14` for a unit target (vslot `+0x1c`
+/// answers 0), which for a ground figure is the ground under its point,
+/// `TerrainOut::find_data_z`, and not the tile's object height
+/// `Ammo::init`'s `ez` takes. On a slope the two differ, and the re-plan on
+/// `cur_time` 4 lays the end point's `z` and `ez` at the figure's.
+#[test]
+fn a_guided_round_re_plans_to_its_unit_target_s_figure_height() {
+    let (mut sim, ty) = at_war();
+    // A slope rising 30 a corner eastward: a point inside a tile stands
+    // above or below the tile's own height.
+    let stride = sim.world.corner_stride();
+    let rows = sim.world.height() * crate::world::TILES_PER_CELL + 1;
+    let grid: Vec<i64> = (0..rows)
+        .flat_map(|_| (0..stride).map(|x| i64::from(x) * 30_000_000))
+        .collect();
+    assert!(sim.world.set_corner_grid(grid));
+    let shooter = put(&mut sim, 0, ty, Pos::new(0x2000, 0x2000));
+    let target = put(&mut sim, 1, ty, Pos::new(0x2000 + 2100 + 150, 0x2000));
+    let at = sim.units[target].movement.body.pos;
+    let figure = sim.world.data_z(at.x, at.y).0;
+    let object = sim.world.object_z(at.tile());
+    assert_ne!(figure, object, "the slope parts the two heights");
+    let speed = crate::num::single::Single::from_i32(200 * combat::UNIT_MOVE_SPEED);
+    let s = crate::num::single::Single::from_i32;
+    let from = [s(0x2000), s(0x2000), s(100)];
+    let path = combat::Spline::from_dir(
+        from,
+        [s(0x2000 + 400), s(0x2000), s(400)],
+        [s(at.x), s(at.y), s(object)],
+        speed,
+    );
+    assert!(path.len() > 6, "a long enough flight: {}", path.len());
+    let mut p = round(&sim, shooter, Some(Obj::Unit(target)), at, 0);
+    p.graphic.guided = true;
+    p.spline = Some(path);
+    p.ez = object;
+    p.cur_time = 4;
+    p.total_time = i32::try_from(path.len()).unwrap();
+    sim.combat.projectiles.push(p);
+    assert!(!sim.guided_closes(0), "too far to close");
+    let q = sim.combat.projectiles[0];
+    assert_eq!(q.cur_time, 0, "re-planned");
+    assert_eq!(q.ez, figure, "ez is the figure's height");
+    let next = q.spline.expect("the new spline");
+    let end = next.point(next.len() - 1);
+    assert_eq!(end[2].to_i32(), figure, "the end point's z");
+}
+
 /// **A hit is answered by the victim's captain, never by the figure that
 /// took it.** `Unit::target_opportunity@005fffc0`'s opening `while`
 /// breaks on `is_captain` and otherwise re-enters on
