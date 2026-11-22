@@ -179,3 +179,42 @@ fn a_raid_is_the_city_s_raid_stamp_and_an_attack_its_attack_stamp() {
     sim.cities.cities[0].attack_stamp = 2887;
     assert_eq!(ask(&mut sim, "was_city_attacked", -1), OK);
 }
+
+/// **A cursor past the leader's last object restarts the lap at `base + 1`**
+/// (item 4546; `ScenarioFuncSet::find_build@009e2970`'s and
+/// `find_unit@009e2850`'s opening: a counter at or past the player's count,
+/// or under zero, is reset to 2000 (to 0), and the walk starts one past it,
+/// so `base` itself is reached last). `find_counters` is one array for every
+/// player: row 123's who=2 left `TRAIN_PRODUCER` at 2011, past who=1's
+/// eight buildings, and who=1's three `train_unit_with_cost` calls on 2976
+/// went to 2007, 2000, 2007 in the original (run1785).
+#[test]
+fn a_cursor_past_the_leader_s_count_laps_from_one_past_the_base() {
+    let laps = |base, mark, cursor| lap(base, mark, cursor).collect::<Vec<_>>();
+    // In range: from `cursor + 1`, wrapping to `base`.
+    assert_eq!(
+        laps(2000, 2008, 2000),
+        [2001, 2002, 2003, 2004, 2005, 2006, 2007, 2000]
+    );
+    assert_eq!(
+        laps(2000, 2008, 2007),
+        [2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007]
+    );
+    // Past the count (another player's object): reset to 2000, so 2001 first.
+    assert_eq!(
+        laps(2000, 2008, 2011),
+        [2001, 2002, 2003, 2004, 2005, 2006, 2007, 2000]
+    );
+    assert_eq!(
+        laps(2000, 2008, 2008),
+        [2001, 2002, 2003, 2004, 2005, 2006, 2007, 2000]
+    );
+    // Under zero: the same reset.
+    assert_eq!(laps(2000, 2003, -1), [2001, 2002, 2000]);
+    // Units: a counter past the count restarts at 1, and 0 comes last.
+    assert_eq!(laps(0, 4, 9), [1, 2, 3, 0]);
+    assert_eq!(laps(0, 4, 2), [3, 0, 1, 2]);
+    // One object, and none.
+    assert_eq!(laps(2000, 2001, 2005), [2000]);
+    assert!(laps(2000, 2000, 2005).is_empty());
+}
