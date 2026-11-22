@@ -291,7 +291,8 @@ pub const SIMULATION_BACKED: usize = 1457;
 /// 735 → 736 at item 4159's twelfth residue: the CEO's tile step spells a backed function (`Unit::update_ceo_position`, `sim::economy::holdings`), measured (1456, 736, 3611) at its booking gate's red.
 /// 736 → 737 at item 4394's booking: the start's seen-sharing spells a backed function (`sim::vision::seen_ally`), measured (1457, 737, 3611) by `tools/census.py --layers`.
 /// 737 → 738 at item 4415's booking: the oil-well stand passes `Unit::set_new_location`'s `param_4`, a backed function `crates/sim` now spells; measured (1457, 738, 3611) at its booking gate's red.
-pub const SIMULATION_PORT_BACKED: usize = 738;
+/// 738 → 739 at item 4541's booking: the special forces jam spells a backed function (`ObjectData::is_jammed`, `sim::combat::jam`), measured (1457, 739, 3611) at its booking gate's red.
+pub const SIMULATION_PORT_BACKED: usize = 739;
 /// Simulation-layer functions: those whose PDB line record starts in a
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
