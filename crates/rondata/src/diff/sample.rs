@@ -1038,8 +1038,10 @@ pub(in crate::diff) mod tests {
     /// 3174, measured; the first shot still on 2929. Item 4560
     /// (`Build::process`'s all-clear empties computer 0's Village on
     /// 7020): 3174 -> 3226, +52, a named rise past the draw word 7105, the
-    /// frames not read one by one; the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3226, Some(2929));
+    /// frames not read one by one; the first shot still on 2929. On the
+    /// tree merged with 4558 and 4561: 3226 -> 3174, -52, measured, a
+    /// named fall past the draw word 7105; the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3174, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
