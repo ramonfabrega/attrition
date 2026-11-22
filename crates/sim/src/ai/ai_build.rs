@@ -941,6 +941,19 @@ impl Sim {
         }
 
         // ---- §3.8 the common tail, everything ----
+        if std::env::var("RON_PROBE_4542").is_ok() && bt.wonder {
+            eprintln!(
+                "PROBE4542 tail frame {} who {who} rec {rec} ident {:?} v {v} reg {} free_peasants {:?} gatherers {:?} f.free {} pd {} open {} up {up}",
+                self.frame,
+                bt.ident,
+                f.reg,
+                self.ai.ai[w].census.reg_free_peasants.get(f.reg as usize),
+                self.ai.ai[w].census.reg_gatherers.get(f.reg as usize),
+                f.free,
+                f.peasant_dist,
+                f.open,
+            );
+        }
         if Census::reg(&self.ai.ai[w].census.reg_free_peasants, f.reg) == 0 {
             v = v.wrapping_mul(4) / 5;
         }
