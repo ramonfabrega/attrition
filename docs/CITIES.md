@@ -1972,12 +1972,18 @@ nothing. **A city that was itself captured and not yet assimilated
 (`0x100`), or captured less than 4501 frames ago, yields nothing** — no
 ping-pong plunder. Otherwise: not the first capital loss → `take = hero ?
 THEDESPOT_PLUNDER × base / 100 : base` (a Despot or Spitamenes patriot of `A`
-near the city), into `A`'s lowest bucket among the goods FOOD..WEALTH both
-players can use; **a Russian victim with `RUSSIAN_PLUNDER_STEAL` receives the
+near the city), into `A`'s lowest bucket among the goods both players can
+use, **all six but Knowledge** (`capture_city@00733380` lines 672-688: the
+walk runs `BASE_GOODTYPES` while `< 6` and skips `KNOWLEDGE`; the first
+strictly under a 999999 seed, Food when none is; item 4533, diff-backed by
+the 2017 sample's 5485, where the crate paid Knowledge and the original
+Metal); **a Russian victim with `RUSSIAN_PLUNDER_STEAL` receives the
 plunder of its own city** and the captor only the hero cut. **The first
 capital loss**: `O.leader_flags |= 0x400000`; `base = max(base,
 CAPITAL_PLUNDER (500))` (team styles 1, 2, 9: `CAPITAL_PLUNDER_ASSASSIN ×
-max(1, nations − eliminated)`), paid into **every** usable good.
+max(1, nations − eliminated)`), paid into **every** usable good, Knowledge
+again skipped (lines 898-910; the Russian steal arms, 754-772 and 982-995,
+walk the same goods).
 
 **On a kill** (`Build::plunder(B, o, who)`, from `do_damage`'s building kill
 by a non-air, non-splash, non-allied attacker — `docs/COMBAT.md` §7.1 step 8):

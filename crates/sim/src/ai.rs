@@ -631,15 +631,25 @@ impl Census {
 }
 
 /// The capacity of a `SimpleArray<int>` holding `n` elements, grown from
-/// empty: the least multiple of ten that holds `n`, and 10 for none
-/// (`docs/CHECKSUM.md` §20, §23.4; item 4188 saw 20 for every array of 11
-/// to 19 elements on the packets). A capacity never shrinks
+/// empty: 10, doubled until it holds `n` — 10, 20, 40, 80. `Leader::init@
+/// 006e3930:852`–`:873` gives `mil_trainers`, `new_rares` and
+/// `oil_patches` the increment `-1` and `init(10)`, and `ArrayBase<int>::
+/// add@0042daf0` on a full array calls `SimpleArray<int>::increase_size@
+/// 004220e0` with that increment, which grows by the capacity itself (by 4
+/// when it is 0; listing `4220ee`–`4220fc`). Item 4188 saw 20 for 11 to 19
+/// elements; item 4533 saw 40 for the 2017 sample person's 21 oil patches
+/// on 5891, where a step of ten said 30 (`docs/CHECKSUM.md` §20, §23.4).
+/// A capacity never shrinks
 /// (`SimpleArray<int>::remove@00462e70` only shortens the length), so an
 /// array that has lost elements reports the larger capacity it once grew
 /// to: [`Leader::oil_patches_size`] and [`Leader::mil_trainers_size`] keep
 /// it (item 4512).
 pub(crate) fn simple_array_size(n: usize) -> usize {
-    n.div_ceil(10).max(1) * 10
+    let mut size = 10;
+    while size < n {
+        size *= 2;
+    }
+    size
 }
 
 /// The per-leader AI state the driver owns — the `LeaderData` fields

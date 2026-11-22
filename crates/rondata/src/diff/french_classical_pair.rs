@@ -244,5 +244,6 @@ fn french_classical_pair_run1262_s_closing_frame_is_widened_whole() {
     // `1/221`'s `g.cur_anim` (1 and 2, theirs 0) and `g.end_time` (64 and 48, theirs 32) now agree —
     // the capture's hand-over (`swap_team`'s carries, the caravan's route ended in the kill), measured
     // against the same tree with item 4463's `crates/sim` diff reversed.
-    pin_eq!(w.firsts.len(), 135, "the closing walk's baseline");
+    // Item 4533: 135 -> 134, who=1's `bucket[3:knowledge]` on 6107 ours 4739 -> 4239, theirs 4239: the first capital's plunder skips Knowledge (`capture_city@00733380` lines 898-910).
+    pin_eq!(w.firsts.len(), 134, "the closing walk's baseline");
 }

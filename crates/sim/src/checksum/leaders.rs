@@ -527,7 +527,8 @@ const KREMLIN_SPY_DUE: i64 = 0x1000_0000;
 const CAPITAL_PLUNDERED: i64 = 0x40_0000;
 
 // The `size` a `SimpleArray<int>` with elements reports: its capacity,
-// which grows by ten (`docs/CHECKSUM.md` §20, §23.4). 10 on every
+// which starts at ten and doubles (`docs/CHECKSUM.md` §20, §23.4; item
+// 4533: 40 for the 2017 sample person's 21 oil patches). 10 on every
 // non-empty one of frame 91; on the packets 20 for every array of 11 to 19
 // elements (item 4188: `mil_trainers` on 43 slots, `oil_patches` on 28,
 // `new_rares` on 1). A capacity never shrinks, so an array that has lost

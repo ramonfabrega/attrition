@@ -469,11 +469,12 @@ fn a_pruned_oil_list_reports_the_capacity_it_grew_to() {
     assert_eq!(sim.ai.ai[1].oil_patches.len(), 10, "two pruned");
     assert!(!sim.ai.ai[1].oil_patches.contains(&gis[3]));
     assert_eq!(size(&sim), [10, 20], "the capacity stays");
-    // Eleven more: 21 elements outgrow 20, not 10.
+    // Eleven more: 21 elements outgrow 20, not 10, and the capacity
+    // doubles (item 4533).
     for _ in 0..11 {
         sim.ai.ai[1].oil_patches.push(gis[0]);
     }
-    assert_eq!(size(&sim), [21, 30]);
+    assert_eq!(size(&sim), [21, 40]);
 }
 
 /// **`mil_trainers` loses a closed trainer the same way**
