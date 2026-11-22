@@ -359,6 +359,12 @@ pub struct Unit {
     /// block of `Unit::think@005f6e40:233`, on an idle special unit with no
     /// group (or a group of one), and `Unit::init`.
     pub explore_queued: bool,
+    /// **`unit_masks & 0x80000000`: the jam shown** (item 4541,
+    /// `docs/COMBAT.md` §8.6). `Unit::process@00610bc0`'s caster arm is its
+    /// one writer: on the unit's 32-frame phase, a `SPECIALFORCES` unit
+    /// that carries [`crate::combat::umask2::JAMMER`] takes this bit and
+    /// drops that one; one that carries neither drops this.
+    pub jam_shown: bool,
     /// `ObjectData::mylos` (`+0x3c`): the line of sight in tiles **as
     /// `Unit::update_los` last wrote it** — a cache, not a derivation. The
     /// fog sweep and the follower's spacing read it; [`Sim::update_los`]
@@ -1076,6 +1082,7 @@ impl Unit {
             decoy: false,
             auto_explore: false,
             explore_queued: false,
+            jam_shown: false,
             mylos: 0,
             unit_masks2: 0,
             avoid: None,

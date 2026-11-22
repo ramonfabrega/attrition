@@ -256,14 +256,27 @@ Liberty works.
   `UnitData::is_idle@0046fa40`, an empty order list. The Lakota pair's
   Citizen `1/6` is its witness: All Technologies, so Logistics, and its
   peace-arm refresh on 3770 takes `PEACE_ATTRITION`'s 8 where the unwired
-  crate computed 6. SEAM: `ages_ahead` reads the crate's `age`, which no
-  writer sets, so the aged-up arm is never taken here.
+  crate computed 6. ~~SEAM: `ages_ahead` reads the crate's `age`, which no
+  writer sets, so the aged-up arm is never taken here.~~ Wired by item
+  4543: see the age paragraph below.
 - **Merchants, Dutch merchants and fur trappers** halve the result, and so
   does any **air** unit (type domain `2`; see below). Those three are
   `TypeIndex` 61, 62 and 400 — the economic units whose whole job is to stand
   outside your borders, which is why they were singled out.
 - Finally, if the owner is at the same age or later than the victim, strength
   is scaled by `(ATTRITION_AGED_UP * ages_ahead + 100) / 100`, **rounding up**.
+  **The age is the leader's `ages` word** (`UnitData::get_attrition@00608fd0`:
+  `*(leaders[p] +0x6eb8) +0xdc ^ 0x62766`, the ground owner's less the unit
+  owner's), which the crate holds as `PlayerTech::ages` and the leaders line
+  walks (`LeaderDataEncrypt::walk_data`). **Diff-backed by run1772** (item
+  4543): the 2017 sample's Bushi `3/37` (`TypeIndex` 158, land), the person's,
+  on computer 0's ground refreshes on 6108 with leader 0's `ages` 2 against
+  the person's 1, so strength 1 becomes `(125 + 99) / 100` = 2 and the period
+  `48 × 128 / 256` = 24; theirs' `3107 37 attrition` is 24 there, and the
+  crate's 48 until `age` was fed (the record's own `age` had no writer). With
+  the shipped 25 %, a strength of 1 doubles at one age ahead and stays 2 up
+  to three ahead; the crate's test is
+  `a_ground_owner_an_age_ahead_halves_the_period`.
 
 **Zero is the sentinel for "immune"**, and the caller tests for it rather than
 for any of the individual conditions. This has a consequence worth knowing

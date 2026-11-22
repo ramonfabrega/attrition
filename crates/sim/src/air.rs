@@ -2930,8 +2930,10 @@ impl Sim {
     ///
     /// SEAM: the building's `near_o` is not held here; its sign is taken
     /// as the target's. run404 prints both on all 1,157 blocks of the
-    /// Radar, and they agree in sign on every one. SEAM: no building here
-    /// is ever jammed.
+    /// Radar, and they agree in sign on every one. The jam bit
+    /// (`build_masks & 0x8000`, [`crate::Building::jammed`], item 4541) is
+    /// read beside it: `Wall::inc_time@0063fb60:204` takes the wind-down
+    /// on `near_o < 0 || jammed`.
     fn wall_anti_air(&mut self, b: usize) {
         if !self.buildings[b].active {
             return;
@@ -2940,7 +2942,7 @@ impl Sim {
             return;
         };
         let target = self.buildings[b].target;
-        let near = target.is_some();
+        let near = target.is_some() && !self.buildings[b].jammed;
         let top = cycle.wind - 1;
         let r = &mut self.buildings[b].recharging;
         if !near {
@@ -3088,12 +3090,9 @@ impl Sim {
     /// jammer, plays animation 0 in place of `CHAR_ATTACK1`. run404's first
     /// Battery shot spends it on 742.
     ///
-    /// SEAM: `is_jammed` is −1 unless the owner's leader carries
-    /// `leader_flags & 0x40000` and an enemy's special stands over the
-    /// unit. The bit is kept since item 4400
-    /// ([`crate::leaders::LeadersState::jam_threat`]); the special over the
-    /// unit (`SpecialsData::find_special`) is not, so the roll is spent and
-    /// never jams.
+    /// `is_jammed` is [`Sim::is_jammed`] since item 4541: the owner's
+    /// `leader_flags & 0x40000` and an enemy special forces unit within
+    /// `GENERAL_RADIUS × 0x180` (`SpecialsData::find_special`).
     pub(crate) fn radar_jams(&mut self, u: usize) -> bool {
         if !self
             .profile(crate::combat::Obj::Unit(u))
@@ -3103,7 +3102,7 @@ impl Sim {
         }
         self.mark(SITE_JAM_ROLL);
         let roll = self.rnd(100);
-        roll < JAM_UNIT_RADAR_PROB && self.is_jammed(u)
+        roll < JAM_UNIT_RADAR_PROB && self.is_jammed(crate::combat::Obj::Unit(u)).is_some()
     }
 
     /// **An `ANTI_AIR` unit shoots at an aircraft without turning**
@@ -3250,13 +3249,6 @@ impl Sim {
             // `+0x34`, `UnitData::get_gpiece` — its guy 0's piece (item 4175).
             gpiece: self.units[u].guys.first().map_or(-1, |g| g.gpiece),
         });
-    }
-
-    /// `ObjectData::is_jammed@00653660`, as far as this crate reaches: the
-    /// leader's `0x40000` is kept (item 4400) but the enemy special over the
-    /// unit is not looked for, so never.
-    fn is_jammed(&self, _u: usize) -> bool {
-        false
     }
 
     /// `UnitData::is_flying_high@0060a310`: a fixed-wing unit on the map that
