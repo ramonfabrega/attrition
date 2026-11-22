@@ -1423,17 +1423,32 @@ impl Sim {
                 v /= 2;
             }
         }
-        if matches!(attacker, Obj::Building(_))
-            && let Obj::Unit(u) = target
-        {
-            if self.units[u].damage_frac != 0 || self.units[u].health < self.hits_of(target) {
+        // **A building's three target arms read the target's own
+        // object** (item 4565, `docs/COMBAT.md` §12.3; the listing
+        // `64eb6e`..`64ebc6`): `cmpl $0, 0x24(%ecx)` is `ObjectData::damage`
+        // of the target, unit or building, not its health against the
+        // type's hits; `call *0xd8` is `UnitData::is_moving`, the head
+        // order a move ([`Sim::is_moving`]), not a destination held; and
+        // `call *0xcc`, `UnitData::is_supply`. A building answers both
+        // slots with `Window::get_button`'s fold, zero. Row 43's Village
+        // `2/2010` held the wounded Spearmen `1/46` (damage 4, its
+        // `myhits` 126 over the type's 120) over `1/49`, whose head order
+        // is a move and which held no destination, on run1787's 3298.
+        if matches!(attacker, Obj::Building(_)) {
+            let damaged = match target {
+                Obj::Unit(u) => self.units[u].max_health != self.units[u].health,
+                Obj::Building(b) => self.buildings[b].damage != 0,
+            };
+            if damaged {
                 v = v.wrapping_mul(3) / 2;
             }
-            if self.units[u].movement.dest.is_some() {
-                v /= 4;
-            }
-            if tp.is(role::IS_SUPPLY) {
-                v = v.wrapping_mul(5000);
+            if let Obj::Unit(u) = target {
+                if self.is_moving(u) {
+                    v /= 4;
+                }
+                if tp.is(role::IS_SUPPLY) {
+                    v = v.wrapping_mul(5000);
+                }
             }
         }
         let dmg = {
@@ -1682,14 +1697,5 @@ impl Sim {
             v = 2;
         }
         v
-    }
-
-    pub(super) fn hits_of(&self, o: Obj) -> i32 {
-        match o {
-            Obj::Unit(i) => self.units[i]
-                .ty
-                .map_or(self.units[i].health, |t| self.tables.unit_types[t].hits),
-            Obj::Building(b) => self.buildings[b].hits,
-        }
     }
 }
