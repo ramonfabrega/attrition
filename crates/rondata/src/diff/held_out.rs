@@ -2278,7 +2278,7 @@ mod tests {
             return;
         };
         let (lo, hi) = win.split_once('-').expect("lo-hi");
-        let (lo, hi): (u32, u32) = (lo.parse().unwrap(), hi.parse().unwrap());
+        let (lo, hi): (i64, i64) = (lo.parse().unwrap(), hi.parse().unwrap());
         let inst = crate::testenv::install().expect("install");
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
         let (Some(rcx), _) = paths(&FIFTH, 3) else {
@@ -2298,7 +2298,7 @@ mod tests {
                 built.sim.command().tick();
             }
             let set = record
-                .first_of(state as i32 - 1)
+                .first_of(state - 1)
                 .expect("the state's set")
                 .clone();
             let all = record.ranges(&set).expect("the set's ranges");
