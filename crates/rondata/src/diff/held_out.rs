@@ -2361,7 +2361,10 @@ mod tests {
                 (FREIGHTER_TI, sim::territory::attrition::Domain::Sea),
                 "1/90's TypeIndex and domain"
             );
-            assert_eq!(sim.units[other].type_index, FREIGHTER_TI, "1/121's TypeIndex");
+            assert_eq!(
+                sim.units[other].type_index, FREIGHTER_TI,
+                "1/121's TypeIndex"
+            );
             assert_eq!(sim.units[rider].type_index, CITIZEN_TI, "1/45's TypeIndex");
             if state == 3183 {
                 assert!(sim.units[boat].alive(), "1/90 alive on 3183");

@@ -478,6 +478,23 @@ holds the rule's arms on a hand-built map.
 - The world line's `WData::down`/`down_who` bytes: the cells still hold
   the map's pair, not the head (`docs/START.md`'s 28 cells).
 
+**An object closed off the map heads its cell once more** (2026-11-21,
+item 4530). `Object::close@00647160` on an object off the map (vslot
+`+0xbc` 0) calls `Object::remove_from_inside@006480f0`, which, for an
+object inside something (`+0x82 >= 0`), splices it out and ends in
+`Object::add_to_world` on the point it went in at; then `close` takes
+`remove_from_world`. Neither paints a disc off the map, so the chain is
+what is left: the object heading that cell keeps `up_who` the closer's
+owner, and the closer's number keeps the head's owner in `down_who`.
+`Sim::boat_dies_into` threads the boat back before `transport_dies` takes
+it off. Diff-backed on run1755's 3184: who=1's Freighter `1/90` dies into
+its oil platform under the Freighter `1/121`, whose `up_who` reads 1
+(units range 4108, record 121;
+`held_out::tests::row_30_s_freighter_heads_its_cell_as_it_dies_into_its_platform_on_run1755_s_ranges`).
+*Not established*: every other off-map close — a unit dying inside a
+building or a boat — takes the same arm there; this crate threads only the
+boat into its platform.
+
 ## 4. `Unit::detect_unit_collision`
 
 `detect_unit_collision(x, y, quick, boats, _, nocoll, top_only)`. The three
