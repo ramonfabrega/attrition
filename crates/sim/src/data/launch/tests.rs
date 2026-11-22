@@ -4078,3 +4078,88 @@ fn the_original_s_release_agrees_at_every_heading_for_piece_736() {
     assert_eq!(rows, 3 * 361, "{dir}");
     assert!(off.is_empty(), "{} headings disagree: {off:?}", off.len());
 }
+
+/// **Every key the held-out games fired from the figure's square now has its
+/// row** (item 4559, `docs/RECGAME.md` §12.3; `docs/DECISIONS.md` entry 152
+/// §3): the pass's probe on [`launch_point`]'s fallback, over the five
+/// batteries' walks and the 2017 sample's, listed 1,234 rounds from eight
+/// pieces and these 55 keys `(piece, anim, starttime, node)` (the list is
+/// `~/ron-data/lab-experiments/2026-11-22-pass-second/fallback-keys.txt`,
+/// outside git): the Armored Scout Car of the Asian set (1224, row 103's
+/// first ammo parting on 2860), the Tank (198), the Native American Bowmen
+/// (1528, row 43), the Anti-Aircraft Gun (231) and the Machine Gun (73, row
+/// 83), the American Bombard (921), the Asian Horse Archer (1193) and the
+/// Royal Mameluke (148, the sample). Five are pivot pieces, whose node-0
+/// rounds take [`crate::data::pivot::release_node`]'s row; the other three
+/// take a [`BAYS`] row. Red on the tree before the rows: every key fell back.
+#[test]
+fn every_key_the_held_out_games_fired_from_the_figure_s_square_has_its_row() {
+    let keys: [(i32, i8, u32, i8); 55] = [
+        (73, 11, 3, 0),
+        (73, 11, 9, 0),
+        (73, 11, 12, 0),
+        (73, 11, 17, 0),
+        (73, 11, 20, 0),
+        (73, 11, 24, 0),
+        (73, 11, 29, 0),
+        (73, 11, 32, 0),
+        (73, 12, 1, 0),
+        (73, 12, 2, 0),
+        (73, 12, 3, 0),
+        (73, 12, 5, 0),
+        (73, 12, 8, 0),
+        (73, 12, 9, 0),
+        (73, 12, 10, 0),
+        (73, 12, 12, 0),
+        (73, 13, 3, 0),
+        (73, 13, 4, 0),
+        (73, 13, 12, 0),
+        (73, 13, 19, 0),
+        (73, 13, 20, 0),
+        (73, 13, 27, 0),
+        (73, 13, 29, 0),
+        (73, 13, 34, 0),
+        (73, 13, 37, 0),
+        (73, 13, 42, 0),
+        (73, 13, 46, 0),
+        (148, 10, 7, 0),
+        (148, 10, 21, 0),
+        (148, 11, 8, 0),
+        (148, 11, 21, 0),
+        (148, 12, 5, 0),
+        (148, 12, 18, 0),
+        (148, 13, 12, 0),
+        (148, 13, 16, 0),
+        (198, 11, 4, 0),
+        (198, 12, 21, 0),
+        (231, 10, 5, 0),
+        (231, 12, 5, 0),
+        (921, 12, 9, 0),
+        (1193, 10, 18, 0),
+        (1193, 11, 18, 0),
+        (1193, 12, 16, 0),
+        (1193, 13, 18, 0),
+        (1224, 12, 3, 0),
+        (1224, 12, 9, 0),
+        (1224, 12, 12, 0),
+        (1224, 12, 17, 0),
+        (1224, 12, 20, 0),
+        (1224, 12, 22, 0),
+        (1224, 12, 24, 0),
+        (1224, 12, 29, 0),
+        (1528, 11, 12, 0),
+        (1528, 12, 9, 0),
+        (1528, 13, 15, 0),
+    ];
+    let missing: Vec<_> = keys
+        .iter()
+        .filter(|&&(p, a, t, n)| {
+            bay(p, a, t, n).is_none() && crate::data::pivot::release_node(p, a, t, n).is_none()
+        })
+        .collect();
+    assert!(
+        missing.is_empty(),
+        "{} keys fall back: {missing:?}",
+        missing.len()
+    );
+}
