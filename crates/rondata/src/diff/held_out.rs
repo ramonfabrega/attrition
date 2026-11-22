@@ -870,6 +870,107 @@ mod tests {
         }
     }
 
+    /// **Row 110's Space Program sees every enemy building in the danger
+    /// map** (item 4550, `docs/DANGER.md` §5): run1742, the ranges take of
+    /// run1735's file. who=2 holds `leader_flags & 0x800` from its Space
+    /// Program between the rebuilds of 5400 and 5600, and
+    /// `WallData::is_seen@00642bd0`'s second clause takes that bit (beside
+    /// `ever_seen & ally_mask`, `num_units[0x141]` and `reveal_map == 3`)
+    /// for a started building. So `GameDaemon::do_danger@00732390`'s enemy
+    /// arm stops halving who=1's buildings in who=2's row on the rebuild of
+    /// 5600, among them the Barracks-line `1/2030` (type 13, no city) that
+    /// no ally of who=2 has ever seen. This crate's `build_is_seen` read
+    /// `ever_seen` alone: red on the tree before the fix at world range 3631
+    /// on 5601, record 2 `danger`, byte 2328 (half-cell (12, 19)), ours
+    /// 0x25, theirs 0x32. Every world range on 5600 and 5601, byte for
+    /// byte.
+    #[test]
+    fn row_110_s_space_program_sees_every_enemy_building_in_the_danger_map_on_run1742_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 5) else {
+            eprintln!("skipping: row 110's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1742/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1742's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 110's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [5401i64, 5600, 5601] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let sim = &built.sim;
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            // who=2's `leader_flags` byte 1, theirs: `0x800` is off on 5401
+            // and on by 5600.
+            let lines = crate::checksum::state::ranges(sim, &look, &tribes);
+            let leaders = lines[7].as_ref().expect("the leaders line");
+            let theirs_leaders: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            let k = leaders
+                .ranges
+                .iter()
+                .position(|r| r.record == 2 && r.field == "flags")
+                .expect("who=2's flags");
+            let reveal = theirs_leaders[k].bytes[1] & 0x08 != 0;
+            assert_eq!(reveal, state != 5401, "theirs' who=2 leader_flags & 0x800 on {state}");
+            assert_eq!(leaders.ranges[k].bytes, theirs_leaders[k].bytes, "who=2's flags");
+            if state == 5401 {
+                continue;
+            }
+            // The Barracks-line building by name: started, never seen by
+            // who=2's side, and seen by the leader bit alone.
+            let b = sim
+                .buildings
+                .iter()
+                .position(|b| b.alive && b.owner == 1 && b.index == 2030)
+                .expect("1/2030");
+            let bd = &sim.buildings[b];
+            assert_eq!(bd.ty, Some(13), "1/2030's type");
+            assert!(bd.active && bd.started && bd.city.is_none(), "1/2030 finished, no city");
+            assert_eq!(bd.ever_seen & 0x4, 0, "who=2 never saw 1/2030");
+            let ours = sim.checksum_world();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
+            if state == 5601 {
+                // Half-cell (12, 19) of who=2's row, 1/2030's north-west
+                // neighbour: its 50, halved once for the ring and not
+                // again for being unseen.
+                let k = ours
+                    .ranges
+                    .iter()
+                    .position(|r| r.record == 2 && r.field == "danger")
+                    .expect("who=2's danger row");
+                assert_eq!(k, 3631, "the booking's range");
+                assert_eq!(theirs[k].bytes[2328..2332], [0x32, 0, 0, 0], "theirs' (12, 19)");
+            }
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                assert_eq!(
+                    at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                    None,
+                    "world range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                    a.record,
+                    a.field
+                );
+            }
+            assert_eq!(ours.ranges.len(), theirs.len(), "world ranges on {state}");
+            assert!(sim.build_is_seen(b, 2), "who=2 sees 1/2030 by its 0x800");
+        }
+    }
+
     /// **Row 110's losing wonder site closes without the unit-stats bit**
     /// (item 4540, `docs/RECGAME.md` §11): run1742, the ranges take of
     /// run1735's file. On 5408 who=2's wonder `2/2030` finishes and
