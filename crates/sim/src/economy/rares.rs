@@ -620,6 +620,20 @@ impl Sim {
                     .map(|c| (c.owner, c.pos.cell().x, c.pos.cell().y))
                     .collect::<Vec<_>>()
             );
+            let t = &self.tables.tuning;
+            for cell in [crate::world::Cell::new(16, 42), crate::world::Cell::new(2, 43)] {
+                let here = cell.centre_tile();
+                let lim = self.world.region_territory_limits(self.world.region_of(cell).unwrap_or(0));
+                for s in self.territory.sources.iter() {
+                    let d = crate::world::vector_dist(here.x - s.pos.tile().x, here.y - s.pos.tile().y);
+                    let l = lim.map_or(s.limit, |l| s.limit_in(l));
+                    let c = crate::territory::cost(t, s.kind, crate::territory::contract(d), s.bonuses);
+                    eprintln!(
+                        "OIL src cell=({},{}) owner={} pos={:?} bonuses={} limit={l} steps={:?} d={d} cost={c:?} cap={}",
+                        cell.x, cell.y, s.owner, s.pos.tile(), s.bonuses, s.steps, crate::territory::cost_cap(t)
+                    );
+                }
+            }
         }
         // **A land patch joins in the per-cell scan's own order** (item
         // 1538, `docs/AI.md` §147): `compute_reg_territory` walks the land
