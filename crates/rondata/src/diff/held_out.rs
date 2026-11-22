@@ -1397,6 +1397,120 @@ mod tests {
         }
     }
 
+    /// PROBE 4531: `RON_PROBE_4531=<lo>-<hi>` prints row 55's groups line
+    /// against run1769's on each state, every differing slot decoded.
+    #[test]
+    fn probe_4531_row_55_groups() {
+        let Some((lo, hi)) = std::env::var("RON_PROBE_4531").ok().and_then(|v| {
+            let (a, b) = v.split_once('-')?;
+            Some((a.parse::<i64>().ok()?, b.parse::<i64>().ok()?))
+        }) else {
+            return;
+        };
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FOURTH, 2) else {
+            panic!("row 55 missing")
+        };
+        let ranges =
+            crate::testenv::experiment(&home.join("ron-golden/run1769/map-18"), "rontrace.ranges")
+                .expect("run1769");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 55's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        // Slot images: (slot, fields bytes, Vec of member arrays).
+        fn slots(rs: &[Vec<u8>]) -> Vec<(usize, Vec<u8>, Vec<Vec<u8>>)> {
+            let mut out = Vec::new();
+            let mut i = 0;
+            for slot in 0..512 {
+                let f = rs[i].clone();
+                i += 1;
+                let num = i32::from_le_bytes(f[8..12].try_into().unwrap());
+                let mut m = Vec::new();
+                if num != 0 {
+                    for _ in 0..6 {
+                        m.push(rs[i].clone());
+                        i += 1;
+                    }
+                }
+                out.push((slot, f, m));
+            }
+            out
+        }
+        fn show(tag: &str, s: &(usize, Vec<u8>, Vec<Vec<u8>>)) {
+            let w = |o: usize| i32::from_le_bytes(s.1[o..o + 4].try_into().unwrap());
+            let names = sim::checksum::groups::GROUP_RECORD_FIELDS;
+            let mut t = String::new();
+            for &(n, off, wd) in names {
+                let o = off - 4;
+                let v = if wd == 4 { w(o) as i64 } else { s.1[o] as i8 as i64 };
+                t.push_str(&format!("{n}={v} "));
+            }
+            let list: Vec<i16> = s
+                .2
+                .first()
+                .map(|l| {
+                    l.chunks(2)
+                        .map(|c| i16::from_le_bytes([c[0], c[1]]))
+                        .collect()
+                })
+                .unwrap_or_default();
+            let i32s = |k: usize| -> Vec<i32> {
+                s.2.get(k)
+                    .map(|l| {
+                        l.chunks(4)
+                            .map(|c| i32::from_le_bytes(c.try_into().unwrap()))
+                            .collect()
+                    })
+                    .unwrap_or_default()
+            };
+            eprintln!("    {tag} slot {}: {t}", s.0);
+            eprintln!(
+                "    {tag}   list {list:?} off_x {:?} off_y {:?} curr_x {:?} curr_y {:?} angles {:?}",
+                i32s(1),
+                i32s(2),
+                i32s(3),
+                i32s(4),
+                s.2.get(5)
+            );
+        }
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_groups();
+            let theirs: Vec<Vec<u8>> = all
+                .iter()
+                .filter(|r| r.line == 5)
+                .map(|r| r.bytes.clone())
+                .collect();
+            let ob: Vec<Vec<u8>> = ours.ranges.iter().map(|r| r.bytes.clone()).collect();
+            let (a, b) = (slots(&ob), slots(&theirs));
+            let differ: Vec<usize> = (0..512).filter(|&k| a[k] != b[k]).collect();
+            let ul = built.sim.checksum_units();
+            let tu: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            let units_eq = ul.ranges.len() == tu.len()
+                && ul.ranges.iter().zip(&tu).all(|(x, y)| x.bytes == y.bytes);
+            eprintln!(
+                "PROBE state {state}: groups ranges {} / {}, slots differ {:?}, units equal {units_eq}",
+                ob.len(),
+                theirs.len(),
+                differ
+            );
+            for k in differ.iter().chain(std::iter::once(&83)) {
+                show("ours  ", &a[*k]);
+                show("theirs", &b[*k]);
+            }
+            crate::diff::harness::debug_armies(&built, built.sim.frame);
+            crate::diff::harness::debug_watch(&built, built.sim.frame);
+        }
+    }
+
     /// **Row 105's pruned oil list keeps its capacity** (item 4512,
     /// `docs/RECGAME.md` §11.1): run1752 holds every leaders range on 3582
     /// and 3583. On 3583 who=1's `oil_patches` goes from twelve patches to
