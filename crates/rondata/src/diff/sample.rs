@@ -481,7 +481,14 @@ pub(in crate::diff) mod tests {
     /// Item 4535 (a garrisoned worker whose owner has the militia counts a
     /// third of the militia line's attack, `count_inside@0064dda0`: the
     /// Village `0/2000` reloads in 15 on 5999, not 30): 6015 -> 6114, +99.
-    const SAMPLE_WALKED: (i64, i64) = (6114, 21044);
+    /// Item 4549 (`Group::action_alarm@0070ec30`'s bell takes a gather
+    /// building's gatherer chain however far, its building arm on the
+    /// whole cell chain: on 6113 computer 2's bell sends `2/11` and `2/14`
+    /// from the Woodcutter's Camp `2/2001`, and theirs' `Unit::do_move+0xe84`
+    /// on 6114 is `2/11`'s walk to garrison): 6114 -> 7021, +907. On 7021
+    /// theirs runs four `Guy::move+0x19f` animations at draw 8 where ours
+    /// runs `Guy::inc_time+0x271`.
+    const SAMPLE_WALKED: (i64, i64) = (7021, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -745,20 +752,28 @@ pub(in crate::diff) mod tests {
     /// leader 0's `ages` 2 against the person's 1, `3107 37 attrition`
     /// ours 48, theirs 24): units 6108 -> 6114, deaths 6190 -> 6186;
     /// items 9433 -> 7372 and goods 6407 -> 6542, past the draw word;
-    /// units, builds and draws 6114 the lowest.
+    /// units, builds and draws 6114 the lowest. Item 4549
+    /// (`Group::action_alarm@0070ec30`'s bell walks each circle cell's
+    /// whole chain, and a gather building there hands over its gatherer
+    /// chain however far: computer 2's bell on 6113 takes `2/11` and
+    /// `2/14` at the Woodcutter's Camp `2/2001`, 21 tiles out, `1665 11
+    /// orders_x` ours 9576, theirs 6168): units 6114 -> 6669, builds 6114
+    /// -> 6162, ammo 6156 -> 7023, deaths 6186 -> 7085, groups 6153 ->
+    /// 6928, guys 6115, leaders 6119, cities 6151 and world 6116 -> 7021,
+    /// items 7372 -> 7544, goods 6542 -> 7423; builds 6162 the lowest.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 6114),
-        ("builds", 6114),
+        ("units", 6669),
+        ("builds", 6162),
         ("walls", 21044),
-        ("ammo", 6156),
-        ("deaths", 6186),
-        ("groups", 6153),
-        ("guys", 6115),
-        ("leaders", 6119),
-        ("cities", 6151),
-        ("items", 7372),
-        ("goods", 6542),
-        ("world", 6116),
+        ("ammo", 7023),
+        ("deaths", 7085),
+        ("groups", 6928),
+        ("guys", 7021),
+        ("leaders", 7021),
+        ("cities", 7021),
+        ("items", 7544),
+        ("goods", 7423),
+        ("world", 7021),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -962,11 +977,10 @@ pub(in crate::diff) mod tests {
     /// shot still on 2929. Item 4543 (attrition's aged-up arm reads both
     /// leaders' `ages`): 3289 -> 3176, -113, a named fall past the draw
     /// word 6114, the frames not read one by one; the first shot still on
-    /// 2929. Item 4542 (`get_cost`'s locked-team wonder term: an ally's
-    /// wonders ramp a wonder's price): 3176 -> 3182, +6, a named rise past
-    /// the draw word 6114, the frames not read one by one; the first shot
-    /// still on 2929; the lines' first partings unchanged.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3182, Some(2929));
+    /// 2929. Item 4549 (the bell takes a gather building's gatherer
+    /// chain): 3176 -> 3315, +139, a named rise past the draw word 7021,
+    /// the frames not read one by one; the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3315, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
@@ -1646,65 +1660,16 @@ pub(in crate::diff) mod tests {
     /// ten): leaders 5891 -> 6005 (`1 0 who..ally_mask`). Built (item
     /// 4543: the aged-up arm reads both leaders' `ages`, `3107 37
     /// attrition` 48|24 on 6108): units 6108 -> 6114 (`1665 11`, its
-    /// orders), deaths 6190 -> 6186.
-    const SAMPLE_RANGES_1772: &[(&str, i64, usize, usize, usize, &str)] = &[
-        (
-            "units",
-            6114,
-            4497,
-            4479,
-            2399,
-            "1665 11 collide_frame..play: dest_angle 424673280|-1289682944, orders_x 9576|6168, orders_y 29832|30936",
-        ),
-        (
-            "builds",
-            6114,
-            4036,
-            4036,
-            1,
-            "1118 2001 gather_down..infiltrate2: recharging 6113|6112",
-        ),
-        (
-            "ammo",
-            6156,
-            3,
-            3,
-            1,
-            "1 0 rolling..start_roll_angle: +0x7 of 99|99: e85c0000|3e5c0000",
-        ),
-        ("deaths", 6186, 0, 2, 2, "0 0 valid: +0x0 of 4|0: 01000000|"),
-        (
-            "groups",
-            6153,
-            616,
-            616,
-            1,
-            "161 131 id..march: ox 28896|29664, oy 2016|1248, o_angle -221642752|0",
-        ),
-        (
-            "guys",
-            6115,
-            1413,
-            1413,
-            2,
-            "548 11 guy: x 9576|9552, y 29832|29840, z 648|644, angle 424673280|-1277689856, last_angle 424673280|-1277689856, des_x 9576|9552, des_y 29832|29840, des_angle 424673280|-1277689856, cur_time 30|1, end_time 33|15, last_time 29|0, last_speed 0|25, avg_speed 0|6, cur_anim 25|8, stopped 1|0",
-        ),
-        (
-            "leaders",
-            6119,
-            671,
-            671,
-            4,
-            "271 2 who..ally_mask: +0x10 of 26914|26914: 31050000|2d050000",
-        ),
-        ("cities", 6151, 51, 51, 1, "15 2 city..ter: gatherers 10|8"),
-        (
-            "world",
-            6116,
-            7757,
-            7757,
-            3,
-            "6086 2231 block.body: +0x1b of 96|96: c000c000|e000e000",
-        ),
-    ];
+    /// orders), deaths 6190 -> 6186. Built (item 4549: the bell's
+    /// building arm takes `2/11` and `2/14` off `2/2001`'s gatherer chain
+    /// on 6113): units 6114 and builds 6114 -> past 6400 and 6162 (`2515
+    /// 2025 ever_seen` 7|5); every other line past the window.
+    const SAMPLE_RANGES_1772: &[(&str, i64, usize, usize, usize, &str)] = &[(
+        "builds",
+        6162,
+        4102,
+        4102,
+        1,
+        "2515 2025 job_counter..demolition: ever_seen 7|5",
+    )];
 }

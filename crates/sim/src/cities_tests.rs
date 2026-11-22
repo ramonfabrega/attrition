@@ -9384,6 +9384,53 @@ fn the_city_s_alarm_rings_then_sounds_the_all_clear() {
     assert!(sim.buildings[b].garrison.is_empty());
 }
 
+/// **The bell takes a gather building's Citizens however far they stand**
+/// (item 4549, `docs/GOLDEN.md` §49; `Group::action_alarm@0070ec30`'s
+/// building arm, whose chain walk returns from `member` at `70f78e`: a
+/// `Build` on a circle cell's chain answers vslot `+8` 0 and `+0x1c` 1,
+/// so the bell asks its type's `+0x90`, `is_gather_type`, and walks
+/// `gather_down` from `+0x70` through each member's `+0x92`, no distance
+/// test). The 2017 sample's 6113: computer
+/// 2's bell takes `2/11` and `2/14`, gathering at `2/2001` 21 tiles out.
+///
+/// Made to fail with the building arm's chain off (`data_first_unit` −1),
+/// and with `data_type_slot90` answering no.
+#[test]
+fn the_bell_takes_a_gather_building_s_citizens_however_far() {
+    use crate::orders::{Body, index};
+    let (mut sim, t, citizen, _) = alarm_sim();
+    let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
+    let farm = sim.place_building(0, t.farm, tile_pos(44, 32)).unwrap();
+    finish(&mut sim, farm);
+    assert!(sim.is_gather_type(farm));
+    let far = sim.init_unit(0, citizen, tile_pos(60, 60));
+    let alone = sim.init_unit(0, citizen, tile_pos(60, 62));
+    // The chain's head, as `Build::add_gatherer@0062f640` writes it
+    // (`docs/ORDERS.md` §6.1); the bell reads the chain and nothing else.
+    sim.buildings[farm].gather_head = Some(far);
+    let r = sim.radius_of(c);
+    let (ft, ct) = (sim.units[far].pos.tile(), sim.cities.cities[c].pos.tile());
+    assert!(
+        crate::world::vector_dist((ft.x - ct.x).abs(), (ft.y - ct.y).abs()) > r,
+        "past the radius"
+    );
+
+    sim.action_alarm(0, &[b]);
+    assert!(sim.cities.cities[c].alarm, "city_flags | 0x40");
+    let kinds: Vec<u8> = sim.units[far].orders.iter().map(|o| o.index()).collect();
+    assert_eq!(kinds[0], index::GARRISON, "in front: {kinds:?}");
+    assert!(
+        sim.units[far]
+            .orders
+            .iter()
+            .any(|o| matches!(o.body, Body::Garrison { building, search: true } if building == b))
+    );
+    assert!(
+        sim.units[alone].orders.is_empty(),
+        "past the radius, on no chain"
+    );
+}
+
 /// **A Citizen struck rings its city's bell, and only a computer's, once**
 /// (item 3984, `docs/AI.md` §416; `Object::take_damage@00652020:176`-`:214`,
 /// [`Sim::peasant_alarm`]): run1075's 2072, where the first of `1/2033`'s
