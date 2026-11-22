@@ -1713,63 +1713,6 @@ impl Sim {
         self.coll_paint(u, at, true);
     }
 
-    /// **`Unit::set_type`'s crew loop, on the occupancy index**
-    /// (`docs/AI.md` §120). `Unit::set_type@00612fa0`'s second kill loop
-    /// walks the figures from the **old** type's `squad_size` to the
-    /// unit's whole count and calls `Objects::kill_guy@00659410` on each,
-    /// and `kill_guy`'s last arm clears `radius[coll_size]` around the
-    /// *figure's own cell* — `CollBlock::set(…, 0)` over the same disc
-    /// `add_to_world` set, by the unit's **old** type, since
-    /// `set_type` swaps `+0x18` only after the loop. Nothing puts the
-    /// cells back but the sixty-fourth-frame repaint, which marks the
-    /// *new* disc: a Trebuchet (size 3, trackless crew standing on guy 0)
-    /// that becomes a Bombard (size 2) leaves no ring of its old block
-    /// and a hole in its new one until the next repaint.
-    ///
-    /// SEAM: `kill_guy`'s own gates before the clear — the figure's type
-    /// is not the crash kind (`+0x14 == 8`), its domain is not air, and the
-    /// object type's vslot `+0x120` answers 0 — are read as true;
-    /// air is gated here as in [`Self::coll_paint`].
-    ///
-    /// **The region gate is the figure's world cell's plain `region`**
-    /// (item 4567, `docs/COLLISION.md` §2): `Objects::kill_guy@00659410`
-    /// reads `WData +0x4` of the cell under the figure's unit cell and
-    /// clears a disc cell only where that cell's `region` is the same (or
-    /// the figure's is negative). It asks no `get_tregion`, so a figure on
-    /// the ocean half of a coastal cell clears by the cell's land region,
-    /// where `coll_paint`'s gate answers the sea's `region2` and clears
-    /// nothing (run1783's President `1/14`, aboard on 2983: figure 2 at
-    /// unit cell (299, 640)).
-    ///
-    /// One figure of the crew loop: `Objects::kill_guy`'s clear around
-    /// figure `i`'s own cell, called for each figure from the squad to the
-    /// old total (`unit_set_type_view`) — and for every figure of a unit
-    /// that dies, by `close_unit` (`Unit::close`'s two loops, item 3787,
-    /// `docs/COLLISION.md` §2).
-    pub(crate) fn coll_kill_guy(&mut self, u: usize, i: usize) {
-        let size = self.coll_size(u);
-        if size == 0 || self.is_air(u) {
-            return;
-        }
-        let body = self.units[u].movement.body.pos;
-        let at = self.units[u].guys[i].follow.map_or(body, |f| f.body.pos);
-        let c = ucell(at);
-        let region = self.world.region_of(Cell::new(
-            c.x.div_euclid(UCELLS_PER_CELL),
-            c.y.div_euclid(UCELLS_PER_CELL),
-        ));
-        paint_walk(
-            &mut SimPaint {
-                world: &self.world,
-                coll: &mut self.movement.coll,
-                region,
-            },
-            size,
-            c,
-            false,
-        );
-    }
-
     /// `Object::remove_from_world`'s half — the clear pass with nowhere to
     /// move to.
     pub(crate) fn coll_remove(&mut self, u: usize) {
@@ -1828,10 +1771,6 @@ impl Sim {
     }
 
     pub(crate) fn coll_paint(&mut self, u: usize, at: Pos, on: bool) {
-        let size = self.coll_size(u);
-        if size == 0 || self.is_air(u) {
-            return;
-        }
         let c = ucell(at);
         // **`get_tregion`, not `region_of`.** `WorldData::get_tregion@006b52e0`
         // answers a coastal cell's `region2` for an **ocean** tile of it and
@@ -1843,6 +1782,16 @@ impl Sim {
         // (`docs/TRANSPORT.md` §6.4). The plain form made a barge fill its
         // own cell, and only a land unit was ever near enough to notice.
         let region = self.world.tregion_alt(at.tile());
+        self.coll_paint_in(u, c, region, on);
+    }
+
+    /// The disc walk around unit cell `c` under the figure's `region`, by
+    /// the unit's `coll_size`; nothing for a size 0 or an air unit.
+    pub(crate) fn coll_paint_in(&mut self, u: usize, c: Pos, region: Option<u16>, on: bool) {
+        let size = self.coll_size(u);
+        if size == 0 || self.is_air(u) {
+            return;
+        }
         paint_walk(
             &mut SimPaint {
                 world: &self.world,
