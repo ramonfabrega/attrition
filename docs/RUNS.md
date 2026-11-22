@@ -40901,3 +40901,39 @@ the background. `df -g ~` read 74 GB free before it and 73 after.
 **What it holds**: `diff::held_out::tests::row_23_s_setup_claims_oil_under_the_colonized_limit_on_run1781_s_ranges`
 (every leaders range on state 0), and `row_23_s_fishermen_takes_copper_s_hit_points_on_run1781_s_ranges` (every
 units range on 5694 and 5695; item 4538).
+
+## run1782 — parity held out, fifth battery, row 63's file to its end with the checksum and ranges hooks, every line but walls kept (2026-11-22, item 4542, `att-4542`)
+
+`docs/COSTS.md`, "A wonder is ramped by every wonder"; DECISIONS 150 §3. **What the disk could not answer**: run1776
+holds sums only, so row 63's leaders parting (state 1582) and the units, guys and world partings after it named no
+leaf. The take is run1776's file with the scorer's one-take line (`score_recording … ~/ron-golden/run1776/map-18`:
+`--end-frame 6000 --allow-early-end --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def
+RNG_MASK=0xffbu`): `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1782 --recording ~/ron-golden/recordings/item4527-row063-6000.rcx --end-frame 6000
+--allow-early-end --cover cover=1 --log-window 0 31 --detail end:MISC --timeout 3600 --stall-seconds 120
+--tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0xffbu`, launched with the lane free and
+waited on with `waitrun.sh` in the background. `df -g ~` read 105 GB free before it and 95 after.
+- **The run**: pool lane 1, launched 05:49:27 −05:00, exited 05:55:34: **366.8 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 4,223 frames, `last_frame` 4222, **ended early** as run1776 did, seed
+  12345, map 18. The recording's SHA-256 is run1776's (`64314654…`). Players: tribe 4 (who 0, flags 7), tribe 18
+  (who 1), tribe 3 (who 2).
+- **The record**, `~/ron-golden/run1782/map-18/rontrace.ranges`, 4,405,107,836 bytes, SHA-256
+  `ddef964557a7d8e0c9e6d6a711f473ec14463f1e8e50d2bf76a02bc0b0fc015c`: 4,223 sets on trace frames −1 to 4221,
+  96,367,406 ranges, 2,862,817,544 bytes, none over (`ranges.py summary`); every line but walls. Split in 5 pieces
+  by `filerun.py` (4.11 GiB on disk before, 0.41 GiB after).
+- **Scored** (`score_recording … ~/ron-golden/run1782/map-18`, on `25a90ab7`): the sums are run1776's; **leaders
+  1,582, first 1582: range 171, record 1, `make_list[k]`, bytes 4 to 6: who=1's Colosseum (TI 530) entry, `val`
+  ours 66,750, theirs 53,400**; units and guys 1789 (range 1133 / 355, record 35, `guy`, `end_time` ours 31,
+  theirs 30, `cur_anim` ours 0, theirs 1); builds 1810 (range 117, record 2002, `up` ours −1, theirs 3); world
+  1806 (range 5989, record 2226, `block.body`); groups 1903; cities 1958; goods 1965; items 2027; ammo 3321;
+  deaths 3481.
+- **Re-scored by item 4542** (`get_cost`'s locked-team wonder term): leaders 1,828, first 1828 (range 265,
+  record 2, `flags` byte 3: ours `0x00`, theirs `0x02`); units and guys 1789 as found; cities 2,342, first 2182;
+  goods 2,046, first 2026; items 3,435; ammo 3,758.
+- Filed by `filerun.py run1782 heldout5-row063-ranges`: `gamelog_p.txt` →
+  `Logs/gamelog-run1782-heldout5-row063-ranges.txt`, 2,846 bytes, SHA-256
+  `ccc246ebdfebd117ee36ce9dfc2d95ee77ef131ce13128fcfbb9b60659123951`; `rontrace.log` → `Logs/rontrace-run1782.log`,
+  232,922,080 bytes, SHA-256 `579418042b5fea32713e9ae91c45da09c94f03c759a649c18858dd0cf6df2c68`.
+
+**What it holds**: `diff::held_out::tests::row_63_s_colosseum_is_priced_by_its_ally_s_wonder_site_on_run1782_s_ranges`
+(every leaders range on 1581 and 1582).

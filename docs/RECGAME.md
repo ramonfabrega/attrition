@@ -1505,9 +1505,7 @@ holds no `game_over` by either end (`over: None`). In row 43 our walk holds `gam
 original plays to 6000. `docs/RUNS.md` run1773 to run1780 holds every value, and the pins hold both sides of every
 first parting.
 
-*Not established*: no row names a leaf, since each take holds sums only. ~~Row 23 parts on leaders at state 0, ours
-569079079, theirs 568292647: the frame-0 state of a start whose two computers are one team, the shape of no lobby
-on disk until now.~~ Whole (§12.6). Every other row parts first between 1582 and 3857. Each needs a ranges take of its file, keeping
+*Not established*: no row names a leaf, since each take holds sums only. Row 23 is whole (§12.6). Row 63's leaders on 1582: the locked team's wonder term (`docs/COSTS.md`, item 4542). Every other row parts first between 1582 and 3857. Each needs a ranges take of its file, keeping
 the lines it parts on, before its leaf can be named.
 
 ### 12.4 Row 95: a CEO going in leaves its city (item 4519)

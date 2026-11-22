@@ -1972,7 +1972,7 @@ mod tests {
     }
 
     /// **Row 63's Colosseum is priced by its ally's wonder site** (item
-    /// 4542, `docs/RECGAME.md` §12.7): on run1782's ranges, every leaders
+    /// 4542, `docs/COSTS.md`, the team term): on run1782's ranges, every leaders
     /// range on 1581 and 1582 byte for byte. Row 63's `TEAM_STYLE 1` locks
     /// the teams, so `TypeData::get_cost@00664090`'s wonder count starts
     /// from `get_team_wonders − held + get_team_unbuilt_wonders`
