@@ -937,6 +937,7 @@ mod tests {
             while built.sim.frame < state {
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
+                crate::diff::harness::debug_watch(&built, built.sim.frame);
             }
             let Some(set) = record.first_of(state - 1).cloned() else {
                 eprintln!("P4562 state {state} no set");
@@ -944,6 +945,26 @@ mod tests {
             };
             let all = record.ranges(&set).expect("the set's ranges");
             let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            if let Some(ours) = lines[0].as_ref() {
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+                let want: i64 = std::env::var("RON_PROBE_REC")
+                    .ok()
+                    .and_then(|v| v.parse().ok())
+                    .unwrap_or(117);
+                for (k, a) in ours.ranges.iter().enumerate() {
+                    if i64::from(a.record) == want
+                        && k < 7702
+                        && (a.field == "who..y_internal" || a.field == "type")
+                    {
+                        eprintln!(
+                            "P4562 state {state} rec {want} range {k} {} ours {:02x?} theirs {:02x?}",
+                            a.field,
+                            a.bytes,
+                            theirs.get(k).map(|t| t.bytes.clone())
+                        );
+                    }
+                }
+            }
             for li in 0usize..12 {
                 let Some(ours) = lines[li].as_ref() else {
                     continue;
