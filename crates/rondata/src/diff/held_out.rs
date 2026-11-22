@@ -900,6 +900,10 @@ mod tests {
             .map(|v| v.split(',').filter_map(|x| x.parse().ok()).collect())
             .unwrap_or_else(|| vec![3]);
         built.sim.trace.trace_phases = true;
+        if let Ok(p) = std::env::var("RON_PROBE_PIECE") {
+            let p: i32 = p.parse().unwrap();
+            eprintln!("releases of {p}: {:?}", built.sim.roster.art.releases.get(&p));
+        }
         while built.sim.frame < hi {
             let f = built.sim.frame;
             let seed = built.sim.rng.seed;
