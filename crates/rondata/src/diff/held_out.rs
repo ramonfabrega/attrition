@@ -624,6 +624,35 @@ mod tests {
         let hi: i64 = std::env::var("P_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(1760);
         let w = built.sim.world.width();
         eprintln!("PROBE width {w} height {}", built.sim.world.height());
+        if std::env::var("P_ROADS").is_ok() {
+            let tr = crate::trace::Trace::read(&home.join("ron-golden/run1783/map-18/rontrace.log"))
+                .expect("trace")
+                .expect("a trace");
+            built.sim.trace.trace_costs = true;
+            while built.sim.frame <= hi {
+                let f = built.sim.frame;
+                built.sim.trace.road_marks.clear();
+                stream.apply(f as i32, &mut built);
+                built.sim.command().tick();
+                let ours = std::mem::take(&mut built.sim.trace.road_marks);
+                let theirs = tr.road_nodes(f);
+                if f < lo || (ours.is_empty() && theirs.is_empty()) {
+                    continue;
+                }
+                let first = (0..ours.len().max(theirs.len())).find(|&i| ours.get(i) != theirs.get(i));
+                eprintln!(
+                    "PROBE roads frame {f}: ours {} theirs {} first {first:?} draws theirs {} ours0 {:?} theirs0 {:?} oursN {:?} theirsN {:?}",
+                    ours.len(),
+                    theirs.len(),
+                    tr.frame_draws(f).len(),
+                    ours.first(),
+                    theirs.first(),
+                    ours.last(),
+                    theirs.last()
+                );
+            }
+            return;
+        }
         for state in lo..=hi {
             while built.sim.frame < state {
                 stream.apply(built.sim.frame as i32, &mut built);
