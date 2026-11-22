@@ -1343,6 +1343,23 @@ impl Sim {
         // `type.vslot(+0x118)` (`6c2c76`) is `get_wonder_value`, the
         // type's own `WONDER_VAL` (§124): Tikal's 2 doubles it.
         let points = self.tables.build_types[rec].wonder_points();
+        if std::env::var("RON_PROBE_4542").is_ok() {
+            eprintln!(
+                "PROBE4542 frame {} who {who} rec {rec} level {} points {points} val {val} team {} ev {} enemy {} unbuilt {} winning {} diff {} mod {}",
+                self.frame,
+                self.city_level_of(f.c),
+                self.team_wonder_points(who),
+                self.enemy_wonder_points(who).wrapping_add(self.enemy_unbuilt_wonder_points(who)),
+                self.enemy_wonder_points(who),
+                self.enemy_unbuilt_wonder_points(who),
+                self.wonder_winning(),
+                self.ai_difficulty(),
+                self.ai.ai[w].wonder_mod,
+            );
+            for p in 0..self.territory.players.len() {
+                eprintln!("PROBE4542   p{p} points {} unbuilt {} ally {}", self.wonder_points(p as Player), self.unbuilt_wonder_points(p as Player), self.is_ally(who, p as Player));
+            }
+        }
         Some(
             self.city_level_of(f.c)
                 .wrapping_mul(points)
