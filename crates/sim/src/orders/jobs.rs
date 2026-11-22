@@ -3344,8 +3344,18 @@ impl crate::orders::check_build_view::CheckBuildView for SimCheckBuild<'_> {
     fn repath(&mut self) {
         self.s.repath(self.u);
     }
+    /// `Unit::kill_current_order@005e2cb0(0)` kills **the front**: it
+    /// re-points the cursor at the list's first node (`+0xd4 =
+    /// +0xdc->next`) before `remove_current`, whatever node the scan's
+    /// cursor sat on. The scan reaches it right after `repath`, which has
+    /// stripped every stepped-over `MOVE_TO` off the front, so the build it
+    /// reached is the front by then (item 4555: the sample's `3/55` on 6669,
+    /// `[BUILD_AT 2041 (finished), MOVE_TO, BUILD_AT 2042]`; a kill at the
+    /// scan's stale index missed after the move went, and the scan
+    /// collected 2042 twice: ours two orders, theirs one).
     fn kill_current_order(&mut self) {
-        self.s.remove_order_at(self.u, self.i);
+        self.s.kill_current_order(self.u);
+        self.i = 0;
     }
     fn add_build_order(&mut self, site: i32) {
         self.s
