@@ -813,7 +813,8 @@ fn run879_s_word_frame_is_widened_whole() {
     // Item 4159's third residue: 161 -> 154, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
     // Item 4435: 147 -> 80, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     // Item 4477: 60 -> 59, the farmer's turn east toggles its group's `facing` (`Unit::set_angle`, docs/CHECKSUM.md §23.14).
-    pin_eq!(w.firsts.len(), 59, "initial run879 baseline");
+    // Item 4519: 59 -> 58, a CEO going in or coming out asks `update_ceo_position` (`docs/RECGAME.md` §12.3).
+    pin_eq!(w.firsts.len(), 58, "initial run879 baseline");
     // Item 3333: who=1's `bucket` metal 4998/4453, standing from 5976, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
