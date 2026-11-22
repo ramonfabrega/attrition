@@ -691,10 +691,11 @@ mod tests {
     /// bleeds on a period of 48 on enemy ground, and on its tick due on
     /// 2810 `process_supply` answers supplied: `Unit::process@00610bc0:535`
     /// ORs `0x40000` into `unit_masks2` (`+0x6c`), and `:453` clears it on
-    /// the next 32-frame refresh. Ours took the veto and kept it in a
-    /// separate bool the walk never printed. Every units range on 2810 to
-    /// 2812, ours against theirs, byte for byte: red on the tree before the
-    /// fix at range 2319, record 70, `unit_masks2` ours 0, theirs 0x40000.
+    /// the next 32-frame refresh, frame 2842 (its phase `frame + 70`). Ours
+    /// took the veto and kept it in a separate bool the walk never printed.
+    /// Every units range on 2810 to 2812, 2842 and 2843, ours against
+    /// theirs, byte for byte: red on the tree before the fix at range 2319,
+    /// record 70, `unit_masks2` ours 0, theirs 0x40000.
     #[test]
     fn row_83_s_artillery_carries_the_supply_veto_s_mark_on_run1784_s_ranges() {
         let Some(inst) = crate::testenv::install() else {
@@ -716,7 +717,13 @@ mod tests {
         let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
         let mut stream = crate::input::Stream::pump(&rec);
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
-        for (state, marked) in [(2810, false), (2811, true), (2812, true)] {
+        for (state, marked) in [
+            (2810, false),
+            (2811, true),
+            (2812, true),
+            (2842, true),
+            (2843, false),
+        ] {
             while built.sim.frame < state {
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
