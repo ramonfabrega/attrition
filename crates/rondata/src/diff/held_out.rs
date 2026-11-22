@@ -2053,11 +2053,11 @@ mod tests {
                     .count()
             };
             assert_eq!((unbuilt(1), unbuilt(2)), (0, 1), "unbuilt wonders on {state}");
-            // The team term is 1, so the count is 1 and the halved step
-            // adds 45 to each of the two goods' 300.
-            let price = built.sim.building_price(1, colosseum);
-            assert_eq!(price, [0, 345, 0, 0, 345, 0], "who=1's Colosseum on {state}");
         }
+        // The team term is 1, so the count is 1 and the halved step adds 45
+        // to each of the two goods' 300.
+        let price = built.sim.building_price(1, colosseum);
+        assert_eq!(price, [0, 345, 0, 0, 345, 0], "who=1's Colosseum on 1582");
     }
 
     /// **Row 95's MLRS bears from its pivot node** (item 4536,
