@@ -728,10 +728,13 @@ mod tests {
                             a.ranges.len()
                         );
                         for (k, r) in b.ranges.iter().enumerate() {
-                            let was = a
-                                .ranges
-                                .iter()
-                                .find(|x| x.record == r.record && x.field == r.field);
+                            let was = if a.ranges.len() == b.ranges.len() {
+                                a.ranges.get(k)
+                            } else {
+                                a.ranges
+                                    .iter()
+                                    .find(|x| x.record == r.record && x.field == r.field)
+                            };
                             if was.map(|x| &x.bytes) != Some(&r.bytes) {
                                 eprintln!(
                                     "P4546   state {f} line {li} range {k} record {} {}: {:?} -> {:?}",
