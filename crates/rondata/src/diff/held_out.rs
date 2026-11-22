@@ -5757,48 +5757,113 @@ mod tests {
         )
     }
 
-    /// **The handoff's parity-held-out line is the pinned scores** (the
-    /// pass of 2026-11-19, second; DECISIONS 145 §1): `docs/QUEUE.md`
-    /// carries [`queue_line`] beside the older battery's `Held-out:` (parked
-    /// 4413a: two lines were named "held out" and only the battery's was
-    /// parsed). The found half never moves; a fix that moves a game's second
-    /// column moves the `now` half, and the commander writes it at the
-    /// booking. Made to fail first on a handoff with no such line.
+    /// **The handoff's closed line is the whole batteries** (item 4566;
+    /// DECISIONS 151 §6, 152 §4): every battery whose eight rows are taken
+    /// and whole now ([`Battery::closed`]) gives up its own line to one,
+    /// `Parity held out, closed:`, [`closed_line`], so the sixth's own line
+    /// leaves the handoff's bound where it stands. Seen red on a queue still
+    /// carrying the four whole batteries' lines.
     #[test]
-    fn the_handoff_s_parity_held_out_line_is_the_pinned_scores() {
-        handoff_line_is_the_pinned_scores(&FIRST);
+    fn the_handoff_s_closed_parity_held_out_line_is_the_whole_batteries() {
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
+        let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
+        let want = closed_line(BATTERIES);
+        let line = q.lines().find(|l| l.starts_with(CLOSED_HEAD));
+        assert_eq!(
+            line.map(str::trim_end),
+            want.as_deref(),
+            "docs/QUEUE.md's handoff carries the closed line (`diff::held_out::closed_line`)"
+        );
+        for b in BATTERIES.iter().filter(|b| b.closed()) {
+            let head = format!("{}:", b.label);
+            assert!(
+                !q.lines().any(|l| l.starts_with(&head)),
+                "`{head}` is closed: its row is the closed line's, not a line of its own"
+            );
+        }
     }
 
-    /// **The handoff's second parity-held-out line** (item 4462): the
-    /// second battery's [`queue_line`], `Parity held out, second:`, in the
-    /// first's grammar. Its found half is the estimate (DECISIONS 145 §2).
+    /// **The handoff carries each open battery's line** (the pass of
+    /// 2026-11-19, second, DECISIONS 145 §1; item 4566): every battery not
+    /// closed has its [`queue_line`] in the handoff, in the first's grammar,
+    /// its found half the estimate. The commander writes it at the booking.
     #[test]
-    fn the_handoff_s_parity_held_out_second_line_is_the_pinned_scores() {
-        handoff_line_is_the_pinned_scores(&SECOND);
+    fn the_handoff_s_open_parity_held_out_lines_are_the_pinned_scores() {
+        for b in BATTERIES.iter().filter(|b| !b.closed()) {
+            handoff_line_is_the_pinned_scores(b);
+        }
     }
 
-    /// **The handoff's third parity-held-out line** (item 4487): the third
-    /// battery's [`queue_line`], `Parity held out, third:`, in the first's
-    /// grammar. Its found half is the estimate (DECISIONS 147 §2).
-    #[test]
-    fn the_handoff_s_parity_held_out_third_line_is_the_pinned_scores() {
-        handoff_line_is_the_pinned_scores(&THIRD);
+    /// The closed line's head.
+    const CLOSED_HEAD: &str = "Parity held out, closed:";
+
+    /// **The closed line** (item 4566): the closed batteries by name, their
+    /// rows whole of their rows, their lines as found of twelve a game and
+    /// now, and their reach as found and now, as [`queue_line`] sums them.
+    /// `None` when no battery is closed.
+    fn closed_line(all: &[&Battery]) -> Option<String> {
+        let closed: Vec<&&Battery> = all.iter().filter(|b| b.closed()).collect();
+        if closed.is_empty() {
+            return None;
+        }
+        let names: Vec<&str> = closed
+            .iter()
+            .map(|b| b.label.strip_prefix("Parity held out, ").unwrap_or("first"))
+            .collect();
+        let found = || {
+            closed
+                .iter()
+                .flat_map(|b| b.scores.iter().flatten().map(|p| p.found))
+        };
+        let now = || {
+            closed.iter().flat_map(|b| {
+                b.scores
+                    .iter()
+                    .flatten()
+                    .map(|p| p.moved.unwrap_or(p.found))
+            })
+        };
+        let lines = |s: Score| s.agreed.iter().filter(|&&a| a == s.states).count();
+        let reach = |it: &mut dyn Iterator<Item = Score>| {
+            let (ran, of) = it.fold((0u64, 0u64), |(ran, of), s| {
+                let first = s.first.iter().map(|f| f.1.0).min();
+                let before = first.map_or(s.states, |f| f.max(0).cast_unsigned());
+                (ran + u64::from(before), of + u64::from(s.states))
+            });
+            100 * ran / of.max(1)
+        };
+        let rows = 8 * closed.len();
+        Some(format!(
+            "{CLOSED_HEAD} {} \u{b7} {rows} of {rows} whole \u{b7} lines {} of {} as found, {} now \u{b7} \
+             reach {} % of states as found, {} % now",
+            names.join(", "),
+            found().map(lines).sum::<usize>(),
+            12 * rows,
+            now().map(lines).sum::<usize>(),
+            reach(&mut found()),
+            reach(&mut now()),
+        ))
     }
 
-    /// **The handoff's fourth parity-held-out line** (item 4510): the
-    /// fourth battery's [`queue_line`], `Parity held out, fourth:`, in the
-    /// first's grammar. Its found half is the estimate (DECISIONS 148 §2).
+    /// **The closed line goes red when a closed battery's row parts**:
+    /// the line counts every closed battery's lines, so one row of the
+    /// first battery bent off whole leaves it out of the closed set.
     #[test]
-    fn the_handoff_s_parity_held_out_fourth_line_is_the_pinned_scores() {
-        handoff_line_is_the_pinned_scores(&FOURTH);
-    }
-
-    /// **The handoff's fifth parity-held-out line** (item 4527): the fifth
-    /// battery's [`queue_line`], `Parity held out, fifth:`, in the first's
-    /// grammar. Its found half is the estimate (DECISIONS 149 §3, 150 §2).
-    #[test]
-    fn the_handoff_s_parity_held_out_fifth_line_is_the_pinned_scores() {
-        handoff_line_is_the_pinned_scores(&FIFTH);
+    fn a_battery_with_a_row_not_whole_is_not_closed() {
+        assert!(FIRST.closed(), "the first battery reads 8 of 8");
+        let mut scores = SCORES;
+        let p = SCORES[0].as_ref().unwrap();
+        scores[0] = Some(FirstScore {
+            last: p.last,
+            found: p.found,
+            moved: Some(p.found),
+        });
+        let bent = Battery {
+            scores: Box::leak(Box::new(scores)),
+            ..FIRST
+        };
+        assert!(!bent.closed(), "row 0 as found is not whole");
+        assert!(!SIXTH.closed() || SIXTH.whole_now() == 8);
     }
 
     fn handoff_line_is_the_pinned_scores(b: &Battery) {
@@ -7384,6 +7449,12 @@ pub(crate) fn whole_now(p: &FirstScore) -> bool {
 
 #[cfg(test)]
 impl Battery {
+    /// **Closed**: all eight rows taken and whole now, so the battery's
+    /// row in the handoff is the closed line's (item 4566).
+    pub(crate) fn closed(&self) -> bool {
+        self.scores.iter().all(Option::is_some) && self.whole_now() == self.scores.len()
+    }
+
     /// The battery's rows whole now, by [`whole_now`].
     pub(crate) fn whole_now(&self) -> usize {
         self.scores
@@ -8447,3 +8518,8 @@ pub(crate) const SIXTH: Battery = Battery {
     line: HELD_OUT_SIXTH_LINE,
     frames: SIXTH_FRAMES,
 };
+
+/// **Every battery, in order** (item 4566): the handoff's lines read them,
+/// the closed ones on one line and each open one on its own.
+#[cfg(test)]
+pub(crate) const BATTERIES: &[&Battery] = &[&FIRST, &SECOND, &THIRD, &FOURTH, &FIFTH, &SIXTH];
