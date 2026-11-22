@@ -33,6 +33,31 @@ const FISHERMEN: i32 = 0x13d;
 pub const STRUCK: u32 = 0x1;
 
 impl Sim {
+    /// **`Unit::process_healing@005e0670`**, every arm in the original's
+    /// order: the garrison branch inside, and on the map the ship heal,
+    /// the Iroquois, the Senator, the CEO, the supply heal and the
+    /// civilian heal.
+    ///
+    /// **`has_damage(1)` is read once, at the head** (`005e0670:34`), and
+    /// no on-map arm reads it again: an arm that heals the last point
+    /// leaves every later arm on the same phase its turn, and each writes
+    /// `healing = max(rate, healing)`. run1742's Citizen `1/9` (TI 50) of
+    /// the French on 4491, where `9 + 4491` is on the supply heal's 20
+    /// and the civilian heal's 45 at once: the supply heal makes it whole
+    /// and the civilian heal still lands, `healing` 45 (item 4539,
+    /// `docs/COMBAT.md` §72.2). This crate's arms each asked again, so
+    /// the civilian heal found it whole and `healing` stayed 20.
+    pub(crate) fn process_healing(&mut self, i: usize, frame: i64) {
+        let damaged = self.has_damage(i);
+        self.garrison_heal(i, frame);
+        self.ship_heal(i, frame, damaged);
+        self.iroquois_heal(i, frame, damaged);
+        self.senator_heal(i, frame, damaged);
+        self.ceo_heal(i, frame, damaged);
+        self.supply_heal(i, frame, damaged);
+        self.civilian_heal(i, frame, damaged);
+    }
+
     /// The civilian heal, the last arm of `process_healing`'s on-map
     /// branch (`005e0670`, `docs/COMBAT.md` §72.2):
     ///
@@ -82,7 +107,7 @@ impl Sim {
     /// SEAM: the President's arm (`0x163`, `:179`–`:203`), which heals on
     /// an allied cell **or** one nobody owns; read, not built (parked
     /// 3686a, which named it the Comrade's).
-    pub(crate) fn ceo_heal(&mut self, i: usize, frame: i64) {
+    pub(crate) fn ceo_heal(&mut self, i: usize, frame: i64, damaged: bool) {
         const THECEO: i32 = 0x165;
         let rate = i64::from(self.tables.tuning.french_supply_heal_rate);
         if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
@@ -98,7 +123,6 @@ impl Sim {
         let Some(t) = u.ty else {
             return;
         };
-        let damaged = self.has_damage(i);
         if !damaged
             || self.tables.unit_types[t]
                 .cols
@@ -145,7 +169,7 @@ impl Sim {
     ///
     /// The sparkle arm draws only for the console's allies, which is no
     /// stream this crate keeps; the `0x4000` clear is not carried.
-    pub(crate) fn supply_heal(&mut self, i: usize, frame: i64) {
+    pub(crate) fn supply_heal(&mut self, i: usize, frame: i64, damaged: bool) {
         let u = &self.units[i];
         if !u.alive() || !u.on_map || u.inside.is_some() || u.inside_unit.is_some() {
             return;
@@ -171,7 +195,6 @@ impl Sim {
         if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
             return;
         }
-        let damaged = self.has_damage(i);
         if !damaged
             || self.tables.unit_types[t]
                 .cols
@@ -298,7 +321,7 @@ impl Sim {
     /// THESENATOR (the TypeIndex enum), the Republic's patriot, which
     /// parked 3686a called the Monarch's. The leader's count is answered
     /// by `has_general`'s walk, which finds no Senator without one.
-    pub(crate) fn senator_heal(&mut self, i: usize, frame: i64) {
+    pub(crate) fn senator_heal(&mut self, i: usize, frame: i64, damaged: bool) {
         const THESENATOR: i32 = 0x161;
         let rate = i64::from(self.tables.tuning.french_supply_heal_rate);
         if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
@@ -315,7 +338,6 @@ impl Sim {
             return;
         };
         let owner = u.owner;
-        let damaged = self.has_damage(i);
         if !damaged
             || self.tables.unit_types[t]
                 .cols
@@ -551,7 +573,7 @@ impl Sim {
     /// The sparkle arm (the second argument) draws only for the console's
     /// allies, which is no stream this crate keeps. `healing` (`+0x38`) is
     /// carried since item 3961 ([`Sim::mark_healed`]).
-    pub(crate) fn ship_heal(&mut self, i: usize, frame: i64) {
+    pub(crate) fn ship_heal(&mut self, i: usize, frame: i64, damaged: bool) {
         const AIRCRAFTCARRIER: i32 = 0x15f;
         let rate = i64::from(self.tables.tuning.unit_heal_rate[0]);
         if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
@@ -567,7 +589,6 @@ impl Sim {
         let Some(t) = u.ty else {
             return;
         };
-        let damaged = self.has_damage(i);
         if !damaged {
             return;
         }
@@ -621,7 +642,7 @@ impl Sim {
     /// The sparkle arm draws only for the console's allies, which is no
     /// stream this crate keeps; `healing` (`+0x38`) is
     /// [`Self::mark_healed`] (item 3961); the `0x4000` clear is not carried.
-    pub(crate) fn iroquois_heal(&mut self, i: usize, frame: i64) {
+    pub(crate) fn iroquois_heal(&mut self, i: usize, frame: i64, damaged: bool) {
         let u = &self.units[i];
         if !u.alive() || !u.on_map || u.inside.is_some() || u.inside_unit.is_some() {
             return;
@@ -646,7 +667,6 @@ impl Sim {
         if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
             return;
         }
-        let damaged = self.has_damage(i);
         if !damaged {
             return;
         }
@@ -672,7 +692,7 @@ impl Sim {
         self.speed_upgrade_level(who, &ladder) as usize
     }
 
-    pub(crate) fn civilian_heal(&mut self, i: usize, frame: i64) {
+    pub(crate) fn civilian_heal(&mut self, i: usize, frame: i64, damaged: bool) {
         let rate = i64::from(self.tables.tuning.civilian_heal_rate);
         if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
             return;
@@ -687,8 +707,8 @@ impl Sim {
         let Some(t) = u.ty else {
             return;
         };
-        // `UnitData::has_damage(1)`: this figure or one below it.
-        let damaged = self.has_damage(i);
+        // `UnitData::has_damage(1)`: this figure or one below it, read
+        // once at `process_healing`'s head (item 4539).
         if !damaged {
             return;
         }

@@ -85,13 +85,7 @@ impl Sim {
         // `Unit::process@00610bc0:288`–`:420`, after the attrition and
         // before the heal: a unit's own queue (item 3981).
         self.carrier_queue_tick(i);
-        self.garrison_heal(i, frame);
-        self.ship_heal(i, frame);
-        self.iroquois_heal(i, frame);
-        self.senator_heal(i, frame);
-        self.ceo_heal(i, frame);
-        self.supply_heal(i, frame);
-        self.civilian_heal(i, frame);
+        self.process_healing(i, frame);
         // **The frozen frame's mark is cleared here** —
         // `Unit::process@00610bc0`'s `unit_masks2 & 0xffffffef`,
         // immediately after `process_healing` and under the same
