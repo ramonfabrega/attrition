@@ -313,7 +313,6 @@ fn sea_melee_run1483_s_word_window_is_widened_whole() {
     // Item 4435: 164 -> 159, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     pin_eq!(w.firsts.len(), 159, "run1483's word window");
     pin_eq!(w.rounds_read, (8, 8), "the rounds read");
-    // Item 4537 (a guided round re-plans to its unit target's first figure's height), re-pinned by 4536's merge: 4 -> 0.
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
@@ -452,7 +451,6 @@ fn sea_melee_run1486_s_window_is_widened_whole() {
     // Item 4435: 111 -> 110, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     pin_eq!(w.firsts.len(), 110, "run1486's window");
     pin_eq!(w.rounds_read, (381, 381), "the rounds read");
-    // Item 4537 (a guided round re-plans to its unit target's first figure's height), re-pinned by 4536's merge: 24 -> 16.
     pin_eq!(w.rounds.len(), 16, "the rounds that part");
 }
 
@@ -525,7 +523,6 @@ fn sea_melee_run1487_s_window_is_widened_whole() {
     // Item 4435: 144 -> 140, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
     pin_eq!(w.firsts.len(), 140, "run1487's window");
     pin_eq!(w.rounds_read, (121, 121), "the rounds read");
-    // Item 4537 (a guided round re-plans to its unit target's first figure's height), re-pinned by 4536's merge: 6 -> 0.
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 

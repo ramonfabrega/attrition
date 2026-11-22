@@ -40,14 +40,14 @@ fn a_citizen_heals_a_point_every_45_frames_in_its_own_territory() {
     }
     let o = i64::from(sim.units[c].index);
     let due = 45 * 100 - o;
-    sim.civilian_heal(c, due - 1);
+    sim.civilian_heal(c, due - 1, sim.has_damage(c));
     assert_eq!(
         (sim.units[c].health, sim.units[c].damage_frac),
         (sim.units[c].max_health - 3, 5),
         "off the phase, nothing"
     );
     assert_eq!(sim.units[c].healing, 0, "no heal, no clock");
-    sim.civilian_heal(c, due);
+    sim.civilian_heal(c, due, sim.has_damage(c));
     assert_eq!(
         (sim.units[c].health, sim.units[c].damage_frac),
         (sim.units[c].max_health - 2, 0),
@@ -58,10 +58,10 @@ fn a_citizen_heals_a_point_every_45_frames_in_its_own_territory() {
     assert_eq!(sim.units[c].healing, 45, "the clock, at the rate");
     sim.units[c].healing = 50;
     sim.units[c].health -= 1;
-    sim.civilian_heal(c, due + 45);
+    sim.civilian_heal(c, due + 45, sim.has_damage(c));
     assert_eq!(sim.units[c].healing, 50, "a longer clock stands");
     let os = i64::from(sim.units[soldier].index);
-    sim.civilian_heal(soldier, 45 * 100 - os);
+    sim.civilian_heal(soldier, 45 * 100 - os, sim.has_damage(soldier));
     assert_eq!(
         sim.units[soldier].health,
         sim.units[soldier].max_health - 3,
@@ -69,7 +69,7 @@ fn a_citizen_heals_a_point_every_45_frames_in_its_own_territory() {
     );
     let cell = sim.units[c].pos.cell();
     sim.world.set_owner(cell, Owner::None, Owner::None);
-    sim.civilian_heal(c, due + 45);
+    sim.civilian_heal(c, due + 45, sim.has_damage(c));
     assert_eq!(
         sim.units[c].health,
         sim.units[c].max_health - 2,
@@ -134,11 +134,11 @@ fn a_carrier_repairs_a_point_every_20_frames_and_citrus_heals_every_ship() {
     let due = 820 - 18;
     let state = |sim: &crate::Sim| ships.map(|i| (sim.units[i].health, sim.units[i].damage_frac));
     for &i in &ships {
-        sim.ship_heal(i, due - 1);
+        sim.ship_heal(i, due - 1, sim.has_damage(i));
     }
     assert_eq!(state(&sim), [(590, 7); 3], "off the phase, nothing");
     for &i in &ships {
-        sim.ship_heal(i, due);
+        sim.ship_heal(i, due, sim.has_damage(i));
     }
     assert_eq!(
         state(&sim),
@@ -147,7 +147,7 @@ fn a_carrier_repairs_a_point_every_20_frames_and_citrus_heals_every_ship() {
     );
     sim.economy.ledgers[1].rare |= 1 << (crate::economy::CITRUS - crate::economy::BASE_RARE);
     for &i in &ships {
-        sim.ship_heal(i, due + 20);
+        sim.ship_heal(i, due + 20, sim.has_damage(i));
     }
     assert_eq!(
         state(&sim),
@@ -218,19 +218,19 @@ fn a_ceo_heals_the_hurt_figure_of_a_squad_abroad_every_20_frames() {
     let o = i64::from(sim.units[c].index);
     let due = 20 * 160 - o;
     let state = |sim: &crate::Sim| (sim.units[hurt].health, sim.units[hurt].damage_frac);
-    sim.ceo_heal(c, due);
+    sim.ceo_heal(c, due, sim.has_damage(c));
     assert_eq!(state(&sim), (211, 14), "no CEO, nothing");
     let boss = put(&mut sim, ceo, 110);
     sim.units[boss].captain = true;
-    sim.ceo_heal(c, due - 1);
+    sim.ceo_heal(c, due - 1, sim.has_damage(c));
     assert_eq!(state(&sim), (211, 14), "off the phase, nothing");
-    sim.ceo_heal(hurt, due);
+    sim.ceo_heal(hurt, due, sim.has_damage(hurt));
     assert_eq!(
         state(&sim),
         (211, 14),
         "a figure below the captain is not asked"
     );
-    sim.ceo_heal(c, due);
+    sim.ceo_heal(c, due, sim.has_damage(c));
     assert_eq!(
         state(&sim),
         (212, 0),
@@ -241,7 +241,7 @@ fn a_ceo_heals_the_hurt_figure_of_a_squad_abroad_every_20_frames() {
         "the unhurt figure passes it on"
     );
     sim.units[c].attrition = 48;
-    sim.ceo_heal(c, due + 20);
+    sim.ceo_heal(c, due + 20, sim.has_damage(c));
     assert_eq!(state(&sim), (212, 0), "under an attrition period, nothing");
 }
 
@@ -355,29 +355,29 @@ fn a_french_unit_heals_within_its_supply_radius_every_20_frames() {
         let u = &sim.units[c];
         (u.health, u.damage_frac, u.healing)
     };
-    sim.supply_heal(c, 1143);
+    sim.supply_heal(c, 1143, sim.has_damage(c));
     assert_eq!(state(&sim), (119, 4, 0), "no bonus, no period");
     sim.tech[1].power = Some(crate::cities::nations::power::FRENCH);
-    sim.supply_heal(c, 1143);
+    sim.supply_heal(c, 1143, sim.has_damage(c));
     assert_eq!(state(&sim), (119, 4, 0), "no supply source, nothing");
     let d = put(&mut sim, despot, 164, Pos::new(at.x - 1709, at.y + 1865));
     assert!(
         sim.units[d].supply_slot.is_some(),
         "the Despot holds a slot"
     );
-    sim.supply_heal(c, 1142);
+    sim.supply_heal(c, 1142, sim.has_damage(c));
     assert_eq!(state(&sim), (119, 4, 0), "off the phase, nothing");
     sim.units[c]
         .orders
         .push_front(attack_to(Pos::new(25848, 10488)));
-    sim.supply_heal(c, 1143);
+    sim.supply_heal(c, 1143, sim.has_damage(c));
     assert_eq!(
         state(&sim),
         (120, 0, 20),
         "(17 + 1143) % 20, walking, 2648 off: a point and the fraction"
     );
     sim.units[d].pos = Pos::new(at.x - 1709 - 60, at.y + 1865);
-    sim.supply_heal(c, 1163);
+    sim.supply_heal(c, 1163, sim.has_damage(c));
     assert_eq!(state(&sim), (120, 0, 20), "past 2688, nothing");
 }
 
@@ -385,33 +385,33 @@ fn a_french_unit_heals_within_its_supply_radius_every_20_frames() {
 fn an_iroquois_captain_heals_standing_on_its_own_ground() {
     let (mut sim, c, herbal) = iroquois_captain(167);
     let state = |sim: &crate::Sim| (sim.units[c].health, sim.units[c].damage_frac);
-    sim.iroquois_heal(c, 8190);
+    sim.iroquois_heal(c, 8190, sim.has_damage(c));
     assert_eq!(state(&sim), (37, 5), "no bonus, nothing");
     sim.tech[1].power = Some(crate::cities::nations::power::IROQUOIS);
     assert!(sim.iroquois(1), "the bonus holds in this setup");
-    sim.iroquois_heal(c, 8189);
+    sim.iroquois_heal(c, 8189, sim.has_damage(c));
     assert_eq!(state(&sim), (37, 5), "off the phase, nothing");
     let at = sim.units[c].pos;
     sim.units[c].orders.push_front(attack_to(at));
-    sim.iroquois_heal(c, 8190);
+    sim.iroquois_heal(c, 8190, sim.has_damage(c));
     assert_eq!(state(&sim), (37, 5), "an attack-move is moving");
     sim.units[c].orders.clear();
     sim.units[c].blown = true;
-    sim.iroquois_heal(c, 8190);
+    sim.iroquois_heal(c, 8190, sim.has_damage(c));
     assert_eq!(state(&sim), (37, 5), "a blown unit, nothing");
     sim.units[c].blown = false;
-    sim.iroquois_heal(c, 8190);
+    sim.iroquois_heal(c, 8190, sim.has_damage(c));
     assert_eq!(state(&sim), (38, 0), "standing, level 0: (50 + 8190) % 20");
     sim.tech[1].tech[herbal] = true;
     assert_eq!(sim.heal_level(1), 1, "Herbal Lore is the first rung");
-    sim.iroquois_heal(c, 8210);
+    sim.iroquois_heal(c, 8210, sim.has_damage(c));
     assert_eq!(state(&sim), (38, 0), "level 1 is not on the 20s");
-    sim.iroquois_heal(c, 8245);
+    sim.iroquois_heal(c, 8245, sim.has_damage(c));
     assert_eq!(state(&sim), (39, 0), "level 1: (50 + 8245) % 15");
     let cell = sim.units[c].pos.cell();
     sim.world
         .set_owner(cell, Owner::Player(0), Owner::Player(0));
-    sim.iroquois_heal(c, 8260);
+    sim.iroquois_heal(c, 8260, sim.has_damage(c));
     assert_eq!(state(&sim), (39, 0), "another leader's ground, nothing");
 }
 
@@ -427,7 +427,7 @@ fn the_senator_heals_a_walking_column_on_allied_ground() {
     let state = |sim: &crate::Sim| (sim.units[c].health, sim.units[c].damage_frac);
     let at = sim.units[c].pos;
     sim.units[c].orders.push_front(attack_to(at));
-    sim.senator_heal(c, 8190);
+    sim.senator_heal(c, 8190, sim.has_damage(c));
     assert_eq!(state(&sim), (37, 5), "no Senator, nothing");
     let senator = sim.add_unit_type(crate::UnitType {
         hits: 110,
@@ -445,13 +445,13 @@ fn the_senator_heals_a_walking_column_on_allied_ground() {
     u.captain = true;
     u.kind = sim.tables.unit_types[senator].kind;
     sim.add_unit(u);
-    sim.senator_heal(c, 8189);
+    sim.senator_heal(c, 8189, sim.has_damage(c));
     assert_eq!(state(&sim), (37, 5), "off the phase, nothing");
-    sim.senator_heal(c, 8190);
+    sim.senator_heal(c, 8190, sim.has_damage(c));
     assert_eq!(state(&sim), (38, 0), "walking, a point and the fraction");
     let cell = sim.units[c].pos.cell();
     sim.world.set_owner(cell, Owner::None, Owner::None);
-    sim.senator_heal(c, 8210);
+    sim.senator_heal(c, 8210, sim.has_damage(c));
     assert_eq!(state(&sim), (38, 0), "nobody's ground, nothing");
 }
 
@@ -550,5 +550,69 @@ fn a_patriot_repairs_its_leader_s_building_by_the_ground_under_it() {
         run(&mut sim, 33, Owner::Player(0)),
         (10, 5, 0),
         "a President found closes the Senator's branch"
+    );
+}
+
+/// **`has_damage(1)` is read once, at `process_healing`'s head** (item
+/// 4539, `docs/COMBAT.md` §72.2): a French Citizen one point down, on a
+/// frame that is both the supply heal's 20 and the civilian heal's 45,
+/// is made whole by the supply heal, and the civilian heal still lands:
+/// `healing` 45. run1742's `1/9` (TI 50) on 4491; ours read 20 there.
+#[test]
+fn a_heal_that_makes_the_unit_whole_leaves_the_later_arms_their_turn() {
+    use crate::world::{Pos, World};
+    let mut sim = crate::Sim::new(crate::core::tuning::Tuning::RON, World::new(60, 60), 2);
+    sim.set_tech_tree(crate::tech::TechTree::new());
+    let citizen = sim.add_unit_type(crate::UnitType {
+        hits: 85,
+        type_index: 0x32,
+        combat: crate::combat::Profile {
+            uber_size: 1,
+            ..crate::combat::Profile::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let despot = sim.add_unit_type(crate::UnitType {
+        hits: 109,
+        type_index: 352,
+        kind: crate::territory::attrition::UnitKind {
+            supply_unit: true,
+            ..crate::territory::attrition::UnitKind::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let put = |sim: &mut crate::Sim, t: usize, index: i16, pos: Pos| {
+        let mut u = crate::Unit::new(1, index, pos, sim.tables.unit_types[t].hits);
+        u.ty = Some(t);
+        u.type_index = sim.tables.unit_types[t].type_index;
+        u.on_map = true;
+        u.captain = true;
+        u.kind = sim.tables.unit_types[t].kind;
+        sim.add_unit(u)
+    };
+    let at = Pos::new(30 * 0x300 + 0x198, 30 * 0x300 + 0x198);
+    let c = put(&mut sim, citizen, 9, at);
+    put(&mut sim, despot, 164, Pos::new(at.x + 600, at.y));
+    sim.world
+        .set_owner(at.cell(), Owner::Player(1), Owner::Player(1));
+    sim.tech[1].power = Some(crate::cities::nations::power::FRENCH);
+    sim.units[c].health = 84;
+    // 9 + 4491 = 4500, on the 20 and the 45 at once.
+    sim.process_healing(c, 4491);
+    let u = &sim.units[c];
+    assert_eq!(
+        (u.health, u.damage_frac),
+        (85, 0),
+        "the supply heal's point"
+    );
+    assert_eq!(u.healing, 45, "the civilian heal lands on a whole unit");
+    // Off the 45, the supply heal alone: its own 20.
+    sim.units[c].health = 84;
+    sim.units[c].healing = 0;
+    sim.process_healing(c, 4511);
+    assert_eq!(
+        (sim.units[c].health, sim.units[c].healing),
+        (85, 20),
+        "the 20 alone"
     );
 }

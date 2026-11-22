@@ -3422,6 +3422,68 @@ fn a_garrisoned_tower_reloads_faster() {
     assert_eq!(sim.garrison_attack_sum(tw), 3);
 }
 
+/// **A garrisoned worker counts as militia when its owner has the militia**
+/// (item 4535, `docs/COMBAT.md` §8.6): `ObjectData::count_inside@0064dda0`'s
+/// `COUNT_GARRISON_ARROWS` case adds `(attack / 10 + 2) / 3` of the
+/// building owner's `current_upgrade(MILITIA)` for a worker whose owner
+/// `has_tech(MILITIA)`, in place of the worker's own halved attack. The
+/// 2017 sample's Village `0/2000` held five Citizens on 5999 and reloaded
+/// in 15 there, 30 here.
+#[test]
+fn a_garrisoned_worker_counts_a_third_of_the_militia_s_attack() {
+    use crate::tech::{TechTree, TypeDef};
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let mut tree = TechTree::new();
+    while tree.types.len() < 0x42 {
+        let name = format!("filler {}", tree.types.len());
+        tree.add(TypeDef::building(&name));
+    }
+    let line = tree.add(TypeDef::unit("Militia", crate::tech::UnitTraits::default()));
+    assert_eq!(line, 0x42, "MILITIA's TypeIndex");
+    tree.add_tribe(tech::Tribe::default());
+    tree.finalize();
+    sim.tables.tech_tree = tree;
+    for w in 0..sim.tech.len() {
+        sim.tech[w] = tech::PlayerTech::new(&sim.tables.tech_tree);
+    }
+    // The militia line's newest type: attack 9.0, so a third is 3.
+    let _militia = sim.add_unit_type(UnitType {
+        type_index: 0x42,
+        tree: Some(line),
+        combat: combat::Profile {
+            attack: 90,
+            obj_masks: 0x20,
+            ..combat::Profile::default()
+        },
+        ..UnitType::default()
+    });
+    // A Citizen (`TypeIndex` 0x32, a worker) of attack 4.0, melee, FOOT.
+    let mut ct = citizen_type(t.village);
+    ct.type_index = 0x32;
+    ct.combat.attack = 40;
+    ct.combat.obj_masks = 0x20;
+    ct.garrison.fortify = true;
+    let citizen = sim.add_unit_type(ct);
+    let tw = sim.place_building(0, t.tower, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, tw);
+    for _ in 0..5 {
+        let c = spawn(&mut sim, 0, citizen, tile_pos(40, 40));
+        sim.units[c].type_index = 0x32;
+        assert_eq!(sim.garrison(c, tw), Ok(()));
+    }
+    // No militia: the regular arm, (40/10 + 1) / 2 = 2 each.
+    assert_eq!(sim.garrison_attack_sum(tw), 10);
+    // The owner has the militia: (90/10 + 2) / 3 = 3 each.
+    sim.tech[0].tech[line] = true;
+    assert_eq!(sim.garrison_attack_sum(tw), 15);
+    // The building's arrows at the sample's Village (attack 80, no base
+    // arrow, two at most): one, then two.
+    assert_eq!(combat::garrison_arrows(80, 0, 2, 10), 1);
+    assert_eq!(combat::garrison_arrows(80, 0, 2, 15), 2);
+}
+
 // ----------------------------------------------------------------------
 // Capture
 // ----------------------------------------------------------------------

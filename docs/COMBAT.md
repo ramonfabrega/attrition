@@ -1181,7 +1181,9 @@ has the militia tech, counts `(militia upgrade type's attack / 10 + 2) / 3`
 — a third, rounded *(second reading; an earlier draft had militia counting
 nothing)*. If `base == 0`: `g += a / 2`. `g /= a`;
 `arrows = base + min(g, most_shots)`. A tower with three archers inside
-reloads in a third of the time.
+reloads in a third of the time. The militia arm is built (item 4535,
+`garrison_attack_sum`) and diff-backed: run1772's Village `0/2000` holds
+five Citizens on 5999 and reloads in 15, not 30.
 
 ---
 
@@ -12599,6 +12601,17 @@ Its head returns unless four things hold:
    it has `damage` or `damage_frac`;
 4. `inside_up` (`+0x82`) is negative. Otherwise it takes the garrison
    branch (`docs/CITIES.md` §6.7).
+
+**Gate 3 is read once** (item 4539, 2026-11-22, diff-backed): no on-map
+arm asks `has_damage` again, so an arm that heals the last point leaves
+every later arm on the same phase its `repair_damage` and its `healing =
+max(rate, healing)`. run1742 (row 110's ranges), state 4492, units range
+487, record 9: the French Citizen `1/9` (TI 50), one point down, on 4491,
+where `9 + 4491` is both the supply heal's 20 and this heal's 45. The
+supply heal makes it whole, and this heal still writes `healing`: theirs
+45, ours 20, because each of this crate's arms asked again. Built as
+`Sim::process_healing` (`crates/sim/src/units/heal.rs`), which reads the
+gate once and hands it to every arm.
 
 On the map, a sea unit takes the ship heal and returns, and a supply unit
 (`UnitData::is_supply`, type `+0x2b8 & 0x40`) returns. Six heals follow
