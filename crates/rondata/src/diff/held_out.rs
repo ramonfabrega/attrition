@@ -967,7 +967,10 @@ mod tests {
                     if a.field == "who..y_internal" {
                         who = i16::from(theirs[k].bytes[0]);
                     }
-                    if who == 2 && i64::from(a.record) == i64::from(o) && a.field == "gather_down..infiltrate2" {
+                    if who == 2
+                        && i64::from(a.record) == i64::from(o)
+                        && a.field == "gather_down..infiltrate2"
+                    {
                         return i16::from_le_bytes([theirs[k].bytes[at], theirs[k].bytes[at + 1]]);
                     }
                 }
@@ -980,7 +983,8 @@ mod tests {
             assert_eq!(field(2029, 4), after, "2/2029's city_down on {state}");
             let b = built.sim.building_by_o(2, 2036).expect("2/2036");
             assert_eq!(
-                built.sim.tables.build_types[built.sim.buildings[b].orig_ty.expect("its type")].ident,
+                built.sim.tables.build_types[built.sim.buildings[b].orig_ty.expect("its type")]
+                    .ident,
                 sim::cities::build::Ident::Barracks
             );
             assert_eq!(
