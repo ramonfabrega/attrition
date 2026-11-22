@@ -1753,6 +1753,18 @@ impl Sim {
                     // the original in `sweep/army_find_target_run.rs`).
                     self.mark(SITE_FIND_TARGET_SCORE);
                     let draw = self.rng.get(0, 0xffff);
+                    if std::env::var("RON_PROBE_4553").is_ok()
+                        && (1780..=1790).contains(&self.frame)
+                    {
+                        let cc = &self.cities.cities[c];
+                        eprintln!(
+                            "T4553 f{} who {who} slot {slot} pass {pass} L {i} k {k} city {c} b {} founder {:?} draw {}",
+                            self.frame,
+                            cc.building,
+                            cc.founder,
+                            draw % 200
+                        );
+                    }
                     let ctx = Ctx {
                         strong: head.strong,
                         cap: head.cap,
