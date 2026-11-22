@@ -2352,6 +2352,103 @@ mod tests {
         }
     }
 
+    /// **Row 63's Colosseum is priced by its ally's wonder site** (item
+    /// 4542, `docs/COSTS.md`, the team term): on run1782's ranges, every leaders
+    /// range on 1581 and 1582 byte for byte. Row 63's `TEAM_STYLE 1` locks
+    /// the teams, so `TypeData::get_cost@00664090`'s wonder count starts
+    /// from `get_team_wonders − held + get_team_unbuilt_wonders`
+    /// (`00665886`..`0066589f`): who=2's one unbuilt wonder ramps who=1's
+    /// Colosseum (TI 530) to 345 Timber, `check_income`'s Timber quotient
+    /// goes 15 → 17, and the make list's entry reads 53,400 on 1582, where
+    /// the unlocked count gave 300 Timber and 66,750.
+    #[test]
+    fn row_63_s_colosseum_is_priced_by_its_ally_s_wonder_site_on_run1782_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 3) else {
+            eprintln!("skipping: row 63's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1782/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1782's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 63's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        assert_eq!(built.sim.ai.lobby.team_style, 1, "row 63 locks its teams");
+        let colosseum = built
+            .sim
+            .tables
+            .build_types
+            .iter()
+            .position(|b| b.tree == Some(530))
+            .expect("the Colosseum's record");
+        for state in [1581, 1582] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_leaders();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "leaders' ranges on {state}"
+            );
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "leaders range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Who=1's third make-list slot: range 171, `t` then `val`.
+            assert_eq!(ours.ranges[171].field, "make_list[k]");
+            assert_eq!(ours.ranges[171].record, 1);
+            let word = |n: usize| {
+                i32::from_le_bytes(theirs[171].bytes[4 * n..4 * n + 4].try_into().unwrap())
+            };
+            if state == 1582 {
+                assert_eq!((word(0), word(1)), (530, 53_400), "theirs' Colosseum entry");
+            } else {
+                assert_ne!(word(0), 530, "no Colosseum entry before 1582");
+            }
+            // Who=2, a mutual ally, holds the one unbuilt wonder; who=1 none.
+            assert!(built.sim.is_ally(1, 2));
+            let unbuilt = |p: u8| {
+                built
+                    .sim
+                    .buildings
+                    .iter()
+                    .filter(|b| {
+                        b.alive
+                            && !b.active
+                            && b.owner == p
+                            && b.ty.is_some_and(|t| built.sim.tables.build_types[t].wonder)
+                    })
+                    .count()
+            };
+            assert_eq!(
+                (unbuilt(1), unbuilt(2)),
+                (0, 1),
+                "unbuilt wonders on {state}"
+            );
+        }
+        // The team term is 1, so the count is 1 and the halved step adds 45
+        // to each of the two goods' 300.
+        let price = built.sim.building_price(1, colosseum);
+        assert_eq!(price, [0, 345, 0, 0, 345, 0], "who=1's Colosseum on 1582");
+    }
+
     /// **Row 95's MLRS bears from its pivot node** (item 4536,
     /// `docs/RECGAME.md` §12.5): on run1770's ranges, every units and guys
     /// range on 5908 and 5909 byte for byte. On 5908 who=1's MLRS `1/99`
@@ -6535,7 +6632,32 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4542 (`get_cost`'s locked-team wonder term; run1782's
+        // leaf, leaders range 171, record 1, who=1's Colosseum (TI 530)
+        // make-list entry on 1582, `val` ours 66,750, theirs 53,400): leaders
+        // 1,582 -> 1,828; cities 1,958 -> 2,342, items 2,179 -> 3,435, goods
+        // 1,965 -> 2,046; ammo 3,780 -> 3,758, a named fall past its first
+        // parting (3321, unmoved).
+        moved: Some(Score {
+            states: 4223,
+            agreed: [
+                1789, 1810, 4223, 3758, 3481, 1903, 1789, 1828, 2342, 3435, 2046, 1806,
+            ],
+            first: &[
+                ("units", (1789, Some(2509609850), 1943706443)),
+                ("builds", (1810, Some(3537404403), 1462992888)),
+                ("ammo", (3321, Some(1), 3987474659)),
+                ("deaths", (3481, Some(1), 2307460364)),
+                ("groups", (1903, Some(3874615139), 167898819)),
+                ("guys", (1789, Some(3120588302), 1384277471)),
+                ("leaders", (1828, Some(1133770057), 673903947)),
+                ("cities", (2182, Some(3853398966), 1166094884)),
+                ("items", (2027, Some(1138496331), 1141379917)),
+                ("goods", (2026, Some(2099573197), 1799680457)),
+                ("world", (1806, Some(1643701640), 1687741832)),
+            ],
+            over: None,
+        }),
     }),
     // run1777
     // row 83, as found 2026-11-21: 1 line whole; units 2,338 of 6,001, first 2338; builds 1,958 of
@@ -6629,24 +6751,29 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // ranges take: on 1750 world range 1148, record 1124 (cell (44, 18)),
         // `flags` ROAD ours 0x80, theirs 0: a caravan's road whose goal was
         // popped past 0xc80 on 1749, laid on 1750 in theirs
-        // (`astar_caravan_road`'s `6860af`, `docs/ROADS.md` §8.3). Item
-        // 4545 (the caravan limit's ally term): ammo 2,882 -> 2,880, a
-        // named fall past its first parting, which stands.
+        // (`astar_caravan_road`'s `6860af`, `docs/ROADS.md` §8.3).
+        // Moved by item 4542 (`get_cost`'s locked-team wonder term, built on
+        // row 63's leaf; row 103's two computers are allied too, no leaf read
+        // here): leaders 1,757 -> 1,911; ammo 2,882 -> 2,900, deaths 2,508 ->
+        // 2,510, items 2,728 -> 3,045; world first at 1792 as 4544 left it.
+        // Item 4545 (the caravan limit's ally term), on the tree merged
+        // with 4542: ammo 2,900 -> 2,899, a named fall past its first
+        // parting at 2860, which stands.
         moved: Some(Score {
             states: 3295,
             agreed: [
-                1790, 1854, 3295, 2880, 2508, 1963, 1790, 1757, 1951, 2728, 1987, 1792,
+                1790, 1854, 3295, 2899, 2510, 1963, 1790, 1911, 1951, 3045, 1987, 1792,
             ],
             first: &[
                 ("units", (1790, Some(4038452573), 1054592778)),
                 ("builds", (1824, Some(512225234), 3008295372)),
                 ("ammo", (2860, Some(1), 460261739)),
-                ("deaths", (2508, Some(2009468066), 1)),
+                ("deaths", (2510, Some(1), 1937378451)),
                 ("groups", (1963, Some(321777859), 660866967)),
                 ("guys", (1790, Some(2094189105), 2360396383)),
-                ("leaders", (1757, Some(2828401504), 1487010739)),
+                ("leaders", (1911, Some(1718948112), 2104168730)),
                 ("cities", (1951, Some(1722361204), 1721574772)),
-                ("items", (2728, Some(3164999615), 3159232445)),
+                ("items", (3045, Some(3159232445), 3167883199)),
                 ("goods", (1987, Some(1178399185), 1567683031)),
                 ("world", (1792, Some(1791915805), 1130854131)),
             ],

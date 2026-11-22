@@ -979,11 +979,15 @@ pub(in crate::diff) mod tests {
     /// word 6114, the frames not read one by one; the first shot still on
     /// 2929. Item 4549 (the bell takes a gather building's gatherer
     /// chain): 3176 -> 3315, +139, a named rise past the draw word 7021,
-    /// the frames not read one by one; the first shot still on 2929. Item
-    /// 4545 (the caravan limit counts a mutual ally's cities): 3315 ->
-    /// 3382, +67, a named rise past the draw word 7021, the frames not
-    /// read one by one; the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3382, Some(2929));
+    /// the frames not read one by one; the first shot still on 2929.
+    /// Item 4542 (`get_cost`'s locked-team wonder term) moved it 3176 ->
+    /// 3182 on its own branch; on the tree merged with 4549 it reads 3315,
+    /// both builds in. Item 4545 (the caravan limit counts a mutual ally's
+    /// cities): 3315 -> 3382 on the tree merged with 4549, +67, a named
+    /// rise past the draw word 7021; with 4542 in too, 3315 -> 3184,
+    /// -131, a named fall past the draw word 7021, the frames not read one
+    /// by one; the first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3184, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
