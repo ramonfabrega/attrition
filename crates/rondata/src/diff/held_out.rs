@@ -1241,6 +1241,113 @@ mod tests {
         }
     }
 
+    /// **Row 43's unbuilt Village closes and the borders are fixed** (item
+    /// 4561, `docs/RECGAME.md` §12.3): run1787, the ranges take of row 43's
+    /// file. who=2's Village site (building 2027 at cell (27, 25), placed,
+    /// never started) closes on the frame state 3222 ends; theirs'
+    /// `Build::close` takes its `is a city` arm (`SubObjectData::flags &
+    /// 0x20`, the whole `VILLAGE` lineage, built or not) and calls
+    /// `Region::fix_borders`, so the next frame's `check_borders` starts the
+    /// pass again from every region's first cell: on 3223 every leader's
+    /// `reg_terr[1]` is zeroed and recounted (who=1's 130, theirs) and every
+    /// city's `bordering` is cleared. Ours carried the Temple's pass of 3210
+    /// on to its end (who=0's 368, cities 3, 4 and 6 at 6). The leaders and
+    /// cities lines on states 3221 to 3226, byte for byte.
+    #[test]
+    fn row_43_s_unbuilt_village_close_fixes_the_borders_on_run1787_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 2) else {
+            eprintln!("skipping: row 43's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1787/map-7");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1787's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 43's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let village = |sim: &sim::Sim| {
+            sim.buildings.iter().position(|b| {
+                b.owner == 2
+                    && b.index == 2027
+                    && b.ty.is_some_and(|t| {
+                        sim.tables.build_types[t].ident == sim::cities::build::Ident::Village
+                    })
+            })
+        };
+        for state in 3221i64..=3226 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            if state == 3221 {
+                // The site by name: who=2's Village, placed and never started.
+                let b = village(&built.sim).expect("who=2's Village site");
+                let site = &built.sim.buildings[b];
+                assert!(site.alive && !site.started && !site.active, "the site");
+                assert_eq!(site.pos.cell(), sim::world::Cell { x: 27, y: 25 });
+                assert_eq!(site.city, None, "an unbuilt site has no city");
+            }
+            if state == 3222 {
+                let b = village(&built.sim).expect("who=2's Village site");
+                assert!(!built.sim.buildings[b].alive, "the site closed");
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for li in [7usize, 8] {
+                let ours = lines[li].as_ref().expect("the line");
+                let theirs: Vec<_> = all.iter().filter(|r| usize::from(r.line) == li).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {li}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                    assert!(
+                        at.is_none() && a.bytes.len() == b.bytes.len(),
+                        "line {li} range {k} on {state}, record {} {}: byte {at:?} ours {:?}, theirs {:?}",
+                        a.record,
+                        a.field,
+                        at.map(|i| a.bytes[i]),
+                        at.map(|i| b.bytes[i])
+                    );
+                }
+            }
+            if state == 3223 {
+                // Theirs by value: who=1's `reg_terr[1]` (`+0x145e + 2`,
+                // byte 5208 of `who..ally_mask`) is the restarted pass's
+                // first frame, 130; who=0's and who=2's are 0.
+                let leaders = lines[7].as_ref().expect("leaders");
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+                for (who, want) in [(0i16, 0u16), (1, 130), (2, 0)] {
+                    let k = leaders
+                        .ranges
+                        .iter()
+                        .position(|r| r.record == who && r.field == "who..ally_mask")
+                        .expect("the leader's range");
+                    let b = &theirs[k].bytes;
+                    assert_eq!(
+                        u16::from_le_bytes([b[5208], b[5209]]),
+                        want,
+                        "theirs' who={who} reg_terr[1]"
+                    );
+                }
+            }
+        }
+    }
+
     /// Probe (item 4561, reverted whole): row 43's lines on run1787 around
     /// 3223, every parted byte, and our border pass.
     #[test]
