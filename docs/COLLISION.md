@@ -306,6 +306,30 @@ punches its own disc out of any neighbour's block until that neighbour's
 sixty-fourth-frame repaint: the second melee's Catapult `1/26`, dead on
 747, holes two Barbarians' discs that run1459's and run1460's packets print.
 
+**`kill_guy`'s region gate is the figure's cell's plain `region`** (item
+4567, `docs/RECGAME.md` §12.3). Its clear reads `WData +0x4` of the world
+cell under the figure's unit cell and clears a disc cell only where that
+cell's `region` is the same, or everywhere when the figure's is negative.
+It asks no `get_tregion`. `coll_paint`'s gate (§2, the figure's tile
+`region2` on the ocean half of a coastal cell) cleared nothing for a figure
+standing there; `Sim::coll_kill_guy` now walks the disc under the cell's own
+region. **Diff-backed** on run1783's 2983: who=1's President `1/14` (TI
+355), aboard Transport Freighter `1/120` since 2490, becomes the CEO (TI
+357), and the upgrade's crew loop kills figures 1 (unit cell (303, 637))
+and 2 ((299, 640), the ocean half of coastal cell (18, 40)). Figure 2 clears
+(298..300, 639..641) of the stale disc the boarding left. Before the fix,
+world range 6479 (record 2358, cell (18, 39)) `block.body` bytes 21, 23 and
+25 read ours 0xc0, 0x80, 0x80 against theirs 0x40, 0, 0. Range 6553 (record
+2418, cell (18, 40)) bytes 20, 22 and 24 read ours 1, theirs 0. After the
+fix every world range on 2982 to 2984 agrees, and row 103's world line is
+whole to the original's end on 3294 (test
+`row_103_s_president_clears_his_crew_by_their_cells_region_on_run1783_s_ranges`;
+`tools/mutate.py` with `tregion_alt` back: exit 101, held). **Not
+established**: a death's loop on a coastal cell (the same function, so the
+same gate, read and not diffed). The sea-domain figure: a boat's own cell
+on the water half has its `region`, not its `region2`, so a dying boat
+clears by the land region there, and no capture has shown it.
+
 ~~**Not established**: the original's "no block allocated" return (a cell no
 unit has marked, or whose empty block the sweep has freed, §26). The grid
 holds each cell's presence since item 4150, but the form does not ask it:

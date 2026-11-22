@@ -1121,7 +1121,7 @@ mod tests {
     }
 
     /// **Row 103's President clears his crew's discs by their own cells'
-    /// region** (item 4567, `docs/COLLISION.md` §27): run1783, the ranges
+    /// region** (item 4567, `docs/COLLISION.md` §2): run1783, the ranges
     /// take of row 103's file. On 2983 who=1's President `1/14` (TI 355),
     /// aboard Transport Freighter `1/120` since 2490, becomes the CEO (TI
     /// 357). `Unit::set_type@00612fa0`'s second kill loop hands crew
@@ -7851,12 +7851,20 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // 2,951, builds 3,049, ammo 2,943, deaths 3,112, groups 3,059, guys
         // 3,049, leaders 3,093 and cities 3,017 -> 3,295, all whole to the
         // original's end; world 2,983 (first 2983) unmoved.
+        // Moved by item 4567 (`Objects::kill_guy` clears by the figure's
+        // cell's plain region, `docs/COLLISION.md` §2). run1783's leaf on
+        // 2983, world range 6479, record 2358 (cell (18, 39)), `block.body`
+        // bytes 21, 23, 25: ours 0xc0, 0x80, 0x80, theirs 0x40, 0, 0. Range
+        // 6553 (record 2418) bytes 20, 22, 24: ours 1, theirs 0. who=1's
+        // President `1/14` (TI 355 -> 357, aboard Freighter `1/120`) kills
+        // crew figure 2 on the ocean half of coastal cell (18, 40): world
+        // 2,983 -> 3,295, first 2983 -> none. **Row 103 whole, 12 of 12.**
         moved: Some(Score {
             states: 3295,
             agreed: [
-                3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295, 2983,
+                3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295,
             ],
-            first: &[("world", (2983, Some(3105834113), 1025917694))],
+            first: &[],
             over: None,
         }),
     }),

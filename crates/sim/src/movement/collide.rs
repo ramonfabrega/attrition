@@ -1732,7 +1732,7 @@ impl Sim {
     /// air is gated here as in [`Self::coll_paint`].
     ///
     /// **The region gate is the figure's world cell's plain `region`**
-    /// (item 4567, `docs/COLLISION.md` §27): `Objects::kill_guy@00659410`
+    /// (item 4567, `docs/COLLISION.md` §2): `Objects::kill_guy@00659410`
     /// reads `WData +0x4` of the cell under the figure's unit cell and
     /// clears a disc cell only where that cell's `region` is the same (or
     /// the figure's is negative). It asks no `get_tregion`, so a figure on
