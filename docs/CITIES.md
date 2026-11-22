@@ -757,7 +757,8 @@ site later in the same frame takes `whole × 50` off `job_counter` and leaves
 `construct_hits` at the pre-blow figure until the next frame's walk (item
 4556, diff-backed: run1784's Taj Mahal site `2/2037` took a 19-point round on
 3041 and printed 6023, `site_hits` at the pre-blow 76,214, then 6017 on 3042;
-`row_83_s_taj_mahal_site_keeps_its_hits_through_a_blow_on_run1784_s_ranges`).
+`row_83_s_taj_mahal_site_keeps_its_hits_through_a_blow_on_run1784_s_ranges`;
+and run1075's widening loses its row 2554 `1/2033` `construct_hits`, ours 10323 against theirs' 10359).
 The sim reads the result through `BuildData::hits(0)` = `construct_hits`,
 `hits(1)` = `myhits`.
 
