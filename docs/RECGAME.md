@@ -566,6 +566,22 @@ slot moves (4432; GROUPS §6.6); units → 2892, a `GARRISON` walks
 target and `search`, groups → 3053, the bell's group is pushed (4440;
 CHECKSUM §17).
 
+**Item 4526: run1772, to 6,400, ten lines kept** (`RNG_MASK=0xdfb`,
+`SAMPLE_RANGES_1772`). Every kept line's first parting by range falls on
+the frame its sum parts. *Diff-backed* by run1772, and by a mutation:
+
+- **World on 5401**: the danger rebuild of 5400, rows 0, 2 and 4 (the
+  three computers left), 16 cells shown, the first `3629 0 danger` `+0x858`
+  20|8. Every printed cell is 13 of the person's buildings (`3/89` to
+  `3/96`, `3/106` to `3/110`), which it took off computer 1 at the defeat
+  of 5256, counted seen in ours and unseen (halved) in theirs. Their
+  `ever_seen` holds computer 1's bit. `WallData::is_seen@00642bd0` masks
+  by the stored `ally_mask` (`LeaderData +0x6929`), and the census rewrites
+  that byte without a defeated leader. Ours computed it from `diplos`.
+  Next was one half-cell, (22,22) 585|375, a unit's: `WorldData::is_seen
+  @006b55c0` masks by the same byte. Built (DANGER §5): world 5401 → 5462,
+  leaders 5403 the lowest. Items by sum 10910 → 10724, named below.
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte

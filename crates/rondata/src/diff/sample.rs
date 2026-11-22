@@ -697,7 +697,14 @@ pub(in crate::diff) mod tests {
     /// 10's count of `invaders` gate on the slot's `leader_flags & 1`,
     /// which the defeat keeps: leader 1's `invaders[3]` on 5326 ours 5,
     /// held from 5256, theirs 0): leaders 5326 -> 5403; every other line
-    /// unchanged, world 5401 the lowest.
+    /// unchanged, world 5401 the lowest. Item 4526 (`build_is_seen` and
+    /// the fog test mask by the stored `ally_mask`, `LeaderData +0x6929`,
+    /// which drops a defeated ally: run1772's danger rebuild of 5400,
+    /// `3629 0 danger` `+0x858` ours 20, theirs 8): world 5401 -> 5462;
+    /// items 10910 -> 10724, a named fall past units, groups and guys on
+    /// 5461 (the danger read alone gives 12663; the fog test's attack
+    /// callers bring it to 10724; no range record reaches it, DANGER §8);
+    /// leaders 5403 the lowest.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 5461),
         ("builds", 5487),
@@ -708,9 +715,9 @@ pub(in crate::diff) mod tests {
         ("guys", 5461),
         ("leaders", 5403),
         ("cities", 5801),
-        ("items", 10910),
+        ("items", 10724),
         ("goods", 6395),
-        ("world", 5401),
+        ("world", 5462),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -1485,7 +1492,13 @@ pub(in crate::diff) mod tests {
     /// range (item 4526). Minted at ten rows, each on the frame the hook's
     /// sums part (`SAMPLE_LINES`): world 5401, leaders 5403, units, groups
     /// and guys 5461, builds 5487, cities 5801, ammo 5969, deaths 6190,
-    /// goods 6395.
+    /// goods 6395. World 5401, `3629 0 danger` `+0x858` ours 20, theirs 8:
+    /// the rebuild of 5400, the person's 13 buildings taken off computer 1
+    /// at its defeat seen by computers 0, 2 and 4 in ours through computer
+    /// 1's `ever_seen` bit; `WallData::is_seen@00642bd0` and
+    /// `WorldData::is_seen@006b55c0` mask by the stored `ally_mask`
+    /// (`LeaderData +0x6929`), which the census rewrites without a
+    /// defeated leader. Built (item 4526): world 5401 -> 5462.
     const SAMPLE_RANGES_1772: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
@@ -1554,11 +1567,11 @@ pub(in crate::diff) mod tests {
         ),
         (
             "world",
-            5401,
-            7675,
-            7675,
-            3,
-            "3629 0 danger: +0x858 of 3600|3600: 14000000|08000000",
+            5462,
+            7643,
+            7643,
+            1,
+            "5670 1869 block.body: +0x11 of 96|96: 00000700|07000700",
         ),
     ];
 }
