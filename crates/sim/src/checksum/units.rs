@@ -474,6 +474,7 @@ impl Sim {
             (0x800000, un.auto_transport),
             (0x2000000, un.combat.entrenched),
             (0x4000000, un.explore_queued),
+            (0x8000_0000, un.jam_shown),
         ];
         bits.iter()
             .filter(|(_, on)| *on)

@@ -75,6 +75,14 @@ pub mod umask2 {
     /// reads it for its captain's re-search predicate ([`crate::Sim`]'s
     /// `fight`, parked 2100).
     pub const MASK2_BARK: u32 = 0x4;
+    /// **`8` — a jammer that jammed a building** (item 4541,
+    /// `docs/COMBAT.md` §8.6): `Build::do_attack@006228f0` ORs it into the
+    /// special forces unit `ObjectData::is_jammed@00653660` names
+    /// (`*(unit + 0x6c) |= 8`), and `Unit::process@00610bc0`'s caster arm
+    /// trades it for `unit_masks & 0x80000000` on the unit's 32-frame
+    /// phase ([`crate::Unit::jam_shown`]). The listing holds no other
+    /// writer.
+    pub const JAMMER: u32 = 0x8;
     /// **`0x80` and `0x4000` — an Iroquois Scout** (`Unit::init@00612100:
     /// 341-357`, item 3107, `docs/AI.md` §246): a unit of a leader with
     /// tribe bonus 0x12 that `is(SCOUT)` takes `0x4080` at birth.
@@ -3180,6 +3188,7 @@ pub mod cloak;
 pub mod damage;
 pub mod fight;
 pub mod hero_radius_view;
+pub mod jam;
 pub mod nuke;
 pub mod object_attack_view;
 pub mod plunder;

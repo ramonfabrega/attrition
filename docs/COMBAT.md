@@ -1179,6 +1179,63 @@ nothing reads the field on a site. `do_attack`:
   in the footprint), the seen-by update, and **`recharging = type.recharge /
   arrows`**, `arrows = get_garrison_arrows()`.
 
+**The jam arm, read whole (item 4541, 2026-11-22; diff-backed on run1742's
+5577 and 5601).** The `is_jammed` step above is `do_attack`'s vslot `+0xe0`
+call with the leader as an out-parameter, past the hits test and before
+`get_garrison_arrows` (vslot `+0x1b8`):
+
+```text
+o = ObjectData::is_jammed(&who)          // 00653660
+if o >= 0:
+    units[who][o].unit_masks2 |= 8       // +0x6c
+    SoundGlobal::play(S_MISSFIRE_FROM_JAMMING, x, y)
+    build_masks |= 0x8000; return        // no shot this call
+build_masks &= 0x7fff
+```
+
+`ObjectData::is_jammed@00653660` answers for an object whose owner carries
+`leader_flags & 0x40000` (`LeadersState::jam_threat`, item 4400), whose type
+is not of the air domain (`+0x218 != 2`) and which `has_objmask(0x80000000)`
+(`ANTI_AIR`; a Tower's obj_masks are `0x82000000`). It walks the eight
+leader slots in order and takes, for each in use (`leader_flags & 1`), not
+the owner, not `is_ally` with it and carrying `0x20000` (a `SPECIALFORCES`
+unit held), `SpecialsData::find_special@00740070(x, y, L)`: the first slot
+below the leader's specials mark (`+0x43c`) whose record is in use (`+0x28 &
+1`), whose unit is on the map (`+0x82`'s sign), within `GENERAL_RADIUS ×
+0x180` of the object by `vector_dist(|dx|, |dy|)` (`740108`..`74014d`), and
+`is(0x4b, 0)`. The answer is that record's `+0x26`, the unit's `o`. Its only
+other caller is `Unit::fight`'s anti-air animation roll (§81), with no
+out-parameter and no write.
+
+The unit's `8` has one other writer, `Unit::process@00610bc0`'s caster arm
+(`610ddc`..`610e58`), reached by every caster (`unit_flags2 & 2`) that is
+no decoy (`unit_masks & 1`), after a hero's or a special's
+`Caster::process_spells`: on `(frame + o) & 0x1f == 0`, a unit carrying
+`unit_masks & 0x80000000` or `unit_masks2 & 8` that `is(0x4b, 0)` (`push 0;
+push 0x4b`) takes `unit_masks |= 0x80000000` and drops the `8` (and a
+shockwave, the renderer's) when it carries the `8`, and drops `0x80000000`
+when it does not. Nothing else writes either bit (`0x6c` and `0x68` grepped
+in every spelling). The building's bit has one reader besides the
+checksum: `Wall::inc_time@0063fb60:204` takes an anti-air building's
+wind-down on `near_o < 0 || build_masks & 0x8000`.
+
+Built (`crate::combat::jam`: `Sim::is_jammed`, `building_jam`, `show_jam`;
+`Building::jammed`, `Unit::jam_shown`, `umask2::JAMMER`). run1742 (row 110,
+run1735's file): who=2's Elite Special Forces `2/0` (TI 77, `unit_flags2`
+`0x12`, specials slot 0) stands within 600 of who=1's Tower `1/2040` (type
+111), inside the reach of 2,304,
+when the Tower's phase runs `do_attack` on 5576; state 5577 prints the
+unit's `unit_masks2` 8 and the Tower's `build_masks` `0x9000`, ours 0 and
+`0x1000` before the build. On 5600, the unit's phase, state 5601 prints
+`unit_masks` with `0x80000000` and the 8 gone. Every units and builds range
+on 5575..=5610 agrees (`held_out::tests::row_110_s_special_forces_jam_the_tower_on_run1742_s_ranges`).
+
+**Not established**: the `S_MISSFIRE_FROM_JAMMING` sound draws nothing from
+either generator (read as the renderer's, not checked by a capture); the
+anti-air animation roll's jammed arm (§81) is wired to the same
+`is_jammed` and no capture has entered it; the `Wall::inc_time` reader is
+built from the reading alone, run1742's Tower being no wall-cycle building.
+
 `get_garrison_arrows`: `a = (attack() + 5) / 10`; zero → zero. `base =
 base_arrows (+ maya_garrison_arrows for a Mayan, except an unassimilated
 city)`. `g = count_inside(GARRISON_ARROWS)` — the sum over garrisoned
@@ -13655,7 +13712,8 @@ plays animation 0 when it is under `jam_unit_radar_prob` (`Constants
 +0x21c`, rules.xml's `50%`) **and** `ObjectData::is_jammed@00653660`
 answers ≥ 0; otherwise `CHAR_ATTACK1` as before. `is_jammed` is −1
 unless the owner's leader carries `leader_flags & 0x40000` and an enemy
-special stands over the unit, so the draw is spent and never jams here.
+special forces unit stands within reach; ~~so the draw is spent and never
+jams here~~ — built whole by item 4541 (§8.6, `Sim::is_jammed`).
 §8 step 4's "a unit with `DETECT` … `GameAccess::rnd`, the other RNG"
 was this: the mask is `ANTI_AIR`, and `rnd` draws `game_random`.
 run404's Battery spends it on 742, `Unit::fight+0x9b0`'s draw first.
@@ -13729,7 +13787,8 @@ down with no draw from the game's stream.
 - **Five of run404's 43 flak draws print no new round** on the next
   block (817, 857, 867, 929, 932), and 963's high site stands at 2,279
   from T; the Bomber's front order on each is not read.
-- **`is_jammed`'s arm**: no capture has a jammer.
+- **`is_jammed`'s arm**: no capture has entered it on a unit. Built by
+  item 4541 (§8.6) from the building arm run1742 enters on 5576.
 
 ### 81.6 Coverage
 

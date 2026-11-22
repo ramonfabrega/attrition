@@ -772,6 +772,104 @@ mod tests {
         assert_eq!(theirs[128].bytes[3], 0x0f, "theirs' leader_flags byte 3");
     }
 
+    /// **Row 110's Elite Special Forces jam who=1's Tower** (item 4541,
+    /// `docs/COMBAT.md` §8.6): run1742, the ranges take of run1735's file.
+    /// who=2's Elite Special Forces `2/0` (TI 77, land, specials slot 0)
+    /// stands beside who=1's Tower `1/2040` (type 111, `ANTI_AIR`) when the
+    /// Tower's 32-frame `Build::do_attack@006228f0` runs on 5576.
+    /// `ObjectData::is_jammed@00653660` finds it inside `GENERAL_RADIUS ×
+    /// 0x180`, so the Tower takes `build_masks |= 0x8000` and holds its
+    /// shot, and the unit takes `unit_masks2 |= 8`; on 5600, the unit's own
+    /// phase, `Unit::process@00610bc0`'s caster arm trades the 8 for
+    /// `unit_masks |= 0x80000000`. Red on the tree before the fix at units
+    /// range 1673 on 5577, record 0 `collide_frame..play` byte 36
+    /// (`unit_masks2`), ours 0, theirs 8, and builds range 1554, record
+    /// 2040 `job_counter..demolition` byte 25 (`build_masks`' high byte),
+    /// ours 0x10, theirs 0x90. Every units and builds range on 5575 to
+    /// 5610, byte for byte.
+    #[test]
+    fn row_110_s_special_forces_jam_the_tower_on_run1742_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 5) else {
+            eprintln!("skipping: row 110's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1742/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1742's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 110's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 5575i64..=5610 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (line, name) in [(0u8, "units"), (1, "builds")] {
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == line).collect();
+                let ours = lines[line as usize].as_ref().expect("the line");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                    assert_eq!(
+                        at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                        None,
+                        "{name} range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                        a.record,
+                        a.field
+                    );
+                    assert_eq!(a.bytes.len(), b.bytes.len(), "{name} range {k} on {state}");
+                }
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name} ranges on {state}");
+            }
+            let sim = &built.sim;
+            let sf = sim
+                .units
+                .iter()
+                .position(|u| u.alive() && u.owner == 2 && u.index == 0)
+                .expect("2/0");
+            let tower = sim
+                .buildings
+                .iter()
+                .position(|b| b.alive && b.owner == 1 && b.index == 2040)
+                .expect("1/2040");
+            let jammer = sim.units[sf].unit_masks2 & sim::combat::umask2::JAMMER != 0;
+            if state == 5577 {
+                // The two by name, and theirs' two bits.
+                let u = &sim.units[sf];
+                assert_eq!(u.type_index, 77, "Elite Special Forces");
+                assert_eq!(u.kind.domain, sim::territory::attrition::Domain::Land);
+                assert_eq!(u.special, Some(0), "specials slot 0");
+                assert_eq!(sim.buildings[tower].ty, Some(111), "the Tower");
+                let units: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+                let builds: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+                assert_eq!(units[1673].bytes[36], 8, "theirs' unit_masks2");
+                assert_eq!(builds[1554].bytes[25], 0x90, "theirs' build_masks");
+                assert!(jammer, "ours' unit_masks2 & 8");
+                assert!(sim.buildings[tower].jammed, "ours' build_masks & 0x8000");
+                assert!(!sim.units[sf].jam_shown);
+            }
+            if state == 5601 {
+                // The caster arm on 5600: the 8 traded for the top bit.
+                assert!(!jammer, "the 8 dropped on 5600");
+                assert!(sim.units[sf].jam_shown, "unit_masks & 0x80000000");
+                assert!(sim.buildings[tower].jammed, "the Tower stays jammed");
+            }
+        }
+    }
+
     /// **Row 110's losing wonder site closes without the unit-stats bit**
     /// (item 4540, `docs/RECGAME.md` §11): run1742, the ranges take of
     /// run1735's file. On 5408 who=2's wonder `2/2030` finishes and
@@ -5503,16 +5601,23 @@ pub(crate) const SCORES_SECOND: [Option<FirstScore>; 8] = [
         // raises the wall bit alone: run1742, state 5409, leaders range 128,
         // record 1 `flags` byte 3, who=1's site of who=2's wonder `2/2030`,
         // ours 0x0e, theirs 0x0a): leaders 6,000 -> 6,001, whole.
+        // Moved by item 4541 (`ObjectData::is_jammed@00653660`: an enemy
+        // special forces unit within `GENERAL_RADIUS × 0x180` of an
+        // anti-air building jams it, `Build::do_attack@006228f0` marking
+        // `build_masks |= 0x8000` and the jammer's `unit_masks2 |= 8`, and
+        // `Unit::process@00610bc0`'s caster arm trading the 8 for
+        // `unit_masks |= 0x80000000` on the unit's phase: run1742, state
+        // 5577, units range 1673, record 0 `unit_masks2`, who=2's Elite
+        // Special Forces `2/0` (TI 77), ours 0, theirs 8; builds range
+        // 1554, record 2040 `build_masks`, who=1's Tower `1/2040` (type
+        // 111), ours 4096, theirs -28672): units 5,577 -> 6,001 and builds
+        // 5,577 -> 6,001, whole.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5577, 5577, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 5601,
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 5601,
             ],
-            first: &[
-                ("units", (5577, Some(918696023), 1119301727)),
-                ("builds", (5577, Some(3250328791), 1226052951)),
-                ("world", (5601, Some(3728895985), 3060364311)),
-            ],
+            first: &[("world", (5601, Some(3728895985), 3060364311))],
             over: None,
         }),
     }),

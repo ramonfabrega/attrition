@@ -73,6 +73,11 @@ impl Sim {
         // spells run out, then a point of craft back (`crate::spells::cast`),
         // before the heal and the work.
         self.process_spells(i, frame);
+        // The same arm's tail, for every caster that is no decoy: the jam
+        // shown (item 4541, [`Sim::show_jam`]).
+        if self.units[i].alive() {
+            self.show_jam(i, frame);
+        }
         self.recover_mana(i, frame);
         // A decoy whose age has run out was closed there, and `process`
         // returns before the rest of its frame (item 1351).
