@@ -2196,6 +2196,27 @@ impl Sim {
             let level = self.city_level_of(c);
             let mut best = None;
             let mut best_score = 0;
+            if std::env::var("RON_PROBE_4563").is_ok() && self.frame == 3985 && who == 1 {
+                eprintln!("P4563 city arm t={t} wt={wt} c={c} level={level} num={num}");
+                for b in self.city_chain(c) {
+                    let bd = &self.buildings[b];
+                    eprintln!(
+                        "P4563   chain o={} ty={:?} alive={} active={} room={} of_type={} is_city={} queued={} damage={} danger={} unassim={} score={}",
+                        bd.index,
+                        bd.ty,
+                        bd.alive,
+                        bd.active,
+                        self.unit_queue_has_room(b, rec),
+                        self.building_of_type(b, wt),
+                        self.building_is_city(b),
+                        bd.queue.items.len(),
+                        bd.damage,
+                        self.world.danger_at(bd.owner, bd.pos),
+                        self.building_unassimilated(b),
+                        self.trainer_score(b, level * 1_000_000, true)
+                    );
+                }
+            }
             for b in self.city_chain(c) {
                 let bd = &self.buildings[b];
                 if !bd.alive || !bd.active || !self.unit_queue_has_room(b, rec) {
