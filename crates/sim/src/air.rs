@@ -1640,6 +1640,55 @@ impl Sim {
                     target = Some((l, cb));
                 }
             }
+            if !self.is_enemy(l, owner) {
+                continue;
+            }
+            // The forts (`64fa71`..`64fb6a`): each record below `L`'s
+            // `fort_mark` in use, the same AIRDEFENSE skip, `(damage / 100 +
+            // 1000) / (d / 0x300 + 1)`, never doubled.
+            for f in self.forts_of(l) {
+                let at = self.buildings[f].pos;
+                if !stealth && self.enemy_air_defense_near(owner, at) {
+                    continue;
+                }
+                let v = (self.buildings[f].damage / 100 + 1000)
+                    / (vector_dist(at.x - base.x, at.y - base.y) / 0x300 + 1);
+                if v > best {
+                    best = v;
+                    target = Some((l, f));
+                }
+            }
+            // The wonders (`64fb6a`..`64fda4`): each record below `L`'s
+            // `wonder_mark` in use but the Forbidden City's line (`is(0x213)`),
+            // the same AIRDEFENSE skip, `damage / 1000 + 1000` (`0x10624dd3`,
+            // `sar 6` at `64fc9e`: a thousandth, where the silo's is a
+            // hundredth), ×10 while my team's wonder points trail my
+            // enemies', ×100 above difficulty 2 while a non-ally is winning
+            // by wonders, `/ (d / 0x300 + 1)`.
+            for w in self.wonders_of(l) {
+                if self.building_is(w, crate::cities::build::Ident::ForbiddenCity) {
+                    continue;
+                }
+                let at = self.buildings[w].pos;
+                if !stealth && self.enemy_air_defense_near(owner, at) {
+                    continue;
+                }
+                let mut v = self.buildings[w].damage / 1000 + 1000;
+                if self.team_wonder_points(owner) < self.enemy_wonder_points(owner) {
+                    v *= 10;
+                }
+                if self.ai_difficulty() > 2 {
+                    let winning = self.wonder_winning();
+                    if winning >= 0 && !self.is_ally(owner, winning as crate::Player) {
+                        v *= 100;
+                    }
+                }
+                v /= vector_dist(at.x - base.x, at.y - base.y) / 0x300 + 1;
+                if v > best {
+                    best = v;
+                    target = Some((l, w));
+                }
+            }
         }
         let Some((l, t)) = target else {
             return;
