@@ -1009,9 +1009,9 @@ pub(in crate::diff) mod tests {
     /// Item 4547 (piece 736's bays, the Slingers in art style 2): 3184 ->
     /// 4792 on its own branch, +1608 (with the three rows keyed off,
     /// `tools/mutate.py`, 3184 passes); on the tree merged with 4553 and
-    /// 4555, 3174 -> MERGED, a named rise past the draw word 7021, the
+    /// 4555, 3174 -> 3903, +729, a named rise past the draw word 7021, the
     /// frames not read one by one; the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3174, Some(2929));
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3903, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
