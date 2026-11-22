@@ -164,7 +164,8 @@ is append-only and amended in place, as it always was.
 - 147 standing — The pass of 2026-11-20, second: the estimate is read by reach (27 % → 53 % of states before the first parting, where games and lines read 0 → 1 and 64 → 65), a third battery is named, the fold is still Ramon's at 11 of 15, the rows nearest whole take the seats (row 60, row 90, row 70), the sample keeps its seat with its rate said, parity's own count is a parsed line, and the queue's opener, which a booking had left unreadable to the wake, is a guarded paragraph
 - 148 extended by 149 — The pass of 2026-11-21: every held-out row not whole is scored (eight leaves on disk on rows 105 and 10, five with no item; rows 40 and 5 one line from whole), the three batteries read 0, 1 and 5 of 8 as found and 27, 53 and 88 % by reach, a fourth battery is named, the fold is still Ramon's at 13 of 15, a row's ranges take keeps the lines its score parts on because the disk is the limit, the sample's seat reads the `Parity:` line and takes ranges past its draw word first, and the eye's seat draws the dust from the packet's emitters.
 - 149 extended by 150 — The pass of 2026-11-21, second: the disk stops binding without a file deleted, because the archive's compression skips any file of 2^31 bytes and fourteen ranges records stood raw for it (a record past two billion bytes is kept in gigabyte pieces both readers open as one; thirteen split, 46.8 GiB to 4.1, 56 GB free to 117), the five rows not whole are scored and four seats cut, the sample's take runs to 6400 on the lines that part below it, a fifth battery is named, the fold is still Ramon's at 14 of 15, and the gate table says stopped for a gate the driver stopped.
-- 150 standing — Ramon folds the spent batteries into the headline (28 of 31 on the pins of 43ee59434; item 4528 builds the count) and the fifth battery adds seats and a team, its first act reading whether the lobby page sets a team, and starts now with the seats alternating between batteries
+- 150 extended by 151 — Ramon folds the spent batteries into the headline (28 of 31 on the pins of 43ee59434; item 4528 builds the count) and the fifth battery adds seats and a team, its first act reading whether the lobby page sets a team, and starts now with the seats alternating between batteries
+- 151 standing — The pass of 2026-11-22: the fifth battery was spent at item 4534 and folds, so the headline reads 39 of 47 on the pins that read 37 of 39 (a guard reads the row tests against the spent list); the sample's seat was stopped against its rule and reopens (every one of its four landings moved the `Parity:` line); the gate refuses while `origin/main` is behind the pushed tip (137 commits at the drain); the handoff's bound is 36 and the queue's preamble is read against it; entry 150 §1 to §3 confirmed; seven rows scored and four seats cut; a sixth battery is named, taken when the fifth reads 4 of 8
 
 ## 1. Fidelity before divergence
 
@@ -15110,3 +15111,194 @@ From then on, a freed seat takes the fifth's next row when the fourth's
 next row is a deep chase, and the fourth's when it is one line from
 whole, so neither battery starves. The trigger for a sixth battery is
 the pass's to set. Ramon asked that the next pass confirm §1 to §3.
+
+## 151. The fifth battery folds, the sample's seat reopens, the trunk is asked at the gate, and a sixth battery is named (2026-11-22)
+
+**What happened.** `commander` (Opus 5.5) ran twenty first-parent merges
+off the pass of 2026-11-21, second (items 4517, 4526, 4509, 4528, 4518,
+4530, 4529, 4531, 4532, 4527, 4533, 4519, 4485, 4534, 4537, 4535, 4539,
+4536, 4540 and 4538), reached the backstop and gated whole
+(`gate-drain-1122.log`, exit 0 on `252444c84`, the tip and origin's
+branch). The pass ran on the `steer` row from 04:40 −05:00 with no
+subagent and no capture. Three of its rulings correct the handoff it
+was given. The tables are in `docs/audit/2026-11-22-fable-pass-fold.md`.
+
+**§1. The sample's seat was stopped against its rule, and reopens.**
+The handoff said items 4533 and 4535 "left `Parity:` as it was" and
+stopped the seat by entry 148 §5. That entry's number is the line's
+lowest first parting or its draw word. The line at each booking, from
+`git show <booking>:docs/QUEUE.md`:
+
+| booking | landing | the sample parts first on | draws |
+|---|---|---|---|
+| `31c024412` | the pass | world 5401 | 5460 |
+| `ce7e4b0f3` | 4526 | leaders 5403 | 5460 |
+| `3e2d93318` | 4529 | leaders 5486 | 6015 |
+| `a9f0b4ca9` | 4533 | units 6000 | 6015 |
+| `ae80ee08b` | 4535 | units 6108 | 6114 |
+
+Every one of the four moved it, and each journal says so in its opening
+paragraph. What stood still across 4533 and 4535 was the count of games
+whole, 36 of 39, which no landing on the sample can move until the game
+ends. The stop never fired. **The seat reopens on item 4543**, units
+from 6108, with no take: run1772 holds the ten lines to 6400. The rate
+is said beside it: 707 states over four landings, 177 a landing, for
+30.75 USD, with 14,936 states to the sample's end. `docs/LOOP.md` now
+says the count of games whole is not the number.
+
+**§2. The fifth battery is spent, and the headline reads 39 of 47.**
+Entry 150 §1 folds a battery into the headline once a lane has read a
+parting off one of its rows, and says the fifth folds by the same rule.
+Items 4534 and 4538 read row 23's leaders and units off run1781's
+ranges and made the row whole. The list the fold counts from
+(`held_out::SPENT`) is extended by hand, and nobody extended it: the
+line read 37 of 39 for seven landings where the rule reads 39 of 47.
+Item 4528 had parked exactly this (4528a). The pass added the fifth,
+and a guard holds the list from now on: a leaf read off a row lands as
+a test named `row_<N>_s_…`, and
+`a_battery_with_a_row_s_leaf_test_is_spent` fails while such a row's
+battery is off the list. It was seen red on the tree as handed over,
+naming row 23. On the same pins the count is the two the fifth holds
+whole and its eight rows: **37 of 39 → 39 of 47, held out 31 of 32 → 33
+of 40**. The fifth's found column stays the estimate and never folds:
+1 of 8 whole, 30 of 96 lines, 48 % by reach.
+
+**Entry 150 §1 to §3 are confirmed**, as Ramon asked of this pass.
+
+- **§1, the fold**: built by item 4528 off the pins, with a test that
+  dropping a battery from the list drops exactly its rows. Confirmed,
+  with the guard above added.
+- **§2, seats and a team**: the declaration is `aece988eb`, committed
+  21:55:27 −05:00, and the eight files were written between 21:59:43
+  and 22:01:52. The page sets both. Every row seats three, because
+  every row is `MAP_SIZE 2` and the map holds three; the team
+  alternates between the human with the added computer and the two
+  computers. Confirmed. What it leaves: a fourth seat is unmeasured,
+  and no donor holds one (4527b).
+- **§3, the start and the alternation**: the found column was pinned
+  once, before any lane was seated on a row. Confirmed. The fourth
+  battery is whole, so the alternation has one side left and a freed
+  parity seat takes the fifth's next row by first parting.
+
+**§3. The trunk is asked at the gate.** `docs/LOOP.md` has the driver
+push its branch and fast-forward `origin/main` after every green gate.
+The tranche pushed the branch after each of its thirteen green gates
+and fast-forwarded main after the first six (the two refs' reflogs):
+main stood on `a5c5f8204`, `gate-4532b`'s tip, from 00:07 −05:00
+through `gate-4527`, `gate-4533`, `gate-4485`, `gate-4535`,
+`gate-4536`, `gate-4540` and the drain, and read 137 commits behind
+when the pass began. The handoff's check named
+only the branch. The pass fast-forwarded it first
+(`a5c5f8204..252444c84`). No builder of that span is shown to have
+started stale: each one's base is the driver's tip of its minute. The
+line is held because the root checkout and Codex read main.
+`tools/handover.py check` now prints a `Trunk:` line and exits 5 while
+`origin/main` is behind the pushed integration branch, and
+`tools/gate_run.sh` refuses that gate, exit 92, naming the push. Both
+tests were seen red.
+
+**§4. The handoff is 36 lines, and the queue says so.** The driver
+moved `HANDOFF_LINES` 35 → 36 at item 4527's booking, for the fifth's
+parsed line, and put the move to the pass. It is ratified: the line is
+parsed by a guard, as the two widenings before it were, and entry 150
+§3 has the driver write it. Two things go with it. The bound is the
+pass's to move, and a booking that needs a line says so in the opener,
+which this one did. And the queue's own preamble still read "the
+handoff 33" after three widenings, so
+`the_queue_names_the_bounds_the_guard_holds` reads that sentence
+against the constants; it was seen red on 33. The bound does not move
+for a sixth battery (§6).
+
+**§5. The seats, from every row scored.** `score_recording` at the tip
+on the seven held-out rows not whole:
+
+| row, run | lines parted | first parting | lowest lines | one take |
+|---|---|---|---|---|
+| 110 (second), run1742 | 3 | 5577 | units and builds 5577, world 5601 | on disk |
+| 63 (fifth), run1776 | 11 of 12, ended on 4222 | 1582 | leaders 1582, units and guys 1789 | `0xffbu`, `--allow-early-end` |
+| 103 (fifth), run1778 | 11, ended on 3294 | 1750 | world 1750, leaders 1757 | `0xffbu`, `--allow-early-end` |
+| 83 (fifth), run1777 | 11 | 1956 | leaders 1956, builds 1958 | `0xffbu` |
+| 123 (fifth), run1779 | 9 | 2977 | builds and groups 2977, units 2986 | `0xfe3u` |
+| 43 (fifth), run1775 | 11 | 3192 | ammo 3192, units and leaders 3196 | `0xffbu` |
+| 3 (fifth), run1773 | 11 | 3857 | units, builds and ammo 3857 | `0xffbu` |
+
+Row 110 names its leaves: units range 1673, record 0, `unit_masks2`
+ours 0, theirs 8; builds range 1554, record 2040, `build_masks` ours
+4096, theirs −28672; world range 3631, record 2, `danger`, 53 bytes.
+The six fifth rows hold sums and name none. Each parts on every line
+but walls within a few hundred states of its first parting, so entry
+148 §4's mask is nearly the whole take. That is what the rule asks:
+the original's record of a game is taken once and serves every later
+landing on the row, and it is filed in pieces (entry 149 §1).
+
+Four seats, as the roster stands:
+
+- **The sample's seat: item 4543**, units from 6108 (§1).
+- **The chain's builder: item 4541**, row 110, three lines from whole
+  and its ranges on disk. It is the one row between the second battery
+  and whole.
+- **A parity seat: item 4542**, row 63, the fifth's lowest first
+  parting.
+- **A parity seat: item 4544**, row 103.
+- **Unseated, in this order**: items 4545 (row 83), 4546 (row 123),
+  4547 (row 43) and 4548 (row 3).
+
+Rows 63 and 103 are the two the original ended itself, the allied
+computers against the idle human, where our walk holds no `game_over`.
+They part 2,640 and 1,544 states before that end.
+
+**§6. A sixth battery is named.** Entry 150 §3 left its trigger to the
+pass. **The sixth is rows 13, 33, 53, 73, 93, 113, 133 and 153** of the
+same order, by the fifth's recipe, named here before any take. **It is
+taken when the fifth reads 4 of 8 now, or on Ramon's word**: the fifth
+was found at 1 of 8 as the first was at 0, and the second was taken
+when the first read 4. Its declaration is its item's first commit. It
+adds no line to the handoff: the batteries whose every row is whole
+take one closed line between them, which the sixth's item builds, so
+the bound of §4 stands. Its human is idle like the five before it
+unless Ramon says otherwise. The pass recommends he does: the limit of
+entry 145 §2 that the fifth did not touch is that no held-out game
+carries a person's orders, and the one game that does parts on state
+6,108 of 21,044.
+
+**§7. The tranche, measured.** Twenty landings in seven hours and
+thirteen minutes. Sixteen gate logs: twelve booking gates and the
+drain's whole gate green, two red, one stopped by the driver after
+twelve seconds. Each red was a pin the merge moved, mended by a second
+commit, and no red tip was pushed. `gate-4532` named run1153c's
+baseline, 112 → 82. `gate-4534` named seven melee pins and two packets
+that item 4537 had improved; lane 4535 re-pinned them on the merged
+tree (`6276ae9ea`), and the builder's own re-pin, `9533fbeb3`, made the
+same values twenty-seven minutes later and was never merged. Its tree stood
+locked by a process that had exited. The pass pushed that commit to
+its branch on origin and removed the tree. A landing cost 8.17 USD
+against 7.18 (twelve lane sessions, 98.01 USD; eight landings were
+in-session builders and are not priced) and waited 89.5 minutes against
+73.1, 54.8 of them on its own gate against 39.6 and 30.5 the two
+tranches before. Three gates ended with the load past the sixteen
+cores, against seven. The worker count is Ramon's; the record carries
+the shape.
+
+**§8. What the tranche parked.** Eleven findings, none naming a score:
+4517a and 4517b (the Greek pair's six rounds, 3359a's round), 4527b (a
+donor for four seats), 4530a and 4485a (the other closes of an inside
+object, one arm in two journals), 4485b (`kill_contents`' `come_out`),
+4531a (lists of shorts outside the seats), 4532a (a garrisoning squad's
+repaint), 4534a (the setup's intermediate owners), 4536a (a section's
+wording) and 4538a (Bananas on the listing alone). All stay in their
+journals. 4527a was closed by item 4534 and 4528a by §2's guard. Of the
+journals' notes for the loop:
+
+- **A stand-in boolean agrees until the event that splits it** (4529,
+  and 4525a the tranche before): the readers of `leaders.defeated` are
+  not checked against the original's gate. It names no score today.
+  Rows 63 and 103 end on a defeat our walk does not reach, so it is
+  left to the frame that asks.
+- **`tools/ctx.py` reads the driver's context from a builder** (4530):
+  a subagent inherits its driver's session id. Not mended. A builder's
+  brief asks no depth of it.
+- **A view no `Sim` reads is a built answer nothing consumes** (4535),
+  **a capacity fitted to the sizes seen cannot tell a step from a
+  doubling** (4533), and **the ranges detail prints the first cells of
+  a parted record** (4526, with the count of bytes that differ beside
+  them). Each is one observation and stays in its journal.

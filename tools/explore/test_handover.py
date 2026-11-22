@@ -171,6 +171,47 @@ class DriverLineTests(unittest.TestCase):
         self.assertTrue(text.endswith('continue the tranche'))
 
 
+class TrunkTests(unittest.TestCase):
+    def test_a_trunk_left_behind_the_pushed_tip_refuses_the_gate(self):
+        # 2026-11-22: origin/main stood on gate-4532b's tip through seven
+        # green gates, 137 commits behind the pushed branch at the drain
+        # (DECISIONS 151 §3).
+        ok, line = handover.trunk_line(137, 'worktree-replan-pdb')
+        self.assertFalse(ok)
+        self.assertIn('137', line)
+        self.assertIn('git push origin worktree-replan-pdb:main', line)
+        self.assertTrue(handover.trunk_line(0, 'worktree-replan-pdb')[0])
+        ok, line = handover.trunk_line(None, 'worktree-replan-pdb')
+        self.assertTrue(ok)
+        self.assertIn('could not be read', line)
+
+    def test_the_trunk_s_lag_is_read_from_a_repository(self):
+        with tempfile.TemporaryDirectory() as d:
+            origin, work = os.path.join(d, 'origin.git'), os.path.join(d, 'work')
+
+            def git(*a, cwd=work):
+                subprocess.run(['git', '-c', 'user.name=t', '-c', 'user.email=t@t', *a], cwd=cwd,
+                               check=True, capture_output=True)
+            subprocess.run(['git', 'init', '-q', '--bare', '-b', 'main', origin], check=True, capture_output=True)
+            subprocess.run(['git', 'init', '-q', '-b', 'main', work], check=True, capture_output=True)
+            git('remote', 'add', 'origin', origin)
+            git('commit', '-q', '--allow-empty', '-m', 'base')
+            git('push', '-q', 'origin', 'main')
+            # Another branch's tree is not asked: Codex gates its own.
+            self.assertEqual(handover.trunk_behind(cwd=work, integration='integration'), (None, 'main'))
+            git('checkout', '-q', '-b', 'integration')
+            git('commit', '-q', '--allow-empty', '-m', 'one')
+            git('commit', '-q', '--allow-empty', '-m', 'two')
+            git('push', '-q', 'origin', 'integration')
+            self.assertEqual(handover.trunk_behind(cwd=work, integration='integration'), (2, 'integration'))
+            # An unpushed commit is not the trunk's to hold: the count is
+            # between the two refs on origin.
+            git('commit', '-q', '--allow-empty', '-m', 'three')
+            self.assertEqual(handover.trunk_behind(cwd=work, integration='integration'), (2, 'integration'))
+            git('push', '-q', 'origin', 'integration~1:main')
+            self.assertEqual(handover.trunk_behind(cwd=work, integration='integration'), (0, 'integration'))
+
+
 class SpawnTests(unittest.TestCase):
     def test_a_handover_to_the_row_s_own_name_says_it_means_the_duplicate(self):
         # The wake of 2026-11-16 was armed and fired at 06:07, and

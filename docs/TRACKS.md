@@ -79,19 +79,6 @@ lines): **checksum** — every line but leaders is whole on the minted game, `LE
 kind's file played by the original but spell's; **renderer** — under a mountain 100 of 106, the row
 past the map's edge pinned at 0 of 162. The other tracks stand as the table says.
 
-**At the pass of 2026-11-16, second** (entry 137): **checksum** — `LEADERS_HELD_OUT` 6, the last six leaves
-booked on four movers (4159r19, items 4298 to 4300); **orders** — `INPUT_KINDS` 26 of 26, 2,311 of 2,429
-orders shown or of the layer's form, 118 missed on four arms (items 4301 to 4304), `INPUT_WHOLE` 42 of 50;
-**renderer** — run1559b's ground luma 1,109 of 1,109; the pass's look booked the borders, the map's edge
-and the lake's fish (items 4306 to 4308).
-
-**At the pass of 2026-11-16, third** (entry 138): **checksum** — `LEADERS_HELD_OUT` 1, `tribute_demanded`, its
-game captured (recon4316-1, the demand on 6081) and our walk of it at 2082 (item 4316); the leaf's release closes
-step 5 on frame 91, and the leaders line on every frame of the minted game is item 4317 (152 of the first 300
-part); **orders** — every recorded order shown or minted, 1,442 still of the layer's form (item 4318); the panel's
-filter diffed on the minted game's packets (item 4315); **renderer** — the borders 225 of 1,440, past the edge
-162 of 162, the Oil billboard.
-
 **At the pass of 2026-11-17** (entry 139): **checksum** — `LEADERS_HELD_OUT` 1, the demand's walk at 5496 of 6,081
 (item 4331); parity's leaders line agrees on 23,965 of the minted game's 24,000 frames (item 4333), and a second
 game for its declared set is booked, the 2017 sample, a person's whole game (item 4336); **orders** — `INPUT_WHOLE`
@@ -167,6 +154,14 @@ battery 6 of 8, the third 8 of 8, and the fourth read 5 of 8 and 90 of 96 lines 
 compression skipped every file of 2^31 bytes, thirteen ranges records are kept in gigabyte pieces, and 56 GB free became 117 with
 nothing deleted; a fifth battery is named (item 4527); the packets' lines 948 of 1,053; the fold is Ramon's, recommended, 14 of 15
 folded; **orders** — whole by its counters; **renderer** — the tanks' dust is drawn from the packet, 4 of 4 (item 4506).
+
+**At the pass of 2026-11-22** (entry 151): **checksum** — parity 39 of 47, the five spent batteries folded (37 of 39 on the same
+pins before the fifth joined: it was spent at item 4534 and a guard now reads the spent list); the sample parts first on units 6108
+of 21,044, draws 6114, and its seat, stopped against its rule, reopens (item 4543); parity held out 8, 7, 8, 8 and 2 of 8 now; the
+fifth, three seats and a team a row, read 1 of 8 and 30 of 96 lines as found, 48 % by reach where the fourth read 91; rows 110, 63,
+103, 83, 123, 43 and 3 are scored (items 4541, 4542, 4544 to 4548), row 110 three leaves from whole and each fifth row one take;
+a sixth battery is named, taken when the fifth reads 4 of 8; the packets' lines 950 of 1,053; **orders** — whole by its counters;
+**renderer** — as it stood, no landing.
 
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it

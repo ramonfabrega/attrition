@@ -406,6 +406,52 @@ mod tests {
         games_score_as_pinned(&FIFTH);
     }
 
+    /// **A battery a lane has read a parting off is on [`SPENT`]** (the
+    /// pass of 2026-11-22, DECISIONS 151 §2). Entry 150 §1 folds a battery
+    /// into the headline once it is spent, and the list was the driver's
+    /// to extend by hand: items 4534 and 4538 read row 23's leaders and
+    /// units off run1781's ranges and the fifth stayed off it for seven
+    /// landings, so `Parity:` read 37 of 39 where the rule reads 39 of 47.
+    /// A leaf read off a row lands as a test named `row_<N>_s_…` in this
+    /// file, so that name is what spends the row's battery. Read off this
+    /// file's own source; a row in no battery is a battery this list has
+    /// not been told of.
+    #[test]
+    fn a_battery_with_a_row_s_leaf_test_is_spent() {
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/src/diff/held_out.rs");
+        let src = std::fs::read_to_string(path).expect("held_out.rs");
+        let all: [&Battery; 5] = [&FIRST, &SECOND, &THIRD, &FOURTH, &FIFTH];
+        let mut rows = std::collections::BTreeSet::new();
+        for line in src.lines() {
+            let Some(rest) = line.trim_start().strip_prefix("fn row_") else {
+                continue;
+            };
+            let Some((n, _)) = rest.split_once("_s_") else {
+                continue;
+            };
+            if let Ok(row) = n.parse::<usize>() {
+                rows.insert(row);
+            }
+        }
+        assert!(
+            rows.len() >= 17,
+            "the reader found {} rows with a leaf test; seventeen stood on 2026-11-22",
+            rows.len()
+        );
+        for row in rows {
+            let b = all
+                .iter()
+                .find(|b| b.table.iter().any(|h| h.row == row))
+                .unwrap_or_else(|| panic!("row {row} has a leaf test and is in no battery"));
+            assert!(
+                SPENT.iter().any(|s| s.label == b.label),
+                "row {row} has a leaf test, so `{}` is spent (entry 145 §2) and folds \
+                 (entry 150 §1): add it to SPENT and write the `Parity:` line",
+                b.label
+            );
+        }
+    }
+
     /// **Row 23's setup claims oil under the colonized limit** (item 4534,
     /// `docs/RECGAME.md` §12.3): run1781 holds every leaders range from
     /// state 0. `Setup::build_game@005ac190:881` runs `World::analyze_map`
@@ -6242,8 +6288,10 @@ pub(crate) const FIFTH: Battery = Battery {
 /// (entry 145 §2); its `now` column then counts in `Parity:` row by row,
 /// by [`whole_now`], beside the six and the sample, and its found column
 /// never folds. The first, second and third were spent on `43ee59434`;
-/// the fourth since item 4517 read row 75's ammo (`b52f075dd`). A battery
-/// declared and not yet spent stays off this list; the fifth (item 4527)
-/// joins by one entry here once a lane reads a parting off one of its rows.
+/// the fourth since item 4517 read row 75's ammo (`b52f075dd`); the fifth
+/// since item 4534 read row 23's leaders off run1781 (`3875a22b9`), added
+/// by the pass of 2026-11-22 seven landings late (DECISIONS 151 §2). A
+/// battery declared and not yet spent stays off this list, and
+/// `a_battery_with_a_row_s_leaf_test_is_spent` says when one joins.
 #[cfg(test)]
-pub(crate) const SPENT: &[&Battery] = &[&FIRST, &SECOND, &THIRD, &FOURTH];
+pub(crate) const SPENT: &[&Battery] = &[&FIRST, &SECOND, &THIRD, &FOURTH, &FIFTH];

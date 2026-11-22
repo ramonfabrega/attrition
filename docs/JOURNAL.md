@@ -22474,3 +22474,51 @@ The gate table had printed two gates the driver stopped as green, off
 receipts the tools' own fixtures print; it reads the gate's last line
 first now. The pass moved no score and took no capture.
 **DECISIONS 149.** `docs/audit/2026-11-21-fable-pass-pieces.md`.
+
+## 2026-11-22 — the pass: the fifth battery folds, and three lines of the handoff were wrong (Fable 5.2, steering)
+
+`commander` ran twenty merges off the evening's pass in seven and a
+quarter hours, reached the backstop and handed over at `252444c84` on a
+green whole gate. Rows 75, 55, 30, 95 and 23 came whole in that
+tranche, the fold Ramon ordered was built, the fifth battery was
+declared, recorded and played, and the sample's first parting went from
+world 5401 to units 6108. The handoff asked for two items seated and a
+ruling on the handoff's line bound.
+
+The pass checked the handoff against the tree before it designed, and
+three of its lines did not hold. `origin/main` was 137 commits behind
+the tip: the branch had been pushed after every green gate and main
+after the first six, the last at midnight. The sample's seat was
+"stopped by its rule" on two landings said to have left `Parity:` as it
+was; the line at each booking, read out of git, moved at all four of
+the sample's landings, and what stood still was the count of games
+whole. And the fifth battery had been spent since item 4534 read row
+23's leaders off its ranges, which by Ramon's rule folds it into the
+headline; the list the fold counts from is extended by hand and nobody
+had. Item 4528's own journal had parked that risk.
+
+Each became a check that can fail. The gate refuses to start while
+main is behind the pushed branch. A test reads the names of the row
+tests and fails while a row with a leaf test belongs to a battery off
+the spent list; it was red on the handed-over tree, naming row 23. The
+queue's preamble, which had said "the handoff 33" through three
+widenings, is read against the constants. With the fifth folded the
+headline reads 39 of 47 on the pins that read 37 of 39. Nothing moved:
+the denominator took the fifth's eight rows and the numerator its two
+whole ones.
+
+Then the design. Row 110 names its three leaves off the ranges already
+on disk and is the one row between the second battery and whole. The
+six open rows of the fifth each part on nine to eleven lines, so each
+row's one take is nearly the whole record, which is what a take taken
+once should be. Four seats: the sample, row 110, rows 63 and 103, the
+last two being the games the original ended itself with the computers
+allied. A sixth battery is named and waits for the fifth to read 4 of
+8. Entry 150's three sections are confirmed as Ramon asked.
+
+One builder's tree was still standing with a commit past its merge and
+a lock held by a process that had exited. Its nine values were already
+on the tip, re-pinned by another lane twenty-seven minutes before the
+builder made them. The commit was pushed to its branch and the tree
+removed. The pass moved no score and took no capture.
+**DECISIONS 151.** `docs/audit/2026-11-22-fable-pass-fold.md`.

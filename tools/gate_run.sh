@@ -28,13 +28,15 @@ install="${RON_INSTALL:-$root/game}"
 # once more landings stand since the last pass than the backstop and the
 # seats, and any gate, exit 94, from a row past its context ceiling. The
 # whole gate is the way out of the first and `handover.py to commander
-# --ungated` of the second.
+# --ungated` of the second. And the trunk (entry 151 §3): any gate, exit 92,
+# while origin/main is behind the pushed integration branch.
 scoped=""; for a in "$@"; do [ "$a" = "--scope" ] && scoped="--scoped"; done
 rows="$(cd "$(dirname "$0")/.." && python3 tools/handover.py check $scoped --tip "$sha" 2>&1)"
 case $? in
   0) ;;
   3) printf '%s\ngate exit 93 (the backstop: gate whole and hand over to steer)\n' "$rows" > "$log"; exit 93 ;;
   4) printf '%s\ngate exit 94 (the driver is past its ceiling)\n' "$rows" > "$log"; exit 94 ;;
+  5) printf '%s\ngate exit 92 (origin/main is behind the pushed tip: fast-forward it, then gate)\n' "$rows" > "$log"; exit 92 ;;
   *) printf '%s\ngate exit 95 (two driver rows)\n' "$rows" > "$log"; exit 95 ;;
 esac
 cd "$root/.claude/worktrees/gate" || { echo "gate exit 97 (no gate tree)" > "$log"; exit 97; }

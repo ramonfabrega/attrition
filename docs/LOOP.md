@@ -187,7 +187,11 @@ it pushes that branch and fast-forwards main — `git push origin
 worktree-replan-pdb:main`, a fast-forward only — because a harness-made
 worktree branches from `origin/main`, and a main left behind starts a
 builder on a stale base. The root checkout is Ramon's to pull. Renaming the
-branch is his: a remote branch delete is refused from every row.
+branch is his: a remote branch delete is refused from every row. **The gate
+asks** (DECISIONS 151 §3): `handover.py check` prints a `Trunk:` line and
+`tools/gate_run.sh` refuses any gate, exit 92, while `origin/main` is behind
+the pushed branch. It stood 137 commits behind through seven green gates on
+2026-11-22, each of which pushed the branch.
 
 **The harness moved under this file** (Claude Code 2.1.300 to 2.1.321, read
 on 2026-11-09). What changed, and what it makes of a clause below:
@@ -503,7 +507,10 @@ driver says so at the second booking and seats what the lanes line names
 next. **On the sample the number is the `Parity:` line**, its lowest
 first parting or its draw word: a landing that moves some other line's
 first parting and neither of those counts toward the two (DECISIONS 148
-§5: four landings left the score on units 4248). **A row's ranges take
+§5: four landings left the score on units 4248), **and the count of games
+whole is never the number** (DECISIONS 151 §1: a seat was stopped on two
+landings that each moved the first parting, because the count read 36 of
+39 across both). **A row's ranges take
 keeps the lines its score parts on**, by the arguments `score_recording`
 prints, never all twelve: the disk is the limit, and a whole take reads
 9 GB while it runs (DECISIONS 148 §4). **A held-out game's found column is never re-pinned** (DECISIONS 144
@@ -512,7 +519,12 @@ prints, never all twelve: the disk is the limit, and a whole take reads
 when the first reads 4 of 8 now, or on Ramon's word; the third (rows 5 to
 145) when the second does (DECISIONS 147 §2); the fourth (rows 15 to 155)
 when the third reads 7 of 8 (DECISIONS 148 §2); the fifth (rows 3 to 143)
-when the fourth does (DECISIONS 149 §3). **A take's end may run past the
+when the fourth does (DECISIONS 149 §3); the sixth (rows 13 to 153) when
+the fifth reads 4 of 8 (DECISIONS 151 §6). **A battery is spent when a row
+of it has a leaf test, and `held_out::SPENT` then holds it**: a guard reads
+the tests' names, and the booking that lands a row's first leaf adds the
+battery and writes `Parity:` (151 §2: the fifth stood off the list for
+seven landings). **A take's end may run past the
 first parting it is taken for** (DECISIONS 149 §2): the mask is what a
 take reads while it runs, and a filed record keeps a twelfth of it.
 
@@ -554,7 +566,9 @@ read are in `docs/audit/2026-11-09-loop-retired-clauses.md`, "Retired
    `ccc rm <ref>` on a merged row (eight stood at the fifty-third's
    drain, Loop 3565) — **and the builder trees the reaped driver's lock
    held** — `python3 tools/reap_agents.py --yes` (seven on 2026-11-15; a
-   lock that names a dead process is stale).
+   lock that names a dead process is stale; a tree it refuses as `not in
+HEAD` is read first, and its tip is pushed to its branch on origin before
+the tree is removed, DECISIONS 151 §7).
 5. **Its subagents' worktrees removed at their merge** — `git worktree
    remove`, before the pass's gate (the fifty-second pass's, locked by a
    live `claude bg-spare`, refused the fifty-third tranche's tenth

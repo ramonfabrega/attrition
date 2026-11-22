@@ -33,7 +33,8 @@ act reaps the old one. No pane is typed into and no row rests.
       and `Driver:` lines the log carries. Exit 1 when two driver rows of
       this tree have a process; 3 when a scoped gate is asked for more than
       BACKSTOP + SEATS landings after the last pass; 4 when the calling
-      row's next turn carries more than CEILING_K.
+      row's next turn carries more than CEILING_K; 5 when `origin/main` is
+      behind the pushed integration branch (the `Trunk:` line).
 
 The driver's two lines (`docs/DECISIONS.md` entry 135). The tranche of
 2026-11-14 and 15 booked fifty landings without a pass against a backstop
@@ -163,6 +164,40 @@ def brief_line(count, waiver=None):
     return False, (f'{count} landings since the last pass, and the backstop is {BACKSTOP}: no lane is '
                    'refilled. Book what is out, gate whole, and hand over: python3 tools/handover.py '
                    'to steer --opener-file <file> (docs/LOOP.md, "Supply calls the pass")')
+
+
+INTEGRATION = 'worktree-replan-pdb'
+
+
+def trunk_behind(cwd=None, integration=INTEGRATION):
+    """`(commits origin/main is behind origin/<branch>, branch)` for the
+    calling tree, off the remote-tracking refs with no fetch: the driver's
+    own pushes are what move them. `None` when the tree is not on the
+    integration branch (Codex gates its own) or a ref cannot be read."""
+    def git(*a):
+        return subprocess.run(['git', *a], cwd=cwd, capture_output=True, text=True)
+    branch = git('rev-parse', '--abbrev-ref', 'HEAD').stdout.strip()
+    if branch != integration:
+        return None, branch
+    n = git('rev-list', '--count', f'origin/main..origin/{branch}')
+    return (int(n.stdout.strip()) if n.returncode == 0 and n.stdout.strip().isdigit() else None), branch
+
+
+def trunk_line(behind, branch):
+    """`(ok, line)` for a gate: `origin/main` is the pushed tip, or the gate
+    is refused until it is (`docs/LOOP.md`, "origin/main is the trunk";
+    DECISIONS 151 §3). The root checkout and Codex read `origin/main`, and
+    a harness-made worktree may branch from it. On 2026-11-22 it stood 137
+    commits behind through seven green gates: the fast-forward was the
+    second half of a prose line. No builder of that span is shown to have
+    started stale; the line is held so that none can. Asked at the gate's
+    start, where the last green gate's tip is what origin holds."""
+    if behind is None:
+        return True, f'Trunk: origin/main against origin/{branch} could not be read, or this is not the integration tree'
+    if behind == 0:
+        return True, f'Trunk: origin/main is origin/{branch}'
+    return False, (f'Trunk: origin/main is {behind} commits behind origin/{branch} — '
+                   f'`git push origin {branch}:main` (a fast-forward of the last gated tip), then gate')
 
 
 ASTRA_WAIVER = 'ATTRITION_ASTRA_WAIVED'
@@ -434,7 +469,9 @@ def main(argv=None):
         landed, landings = landings_line(count, args.scoped, os.environ.get(WAIVER))
         shallow, depth = depth_line(own_ctx())
         print(f'Driver: {landings} · {depth}')
-        return 1 if not ok else 3 if not landed else 4 if not shallow else 0
+        trunk, trunk_says = trunk_line(*trunk_behind())
+        print(trunk_says)
+        return 1 if not ok else 3 if not landed else 4 if not shallow else 5 if not trunk else 0
     if args.verb == 'reap':
         return reap(args.ref)
     if args.verb == 'wake':

@@ -656,6 +656,28 @@ fn the_handoff_is_short() {
     );
 }
 
+/// **The queue's preamble names its bounds as the guard holds them** (the
+/// pass of 2026-11-22; `docs/DECISIONS.md` entry 151 §4). The file says of
+/// itself "bounds it by items (N at M lines, the handoff K)", and that
+/// sentence read 33 while [`HANDOFF_LINES`] went 33, 35 and 36: three
+/// widenings, each a constant and a comment here, none the queue's own
+/// words. A number in a rule names its source, and this is the source.
+#[test]
+fn the_queue_names_the_bounds_the_guard_holds() {
+    let q = read("QUEUE.md");
+    let said = q
+        .split("it by items (")
+        .nth(1)
+        .and_then(|rest| rest.split(')').next())
+        .expect("docs/QUEUE.md's preamble says `it by items (N at M lines, the handoff K)`");
+    let want = format!("{OPEN_ITEMS} at {ITEM_LINES} lines, the handoff {HANDOFF_LINES}");
+    assert_eq!(
+        said, want,
+        "docs/QUEUE.md's preamble names its bounds as ({said}); docs_guard holds ({want}). \
+         The constants are the pass's to move, and the sentence moves with them"
+    );
+}
+
 /// **The opener is a paragraph of its own** (the pass of 2026-11-20,
 /// second; `docs/DECISIONS.md` entry 147 §8). `tools/handover.py wake`
 /// reads the queue's `**Opener:` paragraph by its blank lines and refuses
