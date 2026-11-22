@@ -5634,8 +5634,8 @@ mod probe_4536 {
         let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
         let mut stream = crate::input::Stream::pump(&rec);
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
-        let lo: u32 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(5895);
-        let hi: u32 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(5909);
+        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(5895);
+        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(5909);
         let rid: i16 = std::env::var("RON_PROBE_REC").ok().and_then(|v| v.parse().ok()).unwrap_or(99);
         while built.sim.frame < lo {
             stream.apply(built.sim.frame as i32, &mut built);
@@ -5643,7 +5643,7 @@ mod probe_4536 {
         }
         while built.sim.frame <= hi {
             let f = built.sim.frame;
-            let set = record.first_of(f as i64 - 1).expect("the state's set").clone();
+            let set = record.first_of(f - 1).expect("the state's set").clone();
             let all = record.ranges(&set).expect("the set's ranges");
             for (line, ours) in [(0u8, built.sim.checksum_units()), (6u8, built.sim.checksum_guys())] {
                 let theirs: Vec<_> = all.iter().filter(|r| r.line == line).collect();
@@ -5671,7 +5671,7 @@ mod probe_4536 {
                 let name = u.ty.map_or("-", |t| built.unit_type_names[t].as_str());
                 eprintln!(
                     "P4536 {f} u {}/{} slot{k} uid{} TI{} {name} pos{:?} facing{:?} inside{:?} orders{} {:?}",
-                    u.owner, u.index, u.uid, u.type_index, u.pos, u.facing, u.inside_unit, u.orders.len(),
+                    u.owner, u.index, u.uid, u.type_index, u.pos, u.movement.facing, u.inside_unit, u.orders.len(),
                     u.orders.front().map(|o| format!("{o:?}").chars().take(200).collect::<String>()),
                 );
                 for (g, gy) in u.guys.iter().enumerate() {
