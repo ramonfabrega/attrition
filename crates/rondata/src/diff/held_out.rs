@@ -900,8 +900,15 @@ mod tests {
             {
                 let set = record.first_of(state - 1).expect("the state's set").clone();
                 let all = record.ranges(&set).expect("the set's ranges");
-                for r in all.iter().filter(|r| r.line == 7 && r.field == "flags") {
-                    eprintln!("{state} theirs leaders record {} flags {:02x?}", r.record, r.bytes);
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+                let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+                let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+                let lines = crate::checksum::state::ranges(sim, &look, &tribes);
+                let ours = lines[7].as_ref().expect("leaders");
+                for (a, b) in ours.ranges.iter().zip(&theirs) {
+                    if a.field == "flags" {
+                        eprintln!("{state} leaders record {} flags ours {:02x?} theirs {:02x?}", a.record, a.bytes, b.bytes);
+                    }
                 }
                 eprintln!("{state} b2030 ident {:?}", sim.buildings.iter().find(|b| b.owner == 2 && b.index == 2030).and_then(|b| b.ty).map(|t| sim.tables.build_types[t].ident));
             }
