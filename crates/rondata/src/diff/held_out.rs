@@ -840,7 +840,7 @@ mod tests {
                 }
             }
             for (b, bd) in built.sim.buildings.iter().enumerate() {
-                if bd.alive && bd.index == o_watch {
+                if bd.alive && i32::from(bd.index) == o_watch {
                     eprintln!(
                         "P4556 {state} b{b} who {} o {} ty {:?} name {} active {} construct_hits {} damage {} helpers {} tile ({}, {})",
                         bd.owner,
