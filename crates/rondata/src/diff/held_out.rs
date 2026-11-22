@@ -772,6 +772,103 @@ mod tests {
         assert_eq!(theirs[128].bytes[3], 0x0f, "theirs' leader_flags byte 3");
     }
 
+    /// PROBE 4541 (reverted whole).
+    #[test]
+    fn probe_4541_row_110() {
+        let Ok(span) = std::env::var("RON_PROBE_4541") else {
+            return;
+        };
+        let (lo, hi) = span.split_once('-').unwrap();
+        let (lo, hi): (i64, i64) = (lo.parse().unwrap(), hi.parse().unwrap());
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 5) else {
+            return;
+        };
+        let ranges =
+            crate::testenv::experiment(&home.join("ron-golden/run1742/map-18"), "rontrace.ranges")
+                .unwrap();
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 110's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let watch_b: Vec<i16> = std::env::var("RON_PROBE_B")
+            .ok()
+            .map(|s| s.split(',').map(|x| x.parse().unwrap()).collect())
+            .unwrap_or_default();
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (li, name) in [(0usize, "units"), (1, "builds")] {
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == li).collect();
+                let ours = lines[li].as_ref().unwrap();
+                if ours.ranges.len() != theirs.len() {
+                    eprintln!("P {state} {name} LEN ours {} theirs {}", ours.ranges.len(), theirs.len());
+                }
+                let mut who = 255u8;
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    if a.field == "who..y_internal" {
+                        who = a.bytes[0];
+                    }
+                    if a.bytes != b.bytes {
+                        let diffs: Vec<_> = a
+                            .bytes
+                            .iter()
+                            .zip(&b.bytes)
+                            .enumerate()
+                            .filter(|(_, (x, y))| x != y)
+                            .map(|(i, (x, y))| (i, *x, *y))
+                            .collect();
+                        eprintln!(
+                            "P {state} {name} k{k} who{who} rec{} {} lens {}/{} {:?}",
+                            a.record, a.field, a.bytes.len(), b.bytes.len(), diffs
+                        );
+                    }
+                }
+            }
+            let sim = &built.sim;
+            for (i, b) in sim.buildings.iter().enumerate() {
+                if watch_b.contains(&b.index) {
+                    eprintln!(
+                        "B {state} #{i} {}/{} alive {} ty {:?} pos ({},{}) {:?}",
+                        b.owner, b.index, b.alive, b.ty, b.pos.x, b.pos.y, b
+                    );
+                }
+            }
+            for u in sim.units.iter().filter(|u| u.alive() && u.index == 0) {
+                eprintln!(
+                    "U {state} {}/{} TI {} {:?} pos ({},{}) m2 {:#x} hp {}/{} orders {}",
+                    u.owner, u.index, u.type_index, u.kind.domain, u.pos.x, u.pos.y,
+                    u.unit_masks2, u.health, u.max_health, u.orders.len()
+                );
+                if u.owner == 2 && state == lo {
+                    let ty = u.ty.unwrap();
+                    let t = &sim.tables.unit_types[ty];
+                    eprintln!(
+                        "T tree {:?} name {:?} flags2 {:#x} special {:?} hero {:?} inside {:?}",
+                        t.tree,
+                        t.tree.map(|x| sim.tables.tech_tree.types[x].name.clone()),
+                        t.cols.unit_flags2, u.special, u.hero, u.inside
+                    );
+                    eprintln!(
+                        "L sf {:?} jam {:?}",
+                        sim.leaders.special_forces, sim.leaders.jam_threat
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 110's losing wonder site closes without the unit-stats bit**
     /// (item 4540, `docs/RECGAME.md` §11): run1742, the ranges take of
     /// run1735's file. On 5408 who=2's wonder `2/2030` finishes and
