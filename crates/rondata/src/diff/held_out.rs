@@ -2211,11 +2211,37 @@ mod tests {
                     .map(|i| (i % 120, i / 120, a[i], b[i]))
                     .collect();
                 eprintln!("PROBE {state} seen diffs {pts:?}");
-                for b2 in built.sim.buildings.iter().filter(|b2| b2.owner == 1) {
+                for b2 in built.sim.buildings.iter().filter(|b2| b2.owner == 1 && state >= 99999) {
                     eprintln!("PROBE {state} bldg 1/{} pos ({}, {}) fog ({}, {})", b2.index, b2.pos.x, b2.pos.y, b2.pos.x / 8, b2.pos.y / 8);
                 }
             }
-            for u in built.sim.units.iter().filter(|u| u.alive() && state >= 1661) {
+            if state >= 1661 {
+                let circ = sim::ai::ai_place::circle();
+                for (ui, u) in built.sim.units.iter().enumerate() {
+                    if !(u.alive() && u.owner == 1) {
+                        continue;
+                    }
+                    for rp in [false, true] {
+                        let Some(sw) = built.sim.seen_sweep(ui, rp) else { continue };
+                        if sw.ring {
+                            continue;
+                        }
+                        let dist = |(x, y): (usize, usize)| {
+                            let (dx, dy) = (x as i32 - sw.centre.0, y as i32 - sw.centre.1);
+                            (sw.start..sw.end).any(|i| circ.x[i] == dx && circ.y[i] == dy)
+                        };
+                        let hits: Vec<bool> = cells.iter().map(|&c| dist(c)).collect();
+                        let (dx, dy) = (97 - sw.centre.0, 90 - sw.centre.1);
+                        if dx.abs() <= 12 && dy.abs() <= 12 {
+                            eprintln!(
+                                "PROBE {state} sweep 1/{} TI {} mylos {} heading {:?} ring_pass {rp} centre {:?} r {} [{}, {}) hits {hits:?}",
+                                u.index, u.type_index, u.mylos, u.movement.heading, sw.centre, sw.radius, sw.start, sw.end
+                            );
+                        }
+                    }
+                }
+            }
+            for u in built.sim.units.iter().filter(|u| u.alive() && state >= 99999) {
                 let (cx, cy) = (u.pos.x / 16, u.pos.y / 16);
                 if u.owner == 1 {
                     eprintln!(
