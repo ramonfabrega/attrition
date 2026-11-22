@@ -605,14 +605,17 @@ pub enum SpaceRace {
 
 /// **`get_cost`'s wonder count** (`TypeData::get_cost@00664090`, listing
 /// `00665848`..`0066594c`): `held` is `get_wonders + get_unbuilt_wonders`,
-/// the leader's standing wonders and its unbuilt sites. The team term is
-/// zero with teams unlocked (`xor ecx, ecx` at `00665882`); past three
-/// held it adds `held − 3`, past six `held − 6`; then twice `held`, with
-/// one more held for my own space-race site or one more step for a
-/// teammate's. The building arm then halves `amount × factor × count`
-/// ([`Modifiers::wonder`]).
-pub const fn wonder_count(held: i32, space: SpaceRace) -> i32 {
-    let mut c = 0;
+/// the leader's standing wonders and its unbuilt sites. `team` is the team
+/// term: zero with teams unlocked (`xor ecx, ecx` at `00665882`), and with
+/// them locked (`Game::teams_locked@00594880`, `00665886`..`0066589f`)
+/// `get_team_wonders@006da2d0 − held + get_team_unbuilt_wonders@006da3a0`,
+/// which is the mutual allies' standing wonders and unbuilt sites (item
+/// 4542). Past three held it adds `held − 3`, past six `held − 6`; then
+/// twice `held`, with one more held for my own space-race site or one more
+/// step for a teammate's. The building arm then halves `amount × factor ×
+/// count` ([`Modifiers::wonder`]).
+pub const fn wonder_count(held: i32, team: i32, space: SpaceRace) -> i32 {
+    let mut c = team;
     if held > 3 {
         c += held - 3;
     }

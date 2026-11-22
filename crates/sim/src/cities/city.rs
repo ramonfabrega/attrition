@@ -1469,23 +1469,51 @@ impl Sim {
     /// `get_unbuilt_wonders@006da290`, its unbuilt wonder sites — every
     /// wonder of the leader's, standing or not, not only `ty`'s own
     /// (`docs/COSTS.md`, "A wonder is ramped by every wonder"). A leader with no census entry counts its
-    /// active wonders instead.
+    /// active wonders instead. With teams locked (`Game::teams_locked`: a
+    /// `team_style` other than 0, 8 and 11) the mutual allies' two counts
+    /// are the team term (item 4542, run1782: who=1's Colosseum).
     fn wonder_ramp_count(&self, who: Player, ty: usize) -> i32 {
-        let is_wonder = |b: &crate::Building| {
-            b.alive && b.owner == who && b.ty.is_some_and(|t| self.tables.build_types[t].wonder)
+        let is_wonder = |b: &crate::Building, p: Player| {
+            b.alive && b.owner == p && b.ty.is_some_and(|t| self.tables.build_types[t].wonder)
         };
-        let standing = self.ai.ai.get(who as usize).map_or_else(
-            || {
-                self.buildings
-                    .iter()
-                    .filter(|b| is_wonder(b) && b.active)
-                    .count() as i32
-            },
-            |a| {
-                let mark = usize::try_from(a.census.wonder_mark).unwrap_or(0);
-                a.census.wonder_slots.iter().take(mark).flatten().count() as i32
-            },
-        );
+        let standing = |p: Player| {
+            self.ai.ai.get(p as usize).map_or_else(
+                || {
+                    self.buildings
+                        .iter()
+                        .filter(|b| is_wonder(b, p) && b.active)
+                        .count() as i32
+                },
+                |a| {
+                    let mark = usize::try_from(a.census.wonder_mark).unwrap_or(0);
+                    a.census.wonder_slots.iter().take(mark).flatten().count() as i32
+                },
+            )
+        };
+        let unbuilt = |p: Player| {
+            self.buildings
+                .iter()
+                .filter(|b| is_wonder(b, p) && !b.active)
+                .count() as i32
+        };
+        let team = if matches!(self.ai.lobby.team_style, 0 | 8 | 0xb) {
+            0
+        } else {
+            (0..self.territory.players.len())
+                .map(|p| p as Player)
+                .filter(|&p| {
+                    p != who
+                        && !self
+                            .leaders
+                            .defeated
+                            .get(p as usize)
+                            .copied()
+                            .unwrap_or(true)
+                        && self.is_ally(who, p)
+                })
+                .map(|p| standing(p) + unbuilt(p))
+                .sum()
+        };
         let site_of = |p: Player, t: usize| {
             self.buildings.iter().any(|b| {
                 b.alive
@@ -1494,11 +1522,6 @@ impl Sim {
                     && b.ty.and_then(|k| self.tables.build_types[k].tree) == Some(t)
             })
         };
-        let unbuilt = self
-            .buildings
-            .iter()
-            .filter(|b| is_wonder(b) && !b.active)
-            .count() as i32;
         // `SUPERCOLLIDER` and `SPACEPROGRAM`: a building's tree id is its
         // `TypeIndex`.
         const RACE: [usize; 2] = [0x21d, 0x21e];
@@ -1517,7 +1540,7 @@ impl Sim {
         } else {
             cost::SpaceRace::None
         };
-        cost::wonder_count(standing + unbuilt, space)
+        cost::wonder_count(standing(who) + unbuilt(who), team, space)
     }
 
     /// `Group::action_build`: the player's order — the site, the city limit,
