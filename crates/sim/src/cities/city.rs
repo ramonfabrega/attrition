@@ -2988,6 +2988,22 @@ impl Sim {
                 && self.cities.cities[c].building == b
             {
                 self.close_city(c, self.cities.capturing);
+            } else {
+                // **The `is a city` arm fixes the borders, built or not**
+                // (item 4561, `docs/RECGAME.md` §12.3): `Build::close@00628980`
+                // at `0x628b97` tests `SubObjectData::flags & 0x20`, which
+                // `SubObject::init` sets on the whole `VILLAGE` lineage from
+                // placement, and its arm calls `Region::fix_borders` at
+                // `0x628bd3` after the optional `close_city` (`city >= 0`,
+                // `0x628bbe`) — unconditionally. So an unbuilt site's close
+                // restarts the border pass from every region's first cell,
+                // and the next frame's `check_borders` zeroes each leader's
+                // `reg_terr` and every city's `bordering` there. Row 43's
+                // who=2 Village site at (27, 25) closes on the frame state
+                // 3222 ends; theirs' who=1 `reg_terr[1]` reads 130 on 3223,
+                // the restarted pass's first frame. `close_city` ends in its
+                // own fix, so the arm above needs no second.
+                self.sync_territory();
             }
         } else {
             self.remove_from_city(b);
