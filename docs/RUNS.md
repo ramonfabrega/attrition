@@ -40976,7 +40976,9 @@ read 99 GB free before it and 87 after the filing.
   in place.
 
 **What it holds**: `diff::held_out::tests::row_103_s_caravan_road_is_laid_the_frame_after_the_budget_on_run1783_s_ranges`
-(every world range on states 1749 to 1751, and the trace's road nodes on 1748 to 1750 node for node).
+(every world range on states 1749 to 1751, and the trace's road nodes on 1748 to 1750 node for node);
+`row_103_s_army_record_keeps_its_role_when_a_squad_leaves_on_run1783_s_ranges` (item 4551: every groups range on
+states 2556 to 2558, record 131's `role` 0x150d00 by name; `docs/GROUPS.md` §3.4).
 
 ## run1785 — parity held out, fifth battery, row 123's file to 6000 with the checksum and ranges hooks, nine lines kept (2026-11-22, item 4546, `worktree-att-4546`)
 
