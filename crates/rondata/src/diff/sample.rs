@@ -1243,10 +1243,27 @@ pub(in crate::diff) mod tests {
                     }
                 }
             }
+            let probe = std::env::var("RON_PROBE_4533").is_ok() && (5480..=5487).contains(&f);
+            let bk = |b: &crate::diff::setup::Built| {
+                let l = &b.sim.economy.ledgers[3];
+                (l.bucket[3], l.leftover[3], l.bucket[4], l.leftover[4])
+            };
+            if probe {
+                eprintln!("PROBE4533 f{f} before orders {:?}", bk(&built));
+                for it in stream.probe_at(f as i32) {
+                    eprintln!("PROBE4533 f{f} order {it}");
+                }
+            }
             stream.apply(f as i32, &mut built);
+            if probe {
+                eprintln!("PROBE4533 f{f} after orders {:?}", bk(&built));
+            }
             crate::diff::harness::debug_watch(&built, f);
             crate::diff::harness::debug_builds(&built, f);
             built.tick();
+            if probe {
+                eprintln!("PROBE4533 f{f} after tick {:?}", bk(&built));
+            }
         }
         let got: Vec<SampleRange> = STATE_LINES
             .iter()
