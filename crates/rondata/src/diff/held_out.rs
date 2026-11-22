@@ -2191,10 +2191,21 @@ mod tests {
                     .collect();
                 let nd = a.iter().zip(b.iter()).filter(|(x, y)| x != y).count();
                 eprintln!("PROBE {state} {name} k{k} {row:?} differ {nd}");
+                if name == "seen" && state >= 1661 {
+                    for y in 78..100usize {
+                        let line: String = (84..108usize)
+                            .map(|x| {
+                                let (p, q) = (a[y * 120 + x] & 2, b[y * 120 + x] & 2);
+                                match (p, q) { (0, 0) => '.', (2, 2) => '#', (0, _) => 'T', _ => 'O' }
+                            })
+                            .collect();
+                        eprintln!("PROBE {state} fog y{y:3} x84 {line}");
+                    }
+                }
             }
             for u in built.sim.units.iter().filter(|u| u.alive()) {
-                let (cx, cy) = (u.pos.x / 4, u.pos.y / 4);
-                if (cx - 47).abs() <= 12 && (cy - 44).abs() <= 12 {
+                let (cx, cy) = (u.pos.x / 16, u.pos.y / 16);
+                if (cx - 47).abs() <= 10 && (cy - 44).abs() <= 10 {
                     eprintln!(
                         "PROBE {state} unit {}/{} TI {} {:?} pos ({}, {}) cell ({cx}, {cy}) on_map {}",
                         u.owner, u.index, u.type_index, u.kind.domain, u.pos.x, u.pos.y, u.on_map
