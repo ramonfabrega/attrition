@@ -1397,6 +1397,88 @@ mod tests {
         }
     }
 
+    /// **Row 55's army keeps a member whose number a newborn took** (item
+    /// 4531, `docs/RECGAME.md` §12.2): run1769 holds every groups range to
+    /// 6000. On 5576 who=1's Elite Javelineers `1/44` (TI 84) leave their
+    /// building and `push_group`'s `get_open_slot` walks `get_num` over
+    /// who=1's slots. Group 83, army 5's, holds 43 members, one of them the
+    /// short 44 a dead member left. `Group::get_num@00714700`'s large arm
+    /// keeps a member whose object is active, and object 44 is the newborn,
+    /// so theirs reads `num` 43, where this crate's list held the dead
+    /// slot and dropped it (42). Every groups range on both states, ours
+    /// against theirs, byte for byte.
+    #[test]
+    fn row_55_s_army_keeps_the_member_whose_number_a_newborn_took_on_run1769_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FOURTH, 2) else {
+            eprintln!("skipping: row 55's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1769/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1769's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 55's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [5575, 5576] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_groups();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 5).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "groups' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "groups range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Record 83's `num` (`+0xc`, byte 8 of `id..march`), and the
+            // short 44 at list index 31, by name.
+            let k = ours
+                .ranges
+                .iter()
+                .position(|r| r.record == 83 && r.field == "id..march")
+                .expect("record 83");
+            assert_eq!(&theirs[k].bytes[8..12], &43i32.to_le_bytes(), "num");
+            assert_eq!(ours.ranges[k + 1].field, "list");
+            assert_eq!(
+                &theirs[k + 1].bytes[62..64],
+                &44i16.to_le_bytes(),
+                "list[31]"
+            );
+            // Ours' member 31: dead on 5575, the newborn on 5576.
+            let army = built.sim.ai.armies[1]
+                .list
+                .iter()
+                .find(|a| a.valid && a.group.pool == Some(19))
+                .expect("army 5");
+            let u = &built.sim.units[army.units[31]];
+            assert_eq!((u.owner, u.index), (1, 44));
+            if state == 5575 {
+                assert!(!u.alive(), "1/44 is dead on 5575");
+                continue;
+            }
+            assert!(u.alive(), "the newborn on 5576");
+            assert_eq!(
+                built.unit_type_names[u.ty.expect("its type")],
+                "Elite Javelineers"
+            );
+        }
+    }
+
     /// **Row 105's pruned oil list keeps its capacity** (item 4512,
     /// `docs/RECGAME.md` §11.1): run1752 holds every leaders range on 3582
     /// and 3583. On 3583 who=1's `oil_patches` goes from twelve patches to
@@ -4641,13 +4723,14 @@ pub(crate) const SCORES_FOURTH: [Option<FirstScore>; 8] = [
         },
         // Moved by item 4518 (a boat is born through `Unit::update_hits`: the
         // Dutch Merchant Fleet 1/142's myhits 172 -> 192 on 4275): units
-        // 5,833 -> 6,001, whole; eleven lines whole, groups as found.
+        // 5,833 -> 6,001, whole. Moved by item 4531 (a seated group's list
+        // holds object numbers: group 83's num 42 -> 43 on 5576, the short
+        // 44 now the newborn Elite Javelineers): groups 5,989 -> 6,001,
+        // whole; twelve lines whole.
         moved: Some(Score {
             states: 6001,
-            agreed: [
-                6001, 6001, 6001, 6001, 6001, 5989, 6001, 6001, 6001, 6001, 6001, 6001,
-            ],
-            first: &[("groups", (5576, Some(4003049513), 3939479638))],
+            agreed: [6001; 12],
+            first: &[],
             over: None,
         }),
     }),
@@ -4754,9 +4837,10 @@ pub(crate) const SCORES_FOURTH: [Option<FirstScore>; 8] = [
     }),
 ];
 
-/// The fourth battery's line: games whole of the eight, and games taken.
+/// The fourth battery's line: games whole of the eight, and games taken
+/// (6 -> 7, item 4531: row 55 whole).
 #[cfg(test)]
-pub(crate) const HELD_OUT_FOURTH_LINE: (usize, usize) = (6, 8);
+pub(crate) const HELD_OUT_FOURTH_LINE: (usize, usize) = (7, 8);
 
 /// The fourth battery (item 4510).
 #[cfg(test)]

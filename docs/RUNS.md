@@ -40554,6 +40554,7 @@ read 106 GB free before it and 102 after.
   191, record 83, `id..march` byte 8, `num` ours 42, theirs 43.
 - **Re-scored by item 4518** (a boat is born through `Unit::update_hits`): units 6,001, whole; groups 5,989, first 5576,
   as found; eleven lines whole.
+- **Re-scored by item 4531** (a seated group's list holds object numbers): groups 6,001, whole; **twelve lines whole**.
 - Filed by `filerun.py run1769 eastindies-dutch-medieval-row055-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1769-eastindies-dutch-medieval-row055-ranges.txt`, `rontrace.log` → `Logs/rontrace-run1769.log`;
   the record, under the split size, stays in place.
@@ -40563,7 +40564,9 @@ Files in place, `~/ron-golden/run1769/map-18/`: `gamelog_p.txt`, 2,456 bytes, SH
 `23a4aebe15d26555275701689b623061d5183fcc87d7bcdd6130f0602a211523`.
 
 **What it holds**: `diff::held_out::tests::row_55_s_dutch_merchant_fleet_is_born_with_its_update_hits_on_run1769_s_ranges`
-(every units range on 4274 and 4275).
+(every units range on 4274 and 4275);
+`diff::held_out::tests::row_55_s_army_keeps_the_member_whose_number_a_newborn_took_on_run1769_s_ranges` (every groups
+range on 5575 and 5576).
 ## run1772 — the 2017 sample's playback to 6,400 with the checksum and ranges hooks, every line but walls and items kept (2026-11-21, item 4526, `att-4526`)
 
 `docs/RECGAME.md` §7; DECISIONS 149 §2. **What the disk could not answer**: run1771's record ends on 5349, and the

@@ -1364,7 +1364,7 @@ of 8, 65 of 96 and 53 %, and the first 0 of 8, 64 of 96 and 27 %.
 |---|---|---|---|---|---|
 | 15 | run1760 | Southwest Mesa, difficulty 0 | 6,001 | **12** | whole |
 | 35 | run1761 | Great Sahara, Classical | 6,001 | **12** | whole |
-| 55 | run1762 | East Indies, Medieval | 6,001 | 10 → **11** | ~~units 4275~~ (item 4518), groups 5576 |
+| 55 | run1762 | East Indies, Medieval | 6,001 | 10 → **12** | ~~units 4275~~ (item 4518), ~~groups 5576~~ (item 4531) |
 | 75 | run1763 | Great Lakes, Gunpowder | 5,342, ended on 5341 | 11 | ammo 4004 |
 | 95 | run1764 | East Indies, Information | 6,001 | 9 | leaders 5266, units 5303, guys 5909 |
 | 115 | run1765 | Southwest Mesa, difficulty 2 | 6,001 | **12** | whole |
@@ -1413,9 +1413,43 @@ unit. Ours' ordinary birth took `Sim::unit_hits` (`units/store.rs`), which carri
 
 **Diff-backed**: `row_55_s_dutch_merchant_fleet_is_born_with_its_update_hits_on_run1769_s_ranges` compares every
 units range on 4274 and 4275, byte for byte, and names theirs' `1/142` by `TI` 318 and `myhits` 192.
-**Moved**: units 5,833 → 6,001, whole; row 55 has eleven lines whole. Groups part as found, on 5576: range 191,
-record 83, `id..march` byte 8, `num` ours 42, theirs 43.
+**Moved**: units 5,833 → 6,001, whole; row 55 has eleven lines whole. ~~Groups part as found, on 5576: range 191,
+record 83, `id..march` byte 8, `num` ours 42, theirs 43.~~ (closed, item 4531, §12.2)
 
 *Not established*: which term of the arm the fleet enters by. Ours' fleet type carries `unit_flags2 & 8`, so it
 enters as a caravan. This follows from ours' total, not from a read of theirs' predicate. No capture has a Marines
 caster's boat born to a Dutch or Nubian owner, where `marines` re-runs `update_hits` after this birth.
+
+### 12.2 Row 55: a group's list holds object numbers, so a reused number rejoins it (item 4531)
+
+**How it was established.** On run1769's ranges, the groups line agrees through 5575 and parts on 5576 in one slot:
+**range 191, record 83 (who=1's slot 19, army 5's group), `id..march` byte 8, `num`: ours 42, theirs 43.** Every other
+field of the record agrees. The list differs by one entry: theirs keeps the short 44 at index 31, and ours dropped it.
+The units line agrees on both states. `RON_DEBUG_UNIT=1/44` names the units. On 5575 no live `1/44` exists: the member
+at index 31 is dead on both sides, and neither had pruned it. On 5576 **Elite Javelineers `1/44` (TI 84)** are born
+into that number, at (35352, 41208), with no army.
+
+**The direction: ours dropped a member theirs kept.** A probe's backtrace on 5576 (one env guard, two commits,
+`6e0616103` and `1b2117753`, reverted whole in `a9b1ecf0d`) names ours' only prune: `build_train → come_out →
+push_group → get_open_slot → get_num` on slot 83. The javelineers leave their building, and the open-slot search runs
+`get_num` over who=1's slots. `Group::get_num@00714700`'s large arm (43 members, not under four) drops a member only
+when `objects[who][short] +8 & 1` is clear. The list at `+0x8cc` is shorts, so on 5576 short 44 names the newborn, which
+is active, and theirs keeps it. Ours' list held the dead occupant's slot in `Sim::units`, because a reused number takes
+a new slot. So ours read the member as dead and dropped it.
+
+**The build.** `Sim::add_unit` (`Unit::init`) now calls `seat_lists_take_the_number`. On a birth, every army's list and
+every pool slot of the owner that still names a dead occupant of the new unit's number names the new unit instead.
+`add_unit` already carries `path_recursion` and the chain words across a reused number the same way (§37.2 of
+`docs/GROUPS.md`).
+
+**Diff-backed**: `row_55_s_army_keeps_the_member_whose_number_a_newborn_took_on_run1769_s_ranges` compares every
+groups range on 5575 and 5576, byte for byte. It names record 83's `num` 43 and short 44 at index 31, and ours' member
+31: dead on 5575, the Elite Javelineers on 5576. **Mutation** (`tools/mutate.py`, the call removed): held, exit 101,
+the one failed test that one, at range 191 on 5576. **Moved**: groups 5,989 → 6,001, whole; **row 55 has twelve lines
+whole**, and the fourth battery is 7 of 8 whole.
+
+*Not established*: the rebind covers the seated lists alone (army lists and pool slots). Other lists the original keeps
+as shorts read the same way, but none is rebound here and no diff reaches them: a hotkey group, a building's garrison,
+and a stack group's selection. Nothing has been read on what theirs' army 5 does with the javelineers after 5576. A
+whole `normalize` would drop them, since their `+0x80` is not 83, but its first call on group 83 has not been located on
+either side. Both sides' groups and units lines agree to 6000.

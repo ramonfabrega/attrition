@@ -102,6 +102,7 @@ impl Sim {
             unit.pos.y.div_euclid(48) * 48 + 24,
         );
         self.units.push(unit);
+        self.seat_lists_take_the_number(i);
         // `Unit::init@00612100` caches the new unit's armour through
         // `Unit::update_armor@006054c0` (item 4464).
         self.update_armor(i);
@@ -263,6 +264,54 @@ impl Sim {
 
     /// The live unit of `who` numbered `o`, if any — the object a script or
     /// a producer holds by handle.
+    /// **A seated group's list holds object numbers, so a reused number
+    /// rejoins it** (item 4531, `docs/RECGAME.md` §12.2). `GroupData`'s
+    /// list (`+0x8cc`) is shorts, and every test of a member reads
+    /// `objects[who][short]` (`Group::get_num@00714700`'s large arm reads
+    /// its byte `+8` bit 0). A member that died and was not pruned yet
+    /// therefore names whichever unit holds its number next. This crate's
+    /// lists hold slots of [`Sim::units`], and a reused number takes a new
+    /// slot, so on the birth at slot `i`, each army's list and pool slot
+    /// of the owner that still names a dead occupant of `i`'s number now
+    /// names `i`. Row 55's Elite Javelineers `1/44` (TI 84), born on 5576
+    /// into the number a dead member of who=1's army 5 left, stays in
+    /// group 83 through `get_open_slot`'s `get_num` on run1769.
+    fn seat_lists_take_the_number(&mut self, i: usize) {
+        let (who, o) = (self.units[i].owner, self.units[i].index);
+        let dead = |s: &Self, u: usize| {
+            u != i && u < s.units.len() && {
+                let x = &s.units[u];
+                x.owner == who && x.index == o && !x.alive()
+            }
+        };
+        let mut hits: Vec<(Option<usize>, usize, usize)> = Vec::new();
+        if let Some(armies) = self.ai.armies.get(who as usize) {
+            for (a, army) in armies.list.iter().enumerate() {
+                for (k, &u) in army.units.iter().enumerate() {
+                    if dead(self, u) {
+                        hits.push((None, a, k));
+                    }
+                }
+            }
+        }
+        for (p, pushed) in self.orders.pushed.iter().enumerate() {
+            if pushed.who != who {
+                continue;
+            }
+            for (k, &u) in pushed.list.iter().enumerate() {
+                if dead(self, u) {
+                    hits.push((Some(p), 0, k));
+                }
+            }
+        }
+        for (p, a, k) in hits {
+            match p {
+                Some(p) => self.orders.pushed[p].list[k] = i,
+                None => self.ai.armies[who as usize].list[a].units[k] = i,
+            }
+        }
+    }
+
     pub fn unit_by_o(&self, who: Player, o: i16) -> Option<usize> {
         self.units
             .iter()
