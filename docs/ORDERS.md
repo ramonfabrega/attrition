@@ -1469,7 +1469,13 @@ listing is unambiguous: `0x6036df test byte ptr [ecx+eax+4], 4; jne` then
 call between. The two arms differ only in which node the advance starts
 from — the cursor for a move, the re-tailed head after a kill — which is what
 made the decompiler's locals look stale. R3 C2.) Because the loop's own gate
-is `BUILD_AT || MOVE_TO`, a swarm's **`EXPLORE_TO` ends the scan**. Every `BUILD_AT` reached is popped (`repath; kill`) — its liveness test is
+is `BUILD_AT || MOVE_TO`, a swarm's **`EXPLORE_TO` ends the scan**. Every `BUILD_AT` reached is popped (`repath; kill`), and **the pop is the
+front's**: `Unit::repath@005e29b0` kills every move-family order off the front (kinds 1, 2, 3, 4, `0x12`, `0x13`,
+`0x15`), the stepped-over moves among them, and `Unit::kill_current_order@005e2cb0` re-points the cursor at the list's
+first node (`+0xd4 = +0xdc->next`) before `remove_current`. So a stepped-over move outlives the scan only when it
+breaks before any kill, and the build reached is the front when it dies (item 4555, diff-backed by run1786's units on
+6669: the person's Citizen `3/55`, `[BUILD_AT 2041 finished, MOVE_TO, BUILD_AT 2042]`, ends with one order on 2042;
+the crate killed at the scan's index, which the move's removal had left past the end, and collected 2042 twice) — its liveness test is
 the **full** `target_exists`, `ox ≥ 0 && whom ≥ 0 && obj->flags & 1 &&
 obj->uid == order.uid`, the `uid` included, unlike `do_build`'s (R3 C3) — and
 if the target still exists and is not active its `o` is collected. Collection

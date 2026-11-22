@@ -255,6 +255,22 @@ normalize-opening sites), `Army::normalize`'s seat tail — and in both arms
 of `Sim::groups_process`; `Sim::seat_add` ORs a new member's in; `GroupState::emptied` zeroes it, and
 `GroupState::copied` leaves the previous occupant's.
 
+**`Group::kill` leaves it** (item 4551). `Group::kill@00714110` shifts the
+six arrays over the leaving index, writes `stamp = frame` (or `clear(-1)`
+on an emptied list) and runs the speed tail off `find_leader`; it calls no
+`find_role`. So a squad that `push_group`'s second walk takes out of an
+army's group leaves its type bits in that record's `role` until the
+record's next normalize. The crate's `Sim::unseat_group` follows the kill
+with `army_normalize` (its own recount, item 350), and keeps the record's
+`role` across it. Diff-backed on run1783 (row 103 of the fifth battery):
+who=2's Infantry `2/69` disembarks on 2556 and `disembark_squad` pushes it
+out of army 1's group (pool slot 3, record 131). On 2557 theirs lists
+`2/65`, `2/66` and `2/58` (`num` 3) and still reads `role` 0x150d00, with
+the Infantry's `FOOT | INFANTRY` bits in it; ours had re-roled it 0x050500.
+*Not established*: the recount's other effects on a kill — its prune of
+members whose `+0x80` no longer names the group, and the army's counts —
+are this crate's too, and no capture has parted on either.
+
 **A push of buildings normalizes `last_group`'s slot too** (item 4222):
 `Groups::push_group@0070f9e0` calls `Group::equals_group@00708000` against
 `last_group`'s record whatever the stack group holds, and `equals_group`

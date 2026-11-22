@@ -982,6 +982,77 @@ mod tests {
         }
     }
 
+    /// **Row 103's army record keeps its role when a squad is pushed out**
+    /// (item 4551, `docs/GROUPS.md` §3.4): run1783, the ranges take of row
+    /// 103's file. On 2556 who=2's Infantry `2/69` disembarks and
+    /// `disembark_squad` pushes it; `push_group`'s second walk asks army
+    /// 1's group (pool slot 3, record 131) to `Group::kill@00714110` it,
+    /// which stamps and runs the speed tail and calls no `find_role`. So
+    /// theirs' record 131 lists `2/65`, `2/66`, `2/58` on 2557 and still
+    /// reads `role` 0x150d00, the Infantry's `FOOT | INFANTRY` bits in it;
+    /// ours re-roled it 0x050500 in the army's recount. Every groups range
+    /// on states 2556 to 2558, ours against theirs, byte for byte: red on
+    /// the tree before the fix at range 215 on 2557, record 131, `id..march`
+    /// bytes 49 and 50, ours 0x05 0x05, theirs 0x0d 0x15.
+    #[test]
+    fn row_103_s_army_record_keeps_its_role_when_a_squad_leaves_on_run1783_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 5) else {
+            eprintln!("skipping: row 103's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1783/map-18");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1783's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 103's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [2556i64, 2557, 2558] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_groups();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 5).collect();
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "groups' ranges on {state}"
+            );
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "groups range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Record 131 by name: `num` (byte 8) and `role` (bytes 48..52).
+            let k = ours
+                .ranges
+                .iter()
+                .position(|r| r.record == 131 && r.field == "id..march")
+                .expect("record 131");
+            let word = |n: usize| u32::from_le_bytes(theirs[k].bytes[n..n + 4].try_into().unwrap());
+            let (num, role) = (word(8), word(48));
+            let want = match state {
+                2556 => 4,
+                2557 => 3,
+                _ => 6,
+            };
+            assert_eq!(num, want, "theirs' record 131 `num` on {state}");
+            assert_eq!(role, 0x150d00, "theirs' record 131 `role` on {state}");
+        }
+    }
+
     /// **Row 123's producers lap from 2001 when the cursor is another
     /// player's** (item 4546, `docs/RECGAME.md` §12.3): run1785, the ranges
     /// take of row 123's file. `find_counters[0x1c]` is one array for every
@@ -2664,6 +2735,115 @@ mod tests {
                 state == 5266,
                 "1/19 aboard on {state}"
             );
+        }
+    }
+
+    /// **Row 63's army skips an ally its leader does not call strong**
+    /// (item 4553, `docs/ARMY.md` §12): on run1782, frame 1788's draws site
+    /// by site against the trace, and every units and guys range on 1788
+    /// and 1789 byte for byte. `Army::find_target@006f69b0` scores a mutual
+    /// ally's cities only when `weak[L] == 0` and `strong[L] != 0`; who=1's
+    /// `strong[2]` is 0 there, so theirs spends three `find_target` draws
+    /// (who=0's city, who=1's two) where the stand-in drew six, and the
+    /// idle rolls after them gave who=1's Fusiliers `1/35` and `1/36` (TI
+    /// 136) anims 0 and 3 on 1789 against theirs' `IDLE1`.
+    #[test]
+    fn row_63_s_army_skips_an_ally_it_does_not_call_strong_on_run1782() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 3) else {
+            eprintln!("skipping: row 63's recording is missing");
+            return;
+        };
+        let dir = home.join("ron-golden/run1782/map-18");
+        let (Some(ranges), Some(log)) = (
+            crate::testenv::experiment(&dir, "rontrace.ranges"),
+            crate::testenv::experiment(&dir, "rontrace.log"),
+        ) else {
+            eprintln!("skipping: run1782's ranges or trace is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 63's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let trace = crate::trace::Trace::read(&log)
+            .expect("the trace reads")
+            .expect("the trace parses");
+        while built.sim.frame < 1788 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        // Frame 1788's draws, named, both sides.
+        let word = built.sim.rng.seed;
+        assert_eq!(
+            trace.frame_draws(1788).first().map(|d| d.seed),
+            Some(word),
+            "the word entering 1788"
+        );
+        assert!(built.sim.is_ally(1, 2), "who=2 is who=1's ally");
+        assert_eq!(built.sim.ai.ai[1].strong[2], 0, "who=1's strong[2]");
+        stream.apply(1788, &mut built);
+        built.sim.trace.trace_phases = true;
+        built.sim.command().tick();
+        built.sim.trace.trace_phases = false;
+        let ours =
+            crate::diff::report::mark_sites(&built.sim.trace.phase_marks, built.sim.rng.seed)
+                .expect("ours' sites");
+        let theirs = trace.labels(1788);
+        let scores = |v: &[String]| {
+            v.iter()
+                .filter(|s| s.as_str() == sim::ai::army::SITE_FIND_TARGET_SCORE)
+                .count()
+        };
+        assert_eq!(
+            (scores(&ours), scores(&theirs)),
+            (3, 3),
+            "find_target's scores"
+        );
+        assert_eq!(ours, theirs, "1788's draws, site by site");
+        for state in [1789, 1790] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            for (line, ours) in [
+                (0, built.sim.checksum_units()),
+                (6, built.sim.checksum_guys()),
+            ] {
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == line).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "{}' ranges on {state}",
+                    ours.name
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{} range {k} on {state}, record {} {}",
+                        ours.name, a.record, a.field
+                    );
+                }
+            }
+        }
+        // The Fusiliers' figure 0 plays IDLE1 from 1789 (`cur_anim` 1,
+        // `end_time` 30).
+        for o in [35, 36] {
+            let u = built
+                .sim
+                .units
+                .iter()
+                .position(|u| u.alive() && u.owner == 1 && u.index == o)
+                .expect("1/35, 1/36");
+            assert_eq!(built.sim.units[u].type_index, 136, "1/{o} is a Fusilier");
+            let g = built.sim.units[u].guys[0];
+            assert_eq!((g.anim, g.end_time), (1, 30), "1/{o}'s figure 0 on 1790");
         }
     }
 
@@ -6953,23 +7133,28 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // 1,582 -> 1,828; cities 1,958 -> 2,342, items 2,179 -> 3,435, goods
         // 1,965 -> 2,046; ammo 3,780 -> 3,758, a named fall past its first
         // parting (3321, unmoved).
+        // Moved by item 4553 (`Army::find_target`'s ally arm reads the
+        // leader's `strong[8]`/`weak[8]`: run1782's 1788, who=1's `strong[2]`
+        // is 0, so its ally's three cities are not scored, theirs' three
+        // `find_target` draws where ours took six; the idle rolls after
+        // them land on theirs' values, 1/35 and 1/36's IDLE1 on 1789):
+        // units 1,789 -> 4,219, first 3691; builds 1,810 -> 3,978, first
+        // 3789; ammo 3,758 -> 3,992, first 3321 -> 3683; deaths 3,481 ->
+        // 3,718; groups, guys, items, goods and world whole (1,903, 1,789,
+        // 3,435, 2,046, 1,806 -> 4,223); leaders 1,828 -> 4,187, first 3691;
+        // cities 2,342 -> 4,194, first 3691.
         moved: Some(Score {
             states: 4223,
             agreed: [
-                1789, 1810, 4223, 3758, 3481, 1903, 1789, 1828, 2342, 3435, 2046, 1806,
+                4219, 3978, 4223, 3992, 3718, 4223, 4223, 4187, 4194, 4223, 4223, 4223,
             ],
             first: &[
-                ("units", (1789, Some(2509609850), 1943706443)),
-                ("builds", (1810, Some(3537404403), 1462992888)),
-                ("ammo", (3321, Some(1), 3987474659)),
-                ("deaths", (3481, Some(1), 2307460364)),
-                ("groups", (1903, Some(3874615139), 167898819)),
-                ("guys", (1789, Some(3120588302), 1384277471)),
-                ("leaders", (1828, Some(1133770057), 673903947)),
-                ("cities", (2182, Some(3853398966), 1166094884)),
-                ("items", (2027, Some(1138496331), 1141379917)),
-                ("goods", (2026, Some(2099573197), 1799680457)),
-                ("world", (1806, Some(1643701640), 1687741832)),
+                ("units", (3691, Some(321283673), 3777193581)),
+                ("builds", (3789, Some(788976530), 1677644707)),
+                ("ammo", (3683, Some(1020335138), 981537857)),
+                ("deaths", (3718, Some(3084417171), 3049814147)),
+                ("leaders", (3691, Some(2809192706), 3466453252)),
+                ("cities", (3691, Some(3076083936), 3326562531)),
             ],
             over: None,
         }),
@@ -7085,23 +7270,36 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // Item 4545 (the caravan limit's ally term), on the tree merged
         // with 4542: ammo 2,900 -> 2,899, a named fall past its first
         // parting at 2860, which stands.
+        // Moved by item 4553 (built on row 63's leaf, `find_target`'s ally
+        // arm reading `strong[8]`/`weak[8]`; row 103's two computers are
+        // allied too, no leaf read here): units 1,790 -> 2,951, first 2910;
+        // builds 1,854 -> 3,049, first 1824 -> 3049; ammo 2,900 -> 2,942;
+        // deaths 2,510 -> 3,112; groups 1,963 -> 3,062, first 2557; guys
+        // 1,790 -> 3,049; leaders 1,911 -> 3,093, first 2910; cities 1,951
+        // -> 3,013, first 2910; items and goods whole (3,045, 1,987 ->
+        // 3,295); world 1,792 -> 2,983. On the tree merged with 4545 (the
+        // caravan limit's ally term): ammo 2,943, groups 3,058, cities
+        // 3,017, every first parting as above.
+        // Moved by item 4551 (`Group::kill` leaves the army record's `role`;
+        // run1783's leaf, groups range 215, record 131 (who=2's army 1,
+        // pool slot 3) on 2557, `role` ours 0x050500, theirs 0x150d00: the
+        // Infantry `2/69` pushed out by `disembark_squad` on 2556 leaves its
+        // `FOOT | INFANTRY` bits): groups 3,058 -> 3,059, first 2557 -> 3057.
         moved: Some(Score {
             states: 3295,
             agreed: [
-                1790, 1854, 3295, 2899, 2510, 1963, 1790, 1911, 1951, 3045, 1987, 1792,
+                2951, 3049, 3295, 2943, 3112, 3059, 3049, 3093, 3017, 3295, 3295, 2983,
             ],
             first: &[
-                ("units", (1790, Some(4038452573), 1054592778)),
-                ("builds", (1824, Some(512225234), 3008295372)),
-                ("ammo", (2860, Some(1), 460261739)),
-                ("deaths", (2510, Some(1), 1937378451)),
-                ("groups", (1963, Some(321777859), 660866967)),
-                ("guys", (1790, Some(2094189105), 2360396383)),
-                ("leaders", (1911, Some(1718948112), 2104168730)),
-                ("cities", (1951, Some(1722361204), 1721574772)),
-                ("items", (3045, Some(3159232445), 3167883199)),
-                ("goods", (1987, Some(1178399185), 1567683031)),
-                ("world", (1792, Some(1791915805), 1130854131)),
+                ("units", (2910, Some(2052296157), 1774358062)),
+                ("builds", (3049, Some(1208216528), 2776099791)),
+                ("ammo", (2860, Some(4045473920), 460261739)),
+                ("deaths", (3112, Some(2034262564), 2741464787)),
+                ("groups", (3057, Some(3104530146), 1865375431)),
+                ("guys", (3049, Some(2458392641), 783291667)),
+                ("leaders", (2910, Some(3614561222), 4268151752)),
+                ("cities", (2910, Some(3208658105), 1568881894)),
+                ("world", (2983, Some(3105834113), 1025917694)),
             ],
             over: None,
         }),

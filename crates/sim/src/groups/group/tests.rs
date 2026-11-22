@@ -1662,6 +1662,52 @@ fn a_pushed_group_takes_its_members_out_of_the_army() {
     );
 }
 
+/// **A squad pushed out of an army leaves the army record's `role`**
+/// (item 4551, `docs/GROUPS.md` §3.4): `Group::kill@00714110` shifts the
+/// list, stamps and runs the speed tail, and calls no `find_role`, so the
+/// record keeps the leaving squad's bits until its next normalize. Row
+/// 103's who=2 army 1 (record 131) loses an Infantry to a disembark's
+/// push on 2556 and reads 0x150d00 on 2557 on run1783.
+#[test]
+fn a_squad_pushed_out_of_an_army_leaves_the_record_s_role() {
+    let mut s = sim();
+    let t = fighter(&mut s);
+    let mut foot = UnitType {
+        hits: 100,
+        combat: combat::Profile {
+            attack: 15,
+            uber_size: 1,
+            ..combat::Profile::default()
+        },
+        ..UnitType::default()
+    };
+    foot.cols.role |= role::ROLE_MILITARY | role::ROLE_FOOT | role::ROLE_INFANTRY;
+    let f = s.add_unit_type(foot);
+    let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+    let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+    let c = spawn(&mut s, 1, f, Pos::new(0x1200, 0x1000));
+    let slot = s.init_army(1, None);
+    for u in [a, b, c] {
+        s.army_add_unit(1, slot, u);
+    }
+    s.army_normalize(1, slot);
+    let both = s.tables.unit_types[t].cols.role | s.tables.unit_types[f].cols.role;
+    assert_eq!(s.ai.armies[1].list[slot].group.role, both, "find_role");
+    assert!(s.push_group(&mut group_of(1, &[c]), true));
+    assert_eq!(s.ai.armies[1].list[slot].units, vec![a, b], "c left");
+    assert_eq!(
+        s.ai.armies[1].list[slot].group.role,
+        both,
+        "Group::kill left the record's role"
+    );
+    s.army_normalize(1, slot);
+    assert_eq!(
+        s.ai.armies[1].list[slot].group.role,
+        s.tables.unit_types[t].cols.role,
+        "the next normalize re-roles it"
+    );
+}
+
 /// **A member that stays keeps its own slot** (item 1171,
 /// `docs/GROUPS.md` §30.3): `Group::kill@00714110` shifts the four
 /// offset arrays and the angle byte down with the list, so the

@@ -2101,6 +2101,62 @@ fn find_target_s_wonder_clock_and_pop_issues_are_the_leaders() {
     assert_eq!((gate.f7e8(1), gate.f7e8(2)), (0, 1), "pop_issues");
 }
 
+/// **The ally arm reads the leader's own `strong[8]` and `weak[8]`** (item
+/// 4553, `docs/ARMY.md` §12): `find_target@006f69b0` scores a mutual ally's
+/// cities only when `weak[L] == 0` and `strong[L] != 0` (`+0x250`,
+/// `+0x230` of the army's leader). run1782's 1788 holds who=1's `strong[2]`
+/// at 0, so theirs spends three score draws (L0's city, its own two) where
+/// the stand-ins (`strong` 1, `weak` 0) passed the ally and drew six.
+#[test]
+fn find_target_s_ally_arm_reads_strong_and_weak() {
+    use crate::ai::army::target_gate::{SimGate, TargetGateView, target_leader_gate};
+
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(8, 8), 3);
+    sim.ai.ai[1].strong[2] = 7;
+    sim.ai.ai[1].weak[0] = 3;
+    let gate = SimGate {
+        sim: &mut sim,
+        who: 1,
+        slot: 0,
+    };
+    assert_eq!((gate.x230(1, 2), gate.x230(1, 0)), (7, 0), "strong[]");
+    assert_eq!((gate.x250(1, 0), gate.x250(1, 2)), (3, 0), "weak[]");
+
+    // The arm itself: who=2 allied both ways with who=1 at `defense_mod`
+    // 0x100 and a difficulty past the stamp clauses.
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(8, 8), 3);
+    sim.leaders.allied[1][2] = true;
+    sim.leaders.allied[2][1] = true;
+    sim.ai.ai[1].defense_mod = 0x100;
+    sim.ai.lobby.difficulty = 3;
+    let gate_of = |sim: &mut crate::Sim| {
+        target_leader_gate(
+            &mut SimGate {
+                sim,
+                who: 1,
+                slot: 0,
+            },
+            2,
+        )
+    };
+    sim.ai.ai[1].strong[2] = 1;
+    assert!(
+        matches!(gate_of(&mut sim), Ok(Some(_))),
+        "a strong ally passes"
+    );
+    sim.ai.ai[1].strong[2] = 0;
+    assert!(
+        matches!(gate_of(&mut sim), Ok(None)),
+        "strong[2] 0: the ally is skipped"
+    );
+    sim.ai.ai[1].strong[2] = 1;
+    sim.ai.ai[1].weak[2] = 1;
+    assert!(
+        matches!(gate_of(&mut sim), Ok(None)),
+        "weak[2] set: the ally is skipped"
+    );
+}
+
 /// **The raid-1 level arm reads the leaders' scores** (item 4354,
 /// `docs/ARMY.md` §12): `find_target`'s `leaders[i] +0x18 * 4 / 3 <
 /// leaders[who] +0x18` is `LeaderData::score` on both sides. run1655b's
