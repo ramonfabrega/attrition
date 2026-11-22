@@ -40901,3 +40901,37 @@ the background. `df -g ~` read 74 GB free before it and 73 after.
 **What it holds**: `diff::held_out::tests::row_23_s_setup_claims_oil_under_the_colonized_limit_on_run1781_s_ranges`
 (every leaders range on state 0), and `row_23_s_fishermen_takes_copper_s_hit_points_on_run1781_s_ranges` (every
 units range on 5694 and 5695; item 4538).
+
+## run1783 — parity held out, fifth battery, row 103's file to its end with the checksum and ranges hooks, eleven lines kept (2026-11-22, item 4544, `att-4544`)
+
+`docs/RECGAME.md` §12.3, `docs/ROADS.md` §8.3; DECISIONS 148 §4. **What the disk could not answer**: run1778 holds
+sums only, so row 103's world parting on 1750 named no leaf. The take is run1778's file with the scorer's one-take
+line (`score_recording … ~/ron-golden/run1778/map-18`: `--end-frame 6000 --allow-early-end --tracer-def
+RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0xffbu`, every line but walls, which is whole):
+`TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1783 --recording ~/ron-golden/recordings/item4527-row103-6000.rcx --end-frame 6000 --allow-early-end
+--cover cover=1 --log-window 0 31 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS
+--tracer-def RON_RANGES --tracer-def RNG_MASK=0xffbu`, waited on with `waitrun.sh` in the background. lane-4542's
+run1782 held pool lane 1, so the pool gave this take lane 2 (`~/wine-ron-2`) and it waited on no other lane. `df -g ~`
+read 99 GB free before it and 87 after the filing.
+- **The run**: pool lane 2, launched 05:53:35 −05:00, exited 05:57:39: **244.2 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 3,295 frames, `last_frame` 3294, **ended early**, as run1778 did. Seed
+  12345, map 18. The recording's SHA-256 is run1778's (`ce7e6070…`). Players: tribe 4 (who 0, flags 7), tribe 14
+  (who 1), tribe 6 (who 2).
+- **The record**, `~/ron-golden/run1783/map-18/rontrace.ranges`, 3,212,444,316 bytes in 3 pieces (`split.py`),
+  SHA-256 `59d446317999c29119a1b3a984e1779ab547fd11332acde6821a5e9ddc9ef188`, 0.28 GiB on disk.
+- **Scored** (`score_recording … ~/ron-golden/run1783/map-18`, on `25a90ab76`): the sums are run1778's. **World
+  1,791, first 1750: range 1148, record 1124 (cell (44, 18)), `cell` byte 0: ours 0x80, theirs 0x00**, the `ROAD`
+  bit. Thirteen cells from (44, 18) to (49, 24) carry it on 1750 in ours and on 1751 in theirs. Leaders 1757: range
+  314, record 2, `make_list[k]` byte 4, ours 0xa3, theirs 0xe4. Units and guys 1790: units range 3003, record 0,
+  `dest_angle` ours 1514733568, theirs 0; guys range 865, record 0, `end_time` ours 31, theirs 76.
+- **Re-scored by item 4544** (`astar_caravan_road`'s goal lays only under the budget): world 1,792, first 1792
+  (range 4316, record 673, `block.body` byte 18, ours 0x1c, theirs 0x0e); the other ten lines as found.
+- Filed by `filerun.py run1783 heldout5-row103-ranges`: `gamelog_p.txt` →
+  `Logs/gamelog-run1783-heldout5-row103-ranges.txt`, 2,865 bytes, SHA-256
+  `9ea210acaec094c480c00f524ce2ee68e8077006a04468ebdc3acaaf0798a053`; `rontrace.log` → `Logs/rontrace-run1783.log`,
+  121,826,656 bytes, SHA-256 `553167d7f40efc80e672c1c5aba8a3fc61f8f05d178f689ccd512afd84745bac`; the record stays
+  in place.
+
+**What it holds**: `diff::held_out::tests::row_103_s_caravan_road_is_laid_the_frame_after_the_budget_on_run1783_s_ranges`
+(every world range on states 1749 to 1751, and the trace's road nodes on 1748 to 1750 node for node).
