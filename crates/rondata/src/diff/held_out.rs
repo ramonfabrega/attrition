@@ -1150,6 +1150,75 @@ mod tests {
         }
     }
 
+    /// Probe 4563 (reverted whole): row 63's builds around 3986.
+    #[test]
+    fn probe_4563_row_63_builds() {
+        let Some(lo) = std::env::var("RON_PROBE_4563")
+            .ok()
+            .and_then(|v| v.parse::<i64>().ok())
+        else {
+            return;
+        };
+        let hi: i64 = std::env::var("RON_PROBE_4563_HI")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(lo + 2);
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let rcx = paths(&FIFTH, 3).0.expect("row 63");
+        let ranges = home.join("ron-golden/run1782/map-18/rontrace.ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 63's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for li in [0usize, 1, 5] {
+                let ours = lines[li].as_ref().expect("the line");
+                let theirs: Vec<_> = all.iter().filter(|r| usize::from(r.line) == li).collect();
+                eprintln!(
+                    "P4563 state {state} line {li}: ours {} theirs {}",
+                    ours.ranges.len(),
+                    theirs.len()
+                );
+                let mut n = 0;
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    if a.bytes != b.bytes && n < 12 {
+                        n += 1;
+                        eprintln!(
+                            "P4563   range {k} record {} {}: ours {:?} theirs {:?}",
+                            a.record, a.field, a.bytes, b.bytes
+                        );
+                    }
+                }
+            }
+            for b in &built.sim.buildings {
+                if b.alive && b.index == 2032 {
+                    let items: Vec<_> = b
+                        .queue
+                        .items
+                        .iter()
+                        .map(|it| (it.ty, it.tech, it.job_counter, it.good, it.cost))
+                        .collect();
+                    eprintln!(
+                        "P4563 state {state} who={} o=2032 ty={:?} active={} queue {:?}",
+                        b.owner, b.ty, b.active, items
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 43's Slinger stones leave from piece 736's sockets** (item
     /// 4547, `docs/RECGAME.md` §12.3): run1787, the ranges take of row 43's
     /// file. who=2's Slingers `2/30` and `2/29` (TI 82, land, piece 736,
