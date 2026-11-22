@@ -473,7 +473,12 @@ here is inferred from surrounding code.
 tile, at `(corner + i) >> 1`, reading `World +0x15c` — `seen`, the
 *current* plane, not `seen2` — and ors what it finds in. While the
 building is unstarted the owner's own ally mask (`LeaderData +0x6929`)
-filters it; once started every bit is taken, and `ever_seen_completed`
+filters it — **the byte as stored** (`Leader::init`'s, then the census's,
+`docs/AI.md`'s `plan_strategy` step 5), never one recomputed from the
+diplomacy: on the 2017 sample's 6162 seat 2's stored byte is 5 where
+`is_ally` counts 23, and the Temple `2/2025` placed unstarted under seats
+0, 1 and 2's sight reads `ever_seen` 5 (item 4552, diff-backed by run1772's
+builds line; the byte itself by the leaders line's `who..ally_mask`); once started every bit is taken, and `ever_seen_completed`
 takes them too for an active one. The scan is skipped entirely once
 `ever_seen` and `ever_seen_completed` already hold every bit the game has
 (`Game::everyone_mask` when started, the owner's ally mask when not).
@@ -583,7 +588,7 @@ For each `o` in 0..8, with `old` the building's `ever_seen` on entry and
 o != owner
 leaders[o].leader_flags & 1            # LEADER_VALID — a slot in use,
                                        # not the & 2 the census loops take
-now & leaders[o].ally_mask != 0
+now & leaders[o].ally_mask != 0       # the stored +0x6929 (item 4552)
 old & leaders[o].ally_mask == 0        # the bit is NEW
   -> reveal = true                     # set here, before the test below
   -> if treaties[owner][o] & 1 == 0:  Leader::meet(owner, o, x, y)
@@ -931,6 +936,10 @@ run240's world pin.
   search — writes to `World +0x160` and to `ObjectData +0x40` — rather than
   another grep by name, which is what missed `infiltrated` being the tail's
   mask in the first place.
+- **Two `seen3` readers still recompute the ally byte** (parked 4552a):
+  `Sim::decoy_detected` and `Sim::unit_stealth_hides` mask `seen3` with
+  `seen_ally_mask`, not the stored `+0x6929`; the original's reads there
+  are not checked against the listing.
 
 ## 8. What the simulation carries, and what checks it
 
@@ -946,8 +955,8 @@ run240's world pin.
 | 4 | `vision::ring` — `ring_init` rebuilt in integers | `vision.rs` |
 | 5 | `Sim::update_seen` | `vision.rs` |
 | 6 | `Sim::moved_to` at the move step, at the gather stand and at a barge's birth (§11), `Sim::update_seen` at ejection, `Sim::update_seen_build` from `Sim::activate`, `Sim::update_all_seen` — now units **and** buildings — from `tick` | `orders.rs`, `garrison.rs`, `transport.rs`, `city.rs`, `core/frame.rs` |
-| 6.1 | `Sim::check_ever_seen` and `Sim::update_local_seen_build` — the footprint scan, the grown rectangle, the `seen2`-only write | `vision.rs` |
-| 6.2 | the meet loop, `Sim::treaty_on`, `Sim::meet`, `Sim::has_met` — first contact and the met bit | `vision.rs`, `leaders/relations.rs`, `ai_census.rs` |
+| 6.1 | `Sim::check_ever_seen` and `Sim::update_local_seen_build` — the footprint scan, the grown rectangle, the `seen2`-only write; the unstarted filter is the stored ally byte (item 4552, diff-backed by run1772's 6162) | `vision.rs` |
+| 6.2 | the meet loop, `Sim::treaty_on`, `Sim::meet`, `Sim::has_met` — first contact and the met bit; each leader tested by its stored ally byte (item 4552, a unit test and the reading alone: no walk parts on it) | `vision.rs`, `leaders/relations.rs`, `ai_census.rs` |
 
 **The differential check is §2's, and it is the whole of run10.** Every
 object record carries `ObjectData::mylos` at every detail level — which is

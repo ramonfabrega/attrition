@@ -1125,6 +1125,93 @@ fn a_defeated_ally_s_eyes_leave_the_stored_ally_mask() {
     }
 }
 
+/// **An unstarted building's scan is filtered by its owner's stored ally
+/// byte** (item 4552, `docs/VISION.md` §6.1): `Wall::check_ever_seen@0063ce70`
+/// ands the footprint's current sight with `leaders.list[owner] +0x6929`,
+/// the byte `Leader::init` and the census write, never one computed from
+/// the diplomacy. The 2017 sample's Temple `2/2025`, placed on 6162 under
+/// sight from seats 0, 1 and 2: seat 2's byte read 5 while `is_ally`
+/// counted seat 1, and ours' `ever_seen` read 7 where theirs read 5.
+///
+/// **Made to fail on purpose**: through [`crate::Sim::seen_ally_mask`],
+/// the stored-0b001 row reads 0b011.
+#[test]
+fn an_unstarted_building_s_scan_takes_the_owner_s_stored_ally_byte() {
+    let mut world = World::new(40, 40);
+    world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 39));
+    assert!(world.set_fog(vec![0; 80 * 80]));
+    let mut s = crate::Sim::new(Tuning::RON, world, 3);
+    let t = s.add_build_type(crate::cities::build::BuildType {
+        los: 4,
+        x_size: 2,
+        y_size: 2,
+        ..crate::cities::build::BuildType::default()
+    });
+    let at = Pos::new(20 * 0x300 + 0x180, 20 * 0x300 + 0x180);
+    let b = s.add_building(0, at, 0);
+    s.buildings[b].ty = Some(t);
+    (s.buildings[b].started, s.buildings[b].active) = (false, false);
+    s.make_allies(0, 1);
+    for (stored, want) in [(0b001u32, 0b001u8), (0b011, 0b011)] {
+        s.buildings[b].ever_seen = 0;
+        s.world.clear_seen();
+        for fy in 30..50 {
+            for fx in 30..50 {
+                s.world.set_seen(fx, fy, 0b111);
+            }
+        }
+        s.ai.ai[0].census.ally_mask = stored;
+        assert!(s.is_ally(0, 1), "the alliance stands in `diplos`");
+        s.check_ever_seen(b, false);
+        assert_eq!(
+            s.buildings[b].ever_seen, want,
+            "stored {stored:#05b}: the unstarted scan's bits"
+        );
+    }
+}
+
+/// **The meet loop tests each other leader by its stored ally byte**
+/// (item 4552, `docs/VISION.md` §6.2): `check_ever_seen`'s tail steps
+/// `leaders.list[o] +0x6929`. Seat 2's eyes land on seat 0's building;
+/// seat 1, allied with seat 2 in `diplos` but holding only its own bit,
+/// has not met seat 0.
+///
+/// **Made to fail on purpose**: through [`crate::Sim::seen_ally_mask`],
+/// seat 1 meets seat 0 on seat 2's sighting.
+#[test]
+fn the_meet_loop_takes_each_leader_s_stored_ally_byte() {
+    let mut world = World::new(40, 40);
+    world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 39));
+    assert!(world.set_fog(vec![0; 80 * 80]));
+    let mut s = crate::Sim::new(Tuning::RON, world, 3);
+    let t = s.add_build_type(crate::cities::build::BuildType {
+        los: 4,
+        x_size: 2,
+        y_size: 2,
+        ..crate::cities::build::BuildType::default()
+    });
+    let at = Pos::new(20 * 0x300 + 0x180, 20 * 0x300 + 0x180);
+    let b = s.add_building(0, at, 0);
+    s.buildings[b].ty = Some(t);
+    (s.buildings[b].started, s.buildings[b].active) = (true, true);
+    s.make_allies(1, 2);
+    s.ai.ai[1].census.ally_mask = 0b010;
+    s.ai.ai[2].census.ally_mask = 0b100;
+    s.world.clear_seen();
+    for fy in 30..50 {
+        for fx in 30..50 {
+            s.world.set_seen(fx, fy, 0b100);
+        }
+    }
+    s.check_ever_seen(b, false);
+    assert_eq!(s.buildings[b].ever_seen & 0b100, 0b100, "seat 2 looked");
+    assert!(s.has_met(0, 2), "seat 2 meets the owner");
+    assert!(
+        !s.has_met(0, 1),
+        "seat 1's stored byte holds only its own bit"
+    );
+}
+
 /// **`ever_seen` is one of four arms of `WallData::is_seen`'s second
 /// clause** (item 4550, `docs/DANGER.md` §5): `reveal_map == 3`, the
 /// viewer's `leader_flags & 0x800` and its `num_units[0x141]` (a Fouché
