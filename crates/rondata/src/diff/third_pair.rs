@@ -2159,10 +2159,12 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             // with the live bit (`flags & 2`); the rows unmoved. Item 4175:
             // 1610 → 1680 with the round's piece; the rows unmoved, so the
             // piece agrees on all 70. Item 4523: 1680 → 1750 with
-            // `start_roll_angle`; the rows unmoved.
+            // `start_roll_angle`; the rows unmoved. Item 4517, piece 122's
+            // sockets from the original's sweep (the Crossbowmen's bolts):
+            // 40 → 0 rows, every round past the word agreeing.
             assert_eq!(
                 (ammo_counts, ammo_differences.len() - before.len()),
-                ((70, 70, 1750), 40),
+                ((70, 70, 1750), 0),
                 "the rounds past the word"
             );
             assert_eq!(
