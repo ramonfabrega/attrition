@@ -289,7 +289,7 @@ fn a_supply_radius_shelters_a_unit_from_a_war_zone() {
     // The period is still set — the unit is in hostile territory and the
     // interface says so. It is the damage that supply prevents.
     assert!(sim.units[0].attrition > 0);
-    assert!(sim.units[0].sheltered);
+    assert!(sim.units[0].sheltered());
 }
 
 #[test]
@@ -373,7 +373,7 @@ fn a_wagon_bleeds_over_a_peaceful_border_and_nothing_shelters_it() {
     // and the shorter wins — the wagon gets both, like anything else.
     assert_eq!(sim.units[w].attrition, 6);
     assert!(sim.units[w].ignores_supply);
-    assert!(!sim.units[w].sheltered);
+    assert!(!sim.units[w].sheltered());
     assert!(!ticks.is_empty());
     assert!(sim.units[w].health < 100);
 }
@@ -392,7 +392,7 @@ fn supply_does_not_shelter_a_peacetime_border_violation() {
     // have stopped the war zone entirely.
     assert_eq!(sim.units[0].attrition, T_PEACE);
     assert!(sim.units[0].ignores_supply);
-    assert!(!sim.units[0].sheltered);
+    assert!(!sim.units[0].sheltered());
     assert_eq!(frames_of(&ticks, 0).len(), 96 / T_PEACE as usize);
 }
 
@@ -585,7 +585,7 @@ fn a_wagon_covering_the_march_makes_it_free() {
     // The period is still computed and still shown. Supply vetoes the damage;
     // it does not slow the rate.
     assert!(sim.units[u].attrition > 0);
-    assert!(sim.units[u].sheltered);
+    assert!(sim.units[u].sheltered());
 }
 
 #[test]

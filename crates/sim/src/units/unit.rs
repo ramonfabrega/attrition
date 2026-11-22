@@ -101,9 +101,6 @@ pub struct Unit {
     pub myarmor: i32,
     /// Whether the current bleed goes through supply.
     pub ignores_supply: bool,
-    /// Whether supply sheltered this unit from a tick that was otherwise due.
-    /// The original tracks the same thing in a display flag.
-    pub sheltered: bool,
     /// Where it is going and how fast it gets there.
     pub movement: Movement,
     /// Its type, as an index into [`Sim::unit_types`], if it has one. A unit
@@ -372,14 +369,16 @@ pub struct Unit {
     /// on a unit (`docs/VISION.md` §2).
     pub mylos: i32,
     /// **`UnitData::unit_masks2` (`+0x6c`)** — carried as the word the dump
-    /// prints, and one bit of it is written: [`combat::umask2::NOT_FIRING`]
-    /// (`docs/COMBAT.md` §43.2, `docs/ANIM.md` §5).
+    /// prints; the bits this crate writes are [`combat::umask2`], first
+    /// [`combat::umask2::NOT_FIRING`] (`docs/COMBAT.md` §43.2,
+    /// `docs/ANIM.md` §5).
     ///
-    /// Every dump on this disk carries this word as `0`, `4`, `0x10` or
-    /// `0x40000` and nothing else, so the one bit is the whole of the
-    /// field on both headline windows — which is why
+    /// The early dumps carried this word as `0`, `4`, `0x10` or
+    /// `0x40000` and nothing else, which is why
     /// [`crate::Sim::guy_inc_time`]'s zero step could be implemented
-    /// without modelling the rest of the word.
+    /// without modelling the rest of the word. `0x40000` is the supply
+    /// veto's mark, [`combat::umask2::SUPPLIED`], kept in the word since
+    /// item 4554 (it was a separate `sheltered` bool the walk never printed).
     pub unit_masks2: u32,
     /// **`ObjectData::hold_frames`** (`+0x32`) — how many more frames this
     /// slot is held after the figure inside it is gone (`docs/COMBAT.md`
@@ -1034,7 +1033,6 @@ impl Unit {
             num_queued: 0,
             queue_time: 0,
             ignores_supply: false,
-            sheltered: false,
             movement: Movement::at(pos),
             ty: None,
             combat: combat::State {
@@ -1139,6 +1137,14 @@ impl Unit {
     /// The frame counter this unit's periodic work is phased against.
     pub const fn phase(&self, frame: i64) -> i64 {
         frame + self.index as i64
+    }
+
+    /// Whether supply sheltered this unit from a tick that was otherwise
+    /// due: `unit_masks2 & 0x40000` ([`combat::umask2::SUPPLIED`]), set on
+    /// the vetoed tick and cleared on the next 32-frame refresh (item
+    /// 4554; run1784's Artillery `1/70` prints it on 2811).
+    pub const fn sheltered(&self) -> bool {
+        self.unit_masks2 & combat::umask2::SUPPLIED != 0
     }
 }
 

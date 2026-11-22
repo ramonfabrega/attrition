@@ -41033,6 +41033,9 @@ minutes were spent waiting on another lane. `df -g ~` read 88 GB free before it 
 - **Re-scored by item 4545** (`get_caravan_limit(1)` counts the mutual allies' cities): leaders 3,376, first 3376
   (range 129, record 1, `ally_mask` byte 2008, ours 0xc6, theirs 0xc2); the first parting is units on 2811 (range
   2319, record 70, `unit_masks2` ours 0, theirs 262144).
+- **Re-scored by item 4554** (the supply veto's mark is `unit_masks2`'s `0x40000`, `docs/SUPPLY.md`): record 70 is
+  who=1's Artillery (TI 269), its tick vetoed on 2810; units 2,811 → 3,359, first 3359. The row's first parting
+  is builds on 3041 (range 3157, record 2037, `construct_hits` ours 6017, theirs 6023, item 4545's score).
 - Filed by `filerun.py run1784 heldout5-row083-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1784-heldout5-row083-ranges.txt`, 2,869 bytes, SHA-256
   `a9b435ef5bd053ca7a1b9832b5ce70729ff25450cfd7d673a1485805af3a85f1`; `rontrace.log` → `Logs/rontrace-run1784.log`,
@@ -41040,4 +41043,6 @@ minutes were spent waiting on another lane. `df -g ~` read 88 GB free before it 
   in place.
 
 **What it holds**: `diff::held_out::tests::row_83_s_computer_lists_a_caravan_by_its_ally_s_city_on_run1784_s_ranges`
-(every leaders range on states 1955 and 1956).
+(every leaders range on states 1955 and 1956);
+`row_83_s_artillery_carries_the_supply_veto_s_mark_on_run1784_s_ranges` (every units range on 2810 to 2812, 2842
+and 2843, item 4554).

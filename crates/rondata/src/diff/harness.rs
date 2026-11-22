@@ -2195,7 +2195,7 @@ fn widen_block_rows(
             ("attrition".into(), i64::from(un.attrition), them.attrition),
             (
                 "sheltered".into(),
-                i64::from(un.sheltered),
+                i64::from(un.sheltered()),
                 them.unit_masks2.map(|m| i64::from(m & 0x4_0000 != 0)),
             ),
             // **The pool slot** (item 518): `UnitData +0x80`, the

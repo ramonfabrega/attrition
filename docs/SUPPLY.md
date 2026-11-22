@@ -556,6 +556,11 @@ document:
   tick was due (the 24-grid) and 0 on the frames where the period was
   refreshed (the 32-grid), which is `Unit::process` setting it on a
   sheltered tick and clearing it on entry to the upkeep block.
+  **This crate keeps it in that word since item 4554** (`combat::umask2::SUPPLIED`, `Unit::sheltered()` reads
+  it): `Unit::process@00610bc0:535` is its one setter and `:453` its one clear, with `Unit::init`'s zero. It had
+  been a separate bool the golden harness compared and the checksum walk never printed, so run1784's row 83
+  parted on 2811 at who=1's Artillery `1/70`, `unit_masks2` ours 0, theirs 0x40000. **Diff-backed by the units
+  walk**: every units range on 2810 to 2812, 2842 and 2843 of run1784 (the set, and the next refresh's clear).
 - **The wagon at war took nothing** (check 13), standing on the same enemy
   ground beside the bleeding squad: `attrition 0` throughout.
 - **The wagon at peace bled at 8**, one whole point a tick, for 90 points —
