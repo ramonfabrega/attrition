@@ -1729,17 +1729,45 @@ impl Sim {
     /// SEAM: `kill_guy`'s own gates before the clear — the figure's type
     /// is not the crash kind (`+0x14 == 8`), its domain is not air, and the
     /// object type's vslot `+0x120` answers 0 — are read as true;
-    /// [`Self::coll_paint`] gates air. The region gate there is `coll_paint`'s,
-    /// not `kill_guy`'s plain cell region; the two differ on a coastal cell.
+    /// air is gated here as in [`Self::coll_paint`].
+    ///
+    /// **The region gate is the figure's world cell's plain `region`**
+    /// (item 4567, `docs/COLLISION.md` §27): `Objects::kill_guy@00659410`
+    /// reads `WData +0x4` of the cell under the figure's unit cell and
+    /// clears a disc cell only where that cell's `region` is the same (or
+    /// the figure's is negative). It asks no `get_tregion`, so a figure on
+    /// the ocean half of a coastal cell clears by the cell's land region,
+    /// where `coll_paint`'s gate answers the sea's `region2` and clears
+    /// nothing (run1783's President `1/14`, aboard on 2983: figure 2 at
+    /// unit cell (299, 640)).
+    ///
     /// One figure of the crew loop: `Objects::kill_guy`'s clear around
     /// figure `i`'s own cell, called for each figure from the squad to the
     /// old total (`unit_set_type_view`) — and for every figure of a unit
     /// that dies, by `close_unit` (`Unit::close`'s two loops, item 3787,
     /// `docs/COLLISION.md` §2).
     pub(crate) fn coll_kill_guy(&mut self, u: usize, i: usize) {
+        let size = self.coll_size(u);
+        if size == 0 || self.is_air(u) {
+            return;
+        }
         let body = self.units[u].movement.body.pos;
         let at = self.units[u].guys[i].follow.map_or(body, |f| f.body.pos);
-        self.coll_paint(u, at, false);
+        let c = ucell(at);
+        let region = self.world.region_of(Cell::new(
+            c.x.div_euclid(UCELLS_PER_CELL),
+            c.y.div_euclid(UCELLS_PER_CELL),
+        ));
+        paint_walk(
+            &mut SimPaint {
+                world: &self.world,
+                coll: &mut self.movement.coll,
+                region,
+            },
+            size,
+            c,
+            false,
+        );
     }
 
     /// `Object::remove_from_world`'s half — the clear pass with nowhere to
