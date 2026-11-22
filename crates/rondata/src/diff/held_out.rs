@@ -1049,6 +1049,133 @@ mod tests {
         }
     }
 
+    /// Probe 4567: row 103's world on 2983 (reverted whole).
+    #[test]
+    fn probe_4567_world() {
+        if std::env::var("RON_PROBE_4567").is_err() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 5) else {
+            return;
+        };
+        let map = home.join("ron-golden/run1783/map-18");
+        let ranges = crate::testenv::experiment(&map, "rontrace.ranges").expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 103's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let env = |k: &str, d: i64| std::env::var(k).ok().and_then(|v| v.parse::<i64>().ok()).unwrap_or(d);
+        let (lo, hi) = (env("P_LO", 2980), env("P_HI", 2990));
+        let (tcx, tcy, rad) = (env("P_CX", -1) as i32, env("P_CY", -1) as i32, env("P_RAD", 2) as i32);
+        let w0 = env("P_W0", i64::MAX);
+        let (wx0, wx1, wy0, wy1) = (env("P_WX0", 294) as i32, env("P_WX1", 304) as i32, env("P_WY0", 634) as i32, env("P_WY1", 642) as i32);
+        let region = |b: &crate::diff::setup::Built| -> Vec<String> {
+            let coll = &b.sim.movement.coll;
+            (wy0..=wy1).map(|y| (wx0..=wx1).map(|x| if coll.get(x, y) { '#' } else { '.' }).collect()).collect()
+        };
+        let mut last = region(&built);
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+                if built.sim.frame >= w0 {
+                    let now = region(&built);
+                    if now != last {
+                        eprintln!("P4567W after tick to {} the region x {wx0}..={wx1} y {wy0}..={wy1}:", built.sim.frame);
+                        for (a, b) in last.iter().zip(&now) { eprintln!("P4567W   {a}  {b}"); }
+                        for x in built.sim.units.iter() {
+                            let c = x.coll_at.unwrap_or(x.pos);
+                            let (ux, uy) = (c.x.div_euclid(48), c.y.div_euclid(48));
+                            if ux >= wx0 - 6 && ux <= wx1 + 6 && uy >= wy0 - 6 && uy <= wy1 + 6 {
+                                eprintln!("P4567W   unit {}/{} ti {} {:?} alive {} pos ({},{}) ucell ({ux},{uy}) on_map {} coll_at {:?} inside {:?} inside_unit {:?} boarded {} orders {:?}", x.owner, x.index, x.type_index, x.ty.and_then(|t| built.unit_type_names.get(t)), x.alive(), x.pos.x, x.pos.y, x.on_map, x.coll_at.map(|c| (c.x, c.y)), x.inside, x.inside_unit, x.boarded, x.orders.iter().map(|o| o.index()).collect::<Vec<_>>());
+                            }
+                        }
+                        last = now;
+                    }
+                }
+            }
+            if state < env("P_DIFF", 0) {
+                continue;
+            }
+            for x in built.sim.units.iter().filter(|x| x.owner == 1 && x.index == 14) {
+                let b = x.movement.body.pos;
+                eprintln!("P4567G 1/14 on {state}: pos ({},{}) ucell ({},{}) body ({},{}) ucell ({},{}) guys {} last {:?}", x.pos.x, x.pos.y, x.pos.x.div_euclid(48), x.pos.y.div_euclid(48), b.x, b.y, b.x.div_euclid(48), b.y.div_euclid(48), x.guys.len(), x.guys.first().and_then(|g| g.last).map(|(p, a)| (p.x, p.y, a)));
+            }
+            for x in built.sim.units.iter().filter(|x| x.owner == 1 && x.index == 14) {
+                for (g, guy) in x.guys.iter().enumerate() {
+                    let p = guy.follow.map_or(x.movement.body.pos, |f| f.body.pos);
+                    eprintln!("P4567G   guy {g} at ({},{}) ucell ({},{}) follow {} gpiece {}", p.x, p.y, p.x.div_euclid(48), p.y.div_euclid(48), guy.follow.is_some(), guy.gpiece);
+                }
+                let ty = x.ty.unwrap();
+                eprintln!("P4567G   coll_size {} crew {} ty {}", built.sim.tables.unit_types[ty].combat.crew_size, built.sim.tables.unit_types[ty].combat.crew_size, ty);
+            }
+            for (cx, cy) in [(18, 39), (18, 40), (19, 39)] {
+                eprintln!("P4567G cell ({cx},{cy}) region {:?}", built.sim.world.region_of(sim::world::Cell::new(cx, cy)));
+            }
+            for (tx, ty) in [(75, 159), (74, 160), (74, 159), (75, 160), (75, 158)] {
+                eprintln!("P4567G tile ({tx},{ty}) tregion {:?}", built.sim.world.tregion(sim::world::Pos::new(tx, ty)));
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_world();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
+            let xs = built.sim.world.width();
+            eprintln!("P4567 state {state} ranges ours {} theirs {} xs {xs}", ours.ranges.len(), theirs.len());
+            let mut parted = 0;
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                if a.bytes != b.bytes {
+                    parted += 1;
+                    if parted <= 12 {
+                        let diffs: Vec<String> = a.bytes.iter().zip(&b.bytes).enumerate()
+                            .filter(|(_, (x, y))| x != y)
+                            .map(|(i, (x, y))| format!("{i}:{x:02x}|{y:02x}"))
+                            .collect();
+                        let r = i32::from(a.record);
+                        eprintln!("P4567   range {k} rec {} ({},{}) {} lens {} {} : {}", a.record, r % xs, r / xs, a.field, a.bytes.len(), b.bytes.len(), diffs.join(" "));
+                    }
+                }
+            }
+            eprintln!("P4567   parted {parted}");
+            if tcx >= 0 {
+                let n = 16;
+                for u in 0..built.sim.units.len() {
+                    let x = &built.sim.units[u];
+                    let near = |px: i32, py: i32| {
+                        (px.div_euclid(768) - tcx).abs() <= rad && (py.div_euclid(768) - tcy).abs() <= rad
+                    };
+                    let ca = x.coll_at.map(|c| (c.x, c.y));
+                    if near(x.pos.x, x.pos.y) || x.coll_at.is_some_and(|c| (c.x / n - tcx).abs() <= rad && (c.y / n - tcy).abs() <= rad) {
+                        eprintln!("P4567   unit {u} {}/{} ti {} pos ({},{}) on_map {} hp {} coll_at {:?} inside {:?} orders {:?}",
+                            x.owner, x.index, x.type_index, x.pos.x, x.pos.y, x.on_map, x.health, ca, x.inside,
+                            x.orders.iter().map(|o| o.index()).collect::<Vec<_>>());
+                    }
+                }
+                let coll = &built.sim.movement.coll;
+                for cy in tcy - 1..=tcy + 1 {
+                    for cx in tcx - 1..=tcx + 1 {
+                        let mut rows = Vec::new();
+                        for dy in 0..n {
+                            let mut row = String::new();
+                            for dx in 0..n {
+                                row.push(if coll.get(cx * n + dx, cy * n + dy) { '#' } else { '.' });
+                            }
+                            rows.push(row);
+                        }
+                        if rows.iter().any(|r| r.contains('#')) {
+                            eprintln!("P4567   cell ({cx},{cy}) present {}:", coll.block_present(cx, cy));
+                            for r in rows { eprintln!("P4567     {r}"); }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /// **Row 103's Armored Scout Car fires from its turret's muzzle** (item
     /// 4559, `docs/RECGAME.md` §12.3): run1783, the ranges take of row 103's
     /// file. On 2859 who=1's Armored Scout Car `1/35` (unit 223 of our

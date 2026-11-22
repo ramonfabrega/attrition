@@ -736,6 +736,12 @@ impl CollGrid {
     /// its world cell's block where none is (`World::new_coll_block`); a
     /// clear never does.
     pub fn set(&mut self, x: i32, y: i32, on: bool) {
+        if let Ok(w) = std::env::var("P_SETWATCH") {
+            let v: Vec<i32> = w.split(',').filter_map(|t| t.parse().ok()).collect();
+            if v.len() == 4 && x >= v[0] && x <= v[1] && y >= v[2] && y <= v[3] && self.get(x, y) != on {
+                eprintln!("P4567S set ({x},{y}) {on}\n{}", std::backtrace::Backtrace::force_capture());
+            }
+        }
         if let Some(i) = self.index(x, y) {
             if on {
                 self.bits[i / 64] |= 1u64 << (i % 64);
