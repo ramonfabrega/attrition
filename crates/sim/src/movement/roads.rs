@@ -127,6 +127,38 @@ pub struct RoadSearch {
     goal: (i32, i32),
 }
 
+/// What `astar_caravan_road`'s loop does with a popped node.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum PopAnswer {
+    /// The goal, under the budget: the path is laid.
+    Lay,
+    /// The budget is spent: a caravan's node goes back on the open list
+    /// and the search is parked; a building's is recycled.
+    Park,
+    /// Neither: its neighbours are costed.
+    Expand,
+}
+
+/// **The goal lays its road only under the budget**
+/// (`astar_caravan_road@00685990`, listing `685d3e`..`6860c0`; item 4544).
+/// The goal's branch (`jle 0x6860af`) leaves the loop before the budget's
+/// compare at `685d44`, and `6860af` compares the same counter
+/// (`-0x28(%ebp)`) with 0xc80 again, laying the path only on `jl`; on
+/// `jge` it falls into the park arm at `6860bc` with every node popped
+/// past the budget. So a goal popped on a frame that has costed 0xc80
+/// nodes is parked, and the next frame pops it again before it costs a
+/// node and lays the road then: run1783's caravan road on 1749, 3,203
+/// nodes, laid on 1750 in theirs (`docs/ROADS.md` §8.3).
+pub(crate) const fn pop_answer(at_goal: bool, traversed: i32) -> PopAnswer {
+    if traversed >= WORK_CAP {
+        PopAnswer::Park
+    } else if at_goal {
+        PopAnswer::Lay
+    } else {
+        PopAnswer::Expand
+    }
+}
+
 /// What one call of the search came back with.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum RoadPlan {
@@ -471,10 +503,14 @@ impl Sim {
             {
                 st.open_by_metric.remove(&cur.metric);
             }
-            if (cur.x - goal.x).abs() + (cur.y - goal.y).abs() < 1 {
+            let answer = pop_answer(
+                (cur.x - goal.x).abs() + (cur.y - goal.y).abs() < 1,
+                traversed,
+            );
+            if answer == PopAnswer::Lay {
                 return RoadPlan::Road(reconstruct(&self.world, &st.nodes, cur_id));
             }
-            if traversed >= WORK_CAP {
+            if answer == PopAnswer::Park {
                 // The budget. A **caravan's** popped node goes back on the
                 // open list before the search is parked, which is what
                 // makes a resumed frame carry on rather than lose a node;

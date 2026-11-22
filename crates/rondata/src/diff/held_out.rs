@@ -603,6 +603,89 @@ mod tests {
         }
     }
 
+    /// **Row 103's caravan road is laid on the frame after the budget**
+    /// (item 4544, `docs/ROADS.md` §8.3): run1783, the ranges take of
+    /// row 103's file. A caravan's road search costs 3,207, 3,202 and
+    /// 3,203 nodes on trace frames 1747 to 1749, node for node on both
+    /// sides, and pops its goal on 1749 with 0xc80 spent. Theirs parks it
+    /// (`astar_caravan_road@00685990`, `6860af`) and lays the road on
+    /// 1750 having costed nothing; ours laid it on 1749, thirteen cells
+    /// from (44, 18) to (49, 24) a state early. Every world range on states
+    /// 1749 to 1751, ours against theirs, byte for byte: red on the tree
+    /// before the fix at range 1148, record 1124, `cell` byte 0, `ROAD`
+    /// ours 0x80, theirs 0.
+    #[test]
+    fn row_103_s_caravan_road_is_laid_the_frame_after_the_budget_on_run1783_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 5) else {
+            eprintln!("skipping: row 103's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1783/map-18");
+        let (Some(ranges), Some(log)) = (
+            crate::testenv::experiment(&map, "rontrace.ranges"),
+            crate::testenv::experiment(&map, "rontrace.log"),
+        ) else {
+            eprintln!("skipping: run1783's ranges record or trace is missing");
+            return;
+        };
+        let tr = crate::trace::Trace::read(&log)
+            .expect("run1783's trace reads")
+            .expect("a trace");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 103's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        built.sim.trace.trace_costs = true;
+        let road = sim::world::Cell::new(44, 18);
+        for (state, nodes, laid) in [(1749, 3202, false), (1750, 3203, false), (1751, 0, true)] {
+            while built.sim.frame < state {
+                built.sim.trace.road_marks.clear();
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            // The frame before the state: its road nodes, both sides.
+            let ours_nodes = std::mem::take(&mut built.sim.trace.road_marks);
+            let theirs_nodes = tr.road_nodes(state - 1);
+            assert_eq!(
+                theirs_nodes.len(),
+                nodes,
+                "theirs' road nodes on {}",
+                state - 1
+            );
+            assert_eq!(ours_nodes, theirs_nodes, "the road nodes on {}", state - 1);
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_world();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "world's ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "world range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // The road's first cell by name: record 1124, `flags`' low byte.
+            let k = ours
+                .ranges
+                .iter()
+                .position(|r| r.record == 1124 && r.field == "cell")
+                .expect("cell 1124");
+            let want = if laid { 0x80 } else { 0 };
+            assert_eq!(theirs[k].bytes[0] & 0x80, want, "theirs' ROAD on {state}");
+            assert_eq!(
+                built.sim.world.cell_data(road).flags & sim::ids::cell::ROAD,
+                u16::from(want),
+                "ours' ROAD on {state}"
+            );
+        }
+    }
+
     /// **The fifth's files carry the declared seats and team** (item
     /// 4527): each `item4527-row<RRR>-6000.rcx` the client recorded, read
     /// back, holds the declaration's three `PLAYER` rows slot for slot —
@@ -6326,7 +6409,31 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Item 4544: world 1,791 -> 1,792, first 1750 -> 1792. run1783, the
+        // ranges take: on 1750 world range 1148, record 1124 (cell (44, 18)),
+        // `flags` ROAD ours 0x80, theirs 0: a caravan's road whose goal was
+        // popped past 0xc80 on 1749, laid on 1750 in theirs
+        // (`astar_caravan_road`'s `6860af`, `docs/ROADS.md` §8.3).
+        moved: Some(Score {
+            states: 3295,
+            agreed: [
+                1790, 1854, 3295, 2882, 2508, 1963, 1790, 1757, 1951, 2728, 1987, 1792,
+            ],
+            first: &[
+                ("units", (1790, Some(4038452573), 1054592778)),
+                ("builds", (1824, Some(512225234), 3008295372)),
+                ("ammo", (2860, Some(1), 460261739)),
+                ("deaths", (2508, Some(2009468066), 1)),
+                ("groups", (1963, Some(321777859), 660866967)),
+                ("guys", (1790, Some(2094189105), 2360396383)),
+                ("leaders", (1757, Some(2828401504), 1487010739)),
+                ("cities", (1951, Some(1722361204), 1721574772)),
+                ("items", (2728, Some(3164999615), 3159232445)),
+                ("goods", (1987, Some(1178399185), 1567683031)),
+                ("world", (1792, Some(1791915805), 1130854131)),
+            ],
+            over: None,
+        }),
     }),
     // run1779
     // row 123, as found 2026-11-21: 3 lines whole; units 3,020 of 6,001, first 2986; builds 2,977
