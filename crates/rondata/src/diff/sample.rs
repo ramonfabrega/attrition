@@ -764,9 +764,15 @@ pub(in crate::diff) mod tests {
     /// Item 4552 (`Wall::check_ever_seen@0063ce70` filters an unstarted
     /// building with the owner's stored `+0x6929`: the Temple `2/2025`
     /// placed on 6161, `2515 2025 ever_seen` ours 7, theirs 5, seat 2's
-    /// byte 5): builds 6162 -> 7021; units 6669 the lowest.
+    /// byte 5): builds 6162 -> 7021; units 6669 the lowest. Item 4555
+    /// (`Unit::check_build_order@00603470`'s kill is the front's:
+    /// `repath` strips the stepped-over `MOVE_TO`, and the person's
+    /// Citizen `3/55`, `[BUILD_AT 2041 (finished), MOVE_TO, BUILD_AT
+    /// 2042]` on 6668, keeps one order on the Stable `3/2042`, `3574 55
+    /// orders.count` ours 2, theirs 1): units 6669 -> 6928; every other
+    /// line unchanged; units and groups 6928 the lowest.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 6669),
+        ("units", 6928),
         ("builds", 7021),
         ("walls", 21044),
         ("ammo", 7023),
@@ -1723,15 +1729,17 @@ pub(in crate::diff) mod tests {
     /// range (item 4555). Minted at eleven rows, each on the frame the
     /// hook's sums part (`SAMPLE_LINES`): units 6669, groups 6928, builds,
     /// guys, leaders, cities and world 7021, ammo 7023, deaths 7085, goods
-    /// 7423, items 7544.
+    /// 7423, items 7544. Built (item 4555: `check_build_order`'s kill is
+    /// the front's, `3/55` keeps one `BUILD_AT 2042`): units 6669 -> 6928
+    /// (`2909 15 collide_frame..play` `dest_angle`).
     const SAMPLE_RANGES_1786: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
-            6669,
-            4424,
-            4428,
-            806,
-            "3574 55 orders.count: orders.count 2|1",
+            6928,
+            4601,
+            4601,
+            40,
+            "2909 15 collide_frame..play: dest_angle -2057830400|-2057699328",
         ),
         (
             "builds",
