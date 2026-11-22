@@ -1480,7 +1480,10 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// Item 4505: 947 -> 948, units whole on run1304 (`507 9 gather_down` ours
 /// -1, theirs 21 the one range left after item 4511): a gatherer chain is
 /// one link a unit (`Build::add_gatherer@0062f640`).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 948, 1053);
+/// Item 4537: 948 -> 950, ammo whole on run1487 and run1496 (28 and 44
+/// ranges before): a guided round re-plans to its unit target's first
+/// figure's height (re-pinned by 4536's merge).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 950, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
