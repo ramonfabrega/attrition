@@ -2889,14 +2889,19 @@ impl Sim {
     /// **`Wall::inc_time@0063fb60` for one leader's buildings**, which
     /// `Objects::inc_time@0065db70` runs after that leader's units and
     /// before the next leader's ([`Sim::guys_inc_time`]), in object order
-    /// from 2000. Only its anti-air arm changes the simulation
-    /// ([`Sim::wall_anti_air`], `docs/COMBAT.md` §84).
+    /// from 2000: a site's hit points (`:48`..`56`, ahead of the ammo list,
+    /// so a round's lost progress shows a frame later; item 4556,
+    /// `docs/CITIES.md` §3.4) and the anti-air arm ([`Sim::wall_anti_air`],
+    /// `docs/COMBAT.md` §84).
     pub(crate) fn walls_inc_time(&mut self, who: u8) {
         let mut mine: Vec<usize> = (0..self.buildings.len())
             .filter(|&b| self.buildings[b].owner == who && self.buildings[b].alive)
             .collect();
         mine.sort_by_key(|&b| self.buildings[b].index);
         for b in mine {
+            if !self.buildings[b].active {
+                self.update_hits(b);
+            }
             self.wall_anti_air(b);
         }
     }

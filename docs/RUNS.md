@@ -41040,6 +41040,10 @@ minutes were spent waiting on another lane. `df -g ~` read 88 GB free before it 
 - **Re-scored by item 4554** (the supply veto's mark is `unit_masks2`'s `0x40000`, `docs/SUPPLY.md`): record 70 is
   who=1's Artillery (TI 269), its tick vetoed on 2810; units 2,811 → 3,359, first 3359. The row's first parting
   is builds on 3041 (range 3157, record 2037, `construct_hits` ours 6017, theirs 6023, item 4545's score).
+- **Re-scored by item 4556** (`Wall::inc_time`'s site refresh runs in the leader walk, ahead of the ammo list,
+  `docs/CITIES.md` §3.4): record 2037 is who=2's Taj Mahal site (`TypeIndex` 0x21b), a 19-point round on 3041 after
+  its progress; theirs keeps 6023 (`site_hits` at the pre-blow `job_counter` 76,214) until 3042's walk prints
+  6017. Builds 3,356 → 3,360, first 3041 → 3360. The row's first parting is units on 3359.
 - Filed by `filerun.py run1784 heldout5-row083-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1784-heldout5-row083-ranges.txt`, 2,869 bytes, SHA-256
   `a9b435ef5bd053ca7a1b9832b5ce70729ff25450cfd7d673a1485805af3a85f1`; `rontrace.log` → `Logs/rontrace-run1784.log`,
@@ -41074,7 +41078,41 @@ bytes, SHA-256 `627e49bf69c91e831ff7f15ee6e3aa1137be505962686ccb57b08e2bcc0b0e2f
 
 **What it holds**: `diff::sample::tests::the_sample_s_ranges_to_8000_name_each_first_parting`
 (`SAMPLE_RANGES_1786`): each kept line's first parting by range over 0..8000, on the frame its sum parts — eleven
-rows, every one on the hook's frame.
+rows, every one on the hook's frame. Item 4555 moved its units row 6669 → 6928; item 4557 (`come_out`'s enemy arm)
+units 6928 → 7021 and groups 6928 → 7097.
 (every leaders range on states 1955 and 1956);
 `row_83_s_artillery_carries_the_supply_veto_s_mark_on_run1784_s_ranges` (every units range on 2810 to 2812, 2842
 and 2843, item 4554).
+## run1787 — parity held out, fifth battery, row 43's file to 6000 with the checksum and ranges hooks, every line but walls kept (2026-11-22, item 4547, `worktree-att-4547`)
+
+`docs/RECGAME.md` §12.3; DECISIONS 148 §4. **What the disk could not answer**: run1775 holds sums only, so row 43's
+ammo parting on 3192 named no leaf, and both sides' draws agree in count and label through trace frame 3372 (the
+first parted draw is on 3373, `Unit::close+0xcb6` in theirs), so the draw stream named none either. The take is
+run1775's file with the scorer's one-take line (`score_recording … ~/ron-golden/run1775/map-7`: `--end-frame 6000
+--tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0xffbu`, every line but walls, which is
+whole): `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1787 --recording ~/ron-golden/recordings/item4527-row043-6000.rcx --end-frame 6000 --allow-early-end
+--cover cover=1 --log-window 0 31 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS
+--tracer-def RON_RANGES --tracer-def RNG_MASK=0xffbu`, waited on with `waitrun.sh` in the background. lane-4555's
+run1786 had exited, so the lane was free at launch and no minutes went to waiting. `df -g ~` read 81 GB free before
+it and 73 after.
+- **The run**: pool lane 1, launched 10:41:22 −05:00, exited 10:49:05: **463.0 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 12345, map 7. The recording's
+  SHA-256 is run1775's (`310335f1…`). Players: tribe 4 (who 0, flags 7), tribe 18 (who 1), tribe 2 (who 2).
+- **The record**, `~/ron-golden/run1787/map-7/rontrace.ranges`, 5,104,454,280 bytes in 5 pieces (`split.py`), SHA-256
+  `5a896008db5ffe7240a65220f1bbdfe4219f57460284aec480a4b57d907d7c42`, 0.48 GiB on disk.
+- **Scored** (`score_recording … ~/ron-golden/run1787/map-7`, on `7d9f5f4cc`): the sums are run1775's. **Ammo 3,355,
+  first 3192: range 1, record 0, `rolling..start_roll_angle` byte 7 (`launch.x`): ours 8472, theirs 8571**, 15 bytes
+  (launch, `sz`, landing `y`, `total_time` 6 against 5, the aim, `v1z`, `dx`); units 3,290, first 3196 (range 667,
+  record 14, `damage` ours 17, theirs 18); leaders 3196; groups 3198; deaths 3247; cities 3223; builds 3299; guys and
+  world 3374; items 3670; goods 3710.
+- **Re-scored by item 4547** (piece 736's three bays): ammo 3,401, first 3299; units 3,299, first 3299; leaders
+  3,223 and cities 3,373, both first 3223 (the row's first parting); groups 3,423, first 3376; deaths 3,374.
+- Filed by `filerun.py run1787 heldout5-row043-ranges`: `gamelog_p.txt` →
+  `Logs/gamelog-run1787-heldout5-row043-ranges.txt`, 2,873 bytes, SHA-256
+  `89b9a9025c5bbfb4daee2d7ca38babf72970956a8943a8e49fe0796d43162b8b`; `rontrace.log` → `Logs/rontrace-run1787.log`,
+  180,864,576 bytes, SHA-256 `2a3bd43682061af9c0d1dccb32973f8c92eb23166b3bbbe0cc23074bff3c7577`; the record stays
+  in place.
+
+**What it holds**: `diff::held_out::tests::row_43_s_slinger_stones_leave_from_piece_736_s_sockets_on_run1787_s_ranges`
+(every ammo and units range on states 3191 to 3197, who=2's two Slingers on piece 736, and theirs' launch points).

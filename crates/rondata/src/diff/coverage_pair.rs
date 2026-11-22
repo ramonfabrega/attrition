@@ -2485,7 +2485,10 @@ fn run1075_s_garrison_window_is_widened_whole() {
     // (2552 `group:71.form` ours 0 theirs 9). Merged with 4435: 179.
     // Item 4478: 171 -> 163, the nuke's ring strikes its units in
     // `Objects::find_units`' order (`Sim::nuke_find_units`); eight firsts leave.
-    pin_eq!(w.firsts.len(), 163, "initial run1075 baseline");
+    // Item 4556: 163 -> 162, `Wall::inc_time`'s site refresh runs in the
+    // leader walk, ahead of the ammo list (`docs/CITIES.md` §3.4): the row
+    // 2554 `1/2033` `construct_hits` (ours 10323, theirs 10359) leaves.
+    pin_eq!(w.firsts.len(), 162, "initial run1075 baseline");
 }
 
 /// `Ammo::init+0xcd9` (`0x67c8c9`): the first of a round's two landing
