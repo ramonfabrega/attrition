@@ -52,7 +52,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2): four seats out, cut off `43ee59434` on 2026-11-21: the sample's 4526 (lane-4526, world from 5401, one take to 6400), the chain's 4517 (an in-session builder, fourth, row 75's ammo, one line from whole), a parity seat's 4509 (lane-4509, second, row 30), a parity seat's 4518 (lane-4518, fourth, row 55); the lanes Opus 5.5 at high. 4526 takes the game lane first, then 4517; every later take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4528 (the fold), 4485 (second, row 110), 4519 (fourth, row 95). 4527 (the fifth battery, with seats and a team) is seated when `Parity held out, fourth:` reads 7 of 8. The disk read 117 GB at the pass; every take still stops under 60.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2): four seats out, cut off `43ee59434` on 2026-11-21: the sample's 4526 (lane-4526, world from 5401, one take to 6400), the chain's 4517 (an in-session builder, fourth, row 75's ammo, one line from whole), a parity seat's 4509 (lane-4509, second, row 30), a parity seat's 4518 (lane-4518, fourth, row 55); the lanes Opus 5.5 at high. 4526 takes the game lane first, then 4517; every later take waits its turn, one game at a time. Unseated, for the seat that stops first, in this order: 4528 (the fold), 4527 (the fifth battery, with seats and a team; DECISIONS 150 §3), then 4485 (second, row 110) and 4519 (fourth, row 95), alternating with the fifth's rows. The disk read 117 GB at the pass; every take still stops under 60.
 
 4526. **The 2017 sample: world from 5401, past run1771's end** (a rules item, whole; the sample's seat; `docs/RECGAME.md` §7). The
 sample parts on world 5401, leaders 5403, units, groups and guys 5461 (draws 5460), builds 5487, cities 5801, ammo 5969, deaths 6190
@@ -95,8 +95,8 @@ counts six and the sample. Make it add each spent battery's whole rows, read fro
 `found`. A battery is spent once a lane has read a parting off one of its rows. The first three are spent: 28 of 31 on `43ee59434`.
 Pin which batteries are spent beside the tables. The driver writes the line. It moves the headline's count and no game.
 
-4527. **Parity held out, fifth: rows 3 to 143, with seats and a team** (a rules item, whole; unseated until `Parity held out,
-fourth:` reads 7 of 8; `docs/RECGAME.md` §12; DECISIONS 149 §3, 150 §2). First act: read whether the client's lobby page sets more
+4527. **Parity held out, fifth: rows 3 to 143, with seats and a team** (a rules item, whole; unseated, next after 4528;
+`docs/RECGAME.md` §12; DECISIONS 149 §3, 150 §2, §3). First act: read whether the client's lobby page sets more
 than two seats and a team. Then declare rows 3, 23, 43, 63, 83, 103, 123 and 143 of `Start:`'s order, each with its seats and one
 team of two, in a `HELD_OUT_FIFTH` table as the item's first commit, before any file is recorded. Each is recorded idle by the page
 to 6000 and played by the original under the checksum hook alone, as runs 1773 to 1780. Pin `SCORES_FIFTH` once; the driver

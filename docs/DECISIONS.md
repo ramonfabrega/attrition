@@ -164,7 +164,7 @@ is append-only and amended in place, as it always was.
 - 147 standing — The pass of 2026-11-20, second: the estimate is read by reach (27 % → 53 % of states before the first parting, where games and lines read 0 → 1 and 64 → 65), a third battery is named, the fold is still Ramon's at 11 of 15, the rows nearest whole take the seats (row 60, row 90, row 70), the sample keeps its seat with its rate said, parity's own count is a parsed line, and the queue's opener, which a booking had left unreadable to the wake, is a guarded paragraph
 - 148 extended by 149 — The pass of 2026-11-21: every held-out row not whole is scored (eight leaves on disk on rows 105 and 10, five with no item; rows 40 and 5 one line from whole), the three batteries read 0, 1 and 5 of 8 as found and 27, 53 and 88 % by reach, a fourth battery is named, the fold is still Ramon's at 13 of 15, a row's ranges take keeps the lines its score parts on because the disk is the limit, the sample's seat reads the `Parity:` line and takes ranges past its draw word first, and the eye's seat draws the dust from the packet's emitters.
 - 149 extended by 150 — The pass of 2026-11-21, second: the disk stops binding without a file deleted, because the archive's compression skips any file of 2^31 bytes and fourteen ranges records stood raw for it (a record past two billion bytes is kept in gigabyte pieces both readers open as one; thirteen split, 46.8 GiB to 4.1, 56 GB free to 117), the five rows not whole are scored and four seats cut, the sample's take runs to 6400 on the lines that part below it, a fifth battery is named, the fold is still Ramon's at 14 of 15, and the gate table says stopped for a gate the driver stopped.
-- 150 standing — Ramon folds the spent batteries into the headline (28 of 31 on the pins of 43ee59434; item 4528 builds the count) and the fifth battery adds seats and a team, its first act reading whether the lobby page sets a team
+- 150 standing — Ramon folds the spent batteries into the headline (28 of 31 on the pins of 43ee59434; item 4528 builds the count) and the fifth battery adds seats and a team, its first act reading whether the lobby page sets a team, and starts now with the seats alternating between batteries
 
 ## 1. Fidelity before divergence
 
@@ -15083,8 +15083,8 @@ The fifth battery folds by the same rule.
 
 **§2. The fifth battery adds seats and a team.** Its rows stay entry
 149 §3's (3, 23, 43, 63, 83, 103, 123 and 143 of the order `Start:`
-counts), and its trigger stays the fourth reading 7 of 8 now. Ramon's
-word settles the shape here, not the timing. What changes is the
+counts), and its trigger was the fourth reading 7 of 8 now (amended by §3).
+Ramon's word settles the shape here. What changes is the
 recipe: each row is recorded with more than two seats, and at least
 one team of two. The reason is entry 145 §2's limit. Of 718 captures on
 disk with a lobby block, 688 seat two players, and only the sample has
@@ -15095,3 +15095,18 @@ its declaration, still the item's first commit before any file is
 recorded, names each row's seats and team. If the page cannot set a
 team, the item says so in that commit and declares seats alone, and the
 team becomes an item of its own, booked on the page.
+
+**§3. The fifth starts now, and the seats alternate between batteries.**
+Ramon asked whether to wait for 7 of 8, and took the driver's
+recommendation on the same row. The fourth's found column repeated the
+third's (5 of 8, 90 of 96 lines), so its rows left are work and no longer
+an estimate. A battery's estimate is its first score, which no lane
+touches until one is seated, so taking it on today's tree spends
+nothing. And a team is the shape of the one game outside the headline.
+Item 4527 is seated by the next seat that frees, after item 4528, with no
+worker added. Its first act and its declaration need no game. Its eight
+recordings queue on the game lane behind the takes already ahead of them.
+From then on, a freed seat takes the fifth's next row when the fourth's
+next row is a deep chase, and the fourth's when it is one line from
+whole, so neither battery starves. The trigger for a sixth battery is
+the pass's to set. Ramon asked that the next pass confirm §1 to §3.
