@@ -884,9 +884,22 @@ impl Sim {
 
     /// The garrison's contribution to a tower's arrows —
     /// `count_inside(GARRISON_ARROWS)`: `attack / 10` per garrisoned captain
-    /// that is FOOT and not siege, halved for a melee one. `docs/COMBAT.md`
-    /// §8.6 (the militia third is not modelled).
+    /// that is FOOT and not siege, halved for a melee one; **a militia
+    /// counts a third of its line's attack**. `docs/COMBAT.md` §8.6.
+    ///
+    /// **The militia arm** (item 4535, `docs/RECGAME.md` §7):
+    /// `ObjectData::count_inside@0064dda0`'s `COUNT_GARRISON_ARROWS` case
+    /// takes a figure that is a worker (`is_worker`) whose owner
+    /// `has_tech` its tribe's militia — `MILITIA` when `tribe_can_type`
+    /// allows it, else the type's slot `+0x68`, the tribe's graft — or one
+    /// that `is(MILITIA)`, and adds `(attack / 10 + 2) / 3` of the
+    /// **building owner's** `current_upgrade(MILITIA)` type (its `+0x1e8`)
+    /// in place of the figure's own attack. The 2017 sample's Village
+    /// `0/2000` held five of its owner's Citizens on 5999: ours counted
+    /// `(4 + 1) / 2` each, 10, and reloaded in 30; theirs counted the
+    /// militia's third and reloaded in 15 (`recharging` 30|15 on 6000).
     pub(crate) fn garrison_attack_sum(&self, b: usize) -> i32 {
+        let owner = self.buildings[b].owner as usize;
         let mut sum = 0;
         for &c in &self.buildings[b].garrison {
             let u = &self.units[c];
@@ -898,10 +911,48 @@ impl Sim {
             if p.obj_masks & 0x20 == 0 {
                 continue;
             }
+            if self.garrisons_as_militia(c) {
+                sum += (self.militia_upgrade_attack(owner) / 10 + 2) / 3;
+                continue;
+            }
             let a = self.attack_of(Obj::Unit(c)) / 10;
             sum += if p.max_range == 0 { (a + 1) / 2 } else { a };
         }
         sum
+    }
+
+    /// Whether a garrisoned figure counts as militia in
+    /// [`Sim::garrison_attack_sum`]: a worker whose owner has its tribe's
+    /// militia (`get_graft(MILITIA)`: `MILITIA` itself when the tribe can
+    /// make it, else the tribe's graft), or a unit of the `MILITIA` line.
+    fn garrisons_as_militia(&self, c: usize) -> bool {
+        const MILITIA: crate::tech::TypeId = crate::spells::cast::MILITIA as crate::tech::TypeId;
+        let who = self.units[c].owner as usize;
+        if self.is_worker(c) {
+            let tree = &self.tables.tech_tree;
+            let setup = &self.tables.setup;
+            let p = &self.tech[who];
+            if tree.types.get(MILITIA).is_some() {
+                let t = tree.get_graft(setup, p, Some(MILITIA)).unwrap_or(MILITIA);
+                if tree.has_tech(setup, p, t) {
+                    return true;
+                }
+            }
+        }
+        self.unit_is_index(c, MILITIA as i32)
+    }
+
+    /// `unittypes[current_upgrade(MILITIA)] +0x1e8` for player `who`: the
+    /// base attack, in tenths, of the newest type of its militia line.
+    fn militia_upgrade_attack(&self, who: usize) -> i32 {
+        const MILITIA: crate::tech::TypeId = crate::spells::cast::MILITIA as crate::tech::TypeId;
+        let tree = &self.tables.tech_tree;
+        if tree.types.get(MILITIA).is_none() {
+            return 0;
+        }
+        let up = tree.current_upgrade(&self.tables.setup, &self.tech[who], MILITIA);
+        self.unit_rec_of_index(up as i32)
+            .map_or(0, |r| self.tables.unit_types[r].combat.attack)
     }
 
     /// Whether a building type is a hangar — `can_carry(AIR)`.

@@ -478,7 +478,10 @@ pub(in crate::diff) mod tests {
     /// (`Leader::gain_tech@006dcb60`'s `ALLY_LOS` arm: Mathematics ORs
     /// every seated ally, the defeated computer 1 too, into the stored
     /// `ally_mask` the fog and danger tests read): 5460 -> 6015, +555.
-    const SAMPLE_WALKED: (i64, i64) = (6015, 21044);
+    /// Item 4535 (a garrisoned worker whose owner has the militia counts a
+    /// third of the militia line's attack, `count_inside@0064dda0`: the
+    /// Village `0/2000` reloads in 15 on 5999, not 30): 6015 -> 6114, +99.
+    const SAMPLE_WALKED: (i64, i64) = (6114, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -728,20 +731,27 @@ pub(in crate::diff) mod tests {
     /// leader's `SimpleArray<int>` doubles from ten: the person's
     /// `oil_patches` 21 elements, `462 3` size ours 30, theirs 40): leaders
     /// 5891 -> 6005, past units, builds and ammo, which are the lowest on
-    /// 6000.
+    /// 6000. Item 4535 (`count_inside@0064dda0`'s `GARRISON_ARROWS` arm
+    /// counts a worker whose owner has the militia as a third of the
+    /// militia line's attack: the Village `0/2000`'s five Citizens on
+    /// 5999, `12 2000 recharging` ours 30, theirs 15, `attack_ox` 28|34):
+    /// units 6000 -> 6108, builds 6000 -> 6114, ammo 6000 -> 6156, groups
+    /// 6022 -> 6153, guys 6017 -> 6115, leaders 6005 -> 6119, world 6022
+    /// -> 6116; items 7940 -> 9433 and goods 6281 -> 6407, named rises
+    /// past the draw word; units 6108 the lowest.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 6000),
-        ("builds", 6000),
+        ("units", 6108),
+        ("builds", 6114),
         ("walls", 21044),
-        ("ammo", 6000),
+        ("ammo", 6156),
         ("deaths", 6190),
-        ("groups", 6022),
-        ("guys", 6017),
-        ("leaders", 6005),
+        ("groups", 6153),
+        ("guys", 6115),
+        ("leaders", 6119),
         ("cities", 6151),
-        ("items", 7940),
-        ("goods", 6281),
-        ("world", 6022),
+        ("items", 9433),
+        ("goods", 6407),
+        ("world", 6116),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -939,8 +949,11 @@ pub(in crate::diff) mod tests {
     /// still on 2929. Item 4533 (the capture's spoils skip Knowledge; a
     /// leader's array doubles from ten): 3206 -> 3215, +9, a named rise
     /// past the draw word 6015, the frames not read one by one; the first
+    /// shot still on 2929. Item 4535 (a garrisoned worker counts as
+    /// militia in a building's arrows): 3215 -> 3289, +74, a named rise
+    /// past the draw word 6114, the frames not read one by one; the first
     /// shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3215, Some(2929));
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3289, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
@@ -1621,27 +1634,27 @@ pub(in crate::diff) mod tests {
     const SAMPLE_RANGES_1772: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
-            6000,
-            4512,
-            4512,
-            2,
-            "2974 28 myhits..launch_frames: targeted 1|0",
+            6108,
+            4442,
+            4442,
+            1,
+            "3107 37 collide_frame..play: attrition 48|24",
         ),
         (
             "builds",
-            6000,
-            3992,
-            3992,
+            6114,
+            4036,
+            4036,
             1,
-            "12 2000 gather_down..infiltrate2: recharging 30|15, attack_ox 28|34",
+            "1118 2001 gather_down..infiltrate2: recharging 6113|6112",
         ),
         (
             "ammo",
-            6000,
+            6156,
             3,
             3,
             1,
-            "1 0 rolling..start_roll_angle: +0x13 of 99|99: f85e0000|685e0000",
+            "1 0 rolling..start_roll_angle: +0x7 of 99|99: e85c0000|3e5c0000",
         ),
         (
             "deaths",
@@ -1651,39 +1664,38 @@ pub(in crate::diff) mod tests {
             2,
             "0 -1 00936bff: +0x0 of 0|4: |01000000",
         ),
-        ("groups", 6022, 622, 622, 1, "146 128 id..march: facing 0|1"),
+        (
+            "groups",
+            6153,
+            616,
+            616,
+            1,
+            "161 131 id..march: ox 28896|29664, oy 2016|1248, o_angle -221642752|0",
+        ),
         (
             "guys",
-            6017,
-            1406,
-            1406,
-            3,
-            "203 27 guy: end_time 80|30, cur_anim 31|29",
+            6115,
+            1413,
+            1413,
+            2,
+            "548 11 guy: x 9576|9552, y 29832|29840, z 648|644, angle 424673280|-1277689856, last_angle 424673280|-1277689856, des_x 9576|9552, des_y 29832|29840, des_angle 424673280|-1277689856, cur_time 30|1, end_time 33|15, last_time 29|0, last_speed 0|25, avg_speed 0|6, cur_anim 25|8, stopped 1|0",
         ),
         (
             "leaders",
-            6005,
+            6119,
             671,
             671,
-            2,
-            "1 0 who..ally_mask: +0xa54 of 26914|26914: 00000200|01000200",
+            4,
+            "271 2 who..ally_mask: +0x10 of 26914|26914: 31050000|2d050000",
         ),
         ("cities", 6151, 51, 51, 1, "15 2 city..ter: gatherers 10|8"),
         (
-            "goods",
-            6281,
-            265,
-            265,
-            1,
-            "260 52 ever_seen: +0x0 of 1|1: 04|00",
-        ),
-        (
             "world",
-            6022,
-            7729,
-            7729,
-            1,
-            "7317 3210 block.body: +0x19 of 96|96: 57007000|1f003800",
+            6116,
+            7757,
+            7757,
+            3,
+            "6086 2231 block.body: +0x1b of 96|96: c000c000|e000e000",
         ),
     ];
 }
