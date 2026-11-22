@@ -23,7 +23,7 @@ Late ages: every word whole · 82
 Battery word: every word whole · 28
 Melee: every word whole · 6, 0 off
 Mapgen: checksum 496 of 496 · GreatSahara 8 of 8 phases · GreatLakes 8 of 8 phases · EastIndies 8 of 8 phases · SouthwestMesa 8 of 8 phases · OldWorld 8 of 8 phases · EastMeetsWest 8 of 8 phases · AmazonBasin 8 of 8 phases · Himalayas 8 of 8 phases · AfricanWateringHole 8 of 8 phases · AustralianOutback 8 of 8 phases · Mediterranean 8 of 8 phases · NewWorld 8 of 8 phases · SeaPower 8 of 8 phases · NileDelta 8 of 8 phases · ColonialPowers 8 of 8 phases
-Census: simulation backed 1457 of 3611 · port 738 · layout 719
+Census: simulation backed 1457 of 3611 · port 739 · layout 718
 Third map: every word whole · 4
 Golden: every chapter closed · 130 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
