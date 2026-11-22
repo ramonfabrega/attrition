@@ -1052,6 +1052,15 @@ pub(in crate::diff) mod tests {
         ranges_record("RON_SAMPLE_RANGES_1772", "run1772")
     }
 
+    /// run1786's record (item 4555, `docs/RUNS.md` run1786): the same
+    /// playback to 8,000 under the same hooks, keeping the eleven lines
+    /// that part below 8000 on the hook's sums (`RNG_MASK` 0xffb: all but
+    /// walls; DECISIONS 148 §5). `RON_SAMPLE_RANGES_1786`, else where the
+    /// take left it.
+    fn run1786() -> Option<crate::trace::ranges::Record> {
+        ranges_record("RON_SAMPLE_RANGES_1786", "run1786")
+    }
+
     fn ranges_record(var: &str, run: &str) -> Option<crate::trace::ranges::Record> {
         let path = match std::env::var(var) {
             Ok(p) => std::path::PathBuf::from(p),
@@ -1239,6 +1248,30 @@ pub(in crate::diff) mod tests {
             "run1772's sets, one a frame"
         );
         assert_eq!(got, pinned, "SAMPLE_RANGES_1772");
+    }
+
+    /// The same walk over run1786's record, the eleven lines of its mask
+    /// alone, pinned per line by [`SAMPLE_RANGES_1786`].
+    /// `RON_SAMPLE_RANGES_DETAIL` and `RON_SAMPLE_RANGES_ALL` print as
+    /// above.
+    #[test]
+    fn the_sample_s_ranges_to_8000_name_each_first_parting() {
+        let Some(rec) = run1786() else { return };
+        let Some((frames, got)) =
+            walk_kept_ranges(rec, SAMPLE_RANGES_1786_WINDOW, SAMPLE_RANGES_1786_KEPT)
+        else {
+            return;
+        };
+        let pinned: Vec<SampleRange> = SAMPLE_RANGES_1786
+            .iter()
+            .map(|&(l, f, t, o, p, x)| (l, f, t, o, p, x.to_string()))
+            .collect();
+        assert_eq!(
+            frames,
+            SAMPLE_RANGES_1786_WINDOW as usize + 1,
+            "run1786's sets, one a frame"
+        );
+        assert_eq!(got, pinned, "SAMPLE_RANGES_1786");
     }
 
     /// The walk the ranges tests share: our sample from state 0 to
@@ -1679,4 +1712,106 @@ pub(in crate::diff) mod tests {
     /// byte, seat 2's 5): builds 6162 -> past the window; no kept line
     /// parts below 6400.
     const SAMPLE_RANGES_1772: &[(&str, i64, usize, usize, usize, &str)] = &[];
+
+    /// run1786's last frame, ours: the record holds trace frames −1 to 7999.
+    const SAMPLE_RANGES_1786_WINDOW: i64 = 8000;
+
+    /// run1786's mask: every line but walls (`RNG_MASK=0xffbu`).
+    const SAMPLE_RANGES_1786_KEPT: u16 = 0xffb;
+
+    /// Per kept line that parts on run1786's window, its first parting by
+    /// range (item 4555). Minted at eleven rows, each on the frame the
+    /// hook's sums part (`SAMPLE_LINES`): units 6669, groups 6928, builds,
+    /// guys, leaders, cities and world 7021, ammo 7023, deaths 7085, goods
+    /// 7423, items 7544.
+    const SAMPLE_RANGES_1786: &[(&str, i64, usize, usize, usize, &str)] = &[
+        (
+            "units",
+            6669,
+            4424,
+            4428,
+            806,
+            "3574 55 orders.count: orders.count 2|1",
+        ),
+        (
+            "builds",
+            7021,
+            4243,
+            4243,
+            6,
+            "7 2000 myhits..launch_frames: inside_down 3|-1",
+        ),
+        (
+            "ammo",
+            7023,
+            9,
+            9,
+            1,
+            "1 0 rolling..start_roll_angle: +0x7 of 99|99: ce150000|fa140000",
+        ),
+        (
+            "deaths",
+            7085,
+            30,
+            30,
+            1,
+            "3 1 first_frame..unit_crew: +0x4 of 71|71: 11000000|12000000",
+        ),
+        (
+            "groups",
+            6928,
+            616,
+            616,
+            1,
+            "263 197 id..march: ox 4440|4433, oy 30936|30955, o_angle -2057830400|-2057699328",
+        ),
+        (
+            "guys",
+            7021,
+            1477,
+            1477,
+            12,
+            "15 1 guy: x 23208|24600, y 42408|43032, z 123|115, des_x 23208|24600, des_y 42408|43032, last_x 23208|24600, last_y 42408|43032, last_z 123|115, cur_time 7|8, last_time 6|7",
+        ),
+        (
+            "leaders",
+            7021,
+            675,
+            675,
+            2,
+            "0 0 flags: +0x3 of 8|8: 00000000|02000000",
+        ),
+        (
+            "cities",
+            7021,
+            57,
+            57,
+            1,
+            "0 1 city_flags: +0x0 of 2|2: 594e|194e",
+        ),
+        (
+            "items",
+            7544,
+            20,
+            20,
+            1,
+            "0 16 ever_seen: +0x0 of 1|1: 08|00",
+        ),
+        (
+            "goods",
+            7423,
+            265,
+            265,
+            1,
+            "190 38 ever_seen: +0x0 of 1|1: 08|0c",
+        ),
+        (
+            "world",
+            7021,
+            7733,
+            7705,
+            108,
+            "3293 3269 cell: +0x8 of 21|21: ffff0000|08000000",
+        ),
+    ];
 }
