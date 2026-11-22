@@ -982,8 +982,12 @@ pub(in crate::diff) mod tests {
     /// the frames not read one by one; the first shot still on 2929.
     /// Item 4542 (`get_cost`'s locked-team wonder term) moved it 3176 ->
     /// 3182 on its own branch; on the tree merged with 4549 it reads 3315,
-    /// both builds in.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3315, Some(2929));
+    /// both builds in. Item 4553 (`find_target`'s ally arm reads the
+    /// leader's `strong[8]`/`weak[8]`): 3315 -> 3314, -1, a named fall
+    /// past the draw word 7021, the frame not read; the first shot still
+    /// on 2929 and every line's first parting unchanged (the base's 3315
+    /// passes with the build reversed through `tools/mutate.py`).
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3314, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
