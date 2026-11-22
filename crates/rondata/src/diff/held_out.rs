@@ -1123,6 +1123,7 @@ mod tests {
                         }
                     }
                 }
+            }
             for li in 0usize..12 {
                 let Some(ours) = lines[li].as_ref() else {
                     continue;
