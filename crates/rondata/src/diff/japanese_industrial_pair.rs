@@ -369,7 +369,10 @@ fn japanese_industrial_pair_run1153c_s_word_frame_is_widened_whole() {
     // `MOVEORDER`. What is left from 3790 is the standing `form` family and
     // `1/82`'s path on 3813 (parked 3525a).
     // Item 4435: 151 -> 112, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 112, "run1153c baseline");
+    // Item 4532: 112 -> 82, a unit that boards in its own think repaints its
+    // disc on its phase frame; moved at the booking gate (`gate-4532.log`,
+    // green on 3e2d93318 before the merge), the fields not read one by one.
+    pin_eq!(w.firsts.len(), 82, "run1153c baseline");
 }
 
 /// run1171: the word 4343's window, blocks 4338..4548 — six blocks before
