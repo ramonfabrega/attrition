@@ -1870,6 +1870,66 @@ mod tests {
         }
     }
 
+    /// PROBE 4485: row 110's world cell on run1742, both sides.
+    #[test]
+    fn probe_4485_row_110_world() {
+        if std::env::var("RON_PROBE_4485").is_err() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SECOND, 5) else {
+            return;
+        };
+        let ranges = crate::testenv::experiment(&home.join("ron-golden/run1742/map-18"), "rontrace.ranges")
+            .expect("run1742");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let rec_no: usize = std::env::var("RON_PROBE_REC").ok().and_then(|v| v.parse().ok()).unwrap_or(2853);
+        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(3795);
+        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(3810);
+        let cw = built.sim.world.width() as usize;
+        let (cx, cy) = ((rec_no % cw) as i32, (rec_no / cw) as i32);
+        eprintln!("PROBE map {cw} wide; record {rec_no} = cell ({cx}, {cy})");
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_world();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
+            for (k, a) in ours.ranges.iter().enumerate() {
+                if a.record as usize == rec_no && a.field.starts_with("block") {
+                    eprintln!("PROBE {state} {} ours {:02x?}", a.field, a.bytes);
+                    eprintln!("PROBE {state} {} thrs {:02x?}", a.field, theirs[k].bytes);
+                }
+            }
+            let mut n = 0;
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                if a.bytes != b.bytes && n < 6 {
+                    n += 1;
+                    eprintln!("PROBE {state} differs range {k} record {} {}", a.record, a.field);
+                }
+            }
+            for u in &built.sim.units {
+                let at = sim::movement::collide::ucell(u.pos);
+                if (at.x >> 4) >= cx - 1 && (at.x >> 4) <= cx + 1 && (at.y >> 4) >= cy - 1 && (at.y >> 4) <= cy + 1 {
+                    eprintln!(
+                        "PROBE {state} unit {}/{} TI {} at ({}, {}) on_map {} inside {:?} inside_unit {:?}",
+                        u.owner, u.index, u.type_index, at.x, at.y, u.on_map, u.inside, u.inside_unit
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 10's walker steps inside a freed cell and marks nothing**
     /// (item 4504, `docs/COLLISION.md` §2.4): run1739, the ranges take of
     /// run1730's file. who=1's `1/43` (TI 104) stands at unit cell
