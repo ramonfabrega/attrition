@@ -10431,25 +10431,31 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // citizen to repair it), on the tree merged with the base at
         // `9d1f92690`: ammo 3,785 -> 3,426, deaths 2,967 -> 2,914, ours'
         // `game_over` 9533 -> 11572; no first parting moved.
+        // Then item 4590 (`compare_target`'s raid `/20` asks the target's
+        // finished bit, `WallData::is_active`; run1803's packet scores the
+        // unfinished Small City `2/2027` at 1613 for the Bazooka `1/31`):
+        // the first parting 2686 -> 2962 (units range 6364, record 77,
+        // `order.type` ours 10, theirs 0x80); builds 2,688 -> 3,078, guys
+        // 2,686 -> 2,967, every line forward; ours' `game_over` 11572 -> 9802.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                2686, 2688, 12001, 3426, 2914, 2740, 2686, 2698, 2974, 3127, 3056, 2691,
+                2962, 3078, 12001, 3483, 3632, 3002, 2967, 2983, 3367, 5437, 4397, 2975,
             ],
             first: &[
-                ("units", (2686, Some(1210672926), 399075748)),
-                ("builds", (2686, Some(547053547), 644243435)),
-                ("ammo", (2692, Some(1859606587), 696997629)),
-                ("deaths", (2775, Some(2882887954), 2321178662)),
-                ("groups", (2740, Some(4287796956), 1715573666)),
-                ("guys", (2686, Some(384424200), 3607616169)),
-                ("leaders", (2689, Some(3893770918), 226245285)),
-                ("cities", (2871, Some(3617272752), 3487511460)),
-                ("items", (3127, Some(2121282860), 2092447016)),
-                ("goods", (3056, Some(2987562270), 2924123420)),
-                ("world", (2691, Some(2608492097), 2791665259)),
+                ("units", (2962, Some(2785320107), 2104139463)),
+                ("builds", (3004, Some(2482202651), 4285163131)),
+                ("ammo", (2978, Some(1714572981), 3065139014)),
+                ("deaths", (3008, Some(3817289519), 3817489508)),
+                ("groups", (2982, Some(1074681641), 115365832)),
+                ("guys", (2966, Some(96889624), 2207673204)),
+                ("leaders", (2983, Some(3337828037), 36057006)),
+                ("cities", (3367, Some(583810638), 585383502)),
+                ("items", (3468, Some(2092447016), 2127050028)),
+                ("goods", (3157, Some(2924123420), 3056768288)),
+                ("world", (2975, Some(4068279797), 2248541463)),
             ],
-            over: Some(11572),
+            over: Some(9802),
         }),
     }),
     // run1793
