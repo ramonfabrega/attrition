@@ -1904,6 +1904,14 @@ pub(crate) mod tests {
             let set = record.first_of(state - 1).expect("the state's set").clone();
             let all = record.ranges(&set).expect("the set's ranges");
             let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (ci, c) in built.sim.cities.cities.iter().enumerate() {
+                let ch = built.sim.city_chain(ci);
+                let row: Vec<_> = ch.iter().map(|&b| { let x = &built.sim.buildings[b]; (x.owner, x.index, x.active, x.alive) }).collect();
+                if row.iter().any(|r| matches!(r.1, 2007 | 2008 | 2026)) {
+                    eprintln!("P4620 {state} city {ci} chain {row:?}");
+                }
+                let _ = c;
+            }
             for (li, name) in names.iter().enumerate() {
                 let Some(ours) = lines[li].as_ref() else { continue };
                 let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == li).collect();
