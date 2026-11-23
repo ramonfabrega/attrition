@@ -56,7 +56,7 @@ pub const SEES_ALL: bool = true;
 /// (`+0x2c0 & 0x40000000`, `MILITARY_TRAINER`). Run1564's packet is mode
 /// 1's to the quad: no citizen, scout, farm, temple or city part has a
 /// blip there, which is the nine units 4593c found missing. The captures'
-/// profile is taken to hold 1 (parked 4601b); 0, every captain and every
+/// profile is taken to hold 1 (parked 4601a); 0, every captain and every
 /// building, is not built.
 pub const STAT_MODE: u8 = 1;
 
