@@ -41139,6 +41139,10 @@ it and 73 after.
 - **Re-scored by item 4565** (the Village `2/2010` keeps the wounded Spearmen `1/46`): on 3299 builds range 1549,
   record 2010, `attack_ox` ours 49 → 46, theirs 46; units 3,374, builds 3,376, leaders 3,374, all first 3374/3376;
   ammo first 3361, the row's first parting. `row_43_s_village_holds_the_wounded_spearmen_on_run1787_s_ranges`.
+- **Re-scored by item 4564** (the defensive leash asks for `fight`'s entry target): on 3442 units range 5905, record 63
+  (who=2's Hoplites `2/63`), `orders.count` ours 1 → 2, theirs 2, the head `ATTACK` on `(23, 1)`; the row's first
+  parting 3442 → 3833 (units, ammo, groups, guys, world), our walk to 6000.
+  `row_43_s_follower_keeps_its_captain_s_target_past_the_leash_on_run1787_s_ranges`.
 - Filed by `filerun.py run1787 heldout5-row043-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1787-heldout5-row043-ranges.txt`, 2,873 bytes, SHA-256
   `89b9a9025c5bbfb4daee2d7ca38babf72970956a8943a8e49fe0796d43162b8b`; `rontrace.log` → `Logs/rontrace-run1787.log`,
