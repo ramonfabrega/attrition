@@ -1335,7 +1335,22 @@ is included by both:
    attacked or raided (`was_city_attacked/raided(who, "", −1)`) → with
    Military 1 and no barracks, `place_building_with_cost(Barracks,
    capital)` and `SCRIPT_DONE` (or `BLOCK_ON_THIS` if it could not);
-   otherwise `SCRIPT_DONE`. **The opening ends the moment the AI is hit.**
+   otherwise `SCRIPT_DONE`. **The opening ends the moment the AI's first
+   live city is hit**, not any city: `get_city_index@009e2ba0` matches a
+   city's `name` or `id`, every random-map city's `id` is empty
+   (`City::generate_name` passes `EMPTY_STRING`, `City::capture` copies
+   it), so `""` is the first live city in the leader's list and the
+   walk over every city runs only for a name no city holds (item 4548,
+   run1796's who=1 on 4776: a captured third city stamped 4756, the
+   first unstamped, and the original runs on to step 15; diff-backed,
+   `held_out::row_3_s_computer_blocks_on_its_captured_city_s_library_on_run1796_s_ranges`).
+   The same item: `research_tech_with_cost@009ee700` asks `can_queue` of
+   the one producer `find_build` returns, and `BuildData::can_make`
+   refuses one standing in an unassimilated city, so the call returns 0
+   and the step blocks; `find_counters[0x1e]` moves on success alone.
+   *Not established*: `can_make`'s `is_neutralized` arm beside it is not
+   read by the host's research check (no run on disk neutralizes a
+   producer).
 2. **The statics.** `prev_step`, `needed_citizens`, `timer_started`,
    `fishermen_total` × 8, indexed by hand through `switch (who − 1)`
    ("ghetto array") because a `static` is one slot for every leader

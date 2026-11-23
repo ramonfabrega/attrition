@@ -1491,7 +1491,7 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 
 | row | run | lobby | team | states | whole | lowest partings (state) |
 |---|---|---|---|---|---|---|
-| 3 | run1773 | Great Sahara, difficulty 3 | human + added | 6,001 | 1 | ~~units, builds, ammo 3857~~ leaders 4777 |
+| 3 | run1773 | Great Sahara, difficulty 3 | human + added | 6,001 | 1 | ~~units, builds, ammo 3857, leaders 4777~~ world 4990 |
 | 23 | run1774 | Atlantic Sea Power | the computers | 6,001 | 10 | **leaders 0**, units 5695 |
 | 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~3192, 3223, 3299~~ ammo 3361 |
 | 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, to 4222 | **12** | ~~1582, 1789, 3683, 3986~~ whole |
@@ -1511,6 +1511,10 @@ pins hold both sides of every first parting.
 left the one shared `find_counters[0x1c]` at 2011, who=1's count (its mark); `find_build@009e2970` resets such a
 cursor to 2000 and starts at 2001, so who=1's three trainings on 2976 went 2007, 2000, 2007, where ours went 2000
 first. The lap resets now (`ai_host::lap`, `find_unit`'s too; AI §11): twelve lines whole.
+
+**Row 3: eleven lines whole (item 4548, run1796; AI §3.1).** The leaf was who=1's step machine on 4777 (ours
+`production_step` 2, theirs 0). The scripts' `was_city_attacked(who, "", −1)` reads the first live city alone, and
+`research_tech_with_cost` refuses the producer it finds in a captured, unassimilated city. World parts on 4990.
 
 **Bays (4547, 4559).** 736 takes 1440's; 4559 rows eight (`launch::BAYS`, `pivot::RELEASES`; 1224 is 169's). 4561:
 an unbuilt Village's close fixes borders. 4565: COMBAT §12.3.
