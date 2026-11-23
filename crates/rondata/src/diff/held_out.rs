@@ -1211,7 +1211,13 @@ pub(crate) mod tests {
             return;
         }
         let inst = crate::testenv::install().expect("install");
-        let (Some(rcx), Some(take)) = paths(&SEVENTH, 4) else {
+        let bat = match std::env::var("RON_PROBE_4614_BAT").as_deref() {
+            Ok("2") => &SECOND,
+            Ok("6") => &SIXTH,
+            _ => &SEVENTH,
+        };
+        let k: usize = std::env::var("RON_PROBE_4614_K").ok().and_then(|v| v.parse().ok()).unwrap_or(4);
+        let (Some(rcx), Some(take)) = paths(bat, k) else {
             panic!("no take");
         };
         let until = std::env::var("RON_PROBE_4614_UNTIL")
