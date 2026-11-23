@@ -74,12 +74,27 @@ impl Sim {
         self.in_play = true;
         let frame = self.frame;
         if std::env::var("RON_PROBE_4614").is_ok() && (2735..=2742).contains(&frame) {
-            let want: i16 = std::env::var("RON_PROBE_4614_O").ok().and_then(|v| v.parse().ok()).unwrap_or(87);
+            let want: i16 = std::env::var("RON_PROBE_4614_O")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(87);
             for (i, u) in self.units.iter().enumerate() {
                 if u.index == want {
                     eprintln!(
                         "PROBE4614U frame {frame} #{i} {}/{} TI {} ty {:?} alive {} hp {} on_map {} pos {:?} inside {:?} inside_unit {:?} guys {} o_up {:?} o_down {:?}",
-                        u.owner, u.index, u.type_index, u.ty, u.alive(), u.health, u.on_map, u.pos, u.inside, u.inside_unit, u.guys.len(), u.o_up, u.o_down
+                        u.owner,
+                        u.index,
+                        u.type_index,
+                        u.ty,
+                        u.alive(),
+                        u.health,
+                        u.on_map,
+                        u.pos,
+                        u.inside,
+                        u.inside_unit,
+                        u.guys.len(),
+                        u.o_up,
+                        u.o_down
                     );
                 }
             }

@@ -1216,7 +1216,10 @@ pub(crate) mod tests {
             Ok("6") => &SIXTH,
             _ => &SEVENTH,
         };
-        let k: usize = std::env::var("RON_PROBE_4614_K").ok().and_then(|v| v.parse().ok()).unwrap_or(4);
+        let k: usize = std::env::var("RON_PROBE_4614_K")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(4);
         let (Some(rcx), Some(take)) = paths(bat, k) else {
             panic!("no take");
         };
