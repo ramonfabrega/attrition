@@ -1930,30 +1930,6 @@ pub(crate) mod tests {
                     eprintln!("RAW s{state} {k}\n   ours  {o}\n   theirs {t}");
                 }
             }
-            {
-                let ours = lines[0].as_ref().unwrap();
-                let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
-                let mut oc: Vec<Vec<&sim::checksum::Range>> = Vec::new();
-                for r in &ours.ranges {
-                    if r.field == "flags" { oc.push(Vec::new()); }
-                    if let Some(l) = oc.last_mut() { l.push(r); }
-                }
-                let mut tc: Vec<Vec<&crate::trace::ranges::Range>> = Vec::new();
-                for r in &theirs {
-                    if r.site == 0x006621fe { tc.push(Vec::new()); }
-                    if let Some(l) = tc.last_mut() { l.push(r); }
-                }
-                eprintln!("CHUNK s{state} records ours {} theirs {}", oc.len(), tc.len());
-                for (k, (a, b)) in oc.iter().zip(&tc).enumerate() {
-                    let ab: Vec<&Vec<u8>> = a.iter().map(|r| &r.bytes).collect();
-                    let bb: Vec<&Vec<u8>> = b.iter().map(|r| &r.bytes).collect();
-                    if ab != bb {
-                        let who = a.iter().find(|r| r.field == "who..y_internal").map(|r| r.bytes[0]);
-                        let fields: Vec<&str> = a.iter().zip(b.iter()).filter(|(x, y)| x.bytes != y.bytes).map(|(x, _)| x.field).collect();
-                        eprintln!("CHUNK s{state} rec#{k} who {:?} o {} ranges {}/{} first parted fields {:?}", who, a[0].record, a.len(), b.len(), &fields[..fields.len().min(4)]);
-                    }
-                }
-            }
             // our owners of each record the units line walks, in order
             if state == hi {
                 let mut seen = Vec::new();
