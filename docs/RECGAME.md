@@ -1831,7 +1831,45 @@ Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
 
 ### 14.4 Row 88
 
-Open: units, deaths, guys, leaders and world part on 2741, the battery's earliest. run1808 holds sums.
+Open: units, guys and leaders part on 2741; deaths and world now agree to 2861 (item 4614). run1808 holds sums,
+run1815 the ranges to 2991.
+
+**Item 4614: a rider comes out before its carrier dies, and a fire raft dies with its shot.** Two fixes. Both are
+diff-backed by run1815's ranges (`docs/RUNS.md`), scored by `score_recording` on the item's tree.
+
+- **The seam's fix first** (DECISIONS 155 §9). `Object::kill_contents@00645550` calls `Unit::come_out(p, 0)` and then
+  `Unit::die_uber(p, 0)` on each head of `inside_down`. This crate let each rider die aboard. Now `kill_contents` runs
+  `Sim::rider_come_out`, the come-out half of `eject_riders`: the boat's ring for the captain, the captain's for each
+  member, every tail. It then kills the squad in `die_uber`'s order (`o_down` members in chain order, the captain
+  last). A rider whose `come_out` refuses still dies aboard through `close_inside_disc`. On 2740 who=2's Peltasts
+  `2/38`..`2/40` (TI 84) come ashore off the sunk barge `2/71` (TI 320) and die there. The Elite Longbowmen
+  `2/20`..`2/22` (TI 178) aboard `2/60` find no spot and die aboard. **Measured off**, with both fixes otherwise in:
+  world parts on 2741 at range 4934, record 1101, `block.present`, ours 0, theirs 1. **On**, world agrees to 2861.
+  Row 53 (run1790): its one rider on 3706 (TI 209, aboard `2/106`) finds no spot, and the fix alone moves no column
+  there. The second's row 110 stays whole.
+- **The leaf the take named.** On 2741 units range 2770, record 87: ours walks who=1's `1/87`, a Heavy Fire Raft
+  (`HEAVYFIRERAFT`, TI 335, sea), at (17544, 13464), 140 hits. Theirs has ended who=1's walk there and walks who=2's
+  `2/0`. Theirs' deaths slot 0 on 2741 is that raft (who 1, `o` 87, at its point, no impact piece), ahead of the
+  barges `2/60` and `2/71`, which ours holds in slots 0 and 1. Leaders who=1's `leader_flags & 0x800000` read ours
+  clear, theirs set. **Theirs acted**: the raft died on the frame its round sank both barges (their records carry
+  piece `0xeaf5`, `FIRST_AMMO_PIECE`). `Unit::fight@005fd4d0:900`–`906`: straight after `fire_ammo`, a type whose
+  `unit_flags` carries `n` (`0x2000`, `uflags::SELF_DESTRUCT`) takes `Object::die(this, 3, −1, 0)`, and `fight`
+  returns 0. This crate fired and reloaded. Built in `fight_as`'s ranged arm. Held by
+  `combat::fight::tests::a_fire_raft_dies_with_its_shot`.
+
+The score, `SCORES_SEVENTH[4].moved` (12,001 states): deaths 2,741 → 2,862, world 2,741 → 2,862, builds 2,783 →
+2,887, ammo 2,988 → 3,039, groups 2,751 → 2,883, guys 2,741 → 2,851, items 7,315 → 7,799, goods 2,879 → 2,998. The
+first parting stands on 2741, on units, guys and leaders. Row 53 drifts: deaths, leaders and world 3707 → 3713, its
+first parting 3358 standing.
+
+**The next word, 2741, from run1815.** Units range 4008, record 61, `flags` byte 0: ours `0x11`, theirs `0x01`. The
+unit is who=2's third barge `2/61` (TI 320). Its `myhits..` range parts on its second word, ours 12, theirs 0, and its
+guy's `guy_flags` read ours `0x30`, theirs `0x10`. Leaders who=1's record parts at byte 2644, ours 3, theirs 2. Ours'
+raft round wounds `2/61` and theirs' does not. Which side's splash list is right is not read.
+
+**Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is still not built: a `0x2000` attacker
+that collides with a valid target sets it, fires and dies. No capture has been shown to reach it. Whether the shot's
+splash reads the shooter alive is the next word's question.
 
 ### 14.5 Row 108
 

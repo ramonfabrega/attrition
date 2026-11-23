@@ -1344,76 +1344,11 @@ impl Sim {
             self.close_orders(r);
             self.clear_partial_path(r);
             self.update_action(r);
-            // 2. `come_out`. **A member climbs to its captain first**
-            // (`come_out(this, 0)`'s not-a-captain arm, `00617c10:173`,
-            // `o_up` at `+0x8e`), so the one that comes out on the boat's
-            // ring is the captain whoever heads the chain.
-            let mut captain = r;
-            for _ in 0..self.units.len() {
-                let Some(a) = self.units[captain].o_up else {
-                    break;
-                };
-                captain = a;
-            }
-            if self.units[captain].inside_unit != Some(boat) {
-                // SEAM: a member whose captain already stands ashore — a
-                // member `come_out` refused on an earlier pass. The
-                // original re-runs the captain's `get_inside < 0` arm and
-                // moves the captain; no staging has refused a member.
-                crate::seam!("captain_ashore");
+            // 2. `come_out`, [`Sim::rider_come_out`]; a refusal leaves the
+            //    passenger aboard, and the boat carrying it.
+            if !self.rider_come_out(r, boat, bearing) {
                 continue;
             }
-            // **The ring is the boat's and the arm is the passenger's.**
-            // `come_out`'s host branch reads `+0x240` off the *host's* type
-            // for the inner radius: at `61845c`..`61846a` the host object
-            // is in `eax`, and `0x50(%eax)` and `0x240(host->type)` are the
-            // bearing and the ring. The `FILTER_ALL`/`FILTER_NOT_ME` split
-            // is a different register — `618490` reads `0x240` off
-            // `0x18(%ebx)`, and `ebx` is `this`, the passenger.
-            // The arm itself is [`Sim::come_out_unit_host_spot`]: a squad
-            // member leaving a building reaches the identical code, because
-            // `come_out` swaps its host for its captain (`docs/CITIES.md`
-            // §6.5.1). The refusal is the same one — the passenger stays
-            // inside, and the boat is left carrying it.
-            let Some(at) = self.come_out_unit_host_spot(captain, boat) else {
-                continue;
-            };
-            let captain_angle = self.units[captain].movement.heading;
-            self.land_passenger(captain, at);
-            // **Then the squad, each member on its captain's ring**
-            // (`come_out@00617c10:535`: `o_down ≥ 0` and its `flags & 1`
-            // give `come_out(o_down, 1)`, right after `set_new_location`
-            // and before any of the captain's tail). A member's host is
-            // `get_captain()` (`617f2f`), so the bearing and the ring are
-            // the captain's, and the captain's `angle` is still the one it
-            // boarded with: its own `set_angle(boat)` is its tail's. run496
-            // block 1902: `0/7` at (14712, 31224), `0/8` at (14712,
-            // 31368) and `0/9` at (14904, 31224), both members turned to
-            // 1084948480, `0/7`'s angle on 1901. A refused member stops the
-            // walk there (the refusal returns before the recursion).
-            let mut members = Vec::new();
-            let mut at_f = self.units[captain].o_down;
-            for _ in 0..self.units.len() {
-                let Some(f) = at_f.filter(|&d| self.units[d].alive()) else {
-                    break;
-                };
-                if self.units[f].inside_unit != Some(boat) {
-                    break;
-                }
-                let Some(spot) = self.come_out_unit_host_spot(f, captain) else {
-                    break;
-                };
-                self.land_passenger(f, spot);
-                members.push(f);
-                at_f = self.units[f].o_down;
-            }
-            // Each tail after its own recursion returns: the chain's last
-            // member first, the captain last (`add_to_army`'s coin is the
-            // tail's last draw, `0061a1f2`).
-            for &f in members.iter().rev() {
-                self.land_tail(f, captain_angle);
-            }
-            self.land_tail(captain, bearing);
             // 3. the damage, back the way it came, on the loop's own
             //    passenger alone.
             self.same_damage(r, boat);
@@ -1462,6 +1397,92 @@ impl Sim {
                 self.disembark_squad(boat, r);
             }
         }
+    }
+
+    /// **`Unit::come_out(p, 0)` on a passenger of a unit host** — the
+    /// boat's ring for the captain, the captain's for each member, then
+    /// each tail (`come_out@00617c10`). `bearing` is the boat's heading.
+    /// False when it refuses: the captain finds no spot, and the squad
+    /// stays aboard. Two callers: [`Sim::eject_riders`]' step 2, and
+    /// [`Sim::kill_contents`], which brings each rider out before its
+    /// carrier's death kills it (item 4614).
+    pub(crate) fn rider_come_out(
+        &mut self,
+        r: usize,
+        boat: usize,
+        bearing: crate::movement::Angle,
+    ) -> bool {
+        // 2. `come_out`. **A member climbs to its captain first**
+        // (`come_out(this, 0)`'s not-a-captain arm, `00617c10:173`,
+        // `o_up` at `+0x8e`), so the one that comes out on the boat's
+        // ring is the captain whoever heads the chain.
+        let mut captain = r;
+        for _ in 0..self.units.len() {
+            let Some(a) = self.units[captain].o_up else {
+                break;
+            };
+            captain = a;
+        }
+        if self.units[captain].inside_unit != Some(boat) {
+            // SEAM: a member whose captain already stands ashore — a
+            // member `come_out` refused on an earlier pass. The
+            // original re-runs the captain's `get_inside < 0` arm and
+            // moves the captain; no staging has refused a member.
+            crate::seam!("captain_ashore");
+            return false;
+        }
+        // **The ring is the boat's and the arm is the passenger's.**
+        // `come_out`'s host branch reads `+0x240` off the *host's* type
+        // for the inner radius: at `61845c`..`61846a` the host object
+        // is in `eax`, and `0x50(%eax)` and `0x240(host->type)` are the
+        // bearing and the ring. The `FILTER_ALL`/`FILTER_NOT_ME` split
+        // is a different register — `618490` reads `0x240` off
+        // `0x18(%ebx)`, and `ebx` is `this`, the passenger.
+        // The arm itself is [`Sim::come_out_unit_host_spot`]: a squad
+        // member leaving a building reaches the identical code, because
+        // `come_out` swaps its host for its captain (`docs/CITIES.md`
+        // §6.5.1). The refusal is the same one — the passenger stays
+        // inside, and the boat is left carrying it.
+        let Some(at) = self.come_out_unit_host_spot(captain, boat) else {
+            return false;
+        };
+        let captain_angle = self.units[captain].movement.heading;
+        self.land_passenger(captain, at);
+        // **Then the squad, each member on its captain's ring**
+        // (`come_out@00617c10:535`: `o_down ≥ 0` and its `flags & 1`
+        // give `come_out(o_down, 1)`, right after `set_new_location`
+        // and before any of the captain's tail). A member's host is
+        // `get_captain()` (`617f2f`), so the bearing and the ring are
+        // the captain's, and the captain's `angle` is still the one it
+        // boarded with: its own `set_angle(boat)` is its tail's. run496
+        // block 1902: `0/7` at (14712, 31224), `0/8` at (14712,
+        // 31368) and `0/9` at (14904, 31224), both members turned to
+        // 1084948480, `0/7`'s angle on 1901. A refused member stops the
+        // walk there (the refusal returns before the recursion).
+        let mut members = Vec::new();
+        let mut at_f = self.units[captain].o_down;
+        for _ in 0..self.units.len() {
+            let Some(f) = at_f.filter(|&d| self.units[d].alive()) else {
+                break;
+            };
+            if self.units[f].inside_unit != Some(boat) {
+                break;
+            }
+            let Some(spot) = self.come_out_unit_host_spot(f, captain) else {
+                break;
+            };
+            self.land_passenger(f, spot);
+            members.push(f);
+            at_f = self.units[f].o_down;
+        }
+        // Each tail after its own recursion returns: the chain's last
+        // member first, the captain last (`add_to_army`'s coin is the
+        // tail's last draw, `0061a1f2`).
+        for &f in members.iter().rev() {
+            self.land_tail(f, captain_angle);
+        }
+        self.land_tail(captain, bearing);
+        true
     }
 
     /// **`eject_contents`' step 4 on a one-figure passenger**

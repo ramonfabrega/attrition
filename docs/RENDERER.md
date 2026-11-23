@@ -4861,7 +4861,13 @@ off (4588a, 4588b, 4588c). 129 read grey, 116 water and 330 land.
 - The rivers as a feature (above). ~~The mountains~~: built (item 4586).
 - ~~The fog, the borders, the blips and the view rectangle~~: the
   borders and the view rectangle are drawn, and the fog draws nothing on
-  the photograph (item 4588, above).
+  the photograph (item 4588, above). **A photograph with the fog on is
+  run1814b** (item 4612, `docs/RUNS.md`). It shows the harness's lobby on
+  3294 with the lane's `StartReveal` off (`semaphore` byte 0 `08`). Its
+  minimap is black except the capital's patch, and its main view darkens
+  the ground past slot 0's sight with a soft edge. The packet's `WORLD`
+  fog grids equal our walk's plane on all 14,400 cells. The reading of
+  what darkens each is the item's next act and is not done.
 - The blips are read, not built (§3.33). The pings are not built
   (4588b).
 - On 11 cells our border falls a pixel from theirs, e.g. (36, 11) theirs

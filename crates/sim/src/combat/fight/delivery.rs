@@ -1776,13 +1776,23 @@ impl Sim {
     /// ejects: it takes `Object::kill_contents@00645550`, which for each
     /// head of `inside_down` calls `Unit::come_out(p, 0)` and
     /// `Unit::die_uber(p, 0)` — `Object::die(p, 0, −1, 0)` on the squad,
-    /// no death draw. A transport sunk at sea takes its riders with it:
-    /// run1483's Freighter `1/54` and the Elite Special Forces `1/0`
-    /// aboard it. A boat off the map (inside an oil platform) takes the
+    /// no death draw. A boat off the map (inside an oil platform) takes the
     /// `remove_from_inside` arm instead ([`Sim::boat_dies_into`]).
     ///
-    /// Each rider's own close is the off-map arm,
-    /// [`Sim::close_inside_disc`] (item 4485).
+    /// **The rider comes out first** (item 4614, `docs/RECGAME.md` §14.4):
+    /// `come_out(p, 0)` is [`Sim::rider_come_out`], the boat's ring for the
+    /// captain and the captain's for each member, every tail run, and the
+    /// squad then dies where it stands ashore. Only a `come_out` that
+    /// refuses — no spot on the ring, as for a transport sunk in open
+    /// water: run1483's Freighter `1/54` and the Elite Special Forces `1/0`
+    /// aboard it — leaves a rider to die inside, through the off-map arm,
+    /// [`Sim::close_inside_disc`] (item 4485). run1808's 2740: who=2's
+    /// two Transport Barges `2/60` and `2/71` (TI 320) die with an Elite
+    /// Longbowmen squad (TI 178, `2/20`..`2/22`) and a Peltast squad
+    /// (TI 84, `2/38`..`2/40`) aboard.
+    ///
+    /// `die_uber` climbs to the captain, kills each `o_down` member in
+    /// chain order, and the captain last (`Unit::die_uber@00606460`).
     pub(crate) fn kill_contents(&mut self, boat: usize) {
         if !self.units[boat].on_map {
             return;
@@ -1790,11 +1800,50 @@ impl Sim {
         let riders: Vec<usize> = (0..self.units.len())
             .filter(|&r| self.units[r].inside_unit == Some(boat) && self.units[r].alive())
             .collect();
+        let bearing = self.units[boat].movement.heading;
         for r in riders {
+            // The loop re-reads `inside_down`'s head after each squad: a
+            // rider an earlier pass took out, or killed, is not a head.
+            if !self.units[r].alive() || self.units[r].inside_unit != Some(boat) {
+                continue;
+            }
+            self.rider_come_out(r, boat, bearing);
+            self.die_uber_quietly(r, boat);
+        }
+    }
+
+    /// `Unit::die_uber(p, 0)@00606460`: the captain's `o_down` chain in
+    /// order, each alive member `Object::die(·, 0, −1, 0)`, then the
+    /// captain. One still aboard `boat` (its `come_out` refused) closes
+    /// through the off-map arm first.
+    fn die_uber_quietly(&mut self, r: usize, boat: usize) {
+        let mut captain = r;
+        for _ in 0..self.units.len() {
+            let Some(a) = self.units[captain].o_up else {
+                break;
+            };
+            captain = a;
+        }
+        for _ in 0..self.units.len() {
+            let Some(m) = self.units[captain]
+                .o_down
+                .filter(|&m| self.units[m].alive())
+            else {
+                break;
+            };
+            self.die_rider(m, boat);
+        }
+        if self.units[captain].alive() {
+            self.die_rider(captain, boat);
+        }
+    }
+
+    fn die_rider(&mut self, r: usize, boat: usize) {
+        if self.units[r].inside_unit == Some(boat) {
             self.close_inside_disc(r);
             self.units[r].inside_unit = None;
-            self.die_quietly(r);
         }
+        self.die_quietly(r);
     }
 
     /// **`Object::close@00647160`'s off-map arm, on the occupancy index**
@@ -1813,14 +1862,7 @@ impl Sim {
     /// `1/11` (TI 50) dies aboard its sunk Freighter `1/61` (TI 322),
     /// and world cell (33, 47), holding its boarding point (543, 763),
     /// holds an empty block in theirs.
-    ///
-    /// SEAM: `kill_contents` calls `Unit::come_out(p, 0)` before the death,
-    /// and this crate does not. A rider the ring around its boat seats
-    /// paints and clears its boarding disc the same way (its
-    /// `remove_from_inside`, then `move_unit`'s clear pass), and then
-    /// dies on the spot.
     pub(crate) fn close_inside_disc(&mut self, r: usize) {
-        crate::seam!("kill_contents_no_come_out");
         let at = self.units[r].movement.body.pos;
         self.coll_paint(r, at, true);
         self.coll_paint(r, at, false);
