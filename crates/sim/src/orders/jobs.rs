@@ -183,9 +183,8 @@ impl Sim {
     /// builder walks under a `MOVEORDER` — run241's `0/8` taking
     /// `find_build_spot`'s help on 1097 (`docs/GOLDEN.md` §26).
     ///
-    /// SEAM: a computer's `REPAIR` swarm is `MOVE_TO` in the original and
-    /// an `EXPLORE_TO` here; the AI repairs on both long captures, so the
-    /// change is held until both words are measured with it.
+    /// A computer's `REPAIR` swarm is `MOVE_TO` (item 4597: row 133's
+    /// Citizen 2/72 on state 1906, `order.type` 3 against theirs' 1).
     pub(crate) fn swarm_around(&mut self, u: usize, b: usize, body: Body, action: bool) {
         self.swarm_member(u, b, body, action, false);
     }
@@ -213,11 +212,13 @@ impl Sim {
 
     fn swarm_member(&mut self, u: usize, b: usize, body: Body, action: bool, new: bool) -> bool {
         let building = matches!(body, Body::Build(_));
-        let kind = if self.cities.nation[self.units[u].owner as usize].human {
-            MoveKind::MoveTo
-        } else {
-            crate::seam!("computer_repair_explore", matches!(body, Body::Repair(_)));
+        // `local_40` is set at `0070fbe0:71` (1) and, for `BUILD_AT`
+        // alone, at `:115` (item 4597): a computer's `REPAIR` swarm walks
+        // under `MOVE_TO`, as a human's does.
+        let kind = if building && !self.cities.nation[self.units[u].owner as usize].human {
             MoveKind::ExploreTo
+        } else {
+            MoveKind::MoveTo
         };
         // **Nothing is queued when the ring finds no spot** (item 3622,
         // `docs/AI.md` §330): the member arm's move, its order and the
