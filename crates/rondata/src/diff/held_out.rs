@@ -1985,6 +1985,11 @@ pub(crate) mod tests {
                 let mut who = 0u8;
                 for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
                     if a.field == "who..y_internal" { who = a.bytes[0]; }
+                    if li == 0 && who == 2 && a.record == 0 && a.field == "collide_frame..play" {
+                        let w = |x: &[u8], o: usize| u32::from_le_bytes([x[o], x[o + 1], x[o + 2], x[o + 3]]);
+                        let h = |x: &[u8], o: usize| i16::from_le_bytes([x[o], x[o + 1]]);
+                        eprintln!("P4623M {state} masks {:#x}/{:#x} masks2 {:#x}/{:#x} myarmor {}/{} trench {:#x}/{:#x} idle {}/{}", w(&a.bytes, 0x20), w(&b.bytes, 0x20), w(&a.bytes, 0x24), w(&b.bytes, 0x24), h(&a.bytes, 0x54), h(&b.bytes, 0x54), w(&a.bytes, 0x14), w(&b.bytes, 0x14), a.bytes[0x68], b.bytes[0x68]);
+                    }
                     if li == 0 && who == 2 && a.record == 0 && a.field == "myhits..launch_frames" {
                         let w = |x: &[u8], o: usize| i32::from_le_bytes([x[o], x[o + 1], x[o + 2], x[o + 3]]);
                         let h = |x: &[u8], o: usize| i16::from_le_bytes([x[o], x[o + 1]]);
