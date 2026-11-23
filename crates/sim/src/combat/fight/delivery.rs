@@ -1790,6 +1790,21 @@ impl Sim {
         let riders: Vec<usize> = (0..self.units.len())
             .filter(|&r| self.units[r].inside_unit == Some(boat) && self.units[r].alive())
             .collect();
+        if std::env::var("RON_PROBE_4614").is_ok() {
+            let b = &self.units[boat];
+            eprintln!(
+                "PROBE4614 frame {} boat {}/{} TI {} pos {:?} hp {} riders {}",
+                self.frame, b.owner, b.index, b.type_index, b.pos, b.health, riders.len()
+            );
+            for &r in &riders {
+                let u = &self.units[r];
+                eprintln!(
+                    "PROBE4614   rider {}/{} TI {} pos {:?} body {:?} o_up {:?} o_down {:?}",
+                    u.owner, u.index, u.type_index, u.pos, u.movement.body.pos,
+                    u.o_up.map(|x| self.units[x].index), u.o_down.map(|x| self.units[x].index)
+                );
+            }
+        }
         for r in riders {
             self.close_inside_disc(r);
             self.units[r].inside_unit = None;

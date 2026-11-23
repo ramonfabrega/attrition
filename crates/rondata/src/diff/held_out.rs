@@ -1206,6 +1206,26 @@ pub(crate) mod tests {
     /// `HELD_OUT_SEVENTH[k]` played as `run1804 + k` (item 4600), held as
     /// the first six are, on every state to 12,000.
     #[test]
+    fn probe_4614_row_88() {
+        if std::env::var("RON_PROBE_4614").is_err() {
+            return;
+        }
+        let inst = crate::testenv::install().expect("install");
+        let (Some(rcx), Some(take)) = paths(&SEVENTH, 4) else {
+            panic!("no take");
+        };
+        let until = std::env::var("RON_PROBE_4614_UNTIL").ok().and_then(|v| v.parse().ok());
+        let score = crate::checksum::playback::compare_until(inst.root(), &rcx, &take, until)
+            .expect("scored");
+        eprintln!("PROBE4614 states {} agreed {:?} first {:?}", score.states, score.agreed, score.first);
+        for (line, d) in crate::checksum::CHECKSUM_LINES.iter().zip(&score.details) {
+            if let Some(d) = d {
+                eprintln!("PROBE4614  {}: {d}", line.0);
+            }
+        }
+    }
+
+    #[test]
     fn the_seventh_held_out_games_score_as_pinned() {
         games_score_as_pinned(&SEVENTH);
     }
