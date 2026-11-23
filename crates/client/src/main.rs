@@ -401,10 +401,18 @@ fn build(
     // Item 4581: the HUD's minimap, under the plates and the bars.
     // Item 4588: its overlays over it, the borders and the view's rectangle.
     let minimap: Vec<gpu::ScreenLayer> = hud
-        .and(world.minimap.as_ref())
-        .map(|back| {
+        .zip(world.minimap.as_ref())
+        .map(|(input, back)| {
             let mut v = vec![minimap::layer(back, (size.0 as i32, size.1 as i32))];
-            v.extend(minimap::overlays(world, camera, size));
+            // `graphic_tick` taken as the frame: not established.
+            let blink = world.runner.frame() & 8 != 0;
+            v.extend(minimap::overlays(
+                world,
+                camera,
+                size,
+                &input.selection,
+                blink,
+            ));
             v
         })
         .unwrap_or_default();
@@ -573,7 +581,8 @@ pub(crate) fn still_minimap(
     ));
     if let Some(back) = &back {
         screen.push(minimap::layer(back, (size.0 as i32, size.1 as i32)));
-        screen.extend(minimap::overlays(world, camera, size));
+        // The still is the photograph's phase (item 4601).
+        screen.extend(minimap::overlays(world, camera, size, selection, true));
     }
     let version = world.runner.terrain().version;
     world.set_screen(camera, size);
