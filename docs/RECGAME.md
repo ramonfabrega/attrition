@@ -1716,9 +1716,8 @@ Open: cities part on 3995, eleven lines whole. run1793 holds sums (item 4592).
 
 ### 13.5 Row 133
 
-Open: builds part on 2166, who=2's SAM `2/2027` (TI 0x20d), `BuildData +0x7a recharging` ours 0, theirs 1, every
-other byte of the record equal; units follow on 2199 (records 34 and 66, `order.air`). Theirs acted. run1797 holds the
-ranges.
+Open: ammo parts first on 2198 (on that frame before item 4602 too, its sum moved); units on 2245, builds, groups and
+guys on 2351. run1797 holds the ranges.
 
 **Item 4597** (DECISIONS 154 §2): units moved from 1906 to 2199. On 1906 units range 3967, record 72 `order.type` was
 ours 3, theirs 1: the repair recruit `2/72` walked to its capital under `EXPLORE_TO`. In
@@ -1726,3 +1725,14 @@ ours 3, theirs 1: the repair recruit `2/72` walked to its capital under `EXPLORE
 computer's `REPAIR` swarm walks under `MOVE_TO`, as `docs/ORDERS.md` and `docs/GROUPS.md` already said.
 `row_133_s_repair_recruit_walks_under_a_move_order_on_run1797_s_ranges` holds every units range on 1905 and 1906. No other
 row of the sixth moved, and both long words held at 24000. *Diff-backed*: the order's class on 1906.
+
+**Item 4602**: builds moved from 2166 to 2351. On 2166 who=2's SAM `2/2027` (TI 0x20d) holds `near_o` 71 (who 1) and
+no target (`attack_ox` −1) on both sides, and `recharging` (`+0x7a`) was ours 0, theirs 1. `Wall::inc_time@0063fb60:204`
+winds on `near_o < 0 || jammed` alone and reads the target only at the top of the wind. Ours took the target's sign for
+`near_o`'s (`docs/COMBAT.md` §84.7). With that fixed, 2167 parted on `job_counter` (`WallData +0x48`): ours
+0x40000000, theirs 0x42040000, then 0x42b40000 and 0x436b0000. `Build::process@0061edf0` (`61ef10`..`61ef91`) turns
+an `ANTI_AIR` building's turret at its aim, at most `0x38e38e3` a frame. The aim is the target `do_attack` leaves, or the
+sighting when it is out of range. Ours had no turn. Both are built (`Sim::wall_anti_air`, `Sim::turn_air_defense`).
+`row_133_s_sam_winds_and_turns_at_its_sighting_on_run1797_s_ranges` holds every builds range on 2165 to 2172. No other
+row of the sixth moved. Cities fell 2,526 → 2,442 past its first parting, which stayed at 2297. *Diff-backed*: the wind
+and the turn on 2166 to 2172.

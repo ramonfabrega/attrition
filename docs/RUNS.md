@@ -41192,6 +41192,11 @@ another lane. `df -g ~` read 98 GB free before it and 78 after the filing.
 - **Re-scored by item 4597** (a computer's repair swarm walks under `MOVE_TO`): units 2,126 → 2,199 (first 1906 →
   2199); no other line moved. On 1906 units range 3967 (record 72) had held `order.type` ours 3, theirs 1. The row's
   first parting is builds on 2166: range 2509, who=2's SAM `2/2027`, `recharging` (`+0x7a`) ours 0, theirs 1.
+- **Re-scored by item 4602** (an anti-air building winds on its sighting and turns its turret at its aim): units
+  2,199 → 2,245, builds 2,166 → 2,351, ammo 2,770 → 2,794, deaths 2,529 → 2,598, groups 2,319 → 2,351, guys 2,199 →
+  2,351, leaders 2,228 → 2,245, cities 2,526 → 2,442 (first 2297 on both), items 2,464 → 3,222, goods 2,403 → 2,721,
+  world 2,234 → 2,352. On 2166 `2/2027` held `near_o` 71 (who 1), `attack_ox` −1 on both sides, `recharging` ours 0,
+  theirs 1; on 2167 `job_counter` ours 0x40000000, theirs 0x42040000. The row's first parting is ammo on 2198.
 - Filed by `filerun.py run1797 heldout6-row133-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1797-heldout6-row133-ranges.txt`, 2,845 bytes, SHA-256
   `6749d34e0502d81f475a0d6ac9e1e3de41cc2079e658cdd81533040e083d1be4`; `rontrace.log` → `Logs/rontrace-run1797.log`,
