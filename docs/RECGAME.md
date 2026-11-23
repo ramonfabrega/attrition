@@ -1648,7 +1648,7 @@ new partings is read.~~ Row 73's 2779 is read and built by item 4589 (`docs/ANIM
 idled by its guard stand, is put back on `CHAR_ATTACKWALK` by `Guy::move`'s moving walk; row 73 is whole but ammo,
 ~~first 3279, unread~~ first 3279, read and built by item 4595 (`docs/COMBAT.md` §24.4): who=2's Armored Car `2/32`,
 on `CHAR_ATTACKWALK` at the gone Citizen `0/4`, releases on 3278 into `Objects::add_ammo`, which counts `graph_index`
-1008 while `Ammo::init` refuses the round; **row 73 is whole on all twelve lines, 3,438 of 3,438**. Rows 33's 3386 and 113's 3995 are not read. Also not established: a script past §9's three orders, or one issued after frame 90; whether row
+1008 while `Ammo::init` refuses the round; **row 73 is whole on all twelve lines, 3,438 of 3,438**. Row 33's 3386 is named and closed by item 4591, below. Row 113's 3995 is not read. Also not established: a script past §9's three orders, or one issued after frame 90; whether row
 13's 7675 and the sample's 7055 are one mechanism.
 
 **Row 93's first leaf: the President heals** (item 4577, run1799). run1799 is row 93's
@@ -1668,3 +1668,19 @@ Ammo goes 3,924 → 4,263. Deaths (3,464 → 3,406), items (4,832 → 3,127) and
 *Diff-backed*: the arm on allied ground, by every units range on 2341 to 2343
 (`row_93_s_volksgrenadiers_heal_beside_their_president_on_run1799_s_ranges`). *Read, not diffed*: the unowned-cell
 half (`iVar8 < 0 ||`, `005e0670:184`); `1/39` stood on allied ground, so only the unit test holds it.
+
+**Row 33 whole: the Musketeer's socket** (item 4591, run1801, the ammo take of run1789's file, `RNG_MASK=0x8u`). State
+3386, ammo range 4, record 4, `rolling..start_roll_angle`: byte 7, `launch.x`, ours 6906, theirs 6907, and bytes 19 and
+41, which follow from the launch; `launch.y` 32948 agrees. It is the only parted range. The round is who=2's Musketeers
+`2/25` (TI 99, land, piece 49) at (6840, 33096) facing 244,973,568, loosing `CHAR_ATTACK3` at frame 4 on 3385. Piece
+49's rows were item 3691's fit to the disk's 92 rounds, each a feasible region's centre-most point. The original's own
+`get_position`, after `init_position`, on run1579's packet, swept over all 361 whole degrees for each of the three keys,
+admits one `launch::Bay` region a key (411, 196 and 113 lattice points); the fitted rows held 357, 361 and 329 of the
+headings, and this one is a miss of the third. The rows are now the regions' centroids, (33,049, 139,808), (11,451,
+166,599) and (12,330, 162,102), heights 218, 176 and 178. They are piece 1105's rows to the digit (item 3692, the
+Asian-style Musketeer, fitted from run1361's packet), an independent fit agreeing. **Ammo 3,927 → 3,944: row 33 is
+whole on twelve lines to the original's end 3,943**, the sixth's second whole row (2 of 8). No other row of the sixth
+moved. `row_33_s_musket_ball_leaves_from_the_original_s_socket_on_run1801_s_ranges` holds every ammo range on 3385 to
+3400, and `data::launch::tests::the_original_s_release_agrees_at_every_heading_for_the_musketeers` the sweeps
+(`RON_BAY_SWEEPS_4591`, outside git). *Diff-backed*: the round's launch on 3386 and the row's twelve sums on every
+state. *Read, not diffed*: the `CHAR_ATTACK1` row's four headings the old fit missed; no capture has a round on one.

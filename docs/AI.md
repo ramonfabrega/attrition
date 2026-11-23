@@ -33445,6 +33445,10 @@ centre-most point:
 | `CHAR_ATTACK2`, 7 | 11,452 | 166,595 | 176 |
 | `CHAR_ATTACK3`, 4 | 12,256 | 162,078 | 178 |
 
+~~These are the rows~~: since item 4591 (`docs/RECGAME.md` §13) they are the original's own
+`get_position` sweep's centroids, (33,049, 139,808), (11,451, 166,599) and (12,330, 162,102);
+the fitted rows above held 357, 361 and 329 of its 361 headings.
+
 **Built.** All three are `BAYS` rows, and piece 49 leaves `MEASURED`.
 `launch::tests::run1344b_s_french_musketeers_leave_from_piece_49_s_bays`
 holds twenty of run1344b's rounds, the word's first. Each is reproduced by
