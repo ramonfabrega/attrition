@@ -10014,30 +10014,33 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
             over: None,
         },
         // Moved by item 4575 (the nuke arm skips an enemy researching the
-        // Missile Shield: who=2 lists a Jet Fighter, not an ICBM, on 956):
-        // units 1,162 -> 1,758, builds 958 -> 1,758, ammo 2,517 -> 2,738
-        // (first 1485 -> 2179), deaths 1,484 -> 2,524 (first 1484 -> 2375),
-        // groups 1,242 -> 1,821, guys 1,162 -> 1,758, leaders 956 -> 1,757,
-        // cities 1,376 -> 1,758, items 1,614 -> 2,185 (first 1614 -> 2051),
-        // goods 1,758 -> 1,827 (first 1758 stands), world 1,197 -> 1,758;
-        // the first parting is leaders on 1757.
+        // Missile Shield: who=2 lists a Jet Fighter, not an ICBM, on 956),
+        // the first parting 956 -> 1757; then by item 4585 (a tower is
+        // halved only while its city has never been attacked: who=2 lists
+        // no Bunker in its capital on 1757): units 1,758 -> 1,905, builds
+        // 1,758 -> 1,905, ammo 2,738 -> 2,680 (first 2179 -> 2184), deaths
+        // 2,524 -> 2,382 (first 2375 -> 2382), groups 1,821 -> 2,067, guys
+        // 1,758 -> 1,906, leaders 1,757 -> 1,905, cities 1,758 -> 1,951,
+        // items 2,185 -> 2,676 (first 2051 -> 2310), goods 1,827 -> 2,418
+        // (first 1758 -> 2418), world 1,758 -> 1,906; the first parting is
+        // units, builds and leaders on 1905.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                1758, 1758, 6085, 2738, 2524, 1821, 1758, 1757, 1758, 2185, 1827, 1758,
+                1905, 1905, 6085, 2680, 2382, 2067, 1906, 1905, 1951, 2676, 2418, 1906,
             ],
             first: &[
-                ("units", (1758, Some(1822761108), 3352235544)),
-                ("builds", (1758, Some(296845992), 2147057133)),
-                ("ammo", (2179, Some(228440557), 1)),
-                ("deaths", (2375, Some(1302924388), 1)),
-                ("groups", (1821, Some(4092695628), 1909888083)),
-                ("guys", (1758, Some(3957686330), 3602415650)),
-                ("leaders", (1757, Some(1331655450), 1809805911)),
-                ("cities", (1758, Some(1443313464), 1468675896)),
-                ("items", (2051, Some(4076288713), 973420266)),
-                ("goods", (1758, Some(4232738889), 139819094)),
-                ("world", (1758, Some(3225754612), 2274894826)),
+                ("units", (1905, Some(3775966775), 2122353837)),
+                ("builds", (1905, Some(711906929), 3198474279)),
+                ("ammo", (2184, Some(1), 775076783)),
+                ("deaths", (2382, Some(76880417), 72489504)),
+                ("groups", (2067, Some(2670601218), 1171464947)),
+                ("guys", (1906, Some(2990684265), 1020803684)),
+                ("leaders", (1905, Some(3323301309), 2867367359)),
+                ("cities", (1951, Some(2416327274), 4184292042)),
+                ("items", (2310, Some(1196240602), 1848060668)),
+                ("goods", (2418, Some(393574506), 289765478)),
+                ("world", (1906, Some(2974310201), 2850905871)),
             ],
             over: None,
         }),
