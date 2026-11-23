@@ -1763,7 +1763,9 @@ const UNBUILT: &[(&str, usize)] = &[
     ("COMBAT.md", 1),
     ("COSTS.md", 1),
     ("ECONOMY.md", 10),
-    ("GOLDEN.md", 4),
+    // Item 4594 banked one (GOLDEN 4 -> 3): `0x1e00`, `Build::process`'s
+    // repair recruit's reach, is `cities::site_recruit::CITY_REPAIR_RANGE`.
+    ("GOLDEN.md", 3),
     ("GOODY.md", 4),
     ("GROUPS.md", 2),
     // Item 4152 (a reader row): the spec writes the type indices, offsets,
