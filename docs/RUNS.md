@@ -41448,3 +41448,36 @@ free. `df -g ~` read 71 GB free before it and 75 after filing.
 
 **What it holds**: the arm behind row 73's leaf (`docs/journal/2026-11-23-item-4583.md`). No test reads it: the test
 it gave is a sim test, `a_caravan_homed_on_an_ally_s_city_links_only_under_trade`.
+
+## run1801 — parity held out, sixth battery, row 33's file to the original's end (3943) with the checksum and ranges hooks, ammo kept (2026-11-23, item 4591, `att-4591`)
+
+`docs/RECGAME.md` §13. **What the disk could not answer**: run1789 holds sums only, so row 33's ammo parting on 3386
+(after item 4583) named no leaf. The take is run1789's file with the scorer's one-take line (`score_recording …
+~/ron-golden/run1789/map-7` on `097102a82`: `--end-frame 12000 --allow-early-end --tracer-def RON_CHECKSUMS
+--tracer-def RON_RANGES --tracer-def RNG_MASK=0x8u`): `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1801 --recording ~/ron-golden/recordings/item4566-row033-12000.rcx
+--end-frame 12000 --allow-early-end --cover cover=1 --log-window 3380 3392 --detail end:MISC --timeout 3600
+--stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0x8u`, waited on with
+`waitrun.sh` in the background. The lane was free at launch, so no minutes went to waiting. `df -g ~` read 75 GB free
+before it and 82 after filing.
+- **The run**: pool lane 1, launched 05:06:30 −05:00, exited 05:11:23: **292.6 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 3,944 frames, `last_frame` 3943, **ended by the original**, as run1789 did, seed 12345,
+  map 7. The recording's SHA-256 is run1789's (`6c11cbb3…`). Players: tribe 4 (who 0, flags 7), tribe 8 (who 1),
+  tribe 10 (who 2).
+- **The record**, `~/ron-golden/run1801/map-7/rontrace.ranges`, 497,364 bytes, SHA-256
+  `be014d9e4753771b6283fee67e9eafe0be6f6bbf9d5d02f8f1d16f265cee539e`: lines `['ammo']`, 3,947 sets on trace frames −1
+  to 3942, 2,364 ranges, 79,588 bytes, none over (`ranges.py summary`). Under a gigabyte, so `filerun.py` left it whole.
+- **Scored** (`score_recording … ~/ron-golden/run1801/map-7`, on `097102a82`): the sums are run1789's as moved by item
+  4583; eleven lines whole; ammo 3,927, first 3386: **ammo range 4, record 4, `rolling..start_roll_angle`, byte 7:
+  `launch.x` ours 6906 (0xfa), theirs 6907 (0xfb)**, then bytes 19 and 41. The round is who=2's Musketeers `2/25` (TI
+  99, land, piece 49) loosing `CHAR_ATTACK3` at frame 4 on 3385 from (6840, 33096).
+- **Re-scored by item 4591** (piece 49's bays from the original's sweep): ammo 3,944 of 3,944; **twelve lines whole**
+  to the original's end.
+- Filed by `filerun.py run1801 heldout6-row033-ranges`: `gamelog_p.txt` →
+  `Logs/gamelog-run1801-heldout6-row033-ranges.txt`, 2,863 bytes, SHA-256
+  `4f41f46124f18206ad0818be6efc384b76a8f1ac04ff921e0b69a336b2afd235`; `rontrace.log` → `Logs/rontrace-run1801.log`,
+  112,837,728 bytes, SHA-256 `62fb6b64374aedcf3b29f060a447d104a8d244e3061a97454561d4ac9161d519`; the record stays
+  in place.
+
+**What it holds**: `diff::held_out::tests::row_33_s_musket_ball_leaves_from_the_original_s_socket_on_run1801_s_ranges`
+(every ammo range on states 3385 to 3400; who=2's `2/25` TI 99 on 3386).
