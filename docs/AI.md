@@ -34467,7 +34467,7 @@ game's last frame. `docs/CITIES.md`'s timer reads `has_general(THECITIZEN) ≥ 0
 THECITIZEN_ASSIMILATION_SPEED`, −3 a frame, and theirs' 4468 is one such step after the capture. Ours'
 `sim::city::assimilation_tick` keys it on `City::has_citizen`, which **no writer in `sim` ever sets true**
 (every constructor writes `false`). So the hypothesis is that the step is unwired, not mistimed. Which side's
-general (TI 356, The Comrade) qualifies is not read (parked 3699a). `inca_word`'s closing city row (`peasant_dist`, item 3360) is the
+general (TI 356, The Comrade) qualifies is not read (parked 3699a; closed by item 4570, the owner's, `docs/CITIES.md` §8.1). `inca_word`'s closing city row (`peasant_dist`, item 3360) is the
 precedent for a whole word with one closing field pinned.
 
 **The rubric.** `rubric.py --tables 3` reads unit types seen **224 → 225 of 302**: the pair is lockstep, and the

@@ -263,7 +263,10 @@ fn inca_industrial_pair_run1372_s_closing_state() {
     // walked back one `THECITIZEN_ASSIMILATION_SPEED` tick (`1 − 4`) more
     // than ours (parked 3699a). The draw stream never feels it.
     pin_eq!(e.compared, 156, "units compared");
-    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 1], "the closing counts");
+    // Item 4570: [0, 0, 0, 0, 0, 0, 1] -> [0, 0, 0, 0, 0, 0, 0], 3699a
+    // closed: the assimilation tick asks the city building for its owner's
+    // Citizen (`has_general(this, 0, 0x164)`, `docs/CITIES.md` §8.1).
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(
         e.extra.clone(),
         Vec::<(i64, i64)>::new(),

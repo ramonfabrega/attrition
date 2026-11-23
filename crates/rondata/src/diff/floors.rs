@@ -527,10 +527,12 @@ pub const MAPGEN: Mapgen = Mapgen {
 // `refresh_site_hits` is gone.
 // Item 4562: `largest` 3,707 -> 3,756 (+49), a named rise: `air.rs`' `computer_sortie` carries
 // `Object::do_launch`'s forts' and wonders' loops (`64fa71`..`64fda4`), its SEAM gone.
+// Item 4570: `sweep-lines` 17,288 -> 17,287 (-1): `City::has_citizen`, which nothing wrote, is gone
+// with its literal in `sweep/city_get_empty_trade_routes.rs`.
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 11),
     ("test-tails", 0),
-    ("sweep-lines", 17_288),
+    ("sweep-lines", 17_287),
     ("names", 15),
     ("fields", 21),
     ("largest", 3_756),

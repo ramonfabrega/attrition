@@ -194,8 +194,6 @@ pub struct City {
     /// value (`get_pop_value` is computed from the level) and not touched by
     /// a level-up.
     pub pop: i32,
-    /// The Citizen patriot is in this city.
-    pub has_citizen: bool,
     /// This city's entry in [`Sim::sources`], while it projects territory.
     pub source: Option<usize>,
     /// `trade_val` (+0x52): what the trade routes ending here add to the
@@ -486,7 +484,6 @@ impl Sim {
             scouted: 0,
             capture_strength: 0,
             pop: 0,
-            has_citizen: false,
             source: None,
             trade_val: 0,
             traded_with: [0; 8],
@@ -3434,13 +3431,25 @@ impl Sim {
     // Assimilation, plunder
     // ------------------------------------------------------------------
 
-    /// The assimilation tick of `Build::process` for an unassimilated city.
+    /// The assimilation tick of `Build::process` for an unassimilated city
+    /// (`docs/CITIES.md` §8.1).
+    ///
+    /// **The Citizen is asked of the city building** (item 4570,
+    /// `docs/RECGAME.md` §12.3): `Build::process@0061edf0:698` calls
+    /// `ObjectData::has_general(this, 0, 0x164)` — `HeroesData::find_hero`
+    /// from the building's point, its footprint's `(x_size + y_size) ×
+    /// 0x60` allowed, [`Sim::hero_near_building`] — and walks the stamp
+    /// back `THECITIZEN_ASSIMILATION_SPEED − 1` a frame while one of the
+    /// owner's Citizens is in reach. run1784's city `1/2043`, taken from
+    /// who=2 on 3644, reads 3644 then 3641 on 3656 as who=1's Citizen
+    /// `1/15` (TI 356) walks in. The same SEAM as there: the leader's
+    /// per-type count at `+0x56fe` is not read.
     fn assimilation_tick(&mut self, c: usize, frame: i64) {
         let owner = self.cities.cities[c].owner;
         if self.cities.cities[c].race == Some(owner) {
             return;
         }
-        if self.cities.cities[c].has_citizen {
+        if self.hero_near_building(self.cities.cities[c].building, 0x164) {
             self.cities.cities[c].assimilation_timer +=
                 1 - i64::from(self.tables.tuning.thecitizen_assimilation_speed);
         }

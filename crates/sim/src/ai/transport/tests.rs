@@ -2070,7 +2070,6 @@ fn a_soldier_barge_with_no_army_sails_for_its_nearest_city() {
             scouted: 0,
             capture_strength: 0,
             pop: 1,
-            has_citizen: false,
             source: None,
             trade_val: 0,
             traded_with: [0; 8],

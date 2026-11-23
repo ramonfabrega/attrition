@@ -581,7 +581,10 @@ fn american_information_pair_run1409_s_closing_state() {
     // [4, 0, 0, 0, 3, 0, 1] → [0, 0, 0, 0, 0, 0, 1] — every unit and
     // building agrees; the one city row is `1/2055`'s
     // `assimilation_timer`, 4320 against 4317 (3742c's family).
-    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 1], "the closing counts");
+    // Item 4570: [0, 0, 0, 0, 0, 0, 1] -> [0, 0, 0, 0, 0, 0, 0], the city row
+    // gone: the assimilation tick asks the city building for its owner's
+    // Citizen (`has_general(this, 0, 0x164)`, `docs/CITIES.md` §8.1).
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }
 

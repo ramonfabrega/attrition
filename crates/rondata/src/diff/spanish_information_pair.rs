@@ -348,6 +348,9 @@ fn spanish_information_pair_run1489_s_closing_state() {
     // theirs 3497 — 3699a's, 3742c's and 3760d's family on a fourth lobby
     // (parked 3866a). The draw stream never feels it (`docs/AI.md` §380).
     pin_eq!(e.compared, 114, "units compared");
-    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 1], "the closing counts");
+    // Item 4570: [0, 0, 0, 0, 0, 0, 1] -> [0, 0, 0, 0, 0, 0, 0], 3866a
+    // closed: the assimilation tick asks the city building for its owner's
+    // Citizen (`has_general(this, 0, 0x164)`, `docs/CITIES.md` §8.1).
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }
