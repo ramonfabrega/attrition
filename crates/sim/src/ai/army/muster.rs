@@ -546,6 +546,7 @@ impl MusterView for SimMuster<'_> {
     }
     fn find_building(&mut self, _i: i32) -> i32 {
         // SEAM: the siege army's enemy-building search is not modelled.
+        crate::seam!("siege_find_building");
         -1
     }
     fn siege(&mut self) -> i32 {

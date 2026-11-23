@@ -866,6 +866,7 @@ impl Sim {
                 let head = s.units[u].head_serial;
                 s.kill_group_move(&g, id);
                 if s.units[u].head_serial == head && s.current_order(u).is_some() {
+                    crate::seam!("group_move_head_standing");
                     s.kill_current_order(u);
                 }
             },
@@ -893,6 +894,7 @@ impl Sim {
             // here (`docs/SYNC.md` §3.9, `docs/TRANSPORT.md` §5.2).
             let t = self.units[u].type_index;
             if crate::units::anim::is_air_gaia(t) {
+                crate::seam!("bird_stands");
                 // `Animal::think_bird`'s `0x192` arm, under
                 // `Unit::do_air_patrol+0x28`. A **gull** is on a
                 // `StrafeOrder`, so `Unit::do_strafe` calls the same
@@ -1775,6 +1777,7 @@ impl Sim {
     /// unit; and the tail's `inside_down >= 0` scramble, a transport's.
     pub(crate) fn do_patrol(&mut self, u: usize, p: PatrolOrder) {
         let Some(g) = self.group_of(u) else {
+            crate::seam!("patrol_no_group");
             return;
         };
         if p.leader != u {

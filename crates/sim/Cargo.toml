@@ -12,6 +12,13 @@ version = "0.1.0"
 # quantity the original computes is an integer with a defined truncation. `fixed`
 # will be earned when something genuinely needs one. See docs/DECISIONS.md 13.
 
+[features]
+# Item 4580: the `seam!` hooks count which `SEAM` notes a walk enters, on a
+# thread-local record the simulation never reads (`src/seam.rs`). Off, the
+# hook expands to nothing. Only a test turns it on (`rondata`'s own
+# `seam-count`); never a default.
+seam-count = []
+
 [dev-dependencies]
 # The sweeps' emulator cache (`src/sweep/support.rs`, test-only) stores a
 # result over its cap gzip-compressed rather than not at all (Loop 3777: 273

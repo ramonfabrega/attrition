@@ -1466,6 +1466,9 @@ impl Sim {
         let to = self.restrict_pos(to);
         for &m in &g.list {
             if !self.units[m].alive() || !self.is_plane(m) {
+                if self.units[m].alive() {
+                    crate::seam!("air_patrol_non_plane");
+                }
                 continue;
             }
             let busy = self.is_busy(m);

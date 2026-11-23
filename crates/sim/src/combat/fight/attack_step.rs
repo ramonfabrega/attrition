@@ -565,6 +565,9 @@ impl Sim {
             return at;
         };
         if crate::units::anim::category(g.anim) != crate::units::anim::ATTACK2 || g.end_time == 0 {
+            if crate::units::anim::category(g.anim) == crate::units::anim::ATTACK2 {
+                crate::seam!("strafe_end_time_zero");
+            }
             return at;
         }
         let along = Single::from_u32(g.cur_time)

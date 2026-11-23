@@ -474,6 +474,9 @@ impl Sim {
         self.units[n].stance = self.units[tail].stance;
         self.units[n].combat.stance = self.units[tail].combat.stance;
         self.copy_unit_masks(tail, n);
+        if inside.or(boat).is_none() {
+            crate::seam!("regrow_outside");
+        }
         if let Some(b) = inside.or(boat) {
             // `Object::insert_inside@00647e90`: off the world, onto the
             // host's chain; a follower counts in no garrison tally.

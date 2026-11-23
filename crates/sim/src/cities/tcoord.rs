@@ -332,7 +332,13 @@ impl TcoordView for SimTcoord<'_> {
     fn reg_cities(&self, who: i32, tr: i32) -> i32 {
         // SEAM: a region outside `0..64` reads another field of the
         // original's leader record; the crate counts none.
-        region(tr).map_or(0, |r| self.sim.reg_cities(who as Player, r))
+        region(tr).map_or_else(
+            || {
+                crate::seam!("reg_cities_out_of_range");
+                0
+            },
+            |r| self.sim.reg_cities(who as Player, r),
+        )
     }
     fn reg_forts(&self, who: i32, tr: i32) -> i32 {
         region(tr).map_or(0, |r| self.sim.reg_forts(who as Player, r))

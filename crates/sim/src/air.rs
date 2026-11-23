@@ -2002,6 +2002,7 @@ impl Sim {
         }
         if !missile && !self.is_bomber(u) {
             // SEAM: a non-missile, non-Bomber plane's `fire_ammo` arm.
+            crate::seam!("attack_ground_fire_ammo");
             return;
         }
         self.clear_attack(u);
@@ -3028,6 +3029,9 @@ impl Sim {
         // negative; SEAM, as for a unit's (`guy_release_events`): a target
         // that is no longer active is refused too.
         let Some(t) = target.filter(|&t| self.active(t)) else {
+            if target.is_some() {
+                crate::seam!("wall_anti_air_inactive");
+            }
             return;
         };
         let cur = -r;
@@ -3257,6 +3261,7 @@ impl Sim {
         let total_time = if v == 0 {
             // SEAM: a zero divisor is an infinity the original truncates to
             // `0x80000000`; no aircraft type has `moves` 0.
+            crate::seam!("crash_zero_divisor");
             1
         } else {
             Single::from_i32(ex.wrapping_mul(ex).wrapping_add(ey.wrapping_mul(ey)))

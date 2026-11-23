@@ -411,6 +411,10 @@ impl ActivateArmsView for SimArms<'_> {
             .iter()
             .position(|&k| self.sim.cities.cities[k].alive && self.sim.cities.cities[k].capital)
             .map(|i| i as i32)
+            .or_else(|| {
+                crate::seam!("find_capital_none");
+                None
+            })
     }
     fn count_senates(&mut self, city: i32) -> i32 {
         self.sim

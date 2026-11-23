@@ -2578,6 +2578,8 @@ impl Spline {
         if usize::from(self.len) < SPLINE_MAX {
             self.pts[usize::from(self.len)] = p;
             self.len += 1;
+        } else {
+            crate::seam!("spline_past_cap");
         }
     }
 

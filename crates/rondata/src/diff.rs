@@ -163,6 +163,8 @@ mod harness;
 mod held_out;
 #[cfg(test)]
 mod held_probe;
+#[cfg(all(test, feature = "seam-count"))]
+mod held_seams;
 #[cfg(test)]
 mod inca_classical_pair;
 #[cfg(test)]
