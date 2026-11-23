@@ -4709,10 +4709,32 @@ the background, and does not light it in HDR.
   runs, so open water is the gradient.
 - Then the features: the trees, the rivers, the tileset's darken (a
   multiply by `darkencolor`, `Snowy` alone), and the mountains last.
-- **Not built**: our still still goes through the HDR pass and the
-  frame-mean white, and draws our floor and water. Of the row's 1,181
-  cells unequal after the forests, 301 read water on theirs and 485 land
-  (4582a).
+- ~~Not built (4582a)~~: built by item 4584, below.
+
+**The background `NO_HDR` (item 4584).** *Opus 5.5; the ledger:
+`docs/journal/2026-11-23-item-4584.md`.* `gpu::Frame::minimap` carries
+the two ocean colours, and the frame is drawn as the original draws it.
+- The camera uniform's `range.z` is the card's `minimap_mode`. The land
+  shaders' `land_no_hdr` reads it: the multiplier is 1, the lit branch is
+  `c · (diffuse + ambient)` with no power and no specular, fake light
+  keeps its 1.9 power, and the output is saturated (`land_out`). That is
+  `ps_global.hlsl` read under `NO_HDR`.
+- `gpu::ocean_gradient` is laid over the clear before the terrain.
+- The floor, the water and the surf are not drawn. The faded land is
+  blended at its alpha over the gradient, and every layer goes straight
+  onto the target.
+- No expose pass runs after (no mean, no white, no bloom).
+- Open water is then exact: cell (26, 14) is theirs (13, 140, 198) and
+  ours (14, 139, 197); cell (41, 46) is (10, 99, 140) against (9, 99, 139).
+- **The coral.** At its white vertex it saturates to (56, 219, 220) on
+  every shore. With that alone, within 32 *falls* to 2,398. On the
+  sand's light and deep grey (`World::coral_lit`, the §3.18 reading that
+  draw 131 carries the sand layer's vertex colours) it reads as theirs.
+  Cell (17, 50) is theirs (31, 135, 132) and ours (35, 136, 137). The
+  background turns it on for its own draw alone; the main view keeps it
+  off (§3.27).
+- The row: `[425, 596, 500, 3354, 2419, 3600]` → `[416, 596, 475, 3361,
+  2629, 3600]`, within 32 **+210** (282 cells in, 72 out).
 
 **The forests (item 4582).** `WorldMapBackground::render_feature`, under
 its tree feature, lays every cell whose flags carry `FOREST` again as its
@@ -4740,9 +4762,17 @@ unsorted.
 
 **Not established.**
 - ~~The background's colour, its forest blobs~~: the forests are drawn
-  (above). The tone is read and not built: ours is drawn in HDR, toned at
-  the frame-mean white, over our floor and water, where theirs is
-  `NO_HDR` over the ocean gradient (4582a). Our shore ring is wider.
+  (above). ~~The tone~~: built (item 4584).
+- The land under `NO_HDR` reads darker than theirs. Cell (2, 3) is theirs
+  (130, 127, 76) and ours (92, 90, 53). This is most of the 72 cells
+  item 4584 lost (4584b).
+- The coral patches on the ocean cells' transitions still draw at the
+  flat white vertex: cyan specks inside the lakes that theirs does not
+  show. Cell (46, 48) is theirs (24, 100, 123) and ours (56, 219, 220)
+  (4584a).
+- Whether the original's deep corners carry `modify_ocean_floor`'s grey
+  on the background is not read. That grey is written per visible cell
+  each frame, and ours lays it at the minimap camera's ramp (4584c).
 - ~~Whether the original tone-maps the background~~: it does not
   (above).
 - The rivers and the mountains as features (above).
