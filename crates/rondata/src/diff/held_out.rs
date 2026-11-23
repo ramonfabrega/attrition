@@ -1896,11 +1896,17 @@ pub(crate) mod tests {
         let mut stream = crate::input::Stream::pump(&rec);
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
         let names = ["units", "builds", "cities", "goods", "items", "groups", "guys", "leaders", "world"];
+        let mut prev: Vec<String> = Vec::new();
         for state in lo..=hi {
             while built.sim.frame < state {
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
             }
+            let now: Vec<String> = built.sim.buildings.iter().enumerate().map(|(i, x)| format!("slot {i} {}/{} ty {:?} active {} alive {} city {:?} pos {:?}", x.owner, x.index, x.ty.map(|t| built.sim.tables.build_types[t].name.clone()), x.active, x.alive, x.city, x.pos)).collect();
+            for l in &now { if !prev.contains(l) { eprintln!("P4620 {state} + {l}"); } }
+            for l in &prev { if !now.contains(l) { eprintln!("P4620 {state} - {l}"); } }
+            if prev.is_empty() { for l in &now { if l.contains(" 2/") { eprintln!("P4620 {state} = {l}"); } } }
+            prev = now;
             let set = record.first_of(state - 1).expect("the state's set").clone();
             let all = record.ranges(&set).expect("the set's ranges");
             let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
