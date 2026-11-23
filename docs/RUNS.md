@@ -41546,6 +41546,31 @@ background; the lane was free. `df -g ~` read 67 GB free before it and 62 after 
 
 **What it holds**: the arm behind row 93's 2686 (`docs/journal/2026-11-23-item-4590.md`). No test reads it: the test
 it gave is a sim test, `a_raider_weighs_an_unfinished_building_by_its_threat`.
+## run1812 — parity held out, sixth battery, row 53's file to 3,608 with the checksum and ranges hooks, units and guys kept (2026-11-23, item 4578, `att-4578`)
+
+`docs/RECGAME.md` §13.2. **What the disk could not answer**: run1790 holds sums only, so row 53's units and guys
+parting on 3358 named no leaf. The take is row 93's line (run1799) with the scorer's two lines for the parting
+(`RNG_MASK=0x41u`) and the window ended 250 past the word: `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh
+tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1812 --recording
+~/ron-golden/recordings/item4566-row053-12000.rcx --end-frame 3608 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def
+RNG_MASK=0x41u`, waited on with `waitrun.sh` in the background. `df -g ~` read 74 GB free before it, 72 after the take,
+65 after filing.
+- **The run**: pool lane 1, launched 12:44:18 −05:00, exited 12:48:48: **269.7 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 3,609 frames, `last_frame` 3608, not ended early, seed 12345, map 18. The recording's
+  SHA-256 is run1790's (`e4b6a2d6…`). Players: tribe 4 (who 0, flags 7), tribe 2 (who 1), tribe 13 (who 2).
+- **The record**: `~/ron-golden/run1812/map-18/rontrace.ranges`, 957,058,252 bytes, SHA-256
+  `7d45c7d38f4b26c4cc80b5f33d70bb8a01a49d895688b83f706119fc0fbec1c1`, left in place.
+- **Scored** (`score_recording … ~/ron-golden/run1812/map-18`, on `35993a365`): units and guys 3,358 of 3,609, first
+  3358; every other line whole to 3608. **Units range 4116, record 76, `who..y_internal`, byte 3: `z` ours 29, theirs
+  22. Guys range 1116, record 76, `z` and `last_z`: ours 24, theirs 21.**
+- Filed by `filerun.py run1812 heldout6-row053-ranges`: `gamelog_p.txt` →
+  `Logs/gamelog-run1812-heldout6-row053-ranges.txt`, 2,890 bytes, SHA-256
+  `f23f3c23fd513624cdbcab3b76108239097a1152d8acac7f9c3f855f2caac289`; `rontrace.log` → `Logs/rontrace-run1812.log`,
+  141,300,928 bytes.
+
+**What it holds**: nothing pinned yet; the leaf is `docs/RECGAME.md` §13.2 (item 4578).
+
 ## run1802 — parity held out, sixth battery, row 113's file to the original's end (4572) with the checksum and ranges hooks, cities kept (2026-11-23, item 4592, `att-4592`)
 
 `docs/RECGAME.md` §13.4. **What the disk could not answer**: run1793 holds sums only, so row 113's cities parting on
