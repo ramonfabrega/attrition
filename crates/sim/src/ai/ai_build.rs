@@ -353,6 +353,23 @@ impl Sim {
                         l.escrow,
                     );
                     let val = inc.wrapping_mul(l.val) / 256;
+                    if std::env::var("RON_PROBE_4585").is_ok()
+                        && who == 2
+                        && (1756..=1757).contains(&self.frame)
+                        && l.cat == 8
+                    {
+                        eprintln!(
+                            "P4585B frame {} pass {pass} city {c} rec {rec} {:?} t {t} {} l.val {} esc {} up {} mult {} inc {inc} val {val} head3 {}",
+                            self.frame,
+                            self.tables.build_types[rec].ident,
+                            self.tables.tech_tree.types[t].name,
+                            l.val,
+                            l.escrow,
+                            l.up,
+                            l.mult,
+                            self.ai.ai[w].make_list.list[8].val
+                        );
+                    }
                     self.ai.ai[w]
                         .make_list
                         .make_me(t as i32, val, l.escrow, l.cat, c as i32, l.up, 1, 0, 0);
