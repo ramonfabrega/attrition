@@ -41732,3 +41732,26 @@ Both files are minted (`item4600-row128-12000.rcx`, 59,456 bytes, SHA-256
 SHA-256 `e65395540e5b8cea888267acd4ec68b5774ed381b4ab13eb2ca6a3bd15cfe4f3`) and read back by
 `the_seventh_s_files_carry_the_declared_seats_team_and_orders`. **Not played**: `df -g ~` read 59 GB free at 12:38:44
 before run1810, under the item's floor of 60, and the chain stopped. A later take keeps these numbers.
+
+## run1815 — parity held out, seventh battery, row 88's file to 2,991 with the checksum and ranges hooks (2026-11-23, item 4614, `att-4614`)
+
+`docs/RECGAME.md` §14.4. **What the disk could not answer**: run1808 holds sums only, and 2741 still parted after the
+seam's fix (`kill_contents`' come-out), so the units, deaths, guys, leaders and world parting there named no leaf. The
+take is run1808's file with the item's line: `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1815 --recording ~/ron-golden/recordings/item4600-row088-12000.rcx
+--end-frame 2991 --allow-early-end --cover cover=1 --log-window 0 31 --detail end:MISC --timeout 3600 --stall-seconds
+120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0x8d1u`, waited on with `waitrun.sh` in
+the background. `df -g ~` read 124 GB free before it and 119 after.
+- **The run**: pool lane 2, launched 15:34:21 −05:00, exited 15:38:04: **222.8 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 2,992 frames, `last_frame` 2991, not ended early, seed 12345, map 18. The recording's
+  SHA-256 is run1808's (`02dced92…`). Players: tribe 4 (who 0, flags 7), tribe 17 (who 1), tribe 11 (who 2).
+- **The record**: `~/ron-golden/run1815/map-18/rontrace.ranges`, 2,491,326,944 bytes, SHA-256
+  `127a6e768a38c0321a86ba6d9c91b6c1d5cb75d6ffe8918dceb4be579ec62afc`, split in three by `filerun.py` and compressed
+  in place (2.33 GiB on disk before, 0.20 after). `gamelog_p.txt`, 2,880 bytes, SHA-256
+  `bccc52b8bab0a052b37e491fded193efdb2717e6851cfce0c9040bf00c872d2a`; `rontrace.log`, 100,517,856 bytes, SHA-256
+  `bf5eb726e46c49d7dea05ce503ae7379655d3af1782ee0241edcf7481112a0f1`.
+- Filed with `filerun.py run1815 heldout7-row088-ranges`.
+
+**What it named**: on 2740 who=1's Heavy Fire Raft `1/87` (TI 335, sea) dies with the shot that sinks who=2's
+Transport Barges `2/60` and `2/71` (deaths slot 0 in theirs, the raft at (17544, 13464), no killer), where ours kept
+it alive (`docs/RECGAME.md` §14.4). Read by `score_recording` on the item's tree; no test reads the ranges.

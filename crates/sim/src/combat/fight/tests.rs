@@ -6722,3 +6722,33 @@ fn a_raider_weighs_an_unfinished_building_by_its_threat() {
         weigh(false)
     );
 }
+
+/// **A self-destructing attacker dies with its shot** (item 4614,
+/// `Unit::fight@005fd4d0:900`–`906`, `docs/RECGAME.md` §14.4): a type
+/// whose `unit_flags` carries `n` (`0x2000`, the fire rafts and fire
+/// ships) fires and takes `Object::die(this, 3, −1, 0)`; the same type
+/// without the flag fires and lives. run1815's 2740: who=1's
+/// Heavy Fire Raft `1/87` dies on the shot that sinks who=2's two barges.
+#[test]
+fn a_fire_raft_dies_with_its_shot() {
+    let (mut sim, land) = at_war();
+    let sea_type = |sim: &mut Sim, flags: u32| {
+        let mut t = sim.tables.unit_types[land].clone();
+        t.combat.domain = Domain::Sea;
+        t.cols.unit_flags = flags;
+        sim.add_unit_type(t)
+    };
+    let raft = sea_type(&mut sim, crate::ai::ai_load::uflags::SELF_DESTRUCT);
+    let frigate = sea_type(&mut sim, 0);
+    let mut fire = |sim: &mut Sim, ty: usize, x: i32| -> usize {
+        let me = put(sim, 0, ty, Pos::new(0x1000 + x, 0x1000));
+        sim.units[me].guys = vec![anim::Guy::fresh(-1)];
+        let foe = put(sim, 1, frigate, Pos::new(0x1000 + x, 0x1100));
+        sim.fight_pub(me, Obj::Unit(foe), 633);
+        me
+    };
+    let f = fire(&mut sim, frigate, 0);
+    assert!(sim.units[f].alive(), "the frigate lives");
+    let r = fire(&mut sim, raft, 0x400);
+    assert!(!sim.units[r].alive(), "the raft dies with its shot");
+}
