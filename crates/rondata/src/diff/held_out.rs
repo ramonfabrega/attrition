@@ -2109,6 +2109,153 @@ mod tests {
         }
     }
 
+    /// **Row 43's follower keeps its captain's target past the leash**
+    /// (item 4564, `docs/COMBAT.md` §43.2): run1787, the ranges take of
+    /// row 43's file. who=2's Hoplites `2/63` (TI 132, land, `DEFENSIVE`)
+    /// follow `2/62`, whose action is an attack on who=1's Slingers `1/23`.
+    /// `2/63` enters `fight` on 3441 under an attack on `1/46` with a post
+    /// (9816, 28680) it is past; the mirror takes `1/23`, the leash's
+    /// `find_new_target` re-adds `1/23` with the post kept, and the
+    /// original's "same target again" asks `fight`'s entry `(46, 1)`, so
+    /// the attack stands with `unit_masks2` 16. Ours asked the mirrored
+    /// target and killed it. The units, builds, ammo and guys lines on
+    /// states 3440 to 3444, byte for byte.
+    #[test]
+    fn row_43_s_follower_keeps_its_captain_s_target_past_the_leash_on_run1787_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 2) else {
+            eprintln!("skipping: row 43's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1787/map-7");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1787's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 43's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3440i64..=3444 {
+            while built.sim.frame < state {
+                if built.sim.frame == 3441 {
+                    let sim = &built.sim;
+                    let u = sim.unit_by_o(2, 63).expect("who=2's Hoplites");
+                    let ty = sim.units[u].ty.expect("a type");
+                    assert_eq!(sim.tables.unit_types[ty].type_index, 132, "2/63's TI");
+                    assert_eq!(
+                        sim.units[u].kind.domain,
+                        sim::territory::attrition::Domain::Land
+                    );
+                    assert_eq!(sim.units[u].combat.stance, sim::combat::Stance::Defensive);
+                    let cap = sim.unit_by_o(2, 62).expect("2/62");
+                    assert_eq!(sim.units[u].o_up, Some(cap), "2/63 follows 2/62");
+                    let s23 = sim.unit_by_o(1, 23).expect("1/23");
+                    let s46 = sim.unit_by_o(1, 46).expect("1/46");
+                    assert_eq!(
+                        sim.units[cap].combat.target,
+                        Some(sim::combat::Obj::Unit(s23))
+                    );
+                    assert_eq!(
+                        sim.units[u].combat.target,
+                        Some(sim::combat::Obj::Unit(s46))
+                    );
+                    let attack = sim.units[u]
+                        .orders
+                        .iter()
+                        .find_map(|o| match o.body {
+                            sim::orders::Body::Attack(a) => Some(a),
+                            _ => None,
+                        })
+                        .expect("2/63's attack");
+                    assert!(attack.defensive, "a post");
+                    assert_eq!(attack.def, Some(sim::Pos::new(9816, 28680)), "the post");
+                }
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for li in [0usize, 1, 3, 6] {
+                let ours = lines[li].as_ref().expect("the line");
+                let theirs: Vec<_> = all.iter().filter(|r| usize::from(r.line) == li).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {li}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                    assert!(
+                        at.is_none() && a.bytes.len() == b.bytes.len(),
+                        "line {li} range {k} on {state}, record {} {}: byte {at:?} ours {:?}, theirs {:?}",
+                        a.record,
+                        a.field,
+                        at.map(|i| a.bytes[i]),
+                        at.map(|i| b.bytes[i])
+                    );
+                }
+            }
+            if state == 3442 {
+                // Theirs by value: 2/63's head order is the attack on
+                // (23, 1), and its `unit_masks2` carries 16.
+                let units = lines[0].as_ref().expect("units");
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+                let head = |k: usize| {
+                    units.ranges[..=k]
+                        .iter()
+                        .rev()
+                        .find(|r| r.record == 63 && r.field.starts_with("who"))
+                        .and_then(|r| {
+                            crate::checksum::fields::range_fields("units", r.field, &r.bytes)
+                        })
+                        .and_then(|f| f.iter().find(|(n, _)| n == "who").map(|x| x.1))
+                };
+                let field = |name: &str| {
+                    (0..units.ranges.len())
+                        .find(|&k| {
+                            let r = &units.ranges[k];
+                            r.record == 63 && r.field == name && head(k) == Some(2)
+                        })
+                        .expect("2/63's range")
+                };
+                let k = field("order.target");
+                let t = crate::checksum::fields::range_fields(
+                    "units",
+                    "order.target",
+                    &theirs[k].bytes,
+                )
+                .expect("theirs' target");
+                let get = |n: &str| t.iter().find(|(m, _)| m == n).map(|x| x.1);
+                assert_eq!(
+                    (get("ox"), get("whom")),
+                    (Some(23), Some(1)),
+                    "theirs' target"
+                );
+                let k = field("collide_frame..play");
+                let m = crate::checksum::fields::range_fields(
+                    "units",
+                    "collide_frame..play",
+                    &theirs[k].bytes,
+                )
+                .expect("theirs' masks");
+                assert_eq!(
+                    m.iter().find(|(n, _)| n == "unit_masks2").map(|x| x.1),
+                    Some(16),
+                    "theirs' frozen mark"
+                );
+            }
+        }
+    }
+
     /// **Row 43's Slinger stones leave from piece 736's sockets** (item
     /// 4547, `docs/RECGAME.md` §12.3): run1787, the ranges take of row 43's
     /// file. who=2's Slingers `2/30` and `2/29` (TI 82, land, piece 736,
@@ -8587,25 +8734,38 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // (first 3670), goods 4,100 (first 4054), world 3,444 (first 3443);
         // the row's first parting 3442; our walk holds `game_over` from
         // 5784 (`over` 5972 -> 5784), past it.
+        // Moved by item 4564 (`fight`'s defensive leash asks for its entry
+        // target, `-0x1c`/`-0x20(%ebp)` at `5fe292`..`5fe2b5`; run1787's
+        // leaf on 3442, units range 5905, record 63, who=2's Hoplites
+        // `2/63` `orders.count` ours 1, theirs 2: the follower keeps the
+        // re-added attack on its captain's `1/23`): units 3,442 -> 3,833
+        // (first 3442 -> 3833), builds 3,483 -> 3,860 (first -> 3836), ammo
+        // 3,492 -> 3,874 (first 3444 -> 3833), deaths 3,459 -> 3,834,
+        // groups 3,485 -> 3,833, guys 3,442 -> 3,833, leaders 3,489 ->
+        // 3,841 (first 3459 -> 3834), cities 3,583 -> 4,149 (first -> 4040),
+        // items 4,042 -> 4,060 (first 3670 -> 4060), goods 4,100 -> 4,215
+        // (first 4054 -> 4111), world 3,444 -> 3,833: the row's first
+        // parting 3442 -> 3833; our walk plays to 6000 (`over` 5784 ->
+        // none).
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3442, 3483, 6001, 3492, 3459, 3485, 3442, 3489, 3583, 4042, 4100, 3444,
+                3833, 3860, 6001, 3874, 3834, 3833, 3833, 3841, 4149, 4060, 4215, 3833,
             ],
             first: &[
-                ("units", (3442, Some(3009799658), 2726487947)),
-                ("builds", (3483, Some(2414959173), 3865730099)),
-                ("ammo", (3444, Some(2390306150), 917253843)),
-                ("deaths", (3459, Some(1145338834), 660303772)),
-                ("groups", (3485, Some(2373860445), 1521040534)),
-                ("guys", (3442, Some(372435881), 153938856)),
-                ("leaders", (3459, Some(3840408477), 2734422939)),
-                ("cities", (3583, Some(1806321478), 1256146505)),
-                ("items", (3670, Some(3687073795), 3707258885)),
-                ("goods", (4054, Some(3168892696), 3160241942)),
-                ("world", (3443, Some(2679318386), 2167809738)),
+                ("units", (3833, Some(1063871697), 3771527344)),
+                ("builds", (3836, Some(3277758791), 3550257923)),
+                ("ammo", (3833, Some(360194904), 4117177268)),
+                ("deaths", (3834, Some(577683051), 3586444649)),
+                ("groups", (3833, Some(84469381), 1152364802)),
+                ("guys", (3833, Some(2979218740), 2376421982)),
+                ("leaders", (3834, Some(3876452743), 116652551)),
+                ("cities", (4040, Some(2684897422), 3243722708)),
+                ("items", (4060, Some(1899511835), 1951416351)),
+                ("goods", (4111, Some(3160241942), 3168892696)),
+                ("world", (3833, Some(2651722436), 2013008494)),
             ],
-            over: Some(5784),
+            over: None,
         }),
     }),
     // run1776
