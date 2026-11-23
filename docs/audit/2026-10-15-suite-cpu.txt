@@ -1,8 +1,9 @@
-# Every rondata release test's CPU alone, 2026-11-23, tools/suite_timings.py (tree de60a62e).
+# Every rondata release test's CPU alone, 2026-11-23, tools/suite_timings.py (tree 274d282e).
 # /usr/bin/time -l, one test per process, --test-threads 1; CPU seconds (user + sys), instructions retired (1e9), the test; -1 when unread.
-# Sum 7,799 CPU-seconds and 157.97e12 instructions over 2669 tests; the host's load 1.7 at the start and 2.0 at the end.
+# Sum 8,021 CPU-seconds and 162.61e12 instructions over 2682 tests; the host's load 3.1 at the start and 3.2 at the end.
 678.60	11859.81	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 340.78	6474.38	free::ages::the_draw_list_across_the_ages_resolves
+211.18	4446.25	diff::held_out::tests::the_seventh_held_out_games_score_as_pinned
 199.37	4888.75	diff::held_out::tests::the_held_out_games_score_as_pinned
 189.74	4639.69	diff::held_out::tests::the_sixth_held_out_games_score_as_pinned
 148.65	4234.56	diff::sample::tests::the_sample_s_lines_against_the_hook
@@ -602,6 +603,7 @@
 2.32	46.75	diff::third::tests::run458_s_word_frame_is_widened_whole
 2.32	42.06	diff::british_industrial_pair::british_industrial_pair_run1355c_s_closing_window_is_widened_whole
 2.32	44.55	diff::minted::our_walk_with_one_order_withheld_parts_at_that_order_s_frame
+2.32	46.82	diff::held_out::tests::row_113_s_city_walks_its_caravan_links_in_the_order_they_were_made_on_run1802_s_ranges
 2.31	45.82	diff::corpse_melee::corpse_melee_s_leaders_are_compared_on_every_seat
 2.31	43.26	diff::korean_medieval_pair::korean_medieval_pair_run1353b_s_gap_is_widened_whole
 2.31	43.27	diff::persian_medieval_pair::run1181_persian_medieval_pair_closing_state
@@ -743,6 +745,7 @@
 2.04	35.15	diff::golden::chapter_thirty_three_s_word_frame_is_widened_whole
 2.04	39.55	diff::russian_gunpowder_pair::russian_gunpowder_pair_run1340b_s_word_frame_is_widened_whole
 2.04	40.34	diff::minted::the_unqueued_minted_script_s_effects_on_our_walk
+2.04	37.32	diff::held_out::tests::the_seventh_held_out_eight_are_the_rows_the_rule_names_seated_and_ordering
 2.03	40.76	diff::british_classical_pair::british_classical_pair_run1316c_s_gap_is_widened_whole
 2.03	43.09	diff::build::tests::run109_says_great_lakes_s_launches_land_where_the_bow_hand_aims
 2.03	46.59	diff::diplomacy_take::run1575_s_diplomacy_movers_are_the_script_s
@@ -917,6 +920,7 @@
 1.75	35.60	diff::korean_word::korean_word_first_parting
 1.75	34.71	diff::spanish_east_word::run993_s_word_frame_is_widened_whole
 1.75	36.51	diff::third_pair::run623_s_word_frame_is_widened_whole
+1.75	30.96	diff::held_out::tests::row_93_s_siege_order_walks_its_point_on_run1799_s_ranges
 1.74	37.03	diff::checksum_lines::packets::lakota_medieval_pair_packets
 1.74	31.26	diff::golden::chapter_four_s_word_frame_is_widened_whole
 1.74	35.67	diff::golden::every_rolled_shot_comes_down_where_the_original_s_does
@@ -1526,12 +1530,14 @@
 0.89	14.87	diff::golden::chapter_one_hundred_and_twenty_nine_s_window_is_widened_whole
 0.89	15.25	diff::golden::chapter_sixty_five_s_word_frame_is_widened_whole
 0.89	18.01	diff::held_out::tests::row_60_s_army_push_zeroes_the_empty_last_slot_s_origin_on_run1722_s_ranges
+0.89	16.54	diff::held_out::tests::row_133_s_repair_recruit_walks_under_a_move_order_on_run1797_s_ranges
 0.88	15.55	diff::golden::chapter_nineteen_s_word_frame_is_widened_whole
 0.88	15.29	diff::golden::chapter_seventy_one_s_word_frame_is_widened_whole
 0.88	18.25	diff::iroquois_word::run932_s_word_frame_is_widened_whole
 0.88	18.88	diff::russian_modern_pair::russian_modern_pair_run1149b_s_word_frame_is_widened_whole
 0.88	18.61	diff::sahara_coverage::run680_s_word_frame_is_widened_whole
 0.88	18.79	diff::minted::the_rallied_game_s_round_in_flight_is_the_packet_s
+0.88	17.89	diff::held_out::tests::row_133_s_sam_flies_its_rockets_on_their_splines_on_run1797_s_ranges
 0.87	14.31	diff::golden::chapter_one_hundred_and_twenty_two_s_window_is_widened_whole
 0.87	18.00	diff::bantu_word::run978b_s_word_frame_is_widened_whole
 0.87	18.40	diff::coverage_pair::carrier_staging_walk
@@ -1561,6 +1567,7 @@
 0.85	16.09	diff::sea_melee::sea_melee_run1486_s_window_is_widened_whole
 0.85	17.82	diff::spanish_information_pair::spanish_information_pair_the_long_s_stride_walks_back_from_the_word
 0.85	19.10	diff::world::tests::run13_s_fog_grid_is_the_original_s_on_every_cell_of_ten_frames
+0.85	16.74	diff::held_out::tests::row_133_s_temple_site_close_fixes_the_borders_on_run1797_s_ranges
 0.84	14.16	diff::golden::chapter_fifty_seven_s_word_frame_is_widened_whole
 0.84	14.42	diff::golden::chapter_nine_s_word_frame_is_widened_whole
 0.84	17.35	diff::american_modern_pair::american_modern_pair_run1151b_s_word_frame_is_widened_whole
@@ -1619,6 +1626,7 @@
 0.79	15.98	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_run1208d_s_first_wound_is_widened
 0.79	15.39	diff::start::tests::the_harness_lobby_s_start_built_from_its_choices
 0.79	16.95	diff::world::tests::run73_s_caravan_road_is_the_original_s_node_for_node
+0.79	15.91	diff::held_out::tests::row_133_s_sam_winds_and_turns_at_its_sighting_on_run1797_s_ranges
 0.78	15.99	diff::checksum_lines::packets::chapter64_packets
 0.78	14.14	diff::golden::chapter_thirty_five_s_v2_is_counted_out_and_fired_field_for_field
 0.78	13.59	diff::golden::chapter_thirty_seven_holds_to_the_golden_word
@@ -1950,6 +1958,7 @@
 0.51	9.62	diff::start::tests::the_harness_lobby_s_map_is_the_traced_setup_path
 0.51	9.77	load::memo::a_kept_load_is_the_load_a_fresh_read_builds
 0.50	0.03	diff::floors::tests::the_pinned_shape_is_the_tree_s
+0.50	9.88	diff::held_out::tests::the_ordering_rule_is_the_script_and_a_closed_square_on_run53_s_start
 0.49	9.85	diff::leader::tests::the_census_split_is_the_record_s_own
 0.49	11.31	diff::spanish_gunpowder_pair::spanish_gunpowder_pair_captures_say_their_lobby
 0.49	10.00	diff::world::tests::run33_s_scout_re_targets_at_361_on_the_original_s_cell
@@ -2232,6 +2241,7 @@
 0.03	0.87	diff::unit::tests::run92_says_great_lakes_7674_takes_get_loc_s_second_arm
 0.03	0.36	trace::site_rows::every_site_label_the_simulation_marks_has_a_row
 0.03	0.52	diff::held_out::tests::the_sixth_s_files_carry_the_declared_seats_team_and_orders
+0.03	0.53	diff::held_out::tests::the_seventh_s_files_carry_the_declared_seats_team_and_orders
 0.02	0.48	artdata::tests::a_release_keeps_its_node_and_its_ammo_s_damage
 0.02	0.17	diff::floors::tests::a_golden_widening_s_window_reaches_its_trace_s_end
 0.02	0.44	diff::german_industrial_moderate_pair::german_industrial_moderate_pair_s_computer_fields_the_german_machine_gun
@@ -2670,3 +2680,6 @@
 0.00	0.03	diff::held_out::tests::the_sixth_held_out_line_reads_as_pinned
 0.00	0.03	diff::held_out::tests::the_sixth_s_files_are_minted
 0.00	0.06	artdata::tests::the_minimap_colours_are_read
+0.00	0.03	diff::held_out::tests::a_held_pin_fails_on_its_whole_lines_and_first_parting_alone
+0.00	0.03	diff::held_out::tests::the_seventh_held_out_line_reads_as_pinned
+0.00	0.03	diff::held_out::tests::the_seventh_s_files_are_minted

@@ -444,7 +444,13 @@ mod tests {
             ))
             .is_err()
         );
-        assert_eq!(std::fs::read_to_string(output).unwrap(), html);
+        assert_eq!(std::fs::read_to_string(&output).unwrap(), html);
+        // The export is 11 MB and this test runs on every release gate: 851
+        // stood in the temp directory, 8.9 GiB, on 2026-11-23 (DECISIONS 155
+        // §6). `RON_KEEP_EXPORT` keeps it for a person to open.
+        if std::env::var_os("RON_KEEP_EXPORT").is_none() {
+            std::fs::remove_file(&output).unwrap();
+        }
     }
 
     #[test]

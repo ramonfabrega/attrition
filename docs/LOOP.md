@@ -384,7 +384,9 @@ client** (DECISIONS 129 §3): the gate is re-run when the load has fallen,
 and nothing is diagnosed. The disk read 0 GB inside a builder's run
 on 2026-11-12: about 94 generations stood in each of 133 caches and seven
 merged trees held 40 GiB of build output, and nothing removed either. A
-capture is never removed this way (entry 84 (iv)).
+capture is never removed this way (entry 84 (iv)). **A capture is filed
+once**: `filerun.py` makes the archive's name a hard link to the take's
+file (DECISIONS 155 §6: 1,785 captures stood twice, 19.2 GiB on disk).
 
 **The commander's chain is ccc's, and it is one line.** **A done line is
 checked against origin before anything is merged** — `git ls-remote
@@ -538,9 +540,12 @@ the fifth reads 4 of 8 (DECISIONS 151 §6), recorded to 12,000 where the
 five before stop on 6,000, its human scripted (DECISIONS 152 §4: the
 sample parts past the end of every held-out game; Ramon, 2026-11-22);
 the seventh (rows 8 to 148) when the sixth reads 4 of 8 (DECISIONS 153
-§6), its human ordering through the game (154 §7; item 4600). **The seats go by first parting** (DECISIONS 153 §2): a game one
-line or one field from whole first, then the lowest first parting, the
-sample sorted with the rows and holding no seat of its own; a landing
+§6), its human ordering through the game (154 §7; item 4600); the
+eighth (rows 18 to 158) when the seventh reads 4 of 8 (DECISIONS 155 §2). **The seats go by first parting** (DECISIONS 153 §2): a game one
+line or one field from whole first, **and with it a row whose first
+parting stands within 600 states of its last state** (DECISIONS 155 §4:
+the one game a tranche made whole stood 578 out), then the lowest first
+parting, the sample sorted with the rows and holding no seat of its own; a landing
 on a row that parted early bought 732 states and one deep in a game
 about 190, whoever's game it was. A seat that frees takes the next
 item in the lanes line's order, and the sample's before a hand-over
@@ -646,7 +651,9 @@ the tree is removed, DECISIONS 151 §7).
    every seam hook each held-out walk enters, marked against the walk's
    first parting. A hook marked `=` or `<` on a parted row that no
    whole row also enters is pasted into that row's item with the
-   note's own sentence, and the fallback's pin is re-pinned there. No
+   note's own sentence, **and a hook marked `=` whatever the whole
+   rows enter** (DECISIONS 155 §9: the seventh's row 88, a hook one
+   whole row entered once), and the fallback's pin is re-pinned there. No
    gate builds the feature, so nothing holds this between passes
    (DECISIONS 154 §2: eighteen landings after it landed the pin read 21
    where the tip fired 16, and the same run named row 133's first

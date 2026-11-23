@@ -586,15 +586,22 @@ def sim_source_moved(touched):
 # stood three days later. They are also the only record of a lane's gate,
 # which a pass reads for its tranche (the tables of DECISIONS 133), so the
 # sweep keeps what a pass can still want and runs where the directory is
-# made. A gate runs under an hour; four days cannot touch a live one.
-REPORT_KEEP_DAYS = 4
+# made. A gate runs under an hour; two days cannot touch a live one.
+# **Two days since the pass of 2026-11-23, second** (DECISIONS 155 §6): 440
+# stood at four, 21.3 GiB, and a pass has followed every tranche within a
+# day since 2026-11-14. **And the diff viewer's exports go by the same age**
+# (`rondata::debug_view::failure_path`'s directory): 851 stood, 8.9 GiB,
+# 11 MB from its acceptance test on every release run since 2026-11-11.
+REPORT_KEEP_DAYS = 2
 REPORT_PREFIX = 'attrition-gate-'
+FAILURES_DIR = 'attrition-diff-failures'
 
 
 def sweep_reports(tmp, now=None, keep_days=REPORT_KEEP_DAYS):
     """Remove the gate report directories under `tmp` last modified more
-    than `keep_days` ago; the count removed. Never raises: a directory
-    another process holds is left for the next gate."""
+    than `keep_days` ago, and the diff viewer's `.html` exports of that
+    age; the count removed. Never raises: a directory another process
+    holds is left for the next gate."""
     now = time.time() if now is None else now
     removed = 0
     for path in sorted(Path(tmp).glob(REPORT_PREFIX + '*')):
@@ -602,6 +609,14 @@ def sweep_reports(tmp, now=None, keep_days=REPORT_KEEP_DAYS):
             if path.is_symlink() or not path.is_dir() or now - path.stat().st_mtime <= keep_days * 86400:
                 continue
             shutil.rmtree(path)
+            removed += 1
+        except OSError:
+            continue
+    for path in sorted((Path(tmp) / FAILURES_DIR).glob('*.html')):
+        try:
+            if path.is_symlink() or not path.is_file() or now - path.stat().st_mtime <= keep_days * 86400:
+                continue
+            path.unlink()
             removed += 1
         except OSError:
             continue

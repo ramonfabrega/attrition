@@ -11,7 +11,12 @@ under the harness's names, from the runner's output directory.
 2904's line: every journal copied the two by hand under the archive's
 name, and no tool owned the step; `archive.sh` is `live.sh`'s). A
 destination that exists is refused, never overwritten (`--force` moves it
-aside as `<name>.replaced-<time>` first). The map directory is the one
+aside as `<name>.replaced-<time>` first). **A filed capture is one file
+under two names**: the archive's name is a hard link to the take's file,
+and a copy only where a link cannot be made (another volume), which the
+line it prints says. A copy held every capture twice: 1,785 twins, 19.2
+GiB on disk, on 2026-11-23 (item 4600a; DECISIONS 155 §6). The archive's
+compression keeps a link, and nothing rewrites a filed capture in place. The map directory is the one
 `map-*` under the run unless `--map` names it; two without `--map` refuse.
 A ranges take's `rontrace.ranges` past a gigabyte is split in place into
 pieces and compressed (`tools/trace/split.py`), and the line it prints
@@ -68,7 +73,18 @@ def plan(golden, logs, run, tag, style=None):
     return pairs
 
 
-def file_run(golden, logs, run, tag, style=None, force=False, dry_run=False, out=sys.stdout):
+def place(src, dst, link=os.link):
+    """`dst` as a hard link to `src`, or a copy where no link can be made;
+    the word for which."""
+    try:
+        link(src, dst)
+        return 'linked'
+    except OSError:
+        shutil.copy2(src, dst)
+        return 'copied'
+
+
+def file_run(golden, logs, run, tag, style=None, force=False, dry_run=False, out=sys.stdout, link=os.link):
     pairs = plan(golden, logs, run, tag, style)
     for _, dst in pairs:
         if dst.exists() and not force:
@@ -81,8 +97,8 @@ def file_run(golden, logs, run, tag, style=None, force=False, dry_run=False, out
             aside = dst.with_name(f'{dst.name}.replaced-{int(time.time())}')
             dst.replace(aside)
             print(f'moved aside: {aside}', file=out)
-        shutil.copy2(src, dst)
-        print(f'{dst} ({dst.stat().st_size} bytes)', file=out)
+        how = place(src, dst, link)
+        print(f'{dst} ({dst.stat().st_size} bytes, {how})', file=out)
     # A ranges take's record stays where the take left it, and past a
     # gigabyte it is kept in pieces the archive's compression takes
     # (`tools/trace/split.py`, DECISIONS 149 §1). The take has exited, so no

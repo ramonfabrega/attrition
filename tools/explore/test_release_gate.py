@@ -1512,7 +1512,7 @@ garbage line
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
             now = 1_000_000_000.0
-            for name, age_days in (('attrition-gate-old', 9), ('attrition-gate-edge', 3.9),
+            for name, age_days in (('attrition-gate-old', 9), ('attrition-gate-edge', 1.9),
                                    ('attrition-gate-new', 0.1), ('other-old', 9)):
                 (tmp/name/'isolated').mkdir(parents=True)
                 (tmp/name/'isolated/x.log').write_text('x')
@@ -1523,6 +1523,26 @@ garbage line
             self.assertEqual(sorted(p.name for p in tmp.iterdir()),
                              ['attrition-gate-edge', 'attrition-gate-file', 'attrition-gate-new', 'other-old'])
             self.assertEqual(gate.sweep_reports(tmp, now=now), 0)
+
+    def test_the_sweep_takes_the_diff_viewer_s_old_exports_and_keeps_two_days(self):
+        # The pass of 2026-11-23, second (DECISIONS 155 §6): 440 report
+        # directories stood at four days, 21.3 GiB, and beside them 851
+        # exports of the diff viewer's own acceptance test, 11 MB a release
+        # run, 8.9 GiB, which nothing removed. Two days, and the exports go
+        # by the same age.
+        self.assertEqual(gate.REPORT_KEEP_DAYS, 2)
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            now = 1_000_000_000.0
+            exports = tmp/gate.FAILURES_DIR
+            exports.mkdir()
+            for name, age_days in (('old.html', 3), ('new.html', 1), ('old.txt', 3)):
+                (exports/name).write_text('x')
+                os.utime(exports/name, (now - age_days * 86400,) * 2)
+            (exports/'kept-dir').mkdir()
+            os.utime(exports/'kept-dir', (now - 9 * 86400,) * 2)
+            self.assertEqual(gate.sweep_reports(tmp, now=now), 1)
+            self.assertEqual(sorted(p.name for p in exports.iterdir()), ['kept-dir', 'new.html', 'old.txt'])
 
     def test_a_scoped_booking_gate_runs_the_timed_tests_only_when_a_merge_can_move_a_pin(self):
         # The thirty-fifth steer, Ramon's word: the booking gate after every

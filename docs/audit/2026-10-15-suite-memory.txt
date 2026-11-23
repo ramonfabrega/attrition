@@ -1,4 +1,4 @@
-# Every rondata release test's peak resident set alone, 2026-11-23, tools/suite_timings.py (tree de60a62e).
+# Every rondata release test's peak resident set alone, 2026-11-23, tools/suite_timings.py (tree 274d282e).
 # /usr/bin/time -l, one test per process, --test-threads 1; MiB then the test; -1 when unread.
 5304	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 3662	diff::start::tests::every_lobby_s_start_built_from_its_choices
@@ -36,6 +36,7 @@
 1504	diff::harness::tests::great_lakes_6994_issues_the_second_squad_s_walk_to_the_army
 1496	diff::world::tests::run95_s_block_8002_is_where_the_fog_parts_and_the_price_with_it
 1496	diff::world::tests::run240_s_tick_8186_prices_the_walk_home_as_a_citizen_s
+1494	diff::held_out::tests::the_seventh_held_out_games_score_as_pinned
 1485	diff::persian_classical_pair::persian_classical_pair_run1318_s_closing_state
 1485	diff::world::tests::run93_s_block_7932_is_this_crate_s_world_cell_for_cell
 1458	diff::diplomacy_take::recon4300_2_walks_to_its_word_at_difficulty_4
@@ -2030,6 +2031,7 @@
 93	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_is_no_other_lobby
 89	diff::start_walk::recording::the_demand_s_game_is_whole_on_run1683
 85	diff::checksum_frames::the_world_is_the_original_s_on_the_start_by_section
+83	diff::held_out::tests::the_ordering_rule_is_the_script_and_a_closed_square_on_run53_s_start
 82	diff::sample::tests::the_sample_s_ranges_to_4130_name_each_first_parting
 82	diff::checksum_frames::the_stats_bits_follow_the_militia_line
 81	diff::sample::tests::the_sample_s_ranges_to_4500_name_each_first_parting
@@ -2045,8 +2047,12 @@
 71	diff::held_out::tests::row_63_s_fort_pick_walks_the_fort_records_on_run1782
 70	diff::sample::tests::the_sample_s_ranges_to_3100_name_each_first_parting
 68	diff::held_out::tests::row_83_s_barracks_re_homes_when_its_city_is_taken_on_run1784_s_ranges
+68	diff::held_out::tests::row_93_s_siege_order_walks_its_point_on_run1799_s_ranges
 67	diff::checksum_lines::deaths::the_disbanded_scout_and_dog_match_the_whole_packet
 67	diff::held_out::tests::row_110_s_space_program_sees_every_enemy_building_in_the_danger_map_on_run1742_s_ranges
+67	diff::held_out::tests::row_133_s_sam_flies_its_rockets_on_their_splines_on_run1797_s_ranges
+67	diff::held_out::tests::row_133_s_repair_recruit_walks_under_a_move_order_on_run1797_s_ranges
+66	diff::held_out::tests::row_133_s_sam_winds_and_turns_at_its_sighting_on_run1797_s_ranges
 66	diff::held_out::tests::row_83_s_taken_city_assimilates_faster_by_its_owner_s_citizen_on_run1784_s_ranges
 66	diff::held_out::tests::row_10_s_jet_fighter_shot_down_falls_as_the_ammo_line_s_record_on_run1739_s_ranges
 66	load::memo::a_kept_load_is_the_load_a_fresh_read_builds
@@ -2063,6 +2069,8 @@
 65	diff::held_out::tests::row_30_s_freighter_heads_its_cell_as_it_dies_into_its_platform_on_run1755_s_ranges
 65	diff::held_out::tests::row_83_s_taj_mahal_site_keeps_its_hits_through_a_blow_on_run1784_s_ranges
 65	diff::held_out::tests::row_43_s_slinger_stones_leave_from_piece_736_s_sockets_on_run1787_s_ranges
+64	diff::held_out::tests::row_113_s_city_walks_its_caravan_links_in_the_order_they_were_made_on_run1802_s_ranges
+64	diff::held_out::tests::row_133_s_temple_site_close_fixes_the_borders_on_run1797_s_ranges
 64	diff::held_out::tests::row_133_s_computer_lists_no_bunker_in_its_attacked_capital_on_run1797_s_ranges
 64	diff::held_out::tests::row_103_s_president_clears_his_crew_by_their_cells_region_on_run1783_s_ranges
 64	diff::held_out::tests::row_63_s_fusilier_round_leaves_from_the_original_s_socket_on_run1782
@@ -2102,6 +2110,7 @@
 63	diff::held_out::tests::row_110_s_losing_wonder_site_closes_without_the_unit_stats_bit_on_run1742_s_ranges
 63	diff::held_out::tests::row_43_s_follower_keeps_its_captain_s_target_past_the_leash_on_run1787_s_ranges
 63	diff::held_out::tests::row_103_s_armored_scout_car_fires_from_its_turret_on_run1783_s_ranges
+62	diff::held_out::tests::the_seventh_held_out_eight_are_the_rows_the_rule_names_seated_and_ordering
 62	diff::held_out::tests::row_103_s_army_record_keeps_its_role_when_a_squad_leaves_on_run1783_s_ranges
 62	diff::held_out::tests::row_123_s_producer_lap_starts_past_the_base_on_run1785_s_ranges
 62	diff::held_out::tests::row_63_s_colosseum_is_priced_by_its_ally_s_wonder_site_on_run1782_s_ranges
@@ -2278,6 +2287,7 @@
 8	diff::harness::trunk::tests::a_walk_that_ticks_itself_leaves_the_rungs_a_run_up_takes
 8	gamelog::tests::indexed_fields_keep_file_order_and_record_only_requested_names
 8	diff::held_out::tests::the_sixth_s_files_carry_the_declared_seats_team_and_orders
+8	diff::held_out::tests::the_seventh_s_files_carry_the_declared_seats_team_and_orders
 7	diff::held_out::tests::the_fifth_s_files_carry_the_declared_seats_and_team
 7	artdata::tests::every_surf_section_model_the_install_ships_decodes
 7	artdata::tests::the_surf_s_sections_and_timings_are_the_packet_s
@@ -2313,6 +2323,7 @@
 6	golden::tests::every_chapter_stages_what_it_says_it_stages
 6	golden::tests::an_issuer_line_naming_a_missing_object_is_refused_whole
 6	artdata::tests::the_minimap_colours_are_read
+5	diff::held_out::tests::a_held_pin_fails_on_its_whole_lines_and_first_parting_alone
 5	diff::audit::the_closed_form_owes_the_same_audits
 5	diff::floors::tests::the_closed_form_is_every_row_whole
 5	artdata::tests::the_tileset_light_is_read
@@ -2496,6 +2507,8 @@
 5	diff::held_out::tests::the_sixth_s_files_are_minted
 5	diff::held_out::tests::a_battery_with_a_row_not_whole_is_not_closed
 5	diff::held_out::tests::the_sixth_held_out_line_reads_as_pinned
+5	diff::held_out::tests::the_seventh_s_files_are_minted
+5	diff::held_out::tests::the_seventh_held_out_line_reads_as_pinned
 4	commands::tests::the_empty_group_is_the_same_selection
 4	commands::tests::the_mp_obfuscation_reverses
 4	diff::floors::tests::the_handoff_s_golden_line_is_the_pinned_word

@@ -22673,3 +22673,52 @@ The old row's job directory went with its reap, and the handoff's two
 tables with it; they were made again from the logs. The pass moved no
 score and took no capture.
 **DECISIONS 154.** `docs/audit/2026-11-23-fable-pass-seams.md`.
+
+## 2026-11-23 — the pass, second: the seventh is ratified, and the client's seat takes the fog (Fable 5.2, steering)
+
+Ramon called this one. The commander had run twelve landings since the
+morning's pass and the headline stood at 48 of 55, one more game whole.
+Three lanes were still out when it handed over and all three had
+landed by the time the pass opened, so its first hour was the chain:
+two merged clean, the third backed out on a paragraph the first had
+written beside, its lane took the update, and all three were booked.
+
+The seats had bought less. Eight landings on held-out rows gained 163
+agreeing states each, where the tranche before gained 621. Nothing was
+wasted: four of them were row 133, and each was a rule the original
+has and ours lacked, a repair swarm's order, a missile battery's
+recharge, its rocket's flight, a temple site's borders. But the rows
+still open are late-age fights, and each parts again a few hundred
+states on. The one game that came whole was the one a line from it.
+So a game that parts within 600 states of its own end is now seated
+with the near-whole, and the first such, the new battery's row 28,
+takes the first seat. It is a bet on two cases.
+
+The new battery is the one whose human keeps giving orders. It read 1
+of 8 as found with two games unplayed for want of disk, and inside its
+first 6,001 states it agrees 87 % of the way, where the battery before
+read 59. The orders did not break a game early.
+
+The seam counter, an act of the pass since the morning, was run with
+the new battery added. It named two more. On row 88 a hook is entered
+first on the very state the game parts: the original brings a rider
+out of a dying carrier before it dies, and ours lets it die inside.
+On row 93 another sits three states before the parting: an order to
+fire at the ground aims the turret in theirs and writes nothing in
+ours. Neither needed a capture. And the new battery fires three rows'
+worth of projectiles from pieces that have no launch point.
+
+The client's seat had gone to a parity row because nobody had designed
+its next step. The pass set the photograph beside the still. The world
+and the minimap sit where theirs do. What a person playing would meet
+first is that ours shows the whole map lit, and no capture on file was
+ever taken with the fog on, so the seat starts with that capture.
+
+The disk had read 56 GB, under the floor a capture stops at. The
+compression and the reap of three lane trees took it to 84. The
+archive turned out to hold every filed capture twice, and the temp
+directory four days of gate reports and an 11 MB export from one test
+on every run since the eleventh. A capture is filed as a link now, a
+gate keeps two days, and the test cleans up. The pass moved no score
+and took no capture.
+**DECISIONS 155.** `docs/audit/2026-11-23-fable-pass-fog.md`.

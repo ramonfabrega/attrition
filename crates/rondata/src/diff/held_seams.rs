@@ -26,7 +26,7 @@
 //! where the units line parts on `order.type` 3 against 1.
 
 use crate::diff::held_out::tests::paths;
-use crate::diff::held_out::{Battery, FIFTH, FIRST, FOURTH, SECOND, SIXTH, THIRD};
+use crate::diff::held_out::{Battery, FIFTH, FIRST, FOURTH, SECOND, SEVENTH, SIXTH, THIRD};
 
 /// `launch_point`'s fallback, the one seam counted at run time before this
 /// item (items 4559, 4574): every key the held-out walks fired from the
@@ -159,14 +159,19 @@ fn fallback_rows(walks: &[Walk]) -> Vec<(usize, u64)> {
 /// first parting, and the keys it fires there with it. **471 on
 /// `2aa0b6b6d`** (item 4602): the SAM's wind and turret moved row 133's
 /// game to a first parting on 2198, and its fallback rounds, all from
-/// 3759, with it.
-const FALLBACK: [(&str, &[(usize, u64)]); 6] = [
+/// 3759, with it. **455 on `274d282e8`** (the pass of 2026-11-23, second):
+/// items 4604 and 4607 moved the row to 2351. **The seventh, counted for
+/// the first time on the same tip** (item 4600's six takes): rows 28 (41
+/// rounds from state 4039), 48 (20 from 8334) and 88 (2,092 from 2793),
+/// each past its row's first parting; item 4618 names their keys.
+const FALLBACK: [(&str, &[(usize, u64)]); 7] = [
     ("first", &[]),
     ("second", &[]),
     ("third", &[]),
     ("fourth", &[]),
     ("fifth", &[]),
-    ("sixth", &[(133, 471)]),
+    ("sixth", &[(133, 455)]),
+    ("seventh", &[(28, 41), (48, 20), (88, 2092)]),
 ];
 
 fn fallback_as_pinned(file: &str, walks: &[Walk]) {
@@ -218,5 +223,14 @@ fn the_fifth_held_out_walks_list_the_seams_they_enter() {
 fn the_sixth_held_out_walks_list_the_seams_they_enter() {
     if let Some(w) = count_battery(&SIXTH, "sixth") {
         fallback_as_pinned("sixth", &w);
+    }
+}
+
+/// The seventh joined at the pass of 2026-11-23, second (DECISIONS 155):
+/// item 4600 pinned it as found and no walk of it had been counted.
+#[test]
+fn the_seventh_held_out_walks_list_the_seams_they_enter() {
+    if let Some(w) = count_battery(&SEVENTH, "seventh") {
+        fallback_as_pinned("seventh", &w);
     }
 }

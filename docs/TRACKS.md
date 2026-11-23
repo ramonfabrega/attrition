@@ -73,13 +73,6 @@ finish line's own counter, parity on the declared set (entry 143 §2).
 | **save and replay** | a game saved as seed plus orders, replayable here and written back into the original's recorded-game container | a saved game replays to the same hash; the original replays one of ours | the diff suite; the original on the capture lane | **step 3 stands** (`Recording:`): every recording on disk round-trips, and the original plays our order-free file for 24,000 of 24,000 frames (4058, run1560) |
 | **census** | the territory count tells the truth about the original's 3,611 simulation functions | ported · replaced by design · open, the readers' marks landed row by row (`docs/audit/2026-11-06-territory-*.md`; lore's scoring of the `replaced` groups) | `tools/census.py`'s pins | `Rubric:` 574 open of 3,611, 569 of them carrying a reader's ruling (entry 132); filler for an idle lane |
 
-**At the pass of 2026-11-18, second** (entry 143): **the milestone is closed**; **checksum** — step 5 ratified, nine of twelve lines
-on frame 91 and all twelve on every frame of the minted game; parity 5 of 6, the sample's state 0 at 3 parted ranges (item 4397); the
-demand's game, whole on 6,401 states, is played to its end, which ours reaches on 10929 (item 4396); the packets' lines, 608 of 1,053,
-are booked behind them (item 4400); **orders** — whole by its counters; the seat draws what a selected city shows (item 4398);
-**renderer** — three lanes on the lake's streaks moved nothing, the streaks differ between takes, and the seat scores what two takes
-agree on (item 4399).
-
 **At the pass of 2026-11-19** (entry 144): **checksum** — parity 6 of 7, the demand's game ratified as the seventh with its end tick
 pinned; the sample's lowest first parting 532 of 21,044 (item 4414); the packets' lines 690 of 1,053 (items 4415, 4417); a game is
 declared before the original plays it, and parity held out is booked on eight lobbies nobody tuned for (item 4413); **orders** — whole
@@ -158,6 +151,14 @@ it does not reach; rows 93 and 83 take one seat (item 4590); the held-out tests 
 (item 4598); the seventh battery's human orders through the game (item 4600); the packets' lines 950 of 1,053; **orders** — whole
 by its counters; **renderer** — the client draws the minimap, 2,808 of 3,600 cells within 32 of the photograph's (items 4581 to
 4588), the blips next (item 4596); a lane's clock runs after its release step.
+
+**At the pass of 2026-11-23, second** (entry 155): **checksum** — parity 48 of 55 (row 113 whole); the sample as it stood, leaders
+7502, draws 7613; parity held out 8, 8, 8, 8, 6 and 4 of 8 now, the sixth's reach 61 %; the seventh, its human ordering through the
+game, read 1 of 8 and 20 of 72 lines as found on six rows taken, 59 % by reach and 87 % inside its first 6,001 states, and folds at
+its first leaf; eight row landings bought 163 states each on late-age rows; a row within 600 states of its end ranks with the
+near-whole, and the seventh's row 28 takes the first seat (item 4613); rows 133 and 43 name one shape (item 4610); the packets'
+lines 951 of 1,053; **orders** — whole by its counters; **renderer** — the minimap 3,213 of 3,600 cells (items 4596 to 4605); the
+client's seat takes the fog, which no capture on file shows (item 4612); a capture is filed once.
 
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it
