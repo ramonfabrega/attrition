@@ -483,7 +483,7 @@ pub(crate) mod tests {
             for (a, b) in ours.ranges.iter().zip(&theirs) {
                 if want.contains(&(a.record as i16)) && a.bytes != b.bytes {
                     let fa = crate::checksum::fields::build_range_fields(&a.field, &a.bytes);
-                    let fb = crate::checksum::fields::build_range_fields(&b.field, &b.bytes);
+                    let fb = crate::checksum::fields::build_range_fields(&a.field, &b.bytes);
                     for (x, y) in fa.iter().zip(&fb) {
                         if x.1 != y.1 {
                             eprintln!("PROBE {state} rec {} {} {}: ours {} theirs {}", a.record, a.field, x.0, x.1, y.1);
@@ -493,7 +493,7 @@ pub(crate) mod tests {
             }
             for (a, b) in ours.ranges.iter().zip(&theirs) {
                 if want.contains(&(a.record as i16)) && (a.field.starts_with("myhits") || a.field.starts_with("gather_down")) {
-                    let fb = crate::checksum::fields::build_range_fields(&b.field, &b.bytes);
+                    let fb = crate::checksum::fields::build_range_fields(&a.field, &b.bytes);
                     let pick: Vec<_> = fb.iter().filter(|f| matches!(f.0.as_str(), "near_o"|"near_who"|"recharging"|"attack_ox"|"attack_whom"|"targeted"|"visible")).collect();
                     eprintln!("PROBE {state} rec {} theirs {:?}", a.record, pick);
                 }
