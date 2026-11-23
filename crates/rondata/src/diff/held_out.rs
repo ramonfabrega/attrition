@@ -1850,6 +1850,11 @@ pub(crate) mod tests {
                             }
                         }
                     };
+                    if name == "units" && state == hi {
+                        for (k, b) in theirs.iter().enumerate().skip(3705).take(22) {
+                            eprintln!("P4610 RAW theirs k{k} {:02x?}", b.bytes);
+                        }
+                    }
                     if std::env::var_os("RON_PROBE_SEQ").is_some() {
                         dump("ours", ours.ranges.iter().map(|a| (a.field, a.record, a.bytes.as_slice())).collect());
                         dump("theirs", ours.ranges.iter().zip(&theirs).map(|(a, b)| (a.field, a.record, b.bytes.as_slice())).chain(theirs.iter().skip(ours.ranges.len()).map(|b| ("?", -1, b.bytes.as_slice()))).collect());
