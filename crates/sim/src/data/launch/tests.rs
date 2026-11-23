@@ -1576,6 +1576,60 @@ fn the_original_s_release_agrees_at_every_heading_for_the_crossbowmen() {
     assert!(off.is_empty(), "{} headings disagree: {off:?}", off.len());
 }
 
+/// **The Musketeers' rows agree with the original at every heading** (item
+/// 4591, `docs/RECGAME.md` §13): `$RON_BAY_SWEEPS_4591` is the directory
+/// holding `sweep-49-0-<anim>-<time>.txt` for piece 49's three keys, outside
+/// git (`~/ron-data/lab-experiments/2026-11-23-item-4591/sweeps/`), written
+/// by `init_position` and then `get_position` on run1579's packet. Until
+/// then they were item 3691's fit to the disk's rounds, which held 357, 361
+/// and 329 of the 361 headings.
+#[test]
+fn the_original_s_release_agrees_at_every_heading_for_the_musketeers() {
+    let Ok(dir) = std::env::var("RON_BAY_SWEEPS_4591") else {
+        eprintln!("skipping: set RON_BAY_SWEEPS_4591 (item 4591's oracle, run1579)");
+        return;
+    };
+    let (mut rows, mut off) = (0, Vec::new());
+    for &(_, a, t, b) in BAYS.iter().filter(|r| r.0 == 49) {
+        let path = format!("{dir}/sweep-49-0-{a}-{t}.txt");
+        let table = std::fs::read_to_string(&path).expect("RON_BAY_SWEEPS_4591");
+        for line in table.lines() {
+            let f: Vec<i64> = line
+                .split_whitespace()
+                .take(5)
+                .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                .collect();
+            let (x, y) = b.offset((f[0] + 180) % 360);
+            if (x, y, i64::from(b.dz)) != (f[2], f[3], f[4]) {
+                off.push(format!(
+                    "a{a} t{t} deg {}: {x},{y} against {},{}",
+                    f[0], f[2], f[3]
+                ));
+            }
+            rows += 1;
+        }
+    }
+    assert_eq!(rows, 3 * 361, "{dir}");
+    assert!(off.is_empty(), "{} headings disagree: {off:?}", off.len());
+}
+
+/// **Row 33's musket ball on 3386 leaves where theirs does** (item 4591):
+/// who=2's Musketeers `2/25` (TI 99, piece 49) at (6840, 33096), facing
+/// 244,973,568, `CHAR_ATTACK3` frame 4, from x 6907 in run1801's ammo
+/// range; item 3691's row put it at 6906.
+#[test]
+fn row_33_s_musket_ball_on_3386_leaves_from_theirs_point() {
+    let p = launch_point(
+        Pos::new(6840, 33096),
+        Angle(244_973_568),
+        49,
+        crate::units::anim::ATTACK3,
+        4,
+        0,
+    );
+    assert_eq!((p.x, p.y), (6907, 32948));
+}
+
 /// **Row 75's crossbow bolt on 4004 leaves where theirs does** (item 4517):
 /// who=1's Crossbowmen `1/163` at (3960, 34440), facing −475,070,464,
 /// `CHAR_ATTACK3` frame 6, from (3923, 34374) in run1768's ammo range; item
