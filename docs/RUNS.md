@@ -41506,3 +41506,37 @@ before it and 82 after filing.
 
 **What it holds**: `diff::held_out::tests::row_33_s_musket_ball_leaves_from_the_original_s_socket_on_run1801_s_ranges`
 (every ammo range on states 3385 to 3400; who=2's `2/25` TI 99 on 3386).
+
+## run1802 — parity held out, sixth battery, row 113's file to the original's end (4572) with the checksum and ranges hooks, cities kept (2026-11-23, item 4592, `att-4592`)
+
+`docs/RECGAME.md` §13.4. **What the disk could not answer**: run1793 holds sums only, so row 113's cities parting on
+3995 (after item 4583) named no leaf. The take is run1793's file with the scorer's one-take line (`score_recording …
+~/ron-golden/run1793/map-14` on `d8105761e`: `--end-frame 12000 --allow-early-end --tracer-def RON_CHECKSUMS
+--tracer-def RON_RANGES --tracer-def RNG_MASK=0x100u`): `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1802 --recording ~/ron-golden/recordings/item4566-row113-12000.rcx
+--end-frame 12000 --allow-early-end --cover cover=1 --log-window 3988 4000 --detail end:MISC --timeout 3600
+--stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0x100u`, waited on with
+`waitrun.sh` in the background. The lane was free at launch, so no minutes went to waiting. `df -g ~` read 91 GB free
+before it and 87 after filing.
+- **The run**: pool lane 1, launched 08:51:49 −05:00, exited 08:57:30: **340.0 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 4,573 frames, `last_frame` 4572, **ended by the original**, as run1793 did, seed 12345,
+  map 14. The recording's SHA-256 is run1793's (`5a9c786c…`). Players: tribe 4 (who 0, flags 7), tribe 11 (who 1),
+  tribe 16 (who 2).
+- **The record**, `~/ron-golden/run1802/map-14/rontrace.ranges`, 6,268,744 bytes, SHA-256
+  `d6de14cebefe69542224c19dde5e7ac0d7d7c6bb32f56b0d150c017b5a37de9c`: lines `['cities']`, 4,576 sets on trace frames
+  −1 to 4571, 156,491 ranges, 3,320,859 bytes, none over; `ranges.py check`: every set agrees. Under a gigabyte, so
+  `filerun.py` left it whole.
+- **Scored** (`score_recording … ~/ron-golden/run1802/map-14`, on `d8105761e`): the sums are run1793's as moved by item
+  4583; eleven lines whole; cities 3,995, first 3995: **cities range 11, record 0, `vans[k]`, byte 4: `who` ours 1,
+  theirs 2**. who=1's city 0 holds `(0,1) (1,1) (3,2) (3,1)` on theirs, and `(3,1)` is who=1's Caravan `1/34` (TI 59,
+  land) linking on 3995, after who=2's `2/131` (TI 59, land).
+- **Re-scored by item 4592** (a city's `vans` in the order the links were made, on `41f0dd9fd`): cities 4,573 of
+  4,573; **twelve lines whole** to the original's end.
+- Filed by `filerun.py run1802 heldout6-row113-ranges`: `gamelog_p.txt` →
+  `Logs/gamelog-run1802-heldout6-row113-ranges.txt`, 2,864 bytes, SHA-256
+  `229c27904b34060391ad6e55bda3aa453cebb5aa23a3bb8c85d61ed272af80b3`; `rontrace.log` → `Logs/rontrace-run1802.log`,
+  212,224,256 bytes, SHA-256 `ec41d244476c4b7361cb39d9e4ece2222c9651ef7245d1d6c92a16325d988835`; the record stays
+  in place.
+
+**What it holds**: `diff::held_out::tests::row_113_s_city_walks_its_caravan_links_in_the_order_they_were_made_on_run1802_s_ranges`
+(every cities range on states 3994 to 3996; who=1's `1/34` and who=2's `2/131`, TI 59, on 3995).

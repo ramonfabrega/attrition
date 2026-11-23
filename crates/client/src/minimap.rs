@@ -40,31 +40,36 @@ pub const QUAD_FRAME: (i32, i32) = (1920, 1080);
 pub const BACK: u32 = 256;
 
 /// **The minimap's own camera** (item 4581): `WorldMap::cam` (`+0x808`) on
-/// run1564's packet, a map of 60 × 60 tiles. `init_camera@008cbb10` sets
-/// `angle` 45 (`+0x934`) and the look-at to the map's centre; the rest is
-/// the packet's. Only [`tests`] reads it: it pins the texture's
-/// orientation, which [`background_camera`] keeps.
-#[cfg(test)]
-pub fn minimap_camera() -> render::Camera {
+/// run1564's packet, a map of 60 × 60 tiles (an extent of 46,080 each
+/// way). `init_camera@008cbb10` sets `angle` 45 (`+0x934`) and the look-at
+/// to the map's centre; the rest is the packet's. [`tests`] pins the
+/// texture's orientation by it, which [`background_camera`] keeps, and
+/// [`blips`] projects through it (item 4601). On another extent its
+/// distances scale with the larger side: an assumption, run1564 the one
+/// map read (`docs/RENDERER.md` §3.33, "Not established").
+pub fn minimap_camera(extent: (i32, i32)) -> render::Camera {
     let f = f32::from_bits;
+    let s = extent.0.max(extent.1) as f32 / 46080.0;
     render::Camera {
-        zoom_distance: f(0x4799_2e8d),
+        zoom_distance: f(0x4799_2e8d) * s,
         camera_scale: 1.0,
         tilt_angle: 0.0,
         dir_angle: f(0x4234_0000),
-        loc_x: f(0x46b4_0000),
-        loc_y: f(0x46b4_0000),
+        loc_x: extent.0 as f32 / 2.0,
+        loc_y: extent.1 as f32 / 2.0,
         loc_x_adjust: 0.0,
         loc_y_adjust: 0.0,
         loc_z_adjust: 0.0,
         angle: f(0x4234_0000),
-        near_plane: f(0x4791_ae8d),
-        far_plane: f(0x47a5_d2f0),
+        near_plane: f(0x4791_ae8d) * s,
+        far_plane: f(0x47a5_d2f0) * s,
         view_ratio: 1.0,
         parallel: true,
-        parallel_distance: f(0x4799_2e8d),
+        parallel_distance: f(0x4799_2e8d) * s,
     }
 }
+
+pub mod blips;
 
 /// The quad's corners on a `size` frame: [`QUAD`] kept at its distance
 /// from the frame's left and bottom edges, where the console's bar sits.
@@ -492,13 +497,17 @@ pub fn view_rect(
 /// **The overlays** (item 4588; `docs/RENDERER.md` §3.32): what
 /// `WorldMap::on_redraw@008c81f0` draws over the background, in its order
 /// (`render_borders`, `render_fog`, `render_blips`, `draw_view_rect`,
-/// `render_ping`): the borders ([`borders`]) and the view's rectangle
+/// `render_ping`): the borders ([`borders`]), the blips ([`blips`], item
+/// 4601; `selection` the console's, `blink` the phase `graphic_tick & 8`)
+/// and the view's rectangle
 /// ([`view_rect`]). The fog draws nothing on run1564's photograph and is
-/// not built; nor are the blips and the pings.
+/// not built; nor are the pings.
 pub fn overlays(
     world: &crate::world::World,
     view: &render::Camera,
     screen: (u32, u32),
+    selection: &[sim::observe::ObjId],
+    blink: bool,
 ) -> Vec<crate::gpu::ScreenLayer> {
     let size = (screen.0 as i32, screen.1 as i32);
     let t = world.runner.terrain();
@@ -516,6 +525,13 @@ pub fn overlays(
         };
         let who = who_texels(cells, &terr.owner, sea, colour);
         out.extend(borders(size, cells, &who));
+    }
+    if let Some(atlas) = world.blip_atlas.as_ref() {
+        out.push(blips::draw(
+            &blips::build(world, selection, size, blink),
+            atlas,
+            size,
+        ));
     }
     out.push(view_rect(
         size,
@@ -735,7 +751,7 @@ pub(crate) mod tests {
     /// six decimals on run1564's packet.
     #[test]
     fn the_minimap_camera_is_the_packet_s() {
-        let m = minimap_camera().to_screen_matrix().0;
+        let m = minimap_camera((46080, 46080)).to_screen_matrix().0;
         let packet: [f32; 16] = [
             1.707106, -1.707107, 0.0, 0.0, -1.707107, -1.707106, 0.0, 0.0, 0.0, 0.0, -7.605044,
             0.0, 0.007073, 78663.47, 29203.375, 78429.1,
@@ -756,7 +772,7 @@ pub(crate) mod tests {
     /// (extent, 0) to the right one: the texcoords [`QUAD`] carries.
     #[test]
     fn the_texture_s_u_is_the_world_s_x() {
-        let m = minimap_camera().to_screen_matrix();
+        let m = minimap_camera((46080, 46080)).to_screen_matrix();
         let s = crate::pinned_screen();
         let at = |x, y| render::camera::world_to_console(&m, &s, x, y, 0, Some((317, 159)));
         let (top, right, bottom, left) = (at(0, 0), at(46080, 0), at(46080, 46080), at(0, 46080));
@@ -823,7 +839,13 @@ pub(crate) mod tests {
     /// rectangle 10 in; the border's blue reads as water on both sides,
     /// +49 cells. Seen red: the view's rectangle truncated rather than
     /// rounded half up sits a pixel left of theirs, `[…, 2795, 3600]`.
-    pub const RUN1564_3279_MINIMAP: [usize; 6] = [465, 596, 534, 3400, 2808, 3600];
+    /// Item 4601, the blips ([`blips`]) and the photograph's selection
+    /// (slot 0's capital, white): `[465, 596, 534, 3400, 2808, 3600]` →
+    /// `[560, 596, 595, 3529, 3002, 3600]`, within `NEAR` +194, the same
+    /// side of water +129 (the blue team's blips read as water on both).
+    /// Seen red: the quad test ([`blips::tests`]) under `stat_mode` 0
+    /// parts on 16 buildings and 35 units.
+    pub const RUN1564_3279_MINIMAP: [usize; 6] = [560, 596, 595, 3529, 3002, 3600];
 
     /// **The who texture's edge** (item 4588): a 2 × 1 map, player 0 on the
     /// left cell and player 1 on the right; then the right cell open water.
@@ -881,13 +903,16 @@ pub(crate) mod tests {
         let s = (size.0 as i32, size.1 as i32);
         assert_eq!(s, QUAD_FRAME, "the photograph's frame");
         let camera = p.camera;
+        // Item 4601: the photograph's selection, slot 0's capital (its
+        // white city blip).
+        let sel = blips::tests::capital_selected(&p.world);
         let ours = crate::still_minimap(
             &mut p.world,
             &camera,
             size,
             crate::gpu::SilhouetteOrder::Before,
             wgpu::TextureFormat::Rgba8Unorm,
-            &[],
+            &sel,
             &|_| None,
             true,
         );

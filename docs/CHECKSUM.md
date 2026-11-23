@@ -908,11 +908,21 @@ the shape of a non-empty `vans` array (run1100's stream, not ours).
   flags `0x2`, `0x4`, `0x8`, `0x20`, `0x40`, `0x80`, `0x100`, `0x200`,
   `0x400`, `0x1000`, `0x2000`, `0x8000`. `scouted` and `plundered` have
   no writer here; a capture that sets one is the check.
-- **A city with a caravan link.** The image emits §8's shape with `size`
+- ~~**A city with a caravan link.** The image emits §8's shape with `size`
   10, `cara` the caravan's slot in its owner's list and `who` that
   owner, in owner-then-slot order. Each of those is an assumption: no
   link stands on the scored frame, and the array's growth and add order
-  are not read.
+  are not read.~~ Diff-backed by item 4592 (`docs/RECGAME.md` §13.4):
+  run1802's cities ranges hold every link of row 113's eight cities,
+  byte for byte, on 3994 to 3996, with `size` 10, `cara` the slot and
+  `who` the owner. **The order is the order the links were made**:
+  `ArrayBase<CaravanLink>::add@0046e550` appends, `do_trade` its one
+  caller, and `Array<CaravanLink>::remove@0046e4e0` keeps the rest in
+  order, `end_trade_route` its one caller. Ours stamps a link when it is
+  made (`Caravan::linked_at`). Still an assumption: `size` past ten
+  links (`VANS_SIZE.max(len)`; no city read holds more than four), and
+  a link `end_trade_route` leaves standing because its end has closed,
+  which theirs keeps and ours' walk drops.
 - A leader whose list holds a dead slot before a live one, or a captured
   city. `city` is the city's place among its owner's live cities, and
   the original's is its slot in the leader's `PtrArray<City>`. The two

@@ -1489,7 +1489,10 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// one link a unit (`Build::add_gatherer@0062f640`).
 /// The merge under item 4535 (4537's guided rounds, by its subject; not
 /// bisected): 948 -> 950, ammo whole on run1487 and run1496.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 950, 1053);
+/// Item 4592: 950 -> 951, cities whole on run1325c (two ranges before): a
+/// city's `vans` stand in the order the links were made
+/// (`ArrayBase<CaravanLink>::add@0046e550` appends).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 951, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -3281,6 +3284,9 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4476, `cavarch_uid` kept past a dropped target: units (10367, 10367, 70) -> (10367, 10367, 68).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9666, 9666, 1) -> (9666, 9666, 0).
     // Item 4511, a unit host's chain is the order of entry: units (10367, 10367, 68) -> (10367, 10367, 3).
+    // Item 4592, a city's `vans` in the order the links were made (theirs'
+    // who=1 city 3 holds `(4,1) (3,1)`, which a walk by slot wrote `(3,1)
+    // (4,1)`): cities (43, 43, 2) -> (43, 43, 0).
     (
         "run1325c",
         5578,
@@ -3293,7 +3299,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (682, 682, 0),
             (2706, 2706, 0),
             (271, 271, 0),
-            (43, 43, 2),
+            (43, 43, 0),
             (10, 10, 0),
             (330, 330, 0),
             (9666, 9666, 0),
