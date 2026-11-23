@@ -127,6 +127,9 @@ pub struct Soup {
 /// The game and the art, stepped and drawn from.
 pub struct World {
     pub runner: FreeRunner,
+    /// The minimap's background (item 4581), drawn once the window has a
+    /// GPU; the HUD draws no minimap without it.
+    pub minimap: Option<crate::minimap::Background>,
     /// The install's names, for the HUD (item 4197).
     pub names: crate::hud::Names,
     look: BuildLook,
@@ -1193,6 +1196,7 @@ impl World {
             SurfArt { layer, slots }
         });
         Ok(World {
+            minimap: None,
             names: crate::hud::Names::new(&loaded),
             look: BuildLook::new(&install).with_types(&loaded.build_types),
             tribes,

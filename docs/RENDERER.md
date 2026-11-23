@@ -4615,6 +4615,90 @@ East Indies start, so East Indies rests on the reading and the row.
 - `zoom_mode` (`~prefs >> 0xb & 1 | 2`) is unread. Under the client's
   fresh profile the zoom is the packets' own.
 
+## 3.32 The minimap, read and drawn (item 4581)
+
+*2026-11-23, Opus 5.5. `client::minimap`; checked by
+`minimap::tests::the_minimap_s_cells_on_run1564` (the row),
+`the_minimap_camera_is_the_packet_s`, `the_texture_s_u_is_the_world_s_x`,
+`the_background_camera_lays_the_texture_s_axes` and
+`the_quad_s_mapping_inverts`.*
+
+**The row.** `RUN1564_3279_MINIMAP`: run1564's 60 × 60 cells, each read
+at its centre's pixel on the photograph and on the client's still.
+`[water on both, water on theirs, water on ours, the same side of water,
+every channel within 32, cells]`. **Minted at
+`[425, 596, 500, 3354, 2288, 3600]`**: 3,354 of 3,600 cells on the same
+side of water and 2,288 within 32 on every channel. A cell is water when
+blue is more than 40 over red and not more than 40 under green. Seen red:
+a background turned a quarter (`dir_angle` 90) gives
+`[186, 596, 480, 2896, 1444, 3600]`. **The photograph's minimap is read
+cell by cell**: a cell is about 5 × 2.6 px of a 317 × 159 diamond.
+
+**What the original draws** (read, then held to the packet). The packet
+is `~/ron-golden/run1564/map-14/frame-snapshot.bin`, frame 3294; the
+object is `MiscAccess::worldmap` (`0x00e399ac`), a `WorldMap` (`0x1360`).
+- *The background.* `WorldMapBackground::render@008cfc40` draws the
+  terrain once (`TerrainOut::render`, `render_mountains`,
+  `CliffsOut::render`, the features). It draws from a camera
+  `setup_camera@008d0b70` puts over the map's centre, into a texture of
+  `back_xs` × `back_ys`, 256 × 256 on the packet (`+0x10c8`).
+- *The quad.* `WorldMap::render_background@008cb6e0` draws that texture
+  on six pre-transformed vertices, `translated_verts` (`+0xbb8`). On the
+  packet they are top (485, 910), right (643, 990), bottom (484, 1069)
+  and left (326, 990): the photograph's frame with its 32-row title bar
+  cut. `texs` (`+0xbdc`) gives them (0, 0), (1, 0), (1, 1), (0, 0), (1, 1)
+  and (0, 1): two triangles, top-right-bottom and top-bottom-left.
+- *The projection.* The minimap's own camera, `cam` (`+0x808`), is
+  parallel. It holds `dir_angle` 45 and `tilt_angle` 0, its look-at
+  (23040, 23040) the centre of a 46,080-unit map, `angle` 45 and
+  `parallel_distance` 78429.1; `init_camera@008cbb10` writes the `angle`
+  and the look-at. `render::Camera` built from those fields gives the
+  packet's `to_screen_matrix` to its six printed decimals. That camera
+  sends world (0, 0) to the top corner and (46080, 0) to the right one,
+  so **the texture's `(u, v)` is the world's `(x, y)` over the map's
+  extent**. A check that needs no reading: run1564's camera look-at
+  (36960, 38496) projects to (479, 1041), and the photograph's white view
+  rectangle is centred on (479, 1039.5).
+- *The rest* is drawn over the background and not by us: the fog
+  (`WorldMapFog`, swept for `fill_colors`), the borders
+  (`render_borders`), the blips (`render_blips`), the pings and the view
+  rectangle (`draw_view_rect`).
+
+**Ours.** `minimap::background` draws our terrain alone (no figure, tree,
+sprite or particle) through `background_camera`, into a 256 × 256 still.
+The camera is parallel, straight down and at `dir_angle` 0: of 0, 90, 180
+and 270 it is the one that lays world (0, 0) top-left and (extent, 0)
+top-right. `minimap::layer` draws it as one opaque quad a cell, through
+the two triangles, each in the background's bilinear sample at the
+cell's centre. It is a screen layer under the plates. The window draws
+the background once, when it has a GPU, as the original does. Off
+1920 × 1080, the quad keeps its distance from the frame's left and bottom
+edges (an assumption).
+
+**The presses.**
+- *Left.* `WorldMap::on_left_down@008c79b0` sets `moving_cam`.
+  `update_world_map@008d2ba0` then sets the game camera's `loc` to the
+  minimap's plane point under the cursor, held to `[0, cells · 0x300]`
+  each way. It skips this under `scroll_lock_flags & 4`. The window does
+  the same: a press on the quad moves the look-at at once, the cursor
+  moves it while the button is held, and the release lets go
+  (`minimap::to_world_held`).
+- *Right.* A right press on the quad sends `Event::MapRightPress` at
+  `minimap::to_world`'s point. That is §9 of `docs/CLIENT_INPUT.md`, whose
+  order is ported and played.
+
+**Not established.**
+- The background's colour: ours is paler and less saturated than theirs,
+  and it has no forest blobs (`WorldMapBackground::render_feature`, which
+  draws the features, is unread). Our shore ring is wider.
+- Whether the original tone-maps the background: our still is drawn
+  through the client's HDR pass with its frame-mean white.
+- The fog, the borders, the blips and the view rectangle (above).
+- `setup_camera`'s own `dir`: the decompile loses the register, and the
+  axes rest on the minimap camera's corners.
+- The layout off 1920 × 1080, and the `scroll_lock_flags & 4` skip,
+  which the window does not read.
+
 ## 4. The stack
 
 The rule is `CLAUDE.md`'s **earn every dependency**: a crate enters when it

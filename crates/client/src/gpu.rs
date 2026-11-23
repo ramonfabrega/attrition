@@ -550,7 +550,7 @@ pub struct Gpu {
     screen: wgpu::RenderPipeline,
     uniform: wgpu::Buffer,
     bind: wgpu::BindGroup,
-    format: wgpu::TextureFormat,
+    pub(crate) format: wgpu::TextureFormat,
     terrain: std::sync::Mutex<Option<(u32, wgpu::Buffer, u32)>>,
     /// The ground's base layer (item 4127) and the terrain version it was
     /// uploaded at.
