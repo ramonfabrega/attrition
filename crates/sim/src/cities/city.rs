@@ -2849,8 +2849,25 @@ impl Sim {
     }
 
     /// `Build::close` / `Wall::close`. `silent` is reason 5, a transfer:
-    /// the footprint stays marked for the copy that replaces it.
+    /// the footprint stays marked for the copy that replaces it; otherwise
+    /// reason 1, a building's ordinary close. [`Sim::close_building_for`]
+    /// takes the reason itself.
     pub fn close_building(&mut self, b: usize, silent: bool) {
+        self.close_building_for(b, if silent { 5 } else { 1 });
+    }
+
+    /// **`Build::close@00628980(reason, -1, 0)`, the reason kept** (item
+    /// 4572, `docs/RECGAME.md` §12.3). Reason 5 is a transfer
+    /// (`silent`). Reason 0 is the one an unstarted building's disband
+    /// (`disband_steps`' `close(0, -1, 0)`) and the scripts'
+    /// `destroy_building@009f6fc0` (`Build::close`, vslot `0x150`, with
+    /// `(0, -1, 0)`) pass. It differs from an ordinary close in the sim at
+    /// one place, `Wall::close@0063f6e0:156`: no `refresh_nearby_tiles`. The
+    /// other reason-0 tests are the destroy particle (`:27`, drawn only)
+    /// and `Object::close@00647160:34`, whose arm gives a building
+    /// `remove_from_world` on every reason.
+    pub fn close_building_for(&mut self, b: usize, reason: u8) {
+        let silent = reason == 5;
         if !self.buildings[b].alive {
             return;
         }
@@ -2937,10 +2954,12 @@ impl Sim {
         // is `UnitTypeData`'s alone), so it leaves its cell's chain here
         // (`docs/COLLISION.md` §3.2).
         self.object_chain_remove(crate::combat::Obj::Building(b));
-        // `Wall::close@0063f6e0:157`, after `Object::close`, for a reason
-        // other than 0 and 5 (both `silent` here): the active neighbours
-        // mark what they hide again (item 4136).
-        if !silent {
+        // `Wall::close@0063f6e0:156`, after `Object::close`, for a reason
+        // other than 0 and 5: the active neighbours mark what they hide
+        // again (item 4136). Reason 0, a foundation's disband or a script's
+        // `destroy_building`, refreshes nothing (item 4572: run1796's 4989,
+        // who=2's Barracks foundation o 2014 disbanded beside who=1's 2016).
+        if reason != 0 && reason != 5 {
             self.refresh_nearby_tiles(b);
         }
         // `Wall::close:155` → `Object::close@00647160`: an active object's

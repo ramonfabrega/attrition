@@ -45,9 +45,9 @@ use sim::observe::{ObjId, Scene, TerrainScene};
 
 /// The world units of one tile (`UNITS_PER_TILE`), the grain of the tile
 /// heights an object stands at.
-const TILE: i32 = 192;
+pub(crate) const TILE: i32 = 192;
 /// The tiles of one cell.
-const TILES_PER_CELL: i32 = 4;
+pub(crate) const TILES_PER_CELL: i32 = 4;
 
 /// How near a press must fall to an object's anchor to select it, in
 /// pixels. Ours: the original's own hit test (a piece's drawn pixels) is
@@ -226,12 +226,9 @@ pub enum Event {
     /// A right press on the minimap at the world point it names
     /// (`WorldMap::on_right_up@008c7050`, item 4194): a `move_to` with the
     /// minimap's `form`/`width` −1/−1, the fields the scripts before
-    /// [`rondata::script::clicked_main_view`] carry. Ours: the minimap is
-    /// not drawn, so the event carries the point rather than a pixel.
-    #[cfg_attr(
-        not(test),
-        expect(dead_code, reason = "the window draws no minimap; the tests send it")
-    )]
+    /// [`rondata::script::clicked_main_view`] carry. The window sends it
+    /// from a press on the minimap at [`crate::minimap::to_world`]'s point
+    /// (item 4581); the event carries the point rather than a pixel.
     MapRightPress {
         x: i32,
         y: i32,

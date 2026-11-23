@@ -366,7 +366,9 @@ impl Host for ScriptHost<'_> {
             "citizen_repair_order" => self.citizen_repair_order(a(0), a(1), a(2)),
             "destroy_building" => match self.valid_build(a(0), a(1)) {
                 Some(b) => {
-                    self.sim.close_building(b, false);
+                    // `destroy_building@009f6fc0`: `Build::close(0, -1, 0)`,
+                    // reason 0 (item 4572).
+                    self.sim.close_building_for(b, 0);
                     OK
                 }
                 None => BAD,

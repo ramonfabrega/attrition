@@ -623,8 +623,8 @@ script before this one carries for its single move is the minimap's arm, not the
 So the main view's move carries `form` 0 and `width` 50 (`script::SCOUT_FORM`, `SCOUT_WIDTH`).
 
 **Ours.** The layer's `Event::RightPress` on the ground always mints `View::formation`. `Event::MapRightPress`
-carries a world point and mints −1/−1, bounded by `View::map_extent`. The minimap is not drawn and its pixel
-transform is not read, so the event carries the point rather than a pixel. The window sends no minimap event.
+carries a world point and mints −1/−1, bounded by `View::map_extent`. The event carries the point rather than a pixel;
+since item 4581 the window sends it from a press on the drawn minimap (`docs/RENDERER.md` §3.32).
 
 ### 9.2 The scripts, and the counts
 
@@ -708,8 +708,9 @@ frames, with each effect and the formation bytes equal on both sides.
   members whose type's `+0x1e8` is nonzero and whose vtable slot `+0xe8` answers nonzero. The export names neither:
   the type's field prints as padding, and COMDAT folding names the slot `is_captain`. The layer still mints an attack.
   No take can play it here: the harness lobby shows slot 0 no enemy until frame 6703 (item 4195).
-- **The minimap's pixel.** Its transform from a minimap pixel to the world is not read, and the client draws no
-  minimap.
+- ~~**The minimap's pixel.** Its transform from a minimap pixel to the world is not read, and the client draws no
+  minimap.~~ Read off run1564's packet and drawn: `docs/RENDERER.md` §3.32 (item 4581). The window sends
+  `Event::MapRightPress` from a press on the quad at `minimap::to_world`'s point.
 - **A one-unit `form` other than 0**, and a member whose `form_mod` is set. Neither is played.
 
 ## 10. A press that follows, and the fog's press (item 4202)

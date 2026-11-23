@@ -41208,6 +41208,9 @@ free at launch, so no minutes went to waiting. `df -g ~` read 81 GB free before 
 - **Re-scored by item 4548** (the scripts' `""` city is the first live one; `research_tech_with_cost` refuses an
   unassimilated producer): **eleven lines whole, 6,001 of 6,001**; world 4,990, first 4990 (range 3624, record −1,
   `mask`, byte 75898: ours `0x07`, theirs `0x03`, 27 bytes, bit `0x04`).
+- **Re-scored by item 4572** (a foundation's disband closes with reason 0, and `Wall::close` refreshes no neighbour
+  on it; `docs/MAPGEN.md` §35): **twelve lines whole, 6,001 of 6,001**. On 4990 world range 3624's 27 bytes, who=1's
+  2016 band, are theirs' on our side: `0x03`, `0x13`, `0x00`, `0x10`, bit `0x04` off.
 - Filed by `filerun.py run1796 heldout5-row003-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1796-heldout5-row003-ranges.txt`, 2,883 bytes, SHA-256
   `06022ebcdca5157bfe89b75715e4e5afa9a3ad5cb49c85f127f40e99b3433d00`; `rontrace.log` → `Logs/rontrace-run1796.log`,

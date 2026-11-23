@@ -4661,6 +4661,86 @@ mod tests {
         assert_eq!(sim.ai.ai[1].script.as_deref(), Some("defensive"));
     }
 
+    /// **Row 3's foundation disband refreshes no neighbour** (item 4572,
+    /// `docs/RECGAME.md` §12.3): on run1796's ranges, every world range on
+    /// 4989 and 4990 byte for byte. On 4989 who=2's Barracks 2014 (TI 427),
+    /// a foundation (`SubObject::flags` 1, never started), closes; who=1's
+    /// 2016 (TI 435, active) stands in its band's cell (8, 40), offset (2,
+    /// 0) at d = −3 from the Barracks' (9, 43). The close's reason is 0
+    /// (`disband_steps`' `close(0, -1, 0)`, or the scripts'
+    /// `destroy_building`), and `Wall::close@0063f6e0:156` refreshes no
+    /// neighbour on it: theirs' 2016 band (tiles x 29..=35, y 158..=164,
+    /// 27 tiles) carries no `BEHIND` bit on 4990, where ours set it on
+    /// every one.
+    #[test]
+    fn row_3_s_foundation_disband_refreshes_no_neighbour_on_run1796_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 0) else {
+            eprintln!("skipping: row 3's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1796/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1796's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 3's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [4989, 4990] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_world();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "world's ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "world range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Range 3624, the tile masks, 240 tiles a row: 2016's band.
+            assert_eq!(ours.ranges[3624].field, "mask");
+            let mask = |x: usize, y: usize| {
+                let i = 2 * (y * 240 + x);
+                u16::from_le_bytes([theirs[3624].bytes[i], theirs[3624].bytes[i + 1]])
+            };
+            let mut band = 0;
+            for k in 1..=3 {
+                for x in 32 - k..32 - k + 5 {
+                    assert_eq!(mask(x, 161 - k) & 4, 0, "({x}, {}) on {state}", 161 - k);
+                    band += 1;
+                }
+                for y in 161 - k + 1..161 - k + 5 {
+                    assert_eq!(mask(32 - k, y) & 4, 0, "({}, {y}) on {state}", 32 - k);
+                    band += 1;
+                }
+            }
+            assert_eq!(band, 27, "2016's band, three rings of a 5x5");
+            let sim = &built.sim;
+            let library = sim.building_by_o(1, 2016).expect("who=1's 2016");
+            assert!(sim.buildings[library].active, "2016 is active on {state}");
+            let barracks = sim.building_by_o(2, 2014);
+            if state == 4989 {
+                let b = barracks.expect("who=2's 2014 on 4989");
+                assert!(!sim.buildings[b].started, "2014 is a foundation");
+            } else {
+                assert!(barracks.is_none(), "2014 closed on 4989");
+            }
+        }
+    }
+
     /// **Row 95's MLRS bears from its pivot node** (item 4536,
     /// `docs/RECGAME.md` §12.5): on run1770's ranges, every units and guys
     /// range on 5908 and 5909 byte for byte. On 5908 who=1's MLRS `1/99`
@@ -8874,12 +8954,20 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // world 4,784, leaders 4,777, ammo 5,456, deaths 4,867, groups
         // 4,814, items 5,679, goods 5,709 before); world 4,784 -> 4,990
         // (first 4784 -> 4990): the row's first parting 4777 -> 4990.
+        // Moved by item 4572 (run1796's ranges: who=2's Barracks
+        // foundation 2014 closes on 4989 with reason 0, the disband's
+        // `close(0, -1, 0)`, and `Wall::close@0063f6e0:156` refreshes no
+        // neighbour on it): on 4990 world range 3624, `mask`, 27 bytes of
+        // who=1's 2016 band (x 29..=35, y 158..=164), ours 0x07/0x17/
+        // 0x04/0x14 -> 0x03/0x13/0x00/0x10, theirs the same, bit `0x04`
+        // off. World 4,990 -> 6,001: twelve lines whole, 6,001 of 6,001,
+        // the row whole.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 4990,
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001,
             ],
-            first: &[("world", (4990, Some(1089287049), 3932042013))],
+            first: &[],
             over: None,
         }),
     }),
@@ -9342,8 +9430,9 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
 /// The fifth battery's line: games whole of the eight, and games taken.
 /// Item 4538 made row 23 whole: 1 -> 2. Item 4546 made row 123 whole: 2 -> 3.
 /// Item 4563 made row 63 whole: 3 -> 4. Item 4567 made row 103 whole: 4 -> 5.
+/// Item 4572 made row 3 whole: 5 -> 6.
 #[cfg(test)]
-pub(crate) const HELD_OUT_FIFTH_LINE: (usize, usize) = (5, 8);
+pub(crate) const HELD_OUT_FIFTH_LINE: (usize, usize) = (6, 8);
 
 /// The fifth battery (item 4527): three seats and one team of two a row.
 #[cfg(test)]

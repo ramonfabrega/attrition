@@ -203,6 +203,44 @@ fn a_started_building_writes_its_ground_and_what_it_hides() {
     assert_eq!(sim.world.cell_data(Cell::new(8, 8)).land_sub, 2);
 }
 
+/// **A reason-0 close refreshes no neighbour** (item 4572,
+/// `docs/RECGAME.md` §12.3): `Wall::close@0063f6e0:156` runs
+/// `refresh_nearby_tiles` for every reason but 0 and 5. Reason 0 is an
+/// unstarted building's disband (`close(0, -1, 0)`) and a script's
+/// `destroy_building`: an active Library whose hidden tiles were lost
+/// keeps them lost when the foundation beside it goes, and gets them back
+/// when an ordinary (reason 1) close runs instead. run1796's 4989 is the
+/// first: who=2's Barracks foundation 2014 disbanded in the band beside
+/// who=1's active 2016, and theirs set no `BEHIND` bit.
+#[test]
+fn a_reason_0_close_refreshes_no_neighbour() {
+    let (mut sim, city, library) = placed_world();
+    let l = sim.init_build(0, library, Pos::new(38 * 192 + 96, 32 * 192 + 96), false);
+    sim.start_building(l);
+    sim.buildings[l].active = true;
+    let lib = behind(&sim);
+    assert_eq!(lib.len(), 3 * 5 + 3 * 4, "the library's three rings");
+    for reason in [0u8, 5, 1] {
+        // The library's tiles lost, then a foundation beside it closes.
+        sim.mark_behind_tiles(l, false);
+        assert!(behind(&sim).is_empty());
+        let b = sim.init_build(0, city, Pos::new(32 * 192, 32 * 192), false);
+        assert!(!sim.buildings[b].started, "a foundation");
+        sim.close_building_for(b, reason);
+        let want = if reason == 1 { lib.clone() } else { Vec::new() };
+        assert_eq!(behind(&sim), want, "after a reason-{reason} close");
+    }
+    // The disband of a foundation closes it with reason 0.
+    sim.mark_behind_tiles(l, false);
+    let b = sim.init_build(0, city, Pos::new(32 * 192, 32 * 192), false);
+    sim.disband_building(b, true);
+    assert!(!sim.buildings[b].alive, "the foundation is gone");
+    assert!(
+        behind(&sim).is_empty(),
+        "a foundation's disband refreshes nothing"
+    );
+}
+
 /// Without a tileset ([`World::land_set`]) a building writes no ground.
 #[test]
 fn no_tileset_no_ground() {
