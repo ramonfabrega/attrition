@@ -660,6 +660,21 @@ const NODES: &[(i32, i32, Node)] = &[
             py: -1_480_000,
         },
     ),
+    // **Item 4574's pivot pieces** (`docs/COMBAT.md` §55), each one
+    // `<RESTRICTION node="4">`, `(4, 0, 0)` off the packet that stores the
+    // piece's rows: the Anti-Aircraft Battery (233, unit type 283,
+    // `flakgungerman.bh3`) off run1416's, `(0.0, 42.75, 27.16)`
+    // (`0x422afffe`; run1417 and run1420 store it too). The Avenger's 234
+    // has its row above; the Carabineer's 140 reads the French Dragoon's 139
+    // and the Main Battle Tank's 206 reads 207's ([`SAME_AS`]).
+    (
+        233,
+        4,
+        Node {
+            px: 0,
+            py: 42_749_992,
+        },
+    ),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -722,6 +737,11 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (198, (4, 5)),
     (231, (17, 20)),
     (1224, (11, 10)),
+    // Item 4574: `RData +0x88` 0.8 for the Anti-Aircraft Battery (233,
+    // `0x3f4ccccd`, run1416's packet) and 0.75 for the Main Battle Tank (206,
+    // run785's, a [`SAME_AS`] piece of 207's). The Carabineer's 140 is 1.0.
+    (233, (4, 5)),
+    (206, (3, 4)),
 ];
 
 /// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
@@ -879,6 +899,26 @@ const SAME_AS: &[(i32, i32)] = &[
     // Its `CHAR_ATTACKWALK` rows and `(4, 0, 0)` are 169's by the art alone:
     // run1579 lacks both animations.
     (1224, 169),
+    // **Piece 206, the Main Battle Tank `T80`** (`T80-DEFAULT-AGE0`, unit
+    // type 256; item 4574, `docs/COMBAT.md` §55): `unit_graphics.xml` gives
+    // it `T80DES`'s block line for line but the texture (`T80.bh3`, scale
+    // 0.75, the same anims and events), and run785's packet stores its
+    // fifteen `AttachPos` rows as run1419b's piece 207's, bit for bit; every
+    // cell of the pivot arm agrees with 207's rows
+    // (`tests::the_original_s_release_agrees_on_every_cell_for_item_4574`).
+    // Its two node-1 events are `launch::BAYS` rows of its own.
+    (206, 207),
+    // **Piece 140, the Carabineer** (`CARBINEER-DEFAULT-AGE0`, unit type 190,
+    // one `<RESTRICTION>` ±150; item 4574): `unit_graphics.xml` gives it the
+    // Dragoon's block line for line but the model and texture
+    // (`carabineer.bh3`, scale 1, the same anims and four `<RELEASEEVENT>`s),
+    // and run1185's packet (and run1325c's) stores its nine `AttachPos` rows
+    // as piece 139's, bit for bit — the `(4, 0, 0)` `(0.0, −1.48, 31.05)` and
+    // the four keys' pivot and release rows, `CHAR_ATTACKWALK` 12 among them.
+    // Every cell of the pivot arm on run1185 agrees with 139's rows
+    // (`tests::the_original_s_release_agrees_on_every_cell_for_item_4574`),
+    // once 139's walking row carries its four landing cells. Rows 33 and 113.
+    (140, 139),
 ];
 
 /// The piece whose rows `piece` reads: [`SAME_AS`]'s, or its own.
@@ -1958,7 +1998,16 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             node: 0,
             pivot: [58_111, -1_380_116, 31_034_378],
             at: [-12_961_245, -27_570_284, 11_694_054],
-            float_lands: &[],
+            // Item 4574: the original's pivot arm on these floats at every
+            // cell (run1185's packet, through piece 140, whose rows are these
+            // bit for bit, `RData +0x88` 1.0 as 139's) lands four cells from
+            // just below; no earlier reading had swept this row.
+            float_lands: &[
+                (45, 342, -120, 94),
+                (92, 28, -90, -120),
+                (135, 342, -94, -120),
+                (225, 342, 120, -94),
+            ],
         },
     ),
     (
@@ -5041,6 +5090,84 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             node: 0,
             pivot: [4_308_261, -1_638_021, 31_049_999],
             at: [-9_952_581, 3_353_412, 25_517_426],
+            float_lands: &[],
+        },
+    ),
+    // **Item 4574's pivot rows** (`docs/COMBAT.md` §55; DECISIONS 153 §5):
+    // node-0 keys the sixth held-out battery fired from the figure's square,
+    // each the pivot node's `(4, anim, time)` and the release node's `(0,
+    // anim, time)` off the packet that stores the piece, with `float_lands`
+    // from every cell of `get_position.py … pivot <piece> 0 <anim> <time> 1`
+    // on the same packet (361 facings × 256 turret steps). The Carabineer's
+    // 140 reads the French Dragoon's 139 ([`SAME_AS`]).
+    //
+    // Piece 233, the Anti-Aircraft Battery (`FLAKGUNGERMAN-DEFAULT-AGE0`,
+    // unit type 283, `RData +0x88` 0.8), off run1416's packet, which stores
+    // its seventeen rows: node 0 at 12 of `CHAR_ATTACKWALK` and 4 of
+    // `CHAR_ATTACK2`; its two node-1 events are `launch::BAYS` rows; row 93.
+    (
+        233,
+        crate::units::anim::ATTACKWALK,
+        12,
+        Release {
+            piece: 233,
+            node: 0,
+            pivot: [0, 42_749_992, 27_159_998],
+            at: [0, -34_250_294, 33_002_892],
+            float_lands: &[],
+        },
+    ),
+    (
+        233,
+        crate::units::anim::ATTACK2,
+        4,
+        Release {
+            piece: 233,
+            node: 0,
+            pivot: [0, 42_749_992, 27_159_998],
+            at: [0, -35_989_948, 30_569_857],
+            float_lands: &[],
+        },
+    ),
+    // Piece 234, the Anti-Aircraft Missile (`AVENGER-DEFAULT-AGE0`, unit
+    // type 284, `RData +0x88` 0.7), off run1419b's packet (run1437's,
+    // run1472's and a dozen more store the same nine rows): node 0 at 4 of
+    // `CHAR_ATTACKWALK`, `CHAR_ATTACK1` and `3` (the walk's and the first's
+    // entries are one); its `CHAR_ATTACK2` event is node 1, a `launch::BAYS`
+    // row since item 4159r5; row 133.
+    (
+        234,
+        crate::units::anim::ATTACKWALK,
+        4,
+        Release {
+            piece: 234,
+            node: 0,
+            pivot: [0, 27_570_000, 28_619_999],
+            at: [19_504_141, -18_069_954, 25_692_337],
+            float_lands: &[],
+        },
+    ),
+    (
+        234,
+        crate::units::anim::ATTACK1,
+        4,
+        Release {
+            piece: 234,
+            node: 0,
+            pivot: [0, 27_570_000, 28_619_999],
+            at: [19_504_141, -18_069_954, 25_692_337],
+            float_lands: &[],
+        },
+    ),
+    (
+        234,
+        crate::units::anim::ATTACK3,
+        4,
+        Release {
+            piece: 234,
+            node: 0,
+            pivot: [0, 27_570_000, 28_619_999],
+            at: [19_485_369, -16_093_754, 27_733_791],
             float_lands: &[],
         },
     ),

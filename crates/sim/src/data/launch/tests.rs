@@ -4357,3 +4357,64 @@ fn the_original_s_release_agrees_at_every_heading_for_item_4559() {
         &off[..off.len().min(20)]
     );
 }
+
+/// **Item 4574's rows agree with the original at every heading**
+/// (`docs/COMBAT.md` §55): `$RON_BAY_SWEEPS_4574` is the directory holding
+/// `sweep-<piece>-<node>-<anim>-<time>.txt` (`deg i x y z` at every whole
+/// degree 0..=360), outside git
+/// (`~/ron-data/lab-experiments/2026-11-22-item-4574/sweeps/`): 87 written by
+/// `init_position` and then `get_position` on run1579's packet for the seven
+/// plain pieces (67, 222, 1131, 1133 and 1485 by frame; the Fighters 242 and
+/// 243, sixteen a piece, by node), and four of the pivot pieces' node-1
+/// events off the packets that store them (206 on run785, 233 on run1416).
+/// Every file is read and each key looked up as [`launch_point`] looks it up.
+#[test]
+fn the_original_s_release_agrees_at_every_heading_for_item_4574() {
+    let Ok(dir) = std::env::var("RON_BAY_SWEEPS_4574") else {
+        eprintln!("skipping: set RON_BAY_SWEEPS_4574 (item 4574's oracle)");
+        return;
+    };
+    let mut names: Vec<_> = std::fs::read_dir(&dir)
+        .expect("RON_BAY_SWEEPS_4574")
+        .map(|e| e.expect("entry").file_name().into_string().expect("utf-8"))
+        .filter(|n| n.starts_with("sweep-") && n.ends_with(".txt"))
+        .collect();
+    names.sort();
+    let (mut files, mut rows, mut off) = (0, 0, Vec::new());
+    for name in names {
+        // `sweep-<piece>-<node>-<anim>-<time>.txt`
+        let f: Vec<&str> = name[..name.len() - ".txt".len()].split('-').collect();
+        let (piece, node, anim, time): (i32, i8, i8, u32) = (
+            f[1].parse().expect("piece"),
+            f[2].parse().expect("node"),
+            f[3].parse().expect("anim"),
+            f[4].parse().expect("time"),
+        );
+        let b = bay(piece, anim, time, node).unwrap_or_else(|| panic!("no bay for {name}"));
+        let table = std::fs::read_to_string(format!("{dir}/{name}")).expect("sweep");
+        for line in table.lines() {
+            let c: Vec<i64> = line
+                .split_whitespace()
+                .take(5)
+                .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                .collect();
+            let (x, y) = b.offset((c[0] + 180) % 360);
+            if (x, y, i64::from(b.dz)) != (c[2], c[3], c[4]) {
+                off.push(format!(
+                    "{name} deg {}: {x},{y},{} against {},{},{}",
+                    c[0], b.dz, c[2], c[3], c[4]
+                ));
+            }
+            rows += 1;
+        }
+        files += 1;
+    }
+    assert_eq!(files, 91, "{dir}");
+    assert_eq!(rows, 91 * 361, "{dir}");
+    assert!(
+        off.is_empty(),
+        "{} headings disagree: {:?}",
+        off.len(),
+        &off[..off.len().min(20)]
+    );
+}
