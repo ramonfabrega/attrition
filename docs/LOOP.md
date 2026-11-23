@@ -264,7 +264,9 @@ lane sat 86 minutes for want of this (parked 1315; ccc 0.1.38). **A
 `Base moved:` whose every shared path is a row list on the base's side
 lands on the gate's verdict** (Loop 3694, the sixtieth pass): the
 line names them — a row list's added rows, a document, a capture's
-row, the census pin — and the lane updates with `--keep-conflicts`,
+row, the census pin, and the held-out pins (`held_out.rs`) where git merges
+them clean (item 4598: their tests hold a row's whole lines and first
+parting and print the rest as drift) — and the lane updates with `--keep-conflicts`,
 keeps both sides' rows, re-pins, runs `tools/guard.sh` and lands,
 saying which base the gate ran on; the booking gate is the check on
 every merge. A removed row or any other path is still an update and a

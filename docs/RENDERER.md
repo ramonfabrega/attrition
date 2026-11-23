@@ -4951,12 +4951,66 @@ the listing (the decompile loses the vertex arguments, which ride in
   fill: texel 16 (black) blended with texel 15, the size-6 box's white
   inside. Its top row 943 is (14, 14, 23), 0.09 of the fill.
 
+**The arms, named (item 4596).** *Opus 5.5; the ledger:
+`docs/journal/2026-11-23-item-4596.md`.* The slots `vtables.txt` folds
+are named by the PDB's method records (`LF_ONEMETHOD`, `vftable offset`,
+walked through each class's primary bases). On the object they are
+`SubObjectData`'s: `+0x18` `is_unit`, `+0x2c` `is_wonder`, `+0x3c`
+`get_buildc`, `+0x40` `get_wallc`, `+0x48` `is_seen`, `+0x4c`
+`is_active`, `+0x50` `is_started`; `ObjectData`'s `+0xbc` `is_on_map`,
+`+0xe8` `is_captain`. On the type: `TypeData`'s `+0x60` `is`, `+0x90`
+`is_gather_type`, `+0x94` `is_flat`; `ObjectTypeData`'s `+0xfc`
+`is_fort`, `+0x10c` `is_siege`, `+0x130` `is_caravan`.
+`render_blips@008cc700` builds layers 0, 1, 3 and then 2.
+- *Visible*, in every arm: `is_seen(console)`, or `semaphore[0] & 0x42`,
+  or the console's player flags `0x100` or `0xd0` (an observer) unless
+  `semaphore[0] & 4` with `info.flags & 0x80`.
+- *Goods* (layer 1): alive, visible, and `type_avail(console, ty, 1)`
+  unless `semaphore[1] & 8`. `OIL` (5) is fill `BLACK`, outline `WHITE`,
+  size 3; `BASE_RARE` (6, fish) and `WHALES` (`0x1f`) `RARE_SEA_COLOR`,
+  sizes 2 and 3; the rest `RARE_LAND_COLOR`, size 3. Each may add a
+  layer-4 flash for the selected merchant or fishing boat.
+- *Units* (layer 3, rebuilt every frame): per player whose leader is
+  alive, every unit alive, `is_on_map` (`inside_up`'s top bit), visible
+  and `is_captain` (`o_up`'s top bit, the sim's `Unit::captain`). One
+  more skip: walking `up`/`up_who` (`ObjectData +0x2a`, `+0x3f`), a live
+  `is_unit` captain above it. The colour is the owner's
+  `TeamColor::get_border`, `0xffffffff` for the console's unit in its
+  selection. Under `stat_mode` 0 the size is 2 (2 or 3 blinking for the
+  console's `is(0x45)`). The shape is 4 for `is_siege`, 3 for the type's
+  `+0x2c8 & 0x10000`, 1 at size 1 for ships (`0x32` to `0x35`), 5 for a
+  caravan: all but 1 become 0. A unit whose current order answers its
+  slot `+0x18` is skipped while `graphic_tick & 8`.
+- *Buildings* (layer 2), per player, every building alive and visible.
+  An unseen one is still drawn when it `is_wonder`, its flags lack
+  `0x20`, its type is not `is_fort` and its wall record `is_started`.
+  Skipped: a type both `is_gather_type` and `is_flat` (the farms), and
+  flags `0x20` with `is_active`. The colour is as the units'. A tower
+  (`is(0x1b7)`, `TOWER`'s lineage) lays a white size-3 quad, then its
+  colour at size 3 (the packet's two "white beneath"). Otherwise
+  `is_wonder` is the triangle, size 2, 3 when `is_active`; else
+  `is_fort` size 3; else size 2.
+- *Cities* (layer 2, after every building): alive and visible, size 6,
+  the owner's colour or `0xffffffff` for the console's city in its
+  selection. A stranger's city marked for the console (`+0x68`) under
+  `elimination` 1 or 2 adds a flash on layer 4 and a white size 8.
+- *The triangle's texcoords* are all `(0.1, 0.1)`: the four
+  `Vert2Array::add` calls at `8ce77c`–`8ce7c2` load `.rdata` `0xb69468`,
+  `0x3dcccccd`.
+- *The probe.* `tools/render/blips_packet.py` prints the window, the
+  camera's matrix and every quad's four vertices, texcoords and colours as
+  IEEE bits. On run1564 it wrote
+  `~/ron-data/lab-experiments/2026-11-23-item-4596/run1564-blips.txt`:
+  118 quads, each vertex order top-left, top-right, bottom-right,
+  bottom-left, window `158 79 484 988`, and the build's oracle.
+
 **Not established.**
 - The predicates the frame does not exercise: `stat_mode` 1, 2 and 6,
-  the selection's white, the idle flash, layer 4, the visibility test
-  (`SubObjectData::is_seen`, slot `+0x48`) under the fog where
-  `StartReveal` is off, and the building arms' slots `+0x2c`, `+0x90`,
-  `+0x94` and `+0xfc`, which `vtables.txt` folds (4593a).
+  the selection's white on a unit, the idle flash, layer 4, and the
+  visibility test under the fog. ~~The building arms' slots~~: named
+  (item 4596, above). Not built (4596a).
+- The triangle's colour count: `8ce7c7` pushes 3 with the fill to the
+  colour array's add, for four vertices.
 - The minimap camera's scale off run1564's map: there `m13/m15` is
   1.0029883, and `init_camera@008cbb10` is not followed to it.
 - On the photograph the blue team's fill reads (42, 24, 255) where the
