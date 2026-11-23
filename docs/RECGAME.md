@@ -1737,3 +1737,85 @@ ours 3, theirs 1: the repair recruit `2/72` walked to its capital under `EXPLORE
 computer's `REPAIR` swarm walks under `MOVE_TO`, as `docs/ORDERS.md` and `docs/GROUPS.md` already said.
 `row_133_s_repair_recruit_walks_under_a_move_order_on_run1797_s_ranges` holds every units range on 1905 and 1906. No other
 row of the sixth moved, and both long words held at 24000. *Diff-backed*: the order's class on 1906.
+
+## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
+
+DECISIONS 154 §7, 2026-11-23. Rows 8, 28, 48, 68, 88, 108, 128 and 148 of the order `Start:` counts, by the sixth's
+recipe (§13): each keeps its human (seat 0, tribe 4) and its computer (seat 1, tribe 8, 13, 16, 11, 17, 5, 13, 3) and
+adds a computer of nation 20, 21, 22, 23, 11, 17 or 0, none already seated on its row (`HELD_OUT_SEVENTH_SEATS`); 20
+to 23 had never been added by a battery. **Row 108 adds no seat**: its own lobby already holds three (Greek and
+Egyptian computers at seats 1 and 2), the most `MAP_SIZE 2` holds, so it takes the team alone (`NO_SEAT`). The team
+alternates as the sixth's: the human and the added computer are team 0 on rows 8, 48, 88 and 128; the two computers
+are team 1 on rows 28, 68, 108 and 148. Each game closes on 12,000 (`SEVENTH_FRAMES`).
+
+**The one change: the human keeps ordering.** `ordering_rule` is §13's `script_rule` and a square. After §9's three
+orders, on every 600th frame from 600 to 11,400 (nineteen rounds) one package carries two orders, as one turn of a
+person's input does: the capital `2000` grouped and one Citizen queued (`queue_up`, num 1), then unit `0` grouped and
+moved in §9.1's fields (`orders` 1, `queued` 2, `form`/`width` −1). Round `r` moves unit `0` 2,400 units along heading
+`(i + r) % 4` from where round `r − 1` sent it, `i` being the heading §9's move took. So four moves close a square,
+and the last corner is the first move's point. The points are named from the built start and not walked: a unit or a
+capital gone by its round, or a corner the unit cannot reach, is part of the test. On all eight rows `i` is 0 (toward
+the centre on x), and every corner is on the map and in unit `0`'s region. Unit `0` is a Scout (TI 69) on rows 8, 48,
+68, 108, 128 and 148, Special Forces (75) on row 28 and an Explorer (71) on row 88: land units every one.
+`the_ordering_rule_is_the_script_and_a_closed_square_on_run53_s_start` holds the rule on run53's lobby. There the
+first three orders are §9's script, package for package.
+
+**The declaration is `f7d2e41c6`** (11:16:48 −05:00): `HELD_OUT_SEVENTH` and `HELD_OUT_SEVENTH_HUMANS`, held by
+`the_seventh_held_out_eight_are_the_rows_the_rule_names_seated_and_ordering`. It went red with row 8's first corner
+bent by one. No file existed before it.
+
+**The files and takes.** The drafts and the minting are the sixth's (`the_seventh_s_files_are_minted`,
+`item4600-row<RRR>-12000.rcx`; `RON_RECGAME_DIR` names the donors' directory). Row 8 was minted and played alone first
+as run1804: **the original took it** to 12,000 with no relaunch. The other seven were then minted and chained, one at
+a time. **Rows 128 and 148 are not taken**: `df -g ~` read 59 GB free before run1810, under the item's floor of 60.
+Their files are minted and their run numbers (run1810, run1811) are kept.
+
+As found, pinned once in `SCORES_SEVENTH`: **1 of 8 whole, 6 taken, 20 of 72 lines, reach 59 %** (of the six's
+states); **inside the first 6,001 states, 87 %**, against the sixth's 59 % as found.
+
+| row | run | lobby | team | states | whole | lowest parting (state) | the last round before it | reach in the first 6,001 |
+|---|---|---|---|---|---|---|---|---|
+| 8 | run1804 | Great Sahara, difficulty 3 | human + added | 12,001 | 2 | units 9896 | 16, on 9600 | 6,001 of 6,001 |
+| 28 | run1805 | East Indies, Modern | the computers | 4,248, ended on 4247 | 2 | units, builds, guys, world 3956 | 6, on 3600 | 3,956 of 4,248 |
+| 48 | run1806 | Great Sahara, Classical | human + added | 12,001 | 1 | ammo 5607 | 9, on 5400 | 5,607 of 6,001 |
+| 68 | run1807 | East Indies, Classical | the computers | 3,949, ended on 3948 | **12** | whole | — | 3,949 of 3,949 |
+| 88 | run1808 | East Indies, Medieval | human + added | 12,001 | 1 | units, deaths, guys, leaders, world 2741 | 4, on 2400 | 2,741 of 6,001 |
+| 108 | run1809 | Great Sahara, Classical, melee | the computers | 12,001 | 2 | units, builds, groups, guys 7421 | 12, on 7200 | 6,001 of 6,001 |
+| 128 | — | Great Lakes, difficulty 2 | human + added | not taken | | | | |
+| 148 | — | Great Sahara, difficulty 4 | the computers | not taken | | | | |
+
+The original ended rows 28 and 68, each with the two computers allied against the human. Walls agree on every state
+of all six, and items on rows 8, 28 and 68. `docs/RUNS.md` run1804 to run1809 holds every value, and the pins
+hold both sides of every first parting.
+
+**Read against the sixth.** Every lowest parting is past round 4, so the ordering human agrees through at least four
+of its rounds on every row, and through sixteen on row 8. *Diff-backed*: the hook's twelve sums on every state, ours
+against theirs. *Read, not diffed*: whether a parting is the ordering's own work or a computer's. Each take holds sums
+only, and no row's leaf is named. The column "the last round before it" is a frame count and not a cause.
+
+**Where a row's landing writes** (DECISIONS 154 §6). A landing writes under its own row's heading below and touches
+nothing above it. The table is the found column and is not edited again.
+
+### 14.1 Row 8
+
+Open: units part on 9896, round 16's move on 9600 the last order before it. run1804 holds sums.
+
+### 14.2 Row 28
+
+Open: units, builds, guys and world part on 3956; the original ends the game on 4247. run1805 holds sums.
+
+### 14.3 Row 48
+
+Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
+
+### 14.4 Row 88
+
+Open: units, deaths, guys, leaders and world part on 2741, the battery's earliest. run1808 holds sums.
+
+### 14.5 Row 108
+
+Open: units, builds, groups and guys part on 7421. run1809 holds sums.
+
+### 14.6 Rows 128 and 148
+
+Not taken: the files are minted, and run1810 and run1811 are kept for them.
