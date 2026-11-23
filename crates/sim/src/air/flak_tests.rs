@@ -101,8 +101,8 @@ fn radar(s: &mut Sim, with_cycle: bool) -> usize {
         d.wall_cycle = Some(crate::air::WallCycle {
             wind: 20,
             swing: 10,
-            releases: vec![(2, 0, false, -1)],
-            launch: Some((136, -136, 227)),
+            releases: vec![(2, 0, false, -1, false)],
+            launch: vec![(0, (136, -136, 227))],
         });
         let id = s.tables.tech_tree.add(d);
         let bt = s.add_build_type(crate::cities::build::BuildType {

@@ -1034,8 +1034,9 @@ pub fn load_tables(
                 releases: Vec::new(),
                 launch: sim::air::WALL_LAUNCH
                     .iter()
-                    .find(|(k, _)| *k == t)
-                    .map(|&(_, l)| l),
+                    .filter(|(k, _, _)| *k == t)
+                    .map(|&(_, n, l)| (n, l))
+                    .collect(),
             });
         }
         let id = tree.add(d);
@@ -3286,8 +3287,8 @@ mod tests {
                 wind: 20,
                 swing: 10,
                 // Item 4175: the release's piece, `FlakShell` at 14.
-                releases: vec![(2, 0, false, 60163)],
-                launch: Some((136, -136, 227)),
+                releases: vec![(2, 0, false, 60163, false)],
+                launch: vec![(0, (136, -136, 227))],
             })
         );
         assert!(cycle(sim::air::AIRDEFENSE).is_some_and(|c| c.releases.len() == 1));
