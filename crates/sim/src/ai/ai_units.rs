@@ -338,13 +338,31 @@ impl Sim {
     /// `missile_value`'s nuke arm's census: my Nuclear Missiles
     /// ([`Self::get_nukes`]), the most any leader I am not allied to holds,
     /// and whether there is such a leader at all.
+    ///
+    /// **A target is a leader the shield does not cover** (item 4575,
+    /// `docs/AI.md` §158): `create_units@006c40a0`'s loop over the eight
+    /// leaders counts one only when it is not my ally, does not hold
+    /// `MISSILE_DEFENSE_BONUS` ([`Sim::missile_defense_held`]) and is not
+    /// `researching(MISSILE_SHIELD, −1, 0, 0)` — the tech `0x243` queued
+    /// at any of its buildings ([`Sim::researching`]). A leader the loop
+    /// skips adds nothing to the most held either, and with none left the
+    /// arm offers no nuke. run1797's who=2 on 956: its one enemy, who=1,
+    /// has the Missile Shield queued at its `1/2005`, so theirs lists a
+    /// Jet Fighter where ours had listed the ICBM.
+    ///
+    /// SEAM: the loop's seat test is `leader_flags & 1`, read here as
+    /// not defeated.
     fn nuke_standing(&self, who: Player) -> (i32, i32, bool) {
         let mine = self.get_nukes(who);
+        let shield = self.missile_shield();
         let mut max_enemy = 0;
         let mut vulnerable = false;
         for j in 0..self.territory.players.len() {
             let jw = j as Player;
             if self.leaders.defeated[j] || self.is_ally(who, jw) {
+                continue;
+            }
+            if self.missile_defense_held(jw) || shield.is_some_and(|t| self.researching(jw, t)) {
                 continue;
             }
             vulnerable = true;
