@@ -1165,6 +1165,13 @@ pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[
         "the harness's lobby with the reveal off (item 4612): a renderer's packet beside \
          its photograph of slot 0's fog; no word walks it",
     ),
+    (
+        "run1816",
+        3955,
+        "the seventh battery's row 28 with a packet at 3955 (item 4619): Objects::process_all \
+         stepped on it, 1/25's think_attack handing group 66 the Special Forces 0/0 and five \
+         Bazookas yielding their chase of 0/7; no word walks it",
+    ),
 ];
 
 /// **The takes' packets** (item 4159, step VII-b2): held by a take's walk
@@ -1201,7 +1208,8 @@ pub(super) const TAKES_HELD: &[(&str, i64, &str, i64)] = &[
 // Item 4583: run1800's packet at 1563 named, not held, (123, …, 13).
 // Item 4590: run1803's packet at 2685 named, not held, (124, …, 14).
 // Item 4612: run1814's and run1814b's at 3294 named, not held, (126, …, 16).
-const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (126, 87, 7, 12, 1, 3, 16);
+// Item 4619: run1816's packet at 3955 named, not held, (127, …, 17).
+const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (127, 87, 7, 12, 1, 3, 17);
 
 /// Every held packet's `(run, logger frame, game, the length its walk is
 /// whole to)`: a word's, a chapter's and the minted one.
