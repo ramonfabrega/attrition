@@ -213,12 +213,6 @@ impl Sim {
                     },
                     None => ScriptResult::Failed,
                 };
-                if std::env::var("RON_PROBE_4548").is_ok() && (4760..=4790).contains(&self.frame) {
-                    eprintln!(
-                        "PROBE4548 frame {} who {} script {:?} step_in {} rush {} r {:?} step_out {} live {}",
-                        self.frame, who, self.ai.ai[w].script, step, rush, r, self.ai.ai[w].script_step, self.ai.ai[w].script_live
-                    );
-                }
                 self.ai.ai[w].after_script(r);
             }
             Step::Setup => {
