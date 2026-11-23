@@ -5641,6 +5641,379 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 161,
         },
     ),
+    // **Item 4559's plain pieces** (`docs/RECGAME.md` §12.3; DECISIONS 152
+    // §3), keys the held-out games and the 2017 sample fired from the
+    // figure's own square. Run1579's packet holds no `AttachPos` row for any
+    // of them (`pos_num` 0, scale 1.0), so `get_position.py … --init
+    // 0,<anim>,<time>,3 sweep <piece> 0 <anim> <time>` fills each key first,
+    // and `fit_bay.py` admits one region a key, 361 of 361 headings, its
+    // centroid inside it; the heights are the sweep's. Run1355's packet
+    // stores the Machine Gun's 32 rows, run1001d's the Bowmen's four and
+    // run1438's the Bombard's one, and a sweep of each stored row agrees
+    // with run1579's at every heading (35 of 35 keys).
+    //
+    // Piece 921, the American Bombard (`BOMBARD-AMERICAN-AGE0`, type 267 in
+    // art style 2): `bombardcannon.bh3` and `BOMBARD-DEFAULT-AGE0`'s anims,
+    // and its sweep admits piece 217's region (924 points) and centroid.
+    (
+        921,
+        crate::units::anim::ATTACK2,
+        9,
+        Bay {
+            right: -710,
+            fwd: 147_904,
+            dz: 104,
+        },
+    ),
+    // Piece 1528, the Native American Bowmen (`BOWMEN-NA-AGE0`, type 170
+    // in art style 4, `Bowmen_NA.bh3`): node 0 at frame 12 of
+    // `CHAR_ATTACK1`, 9 of `2` and 15 of `3` (221, 277 and 124 points).
+    // Row 43 of the fifth held-out battery fired 788 of its rounds from the
+    // figure's square from 3360.
+    (
+        1528,
+        crate::units::anim::ATTACK1,
+        12,
+        Bay {
+            right: -1826,
+            fwd: 88_749,
+            dz: 163,
+        },
+    ),
+    (
+        1528,
+        crate::units::anim::ATTACK2,
+        9,
+        Bay {
+            right: 336,
+            fwd: 87_408,
+            dz: 164,
+        },
+    ),
+    (
+        1528,
+        crate::units::anim::ATTACK3,
+        15,
+        Bay {
+            right: 9711,
+            fwd: 66_508,
+            dz: 164,
+        },
+    ),
+    // Piece 73, the Machine Gun (`MACHINEGUN-DEFAULT-AGE0`, type 123,
+    // `maxim_gunner.bh3`): node 0 on every one of its 32 `<RELEASEEVENT>`s,
+    // 31 keys (two events share frame 12 of `CHAR_ATTACK3`), each its own
+    // region; row 83 fired 79 rounds from the figure's square from 4252.
+    (
+        73,
+        crate::units::anim::ATTACK1,
+        3,
+        Bay {
+            right: -7425,
+            fwd: 147_384,
+            dz: 93,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK1,
+        9,
+        Bay {
+            right: -16_600,
+            fwd: 145_697,
+            dz: 88,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK1,
+        12,
+        Bay {
+            right: -16_551,
+            fwd: 144_695,
+            dz: 91,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK1,
+        17,
+        Bay {
+            right: -9573,
+            fwd: 146_738,
+            dz: 90,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK1,
+        20,
+        Bay {
+            right: 752,
+            fwd: 146_479,
+            dz: 84,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK1,
+        24,
+        Bay {
+            right: 13_866,
+            fwd: 144_797,
+            dz: 89,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK1,
+        29,
+        Bay {
+            right: 18_457,
+            fwd: 146_563,
+            dz: 86,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK1,
+        32,
+        Bay {
+            right: 18_306,
+            fwd: 144_313,
+            dz: 83,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK1,
+        37,
+        Bay {
+            right: 4674,
+            fwd: 148_076,
+            dz: 90,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK1,
+        39,
+        Bay {
+            right: 0,
+            fwd: 147_935,
+            dz: 91,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK1,
+        46,
+        Bay {
+            right: 0,
+            fwd: 146_376,
+            dz: 88,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK1,
+        47,
+        Bay {
+            right: 0,
+            fwd: 147_224,
+            dz: 88,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK2,
+        1,
+        Bay {
+            right: -402,
+            fwd: 146_341,
+            dz: 88,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK2,
+        2,
+        Bay {
+            right: -1420,
+            fwd: 148_009,
+            dz: 90,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK2,
+        3,
+        Bay {
+            right: -2732,
+            fwd: 145_714,
+            dz: 93,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK2,
+        5,
+        Bay {
+            right: -5603,
+            fwd: 144_577,
+            dz: 98,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK2,
+        8,
+        Bay {
+            right: -7510,
+            fwd: 145_038,
+            dz: 103,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK2,
+        9,
+        Bay {
+            right: -5569,
+            fwd: 143_666,
+            dz: 103,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK2,
+        10,
+        Bay {
+            right: -3051,
+            fwd: 145_130,
+            dz: 103,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK2,
+        12,
+        Bay {
+            right: 2021,
+            fwd: 145_012,
+            dz: 103,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK3,
+        3,
+        Bay {
+            right: 1011,
+            fwd: 144_798,
+            dz: 91,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK3,
+        4,
+        Bay {
+            right: 1830,
+            fwd: 143_956,
+            dz: 92,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK3,
+        12,
+        Bay {
+            right: 11_993,
+            fwd: 147_443,
+            dz: 85,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK3,
+        19,
+        Bay {
+            right: 18_422,
+            fwd: 144_413,
+            dz: 88,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK3,
+        20,
+        Bay {
+            right: 18_428,
+            fwd: 146_106,
+            dz: 85,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK3,
+        27,
+        Bay {
+            right: 8410,
+            fwd: 146_147,
+            dz: 88,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK3,
+        29,
+        Bay {
+            right: 1830,
+            fwd: 146_325,
+            dz: 90,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK3,
+        34,
+        Bay {
+            right: 0,
+            fwd: 146_847,
+            dz: 90,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK3,
+        37,
+        Bay {
+            right: 0,
+            fwd: 145_400,
+            dz: 88,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK3,
+        42,
+        Bay {
+            right: 0,
+            fwd: 145_708,
+            dz: 88,
+        },
+    ),
+    (
+        73,
+        crate::units::anim::ATTACK3,
+        46,
+        Bay {
+            right: 0,
+            fwd: 146_272,
+            dz: 88,
+        },
+    ),
     // **Piece 1494, the Fusiliers** (type 136; item 4558, `docs/RECGAME.md`
     // §12.3): node 0 at frame 6 of `CHAR_ATTACK1` and `CHAR_ATTACK2`, 8 of
     // `CHAR_ATTACK3`. Run1579's packet holds no `AttachPos` row for the

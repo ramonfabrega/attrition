@@ -1703,7 +1703,14 @@ with non-zero attack and `hits_left`, not ANTI_AIR: `v = v × T.attack × 100 /
 T.hits_left` (`×10` more for a building) — **wounded, hard-hitting targets
 first** — or `/20` when a raider looks at a building. A building attacker:
 its current target `×2` (with fewer than two arrows) or `/2`; a damaged
-target `×3/2`; a moving one `/4`; a supply wagon `×5000`. Then `dmg =
+target `×3/2`; a moving one `/4`; a supply wagon `×5000`. *(Item 4565, the
+listing `64eb6e`–`64ebc6`: "damaged" is the target's own
+`ObjectData::damage` (`cmpl $0, 0x24(%ecx)`), unit or building, not its
+health against the type's hits; "moving" is `UnitData::is_moving` (vslot
+`+0xd8`), the head order a move, not a destination held; a building
+answers that slot and `is_supply`'s `+0xcc` with zero. Diff-backed by
+run1787's 3299, row 43's Village `2/2010`, and run1786's 7055; a damaged
+building target's `×3/2` is the listing alone, parked 4565a.)* Then `dmg =
 get_damage(o, who, ~~angle 0~~ the bearing (§46.5), splash 0,
 check_overkill 0 (§53.2))`: `v ×= dmg` (AI: `v /= dmg`, or 0). Building
 targets (not raiding): armed and not human → `+1,000,000` with the SIEGE mask
@@ -10010,6 +10017,10 @@ stays idle. Nothing is named for it.
 - **`ATTACK_GROUND`**: `set_all_pivots` bears on the order's point. This
   crate writes nothing for it.
 - **`des_node_flags`** is not carried: nothing in the simulation reads it.
+- **The Royal Mameluke's (piece 148) `CHAR_ATTACKWALK` rows and `(4, 0, 0)`
+  pivot** (item 4559, parked 4559a): no packet of the 145 on disk serves
+  either, so its two walking keys (frames 7 and 21) still leave from the
+  figure's square, and its `NODES` row is its `CHAR_ATTACK1` pivot entry.
 
 ### 55.6 Coverage
 

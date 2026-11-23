@@ -1573,7 +1573,11 @@ impl Sim {
     ///     an enemy's stands within 0x900 (find_building, SEARCH_ENEMY);
     ///     (damage / 100 + 1000), doubled when L is_ally the owner,
     ///     / (vector_dist(city building - base) / 768 + 1)
-    ///   and, when L is an enemy, its forts and its wonders (SEAM, below)
+    ///   when L is_enemy the owner, the same skip, L's forts below its
+    ///   fort_mark: (damage / 100 + 1000) / (d / 768 + 1), never doubled;
+    ///   its wonders below its wonder_mark but is(0x213): damage / 1000 +
+    ///   1000, ×10 while the owner's team trails on wonder points, ×100 at
+    ///   difficulty > 2 with a non-ally winning, / (d / 768 + 1) (item 4562)
     /// a target: each unit of the base's chain whose type is of the air
     ///   domain is cleared (Unit::clear_orders), and when
     ///   vector_dist(target - base) < get_speed(it, 1) * mana(it)
@@ -1582,9 +1586,12 @@ impl Sim {
     ///   add_air_patrol_order(target, the base, action 0)
     /// ```
     ///
+    /// run1784: who=2's Airbase `2/2018` on 3358 scores who=1's wonder
+    /// `1/2026` at 217 over its own city, past the Biplane `2/117`'s
+    /// reach: the plane's orders are cleared and it takes none.
+    ///
     /// SEAM: `leader_flags2 & 8`, the combat AI's scenario switch, which
-    /// no staging sets; the forts' and wonders' loops (`64fa71`..`64fda4`), which this crate
-    /// keeps no list for; the AIRDEFENSE search's radius, read as twelve
+    /// no staging sets; the AIRDEFENSE search's radius, read as twelve
     /// tiles from `find_building`'s tile arithmetic and not run.
     fn computer_sortie(&mut self, b: usize) {
         let owner = self.buildings[b].owner;
@@ -1638,6 +1645,48 @@ impl Sim {
                 if v > best {
                     best = v;
                     target = Some((l, cb));
+                }
+            }
+            if !self.is_enemy(l, owner) {
+                continue;
+            }
+            // The forts (`64fa71`..`64fb6a`).
+            for f in self.forts_of(l) {
+                let at = self.buildings[f].pos;
+                if !stealth && self.enemy_air_defense_near(owner, at) {
+                    continue;
+                }
+                let v = (self.buildings[f].damage / 100 + 1000)
+                    / (vector_dist(at.x - base.x, at.y - base.y) / 0x300 + 1);
+                if v > best {
+                    best = v;
+                    target = Some((l, f));
+                }
+            }
+            // The wonders (`64fb6a`..`64fda4`); a thousandth (`0x10624dd3`,
+            // `sar 6` at `64fc9e`) where the silo's is a hundredth.
+            for w in self.wonders_of(l) {
+                if self.building_is(w, crate::cities::build::Ident::ForbiddenCity) {
+                    continue;
+                }
+                let at = self.buildings[w].pos;
+                if !stealth && self.enemy_air_defense_near(owner, at) {
+                    continue;
+                }
+                let mut v = self.buildings[w].damage / 1000 + 1000;
+                if self.team_wonder_points(owner) < self.enemy_wonder_points(owner) {
+                    v *= 10;
+                }
+                if self.ai_difficulty() > 2 {
+                    let winning = self.wonder_winning();
+                    if winning >= 0 && !self.is_ally(owner, winning as crate::Player) {
+                        v *= 100;
+                    }
+                }
+                v /= vector_dist(at.x - base.x, at.y - base.y) / 0x300 + 1;
+                if v > best {
+                    best = v;
+                    target = Some((l, w));
                 }
             }
         }

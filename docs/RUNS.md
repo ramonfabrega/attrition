@@ -41047,6 +41047,11 @@ minutes were spent waiting on another lane. `df -g ~` read 88 GB free before it 
   `docs/CITIES.md` §3.4): record 2037 is who=2's Taj Mahal site (`TypeIndex` 0x21b), a 19-point round on 3041 after
   its progress; theirs keeps 6023 (`site_hits` at the pre-blow `job_counter` 76,214) until 3042's walk prints
   6017. Builds 3,356 → 3,360, first 3041 → 3360. The row's first parting is units on 3359.
+- **Re-scored by item 4562** (the computer's sortie scores an enemy's forts and wonders, `Object::do_launch`
+  `64fa71`..`64fda4`, `docs/GOLDEN.md` §50): record 117 on 3359 is who=2's Biplane (`TypeIndex` 0x11f), `orders.count`
+  ours 1 (an `AIR_PATROL` over its city), theirs 0; the Airbase `2/2018`'s sortie on 3358 takes who=1's whole wonder
+  `1/2026` at 217 (×10, 46 steps of 768), out of the plane's reach. Units 3,359 → 3,645, builds 3,360 → 3,645,
+  goods 4,678 → 4,272 (a named fall). The row's first parting is units, builds, guys and cities on 3645.
 - Filed by `filerun.py run1784 heldout5-row083-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1784-heldout5-row083-ranges.txt`, 2,869 bytes, SHA-256
   `a9b435ef5bd053ca7a1b9832b5ce70729ff25450cfd7d673a1485805af3a85f1`; `rontrace.log` → `Logs/rontrace-run1784.log`,
@@ -41054,7 +41059,9 @@ minutes were spent waiting on another lane. `df -g ~` read 88 GB free before it 
   in place.
 
 **What it holds**: `diff::held_out::tests::row_83_s_computer_lists_a_caravan_by_its_ally_s_city_on_run1784_s_ranges`
-(every leaders range on states 1955 and 1956).
+(every leaders range on states 1955 and 1956), and
+`row_83_s_airbase_keeps_its_biplane_when_a_wonder_outscores_the_city_on_run1784_s_ranges` (every units and builds
+range on 3358 to 3360).
 ## run1786 — the 2017 sample's playback to 8,000 with the checksum and ranges hooks, every line but walls kept (2026-11-22, item 4555, `att-4555`)
 
 `docs/RECGAME.md` §7; DECISIONS 148 §5. **What the disk could not answer**: run1772's record ends on 6399, and the
@@ -41074,6 +41081,10 @@ read 91 GB free before it and 79 GB after (before the split).
   `0a47b946d288fafdb06678ff423df7cc0bed9aec7ae79740ccfaa6964a0e453c`; 6.84 GiB on disk before the split, 0.65 after;
   one set on every trace frame −1 to 7999.
 - Filed with `filerun.py run1786 sample2017-playback-ranges-8000`.
+- **Re-scored by item 4565** (`compare_target`'s building arms read the target's `damage` and `is_moving`): on
+  7055 `1108 2000 attack_ox` ours 45 → 43, theirs 43; the first partings by range: leaders 7407 (`43 0 make_list[k]`),
+  units and guys 7411, world 7413, builds 7446, groups 7483, cities 7539, ammo 7571, goods 7706, deaths 7710; items past
+  8000.
 
 Archive `gamelog-run1786-sample2017-playback-ranges-8000.txt`, 3,775 bytes,
 SHA-256 `d830e578dbf52dd5833270e0f6c8854b4218ae4b39d6c862c48171d6c55f7644`; `rontrace-run1786.log`, 134,658,432
@@ -41114,6 +41125,9 @@ it and 73 after.
   3,223 and cities 3,373, both first 3223 (the row's first parting); groups 3,423, first 3376; deaths 3,374.
 - **Re-scored by item 4561** (an unbuilt Village's close fixes the borders): leaders 3,372, first 3302 (range 129,
   record 1, `damage_current_frame` ours 0, theirs 1); cities 3,379, first 3376; the row's first parting is 3299.
+- **Re-scored by item 4565** (the Village `2/2010` keeps the wounded Spearmen `1/46`): on 3299 builds range 1549,
+  record 2010, `attack_ox` ours 49 → 46, theirs 46; units 3,374, builds 3,376, leaders 3,374, all first 3374/3376;
+  ammo first 3361, the row's first parting. `row_43_s_village_holds_the_wounded_spearmen_on_run1787_s_ranges`.
 - Filed by `filerun.py run1787 heldout5-row043-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1787-heldout5-row043-ranges.txt`, 2,873 bytes, SHA-256
   `89b9a9025c5bbfb4daee2d7ca38babf72970956a8943a8e49fe0796d43162b8b`; `rontrace.log` → `Logs/rontrace-run1787.log`,
