@@ -14392,8 +14392,12 @@ object type's vslot `+0x120`, which the export does not name) all pass for
 a Trebuchet crew; that a **tracked** crew figure clears around its own
 cell (`Guy +0xc/+0x10`) rather than guy 0's — `coll_kill_crew` reads each
 figure's body — and that the loop's region gate (the cell's plain
-`region`) is the same as `coll_paint`'s `tregion` away from coast. No
-capture has a tracked-crew upgrade in a block this crate probes.
+`region`) is the same as `coll_paint`'s `tregion` away from coast. ~~No
+capture has a tracked-crew upgrade in a block this crate probes.~~ **On the
+coast, item 4567** (`docs/COLLISION.md` §2): the gate is the cell's plain
+`region`, and `coll_kill_guy` now takes it. The tracked crew's own-cell
+clear and that gate are diff-backed on run1783's 2983, a President aboard a
+Freighter becoming the CEO.
 
 **The new word** is 12744: ours 49 draws against 51, parting at index 35,
 ours `Guy::set_anim+0x97a < Guy::inc_time+0x271` against theirs
