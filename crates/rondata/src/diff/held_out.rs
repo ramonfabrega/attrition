@@ -3005,6 +3005,88 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 93's siege order walks its point** (item 4606, `docs/RECGAME.md`
+    /// §13.3): run1799, the ranges take of row 93's file. On 2962 who=2's
+    /// Howitzer `2/77` (TI 271, land) holds a fired `ATTACK_GROUND` (`flags` 0x80) ahead of its
+    /// `ATTACK` and `ATTACK_TO`, and `AttackGroundOrder::walk_data@00487a60`
+    /// walks the flags byte and `att_x..attack_unit` after the node: units
+    /// range 6364, which ours walked as the next order's type. Every units
+    /// range on states 2962 to 2964, byte for byte.
+    #[test]
+    fn row_93_s_siege_order_walks_its_point_on_run1799_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            eprintln!("skipping: row 93's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1799/map-14");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1799's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 2962i64..=2964 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            if state == 2962 {
+                let sieges: Vec<_> = built
+                    .sim
+                    .units
+                    .iter()
+                    .filter(|u| u.alive() && u.index == 77)
+                    .filter(|u| {
+                        matches!(
+                            u.orders.front().map(|o| o.body),
+                            Some(sim::orders::Body::AttackGround(_))
+                        )
+                    })
+                    .collect();
+                assert_eq!(sieges.len(), 1, "one 77 with a ground order");
+                let u = sieges[0];
+                let ty = u.ty.expect("a type");
+                assert_eq!(loaded.unit_names[ty], "Howitzer", "2/77's name");
+                assert_eq!(u.owner, 2, "who=2's 77");
+                assert_eq!(built.sim.tables.unit_types[ty].type_index, 271, "2/77's TI");
+                assert_eq!(u.kind.domain, sim::territory::attrition::Domain::Land);
+                let head = u.orders.front().expect("a head order");
+                assert_eq!(head.flags, sim::orders::flag::FIRED, "fired");
+                let sim::orders::Body::AttackGround(g) = head.body else {
+                    unreachable!("filtered above")
+                };
+                assert_eq!(
+                    (g.at.x, g.at.y, g.sea, g.attack_unit),
+                    (12984, 22872, false, 1),
+                    "theirs' range 6365: b8320000 58590000 0 1"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[0].as_ref().expect("units");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+    }
+
     /// **Row 43's Slinger stones leave from piece 736's sockets** (item
     /// 4547, `docs/RECGAME.md` §12.3): run1787, the ranges take of row 43's
     /// file. who=2's Slingers `2/30` and `2/29` (TI 82, land, piece 736,
@@ -10718,20 +10800,27 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // the first parting 2686 -> 2962 (units range 6364, record 77,
         // `order.type` ours 10, theirs 0x80); builds 2,688 -> 3,078, guys
         // 2,686 -> 2,967, every line forward; ours' `game_over` 11572 -> 9802.
+        // Then item 4606 (the units line walks an `ATTACK_GROUND` order,
+        // `AttackGroundOrder::walk_data@00487a60`: who=2's `2/77`, TI 271,
+        // land, fired, `(12984, 22872, 0, 1)`): units 2,962 -> 2,965, the
+        // row's first parting 2962 -> 2965 (range 1786, record 38,
+        // `targeted` ours 2, theirs 1); no other line moved. Cities 3,367 ->
+        // 3,376 (first 3376) was measured on the base `b6c90c0a9` before the
+        // fix, a merge's, not this item's.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                2962, 3078, 12001, 3483, 3632, 3002, 2967, 2983, 3367, 5437, 4397, 2975,
+                2965, 3078, 12001, 3483, 3632, 3002, 2967, 2983, 3376, 5437, 4397, 2975,
             ],
             first: &[
-                ("units", (2962, Some(2785320107), 2104139463)),
+                ("units", (2965, Some(2944560567), 523660729)),
                 ("builds", (3004, Some(2482202651), 4285163131)),
                 ("ammo", (2978, Some(1714572981), 3065139014)),
                 ("deaths", (3008, Some(3817289519), 3817489508)),
                 ("groups", (2982, Some(1074681641), 115365832)),
                 ("guys", (2966, Some(96889624), 2207673204)),
                 ("leaders", (2983, Some(3337828037), 36057006)),
-                ("cities", (3367, Some(583810638), 585383502)),
+                ("cities", (3376, Some(850608050), 842153906)),
                 ("items", (3468, Some(2092447016), 2127050028)),
                 ("goods", (3157, Some(2924123420), 3056768288)),
                 ("world", (2975, Some(4068279797), 2248541463)),
