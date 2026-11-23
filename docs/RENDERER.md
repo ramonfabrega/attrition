@@ -4862,10 +4862,8 @@ off (4588a, 4588b, 4588c). 129 read grey, 116 water and 330 land.
 - ~~The fog, the borders, the blips and the view rectangle~~: the
   borders and the view rectangle are drawn, and the fog draws nothing on
   the photograph (item 4588, above).
-- The blips (`render_blips@008cc700`, `add_blip@008ce500`) are not
-  built. Their arms turn on `stat_mode`, the selection, the unit's type
-  and the idle flash, and `add_blip`'s geometry is lost in the decompile
-  (4588a). The pings are not built either (4588b).
+- The blips are read, not built (§3.33). The pings are not built
+  (4588b).
 - On 11 cells our border falls a pixel from theirs, e.g. (36, 11) theirs
   (180, 169, 91), ours (97, 93, 161) (4588c). Assumed and unread:
   `can_see_borders` grants every player, and the bilinear sample has no
@@ -4874,6 +4872,97 @@ off (4588a, 4588b, 4588c). 129 read grey, 116 water and 330 land.
   axes rest on the minimap camera's corners.
 - The layout off 1920 × 1080, and the `scroll_lock_flags & 4` skip,
   which the window does not read.
+
+## 3.33 The minimap's blips, read (item 4593)
+
+*2026-11-23, Opus 5.5; the ledger: `docs/journal/2026-11-23-item-4593.md`.
+Read, held to the packet, not built: no row moves. The probes and their
+output are under `~/ron-data/lab-experiments/2026-11-23-item-4593/`.*
+
+**The oracle is on disk.** Run1564's packet (frame 3294, the
+photograph's) holds every blip the original drew, in `WorldMap`'s five
+layers: `blip_verts` (`+0xbf8`, a `Vert4Array` each, `0x1c` apart: count
+`+0x4`, data `+0x10`, `(x, y, z, rhw)` floats), `blip_faces` (`+0xc84`),
+`blip_texs` (`+0xd10`) and `blip_colors` (`+0xd9c`, one word a vertex).
+Every blip is a quad, faces `(0, 1, 2)`, `(0, 2, 3)`:
+
+| layer | what `render_blips@008cc700` puts there | on the packet |
+|---|---|---|
+| 0 | goody boxes, size 2, `GOODY_COLOR` | 15 × (210, 210, 210) |
+| 1 | goods: oil size 3, black inside a white rim; fish size 2 `RARE_SEA_COLOR`; the rest size 3 `RARE_LAND_COLOR` | 15 oil, 12 × (80, 160, 80), 9 × (160, 160, 255) |
+| 2 | buildings size 2 or 3, cities size 6 | 15 + 4 + 2 white beneath, 4 cities blue, 1 white |
+| 3 | units, size 2 (a captain each) | 26 × (0, 0, 255) |
+| 4 | the flash (selected merchants' goods, a beaten city) | none |
+
+A colour word is red in its low byte: the packet's `0xffff0000` is
+(0, 0, 255), player 1's `TeamColor::get_border` (`BORDER_COLOURS[1]`).
+The layers draw 0 to 4, layer 4 not while `graphic_tick & 8`.
+
+**What the sim pairs with** (client world at the photograph's frame):
+the 15 live boxes of `gaia.goody_items` (22, seven dead), the goods 15
+`OIL` (5), 12 `FISH` (6) and 9 others, player 1's four cities, and player
+0's capital, which is the white one: the console is player 0 (as
+`world::CONSOLE`), and a city of the console's in its selection is
+`0xffffffff`. No blip of player 0's nine units is drawn (4593c).
+
+**`add_blip@008ce500(x, y, fill, outline, w, h, shape, layer, z)`**, off
+the listing (the decompile loses the vertex arguments, which ride in
+`xmm1`–`xmm3` to `Vert4Array::add@0045c610`):
+- *The centre.* The world point through the minimap camera's
+  `to_screen_matrix` (`+0xa48`; `x·m0 + y·m4 + m12` over `x·m3 + y·m7 +
+  m15`), then `cx = x_off + w_half·nx − 0.5`, `cy = y_off − h_half·ny −
+  0.5` (`8ce509`–`8ce654`). `render_blips` sets `w_half` and `h_half` to
+  half the window's width and height, `x_off` to its left plus `w_half`,
+  `y_off` to its top plus `h_half` less one. On the packet: 158, 79, 484
+  and 988 (`+0x1344`, `+0x1348`, `+0x134c`, `+0x1350`), which is the
+  rectangle (326, 910) to (643, 1069), `minimap::QUAD`'s bounds.
+- *The shape.* Anything but 1 or 6 becomes 0 (`8ce65a`–`8ce664`,
+  `cmovne`): the jump table's cases 2 to 5 are unreachable.
+- *Shape 0, a fill other than `BLACK`* (`8ced67`–`8cf0ae`): one quad,
+  `(cx − w/2 − 1, cy − h/2 − 1)` to `(cx + w/2 + 1, cy + h/2 + 1)`, its
+  texcoords the size's atlas rectangle (below), its four colours the
+  fill. The outline is not used.
+- *Shape 0, the fill `BLACK`* (`8cf0b1`): the same outer quad in the
+  outline's colour, then `(cx ± w/2, cy ± h/2)` in `BLACK`, every
+  texcoord `(0.1, 0.1)` (`0x3dcccccd`), a white texel.
+- *Shape 1* (`8ce6b3`–`8ce736`): a triangle, `(cx, cy − h/2)`,
+  `(cx + w/2, cy + h/2)`, `(cx − w/2, cy + h/2)` and the last again.
+  Ships (types `0x32` to `0x35`) and city-part buildings take it; none is
+  on the frame. *Shape 6* is not read.
+- *The atlas.* `WorldMap::init@008d2160` loads `effects_graphics.xml`'s
+  `<BLIPMAP texture=".\art\blipmap.tga">` and, per `<SIZE size xoffset
+  yoffset>`, the rectangle `x/W` to `(x + s + 2)/W`, `y/H` to `(y + s +
+  2)/H`; a size with no entry (4, 5, 7) keeps (0, 0, 1, 1). The install's
+  sizes: 1 at (9, 7), 2 at (16, 4), 3 at (16, 0), 6 at (9, 0), 8 at
+  (0, 0). `blipmap.tga` is 32 × 16, RLE, bottom-up; read top-down each
+  size is an `(s + 2)`-square box, a black rim around white. The packet's
+  texcoords are these to the digit, e.g. size 2 (0.5, 0.25)–(0.625, 0.5).
+  So a blip is the fill inside a one-pixel black rim.
+- *The state.* `blip_render_state` is `RenderState::init@00535ba0`'s
+  defaults but `zfunc` `CMP_ALWAYS` (`WorldMap::init@008d2cd0`): texture
+  × vertex colour, opaque (`ONE`, `ZERO`), point-filtered.
+
+**On the photograph** two things the state does not say:
+- *Pixel centres sit on the integers* (D3D9's rule). The fish at x0
+  542.25 covers x 543 to 546; centres at `i + 0.5` would give 542 to 545.
+  This bears on the border a pixel off (4588c).
+- *The atlas is sampled bilinearly.* The lavender good at x 414.97 to
+  419.97 has its rim columns 415 and 419 at (76, 75, 120), 0.47 of its
+  fill: texel 16 (black) blended with texel 15, the size-6 box's white
+  inside. Its top row 943 is (14, 14, 23), 0.09 of the fill.
+
+**Not established.**
+- The predicates the frame does not exercise: `stat_mode` 1, 2 and 6,
+  the selection's white, the idle flash, layer 4, the visibility test
+  (`SubObjectData::is_seen`, slot `+0x48`) under the fog where
+  `StartReveal` is off, and the building arms' slots `+0x2c`, `+0x90`,
+  `+0x94` and `+0xfc`, which `vtables.txt` folds (4593a).
+- The minimap camera's scale off run1564's map: there `m13/m15` is
+  1.0029883, and `init_camera@008cbb10` is not followed to it.
+- On the photograph the blue team's fill reads (42, 24, 255) where the
+  packet's vertex colour is (0, 0, 255): the grab's display-profile round
+  trip (`docs/RUNS.md`, run1564). Red differs by 42, past the row's 32
+  (4593b).
 
 ## 4. The stack
 
