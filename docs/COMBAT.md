@@ -12000,6 +12000,14 @@ struck the citizen `0/3`, and ours has retargeted to the human's scout
   `Build` (vslot `+0x20`), active (`+0x4c`) and the attacker raids. After
   the damage weight a raider jumps past the building's armed ×5 and
   siege bonus to the tail (`0064f124`).
+  **"Active" is `WallData::is_active@00472350`, `flags & 4`: finished**
+  (item 4590). This crate had asked [`Sim::active`] (alive, with hit
+  points) there, so an unfinished armed building read `/20` too. run1803's
+  packet at logger frame 2685 (row 93): the raiding Bazooka `1/31`'s
+  `find_new_target` scores the unfinished Small City `2/2027` (flags
+  `0x23`, `+0x4c` 0) at 1613 — `80 × 80 × 100 / 873 × 10 × 22`, rounded —
+  and the Oil Well `2/2032` at 138, and returns the city; ours read the
+  city at the floor 15 and took the well.
 - **A unit target**, after the combat-role ×20 (dispatch `0064edc4`):
   - a computer's land raider (`0064ef69`–`0064efbb`): a peasant
     (`ObjectData::is_peasant@0046d310`, type `0x32`/`0x33`) or a caravan
@@ -12131,6 +12139,8 @@ city read 31 here on logger frame 4688 against the packet's 0.
   - the AI raider's `+900,000` against the human's 9,000,000 (run368:
     9800);
   - the building's `/20` (run368: the city's `80 → 4` in the trace);
+  - its finished-bit gate (run1803: the unfinished city's 1613), and
+    row 93's first parting 2686 → 2962 on it;
   - the decay (run368: the city at 0).
 - **Listing-backed**: `0064e6b6`–`0064e742`, `0064ea57`–`0064ea7a`,
   `0064edc4`–`0064eff9`, `0064f124`.
