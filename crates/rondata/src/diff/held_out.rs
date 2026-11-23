@@ -1498,7 +1498,7 @@ mod tests {
                     a.record, a.field
                 );
                 if a.record == 8 {
-                    let f = crate::checksum::fields::range_fields("cities", &a.field, &b.bytes);
+                    let f = crate::checksum::fields::range_fields("cities", a.field, &b.bytes);
                     if let Some(v) = f
                         .unwrap_or_default()
                         .iter()
