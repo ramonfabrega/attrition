@@ -153,8 +153,9 @@ scripted human, read 1 of 8 and 20 of 96 lines as found, 49 % by reach and 59 % 
 3,400, one on 7675, one runs whole; a landing on a row that parts early bought 732 states and one deep in a game about 190, so the
 seats go by first parting and the sample holds none of its own; row 3 is one line from whole (item 4572), rows 73, 33 and 113 part
 units and cities on one state and take one seat (item 4576), and the sixth's walks fire eleven pieces with no bay, built in one act
-(item 4574); a seventh battery is named; the packets' lines 950 of 1,053; **orders** — whole by its counters; **renderer** — as it
-stood, no landing.
+(item 4574); a seventh battery is named; the packets' lines 950 of 1,053; **orders** — whole by its counters; **renderer** — no
+landing; Ramon gives the fourth seat to the client, and it draws the minimap, which the window lacks (item 4581); item 4580
+counts the sim's `SEAM`s the held-out games enter.
 
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it

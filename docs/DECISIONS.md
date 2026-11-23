@@ -167,7 +167,7 @@ is append-only and amended in place, as it always was.
 - 150 extended by 151 — Ramon folds the spent batteries into the headline (28 of 31 on the pins of 43ee59434; item 4528 builds the count) and the fifth battery adds seats and a team, its first act reading whether the lobby page sets a team, and starts now with the seats alternating between batteries
 - 151 extended by 152 — The pass of 2026-11-22: the fifth battery was spent at item 4534 and folds, so the headline reads 39 of 47 on the pins that read 37 of 39 (a guard reads the row tests against the spent list); the sample's seat was stopped against its rule and reopens (every one of its four landings moved the `Parity:` line); the gate refuses while `origin/main` is behind the pushed tip (137 commits at the drain); the handoff's bound is 36 and the queue's preamble is read against it; entry 150 §1 to §3 confirmed; seven rows scored and four seats cut; a sixth battery is named, taken when the fifth reads 4 of 8
 - 152 extended by 153 — The pass of 2026-11-22, second: items 4565 and 4564 named one pair of fields (`targeted`, `attack_ox`) on the sample and on row 43, so one seat carries both; a probe of `launch_point`'s fallback over the forty held-out games and the sample lists eight pieces with no bay, and item 4559 builds them in one act; the sixth battery keeps its trigger, its item 4566 is written, and its games run to 12,000, past the state the sample parts on, with a scripted human (Ramon, the same day); the sample's seat moved 158 states a landing; `tools/guard.sh` asks `cargo fmt`
-- 153 standing — The pass of 2026-11-22, third: the sixth's found column fires neither branch of entry 152 §5 (six of eight rows part before 3,400, one runs whole to 12,000, one parts on 7675); a landing on a row that parts early bought 732 states and one deep in a game about 190, the sample's and a row's alike, so the seats go by first parting and the sample holds none of its own; eleven games scored and four seats cut; rows 73, 33 and 113 part units and cities on one state and take one seat; a print of `launch_point`'s fallback over the sixth's walks lists eleven pieces with no bay, and item 4574 builds them in one act; the sixth folds at its first leaf test, 44 of 55; a seventh battery is named, taken when the sixth reads 4 of 8; `waitrun.sh` gives a launch whose runner has not started a grace period (run1794 and run1795 played at once)
+- 153 standing — The pass of 2026-11-22, third: the sixth's found column fires neither branch of entry 152 §5 (six of eight rows part before 3,400, one runs whole to 12,000, one parts on 7675); a landing on a row that parts early bought 732 states and one deep in a game about 190, the sample's and a row's alike, so the seats go by first parting and the sample holds none of its own; eleven games scored and four seats cut; rows 73, 33 and 113 part units and cities on one state and take one seat; a print of `launch_point`'s fallback over the sixth's walks lists eleven pieces with no bay, and item 4574 builds them in one act; the sixth folds at its first leaf test, 44 of 55; a seventh battery is named, taken when the sixth reads 4 of 8; `waitrun.sh` gives a launch whose runner has not started a grace period (run1794 and run1795 played at once); Ramon, on the row: the fold stands, the fourth seat is the client's (item 4581, the minimap), and item 4580 counts the seams the held-out games enter
 
 ## 1. Fidelity before divergence
 
@@ -15692,3 +15692,44 @@ on the booking's names, did not surface it (4567, and 4543 the tranche
 before), so the lanes line has the driver's note name `seams.py
 --field` with the leaf's own field; and the waiter's race (4566) is
 §7. No `FABLE:` marker and no second reading stood in the tranche.
+
+**§10. Ramon, on the row while the pass's gate ran and after** (23:15
+to 23:40 −05:00). He read the record's opening lines and answered three things.
+On the fold: "battery joining is well and good. our goal is to
+identify all sim gaps and close them as much as possible." On the
+seats: "i do think some renderer/client work is apt, could be a lane,
+or could not be. idk if sim competes with each other and worth having
+a lane." And he asked whether the parked findings are ever worth going
+through. The pass answered both from the tables. Sim lanes do compete:
+§8's seventeen refusals are every lane re-pinning one file, and a lane
+on the client touches none of it, so the fourth sim seat is the
+dearest seat on the roster and a client seat the cheapest. And the
+parked pile is worth a machine's pass, not a reader's: `seams.py`
+counts 486 `SEAM` notes in the sim's source, 1,090 sentences that cite
+the disk for an absence, and fourteen seams that name as missing a
+function the crate now carries; two lanes in two tranches fixed a
+parting a `SEAM` had already named (§9); and the one seam counted at
+run time, §5's, has listed nineteen pieces in two passes. He took both
+recommendations: "sounds good lets do as you suggest."
+
+- **The fourth seat is the client's**, item 4581. Item 4576 moves to
+  the head of the unseated order. Three sim seats stand: the chain's
+  builder and two parity seats. The pass looked before it designed
+  (`docs/LOOP.md`): the client's still of a lobby game on frame 1500
+  beside run1564's photograph. Ours is the map alone: lit ground, a
+  mountain, trees, a named city in its team's colour, Citizens. Theirs
+  frames it with the bar, the log, the command grid and the minimap,
+  and `crates/client/src/input.rs` says "the window draws no minimap".
+  The order a press on it issues is ported and played by the original
+  (`docs/CLIENT_INPUT.md` §9). **Item 4581 draws the minimap and takes
+  the press that moves the camera**, with a row against the
+  photograph's own. Whether the client fogs what slot 0 has not seen
+  was not compared: ours shows the whole map lit, and the photograph
+  on file is a late frame of an explored shore.
+- **Item 4580 counts the seams the held-out games enter**, on the
+  chain's builder after item 4574. Its first act is how many of the
+  486 sit on a branch a counter can stand on, and it stops there if
+  they are few.
+- **He plays the client himself**, and asked when. His list of what
+  breaks is the first measure of the distance to a game played here;
+  the client's seat takes its next items from it.

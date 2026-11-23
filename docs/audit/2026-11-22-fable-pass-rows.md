@@ -22,7 +22,13 @@ subagent and took no capture. The pass before it is
   battery games alike. So seats now go to whichever game goes wrong
   earliest. The person's game goes wrong at state 7,407, later than
   nine of the ten others, so it waits. Its line will stand still
-  meanwhile. Say the word and it takes the fourth seat back.
+  meanwhile. Say the word and it takes a seat back.
+- **You answered three things on the row** (entry 153 §10): the fold
+  stands; the fourth seat goes to the client, on a minimap, which the
+  window does not draw; and one item counts which of the sim's 486
+  known omissions the held-out games actually enter. You also said
+  you would play. `client --lobby --frame 0 --play` opens the lobby
+  page; your list of what breaks feeds that seat.
 - **The new battery did not answer the question it was built for.** It
   was meant to show whether the person's game is hard because it is
   long or because a person played it. Six of its eight games go wrong
@@ -79,9 +85,10 @@ subagent and took no capture. The pass before it is
   own** (§2). One line from whole first, then the lowest first parting.
   Item 4569 stays written and is seated before a hand-over when no
   row's item stands.
-- **Four seats** (§3): the chain's builder on item 4574, parity seats
-  on row 3 (4572) and row 133 (4575), the fourth on rows 73, 33 and 113
-  (4576). Behind them, in order: 4577, 4578, 4573, 4571, 4569, 4579.
+- **Four seats** (§3, §10): the chain's builder on item 4574, then
+  4580; parity seats on row 3 (4572) and row 133 (4575); the fourth is
+  the client's, on Ramon's word, item 4581. Behind them, in order:
+  4576, 4577, 4578, 4573, 4571, 4569, 4579.
 - **Rows 73, 33 and 113 take one seat** (§4), on one take of row 73.
 - **The eleven pieces are built by class** (§5), in one act.
 - **The sixth folds at its first leaf test** (§3): 44 of 55 on today's
@@ -98,8 +105,22 @@ subagent and took no capture. The pass before it is
 
 ## What the pass looked at
 
-Nothing was drawn. The tranche has no render landing: all ten are
-rules items. The pairs of 2026-11-20 were not redrawn or uploaded.
+The tranche has no render landing: all ten are rules items. When
+Ramon gave the fourth seat to the client, the pass looked before it
+designed: the client's still of a lobby game on frame 1500 (`client
+--lobby --frame 1500 --still`, the tip's release build, 0.8 s) beside
+run1564's photograph, both under
+`~/ron-data/lab-experiments/2026-11-22-pass-third/`. Ours is the map
+alone: lit ground, a mountain, trees, a named city in its team's
+colour, four Citizens, a debug overlay in the corner. Theirs frames
+the map with the resource bar, the message log, the age banner, the
+command grid, the selected city's panel and the minimap. The window
+carries the HUD and the still does not, so the bar and the panel were
+not judged from it. The minimap is the one the source itself says is
+missing. Ours also shows the whole map lit, where a player's view is
+fogged; that was not compared, for want of a photograph of an
+unexplored map on file. The pairs of 2026-11-20 were not redrawn or
+uploaded.
 
 ## The queue's items
 
@@ -108,7 +129,9 @@ rules items. The pairs of 2026-11-20 were not redrawn or uploaded.
 | 4574 the sixth's eleven pieces with no bay | rules, whole; the chain's | what moves in the sixth's `moved` columns | a test that lists the 102 keys, red; the `<RESTRICTION>` lookup, then 4559's recipe | it has landed its one act |
 | 4572 fifth, row 3 | rules, whole; a parity seat's | the headline's 43 → 44 of 47 | the one leaf on run1796, world `mask`; no take | two landings running move no column |
 | 4575 sixth, row 133 | rules, whole; a parity seat's | row 133's column from 956 | a take, `0xffbu`, `--allow-early-end` | two landings running move no column |
-| 4576 sixth, rows 73, 33, 113 | rules, whole; the fourth seat's | the three rows' columns from 1563, 2411, 2259 | a take of row 73, `0xffbu`, `--allow-early-end` | two landings running move no column |
+| 4581 the minimap | render, scoped; the client's seat | a new row, the photograph's minimap cells ours equal | the rectangle and projection off run1564's photograph and `WorldMap` | the photograph's minimap cannot be read cell by cell |
+| 4580 the seams the held-out games enter | rules, whole; the chain's, after 4574 | none of its own; a list by first frame | how many of 486 seams a counter can stand on | they are few |
+| 4576 sixth, rows 73, 33, 113 | rules, whole; unseated, first | the three rows' columns from 1563, 2411, 2259 | a take of row 73, `0xffbu`, `--allow-early-end` | two landings running move no column |
 | 4577 sixth, row 93 | rules, whole; unseated | row 93's column from 2342 | a take, `0xffbu`, to 12,000 | two landings running move no column |
 | 4578 sixth, row 53 | rules, whole; unseated | row 53's column from 3358 | a take, `0xffbu`, to 12,000 | two landings running move no column |
 | 4573 fifth, row 83 | rules, whole; unseated | row 83's column from 3662 | the leaf on run1784; no take | two landings running move no column |
@@ -129,7 +152,7 @@ rules items. The pairs of 2026-11-20 were not redrawn or uploaded.
   timeout; the start is any line past the header now, and the
   thirty-nine tests of the three launcher files pass.
 - The paperwork: entry 153 and its index row, this record, the queue's
-  handoff, lanes line and ten items, the loop's two clauses, the
+  handoff, lanes line and twelve items, the loop's two clauses, the
   tracks' paragraph, the journal's entry, the suite's timings, the
   rubric's row.
 
@@ -154,6 +177,10 @@ rules items. The pairs of 2026-11-20 were not redrawn or uploaded.
 - **Whether the sample's trouble is depth or a person's orders is
   still open.** Row 13's leaf on 7675 would say, and its item sits
   last by its first parting.
+- **Whether the client fogs the map is unread**, and so is how the
+  window's HUD looks: the pass drew a still, which carries none.
+- **How many seams can be counted is unknown.** Item 4580's first act
+  is that number; the 486 are notes, and many sit on no branch.
 - **The seventh battery's script is not designed.** A human who keeps
   issuing orders past frame 90 is named as the limit and nothing more.
 - **The lanes' wait on their own gate is explained and not mended.**
@@ -170,5 +197,19 @@ rules items. The pairs of 2026-11-20 were not redrawn or uploaded.
 
 ## The gate
 
-Whole, by `tools/gate_run.sh`, once, on the pass's commit. The commit
-after it quotes the log here.
+Whole, by `tools/gate_run.sh`, once.
+
+- **`gate-pass-1122c.log`: `gate exit 0`** on `229ae6f2d`, the pass's
+  commit, 9 of 9 steps: offline 1.1, guard 0.2, merge pins 1.1, release
+  22.8, clock 0.2. `Clock: green beside load`. Admission 14.3 s over
+  1,564 leases; load 3.5 at its start and 11.6 at its end. `Fixture
+  audit: 203656 requests, 0 missing fixtures`. `Rows: one driver row at
+  most: steer 2feae9d2 (working)`; `Driver: 0 landings since the last
+  pass (backstop 20) · context 353 k`; `Trunk: origin/main is
+  origin/worktree-replan-pdb`. `Builders: 0 reaped`; 106 GB free after
+  it. Pushed, and main fast-forwarded to it.
+- **Ramon's answers came while that gate ran and after**, and the
+  commit that quotes it carries them: documents only (entry 153 §10,
+  items 4580 and 4581, the lanes line, the handoff's lead, the tracks'
+  paragraph, the journal, this record). It ran no whole gate; the
+  reflex, `tools/guard.sh`, was green on it.

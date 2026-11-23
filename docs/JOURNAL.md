@@ -22620,4 +22620,13 @@ launch two minutes to show a runner now. The lanes' hour on their own
 gate was traced to seventeen refusals on a moved base, every lane
 re-pinning one file, and left as it is: the same refusals kept every
 booking gate green. The pass moved no score and took no capture.
+
+Ramon came onto the row while the gate ran and asked how far things
+were. Two answers of his changed the seats. Sim lanes compete, by the
+seventeen refusals, and a client lane does not, so the fourth seat is
+the client's again: the pass drew a lobby game's still beside a
+photograph, and what the window lacks first is the minimap. And the
+parked pile is to be mined by machine: one item counts which of the
+sim's 486 `SEAM` notes the held-out games enter, as the launch point's
+print did for one of them. He said he would play the client himself.
 **DECISIONS 153.** `docs/audit/2026-11-22-fable-pass-rows.md`.
