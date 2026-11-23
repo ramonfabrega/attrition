@@ -1947,14 +1947,6 @@ pub(crate) mod tests {
                 for (k, (a, b)) in oc.iter().zip(&tc).enumerate() {
                     let ab: Vec<&Vec<u8>> = a.iter().map(|r| &r.bytes).collect();
                     let bb: Vec<&Vec<u8>> = b.iter().map(|r| &r.bytes).collect();
-                    let want: Vec<usize> = std::env::var("RON_PROBE_4613_CHUNK").unwrap_or_default().split(',').filter_map(|x| x.parse().ok()).collect();
-                    if want.contains(&k) {
-                        for j in 0..a.len().max(b.len()) {
-                            let o = a.get(j).map(|r| format!("{} {:02x?}", r.field, r.bytes)).unwrap_or_default();
-                            let t = b.get(j).map(|r| format!("{:08x} {:02x?}", r.site, r.bytes)).unwrap_or_default();
-                            eprintln!("CH s{state} #{k}.{j}\n   ours   {o}\n   theirs {t}");
-                        }
-                    }
                     if ab != bb {
                         let who = a.iter().find(|r| r.field == "who..y_internal").map(|r| r.bytes[0]);
                         let fields: Vec<&str> = a.iter().zip(b.iter()).filter(|(x, y)| x.bytes != y.bytes).map(|(x, _)| x.field).collect();
