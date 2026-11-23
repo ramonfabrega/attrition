@@ -122,12 +122,6 @@ pub(super) fn explain(
             ));
         };
         let label = format!("range {n}, record {}, {}", a.record, a.field);
-        if std::env::var_os("RON_PROBE_4589").is_some() {
-            eprintln!("PROBE4589 {name} state {state} {label} ours {:02x?}", a.bytes);
-            if let Some(b) = b {
-                eprintln!("PROBE4589 {name} state {state} {label} orig {:02x?}", b.bytes);
-            }
-        }
         let Some(b) = b else {
             return Ok(format!(
                 "{label}: {} bytes in ours, absent in original",
