@@ -359,8 +359,9 @@ impl DisbandView for SimDisband<'_> {
     fn die(&mut self, _a: i32, _b: i32, _c: i32) {
         self.sim.die_building(self.b);
     }
-    fn close(&mut self, _a: i32, _b: i32, _c: i32) {
-        self.sim.close_building(self.b, false);
+    fn close(&mut self, a: i32, _b: i32, _c: i32) {
+        // `close(0, -1, 0)`: reason 0, an unstarted building (item 4572).
+        self.sim.close_building_for(self.b, a as u8);
     }
     fn type_avail(&mut self, who: i32, good: i32, _strict: i32) -> bool {
         // A tree without the goods at the front (a test's) lets every good
