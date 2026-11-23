@@ -4660,10 +4660,9 @@ object is `MiscAccess::worldmap` (`0x00e399ac`), a `WorldMap`.
   extent**. A check that needs no reading: run1564's camera look-at
   (36960, 38496) projects to (479, 1041), and the photograph's white view
   rectangle is centred on (479, 1039.5).
-- *The rest* is drawn over the background and not by us: the fog
-  (`WorldMapFog`, swept for `fill_colors`), the borders
-  (`render_borders`), the blips (`render_blips`), the pings and the view
-  rectangle (`draw_view_rect`).
+- *The rest* is drawn over the background: the borders, the fog, the
+  blips, the view rectangle and the pings, in that order (item 4588,
+  "The overlays", below). We draw the borders and the view rectangle.
 
 **Ours.** `minimap::background` draws our terrain alone (no figure, tree,
 sprite or particle) through `background_camera`, into a 256 × 256 still.
@@ -4781,10 +4780,64 @@ ranges. They are the mountain feature, drawn last.
   cells on a range's edge where ours adds the whole colour and theirs
   less (4586a).
 
-**What the rest is.** Of the 1,181 unequal cells, theirs reads as an
-overlay on 267: 89 white (the view rectangle and blips), 137 the blue
-team's, 41 the red team's (4581b). 128 more read grey, fog or border
-unsorted.
+**The overlays (item 4588).** *Opus 5.5; the ledger:
+`docs/journal/2026-11-23-item-4588.md`.* `WorldMap::on_redraw@008c81f0`
+draws through its own vtable, and the PDB's method records name each
+slot (`LF_ONEMETHOD`, `vftable offset`). The order is `render_background`
+(+0x430), `render_borders` (+0x42c), `render_fog` (+0x428),
+`render_blips` (+0x424), `draw_view_rect` (+0x44c) and `render_ping`
+(+0x434), all under the minimap's camera.
+- *What the photograph shows.* Run1564's minimap has no darkened ground,
+  so the fog draws nothing there. The borders show as lines with no tint
+  inside, plus blips, ping rings and the white view rectangle.
+- *The borders.* `WorldMapFog::fill_colors_who@008d1070` fills one texel
+  per fog cell (`2 · cells` each way).
+  - A texel on a cell a player owns takes that player's
+    `TeamColor::get_border` (the slot, leader `team_color` +0x6928) at
+    alpha `0x50`.
+  - It takes alpha 200 when one of its eight fog neighbours
+    (`move_x`, `move_y` 1 to 8, read off `.rdata`) lies on a cell owned by
+    anyone else or no one, unless that owner is the texel's own (`who`,
+    +0x8) or a mutual ally (diplomacy 2 both ways).
+  - A neighbour off the grid, or on open water (`flags & 0x100` clear,
+    land class 1 or 2), is passed over.
+  - `render_borders` lays the texture on the background's own two
+    triangles, `MIP_LINEAR`, blended `SRCALPHA`, `INVSRCALPHA`, and
+    alpha-tested `CMP_GREATER` against `alpha_ref`. The reference is 0
+    when its argument is 1 (`stat_mode` 0, or the profile's `prefs & 4`
+    clear), and 100 otherwise. The photograph shows no inside tint, so
+    the reference is 100 and only the edge passes.
+  - Ours: `minimap::who_texels` and `minimap::borders`. Each pixel samples
+    the texture bilinearly at its centre; a texel past the grid is zero.
+- *The fog.* `fill_colors_fog@008d1420` writes a grey per fog cell: 255
+  seen, `0x80` under a reveal, `0x50` once seen, 0 never. `render_fog`
+  multiplies it in (`ZERO`, `SRCCOLOR`). Not built: the photograph's
+  ground is undarkened.
+- *The view rectangle.* `get_view_rect@008c8120` takes the plane points
+  under the main view's top-left and bottom-right pixels.
+  `MiscAccess::world_to_console@00583840` projects each through the
+  minimap's camera, truncates, and adds one when the remainder is at
+  least 0.5 (a round half up). `draw_view_rect` holds each corner to
+  `[4, size − 4]` and draws a one-pixel `WHITE` box from the first corner
+  to the second less one.
+  - Ours: `minimap::view_rect`, held to the quad's bounds (an assumption:
+    the window's rectangle is not read).
+  - Run1564's corners project to (457.96, 1028.39) and (499.84, 1052.10).
+    The box is x 458–499, y 1028–1051, and so is the photograph's
+    (`the_view_rect_is_the_photograph_s`). Truncated, ours sat a pixel
+    left.
+- The row: `[416, 596, 475, 3361, 2769, 3600]` → `[465, 596, 534, 3400,
+  2808, 3600]`, within 32 **+39** (50 cells in, 11 out).
+  - The borders closed 40 cells (21 the blue team's, 19 the red's) and
+    opened 11.
+  - The view rectangle closed 10.
+  - The border's blue reads as water on both sides, so the water counts
+    move.
+
+**What the rest is.** Of the 792 unequal cells after item 4588 (the
+journal's classifier), theirs reads blue on 116, red on 24 and white on
+77: the blips, the pings, and the 11 cells where a border lies a pixel
+off (4588a, 4588b, 4588c). 129 read grey, 116 water and 330 land.
 
 **Not established.**
 - ~~The background's colour, its forest blobs~~: the forests are drawn
@@ -4806,7 +4859,17 @@ unsorted.
 - ~~Whether the original tone-maps the background~~: it does not
   (above).
 - The rivers as a feature (above). ~~The mountains~~: built (item 4586).
-- The fog, the borders, the blips and the view rectangle (above).
+- ~~The fog, the borders, the blips and the view rectangle~~: the
+  borders and the view rectangle are drawn, and the fog draws nothing on
+  the photograph (item 4588, above).
+- The blips (`render_blips@008cc700`, `add_blip@008ce500`) are not
+  built. Their arms turn on `stat_mode`, the selection, the unit's type
+  and the idle flash, and `add_blip`'s geometry is lost in the decompile
+  (4588a). The pings are not built either (4588b).
+- On 11 cells our border falls a pixel from theirs, e.g. (36, 11) theirs
+  (180, 169, 91), ours (97, 93, 161) (4588c). Assumed and unread:
+  `can_see_borders` grants every player, and the bilinear sample has no
+  half-pixel offset.
 - `setup_camera`'s own `dir`: the decompile loses the register, and the
   axes rest on the minimap camera's corners.
 - The layout off 1920 × 1080, and the `scroll_lock_flags & 4` skip,
