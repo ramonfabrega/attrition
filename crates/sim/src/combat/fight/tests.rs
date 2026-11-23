@@ -6805,10 +6805,7 @@ fn the_anti_siege_shield_keeps_only_a_siege_target() {
         run(bombard, Some(true), true, false),
         "a siege attacker takes it through the shield"
     );
-    assert!(
-        run(0, Some(true), false, false),
-        "no mask, no shield"
-    );
+    assert!(run(0, Some(true), false, false), "no mask, no shield");
     assert!(
         !run(bombard, Some(false), false, true),
         "a held target in reach is kept"
