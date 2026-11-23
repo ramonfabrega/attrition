@@ -9590,7 +9590,31 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4574 (the Manchu Riflemen's three keys, piece 67, from
+        // 2689, past the row's first parting 1563, which stands): ammo 2,593
+        // -> 2,592 (on 2784 ours' ammo sum 1 -> 3490584490, theirs 1) and
+        // items 2,589 -> 2,557, named falls; goods 2,460 -> 2,476 (3041..=3056,
+        // ours 711751501 -> 665614155, theirs 665614155). No first parting moved.
+        moved: Some(Score {
+            states: 3438,
+            agreed: [
+                1563, 1569, 3438, 2592, 2604, 1678, 1564, 1576, 1563, 2557, 2476, 1566,
+            ],
+            first: &[
+                ("units", (1563, Some(4059076565), 2125891403)),
+                ("builds", (1569, Some(146391282), 1875296499)),
+                ("ammo", (2557, Some(4190309544), 1)),
+                ("deaths", (2604, Some(1), 2113539492)),
+                ("groups", (1678, Some(3126200451), 1300891790)),
+                ("guys", (1564, Some(374263833), 1839451683)),
+                ("leaders", (1576, Some(1096030747), 4201978914)),
+                ("cities", (1563, Some(4048038473), 2512136249)),
+                ("items", (1949, Some(1693995504), 1774735860)),
+                ("goods", (2353, Some(326399801), 337934141)),
+                ("world", (1566, Some(563759280), 2466466211)),
+            ],
+            over: None,
+        }),
     }),
     // run1792
     // row 93, as found 2026-11-22: 1 line whole; units 2,342 of 12,001, first 2342; builds 2,688 of
@@ -9621,7 +9645,32 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4574 (the Fighters 242 and 243 from 4749, the
+        // Anti-Aircraft Battery 233 from 4894, the Howitzer 222 from 8297 and
+        // the Asian Heavy Machine Gun 1131 from 8406, all past the row's first
+        // parting 2342, which stands): ammo 3,799 -> 3,924, 386 states gained
+        // and 261 lost, the first on 5210 (ours' ammo sum 3991153570 -> 1,
+        // theirs 1: no round in flight). No first parting moved.
+        moved: Some(Score {
+            states: 12001,
+            agreed: [
+                2342, 2688, 12001, 3924, 3464, 2740, 2686, 2698, 2974, 4832, 4140, 2691,
+            ],
+            first: &[
+                ("units", (2342, Some(1169777861), 259155158)),
+                ("builds", (2686, Some(547053547), 644243435)),
+                ("ammo", (2692, Some(1859606587), 696997629)),
+                ("deaths", (2775, Some(2882887954), 2321178662)),
+                ("groups", (2740, Some(4287796956), 1715573666)),
+                ("guys", (2686, Some(384424200), 3607616169)),
+                ("leaders", (2689, Some(3893770918), 226245285)),
+                ("cities", (2871, Some(3617272752), 3487511460)),
+                ("items", (3127, Some(2121282860), 2092447016)),
+                ("goods", (3157, Some(2924123420), 3056768288)),
+                ("world", (2691, Some(2608492097), 2791665259)),
+            ],
+            over: None,
+        }),
     }),
     // run1793
     // row 113, as found 2026-11-22: 1 line whole; units 2,259 of 4,573, first 2259; builds 2,338 of
@@ -9652,7 +9701,30 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
             ],
             over: Some(4118),
         },
-        moved: None,
+        // Moved by item 4574 (the Carabineer, piece 140 as 139's rows, from
+        // 3047, past the row's first parting 2259, which stands): ammo 3,335
+        // -> 3,336, on 4017 (ours' ammo sum 1731922939 -> 1, theirs 1). No
+        // first parting moved.
+        moved: Some(Score {
+            states: 4573,
+            agreed: [
+                2259, 2338, 4573, 3336, 3087, 2470, 2259, 2351, 2259, 3176, 4081, 2261,
+            ],
+            first: &[
+                ("units", (2259, Some(3462201175), 3106729391)),
+                ("builds", (2323, Some(52058802), 98261619)),
+                ("ammo", (2941, Some(1), 3925806276)),
+                ("deaths", (2993, Some(1), 1927744677)),
+                ("groups", (2470, Some(939459940), 872023246)),
+                ("guys", (2259, Some(1132056778), 3749433370)),
+                ("leaders", (2351, Some(417477691), 3343529196)),
+                ("cities", (2259, Some(6368709), 3892456893)),
+                ("items", (2526, Some(2178306644), 2195608150)),
+                ("goods", (2666, Some(1648268551), 1581946117)),
+                ("world", (2261, Some(1332653642), 414756426)),
+            ],
+            over: Some(4118),
+        }),
     }),
     // run1794
     // row 133, as found 2026-11-22: 1 line whole; units 1,162 of 6,085, first 1162; builds 958 of

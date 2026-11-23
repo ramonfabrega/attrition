@@ -4169,6 +4169,136 @@ fn every_key_the_held_out_games_fired_from_the_figure_s_square_has_its_row() {
     assert_eq!(missing, unread, "{} keys fall back", missing.len());
 }
 
+/// **Every key the sixth held-out battery fired from the figure's square has
+/// its row** (item 4574, `docs/COMBAT.md` §55; `docs/DECISIONS.md` entry 153
+/// §5): the pass's probe on [`launch_point`]'s fallback over the sixth's walks
+/// listed 3,673 rounds from eleven pieces and these 102 keys `(piece, anim,
+/// starttime, node)` (`~/ron-data/lab-experiments/2026-11-22-pass-third/
+/// fallback-keys.txt`, outside git), each after its row's first parting: the
+/// Manchu Riflemen (67, row 73); the Carabineer (140, rows 33 and 113); the
+/// Howitzer (222), the Anti-Aircraft Battery (233), the German and Asian
+/// Fighters (242, 243) and the Asian Heavy Machine Gun (1131, row 93); the
+/// Main Battle Tank (206), the Anti-Aircraft Missile (234), and the Asian and
+/// Native American Advanced Machine Guns (1133, 1485, row 133). A pivot
+/// piece's node-0 round takes [`crate::data::pivot::release_node`]'s row; every
+/// other key a [`bay`]. Red on the tree before the rows: 102 keys fell back.
+#[test]
+fn every_key_the_sixth_held_out_games_fired_from_the_figure_s_square_has_its_row() {
+    let keys: [(i32, i8, u32, i8); 102] = [
+        (67, 11, 10, 0),
+        (67, 12, 15, 0),
+        (67, 13, 16, 0),
+        (140, 10, 12, 0),
+        (140, 11, 12, 0),
+        (140, 12, 13, 0),
+        (140, 13, 18, 0),
+        (206, 11, 11, 0),
+        (206, 12, 1, 1),
+        (206, 12, 7, 1),
+        (206, 12, 23, 0),
+        (222, 11, 1, 0),
+        (222, 12, 26, 0),
+        (222, 13, 8, 0),
+        (233, 10, 12, 0),
+        (233, 10, 14, 1),
+        (233, 12, 4, 0),
+        (233, 12, 7, 1),
+        (234, 10, 4, 0),
+        (234, 11, 4, 0),
+        (234, 13, 4, 0),
+        (242, 12, 1, 0),
+        (242, 12, 1, 1),
+        (242, 12, 3, 0),
+        (242, 12, 3, 1),
+        (242, 12, 7, 0),
+        (242, 12, 7, 1),
+        (242, 12, 11, 0),
+        (242, 12, 11, 1),
+        (242, 12, 14, 0),
+        (242, 12, 14, 1),
+        (242, 12, 18, 0),
+        (242, 12, 18, 1),
+        (242, 12, 22, 0),
+        (242, 12, 22, 1),
+        (242, 12, 26, 0),
+        (242, 12, 26, 1),
+        (243, 12, 1, 0),
+        (243, 12, 1, 1),
+        (243, 12, 3, 0),
+        (243, 12, 3, 1),
+        (243, 12, 7, 0),
+        (243, 12, 7, 1),
+        (243, 12, 11, 0),
+        (243, 12, 11, 1),
+        (243, 12, 14, 0),
+        (243, 12, 14, 1),
+        (243, 12, 18, 0),
+        (243, 12, 18, 1),
+        (243, 12, 22, 0),
+        (243, 12, 22, 1),
+        (243, 12, 26, 0),
+        (243, 12, 26, 1),
+        (1131, 11, 3, 0),
+        (1131, 11, 9, 0),
+        (1131, 11, 12, 0),
+        (1131, 11, 20, 0),
+        (1131, 11, 24, 0),
+        (1131, 11, 29, 0),
+        (1131, 11, 32, 0),
+        (1131, 11, 37, 0),
+        (1131, 11, 39, 0),
+        (1131, 11, 46, 0),
+        (1131, 11, 47, 0),
+        (1131, 12, 1, 0),
+        (1131, 12, 2, 0),
+        (1131, 12, 3, 0),
+        (1131, 12, 5, 0),
+        (1131, 12, 8, 0),
+        (1131, 12, 9, 0),
+        (1131, 12, 10, 0),
+        (1131, 12, 12, 0),
+        (1131, 13, 3, 0),
+        (1131, 13, 4, 0),
+        (1131, 13, 12, 0),
+        (1131, 13, 19, 0),
+        (1131, 13, 20, 0),
+        (1131, 13, 29, 0),
+        (1131, 13, 34, 0),
+        (1131, 13, 37, 0),
+        (1131, 13, 42, 0),
+        (1131, 13, 46, 0),
+        (1133, 11, 3, 0),
+        (1485, 12, 1, 0),
+        (1485, 12, 2, 0),
+        (1485, 12, 3, 0),
+        (1485, 12, 5, 0),
+        (1485, 12, 8, 0),
+        (1485, 12, 9, 0),
+        (1485, 12, 10, 0),
+        (1485, 12, 12, 0),
+        (1485, 13, 3, 0),
+        (1485, 13, 4, 0),
+        (1485, 13, 12, 0),
+        (1485, 13, 19, 0),
+        (1485, 13, 20, 0),
+        (1485, 13, 27, 0),
+        (1485, 13, 29, 0),
+        (1485, 13, 34, 0),
+        (1485, 13, 37, 0),
+        (1485, 13, 42, 0),
+        (1485, 13, 46, 0),
+    ];
+    let missing: Vec<_> = keys
+        .iter()
+        .filter(|&&(p, a, t, n)| {
+            bay(p, a, t, n).is_none() && crate::data::pivot::release_node(p, a, t, n).is_none()
+        })
+        .copied()
+        .collect();
+    let unread: [(i32, i8, u32, i8); 0] = [];
+    assert_eq!(missing, unread, "{} keys fall back", missing.len());
+}
+
 /// **Item 4559's plain rows agree with the original at every heading**
 /// (`docs/RECGAME.md` §12.3): `$RON_BAY_SWEEPS_4559` is the directory
 /// holding `sweep-<piece>-0-<anim>-<time>.txt` (`deg i x y z` at every whole
@@ -4220,6 +4350,67 @@ fn the_original_s_release_agrees_at_every_heading_for_item_4559() {
     }
     assert_eq!(files, 35, "{dir}");
     assert_eq!(rows, 35 * 361, "{dir}");
+    assert!(
+        off.is_empty(),
+        "{} headings disagree: {:?}",
+        off.len(),
+        &off[..off.len().min(20)]
+    );
+}
+
+/// **Item 4574's rows agree with the original at every heading**
+/// (`docs/COMBAT.md` §55): `$RON_BAY_SWEEPS_4574` is the directory holding
+/// `sweep-<piece>-<node>-<anim>-<time>.txt` (`deg i x y z` at every whole
+/// degree 0..=360), outside git
+/// (`~/ron-data/lab-experiments/2026-11-22-item-4574/sweeps/`): 87 written by
+/// `init_position` and then `get_position` on run1579's packet for the seven
+/// plain pieces (67, 222, 1131, 1133 and 1485 by frame; the Fighters 242 and
+/// 243, sixteen a piece, by node), and four of the pivot pieces' node-1
+/// events off the packets that store them (206 on run785, 233 on run1416).
+/// Every file is read and each key looked up as [`launch_point`] looks it up.
+#[test]
+fn the_original_s_release_agrees_at_every_heading_for_item_4574() {
+    let Ok(dir) = std::env::var("RON_BAY_SWEEPS_4574") else {
+        eprintln!("skipping: set RON_BAY_SWEEPS_4574 (item 4574's oracle)");
+        return;
+    };
+    let mut names: Vec<_> = std::fs::read_dir(&dir)
+        .expect("RON_BAY_SWEEPS_4574")
+        .map(|e| e.expect("entry").file_name().into_string().expect("utf-8"))
+        .filter(|n| n.starts_with("sweep-") && n.ends_with(".txt"))
+        .collect();
+    names.sort();
+    let (mut files, mut rows, mut off) = (0, 0, Vec::new());
+    for name in names {
+        // `sweep-<piece>-<node>-<anim>-<time>.txt`
+        let f: Vec<&str> = name[..name.len() - ".txt".len()].split('-').collect();
+        let (piece, node, anim, time): (i32, i8, i8, u32) = (
+            f[1].parse().expect("piece"),
+            f[2].parse().expect("node"),
+            f[3].parse().expect("anim"),
+            f[4].parse().expect("time"),
+        );
+        let b = bay(piece, anim, time, node).unwrap_or_else(|| panic!("no bay for {name}"));
+        let table = std::fs::read_to_string(format!("{dir}/{name}")).expect("sweep");
+        for line in table.lines() {
+            let c: Vec<i64> = line
+                .split_whitespace()
+                .take(5)
+                .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                .collect();
+            let (x, y) = b.offset((c[0] + 180) % 360);
+            if (x, y, i64::from(b.dz)) != (c[2], c[3], c[4]) {
+                off.push(format!(
+                    "{name} deg {}: {x},{y},{} against {},{},{}",
+                    c[0], b.dz, c[2], c[3], c[4]
+                ));
+            }
+            rows += 1;
+        }
+        files += 1;
+    }
+    assert_eq!(files, 91, "{dir}");
+    assert_eq!(rows, 91 * 361, "{dir}");
     assert!(
         off.is_empty(),
         "{} headings disagree: {:?}",
