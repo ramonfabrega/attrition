@@ -10210,12 +10210,13 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 3,785, deaths 3,406 -> 2,967, ours' `game_over` 9522 -> 9533; the
         // row's first parting 2686 stands.
         // Then item 4594 (a computer's city past half its hits calls a
-        // citizen to repair it): ammo 3,785 -> 3,370, deaths 2,967 -> 2,914,
-        // ours' `game_over` 9533 -> 11524; no first parting moved.
+        // citizen to repair it), on the tree merged with the base at
+        // `9d1f92690`: ammo 3,785 -> 3,426, deaths 2,967 -> 2,914, ours'
+        // `game_over` 9533 -> 11572; no first parting moved.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                2686, 2688, 12001, 3370, 2914, 2740, 2686, 2698, 2974, 3127, 3056, 2691,
+                2686, 2688, 12001, 3426, 2914, 2740, 2686, 2698, 2974, 3127, 3056, 2691,
             ],
             first: &[
                 ("units", (2686, Some(1210672926), 399075748)),
@@ -10230,7 +10231,7 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
                 ("goods", (3056, Some(2987562270), 2924123420)),
                 ("world", (2691, Some(2608492097), 2791665259)),
             ],
-            over: Some(11524),
+            over: Some(11572),
         }),
     }),
     // run1793
