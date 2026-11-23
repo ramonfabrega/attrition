@@ -3670,7 +3670,7 @@ slots 4 and 5): 1008 is in no state, and `Ammo::init`'s draws on 3278
 are `2/37`'s four alone. Ours, refusing the release before
 `add_ammo`, wrote 1008 on `2/37`'s first round: ammo parted on 3279,
 range 7, record 4, `rolling..start_roll_angle` byte 51 (the low byte of
-`graph_index`), ours `0xf0`, theirs `0xf1`. Built as
+`graph_index`), ours 240, theirs 241. Built as
 [`sim::Sim::add_ammo_refused`]; row 73's ammo 3,280 → 3,438 of 3,438.
 **Not established**: a target alive and not struck (off the map, or a
 building with no combat record) is still refused whole here, where the

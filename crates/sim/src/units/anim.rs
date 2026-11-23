@@ -2239,7 +2239,7 @@ impl Sim {
             // SEAM: a target alive but not struck (off the map, or a
             // building with no combat record) is refused whole here, where
             // the original's non-`CHAR_ATTACK2` figure reaches `Ammo::init`
-            // past `:181`; no capture has entered it.
+            // past `:181` and makes the round.
             if refused && (category(guy.anim) == ATTACK2 || !gone) {
                 continue;
             }
