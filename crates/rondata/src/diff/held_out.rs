@@ -9862,12 +9862,16 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // first parting 2411 (units and cities) is gone. Every line but ammo
         // is whole to 3,943; ammo 3,279 -> 3,927, parting first on 3386 (ours'
         // ammo sum 3321501423, theirs 3301971689).
+        // Moved by item 4591 (piece 49's bays, the original's `get_position`
+        // sweep on run1579's packet; run1801's ammo range 4 on 3386, who=2's
+        // Musketeers `2/25` `launch.x` ours 6906, theirs 6907): ammo 3,927 ->
+        // 3,944. **Whole**, twelve lines to the original's end 3,943.
         moved: Some(Score {
             states: 3944,
             agreed: [
-                3944, 3944, 3944, 3927, 3944, 3944, 3944, 3944, 3944, 3944, 3944, 3944,
+                3944, 3944, 3944, 3944, 3944, 3944, 3944, 3944, 3944, 3944, 3944, 3944,
             ],
-            first: &[("ammo", (3386, Some(3321501423), 3301971689))],
+            first: &[],
             over: None,
         }),
     }),
@@ -10156,9 +10160,10 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
 ];
 
 /// The sixth battery's line: games whole of the eight, and games taken.
-/// As found: row 153 whole to 12,000.
+/// As found: row 153 whole to 12,000. Item 4591: row 33 whole to the
+/// original's end 3,943 (piece 49's bays), 1 -> 2.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SIXTH_LINE: (usize, usize) = (1, 8);
+pub(crate) const HELD_OUT_SIXTH_LINE: (usize, usize) = (2, 8);
 
 /// The sixth battery (item 4566): three seats, a team and a scripted human
 /// a row, recorded to [`SIXTH_FRAMES`].
