@@ -172,23 +172,6 @@ fn score(
         // produce. Nothing without the test's `seam-count` feature.
         #[cfg(feature = "seam-count")]
         sim::core::seam::at(frame);
-        if std::env::var_os("RON_PROBE_4625").is_some() && (2784..=2792).contains(&frame) {
-            for u in built.sim.units.iter().filter(|u| u.alive()) {
-                if (u.owner == 1 && u.index == 82) || (u.owner == 2 && u.index == 61) {
-                    let name = u.ty.map(|t| (built.sim.tables.unit_types[t].type_index, built.unit_type_names.get(t).cloned()));
-                    eprintln!(
-                        "  probe f{frame} {}/{} ty {:?} {:?} pos {:?} facing {:?} health {} dmg {}",
-                        u.owner, u.index, u.ty, name, u.pos, u.movement.facing, u.health, u.damage_frac
-                    );
-                }
-            }
-            for p in &built.sim.combat.projectiles {
-                eprintln!(
-                    "  probe f{frame} ammo slot {} owner {} shooter {:?} target {:?} launch {:?} sz {} landing {:?} ez {} t {}/{} acc {} angle {:?} gpiece {}",
-                    p.slot, p.owner, p.shooter, p.target, p.launch, p.sz, p.landing, p.ez, p.cur_time, p.total_time, p.accuracy, p.angle, p.gpiece
-                );
-            }
-        }
         let lines = state::ranges(&built.sim, &look, &tribes);
         for (i, line) in lines.iter().enumerate() {
             let value = line.as_ref().map(|l| l.adler());
