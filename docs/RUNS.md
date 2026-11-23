@@ -41431,3 +41431,31 @@ waiting on lane 4575. `df -g ~` read 85 GB free before it and 81 after.
   `rontrace.log`, 126,771,392 bytes, SHA-256 `7b4e351858ab54edcbf90095a5790902dee42bb151fea6ba5789dfebec215692`.
 
 **What it holds**: the leaf of row 73 (`docs/journal/2026-11-23-item-4576.md`); no test reads it yet.
+
+## run1800 — parity held out, sixth battery, row 73's file to 1,570, a packet at logger frame 1563 (2026-11-23, item 4583, `att-4583`)
+
+`docs/RECGAME.md` §13; `docs/CARAVAN.md` §4. **What the disk could not answer**: run1798's ranges print `2/31`'s order
+and city 3's `vans`, never the caravan slot's `making_road` or the arm `do_trade` leaves by; a packet holds both. The
+take: `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1800 --recording ~/ron-golden/recordings/item4566-row073-12000.rcx --end-frame 1570 --allow-early-end
+--cover cover=1 --log-window 1560 1566 --detail end:MISC --timeout 1800 --stall-seconds 120 --tracer-def RON_CHECKSUMS
+--tracer-def RON_STATE_FRAME=1563 --tracer-def "RON_STATE_PLAN=\"$P/plan.h\""` with
+`P=~/ron-data/lab-experiments/2026-09-23-item-597/plan`, waited on with `waitrun.sh` in the background. The lane was
+free. `df -g ~` read 71 GB free before it and 75 after filing.
+- **The run**: pool lane 1, launched 02:17:44 −05:00, exited 02:20:01: **136.7 s**, exit 0, `success`, no page fault,
+  no relaunch, `last_frame` 1570, seed 12345, map 7; the recording's SHA-256 is run1791's (`5d5d8bfb…`).
+- **The packet**: `python3 tools/explore/frame_snapshot.py ~/ron-golden/run1800/map-7 $P/plan.json` verified frame
+  1563, eight anchors (312,064 bytes), the logger return and the completion receipt. `map-7/frame-snapshot.bin`,
+  906,633,640 bytes, SHA-256 `dcadd2a0fc8c2e06a39f70db5042cbc2bfb13999f0db60592428b5bff2fe3767`.
+- **Read off it**: `caravans` at `0xe3a290`. who=2's slot 0 is `o` 29, cities 0↔1 of who=2, flags 3, `making_road`
+  1. Slot 1 is `o` 31, flags 1, `making_road` **0**. `2/31` is at `0x156b760c` (`unitaddr.py … 36072 35208`),
+  caravan number 1, `unit_masks` `0x40000`.
+- **`uv run --offline tools/recomp/step4.py <exe> <packet> --entry 610bc0 --this 156b760c`**, with hooks on every
+  branch to `5eda11` and on each fall-through: 8,251 instructions. The partner search runs; `has_preq(BASE_BONUSTYPES)`
+  at `5ed99b` answers 0; `jne 5eda11` at `5ed9b9`; `kill_current_order` from `5eda15`. Scratch:
+  `~/ron-data/lab-experiments/2026-11-23-item-4583/`.
+- Filed with `tools/gamelog/filerun.py run1800 heldout6-row073-packet1563`: `gamelog-run1800-heldout6-row073-packet1563.txt`,
+  2,882 bytes; `rontrace-run1800.log`, 34,319,232 bytes.
+
+**What it holds**: the arm behind row 73's leaf (`docs/journal/2026-11-23-item-4583.md`). No test reads it: the test
+it gave is a sim test, `a_caravan_homed_on_an_ally_s_city_links_only_under_trade`.

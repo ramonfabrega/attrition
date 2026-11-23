@@ -8841,6 +8841,77 @@ fn a_caravan_trades_across_regions_only_when_it_can_transport() {
     assert_ne!(m.angle, movement::find_angle(1, 0), "and not due east");
 }
 
+/// **A caravan homed on an ally's city links only under Trade**
+/// (`do_trade@005ed270` `5ed97a`..`5ed9b9`, item 4583, `docs/CARAVAN.md`
+/// §4). Unless both ends are the caravan owner's, its leader must
+/// `has_preq(BASE_BONUSTYPES)`. Without it the partner search still finds the
+/// owner's own city, and then `LAB_005eda11` kills the order and
+/// `think_caravan(1)` gives it again, ungated and partnerless. run1800,
+/// the sixth battery's row 73: who=2's Caravan `2/31` homed on who=1's
+/// city 3, refused every tick from 1563, where this crate linked it to
+/// who=2's city 1.
+#[test]
+fn a_caravan_homed_on_an_ally_s_city_links_only_under_trade() {
+    let build = |held: bool| {
+        let mut w = World::new(40, 40);
+        w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 39));
+        let mut sim = Sim::new(Tuning::RON, w, 3);
+        let t = install_types(&mut sim);
+        sim.ai.lobby.reveal_map = 2;
+        sim.make_allies(1, 2);
+        for p in [1, 2] {
+            sim.tech[p].epoch[tech::Line::Civic as usize] = 1;
+        }
+        let n = sim.tables.tech_tree.types.len();
+        sim.tables
+            .tech_tree
+            .add(tech::TypeDef::new("Trade", tech::Kind::Final));
+        sim.tables.tech_tree.roles.ally_caravan_preq = Some(n);
+        for p in 0..3 {
+            sim.tech[p].tech.resize(n + 1, false);
+        }
+        // who=1 holds Trade, so its one city can pair with its ally's and
+        // `FILTER_CAN_TRADE` hands it to who=2's caravan as the home.
+        sim.tech[1].tech[n] = true;
+        sim.tech[2].tech[n] = held;
+        let (_, home) = city_at(&mut sim, &t, 1, 20, 40);
+        let (_, mine) = city_at(&mut sim, &t, 2, 60, 40);
+        let ty = sim.add_unit_type(citizen_type(t.village));
+        let u = spawn(&mut sim, 2, ty, tile_pos(26, 40));
+        let v = sim.init_caravan(2, u).expect("a slot");
+        sim.units[u].caravan = Some(v);
+        sim.economy.caravans[2].slots[v].unit = Some(u);
+        sim.units[u].idle = 12;
+        assert!(sim.think_caravan(u), "the order is given");
+        sim.units[u].idle = 0;
+        sim.do_trade(u);
+        (sim, u, v, home, mine)
+    };
+
+    let (sim, u, v, home, _) = build(false);
+    assert!(
+        !sim.economy.caravans[2].slots[v].linked,
+        "Trade unheld: no link"
+    );
+    assert_eq!(sim.units[u].orders.len(), 1, "one order, given again");
+    let Some(orders::Body::Trade(o)) = sim.units[u].orders.front().map(|o| o.body) else {
+        panic!("a trade order: {:?}", sim.units[u].orders);
+    };
+    assert_eq!(
+        (o.home, o.dest),
+        (home, None),
+        "the ally's city, no partner"
+    );
+
+    let (sim, _, v, home, mine) = build(true);
+    let van = &sim.economy.caravans[2].slots[v];
+    assert!(van.linked, "Trade held: the route is taken");
+    assert!(
+        [van.city_a, van.city_b] == [Some(home), Some(mine)]
+            || [van.city_a, van.city_b] == [Some(mine), Some(home)]
+    );
+}
+
 /// The untargeted crafts' fixture (item 1111, `docs/GOLDEN.md` §48): a
 /// Citizen (`PEASANTS`, 40 hits, LOS 2), the Militia (50), a General
 /// (`MANA 1000`) and an armed foot squad type, and the three rows as
