@@ -993,7 +993,9 @@ fn a_computer_s_city_past_half_its_hits_recruits_a_citizen_to_repair_it() {
     s.activate(b, false, true);
     let c = s.buildings[b].city.expect("a finished city has a record");
     let mut u = crate::Unit::new(1, 0, tile_pos(36, 32), 40);
-    u.ty = Some(1); // the citizen record
+    // The record whose tree entry is the tree's first unit type: the
+    // `is(PEASANTS, 1)` lineage `find_idle_citizen` walks.
+    u.ty = Some(0);
     u.on_map = true;
     let u = s.add_unit(u);
     let repairs = |s: &Sim| {
@@ -1009,6 +1011,9 @@ fn a_computer_s_city_past_half_its_hits_recruits_a_citizen_to_repair_it() {
     s.city_repair_recruit(b);
     assert_eq!(repairs(s), 0, "damage == hits / 2 is not past half");
     s.buildings[b].damage = hits / 2 + 1;
+    s.city_repair_recruit(b);
+    assert_eq!(repairs(s), 1, "one past half recruits");
+    s.units[u].orders.clear();
     for gate in ["no_heal", "difficulty", "human"] {
         match gate {
             "no_heal" => s.cities.cities[c].no_heal = true,
