@@ -2292,6 +2292,11 @@ impl Sim {
                         continue;
                     }
                     if gone {
+                        if std::env::var_os("RON_PROBE_4595").is_some() {
+                            let ti = self.units[u].ty.map(|t| self.tables.unit_types[t].type_index);
+                            eprintln!("PROBE4595 o/who {:?} target o/who {:?} alive {:?}", self.obj_o_who(crate::combat::Obj::Unit(u)), target.map(|t| self.obj_o_who(t)), target.map(|t| match t { crate::combat::Obj::Unit(i) => (self.units[i].ty.map(|x| self.tables.unit_types[x].type_index), self.units[i].alive()), _ => (None, false) }));
+                            eprintln!("PROBE4595 frame {} shooter {:?}/{} TI {:?} target {:?} gpiece {} anim {} start {} node {} graph {}", self.frame, self.units[u].owner, u, ti, target, guy.gpiece, guy.anim, start, node, self.combat.next_ammo_graph_index);
+                        }
                         self.add_ammo_refused();
                         continue;
                     }
