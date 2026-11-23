@@ -1019,6 +1019,14 @@ impl Sim {
                         if leash == Some(Leash::Out) {
                             continue;
                         }
+                        // **`check_target`'s tail, its building arm**
+                        // (`64a1ba`–`64a232`, item 4587): a building on
+                        // nobody's ground is no target unless its type is
+                        // `NO_CITY`, for every searcher, the cavalry
+                        // archer's too ([`Sim::unclaimed_building`]).
+                        if leash != Some(Leash::Captain) && self.unclaimed_building(o) {
+                            continue;
+                        }
                         // **`check_target`'s tail**, `use_poor` 1
                         // (`00649e00`, `docs/COMBAT.md` §61): a futile
                         // chase is refused before `near_o` is written, and
