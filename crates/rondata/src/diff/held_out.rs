@@ -870,7 +870,7 @@ pub(crate) mod tests {
     fn a_battery_with_a_row_s_leaf_test_is_spent() {
         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/src/diff/held_out.rs");
         let src = std::fs::read_to_string(path).expect("held_out.rs");
-        let all: [&Battery; 5] = [&FIRST, &SECOND, &THIRD, &FOURTH, &FIFTH];
+        let all: [&Battery; 6] = [&FIRST, &SECOND, &THIRD, &FOURTH, &FIFTH, &SIXTH];
         let mut rows = std::collections::BTreeSet::new();
         for line in src.lines() {
             let Some(rest) = line.trim_start().strip_prefix("fn row_") else {
@@ -9455,11 +9455,12 @@ pub(crate) const FIFTH: Battery = Battery {
 /// never folds. The first, second and third were spent on `43ee59434`;
 /// the fourth since item 4517 read row 75's ammo (`b52f075dd`); the fifth
 /// since item 4534 read row 23's leaders off run1781 (`3875a22b9`), added
-/// by the pass of 2026-11-22 seven landings late (DECISIONS 151 §2). A
+/// by the pass of 2026-11-22 seven landings late (DECISIONS 151 §2); the
+/// sixth since item 4577 read row 93's units off run1799. A
 /// battery declared and not yet spent stays off this list, and
 /// `a_battery_with_a_row_s_leaf_test_is_spent` says when one joins.
 #[cfg(test)]
-pub(crate) const SPENT: &[&Battery] = &[&FIRST, &SECOND, &THIRD, &FOURTH, &FIFTH];
+pub(crate) const SPENT: &[&Battery] = &[&FIRST, &SECOND, &THIRD, &FOURTH, &FIFTH, &SIXTH];
 
 /// **The sixth eight, as declared** (item 4566, before any file): rows 13,
 /// 33, …, 153 of `lobbies_on_disk`, each the human (tribe 4, slot 0)
