@@ -1839,6 +1839,22 @@ pub(crate) mod tests {
                 if ours.ranges.len() != theirs.len() {
                     eprintln!("P4610 {state} {name} count ours {} theirs {}", ours.ranges.len(), theirs.len());
                 }
+                if name == "units" || name == "builds" {
+                    let (lo_k, hi_k): (usize, usize) = if name == "units" { (3693, 3735) } else { (0, 0) };
+                    let dump = |side: &str, v: Vec<(&'static str, i16, &[u8])>| {
+                        for (k, (f, r, b)) in v.into_iter().enumerate() {
+                            let keep_b = name == "builds" && (r == 2003 || r == 2033) && f.starts_with("job_counter");
+                            if (k >= lo_k && k < hi_k) || keep_b {
+                                let d = std::panic::catch_unwind(|| crate::checksum::fields::range_fields(name, f, b)).ok().flatten();
+                                eprintln!("P4610 {state} SEQ {name} {side} k{k} rec {r} {f} {:?}", d.map(|d| format!("{d:?}")).unwrap_or_else(|| format!("{b:02x?}")));
+                            }
+                        }
+                    };
+                    if std::env::var_os("RON_PROBE_SEQ").is_some() {
+                        dump("ours", ours.ranges.iter().map(|a| (a.field, a.record, a.bytes.as_slice())).collect());
+                        dump("theirs", ours.ranges.iter().zip(&theirs).map(|(a, b)| (a.field, a.record, b.bytes.as_slice())).chain(theirs.iter().skip(ours.ranges.len()).map(|b| ("?", -1, b.bytes.as_slice()))).collect());
+                    }
+                }
                 let mut shown = 0;
                 let wg: i16 = std::env::var("RON_PROBE_GROUP").ok().and_then(|v| v.parse().ok()).unwrap_or(132);
                 for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
