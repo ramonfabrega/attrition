@@ -2982,12 +2982,12 @@ impl Sim {
     /// event the clock crosses is a round (`Objects::add_ammo`), exactly as
     /// a unit's is — unless the jam bit is set.
     ///
-    /// SEAM: the building's `near_o` is not held here; its sign is taken
-    /// as the target's. run404 prints both on all 1,157 blocks of the
-    /// Radar, and they agree in sign on every one. The jam bit
-    /// (`build_masks & 0x8000`, [`crate::Building::jammed`], item 4541) is
-    /// read beside it: `Wall::inc_time@0063fb60:204` takes the wind-down
-    /// on `near_o < 0 || jammed`.
+    /// **The gate is `near_o` (`+0x34`, [`crate::Building::near`]), not the
+    /// target** (item 4602, `docs/RECGAME.md` §13.5): `Wall::inc_time@0063fb60:204`
+    /// winds down on `near_o < 0 || jammed` (`build_masks & 0x8000`, item
+    /// 4541) and reads `attack_ox` (`+0x7c`) only at the wind's top. run1797's
+    /// SAM `2/2027` on 2166: `near_o` 71, `attack_ox` −1 on both sides, and
+    /// theirs winds 0 → 1 where ours, on the target's sign, held 0.
     fn wall_anti_air(&mut self, b: usize) {
         if !self.buildings[b].active {
             return;
@@ -2996,7 +2996,7 @@ impl Sim {
             return;
         };
         let target = self.buildings[b].target;
-        let near = target.is_some() && !self.buildings[b].jammed;
+        let near = self.buildings[b].near.is_some() && !self.buildings[b].jammed;
         let top = cycle.wind - 1;
         let r = &mut self.buildings[b].recharging;
         if !near {

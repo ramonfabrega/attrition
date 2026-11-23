@@ -156,14 +156,17 @@ fn fallback_rows(walks: &[Walk]) -> Vec<(usize, u64)> {
 /// 4370, past its first parting (956): keys no walk fired before 4574's
 /// rows moved its later states (parked 4580a). **16 on `de60a62ee`** (the
 /// pass of 2026-11-23): items 4585 and 4594 moved row 133's game past its
-/// first parting, and the keys it fires there with it.
+/// first parting, and the keys it fires there with it. **471 on
+/// `2aa0b6b6d`** (item 4602): the SAM's wind and turret moved row 133's
+/// game to a first parting on 2198, and its fallback rounds, all from
+/// 3759, with it.
 const FALLBACK: [(&str, &[(usize, u64)]); 6] = [
     ("first", &[]),
     ("second", &[]),
     ("third", &[]),
     ("fourth", &[]),
     ("fifth", &[]),
-    ("sixth", &[(133, 16)]),
+    ("sixth", &[(133, 471)]),
 ];
 
 fn fallback_as_pinned(file: &str, walks: &[Walk]) {

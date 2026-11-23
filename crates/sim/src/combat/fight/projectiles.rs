@@ -32,6 +32,82 @@ impl Sim {
         if !self.buildings[b].active {
             return;
         }
+        // **`Build::process`'s gate on `do_attack`, and the turret's turn
+        // after it** (`61ee7e`..`61ef91`; item 4602, `docs/RECGAME.md`
+        // §13.5). With a target (`attack_ox`/`attack_whom` both set),
+        // `do_attack` runs on every call. Without one it runs on the
+        // building's 32-frame phase (`(o + frame) & 0x1f == 0`), or when the
+        // last search's sighting (`near_o`/`near_who`, `+0x34`/`+0x36`) is in
+        // range (`61eec4`); a negative `near_o` skips both and the turn
+        // (`61ef94`). The turn then aims at the target as `do_attack` leaves
+        // it, or at the sighting when the sighting was out of range.
+        let near = self.buildings[b].near;
+        let on_phase = self.buildings[b].phase(frame) & 0x1f == 0;
+        let aim = if self.buildings[b].target.is_some() || on_phase {
+            self.building_do_attack(b, frame);
+            self.buildings[b].target
+        } else {
+            let Some(n) = near else {
+                return;
+            };
+            if self.is_in_range(me, n) {
+                self.building_do_attack(b, frame);
+                self.buildings[b].target
+            } else {
+                Some(n)
+            }
+        };
+        self.turn_air_defense(b, aim);
+    }
+
+    /// **An anti-air building's turret turns at what it aims at**
+    /// (`Build::process@0061edf0`, `61ef10`..`61ef91`; item 4602,
+    /// `docs/RECGAME.md` §13.5). For a building with `has_objmask(ANTI_AIR)`
+    /// (vslot `+0x148`) whose aim names a live slot (`ObjectData +0x8 &
+    /// 1`), `WallData +0x48` (`job_counter`, a finished building's turret
+    /// angle; `Wall::activate` sets the AIRDEFENSE line's to `0x40000000`)
+    /// takes `find_angle@0092d130` from the building's `x/y` to the aim's,
+    /// at most `0x38e38e3` (five degrees) a frame:
+    ///
+    /// ```text
+    /// d = angle - cur                      # wrapping
+    /// m = -d; if m > 0x80000000 { m = !m }  # |d|, less one when d > 0
+    /// cur = if m < 0x38e38e3 { angle } else { cur + (d < 0x80000000 ? 1 : -1) * 0x38e38e3 }
+    /// ```
+    ///
+    /// run1797's SAM `2/2027` from 2167: `near_o` 71 (who 1) out of range,
+    /// no target, and its `job_counter` 0x40000000 → 0x42040000 →
+    /// 0x42b40000 → 0x436b0000.
+    fn turn_air_defense(&mut self, b: usize, aim: Option<Obj>) {
+        let Some(t) = aim else {
+            return;
+        };
+        let me = Obj::Building(b);
+        if self.profile(me).obj_masks & mask::ANTI_AIR == 0 || !self.slot_live(t) {
+            return;
+        }
+        let from = self.buildings[b].pos;
+        let to = self.pos_of(t);
+        let angle = find_angle(to.x - from.x, to.y - from.y).0 as u32;
+        let cur = self.buildings[b].job_counter as u32;
+        let d = angle.wrapping_sub(cur);
+        let mut m = d.wrapping_neg();
+        if m > 0x8000_0000 {
+            m = !m;
+        }
+        let next = if m < 0x38e_38e3 {
+            angle
+        } else if d < 0x8000_0000 {
+            cur.wrapping_add(0x38e_38e3)
+        } else {
+            cur.wrapping_sub(0x38e_38e3)
+        };
+        self.buildings[b].job_counter = next as i32;
+    }
+
+    /// `Build::do_attack@006228f0`, past `Build::process`'s gate.
+    fn building_do_attack(&mut self, b: usize, frame: i64) {
+        let me = Obj::Building(b);
         // **An anti-air building's `recharging` is its `Wall::inc_time`
         // cycle's, not this countdown** (item 1112, `docs/COMBAT.md`
         // §84): `Build::do_attack@006228f0`'s head (`6228fe`..`622946`) skips the countdown for
@@ -40,15 +116,10 @@ impl Sim {
         let cycles = self.wall_cycle_of(b).is_some();
         let bd = &self.buildings[b];
         let phase = bd.phase(frame) & 0x1f;
-        // Without a target, `do_attack` runs every 32nd frame.
-        // **Or on any frame its nearest sighting is in range** — the head of
+        // Without a target, `do_attack` runs every 32nd frame, **or on any
+        // frame its nearest sighting is in range** — the head of
         // `Build::process@0061edf0` (`61ee9e`..`61eec4`, `docs/GOLDEN.md`
-        // §59): with no target, `do_attack` runs when `(o + frame) & 0x1f`
-        // is 0, else when `near_o`/`near_who` (+0x34/+0x36), the last
-        // search's nearest sighting inside `0xf00`, is in range.
-        if bd.target.is_none() && phase != 0 && !bd.near.is_some_and(|n| self.is_in_range(me, n)) {
-            return;
-        }
+        // §59), the gate [`Sim::process_building_combat`] takes.
         if !cycles && bd.recharging > 0 {
             self.buildings[b].recharging -= 1;
             return;
