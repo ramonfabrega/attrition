@@ -41052,6 +41052,11 @@ minutes were spent waiting on another lane. `df -g ~` read 88 GB free before it 
   ours 1 (an `AIR_PATROL` over its city), theirs 0; the Airbase `2/2018`'s sortie on 3358 takes who=1's whole wonder
   `1/2026` at 217 (×10, 46 steps of 768), out of the plane's reach. Units 3,359 → 3,645, builds 3,360 → 3,645,
   goods 4,678 → 4,272 (a named fall). The row's first parting is units, builds, guys and cities on 3645.
+- **Re-scored by item 4568** (a taken city's members that stay their owner's re-home, `City::close@00737550`'s
+  `find_city` walk, `docs/RECGAME.md` §12.3): who=2's city `2/2020` falls on 3644; on 3645 builds record 2029
+  `city_down` ours −1, theirs 2036, and the Barracks `2/2036`'s `city` ours 2, theirs 1. Units 3,645 → 3,662,
+  builds → 3,695, cities → 3,656, items 5,165 → 4,129 and goods 4,272 → 4,155 (named falls). The row's first
+  parting is cities on 3656.
 - Filed by `filerun.py run1784 heldout5-row083-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1784-heldout5-row083-ranges.txt`, 2,869 bytes, SHA-256
   `a9b435ef5bd053ca7a1b9832b5ce70729ff25450cfd7d673a1485805af3a85f1`; `rontrace.log` → `Logs/rontrace-run1784.log`,
@@ -41061,7 +41066,8 @@ minutes were spent waiting on another lane. `df -g ~` read 88 GB free before it 
 **What it holds**: `diff::held_out::tests::row_83_s_computer_lists_a_caravan_by_its_ally_s_city_on_run1784_s_ranges`
 (every leaders range on states 1955 and 1956), and
 `row_83_s_airbase_keeps_its_biplane_when_a_wonder_outscores_the_city_on_run1784_s_ranges` (every units and builds
-range on 3358 to 3360).
+range on 3358 to 3360), and `row_83_s_barracks_re_homes_when_its_city_is_taken_on_run1784_s_ranges` (every units,
+builds, guys and cities range on 3644 to 3646).
 ## run1786 — the 2017 sample's playback to 8,000 with the checksum and ranges hooks, every line but walls kept (2026-11-22, item 4555, `att-4555`)
 
 `docs/RECGAME.md` §7; DECISIONS 148 §5. **What the disk could not answer**: run1772's record ends on 6399, and the

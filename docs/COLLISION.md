@@ -306,6 +306,13 @@ punches its own disc out of any neighbour's block until that neighbour's
 sixty-fourth-frame repaint: the second melee's Catapult `1/26`, dead on
 747, holes two Barbarians' discs that run1459's and run1460's packets print.
 
+**`kill_guy`'s region gate is the figure's cell's plain `region`** (item
+4567): `WData +0x4` of the cell under the figure, asked of each disc cell,
+and no `get_tregion`; `Sim::coll_kill_guy` takes it. Diff-backed on
+run1783's 2983, a President's crew figure on a coastal cell's ocean half
+(test `row_103_s_president_clears_his_crew_by_their_cells_region_on_run1783_s_ranges`;
+item 4567's journal). Not established: a death's loop on a coast.
+
 ~~**Not established**: the original's "no block allocated" return (a cell no
 unit has marked, or whose empty block the sweep has freed, §26). The grid
 holds each cell's presence since item 4150, but the form does not ask it:
