@@ -9766,7 +9766,34 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4575 (the nuke arm skips an enemy researching the
+        // Missile Shield: who=2 lists a Jet Fighter, not an ICBM, on 956):
+        // units 1,162 -> 1,758, builds 958 -> 1,758, ammo 2,517 -> 2,738
+        // (first 1485 -> 2179), deaths 1,484 -> 2,524 (first 1484 -> 2375),
+        // groups 1,242 -> 1,821, guys 1,162 -> 1,758, leaders 956 -> 1,757,
+        // cities 1,376 -> 1,758, items 1,614 -> 2,185 (first 1614 -> 2051),
+        // goods 1,758 -> 1,827 (first 1758 stands), world 1,197 -> 1,758;
+        // the first parting is leaders on 1757.
+        moved: Some(Score {
+            states: 6085,
+            agreed: [
+                1758, 1758, 6085, 2738, 2524, 1821, 1758, 1757, 1758, 2185, 1827, 1758,
+            ],
+            first: &[
+                ("units", (1758, Some(1822761108), 3352235544)),
+                ("builds", (1758, Some(296845992), 2147057133)),
+                ("ammo", (2179, Some(228440557), 1)),
+                ("deaths", (2375, Some(1302924388), 1)),
+                ("groups", (1821, Some(4092695628), 1909888083)),
+                ("guys", (1758, Some(3957686330), 3602415650)),
+                ("leaders", (1757, Some(1331655450), 1809805911)),
+                ("cities", (1758, Some(1443313464), 1468675896)),
+                ("items", (2051, Some(4076288713), 973420266)),
+                ("goods", (1758, Some(4232738889), 139819094)),
+                ("world", (1758, Some(3225754612), 2274894826)),
+            ],
+            over: None,
+        }),
     }),
     // run1795
     // row 153, as found 2026-11-22: 12 lines whole; reach 12,001 of 12,001 states, 6,001 of 6,001
