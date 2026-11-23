@@ -307,7 +307,7 @@ pub fn add(out: &mut [Vec<Quad>], tp: &TexPing, p: f32, cx: i32, cy: i32, colour
         let c = alpha << 24 | c & 0x00ff_ffff;
         let mut half = HALF;
         if ph.use_scale {
-            half = (1.0 - (1.0 - p) * ph.scale_speed) * ph.scale_by * half;
+            half *= (1.0 - (1.0 - p) * ph.scale_speed) * ph.scale_by;
         }
         let (fx, fy) = (cx as f32, cy as f32);
         let corners = [(-half, -half), (half, -half), (half, half), (-half, half)];
@@ -420,6 +420,9 @@ pub(crate) mod tests {
     /// The probe's dump of run1564's packet (`tools/render/pings_packet.py`,
     /// item 4603): its `graphic_tick`, its entries, its pings' phases and,
     /// per texture, the vertices `render_texture_pings` left behind.
+    /// One leftover vertex: its place, its texcoord, its colour.
+    pub(crate) type Vert = ((f32, f32), (f32, f32), u32);
+
     pub(crate) struct Packet {
         pub tick: i32,
         /// `player_profile.prefs.stat_mode` and the game's `semaphore`
@@ -428,7 +431,7 @@ pub(crate) mod tests {
         pub semaphore: [u8; 2],
         pub entries: Vec<Entry>,
         pub phases: Vec<(String, Vec<Phase>)>,
-        pub verts: Vec<Vec<((f32, f32), (f32, f32), u32)>>,
+        pub verts: Vec<Vec<Vert>>,
     }
 
     pub(crate) fn packet() -> Option<Packet> {
@@ -511,7 +514,7 @@ pub(crate) mod tests {
     /// the six of each square (top-left, top-right, bottom-right,
     /// bottom-left, top-left, bottom-right), each within 0.01, its
     /// texcoords the unit square's, its colour exact.
-    fn parts(ours: &[Quad], theirs: &[((f32, f32), (f32, f32), u32)]) -> Vec<String> {
+    fn parts(ours: &[Quad], theirs: &[Vert]) -> Vec<String> {
         let uv = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)];
         let mut bad = Vec::new();
         for (k, q) in ours.iter().enumerate() {
