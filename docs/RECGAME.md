@@ -1555,3 +1555,71 @@ part on 5909~~ (closed, §12.5).
 `analyze_map` sets the player-region bit after every `build_empire` (`Setup::build_game@005ac190:881`), so who=0's
 setup pass gives (16, 42) to no one: run1781's `oil_patches` `[2, 5]`. `docs/journal/2026-11-22-item-4534.md`.
 Units whole (item 4538): Copper's `update_hits` arm, `docs/COMBAT.md` §4.3.
+
+## 13. Parity held out, sixth: rows 13 to 153, three seats, a team and a scripted human, to 12,000 (item 4566)
+
+DECISIONS 151 §6, 152 §4, 2026-11-22. Rows 13, 33, 53, 73, 93, 113, 133 and 153 of the order `Start:` counts, by the
+fifth's recipe (§12.3): each keeps its human (seat 0, tribe 4) and its computer (seat 1, tribe 11, 8, 2, 11, 12, 11,
+17, 6) and adds a computer of nation 9, 10, 13, 14, 15, 16, 18 or 19, none already seated and none the fifth added
+(`HELD_OUT_SIXTH_SEATS`). The team alternates as the fifth's: the human and the added computer are team 0 on rows 13,
+53, 93 and 133; the two computers are team 1 on rows 33, 73, 113 and 153. Two things are new. **Each game closes on
+12,000**, twice the five before (`SIXTH_FRAMES`). **And the human plays from a script.**
+
+**The minting serves a held-out lobby.** `recgame::minted_packages` (§9.1) takes any list of orders; only the
+script's objects are one lobby's. So `diff::held_out::script_rule` reads §9's three orders off a row's own built start:
+
+- **the move**: slot 0's unit `0`, sent 2,400 units along the first of four headings (toward the map's centre on x,
+  on y, then away on x, on y) whose point is on the map and in the unit's own region (`tregion_alt`);
+- **the train**: slot 0's building `2000` queues one Citizen (TI 50), available to slot 0;
+- **the Farm**: the Farm available, the Citizen's and the Farm's prices together inside slot 0's stock, dropped on
+  the tile centre nearest the capital within 12 tiles that `blocked_site` calls clear (ties by y, then x), and built
+  by slot 0's Citizen nearest the drop point (ties by object number).
+
+Frames 30, 60 and 90, and every field (`queued` 2, `orders` 1, `form`/`width` −1), are §9.1's
+(`scripted_orders`). **On run53's lobby the rule gives §9's script package for package**
+(`the_script_rule_gives_run53_s_lobby_the_minted_script`). A row the rule refused would be recorded idle; none was.
+Unit `0` is a land unit on every row: Scout (TI 69) on 13, 53 and 153; Explorer (71) on 33 and 113; Commando (73) on
+73; Special Forces (75) on 93; Elite Special Forces (77) on 133.
+
+**The declaration is `dcaf33581`** (17:20 −05:00): `HELD_OUT_SIXTH` (the page's block per row, as §12.3's) and
+`HELD_OUT_SIXTH_HUMANS` (each row's objects and points), held by
+`the_sixth_held_out_eight_are_the_rows_the_rule_names_seated_and_scripted`, which builds each row's start from the
+page and runs the rule. It went red with row 113's Farm point bent by one. No file existed before it.
+
+**The files.** The client recorded each row idle to frame 1 (`client --record <draft> --headless --page-of <capture>
+--seat <tribe> --team <a>=<t> --team <b>=<t> --frame 1`), so the header, donor and frame-0 package are the client's,
+as the fifth's. `the_sixth_s_files_are_minted` builds the start from each draft's header, checks it gives the
+declared human, and mints the packages again with the three orders, closing on 12,000:
+`item4566-row<RRR>-12000.rcx`. `the_sixth_s_files_carry_the_declared_seats_team_and_orders` reads them back.
+Playback (`checksum::playback`) applies the orders to our walk through `Stream::pump` (§9.2), as it does every
+recording's packages.
+
+Each was played by the original as `run1788 + k` under the checksum hook alone, between 17:31 and 18:51 −05:00, and
+pinned once in `SCORES_SIXTH`. That found column is the estimate: **1 of 8 whole, 20 of 96 lines, reach 49 %**
+(32,565 of 66,044 states); **inside the first 6,001 states, 59 %** (24,891 of 41,960), against the fifth's 48 %.
+
+| row | run | lobby | team | states | whole | lowest parting (state) | reach in the first 6,001 |
+|---|---|---|---|---|---|---|---|
+| 13 | run1788 | Amazon | human + added | 12,001 | 2 | units, builds, groups, guys 7675 | 6,001 of 6,001 |
+| 33 | run1789 | Great Sahara, Enlightenment | the computers | 3,944, ended on 3943 | 1 | units, cities 2411 | 2,411 of 3,944 |
+| 53 | run1790 | East Indies, Classical | human + added | 12,001 | 1 | units, guys 3358 | 3,358 of 6,001 |
+| 73 | run1791 | Great Sahara, Industrial | the computers | 3,438, ended on 3437 | 1 | units, cities 1563 | 1,563 of 3,438 |
+| 93 | run1792 | Great Lakes, Modern | human + added | 12,001 | 1 | units 2342 | 2,342 of 6,001 |
+| 113 | run1793 | Great Lakes, Gunpowder | the computers | 4,573, ended on 4572 | 1 | units, guys, cities 2259 | 2,259 of 4,573 |
+| 133 | run1794 | Great Sahara, all techs | human + added | 6,085, ended on 6084 | 1 | leaders 956, builds 958 | 956 of 6,001 |
+| 153 | run1795 | Great Lakes, difficulty 2 | the computers | 12,001 | **12** | whole | 6,001 of 6,001 |
+
+The original ended rows 33, 73 and 113, each with the two computers allied against the human, and row 133. Our walk
+holds `game_over` from 10112 on row 93 and from 4118 on row 113, and none by the others' ends. Walls agree on every
+state of all eight. `docs/RUNS.md` run1788 to run1795 holds every value; the pins hold both sides of every first
+parting.
+
+**Read against the sample** (152 §5). Row 153 runs whole to 12,000 under a script, and row 13 to 7675, past every
+earlier battery's end. The other six part before 3400, as idle rows did, so the found column alone does not say
+the sample's trouble is what a person's own orders reach: one row whole and one long reach are not a battery's
+verdict.
+
+*Diff-backed*: every number above (the hook's twelve sums on every state, ours against theirs). *Read, not diffed*:
+that `script_rule`'s choices are what a person would make; only their effect on the original is compared. *Not
+established*: no row names a leaf, since each take holds sums only; a script past §9's three orders, or one issued
+after frame 90; whether row 13's 7675 and the sample's 7055 are one mechanism.
