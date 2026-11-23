@@ -439,7 +439,7 @@ impl Sim {
     /// The tech `0x243`, **Missile Shield**, by its name in the tree: the
     /// type the tech race offers and the one `create_units`' nuke arm
     /// asks an enemy whether it is researching.
-    pub(crate) fn missile_shield(&self) -> Option<TypeId> {
+    pub fn missile_shield(&self) -> Option<TypeId> {
         self.tables
             .tech_tree
             .types

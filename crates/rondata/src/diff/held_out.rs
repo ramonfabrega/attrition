@@ -1050,6 +1050,89 @@ mod tests {
         }
     }
 
+    /// **Row 133's computer offers no nuke at an enemy researching the
+    /// shield** (item 4575, `docs/AI.md` §158): run1797, the ranges take
+    /// of row 133's file. On 956 who=2 (the added computer, team 0 with
+    /// the human) rebuilds its make list, and theirs' fourth slot is a Jet
+    /// Fighter (TI 295) ×10 at `val` 986,484, no escrow. `create_units@006c40a0`'s
+    /// nuke arm counts an enemy only while it neither holds
+    /// `MISSILE_DEFENSE_BONUS` nor is `researching(MISSILE_SHIELD)`, and
+    /// who=2's one enemy, who=1, has the Missile Shield (`0x243`) queued
+    /// at its `1/2005`. Ours counted who=1 and listed an ICBM (TI 316) at
+    /// 2,000,000 with an escrow in that slot, and on 958 queued it at
+    /// `2/2017` where theirs queued four Jet Fighters at `2/2011`. Every
+    /// leaders range on 955 to 958, ours against theirs, byte for byte:
+    /// red on the tree before the fix at range 309, record 2,
+    /// `make_list[k]`, `t` ours 316, theirs 295.
+    #[test]
+    fn row_133_s_computer_offers_no_nuke_at_an_enemy_researching_the_shield_on_run1797_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let shield = built
+            .sim
+            .missile_shield()
+            .expect("the tree's Missile Shield");
+        for state in 955..=958 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_leaders();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "leaders' ranges on {state}"
+            );
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "leaders range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Who=2's fourth make-list slot: range 309, `t`, `val`, `escrow`, `num`.
+            assert_eq!(ours.ranges[309].field, "make_list[k]");
+            assert_eq!(ours.ranges[309].record, 2);
+            let word = |n: usize| {
+                i32::from_le_bytes(theirs[309].bytes[4 * n..4 * n + 4].try_into().unwrap())
+            };
+            let slot = (word(0), word(1), word(2), word(6));
+            if (956..=957).contains(&state) {
+                assert_eq!(slot, (295, 986_484, 0, 10), "theirs' Jet Fighter entry");
+            }
+            // Who=2's one enemy researches the shield and holds none.
+            assert!(built.sim.is_ally(2, 0) && !built.sim.is_ally(2, 1));
+            assert!(
+                built.sim.researching(1, shield),
+                "who=1's shield on {state}"
+            );
+            assert!(
+                !built.sim.tech[1].tech[shield],
+                "who=1 holds no shield on {state}"
+            );
+        }
+    }
+
     /// **Row 83's computer lists a caravan by its ally's city** (item
     /// 4545, `docs/CARAVAN.md` §4): run1784, the ranges take of row 83's
     /// file. On 1956 who=2 (the added computer, team 0 with the human)
