@@ -1796,6 +1796,78 @@ pub(crate) mod tests {
         );
     }
 
+    /// Probe 4610: every differing field on units, builds, groups and guys
+    /// over row 133's 2346..=2352.
+    #[test]
+    fn probe_4610_row_133() {
+        if std::env::var_os("RON_PROBE_4610").is_none() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            return;
+        };
+        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(2346);
+        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(2352);
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in lo..=hi {
+            while (built.sim.frame as i64) < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (li, name) in [(0usize, "units"), (1, "builds"), (5, "groups"), (6, "guys")] {
+                let ours = lines[li].as_ref().expect("line");
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == li).collect();
+                if ours.ranges.len() != theirs.len() {
+                    eprintln!("P4610 {state} {name} count ours {} theirs {}", ours.ranges.len(), theirs.len());
+                }
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    let watch = (name == "groups" && a.record == 132)
+                        || (name == "units" && a.record == 11);
+                    if a.bytes != b.bytes {
+                        let d = crate::checksum::fields::differing_fields(name, a.field, &a.bytes, &b.bytes);
+                        eprintln!("P4610 {state} {name} k{k} rec {} {} diff {:?}", a.record, a.field, d);
+                        if d.is_empty() {
+                            eprintln!("P4610   ours {:02x?}\nP4610   theirs {:02x?}", a.bytes, b.bytes);
+                        }
+                    }
+                    if watch && std::env::var_os("RON_PROBE_WATCH").is_some() {
+                        eprintln!(
+                            "P4610 {state} WATCH {name} rec {} {} ours {:?}",
+                            a.record,
+                            a.field,
+                            crate::checksum::fields::range_fields(name, a.field, &a.bytes)
+                        );
+                        eprintln!(
+                            "P4610 {state} WATCH {name} rec {} {} theirs {:?}",
+                            a.record,
+                            a.field,
+                            crate::checksum::fields::range_fields(name, a.field, &b.bytes)
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     /// **Row 133's SAM flies its rockets on their splines** (item 4604,
     /// `docs/RECGAME.md` §13.5): run1797's ranges. On 2198 who=2's SAM
     /// `2/2027` launches its first SAM Rocket (`missile="1"`) at who=1's
