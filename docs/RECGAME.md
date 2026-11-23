@@ -1727,9 +1727,7 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: builds part on 2166, who=2's SAM `2/2027` (TI 0x20d), `BuildData +0x7a recharging` ours 0, theirs 1, every
-other byte of the record equal; units follow on 2199 (records 34 and 66, `order.air`). Theirs acted. run1797 holds the
-ranges.
+Open: ammo parts first on 2198; units on 2245. run1797 holds the ranges.
 
 **Item 4597** (DECISIONS 154 §2): units moved from 1906 to 2199. On 1906 units range 3967, record 72 `order.type` was
 ours 3, theirs 1: the repair recruit `2/72` walked to its capital under `EXPLORE_TO`. In
@@ -1737,3 +1735,6 @@ ours 3, theirs 1: the repair recruit `2/72` walked to its capital under `EXPLORE
 computer's `REPAIR` swarm walks under `MOVE_TO`, as `docs/ORDERS.md` and `docs/GROUPS.md` already said.
 `row_133_s_repair_recruit_walks_under_a_move_order_on_run1797_s_ranges` holds every units range on 1905 and 1906. No other
 row of the sixth moved, and both long words held at 24000. *Diff-backed*: the order's class on 1906.
+
+**Item 4602**: builds 2166 → 2351. SAM `2/2027`'s `recharging` winds on `near_o` (71) with no target, and its turret
+(`+0x48`) turns at the sighting (`docs/COMBAT.md` §84.7). Held on 2165–2172 by run1797's ranges. *Diff-backed*.

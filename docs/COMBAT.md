@@ -14094,10 +14094,14 @@ and `cargo test --release -p rondata chapter_thirty_eight`:
 
 ### 84.7 What is not established
 
-- **`near_o`** gates the cycle, and this crate holds it on units only; the
+- ~~**`near_o`** gates the cycle, and this crate holds it on units only; the
   gate takes the target's sign. run404's two agree in sign on all 1,157
   blocks, and a building whose search sees a candidate it does not take
-  would part.
+  would part.~~ It did, on run1797's 2166: row 133's SAM `2/2027`
+  sighted who=1's `71` and took no target. The gate reads the building's
+  own `near` now (item 4602, `docs/RECGAME.md` §13.5), and
+  `Build::process`'s turret turn (`61ef10`..`61ef91`, `WallData +0x48`)
+  is built beside it.
 - The string `verify_load` appends (`int_str_array +0x122f0`) is read as
   `-DEFAULT-AGE0`, and only the three numbers above back it.
 - The Air Defense Gun's and the SAM's launch vectors; a jammed building;
