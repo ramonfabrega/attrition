@@ -9620,7 +9620,19 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4583 (`do_trade`'s link gate, `5ed97a`..`5ed9b9`,
+        // and `LAB_005eda11`'s ungated `think_caravan(1)`, run1800): the row's
+        // first parting 2411 (units and cities) is gone. Every line but ammo
+        // is whole to 3,943; ammo 3,279 -> 3,927, parting first on 3386 (ours'
+        // ammo sum 3321501423, theirs 3301971689).
+        moved: Some(Score {
+            states: 3944,
+            agreed: [
+                3944, 3944, 3944, 3927, 3944, 3944, 3944, 3944, 3944, 3944, 3944, 3944,
+            ],
+            first: &[("ammo", (3386, Some(3321501423), 3301971689))],
+            over: None,
+        }),
     }),
     // run1790
     // row 53, as found 2026-11-22: 1 line whole; units 3,358 of 12,001, first 3358; builds 3,732 of
@@ -9687,23 +9699,29 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // -> 2,592 (on 2784 ours' ammo sum 1 -> 3490584490, theirs 1) and
         // items 2,589 -> 2,557, named falls; goods 2,460 -> 2,476 (3041..=3056,
         // ours 711751501 -> 665614155, theirs 665614155). No first parting moved.
+        // Moved by item 4583 (`do_trade`'s link gate, run1800: on 1563 who=2's
+        // Caravan `2/31`, homed on who=1's city 3, is refused and given its
+        // order again, partnerless, as theirs): units 1,563 -> 2,779 and
+        // cities 1,563 -> 2,801, the row's first parting now units 2779 (ours'
+        // sum 2333664493, theirs 4092650740) and guys 2779. Every column
+        // moved; see `docs/journal/2026-11-23-item-4583.md`.
         moved: Some(Score {
             states: 3438,
             agreed: [
-                1563, 1569, 3438, 2592, 2604, 1678, 1564, 1576, 1563, 2557, 2476, 1566,
+                2779, 2795, 3438, 2788, 2794, 2805, 2779, 2794, 2801, 3429, 3418, 2794,
             ],
             first: &[
-                ("units", (1563, Some(4059076565), 2125891403)),
-                ("builds", (1569, Some(146391282), 1875296499)),
-                ("ammo", (2557, Some(4190309544), 1)),
-                ("deaths", (2604, Some(1), 2113539492)),
-                ("groups", (1678, Some(3126200451), 1300891790)),
-                ("guys", (1564, Some(374263833), 1839451683)),
-                ("leaders", (1576, Some(1096030747), 4201978914)),
-                ("cities", (1563, Some(4048038473), 2512136249)),
-                ("items", (1949, Some(1693995504), 1774735860)),
-                ("goods", (2353, Some(326399801), 337934141)),
-                ("world", (1566, Some(563759280), 2466466211)),
+                ("units", (2779, Some(2333664493), 4092650740)),
+                ("builds", (2795, Some(3962601586), 3323166832)),
+                ("ammo", (2787, Some(1369770825), 1425413695)),
+                ("deaths", (2794, Some(1843280476), 3340119021)),
+                ("groups", (2805, Some(3561048280), 2565163092)),
+                ("guys", (2779, Some(2080712858), 2858035361)),
+                ("leaders", (2794, Some(1373124910), 3657316520)),
+                ("cities", (2801, Some(1204043913), 1313161355)),
+                ("items", (3122, Some(3488693296), 3451206702)),
+                ("goods", (3231, Some(1506572132), 1414297440)),
+                ("world", (2794, Some(3972800438), 3987873802)),
             ],
             over: None,
         }),
@@ -9797,25 +9815,17 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 3047, past the row's first parting 2259, which stands): ammo 3,335
         // -> 3,336, on 4017 (ours' ammo sum 1731922939 -> 1, theirs 1). No
         // first parting moved.
+        // Moved by item 4583 (`do_trade`'s link gate, run1800): the row's
+        // first parting 2259 is gone and ours' game over at 4118 with it. Every
+        // line but cities is whole to 4,572; cities 2,259 -> 3,995, parting on
+        // 3995 (ours' sum 1934313053, theirs 1933788765).
         moved: Some(Score {
             states: 4573,
             agreed: [
-                2259, 2338, 4573, 3336, 3087, 2470, 2259, 2351, 2259, 3176, 4081, 2261,
+                4573, 4573, 4573, 4573, 4573, 4573, 4573, 4573, 3995, 4573, 4573, 4573,
             ],
-            first: &[
-                ("units", (2259, Some(3462201175), 3106729391)),
-                ("builds", (2323, Some(52058802), 98261619)),
-                ("ammo", (2941, Some(1), 3925806276)),
-                ("deaths", (2993, Some(1), 1927744677)),
-                ("groups", (2470, Some(939459940), 872023246)),
-                ("guys", (2259, Some(1132056778), 3749433370)),
-                ("leaders", (2351, Some(417477691), 3343529196)),
-                ("cities", (2259, Some(6368709), 3892456893)),
-                ("items", (2526, Some(2178306644), 2195608150)),
-                ("goods", (2666, Some(1648268551), 1581946117)),
-                ("world", (2261, Some(1332653642), 414756426)),
-            ],
-            over: Some(4118),
+            first: &[("cities", (3995, Some(1934313053), 1933788765))],
+            over: None,
         }),
     }),
     // run1794
