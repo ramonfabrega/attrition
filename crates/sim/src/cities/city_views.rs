@@ -142,7 +142,7 @@ pub trait CheckUpgradeView {
 /// emulated original's sweep holds them against the executable and
 /// [`SimFind`] runs them over the simulation. The walk is the original's
 /// `leaders × (two object ranges) × index`, which the view flattens to a
-/// cursor; the crate walks its building slots.
+/// cursor over the slots sorted by owner and object number (item 4620).
 pub trait FindBuildingsView {
     /// `LeaderData::get_radius(city type)`, before the `0x40` clamp.
     fn radius(&mut self) -> i32;
@@ -221,14 +221,27 @@ pub fn find_buildings_steps<V: FindBuildingsView>(v: &mut V) {
     v.check_upgrade();
 }
 
-/// [`FindBuildingsView`] over a [`Sim`]: the building slots in order, as the
-/// sweep started (a converted copy is appended and not visited).
+/// [`FindBuildingsView`] over a [`Sim`]: the building slots as the sweep
+/// started, **by owner and then object number** (a converted copy is
+/// appended and not visited).
+///
+/// `City::find_buildings@007384c0` walks each seated leader in turn, and
+/// within it `objects +0x1ec` (buildings, from 2000) then `+0x1f0` (walls,
+/// from 3000), each from `obj_base` by object number (`0x738520`..`0x7389f6`).
+/// A reused number sits in a later slot of ours: run1797's who=2 Village
+/// `2/2026` finishes on 2370 and sweeps the Oil Well `2/2008` (slot 28) and
+/// the Missile Silo site `2/2007` (slot 92). The slot walk chained 2008
+/// before 2007, theirs 2007 before 2008 (`city_down` of 2026 ours 2008,
+/// theirs 2007; item 4620, `docs/RECGAME.md` §13.5).
 pub(crate) struct SimFind<'a> {
     pub(crate) sim: &'a mut Sim,
     pub(crate) c: usize,
     pub(crate) who: Player,
     pub(crate) ct: Pos,
-    pub(crate) n: usize,
+    /// The slots in the original's walk order.
+    pub(crate) order: Vec<usize>,
+    /// The cursor into `order`.
+    pub(crate) k: usize,
     pub(crate) at: usize,
     pub(crate) swapped: Option<usize>,
 }
@@ -238,8 +251,14 @@ impl FindBuildingsView for SimFind<'_> {
         self.sim.radius_of(self.c)
     }
     fn next_object(&mut self) -> bool {
-        self.at = self.at.wrapping_add(1);
-        self.at < self.n
+        self.k = self.k.wrapping_add(1);
+        match self.order.get(self.k) {
+            Some(&b) => {
+                self.at = b;
+                true
+            }
+            None => false,
+        }
     }
     fn is_building(&mut self) -> bool {
         self.sim.buildings[self.at].alive
