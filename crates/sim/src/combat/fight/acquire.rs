@@ -304,8 +304,11 @@ impl Sim {
     /// whether the old order is killed and
     /// the retaliation goes on to the tail.
     ///
-    /// SEAMs: the siege/bombard/explosive shields (`has_objmask(0x840002)`)
-    /// and a DEFENSIVE order's `find_def_pos` write.
+    /// The anti-siege shield (`has_objmask(0x840002)`) is built since item
+    /// 4619: it keeps a siege target from a non-siege unit attacker, and
+    /// sends a shielded unit's held building through the range tests.
+    ///
+    /// SEAM: a DEFENSIVE order's `find_def_pos` write.
     pub(super) fn attack_action_yields(&mut self, u: usize, attacker: Obj) -> bool {
         let Some(k) = self.action_of(u) else {
             return false;
@@ -320,11 +323,26 @@ impl Sim {
             return false;
         }
         let me = Obj::Unit(u);
-        if self.profile(me).has(
-            crate::combat::mask::SIEGE
-                | crate::combat::mask::BOMBARD
-                | crate::combat::mask::EXPLOSIVE,
-        ) {
+        // **The anti-siege shield** (`005fffc0:150`–`:166`, the listing's
+        // `600340`..`6003c4`; item 4619, `docs/RECGAME.md` §14.2): a unit
+        // with any of `0x840002` keeps its target only when that target's
+        // type is siege (vslot `+0x10c`, `ObjectTypeData::is_siege`) and the
+        // new attacker is neither siege nor a building (vslot `+0x20`). Every
+        // other attacker goes on to the tests below. This crate refused on
+        // the mask alone. Row 28's Bazookas (`TypeIndex` 139, land) carry
+        // it: on 3955 `1/25`'s `think_attack` hands group 66 the Special
+        // Forces `0/0`, and theirs' five members yield their chase of the
+        // Citizen `0/7` (run1816's packet: `repath` from `+0x54d`,
+        // `kill_current_order` from `+0x556`).
+        let shield = crate::combat::mask::SIEGE
+            | crate::combat::mask::BOMBARD
+            | crate::combat::mask::EXPLOSIVE;
+        let shielded = self.profile(me).has(shield);
+        if shielded
+            && !self.profile(attacker).siege
+            && !matches!(attacker, Obj::Building(_))
+            && self.profile(held).siege
+        {
             return false;
         }
         if matches!(held, Obj::Unit(_)) && self.profile(held).combat_role {
@@ -344,7 +362,12 @@ impl Sim {
         // it for a Citizen its group names: run954's `1/25`, `1/48` and
         // `1/51` on 12155, handed `0/5` by decoy `1/88`'s
         // `Group::target_opportunity` (item 3306, `docs/AI.md` §262).
-        if matches!(held, Obj::Unit(_))
+        //
+        // **A shielded unit's held building takes the range tests**
+        // (`600440`..`600465`, item 4619): the jump to `LAB_006004e7` is
+        // taken only when `has_objmask(0x840002)` answers 0, so a unit with
+        // the mask falls through to the two tests below for a building too.
+        if (matches!(held, Obj::Unit(_)) || shielded)
             && self.profile(attacker).attack != 0
             && (self.is_in_range(me, held) || !self.is_in_range(me, attacker))
         {
