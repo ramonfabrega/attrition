@@ -168,8 +168,16 @@ fn score(
             over = Some(frame);
         }
         let lines = state::ranges(&built.sim, &look, &tribes);
+        let probe = std::env::var("RON_PROBE_4574").is_ok();
         for (i, line) in lines.iter().enumerate() {
             let value = line.as_ref().map(|l| l.adler());
+            if probe && matches!(i, 3 | 9 | 10) {
+                eprintln!(
+                    "P4574 {} {frame} {i} {value:?} {}",
+                    recording.display(),
+                    set.lines[i]
+                );
+            }
             if value == Some(set.lines[i]) {
                 agreed[i] += 1;
             } else if mismatch[i].is_none() {
