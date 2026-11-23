@@ -437,6 +437,51 @@ fn the_nuke_count_is_the_nuclear_missile_line() {
     assert_eq!((mine, most, vulnerable), (3, 4, true));
 }
 
+/// **The nuke arm's target is a leader the shield does not cover**
+/// (`create_units@006c40a0`'s leader loop, item 4575, `docs/AI.md` §158):
+/// an enemy holding `MISSILE_DEFENSE_BONUS` or researching the Missile
+/// Shield is skipped, adds nothing to the most held, and with no enemy
+/// left the arm has no target. Made to fail with either test dropped.
+#[test]
+fn the_nuke_arm_skips_an_enemy_under_or_researching_the_shield() {
+    let mut sim = bare();
+    let mut tree = tech::TechTree::new();
+    let nuke = tree.add(tech::TypeDef::unit(
+        "Nuclear Missile",
+        tech::UnitTraits::default(),
+    ));
+    let shield = tree.add(tech::TypeDef::new("Missile Shield", tech::Kind::Final));
+    tree.roles.nuclearmissile = Some(nuke);
+    tree.roles.missile_defense_preq = Some(shield);
+    tree.finalize();
+    sim.set_tech_tree(tree);
+    let n = sim.add_unit_type(crate::UnitType {
+        tree: Some(nuke),
+        ..crate::UnitType::default()
+    });
+    sim.territory.players = vec![Default::default(); 2];
+    sim.leaders.defeated = vec![false; 2];
+    sim.tech.push(sim.tech[0].clone());
+    sim.roster.muster.push(sim.roster.muster[0].clone());
+    sim.tech[1].tech[nuke] = true;
+    sim.roster.muster[1].by_type[n] = 4;
+    assert_eq!(sim.missile_shield(), Some(shield));
+    assert_eq!(sim.nuke_standing(0), (0, 4, true), "an open enemy");
+    sim.tech[1].queued[shield] = 1;
+    assert_eq!(
+        sim.nuke_standing(0),
+        (0, 0, false),
+        "an enemy researching the shield"
+    );
+    sim.tech[1].queued[shield] = 0;
+    sim.tech[1].tech[shield] = true;
+    assert_eq!(
+        sim.nuke_standing(0),
+        (0, 0, false),
+        "an enemy holding the shield"
+    );
+}
+
 #[test]
 fn create_units_offers_nothing_without_a_tree() {
     let mut sim = bare();

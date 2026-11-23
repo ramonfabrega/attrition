@@ -1606,7 +1606,7 @@ pinned once in `SCORES_SIXTH`. That found column is the estimate: **1 of 8 whole
 | 73 | run1791 | Great Sahara, Industrial | the computers | 3,438, ended on 3437 | 1 | units, cities 1563 | 1,563 of 3,438 |
 | 93 | run1792 | Great Lakes, Modern | human + added | 12,001 | 1 | units 2342 | 2,342 of 6,001 |
 | 113 | run1793 | Great Lakes, Gunpowder | the computers | 4,573, ended on 4572 | 1 | units, guys, cities 2259 | 2,259 of 4,573 |
-| 133 | run1794 | Great Sahara, all techs | human + added | 6,085, ended on 6084 | 1 | leaders 956, builds 958 | 956 of 6,001 |
+| 133 | run1794 | Great Sahara, all techs | human + added | 6,085, ended on 6084 | 1 | leaders 956, builds 958; **leaders 1757** (4575) | 956 of 6,001; 1,757 now |
 | 153 | run1795 | Great Lakes, difficulty 2 | the computers | 12,001 | **12** | whole | 6,001 of 6,001 |
 
 The original ended rows 33, 73 and 113, each with the two computers allied against the human, and row 133. Our walk
@@ -1619,9 +1619,19 @@ earlier battery's end. The other six part before 3400, as idle rows did, so the 
 the sample's trouble is what a person's own orders reach: one row whole and one long reach are not a battery's
 verdict.
 
-*Diff-backed*: every number above (the hook's twelve sums on every state, ours against theirs). *Read, not diffed*:
+**Row 133's first leaf, the battery's first** (item 4575; run1797, the file's ranges take, `docs/RUNS.md`). On 956
+who=2, the added computer, rebuilds its make list; theirs' `make_list[3]` is a Jet Fighter (TI 295) ×10 at `val` 986,484,
+no escrow, and ours' an ICBM (TI 316) ×1 at 2,000,000 with an escrow; on 958 theirs queues the four Jet Fighters at
+`2/2011` and ours the ICBM at `2/2017`. **Theirs refused the nuke**: who=2's one enemy, who=1, has the Missile Shield
+queued at `1/2005` (both sides, byte for byte), and `create_units`' nuke arm skips an enemy researching it
+(`docs/AI.md` §158). Every line but walls moved; the row's first parting is leaders on 1757 (range 308, record 2,
+`make_list[2]`: `t`'s low byte ours 0xba, theirs 0x11; `val` ours 6,749,936, theirs 6,477,032; `escrow` 1 and 0; `num` 1
+and 3; `cat` 8 and 6).
+
+*Diff-backed*: every number above (the hook's twelve sums on every state, ours against theirs), and row 133's leaf on
+955 to 958 (every leaders range). *Read, not diffed*:
 that `script_rule`'s choices are what a person would make; only their effect on the original is compared. *Not
-established*: no row names a leaf, since each take holds sums only, but row 73. Item 4576 read it off run1798's
+established*: no other row names a leaf, since each take holds sums only, but row 73. Item 4576 read it off run1798's
 ranges: on 1563, who=2's Caravan `2/31` is homed on its ally who=1's city 3, and ours links its trade order. Item 4583
 built why theirs does not (run1800's packet, `docs/CARAVAN.md` §4): `do_trade`'s link gate refuses a home that is not
 the caravan owner's without `has_preq(BASE_BONUSTYPES)`, and `LAB_005eda11` gives the order again. That moved rows 73

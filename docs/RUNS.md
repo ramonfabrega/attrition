@@ -41151,6 +41151,38 @@ it and 73 after.
 
 **What it holds**: `diff::held_out::tests::row_43_s_slinger_stones_leave_from_piece_736_s_sockets_on_run1787_s_ranges`
 (every ammo and units range on states 3191 to 3197, who=2's two Slingers on piece 736, and theirs' launch points).
+## run1797 — parity held out, sixth battery, row 133's file to its end with the checksum and ranges hooks, every line but walls kept (2026-11-23, item 4575, `att-4575`)
+
+`docs/RECGAME.md` §13, `docs/AI.md` §158. **What the disk could not answer**: run1794 holds sums only, so row 133's
+leaders parting on 956 named no leaf. The take is run1794's file with the item's one-take line: `TMPDIR=<fresh>
+RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1797 --recording
+~/ron-golden/recordings/item4566-row133-12000.rcx --end-frame 12000 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def
+RNG_MASK=0xffbu`, waited on with `waitrun.sh` in the background. The lane was free; no minutes were spent waiting on
+another lane. `df -g ~` read 98 GB free before it and 78 after the filing.
+- **The run**: pool lane 1, launched 23:49:29 −05:00 (2026-11-22), exited 23:56:56: **446.5 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 6,085 frames, `last_frame` 6084, **ended by the original** as run1794 was.
+  Seed 12345, map 7. The recording's SHA-256 is run1794's (`ca4af2d6…`). Players: tribe 4 (who 0, flags 7), tribe 17
+  (who 1), tribe 18 (who 2).
+- **The record**, `~/ron-golden/run1797/map-7/rontrace.ranges`, 6,254,732,024 bytes in 6 pieces (`split.py`),
+  SHA-256 `295c8d4c29c202a3969b6a339af6602a592f205e66fbd73823885c1b46138b03`, 0.69 GiB on disk.
+- **Scored** (`score_recording … ~/ron-golden/run1797/map-7`, on `93932dfd0`): the sums are run1794's. **Leaders
+  956, first 956: range 309, record 2 (who=2), `make_list[3]`: ours `t` 316 (ICBM), `val` 2,000,000, `escrow` 1, `num`
+  1; theirs `t` 295 (JETFIGHTER), `val` 986,484, `escrow` 0, `num` 10; `cat` 6 on both.** Builds 958: range 1474,
+  record 2011, `queued` ours 0, theirs 4 (theirs' four Jet Fighters at `2/2011`; ours' ICBM at `2/2017`).
+- **Re-scored by item 4575** (the nuke arm skips an enemy researching the Missile Shield; who=1 has it queued at
+  `1/2005`): units 1,162 → 1,758, builds 958 → 1,758, leaders 956 → 1,757, ammo 2,517 → 2,738, deaths 1,484 → 2,524,
+  groups 1,242 → 1,821, guys 1,162 → 1,758, cities 1,376 → 1,758, items 1,614 → 2,185, goods 1,758 → 1,827, world 1,197
+  → 1,758. The row's first parting is leaders on 1757: range 308, record 2, `make_list[2]`, `t`'s low byte ours 0xba,
+  theirs 0x11; `val` ours 6,749,936, theirs 6,477,032.
+- Filed by `filerun.py run1797 heldout6-row133-ranges`: `gamelog_p.txt` →
+  `Logs/gamelog-run1797-heldout6-row133-ranges.txt`, 2,845 bytes, SHA-256
+  `6749d34e0502d81f475a0d6ac9e1e3de41cc2079e658cdd81533040e083d1be4`; `rontrace.log` → `Logs/rontrace-run1797.log`,
+  453,767,200 bytes, SHA-256 `b6af2965d3638c7cc8f6c4c51f4c6643ded25a325cd9a2df8affaa850dd95960`; the record stays
+  in place.
+
+**What it holds**: `diff::held_out::tests::row_133_s_computer_offers_no_nuke_at_an_enemy_researching_the_shield_on_run1797_s_ranges`
+(every leaders range on states 955 to 958, theirs' Jet Fighter in who=2's fourth slot, who=1's shield queued).
 ## run1796 — parity held out, fifth battery, row 3's file to 6000 with the checksum and ranges hooks, every line but walls kept (2026-11-22, item 4548, `att-4548`)
 
 `docs/RECGAME.md` §12.3, `docs/AI.md` §3.1; DECISIONS 148 §4. **What the disk could not answer**: run1773 holds
