@@ -76,8 +76,8 @@ take. Re-pin `SCORES_SIXTH[6].moved`, never `found`. It stops when two landings 
 4601. **The minimap's blips, built** (a `render` item, scoped; the client's seat; `docs/RENDERER.md` §3.33; parked 4596a).
 Item 4596 named the arms and wrote the build's oracle (`tools/render/blips_packet.py`; the dump
 `~/ron-data/lab-experiments/2026-11-23-item-4596/run1564-blips.txt`): +0x90/+0x94 gather and flat (a farm is skipped),
-+0x2c the wonder's triangle, +0xfc the fort's size 3, the tower line a white quad beneath its colour, the captain
-`Unit::captain`; no sim change. Build `minimap::blips` against the packet's 118 quads by 4596a's design, then re-pin
++0x2c the wonder's triangle, +0xfc the fort's size 3, the tower line a white quad beneath its colour, the captain the
+sim's own `captain` flag on a unit; no sim change. Build `minimap::blips` against the packet's 118 quads by 4596a's design, then re-pin
 `RUN1564_3279_MINIMAP`'s within-32 count (2,808 of 3,600). Open: player 0's nine units with no blip (4593c).
 
 4599. **The P notes hooked** (a rules item, whole; the chain's seat, after 4598; DECISIONS 154 §2; parked 4580b). Item 4580
