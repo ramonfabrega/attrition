@@ -12807,7 +12807,10 @@ on `a99cb914`, the second on `5fddc659`. Each was restored from git and
   - This crate reads the bit and never sets it.
 - **The other on-map heals**: the ship heal, Antipater/Wellington, the
   CtW hero, the Iroquois, the economic patriots and supply. None is built
-  here, and no capture on disk reaches them.
+  here, and no capture on disk reaches them. (Since built: the ship heal,
+  the Iroquois, the three patriots and supply, the last patriot, the
+  President, by item 4577 on run1799, `docs/RECGAME.md` §13. Antipater/Wellington
+  and the CtW hero stay unbuilt.)
 - **`healing`**, the aircraft heal that also writes it, and the army
   stay-and-heal arm that reads it (`army.rs`, `think_attack_join_army`).
 - **`damage_frame` on a hit that leaves it alone.** The original's `0/1`
