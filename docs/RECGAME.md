@@ -1712,32 +1712,18 @@ Open: units, builds and guys part on 2686, the Bazooka `1/31`'s re-search (item 
 
 ### 13.4 Row 113
 
-**Whole: twelve lines of twelve, 4,573 of 4,573 states, to the original's end** (item 4592, run1802). Item 4583 left
-every line but cities whole, cities parting on 3995: ours' sum 1934313053, theirs 1933788765. The low halves are equal
-and the high ones 8 apart, so the line held the same bytes in another order.
+**Whole: twelve lines of twelve, 4,573 of 4,573 states, to the original's end** (item 4592, run1802). Cities parted on
+3995 with the sums' low halves equal and high halves 8 apart: the same bytes in another order. run1802's cities range
+11, record 0, `vans[k]`, byte 4 (`who`) reads ours 1, theirs 2. who=1's city 0 holds `(3,2) (3,1)` on theirs, where
+ours walked `(3,1) (3,2)`: who=1's Caravan `1/34` (TI 59, land) links on 3995, after who=2's `2/131` (TI 59, land).
 
-run1802 is run1793's file with the cities line's ranges (`RNG_MASK=0x100u`). On 3995, cities range 11 parts: record
-0, `vans[k]`, byte 4, `who`, ours 1, theirs 2. That is who=1's city 0 (`city` 0, `o` 2000). Its `vans` reads `(0,1)
-(1,1) (3,2) (3,1)` on theirs and `(0,1) (1,1) (3,1) (3,2)` on ours. who=1's Caravan `1/34` (TI 59, land, slot 3) links
-that city to who=2's city 1 on 3995. who=2's `2/131` (TI 59, land, slot 3) had joined the same city earlier. The ±1
-at a distance of 8 bytes accounts for the sum's 8.
-
-**The direction.** Theirs' `vans` is an `Array<CaravanLink>` per city. `ArrayBase<CaravanLink>::add@0046e550` appends,
-and its one caller is `do_trade` (`:363`, `:371`, one add on each end). `Array<CaravanLink>::remove@0046e4e0` shifts
-the rest down, and its one caller is `end_trade_route`. So a city's links stand in the order they were made. This
-crate walked them by owner, then slot (`docs/CHECKSUM.md` §12, an assumption until now). The fix stamps each link
-when `do_trade` makes it (`Caravan::linked_at`, one past any standing link's), and `Sim::city_links` walks by the
-stamp. Membership is unchanged. `City::close`'s repath walk (`close_city_caravans`) reads the same order. The fix
-also closes run1325c's packet on 5578 (the American Enlightenment pair): cities 2 ranges parted → 0, its who=1 city 3
-holding `(4,1) (3,1)`.
-
-Held by `diff::held_out::tests::row_113_s_city_walks_its_caravan_links_in_the_order_they_were_made_on_run1802_s_ranges`
-(every cities range on 3994 to 3996; red at range 11 on 3995 with the sort removed) and by
-`cities_tests::a_city_s_caravan_links_stand_in_the_order_they_were_made`.
-
-**Not established.** No capture shows a link `end_trade_route` leaves standing, one whose end is no longer an active
-build in a live city. Theirs keeps such a link in the array, and ours' walk drops it, since it reads live caravan
-slots.
+**A city's `vans` stand in the order the links were made.** `ArrayBase<CaravanLink>::add@0046e550` appends, with
+`do_trade` as its one caller. `Array<CaravanLink>::remove@0046e4e0` keeps the rest in order, with `end_trade_route` as
+its one caller. Ours stamps a link when `do_trade` makes it (`Caravan::linked_at`), and `Sim::city_links` walks by the
+stamp, which also closes run1325c's packet (cities 2 ranges → 0). Held by
+`row_113_s_city_walks_its_caravan_links_in_the_order_they_were_made_on_run1802_s_ranges` and
+`cities_tests::a_city_s_caravan_links_stand_in_the_order_they_were_made`. Not established: a link `end_trade_route`
+leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
