@@ -995,6 +995,87 @@ mod tests {
         }
     }
 
+    /// **Row 83's taken city assimilates three frames a frame faster with
+    /// its owner's Citizen in reach** (item 4570, `docs/RECGAME.md` §12.3):
+    /// run1784, the ranges take of row 83's file. who=1 took who=2's city
+    /// `1/2043` on frame 3644, so its `assimilation_timer` is 3644 and it
+    /// is unassimilated (`race` 2). `Build::process@0061edf0:698` asks
+    /// `ObjectData::has_general(this, 0, 0x164)` of the city building, and
+    /// while one of the owner's Citizens is in `find_hero`'s reach the stamp
+    /// walks back `THECITIZEN_ASSIMILATION_SPEED − 1`, three a frame:
+    /// who=1's Citizen `1/15` (`TypeIndex` 356) walks in, and theirs' stamp
+    /// reads 3644 on 3655, then 3641 and 3638. Ours read a flag nothing
+    /// wrote. Every cities range on 3655 to 3658, ours against theirs, byte
+    /// for byte: red on the tree before the fix at cities record 8,
+    /// `assimilation_timer` ours 3644, theirs 3641, on 3656.
+    #[test]
+    fn row_83_s_taken_city_assimilates_faster_by_its_owner_s_citizen_on_run1784_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+            eprintln!("skipping: row 83's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1784/map-14"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1784's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 83's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for (state, stamp) in [(3655, 3644), (3656, 3641), (3657, 3638), (3658, 3635)] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[8].as_ref().expect("cities");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 8).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "cities' ranges on {state}");
+            let mut timer = None;
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "cities range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+                if a.record == 8 {
+                    let f = crate::checksum::fields::range_fields("cities", &a.field, &b.bytes);
+                    if let Some(v) = f
+                        .unwrap_or_default()
+                        .iter()
+                        .find(|(n, _)| n == "assimilation_timer")
+                    {
+                        timer = Some(v.1);
+                    }
+                }
+            }
+            // Theirs' stamp by name, then the city and the Citizen on ours.
+            assert_eq!(
+                timer,
+                Some(stamp),
+                "record 8's assimilation_timer on {state}"
+            );
+            let b = built.sim.building_by_o(1, 2043).expect("1/2043");
+            let c = built.sim.buildings[b].city.expect("its city");
+            let city = &built.sim.cities.cities[c];
+            assert_eq!((city.owner, city.race, city.building), (1, Some(2), b));
+            let u = built.sim.unit_by_o(1, 15).expect("1/15");
+            assert_eq!(built.sim.units[u].type_index, 356, "1/15 is a Citizen");
+        }
+    }
+
     /// **Row 83's Airbase keeps its Biplane in when an enemy wonder out of
     /// reach outscores the city** (item 4562, `docs/RECGAME.md` §12.3):
     /// run1784, the ranges take of row 83's file. who=2's computer sortie
@@ -8202,10 +8283,19 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // `2/2036` stays its owner's; `City::close@00737550` sends it to
         // `Build::find_city`, where ours had cleared the chain first. The
         // row's first parting is cities 3656.
+        // Item 4570: cities 3,656 -> 3,693, first 3656 -> 3693; ammo 3,710
+        // -> 3,711; world 3,668 -> 3,666 and goods 4,155 -> 4,148, named
+        // falls past the first partings. run1784, the ranges take: on 3656
+        // cities record 8, who=1's city `1/2043` (taken from who=2 on 3644),
+        // `assimilation_timer` ours 3644, theirs 3641, then 3638:
+        // `Build::process@0061edf0:698` asks `has_general(this, 0, 0x164)`
+        // and who=1's Citizen `1/15` (TI 356) walks into reach; ours read a
+        // flag nothing wrote. The row's first parting is units, builds and
+        // groups 3662.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3662, 3695, 6001, 3710, 3672, 3662, 3663, 3674, 3656, 4129, 4155, 3668,
+                3662, 3695, 6001, 3711, 3672, 3662, 3663, 3674, 3693, 4129, 4148, 3666,
             ],
             first: &[
                 ("units", (3662, Some(2263308614), 3663092386)),
@@ -8215,7 +8305,7 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
                 ("groups", (3662, Some(700922587), 4145494656)),
                 ("guys", (3663, Some(2600191005), 3603350278)),
                 ("leaders", (3674, Some(1864656474), 2352703069)),
-                ("cities", (3656, Some(2160737707), 2090745256)),
+                ("cities", (3693, Some(1156464184), 3186376370)),
                 ("items", (4129, Some(898052486), 912470408)),
                 ("goods", (4087, Some(3194787109), 3189019939)),
                 ("world", (3666, Some(282235351), 271225303)),
