@@ -216,6 +216,51 @@ fn an_anti_air_building_winds_on_its_sighting_without_a_target() {
     assert_eq!(s.buildings[r].recharging, 18, "a target and no sighting: down one");
 }
 
+/// **An anti-air building's turret turns at its sighting** (item 4602,
+/// `docs/RECGAME.md` §13.5): `Build::process@0061edf0`'s `61ef10`..
+/// `61ef91`. With no target, off its 32-frame phase and the sighting out of
+/// range, `do_attack` does not run and `job_counter` (`+0x48`) steps five
+/// degrees (`0x38e38e3`) a frame at the sighting, then holds on it. A
+/// sighting gone (`near_o` −1) skips the turn, and a building without
+/// `ANTI_AIR` never turns. run1797's SAM `2/2027` from 2167.
+#[test]
+fn an_anti_air_building_s_turret_turns_at_its_sighting_out_of_range() {
+    let mut s = sim();
+    let r = radar(&mut s, true);
+    let plane = unit(&mut s, 0, Pos::new(22272 + 40 * 96, 16512), bomber());
+    s.buildings[r].job_counter = 0x4000_0000;
+    s.buildings[r].near = Some(Obj::Unit(plane));
+    let off_phase = |s: &Sim, f: i64| s.buildings[r].phase(f) & 0x1f != 0;
+    let want = crate::movement::find_angle(40 * 96, 0).0;
+    let mut seen = Vec::new();
+    let mut f = 1;
+    while seen.len() < 40 {
+        if off_phase(&s, f) {
+            s.process_building_combat(r, f);
+            seen.push(s.buildings[r].job_counter);
+        }
+        f += 1;
+    }
+    let step = 0x38e_38e3_i32;
+    let d = want.wrapping_sub(0x4000_0000);
+    let first = if d >= 0 {
+        0x4000_0000 + step
+    } else {
+        0x4000_0000 - step
+    };
+    assert_eq!(seen[0], first, "one five-degree step at the sighting");
+    assert_eq!(*seen.last().unwrap(), want, "then it holds on it");
+    assert_eq!(s.buildings[r].target, None, "do_attack never ran");
+    s.buildings[r].job_counter = 0x4000_0000;
+    s.buildings[r].near = None;
+    s.process_building_combat(r, f);
+    assert_eq!(s.buildings[r].job_counter, 0x4000_0000, "no sighting: no turn");
+    s.buildings[r].near = Some(Obj::Unit(plane));
+    s.buildings[r].combat.as_mut().unwrap().obj_masks = 0;
+    s.process_building_combat(r, f);
+    assert_eq!(s.buildings[r].job_counter, 0x4000_0000, "not ANTI_AIR: no turn");
+}
+
 /// **An anti-air unit keeps its angle at an aircraft, and only there**
 /// (item 1109): the Battery at a Bomber does; at a ground unit it does
 /// not, and a shooter without `ANTI_AIR` does not at a Bomber.
