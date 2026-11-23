@@ -2532,14 +2532,43 @@ angle trailing `des_angle`, and plays 22 on 16517 (`last_speed 0`).
 
 `Sim::guy_follow_anim`'s moving arm spared both turn slots and
 `CHAR_ATTACKWALK` from its first writing (2026-08-24). The turn slots are
-taken out of it. `CHAR_ATTACKWALK` stays as a stand-in: the original asks
+taken out of it. ~~`CHAR_ATTACKWALK` stays as a stand-in: the original asks
 for it again here when `cavarch_o >= 0` and the type's `0x200000` are
 set, which `Sim::walk_for` does not model, and sparing the slot is what
-asking for it again keeps.
+asking for it again keeps.~~ Built by item 4589, below.
+
+**The moving walk is `CHAR_ATTACKWALK` while the unit is aimed (item
+4589, 2026-11-23).** `Guy::move@005d9240`'s moving arm starts from
+`CHAR_WALK`, takes `CHAR_ATTACKWALK` when `cavarch_o >= 0` and the type's
+`+0x2b4 & 0x200000` (the listing's `testl` at `5d93fd`), lets the gather
+mask override either (from `5d9412`), and asks `set_anim(walk, 0, 1)` at
+`5d958a` whatever the figure holds. `Sim::moving_walk` is that choice. The
+spare and the request differ only for a figure that is *not* on
+`CHAR_ATTACKWALK` when it moves: a figure already on it meets
+`set_anim`'s same-category return either way, while for one a stand put
+on the idle earlier in the frame the spare asked the speed's walk. Row
+73 of the sixth held-out battery (run1791, its ranges run1798) showed it
+on 2779. The guard stand comes first: who=2's ARMOREDCAR `2/70` (TI 216,
+land), aimed at `0/2`, is one step off its guard cell. `do_guard` pushes
+the move, the one step of 48 arrives, the step asks `CHAR_ATTACKWALK`
+(reload 0, granted), and back in `GUARD` the stand's `set_anim(CHAR_DEFAULT)`
+idles it (`do_guard+0x8e0`, then the retry roll at `+0x8fb`: theirs' draws
+3 and 4 on trace frame 2778). Then `Guy::move` asks for the walk. Theirs
+asks for `CHAR_ATTACKWALK` and ours, sparing only a figure already on it,
+asked for `CHAR_WALK`, and the average speed of 6 made that `CHAR_SLOG`.
+Guy record 70 on state 2779: `cur_anim` ours 7, theirs 10; `end_time`
+ours 26, theirs 30. Every other byte agreed.
+
+**Coverage.** *Diff-backed*: row 73's units and guys, 2,779 → 3,438 of
+3,438 states on run1798 (whole to the original's end), and the other nine
+lines it carried whole with them. *Listing-backed*: the request's three
+addresses. *Unit test*:
+`anim::tests::a_moving_figure_aimed_on_the_idle_is_put_back_on_the_attack_walk`.
 
 **Coverage.** *Diff-backed*: `1/118`'s `g.cur_anim[0]` on run987b's 16512
 (`run987b_s_word_frame_is_widened_whole`) and the Inca word to 24000.
 *Listing-backed*: the gate. *Unit test*:
 `a_moving_figure_on_a_turn_slot_is_put_back_on_the_walk`, made to fail
-on the old exemption. **Not established**: the `CHAR_ATTACKWALK` request
-(above); no capture has a unit stepping with a target.
+on the old exemption. **Not established**: ~~the `CHAR_ATTACKWALK` request
+(above); no capture has a unit stepping with a target.~~ Built and
+diff-backed by item 4589 (above).
