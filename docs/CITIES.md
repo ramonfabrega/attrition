@@ -1945,8 +1945,11 @@ e ≥ ASSIMILATION_TIMER (2000) → City::assimilate
 ```
 
 So 2000 frames (133 s), 667 for the Turks, 500 for a founder retaking their
-own, 500 with the Citizen; the Turks and the founder compound. No other
-nation bonus exists. `City::assimilate`: `city_flags &= ~0x100`; `race = who`;
+own, 500 with the Citizen; the Turks and the founder compound. The
+Citizen is asked of the city building (`has_general(this, 0, 0x164)`:
+one of the owner's on the map within `get_radius × 0xc0` of it, less its
+footprint's `(x_size + y_size) × 0x60`); diff-backed on run1784's city
+`1/2043`, 3644 then 3641 (item 4570). No other nation bonus exists. `City::assimilate`: `city_flags &= ~0x100`; `race = who`;
 **`Region::fix_borders`** (the territory changes hands); a Chinese owner with
 `CHINESE_LARGE_CITIES` → `set_type(TOWN)` — it becomes a Large City outright,
 **without a `mask_me`**, so its radius mask stays at the old size until the
