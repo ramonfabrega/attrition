@@ -91,8 +91,8 @@ impl Sim {
     /// The region test is [`Sim::check_target_reaches`], with the call's
     /// third argument 1, so the defensive arm is off here.
     ///
-    /// ~~SEAM: the tail's building-cell test is not carried~~ — carried by
-    /// item 4587 ([`Sim::unclaimed_building`]), below the captain shortcut.
+    /// SEAM: the tail's building-cell test is not carried; a guard here
+    /// is on land and its target a unit.
     pub(crate) fn guard_check_target(
         &mut self,
         u: usize,
@@ -107,9 +107,7 @@ impl Sim {
         match self.guard_leash(u, g, target) {
             Leash::Captain => true,
             Leash::Out => false,
-            Leash::In => {
-                !self.unclaimed_building(target) && !(use_poor && self.poor_target(me, target))
-            }
+            Leash::In => !(use_poor && self.poor_target(me, target)),
         }
     }
 
@@ -157,36 +155,6 @@ impl Sim {
             && self.units[u].combat.stance == Stance::Defensive
             && self.current_order(u).is_some();
         !((defensive || other) && !self.is_in_range(me, target))
-    }
-
-    /// **`Object::check_target@00649e00`'s tail, its building arm** (item
-    /// 4587, `docs/COMBAT.md` §63.1; the listing `64a1ba`–`64a232`): a
-    /// candidate whose vslot `+0x1c` answers (a building) is refused when
-    /// its type's build flags (`+0x2c0`) lack `0x10` ([`flags::NO_CITY`],
-    /// flag `e`) **and** the cell it stands on (`div_3_table[(x ^ key) >>
-    /// 8]`, the world cell) has no territory owner, `WData +0xf == -1`
-    /// (`cmpb $-1`; the ambiguous `-2` passes). It is
-    /// asked of every searcher, a building's own search too: it sits below
-    /// `check_target`'s unit head and above `use_poor`'s
-    /// [`Sim::poor_target`], and only the guard arm's captain shortcut
-    /// (`return 1`) skips it.
-    ///
-    /// run1799's witness, row 93's file on 2686: who=1's German Bazooka
-    /// `1/31` (TI 140, land), guarding its President and attacking who=2's
-    /// Small City `2/2027`, re-searches as a captain; who=2's Oil Well
-    /// `2/2032` stands on nobody's ground, and theirs re-finds the city and
-    /// strikes it where ours took the well.
-    ///
-    /// [`flags::NO_CITY`]: crate::cities::build::flags::NO_CITY
-    pub(crate) fn unclaimed_building(&self, o: Obj) -> bool {
-        let Obj::Building(b) = o else {
-            return false;
-        };
-        let bd = &self.buildings[b];
-        let no_city = bd
-            .ty
-            .is_some_and(|t| self.tables.build_types[t].has(crate::cities::build::flags::NO_CITY));
-        !no_city && self.world.owner_at(bd.pos) == crate::world::Owner::None
     }
 
     /// `Object::poor_target@0064a270` — "chasing this one is futile", the
