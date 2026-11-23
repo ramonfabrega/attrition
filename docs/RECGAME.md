@@ -1654,7 +1654,9 @@ the caravan owner's without `has_preq(BASE_BONUSTYPES)`, and `LAB_005eda11` give
 (first parting 1563 → 2779), 33 (whole but ammo, first 3386) and 113 (whole but cities, first 3995). ~~none of the three
 new partings is read.~~ Row 73's 2779 is read and built by item 4589 (`docs/ANIM.md` §16): who=2's ARMOREDCAR `2/70`,
 idled by its guard stand, is put back on `CHAR_ATTACKWALK` by `Guy::move`'s moving walk; row 73 is whole but ammo,
-first 3279, unread. Row 33's 3386 is named and closed by item 4591, below. Row 113's 3995 is not read. Also not established: a script past §9's three orders, or one issued after frame 90; whether row
+~~first 3279, unread~~ first 3279, read and built by item 4595 (`docs/COMBAT.md` §24.4): who=2's Armored Car `2/32`,
+on `CHAR_ATTACKWALK` at the gone Citizen `0/4`, releases on 3278 into `Objects::add_ammo`, which counts `graph_index`
+1008 while `Ammo::init` refuses the round; **row 73 is whole on all twelve lines, 3,438 of 3,438**. Row 33's 3386 is named and closed by item 4591, below. Row 113's 3995 is not read. Also not established: a script past §9's three orders, or one issued after frame 90; whether row
 13's 7675 and the sample's 7055 are one mechanism.
 
 **Row 93's first leaf: the President heals** (item 4577, run1799). run1799 is row 93's

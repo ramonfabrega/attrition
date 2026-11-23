@@ -70,6 +70,16 @@ impl Sim {
         }
     }
 
+    /// The slot's `flags & 1` alone (`ObjectData +0x8`): the object is
+    /// open, on the map or not, with or without hit points —
+    /// `Ammo::init@0067bbf0:181`'s test of its target (item 4595).
+    pub(crate) fn slot_live(&self, o: Obj) -> bool {
+        match o {
+            Obj::Unit(i) => self.units.get(i).is_some_and(|u| u.alive()),
+            Obj::Building(b) => self.buildings.get(b).is_some_and(|b| b.alive),
+        }
+    }
+
     /// `flags & 1` and, for a unit, `is_on_map`.
     pub(crate) fn active(&self, o: Obj) -> bool {
         match o {

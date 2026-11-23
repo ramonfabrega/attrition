@@ -3652,6 +3652,34 @@ where two do would spend the original's `Random::get` draws in the other
 order. A slot pool in `crates/sim` is the successor, and it is a mechanism
 rather than a widening.
 
+**A refused round still counts** (item 4595). `Objects::add_ammo` steps
+`+0x1f8` after `Ammo::init` whatever `init` did, and `init` returns at
+`:181`, before any draw and before the `flags | 2` at `:572`, when its
+target's `ObjectData +0x8 & 1` is clear. So a release at a gone target
+takes a `graph_index` and leaves the slot free: no state ever shows it.
+The release reaches `add_ammo` because `Guy::execute_events@005d99c0`
+refuses a gone or changed target (`flags & 1`, `uid`) only on a
+`CHAR_ATTACK2` figure with its `local_10` clear (`:184`–`:197`), and
+`execute_game_events@008e48e0`'s gate asks `whom`/`ox` not −1 and nothing
+else. **Diff-backed** by run1798 (row 73 of the sixth held-out battery,
+`docs/RECGAME.md` §13): on 3278 who=2's Armored Car `2/32` (TI 216, land),
+on `CHAR_ATTACKWALK`, piece 166, the event at 17, fires on the move at the
+Citizen `0/4` (TI 50), gone. Theirs' `graph_index` runs 1006 and 1007
+(`2/66`'s pair, slots 2 and 3), then **1009** and 1010 (`2/37`'s pair,
+slots 4 and 5): 1008 is in no state, and `Ammo::init`'s draws on 3278
+are `2/37`'s four alone. Ours, refusing the release before
+`add_ammo`, wrote 1008 on `2/37`'s first round: ammo parted on 3279,
+range 7, record 4, `rolling..start_roll_angle` byte 51 (the low byte of
+`graph_index`), ours 240, theirs 241. Built as
+[`sim::Sim::add_ammo_refused`]; row 73's ammo 3,280 → 3,438 of 3,438.
+**Not established**: a target alive and not struck (off the map, or a
+building with no combat record) is still refused whole here, where the
+original's non-`CHAR_ATTACK2` figure reaches `Ammo::init` past `:181`
+(a SEAM in `guy_release_events`); `local_10` (the order's vslot `+0x54`)
+on a plain attack, which would take a `CHAR_ATTACK2` figure past the
+refusal too; and a target slot reused by another object under the
+order, which the original would fire at.
+
 ### 24.5 The two floats, and both halves confirmed
 
 `Ammo::init` ends with the trajectory:
