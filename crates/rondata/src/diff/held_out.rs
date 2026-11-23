@@ -10461,8 +10461,10 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
 /// As found: row 153 whole to 12,000. Item 4591: row 33 whole to the
 /// original's end 3,943 (piece 49's bays), 1 -> 2. Item 4595 made row 73
 /// whole (a release at a gone target takes a `graph_index`): 2 -> 3.
+/// Item 4592 made row 113 whole (a city's `vans` in the order the links
+/// were made): 3 -> 4.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SIXTH_LINE: (usize, usize) = (3, 8);
+pub(crate) const HELD_OUT_SIXTH_LINE: (usize, usize) = (4, 8);
 
 /// The sixth battery (item 4566): three seats, a team and a scripted human
 /// a row, recorded to [`SIXTH_FRAMES`].
