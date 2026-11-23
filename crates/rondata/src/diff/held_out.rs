@@ -2462,8 +2462,46 @@ pub(crate) mod tests {
         for state in lo..=hi {
             while built.sim.frame < state {
                 stream.apply(built.sim.frame as i32, &mut built);
+                let f0 = built.sim.frame;
+                built.sim.trace.trace_phases = f0 >= lo - 2;
                 built.sim.command().tick();
+                if f0 >= lo - 2 {
+                    for (who, site) in crate::diff::harness::attributed_sites(&built) {
+                        eprintln!("D f{f0} {who} {site}");
+                    }
+                }
                 crate::diff::harness::debug_watch(&built, built.sim.frame);
+            }
+            for (b, bd) in built.sim.buildings.iter().enumerate() {
+                if bd.owner == 2 && (bd.index == 2027 || bd.index == 2032) {
+                    eprintln!(
+                        "B {state} slot {b} 2/{} {} pos ({}, {}) attack {} targeted {} city {:?}",
+                        bd.index,
+                        loaded.build_type_names[bd.ty.expect("its type")],
+                        bd.pos.x,
+                        bd.pos.y,
+                        built.sim.attack_of(sim::combat::Obj::Building(b)),
+                        bd.targeted,
+                        bd.city
+                    );
+                }
+            }
+            if let Some(u) = built.sim.unit_by_o(1, 31) {
+                eprintln!(
+                    "G {state} 1/31 captain {} cap {} guard {:?} orders {:?} ai {}",
+                    built.sim.units[u].captain,
+                    built.sim.units[u].combat.captain,
+                    built.sim.units[u].orders.iter().find_map(|o| match o.body {
+                        sim::orders::Body::Guard(g) => Some((g.target, g.guard.x, g.guard.y)),
+                        _ => None,
+                    }),
+                    built.sim.units[u]
+                        .orders
+                        .iter()
+                        .map(|o| o.index())
+                        .collect::<Vec<_>>(),
+                    0
+                );
             }
             let set = record.first_of(state - 1).expect("the state's set").clone();
             let all = record.ranges(&set).expect("the set's ranges");
