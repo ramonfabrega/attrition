@@ -878,6 +878,27 @@ def split_paperwork(overlap, row_lists=()):
 # removed row, an edit, or any other path still refuses as before.
 ROW_LIST_CAPTURES = 'tools/gamelog/captures.txt'
 ROW_LIST_CENSUS = 'crates/rondata/src/census.rs'
+# Item 4598 (DECISIONS 154 §5): the held-out pins. Twelve lane gates of one
+# tranche were refused on a moved base whose shared path was this file, each
+# because another landing had re-pinned a row there. Its rows' tests now fail
+# on a row's whole lines and first parting alone and print the rest as drift,
+# so a merge git makes clean of it is a row list's merge: the lane lands on
+# its verdict and the booking gate measures the merged pins. A conflict in it
+# still refuses.
+HELD_OUT_PINS = 'crates/rondata/src/diff/held_out.rs'
+
+
+def merges_clean(base, path, run=subprocess.run):
+    """Whether `git merge-tree` merges `path` of HEAD and `base` with no
+    conflict (item 4598). False when the merge cannot be computed."""
+    try:
+        merged = run(['git', 'merge-tree', '--write-tree', '--name-only', '--no-messages', 'HEAD', base],
+                     capture_output=True, text=True, cwd=ROOT)
+    except (OSError, subprocess.CalledProcessError):
+        return False
+    if merged.returncode not in (0, 1):
+        return False
+    return path not in merged.stdout.splitlines()[1:]
 CENSUS_PIN_LINES = re.compile(r'^\s*///.*$|^pub const RUBRIC_UNIT_TYPES_SEEN: usize = \d+;$|^\s*$')
 ANY_ROW = re.compile(r'^.*$')
 
@@ -886,8 +907,9 @@ def row_list_overlap(base, overlap, run=subprocess.run):
     """The overlap paths whose hunks on `base`'s side, since this branch
     left it, are rows a merge keeps both of (Loop 3694): a document under
     `docs/`, a `ROW_LISTS` file or the captures file whose hunks only add
-    rows, and the census file whose changed lines are the rubric pin and
-    its comment. Empty when `base` is not a ref this tree knows."""
+    rows, the census file whose changed lines are the rubric pin and its
+    comment, and the held-out pins where git merges them clean (item 4598).
+    Empty when `base` is not a ref this tree knows."""
     overlap = [p for p in (overlap or []) if p not in COMMANDER_PAPERWORK]
     if not overlap:
         return []
@@ -900,6 +922,10 @@ def row_list_overlap(base, overlap, run=subprocess.run):
     for path in overlap:
         if path.startswith('docs/') and path.endswith('.md'):
             found.append(path)
+            continue
+        if path == HELD_OUT_PINS:
+            if merges_clean(base, path, run=run):
+                found.append(path)
             continue
         row = ROW_LISTS.get(path)
         removals_ok = False
