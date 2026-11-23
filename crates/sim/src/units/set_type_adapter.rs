@@ -262,3 +262,48 @@ impl SimSetType<'_> {
         usize::try_from(self.total.unwrap_or(0)).unwrap_or(0)
     }
 }
+
+impl Sim {
+    /// **`Unit::set_type`'s crew loop, on the occupancy index**
+    /// (`docs/AI.md` §120). `Unit::set_type@00612fa0`'s second kill loop
+    /// walks the figures from the **old** type's `squad_size` to the
+    /// unit's whole count and calls `Objects::kill_guy@00659410` on each,
+    /// and `kill_guy`'s last arm clears `radius[coll_size]` around the
+    /// *figure's own cell* — `CollBlock::set(…, 0)` over the same disc
+    /// `add_to_world` set, by the unit's **old** type, since
+    /// `set_type` swaps `+0x18` only after the loop. Nothing puts the
+    /// cells back but the sixty-fourth-frame repaint, which marks the
+    /// *new* disc: a Trebuchet (size 3, trackless crew standing on guy 0)
+    /// that becomes a Bombard (size 2) leaves no ring of its old block
+    /// and a hole in its new one until the next repaint.
+    ///
+    /// SEAM: `kill_guy`'s own gates before the clear — the figure's type
+    /// is not the crash kind (`+0x14 == 8`), its domain is not air, and the
+    /// object type's vslot `+0x120` answers 0 — are read as true;
+    /// [`Self::coll_paint_in`] gates air and a size of 0.
+    ///
+    /// **The region gate is the figure's world cell's plain `region`**
+    /// (item 4567, `docs/COLLISION.md` §2): `Objects::kill_guy@00659410`
+    /// reads `WData +0x4` of the cell under the figure's unit cell and
+    /// clears a disc cell only where that cell's `region` is the same (or
+    /// the figure's is negative). It asks no `get_tregion`, so a figure on
+    /// the ocean half of a coastal cell clears by the cell's land region,
+    /// where `coll_paint`'s gate answers the sea's `region2` and clears
+    /// nothing (run1783's President `1/14`, aboard on 2983: figure 2 at
+    /// unit cell (299, 640)).
+    ///
+    /// One figure of the crew loop: `Objects::kill_guy`'s clear around
+    /// figure `i`'s own cell, called for each figure from the squad to the
+    /// old total (`unit_set_type_view`) — and for every figure of a unit
+    /// that dies, by `close_unit` (`Unit::close`'s two loops, item 3787,
+    /// `docs/COLLISION.md` §2).
+    pub(crate) fn coll_kill_guy(&mut self, u: usize, i: usize) {
+        use crate::movement::collide::{UCELLS_PER_CELL, ucell};
+        let body = self.units[u].movement.body.pos;
+        let c = ucell(self.units[u].guys[i].follow.map_or(body, |f| f.body.pos));
+        let n = UCELLS_PER_CELL;
+        let cell = crate::world::Cell::new(c.x.div_euclid(n), c.y.div_euclid(n));
+        let region = self.world.region_of(cell);
+        self.coll_paint_in(u, c, region, false);
+    }
+}
