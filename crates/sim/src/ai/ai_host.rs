@@ -200,6 +200,16 @@ impl Host for ScriptHost<'_> {
     }
 
     fn call(&mut self, name: &str, args: &[Value]) -> Result<Value, String> {
+        let r = self.call_4548(name, args);
+        if std::env::var("RON_PROBE_4548").is_ok() && (4760..=4790).contains(&self.sim.frame) {
+            eprintln!("PROBE4548 host frame {} who {} {} {:?} -> {:?}", self.sim.frame, self.who, name, args, r);
+        }
+        r
+    }
+}
+
+impl ScriptHost<'_> {
+    fn call_4548(&mut self, name: &str, args: &[Value]) -> Result<Value, String> {
         let a = |i: usize| args.get(i).map_or(0, Value::as_int);
         let s = |i: usize| args.get(i).map_or_else(String::new, Value::as_str);
         Ok(match name.to_ascii_lowercase().as_str() {
@@ -627,6 +637,10 @@ impl ScriptHost<'_> {
             },
             Class::Build => match self.build_record(t) {
                 Some(r) => {
+                    if std::env::var("RON_PROBE_4548").is_ok() && (4760..=4790).contains(&self.sim.frame) {
+                        let sites: Vec<_> = self.sim.buildings.iter().enumerate().filter(|(_, b)| b.alive && b.owner == w && b.ty == Some(r)).map(|(i, b)| (i, b.active, b.pos, b.city)).collect();
+                        eprintln!("PROBE4548 num_type t {} rec {} built {} sites {} list {:?}", t, r, self.num_buildings(w, r), self.num_sites(w, r), sites);
+                    }
                     int(self.num_buildings(w, r) + if queued { self.num_sites(w, r) } else { 0 })
                 }
                 None => NO,
