@@ -66,11 +66,16 @@ impl BuildAttackView for SimBuildAttack<'_> {
     fn tribe_can_type(&mut self) -> bool {
         crate::seam!(
             "general_refused",
-            self.sim.tables.tech_tree.tribe_can_type(
-                &self.sim.tables.setup,
-                &self.sim.tech[self.sim.buildings[self.b].owner as usize],
-                GENERAL
-            ) == 0
+            self.sim
+                .tech
+                .get(self.sim.buildings[self.b].owner as usize)
+                .is_some_and(|p| {
+                    self.sim
+                        .tables
+                        .tech_tree
+                        .tribe_can_type(&self.sim.tables.setup, p, GENERAL)
+                        == 0
+                })
         );
         true
     }

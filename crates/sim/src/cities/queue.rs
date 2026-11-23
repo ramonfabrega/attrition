@@ -764,12 +764,6 @@ impl Sim {
     /// carried (the age's and the epoch's catch-up terms are built, items
     /// 3982 and 3790).
     pub(crate) fn research_rares(&self, who: Player) -> Vec<crate::cities::production::Adjust> {
-        crate::seam!(
-            "research_faster",
-            self.tables
-                .tech_tree
-                .has_preq(&self.tables.setup, &self.tech[who as usize], 0x314)
-        );
         if self.has_rare(who, economy::RELICS) {
             vec![crate::cities::production::Adjust::Scale(
                 100 - self.tables.tuning.relics_research_speed,
@@ -1320,12 +1314,6 @@ impl Sim {
         // [`Self::kremlin_trains_fast`], taken in [`Self::queue_target`]. SEAM: its
         // other arm, `has_preq(INSTANT_UNIT_BONUS)` for any unit, is read in
         // `docs/PRODUCTION.md` and not built (`docs/AI.md` §217.4).
-        crate::seam!(
-            "instant_unit_bonus",
-            self.tables
-                .tech_tree
-                .has_preq(&self.tables.setup, &self.tech[who as usize], 0x2b8)
-        );
         tail
     }
 
@@ -1945,11 +1933,13 @@ impl Sim {
         crate::seam!(
             "americans_barracks",
             self.building_ident(at) == crate::cities::build::Ident::Barracks
-                && self.tables.tech_tree.has_tribe_bonus(
-                    &self.tables.setup,
-                    &self.tech[who as usize],
-                    crate::ai::tribe::AMERICANS
-                )
+                && self.tech.get(who as usize).is_some_and(|p| {
+                    self.tables.tech_tree.has_tribe_bonus(
+                        &self.tables.setup,
+                        p,
+                        crate::ai::tribe::AMERICANS,
+                    )
+                })
         );
         let container = matches!(
             self.building_ident(at),

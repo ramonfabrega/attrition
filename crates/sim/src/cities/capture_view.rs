@@ -209,11 +209,13 @@ impl CaptureView for SimCapture<'_> {
         crate::seam!(
             "tribe_bonus_not_lakota",
             id != TRIBE_LAKOTA
-                && self.sim.tables.tech_tree.has_tribe_bonus(
-                    &self.sim.tables.setup,
-                    &self.sim.tech[who as usize],
-                    id as usize
-                )
+                && self.sim.tech.get(who as usize).is_some_and(|p| {
+                    self.sim.tables.tech_tree.has_tribe_bonus(
+                        &self.sim.tables.setup,
+                        p,
+                        id as usize,
+                    )
+                })
         );
         id == TRIBE_LAKOTA && self.sim.cities.nation[who as usize].lakota
     }
