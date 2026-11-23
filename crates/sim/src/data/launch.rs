@@ -7212,6 +7212,630 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 173,
         },
     ),
+    // **Item 4574's pivot pieces' node-1 events** (`docs/COMBAT.md` §55): a
+    // node past the restriction count takes `get_position`'s non-pivot arm,
+    // as 4159r5's. Piece 206, the Main Battle Tank (`T80`, two events,
+    // run785's packet, `RData +0x88` 0.75): its sweeps are 207's rows' to
+    // the heading (478 and 1,118 points; 207's centroids, `--check` 361 of
+    // 361). Piece 233, the Anti-Aircraft Battery (two, run1416's packet,
+    // 0.8): 62 and 3,594 points, the centroid kept; row 93.
+    (
+        206,
+        crate::units::anim::ATTACK2,
+        1,
+        Bay {
+            right: 15_112,
+            fwd: 148_429,
+            dz: 130,
+        },
+    ),
+    (
+        206,
+        crate::units::anim::ATTACK2,
+        7,
+        Bay {
+            right: 15_129,
+            fwd: 149_061,
+            dz: 126,
+        },
+    ),
+    (
+        233,
+        crate::units::anim::ATTACKWALK,
+        14,
+        Bay {
+            right: 0,
+            fwd: -83_842,
+            dz: 202,
+        },
+    ),
+    (
+        233,
+        crate::units::anim::ATTACK2,
+        7,
+        Bay {
+            right: 0,
+            fwd: -81_331,
+            dz: 199,
+        },
+    ),
+    // **Item 4574's plain pieces** (`docs/COMBAT.md` §55; DECISIONS 153 §5),
+    // keys the sixth held-out battery fired from the figure's square, each
+    // after its row's first parting. `get_position.py … --init
+    // 0,<anim>,<time>,3 sweep <piece> 0 <anim> <time>` on run1579's packet
+    // fills each key, and `fit_bay.py` admits one region a key, 361 of 361
+    // headings, its centroid inside; the heights are the sweep's. The packets
+    // that store a piece agree with run1579's at every heading: run1155c
+    // (67), run1416 (222), run785 (1133) and run854 (1485). No packet of the
+    // 145 on disk stores 1131.
+    //
+    // Piece 67, the Manchu Riflemen (`MANCHURIFLEMEN-DEFAULT-AGE0`, type
+    // 117, `manchu_rifleman.bh3`): node 0 at frame 10 of `CHAR_ATTACK1`, 15
+    // of `2` and 16 of `3` (34, 53 and 1,181 lattice points); row 73.
+    (
+        67,
+        crate::units::anim::ATTACK1,
+        10,
+        Bay {
+            right: 14_871,
+            fwd: 132_717,
+            dz: 168,
+        },
+    ),
+    (
+        67,
+        crate::units::anim::ATTACK2,
+        15,
+        Bay {
+            right: 4698,
+            fwd: 145_145,
+            dz: 122,
+        },
+    ),
+    (
+        67,
+        crate::units::anim::ATTACK3,
+        16,
+        Bay {
+            right: 12_672,
+            fwd: 131_919,
+            dz: 168,
+        },
+    ),
+    // Piece 222, the Howitzer (`HUMMEL-DEFAULT-AGE0`, type 272,
+    // `hummel.bh3`, `RData +0x88` 0.8): frames 1, 26 and 8 (111, 806 and
+    // 1,120 points), on the barrel's line; row 93.
+    (
+        222,
+        crate::units::anim::ATTACK1,
+        1,
+        Bay {
+            right: 0,
+            fwd: 84_150,
+            dz: 310,
+        },
+    ),
+    (
+        222,
+        crate::units::anim::ATTACK2,
+        26,
+        Bay {
+            right: 0,
+            fwd: 128_733,
+            dz: 253,
+        },
+    ),
+    (
+        222,
+        crate::units::anim::ATTACK3,
+        8,
+        Bay {
+            right: 0,
+            fwd: 92_200,
+            dz: 322,
+        },
+    ),
+    // Piece 1131, the Asian Heavy Machine Gun (`HVYMACHINEGUN-ASIAN-AGE0`,
+    // type 125, `machinegun_gunner_asian.bh3`): node 0 on all of its 29 keys
+    // (two events share frame 12 of `CHAR_ATTACK3`), 23 to 3,260 points a
+    // region; row 93. Its `CHAR_ATTACK1` frame 3 is piece 73's row.
+    (
+        1131,
+        crate::units::anim::ATTACK1,
+        3,
+        Bay {
+            right: -7425,
+            fwd: 147_384,
+            dz: 93,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK1,
+        9,
+        Bay {
+            right: -16_600,
+            fwd: 145_697,
+            dz: 88,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK1,
+        12,
+        Bay {
+            right: -16_551,
+            fwd: 144_695,
+            dz: 91,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK1,
+        20,
+        Bay {
+            right: 752,
+            fwd: 146_479,
+            dz: 84,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK1,
+        24,
+        Bay {
+            right: 13_866,
+            fwd: 144_797,
+            dz: 89,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK1,
+        29,
+        Bay {
+            right: 18_457,
+            fwd: 146_563,
+            dz: 86,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK1,
+        32,
+        Bay {
+            right: 18_306,
+            fwd: 144_313,
+            dz: 83,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK1,
+        37,
+        Bay {
+            right: 4674,
+            fwd: 148_076,
+            dz: 90,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK1,
+        39,
+        Bay {
+            right: 0,
+            fwd: 147_935,
+            dz: 91,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK1,
+        46,
+        Bay {
+            right: 0,
+            fwd: 146_376,
+            dz: 88,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK1,
+        47,
+        Bay {
+            right: 0,
+            fwd: 147_224,
+            dz: 88,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK2,
+        1,
+        Bay {
+            right: -402,
+            fwd: 146_341,
+            dz: 88,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK2,
+        2,
+        Bay {
+            right: -1420,
+            fwd: 148_009,
+            dz: 90,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK2,
+        3,
+        Bay {
+            right: -2732,
+            fwd: 145_714,
+            dz: 93,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK2,
+        5,
+        Bay {
+            right: -5603,
+            fwd: 144_577,
+            dz: 98,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK2,
+        8,
+        Bay {
+            right: -7510,
+            fwd: 145_038,
+            dz: 103,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK2,
+        9,
+        Bay {
+            right: -5569,
+            fwd: 143_666,
+            dz: 103,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK2,
+        10,
+        Bay {
+            right: -3051,
+            fwd: 145_130,
+            dz: 103,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK2,
+        12,
+        Bay {
+            right: 2021,
+            fwd: 145_012,
+            dz: 103,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK3,
+        3,
+        Bay {
+            right: 1011,
+            fwd: 144_798,
+            dz: 91,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK3,
+        4,
+        Bay {
+            right: 1830,
+            fwd: 143_956,
+            dz: 92,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK3,
+        12,
+        Bay {
+            right: 11_993,
+            fwd: 147_443,
+            dz: 85,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK3,
+        19,
+        Bay {
+            right: 18_422,
+            fwd: 144_413,
+            dz: 88,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK3,
+        20,
+        Bay {
+            right: 18_428,
+            fwd: 146_106,
+            dz: 85,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK3,
+        29,
+        Bay {
+            right: 1830,
+            fwd: 146_325,
+            dz: 90,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK3,
+        34,
+        Bay {
+            right: 0,
+            fwd: 146_847,
+            dz: 90,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK3,
+        37,
+        Bay {
+            right: 0,
+            fwd: 145_400,
+            dz: 88,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK3,
+        42,
+        Bay {
+            right: 0,
+            fwd: 145_708,
+            dz: 88,
+        },
+    ),
+    (
+        1131,
+        crate::units::anim::ATTACK3,
+        46,
+        Bay {
+            right: 0,
+            fwd: 146_272,
+            dz: 88,
+        },
+    ),
+    // Piece 1133, the Asian Advanced Machine Gun (`ADVMACHINEGUN-ASIAN-AGE0`,
+    // type 127, `minigun_gunner_norm.bh3`): the one key row 133 fired,
+    // `CHAR_ATTACK1` frame 3 (244 points), 1131's to the point.
+    (
+        1133,
+        crate::units::anim::ATTACK1,
+        3,
+        Bay {
+            right: -7425,
+            fwd: 147_384,
+            dz: 93,
+        },
+    ),
+    // Piece 1485, the Native American Advanced Machine Gun
+    // (`ADVMACHINEGUN-NA-AGE0`, type 127, `minigun_gunner_na.bh3`): its 19
+    // keys of `CHAR_ATTACK2` and `3` (56 to 3,081 points); row 133. Its
+    // `CHAR_ATTACK2` regions are 1131's to the point.
+    (
+        1485,
+        crate::units::anim::ATTACK2,
+        1,
+        Bay {
+            right: -402,
+            fwd: 146_341,
+            dz: 88,
+        },
+    ),
+    (
+        1485,
+        crate::units::anim::ATTACK2,
+        2,
+        Bay {
+            right: -1420,
+            fwd: 148_009,
+            dz: 90,
+        },
+    ),
+    (
+        1485,
+        crate::units::anim::ATTACK2,
+        3,
+        Bay {
+            right: -2732,
+            fwd: 145_714,
+            dz: 93,
+        },
+    ),
+    (
+        1485,
+        crate::units::anim::ATTACK2,
+        5,
+        Bay {
+            right: -5603,
+            fwd: 144_577,
+            dz: 98,
+        },
+    ),
+    (
+        1485,
+        crate::units::anim::ATTACK2,
+        8,
+        Bay {
+            right: -7510,
+            fwd: 145_038,
+            dz: 103,
+        },
+    ),
+    (
+        1485,
+        crate::units::anim::ATTACK2,
+        9,
+        Bay {
+            right: -5569,
+            fwd: 143_666,
+            dz: 103,
+        },
+    ),
+    (
+        1485,
+        crate::units::anim::ATTACK2,
+        10,
+        Bay {
+            right: -3051,
+            fwd: 145_130,
+            dz: 103,
+        },
+    ),
+    (
+        1485,
+        crate::units::anim::ATTACK2,
+        12,
+        Bay {
+            right: 2021,
+            fwd: 145_012,
+            dz: 103,
+        },
+    ),
+    (
+        1485,
+        crate::units::anim::ATTACK3,
+        3,
+        Bay {
+            right: 2079,
+            fwd: 146_008,
+            dz: 91,
+        },
+    ),
+    (
+        1485,
+        crate::units::anim::ATTACK3,
+        4,
+        Bay {
+            right: 2774,
+            fwd: 145_170,
+            dz: 93,
+        },
+    ),
+    (
+        1485,
+        crate::units::anim::ATTACK3,
+        12,
+        Bay {
+            right: 13_610,
+            fwd: 147_369,
+            dz: 85,
+        },
+    ),
+    (
+        1485,
+        crate::units::anim::ATTACK3,
+        19,
+        Bay {
+            right: 18_423,
+            fwd: 144_252,
+            dz: 89,
+        },
+    ),
+    (
+        1485,
+        crate::units::anim::ATTACK3,
+        20,
+        Bay {
+            right: 18_424,
+            fwd: 146_258,
+            dz: 85,
+        },
+    ),
+    (
+        1485,
+        crate::units::anim::ATTACK3,
+        27,
+        Bay {
+            right: 7504,
+            fwd: 146_012,
+            dz: 89,
+        },
+    ),
+    (
+        1485,
+        crate::units::anim::ATTACK3,
+        29,
+        Bay {
+            right: 1218,
+            fwd: 146_171,
+            dz: 90,
+        },
+    ),
+    (
+        1485,
+        crate::units::anim::ATTACK3,
+        34,
+        Bay {
+            right: 0,
+            fwd: 147_224,
+            dz: 90,
+        },
+    ),
+    (
+        1485,
+        crate::units::anim::ATTACK3,
+        37,
+        Bay {
+            right: 0,
+            fwd: 145_187,
+            dz: 88,
+        },
+    ),
+    (
+        1485,
+        crate::units::anim::ATTACK3,
+        42,
+        Bay {
+            right: 0,
+            fwd: 145_525,
+            dz: 88,
+        },
+    ),
+    (
+        1485,
+        crate::units::anim::ATTACK3,
+        46,
+        Bay {
+            right: 0,
+            fwd: 146_477,
+            dz: 88,
+        },
+    ),
 ];
 
 /// `(piece, animation slot, node)` → bay, for a piece whose every event
@@ -7545,6 +8169,57 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
             right: 93_870,
             fwd: -156_288,
             dz: 0,
+        },
+    ),
+    // **Pieces 242 and 243, the German and Asian Fighters' two guns**
+    // (`ME109-DEFAULT-AGE0` and `FIGHTERZERO-DEFAULT-AGE0`, types 292 and
+    // 293, `RData +0x88` 0.765; item 4574, `docs/COMBAT.md` §55): row 93.
+    // Each fires `CHAR_ATTACK2`'s eight frames (1, 3, 7, 11, 14, 18, 22 and
+    // 26) on node 0 and on node 1, and run1579's `--init` writes one point a
+    // node at all eight — 242's (4.27, −14.23, 10.03) and (−4.43, −14.23,
+    // 10.03), 243's (25.24, −9.40, −1.91) and (−24.69, −9.40, −1.91) —
+    // which run1417's and run1424's stored rows are bit for bit.
+    // `fit_bay.py` fits each node's sixteen sweeps alike (242: 225 and 462
+    // points; 243: 396 and 194; the centroid is kept), 36 over the figure
+    // and 7 under it.
+    (
+        242,
+        crate::units::anim::ATTACK2,
+        0,
+        Bay {
+            right: -15_671,
+            fwd: 52_259,
+            dz: 36,
+        },
+    ),
+    (
+        242,
+        crate::units::anim::ATTACK2,
+        1,
+        Bay {
+            right: 16_250,
+            fwd: 52_253,
+            dz: 36,
+        },
+    ),
+    (
+        243,
+        crate::units::anim::ATTACK2,
+        0,
+        Bay {
+            right: -92_688,
+            fwd: 34_516,
+            dz: -7,
+        },
+    ),
+    (
+        243,
+        crate::units::anim::ATTACK2,
+        1,
+        Bay {
+            right: 90_656,
+            fwd: 34_518,
+            dz: -7,
         },
     ),
 ];
