@@ -2423,6 +2423,94 @@ pub(crate) mod tests {
         }
     }
 
+    /// Probe 4587 (reverted whole): row 93's lines on run1799's ranges.
+    #[test]
+    fn probe_4587_row_93() {
+        if std::env::var("RON_PROBE_4587").is_err() {
+            return;
+        }
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            panic!("row 93's recording");
+        };
+        let map = home.join("ron-golden/run1799/map-14");
+        let ranges = crate::testenv::experiment(&map, "rontrace.ranges").expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let lo: i64 = std::env::var("P_LO")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(2680);
+        let hi: i64 = std::env::var("P_HI")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(2687);
+        let lines_wanted: Vec<usize> = std::env::var("P_LINES")
+            .ok()
+            .map(|v| v.split(',').filter_map(|x| x.parse().ok()).collect())
+            .unwrap_or(vec![0, 1, 6]);
+        let records: Option<Vec<i64>> = std::env::var("P_RECS")
+            .ok()
+            .map(|v| v.split(',').filter_map(|x| x.parse().ok()).collect());
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+                crate::diff::harness::debug_watch(&built, built.sim.frame);
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for &li in &lines_wanted {
+                let Some(ours) = lines[li].as_ref() else {
+                    continue;
+                };
+                let theirs: Vec<_> = all.iter().filter(|r| usize::from(r.line) == li).collect();
+                if ours.ranges.len() != theirs.len() {
+                    eprintln!(
+                        "P {state} line {li}: count ours {} theirs {}",
+                        ours.ranges.len(),
+                        theirs.len()
+                    );
+                }
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    let named = records
+                        .as_ref()
+                        .is_some_and(|r| r.contains(&i64::from(a.record)));
+                    if a.bytes != b.bytes || named {
+                        let decoded = |bytes: &[u8]| {
+                            crate::checksum::fields::range_fields(
+                                crate::diff::checksum_lines::packets::STATE_LINES[li],
+                                a.field,
+                                bytes,
+                            )
+                            .map(|v| {
+                                v.iter()
+                                    .map(|(n, x)| format!("{n}={x}"))
+                                    .collect::<Vec<_>>()
+                                    .join(" ")
+                            })
+                            .unwrap_or_else(|| format!("{:02x?}", bytes))
+                        };
+                        let (o, t) = (decoded(&a.bytes), decoded(&b.bytes));
+                        let mark = if a.bytes != b.bytes { "P" } else { "=" };
+                        eprintln!(
+                            "{mark} {state} line {li} range {k} record {} {}\n    ours   {o}\n    theirs {t}",
+                            a.record, a.field
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     /// **Row 93's Volksgrenadiers heal beside their President** (item 4577,
     /// `docs/RECGAME.md` §13): run1799, the ranges take of row 93's file.
     /// who=1's Volksgrenadiers `1/39` (TI 109, land, a captain) walk under
