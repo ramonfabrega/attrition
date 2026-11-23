@@ -23,8 +23,8 @@
 //! Ours: the background is our own terrain drawn straight down
 //! ([`background_camera`]), and the HUD draws it one cell a quad
 //! ([`layer`]), each cell in the background's colour at its centre. The
-//! borders and the view's rectangle are drawn over it ([`overlays`]); the
-//! fog, the blips and the pings are not.
+//! borders, the blips, the view's rectangle and the pings are drawn over
+//! it ([`overlays`]); the fog is not.
 
 /// **The quad's corners** (item 4581): `translated_verts`' screen x, y on
 /// run1564's packet at frame 3294, top, right, bottom, left, on the
@@ -70,6 +70,7 @@ pub fn minimap_camera(extent: (i32, i32)) -> render::Camera {
 }
 
 pub mod blips;
+pub mod pings;
 
 /// The quad's corners on a `size` frame: [`QUAD`] kept at its distance
 /// from the frame's left and bottom edges, where the console's bar sits.
@@ -500,8 +501,9 @@ pub fn view_rect(
 /// `render_ping`): the borders ([`borders`]), the blips ([`blips`], item
 /// 4601; `selection` the console's, `blink` the phase `graphic_tick & 8`)
 /// and the view's rectangle
-/// ([`view_rect`]). The fog draws nothing on run1564's photograph and is
-/// not built; nor are the pings.
+/// ([`view_rect`]), then the pings ([`pings`], item 4603: the entries
+/// the world holds, which our sim does not yet supply). The fog draws
+/// nothing on run1564's photograph and is not built.
 pub fn overlays(
     world: &crate::world::World,
     view: &render::Camera,
@@ -539,6 +541,16 @@ pub fn overlays(
         view,
         screen,
     ));
+    if let Some(set) = world.ping_set.as_ref() {
+        let quads = pings::build(
+            set,
+            &world.pings.entries,
+            world.pings.tick,
+            size,
+            (cells.0 * CELL, cells.1 * CELL),
+        );
+        out.extend(pings::draw(&quads, set, size));
+    }
     out
 }
 
@@ -928,27 +940,65 @@ pub(crate) mod tests {
             let out = std::path::PathBuf::from(dir).join("still-run1564-minimap.bmp");
             std::fs::write(&out, crate::gpu::bmp(&ours, size)).expect("the still writes");
         }
-        let mut got = [0usize; 6];
-        for j in 0..cells.1 {
-            for i in 0..cells.0 {
-                let (x, y) = to_screen(s, extent, i * CELL + CELL / 2, j * CELL + CELL / 2);
-                let (x, y) = (x as i32, y as i32);
-                let (a, b) = (px(&p.photo.rgba, x, y), px(&ours, x, y));
-                let (wa, wb) = (water(a), water(b));
-                got[0] += usize::from(wa && wb);
-                got[1] += usize::from(wa);
-                got[2] += usize::from(wb);
-                got[3] += usize::from(wa == wb);
-                got[4] +=
-                    usize::from((0..3).all(|k| (i32::from(a[k]) - i32::from(b[k])).abs() <= NEAR));
-                got[5] += 1;
-                if std::env::var_os("RON_MINIMAP_CELLS").is_some() {
-                    println!("cell ({i}, {j}) pixel ({x}, {y}) theirs {a:?} ours {b:?}");
+        let count = |ours: &[u8], show: bool| {
+            let mut got = [0usize; 6];
+            for j in 0..cells.1 {
+                for i in 0..cells.0 {
+                    let (x, y) = to_screen(s, extent, i * CELL + CELL / 2, j * CELL + CELL / 2);
+                    let (x, y) = (x as i32, y as i32);
+                    let (a, b) = (px(&p.photo.rgba, x, y), px(ours, x, y));
+                    let (wa, wb) = (water(a), water(b));
+                    got[0] += usize::from(wa && wb);
+                    got[1] += usize::from(wa);
+                    got[2] += usize::from(wb);
+                    got[3] += usize::from(wa == wb);
+                    got[4] += usize::from(
+                        (0..3).all(|k| (i32::from(a[k]) - i32::from(b[k])).abs() <= NEAR),
+                    );
+                    got[5] += 1;
+                    if show {
+                        println!("cell ({i}, {j}) pixel ({x}, {y}) theirs {a:?} ours {b:?}");
+                    }
                 }
             }
-        }
+            got
+        };
+        let got = count(&ours, std::env::var_os("RON_MINIMAP_CELLS").is_some());
         println!("RUN1564_3279_MINIMAP: {got:?}");
         assert_eq!(got, RUN1564_3279_MINIMAP);
+        // Item 4603: what the pings would close once our sim supplies the
+        // entries (4603a). Measured, never pinned: the packet's own
+        // entries at the drawn tick 175 ([`pings::tests`]) through our
+        // renderer read the original's events, not our client. On the
+        // tree of item 4603: `[558, 596, 580, 3540, 3213, 3600]`, within
+        // NEAR +211.
+        if let Some(packet) = pings::tests::packet() {
+            p.world.pings = pings::Live {
+                entries: packet.entries,
+                tick: pings::tests::DRAWN_TICK_RUN1564,
+            };
+            let fed = crate::still_minimap(
+                &mut p.world,
+                &camera,
+                size,
+                crate::gpu::SilhouetteOrder::Before,
+                wgpu::TextureFormat::Rgba8Unorm,
+                &sel,
+                &|_| None,
+                true,
+            );
+            p.world.pings = pings::Live::default();
+            if let Some(dir) = std::env::var_os("RON_STILL_DIR") {
+                let out = std::path::PathBuf::from(dir).join("still-run1564-minimap-fed.bmp");
+                std::fs::write(&out, crate::gpu::bmp(&fed, size)).expect("the still writes");
+            }
+            let fed = count(&fed, false);
+            println!(
+                "RUN1564_3279_MINIMAP fed the packet's pings (measured, not a pin): {fed:?}, \
+                 within NEAR {:+}",
+                fed[4] as i64 - got[4] as i64
+            );
+        }
     }
 
     /// [`to_screen`] and [`to_world`] invert one another and put the
