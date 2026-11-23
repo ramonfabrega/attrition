@@ -1492,7 +1492,10 @@ pub(crate) mod tests {
         let Some(sim::combat::Obj::Unit(u)) = bd.near else {
             panic!("the SAM's sighting is a unit: {:?}", bd.near)
         };
-        assert_eq!((built.sim.units[u].owner, built.sim.units[u].index), (1, 71));
+        assert_eq!(
+            (built.sim.units[u].owner, built.sim.units[u].index),
+            (1, 71)
+        );
     }
 
     /// **Row 83's computer lists a caravan by its ally's city** (item

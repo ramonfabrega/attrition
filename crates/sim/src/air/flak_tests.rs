@@ -207,13 +207,20 @@ fn an_anti_air_building_winds_on_its_sighting_without_a_target() {
         s.walls_inc_time(1);
         seen.push(s.buildings[r].recharging);
     }
-    assert_eq!(seen[..19], (1..=19).collect::<Vec<i32>>()[..], "a sighting winds up");
+    assert_eq!(
+        seen[..19],
+        (1..=19).collect::<Vec<i32>>()[..],
+        "a sighting winds up"
+    );
     assert_eq!(seen[19..], [19, 19, 19], "no target: held at the top");
     assert!(s.combat.projectiles.is_empty(), "and fires nothing");
     s.buildings[r].near = None;
     s.buildings[r].target = Some(Obj::Unit(plane));
     s.walls_inc_time(1);
-    assert_eq!(s.buildings[r].recharging, 18, "a target and no sighting: down one");
+    assert_eq!(
+        s.buildings[r].recharging, 18,
+        "a target and no sighting: down one"
+    );
 }
 
 /// **An anti-air building's turret turns at its sighting** (item 4602,
@@ -230,12 +237,22 @@ fn an_anti_air_building_s_turret_turns_at_its_sighting_out_of_range() {
     let plane = unit(&mut s, 0, Pos::new(22272, 16512 + 40 * 0x300), bomber());
     s.buildings[r].job_counter = 0x4000_0000;
     s.buildings[r].near = Some(Obj::Unit(plane));
-    assert!(!s.is_in_range(Obj::Building(r), Obj::Unit(plane)), "the sighting is out of range");
+    assert!(
+        !s.is_in_range(Obj::Building(r), Obj::Unit(plane)),
+        "the sighting is out of range"
+    );
     assert!(s.slot_live(Obj::Unit(plane)), "a live slot");
-    assert_ne!(s.profile(Obj::Building(r)).obj_masks & mask::ANTI_AIR, 0, "ANTI_AIR");
+    assert_ne!(
+        s.profile(Obj::Building(r)).obj_masks & mask::ANTI_AIR,
+        0,
+        "ANTI_AIR"
+    );
     let off_phase = |s: &Sim, f: i64| s.buildings[r].phase(f) & 0x1f != 0;
     let want = crate::movement::find_angle(0, 40 * 0x300).0;
-    assert!(want.wrapping_sub(0x4000_0000).unsigned_abs() > 0x38e_38e3, "more than a step away");
+    assert!(
+        want.wrapping_sub(0x4000_0000).unsigned_abs() > 0x38e_38e3,
+        "more than a step away"
+    );
     let mut seen = Vec::new();
     let mut f = 1;
     while seen.len() < 40 {
@@ -258,11 +275,17 @@ fn an_anti_air_building_s_turret_turns_at_its_sighting_out_of_range() {
     s.buildings[r].job_counter = 0x4000_0000;
     s.buildings[r].near = None;
     s.process_building_combat(r, f);
-    assert_eq!(s.buildings[r].job_counter, 0x4000_0000, "no sighting: no turn");
+    assert_eq!(
+        s.buildings[r].job_counter, 0x4000_0000,
+        "no sighting: no turn"
+    );
     s.buildings[r].near = Some(Obj::Unit(plane));
     s.buildings[r].combat.as_mut().unwrap().obj_masks = 0;
     s.process_building_combat(r, f);
-    assert_eq!(s.buildings[r].job_counter, 0x4000_0000, "not ANTI_AIR: no turn");
+    assert_eq!(
+        s.buildings[r].job_counter, 0x4000_0000,
+        "not ANTI_AIR: no turn"
+    );
 }
 
 /// **An anti-air unit keeps its angle at an aircraft, and only there**
