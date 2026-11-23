@@ -11214,8 +11214,15 @@ both `vector_dist`s' operands):
   → 0, the post being the order's `+0x1c/+0x20`, `guard_x/guard_y`.
 
 Before it, a target in another `tregion` must be `is_in_range` (`param_3`
-is 1 here, so only the region arm runs). After it comes the tail:
-`poor_target` only with `use_poor`.
+is 1 here, so only the region arm runs). After it comes the tail
+(the listing `64a1ba`–`64a252`, item 4587): ~~`poor_target` only with
+`use_poor`~~ first a **building** candidate (vslot `+0x1c`) whose type's
+build flags (`+0x2c0`) lack `0x10` (`NO_CITY`) and whose world cell
+(`div_3_table[(x ^ key) >> 8]`) has no territory owner (`WData +0xf ==
+-1`, `cmpb $-1`) is refused (`jne`/`je 0x649fb9`, `xor eax`); then
+`poor_target` with `use_poor` and not `param_7`. The tail is outside the
+unit head, so a building's own search asks it too; the captain shortcut's
+`return 1` is the only path past it. Not carried (§63.6).
 
 ### 63.2 Why 1036, and not before
 
@@ -11312,7 +11319,12 @@ retaliation gate for a human guard (1091).
 SEAMS: `is_attack`'s overrides are folded in the export, so it is taken
 as the attack and ground-attack orders. ~~`check_target`'s AI-sea region
 exception~~ **carried by item 1214 (§86)**, with the coastal-refined
-region; its building-cell tail is not carried. ~~The retaliation's
+region; its building-cell tail is not carried — in the ring search
+(`find_nearby_target:332`) or the guard's call (`fight:352`), as
+`docs/audit/2026-11-06-territory-second-3.md` names it. Item 4587 built it
+and reverted it: row 93's Oil Well `2/2032` stands on who=2's ground in
+ours on 2686, so the arm cannot fire there and no capture holds a witness
+(parked 4587a). ~~The retaliation's
 `on_duty` return (`00600877`'s `local_20 != NONE` above it) is not
 carried.~~ **Carried by item 1040 (§70.3).**
 
