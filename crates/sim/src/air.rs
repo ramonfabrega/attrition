@@ -1333,7 +1333,7 @@ impl Sim {
     /// player holds the bonus's one prerequisite, Missile Shield
     /// (`crate::tech::Roles::missile_defense_preq`). A tree without the
     /// role holds no shield.
-    pub(crate) fn missile_defense_held(&self, who: crate::Player) -> bool {
+    pub fn missile_defense_held(&self, who: crate::Player) -> bool {
         (who as usize) < self.tech.len()
             && self
                 .tables

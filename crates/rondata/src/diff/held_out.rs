@@ -1093,6 +1093,28 @@ mod tests {
                     k2 += 1;
                 }
             }
+            if (955..=956).contains(&state) {
+                for j in 0..3u8 {
+                    eprintln!(
+                        "P4575 state {state} who={j} shield {} ally0 {} ally1 {} ally2 {} defeated {}",
+                        built.sim.missile_defense_held(j),
+                        built.sim.is_ally(j, 0),
+                        built.sim.is_ally(j, 1),
+                        built.sim.is_ally(j, 2),
+                        built.sim.leaders.defeated[j as usize]
+                    );
+                }
+                let ob = built.sim.checksum_builds(&|_| -1);
+                let tb: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+                for (side, rs) in [("ours", ob.ranges.iter().map(|r| (r.record, r.field, r.bytes.clone())).collect::<Vec<_>>()), ("theirs", tb.iter().map(|r| (0i16, "", r.bytes.clone())).collect())] {
+                    for (k, (rec, _f, b)) in rs.iter().enumerate() {
+                        let field = ob.ranges[k].field;
+                        if field == "queue[k]" && b.len() >= 6 && u16::from_le_bytes([b[4], b[5]]) == 579 {
+                            eprintln!("P4575 state {state} {side} shield queued: range {k} record {} {:?} (ours rec {rec})", ob.ranges[k].record, b);
+                        }
+                    }
+                }
+            }
             if state >= 957 {
                 let ob = built.sim.checksum_builds(&|_| -1);
                 let tb: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
