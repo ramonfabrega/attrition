@@ -1203,3 +1203,53 @@ fn a_gaia_figure_s_variant_is_the_lobby_seed_s_not_the_world_s() {
         "no lobby seed: the world's"
     );
 }
+
+/// **A release at a gone target still takes a `graph_index`** (item 4595,
+/// `docs/COMBAT.md` §24.4). `Guy::execute_events@005d99c0` refuses a gone
+/// target only on a `CHAR_ATTACK2` figure; any other passes the event to
+/// `execute_game_events`, whose `Objects::add_ammo` counts `+0x1f8` while
+/// `Ammo::init` returns at `:181` on the target's clear `flags & 1`. run1798's
+/// Armored Car `2/32` (TI 216, land), on `CHAR_ATTACKWALK` at the gone
+/// Citizen `0/4` (TI 50), takes theirs' 1008 on 3278 and leaves no round.
+/// The same figure on `CHAR_ATTACK2` takes nothing; at a live target the
+/// round is made with the count.
+///
+/// Written to fail first: with the release returning at `!struck`, the count
+/// stands at 0 on the walk.
+#[test]
+fn a_release_at_a_gone_target_takes_a_graph_index_and_leaves_no_round() {
+    for (anim, dead, want_count, want_rounds) in [
+        (ATTACKWALK, true, 1, 0),
+        (ATTACK2, true, 0, 0),
+        (ATTACKWALK, false, 1, 1),
+    ] {
+        let mut s = sim_at(12345);
+        let mut t = crate::UnitType::default();
+        t.cols.unit_flags |= crate::ai::ai_load::uflags::FIRES_ON_MOVE;
+        let ty = s.add_unit_type(t);
+        let target = animal(&mut s, 0, 4, -1, DEFAULT, 0, 20);
+        s.units[target].pos = Pos::new(3600, 3000);
+        s.units[target].on_map = true;
+        if dead {
+            s.units[target].health = 0;
+        }
+        let piece = 166;
+        let u = animal(&mut s, 2, 32, piece, anim, 17, 30);
+        s.units[u].ty = Some(ty);
+        s.units[u].on_map = true;
+        s.units[u].guys[0].last_time = 16;
+        s.units[u].cast_target = Some(crate::combat::Obj::Unit(target));
+        s.roster.art.releases.insert(
+            piece,
+            [(anim, vec![(17, 0, false, false, false, false, -1)])]
+                .into_iter()
+                .collect(),
+        );
+        s.guy_release_events(u);
+        assert_eq!(
+            (s.combat.next_ammo_graph_index, s.combat.projectiles.len()),
+            (want_count, want_rounds),
+            "anim {anim}, dead {dead}: the count and the rounds"
+        );
+    }
+}
