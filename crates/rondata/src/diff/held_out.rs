@@ -1954,7 +1954,10 @@ pub(crate) mod tests {
     /// record agrees on 3956, and the two `targeted` bumps theirs takes
     /// (`0/0` 5 → 6, `0/2000` 0 → 1) are the two searches' winners.
     /// Every units, builds, guys and world range on 3955, ours against
-    /// theirs, byte for byte; on 3956, theirs' two records as read.
+    /// theirs, byte for byte; on 3956, theirs' two records as read, and
+    /// since item 4619 every range of the four lines on 3956 too: the
+    /// actor is a third member of their group, `1/25`, whose find of `0/0`
+    /// goes to `Group::target_opportunity` (run1816's packet at 3955).
     #[test]
     fn row_28_s_bazookas_drop_their_chase_of_a_citizen_on_run1813_s_ranges() {
         let Some(inst) = crate::testenv::install() else {
@@ -2092,6 +2095,26 @@ pub(crate) mod tests {
             (2, 0x0a, 0, 0),
             "theirs' 1/52: ATTACK on 0/0 first"
         );
+        // Ours on 3956 (item 4619): the frame ticked once, every units,
+        // builds, guys and world range byte for byte. `1/25`'s
+        // `think_attack` hands group 66 the Special Forces `0/0`, and each
+        // member's `Unit::target_opportunity` passes the anti-siege shield,
+        // whose held Citizen is not siege.
+        stream.apply(built.sim.frame as i32, &mut built);
+        built.sim.command().tick();
+        let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+        for (line, name) in [(0, "units"), (1, "builds"), (6, "guys"), (11, "world")] {
+            let ours = lines[line].as_ref().expect("the line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on 3956");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "{name} range {k} on 3956, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
     }
 
     /// **Row 133's Temple site's close fixes the borders** (item 4607,
