@@ -32,8 +32,9 @@ is `2026-11-23-fable-pass-seams.md`.*
   notice, and no capture on file was ever taken with the fog on. The
   seat starts with that capture. Say the word to put the seat on a
   parity game instead.
-- **The disk.** It read 56 GB at the handoff and 84 after this pass
-  compressed the archive and removed three finished lane trees. Every
+- **The disk.** It read 56 GB at the handoff and 129 at the pass's
+  end: the archive compressed, three finished lane trees removed, 940
+  old gate report folders swept, the build caches cleared. Every
   capture was being stored twice; new ones are stored once from now.
   The copies already there are 19 GiB, and 10 GiB more is the same
   executables saved 4,151 times. Folding those needs your word, and
@@ -57,7 +58,7 @@ is `2026-11-23-fable-pass-seams.md`.*
 | the seam table (`held_seams`, feature `seam-count`, seven tests, 207 s, the seventh added) | five green; the sixth red, `left: Some([(133, 455)])`, `right: Some([(133, 471)])`; the seventh red on its empty pin, `left: Some([(28, 41), (48, 20), (88, 2092)])`. Row 88: `kill_contents_no_come_out` entered first on state 2741, its first parting, marked `=`, 210 entries; row 53 enters it first on 3707. Row 93: `attack_ground_aim` first on 2962, marked `<`, 318 entries, the one hook on or before a first parting that none of the 43 whole rows enters. Run again on the re-pinned figures (`held-seams-2.log`): seven green |
 | the bay probe (`PASSFALLBACK` on `launch_point`'s fallback, `the_seventh_held_out_games_score_as_pinned`, exit 0, 198 s) | 2,153 lines: pieces 128 (835) and 292 (1,257) on row 88, 1812 (19) and 1849 (22) on row 28, 10 (20) on row 48; nineteen keys of piece, anim and node; the print taken out after |
 | the archives (`split.py --archive`, then `afsctool` over both) | nothing to split; four files skipped over the compressor's limit, the same four; 62 → 68 GB |
-| the disk (`df -g ~`) | 56 GB at the handoff's last reading; 62 at the pass's start; 68 after the compression; 78 after reaping 4578's and 4600's trees; 84 after 4607's |
+| the disk (`df -g ~`) | 56 GB at the handoff's last reading; 62 at the pass's start; 68 after the compression; 78 after reaping 4578's and 4600's trees; 84 after 4607's; 112 after the gate's sweep of 940 report directories; 129 after the build trees' incremental caches (gate tree 13 and 7 GiB, integration tree 6) |
 | the archive's twins (`stat` over `Logs` and `~/ron-golden`) | `Logs`: 4,301 files, 29.8 GiB on disk, 401.2 apparent; 1,785 of them the same size as a file under `~/ron-golden/<run>/map-*`, 19.2 GiB on disk, none a hard link; `~/ron-golden`: packets 26.9 GiB, traces 12.8, ranges 11.7, dumps 11.6, 4,151 executables 10.2 |
 | the temp directory (`du` over `$TMPDIR`) | 47 GiB in all: 440 `attrition-gate-*` report directories 21.3 GiB, `attrition-diff-failures` 851 exports 8.9 GiB, 136,820 unnamed entries 6.5 GiB |
 | the compressor and a hard link | a 25.6 MB file under two names: one inode before and after `afsctool -c -f -T LZFSE`, 25,000 → 80 KiB on disk, `cmp` equal |
@@ -175,5 +176,21 @@ both are a console that sees everything. Nothing was uploaded.
 
 ## The gate
 
-Whole, by `tools/gate_run.sh`, once, on the pass's commit; the commit
-after it quotes the log (`gate-pass-1123b.log`).
+Whole, by `tools/gate_run.sh`, once.
+
+- **`gate-pass-1123b.log`: `gate exit 0`** on `7b2a1555f`, the pass's
+  commit, 9 of 9 steps: offline 1.0, clippy 0.2, guard 1.3, merge pins
+  1.1, release 23.5, clock 0.1. `Clock: green beside load`. Admission
+  13.3 s over 1,584 leases; load 3.5 at its start and 7.4 at its end.
+  `Fixture audit: 205757 requests, 2 missing fixtures`: run1810's and
+  run1811's traces, the seventh's two rows not yet taken (item 4611).
+  `Reports: 940 gate report directories older than 2 days removed`.
+  `Rows: one driver row at most: steer 799bef49 (working)`; `Driver: 0
+  landings since the last pass (backstop 20) · context 381 k`; `Trunk:
+  origin/main is origin/worktree-replan-pdb`. `Builders: 0 reaped`; 112
+  GB free after it. Pushed, and origin/main fast-forwarded to it.
+- **After it, with no gate running**: the incremental caches of the gate
+  tree (release and debug) and of the integration tree (release) were
+  removed, build output the next build makes again: 104 → 129 GB free.
+- The commit that quotes this is documents only and ran no whole gate;
+  the reflex, `tools/guard.sh`, was green on it.
