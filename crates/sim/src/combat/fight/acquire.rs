@@ -1144,6 +1144,25 @@ impl Sim {
                         if score == 0 && value != 0 {
                             score = 1;
                         }
+                        if std::env::var("RON_PROBE_4587").is_ok()
+                            && self.frame >= 2684
+                            && self.frame <= 2687
+                        {
+                            eprintln!(
+                                "S f{} att {:?} cand {:?} pos {:?} dist {} targeted {} value {} in_range {} score {} flags {:#x} best {:?}",
+                                self.frame,
+                                attacker,
+                                o,
+                                self.pos_of(o),
+                                dist,
+                                targeted,
+                                value,
+                                in_range,
+                                score,
+                                flags,
+                                best
+                            );
+                        }
                         // `local_70`, seeded at 0 (`find_nearby_target@00648da0:232`) and taken past
                         // `jle` (`64987d`): a score of 0 — a candidate
                         // `compare_target` answered 0 for — is never the
