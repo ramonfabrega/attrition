@@ -9993,7 +9993,30 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4589 (`Guy::move`'s moving walk, row 73's word),
+        // past the row's first parting 3358, which stands: ammo 3,992 ->
+        // 3,918 and items 9,173 -> 9,154, named falls; deaths 3,819 -> 3,880.
+        // No first parting moved.
+        moved: Some(Score {
+            states: 12001,
+            agreed: [
+                3358, 3732, 12001, 3918, 3880, 3716, 3358, 3707, 3825, 9154, 3923, 3707,
+            ],
+            first: &[
+                ("units", (3358, Some(992329593), 1194311501)),
+                ("builds", (3732, Some(2175428037), 986670026)),
+                ("ammo", (3795, Some(684788378), 1)),
+                ("deaths", (3707, Some(1220611515), 3817282588)),
+                ("groups", (3716, Some(3464512650), 3450219541)),
+                ("guys", (3358, Some(479939638), 3928181788)),
+                ("leaders", (3707, Some(3179845721), 3311573076)),
+                ("cities", (3825, Some(4087239103), 2717798815)),
+                ("items", (4574, Some(3301772440), 3298888854)),
+                ("goods", (3832, Some(2135290454), 2227565146)),
+                ("world", (3707, Some(2727186382), 2158397478)),
+            ],
+            over: None,
+        }),
     }),
     // run1791
     // row 73, as found 2026-11-22: 1 line whole; units 1,563 of 3,438, first 1563; builds 1,569 of
@@ -10035,24 +10058,21 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // cities 1,563 -> 2,801, the row's first parting now units 2779 (ours'
         // sum 2333664493, theirs 4092650740) and guys 2779. Every column
         // moved; see `docs/journal/2026-11-23-item-4583.md`.
+        // Moved by item 4589 (`Guy::move`'s moving walk is `CHAR_ATTACKWALK`
+        // for an aimed fire-on-the-move type, `docs/ANIM.md` §16: on 2779
+        // who=2's ARMOREDCAR `2/70`, idled by its guard stand, is put back on
+        // the attack walk; guy record 70 `cur_anim` ours 7 -> 10, theirs 10,
+        // `end_time` 26 -> 30, theirs 30): units and guys 2,779 -> 3,438, and
+        // every line but ammo whole to the original's end 3437; ammo 2,788
+        // -> 3,280, the row's first parting now ammo 3279 (ours' sum
+        // 3061199017, theirs 3074240683). Every column moved; see
+        // `docs/journal/2026-11-23-item-4589.md`.
         moved: Some(Score {
             states: 3438,
             agreed: [
-                2779, 2795, 3438, 2788, 2794, 2805, 2779, 2794, 2801, 3429, 3418, 2794,
+                3438, 3438, 3438, 3280, 3438, 3438, 3438, 3438, 3438, 3438, 3438, 3438,
             ],
-            first: &[
-                ("units", (2779, Some(2333664493), 4092650740)),
-                ("builds", (2795, Some(3962601586), 3323166832)),
-                ("ammo", (2787, Some(1369770825), 1425413695)),
-                ("deaths", (2794, Some(1843280476), 3340119021)),
-                ("groups", (2805, Some(3561048280), 2565163092)),
-                ("guys", (2779, Some(2080712858), 2858035361)),
-                ("leaders", (2794, Some(1373124910), 3657316520)),
-                ("cities", (2801, Some(1204043913), 1313161355)),
-                ("items", (3122, Some(3488693296), 3451206702)),
-                ("goods", (3231, Some(1506572132), 1414297440)),
-                ("world", (2794, Some(3972800438), 3987873802)),
-            ],
+            first: &[("ammo", (3279, Some(3061199017), 3074240683))],
             over: None,
         }),
     }),

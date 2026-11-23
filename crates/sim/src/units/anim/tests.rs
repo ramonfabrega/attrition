@@ -292,6 +292,52 @@ fn a_moving_figure_on_a_turn_slot_is_put_back_on_the_walk() {
     }
 }
 
+/// **A moving figure of an aimed fire-on-the-move type is asked for the
+/// attack walk, whatever it holds** (`Guy::move@005d9240`: the type test
+/// at `5d93fd`, the request at `5d958a`; item 4589, `docs/ANIM.md` §16).
+/// Row 73's ARMOREDCAR `2/70` on 2779: a guard stand idled it earlier in
+/// the frame, and the move put it back on `CHAR_ATTACKWALK`, not on the
+/// speed's `CHAR_SLOG`. Unaimed, the same figure walks; already on the
+/// attack walk inside its length, it is left alone.
+///
+/// Written to fail first: with the moving arm sparing only a figure
+/// already on `CHAR_ATTACKWALK`, the idle figure takes the walk category.
+#[test]
+fn a_moving_figure_aimed_on_the_idle_is_put_back_on_the_attack_walk() {
+    let mut s = sim_at(12345);
+    let mut t = crate::UnitType::default();
+    t.cols.unit_flags |= crate::ai::ai_load::uflags::FIRES_ON_MOVE;
+    let ty = s.add_unit_type(t);
+    let target = animal(&mut s, 0, 2, -1, DEFAULT, 0, 20);
+    let u = animal(&mut s, 2, 70, -1, DEFAULT, 0, 20);
+    s.units[u].ty = Some(ty);
+    s.units[u].cast_target = Some(crate::combat::Obj::Unit(target));
+    s.units[u].combat.recharging = 0;
+    s.guy_follow_anim(u, 0, false, true);
+    assert_eq!(
+        s.units[u].guys[0].anim, ATTACKWALK,
+        "an aimed moving figure on the idle was not put back on the attack walk"
+    );
+    // Already on it, inside its length: the same-category return.
+    s.units[u].guys[0].cur_time = 3;
+    s.units[u].guys[0].end_time = 30;
+    s.guy_follow_anim(u, 0, false, true);
+    assert_eq!(
+        (s.units[u].guys[0].anim, s.units[u].guys[0].cur_time),
+        (ATTACKWALK, 3),
+        "a figure already on the attack walk was restarted"
+    );
+    // Unaimed: the walk category.
+    let v = animal(&mut s, 2, 71, -1, DEFAULT, 0, 20);
+    s.units[v].ty = Some(ty);
+    s.guy_follow_anim(v, 0, false, true);
+    assert_eq!(
+        category(s.units[v].guys[0].anim),
+        category(WALK),
+        "an unaimed moving figure did not walk"
+    );
+}
+
 /// **An attack asked of a guy that is still turning costs no draw and
 /// is not lost** (`docs/ANIM.md` §6.2). The three states the byte can
 /// be in, each asserted against the stream's own word: deferred (no
