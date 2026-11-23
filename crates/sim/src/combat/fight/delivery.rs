@@ -238,6 +238,18 @@ impl Sim {
             ap.ammo_per_att,
             ap.uber_size,
         );
+        if std::env::var("RON_PROBE_4623").is_ok() {
+            let (to, tw) = self.obj_o_who(target);
+            if tw == 2 && to == 0 {
+                let (ao, aw) = self.obj_o_who(attacker);
+                let ati = match attacker { Obj::Unit(a) => self.units[a].type_index, _ => -1 };
+                eprintln!(
+                    "P4623D {frame} by {aw}/{ao} TI {ati} on {tw}/{to} attack {:?} armor {:?} pct {pct} dmg {dmg} count {count} ammo {ammo} splash {splash} quiet {quiet} angle {angle:?} dealt {dealt:?} ap {ap:?} tp {tp:?} at {at:?} tt {tt:?}",
+                    self.attack_of(attacker),
+                    self.armor_of(target),
+                );
+            }
+        }
         // Step 6: `dtype`, which is the death animation's gate (§42.1).
         // `get_damage` leaves 2, or 3 for an EXPLOSIVE/BOMBARD attacker;
         // `do_damage` then overrides it to **4** for an ammo whose graphic
