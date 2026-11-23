@@ -804,7 +804,33 @@ impl Sim {
         // and everything else as a fringe.
         let k = combat::splash_cells(p.splash_area);
         let extra = combat::splash_extra_cell(k);
-        let landing_cell = p.landing.cell();
+        // **A self-destructing shooter splashes from the shot's middle**
+        // (item 4622, `docs/RECGAME.md` §14.4): `do_damage@00678060` at
+        // `678652`..`6786b0` asks the shooter's vslot `+0x18` (`Unit`'s
+        // returns 1, a building's 0) and its type's `unit_flags & 0x2000`
+        // (`n`, the fire rafts and fire ships), and with both the centre is
+        // `((sx + ex) / 2, (sy + ey) / 2)`, truncated toward zero; else the
+        // landing. The cell walk (`6786d8`..`6786ee`) and both arms'
+        // distances (`67888f`, `6788e0`, `678a58`..`678a8c`) read that
+        // centre; `hit_target` and `check_hit` above keep the landing.
+        // The shooter has died with its shot by now (`fight@005fd4d0:900`),
+        // and its type is read all the same. run1815's 2740: who=1's Heavy
+        // Fire Raft `1/87` (TI 335) sinks who=2's barges `2/60` and `2/71`,
+        // and the barge `2/61` beside them takes 0 in theirs.
+        let centre = if let Obj::Unit(s) = p.shooter
+            && self.units[s].ty.is_some_and(|t| {
+                self.tables.unit_types[t].cols.unit_flags
+                    & crate::ai::ai_load::uflags::SELF_DESTRUCT
+                    != 0
+            }) {
+            Pos::new(
+                (p.launch.x + p.landing.x) / 2,
+                (p.launch.y + p.landing.y) / 2,
+            )
+        } else {
+            p.landing
+        };
+        let landing_cell = centre.cell();
         let candidates: Vec<Obj> = (0..self.units.len())
             .map(Obj::Unit)
             .chain((0..self.buildings.len()).map(Obj::Building))
@@ -849,9 +875,7 @@ impl Sim {
                     if matches!(op.domain, Domain::Air) != p.air || op.has(mask::MISSILE) {
                         continue;
                     }
-                    let d = vector_dist(p.landing.x - pos.x, p.landing.y - pos.y)
-                        - 0xc0
-                        - op.guy_radius;
+                    let d = vector_dist(centre.x - pos.x, centre.y - pos.y) - 0xc0 - op.guy_radius;
                     let c = combat::splash_count(d, p.splash_area);
                     if c <= 0 {
                         continue;
@@ -865,8 +889,8 @@ impl Sim {
                     // The x term is explicit in the decompile and the y term
                     // is a lost register; by symmetry both axes less the
                     // footprint, then the hypotenuse.
-                    let dx = ((p.landing.x - pos.x).abs() - op.x_size * 0xc0).max(0);
-                    let dy = ((p.landing.y - pos.y).abs() - op.y_size * 0xc0).max(0);
+                    let dx = ((centre.x - pos.x).abs() - op.x_size * 0xc0).max(0);
+                    let dy = ((centre.y - pos.y).abs() - op.y_size * 0xc0).max(0);
                     let d = vector_dist(dx, dy);
                     let c = combat::splash_count(d, p.splash_area);
                     if c < 0 {
