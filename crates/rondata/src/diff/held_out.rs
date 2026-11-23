@@ -2475,14 +2475,17 @@ pub(crate) mod tests {
             for (b, bd) in built.sim.buildings.iter().enumerate() {
                 if bd.owner == 2 && (bd.index == 2027 || bd.index == 2032) {
                     eprintln!(
-                        "B {state} slot {b} 2/{} {} pos ({}, {}) attack {} targeted {} city {:?}",
+                        "B {state} slot {b} 2/{} {} pos ({}, {}) attack {} targeted {} city {:?} cell owner {:?} no_city {}",
                         bd.index,
                         loaded.build_type_names[bd.ty.expect("its type")],
                         bd.pos.x,
                         bd.pos.y,
                         built.sim.attack_of(sim::combat::Obj::Building(b)),
                         bd.targeted,
-                        bd.city
+                        bd.city,
+                        built.sim.world.owner_at(bd.pos),
+                        built.sim.tables.build_types[bd.ty.expect("ty")]
+                            .has(sim::cities::build::flags::NO_CITY)
                     );
                 }
             }
