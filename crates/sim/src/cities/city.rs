@@ -3322,9 +3322,17 @@ impl Sim {
                 }
             }
         }
-        // The old record.
+        // The old record, with the members that stayed in its chain
+        // (item 4568, `docs/RECGAME.md` §12.3): `capture_city@00733380:1157`
+        // calls `City::close@00737550` on the chain as the closes above left
+        // it, each `Build::close` having unlinked its own building, and
+        // `City::close` walks what remains by `city_down` (`+0x74`) and sends
+        // every live non-centre one to `Build::find_city`. Row 83's who=2
+        // Barracks `2/2036` stays its owner's when city `2/2020` falls on
+        // frame 3644, and theirs' state 3645 has it at the tail of who=2's
+        // city 1, `2/2029`'s `city_down` 2036, where a cleared list left it
+        // on the dead slot 2.
         if self.cities.cities[c].alive {
-            self.cities.cities[c].members.clear();
             self.close_city(c, Some(a));
         }
         // `capture_city@00733380:1170`–`:1172`: the old centre's `close(5)`.
