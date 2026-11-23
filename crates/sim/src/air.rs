@@ -2917,12 +2917,9 @@ pub struct WallCycle {
     /// `get_game_frames(0xc)`: the swing, `recharging` −1 down to −it.
     pub swing: i32,
     /// Slot `0xc`'s release events, `rondata::artdata::PieceReleases`'
-    /// shape, the last word the ammo's `missile="1"` (item 4604: the
-    /// SAM Rocket flies `Ammo::init`'s spline, as a unit's missile does).
+    /// shape, and the ammo's `missile="1"` (item 4604).
     pub releases: Vec<(u32, i8, bool, i32, bool)>,
-    /// Each release node's launch offset from the building's own `x/y/z`,
-    /// as measured ([`WALL_LAUNCH`]); a node with no row leaves from the
-    /// building itself.
+    /// Each node's measured launch offset ([`WALL_LAUNCH`]); none: the building.
     pub launch: Vec<(i8, (i32, i32, i32))>,
 }
 
@@ -2932,16 +2929,7 @@ pub struct WallCycle {
 /// and `Wall::inc_time`'s package carries a fixed `angle` of
 /// `0x20000000`, so the vector does not turn with the target: all twenty
 /// of run404's Radar rounds leave from (22408, 16376, 235), the building at
-/// (22272, 16512, 8) plus this row, node 0.
-///
-/// **The SAM's three nodes are run1797's** (item 4604, `docs/RECGAME.md`
-/// §13.5): `2/2027` at (9024, 27264), `z` 479, launches node 0 from
-/// (9079, 27270, 688) on 2198 and 2218, node 1 from (9040, 27248, 702) on
-/// 2201 and 2221, node 2 from (9017, 27209, 688) on 2206 and 2226, its
-/// turret turned between. `Wall::inc_time`'s package hands `get_position`
-/// `pivot_angles` of `fast_angle_to_degrees(+0x48 − 0x20000000)`
-/// (`6403d4`..`6403ed`), but the `<UNIT>` has no `<RESTRICTION>`, so no
-/// node turns with it. The Air Defense Gun's is not measured.
+/// (22272, 16512, 8) plus this row. The SAM's three: run1797 (item 4604, §84.3).
 pub const WALL_LAUNCH: &[(i32, i8, (i32, i32, i32))] = &[
     (RADAR, 0, (136, -136, 227)),
     (SAM, 0, (55, 6, 209)),
@@ -3050,12 +3038,8 @@ impl Sim {
         for &(at, node, harmless, piece, missile) in &cycle.releases {
             let at = i32::try_from(at).unwrap_or(i32::MAX);
             if last < at && at <= cur {
-                let launch = cycle
-                    .launch
-                    .iter()
-                    .find(|(n, _)| *n == node)
-                    .map(|&(_, l)| l);
-                self.wall_round(b, t, launch, node, (harmless, missile), piece);
+                let l = cycle.launch.iter().find(|r| r.0 == node).map(|r| r.1);
+                self.wall_round(b, t, l, node, (harmless, missile), piece);
             }
         }
     }
@@ -3064,8 +3048,7 @@ impl Sim {
     /// `Objects::add_ammo` → `Ammo::init` ([`Sim::fire_ammo_pub`]), from
     /// the building's own `x/y/z` plus the measured node vector
     /// ([`WALL_LAUNCH`]). The package's `num_guys` is the building's 0,
-    /// which run404's rounds print. A `missile="1"` ammo (the SAM Rocket)
-    /// flies `Ammo::init`'s spline (item 4604).
+    /// which run404's rounds print; a missile flies a spline (item 4604).
     fn wall_round(
         &mut self,
         b: usize,
