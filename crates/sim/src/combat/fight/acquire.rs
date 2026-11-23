@@ -225,8 +225,18 @@ impl Sim {
         from_think: bool,
     ) {
         let frame = self.frame;
+        let probe = std::env::var_os("RON_PROBE_4619").is_some();
+        if probe {
+            eprintln!(
+                "PROBE gto f{frame} asker {}/{} attacker {:?} from_think {from_think}",
+                self.units[asker].owner, self.units[asker].index, attacker
+            );
+        }
         {
             let (_, st) = self.seat_parts(seat);
+            if probe {
+                eprintln!("PROBE gto last {}", st.opportunity);
+            }
             if frame - st.opportunity <= 0xe {
                 return;
             }
@@ -240,6 +250,19 @@ impl Sim {
                 && self.units[m].captain
                 && self.profile(Obj::Unit(m)).combat_role
             {
+                if probe {
+                    let me = Obj::Unit(m);
+                    let held = self.units[m].combat.target;
+                    eprintln!(
+                        "PROBE gto member {}/{} action {:?} held {:?} in_range_held {:?} in_range_attacker {} yields-later",
+                        self.units[m].owner,
+                        self.units[m].index,
+                        self.action_of(m).map(|k| self.units[m].orders[k].index()),
+                        held,
+                        held.map(|h| self.is_in_range(me, h)),
+                        self.is_in_range(me, attacker)
+                    );
+                }
                 if !from_think && m == asker_captain {
                     self.target_opportunity_in(m, attacker, true);
                     continue;
