@@ -398,15 +398,17 @@ fn step(at: sim::Pos, (dx, dy): (i32, i32)) -> sim::Pos {
     }
 }
 
+/// Where unit `0` stands, its four headings, and the first one taken.
+#[cfg(test)]
+type Headings = (sim::Pos, [(i32, i32); 4], usize);
+
 /// **Unit `0`'s four headings off the built start** (item 4566's, made a
 /// function by item 4600): where slot 0's unit `0` stands, its four
 /// headings in [`script_rule`]'s order — toward the map's centre on x, on
 /// y, then away on x, on y — and the first of them whose point [`STEP`]
 /// units off is on the map and in the unit's own region (`tregion_alt`).
 #[cfg(test)]
-fn scout_headings(
-    built: &crate::diff::Built,
-) -> Result<(sim::Pos, [(i32, i32); 4], usize), String> {
+fn scout_headings(built: &crate::diff::Built) -> Result<Headings, String> {
     use sim::ids::scale::UNITS_PER_CELL;
     let s = &built.sim;
     let scout_u = s.unit_by_o(0, 0).ok_or("slot 0 has no unit 0")?;
