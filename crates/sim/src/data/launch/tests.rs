@@ -4472,3 +4472,74 @@ fn the_original_s_release_agrees_at_every_heading_for_item_4574() {
         &off[..off.len().min(20)]
     );
 }
+
+/// **The Carrack fires from its starboard battery** (item 4625,
+/// `docs/RECGAME.md` §14.4): row 88's who=1 `1/82` (piece 292, unit type
+/// 342) at (16824, 11640), facing `0x3337_0000` (whole degree 72), fires
+/// `CHAR_ATTACK2`'s node-1 event at frame 14 on 2790, and run1818's ammo
+/// record 0 on 2791 prints the round's `sx, sy, sz` as (16866, 11729, 35):
+/// the water's 0 and the node's 35. Red without the rows: the round leaves
+/// the figure's own point at 0.
+#[test]
+fn the_carrack_s_round_leaves_its_starboard_battery() {
+    let at = Pos::new(16824, 11640);
+    let facing = Angle(859_242_496);
+    assert_eq!(
+        launch_point(at, facing, 292, crate::units::anim::ATTACK2, 14, 1),
+        Pos::new(16866, 11729)
+    );
+    assert_eq!(
+        release_dz(292, crate::units::anim::ATTACK2, 14, 1),
+        Some(35)
+    );
+}
+
+/// **The Carrack's nine release keys agree with the original at every
+/// heading** (item 4625): `get_position.py … --init <node>,<anim>,<time>,3
+/// sweep 292 <node> <anim> <time>` on run1579's packet, one file a key,
+/// under `$RON_BAY_SWEEPS_4625`
+/// (`~/ron-data/lab-experiments/2026-11-23-item-4625/sweeps/`, outside
+/// git). Every heading agrees but one: node 2's `CHAR_ATTACK2` frame 24 at
+/// heading 283, which no lattice point reproduces with the other 360.
+#[test]
+fn the_carrack_s_release_agrees_at_every_heading_but_one() {
+    let Ok(dir) = std::env::var("RON_BAY_SWEEPS_4625") else {
+        eprintln!("skipping: set RON_BAY_SWEEPS_4625 (item 4625's oracle)");
+        return;
+    };
+    let mut names: Vec<_> = std::fs::read_dir(&dir)
+        .expect("RON_BAY_SWEEPS_4625")
+        .map(|e| e.expect("entry").file_name().into_string().expect("utf-8"))
+        .filter(|n| n.starts_with("sweep-") && n.ends_with(".txt"))
+        .collect();
+    names.sort();
+    let (mut files, mut rows, mut off) = (0, 0, Vec::new());
+    for name in names {
+        // `sweep-<piece>-<node>-<anim>-<time>.txt`
+        let f: Vec<&str> = name[..name.len() - ".txt".len()].split('-').collect();
+        let (piece, node, anim, time): (i32, i8, i8, u32) = (
+            f[1].parse().expect("piece"),
+            f[2].parse().expect("node"),
+            f[3].parse().expect("anim"),
+            f[4].parse().expect("time"),
+        );
+        let b = bay(piece, anim, time, node).unwrap_or_else(|| panic!("no bay for {name}"));
+        let table = std::fs::read_to_string(format!("{dir}/{name}")).expect("sweep");
+        for line in table.lines() {
+            let c: Vec<i64> = line
+                .split_whitespace()
+                .take(5)
+                .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                .collect();
+            let (x, y) = b.offset((c[0] + 180) % 360);
+            if (x, y, i64::from(b.dz)) != (c[2], c[3], c[4]) {
+                off.push(format!("{name} deg {}", c[0]));
+            }
+            rows += 1;
+        }
+        files += 1;
+    }
+    assert_eq!(files, 9, "{dir}");
+    assert_eq!(rows, 9 * 361, "{dir}");
+    assert_eq!(off, ["sweep-292-2-12-24.txt deg 283"]);
+}
