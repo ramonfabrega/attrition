@@ -1214,6 +1214,27 @@ mod tests {
                     }
                 }
             }
+            if std::env::var("RON_PROBE_CIT").is_ok() {
+                for (ci, c) in built.sim.cities.cities.iter().enumerate() {
+                    if c.alive && c.race != Some(c.owner) {
+                        let b = &built.sim.buildings[c.building];
+                        eprintln!(
+                            "P4570C state {state} city c{ci} owner {} race {:?} founder {} bld {} pos {:?} ty {:?} timer {} cit {}",
+                            c.owner, c.race, c.founder, b.index, b.pos,
+                            b.ty.map(|t| (built.sim.tables.build_types[t].x_size, built.sim.tables.build_types[t].y_size)),
+                            c.assimilation_timer, c.has_citizen
+                        );
+                    }
+                }
+                for u in built.sim.units.iter() {
+                    if u.type_index == 0x164 {
+                        eprintln!(
+                            "P4570U state {state} who {} o {} pos {:?} alive {} on_map {}",
+                            u.owner, u.index, u.pos, u.alive(), u.on_map
+                        );
+                    }
+                }
+            }
             if let Ok(spec) = std::env::var("RON_PROBE_BUILD") {
                 let want: i64 = spec.parse().unwrap_or(2036);
                 for (bi, b) in built.sim.buildings.iter().enumerate() {
