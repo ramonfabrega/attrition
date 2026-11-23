@@ -1875,6 +1875,78 @@ pub(crate) mod tests {
         assert!(built.sim.buildings[fresh].no_builder && !built.sim.buildings[started].no_builder);
     }
 
+    /// **Row 133's new city sweeps its buildings by object number** (item
+    /// 4620, `docs/RECGAME.md` §13.5): run1797's ranges. who=2's Village
+    /// `2/2026` finishes on 2370, and `City::find_buildings@007384c0` walks
+    /// each leader's `+0x1ec` list from `obj_base`, so the site `2/2007`
+    /// (slot 92 of ours, a reused number) joins before the Oil Well
+    /// `2/2008` (slot 28). Ours walked slots: builds range 2661, record
+    /// 2026, `city_down` ours 2008, theirs 2007. Every builds range on 2369
+    /// and 2370, byte for byte, and the chain 2026, 2007, 2008 on 2370.
+    #[test]
+    fn row_133_s_new_city_sweeps_its_buildings_by_object_number_on_run1797_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 2369..=2370 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let village = built.sim.building_by_o(2, 2026).expect("2/2026");
+            let well = built.sim.building_by_o(2, 2008).expect("2/2008");
+            let silo = built.sim.building_by_o(2, 2007).expect("2/2007");
+            if state == 2369 {
+                assert!(
+                    well < silo,
+                    "2/2008 sits before 2/2007 in our slots: {well} against {silo}"
+                );
+                assert!(!built.sim.buildings[village].active);
+                assert!(built.sim.buildings[well].city.is_none());
+                assert!(built.sim.buildings[silo].city.is_none());
+            } else {
+                let c = built.sim.buildings[village].city.expect("2/2026's city");
+                assert_eq!(
+                    built.sim.city_chain(c),
+                    vec![village, silo, well],
+                    "2/2026's chain on 2370"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[1].as_ref().expect("the builds line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "builds' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "builds range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+    }
+
     /// **Row 133's SAM flies its rockets on their splines** (item 4604,
     /// `docs/RECGAME.md` §13.5): run1797's ranges. On 2198 who=2's SAM
     /// `2/2027` launches its first SAM Rocket (`missile="1"`) at who=1's
@@ -11558,15 +11630,23 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // builds 2,351 -> 2,370, ammo 3,015 -> 2,980 and deaths 2,598 ->
         // 2,442 (falls past the parting), groups 2,351 -> 2,447, guys 2,351
         // -> 2,399, goods 4,316 -> 4,136, world 2,352 -> 2,400; the first
-        // parting is builds alone on 2370.
+        // parting is builds alone on 2370. Then by item 4620
+        // (`City::find_buildings` walks by owner and object number,
+        // `007384c0`'s `+0x1ec`/`+0x1f0` lists from `obj_base`: who=2's
+        // Village `2/2026` finishes on 2370 and sweeps `2/2008` (slot 28)
+        // and the site `2/2007` (slot 92); builds range 2661, record 2026,
+        // `city_down` ours 2008, theirs 2007; range 2221, record 2007, ours
+        // -1, theirs 2008; range 2259, record 2008, ours 2007, theirs -1; all
+        // agree now): builds 2,370 -> 2,432 (first 2370 -> 2432); no other
+        // line moved, and the first parting is units alone on 2376.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                2376, 2370, 6085, 2980, 2442, 2447, 2399, 2423, 2550, 3007, 4136, 2400,
+                2376, 2432, 6085, 2980, 2442, 2447, 2399, 2423, 2550, 3007, 4136, 2400,
             ],
             first: &[
                 ("units", (2376, Some(677748407), 115580592)),
-                ("builds", (2370, Some(529748698), 155538138)),
+                ("builds", (2432, Some(2924899778), 1632988777)),
                 ("ammo", (2408, Some(2284240743), 3727473848)),
                 ("deaths", (2442, Some(4112542119), 2232507217)),
                 ("groups", (2447, Some(1193197654), 2976956503)),
