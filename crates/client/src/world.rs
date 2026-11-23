@@ -164,6 +164,9 @@ pub struct World {
     /// The cities' plates' art (item 4410, `docs/HUD.md` §3), `None`
     /// where the install's interface files do not give it.
     pub(crate) scroll_art: Option<crate::selection::ScrollArt>,
+    /// The minimap's blips' atlas (item 4601, `docs/RENDERER.md` §3.33),
+    /// `None` where `effects_graphics.xml` names no `<BLIPMAP>`.
+    pub(crate) blip_atlas: Option<crate::minimap::blips::Atlas>,
     /// Pose each figure at its slot and clock (item 4067). On by default
     /// since item 4069 drew the original's facing (`guy_placement`): posed,
     /// candidate C reads 6 of 23, at rest 2 (`docs/RENDERER.md` §5.3);
@@ -1211,6 +1214,7 @@ impl World {
             unit_textures,
             shadow_art,
             scroll_art: crate::selection::ScrollArt::load(install.root()).ok(),
+            blip_atlas: crate::minimap::blips::Atlas::load(install.root()),
             shadows: true,
             shadow_mirror: false,
             unit_shadows: false,
