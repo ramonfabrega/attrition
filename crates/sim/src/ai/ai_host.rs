@@ -1144,6 +1144,10 @@ impl ScriptHost<'_> {
             where_,
         );
         let cursor = self.sim.ai.script_env.find_counters[counter::RESEARCH_PRODUCER];
+        if std::env::var("RON_PROBE_4548").is_ok() && (4000..=4790).contains(&self.sim.frame) && w == 1 {
+            let cands: Vec<_> = self.lap_builds(w, cursor).filter_map(|o| self.sim.building_by_o(w, o).map(|b| (o, b))).filter(|&(_, b)| self.building_is(b, producer)).map(|(o, b)| (o, self.sim.buildings[b].active, self.sim.buildings[b].city, self.sim.building_unassimilated(b))).collect();
+            eprintln!("PROBE4548 research frame {} t {} producer {} cursor {} cands {:?}", self.sim.frame, t, producer, cursor, cands);
+        }
         let found = self.lap_builds(w, cursor).find(|&o| {
             self.sim
                 .building_by_o(w, o)
