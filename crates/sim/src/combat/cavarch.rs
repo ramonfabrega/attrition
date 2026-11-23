@@ -287,30 +287,6 @@ impl crate::Sim {
     /// already within 15°), and the walk is `CHAR_WALK`; non-zero walks
     /// `CHAR_ATTACKWALK`.
     pub(crate) fn cavarch_step_anim(&mut self, u: usize) -> i8 {
-        if std::env::var_os("RON_PROBE_4589").is_some()
-            && self.units[u].owner == 2
-            && self.units[u].index == 70
-            && (2700..=2800).contains(&self.frame)
-        {
-            let un = &self.units[u];
-            eprintln!(
-                "PROBE4589 step recharging {} f{} cast {:?} fires {} aim {:?} des_flags {:?} node {:?} anim {:?} avg {} pos {:?} orders {}",
-                un.combat.recharging,
-                self.frame,
-                un.cast_target,
-                self.fires_on_move(u),
-                un.guys.first().map(|g| g.aim),
-                un.guys.first().map(|g| g.turret.des_flags),
-                un.guys.first().map(|g| g.turret.node_flags),
-                un.guys.first().map(|g| g.anim),
-                un.movement.body.avg_speed,
-                un.pos,
-                un.orders.len(),
-            );
-            if let Some(o) = un.orders.back() {
-                eprintln!("PROBE4589   front flags {} {:?}", o.flags, o.body);
-            }
-        }
         let Some(target) = self.units[u].cast_target else {
             return crate::units::anim::WALK;
         };
