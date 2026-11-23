@@ -1168,16 +1168,6 @@ pub(crate) mod tests {
             let ours = built.sim.checksum_leaders();
             let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
             eprintln!("P4585 state {state} leaders ours {} theirs {}", ours.ranges.len(), theirs.len());
-            let oc = built.sim.checksum_cities();
-            let tc: Vec<_> = all.iter().filter(|r| r.line == 8).collect();
-            for (a, b) in oc.ranges.iter().zip(&tc) {
-                if a.record == 2 && (a.field == "city_flags" || a.field == "city..ter") {
-                    eprintln!("P4585C state {state} rec {} {} same {} ours {:?} theirs {:?}", a.record, a.field, a.bytes == b.bytes, &a.bytes[..a.bytes.len().min(4)], &b.bytes[..b.bytes.len().min(4)]);
-                    if a.field == "city..ter" {
-                        eprintln!("P4585C   bordering ours {} theirs {}", a.bytes[0x5f], b.bytes[0x5f]);
-                    }
-                }
-            }
             let mut k2 = 0;
             for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
                 let slot = a.field == "make_list[k]" && a.record == 2;
