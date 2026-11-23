@@ -41331,3 +41331,35 @@ eight chained under `RON_LANE_WAIT=7200`, waited on with `waitrun.sh` in the bac
   `99c513b22f6497104be51636cfeadcb275dd99734ac84844bbe3dd442f68d310`; `rontrace.log`, 103,197,696 bytes, SHA-256 `a2fc6442bae4733334ea3b626690f218d3c9bbb4e46e0fce2a30966963068ed5`.
 
 **What it holds**: `diff::held_out::tests::the_sixth_held_out_games_score_as_pinned`.
+
+## run1799 — parity held out, sixth battery, row 93's file to 12,000 with the checksum and ranges hooks, every line but walls kept (2026-11-23, item 4577, `att-4577`)
+
+`docs/RECGAME.md` §13. **What the disk could not answer**: run1792 holds sums only, so row 93's units parting on 2342
+named no leaf. The take is run1792's file with the scorer's one-take line (`score_recording … ~/ron-golden/run1792/map-14`
+on `ec7d12bc3`: `--end-frame 12000 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0xffbu`):
+`TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1799
+--recording ~/ron-golden/recordings/item4566-row093-12000.rcx --end-frame 12000 --allow-early-end --cover cover=1
+--log-window 0 31 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES
+--tracer-def RNG_MASK=0xffbu`, waited on with `waitrun.sh` in the background. The lane was free at launch, so no minutes
+went to waiting. `df -g ~` read 69 GB free before it, 55 after the take, 65 after filing.
+- **The run**: pool lane 1, launched 01:50:32 −05:00, exited 02:07:00: **988.8 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 12,001 frames, `last_frame` 12000, not ended early, seed 12345, map 14. The recording's
+  SHA-256 is run1792's (`2573906f…`). Players: tribe 4 (who 0, flags 7), tribe 12 (who 1), tribe 15 (who 2).
+- **The record**, `~/ron-golden/run1799/map-14/rontrace.ranges`, 13,113,097,788 bytes in 13 pieces (`filerun.py`),
+  SHA-256 `896d65681e04e05d1069d76cb4bf0d0f360bdd17bf921538f29ac2852cd099d3`, 12.22 GiB on disk before, 1.45 GiB after.
+- **Scored** (`score_recording … ~/ron-golden/run1799/map-14`, on `ec7d12bc3`): the sums are run1792's as moved by item
+  4574. **Units 2,342, first 2342: range 1359, record 39 (who=1), `myhits..launch_frames`, byte 24: `healing` ours 0,
+  theirs 20**; record 40's `damage` ours 1, theirs 0, `damage_frac` ours 8, theirs 6. Builds 2686 (range 3225, record
+  2027, `targeted` ours 1, theirs 2); guys 2686; leaders 2689; world 2691; ammo 2692; groups 2740; deaths 2775; cities
+  2871; items 3127; goods 3157.
+- **Re-scored by item 4577** (`process_healing`'s President arm): units 2,686, first 2686 (range 1145, record 31,
+  `flags` ours 17, theirs −111), with builds and guys on the same state; ammo 4,263; deaths 3,406; items 3,127; goods
+  3,056 (first 3056); ours' walk holds `game_over` from 9522.
+- Filed by `filerun.py run1799 heldout6-row093-ranges`: `gamelog_p.txt` →
+  `Logs/gamelog-run1799-heldout6-row093-ranges.txt`, 2,895 bytes, SHA-256
+  `7d753874e257b4d92df863bbfa12eb7844851e493522ddb7a6410e3b443e2c09`; `rontrace.log` → `Logs/rontrace-run1799.log`,
+  818,325,408 bytes, SHA-256 `52c1adf0eebda72da37a0efb2b60c1ebd5b890ba370313ed970a0663bd1efd69`; the record stays
+  in place.
+
+**What it holds**: `diff::held_out::tests::row_93_s_volksgrenadiers_heal_beside_their_president_on_run1799_s_ranges`
+(every units range on states 2341 to 2343; who=1's `1/39` TI 109 beside the President `1/17` TI 355).
