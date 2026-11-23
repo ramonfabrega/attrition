@@ -8981,6 +8981,10 @@ same-player gate.
 - ~~The five `dest_angle` rows under the word (618–652). They spend no draw
   in the window and are not examined.~~ **Closed by item 530**: they were
   `Unit::work`'s unconditional `update_action` (`docs/ORDERS.md` §22.2).
+- Step 1, the suicide attacker (`:79`, type `+0x2b4 & 0x2000`): a fire raft
+  that collides with a valid target sets it, fires and dies. Not built
+  (parked 4614a). `fight`'s own arm of the same death is built (item 4614,
+  `docs/RECGAME.md` §14.4).
 
 ## 49. A ship attacks broadside (item 535, 2026-09-22)
 
