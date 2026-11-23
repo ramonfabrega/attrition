@@ -854,6 +854,8 @@ impl Sim {
             // its minimum is skipped.
             if let Some((_, dist)) = found {
                 rec.peasant_dist = rec.peasant_dist.min(dist / CELL);
+            } else {
+                crate::seam!("untouched_find_dist");
             }
         }
         if land_reg {

@@ -349,6 +349,7 @@ impl CasterView for SimCaster<'_> {
     }
     fn castable(&mut self, _spell: i32) -> bool {
         // SEAM: the Sniper's and Counterintelligence's searches (module doc).
+        crate::seam!("castable");
         false
     }
     fn mana(&mut self) -> i32 {

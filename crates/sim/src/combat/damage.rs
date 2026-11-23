@@ -525,6 +525,7 @@ impl DamageFacts for Reduced<'_> {
     }
     fn attacker_shot_redoubt(&mut self) -> bool {
         // SEAM: `BuildData::get_shot` is not modelled; no caller reads the death class.
+        crate::seam!("attacker_shot_redoubt");
         false
     }
     fn wellington_aura(&mut self) -> bool {

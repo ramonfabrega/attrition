@@ -665,6 +665,7 @@ impl Sim {
         {
             let reg = self.ai.armies[who as usize].list[a].reg;
             if !self.carry_ashore(u, reg) {
+                crate::seam!("carry_ashore_refused");
                 return false;
             }
         }
@@ -1359,6 +1360,7 @@ impl Sim {
                 // member `come_out` refused on an earlier pass. The
                 // original re-runs the captain's `get_inside < 0` arm and
                 // moves the captain; no staging has refused a member.
+                crate::seam!("captain_ashore");
                 continue;
             }
             // **The ring is the boat's and the arm is the passenger's.**

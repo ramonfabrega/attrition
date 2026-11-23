@@ -541,10 +541,13 @@ impl Sim {
             .rev()
             .find_map(|o| match o.body {
                 Body::Move(m) => Some(m.dest),
-                Body::Attack(_) => self.units[u]
-                    .combat
-                    .target
-                    .and_then(|t| self.obj_alive_pos(t)),
+                Body::Attack(_) => {
+                    crate::seam!("final_loc_attack");
+                    self.units[u]
+                        .combat
+                        .target
+                        .and_then(|t| self.obj_alive_pos(t))
+                }
                 Body::Build(b) | Body::Repair(b) | Body::Garrison { building: b, .. } => {
                     self.obj_alive_pos(crate::combat::Obj::Building(b))
                 }

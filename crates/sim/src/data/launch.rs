@@ -8277,7 +8277,12 @@ pub fn launch_point(
     }
     match self::node(gpiece, anim, starttime) {
         Some(n) => point(pos, facing, n),
-        None => pos,
+        None => {
+            // SEAM: no row measures this key, so the round leaves the
+            // figure's square (`docs/COMBAT.md` §55; items 4559, 4574).
+            crate::seam!("fallback");
+            pos
+        }
     }
 }
 
