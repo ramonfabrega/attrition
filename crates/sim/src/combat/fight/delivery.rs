@@ -222,6 +222,13 @@ impl Sim {
             self.attempt_launch(b, at);
         }
         // Step 5: scale.
+        if std::env::var_os("RON_PROBE_4583").is_some() && dmg.checked_mul(count).is_none() {
+            eprintln!(
+                "PROBE4583 frame {frame} attacker {attacker:?} target {target:?} dmg {dmg} count {count} attack {:?} armor {:?} pct {pct} ammo {ammo} quiet {quiet}",
+                self.attack_of(attacker),
+                self.armor_of(target)
+            );
+        }
         let dealt = combat::scale(
             dmg,
             count,
