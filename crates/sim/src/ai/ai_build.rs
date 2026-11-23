@@ -599,6 +599,18 @@ impl Sim {
             v = self.wonder_value(who, f, rec, &mut escrow)?;
         }
 
+        if std::env::var("RON_PROBE_4585").is_ok() && who == 2 && rec == 28 && (1756..=1757).contains(&self.frame) {
+            eprintln!(
+                "P4585V frame {} city {} v31 {v} level {} wmod {} regc {} regb {} q {} pd {} free {} regfree {} gath {} busy {} open {} fit {fit} land {} nocity {}",
+                self.frame, f.c, f.level, self.ai.ai[w].wonder_mod,
+                Census::reg(&self.ai.ai[w].census.reg_cities, f.reg),
+                self.reg_buildings_raw(who, f.reg, rec), self.queued_of(who, rec),
+                f.peasant_dist, f.free,
+                Census::reg(&self.ai.ai[w].census.reg_free_peasants, f.reg),
+                f.gatherers, f.busy, f.open, self.ai.ai[w].city_ai[f.c].land,
+                bt.has(flags::NO_CITY)
+            );
+        }
         // ---- §3.3 the common tail, every family ----
         if up == 0 {
             if f.peasant_dist > 4 {
