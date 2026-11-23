@@ -1728,8 +1728,8 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: units, builds, groups and guys part first on 2351; ammo on 2408. run1797's ranges hold each item's frames,
-every one *diff-backed*.
+Open: builds part first on 2370; ammo on 2408. run1797's ranges hold each item's frames, every one
+*diff-backed*.
 
 **Item 4597** (DECISIONS 154 §2): units 1906 → 2199, a `REPAIR` swarm walks under `MOVE_TO` (`docs/GROUPS.md`).
 **Item 4602**: builds 2166 → 2351, an anti-air building's wind and turret (`docs/COMBAT.md` §84.7). **Item 4604**:
@@ -1738,6 +1738,8 @@ ammo 2198 → 2408, the SAM's `missile="1"` spline (`docs/COMBAT.md` §84.3).
 **Item 4607**: leaders 2297 → 2413, cities 2297 → 2448. Every Temple's close fixes the borders, built or not:
 `Build::close@00628980` tests `is(0x1b5)` at `0x628d2c` and zeroes every region's resume index inline. who=1
 razes who=2's Temple site `2/2009` on frame 2295. Held on 2295–2300.
+
+**Item 4610**: units 2351 → 2376, builds → 2370. The orphan check walks sites by object number.
 
 ## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
 
@@ -1803,7 +1805,24 @@ Open: units part on 9896, round 16's move on 9600 the last order before it. run1
 
 ### 14.2 Row 28
 
-Open: units, builds, guys and world part on 3956; the original ends the game on 4247. run1805 holds sums.
+Open: units, builds, guys and world part on 3956; the original ends the game on 4247. run1805 holds sums; run1813
+holds units, builds, guys and world ranges to the end.
+
+**Item 4613, the first leaf** (the seventh's; it joins `held_out::SPENT`). On 3956 units range 5, record 0, who=0's
+Special Forces `0/0` (TI 75): `targeted` ours 5, theirs 6. Builds range 7, the capital `0/2000`: `targeted` ours 0,
+theirs 1. Guys and world (section 9's collision block) follow from `1/35`'s position.
+
+*Diff-backed* (`row_28_s_bazookas_drop_their_chase_of_a_citizen_on_run1813_s_ranges`): who=1's Bazookas `1/35` and
+`1/52` (TI 139, land, army slot 1, whose target is `0/2000`) chase who=0's Citizen `0/7` (TI 50) under `[MOVE,
+ATTACK 0/7]` on both sides through 3955. Every units, builds, guys and world range agrees on 3955. On frame 3955
+**theirs acted**: it ends both walks and retargets both. `1/35` holds one order, an ATTACK on `0/2000`, and no path.
+`1/52` heads `[ATTACK 0/0, …]` with one path node spent. Ours keeps both walks and both targets. Both new targets
+took a search's bump (`Object::find_nearby_target`'s `00649ba6`, §33 of `docs/COMBAT.md`). `0/7`'s own record agrees
+on 3956: it stands at (10248, 12600), where it arrived on 3955.
+
+*Read, not diffed*: the arm that ends the walks. It is not the review: `(3955 + o) & 0xf` is 6 and 7 for the two.
+It is not `do_move`'s dead-target arm, because `0/7` lives. Theirs spends five `Unit::fight+0x9b0 < Unit::do_attack`
+rolls on 3955 (draws 24 to 28, each `% 5` non-zero), and the seed agrees on 3956.
 
 ### 14.3 Row 48
 

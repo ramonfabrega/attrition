@@ -41755,3 +41755,32 @@ the background. `df -g ~` read 124 GB free before it and 119 after.
 **What it named**: on 2740 who=1's Heavy Fire Raft `1/87` (TI 335, sea) dies with the shot that sinks who=2's
 Transport Barges `2/60` and `2/71` (deaths slot 0 in theirs, the raft at (17544, 13464), no killer), where ours kept
 it alive (`docs/RECGAME.md` §14.4). Read by `score_recording` on the item's tree; no test reads the ranges.
+## run1813 — parity held out, seventh battery, row 28's file to the original's end (4247) with the checksum and ranges hooks, units, builds, guys and world kept (2026-11-23, item 4613, `att-4613`)
+
+`docs/RECGAME.md` §14.2. **What the disk could not answer**: run1805 holds sums only, so row 28's parting on 3956
+named no leaf. The take is the queue's one-take line on run1805's file: `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh
+tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1813 --recording
+~/ron-golden/recordings/item4600-row028-12000.rcx --end-frame 12000 --allow-early-end --cover cover=1 --log-window
+3950 3962 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES
+--tracer-def RNG_MASK=0x843u`, waited on with `waitrun.sh` in the background. The lane was free at launch. `df -g ~`
+read 133 GB free before it and 121 after filing.
+- **The run**: pool lane 1, launched 15:28:20 −05:00, exited 15:33:36: **316.3 s**, exit 0, `success`, no page
+  fault, no relaunch. 4,248 frames, `last_frame` 4247, **ended by the original**, as run1805 did; seed 12345, map 18.
+  The recording's SHA-256 is run1805's (`26bc5609…`). Players: tribe 4 (who 0, flags 7), tribe 13 (who 1), tribe 21
+  (who 2).
+- **The record**, `~/ron-golden/run1813/map-18/rontrace.ranges`, 3,647,964,788 bytes, SHA-256
+  `b153c9555dd2d9908073d9a6f6492aeb53848fe143eddc05a7de758cf89c668b`, split by `filerun.py` into 4 pieces and
+  compressed (3.41 GiB on disk before, 0.35 after).
+- **Scored** (`score_recording … ~/ron-golden/run1813/map-18`, on `e23a6e911`): the sums are run1805's. First state
+  3956 (units, builds, guys, world): **units range 5, record 0 (`0/0`), `targeted` ours 5, theirs 6**; builds range
+  7, record 2000, `targeted` ours 0, theirs 1; guys range 330, record 35 (`1/35`'s figure), x ours 8180, theirs 8184;
+  world range 4943, record 1152, `block.body` (section 9, the collision block). Ammo 4,030 (3963), deaths 4,021,
+  groups 3,973, leaders 3,958, cities 3,983, goods 4,216 (4011): each printed its one-take line.
+- **Filed** with `filerun.py run1813 heldout7-row028-ranges`: `gamelog_p.txt` →
+  `Logs/gamelog-run1813-heldout7-row028-ranges.txt`, 2,867 bytes, SHA-256
+  `af93bd248680a27107412c5fe0e44e1b0c33551480885b9955f3ef774918b1b2`; `rontrace.log` → `Logs/rontrace-run1813.log`,
+  246,192,512 bytes, SHA-256 `60488218bc846491631005008ba67ae21ee5e9324306e3e64d02fc5ce5187e26`, both linked; the
+  record stays in place.
+
+**What it holds**: `diff::held_out::tests::row_28_s_bazookas_drop_their_chase_of_a_citizen_on_run1813_s_ranges`
+(every units, builds, guys and world range on 3955; theirs' `1/35` and `1/52` on 3956).
