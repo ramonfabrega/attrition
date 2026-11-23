@@ -41363,3 +41363,29 @@ eight chained under `RON_LANE_WAIT=7200`, waited on with `waitrun.sh` in the bac
   `99c513b22f6497104be51636cfeadcb275dd99734ac84844bbe3dd442f68d310`; `rontrace.log`, 103,197,696 bytes, SHA-256 `a2fc6442bae4733334ea3b626690f218d3c9bbb4e46e0fce2a30966963068ed5`.
 
 **What it holds**: `diff::held_out::tests::the_sixth_held_out_games_score_as_pinned`.
+
+## run1798 — parity held out, sixth battery, row 73's file to 12,000 with the checksum and ranges hooks, every line but walls kept (2026-11-23, item 4576, `att-4576`)
+
+`docs/RECGAME.md` §13; DECISIONS 153 §4. **What the disk could not answer**: run1791 holds sums only, so row 73's
+units and cities parting on 1563 named no leaf. The take is run1791's file with row 133's arguments: `TMPDIR=<fresh>
+RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1798 --recording
+~/ron-golden/recordings/item4566-row073-12000.rcx --end-frame 12000 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def
+RNG_MASK=0xffbu`, waited on with `waitrun.sh` in the background. The lane was free at launch, so no minutes went to
+waiting on lane 4575. `df -g ~` read 85 GB free before it and 81 after.
+- **The run**: pool lane 1, launched 01:15:39 −05:00, exited 01:20:18: **278.5 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 3,438 frames, `last_frame` 3437, **ended by the original**, as run1791, seed 12345, map
+  7. The recording's SHA-256 is run1791's (`5d5d8bfb…`). Players: tribe 4 (who 0, flags 7), tribe 11 (who 1), tribe
+  14 (who 2).
+- **The record**, `~/ron-golden/run1798/map-7/rontrace.ranges`, 2,851,612,372 bytes in 3 pieces (`filerun.py`),
+  SHA-256 `f59baa7f87eb0d174eb41493d4b6659f0c85672834625d94a3e33257f59bddc6`, 2.66 GiB on disk before, 0.26 GiB after.
+- **Scored** (`score_recording … ~/ron-golden/run1798/map-7`, on `0e16d840c`): the sums are run1791's as item 4574
+  left them. **Units 1,563, first 1563: range 2330, record 31 (who=2's Caravan `2/31`, TI 9), `collide_frame..play`:
+  `dest_angle` ours 1157169152, theirs 1431655765; `orders_x`/`orders_y` ours (37752, 35448), theirs (36072, 35208).
+  Cities 1,563, first 1563: range 8, record 3 (who=1's city 3), `vans.length` ours 1, theirs 0.** Builds 1569, guys
+  1564, world 1566, leaders 1576, groups 1678, items 1949 (first), goods 2353 (first), ammo 2557 (first), deaths 2604.
+- Filed with `filerun.py run1798 heldout6-row073-12000-ranges`. In place, `~/ron-golden/run1798/map-7/`:
+  `gamelog_p.txt`, 2,863 bytes, SHA-256 `da5eba5addfb4f0dfb975183aac30684810b959d5abbd66a090835d0c2e12707`;
+  `rontrace.log`, 126,771,392 bytes, SHA-256 `7b4e351858ab54edcbf90095a5790902dee42bb151fea6ba5789dfebec215692`.
+
+**What it holds**: the leaf of row 73 (`docs/journal/2026-11-23-item-4576.md`); no test reads it yet.
