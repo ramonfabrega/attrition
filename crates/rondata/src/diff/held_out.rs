@@ -808,7 +808,10 @@ pub(crate) mod tests {
     /// `checksum::playback` on every state to the take's last, against its
     /// pinned score: [`FirstScore::moved`] where a later fix has moved it,
     /// else the score as found. A game with no take skips, and says so; a
-    /// take with no pin fails and prints the score to pin.
+    /// take with no pin fails and prints the score to pin. **What fails is
+    /// what the queue books** (item 4598, [`held_verdict`]): the whole
+    /// lines and the first parting; the rest of the pin prints as `HELD OUT
+    /// DRIFT` and is re-pinned at a booking.
     #[test]
     fn the_held_out_games_score_as_pinned() {
         games_score_as_pinned(&FIRST);
@@ -848,6 +851,63 @@ pub(crate) mod tests {
     #[test]
     fn the_sixth_held_out_games_score_as_pinned() {
         games_score_as_pinned(&SIXTH);
+    }
+
+    /// **The verdict holds the booked numbers and lets the rest drift**
+    /// (item 4598, DECISIONS 154 §5), on row 0's pin as found (units first
+    /// on 2990, guys on 3157, ten lines whole). Each bend is one a lane
+    /// made: a count or a parting past the first parting drifts (item
+    /// 4594's row 93 ammo and deaths); a bend on the first parting, a
+    /// whole line parting anywhere, or a parted line coming whole fails.
+    #[test]
+    fn a_held_pin_fails_on_its_whole_lines_and_first_parting_alone() {
+        let pin = SCORES[0].as_ref().expect("row 0's pin").found;
+        let got = |f: &dyn Fn(&mut Got)| -> (Vec<String>, Vec<String>) {
+            let mut g: Got = (pin.states, pin.agreed, pin.first.to_vec(), pin.over);
+            f(&mut g);
+            held_verdict(&pin, &g)
+        };
+        let units = 0;
+        let ammo = 3;
+        let guys = 6;
+        assert_eq!(got(&|_| ()), (vec![], vec![]), "the pin against itself");
+        // Past the first parting: drift, printed, not failed.
+        let (fails, drift) = got(&|g| {
+            g.1[guys] -= 7;
+            g.2[1].1.0 = 3200;
+            g.1[units] += 3;
+            g.2[0].1.1 = Some(1);
+            g.3 = Some(5000);
+        });
+        assert!(fails.is_empty(), "past the parting: {fails:?}");
+        assert_eq!(drift.len(), 5, "{drift:?}");
+        // On the first parting: its state.
+        let (fails, _) = got(&|g| g.2[0].1.0 = 2991);
+        assert_eq!(fails.len(), 1, "{fails:?}");
+        // On the first parting: a second line joins it.
+        let (fails, _) = got(&|g| g.2[1].1.0 = 2990);
+        assert_eq!(fails.len(), 1, "{fails:?}");
+        // A whole line parts past the first parting.
+        let (fails, _) = got(&|g| {
+            g.1[ammo] -= 1;
+            g.2.push(("ammo", (6000, Some(1), 2)));
+        });
+        assert_eq!(fails.len(), 1, "{fails:?}");
+        // A parted line comes whole: guys.
+        let (fails, _) = got(&|g| {
+            g.1[guys] = g.0;
+            g.2.truncate(1);
+        });
+        assert_eq!(fails.len(), 1, "{fails:?}");
+        // The states compared.
+        let (fails, _) = got(&|g| g.0 += 1);
+        assert!(fails.iter().any(|f| f.starts_with("states")), "{fails:?}");
+        // The row comes whole: the whole lines and the parting both move.
+        let (fails, _) = got(&|g| {
+            g.1 = [g.0; 12];
+            g.2.clear();
+        });
+        assert_eq!(fails.len(), 2, "{fails:?}");
     }
 
     /// The sixth battery's line, from its table alone (item 4566).
@@ -2977,11 +3037,20 @@ pub(crate) mod tests {
             };
             let want = pin.moved.unwrap_or(pin.found);
             let got = (score.states, score.agreed, first, score.over);
-            if got != (want.states, want.agreed, want.first.to_vec(), want.over) {
-                wrong.push(format!(
-                    "row {} run{}: states, agreeing, first partings, ours' end: got {got:?}",
+            let (fails, drift) = held_verdict(&want, &got);
+            for d in &drift {
+                eprintln!(
+                    "HELD OUT DRIFT row {} run{}: {d} (printed, not held)",
                     held.row,
                     b.run + k
+                );
+            }
+            if !fails.is_empty() {
+                wrong.push(format!(
+                    "row {} run{}: {}; got {got:?}",
+                    held.row,
+                    b.run + k,
+                    fails.join("; ")
                 ));
             }
         }
@@ -8774,6 +8843,76 @@ pub(crate) struct Battery {
     /// The recordings' closing frame (`item<N>-row<RRR>-<frames>.rcx`):
     /// 6,000 for the first five, [`SIXTH_FRAMES`] for the sixth.
     pub frames: i32,
+}
+
+/// A scored game in a pin's terms: states, each line's agreeing states,
+/// the lines' first partings, ours' end.
+#[cfg(test)]
+pub(crate) type Got = (u32, [u32; 12], Vec<First>, Option<i32>);
+
+/// **What a held-out pin holds** (item 4598, DECISIONS 154 §5): the
+/// queue books a row's whole lines and its first parting, so those are
+/// the assertion, and every other difference from the pin is drift the
+/// test prints. Returns `(fails, drift)`, each a line a person reads.
+///
+/// - **Fails**: the states compared; the set of whole lines (a line
+///   agreeing on every state and parting nowhere), either way; the first
+///   parting — its state and the lines that part on it — either way.
+/// - **Drift**: a parted line's agreeing count, a line's first parting
+///   past the row's, the Adlers on the first parting, ours' end.
+#[cfg(test)]
+pub(crate) fn held_verdict(want: &Score, got: &Got) -> (Vec<String>, Vec<String>) {
+    let names: Vec<&str> = crate::checksum::CHECKSUM_LINES[..12]
+        .iter()
+        .map(|l| l.0)
+        .collect();
+    let whole = |states: u32, agreed: &[u32; 12], first: &[First]| -> Vec<&str> {
+        names
+            .iter()
+            .zip(agreed)
+            .filter(|(n, a)| **a == states && !first.iter().any(|f| f.0 == **n))
+            .map(|(n, _)| *n)
+            .collect()
+    };
+    let parting = |first: &[First]| -> Option<(i32, Vec<&str>)> {
+        let at = first.iter().map(|f| f.1.0).min()?;
+        let mut lines: Vec<&str> = first.iter().filter(|f| f.1.0 == at).map(|f| f.0).collect();
+        lines.sort_unstable();
+        Some((at, lines))
+    };
+    let (states, agreed, first, over) = got;
+    let mut fails = Vec::new();
+    let mut drift = Vec::new();
+    if *states != want.states {
+        fails.push(format!("states {} -> {states}", want.states));
+    }
+    let (was, now) = (
+        whole(want.states, &want.agreed, want.first),
+        whole(*states, agreed, first),
+    );
+    if was != now {
+        fails.push(format!("whole lines {was:?} -> {now:?}"));
+    }
+    let (pw, pg) = (parting(want.first), parting(first));
+    if pw != pg {
+        fails.push(format!("first parting {pw:?} -> {pg:?}"));
+    }
+    for (i, n) in names.iter().enumerate() {
+        if want.agreed[i] != agreed[i] && !was.contains(n) && !now.contains(n) {
+            drift.push(format!("{n} agreeing {} -> {}", want.agreed[i], agreed[i]));
+        }
+        let (fw, fg) = (
+            want.first.iter().find(|f| f.0 == *n).map(|f| f.1),
+            first.iter().find(|f| f.0 == *n).map(|f| f.1),
+        );
+        if fw != fg && was.contains(n) == now.contains(n) {
+            drift.push(format!("{n} first {fw:?} -> {fg:?}"));
+        }
+    }
+    if want.over != *over {
+        drift.push(format!("ours' end {:?} -> {over:?}", want.over));
+    }
+    (fails, drift)
 }
 
 /// **A held-out row whole now**: its `now` column ([`FirstScore::moved`]
