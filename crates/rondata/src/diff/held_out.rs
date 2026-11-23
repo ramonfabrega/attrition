@@ -8934,7 +8934,9 @@ pub(crate) const HELD_OUT_SIXTH_HUMANS: [Scripted; 8] = [
 /// **The sixth battery's scores**, `HELD_OUT_SIXTH[k]` played as
 /// `run1788 + k` (item 4566): `None` until the original has played it. The
 /// found column is pinned once and never re-pinned; it is the estimate
-/// (DECISIONS 151 §6, 152 §4).
+/// (DECISIONS 151 §6, 152 §4). Scored on `38bfbab38`'s tree and pinned on
+/// the merged tree `3b59df526`, where 43 commits of the base moved later
+/// lines of rows 53, 93 and 133 and no row's first parting.
 #[cfg(test)]
 pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
     // run1788
@@ -9000,9 +9002,9 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
     }),
     // run1790
     // row 53, as found 2026-11-22: 1 line whole; units 3,358 of 12,001, first 3358; builds 3,732 of
-    // 12,001, first 3732; ammo 4,959 of 12,001, first 3795; deaths 3,938 of 12,001, first 3707;
+    // 12,001, first 3732; ammo 3,992 of 12,001, first 3795; deaths 3,819 of 12,001, first 3707;
     // groups 3,716 of 12,001, first 3716; guys 3,358 of 12,001, first 3358; leaders 3,707 of
-    // 12,001, first 3707; cities 3,825 of 12,001, first 3825; items 9,616 of 12,001, first 4495;
+    // 12,001, first 3707; cities 3,825 of 12,001, first 3825; items 9,173 of 12,001, first 4574;
     // goods 3,923 of 12,001, first 3832; world 3,707 of 12,001, first 3707; reach 3,358 of 12,001
     // states, 3,358 of 6,001 in the first 6,001.
     Some(FirstScore {
@@ -9010,7 +9012,7 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         found: Score {
             states: 12001,
             agreed: [
-                3358, 3732, 12001, 4959, 3938, 3716, 3358, 3707, 3825, 9616, 3923, 3707,
+                3358, 3732, 12001, 3992, 3819, 3716, 3358, 3707, 3825, 9173, 3923, 3707,
             ],
             first: &[
                 ("units", (3358, Some(992329593), 1194311501)),
@@ -9021,7 +9023,7 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
                 ("guys", (3358, Some(479939638), 3928181788)),
                 ("leaders", (3707, Some(3179845721), 3311573076)),
                 ("cities", (3825, Some(4087239103), 2717798815)),
-                ("items", (4495, Some(3301772440), 3298888854)),
+                ("items", (4574, Some(3301772440), 3298888854)),
                 ("goods", (3832, Some(2135290454), 2227565146)),
                 ("world", (3707, Some(2727186382), 2158397478)),
             ],
@@ -9062,17 +9064,17 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
     }),
     // run1792
     // row 93, as found 2026-11-22: 1 line whole; units 2,342 of 12,001, first 2342; builds 2,688 of
-    // 12,001, first 2686; ammo 3,815 of 12,001, first 2692; deaths 2,775 of 12,001, first 2775;
+    // 12,001, first 2686; ammo 3,799 of 12,001, first 2692; deaths 3,464 of 12,001, first 2775;
     // groups 2,740 of 12,001, first 2740; guys 2,686 of 12,001, first 2686; leaders 2,698 of
-    // 12,001, first 2689; cities 2,974 of 12,001, first 2871; items 4,809 of 12,001, first 3127;
-    // goods 4,388 of 12,001, first 3157; world 2,691 of 12,001, first 2691; reach 2,342 of 12,001
-    // states, 2,342 of 6,001 in the first 6,001; ours' game over from 10112.
+    // 12,001, first 2689; cities 2,974 of 12,001, first 2871; items 4,832 of 12,001, first 3127;
+    // goods 4,140 of 12,001, first 3157; world 2,691 of 12,001, first 2691; reach 2,342 of 12,001
+    // states, 2,342 of 6,001 in the first 6,001.
     Some(FirstScore {
         last: None,
         found: Score {
             states: 12001,
             agreed: [
-                2342, 2688, 12001, 3815, 2775, 2740, 2686, 2698, 2974, 4809, 4388, 2691,
+                2342, 2688, 12001, 3799, 3464, 2740, 2686, 2698, 2974, 4832, 4140, 2691,
             ],
             first: &[
                 ("units", (2342, Some(1169777861), 259155158)),
@@ -9087,7 +9089,7 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
                 ("goods", (3157, Some(2924123420), 3056768288)),
                 ("world", (2691, Some(2608492097), 2791665259)),
             ],
-            over: Some(10112),
+            over: None,
         },
         moved: None,
     }),
@@ -9124,9 +9126,9 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
     }),
     // run1794
     // row 133, as found 2026-11-22: 1 line whole; units 1,162 of 6,085, first 1162; builds 958 of
-    // 6,085, first 958; ammo 2,371 of 6,085, first 1486; deaths 1,484 of 6,085, first 1484; groups
+    // 6,085, first 958; ammo 2,517 of 6,085, first 1485; deaths 1,484 of 6,085, first 1484; groups
     // 1,242 of 6,085, first 1242; guys 1,162 of 6,085, first 1162; leaders 956 of 6,085, first 956;
-    // cities 1,376 of 6,085, first 1376; items 1,798 of 6,085, first 1614; goods 1,758 of 6,085,
+    // cities 1,376 of 6,085, first 1376; items 1,614 of 6,085, first 1614; goods 1,758 of 6,085,
     // first 1758; world 1,197 of 6,085, first 1197; reach 956 of 6,085 states, 956 of 6,001 in the
     // first 6,001.
     Some(FirstScore {
@@ -9134,12 +9136,12 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         found: Score {
             states: 6085,
             agreed: [
-                1162, 958, 6085, 2371, 1484, 1242, 1162, 956, 1376, 1798, 1758, 1197,
+                1162, 958, 6085, 2517, 1484, 1242, 1162, 956, 1376, 1614, 1758, 1197,
             ],
             first: &[
                 ("units", (1162, Some(3743709245), 4104174444)),
                 ("builds", (958, Some(696106489), 657638887)),
-                ("ammo", (1486, Some(1), 1951077369)),
+                ("ammo", (1485, Some(1244795671), 1)),
                 ("deaths", (1484, Some(1), 3470790278)),
                 ("groups", (1242, Some(2943953166), 3106154756)),
                 ("guys", (1162, Some(23336544), 1735796580)),
