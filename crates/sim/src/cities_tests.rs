@@ -4823,6 +4823,75 @@ fn the_turks_assimilate_three_times_faster() {
     assert!(!sim.city_unassimilated(nc), "2000 × 100 / 300 = 667 frames");
 }
 
+/// **The owner's Citizen in reach walks a taken city's stamp back three a
+/// frame** (item 4570, `docs/CITIES.md` §8.1): `Build::process@0061edf0:698`
+/// asks `has_general(this, 0, 0x164)` of the unassimilated city building —
+/// one of the owner's THECITIZEN heroes on the map within `get_radius ×
+/// 0xc0` of the building less its footprint's `(x_size + y_size) × 0x60` —
+/// and adds `1 − THECITIZEN_ASSIMILATION_SPEED` to `assimilation_timer`.
+/// run1784's city `1/2043` reads 3644 then 3641 as who=1's Citizen `1/15`
+/// walks in.
+///
+/// Made to fail with the ask back at `false` (the stamp stands), with the
+/// owner test dropped (a rival's Citizen walks it), and with the type test
+/// dropped (a President does).
+#[test]
+fn the_owner_s_citizen_in_reach_walks_a_taken_city_s_stamp_back() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b, _) = city_at(&mut sim, &t, 1, 32, 32);
+    sim.tech[1].epoch[tech::Line::Civic as usize] = 1;
+    let _ = city_at(&mut sim, &t, 1, 8, 8);
+    let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+    let bd = &mut sim.buildings[b];
+    bd.damage = bd.hits;
+    bd.sync_health();
+    sim.frame = 1000;
+    let hs: Vec<usize> = (0..3)
+        .map(|i| spawn(&mut sim, 0, hoplite, tile_pos(36, 32 + i)))
+        .collect();
+    assert!(sim.check_capture(b, hs[2]));
+    let nc = sim
+        .cities
+        .cities
+        .iter()
+        .position(|c| c.alive && c.owner == 0)
+        .unwrap();
+    let hero = |sim: &mut Sim, type_index: i32| {
+        sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            type_index,
+            cols: crate::ai::ai_load::UnitCols {
+                unit_flags2: crate::ai::ai_load::uflags2::FLAG2_GENERAL,
+                ..crate::ai::ai_load::UnitCols::default()
+            },
+            ..crate::UnitType::default()
+        })
+    };
+    let citizen = hero(&mut sim, 0x164);
+    let president = hero(&mut sim, 0x163);
+    let stamp = |sim: &Sim| sim.cities.cities[nc].assimilation_timer;
+    let step = |sim: &mut Sim| {
+        let s = stamp(sim);
+        sim.tick();
+        stamp(sim) - s
+    };
+    assert_eq!(step(&mut sim), 0, "no Citizen");
+    let _ = sim.init_unit(1, citizen, tile_pos(33, 36));
+    assert_eq!(step(&mut sim), 0, "a rival's Citizen");
+    let _ = sim.init_unit(0, president, tile_pos(34, 36));
+    assert_eq!(step(&mut sim), 0, "a President is not The Citizen");
+    let far = sim.init_unit(0, citizen, tile_pos(110, 110));
+    assert_eq!(step(&mut sim), 0, "out of reach");
+    sim.units[far].pos = tile_pos(35, 36);
+    assert!(sim.city_unassimilated(nc));
+    assert_eq!(
+        step(&mut sim),
+        1 - i64::from(sim.tables.tuning.thecitizen_assimilation_speed),
+        "THECITIZEN_ASSIMILATION_SPEED 4: three a frame"
+    );
+}
+
 #[test]
 fn killing_a_barracks_plunders_its_good() {
     let mut sim = world_sim();
