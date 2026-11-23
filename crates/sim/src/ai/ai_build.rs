@@ -912,19 +912,6 @@ impl Sim {
                 if Census::reg(&self.ai.ai[w].census.reg_wars, f.reg) == 0 {
                     x /= 2;
                 }
-                if std::env::var("RON_PROBE_4585").is_ok() && who == 2 && (1756..=1757).contains(&self.frame) {
-                    let r = self.ai.ai[w].city_ai.get(f.c);
-                    eprintln!(
-                        "P4585T frame {} city {} rec {rec} v_in {v} dmod {dmod} d {d} nb {} have {have} k {k} bordering {:?} near {:?} no_heal {} founder {} unassim {} reg_wars {} x {x} diff {diff} capital {} age {age} q {} nbo {}",
-                        self.frame, f.c, f.nb,
-                        r.map(|r| r.bordering), r.map(|r| r.near_border),
-                        self.cities.cities[f.c].no_heal, self.cities.cities[f.c].founder,
-                        self.city_unassimilated(f.c),
-                        Census::reg(&self.ai.ai[w].census.reg_wars, f.reg),
-                        self.cities.cities[f.c].capital,
-                        self.queued_of(who, rec), self.num_buildings_of(who, rec)
-                    );
-                }
                 if !fort {
                     v = x / (have / 2 + 1);
                     if have == 0 {
