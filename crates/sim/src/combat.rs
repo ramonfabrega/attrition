@@ -1246,7 +1246,11 @@ pub const fn scale(
     ammo_per_att: i32,
     uber: i32,
 ) -> Sixteenths {
-    let mut s = dmg * count;
+    // `imull 0x1c(%ebp), %eax` at `64a701`: a 32-bit product that wraps,
+    // and the unit arm's `cmovle` floor then takes a wrapped negative to
+    // one whole hit (item 4583: an ICBM's 12,000,000 at count 219 on row
+    // 133's tail, which panicked under `overflow-checks`).
+    let mut s = dmg.wrapping_mul(count);
     if unit {
         if s < 0x101 {
             s = 0x100;
