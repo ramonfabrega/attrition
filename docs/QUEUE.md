@@ -32,7 +32,7 @@ Rubric: ported 739 · replaced by design 331 · open 570 of 3611 · lockstep byt
 Held-out: 8 of 9 whole · shortest 6147
 Parity: 43 of 47 whole · held out 37 of 40 · the sample parts first on leaders 7407 of 21044 · draws 7410
 Parity held out, closed: first, second, third, fourth · 32 of 32 whole · lines 309 of 384 as found, 384 now · reach 66 % of states as found, 100 % now
-Parity held out, fifth: 5 of 8 whole · 8 taken · lines 30 of 96 as found, 63 now · first partings 3857 0 3192 1582 1956 1750 2977 whole as found, 4777 whole 3442 whole 3656 whole whole whole now · reach 48 % of states as found, 85 % now
+Parity held out, fifth: 5 of 8 whole · 8 taken · lines 30 of 96 as found, 63 now · first partings 3857 0 3192 1582 1956 1750 2977 whole as found, 4777 whole 3833 whole 3656 whole whole whole now · reach 48 % of states as found, 86 % now
 Parity held out, sixth: 1 of 8 whole · 8 taken · lines 20 of 96 as found, 20 now · first partings 7675 2411 3358 1563 2342 2259 956 whole as found, 7675 2411 3358 1563 2342 2259 956 whole now · reach 49 % of states as found, 49 % now · reach in the first 6,001 states 59 % as found, 59 % now
 Structure: flat 11 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 21 · largest 3756
 Renderer: K 59 of M 60 · frames 35 of 35 · pieces 1465 of 1478 · resolved 1,237,711 of 1,237,726 objects over 110 lobbies
@@ -51,24 +51,23 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2, 151 §5, 152 §1 to §4): three seats out: a parity seat's 4564 (row 43 from 3442, seated at 4565's booking), a parity seat's 4570 (fifth, row 83 from 3656, after 4568), the chain's seat on 4548 (row 3 from 4777; its take has the game lane now). Item 4566 recorded and pinned the sixth battery to 12,000 (runs 1788 to 1795; RECGAME §13): 1 of 8 whole, the other seven parting between 956 and 7675, inside the first 6,001 states 59 % against the fifth's 48 %. Its seat frees with no designed item to take it: the tranche drains the three out and hands over to `steer`, which reads the sixth's found column for the sample's seat (152 §5). Unseated, in this order: 4569 (the sample from leaders 7407), when the sixth's found column has been put to the pass (152 §5). Row 103 came whole at 4567's booking (the fifth 5 of 8); each row's seat is refilled with the row's next word while its column moves; a landing that frees a seat no designed item can take hands over to `steer`. Every take waits its turn, one game at a time. The sample's stop reads the `Parity:` line's first parting and its draw word, never the games' count (151 §1). The disk read 105 GB at the pass; every take still stops under 60.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2, 151 §5, 152 §1 to §4): two seats out: a parity seat's 4570 (fifth, row 83 from 3656, after 4568), the chain's seat on 4548 (row 3 from 4777; its take has the game lane now). Item 4566 recorded and pinned the sixth battery to 12,000 (runs 1788 to 1795; RECGAME §13): 1 of 8 whole, the other seven parting between 956 and 7675, inside the first 6,001 states 59 % against the fifth's 48 %. Its seat frees with no designed item to take it: the tranche drains the three out and hands over to `steer`, which reads the sixth's found column for the sample's seat (152 §5). Unseated, in this order: 4569 (the sample from leaders 7407), when the sixth's found column has been put to the pass (152 §5); 4571 (row 43 from 3833, after 4564). Row 103 came whole at 4567's booking (the fifth 5 of 8); each row's seat is refilled with the row's next word while its column moves; a landing that frees a seat no designed item can take hands over to `steer`. Every take waits its turn, one game at a time. The sample's stop reads the `Parity:` line's first parting and its draw word, never the games' count (151 §1). The disk read 105 GB at the pass; every take still stops under 60.
 
 4570. **Parity held out, fifth: row 83's cities from 3656** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §12.3).
 Item 4568 moved row 83's first parting 3645 → 3656 (`capture_city` leaves the old city's members for `City::close`'s re-homing;
 journal). Cities part on 3656, then units, builds and groups on 3662; the leaf is the first act, on run1784's ranges: no take.
 Re-pin `SCORES_FIFTH[4].moved`, never `found`. It stops when two landings running move no column.
 
-4564. **Parity held out, fifth: row 43's units and guys from 3442** (a rules item, whole; a parity seat's, at 4565's booking;
-`docs/RECGAME.md` §12.3). Item 4565 moved row 43's first parting 3299 → 3442 (`compare_target`'s building arms: wounded is the
-target's `damage`, moving is the head order a move; journal). Units and guys part on 3442; the leaf is the first act. Item 4559's
-bays left items falling 4,042 → 4,034 and our walk ending the game on 5972 where theirs plays to 6000, both pinned. run1787 holds
-every line: no take. Re-pin `SCORES_FIFTH[2].moved`, never `found`. It stops when two landings running move no column.
-
 4569. **The 2017 sample: leaders from 7407** (a rules item, whole; the sample's seat, unseated until the sixth's found column is read,
 DECISIONS 152 §5; `docs/RECGAME.md` §7). Item 4565 moved the first parting units 7055 → leaders 7407 and the draw word 7105 → 7410.
 Leaders part on 7407 on record 43, `make_list[k]`; the draws on 7410 next. run1786 holds every line to 8000: no take. Re-pin
 `SAMPLE_LINES` and `SAMPLE_WALKED`; the driver writes the line. It stops when two landings running leave the line's first parting
 and its draw word as they are (148 §5).
+
+4571. **Parity held out, fifth: row 43's units, ammo, groups, guys and world from 3833** (a rules item, whole; unseated, the
+tranche drains; `docs/RECGAME.md` §12.3). Item 4564 moved row 43's first parting 3442 → 3833 (`fight`'s defensive leash compares
+the re-search against `fight`'s entry target; journal), and our walk now plays to 6000 as theirs does. run1787 holds every line:
+no take. Re-pin `SCORES_FIFTH[2].moved`, never `found`. It stops when two landings running move no column.
 
 4548. **Parity held out, fifth: row 3's units, builds and ammo from 3857** (a rules item, whole; the chain's seat, a ccc lane; `docs/RECGAME.md` §12.3).
 Row 3 (run1773, Great Sahara, difficulty 3, the human and the added computer allied) parts on eleven lines: units, builds and ammo
