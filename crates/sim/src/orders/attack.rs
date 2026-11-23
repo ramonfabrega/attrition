@@ -350,6 +350,13 @@ impl Sim {
             return false;
         };
         let me = Obj::Unit(u);
+        // **`fight`'s arguments, as `do_attack` passed them**: the order's
+        // `(ox, whom)` at entry. `Unit::fight@005fd4d0` copies them at
+        // `5fd4ec`/`5fd4ef` to `-0x1c`/`-0x20(%ebp)`, which the follower's
+        // mirror below does not write; the defensive leash's "the same
+        // target again" reads those copies (item 4564,
+        // [`Self::fight_post_leash`]).
+        let entry = a.target.map(|(ox, whom, _)| (ox, whom));
         // **`do_attack`'s own gate is the type's `attack`, and it is the
         // only aliveness test the function has** (item 463).
         // `Unit::do_attack@005f1b80` tests the target object's `flags & 1`
@@ -866,7 +873,7 @@ impl Sim {
             here,
             crate::combat::fight::SITE_ATTACK_POS_FIGHT,
         ) {
-            Some(_) if self.fight_post_leash(u, target, state.mandatory) => return false,
+            Some(_) if self.fight_post_leash(u, entry, state.mandatory) => return false,
             Some(p) => p,
             None if self.attack_pos_refused(u, target) => {
                 self.chase_refused(u, target);
@@ -895,12 +902,32 @@ impl Sim {
     ///   QUEUE_NEW)`, `flags |= 8`;
     /// - another target: the frozen mark (`LAB_005fe502`).
     ///
+    /// **"The same target" is `fight`'s entry target, not its current
+    /// one** (item 4564, `docs/COMBAT.md` §43.2). The test at `5fe292`–
+    /// `5fe2b5` compares the new order's `+0x8`/`+0xc` with `-0x1c` and
+    /// `-0x20(%ebp)`, the copies `fight` made of its `(ox, whom)` at
+    /// `5fd4ec`/`5fd4ef`; the leash has already reused the argument slots
+    /// for the post, and the follower's mirror (`fight:146`–`184`) writes
+    /// the arguments and the order but never the copies. So a follower that
+    /// mirrored its captain's target this frame and has it re-added by the
+    /// review keeps the attack under the frozen mark. run1787's Hoplites
+    /// `2/63` (TI 132, land) on 3441: entered on `1/46`, mirrored `1/23`
+    /// off its captain `2/62`, re-added `1/23` with the post kept, and
+    /// holds it on 3442 with `unit_masks2` 16, where ours killed it.
+    ///
+    /// `entry` is the order's `(ox, whom)` as `do_attack` passed it.
+    ///
     /// `true` when the leash took the frame. run1451's packet runs the
     /// Inti Macemen `2/31` on 945: the review's `find_new_target` re-adds
     /// its captain's `1/22` with the post kept, then `fight+0xd94`'s
     /// second call re-adds it again and the walk home goes in (block 946,
     /// `MOVEORDER` to (21624, 18360), `flags 8`).
-    pub(super) fn fight_post_leash(&mut self, u: usize, target: Obj, mandatory: bool) -> bool {
+    pub(super) fn fight_post_leash(
+        &mut self,
+        u: usize,
+        entry: Option<(i16, crate::Player)>,
+        mandatory: bool,
+    ) -> bool {
         if mandatory || self.units[u].combat.stance != combat::Stance::Defensive {
             return false;
         }
@@ -936,7 +963,14 @@ impl Sim {
         if self.order_type(u) != index::ATTACK || self.units[u].combat.recharging != 0 {
             return true;
         }
-        if self.units[u].combat.target == Some(target) {
+        let again = match self.current_order(u).map(|o| o.body) {
+            Some(Body::Attack(AttackOrder {
+                target: Some((ox, whom, _)),
+                ..
+            })) => entry == Some((ox, whom)),
+            _ => false,
+        };
+        if again {
             let walk = match self.current_order(u).map(|o| o.body) {
                 Some(Body::Attack(AttackOrder {
                     defensive: true,

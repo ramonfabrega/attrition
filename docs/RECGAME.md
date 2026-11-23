@@ -1466,7 +1466,7 @@ either side. Both sides' groups and units lines agree to 6000.
 
 DECISIONS 149 §3, 150 §2 and §3, 2026-11-21. Rows 3, 23, 43, 63, 83, 103, 123 and 143 of the same order, each with
 one seat and one team of two added, declared in `HELD_OUT_FIFTH` (`aece988eb`, 21:55 −05:00) before any file was
-recorded (the eight were written between 21:59 and 22:01). **The page sets both**: `Event::AddSeat` adds a computer
+recorded (written 21:59 to 22:01). **The page sets both**: `Event::AddSeat` adds a computer
 seat up to eight, `Event::Team` sets a seat's team from 0 to 8 (8 none), and the page's own rows make each by keys
 (`docs/LOBBY.md` §2, §3). Teams 0 to 3 ally (`LeaderData::is_team`), and these rows' `TEAM_STYLE 1` locks them.
 
@@ -1493,7 +1493,7 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 |---|---|---|---|---|---|---|
 | 3 | run1773 | Great Sahara, difficulty 3 | human + added | 6,001 | 1 | ~~units, builds, ammo 3857, leaders 4777~~ world 4990 |
 | 23 | run1774 | Atlantic Sea Power | the computers | 6,001 | 10 | **leaders 0**, units 5695 |
-| 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~3192, 3223, 3299~~ ammo 3361 |
+| 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~3192, 3223, 3299, 3442~~ 3833 |
 | 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, to 4222 | **12** | ~~1582, 1789, 3683, 3986~~ whole |
 | 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | ~~1956, 2811, 3041, 3359, 3645~~ cities 3656 |
 | 103 | run1778 | East Indies, Modern | the computers | 3,295, to 3294 | **12** | ~~1750, 1757, 1790, 2557 (GROUPS §3.4), ammo 2860, world 2983~~ whole (COLLISION §2) |
@@ -1512,8 +1512,8 @@ left the one shared `find_counters[0x1c]` at 2011, who=1's count (its mark); `fi
 cursor to 2000 and starts at 2001, so who=1's three trainings on 2976 went 2007, 2000, 2007, where ours went 2000
 first. The lap resets now (`ai_host::lap`, `find_unit`'s too; AI §11): twelve lines whole.
 
-**Bays (4547, 4559).** 736 takes 1440's; 4559 rows eight (`launch::BAYS`, `pivot::RELEASES`; 1224 is 169's). 4561:
-an unbuilt Village's close fixes borders. 4565: COMBAT §12.3.
+**Bays (4547, 4559).** 736 takes 1440's; 4559: eight (`launch::BAYS`, `pivot::RELEASES`; 1224 is 169's). 4561:
+an unbuilt Village's close fixes borders. 4565: COMBAT §12.3; 4564: §43.2.
 
 ### 12.4 Row 95: a CEO going in leaves its city (item 4519)
 
