@@ -1708,7 +1708,7 @@ Open: units and guys part on 3358. run1790 holds sums (item 4578).
 
 ### 13.3 Row 93
 
-2686 → 2962 by item 4590 (run1803; `docs/COMBAT.md` §68.1). Open: units on 2962, range 6364, record 77, `order.type`.
+2686 → 2965 by 4590 (run1803; `docs/COMBAT.md` §68.1), 4606 (`docs/CHECKSUM.md` §18). Open: units on 2965.
 
 ### 13.4 Row 113
 
