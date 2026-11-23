@@ -504,6 +504,29 @@ fn a_tower_city_a_rival_s_border_touches_is_worth_ten_times() {
     );
 }
 
+/// **A tower in a city that has been attacked is not halved**
+/// (item 4585, `docs/AI.md` §167): the tower and fort arm halves its
+/// value only while `city_flags & 0x8` is clear (`testb $0x8, %al; jne`
+/// at `0x6c390f`), and that bit is `City::ever_attacked`. Row 133 of the
+/// sixth battery: who=2's capital, flags `0x405b`, values the Bunker at
+/// 13,500,000, whose `check_income` product wraps negative, so theirs
+/// never lists it; ours halved it to 6,750,000 and listed it.
+#[test]
+fn a_tower_in_a_city_once_attacked_is_not_halved() {
+    let (mut sim, t) = sim();
+    let c = city(&mut sim, &t, 0, 40, 40);
+    sim.ai.lobby.difficulty = 4;
+    let calm = value(&mut sim, 0, c, t.tower).expect("a hard AI wants a tower");
+    sim.cities.cities[c].ever_attacked = true;
+    let struck = value(&mut sim, 0, c, t.tower).expect("still wanted");
+    assert!(
+        (struck.val - calm.val * 2).abs() <= 2,
+        "{} against {}",
+        struck.val,
+        calm.val
+    );
+}
+
 /// **A bordered city wants its temple a hundred times more**
 /// (`create_buildings:324`–`326`, `docs/AI.md` §167). No capture holds
 /// the arm — its mutation failed nothing on the walk — so this does.

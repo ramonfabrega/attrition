@@ -28,10 +28,10 @@
 //!
 //! - ~~`CityData.bordering` (+0x65)~~: written by [`Sim::advance_border_pass`]
 //!   since item 1600 (`docs/AI.md` §167) and read by the temple and the
-//!   tower and fort arms. `city_flags & 0x8` / `& 0x1000`: no known setter
-//!   (`create-buildings.md` §9) — read as 0; the `0x1000` arm the border
-//!   pass sets beside `bordering` (a cell within four of the city) is not
-//!   modelled.
+//!   tower and fort arms. ~~`city_flags & 0x8` / `& 0x1000`: no known
+//!   setter — read as 0.~~ `& 0x8` is `City::ever_attacked` (the delivery
+//!   sets it) and the tower and fort arms read it since item 4585; `& 0x1000`
+//!   is [`crate::ai::CityAi::near_border`].
 //! - `CityData.ocean_filled` (+0x66): no field — `ocean_open` is
 //!   [`crate::ai::CityAi::ocean`].
 //! - `LeaderData::city_num` / `village_num`: the census does not keep them —
@@ -872,8 +872,7 @@ impl Sim {
                     x /= 100;
                 }
                 // `city_flags & 0x1000`: ×2, or ×10 while not `no_heal`
-                // (`create_buildings:847`). `& 0x8` still reads 0, so the
-                // halving always applies.
+                // (`create_buildings:847`).
                 if self.ai.ai[w]
                     .city_ai
                     .get(f.c)
@@ -885,7 +884,13 @@ impl Sim {
                         10
                     });
                 }
-                x /= 2;
+                // **Halved only while the city has never been attacked**
+                // (item 4585, `docs/AI.md` §167): `testb $0x8, %al; jne` at
+                // `0x6c390f` skips the `sarl` when `city_flags & 0x8`
+                // (`ever_attacked`) is set.
+                if !self.cities.cities[f.c].ever_attacked {
+                    x /= 2;
+                }
                 if self.cities.cities[f.c].founder != who {
                     x = x.wrapping_mul(3);
                 }
