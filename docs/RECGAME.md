@@ -1727,14 +1727,13 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: ammo parts first on 2198; units on 2245. run1797 holds the ranges.
+Open: cities and leaders part first on 2297; units on 2351, ammo on 2408. run1797 holds the ranges.
 
-**Item 4597** (DECISIONS 154 §2): units moved from 1906 to 2199. On 1906 units range 3967, record 72 `order.type` was
-ours 3, theirs 1: the repair recruit `2/72` walked to its capital under `EXPLORE_TO`. In
-`Group::action_swarm_around@0070fbe0`, `local_40` is set at `:71` (1) and, for `BUILD_AT` alone, at `:115`, so a
-computer's `REPAIR` swarm walks under `MOVE_TO`, as `docs/ORDERS.md` and `docs/GROUPS.md` already said.
-`row_133_s_repair_recruit_walks_under_a_move_order_on_run1797_s_ranges` holds every units range on 1905 and 1906. No other
-row of the sixth moved, and both long words held at 24000. *Diff-backed*: the order's class on 1906.
+**Item 4597** (DECISIONS 154 §2): units 1906 → 2199. A computer's `REPAIR` swarm walks under `MOVE_TO`
+(`Group::action_swarm_around@0070fbe0`, `docs/GROUPS.md`). Held on 1905–1906 by run1797's ranges. *Diff-backed*.
 
 **Item 4602**: builds 2166 → 2351. SAM `2/2027`'s `recharging` winds on `near_o` (71) with no target, and its turret
 (`+0x48`) turns at the sighting (`docs/COMBAT.md` §84.7). Held on 2165–2172 by run1797's ranges. *Diff-backed*.
+
+**Item 4604**: ammo 2198 → 2408, the first parting 2297. The SAM's rocket is `missile="1"`: a spline from its node's
+launch at `unit_move_speed × 0x96` (`docs/COMBAT.md` §84.3). Held on 2197–2227 by run1797's ranges. *Diff-backed*.

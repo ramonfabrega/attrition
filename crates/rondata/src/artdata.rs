@@ -925,7 +925,7 @@ pub fn piece_releases(
 
 /// `GRAPH → (get_game_frames(8), get_game_frames(0xc), slot 0xc's
 /// releases)` for an anti-air building whose piece is a unit's.
-pub type WallPackets = BTreeMap<String, (u32, u32, Vec<(u32, i8, bool, i32)>)>;
+pub type WallPackets = BTreeMap<String, (u32, u32, Vec<(u32, i8, bool, i32, bool)>)>;
 
 /// **The packet an anti-air building's `Wall::inc_time` reads** (item
 /// 1112, `docs/COMBAT.md` §84.2), for each `GRAPH` given.
@@ -954,6 +954,7 @@ pub fn wall_packets(install: &Install, graphs: &[String]) -> WallPackets {
     let files = anim_files(&adoc);
     let units = unit_anims(&udoc);
     let harmless = harmless_ammo(install);
+    let missile = missile_ammo(install);
     let pieces = ammo_pieces(install);
     let length = |rows: &Vec<(i8, String)>, slot: i8| -> u32 {
         rows.iter()
@@ -993,7 +994,8 @@ pub fn wall_packets(install: &Install, graphs: &[String]) -> WallPackets {
                     .and_then(|t| pieces.get(&t.to_lowercase()))
                     .copied()
                     .unwrap_or(sim::combat::FIRST_AMMO_PIECE);
-                releases.push((release_frame(ms), node, quiet, piece));
+                let flies = e.attribute("type").is_some_and(|t| missile.contains(t));
+                releases.push((release_frame(ms), node, quiet, piece, flies));
             }
         }
         out.insert(

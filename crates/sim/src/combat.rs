@@ -2860,7 +2860,7 @@ pub const SPLINE_CTL_MAX: usize = 64;
 /// `set_min_seg_length@009125e0`'s length: `Σ sqrt((dx·dx + dy·dy) +
 /// dz·dz)` over the control polygon, each root taken in double and rounded
 /// back (`9125e0`–`912656`), which is the correctly rounded single root.
-fn polygon_length(ctl: &[[Single; 3]]) -> Single {
+pub(crate) fn polygon_length(ctl: &[[Single; 3]]) -> Single {
     let mut length = Single::from_bits(0);
     for w in ctl.windows(2) {
         let d = |c: usize| w[1][c].subss(w[0][c]);

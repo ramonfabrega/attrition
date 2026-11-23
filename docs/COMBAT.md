@@ -14038,6 +14038,17 @@ the target: all twenty printed rounds leave from (22408, 16376, 235), the
 building at (22272, 16512, 8) plus (136, −136, 227). The round's
 `num_guys` is 0, the building's.
 
+**The SAM's rocket is a missile** (item 4604, `docs/RECGAME.md` §13.5).
+The `SAM Rocket` is `missile="1"`, so `Ammo::init` lays it a
+`calc_from_dir` spline (traj 2), as for a unit's missile. A building
+shooter's spline speed is `unit_move_speed × 0x96` (`67cd32`..`67cdc5`;
+a unit's is its `+0x20c`). The package's `pivot_angles` are the turret's
+(`fast_angle_to_degrees(+0x48 − 0x20000000)`, `6403d4`), but the SAM's
+`<UNIT>` has no `<RESTRICTION>`, so each node is a fixed vector:
+run1797's `2/2027` at (9024, 27264, 479) launches nodes 0, 1 and 2 from
+(+55, +6, +209), (+16, −16, +223) and (−7, −55, +209), the same on both
+of its swings. *Diff-backed*.
+
 ### 84.4 A building's `ATTENUATE` is signed
 
 `BuildType::init@00632340` stores `ATTENUATE` at `+0x1f0` as read, where
@@ -14114,7 +14125,7 @@ and `cargo test --release -p rondata chapter_thirty_eight`:
   is built beside it.
 - The string `verify_load` appends (`int_str_array +0x122f0`) is read as
   `-DEFAULT-AGE0`, and only the three numbers above back it.
-- The Air Defense Gun's and the SAM's launch vectors; a jammed building;
+- The Air Defense Gun's launch vector (the SAM's: §84.3); a jammed building;
   a piece outside the first `0x81` (not reachable with the shipped art).
 - ~~`do_attack`'s out-of-range arm clears the target (`622c1c`), which
   `process_building_combat` does not; nothing on disk parts on it yet.~~

@@ -1433,6 +1433,73 @@ pub(crate) mod tests {
         );
     }
 
+    /// **Row 133's SAM flies its rockets on their splines** (item 4604,
+    /// `docs/RECGAME.md` §13.5): run1797's ranges. On 2198 who=2's SAM
+    /// `2/2027` launches its first SAM Rocket (`missile="1"`) at who=1's
+    /// `71`: theirs from node 0's (9079, 27270, 688) on a `calc_from_dir`
+    /// spline (traj 2, `depth` 20, the polygon over `unit_move_speed ×
+    /// 0x96`), ours from the building's (9024, 27264, 479) on a straight
+    /// line. Every ammo range on 2197 to 2227, ours against theirs, byte
+    /// for byte: two swings of three rockets, from nodes 0, 1 and 2, and
+    /// their re-plans.
+    #[test]
+    fn row_133_s_sam_flies_its_rockets_on_their_splines_on_run1797_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let mut launches = std::collections::BTreeSet::new();
+        for state in 2197..=2227 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[3].as_ref().expect("the ammo line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 3).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "ammo's ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "ammo range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            let sam = built.sim.building_by_o(2, 2027).expect("2/2027");
+            for p in &built.sim.combat.projectiles {
+                if p.shooter == sim::combat::Obj::Building(sam) {
+                    assert!(p.spline.is_some(), "a SAM Rocket flies a spline");
+                    launches.insert((p.launch.x, p.launch.y, p.sz));
+                }
+            }
+        }
+        assert_eq!(
+            launches.into_iter().collect::<Vec<_>>(),
+            vec![(9017, 27209, 688), (9040, 27248, 702), (9079, 27270, 688)],
+            "its three nodes"
+        );
+    }
+
     /// **Row 133's SAM winds on its sighting and turns its turret at it**
     /// (item 4602, `docs/RECGAME.md` §13.5): run1797's ranges. On 2166
     /// who=2's SAM `2/2027` holds `near_o` 71 (who 1) with no target
@@ -10717,23 +10784,33 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // first parting, 2297 on both), items 2,464 -> 3,222 (first 2464 ->
         // 3035), goods 2,403 -> 2,721 (first 2403 -> 2721), world 2,234 ->
         // 2,352 (first 2215 -> 2352); the first parting is ammo alone on
-        // 2198.
+        // 2198. Then by item 4604 (an anti-air building's `missile="1"`
+        // round flies `Ammo::init`'s spline at 150 from its node's
+        // measured launch: the SAM `2/2027`'s first rocket on 2198,
+        // launch ours (9024, 27264, 479), theirs (9079, 27270, 688), traj
+        // ours 1, theirs 2; both agree now): units 2,245 -> 2,351 (first
+        // 2245 -> 2351), ammo 2,794 -> 3,015 (first 2198 -> 2408), deaths
+        // first 2443 -> 2442 (past the parting), leaders 2,245 -> 2,367
+        // (first 2245 -> 2297), cities 2,442 -> 2,543, items 3,222 -> 3,007
+        // (a fall past the parting, first 3035 -> 3007), goods 2,721 ->
+        // 4,316 (first 2721 -> 3258); the first parting is cities and
+        // leaders on 2297.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                2245, 2351, 6085, 2794, 2598, 2351, 2351, 2245, 2442, 3222, 2721, 2352,
+                2351, 2351, 6085, 3015, 2598, 2351, 2351, 2367, 2543, 3007, 4316, 2352,
             ],
             first: &[
-                ("units", (2245, Some(2027846971), 3206774003)),
+                ("units", (2351, Some(2661760352), 642137970)),
                 ("builds", (2351, Some(3954915333), 3808376837)),
-                ("ammo", (2198, Some(2052571696), 2764270736)),
-                ("deaths", (2443, Some(36399604), 2340772696)),
+                ("ammo", (2408, Some(2284240743), 3727473848)),
+                ("deaths", (2442, Some(4112542119), 2232507217)),
                 ("groups", (2351, Some(1891790061), 96103660)),
                 ("guys", (2351, Some(414155518), 3824518074)),
-                ("leaders", (2245, Some(301623679), 3478743421)),
+                ("leaders", (2297, Some(1408658429), 210594455)),
                 ("cities", (2297, Some(257638425), 3892330493)),
-                ("items", (3035, Some(3443990203), 3415154359)),
-                ("goods", (2721, Some(454129774), 410876012)),
+                ("items", (3007, Some(3525321571), 3415154359)),
+                ("goods", (3258, Some(586774648), 569473142)),
                 ("world", (2352, Some(3018833008), 3021585520)),
             ],
             over: None,
