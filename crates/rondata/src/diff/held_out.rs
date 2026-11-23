@@ -1992,6 +1992,72 @@ pub(crate) mod tests {
             stream.clone().apply(next.sim.frame as i32, &mut next);
             next.sim.command().tick();
             crate::diff::harness::debug_watch(&next, next.sim.frame);
+            if std::env::var("RON_PROBE_4619").is_ok() {
+                let ours = crate::checksum::state::ranges(&next.sim, &look, &tribes);
+                let ours = ours[0].as_ref().expect("units");
+                let set = record.first_of(3955).expect("3956").clone();
+                let all = record.ranges(&set).expect("ranges");
+                let mut th: Vec<Vec<&crate::trace::ranges::Range>> = Vec::new();
+                for r in all.iter().filter(|r| r.line == 0) {
+                    if r.site == 0x0066_21fe {
+                        th.push(Vec::new());
+                    }
+                    if let Some(l) = th.last_mut() {
+                        l.push(r);
+                    }
+                }
+                let mut us: Vec<Vec<&sim::checksum::Range>> = Vec::new();
+                for r in &ours.ranges {
+                    if r.field == "flags" || us.is_empty() {
+                        us.push(Vec::new());
+                    }
+                    us.last_mut().unwrap().push(r);
+                }
+                eprintln!("PROBE records ours {} theirs {}", us.len(), th.len());
+                let who_o = |b: &[u8]| (b[0], i16::from_le_bytes([b[1], b[2]]));
+                for want in [(1u8, 35i16), (1, 52), (0, 0), (0, 7)] {
+                    let t = th.iter().find(|rs| {
+                        rs.iter().any(|r| r.site == 0x0066_221c && who_o(&r.bytes) == want)
+                    });
+                    let u = us.iter().find(|rs| {
+                        rs.iter().any(|r| r.field.starts_with("who") && who_o(&r.bytes) == want)
+                    });
+                    let (Some(t), Some(u)) = (t, u) else {
+                        eprintln!("PROBE {want:?} missing");
+                        continue;
+                    };
+                    eprintln!("PROBE unit {want:?}: ours {} ranges, theirs {}", u.len(), t.len());
+                    for k in 0..u.len().max(t.len()) {
+                        let a = u.get(k);
+                        let b = t.get(k);
+                        let same = a.map(|r| &r.bytes) == b.map(|r| &r.bytes);
+                        let name = a.map_or("-", |r| r.field);
+                        let site = b.map_or(0, |r| r.site);
+                        let dec = |x: Option<&[u8]>| {
+                            x.and_then(|x| {
+                                crate::checksum::fields::range_fields("units", name, x)
+                            })
+                            .map(|v| {
+                                v.iter()
+                                    .map(|(n, x)| format!("{n}={x}"))
+                                    .collect::<Vec<_>>()
+                                    .join(" ")
+                            })
+                        };
+                        if same {
+                            eprintln!("PROBE   {k:3} {name} @{site:08x} same");
+                        } else {
+                            eprintln!(
+                                "PROBE   {k:3} {name} @{site:08x} PARTS ours {:02x?} {:?} | theirs {:02x?} {:?}",
+                                a.map(|r| &r.bytes),
+                                dec(a.map(|r| r.bytes.as_slice())),
+                                b.map(|r| &r.bytes),
+                                dec(b.map(|r| r.bytes.as_slice()))
+                            );
+                        }
+                    }
+                }
+            }
         }
         let set = record.first_of(3954).expect("state 3955's set").clone();
         let all = record.ranges(&set).expect("the set's ranges");
