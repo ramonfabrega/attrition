@@ -1345,6 +1345,80 @@ mod tests {
         }
     }
 
+    /// **Row 103's President clears his crew's discs by their own cells'
+    /// region** (item 4567, `docs/COLLISION.md` §2): run1783, the ranges
+    /// take of row 103's file. On 2983 who=1's President `1/14` (TI 355),
+    /// aboard Transport Freighter `1/120` since 2490, becomes the CEO (TI
+    /// 357). `Unit::set_type@00612fa0`'s second kill loop hands crew
+    /// figures 1 and 2 to `Objects::kill_guy@00659410`, which clears
+    /// `radius[coll_size]` around each figure's unit cell, gated by the
+    /// figure's **world cell's plain `region`** (`WData +0x4`). Figure 2
+    /// stands at unit cell (299, 640), on the ocean half of coastal cell
+    /// (18, 40), where `get_tregion` answers the sea's `region2`; ours
+    /// gated by that and cleared nothing there. Every world range on states
+    /// 2982 to 2984, ours against theirs, byte for byte: red on the tree
+    /// before the fix at range 6479 on 2983, record 2358 (cell (18, 39)),
+    /// `block.body` byte 21, ours 0xc0, theirs 0x40.
+    #[test]
+    fn row_103_s_president_clears_his_crew_by_their_cells_region_on_run1783_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 5) else {
+            eprintln!("skipping: row 103's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1783/map-18");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1783's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 103's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [2982i64, 2983, 2984] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let president = built
+                .sim
+                .units
+                .iter()
+                .find(|x| x.owner == 1 && x.index == 14)
+                .expect("1/14");
+            assert!(!president.on_map, "1/14 is aboard on {state}");
+            let want = if state == 2982 { 355 } else { 357 };
+            assert_eq!(president.type_index, want, "1/14's TypeIndex on {state}");
+            if state == 2982 {
+                // Figure 2's own cell is coastal: its tile is the sea's.
+                let g = president.guys[2].follow.expect("figure 2 tracks").body.pos;
+                assert_eq!((g.x / 48, g.y / 48), (299, 640), "figure 2's unit cell");
+                let cell = sim::world::Cell::new(18, 40);
+                assert_ne!(
+                    built.sim.world.tregion_alt(g.tile()),
+                    built.sim.world.region_of(cell),
+                    "figure 2's tile region is not its cell's"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_world();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "world's ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "world range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+    }
+
     /// **Row 123's producers lap from 2001 when the cursor is another
     /// player's** (item 4546, `docs/RECGAME.md` §12.3): run1785, the ranges
     /// take of row 123's file. `find_counters[0x1c]` is one array for every
@@ -8212,12 +8286,20 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // 2,951, builds 3,049, ammo 2,943, deaths 3,112, groups 3,059, guys
         // 3,049, leaders 3,093 and cities 3,017 -> 3,295, all whole to the
         // original's end; world 2,983 (first 2983) unmoved.
+        // Moved by item 4567 (`Objects::kill_guy` clears by the figure's
+        // cell's plain region, `docs/COLLISION.md` §2). run1783's leaf on
+        // 2983, world range 6479, record 2358 (cell (18, 39)), `block.body`
+        // bytes 21, 23, 25: ours 0xc0, 0x80, 0x80, theirs 0x40, 0, 0. Range
+        // 6553 (record 2418) bytes 20, 22, 24: ours 1, theirs 0. who=1's
+        // President `1/14` (TI 355 -> 357, aboard Freighter `1/120`) kills
+        // crew figure 2 on the ocean half of coastal cell (18, 40): world
+        // 2,983 -> 3,295, first 2983 -> none. **Row 103 whole, 12 of 12.**
         moved: Some(Score {
             states: 3295,
             agreed: [
-                3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295, 2983,
+                3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295, 3295,
             ],
-            first: &[("world", (2983, Some(3105834113), 1025917694))],
+            first: &[],
             over: None,
         }),
     }),
@@ -8281,9 +8363,9 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
 
 /// The fifth battery's line: games whole of the eight, and games taken.
 /// Item 4538 made row 23 whole: 1 -> 2. Item 4546 made row 123 whole: 2 -> 3.
-/// Item 4563 made row 63 whole: 3 -> 4.
+/// Item 4563 made row 63 whole: 3 -> 4. Item 4567 made row 103 whole: 4 -> 5.
 #[cfg(test)]
-pub(crate) const HELD_OUT_FIFTH_LINE: (usize, usize) = (4, 8);
+pub(crate) const HELD_OUT_FIFTH_LINE: (usize, usize) = (5, 8);
 
 /// The fifth battery (item 4527): three seats and one team of two a row.
 #[cfg(test)]
