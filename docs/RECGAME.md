@@ -1728,8 +1728,8 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: builds part first on 2370; units on 2376, guys on 2399, ammo on 2408. run1797's ranges hold each item's
-frames, every one *diff-backed*.
+Open: builds part first on 2370; ammo on 2408. run1797's ranges hold each item's frames, every one
+*diff-backed*.
 
 **Item 4597** (DECISIONS 154 §2): units 1906 → 2199, a `REPAIR` swarm walks under `MOVE_TO` (`docs/GROUPS.md`).
 **Item 4602**: builds 2166 → 2351, an anti-air building's wind and turret (`docs/COMBAT.md` §84.7). **Item 4604**:
@@ -1739,13 +1739,7 @@ ammo 2198 → 2408, the SAM's `missile="1"` spline (`docs/COMBAT.md` §84.3).
 `Build::close@00628980` tests `is(0x1b5)` at `0x628d2c` and zeroes every region's resume index inline. who=1
 razes who=2's Temple site `2/2009` on frame 2295. Held on 2295–2300.
 
-**Item 4610**: units 2351 → 2376, builds 2351 → 2370, groups 2351 → 2447, guys 2351 → 2399. The orphan check walks
-the sites by object number: `check_orphaned_buildings@006c9f20`'s outer loop runs `iVar9` up from `obj_base`, and
-ours walked slots. On 2350 who=2 has one idle citizen, `2/11`, and two unbuilt sites with no builder: `2/2003` (uid
-112, started) and `2/2033` (uid 69, in an earlier slot of ours). Theirs sends `2/11` to 2003 and sets `0x2000` on
-2033. On 2351, ours: `2/11` at (10632, 33096) against (10608, 33104), 2003's `build_masks` 8584 against 392, and
-group 132's `facing` 1 against 0. Held on 2350–2351. Row 43's group 128 parts by another writer: an army's origin
-and its mirrored slots.
+**Item 4610**: units 2351 → 2376, builds → 2370. The orphan check walks sites by object number.
 
 ## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
 
