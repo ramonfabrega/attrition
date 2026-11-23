@@ -1460,8 +1460,7 @@ pub(crate) mod tests {
         let mut stream = crate::input::Stream::pump(&rec);
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
         let lo: i64 = std::env::var("RON_PROBE_4604").unwrap().parse().unwrap_or(2194);
-        let n: i64 = std::env::var("RON_PROBE_4604_N").ok().and_then(|v| v.parse().ok()).unwrap_or(6);
-        for state in lo..=lo + n {
+        for state in lo..=lo + 6 {
             while built.sim.frame < state {
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
@@ -1492,24 +1491,8 @@ pub(crate) mod tests {
                     }
                 }
             }
-            let dec = |b: &[u8]| -> String {
-                let w = |o: usize| i32::from_le_bytes([b[o], b[o + 1], b[o + 2], b[o + 3]]);
-                format!(
-                    "o {} who {} launch ({}, {}, {}) land ({}, {}, {}) t {}/{} angle {:#x} slot {} whom {} ox {} traj {} gpiece {}",
-                    w(59), w(55), w(7), w(11), w(15), w(19), w(23), w(27), w(31), w(35), w(39), w(47), w(67), w(71), w(75), w(3)
-                )
-            };
-            for b in all.iter().filter(|r| r.line == 3 && r.bytes.len() == 99) {
-                if i32::from_le_bytes([b.bytes[31], b.bytes[32], b.bytes[33], b.bytes[34]]) <= 1 {
-                    eprintln!("  P4604T {state} {}", dec(&b.bytes));
-                }
-            }
-            if let Some(l) = lines[3].as_ref() {
-                for a in l.ranges.iter().filter(|r| r.bytes.len() == 99) {
-                    if i32::from_le_bytes([a.bytes[31], a.bytes[32], a.bytes[33], a.bytes[34]]) <= 1 {
-                        eprintln!("  P4604O {state} {}", dec(&a.bytes));
-                    }
-                }
+            for p in &built.sim.combat.projectiles {
+                eprintln!("  P4604 {state} proj {:?}", p);
             }
         }
     }
