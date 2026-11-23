@@ -1663,6 +1663,19 @@ impl Sim {
         // unit's reload (`UnitData +0xae`) first — under six frames it is
         // **cleared** and the walk-and-shoot starts; six and over turns the
         // request into `CHAR_WALK`.
+        if std::env::var_os("RON_PROBE_4589").is_some()
+            && self.units[u].owner == 2
+            && self.units[u].index == 70
+            && (2770..=2790).contains(&frame)
+        {
+            eprintln!(
+                "PROBE4589 set_anim f{frame} g{g} ask {anim} cur {} recharging {} force {force} p3 {p3}",
+                guy.anim, self.units[u].combat.recharging
+            );
+            if frame == 2778 {
+                eprintln!("{}", std::backtrace::Backtrace::force_capture());
+            }
+        }
         let anim = if anim == ATTACKWALK && guy.anim != ATTACKWALK {
             if self.units[u].combat.recharging < 6 {
                 self.units[u].combat.recharging = 0;
