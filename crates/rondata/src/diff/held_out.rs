@@ -1136,54 +1136,6 @@ pub(crate) mod tests {
         }
     }
 
-    /// Probe, item 4585: row 133's leaders on 1757, both sides' ranges.
-    #[test]
-    fn probe_4585_row_133() {
-        if std::env::var("RON_PROBE_4585").is_err() {
-            return;
-        }
-        let inst = crate::testenv::install().expect("install");
-        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(&SIXTH, 6) else {
-            panic!("row 133's recording is missing");
-        };
-        let ranges =
-            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
-                .expect("run1797's ranges");
-        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
-        let loaded = crate::load::load(&inst).expect("the install loads");
-        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
-        let mut stream = crate::input::Stream::pump(&rec);
-        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
-        let w = |b: &[u8], n: usize| i32::from_le_bytes(b[4 * n..4 * n + 4].try_into().unwrap());
-        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(1750);
-        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(1758);
-        for state in lo..=hi {
-            while built.sim.frame < state {
-                stream.apply(built.sim.frame as i32, &mut built);
-                built.sim.command().tick();
-            }
-            let set = record.first_of(state - 1).expect("the state's set").clone();
-            let all = record.ranges(&set).expect("the set's ranges");
-            let ours = built.sim.checksum_leaders();
-            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
-            eprintln!("P4585 state {state} leaders ours {} theirs {}", ours.ranges.len(), theirs.len());
-            let mut k2 = 0;
-            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
-                let slot = a.field == "make_list[k]" && a.record == 2;
-                if a.bytes != b.bytes {
-                    eprintln!("P4585   range {k} record {} {} ours {:?} theirs {:?}", a.record, a.field, a.bytes, b.bytes);
-                }
-                if slot && state >= hi - 3 {
-                    let o: Vec<i32> = (0..a.bytes.len() / 4).map(|n| w(&a.bytes, n)).collect();
-                    let t: Vec<i32> = (0..b.bytes.len() / 4).map(|n| w(&b.bytes, n)).collect();
-                    eprintln!("P4585   slot {k2} (range {k}) ours {o:?} theirs {t:?}");
-                    k2 += 1;
-                }
-            }
-        }
-    }
-
     /// **Row 83's computer lists a caravan by its ally's city** (item
     /// 4545, `docs/CARAVAN.md` §4): run1784, the ranges take of row 83's
     /// file. On 1956 who=2 (the added computer, team 0 with the human)
