@@ -10113,10 +10113,13 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // been attacked), on the tree merged with 4583: ammo 4,267 ->
         // 3,785, deaths 3,406 -> 2,967, ours' `game_over` 9522 -> 9533; the
         // row's first parting 2686 stands.
+        // Then item 4594 (a computer's city past half its hits calls a
+        // citizen to repair it): ammo 3,785 -> 3,370, deaths 2,967 -> 2,914,
+        // ours' `game_over` 9533 -> 11524; no first parting moved.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                2686, 2688, 12001, 3785, 2967, 2740, 2686, 2698, 2974, 3127, 3056, 2691,
+                2686, 2688, 12001, 3370, 2914, 2740, 2686, 2698, 2974, 3127, 3056, 2691,
             ],
             first: &[
                 ("units", (2686, Some(1210672926), 399075748)),
@@ -10131,7 +10134,7 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
                 ("goods", (3056, Some(2987562270), 2924123420)),
                 ("world", (2691, Some(2608492097), 2791665259)),
             ],
-            over: Some(9533),
+            over: Some(11524),
         }),
     }),
     // run1793
@@ -10219,24 +10222,33 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 1,758 -> 1,906, leaders 1,757 -> 1,905, cities 1,758 -> 1,951,
         // items 2,185 -> 2,676 (first 2051 -> 2310), goods 1,827 -> 2,418
         // (first 1758 -> 2418), world 1,758 -> 1,906; the first parting is
-        // units, builds and leaders on 1905.
+        // units, builds and leaders on 1905. Then by item 4594 (a computer's
+        // city past half its hits calls a citizen to repair it: who=2's
+        // `2/72` repairs its capital `2/2000` from 1904): units 1,905 ->
+        // 2,126 (first 1905 -> 1906), builds 1,905 -> 2,166, ammo 2,680 ->
+        // 2,770 (first 2184 -> 2198), deaths 2,382 -> 2,529 (first 2382 ->
+        // 2380), groups 2,067 -> 2,319, guys 1,906 -> 2,199, leaders 1,905
+        // -> 2,228 (first 2212), cities 1,951 -> 2,526 (first 2297), items
+        // 2,676 -> 2,464 (first 2310 -> 2464), goods 2,418 -> 2,403 (first
+        // 2418 -> 2403), world 1,906 -> 2,234 (first 2215); the first
+        // parting is units alone on 1906.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                1905, 1905, 6085, 2680, 2382, 2067, 1906, 1905, 1951, 2676, 2418, 1906,
+                2126, 2166, 6085, 2770, 2529, 2319, 2199, 2228, 2526, 2464, 2403, 2234,
             ],
             first: &[
-                ("units", (1905, Some(3775966775), 2122353837)),
-                ("builds", (1905, Some(711906929), 3198474279)),
-                ("ammo", (2184, Some(1), 775076783)),
-                ("deaths", (2382, Some(76880417), 72489504)),
-                ("groups", (2067, Some(2670601218), 1171464947)),
-                ("guys", (1906, Some(2990684265), 1020803684)),
-                ("leaders", (1905, Some(3323301309), 2867367359)),
-                ("cities", (1951, Some(2416327274), 4184292042)),
-                ("items", (2310, Some(1196240602), 1848060668)),
-                ("goods", (2418, Some(393574506), 289765478)),
-                ("world", (1906, Some(2974310201), 2850905871)),
+                ("units", (1906, Some(1946974484), 1532918034)),
+                ("builds", (2166, Some(2503049249), 2722332706)),
+                ("ammo", (2198, Some(2543630524), 2764270736)),
+                ("deaths", (2380, Some(2707033464), 2702642551)),
+                ("groups", (2319, Some(3104455634), 3483909122)),
+                ("guys", (2199, Some(2462162594), 722575079)),
+                ("leaders", (2212, Some(146369369), 1262971739)),
+                ("cities", (2297, Some(257638425), 3892330493)),
+                ("items", (2464, Some(1874012926), 1848060668)),
+                ("goods", (2403, Some(393574506), 289765478)),
+                ("world", (2215, Some(3265519555), 1222893509)),
             ],
             over: None,
         }),

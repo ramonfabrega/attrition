@@ -10474,7 +10474,7 @@ above difficulty 1 has run only in a unit test until now.
 | H9 | `plan_strategy@006b9620`'s forced bit 4 below 2, `Army::do_mustering@006f4260`'s `DEFENDING` below 3, `find_target`'s gate and its `> 2` arms, `find_local_army` (carried) | a region's strategy is its own; an army that is not weak marches | the first army leaving mustering (7930 on the Easiest Great Lakes game) | the army's captains' orders agree on that frame (no dump writes `ARMYDATA`, §71.2) |
 | H10 | `Object::take_damage`'s `frame_attacked` stamp below 2 (carried, §71.3) | never stamps | the first hit | `0/frame_attacked` keeps its initial value in the dump through the parting |
 | H11 | `Leader::diplomacy@006bc950` (**not carried**, `ai_drive` does not step it): `+1` at 3 and `+2` at ≥ 4 to a human's score, and a `> 2` count over the other leaders | a larger score toward the idle human | a `Leader::diplomacy+` label among the original's draws | the parting frame's original draws carry no `Leader::diplomacy` label |
-| H12 | the repair arms: `Unit::do_gather@005ef2a0` and `Build::process@0061edf0` above 1, `Unit::find_repair_spot@00604320` and `Unit::think_spellcaster@005f27a0` below 2 (**not carried**) | an AI repairs a damaged building | the first AI building below full hits | no who=1 building carries damage before the parting |
+| H12 | the repair arms: `Unit::do_gather@005ef2a0` and `Build::process@0061edf0` above 1, `Unit::find_repair_spot@00604320` and `Unit::think_spellcaster@005f27a0` below 2 (**not carried**; ~~`Build::process`'s~~ built by item 4594, §167: a city past half its hits recruits a citizen) | an AI repairs a damaged building | the first AI building below full hits | no who=1 building carries damage before the parting |
 | H13 | `Object::find_nearby_target@00648da0`'s AI flag at 0 (carried, `search_ai`) | off: the damage weight is not inverted | the first AI target choice between two candidates | every unit's target agrees to the parting |
 | H14 | `Game::init_handicaps@0058abf0` (**not carried**) | a per-leader handicap slot at setup | read only by `get_handicap` under `semaphore[0] & 4`, off here | a start-dump field of run346 differs from run54's other than `DIFFICULTY` and what H1 moves |
 
@@ -17890,6 +17890,25 @@ which no capture here has.
 **Mutations** (`tools/mutate.py`, scored by cargo's exit): the nuke line's term, held by `run702_s_word_frame_is_widened_whole` and `a_spent_nuke_ramps_the_next_missile_and_uranium_takes_five_percent_off`; Uranium's 5 %, held by the widening; the tower arm's ×10, held by the widening; the war test, **held by the unit test alone** (both players are at war throughout the capture, so the peace arm is unreached); the region clear, held by the unit test; the temple arm's ×100, **no walk holds it** (the first mutation failed nothing) — held now by `a_temple_in_a_bordered_city_is_worth_a_hundred_times`.
 
 **The tower arm's halving waits on `ever_attacked`** (item 4585, run1797, diff-backed). After the ×2 or ×10 of `0x1000`, the arm halves only while `city_flags & 0x8` is clear: `testb $0x8, %al; jne 0x6c391f` at `0x6c390f` (`create_buildings:851`). That bit is `City::ever_attacked`, which the delivery sets. Ours halved always. On row 133 of the sixth battery, who=2's capital is flagged `0x405b` on both sides, and its Bunker is worth 13,500,000 before the income. `create_buildings:1186` multiplies by `check_income` (256) in 32 bits, the product wraps negative, and theirs lists no Bunker on 1757. Ours listed it at 6,750,000 in slots 2 and 8. The tower and fort arms read the bit; held by `a_tower_in_a_city_once_attacked_is_not_halved` and `row_133_s_computer_lists_no_bunker_in_its_attacked_capital_on_run1797_s_ranges`. The Bunker's `build_flags & 0x8000000` (the civic block's door, ×30 here) was read off run1562's packet: `0xc002015`, the same as ours.
+
+**A computer's city past half its hits calls a citizen to repair it** (item 4594, run1797, diff-backed).
+`Build::process@0061edf0`, `61fe00`..`61feed`, in the `(frame + o) & 63` block and after the capture re-test, which it
+skips when that search found an enemy within `0xc00` (`%edi` is −1 unless the building was eligible and one stood
+there). The gates, in the listing's order: the owner not human (`leader_flags & 4`); the building a city
+(`WallData::can_capture@00471360`, `is(VILLAGE)`); `damage` (`+0x24`) over `hits(0) / 2` (vslot `+0x11c`, then
+`cltd; subl; sarl`, rounded toward zero, and `jle` refusing equality); the city's `city_flags & 2` (`no_heal`) clear;
+`get_diff() > 1`. Then `find_unit(SEARCH_FRIENDLY, who, 0x1e00, 0x200, FILTER_TYPE 0x32, FILTER_NOT_BUSY)`, the site
+recruiter's search (§69) at twice its reach, and `add_repair_order(o, who, QUEUE_NEW, 0)`: no action bit, the stack
+cleared, a gatherer pulled off its walk. On row 133 of the sixth battery who=2's capital `2/2000` (a Major City)
+carries damage 5,949; on frame 1904, `(1904 + 2000) & 63 == 0`, theirs gives the Citizen `2/72` (TI 0x32), walking to
+its Oil Well `2/2008`, the repair. On state 1905 units range 3966 (record 72) holds ours' `MOVE_TO` and `GATHER` (path
+3) against theirs' one `REPAIR` (13) of `2/2000` (path 0); builds range 2061 holds `2/2008`'s `gather_down` ours 72,
+theirs −1; and leaders range 265 holds who=2's `flags` byte 3 ours 0x00, theirs 0x02, the economy's dirty bit
+`0x2000000` that `kill_current_order` raises on a killed `GATHER`. `Sim::city_repair_recruit`; held by
+`a_computer_s_city_past_half_its_hits_recruits_a_citizen_to_repair_it` and
+`row_133_s_computer_calls_a_citizen_to_repair_its_capital_on_run1797_s_ranges`. *Not established*: a city building
+with no city record is taken as refusing (the original indexes `+0x72` unchecked); the other three H12 arms stay
+uncarried.
 
 **Coverage.** Diff-backed: the ICBM's two terms (927/1069 on 2183, the buckets 111 and 104 apart), `bordering` on `1/2018` and the Nubian city, the Bunker's offer, and the halving's `0x8` gate (row 133 on 1757). Reading-only: the temple arm, the war test's peace branch, the fort arm's `/100`.
 
