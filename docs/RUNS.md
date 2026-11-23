@@ -41513,6 +41513,39 @@ before it and 82 after filing.
 **What it holds**: `diff::held_out::tests::row_33_s_musket_ball_leaves_from_the_original_s_socket_on_run1801_s_ranges`
 (every ammo range on states 3385 to 3400; who=2's `2/25` TI 99 on 3386).
 
+## run1803 — parity held out, sixth battery, row 93's file to 2,692, a packet at logger frame 2685 (2026-11-23, item 4590, `att-4590`)
+
+`docs/RECGAME.md` §13.3; `docs/COMBAT.md` §68.1. **What the disk could not answer**: run1799's ranges print the Bazooka
+`1/31`'s order and the buildings' `targeted`, never `compare_target`'s value for each candidate; a packet holds the
+state the re-search reads. The take: `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1803 --recording ~/ron-golden/recordings/item4566-row093-12000.rcx
+--end-frame 2692 --allow-early-end --cover cover=1 --log-window 2680 2690 --detail end:MISC --timeout 1800
+--stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_STATE_FRAME=2685 --tracer-def
+"RON_STATE_PLAN=\"$P/plan.h\""` with `P=~/ron-data/lab-experiments/2026-09-23-item-597/plan` **exported** (a first
+launch passed `P=` as a command prefix, the argument expanded to `/plan.h` and the tracer build failed; that take's
+directory is `~/ron-golden/run1803-dead-noplan`, 12 MB, nothing in it). Waited on with `waitrun.sh` in the
+background; the lane was free. `df -g ~` read 67 GB free before it and 62 after filing.
+- **The run**: pool lane 1, launched 10:38:07 −05:00, exited 10:41:33: **205.8 s**, exit 0, `success`, no page fault,
+  no relaunch, `last_frame` 2692, seed 12345, map 14; the recording's SHA-256 is run1792's (`2573906f…`).
+- **The packet**: `frame_snapshot.py ~/ron-golden/run1803/map-14 $P/plan.json` verified frame 2685, the logger return
+  and the completion receipt. `map-14/frame-snapshot.bin`, 910,828,108 bytes, SHA-256
+  `5ebbf7c72ad9642e317efa4d5a9cbe68b5a9374e1d56bfea37f596c211797ec6`.
+- **Read off it**: `units.lists` at `0xc0aec0` (stride `0x1c`), `objects` at `*0xc0618c + 0x14`. `1/31` at
+  `0x1568363c`; the Small City `2/2027` at `0x162c7014`, flags `0x7eb0223`; the Oil Well `2/2032` at `0x162c74c4`, flags
+  `0x7f00213`. Both buildings' `flags & 4` (`WallData::is_active`) are clear.
+- **`step4.py <exe> <packet> --entry 5ff6a0 --this 1568363c --args 0x7D0FFFC0,0`** (`find_new_target`), hooked at
+  `check_target`'s call and return (`64955d`, `649562`) and `compare_target`'s (`649710`, `649715`): 25,217
+  instructions, returns **2027**. Six candidates reach `check_target`, two pass: the well (`compare_target(2032, 2, 0,
+  0)` → **138**) and the city (`(2027, 2, 1, 0)` → **1613**).
+- **`--entry 64e5c0 --this 1568363c --args 2027,2,1,0`**, `--watch` on the frame's locals: `-0xc` (`+0x20`) 1,
+  `-0x24` (`+0x4c`, `is_active`) **0**, `-0x8` (`bVar17`, the raid stance) 1, so `64ea57` falls to `64ea7c`, the
+  threat formula: 80 × 80 × 100 / 873 = 733, × 10, × damage 22, `(161,260 + 99) / 100` = 1613. Scratch:
+  `~/ron-data/lab-experiments/2026-11-23-item-4590/`.
+- Filed with `filerun.py run1803 heldout6-row093-packet2685`: `gamelog-run1803-heldout6-row093-packet2685.txt`, 2,891
+  bytes; `rontrace-run1803.log`, 79,342,464 bytes.
+
+**What it holds**: the arm behind row 93's 2686 (`docs/journal/2026-11-23-item-4590.md`). No test reads it: the test
+it gave is a sim test, `a_raider_weighs_an_unfinished_building_by_its_threat`.
 ## run1802 — parity held out, sixth battery, row 113's file to the original's end (4572) with the checksum and ranges hooks, cities kept (2026-11-23, item 4592, `att-4592`)
 
 `docs/RECGAME.md` §13.4. **What the disk could not answer**: run1793 holds sums only, so row 113's cities parting on

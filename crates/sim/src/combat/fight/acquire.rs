@@ -1401,7 +1401,19 @@ impl Sim {
             // A raider looks at an active building's worth, not its threat:
             // `iVar5 == 0 || !bVar17 || iVar4 == 0` takes the formula, and
             // the one case left takes `/ 20` (`0064ea57`–`0064ea7a`).
-            if is_build && raiding && self.active(target) {
+            //
+            // **`iVar5` is `WallData::is_active`, the finished bit** (item
+            // 4590, `docs/COMBAT.md` §68.1): vslot `+0x4c` is `flags & 4`,
+            // and `iVar4` (`+0x20`) answers for a `Build` proper, never a
+            // wall. An unfinished building takes the threat formula even
+            // from a raider. run1803's packet: row 93's raiding Bazooka
+            // `1/31` scores the unfinished Small City `2/2027` (flags
+            // `0x23`) at 1613, where `/ 20` made it the floor 15 and lost
+            // it to the Oil Well `2/2032` at 138.
+            if raiding
+                && matches!(target, Obj::Building(b)
+                    if self.buildings[b].index < crate::WALL_BASE && self.buildings[b].active)
+            {
                 v /= 20;
             } else {
                 v = v.wrapping_mul(t_attack).wrapping_mul(100) / left;
