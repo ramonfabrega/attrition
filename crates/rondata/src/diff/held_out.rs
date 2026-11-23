@@ -2026,7 +2026,10 @@ pub(crate) mod tests {
     /// record agrees on 3956, and the two `targeted` bumps theirs takes
     /// (`0/0` 5 → 6, `0/2000` 0 → 1) are the two searches' winners.
     /// Every units, builds, guys and world range on 3955, ours against
-    /// theirs, byte for byte; on 3956, theirs' two records as read.
+    /// theirs, byte for byte; on 3956, theirs' two records as read, and
+    /// since item 4619 every range of the four lines on 3956 too: the
+    /// actor is a third member of their group, `1/25`, whose find of `0/0`
+    /// goes to `Group::target_opportunity` (run1816's packet at 3955).
     #[test]
     fn row_28_s_bazookas_drop_their_chase_of_a_citizen_on_run1813_s_ranges() {
         let Some(inst) = crate::testenv::install() else {
@@ -2052,8 +2055,18 @@ pub(crate) mod tests {
         let mut stream = crate::input::Stream::pump(&rec);
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
         while built.sim.frame < 3955 {
+            crate::diff::harness::debug_watch(&built, built.sim.frame);
             stream.apply(built.sim.frame as i32, &mut built);
             built.sim.command().tick();
+        }
+        crate::diff::harness::debug_watch(&built, built.sim.frame);
+        if std::env::var("RON_DEBUG_UNIT").is_ok() {
+            // The parting frame itself, on ours, for `RON_DEBUG_UNIT`'s
+            // `@…-3956`: a copy ticked once, the assertions below untouched.
+            let mut next = built.clone();
+            stream.clone().apply(next.sim.frame as i32, &mut next);
+            next.sim.command().tick();
+            crate::diff::harness::debug_watch(&next, next.sim.frame);
         }
         let set = record.first_of(3954).expect("state 3955's set").clone();
         let all = record.ranges(&set).expect("the set's ranges");
@@ -2154,6 +2167,26 @@ pub(crate) mod tests {
             (2, 0x0a, 0, 0),
             "theirs' 1/52: ATTACK on 0/0 first"
         );
+        // Ours on 3956 (item 4619): the frame ticked once, every units,
+        // builds, guys and world range byte for byte. `1/25`'s
+        // `think_attack` hands group 66 the Special Forces `0/0`, and each
+        // member's `Unit::target_opportunity` passes the anti-siege shield,
+        // whose held Citizen is not siege.
+        stream.apply(built.sim.frame as i32, &mut built);
+        built.sim.command().tick();
+        let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+        for (line, name) in [(0, "units"), (1, "builds"), (6, "guys"), (11, "world")] {
+            let ours = lines[line].as_ref().expect("the line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on 3956");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "{name} range {k} on 3956, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
     }
 
     /// **Row 133's Temple site's close fixes the borders** (item 4607,
@@ -12063,7 +12096,29 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4619 (`Unit::target_opportunity`'s anti-siege shield
+        // read whole: the five group-66 Bazookas yield their chase of `0/7`
+        // to `1/25`'s `0/0` on 3955): 2 -> 7 lines whole (deaths, groups,
+        // guys, goods and world join walls and items); units 3,956 -> 4,247,
+        // first 3956 -> 4122; builds 3,956 -> 4,219, first 3956 -> 4037;
+        // ammo 4,030 -> 4,120, first 3963 -> 4027; leaders 3,958 -> 4,037,
+        // first 3958 -> 4037;
+        // cities 3,983 -> 4,247, first 3983 -> 4037. Lowest parting 3956 ->
+        // 4027 (ammo), 221 states from the original's end.
+        moved: Some(Score {
+            states: 4248,
+            agreed: [
+                4247, 4219, 4248, 4120, 4248, 4248, 4248, 4037, 4247, 4248, 4248, 4248,
+            ],
+            first: &[
+                ("units", (4122, Some(3093904767), 3997056397)),
+                ("builds", (4037, Some(3026336351), 2412788383)),
+                ("ammo", (4027, Some(1259473412), 2057767770)),
+                ("leaders", (4037, Some(1016138288), 3437169294)),
+                ("cities", (4037, Some(2470399905), 2943438759)),
+            ],
+            over: None,
+        }),
     }),
     // run1806
     // row 48, as found 2026-11-23: 1 line whole; units 7,150 of 12,001, first 5940; builds 7,170 of

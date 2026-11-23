@@ -23637,8 +23637,8 @@ field parted.
 asked after a yield, and (c) `live` forced true in `find_merchant_spot`.
 
 **Not established.** The vslot `+0x18` is read here as "is a unit". Every held object on 12155 was a unit or a
-building, so a held non-unit, non-building (a goody, a wall piece) is untested. The siege/bombard/explosive shield
-(`0x840002`) is still the SEAM it was. Nothing dumped shows why the city's `damage` parts by 2 on 12231 without
+building, so a held non-unit, non-building (a goody, a wall piece) is untested. ~~The siege/bombard/explosive shield
+(`0x840002`) is still the SEAM it was.~~ Built by item 4619 (`docs/RECGAME.md` §14.2). Nothing dumped shows why the city's `damage` parts by 2 on 12231 without
 moving a draw.
 
 ## 263. The Romans: the fort discount, a dead Library's ring, and the game's end (2026-10-19, item 3314)
