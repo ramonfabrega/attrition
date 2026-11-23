@@ -56,6 +56,7 @@ mod ground;
 mod hud;
 mod input;
 mod lobby;
+mod minimap;
 mod oil;
 mod opening;
 mod overlay;
@@ -397,6 +398,10 @@ fn build(
         overlay.0.extend(p.pos);
         overlay.1.extend(p.col);
     }
+    // Item 4581: the HUD's minimap, under the plates and the bars.
+    let minimap = hud
+        .and(world.minimap.as_ref())
+        .map(|back| minimap::layer(back, (size.0 as i32, size.1 as i32)));
     let underlay = hud.map_or_else(Default::default, |input| {
         selection::underlay(world, &input.selection)
     });
@@ -405,6 +410,7 @@ fn build(
     let mut screen = selection::plates(world, camera, (size.0 as i32, size.1 as i32), &|c| {
         world.runner.sim().city_name(c).map(String::from)
     });
+    screen.splice(0..0, minimap);
     if let Some(input) = hud {
         screen.extend(selection::bars(
             world,
@@ -526,10 +532,28 @@ pub(crate) fn still_named(
     selection: &[sim::observe::ObjId],
     names: &dyn Fn(usize) -> Option<String>,
 ) -> Vec<u8> {
+    still_minimap(world, camera, size, order, format, selection, names, false)
+}
+
+/// [`still_named`], with the HUD's minimap drawn over it when `minimap`
+/// (item 4581): its background drawn first on the same GPU.
+#[cfg(test)]
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn still_minimap(
+    world: &mut World,
+    camera: &render::Camera,
+    size: (u32, u32),
+    order: gpu::SilhouetteOrder,
+    format: wgpu::TextureFormat,
+    selection: &[sim::observe::ObjId],
+    names: &dyn Fn(usize) -> Option<String>,
+    minimap: bool,
+) -> Vec<u8> {
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());
     let mut gpu = gpu::Gpu::new(&instance, None, format)
         .unwrap_or_else(|e| panic!("the still needs a GPU: {e}"));
     gpu.silhouette_order = order;
+    let back = minimap.then(|| minimap::background(world, &gpu));
     let b = build(world, camera, size, 0.0, None);
     let underlay = selection::underlay(world, selection);
     let mut screen = selection::plates(world, camera, (size.0 as i32, size.1 as i32), names);
@@ -540,6 +564,9 @@ pub(crate) fn still_named(
         selection,
         selection::BAR_ZOOM_LEVEL,
     ));
+    if let Some(back) = &back {
+        screen.push(minimap::layer(back, (size.0 as i32, size.1 as i32)));
+    }
     let version = world.runner.terrain().version;
     world.set_screen(camera, size);
     world.drawn_terrain();
@@ -645,6 +672,9 @@ struct App {
     /// elsewhere is a drag, which the layer boxes past
     /// [`input::DRAG_SLOP`] (items 4180, 4318), else a press.
     left_down: Option<(i32, i32)>,
+    /// The left button went down on the minimap and is held (item 4581):
+    /// the camera follows the cursor over it (`WorldMap::moving_cam`).
+    minimap_held: bool,
     /// Where the right button went down, until it comes up: a release
     /// past [`input::right_dragged`]'s slop is a right drag (item 4295),
     /// else a right press.
@@ -867,6 +897,30 @@ impl App {
         }
     }
 
+    /// The world point under pixel `(x, y)` on the minimap, `None` off it
+    /// or with no minimap drawn (item 4581).
+    fn minimap_point(&self, x: i32, y: i32) -> Option<(i32, i32)> {
+        let back = self.world.minimap.as_ref()?;
+        let s = self.window.as_ref()?.0.inner_size();
+        let size = (s.width as i32, s.height as i32);
+        minimap::to_world(size, back.extent, x as f32 + 0.5, y as f32 + 0.5)
+    }
+
+    /// The camera's look-at to the minimap's point under `(x, y)`, held
+    /// to `[0, cells · 768]` each way as `update_world_map` holds it; off
+    /// the quad, the quad's nearest edge in texcoord.
+    fn minimap_look(&mut self, (x, y): (i32, i32)) {
+        let Some(back) = self.world.minimap.as_ref() else {
+            return;
+        };
+        let Some((_, s)) = self.window.as_ref().map(|(w, ..)| ((), w.inner_size())) else {
+            return;
+        };
+        let size = (s.width as i32, s.height as i32);
+        let (wx, wy) = minimap::to_world_held(size, back.extent, x as f32 + 0.5, y as f32 + 0.5);
+        (self.camera.loc_x, self.camera.loc_y) = (wx as f32, wy as f32);
+    }
+
     fn pan(&mut self, right: f32, down: f32) {
         let d = self.camera.dir_angle.to_radians();
         let (s, c) = d.sin_cos();
@@ -913,6 +967,9 @@ impl ApplicationHandler for App {
         match made {
             Ok((surface, gpu)) => {
                 let s = window.inner_size();
+                // Item 4581: the minimap's background, drawn once, as
+                // `WorldMapBackground::render` draws it.
+                self.world.minimap = Some(minimap::background(&mut self.world, &gpu));
                 self.configure(&surface, &gpu, (s.width, s.height));
                 window.request_redraw();
                 self.window = Some((window, surface, gpu));
@@ -954,12 +1011,28 @@ impl ApplicationHandler for App {
             }
             WindowEvent::CursorMoved { position, .. } => {
                 self.cursor = (position.x as i32, position.y as i32);
+                if self.minimap_held {
+                    self.minimap_look(self.cursor);
+                }
             }
             WindowEvent::MouseInput { state, button, .. } if self.page.is_none() => {
                 let (x, y) = self.cursor;
                 match (button, state) {
                     // The original selects on the release
                     // (`Console::on_left_up`), a click or a box.
+                    // Item 4581: a press on the minimap moves the camera
+                    // at once and holds it to the cursor until the release
+                    // (`WorldMap::on_left_down@008c79b0` sets `moving_cam`,
+                    // `update_world_map@008d2ba0` follows it).
+                    (MouseButton::Left, ElementState::Pressed)
+                        if self.minimap_point(x, y).is_some() =>
+                    {
+                        self.minimap_held = true;
+                        self.minimap_look((x, y));
+                    }
+                    (MouseButton::Left, ElementState::Released) if self.minimap_held => {
+                        self.minimap_held = false;
+                    }
                     (MouseButton::Left, ElementState::Pressed) => self.left_down = Some((x, y)),
                     (MouseButton::Left, ElementState::Released) => {
                         // A release that moved at all is a drag: the
@@ -983,6 +1056,15 @@ impl ApplicationHandler for App {
                     (MouseButton::Right, ElementState::Pressed) => self.right_down = Some((x, y)),
                     (MouseButton::Right, ElementState::Released) => {
                         let (x0, y0) = self.right_down.take().unwrap_or((x, y));
+                        // Item 4581: a right press on the minimap is the
+                        // minimap's (`WorldMap::on_right_up`), at its point.
+                        let on_map = self.minimap_point(x, y);
+                        if let (Some((mx, my)), false) =
+                            (on_map, input::right_dragged((x0, y0), (x, y)))
+                        {
+                            self.input(input::Event::MapRightPress { x: mx, y: my });
+                            return;
+                        }
                         self.input(if input::right_dragged((x0, y0), (x, y)) {
                             input::Event::RightDrag {
                                 x0,
@@ -1284,6 +1366,7 @@ fn main() {
             },
             cursor: (0, 0),
             left_down: None,
+            minimap_held: false,
             right_down: None,
             page,
             opened: from_page,
