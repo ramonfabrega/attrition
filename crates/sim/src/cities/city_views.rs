@@ -57,7 +57,24 @@ impl BuildStartView for StartSite<'_> {
     fn update_local_seen(&mut self) {
         self.sim.update_local_seen_build(self.b);
     }
-    fn announce(&mut self) {}
+    /// **The begun-a-wonder alert** (item 4605, `Build::start@006273a0:137`):
+    /// `ping` -8 at the site, the owner's neon, `ping_times` -3, for a
+    /// visible wonder (`ObjectData::is_visible_wonder@00471130`) told every
+    /// console, else the owner's allies — the rest get the text with no
+    /// point, which lays no ping.
+    fn announce(&mut self) {
+        use crate::observe::alerts::{EVERYONE, Tint};
+        let (b, who) = (self.b, self.sim.buildings[self.b].owner);
+        let told = if self.sim.is_visible_wonder(b) {
+            EVERYONE
+        } else {
+            (0..8u8)
+                .filter(|&q| self.sim.is_ally(q, who))
+                .fold(0, |m, q| m | 1 << q)
+        };
+        let at = self.sim.buildings[b].pos;
+        self.sim.alert(-8, at, told, Tint::Neon(who), -3);
+    }
 }
 
 /// `Wall::start@0063e810`'s footprint walk (the loop between `mask_me` and

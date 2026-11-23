@@ -23,8 +23,8 @@
 //! Ours: the background is our own terrain drawn straight down
 //! ([`background_camera`]), and the HUD draws it one cell a quad
 //! ([`layer`]), each cell in the background's colour at its centre. The
-//! borders and the view's rectangle are drawn over it ([`overlays`]); the
-//! fog, the blips and the pings are not.
+//! borders, the blips, the view's rectangle and the pings are drawn over
+//! it ([`overlays`]); the fog is not.
 
 /// **The quad's corners** (item 4581): `translated_verts`' screen x, y on
 /// run1564's packet at frame 3294, top, right, bottom, left, on the
@@ -70,6 +70,7 @@ pub fn minimap_camera(extent: (i32, i32)) -> render::Camera {
 }
 
 pub mod blips;
+pub mod pings;
 
 /// The quad's corners on a `size` frame: [`QUAD`] kept at its distance
 /// from the frame's left and bottom edges, where the console's bar sits.
@@ -500,8 +501,9 @@ pub fn view_rect(
 /// `render_ping`): the borders ([`borders`]), the blips ([`blips`], item
 /// 4601; `selection` the console's, `blink` the phase `graphic_tick & 8`)
 /// and the view's rectangle
-/// ([`view_rect`]). The fog draws nothing on run1564's photograph and is
-/// not built; nor are the pings.
+/// ([`view_rect`]), then the pings ([`pings`], item 4603: the entries
+/// the world holds, which our sim does not yet supply). The fog draws
+/// nothing on run1564's photograph and is not built.
 pub fn overlays(
     world: &crate::world::World,
     view: &render::Camera,
@@ -539,6 +541,16 @@ pub fn overlays(
         view,
         screen,
     ));
+    if let Some(set) = world.ping_set.as_ref() {
+        let quads = pings::build(
+            set,
+            &world.pings.entries,
+            world.pings.tick,
+            size,
+            (cells.0 * CELL, cells.1 * CELL),
+        );
+        out.extend(pings::draw(&quads, set, size));
+    }
     out
 }
 
@@ -844,8 +856,12 @@ pub(crate) mod tests {
     /// `[560, 596, 595, 3529, 3002, 3600]`, within `NEAR` +194, the same
     /// side of water +129 (the blue team's blips read as water on both).
     /// Seen red: the quad test ([`blips::tests`]) under `stat_mode` 0
-    /// parts on 16 buildings and 35 units.
-    pub const RUN1564_3279_MINIMAP: [usize; 6] = [560, 596, 595, 3529, 3002, 3600];
+    /// parts on 16 buildings and 35 units. Item 4605, the pings fed from
+    /// our sim's alert stream ([`pings::entries`]) on the capture's clock:
+    /// `[560, 596, 595, 3529, 3002, 3600]` → `[558, 596, 580, 3540, 3213,
+    /// 3600]`, within `NEAR` +211, the packet's own entries' figure. Seen
+    /// red: without the begun-a-wonder and the nuke circle's alerts, 3,112.
+    pub const RUN1564_3279_MINIMAP: [usize; 6] = [558, 596, 580, 3540, 3213, 3600];
 
     /// **The who texture's edge** (item 4588): a 2 × 1 map, player 0 on the
     /// left cell and player 1 on the right; then the right cell open water.
@@ -906,6 +922,55 @@ pub(crate) mod tests {
         // Item 4601: the photograph's selection, slot 0's capital (its
         // white city blip).
         let sel = blips::tests::capital_selected(&p.world);
+        // Item 4605: our sim's alert stream, laid on the capture's clock.
+        let packet = pings::tests::packet();
+        if let Some(packet) = &packet {
+            let alerts = p.world.runner.sim().observe_alerts(0);
+            let clock = pings::tests::capture_clock(packet);
+            let entries = pings::entries(&alerts, crate::world::CONSOLE, &clock);
+            // **The stream is the packet's** (item 4605): every entry that
+            // lays a ping, in the list's order — kind, point, frame, stamp,
+            // times, colour and radius. A -4 the packet holds dead (`ping`
+            // zeroed, its stamp its frame) is read as the -4 it was.
+            let told: Vec<_> = alerts
+                .iter()
+                .rev()
+                .filter(|a| a.tells(crate::world::CONSOLE))
+                .collect();
+            let ours: Vec<_> = entries
+                .iter()
+                .zip(&told)
+                .map(|(e, a)| {
+                    (
+                        e.ping, e.x, e.y, a.frame, e.stamp, e.times, e.colour, a.radius,
+                    )
+                })
+                .collect();
+            let (theirs, unlaid): (Vec<_>, Vec<_>) = packet
+                .entries
+                .iter()
+                .zip(&packet.frames)
+                .map(|(e, &(f, r))| {
+                    let ping = if e.ping == 0 && i64::from(e.stamp) == f {
+                        -4
+                    } else {
+                        e.ping
+                    };
+                    (ping, e.x, e.y, f, e.stamp, e.times, e.colour, r)
+                })
+                .partition(|t| t.0 != 0);
+            for t in &ours {
+                println!("ours {t:?}");
+            }
+            assert_eq!(ours, theirs, "the stream, entry for entry");
+            // 4605a: the packet's one entry with no ping, a text message at
+            // player 1's base on 1881, is not raised.
+            assert_eq!(unlaid.len(), 1, "{unlaid:?}");
+            p.world.pings = pings::Live {
+                entries,
+                tick: pings::tests::DRAWN_TICK_RUN1564,
+            };
+        }
         let ours = crate::still_minimap(
             &mut p.world,
             &camera,
@@ -928,27 +993,62 @@ pub(crate) mod tests {
             let out = std::path::PathBuf::from(dir).join("still-run1564-minimap.bmp");
             std::fs::write(&out, crate::gpu::bmp(&ours, size)).expect("the still writes");
         }
-        let mut got = [0usize; 6];
-        for j in 0..cells.1 {
-            for i in 0..cells.0 {
-                let (x, y) = to_screen(s, extent, i * CELL + CELL / 2, j * CELL + CELL / 2);
-                let (x, y) = (x as i32, y as i32);
-                let (a, b) = (px(&p.photo.rgba, x, y), px(&ours, x, y));
-                let (wa, wb) = (water(a), water(b));
-                got[0] += usize::from(wa && wb);
-                got[1] += usize::from(wa);
-                got[2] += usize::from(wb);
-                got[3] += usize::from(wa == wb);
-                got[4] +=
-                    usize::from((0..3).all(|k| (i32::from(a[k]) - i32::from(b[k])).abs() <= NEAR));
-                got[5] += 1;
-                if std::env::var_os("RON_MINIMAP_CELLS").is_some() {
-                    println!("cell ({i}, {j}) pixel ({x}, {y}) theirs {a:?} ours {b:?}");
+        let count = |ours: &[u8], show: bool| {
+            let mut got = [0usize; 6];
+            for j in 0..cells.1 {
+                for i in 0..cells.0 {
+                    let (x, y) = to_screen(s, extent, i * CELL + CELL / 2, j * CELL + CELL / 2);
+                    let (x, y) = (x as i32, y as i32);
+                    let (a, b) = (px(&p.photo.rgba, x, y), px(ours, x, y));
+                    let (wa, wb) = (water(a), water(b));
+                    got[0] += usize::from(wa && wb);
+                    got[1] += usize::from(wa);
+                    got[2] += usize::from(wb);
+                    got[3] += usize::from(wa == wb);
+                    got[4] += usize::from(
+                        (0..3).all(|k| (i32::from(a[k]) - i32::from(b[k])).abs() <= NEAR),
+                    );
+                    got[5] += 1;
+                    if show {
+                        println!("cell ({i}, {j}) pixel ({x}, {y}) theirs {a:?} ours {b:?}");
+                    }
                 }
             }
-        }
+            got
+        };
+        let got = count(&ours, std::env::var_os("RON_MINIMAP_CELLS").is_some());
         println!("RUN1564_3279_MINIMAP: {got:?}");
         assert_eq!(got, RUN1564_3279_MINIMAP);
+        // Item 4603: the packet's own entries at the drawn tick 175
+        // ([`pings::tests`]) through our renderer. Measured, never pinned;
+        // since item 4605 the pinned row draws ours, and the two agree.
+        if let Some(packet) = packet {
+            p.world.pings = pings::Live {
+                entries: packet.entries,
+                tick: pings::tests::DRAWN_TICK_RUN1564,
+            };
+            let fed = crate::still_minimap(
+                &mut p.world,
+                &camera,
+                size,
+                crate::gpu::SilhouetteOrder::Before,
+                wgpu::TextureFormat::Rgba8Unorm,
+                &sel,
+                &|_| None,
+                true,
+            );
+            p.world.pings = pings::Live::default();
+            if let Some(dir) = std::env::var_os("RON_STILL_DIR") {
+                let out = std::path::PathBuf::from(dir).join("still-run1564-minimap-fed.bmp");
+                std::fs::write(&out, crate::gpu::bmp(&fed, size)).expect("the still writes");
+            }
+            let fed = count(&fed, false);
+            println!(
+                "RUN1564_3279_MINIMAP fed the packet's pings (measured, not a pin): {fed:?}, \
+                 within NEAR {:+}",
+                fed[4] as i64 - got[4] as i64
+            );
+        }
     }
 
     /// [`to_screen`] and [`to_world`] invert one another and put the

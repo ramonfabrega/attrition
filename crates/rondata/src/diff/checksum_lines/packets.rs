@@ -1146,6 +1146,13 @@ pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[
         "the sixth battery's row 73 with a packet at 1563 (item 4583): Unit::process stepped \
          on it for who=2's Caravan 2/31, do_trade's link gate refusing at 5ed9b9; no word walks it",
     ),
+    (
+        "run1803",
+        2685,
+        "the sixth battery's row 93 with a packet at 2685 (item 4590): find_new_target stepped \
+         on it for who=1's Bazooka 1/31, compare_target's raid /20 skipped for the unfinished \
+         Small City 2/2027 (1613); no word walks it",
+    ),
 ];
 
 /// **The takes' packets** (item 4159, step VII-b2): held by a take's walk
@@ -1180,7 +1187,8 @@ pub(super) const TAKES_HELD: &[(&str, i64, &str, i64)] = &[
 // Item 4374: run1667's packet at 5667 named, not held, (121, …, 11).
 // Item 4433: run1715's packet at 3294 named, not held, (122, …, 12).
 // Item 4583: run1800's packet at 1563 named, not held, (123, …, 13).
-const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (123, 87, 7, 12, 1, 3, 13);
+// Item 4590: run1803's packet at 2685 named, not held, (124, …, 14).
+const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (124, 87, 7, 12, 1, 3, 14);
 
 /// Every held packet's `(run, logger frame, game, the length its walk is
 /// whole to)`: a word's, a chapter's and the minted one.

@@ -140,6 +140,9 @@ pub struct Sim {
     pub gaia: crate::gaia::GaiaState,
     /// The `trace/` subsystem's state (`docs/STRUCTURE.md` §3).
     pub trace: crate::trace::TraceState,
+    /// **The alert stream** (item 4605, [`crate::observe::alerts`]):
+    /// write-only, read by nothing in the simulation.
+    pub alerts: crate::observe::alerts::Alerts,
 }
 
 pub use self::cities::farms::Farm;
@@ -277,6 +280,7 @@ impl Sim {
                 repaths: vec![0; players.max(10)],
                 pf_start: Pos::default(),
             },
+            alerts: Default::default(),
             trace: crate::trace::TraceState {
                 staged_marks: Vec::new(),
                 trace_phases: false,

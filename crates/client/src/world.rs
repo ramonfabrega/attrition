@@ -167,6 +167,14 @@ pub struct World {
     /// The minimap's blips' atlas (item 4601, `docs/RENDERER.md` §3.33),
     /// `None` where `effects_graphics.xml` names no `<BLIPMAP>`.
     pub(crate) blip_atlas: Option<crate::minimap::blips::Atlas>,
+    /// The minimap's pings' definitions and textures (item 4603,
+    /// `docs/RENDERER.md` §3.34), `None` where `effects_graphics.xml`
+    /// holds no `<MINIMAP>`.
+    pub(crate) ping_set: Option<crate::minimap::pings::Set>,
+    /// The message window's entries the minimap pings, and the
+    /// `graphic_tick` it draws them at: the sim's alert stream, laid by
+    /// [`World::run_to`] (item 4605).
+    pub(crate) pings: crate::minimap::pings::Live,
     /// Pose each figure at its slot and clock (item 4067). On by default
     /// since item 4069 drew the original's facing (`guy_placement`): posed,
     /// candidate C reads 6 of 23, at rest 2 (`docs/RENDERER.md` §5.3);
@@ -1215,6 +1223,8 @@ impl World {
             shadow_art,
             scroll_art: crate::selection::ScrollArt::load(install.root()).ok(),
             blip_atlas: crate::minimap::blips::Atlas::load(install.root()),
+            ping_set: crate::minimap::pings::Set::load(install.root()),
+            pings: Default::default(),
             shadows: true,
             shadow_mirror: false,
             unit_shadows: false,
@@ -1314,6 +1324,16 @@ impl World {
                 self.ease();
             }
         }
+        // **The pings' entries** (item 4605): the sim's alert stream at the
+        // nominal clock, one `graphic_tick` a frame (66 ms each at play
+        // speed, `Game::loop_render`'s `0x42`). A capture's own clock is
+        // the caller's to lay over it.
+        let alerts = self.runner.sim().observe_alerts(0);
+        let now = self.runner.frame() as i32;
+        self.pings = crate::minimap::pings::Live {
+            entries: crate::minimap::pings::entries(&alerts, CONSOLE, &|f| f as i32),
+            tick: now,
+        };
     }
 
     /// Whether a unit of type `ty` leans to the ground.

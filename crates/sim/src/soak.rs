@@ -466,6 +466,44 @@ pub(crate) fn play_with(seed: u32, frames: usize, mut each: impl FnMut(&Sim)) ->
 mod tests {
     use super::*;
 
+    /// **The alert stream is write-only** (item 4605,
+    /// [`crate::observe::alerts`]): a generated game whose log is emptied
+    /// and handed a made-up alert after every frame takes the same digest,
+    /// frame for frame, as the same game left alone. The generated games
+    /// raise none of their own (no city and no leader's tallies), so the
+    /// made-up one is what makes the two logs differ; the writers' own
+    /// alerts are the lobby's (`client`'s `the_minimap_s_cells_on_run1564`)
+    /// and the floors' games, whose checksums did not move.
+    #[test]
+    fn alerts_leave_the_digest_alone() {
+        let play = |seed: u32, meddle: bool| {
+            let mut rng = Rng::new(seed);
+            let (mut sim, _types) = scenario(&mut rng);
+            let mut out = vec![digest(&sim)];
+            for _ in 0..3000 {
+                if rng.get(0, 9) == 0 {
+                    for _ in 0..rng.get(1, 3) {
+                        issue(&mut sim, &mut rng);
+                    }
+                }
+                sim.command().tick();
+                out.push(digest(&sim));
+                if meddle {
+                    sim.alerts.log.clear();
+                    let tint = crate::observe::alerts::Tint::White;
+                    sim.alert(-10, crate::Pos::new(1, 1), 1, tint, -7);
+                }
+            }
+            (out, sim.alerts.log.len())
+        };
+        for seed in [1, 2, 3, 4] {
+            let (kept, n) = play(seed, false);
+            let (meddled, m) = play(seed, true);
+            assert_ne!(n, m, "seed {seed}: the logs differ");
+            assert_eq!(kept, meddled, "seed {seed}");
+        }
+    }
+
     #[test]
     fn clock_and_rng_only_progress_cannot_satisfy_activity_guard() {
         let (mut sim, _) = scenario(&mut Rng::new(12345));

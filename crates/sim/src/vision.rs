@@ -598,7 +598,7 @@ impl Sim {
 
     /// `ObjectData::is_visible_wonder@00471130`: a wonder without the city
     /// flag and not a fort type (group 5).
-    fn is_visible_wonder(&self, b: usize) -> bool {
+    pub(crate) fn is_visible_wonder(&self, b: usize) -> bool {
         self.buildings[b].ty.is_some_and(|ty| {
             self.tables.build_types[ty].wonder
                 && !crate::cities::build::is_city(&self.tables.build_types, ty)

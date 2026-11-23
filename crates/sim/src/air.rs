@@ -1940,6 +1940,13 @@ impl Sim {
         {
             self.buildings[b].visible = 0xff;
             self.update_local_seen_build(b);
+            // `do_missile_launch:74`/`:84` (item 4605): the nuke's launch,
+            // `ping` -1, `WHITE`, at the silo, told every console (its
+            // owner "launched", the rest "detected"). A missile that is not
+            // a nuke tells the others alone (`:61`); not carried, 4605b.
+            let at = self.buildings[b].pos;
+            use crate::observe::alerts::{EVERYONE, Tint};
+            self.alert(-1, at, EVERYONE, Tint::White, -1);
         }
         self.come_out(u);
         let frame = self.frame;
@@ -2095,6 +2102,17 @@ impl Sim {
             crate::combat::Spline::nuke((launch.x, launch.y, sz), (landing.x, landing.y, ez))
         });
         let spline = spline.map(|s| s.recycled(self.spline_pop()));
+        // **The nuke's circle** (item 4605, `Ammo::init@0067bbf0:652`):
+        // `add_event` -4 at the landing, the shooter's neon, its
+        // `ping_times` the spline's points less one (`+0x28`), its radius
+        // the map's width `<< 8`; told every console.
+        if self.air_line_is(u, crate::air::airbase::NUCLEARMISSILE) {
+            use crate::observe::alerts::{EVERYONE, Tint};
+            let time = spline.map_or(MISSILE_FLIGHT, |s| s.len() as i32 - 1);
+            let radius = self.world.width() << 8;
+            let tint = Tint::Neon(self.units[u].owner);
+            self.alert_with_radius(-4, landing, EVERYONE, tint, time, radius);
+        }
         self.add_ammo(crate::combat::Projectile {
             left: None,
             shooter: me,
@@ -2908,8 +2926,8 @@ pub const SAM: i32 = 0x20d;
 /// **The packet an anti-air building's `Wall::inc_time` cycle reads**
 /// (item 1112, `docs/COMBAT.md` §84): `get_game_frames(8)` and
 /// `get_game_frames(0xc)` of its piece, the `<RELEASEEVENT>`s of slot
-/// `0xc` (`CHAR_ATTACK2`) as `(frame, node, harmless)` in file order, and
-/// where the round leaves from.
+/// `0xc` (`CHAR_ATTACK2`) as `(frame, node, harmless, piece, missile)` in
+/// file order, and where each node's round leaves from.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct WallCycle {
     /// `get_game_frames(8)`: `recharging` winds up to one under it.
@@ -2917,11 +2935,10 @@ pub struct WallCycle {
     /// `get_game_frames(0xc)`: the swing, `recharging` −1 down to −it.
     pub swing: i32,
     /// Slot `0xc`'s release events, `rondata::artdata::PieceReleases`'
-    /// shape.
-    pub releases: Vec<(u32, i8, bool, i32)>,
-    /// The launch point's offset from the building's own `x/y/z`, as
-    /// measured ([`WALL_LAUNCH`]); `None` leaves from the building itself.
-    pub launch: Option<(i32, i32, i32)>,
+    /// shape, and the ammo's `missile="1"` (item 4604).
+    pub releases: Vec<(u32, i8, bool, i32, bool)>,
+    /// Each node's measured launch offset ([`WALL_LAUNCH`]); none: the building.
+    pub launch: Vec<(i8, (i32, i32, i32))>,
 }
 
 /// **Where an anti-air building's round leaves from, measured** (item
@@ -2930,9 +2947,13 @@ pub struct WallCycle {
 /// and `Wall::inc_time`'s package carries a fixed `angle` of
 /// `0x20000000`, so the vector does not turn with the target: all twenty
 /// of run404's Radar rounds leave from (22408, 16376, 235), the building at
-/// (22272, 16512, 8) plus this row. The Air Defense Gun's and the SAM's
-/// are not measured.
-pub const WALL_LAUNCH: &[(i32, (i32, i32, i32))] = &[(RADAR, (136, -136, 227))];
+/// (22272, 16512, 8) plus this row. The SAM's three: run1797 (item 4604, §84.3).
+pub const WALL_LAUNCH: &[(i32, i8, (i32, i32, i32))] = &[
+    (RADAR, 0, (136, -136, 227)),
+    (SAM, 0, (55, 6, 209)),
+    (SAM, 1, (16, -16, 223)),
+    (SAM, 2, (-7, -55, 209)),
+];
 
 impl Sim {
     /// **`Wall::inc_time@0063fb60` for one leader's buildings**, which
@@ -2982,12 +3003,12 @@ impl Sim {
     /// event the clock crosses is a round (`Objects::add_ammo`), exactly as
     /// a unit's is — unless the jam bit is set.
     ///
-    /// SEAM: the building's `near_o` is not held here; its sign is taken
-    /// as the target's. run404 prints both on all 1,157 blocks of the
-    /// Radar, and they agree in sign on every one. The jam bit
-    /// (`build_masks & 0x8000`, [`crate::Building::jammed`], item 4541) is
-    /// read beside it: `Wall::inc_time@0063fb60:204` takes the wind-down
-    /// on `near_o < 0 || jammed`.
+    /// **The gate is `near_o` (`+0x34`, [`crate::Building::near`]), not the
+    /// target** (item 4602, `docs/RECGAME.md` §13.5): `Wall::inc_time@0063fb60:204`
+    /// winds down on `near_o < 0 || jammed` (`build_masks & 0x8000`, item
+    /// 4541) and reads `attack_ox` (`+0x7c`) only at the wind's top. run1797's
+    /// SAM `2/2027` on 2166: `near_o` 71, `attack_ox` −1 on both sides, and
+    /// theirs winds 0 → 1 where ours, on the target's sign, held 0.
     fn wall_anti_air(&mut self, b: usize) {
         if !self.buildings[b].active {
             return;
@@ -2996,7 +3017,7 @@ impl Sim {
             return;
         };
         let target = self.buildings[b].target;
-        let near = target.is_some() && !self.buildings[b].jammed;
+        let near = self.buildings[b].near.is_some() && !self.buildings[b].jammed;
         let top = cycle.wind - 1;
         let r = &mut self.buildings[b].recharging;
         if !near {
@@ -3032,10 +3053,11 @@ impl Sim {
         };
         let cur = -r;
         let last = if cur == 0 { -1 } else { cur - 1 };
-        for &(at, node, harmless, piece) in &cycle.releases {
+        for &(at, node, harmless, piece, missile) in &cycle.releases {
             let at = i32::try_from(at).unwrap_or(i32::MAX);
             if last < at && at <= cur {
-                self.wall_round(b, t, cycle.launch, node, harmless, piece);
+                let l = cycle.launch.iter().find(|r| r.0 == node).map(|r| r.1);
+                self.wall_round(b, t, l, node, (harmless, missile), piece);
             }
         }
     }
@@ -3044,14 +3066,14 @@ impl Sim {
     /// `Objects::add_ammo` → `Ammo::init` ([`Sim::fire_ammo_pub`]), from
     /// the building's own `x/y/z` plus the measured node vector
     /// ([`WALL_LAUNCH`]). The package's `num_guys` is the building's 0,
-    /// which run404's rounds print.
+    /// which run404's rounds print; a missile flies a spline (item 4604).
     fn wall_round(
         &mut self,
         b: usize,
         t: crate::combat::Obj,
         launch: Option<(i32, i32, i32)>,
         node: i8,
-        harmless: bool,
+        (harmless, missile): (bool, bool),
         piece: i32,
     ) {
         let me = crate::combat::Obj::Building(b);
@@ -3071,7 +3093,7 @@ impl Sim {
             z + dz,
             node,
             harmless,
-            false,
+            missile,
             piece,
         );
         for p in self.combat.projectiles.iter_mut() {
