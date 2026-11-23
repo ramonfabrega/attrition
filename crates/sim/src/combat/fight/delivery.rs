@@ -245,6 +245,19 @@ impl Sim {
             let (to, tw) = self.obj_o_who(target);
             eprintln!("P4623A {frame} by {aw}/{ao} ty {:?} on {tw}/{to} TI {} moving {} attacks {} attack {} pct {pct} dmg {dmg} dealt {}", self.buildings[b].ty, self.units[t].type_index, tt.moving, tt.attacks, self.attack_of(attacker), dealt.whole);
         }
+        if std::env::var("RON_PROBE_4623").is_ok()
+            && let Obj::Unit(t) = target
+            && self.units[t].owner == 2
+            && self.units[t].index == 0
+        {
+            let me = self.units[t].pos;
+            for (h, x) in self.units.iter().enumerate() {
+                let d = crate::world::vector_dist((x.pos.x - me.x).abs(), (x.pos.y - me.y).abs());
+                if x.alive() && d < 6000 {
+                    eprintln!("P4623N {frame} near {}/{} TI {} hero {} d {d} on_map {}", x.owner, x.index, x.type_index, self.is_hero_unit(h), x.on_map);
+                }
+            }
+        }
         if std::env::var("RON_PROBE_4623").is_ok() {
             let (to, tw) = self.obj_o_who(target);
             if tw == 2 && to == 0 {
