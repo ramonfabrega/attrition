@@ -183,5 +183,16 @@ and cyan specks in the lakes are what ours lacks.
 
 ## The gate
 
-Whole, by `tools/gate_run.sh`, once. Its quote is the commit after
-this one's.
+Whole, by `tools/gate_run.sh`, once.
+
+- **`gate-pass-1123.log`: `gate exit 0`** on `ebc1b9d00`, the pass's
+  commit, 9 of 9 steps: offline 1.0, guard 0.2, merge pins 1.1, release
+  22.3, clock 0.1. `Clock: green beside load`. Admission 13.6 s over
+  1,571 leases; load 3.2 at its start and 8.5 at its end. `Fixture
+  audit: 204394 requests, 0 missing fixtures`. `Rows: one driver row at
+  most: steer f42ce00d (working)`; `Driver: 0 landings since the last
+  pass (backstop 20) · context 393 k`; `Trunk: origin/main is
+  origin/worktree-replan-pdb`. `Builders: 0 reaped`; 98 GB free after
+  it.
+- The commit that quotes it is documents only and ran no whole gate;
+  the reflex, `tools/guard.sh`, was green on it.
