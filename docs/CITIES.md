@@ -1119,7 +1119,7 @@ Called on founding, after a level-up, on capture, after every Civic tech
 
 ```
 r = min(64, get_radius)
-for every active player p, every building B of p:
+for every active player p in order, every building B of p by object number (+0x1ec, then +0x1f0's walls):
     alive; not a city; not already in a city; (p != who and B.build_flags & 0x10) → skip
     vector_dist(tile deltas) > r → skip
     p == who:  LIBRARY → new_library;  add_to_city(B)
@@ -1130,6 +1130,11 @@ check_upgrade()
 
 **Foreign city-bound buildings caught inside a city's radius are converted**
 — on founding, level-up, capture and every Civic tech, not only on capture.
+
+**The walk's order is the chain's**: `add_to_city` appends, so the members
+join by object number, not by this crate's slots (item 4620: run1797's
+Village `2/2026` chains the reused `2/2007` before `2/2008` on 2370,
+*diff-backed* by `row_133_s_new_city_sweeps_its_buildings_by_object_number_on_run1797_s_ranges`).
 
 ### 5.5 What the level feeds
 

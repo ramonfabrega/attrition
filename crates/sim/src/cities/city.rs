@@ -788,13 +788,15 @@ impl Sim {
     /// [`find_buildings_steps`], run over the live state.
     pub fn find_buildings(&mut self, c: usize) {
         let (who, pos) = (self.cities.cities[c].owner, self.cities.cities[c].pos);
-        let n = self.buildings.len();
+        let mut order: Vec<usize> = (0..self.buildings.len()).collect();
+        order.sort_by_key(|&b| (self.buildings[b].owner, self.buildings[b].index));
         find_buildings_steps(&mut SimFind {
             sim: self,
             c,
             who,
             ct: pos.tile(),
-            n,
+            order,
+            k: usize::MAX,
             at: usize::MAX,
             swapped: None,
         });
