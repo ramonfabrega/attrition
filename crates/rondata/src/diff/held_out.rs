@@ -4485,6 +4485,99 @@ mod tests {
         assert_eq!(price, [0, 345, 0, 0, 345, 0], "who=1's Colosseum on 1582");
     }
 
+    /// **Row 3's computer blocks on its captured city's Library** (item
+    /// 4548, `docs/AI.md` §3.1, `docs/RECGAME.md` §12.3): on run1796's
+    /// ranges, every leaders and cities range on 4776 and 4777 byte for
+    /// byte. Who=1 (`defensive`, script step 15) holds three cities on
+    /// 4776, the third captured on 4756 and stamped 4756, the first never
+    /// struck. `get_city_index@009e2ba0` finds `""` in the first live
+    /// city's empty `id`, so the head's `was_city_attacked/raided(who, "",
+    /// -1)` answer 0 (the walk over every city answered 1 and the script
+    /// returned `SCRIPT_DONE`). Step 15's `research_tech_with_cost(Barter)`
+    /// finds the Library 2016 in the captured city first, and
+    /// `BuildData::can_make@0062db10` refuses an unassimilated building, so
+    /// it returns 0 and the script blocks: theirs' `production_step` 0,
+    /// `prod_script_run` 1 and `script_step` 15 on 4777.
+    #[test]
+    fn row_3_s_computer_blocks_on_its_captured_city_s_library_on_run1796_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 0) else {
+            eprintln!("skipping: row 3's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1796/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1796's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 3's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in [4776, 4777] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            for (line, ours) in [
+                (7, built.sim.checksum_leaders()),
+                (8, built.sim.checksum_cities()),
+            ] {
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == line).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {line}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "line {line} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+            // Who=1's `who..ally_mask`, range 129: `production_step`
+            // (`+0x788`), `prod_script_run` (`+0x78c`), `script_step`
+            // (`+0x790`), the range starting at `+0x8`.
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            assert_eq!(theirs[129].bytes.len(), 0x6922, "who=1's whole range");
+            let word = |off: usize| {
+                i32::from_le_bytes(theirs[129].bytes[off - 8..off - 4].try_into().unwrap())
+            };
+            let want = if state == 4776 {
+                (1, 1, 15)
+            } else {
+                (0, 1, 15)
+            };
+            assert_eq!(
+                (word(0x788), word(0x78c), word(0x790)),
+                want,
+                "theirs' who=1 step machine on {state}"
+            );
+        }
+        // The inputs both arms read, on the walked 4777.
+        let sim = &built.sim;
+        let cities: Vec<usize> = sim.cities_of(1);
+        assert_eq!(cities.len(), 3, "who=1's three cities");
+        assert_eq!(sim.cities.cities[cities[0]].attack_stamp, 0);
+        assert_eq!(sim.cities.cities[cities[0]].raid_stamp, 0);
+        let captured = cities[2];
+        assert_eq!(sim.cities.cities[captured].attack_stamp, 4756);
+        assert!(sim.city_unassimilated(captured), "the captured city");
+        let library = sim.building_by_o(1, 2016).expect("who=1's 2016");
+        assert_eq!(sim.buildings[library].city, Some(captured));
+        assert!(sim.building_unassimilated(library), "2016 makes nothing");
+        assert_eq!(sim.ai.ai[1].script.as_deref(), Some("defensive"));
+    }
+
     /// **Row 95's MLRS bears from its pivot node** (item 4536,
     /// `docs/RECGAME.md` §12.5): on run1770's ranges, every units and guys
     /// range on 5908 and 5909 byte for byte. On 5908 who=1's MLRS `1/99`
@@ -8687,24 +8780,23 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // guys and world 4,376 -> 4,784, cities 4,725 -> 4,784, goods 5,800
         // -> 5,709 (first 5384 -> 5415), items 5,930 -> 5,679 (first 5105
         // -> 5110): the row's first parting 3857 -> 4777 (leaders).
+        // Moved by item 4548 (run1796's ranges: `get_city_index` finds the
+        // empty `id` every random-map city holds, so the scripts'
+        // `was_city_attacked/raided(who, "", -1)` read the first live city
+        // alone; and `research_tech_with_cost` asks `can_make` of the one
+        // producer it finds, an unassimilated one refusing): on 4777
+        // leaders range 129, record 1 (who=1), `production_step` ours 2 ->
+        // 0, theirs 0, `prod_script_run` ours 0 -> 1, theirs 1. Eleven
+        // lines whole, 6,001 of 6,001 (units, builds, guys, cities and
+        // world 4,784, leaders 4,777, ammo 5,456, deaths 4,867, groups
+        // 4,814, items 5,679, goods 5,709 before); world 4,784 -> 4,990
+        // (first 4784 -> 4990): the row's first parting 4777 -> 4990.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                4784, 4784, 6001, 5456, 4867, 4814, 4784, 4777, 4784, 5679, 5709, 4784,
+                6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 6001, 4990,
             ],
-            first: &[
-                ("units", (4784, Some(16391931), 1128923637)),
-                ("builds", (4784, Some(642532254), 378926091)),
-                ("ammo", (4801, Some(1), 1877084865)),
-                ("deaths", (4867, Some(271394004), 3083671375)),
-                ("groups", (4814, Some(1924149605), 3551998182)),
-                ("guys", (4784, Some(3966574611), 3818134940)),
-                ("leaders", (4777, Some(4263527177), 561333000)),
-                ("cities", (4784, Some(2181833172), 2298814682)),
-                ("items", (5110, Some(2892717092), 3013827624)),
-                ("goods", (5415, Some(3073734412), 3119871758)),
-                ("world", (4784, Some(2514581873), 373584278)),
-            ],
+            first: &[("world", (4990, Some(1089287049), 3932042013))],
             over: None,
         }),
     }),

@@ -1491,7 +1491,7 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 
 | row | run | lobby | team | states | whole | lowest partings (state) |
 |---|---|---|---|---|---|---|
-| 3 | run1773 | Great Sahara, difficulty 3 | human + added | 6,001 | 1 | ~~units, builds, ammo 3857~~ leaders 4777 |
+| 3 | run1773 | Great Sahara, difficulty 3 | human + added | 6,001 | 1 | ~~units, builds, ammo 3857, leaders 4777~~ world 4990 |
 | 23 | run1774 | Atlantic Sea Power | the computers | 6,001 | 10 | **leaders 0**, units 5695 |
 | 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~3192, 3223, 3299, 3442~~ 3833 |
 | 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, to 4222 | **12** | ~~1582, 1789, 3683, 3986~~ whole |

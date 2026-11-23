@@ -41151,6 +41151,39 @@ it and 73 after.
 
 **What it holds**: `diff::held_out::tests::row_43_s_slinger_stones_leave_from_piece_736_s_sockets_on_run1787_s_ranges`
 (every ammo and units range on states 3191 to 3197, who=2's two Slingers on piece 736, and theirs' launch points).
+## run1796 — parity held out, fifth battery, row 3's file to 6000 with the checksum and ranges hooks, every line but walls kept (2026-11-22, item 4548, `att-4548`)
+
+`docs/RECGAME.md` §12.3, `docs/AI.md` §3.1; DECISIONS 148 §4. **What the disk could not answer**: run1773 holds
+sums only, so row 3's leaders parting on 4777 (item 4565's move, sums only) named no leaf. The take is run1773's file
+with the scorer's one-take line (`score_recording … ~/ron-golden/run1773/map-7` on `57f8d3e8a`: `--end-frame 6000
+--tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0xffbu`, every line but walls, which is
+whole): `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1796 --recording ~/ron-golden/recordings/item4527-row003-6000.rcx --end-frame 6000 --allow-early-end
+--cover cover=1 --log-window 0 31 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS
+--tracer-def RON_RANGES --tracer-def RNG_MASK=0xffbu`, waited on with `waitrun.sh` in the background. The lane was
+free at launch, so no minutes went to waiting. `df -g ~` read 81 GB free before it and 73 after.
+- **The run**: pool lane 1, launched 19:11:21 −05:00, exited 19:18:50: **449.2 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 6,001 frames, `last_frame` 6000, not ended early, seed 12345, map 7. The recording's
+  SHA-256 is run1773's (`a6452adb…`). Players: tribe 4 (who 0, flags 7), tribe 12 (who 1), tribe 0 (who 2).
+- **The record**, `~/ron-golden/run1796/map-7/rontrace.ranges`, 3,778,984,160 bytes in 4 pieces (`filerun.py`),
+  SHA-256 `03c901ab48b9ea432d0ff7aa1039cbe459798092a44de9bae9b3b9be0bd4d782`, 3.53 GiB on disk before, 0.25 GiB after:
+  6,001 sets on trace frames −1 to 5999, 66,206,838 ranges, 2,719,089,426 bytes, none over (`ranges.py summary`).
+- **Scored** (`score_recording … ~/ron-golden/run1796/map-7`, on `57f8d3e8a`): the sums are run1773's. **Leaders
+  4,777, first 4777: range 129, record 1 (who=1), `who..ally_mask` bytes 1920 and 1924: `production_step` ours 2,
+  theirs 0; `prod_script_run` ours 0, theirs 1**; units, builds, guys, cities and world 4784 (units range 187, record
+  2, `x` ours 23737, theirs 23736; builds range 244, record 2000, `queued` ours 1, theirs 0); ammo 4801; groups 4814;
+  deaths 4867; items 5110; goods 5415.
+- **Re-scored by item 4548** (the scripts' `""` city is the first live one; `research_tech_with_cost` refuses an
+  unassimilated producer): **eleven lines whole, 6,001 of 6,001**; world 4,990, first 4990 (range 3624, record −1,
+  `mask`, byte 75898: ours `0x07`, theirs `0x03`, 27 bytes, bit `0x04`).
+- Filed by `filerun.py run1796 heldout5-row003-ranges`: `gamelog_p.txt` →
+  `Logs/gamelog-run1796-heldout5-row003-ranges.txt`, 2,883 bytes, SHA-256
+  `06022ebcdca5157bfe89b75715e4e5afa9a3ad5cb49c85f127f40e99b3433d00`; `rontrace.log` → `Logs/rontrace-run1796.log`,
+  35,107,712 bytes, SHA-256 `b4b85684949a9be9c1a63b0d858f1da896874586f88b5338d77aa3a4b999a9ef`; the record stays
+  in place.
+
+**What it holds**: `diff::held_out::tests::row_3_s_computer_blocks_on_its_captured_city_s_library_on_run1796_s_ranges`
+(every leaders and cities range on 4776 and 4777).
 
 ## run1788 — parity held out, sixth battery, row 13: Amazon, three seats and a team, the human scripted, played to 12,000 (2026-11-22, item 4566, `att-4566`)
 
