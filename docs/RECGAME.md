@@ -1704,26 +1704,8 @@ Open: units, builds, groups and guys part on 7675. run1788 holds sums (item 4579
 
 ### 13.2 Row 53
 
-Open: units and guys part on 3358. run1790 holds sums; run1812 holds the ranges for 0 to 3608 (item 4578).
-
-**Item 4578, the first act** (run1812, no column moved): units range 4116, record 76, `who..y_internal`, byte 3:
-**`z` ours 29, theirs 22**; record 91 the same, ours 25, theirs 18. Guys range 1116: guy 0's `z` and `last_z`, ours
-24, theirs 21. Record 76 is who=2's Phalanx `2/76` (TI 133, land) and record 91 is `2/91` (TI 133, land). Both stand
-still with no orders, on tiles (196, 103) and (195, 103).
-
-- **The event**: on 3357, who=2 places a Smelter, `2/2040` (5 × 5), at (38112, 19104), cell (49, 24).
-  `Wall::init@0063e9b0`'s `terraform_for_building` raises tile row 103, the last border row of its box.
-- **The direction is theirs**: theirs keeps both standing units' stored `z` (`ObjectData +0xc`) at the old ground. Ours
-  reads `z` live (`World::object_z` of the tile, `checksum/units.rs`; `guy_z` the same).
-- **Theirs' ground did rise**: who=2's `2/130` (TI 133) walks onto the same tile (196, 103) on 3358, and its `z` agrees
-  at 29. `Unit::set_new_location` writes it from `find_tcoord_z` of that tile, the same read `Unit::update_z` makes.
-- **The open question**: `Wall::init`'s own loop (`0063eb66`..`0063ec73`, read in the listing) calls `Unit::update_z`
-  on every object chained in the 5 × 5 cells (`0x19`), or the 9 × 9 (`0x51`), around `div_3(x >> 8)`. It passes an
-  object whose vslot `+0x8` is true (for a unit `0x0046cda0`: `flags & 1`; for a building `0x0041bff0`: 0) and whose
-  type `+0x218` (domain) is 0. `2/76` sits one cell south of the Smelter, and theirs still did not move its `z`.
-  Not established: whether `2/76` is on cell (49, 25)'s chain in theirs, and the order of the placement against
-  `2/130`'s step. The next act is a packet at `RON_STATE_FRAME=3356` with `--watch` on `2/76`'s `+0xc` and cell
-  (49, 25)'s `down`/`down_who` over `Wall::init`.
+Open: units and guys part on 3358 (item 4578, run1812): who=2's standing Phalanx `2/76` (TI 133, land), `z` ours 29,
+theirs 22, under Smelter `2/2040`'s terraform. The rest: `docs/journal/2026-11-23-item-4578.md`.
 
 ### 13.3 Row 93
 
