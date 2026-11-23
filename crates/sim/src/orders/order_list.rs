@@ -1263,9 +1263,7 @@ impl Sim {
             return;
         }
         let Some(Body::AirPatrol(p)) = self.units[u].orders.get(1).map(|o| o.body) else {
-            if self.units[u].orders.get(1).is_some() {
-                crate::seam!("behind_not_patrol");
-            }
+            crate::seam!("behind_not_patrol", self.units[u].orders.get(1).is_some());
             return;
         };
         // A non-bomber asks `find_new_air_target(x, y, −1, −1)`

@@ -131,57 +131,74 @@ fn fallback_rows(walks: &[Walk]) -> Vec<(usize, u64)> {
         .collect()
 }
 
-/// **The comparison that can fail**: item 4574 gave the sixth's last 102
-/// keys their rows, and item 4559 the first five's 53, so no held-out walk
-/// enters `launch_point`'s fallback. Red on the tree before 4574's rows
-/// (`git show f8fd03379~1:crates/sim/src/data/launch.rs`): the sixth's
-/// rows 73, 93, 113 and 133 enter it.
-fn no_fallback(label: &str, walks: &[Walk]) {
-    let rows = fallback_rows(walks);
-    assert!(
-        rows.is_empty(),
-        "{label}: rows enter `launch_point`'s fallback (row, rounds): {rows:?}"
+/// **The comparison that can fail**: `launch_point`'s fallback rounds per
+/// row, pinned. Item 4574 gave the sixth's 102 keys their rows and item
+/// 4559 the first five's 53. The pass's probe on the same arm
+/// (`~/ron-data/lab-experiments/2026-11-22-pass-third/fallback-by-row.txt`)
+/// listed 3,673 rounds on the sixth before 4574: rows 33 (27), 73 (296),
+/// 93 (3,165), 113 (53) and 133 (132). On the tree with 4574's rows
+/// (`data/launch.rs` and `data/pivot.rs` as `93932dfd0` held them, the
+/// hook laid on that `launch_point`) this counter reads the same five.
+/// After them, one row still enters it: row 133, 21 rounds from state
+/// 4370, past its first parting (956): keys no walk fired before 4574's
+/// rows moved its later states (parked 4580a).
+const FALLBACK: [(&str, &[(usize, u64)]); 6] = [
+    ("first", &[]),
+    ("second", &[]),
+    ("third", &[]),
+    ("fourth", &[]),
+    ("fifth", &[]),
+    ("sixth", &[(133, 21)]),
+];
+
+fn fallback_as_pinned(file: &str, walks: &[Walk]) {
+    let want = FALLBACK.iter().find(|(f, _)| *f == file).map(|(_, w)| *w);
+    let got = fallback_rows(walks);
+    assert_eq!(
+        Some(got.as_slice()),
+        want,
+        "{file}: the rows that enter `launch_point`'s fallback (row, rounds)"
     );
 }
 
 #[test]
 fn the_first_held_out_walks_list_the_seams_they_enter() {
     if let Some(w) = count_battery(&FIRST, "first") {
-        no_fallback(FIRST.label, &w);
+        fallback_as_pinned("first", &w);
     }
 }
 
 #[test]
 fn the_second_held_out_walks_list_the_seams_they_enter() {
     if let Some(w) = count_battery(&SECOND, "second") {
-        no_fallback(SECOND.label, &w);
+        fallback_as_pinned("second", &w);
     }
 }
 
 #[test]
 fn the_third_held_out_walks_list_the_seams_they_enter() {
     if let Some(w) = count_battery(&THIRD, "third") {
-        no_fallback(THIRD.label, &w);
+        fallback_as_pinned("third", &w);
     }
 }
 
 #[test]
 fn the_fourth_held_out_walks_list_the_seams_they_enter() {
     if let Some(w) = count_battery(&FOURTH, "fourth") {
-        no_fallback(FOURTH.label, &w);
+        fallback_as_pinned("fourth", &w);
     }
 }
 
 #[test]
 fn the_fifth_held_out_walks_list_the_seams_they_enter() {
     if let Some(w) = count_battery(&FIFTH, "fifth") {
-        no_fallback(FIFTH.label, &w);
+        fallback_as_pinned("fifth", &w);
     }
 }
 
 #[test]
 fn the_sixth_held_out_walks_list_the_seams_they_enter() {
     if let Some(w) = count_battery(&SIXTH, "sixth") {
-        no_fallback(SIXTH.label, &w);
+        fallback_as_pinned("sixth", &w);
     }
 }

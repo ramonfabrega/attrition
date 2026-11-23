@@ -3029,9 +3029,7 @@ impl Sim {
         // negative; SEAM, as for a unit's (`guy_release_events`): a target
         // that is no longer active is refused too.
         let Some(t) = target.filter(|&t| self.active(t)) else {
-            if target.is_some() {
-                crate::seam!("wall_anti_air_inactive");
-            }
+            crate::seam!("wall_anti_air_inactive", target.is_some());
             return;
         };
         let cur = -r;

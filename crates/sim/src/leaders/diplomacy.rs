@@ -290,9 +290,7 @@ impl Sim {
                 if self.world.terrain(r as u16) != Terrain::Land {
                     continue;
                 }
-                if r == 0 {
-                    crate::seam!("land_slot_zero");
-                }
+                crate::seam!("land_slot_zero", r == 0);
                 let r16 = r as u16;
                 let my_cities = crate::ai::Census::reg_u16(&mine.reg_cities, r16);
                 let my_combat = crate::ai::Census::reg_u16(&mine.reg_combat, r16);

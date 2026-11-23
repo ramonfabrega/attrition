@@ -216,9 +216,7 @@ impl Sim {
         let kind = if self.cities.nation[self.units[u].owner as usize].human {
             MoveKind::MoveTo
         } else {
-            if matches!(body, Body::Repair(_)) {
-                crate::seam!("computer_repair_explore");
-            }
+            crate::seam!("computer_repair_explore", matches!(body, Body::Repair(_)));
             MoveKind::ExploreTo
         };
         // **Nothing is queued when the ring finds no spot** (item 3622,

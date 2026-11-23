@@ -459,9 +459,7 @@ impl CivTransportView for SimCivTransport<'_> {
     /// asking whether it did; a refusal here sends nothing.
     fn group_move_near(&mut self, _handle: i32, x: i32, y: i32, kind: i32) {
         let Some(g) = self.group.as_ref().filter(|_| self.pushed) else {
-            if !self.pushed {
-                crate::seam!("move_near_refused");
-            }
+            crate::seam!("move_near_refused", !self.pushed);
             return;
         };
         let kind = if kind == 3 {

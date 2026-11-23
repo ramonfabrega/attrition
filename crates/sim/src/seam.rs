@@ -20,13 +20,21 @@
 //! the module finds the note it stands on.
 
 /// Enter a seam: under `seam-count`, record the state it is entered on.
-/// `seam!("tag")` names the hook `module::path::tag`. Without the feature it
-/// expands to nothing.
+/// `seam!("tag")` names the hook `module::path::tag`; `seam!("tag", cond)`
+/// enters it only when `cond` holds, the arm the original takes and this
+/// crate does not. Without the feature both expand to nothing, `cond`
+/// included, so a predicate costs no build without the feature.
 #[macro_export]
 macro_rules! seam {
     ($tag:literal) => {{
         #[cfg(feature = "seam-count")]
         $crate::seam::hit(concat!(module_path!(), "::", $tag));
+    }};
+    ($tag:literal, $cond:expr) => {{
+        #[cfg(feature = "seam-count")]
+        if $cond {
+            $crate::seam::hit(concat!(module_path!(), "::", $tag));
+        }
     }};
 }
 
