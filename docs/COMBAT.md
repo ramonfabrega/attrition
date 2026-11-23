@@ -10037,6 +10037,14 @@ stays idle. Nothing is named for it.
   pivot** (item 4559, parked 4559a): no packet of the 145 on disk serves
   either, so its two walking keys (frames 7 and 21) still leave from the
   figure's square, and its `NODES` row is its `CHAR_ATTACK1` pivot entry.
+- **A row copied from a packet is not swept until a table checks it**
+  (item 4574): the French Dragoon's (piece 139) `CHAR_ATTACKWALK` release
+  row had carried no `float_lands` since item 3359, and the original's pivot
+  arm on its floats (run1185's packet, through the Carabineer, piece 140,
+  whose rows are 139's bit for bit) lands four cells from just below. Which
+  other rows read off a packet and never swept cell by cell carry the same
+  gap is not established. The Asian Heavy Machine Gun's (piece 1131) rows
+  rest on run1579's `init_position` alone: no packet of the 145 stores it.
 
 ### 55.6 Coverage
 
