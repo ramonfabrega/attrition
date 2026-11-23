@@ -9991,12 +9991,19 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // -> 3,280, the row's first parting now ammo 3279 (ours' sum
         // 3061199017, theirs 3074240683). Every column moved; see
         // `docs/journal/2026-11-23-item-4589.md`.
+        // Moved by item 4595 (a release at a gone target still takes a
+        // `graph_index`, `docs/COMBAT.md` §24.4: on 3278 who=2's Armored Car
+        // `2/32`, on `CHAR_ATTACKWALK` at the gone Citizen `0/4`, reaches
+        // `Objects::add_ammo`, which counts 1008 while `Ammo::init` refuses
+        // the round; on 3279 range 7, record 4, `graph_index` ours 1008 ->
+        // 1009, theirs 1009): ammo 3,280 -> 3,438, and the row whole on all
+        // twelve lines to the original's end 3437.
         moved: Some(Score {
             states: 3438,
             agreed: [
-                3438, 3438, 3438, 3280, 3438, 3438, 3438, 3438, 3438, 3438, 3438, 3438,
+                3438, 3438, 3438, 3438, 3438, 3438, 3438, 3438, 3438, 3438, 3438, 3438,
             ],
-            first: &[("ammo", (3279, Some(3061199017), 3074240683))],
+            first: &[],
             over: None,
         }),
     }),
@@ -10200,9 +10207,9 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
 ];
 
 /// The sixth battery's line: games whole of the eight, and games taken.
-/// As found: row 153 whole to 12,000.
+/// As found: row 153 whole to 12,000. Item 4595 made row 73 whole: 1 -> 2.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SIXTH_LINE: (usize, usize) = (1, 8);
+pub(crate) const HELD_OUT_SIXTH_LINE: (usize, usize) = (2, 8);
 
 /// The sixth battery (item 4566): three seats, a team and a scripted human
 /// a row, recorded to [`SIXTH_FRAMES`].
