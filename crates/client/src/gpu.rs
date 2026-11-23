@@ -387,6 +387,31 @@ pub struct Frame<'a> {
     pub shadows: &'a [crate::world::TexturedMesh],
     /// The burning buildings' particles (item 4233), one mesh a blend.
     pub particles: &'a [crate::particle::ParticleMesh],
+    /// **The minimap's background** (item 4584; `docs/RENDERER.md` §3.32):
+    /// the tileset's `minimap_ocean` and `minimap_ocean_bottom`. With it the
+    /// frame is drawn as `WorldMapBackground::render` draws: the card's
+    /// `minimap_mode` (`NO_HDR`, the land shaders' `land_no_hdr`), over a
+    /// quad of the ocean gradient, with no ocean floor, no water and no
+    /// surf, and with no tone map, white or bloom after.
+    pub minimap: Option<[[u8; 3]; 2]>,
+}
+
+/// **The ocean gradient** (item 4584; `docs/RENDERER.md` §3.32): the
+/// pre-transformed quad `WorldMapBackground::render` lays over the whole
+/// texture before the terrain, `ocean` at the top-left corner, `bottom` at
+/// the bottom-right, their mean at the other two, as two triangles in
+/// normalised device coordinates, each corner its colour.
+pub fn ocean_gradient(ocean: [u8; 3], bottom: [u8; 3]) -> (Vec<[f32; 3]>, Vec<[f32; 3]>) {
+    let f = |c: [u8; 3]| c.map(|v| f32::from(v) / 255.0);
+    let (tl, br) = (f(ocean), f(bottom));
+    let mid = [0, 1, 2].map(|k| (tl[k] + br[k]) * 0.5);
+    let corners = [
+        ([-1.0, 1.0, 0.0], tl),
+        ([1.0, 1.0, 0.0], mid),
+        ([1.0, -1.0, 0.0], br),
+        ([-1.0, -1.0, 0.0], mid),
+    ];
+    [0, 1, 2, 0, 2, 3].iter().map(|&k| corners[k]).unzip()
 }
 
 /// A ground pass over `view`, cleared or loaded (item 4232).
@@ -710,7 +735,9 @@ impl Gpu {
             label: Some("camera"),
             entries: &[wgpu::BindGroupLayoutEntry {
                 binding: 0,
-                visibility: wgpu::ShaderStages::VERTEX,
+                // Item 4584: the fragment stage reads `range.z`, the
+                // minimap's `NO_HDR`.
+                visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Uniform,
                     has_dynamic_offset: false,
@@ -2011,7 +2038,9 @@ impl Gpu {
         let r = camera.render_matrix().0;
         let mut u: Vec<f32> = m.to_vec();
         u.extend([r[2], r[6], r[10], r[14]]);
-        u.extend([DEPTH_RANGE.0, DEPTH_RANGE.1, 0.0, 0.0]);
+        // Item 4584: `range.z` is the minimap's `NO_HDR` (`land_no_hdr`).
+        let no_hdr = if frame.minimap.is_some() { 1.0 } else { 0.0 };
+        u.extend([DEPTH_RANGE.0, DEPTH_RANGE.1, no_hdr, 0.0]);
         let eye = camera.eye_position();
         u.extend([eye[0], eye[1], eye[2], 1.0]);
         let bytes: Vec<u8> = u.iter().flat_map(|v| v.to_le_bytes()).collect();
@@ -2098,6 +2127,23 @@ impl Gpu {
             .as_ref()
             .filter(|(_, m, _, _, _)| !m.is_empty())
             .map_or((&empty.0, &empty.1), |(_, m, p, _, _)| (m, p));
+        // Item 4584 (§3.32): the minimap's background runs `TerrainOut::render`
+        // under its minimap flag, which skips `render_ocean_floor`, and calls
+        // no water pass, so the floor, the water and the surf are not drawn:
+        // open water is the ocean gradient under them.
+        let kept: Vec<UploadedPatch>;
+        let patches = if frame.minimap.is_some() {
+            kept = patches
+                .iter()
+                .filter(|p| !matches!(p.5, PatchKind::Floor | PatchKind::Water | PatchKind::Surf))
+                .cloned()
+                .collect();
+            &kept
+        } else {
+            patches
+        };
+        let gradient = frame.minimap.map(|[o, b]| ocean_gradient(o, b));
+        let backdrop = gradient.as_ref().and_then(|(p, c)| self.vertices((p, c)));
         // Item 4182: with shadows, the ground up to its first mountain layer
         // is drawn off screen, the decals into the keep map, and the shade
         // pass composes the two onto the target before everything else —
@@ -2178,6 +2224,7 @@ impl Gpu {
                 frame.land_hdr,
                 frame.surf_hdr,
                 frame.border_hdr,
+                backdrop.as_ref(),
             );
         } else {
             // Item 4232: the ground in passes of its own, so the water can
@@ -2193,6 +2240,7 @@ impl Gpu {
                 frame.land_hdr,
                 frame.surf_hdr,
                 frame.border_hdr,
+                backdrop.as_ref(),
             );
         }
         {
@@ -2328,8 +2376,14 @@ impl Gpu {
         self.plume_passes(&mut enc, &exposed, &depth_view, size, &particles);
         // Item 4212 (§3.21): the tone map's white at the frame's mean, then
         // the overlay, which the tone map does not take.
-        self.expose.measure(&mut enc, &exposed);
-        self.expose.bloom(&mut enc, &exposed);
+        // Item 4584 (§3.32): the minimap's background is copied into its
+        // texture as drawn, so neither runs. The frame's fresh mean is zero,
+        // held at `gMinLuminance`, where the white's ratio is 1, and its
+        // fresh bloom is black, where the screen blend leaves the frame.
+        if frame.minimap.is_none() {
+            self.expose.measure(&mut enc, &exposed);
+            self.expose.bloom(&mut enc, &exposed);
+        }
         {
             let mut pass = enc.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("shown"),
@@ -2511,6 +2565,7 @@ impl Gpu {
         land_hdr: bool,
         surf_hdr: bool,
         border_hdr: bool,
+        backdrop: Option<&wgpu::Buffer>,
     ) {
         let view = target.create_view(&Default::default());
         let water = patches.iter().position(|p| p.5 == PatchKind::Water);
@@ -2540,6 +2595,14 @@ impl Gpu {
             .unwrap_or(first.len());
         {
             let mut pass = begin(enc, &view, depth_view, true);
+            // Item 4584 (§3.32): the minimap's ocean gradient over the
+            // clear, before the terrain, its depth unwritten.
+            if let Some(b) = backdrop {
+                pass.set_bind_group(0, &self.bind, &[]);
+                pass.set_pipeline(&self.overlay);
+                pass.set_vertex_buffer(0, b.slice(..));
+                pass.draw(0..6, 0..1);
+            }
             self.draw_ground(&mut pass, terrain, Some(meshes), &first[..k], None);
         }
         let draws = (target, &view, depth_view, extent, border_hdr);

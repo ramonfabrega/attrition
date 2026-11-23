@@ -70,6 +70,11 @@ fn fs_patch_lit(i: VOut) -> @location(0) vec4<f32> {
 @fragment
 fn fs_faded(i: VOut) -> @location(0) vec4<f32> {
     let a = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
+    // Item 4584 (§3.32): on the minimap's background the land is blended at
+    // its alpha over the ocean gradient, not over black.
+    if (land_no_hdr()) {
+        return vec4<f32>(land_lit_deep(textureSample(tex, samp, i.uv).rgb, i.nl, i.deep), a);
+    }
     let l = land_lit_deep_hdr(textureSample(tex, samp, i.uv).rgb, i.nl, i.deep) * a;
     return vec4<f32>(land_tone(l.x), land_tone(l.y), land_tone(l.z), 1.0);
 }

@@ -1610,7 +1610,7 @@ pinned once in `SCORES_SIXTH`. That found column is the estimate: **1 of 8 whole
 | 153 | run1795 | Great Lakes, difficulty 2 | the computers | 12,001 | **12** | whole | 6,001 of 6,001 |
 
 The original ended rows 33, 73 and 113, each with the two computers allied against the human, and row 133. Our walk
-holds `game_over` from 10112 on row 93 and from 4118 on row 113, and none by the others' ends. Walls agree on every
+holds `game_over` from ~~10112~~ 9522 (item 4577) on row 93 and from 4118 on row 113, and none by the others' ends. Walls agree on every
 state of all eight. `docs/RUNS.md` run1788 to run1795 holds every value; the pins hold both sides of every first
 parting.
 
@@ -1638,3 +1638,21 @@ the caravan owner's without `has_preq(BASE_BONUSTYPES)`, and `LAB_005eda11` give
 (first parting 1563 → 2779), 33 (whole but ammo, first 3386) and 113 (whole but cities, first 3995); none of the three
 new partings is read. Also not established: a script past §9's three orders, or one issued after frame 90; whether row
 13's 7675 and the sample's 7055 are one mechanism.
+
+**Row 93's first leaf: the President heals** (item 4577, run1799). run1799 is row 93's
+file to 12,000 with the checksum and ranges hooks (`RNG_MASK=0xffbu`). On state 2342, units range 1359 (record 39,
+who=1) parts on `healing` alone: ours 0, theirs 20. The unit is who=1's Volksgrenadiers `1/39` (TI 109, land, a
+captain), walking under an `AttackTo` and guarding who=1's President `1/17` (TI 355, about 600 away). Its figure
+`1/40` parts in the same set: `damage` ours 1, theirs 0; `damage_frac` ours 8, theirs 6. Both sides took the frame's
+blow (+6), and theirs had taken the point off first. `(39 + 2341) % 20 == 0` is the 20-frame phase of
+`process_healing@005e0670`'s three economic-patriot arms. The President's arm (`:179`–`:203`) heals on an allied cell
+or one nobody owns. This crate carried it as a SEAM in `units/heal.rs` (parked 3686a). The Antipater/Wellington arm
+(`ANTIPATER_HEAL_RATE` 20) was ruled out: no unit of TI 361 or 368 exists on 2340 to 2342. The arm is built as
+`Sim::president_heal`, between the Senator's and the CEO's. **Units 2,342 → 2,686.** The row's first parting is now
+2686, where units, builds and guys part on one state (units range 1145, record 31, `flags` ours 17, theirs −111).
+Ammo goes 3,924 → 4,263. Deaths (3,464 → 3,406), items (4,832 → 3,127) and goods (4,140 → 3,056; first parting
+3157 → 3056) lose agreeing states, all past 2686.
+
+*Diff-backed*: the arm on allied ground, by every units range on 2341 to 2343
+(`row_93_s_volksgrenadiers_heal_beside_their_president_on_run1799_s_ranges`). *Read, not diffed*: the unowned-cell
+half (`iVar8 < 0 ||`, `005e0670:184`); `1/39` stood on allied ground, so only the unit test holds it.

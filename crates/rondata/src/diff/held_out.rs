@@ -2423,6 +2423,87 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 93's Volksgrenadiers heal beside their President** (item 4577,
+    /// `docs/RECGAME.md` §13): run1799, the ranges take of row 93's file.
+    /// who=1's Volksgrenadiers `1/39` (TI 109, land, a captain) walk under
+    /// an `AttackTo` guarding who=1's President `1/17` (TI 355); on frame
+    /// 2341, `(39 + 2341) % 20 == 0`, `process_healing`'s President arm
+    /// takes the figure `1/40`'s one point and sets the captain's `healing`
+    /// to 20. Every units range on states 2341 to 2343, byte for byte.
+    #[test]
+    fn row_93_s_volksgrenadiers_heal_beside_their_president_on_run1799_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            eprintln!("skipping: row 93's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1799/map-14");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1799's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 2341i64..=2343 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let captain = built.sim.unit_by_o(1, 39).expect("who=1's Volksgrenadiers");
+            let figure = built.sim.unit_by_o(1, 40).expect("the squad's figure");
+            let president = built.sim.unit_by_o(1, 17).expect("who=1's President");
+            if state == 2341 {
+                let ti = |u: usize| {
+                    built.sim.tables.unit_types[built.sim.units[u].ty.expect("a type")].type_index
+                };
+                assert_eq!(ti(captain), 109, "1/39's TI");
+                assert!(built.sim.units[captain].captain);
+                assert_eq!(
+                    built.sim.units[captain].kind.domain,
+                    sim::territory::attrition::Domain::Land
+                );
+                assert_eq!(ti(president), 0x163, "1/17 is THEPRESIDENT");
+                let f = &built.sim.units[figure];
+                assert_eq!(
+                    (f.max_health - f.health, f.damage_frac),
+                    (1, 2),
+                    "1/40 down a point"
+                );
+            }
+            if state == 2342 {
+                let f = &built.sim.units[figure];
+                assert_eq!(built.sim.units[captain].healing, 20, "the arm's period");
+                assert_eq!(
+                    (f.max_health - f.health, f.damage_frac),
+                    (0, 6),
+                    "theirs' 0 and 6"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[0].as_ref().expect("units");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+    }
+
     /// **Row 43's Slinger stones leave from piece 736's sockets** (item
     /// 4547, `docs/RECGAME.md` §12.3): run1787, the ranges take of row 43's
     /// file. who=2's Slingers `2/30` and `2/29` (TI 82, land, piece 736,
@@ -9845,13 +9926,23 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // parting 2342, which stands): ammo 3,799 -> 3,924, 386 states gained
         // and 261 lost, the first on 5210 (ours' ammo sum 3991153570 -> 1,
         // theirs 1: no round in flight). No first parting moved.
+        //
+        // Moved by item 4577 (run1799's ranges: `process_healing`'s
+        // President arm, `005e0670:179`, heals on an allied or unowned cell;
+        // who=1's Volksgrenadiers `1/39` beside the President `1/17` take
+        // `healing` 20 on 2342, units range 1359, record 39, ours 0, theirs
+        // 20, and `1/40`'s point goes): units 2,342 -> 2,686, the row's first
+        // parting 2342 -> 2686 (units, builds and guys on one state); ammo
+        // 3,924 -> 4,263; deaths 3,464 -> 3,406, items 4,832 -> 3,127 and
+        // goods 4,140 -> 3,056 (first 3157 -> 3056), all past 2686; ours'
+        // walk now holds `game_over` from 9522, theirs plays to 12,000.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                2342, 2688, 12001, 3924, 3464, 2740, 2686, 2698, 2974, 4832, 4140, 2691,
+                2686, 2688, 12001, 4263, 3406, 2740, 2686, 2698, 2974, 3127, 3056, 2691,
             ],
             first: &[
-                ("units", (2342, Some(1169777861), 259155158)),
+                ("units", (2686, Some(1210672926), 399075748)),
                 ("builds", (2686, Some(547053547), 644243435)),
                 ("ammo", (2692, Some(1859606587), 696997629)),
                 ("deaths", (2775, Some(2882887954), 2321178662)),
@@ -9860,10 +9951,10 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
                 ("leaders", (2689, Some(3893770918), 226245285)),
                 ("cities", (2871, Some(3617272752), 3487511460)),
                 ("items", (3127, Some(2121282860), 2092447016)),
-                ("goods", (3157, Some(2924123420), 3056768288)),
+                ("goods", (3056, Some(2987562270), 2924123420)),
                 ("world", (2691, Some(2608492097), 2791665259)),
             ],
-            over: None,
+            over: Some(9522),
         }),
     }),
     // run1793
