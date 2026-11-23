@@ -1509,25 +1509,6 @@ impl Sim {
                 &self.mods_of(self.owner_of(attacker) as usize),
             )
         };
-        if std::env::var("RON_PROBE_4587").is_ok()
-            && (2684..=2687).contains(&self.frame)
-            && matches!(attacker, Obj::Unit(148))
-        {
-            eprintln!(
-                "C f{} {:?} cost {} v {} dmg {} pct {} attack {} armor {} ai {} raiding {} t_attack {}",
-                self.frame,
-                target,
-                tp.cost,
-                v,
-                dmg,
-                self.table_pct(attacker, target),
-                self.attack_of(attacker),
-                self.armor_of(target),
-                ai,
-                raiding,
-                t_attack
-            );
-        }
         // **`0064ef4b`, both arms.** A human multiplies; a computer
         // leader on the lobby's own difficulty divides, and a candidate it
         // cannot hurt at all scores zero rather than dividing by nothing.
