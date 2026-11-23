@@ -9936,10 +9936,15 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 3,924 -> 4,263; deaths 3,464 -> 3,406, items 4,832 -> 3,127 and
         // goods 4,140 -> 3,056 (first 3157 -> 3056), all past 2686; ours'
         // walk now holds `game_over` from 9522, theirs plays to 12,000.
+        //
+        // Moved by item 4583 (`do_trade`'s link gate and `scale`'s wrapped
+        // product, measured on the tree merged with 4577): ammo 4,263 ->
+        // 4,267, past the row's first parting 2686, which stands; the arm is
+        // not split between the two. No first parting moved.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                2686, 2688, 12001, 4263, 3406, 2740, 2686, 2698, 2974, 3127, 3056, 2691,
+                2686, 2688, 12001, 4267, 3406, 2740, 2686, 2698, 2974, 3127, 3056, 2691,
             ],
             first: &[
                 ("units", (2686, Some(1210672926), 399075748)),
