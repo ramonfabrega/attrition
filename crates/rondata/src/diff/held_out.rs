@@ -1222,6 +1222,65 @@ pub(crate) mod tests {
         }
     }
 
+    /// Probe, item 4594: every parting range on row 133 over a window.
+    #[test]
+    fn probe_4594_row_133_partings() {
+        if std::env::var("RON_PROBE_4594").is_err() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(1904);
+        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(1905);
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            return;
+        };
+        let ranges =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+                .expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (li, l) in lines.iter().enumerate() {
+                let Some(ours) = l else { continue };
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == li).collect();
+                if ours.ranges.len() != theirs.len() {
+                    eprintln!("P4594 {state} line {li} count ours {} theirs {}", ours.ranges.len(), theirs.len());
+                }
+                let mut n = 0;
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    if a.bytes != b.bytes {
+                        n += 1;
+                        if n <= 40 {
+                            eprintln!(
+                                "P4594 {state} line {li} range {k} record {} {} ours {:02x?} theirs {:02x?}",
+                                a.record, a.field, a.bytes, b.bytes
+                            );
+                        }
+                    }
+                }
+                if n > 0 {
+                    eprintln!("P4594 {state} line {li} parted {n}");
+                }
+            }
+        }
+    }
+
     /// **Row 83's computer lists a caravan by its ally's city** (item
     /// 4545, `docs/CARAVAN.md` §4): run1784, the ranges take of row 83's
     /// file. On 1956 who=2 (the added computer, team 0 with the human)
