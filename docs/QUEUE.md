@@ -30,10 +30,10 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 Blind: never 336 · residue 336 · open 0
 Rubric: ported 739 · replaced by design 331 · open 570 of 3611 · lockstep bytes 78.1 % · ages held 8 of 8 · unit types seen 296 of 302
 Held-out: 8 of 9 whole · shortest 6147
-Parity: 45 of 55 whole · held out 39 of 48 · the sample parts first on leaders 7407 of 21044 · draws 7410
+Parity: 45 of 55 whole · held out 39 of 48 · the sample parts first on leaders 7502 of 21044 · draws 7613
 Parity held out, closed: first, second, third, fourth · 32 of 32 whole · lines 309 of 384 as found, 384 now · reach 66 % of states as found, 100 % now
 Parity held out, fifth: 6 of 8 whole · 8 taken · lines 30 of 96 as found, 74 now · first partings 3857 0 3192 1582 1956 1750 2977 whole as found, whole whole 3833 whole 3662 whole whole whole now · reach 48 % of states as found, 89 % now
-Parity held out, sixth: 1 of 8 whole · 8 taken · lines 20 of 96 as found, 40 now · first partings 7675 2411 3358 1563 2342 2259 956 whole as found, 7675 3386 3358 2779 2686 3995 1757 whole now · reach 49 % of states as found, 56 % now · reach in the first 6,001 states 59 % as found, 71 % now
+Parity held out, sixth: 1 of 8 whole · 8 taken · lines 20 of 96 as found, 40 now · first partings 7675 2411 3358 1563 2342 2259 956 whole as found, 7675 3386 3358 2779 2686 3995 1905 whole now · reach 49 % of states as found, 57 % now · reach in the first 6,001 states 59 % as found, 71 % now
 Structure: flat 11 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 21 · largest 3756
 Renderer: K 59 of M 60 · frames 35 of 35 · pieces 1465 of 1478 · resolved 1,237,711 of 1,237,726 objects over 110 lobbies
 Clock: ceilings on GreatLakes lobby, 600 frames off-screen from frame 0 · frame zero 1.5 s · p99 20 ms · slowest 400 ms (frame 1, first sight) · peak 320 MiB
@@ -51,7 +51,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2, 151 §5, 152 §1 to §4, 153 §2 to §10): four seats out: the chain's seat holds 4591 (row 33, one line from whole, run1801) as a ccc lane, no chain step standing (4587 moved no column on row 93, the line's first; its packet is 4590) (4574 landed 102 of 102 keys, no first parting; 4580 landed the seam counter, `held_seams` behind `seam-count`: no seam a whole row does not also enter comes before a parting), a parity seat's 4585 (row 133's leaders from 1757; 4575 took run1797 and moved 956 → 1757, the nuke arm skips an enemy researching `MISSILE_SHIELD`, the sixth's first leaf: the battery is spent), a parity seat's 4589 (row 73's units from 2779; 4583 took run1800 and moved rows 73, 33 and 113 on one arm, `do_trade`'s link gate refuses a caravan homed on an ally's city without `BASE_BONUSTYPES`; 4572 landed row 3 whole, the forty-fourth) and the client's 4593 (the minimap's blips; 4581 drew the minimap, 3,354 of 3,600 cells, 4582 its forests, 4584 its background, 4586 its ranges and 4588 its borders and view rectangle, within 32 2,288 → 2,419 → 2,629 → 2,769 → 2,808; the fourth seat is the client's on Ramon's word, 153 §10, since a client lane re-pins nothing a sim lane does). Unseated, by first parting (153 §2): 4592 (row 113, one line from whole), 4590 (row 93's packet), 4578 (row 53), 4573 (row 83), 4571 (row 43), 4569 (the sample), 4579 (row 13). A row's seat is refilled with the row's next word while its column moves; a seat that frees takes the next in this order, and 4569 before a hand-over when no row's item stands. Every take waits its turn, one game at a time; a script of several waits on each with `waitrun.sh` (153 §7). `docs/RECGAME.md` §12 stands at its ceiling: a fifth row's landing changes its row's cell there and writes its leaf in `docs/RUNS.md` and its journal; a sixth row's goes in §13. The driver's note names `seams.py --field` with the leaf's own field (153 §9). The sample's stop reads the `Parity:` line's first parting and its draw word, never the games' count (151 §1). The disk read 102 GB at the pass; every take still stops under 60.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2, 151 §5, 152 §1 to §4, 153 §2 to §10): four seats out: the chain's seat holds 4591 (row 33, one line from whole, run1801) as a ccc lane, no chain step standing (4587 moved no column on row 93, the line's first; its packet is 4590) (4574 landed 102 of 102 keys, no first parting; 4580 landed the seam counter, `held_seams` behind `seam-count`: no seam a whole row does not also enter comes before a parting), a parity seat's 4594 (row 133 from 1905; 4575 took run1797 and moved 956 → 1757, the sixth's first leaf, the battery spent; 4585 moved it 1757 → 1905 and the sample 7407 → 7502, the tower and fort arm halves only while `ever_attacked` is clear), a parity seat's 4589 (row 73's units from 2779; 4583 took run1800 and moved rows 73, 33 and 113 on one arm, `do_trade`'s link gate refuses a caravan homed on an ally's city without `BASE_BONUSTYPES`; 4572 landed row 3 whole, the forty-fourth) and the client's 4593 (the minimap's blips; 4581 drew the minimap, 3,354 of 3,600 cells, 4582 its forests, 4584 its background, 4586 its ranges and 4588 its borders and view rectangle, within 32 2,288 → 2,419 → 2,629 → 2,769 → 2,808; the fourth seat is the client's on Ramon's word, 153 §10, since a client lane re-pins nothing a sim lane does). Unseated, by first parting (153 §2): 4592 (row 113, one line from whole), 4590 (row 93's packet), 4578 (row 53), 4573 (row 83), 4571 (row 43), 4569 (the sample), 4579 (row 13). A row's seat is refilled with the row's next word while its column moves; a seat that frees takes the next in this order, and 4569 before a hand-over when no row's item stands. Every take waits its turn, one game at a time; a script of several waits on each with `waitrun.sh` (153 §7). `docs/RECGAME.md` §12 stands at its ceiling: a fifth row's landing changes its row's cell there and writes its leaf in `docs/RUNS.md` and its journal; a sixth row's goes in §13. The driver's note names `seams.py --field` with the leaf's own field (153 §9). The sample's stop reads the `Parity:` line's first parting and its draw word, never the games' count (151 §1). The disk read 102 GB at the pass; every take still stops under 60.
 
 4593. **The minimap's blips** (a `render` item, scoped; the client's seat; `docs/RENDERER.md` §3.32; parked 4588a). Item
 4588 drew the borders and the view rectangle (`RUN1564_3279_MINIMAP` within 32 2,769 → 2,808 of 3,600; the rectangle on the
@@ -59,10 +59,11 @@ photograph's box to the pixel). The blips are most of what is left: 116 blue, 24
 `add_blip`'s geometry off the listing (`llvm-objdump`) and the decompile; then build and re-pin the within-32 count. Beside
 it: the pings (4588b), the border a pixel off on 11 cells (4588c).
 
-4585. **Parity held out, sixth: row 133's leaders from 1757** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §13;
-item 4575's journal). Item 4575 moved row 133's first parting 956 → 1757 (`create_units`' nuke arm skips an enemy researching
-`MISSILE_SHIELD`; ours is `nuke_standing`). On 1757 who=2's `make_list[2]` `val` ours 6,749,936, theirs 6,477,032. run1797 holds
-the ranges: no take. Re-pin `SCORES_SIXTH[6].moved`, never `found`. It stops when two landings running move no column.
+4594. **Parity held out, sixth: row 133 from 1905** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §13; item
+4585's journal). Item 4585 moved row 133 1757 → 1905: on 1757 who=2's `make_list[2]` ours Bunker (TI 442) 6,750,000 against
+theirs (273) 6,478,056, since the tower and fort arm halves only while `city_flags & 0x8` (ever_attacked) is clear; theirs'
+Bunker reads 13,500,000 and its `check_income` product wraps negative. Units, builds and leaders part on 1905; run1797 holds the
+ranges: no take. Re-pin `SCORES_SIXTH[6].moved`, never `found`. It stops when two landings running move no column.
 
 4589. **Parity held out, sixth: row 73's units from 2779** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §13;
 item 4583's journal). Item 4583 moved row 73 1563 → units 2779, cities 2801, every column (`do_trade`'s link gate; and
@@ -100,10 +101,10 @@ against `fight`'s entry target; journal). On 3833: unit record 8 stands at (1037
 `ox`, `oy` 12041, 27129 against 14899, 32464. run1787 holds every line: no take. Re-pin `SCORES_FIFTH[2].moved`, never `found`.
 It stops when two landings running move no column.
 
-4569. **The 2017 sample: leaders from 7407** (a rules item, whole; unseated, sorted with the rows by first parting, DECISIONS
-153 §2; `docs/RECGAME.md` §7). Item 4565 moved the first parting units 7055 → leaders 7407 and the draw word 7105 → 7410.
-Leaders part on 7407: range 43, record 0, `make_list[k]`, four bytes; the draws on 7410 next. run1786 holds every line to
-8000: no take. Re-pin `SAMPLE_LINES` and `SAMPLE_WALKED`; the driver writes the line. It stops when two landings running leave
+4569. **The 2017 sample: leaders from 7502** (a rules item, whole; unseated, sorted with the rows by first parting, DECISIONS
+153 §2; `docs/RECGAME.md` §7). Item 4565 moved the first parting units 7055 → leaders 7407 and the draw word 7105 → 7410;
+item 4585 (the tower and fort arm halves only while `ever_attacked` is clear) moved leaders 7407 → 7502 and the draws 7410 →
+7613. run1786 holds every line to 8000: no take. Re-pin `SAMPLE_LINES` and `SAMPLE_WALKED`; the driver writes the line. It stops when two landings running leave
 the line's first parting and its draw word as they are (148 §5).
 
 4579. **Parity held out, sixth: row 13's units, builds, groups and guys from 7675** (a rules item, whole; unseated;
