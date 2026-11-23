@@ -1257,7 +1257,7 @@ pub(crate) mod tests {
             let all = record.ranges(&set).expect("the set's ranges");
             let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
             for (ui, u) in built.sim.units.iter().enumerate() {
-                if u.index == 72 && u.alive {
+                if u.index == 72 && u.alive() {
                     eprintln!(
                         "P4594U {state} u{ui} who {} o {} ty {:?} pos {:?} orders {:?}",
                         u.owner, u.index, u.ty, u.pos, u.orders
