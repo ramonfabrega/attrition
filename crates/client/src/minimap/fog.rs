@@ -257,7 +257,10 @@ pub(crate) mod tests {
     /// a fog cell in view above the bar, `(fx, fy, sx, sy, level)`, its
     /// centre projected by the packet's own `MiscAccess::world_to_screen`
     /// at `TerrainOut::find_data_z`'s height under unicorn.
-    fn pixel_rows() -> Option<Vec<(i32, i32, i32, i32, u8)>> {
+    /// `(fx, fy, sx, sy, level)`.
+    type PixelRow = (i32, i32, i32, i32, u8);
+
+    fn pixel_rows() -> Option<Vec<PixelRow>> {
         let path = lab("fowpix-rows.txt", "RON_FOG_PIXELS_RUN1814B");
         let Ok(text) = std::fs::read_to_string(&path) else {
             println!("skipping: no pixel rows at {}", path.display());
