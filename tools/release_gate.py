@@ -234,16 +234,10 @@ COMMANDERS_LINES = (
     'the_handoff_s_blind_list_is_the_pinned_count',
     # The held-out battery's line (the forty-eighth pass).
     'the_handoff_s_held_out_line_is_the_pinned_battery',
-    # Parity held out's line (the pass of 2026-11-19, second; DECISIONS 145 §1).
-    'the_handoff_s_parity_held_out_line_is_the_pinned_scores',
-    # The second battery's line (item 4462; DECISIONS 145 §2).
-    'the_handoff_s_parity_held_out_second_line_is_the_pinned_scores',
-    # The third battery's line (item 4487; DECISIONS 147 §2).
-    'the_handoff_s_parity_held_out_third_line_is_the_pinned_scores',
-    # The fourth battery's line (item 4510; DECISIONS 148 §2).
-    'the_handoff_s_parity_held_out_fourth_line_is_the_pinned_scores',
-    # The fifth battery's line (item 4527; DECISIONS 149 §3, 150 §2).
-    'the_handoff_s_parity_held_out_fifth_line_is_the_pinned_scores',
+    # The batteries' lines (DECISIONS 145 §1): the whole batteries' one
+    # closed line, and each open battery's own (item 4566; 151 §6, 152 §4).
+    'the_handoff_s_closed_parity_held_out_line_is_the_whole_batteries',
+    'the_handoff_s_open_parity_held_out_lines_are_the_pinned_scores',
     # Parity's own line (the pass of 2026-11-20, second; DECISIONS 147 §5).
     'the_handoff_s_parity_line_is_the_pinned_sample',
     # The rubric's line (the forty-ninth pass, Ramon's: the steer's pin).
