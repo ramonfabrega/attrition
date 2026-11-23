@@ -198,6 +198,31 @@ every map in band 3 and doubles every route's value. Both errors were
 live here until 2026-09-06; together they read `trade_val` 240 on Great
 Lakes' AI where the original reads 128, and §8 says what that cost.
 
+**The link has a gate of its own** (item 4583, off the listing and a
+packet). On the route's first call (`TradeOrder +0x1c` zero), after the
+region pair at `5ed920` and before the two `get_empty_trade_routes`:
+
+```
+if not (partner.owner == me and home.owner == me):
+    if not has_preq(me, BASE_BONUSTYPES):  goto LAB_005eda11     (5ed97a..5ed9b9)
+```
+
+The search above admits only my own cities when the home is an ally's,
+so a caravan homed on an ally's city without the preq **always** reaches
+this refusal: the partner is written into the order, and then the order
+dies. `LAB_005eda11` (`5eda11`..`5eda27`) is `kill_current_order(0)` and,
+when the unit is left with no order, **`think_caravan(1)`**, whose nonzero
+argument skips the idle gate (`005f5650:8`). `find_city(FILTER_CAN_TRADE)`
+hands back the same home, so the tick ends with a fresh, partnerless
+`TRADE_ROUTE`. To a dump that looks like an order that never moves. Every
+other `LAB_005eda11` arm (home or partner no longer a city, the region
+refusals) ends the same way. *Diff-backed*: run1800 is a packet at logger
+frame 1563 on the sixth battery's row 73. Under `step4.py`, `Unit::process`
+on who=2's Caravan `2/31` (homed on who=1's city 3) runs the partner search,
+takes `jne 5eda11` at `5ed9b9` after `has_preq` answers 0, and calls
+`kill_current_order` from `5eda15`. Rows 73, 33 and 113 move with it
+(`docs/RECGAME.md` §13).
+
 Then the two cities are ordered by **distance from the caravan** — the
 nearer becomes `city2`, the search's start — both cities gain a
 `CaravanLink`, `caravan_flags |= 3`, both `City::compute_trade`, and
