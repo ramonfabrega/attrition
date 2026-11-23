@@ -1500,6 +1500,78 @@ pub(crate) mod tests {
         );
     }
 
+    /// **Row 133's Temple site's close fixes the borders** (item 4607,
+    /// `docs/RECGAME.md` §13.5): run1797's ranges. who=1 razes who=2's
+    /// unfinished Temple `2/2009` on frame 2295 (state 2296).
+    /// `Build::close@00628980` tests `is(0x1b5)` at `0x628d2c` and zeroes
+    /// every region's resume index inline, built or not, so theirs' pass
+    /// starts again on 2296. On 2297 every leader's `reg_terr[1]` is
+    /// recounted (who=0's 0, who=1's 177, who=2's 0) and every city's
+    /// `bordering` is cleared. Ours held who=0's 741 and city 1's 3. The
+    /// leaders and cities lines on states 2295 to 2300, byte for byte.
+    #[test]
+    fn row_133_s_temple_site_close_fixes_the_borders_on_run1797_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 2295..=2300 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (line, name) in [(7, "leaders"), (8, "cities")] {
+                let ours = lines[line].as_ref().expect("the line");
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{name} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+            let temple = built.sim.building_by_o(2, 2009);
+            if state == 2295 {
+                let t = temple.expect("2/2009 on 2295");
+                assert!(!built.sim.buildings[t].active, "the Temple is a site");
+            }
+        }
+        // who=1's `reg_terr` on 2300, the restarted pass's fourth frame: its
+        // one land region (slot 1 in theirs) holds 755, not the 1,353 the
+        // finished pass held.
+        assert!(
+            built.sim.territory.reg_terr[1].contains(&755),
+            "who=1 recounts"
+        );
+        assert!(
+            !built.sim.territory.reg_terr[1].contains(&1353),
+            "not the old count"
+        );
+    }
+
     /// **Row 133's SAM winds on its sighting and turns its turret at it**
     /// (item 4602, `docs/RECGAME.md` §13.5): run1797's ranges. On 2166
     /// who=2's SAM `2/2027` holds `near_o` 71 (who 1) with no target
