@@ -1708,7 +1708,7 @@ Open: units and guys part on 3358. run1790 holds sums (item 4578).
 
 ### 13.3 Row 93
 
-Open: units, builds and guys part on 2686, the Bazooka `1/31`'s re-search (item 4587; the packet is item 4590's).
+2686 → 2962 by item 4590 (run1803; `docs/COMBAT.md` §68.1). Open: units on 2962, range 6364, record 77, `order.type`.
 
 ### 13.4 Row 113
 
