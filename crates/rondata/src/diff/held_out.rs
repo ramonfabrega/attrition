@@ -12068,25 +12068,33 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // takes deaths slot 0 on 2741, ours alive -> dead, theirs dead. Deaths
         // 2,741 -> 2,862, world 2,741 -> 2,862, builds 2,783 -> 2,887, ammo
         // 2,988 -> 3,039, groups 2,751 -> 2,883, guys 2,741 -> 2,851, items
-        // 7,315 -> 7,799, goods 2,879 -> 2,998. Units and leaders still part on
-        // 2741 at who=2's barge `2/61`: ours wounds it for 12, theirs for 0.
+        // 7,315 -> 7,799, goods 2,879 -> 2,998.
+        // Moved by item 4622 (run1815's ranges): a self-destructing shooter
+        // splashes from the shot's middle (`Ammo::do_damage@00678060`
+        // `678652`..`6786b0`), so who=2's barge `2/61` beside the Heavy Fire
+        // Raft `1/87`'s landing on 2740 takes, ours 12 -> 0, theirs 0. Its
+        // `flags` on 2741 read ours 0x11 -> 0x01, theirs 0x01. Units 2,741 ->
+        // 2,807, leaders 2,741 -> 2,879, guys 2,851 -> 2,882, deaths 2,862 ->
+        // 2,882, world 2,862 -> 2,882, builds 2,887 -> 2,919, goods 2,998 ->
+        // 2,999; ammo 3,039 -> 2,930 and items 7,799 -> 4,108 past the first
+        // parting. The first parting moves 2741 -> 2791, on ammo alone.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                2741, 2887, 12001, 3039, 2862, 2883, 2851, 2741, 2951, 7799, 2998, 2862,
+                2807, 2919, 12001, 2930, 2882, 2883, 2882, 2879, 2951, 4108, 2999, 2882,
             ],
             first: &[
-                ("units", (2741, Some(205622988), 852594544)),
-                ("builds", (2862, Some(3055182203), 3564920762)),
+                ("units", (2807, Some(1281568671), 3372429074)),
+                ("builds", (2882, Some(527786112), 1897554046)),
                 ("ammo", (2791, Some(1984301831), 2513898174)),
-                ("deaths", (2862, Some(3648199562), 2008092393)),
+                ("deaths", (2882, Some(833621383), 1)),
                 ("groups", (2883, Some(763071651), 3332674898)),
-                ("guys", (2741, Some(2772467107), 1298234755)),
-                ("leaders", (2741, Some(2964172792), 1853075446)),
-                ("cities", (2951, Some(1452619764), 1435711476)),
-                ("items", (3100, Some(3288077661), 3279426907)),
-                ("goods", (2879, Some(2093806050), 2246636004)),
-                ("world", (2862, Some(3728056528), 3425675031)),
+                ("guys", (2882, Some(3844627752), 1547092089)),
+                ("leaders", (2807, Some(1676328167), 2787687657)),
+                ("cities", (2951, Some(1433221107), 1435711476)),
+                ("items", (3126, Some(3288077661), 3279426907)),
+                ("goods", (2999, Some(2477322729), 2684940781)),
+                ("world", (2882, Some(28101816), 1537856136)),
             ],
             over: None,
         }),
