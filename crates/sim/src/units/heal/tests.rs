@@ -455,6 +455,75 @@ fn the_senator_heals_a_walking_column_on_allied_ground() {
     assert_eq!(state(&sim), (38, 0), "nobody's ground, nothing");
 }
 
+/// **The President heals a walking column on allied ground or ground
+/// nobody owns, every 20 frames** (item 4577, `docs/RECGAME.md` §13):
+/// `process_healing`'s `0x163` arm (`005e0670:179`–`:203`) is the
+/// Senator's with one predicate changed, `owner < 0 || is_ally`. run1799's
+/// Volksgrenadiers `1/39`, walking beside who=1's President `1/17`, took
+/// `healing 20` on state 2342.
+#[test]
+fn the_president_heals_a_walking_column_on_allied_or_unowned_ground() {
+    use crate::ai::ai_load::{UnitCols, uflags2};
+    let (mut sim, c, _) = iroquois_captain(167);
+    let state = |sim: &crate::Sim| {
+        (
+            sim.units[c].health,
+            sim.units[c].damage_frac,
+            sim.units[c].healing,
+        )
+    };
+    let at = sim.units[c].pos;
+    sim.units[c].orders.push_front(attack_to(at));
+    sim.president_heal(c, 8190, sim.has_damage(c));
+    assert_eq!(state(&sim), (37, 5, 0), "no President, nothing");
+    let president = sim.add_unit_type(crate::UnitType {
+        hits: 110,
+        type_index: 0x163,
+        cols: UnitCols {
+            unit_flags2: uflags2::FLAG2_GENERAL | uflags2::SUPPLY_OR_HERO,
+            ..UnitCols::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let mut u = crate::Unit::new(1, 17, sim.units[c].pos, 110);
+    u.ty = Some(president);
+    u.type_index = 0x163;
+    u.on_map = true;
+    u.captain = true;
+    u.kind = sim.tables.unit_types[president].kind;
+    sim.add_unit(u);
+    sim.president_heal(c, 8189, sim.has_damage(c));
+    assert_eq!(state(&sim), (37, 5, 0), "off the phase, nothing");
+    sim.president_heal(c, 8190, sim.has_damage(c));
+    assert_eq!(
+        state(&sim),
+        (38, 0, 20),
+        "allied ground: a point, the fraction, healing 20"
+    );
+    let cell = sim.units[c].pos.cell();
+    sim.units[c].health = 37;
+    sim.units[c].healing = 0;
+    sim.world.set_owner(cell, Owner::None, Owner::None);
+    sim.president_heal(c, 8210, sim.has_damage(c));
+    assert_eq!(state(&sim), (38, 0, 20), "nobody's ground heals too");
+    sim.units[c].health = 37;
+    sim.units[c].healing = 0;
+    sim.world
+        .set_owner(cell, Owner::Ambiguous, Owner::Ambiguous);
+    sim.president_heal(c, 8230, sim.has_damage(c));
+    assert_eq!(state(&sim), (38, 0, 20), "the ambiguous -2 is nobody's");
+    sim.units[c].health = 37;
+    sim.units[c].healing = 0;
+    sim.world
+        .set_owner(cell, Owner::Player(0), Owner::Player(0));
+    sim.president_heal(c, 8250, sim.has_damage(c));
+    assert_eq!(state(&sim), (37, 0, 0), "another leader's ground, nothing");
+    sim.world
+        .set_owner(cell, Owner::Player(1), Owner::Player(1));
+    sim.process_healing(c, 8270);
+    assert_eq!(state(&sim).2, 20, "process_healing runs the arm");
+}
+
 /// **A patriot repairs its leader's damaged building by the ground under
 /// it** (item 3987, `docs/GOLDEN.md` §180; `Build::process@0061edf0`'s
 /// arm to `0061f3b9`): a President's reach repairs on unowned or allied
