@@ -1,5 +1,8 @@
 //! `Wall::process@00640450`'s **site recruiter**: an unfinished wonder or
 //! fort of a computer leader calls a citizen in (`docs/AI.md` §69).
+//! `Build::process@0061edf0`'s **repair recruit** shares its search: a
+//! computer's city past half its hits calls a citizen to repair it
+//! (`docs/AI.md` §167, item 4594).
 //!
 //! Every 32 frames phased by `o`, inside the same `(frame + o) & 31` block
 //! as the under-attack decay and **ahead of the `helpers` reset**, a site
@@ -34,6 +37,10 @@ const MIN_BUILDERS: i32 = 4;
 
 /// The recruit's reach, `0xf00` — twenty tiles, in world units.
 const RECRUIT_RANGE: i32 = 0xf00;
+
+/// `Build::process@0061edf0`'s repair recruit's reach, `0x1e00` — forty
+/// tiles, in world units (`61fea1`).
+const CITY_REPAIR_RANGE: i32 = 0x1e00;
 
 /// `__real_3eb33333`, the `0.35f` a rival's progress is compared against,
 /// as the exact binary fraction the float holds: `0x333333 | 0x800000`
@@ -71,6 +78,48 @@ impl Sim {
             return;
         };
         self.add_build_order(u, b, QueuePos::New, false);
+    }
+
+    /// **The city building's repair recruit** (item 4594, `docs/AI.md`
+    /// §80.2 H12): `Build::process@0061edf0`, `61fe00`..`61feed`, in the
+    /// same `(frame + o) & 63` block as the capture re-test and after it.
+    /// The caller skips it when the re-test found an enemy (`%edi`, the
+    /// search's answer, is `−1` unless the building was eligible and an
+    /// enemy stood within `0xc00`). Then, in the listing's order: the
+    /// owner is not human (`leader_flags & 4`), the building is a city
+    /// (`WallData::can_capture@00471360`, `is(VILLAGE)`), its damage
+    /// (`+0x24`) exceeds half its `hits(0)` (vslot `+0x11c`, `cltd; sub;
+    /// sar`, rounded toward zero), its city's `city_flags & 2`
+    /// (`no_heal`, the heal's veto) is clear, and the owner's
+    /// `get_diff() > 1`. The nearest not-busy citizen within `0x1e00`
+    /// (forty tiles, the `0x200` region gate, the site recruiter's
+    /// `find_unit` at twice its reach) takes `add_repair_order(o, who,
+    /// QUEUE_NEW, 0)` — no action bit. A gatherer is not busy: row 133's
+    /// who=2 pulls its Citizen `2/72` off the walk to its Oil Well onto
+    /// its capital `2/2000` (damage 5,949) on frame 1904.
+    pub(crate) fn city_repair_recruit(&mut self, b: usize) {
+        let bd = &self.buildings[b];
+        let who = bd.owner;
+        if self.cities.nation[who as usize].human
+            || !self.building_is_city(b)
+            || bd.damage <= bd.hits_now() / 2
+        {
+            return;
+        }
+        // SEAM: a city building always carries its city in the original
+        // (`+0x72` indexes the owner's list unchecked); one without is
+        // taken as refusing.
+        let Some(c) = bd.city else {
+            return;
+        };
+        if self.cities.cities[c].no_heal || self.ai_difficulty() <= 1 {
+            return;
+        }
+        let at = bd.pos;
+        let Some(u) = self.find_idle_citizen(who, at, CITY_REPAIR_RANGE) else {
+            return;
+        };
+        self.add_repair_order(u, b, QueuePos::New, false);
     }
 
     /// **The oil platform's arm** (`Wall::process@00640450`, `64050e`–
