@@ -1980,8 +1980,18 @@ pub(crate) mod tests {
         let mut stream = crate::input::Stream::pump(&rec);
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
         while built.sim.frame < 3955 {
+            crate::diff::harness::debug_watch(&built, built.sim.frame);
             stream.apply(built.sim.frame as i32, &mut built);
             built.sim.command().tick();
+        }
+        crate::diff::harness::debug_watch(&built, built.sim.frame);
+        if std::env::var("RON_DEBUG_UNIT").is_ok() {
+            // The parting frame itself, on ours, for `RON_DEBUG_UNIT`'s
+            // `@…-3956`: a copy ticked once, the assertions below untouched.
+            let mut next = built.clone();
+            stream.clone().apply(next.sim.frame as i32, &mut next);
+            next.sim.command().tick();
+            crate::diff::harness::debug_watch(&next, next.sim.frame);
         }
         let set = record.first_of(3954).expect("state 3955's set").clone();
         let all = record.ranges(&set).expect("the set's ranges");
