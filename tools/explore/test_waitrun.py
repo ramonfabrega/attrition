@@ -15,6 +15,7 @@ import signal
 import re
 import subprocess
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -26,6 +27,8 @@ TRACEBACK = ('Staged: /x/map-7\n'
              "ValueError: extra lifecycle or fault records\n")
 RECEIPT_OK = '{"map_requested": 7, "success": true}\n'
 RECEIPT_BAD = '{"map_requested": 7, "success": false}\n'
+# What `viadriver.sh` itself writes before RonDriver starts the runner.
+HEADER = 'args: /x /tmp/ron-runs/viadriver-1.log /bin/zsh run.sh\nlane: unset\n'
 
 
 class Waitrun(unittest.TestCase):
@@ -96,6 +99,41 @@ class Waitrun(unittest.TestCase):
         code, _, err = self.run_it('Staged: /x/map-7\n')
         self.assertEqual(code, 2)
         self.assertIn('holds no verdict', err)
+
+    def test_a_launch_whose_runner_has_not_started_is_waited_for(self):
+        # run1794 (item 4566, parked 4566a): the waiter ran the second
+        # `viadriver.sh` returned, found the launcher's own two lines in
+        # the log and no runner yet, and exited 2; the chained script took
+        # that for a finished take and put run1795 on the second pool lane
+        # beside it. A log that shows no runner ever started is waited on
+        # for a grace period; the runner then starts and its receipt is
+        # the verdict.
+        self.log.write_text(HEADER)
+        env = dict(os.environ, WAITRUN_RUNNER=f'no-such-runner-{os.getpid()}',
+                   WAITRUN_GRACE='15')
+        waiter = subprocess.Popen(['zsh', str(SCRIPT), str(self.log), '1'], env=env,
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        try:
+            time.sleep(3)
+            self.assertIsNone(waiter.poll(), 'an unstarted launch was called a dead runner')
+            with self.log.open('a') as log:
+                log.write('Staged: /x/map-7\n' + RECEIPT_OK)
+            out, _ = waiter.communicate(timeout=20)
+        finally:
+            if waiter.poll() is None:
+                waiter.kill()
+                waiter.wait()
+        self.assertEqual(waiter.returncode, 0)
+        self.assertIn('"map_requested": 7', out)
+
+    def test_a_launch_that_never_starts_is_called_after_the_grace(self):
+        self.log.write_text(HEADER)
+        env = dict(os.environ, WAITRUN_RUNNER=f'no-such-runner-{os.getpid()}',
+                   WAITRUN_GRACE='2')
+        done = subprocess.run(['zsh', str(SCRIPT), str(self.log), '1'], env=env,
+                              capture_output=True, text=True, timeout=30)
+        self.assertEqual(done.returncode, 2)
+        self.assertIn('holds no verdict', done.stderr)
 
 
 class TheRunnerList(unittest.TestCase):

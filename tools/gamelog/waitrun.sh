@@ -32,7 +32,7 @@
 # receipt says `"success": false`, or the script said `=== capture
 # failed: `; 2 — no runner is
 # alive and no verdict came (the runner died, or was never
-# started; read the log's tail this prints), or the log ends in a Python
+# started within the grace; read the log's tail this prints), or the log ends in a Python
 # traceback no receipt follows — a runner that died (run659's first take,
 # item 1503, parked 1513; the twenty-fifth pass): it is called at once,
 # without waiting for every other lane's runner to go quiet, because
@@ -59,9 +59,12 @@ failed='^=== capture failed: '
 traceback='Traceback (most recent call last):'
 
 # `run_in_background` reports a task the moment it exits, so a launch that
-# has not written its log yet is waited for too — but only for a while: a
-# log that never appears is a launch that never happened.
-missing=0
+# has not written its log yet, or whose runner has not started, is waited
+# for too — but only for `WAITRUN_GRACE` seconds: a launch that shows no
+# start by then never happened.
+grace=${WAITRUN_GRACE:-120}
+waited=0
+header='^(args|lane|output):|^$'
 while :; do
   if [ -r "$log" ] && grep -qE -- "$failed" "$log"; then
     grep -E -- "$failed" "$log"
@@ -109,13 +112,21 @@ while :; do
       fi
       exit 0
     fi
-    # Give a fresh launch one more poll to start, then call it.
-    if [ -r "$log" ] || [ "$missing" -ge 1 ]; then
+    # A log that shows a runner started — any line past the launch's own
+    # header (`args:`, `lane:`, `output:`) — and no runner alive is a dead
+    # runner, called at once. One that shows none is a launch RonDriver
+    # has not acted on yet, and it is given a grace period to start
+    # (run1794, item 4566, parked 4566a: `viadriver.sh` returns before the
+    # runner exists, the waiter found no process and no verdict, exited 2
+    # the same second, and a chained script put the next take on the
+    # second pool lane beside a game still playing). A log that never
+    # appears, or never shows a start, is called when the grace has run.
+    if { [ -r "$log" ] && grep -qvE -- "$header" "$log"; } || [ "$waited" -ge "$grace" ]; then
       echo "waitrun: no '$runner_pattern' process is alive and $log holds no verdict" >&2
       [ -r "$log" ] && tail -n 20 "$log" >&2
       exit 2
     fi
-    missing=$((missing + 1))
+    waited=$((waited + poll))
   fi
   sleep "$poll"
 done

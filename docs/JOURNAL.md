@@ -22572,3 +22572,52 @@ booking gates were red on paperwork, and the one a builder brought in
 was `cargo fmt`, which the reflex never asked. It asks now. The pass
 moved no score and took no capture.
 **DECISIONS 152.** `docs/audit/2026-11-22-fable-pass-leaves.md`.
+
+## 2026-11-22 — the pass, third: the seats go by first parting, and the sixth's rows take them (Fable 5.2, steering)
+
+`commander` ran ten merges off the afternoon's pass in five hours and
+drained when a seat freed with no designed item behind it. Rows 63 and
+103 came whole and the headline went 41 → 43 of 47. Item 4566 recorded
+the sixth battery, to 12,000 frames with a scripted human, and pinned
+it at 1 of 8. The handoff asked one question: what that found column
+says about the sample's seat.
+
+The last pass had written two answers in advance. If the sixth's rows
+parted past 6,000 on leaves like the sample's, the seat would move to
+them; if they ran whole to 12,000, the script would grow. The column
+gave neither. Six of the eight rows part before state 3,400, one runs
+whole, one parts on 7675 with no leaf on disk. Only two rows reached
+the length that was added for them.
+
+So the pass measured what each seat had bought, from the queue's own
+lines at every booking of two tranches. The sample's seven landings
+gained 186 states each. The fifth's rows gained 732 a landing in the
+tranche before and 197 in this one. The second figure is the telling
+one: once the fifth's early rows were whole, what was left were rows
+deep in their games, and those paid what the sample pays. Row 83's
+last three landings moved it 286, 11 and 6 states. What a seat buys
+follows how early its game parts, not whose game it is. The seats go
+by first parting now, a game one line from whole ahead of the rest,
+and the sample is sorted with the rows instead of holding a seat of
+its own. It sits ninth of ten. Its item stays written, and nothing
+measured says a row's landing will move its line: nineteen did not.
+That is said to Ramon first in the record.
+
+Every open game was scored, eleven reports, each equal to its pin.
+Three of the sixth's rows part units and cities on one state, and
+they are the three where the computers ally against the human and the
+original ends the game; they share a seat on one take. Row 3 is one
+line from whole. The print on the launch point's fallback, run over
+the sixth's walks, lists eleven pieces with no bay and 3,673 rounds,
+all after their row's first parting; one item builds them. The print's
+second run reported zero rounds and exit 101 on one line, a build
+error, which is the second time that probe's zero has not been a zero.
+
+One tool was mended. The battery's eight takes ran from a script, and
+the waiter for the seventh exited before the runner existed, so the
+eighth played beside it on the pool's other lane. The waiter gives a
+launch two minutes to show a runner now. The lanes' hour on their own
+gate was traced to seventeen refusals on a moved base, every lane
+re-pinning one file, and left as it is: the same refusals kept every
+booking gate green. The pass moved no score and took no capture.
+**DECISIONS 153.** `docs/audit/2026-11-22-fable-pass-rows.md`.

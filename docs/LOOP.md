@@ -523,7 +523,18 @@ when the third reads 7 of 8 (DECISIONS 148 §2); the fifth (rows 3 to 143)
 when the fourth does (DECISIONS 149 §3); the sixth (rows 13 to 153) when
 the fifth reads 4 of 8 (DECISIONS 151 §6), recorded to 12,000 where the
 five before stop on 6,000, its human scripted (DECISIONS 152 §4: the
-sample parts past the end of every held-out game; Ramon, 2026-11-22). **A battery is spent when a row
+sample parts past the end of every held-out game; Ramon, 2026-11-22);
+the seventh (rows 8 to 148) when the sixth reads 4 of 8 (DECISIONS 153
+§6). **The seats go by first parting** (DECISIONS 153 §2): a game one
+line or one field from whole first, then the lowest first parting, the
+sample sorted with the rows and holding no seat of its own; a landing
+on a row that parted early bought 732 states and one deep in a game
+about 190, whoever's game it was. A seat that frees takes the next
+item in the lanes line's order, and the sample's before a hand-over
+when no row's item stands. **A script of several takes waits on each**
+with `waitrun.sh`, which gives a launch 120 seconds to show its runner
+(DECISIONS 153 §7: run1794's waiter exited before the runner existed,
+and run1795 played beside it). **A battery is spent when a row
 of it has a leaf test, and `held_out::SPENT` then holds it**: a guard reads
 the tests' names, and the booking that lands a row's first leaf adds the
 battery and writes `Parity:` (151 §2: the fifth stood off the list for
@@ -611,6 +622,11 @@ the tree is removed, DECISIONS 151 §7).
    table row is booked as every row the games on disk ask of that table
    (the sample and row 43 named one pair of fields in two items; three
    landings each found one piece with no bay where a lister found eight).
+   **A new battery's walks get the print on `launch_point`'s fallback**
+   (DECISIONS 153 §5: the sixth's fired eleven such pieces; the patch
+   is `~/ron-data/lab-experiments/2026-11-22-pass-third/bay-probe.patch`,
+   and its count is read beside the run's exit code, since two runs of
+   it have printed zero for a reason that was not zero rounds).
 
 **It never moves what is the user's**: the
 roster, the worker count, the phase, the finish

@@ -73,12 +73,6 @@ finish line's own counter, parity on the declared set (entry 143 §2).
 | **save and replay** | a game saved as seed plus orders, replayable here and written back into the original's recorded-game container | a saved game replays to the same hash; the original replays one of ours | the diff suite; the original on the capture lane | **step 3 stands** (`Recording:`): every recording on disk round-trips, and the original plays our order-free file for 24,000 of 24,000 frames (4058, run1560) |
 | **census** | the territory count tells the truth about the original's 3,611 simulation functions | ported · replaced by design · open, the readers' marks landed row by row (`docs/audit/2026-11-06-territory-*.md`; lore's scoring of the `replaced` groups) | `tools/census.py`'s pins | `Rubric:` 574 open of 3,611, 569 of them carrying a reader's ruling (entry 132); filler for an idle lane |
 
-**At the pass of 2026-11-15** (the table's last column is 2026-11-14's; `docs/QUEUE.md` holds the
-lines): **checksum** — every line but leaders is whole on the minted game, `LEADERS_HELD_OUT` 10,
-`score` parting on 7 tests; **orders** — `INPUT_KINDS` 22 of 26 kinds and 2,373 of 2,429 orders, each
-kind's file played by the original but spell's; **renderer** — under a mountain 100 of 106, the row
-past the map's edge pinned at 0 of 162. The other tracks stand as the table says.
-
 **At the pass of 2026-11-18** (entry 142): **checksum** — parity reads 5 of 6 games: the minted game and four live windows the client
 recorded and the original played back (Codex, items 4362 to 4373), two with combat, so the ammo and deaths records are exercised; the sixth, the
 2017 sample, parts on state 0 on four lines and is read from there (item 4384); `LEADERS_HELD_OUT` 1, the demand's walk at 5677 of 6,081 after
@@ -152,6 +146,15 @@ reach 81 %; five rows scored: row 63 is one field from whole (item 4563), the sa
 seat (items 4565, 4564), row 103's first shot is a piece with no bay and the games on disk field eight such, built in one act (item
 4559); the sixth battery keeps its trigger and is recorded to 12,000, because every held-out game ends on 6,000 and the sample parts
 past it, its human scripted on Ramon's word (item 4566); the packets' lines 950 of 1,053; **orders** — whole by its counters; **renderer** — as it stood, no landing.
+
+**At the pass of 2026-11-22, third** (entry 153): **checksum** — parity 43 of 47 (rows 63 and 103 whole); the sample parts first on
+leaders 7407 of 21,044, draws 7410; parity held out 8, 8, 8, 8 and 5 of 8 now, the fifth's reach 87 %; the sixth, to 12,000 with a
+scripted human, read 1 of 8 and 20 of 96 lines as found, 49 % by reach and 59 % inside its first 6,001 states: six rows part before
+3,400, one on 7675, one runs whole; a landing on a row that parts early bought 732 states and one deep in a game about 190, so the
+seats go by first parting and the sample holds none of its own; row 3 is one line from whole (item 4572), rows 73, 33 and 113 part
+units and cities on one state and take one seat (item 4576), and the sixth's walks fire eleven pieces with no bay, built in one act
+(item 4574); a seventh battery is named; the packets' lines 950 of 1,053; **orders** — whole by its counters; **renderer** — as it
+stood, no landing.
 
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it
