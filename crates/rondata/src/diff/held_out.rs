@@ -9357,10 +9357,13 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // and who=1's Citizen `1/15` (TI 356) walks into reach; ours read a
         // flag nothing wrote. The row's first parting is units, builds and
         // groups 3662.
+        // Then item 4585 (a tower is halved only while its city has never
+        // been attacked): goods 4,148 -> 4,087 agreeing, its first parting
+        // 4087 standing; the row's first parting stands.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3662, 3695, 6001, 3711, 3672, 3662, 3663, 3674, 3693, 4129, 4148, 3668,
+                3662, 3695, 6001, 3711, 3672, 3662, 3663, 3674, 3693, 4129, 4087, 3668,
             ],
             first: &[
                 ("units", (3662, Some(2263308614), 3663092386)),
@@ -9913,10 +9916,13 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // parting 2342, which stands): ammo 3,799 -> 3,924, 386 states gained
         // and 261 lost, the first on 5210 (ours' ammo sum 3991153570 -> 1,
         // theirs 1: no round in flight). No first parting moved.
+        // Then item 4585 (a tower is halved only while its city has never
+        // been attacked): ammo 3,924 -> 3,899 agreeing; the row's first
+        // parting stands.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                2342, 2688, 12001, 3924, 3464, 2740, 2686, 2698, 2974, 4832, 4140, 2691,
+                2342, 2688, 12001, 3899, 3464, 2740, 2686, 2698, 2974, 4832, 4140, 2691,
             ],
             first: &[
                 ("units", (2342, Some(1169777861), 259155158)),

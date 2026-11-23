@@ -41096,6 +41096,10 @@ read 91 GB free before it and 79 GB after (before the split).
   7055 `1108 2000 attack_ox` ours 45 → 43, theirs 43; the first partings by range: leaders 7407 (`43 0 make_list[k]`),
   units and guys 7411, world 7413, builds 7446, groups 7483, cities 7539, ammo 7571, goods 7706, deaths 7710; items past
   8000.
+- **Re-scored by item 4585** (a tower or fort is halved only while its city has never been attacked, `city_flags &
+  0x8`): `43 0 make_list[k]` (ours `0x1bc`, theirs `0x1b6` on 7407) agrees; the first partings by range: leaders 7502
+  (`479 3 encrypt`), units and cities 7539, guys and world 7612, builds 7620, groups 7625, ammo 7636, deaths 7796;
+  goods and items past 8000. The draw word 7410 → 7613.
 
 Archive `gamelog-run1786-sample2017-playback-ranges-8000.txt`, 3,775 bytes,
 SHA-256 `d830e578dbf52dd5833270e0f6c8854b4218ae4b39d6c862c48171d6c55f7644`; `rontrace-run1786.log`, 134,658,432
