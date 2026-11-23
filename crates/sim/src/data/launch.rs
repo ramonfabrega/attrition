@@ -8288,6 +8288,9 @@ pub fn launch_point(
             // SEAM: no row measures this key, so the round leaves the
             // figure's square (`docs/COMBAT.md` §55; items 4559, 4574).
             crate::seam!("fallback");
+            if std::env::var_os("RON_PROBE_4625").is_some() {
+                eprintln!("  probe fallback pos {pos:?} facing {facing:?} deg {} gpiece {gpiece} anim {anim} start {starttime} node {node}", whole_degrees(facing));
+            }
             pos
         }
     }
