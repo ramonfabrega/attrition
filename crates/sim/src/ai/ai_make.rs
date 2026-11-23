@@ -983,7 +983,19 @@ impl Sim {
         // is one of several of its type. `Building` carries no `build_masks`
         // and no writer of bit 0 was found, so the arm is unreachable and is
         // not modelled.
-        for b in 0..self.buildings.len() {
+        // **By object number, not by this crate's slot** (item 4610,
+        // `docs/RECGAME.md` §13.5): the outer loop walks `objects +0x1ec`'s
+        // list of `who` from `obj_base` (`iVar9`, `006c9f20`), then the wall
+        // list at `+0x1f0`. A site in a reused slot sits after the newer
+        // numbers in `self.buildings`, so the slot walk offered run1797's
+        // `2/2033` (uid 69) the one idle citizen `2/11` before `2/2003`
+        // (uid 112) on 2350, and flagged 2003 `0x2000` where theirs flags
+        // 2033.
+        let mut order: Vec<usize> = (0..self.buildings.len())
+            .filter(|&b| self.buildings[b].owner == who)
+            .collect();
+        order.sort_by_key(|&b| self.buildings[b].index);
+        for b in order {
             let bd = &self.buildings[b];
             if !bd.alive || bd.owner != who || bd.active {
                 continue;

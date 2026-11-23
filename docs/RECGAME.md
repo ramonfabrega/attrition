@@ -1728,8 +1728,8 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: units, builds, groups and guys part first on 2351; ammo on 2408. run1797's ranges hold each item's frames,
-every one *diff-backed*.
+Open: builds part first on 2370; ammo on 2408. run1797's ranges hold each item's frames, every one
+*diff-backed*.
 
 **Item 4597** (DECISIONS 154 §2): units 1906 → 2199, a `REPAIR` swarm walks under `MOVE_TO` (`docs/GROUPS.md`).
 **Item 4602**: builds 2166 → 2351, an anti-air building's wind and turret (`docs/COMBAT.md` §84.7). **Item 4604**:
@@ -1738,6 +1738,8 @@ ammo 2198 → 2408, the SAM's `missile="1"` spline (`docs/COMBAT.md` §84.3).
 **Item 4607**: leaders 2297 → 2413, cities 2297 → 2448. Every Temple's close fixes the borders, built or not:
 `Build::close@00628980` tests `is(0x1b5)` at `0x628d2c` and zeroes every region's resume index inline. who=1
 razes who=2's Temple site `2/2009` on frame 2295. Held on 2295–2300.
+
+**Item 4610**: units 2351 → 2376, builds → 2370. The orphan check walks sites by object number.
 
 ## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
 
