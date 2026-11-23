@@ -41762,3 +41762,34 @@ read 133 GB free before it and 121 after filing.
 
 **What it holds**: `diff::held_out::tests::row_28_s_bazookas_drop_their_chase_of_a_citizen_on_run1813_s_ranges`
 (every units, builds, guys and world range on 3955; theirs' `1/35` and `1/52` on 3956).
+
+## run1816 — parity held out, seventh battery, row 28's file to 3,960, a packet at logger frame 3955 (2026-11-23, item 4619, `att-4619`)
+
+`docs/RECGAME.md` §14.2. **What the disk could not answer**: run1813's ranges print both Bazookas' records on 3955 and
+3956, never the arm that ends their walks on tick 3955. The `cover=1` coverage records only first entries (no
+`window=`), and `Unit::find_new_target` first ran on 3874. A packet holds the state the tick starts from. The take:
+`TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1816
+--recording ~/ron-golden/recordings/item4600-row028-12000.rcx --end-frame 3960 --allow-early-end --cover cover=1
+--log-window 3952 3958 --detail end:MISC --timeout 1800 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def
+RON_STATE_FRAME=3955 --tracer-def "RON_STATE_PLAN=\"$P/plan.h\""` with
+`P=~/ron-data/lab-experiments/2026-09-23-item-597/plan`, waited on with `waitrun.sh` in the background. The lane was
+free. `df -g ~` read 89 GB free before it and 81 after filing.
+- **The run**: pool lane 1, launched 16:45:19 −05:00, exited 16:50:51: **331.5 s**, exit 0, `success`, no page fault,
+  no relaunch, `last_frame` 3960, seed 12345, map 18. The recording's SHA-256 is run1805's (`26bc5609…`).
+- **The packet**: `frame_snapshot.py ~/ron-golden/run1816/map-18 $P/plan.json` verified the frame, the logger return
+  and the completion receipt. `map-18/frame-snapshot.bin`, 932,389,516 bytes, SHA-256
+  `0431c8cbc0f695ca1e517e02562fad2dcacfce1c4286e638d09bb7331e809879`. `game->frame` (`+0x550`) reads 3955.
+- **Read off it** (`step4.py`, scratch `~/ron-data/lab-experiments/2026-11-23-item-4619/`): `1/35` at `0x16761e6c`
+  and `1/52` at `0x167636dc` (`unitaddr.py`). Stepped alone, each `Unit::process` enters `do_move` and nothing else.
+  The leaders are at `0xe3a390 + who × 0x6eec`. `Leader::process` reaches no AI, and `Armies::process_all`'s
+  `Army::process` returns on its cadence for all eleven armies. `Objects::process_all`, 3,413,228 instructions:
+  `Unit::think_attack` of `1/25` (`0x16d8abfc`, group 66) calls `find_melee_target`, then
+  `Group::target_opportunity(0, 0, 25, 1)` (`think_attack+0x3e9`). That calls `Unit::target_opportunity(0, 0, 1)` on
+  `1/35`, `1/49`, `1/41`, `1/52`, `1/64` and `1/25`. The first five each take `repath` (`+0x54d`) and
+  `kill_current_order` (`+0x556`), then `fight` → `find_new_target` (`fight+0xa1f`). `--watch 16761e6c+c0:4`: `1/35`'s
+  path length goes 11 → 0 in `kill_current_path`, `1/52`'s 8 → 7.
+- Filed with `tools/gamelog/filerun.py run1816 heldout7-row028-packet3955`:
+  `gamelog-run1816-heldout7-row028-packet3955.txt`, 2,886 bytes; `rontrace-run1816.log`, 155,606,528 bytes.
+
+**What it holds**: the arm behind row 28's first leaf (`docs/journal/2026-11-23-item-4619.md`). No test reads the
+packet. The row 28 test holds its consequence on run1813's ranges for 3956.

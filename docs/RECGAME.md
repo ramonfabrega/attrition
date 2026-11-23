@@ -1824,6 +1824,24 @@ on 3956: it stands at (10248, 12600), where it arrived on 3955.
 It is not `do_move`'s dead-target arm, because `0/7` lives. Theirs spends five `Unit::fight+0x9b0 < Unit::do_attack`
 rolls on 3955 (draws 24 to 28, each `% 5` non-zero), and the seed agrees on 3956.
 
+**Item 4619, the arm, and the row moves: 3956 → 4027.** *Read on a packet* (run1816, `RON_STATE_FRAME=3955`; `step4.py`
+on `Objects::process_all`): neither Bazooka's own `process` ends its walk. A third member of their group 66, the
+Bazooka `1/25`, finds `0/0` in `Unit::think_attack` and hands it to `Group::target_opportunity`. Each of the five
+members `1/35`, `1/41`, `1/49`, `1/52` and `1/64` then takes `Unit::target_opportunity`'s yield: `repath` from
+`+0x54d`, `kill_current_order` from `+0x556`. Each one's `fight` then re-searches (the five rolls), so `1/35` takes
+`0/2000` and `1/52` takes `0/0`. Ours made the same hand-off and refused it in `attack_action_yields`, on the mask
+`0x840002` alone (the Bazooka carries it). The original refuses only when the held target's type is siege and the new
+attacker is neither siege nor a building (`005fffc0:150`–`:166`). For a held building, a shielded unit takes the
+range tests (`600440`). Both arms are built.
+
+*Diff-backed* (the row 28 test, extended): every units, builds, guys and world range on 3956, byte for byte. The
+value diff on 3956, ours before | theirs: `1/35` `path.length` 11 | 0, `unit_masks2` 0 | 16, `orders_x/y` (10200,
+14472) | (8184, 16056); `1/52` `flags` 17 | −111 (`0x91`), `visible` 0 | 1, `path.length` 8 | 7; `0/0` `targeted` 5 |
+6. All agree now. `SCORES_SEVENTH[1].moved`: 2 → 7 lines whole (deaths, groups, guys, goods and world join). Units
+first parting 3956 → 4122, builds → 4037, leaders → 4037, cities → 4037. **The row's lowest parting is ammo 4027**,
+221 states from the end. run1813 keeps no ammo ranges, so the next word on this row needs a take: the ammo line from
+4027.
+
 ### 14.3 Row 48
 
 Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
