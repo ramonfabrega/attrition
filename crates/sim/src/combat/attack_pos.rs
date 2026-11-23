@@ -247,6 +247,7 @@ impl crate::Sim {
                 // before walking the ring. Nothing modelled here has a
                 // minimum range, so the projection is skipped and only
                 // the stand-off is taken.
+                crate::seam!("dead_zone_projection");
                 stand = p.min_range * 0xc0 + 0x90;
             } else if range * 0xc0 - 6 < d || bombard {
                 let mut v = range * 0xc0 - 0x60;

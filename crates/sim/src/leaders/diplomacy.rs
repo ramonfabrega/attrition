@@ -290,6 +290,7 @@ impl Sim {
                 if self.world.terrain(r as u16) != Terrain::Land {
                     continue;
                 }
+                crate::seam!("land_slot_zero", r == 0);
                 let r16 = r as u16;
                 let my_cities = crate::ai::Census::reg_u16(&mine.reg_cities, r16);
                 let my_combat = crate::ai::Census::reg_u16(&mine.reg_combat, r16);
@@ -423,6 +424,7 @@ impl Sim {
         if ally {
             // The allied arm opens by clearing `aggression`; SEAM: the rest
             // of it (`006bc950:600–700`, `:757`).
+            crate::seam!("allied_arm_rest");
             self.store_view(me, t, 0, strong, weak);
             return;
         }

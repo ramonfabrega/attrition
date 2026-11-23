@@ -1202,6 +1202,7 @@ impl Sim {
     ///
     /// SEAM: the supply wagon's gate.
     pub(crate) fn recover_mana(&mut self, u: usize, frame: i64) {
+        crate::seam!("supply_wagon_gate", self.is_supply_unit(u));
         if !self.units[u].decoy
             && self.unit_domain_of(u) == crate::territory::attrition::Domain::Air
         {

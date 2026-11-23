@@ -27,6 +27,11 @@ sim = { path = "../sim" }
 # exempt, for a memory-mapped capture; `src/capture.rs` says why that was
 # a bad trade and `docs/DECISIONS.md` 37 records the rule that stands.
 # The recording scorer verifies native capture receipts and their recording digest.
+[features]
+# Item 4580: the held-out walks with the sim's `seam!` hooks counting
+# (`diff::held_out::seams`). A test's switch, never a default.
+seam-count = ["sim/seam-count"]
+
 [dev-dependencies]
 serde_json = "1"
 sha2 = "0.10"

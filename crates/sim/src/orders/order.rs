@@ -781,6 +781,7 @@ impl AirPatrolOrder {
     pub fn push(&mut self, p: Pos) -> bool {
         let n = usize::from(self.len);
         if n >= PATROL_POINTS {
+            crate::seam!("patrol_points_full");
             return false;
         }
         self.points[n] = p;

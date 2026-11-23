@@ -2040,6 +2040,7 @@ impl CheckTargetView for SimCheckTarget<'_> {
         matches!(self.s.current_order(self.u).map(|o| o.body), Some(Body::Move(m)) if m.group.is_some())
     }
     fn head_vslot_14(&mut self) -> bool {
+        crate::seam!("head_vslot_14");
         false
     }
     fn group(&mut self) -> i32 {

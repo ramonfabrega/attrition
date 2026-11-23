@@ -1775,6 +1775,7 @@ impl Sim {
     /// `remove_from_inside`, then `move_unit`'s clear pass), and then
     /// dies on the spot.
     pub(crate) fn close_inside_disc(&mut self, r: usize) {
+        crate::seam!("kill_contents_no_come_out");
         let at = self.units[r].movement.body.pos;
         self.coll_paint(r, at, true);
         self.coll_paint(r, at, false);

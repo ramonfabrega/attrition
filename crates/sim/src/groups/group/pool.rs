@@ -1071,6 +1071,7 @@ impl Sim {
                 best = Some(s);
             }
         }
+        crate::seam!("pool_full", open.is_none() && best.is_none());
         let s = open.or(best).unwrap_or(if last == 45 { 44 } else { 45 });
         // `get_open_slot`'s tail (§3.1): unless the slot holds a
         // building group, every unit of `who` whose `+0x80` names it
