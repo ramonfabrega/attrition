@@ -1621,5 +1621,7 @@ verdict.
 
 *Diff-backed*: every number above (the hook's twelve sums on every state, ours against theirs). *Read, not diffed*:
 that `script_rule`'s choices are what a person would make; only their effect on the original is compared. *Not
-established*: no row names a leaf, since each take holds sums only; a script past §9's three orders, or one issued
+established*: no row names a leaf, since each take holds sums only, but row 73 (item 4576, run1798's ranges: on 1563
+who=2's Caravan `2/31` links its trade order to its ally who=1's city 3 in ours, while theirs' order keeps no partner
+through 1573 and is gone by 1575; `docs/journal/2026-11-23-item-4576.md`); a script past §9's three orders, or one issued
 after frame 90; whether row 13's 7675 and the sample's 7055 are one mechanism.
