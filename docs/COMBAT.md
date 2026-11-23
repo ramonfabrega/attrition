@@ -7609,6 +7609,22 @@ search at all: a **follower takes its captain's target in place, before the
 validity test is ever reached**. §44.2 has the block and the two dumped
 fields that tell it apart from a fresh order.
 
+**The defensive leash's "same target" is the entry target** (item 4564,
+run1787, diff-backed). `fight`'s leash (`5fe18c`–`5fe2b5`, GOLDEN §149.7's
+arm 2) runs `find_new_target`, then asks whether the new order's `+0x8`/`+0xc`
+equal `-0x1c`/`-0x20(%ebp)`. Those are the copies `fight` makes of its
+`(ox, whom)` at `5fd4ec`/`5fd4ef`. The follower's mirror writes the argument
+slots and the order, never the copies, and the leash has already reused the
+argument slots for the post. So a follower that mirrored its captain's target
+this frame, and has it re-added by the review, keeps that attack with the
+frozen mark (`LAB_005fe502`) instead of killing it. Witness: row 43's Hoplites
+`2/63` (TI 132, land) on 3441: entered on `1/46`, mirrored `1/23` off `2/62`,
+holding `ATTACK` on `(23, 1)` and `unit_masks2` 16 on 3442
+(`row_43_s_follower_keeps_its_captain_s_target_past_the_leash_on_run1787_s_ranges`).
+*Not established*: the capture-approach arm writes `-0x1c`/`-0x20` again at
+`5fd95b` (`whom × 7`, the list). No path from there is read to reach the
+leash.
+
 ## 43.3 The comparison could not see the target at all
 
 The three `order` rows the widening reports at 696 are not where this

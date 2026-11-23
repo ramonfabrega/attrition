@@ -14513,7 +14513,8 @@ blocks, and whether the original re-enters `work` on it (see the loop below). A 
    `5fe0fc`) and carries a post does not chase from `max(vslot +0x130, unit_defensive_respond_range) × 0xc0` or
    more off it: `find_new_target(NULL, 0)`, and then nothing more without an `ATTACK` in front or while recharging;
    the same target again kills the attack and walks home as arm 1 does; another target takes the frozen mark
-   (`Sim::fight_post_leash`).
+   (`Sim::fight_post_leash`). "The same" is `fight`'s entry `(ox, whom)` (`-0x1c`/`-0x20`), before the follower's
+   mirror (item 4564, COMBAT §43.2).
 
 **Why both.** Arm 1 alone loops: the review's leash re-adds the captain's target with the post kept, `fight` chases,
 `chase_reentry` re-enters `work` on the same frame, and the review fires again — `2/31` on 945 recursed until the
