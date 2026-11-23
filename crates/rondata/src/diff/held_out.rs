@@ -1222,6 +1222,85 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 133's computer calls a citizen to repair its capital**
+    /// (item 4594, `docs/AI.md` §80.2 H12): run1797, the ranges take of
+    /// row 133's file. who=2's capital `2/2000` (a Major City) carries
+    /// damage 5,949, past half its hits, with its city's `no_heal` clear
+    /// and no enemy within `0xc00`. On frame 1904, `(1904 + 2000) & 63 ==
+    /// 0`, `Build::process@0061edf0`'s repair recruit (`61fe00`..`61feed`)
+    /// gives the nearest not-busy citizen, `2/72` (TI 0x32) walking to its
+    /// Oil Well `2/2008`, a `QUEUE_NEW` repair of the capital. Ours had no
+    /// such arm: on 1905 units range 3966 (record 72) held ours' `MOVE_TO`
+    /// and `GATHER` against theirs' one `REPAIR` (13) of `2/2000`, builds
+    /// range 2061 held `2/2008`'s `gather_down` 72 against −1, and leaders
+    /// range 265 who=2's `flags` byte 3 0x00 against 0x02 (the economy's
+    /// dirty bit the killed gather raises). Every units, builds and leaders
+    /// range on 1904 and 1905, ours against theirs, byte for byte.
+    #[test]
+    fn row_133_s_computer_calls_a_citizen_to_repair_its_capital_on_run1797_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 1904..=1905 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (line, name) in [(0usize, "units"), (1, "builds"), (7, "leaders")] {
+                let ours = lines[line].as_ref().expect("the line");
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{name} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+            let u = (0..built.sim.units.len())
+                .find(|&u| built.sim.units[u].owner == 2 && built.sim.units[u].index == 72)
+                .expect("2/72");
+            let capital = built.sim.building_by_o(2, 2000).expect("2/2000");
+            let bd = &built.sim.buildings[capital];
+            assert!(
+                bd.damage > bd.hits_now() / 2,
+                "past half its hits on {state}"
+            );
+            let repairs = built.sim.units[u]
+                .orders
+                .iter()
+                .any(|o| matches!(o.body, sim::orders::Body::Repair(b) if b == capital));
+            assert_eq!(
+                repairs,
+                state == 1905,
+                "2/72 repairs the capital on {state}"
+            );
+        }
+    }
+
     /// **Row 83's computer lists a caravan by its ally's city** (item
     /// 4545, `docs/CARAVAN.md` §4): run1784, the ranges take of row 83's
     /// file. On 1956 who=2 (the added computer, team 0 with the human)
