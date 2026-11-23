@@ -227,11 +227,15 @@ fn an_anti_air_building_winds_on_its_sighting_without_a_target() {
 fn an_anti_air_building_s_turret_turns_at_its_sighting_out_of_range() {
     let mut s = sim();
     let r = radar(&mut s, true);
-    let plane = unit(&mut s, 0, Pos::new(22272 + 40 * 96, 16512), bomber());
+    let plane = unit(&mut s, 0, Pos::new(22272, 16512 + 40 * 0x300), bomber());
     s.buildings[r].job_counter = 0x4000_0000;
     s.buildings[r].near = Some(Obj::Unit(plane));
+    assert!(!s.is_in_range(Obj::Building(r), Obj::Unit(plane)), "the sighting is out of range");
+    assert!(s.slot_live(Obj::Unit(plane)), "a live slot");
+    assert_ne!(s.profile(Obj::Building(r)).obj_masks & mask::ANTI_AIR, 0, "ANTI_AIR");
     let off_phase = |s: &Sim, f: i64| s.buildings[r].phase(f) & 0x1f != 0;
-    let want = crate::movement::find_angle(40 * 96, 0).0;
+    let want = crate::movement::find_angle(0, 40 * 0x300).0;
+    assert!(want.wrapping_sub(0x4000_0000).unsigned_abs() > 0x38e_38e3, "more than a step away");
     let mut seen = Vec::new();
     let mut f = 1;
     while seen.len() < 40 {
@@ -244,9 +248,9 @@ fn an_anti_air_building_s_turret_turns_at_its_sighting_out_of_range() {
     let step = 0x38e_38e3_i32;
     let d = want.wrapping_sub(0x4000_0000);
     let first = if d >= 0 {
-        0x4000_0000 + step
+        0x4000_0000_i32.wrapping_add(step)
     } else {
-        0x4000_0000 - step
+        0x4000_0000_i32.wrapping_sub(step)
     };
     assert_eq!(seen[0], first, "one five-degree step at the sighting");
     assert_eq!(*seen.last().unwrap(), want, "then it holds on it");
