@@ -4810,9 +4810,9 @@ slot (`LF_ONEMETHOD`, `vftable offset`). The order is `render_background`
   - Ours: `minimap::who_texels` and `minimap::borders`. Each pixel samples
     the texture bilinearly at its centre; a texel past the grid is zero.
 - *The fog.* `fill_colors_fog@008d1420` writes a grey per fog cell: 255
-  seen, `0x80` under a reveal, `0x50` once seen, 0 never. `render_fog`
-  multiplies it in (`ZERO`, `SRCCOLOR`). Not built: the photograph's
-  ground is undarkened.
+  seen, `0x80` ~~under a reveal~~ really seen, `0x50` ~~once seen~~
+  seen by the region rule, 0 never (§3.32.1). `render_fog` multiplies
+  it in (`ZERO`, `SRCCOLOR`). Not built.
 - *The view rectangle.* `get_view_rect@008c8120` takes the plane points
   under the main view's top-left and bottom-right pixels.
   `MiscAccess::world_to_console@00583840` projects each through the
@@ -4866,8 +4866,9 @@ off (4588a, 4588b, 4588c). 129 read grey, 116 water and 330 land.
   3294 with the lane's `StartReveal` off (`semaphore` byte 0 `08`). Its
   minimap is black except the capital's patch, and its main view darkens
   the ground past slot 0's sight with a soft edge. The packet's `WORLD`
-  fog grids equal our walk's plane on all 14,400 cells. The reading of
-  what darkens each is the item's next act and is not done.
+  fog grids equal our walk's plane on all 14,400 cells. ~~The reading of
+  what darkens each is the item's next act and is not done.~~ Read:
+  §3.32.1 (item 4621).
 - The blips are read, not built (§3.33). The pings are not built
   (4588b).
 - On 11 cells our border falls a pixel from theirs, e.g. (36, 11) theirs
@@ -4878,6 +4879,104 @@ off (4588a, 4588b, 4588c). 129 read grey, 116 water and 330 land.
   axes rest on the minimap camera's corners.
 - The layout off 1920 × 1080, and the `scroll_lock_flags & 4` skip,
   which the window does not read.
+
+## 3.32.1 The fog on the main view and the minimap, read (item 4621)
+
+*2026-11-23, Opus 5.5; a reading, no build. The ledger:
+`docs/journal/2026-11-23-item-4621.md`. Off run1814b's packet (frame
+3294, `StartReveal` off, §3.32) and photograph.*
+
+**One grid feeds both.** `WorldMapFog::fill_colors_fog@008d1420` gives
+each fog cell a level and writes it twice: to `fog.fog_lookup` (by
+`set_fog_lookup@008d1300`, a `(fog_xs + 2)`-wide grid with its border
+copied out) and, as a grey, to the minimap's `texture_fog`.
+- *3, grey 255*: `WorldData::is_seen@006b55c0`, the `seen` bit.
+- *2, grey `0x80`*: `was_really_seen@006b54f0`, the `seen2` bit.
+- *1, grey `0x50`*: `was_seen@006b53f0` and not really seen. Past
+  `seen2`, it is true on a cell whose terrain cell an ally owns
+  (`WData.who`) while that ally holds a city or a fort in the cell's
+  region (`LeaderData::reg_cities` +0x125e, `reg_forts` +0x12de).
+  `REVEAL_MAP` above 1 makes it true everywhere.
+- *0, grey 0*: never.
+
+On the packet (`fog` at `0x00e8a790`, 120 × 120), the levels count
+13,336 / 727 / 127 / 210. The 127 2s are the dump's explored ring and the
+210 3s its sight, cell for cell. **The 727 1s are a block x 0–29, y
+58–101 that the dump's two planes do not carry**: slot 0's capital
+region, which is explored without ever having been seen. Our
+`Sim::observe` fog plane reads `seen` and `seen2` alone, so it calls
+those cells unseen. The sim already ports all three predicates
+(`world_is_seen_fog`, `was_really_seen_fog`, `was_seen_fog`).
+
+**The main view: `TerrainOut::render_fow@00854630`.**
+- *The texcoords.* `TerrainVis::fill_fog_texcoords@008b19f0` gives each
+  terrain cell's 5 × 5 vertices (half a fog cell apart) one `u`. It sums
+  the levels of the fog cells the vertex touches, scaled so that four
+  cells count once each (one cell × 4, two × 2), giving 0 to 12. It then
+  looks the sum up in `fog_tcoord_lookup` (`.rdata` `0x00af2df4`, 13
+  floats): 0, 0.04165, 0.1666, 0.2499, …, 0.9163, 1.0. Every step is
+  1/12 except the first, which is half a step. `v` is 0.
+- *The ramp.* Texture 0 is the tileset's `FOGTEX` (`TileSet::init@0087b370`
+  reads it): `art/fow_fade.tga` on 14 of the 17 tilesets, and
+  `fow_fade_dark.tga` on `jungle`, `tropical_wet` and `tropical`. Both are
+  256 × 1 black, the fog in the alpha: 255 at the left, falling to 0 at
+  texel 211 (201 on the dark one).
+- *The state*, `TerrainData::fow_rs` (`Terrain +0x415c`, "Fow"),
+  read off the packet: `enables 0x5`, `zbias` 8, `zfunc` LESSEQUAL,
+  `SRCALPHA`/`INVSRCALPHA`. Stage 0 is `SELECTARG1(TEX)` on colour and
+  alpha, clamped, linear. So the pass keeps `1 − α(u)` of what is under
+  it. Sampled at the texel centres, α is 1 at level 0 (black),
+  0.6863 at level 1 (keeps 0.3137), 0.2977 at level 2 (keeps 0.7023) and
+  0 at 3. The edge is the ramp between vertices: soft, half a fog cell
+  wide each side.
+- *When.* `Scene::render@008b3270` calls it after the terrain, roads,
+  rivers, borders, shadows, mountains and cliffs, and before the objects
+  (`draw_all_zoomed_in`). That is the HDR pass, before the tone map. It
+  is skipped under `semaphore & 0x42` (the reveal) and once the player is
+  over (unless a tournament).
+- *Transition.* `TerrainOut::inc_fog_time@0086d8e0` steps each changed
+  `u` toward its new value by at least 0.001 a call. It jumps at once
+  when the scalability's `section_render[2]` is clear. The rate's divisor
+  (`Scene +0x8c`) is not named. Run1814b's sight has stood since frame 1,
+  so the transition has settled.
+- *The water and the cliffs* bind `fow_fade_texture` themselves, at
+  stage 1 (`render_water@00852cd0`, `CliffsOut::render@008a6df0`).
+- **Held to the photograph.** Each fog cell's centre, projected through
+  the packet's own `world_to_screen@00583810` at `find_data_z` height,
+  gives these lumas above the bar:
+
+  | | level 1 (80 cells) | level 2 (93) | level 3 (209) |
+  |---|---|---|---|
+  | theirs | 75.0 | 125.2 | 156.4 |
+  | ours, flat | 142.9 | 143.5 | 142.3 |
+
+  No level-0 cell is in the view: **all of 4612's "unseen" cells are
+  level 1**. Theirs over level 3 is 0.48 and 0.80. The keeps 0.3137 and
+  0.7023 through the filmic curve give 0.47 and 0.81 at x = 3, and
+  0.42–0.51 and 0.78–0.83 over x 2–4.
+
+**The minimap: `WorldMap::render_fog@008cc1f0`** lays `texture_fog` on the
+background's quad under `fog_render_state` (`0x00ed06c8`). On the packet
+that state is `ZERO`/`SRCCOLOR`, stage 0 `SELECTARG1(TEX)`, filtered by
+point: one hard-edged grey per fog cell, multiplied in. Held to the
+photograph against our unfogged still, theirs over ours is 0 / 0.295 /
+0.489 / 0.905 on levels 0 to 3. Over level 3's 0.905, that is 0.326 and
+0.540 against the greys' 0.314 and 0.502. Level 0's 13,336 cells read 0
+on theirs: the black minimap.
+
+**What the build needs.** A four-level plane from the three predicates,
+not `seen`/`seen2`. Then the main view's per-vertex `u`, `1 − α(u)` off
+`fow_fade.tga` in HDR before the tone map, and the minimap's multiply.
+
+**Not established.**
+- What darkens the trees past sight. They are drawn after `render_fow`
+  and so are not under it, and `Scene::render` clears `RTreeData` on
+  `fog_changed` (4621a).
+- The water's and the cliffs' own fog arithmetic: only the binding is
+  read.
+- The transition's rate (`Scene +0x8c`).
+- `fill_colors_fog`'s `flags & 2` branch (the full refill) inlines the
+  `seen2` test and the leader exits. It is read as the same four levels.
 
 ## 3.33 The minimap's blips, read (item 4593)
 
