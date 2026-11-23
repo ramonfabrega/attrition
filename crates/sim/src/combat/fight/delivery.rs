@@ -243,6 +243,11 @@ impl Sim {
             if tw == 2 && to == 0 {
                 let (ao, aw) = self.obj_o_who(attacker);
                 let ati = match attacker { Obj::Unit(a) => self.units[a].type_index, _ => -1 };
+                if let Obj::Building(b) = attacker {
+                    let bd = &self.buildings[b];
+                    let base = crate::combat::object_attack_view::object_attack_steps(&mut super::attack_step::SimObjectAttack { sim: self, o: attacker });
+                    eprintln!("P4623B ty {:?} ident {:?} active {} damage {} hits {} city {:?} base {base} mods {} family {} citizen {}", bd.ty, bd.ty.map(|t| self.tables.build_types[t].ident), bd.active, bd.damage, bd.hits_now(), bd.city, self.mods_of(bd.owner as usize).attack, self.build_attack_terms(b), self.citizen_attack(attacker));
+                }
                 eprintln!(
                     "P4623D {frame} by {aw}/{ao} TI {ati} on {tw}/{to} attack {:?} armor {:?} pct {pct} dmg {dmg} count {count} ammo {ammo} splash {splash} quiet {quiet} angle {angle:?} dealt {dealt:?} ap {ap:?} tp {tp:?} at {at:?} tt {tt:?}",
                     self.attack_of(attacker),
