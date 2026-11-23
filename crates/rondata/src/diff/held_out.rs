@@ -440,6 +440,74 @@ fn columns(lines: &[String]) -> (String, Vec<String>, u64) {
 
 #[cfg(test)]
 pub(crate) mod tests {
+
+    /// Probe (item 4602, reverted whole): `RON_PROBE_4602=<lo>-<hi>`.
+    #[test]
+    fn probe_4602() {
+        let Ok(spec) = std::env::var("RON_PROBE_4602") else {
+            return;
+        };
+        let (lo, hi) = spec.split_once('-').unwrap();
+        let (lo, hi): (i64, i64) = (lo.parse().unwrap(), hi.parse().unwrap());
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            panic!("no file")
+        };
+        let ranges =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+                .expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let want: Vec<i16> = std::env::var("RON_PROBE_4602_O")
+            .unwrap_or_else(|_| "2027".into())
+            .split(',')
+            .map(|x| x.parse().unwrap())
+            .collect();
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[1].as_ref().expect("the line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+            for (a, b) in ours.ranges.iter().zip(&theirs) {
+                if want.contains(&(a.record as i16)) && a.bytes != b.bytes {
+                    let fa = crate::checksum::fields::build_range_fields(&a.field, &a.bytes);
+                    let fb = crate::checksum::fields::build_range_fields(&b.field, &b.bytes);
+                    for (x, y) in fa.iter().zip(&fb) {
+                        if x.1 != y.1 {
+                            eprintln!("PROBE {state} rec {} {} {}: ours {} theirs {}", a.record, a.field, x.0, x.1, y.1);
+                        }
+                    }
+                }
+            }
+            for (a, b) in ours.ranges.iter().zip(&theirs) {
+                if want.contains(&(a.record as i16)) && (a.field.starts_with("myhits") || a.field.starts_with("gather_down")) {
+                    let fb = crate::checksum::fields::build_range_fields(&b.field, &b.bytes);
+                    let pick: Vec<_> = fb.iter().filter(|f| matches!(f.0.as_str(), "near_o"|"near_who"|"recharging"|"attack_ox"|"attack_whom"|"targeted"|"visible")).collect();
+                    eprintln!("PROBE {state} rec {} theirs {:?}", a.record, pick);
+                }
+            }
+            for b in built.sim.buildings.iter() {
+                if want.contains(&b.index) {
+                    eprintln!(
+                        "PROBE {state} ours {}/{}: near {:?} target {:?} recharging {} jammed {} active {}",
+                        b.owner, b.index, b.near, b.target, b.recharging, b.jammed, b.active
+                    );
+                }
+            }
+        }
+    }
     use super::*;
 
     /// **The declaration** (item 4413's first act): the eight lobbies, named
