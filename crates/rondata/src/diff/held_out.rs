@@ -3077,69 +3077,6 @@ pub(crate) mod tests {
         }
     }
 
-    #[test]
-    fn probe_4610_row_43() {
-        if std::env::var_os("RON_PROBE_4610").is_none() {
-            return;
-        }
-        let Some(inst) = crate::testenv::install() else {
-            return;
-        };
-        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(&FIFTH, 2) else {
-            return;
-        };
-        let map = home.join("ron-golden/run1787/map-7");
-        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
-            return;
-        };
-        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 43's file");
-        let loaded = crate::load::load(&inst).expect("the install loads");
-        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
-        let rules = inst.rules().expect("rules");
-        let tribes = inst.tribe_defs(&rules).expect("tribes");
-        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
-        let mut stream = crate::input::Stream::pump(&rec);
-        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
-        for state in 3831i64..=3833 {
-            while built.sim.frame < state {
-                stream.apply(built.sim.frame as i32, &mut built);
-                built.sim.command().tick();
-            }
-            let set = record.first_of(state - 1).expect("the state's set").clone();
-            let all = record.ranges(&set).expect("the set's ranges");
-            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
-            for (li, name) in [(0usize, "units"), (1, "builds"), (5, "groups"), (6, "guys")] {
-                let ours = lines[li].as_ref().expect("line");
-                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == li).collect();
-                if ours.ranges.len() != theirs.len() {
-                    eprintln!("P43 {state} {name} count ours {} theirs {}", ours.ranges.len(), theirs.len());
-                }
-                let mut shown = 0;
-                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
-                    if name == "groups" && a.record == 128 && !a.field.starts_with("list") {
-                        let f = |x: &[u8]| std::panic::catch_unwind(|| crate::checksum::fields::range_fields(name, a.field, x)).ok().flatten();
-                        eprintln!("P43 {state} G128 {} ours {:?}", a.field, f(&a.bytes));
-                        eprintln!("P43 {state} G128 {} theirs {:?}", a.field, f(&b.bytes));
-                    }
-                    if a.bytes != b.bytes {
-                        shown += 1;
-                        if shown > 10 {
-                            continue;
-                        }
-                        let d = std::panic::catch_unwind(|| crate::checksum::fields::differing_fields(name, a.field, &a.bytes, &b.bytes)).unwrap_or_default();
-                        eprintln!("P43 {state} {name} k{k} rec {} {} diff {:?}", a.record, a.field, d);
-                    }
-                }
-            }
-            for (u, unit) in built.sim.units.iter().enumerate() {
-                if unit.index == 8 && unit.alive() {
-                    eprintln!("P43 {state} unit slot {u} who {} o 8 pos {:?} orders {:?}", unit.owner, unit.pos, unit.orders);
-                }
-            }
-        }
-    }
-
     /// **Row 43's Village holds the wounded Spearmen** (item 4565,
     /// `docs/RECGAME.md` §12.3): run1787, the ranges take of row 43's file.
     /// who=2's Village `2/2010` has held who=1's Spearmen `1/46` (TI 166,
