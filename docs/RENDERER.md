@@ -4636,7 +4636,7 @@ cell by cell**: a cell is about 5 × 2.6 px of a 317 × 159 diamond.
 
 **What the original draws** (read, then held to the packet). The packet
 is `~/ron-golden/run1564/map-14/frame-snapshot.bin`, frame 3294; the
-object is `MiscAccess::worldmap` (`0x00e399ac`), a `WorldMap` (`0x1360`).
+object is `MiscAccess::worldmap` (`0x00e399ac`), a `WorldMap` of 0x1360 bytes.
 - *The background.* `WorldMapBackground::render@008cfc40` draws the
   terrain once (`TerrainOut::render`, `render_mountains`,
   `CliffsOut::render`, the features). It draws from a camera
