@@ -1360,7 +1360,7 @@ pub(crate) mod tests {
         let orders = &built.sim.units[u].orders;
         assert!(
             matches!(
-                orders.first().map(|o| &o.body),
+                orders.front().map(|o| &o.body),
                 Some(sim::orders::Body::Move(m)) if m.kind == sim::orders::MoveKind::MoveTo
             ),
             "2/72's head on 1906 is a MOVE_TO: {orders:?}"
