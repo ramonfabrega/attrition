@@ -2402,6 +2402,17 @@ pub(crate) mod tests {
                     }
                 }
             }
+            if let Ok(w) = std::env::var("P_TI") {
+                let tis: Vec<i32> = w.split(',').filter_map(|x| x.parse().ok()).collect();
+                for (h, x) in built.sim.units.iter().enumerate() {
+                    if tis.contains(&x.type_index) {
+                        eprintln!(
+                            "T {state} slot {h} {}/{} ti {} alive {} map {} pos ({}, {}) inside {:?}",
+                            x.owner, x.index, x.type_index, x.alive(), x.on_map, x.pos.x, x.pos.y, x.inside
+                        );
+                    }
+                }
+            }
             if let Ok(w) = std::env::var("P_UNITS") {
                 for spec in w.split(',') {
                     let (who, o) = spec.split_once('/').unwrap();
