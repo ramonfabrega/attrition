@@ -666,14 +666,19 @@ impl ScriptHost<'_> {
             .collect()
     }
 
-    /// `get_city_index`: the leader's city by name.
+    /// `get_city_index@009e2ba0`: the first live city in the leader's list
+    /// whose `name` (`CityData +0x90`) or `id` (`+0xa4`) equals the
+    /// argument. **Every city a random map makes has an empty `id`**
+    /// (`City::generate_name` passes `EMPTY_STRING` on each path and
+    /// `City::capture` copies the source's), and two empty `String`s are
+    /// equal (`String::operator==@00a1f140`), so `""` names the leader's
+    /// first live city, never "no city" (item 4548, `docs/AI.md` §13).
     fn city_index(&self, w: Player, name: &str) -> Option<usize> {
+        let mut live = self.cities_of(w).into_iter();
         if name.is_empty() {
-            return None;
+            return live.next();
         }
-        self.cities_of(w)
-            .into_iter()
-            .find(|&c| city_name(c).eq_ignore_ascii_case(name))
+        live.find(|&c| city_name(c).eq_ignore_ascii_case(name))
     }
 
     /// A city's centre building number, for the `place_*` adapters.
@@ -969,26 +974,37 @@ impl ScriptHost<'_> {
     /// capital the person's three units strike on 2887 (a light blow,
     /// `raid_stamp` 2887), answers `economic`'s head on 2901 with
     /// `SCRIPT_DONE` in the original and runs its machine on to `Make`.
+    ///
+    /// **A city `get_city_index` finds is the only one read**, and the
+    /// scripts' `""` finds the first live city (item 4548: run1796's
+    /// who=1, whose third city was captured on 4756, blocks on 4776 in the
+    /// original). Its arm returns 0 on a zero stamp before the recency
+    /// test; the walk over every live city, for a name no city holds,
+    /// does not.
     fn was_city_attacked(&self, who: i32, city: &str, seconds: i32, raid: bool) -> Value {
         let Some(w) = self.leader(who) else {
             return BAD;
         };
         let frame = self.sim.frame;
-        let hit = |c: usize| -> bool {
-            let stamp = if raid {
+        let stamp_of = |c: usize| -> i64 {
+            if raid {
                 self.sim.cities.cities[c].raid_stamp
             } else {
                 self.sim.cities.cities[c].attack_stamp
-            };
-            if seconds < 1 {
-                stamp != 0
-            } else {
-                (frame - stamp) / FRAMES_PER_TICK <= i64::from(seconds)
             }
         };
+        let recent = |stamp: i64| (frame - stamp) / FRAMES_PER_TICK <= i64::from(seconds);
         match self.city_index(w, city) {
-            Some(c) => int(hit(c) as i32),
-            None => int(self.cities_of(w).into_iter().any(hit) as i32),
+            Some(c) => {
+                let stamp = stamp_of(c);
+                int((stamp != 0 && (seconds < 1 || recent(stamp))) as i32)
+            }
+            None => int(self
+                .cities_of(w)
+                .into_iter()
+                .map(stamp_of)
+                .any(|stamp| (seconds < 1 && stamp != 0) || recent(stamp))
+                as i32),
         }
     }
 
@@ -1120,10 +1136,19 @@ impl ScriptHost<'_> {
                 .is_some_and(|b| self.sim.buildings[b].active && self.building_is(b, producer))
         });
         let Some(o) = found else { return NO };
-        self.sim.ai.script_env.find_counters[counter::RESEARCH_PRODUCER] = i32::from(o);
         let Some(b) = self.sim.building_by_o(w, o) else {
             return NO;
         };
+        // **The one building `find_build` returns is asked, and an
+        // unassimilated one makes nothing** (item 4548): `can_queue` →
+        // `could_queue` → `BuildData::can_make@0062db10`, which refuses
+        // while `is_unassimilated@0062d470` holds, and
+        // `research_tech_with_cost@009ee700` returns 0 without looking
+        // further. run1796's who=1 finds its captured city's producer 2016
+        // first on 4776 and its `defensive` step 15 blocks there.
+        if self.sim.building_unassimilated(b) {
+            return NO;
+        }
         // `can_queue`: the price through the building, then `could_queue`.
         // `BuildData::can_queue@004d2030` asks `can_pay_cost(who, −1, city,
         // 1)`, the escrow flag set, so the **whole** bucket counts and the
@@ -1146,6 +1171,9 @@ impl ScriptHost<'_> {
         if !paid || self.sim.researching(w, t) || !self.sim.buildings[b].queue.has_room() {
             return NO;
         }
+        // `find_counters[0x1e]` is written on the success arm alone
+        // (`009ee700`: after `can_queue`, before `Group::add`).
+        self.sim.ai.script_env.find_counters[counter::RESEARCH_PRODUCER] = i32::from(o);
         self.action_queue_up(w, b, QueueType::Tech(t), 1);
         int(i32::from(o))
     }
