@@ -1831,8 +1831,8 @@ Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
 
 ### 14.4 Row 88
 
-Open: units, guys and leaders part on 2741; deaths and world now agree to 2861 (item 4614). run1808 holds sums,
-run1815 the ranges to 2991.
+Open: ammo parts on 2791, and units and leaders on 2807 (item 4622). run1808 holds sums, run1815 the ranges to 2991,
+with no ammo ranges.
 
 **Item 4614: a rider comes out before its carrier dies, and a fire raft dies with its shot.** Two fixes. Both are
 diff-backed by run1815's ranges (`docs/RUNS.md`), scored by `score_recording` on the item's tree.
@@ -1862,14 +1862,32 @@ The score, `SCORES_SEVENTH[4].moved` (12,001 states): deaths 2,741 → 2,862, wo
 first parting stands on 2741, on units, guys and leaders. Row 53 drifts: deaths, leaders and world 3707 → 3713, its
 first parting 3358 standing.
 
-**The next word, 2741, from run1815.** Units range 4008, record 61, `flags` byte 0: ours `0x11`, theirs `0x01`. The
-unit is who=2's third barge `2/61` (TI 320). Its `myhits..` range parts on its second word, ours 12, theirs 0, and its
-guy's `guy_flags` read ours `0x30`, theirs `0x10`. Leaders who=1's record parts at byte 2644, ours 3, theirs 2. Ours'
-raft round wounds `2/61` and theirs' does not. Which side's splash list is right is not read.
+**Item 4622: a self-destructing shooter splashes from the shot's middle.** On 2741 who=2's third barge `2/61` (TI
+320) read `flags` ours `0x11`, theirs `0x01`, and `myhits..` ours 12, theirs 0. Our splash from the raft's round had
+reached it, and theirs' had not. `Ammo::do_damage@00678060`'s splash arm was read in the listing. At `678652` it
+calls the shooter's vslot `+0x18`: on `Unit`, the folded `Buffer::is_pending_load@0041e0e0`, `return 1`. At `678675`
+it tests the shooter type's `unit_flags & 0x2000` (`n`, `uflags::SELF_DESTRUCT`). With both, `678681`..`6786a0` set
+the centre to `((sx + ex) / 2, (sy + ey) / 2)`, truncated toward zero; otherwise it is the landing. The cell walk
+(`6786d8`..`6786ee`) and both arms' distances (`67888f`, `6788e0`, `678a58`..`678a8c`) read that centre.
+`hit_target` and `check_hit` keep the landing. The raft is already dead when its round lands, and its type is read
+all the same. Built in `Sim::land`. Held by `combat::fight::tests::a_self_destructing_shooter_splashes_from_the_shot_s_middle`,
+which fails with the centre kept at the landing. Diff-backed by run1815's ranges: units agree to 2806, and the first
+difference moves to 2791.
 
-**Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is still not built: a `0x2000` attacker
-that collides with a valid target sets it, fires and dies. No capture has been shown to reach it. Whether the shot's
-splash reads the shooter alive is the next word's question.
+The score, `SCORES_SEVENTH[4].moved`: units 2,741 → 2,807, leaders 2,741 → 2,879, guys 2,851 → 2,882, deaths and
+world 2,862 → 2,882, builds 2,887 → 2,919, goods 2,998 → 2,999. Ammo (3,039 → 2,930) and items (7,799 → 4,108) drop
+past the first parting. **The first parting moves 2741 → 2791, on ammo alone**, which has parted there since the row
+was found.
+
+**The next word, 2791, ammo.** run1808 and run1815 hold no ammo ranges. The take `score_recording` names is row 88's
+file with `--end-frame 2792 --log-window 2790 2793 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def
+RNG_MASK=0x8`. Units part next on 2807, at range 4411, record 61: barge `2/61`'s `flags` read ours `0x01`, theirs
+`0x11`. Theirs is now wounded and ours is not.
+
+**Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is still not built: a `0x2000`
+attacker that collides with a valid target sets it, fires and dies. No capture has been shown to reach it.
+A building shooter always splashes from the landing: `Build` and `Wall` fill vslot `+0x18` with the folded
+`Window::get_button@0041bff0`, `return 0`, and this crate's arm asks for a unit shooter.
 
 ### 14.5 Row 108
 
