@@ -588,7 +588,6 @@ fn barracks_sim(upgradeable: bool) -> (Sim, Barracks) {
         scouted: 0,
         capture_strength: 0,
         pop: 1,
-        has_citizen: false,
         source: None,
         trade_val: 0,
         traded_with: [0; 8],

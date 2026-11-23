@@ -119,7 +119,6 @@ fn the_emulated_original_agrees_on_every_row() {
                             scouted: 0,
                             capture_strength: 0,
                             pop: 0,
-                            has_citizen: false,
                             source: None,
                             trade_val: 0,
                             traded_with: [0; 8],

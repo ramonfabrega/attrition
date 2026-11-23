@@ -121,7 +121,6 @@ fn the_arrival_bonus_is_paid_once_and_doubles_for_a_foreigner() {
         scouted: 0,
         capture_strength: 0,
         pop: 0,
-        has_citizen: false,
         source: None,
         trade_val: 0,
         traded_with: [0; 8],
