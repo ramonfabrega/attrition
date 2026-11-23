@@ -1418,6 +1418,27 @@ pub(crate) mod tests {
                 ours.ranges.len(),
                 theirs.len()
             );
+            for (a, b) in ours.ranges.iter().zip(&theirs) {
+                if a.record == 2027 && line == 1 {
+                    eprintln!(
+                        "PROBE  2027 {}: ours {:02x?} theirs {:02x?}",
+                        a.field, a.bytes, b.bytes
+                    );
+                }
+            }
+            if line == 1 {
+                for (k, b) in built.sim.buildings.iter().enumerate() {
+                    if b.index == 2027 {
+                        eprintln!(
+                            "PROBE  ours building {k}: owner {} orig_ty {:?} ident {:?} pos {:?}",
+                            b.owner,
+                            b.orig_ty,
+                            b.orig_ty.map(|t| built.sim.tables.build_types[t].ident),
+                            b.pos
+                        );
+                    }
+                }
+            }
             let mut n = 0;
             for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
                 if a.bytes != b.bytes {
