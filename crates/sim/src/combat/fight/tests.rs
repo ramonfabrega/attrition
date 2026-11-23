@@ -198,6 +198,37 @@ fn a_splash_round_strikes_its_own_target_whoever_owns_it() {
     let _ = other;
 }
 
+/// **A self-destructing shooter splashes from the shot's middle** (item
+/// 4622, `docs/RECGAME.md` §14.4; `Ammo::do_damage@00678060`
+/// `678652`..`6786b0`): a unit shooter whose type carries `0x2000`
+/// centres the splash walk and its distances on `((sx + ex) / 2, (sy +
+/// ey) / 2)`, and any other on the landing. run1815's 2740: the Heavy
+/// Fire Raft `1/87`'s round leaves who=2's barge `2/61` beside the
+/// landing whole in theirs, where ours wounded it 12. Made to fail with
+/// the centre kept at the landing.
+#[test]
+fn a_self_destructing_shooter_splashes_from_the_shot_s_middle() {
+    for flags in [0, crate::ai::ai_load::uflags::SELF_DESTRUCT] {
+        let (mut sim, land) = at_war();
+        let mut t = sim.tables.unit_types[land].clone();
+        t.cols.unit_flags = flags;
+        let ty = sim.add_unit_type(t);
+        let me = put(&mut sim, 0, ty, Pos::new(1000, 1000));
+        let beside_landing = put(&mut sim, 1, land, Pos::new(3000, 1250));
+        let at_middle = put(&mut sim, 1, land, Pos::new(2000, 1100));
+        let p = round(&sim, me, None, Pos::new(3000, 1000), 1);
+        sim.land(p, 2740);
+        let struck = |o: usize| sim.combat.hits.iter().any(|h| h.target == Obj::Unit(o));
+        let raft = flags != 0;
+        assert_eq!(
+            struck(beside_landing),
+            !raft,
+            "flags {flags:#x}: beside the landing"
+        );
+        assert_eq!(struck(at_middle), raft, "flags {flags:#x}: at the middle");
+    }
+}
+
 /// **A round whose target is gone lands as a ground round** (item
 /// 3829, `Ammo::do_damage@00678060`'s first test, `docs/GOLDEN.md`
 /// §152.12): an air round on a plane that died in flight splashes no
