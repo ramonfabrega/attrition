@@ -6684,3 +6684,41 @@ fn a_building_weighs_a_target_by_its_damage_and_its_head_order() {
         "a damaged building: {struck} against {standing}"
     );
 }
+
+/// **A raider weighs an unfinished building by its threat, not `/ 20`**
+/// (item 4590, `docs/COMBAT.md` §68.1). `compare_target`'s raid arm at
+/// `0064ea57` asks `WallData::is_active` (vslot `+0x4c`, `flags & 4`,
+/// finished) of the target; an unfinished armed building takes `v ×
+/// attack × 100 / hits_left × 10`. run1803's packet: row 93's raiding
+/// Bazooka `1/31` scores the unfinished Small City `2/2027` at 1613 and
+/// takes it over the Oil Well `2/2032` at 138, where `/ 20` gave the
+/// city the floor 15.
+///
+/// Made to fail by asking [`Sim::active`] (alive, with hit points) in
+/// place of the finished bit: the unfinished city then reads the floor.
+#[test]
+fn a_raider_weighs_an_unfinished_building_by_its_threat() {
+    let weigh = |finished: bool| {
+        let (mut sim, ty) = at_war();
+        let b = sim.add_building(1, Pos::new(3000, 3000), 0);
+        sim.buildings[b].started = true;
+        sim.buildings[b].active = finished;
+        sim.buildings[b].health = 873;
+        sim.buildings[b].combat = Some(Profile {
+            cost: 20,
+            attack: 80,
+            x_size: 2,
+            y_size: 2,
+            ..Profile::default()
+        });
+        let me = put(&mut sim, 0, ty, Pos::new(3600, 3000));
+        sim.units[me].combat.stance = Stance::Raid;
+        sim.compare_target(Obj::Unit(me), Obj::Building(b), false, false)
+    };
+    assert_eq!(weigh(true), 15, "a finished building: `/ 20`, the floor");
+    assert!(
+        weigh(false) > 15,
+        "an unfinished building takes the threat formula: {}",
+        weigh(false)
+    );
+}
