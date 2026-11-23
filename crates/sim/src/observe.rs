@@ -59,9 +59,11 @@ pub struct Scene {
     /// prints (item 4198, `docs/HUD.md` §4).
     pub leaders: Vec<LeaderScene>,
     /// The viewer's fog plane on the half-cell grid (`fog_xs × fog_ys`,
-    /// row-major): [`fog::UNSEEN`], [`fog::EXPLORED`] or [`fog::VISIBLE`].
-    /// `None` for an observer who sees everything, and on a world with no
-    /// fog grid installed.
+    /// row-major): one of the four levels `WorldMapFog::fill_colors_fog`
+    /// writes ([`fog::UNSEEN`], [`fog::REGION`], [`fog::EXPLORED`],
+    /// [`fog::VISIBLE`]; item 4624, `docs/RENDERER.md` §3.32.1). `None` for
+    /// an observer who sees everything, and on a world with no fog grid
+    /// installed.
     pub fog: Option<Vec<u8>>,
     /// Moves when the terrain grids change: fetch
     /// [`Sim::observe_terrain`] again.
@@ -539,14 +541,23 @@ pub struct RoadTile {
     pub footprint: u16,
 }
 
-/// The values of [`Scene::fog`].
+/// The values of [`Scene::fog`]: the level `WorldMapFog::fill_colors_fog@008d1420`
+/// gives a fog cell and writes to `fog_lookup` (item 4624; `docs/RENDERER.md`
+/// §3.32.1). The first predicate that holds sets it, in this order:
+/// `WorldData::is_seen@006b55c0`, `was_really_seen@006b54f0`,
+/// `was_seen@006b53f0`.
 pub mod fog {
-    /// The viewer has never seen the half-cell.
+    /// Level 0: none of the three holds (the minimap's grey 0).
     pub const UNSEEN: u8 = 0;
-    /// Seen once (`WorldData::seen2`), not in sight now.
-    pub const EXPLORED: u8 = 1;
-    /// In the viewer's line of sight now (`WorldData::seen`).
-    pub const VISIBLE: u8 = 2;
+    /// Level 1: `was_seen` and not really seen. Past the `seen2` bits, the
+    /// region rule: an ally owns the cell and holds a city or a fort in its
+    /// region (the minimap's grey `0x50`).
+    pub const REGION: u8 = 1;
+    /// Level 2: `was_really_seen`, the `seen2` bits under the ally mask,
+    /// not in sight now (grey `0x80`).
+    pub const EXPLORED: u8 = 2;
+    /// Level 3: `is_seen`, in sight now under the ally mask (grey 255).
+    pub const VISIBLE: u8 = 3;
 }
 
 impl Sim {
@@ -783,7 +794,7 @@ impl Sim {
             projectiles,
             deaths,
             leaders: self.observe_leaders(),
-            fog: viewer.and_then(|p| self.fog_plane(p)),
+            fog: viewer.and_then(|p| self.observe_fog(p)),
             terrain_version: self.world.terrain_version(),
             ai_off: self.ai.ai_off,
             territory_version: self.world.territory_version(),
@@ -975,22 +986,29 @@ impl Sim {
         }
     }
 
-    /// One player's fog plane, `None` on a world with no fog grid.
-    fn fog_plane(&self, p: Player) -> Option<Vec<u8>> {
+    /// **One player's fog plane** ([`Scene::fog`]), `None` on a world with
+    /// no fog grid: each fog cell's level as `fill_colors_fog@008d1420`
+    /// sets it, through the three predicates the sim already ports
+    /// ([`fog`]). Item 4624: run1814b's packet holds `fog_lookup`
+    /// 13,336 / 727 / 127 / 210 on frame 3294, and this plane is it cell
+    /// for cell (`client::minimap::fog`'s test). It is a read: the twelve
+    /// checksum lines' walk never calls it.
+    pub fn observe_fog(&self, p: Player) -> Option<Vec<u8>> {
         let w = &self.world;
         if !w.has_fog() {
             return None;
         }
-        let bit = 1u8.checked_shl(u32::from(p)).unwrap_or(0);
         let (fw, fh) = (w.fog_xs(), w.fog_ys());
         Some(
             (0..fh)
                 .flat_map(|fy| (0..fw).map(move |fx| (fx, fy)))
                 .map(|(fx, fy)| {
-                    if w.seen(fx, fy).unwrap_or(0) & bit != 0 {
+                    if self.world_is_seen_fog(fx, fy, p) {
                         fog::VISIBLE
-                    } else if w.seen2(fx, fy).unwrap_or(0) & bit != 0 {
+                    } else if self.was_really_seen_fog(fx, fy, p) {
                         fog::EXPLORED
+                    } else if self.was_seen_fog(fx, fy, p) {
+                        fog::REGION
                     } else {
                         fog::UNSEEN
                     }

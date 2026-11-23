@@ -2732,6 +2732,32 @@ pub fn minimap_colors(install: &Install, tileset: &str) -> Result<MinimapColors,
     })
 }
 
+/// **The fog's ramp** (item 4624; `docs/RENDERER.md` §3.32.1): the file of
+/// the tileset's `<FOGTEX><TEXTURE file=…>`, which `TileSet::init@0087b370`
+/// loads as `fow_fade_texture` and `TerrainOut::render_fow@00854630` binds
+/// at stage 0. A 256 × 1 black ramp, the fog in its alpha.
+pub fn fog_texture(install: &Install, tileset: &str) -> Result<PathBuf, ArtFailure> {
+    let unnamed = |what: &str| ArtFailure::Unnamed(what.to_string());
+    let tpath = install.data("tilesets.xml");
+    let ttext = crate::read(&tpath).map_err(|_| unnamed("tilesets.xml"))?;
+    let tdoc = crate::parse(&tpath, &ttext).map_err(|_| unnamed("tilesets.xml"))?;
+    let rel = tdoc
+        .descendants()
+        .find(|n| {
+            n.has_tag_name("TILESET")
+                && n.attribute("name")
+                    .is_some_and(|v| v.trim().eq_ignore_ascii_case(tileset))
+        })
+        .ok_or_else(|| unnamed(tileset))?
+        .children()
+        .find(|c| c.is_element() && c.tag_name().name().eq_ignore_ascii_case("FOGTEX"))
+        .and_then(|f| f.children().find(|c| c.has_tag_name("TEXTURE")))
+        .and_then(|t| t.attribute("file"))
+        .ok_or_else(|| unnamed(&format!("{tileset}/FOGTEX")))?;
+    let rel = rel.trim().trim_start_matches("./");
+    resolve(install.root(), rel).ok_or_else(|| unnamed(rel))
+}
+
 /// **The surf's waves** (item 4235; `docs/FORMATS.md`, "The surf's section
 /// models"): each `<WAVE>` under `Data/effects_graphics.xml`'s `<SURF>`, in
 /// file order, as its `<WAVESECTION>`s' `model=` files with `.mot`
@@ -3529,6 +3555,37 @@ mod tests {
         assert_eq!(snowy.darken, Some([212, 212, 212]));
         assert_eq!(snowy.mountain, [0xd2, 0xc9, 0xa6]);
         assert!(minimap_colors(&inst, "no such tileset").is_err());
+    }
+
+    /// **The fog's ramp by tileset** (item 4624; `docs/RENDERER.md`
+    /// §3.32.1): `fow_fade.tga` on 14 of the 17 tilesets and
+    /// `fow_fade_dark.tga` on `jungle`, `tropical_wet` and `tropical`.
+    #[test]
+    fn the_fog_ramp_is_the_tileset_s() {
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install");
+            return;
+        };
+        let tpath = inst.data("tilesets.xml");
+        let text = crate::read(&tpath).unwrap();
+        let doc = crate::parse(&tpath, &text).unwrap();
+        let mut by: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        for t in doc.descendants().filter(|n| n.has_tag_name("TILESET")) {
+            let name = t.attribute("name").unwrap().trim().to_string();
+            let file = fog_texture(&inst, &name).unwrap();
+            let file = file.file_name().unwrap().to_string_lossy().to_lowercase();
+            by.entry(file).or_default().push(name.to_lowercase());
+        }
+        assert_eq!(by.get("fow_fade.tga").map(Vec::len), Some(14), "{by:?}");
+        assert_eq!(
+            by.get("fow_fade_dark.tga").cloned(),
+            Some(vec![
+                "jungle".to_string(),
+                "tropical_wet".to_string(),
+                "tropical".to_string()
+            ]),
+        );
+        assert!(fog_texture(&inst, "no such tileset").is_err());
     }
 
     /// **The tileset's light** (item 4217; `docs/RENDERER.md` §3.22):

@@ -50,7 +50,7 @@ use crate::camera::{Camera, Projected, Screen, world_to_screen};
 
 /// `sim::observe::fog::VISIBLE`: the half-cell is in the viewer's sight
 /// now. `rondata`'s draw test holds the two equal.
-pub const FOG_VISIBLE: u8 = 2;
+pub const FOG_VISIBLE: u8 = 3;
 
 /// One figure of an object, as the read door reports it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -727,7 +727,7 @@ mod tests {
 
     #[test]
     fn a_viewer_sees_its_own_and_what_is_in_sight() {
-        let plane = [0, FOG_VISIBLE, 1, 0];
+        let plane = [0, FOG_VISIBLE, 2, 0];
         let sight = Sight {
             viewer: 1,
             plane: &plane,
