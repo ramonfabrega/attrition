@@ -1256,7 +1256,33 @@ pub(crate) mod tests {
             let set = record.first_of(state - 1).expect("the state's set").clone();
             let all = record.ranges(&set).expect("the set's ranges");
             let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (ui, u) in built.sim.units.iter().enumerate() {
+                if u.index == 72 && u.alive {
+                    eprintln!(
+                        "P4594U {state} u{ui} who {} o {} ty {:?} pos {:?} orders {:?}",
+                        u.owner, u.index, u.ty, u.pos, u.orders
+                    );
+                }
+            }
+            for b in [2000usize, 2008] {
+                if let Some(bi) = built.sim.building_by_o(2, b as _) {
+                    let bd = &built.sim.buildings[bi];
+                    eprintln!(
+                        "P4594B {state} 2/{b} ty {:?} damage {} active {} under {} gather_head {:?}",
+                        bd.ty.map(|t| loaded.build_type_names[t].clone()), bd.damage, bd.active, bd.is_under_attack(), bd.gather_head
+                    );
+                }
+            }
             for (li, l) in lines.iter().enumerate() {
+                if li == 0 {
+                    let ours = l.as_ref().unwrap();
+                    let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+                    for (k, a) in ours.ranges.iter().enumerate() {
+                        if a.record == 72 && k < theirs.len() && k > 3940 && k < 3970 {
+                            eprintln!("P4594R {state} {k} {} ours {:02x?} theirs {:02x?}", a.field, a.bytes, theirs[k].bytes);
+                        }
+                    }
+                }
                 let Some(ours) = l else { continue };
                 let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == li).collect();
                 if ours.ranges.len() != theirs.len() {
