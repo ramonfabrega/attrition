@@ -1512,10 +1512,6 @@ left the one shared `find_counters[0x1c]` at 2011, who=1's count (its mark); `fi
 cursor to 2000 and starts at 2001, so who=1's three trainings on 2976 went 2007, 2000, 2007, where ours went 2000
 first. The lap resets now (`ai_host::lap`, `find_unit`'s too; AI §11): twelve lines whole.
 
-**Row 3: eleven lines whole (item 4548, run1796; AI §3.1).** The leaf was who=1's step machine on 4777 (ours
-`production_step` 2, theirs 0). The scripts' `was_city_attacked(who, "", −1)` reads the first live city alone, and
-`research_tech_with_cost` refuses the producer it finds in a captured, unassimilated city. World parts on 4990.
-
 **Bays (4547, 4559).** 736 takes 1440's; 4559 rows eight (`launch::BAYS`, `pivot::RELEASES`; 1224 is 169's). 4561:
 an unbuilt Village's close fixes borders. 4565: COMBAT §12.3.
 
