@@ -41733,6 +41733,53 @@ SHA-256 `e65395540e5b8cea888267acd4ec68b5774ed381b4ab13eb2ca6a3bd15cfe4f3`) and 
 `the_seventh_s_files_carry_the_declared_seats_team_and_orders`. **Not played**: `df -g ~` read 59 GB free at 12:38:44
 before run1810, under the item's floor of 60, and the chain stopped. A later take keeps these numbers.
 
+## run1814 and run1814b — the harness's lobby with the reveal off: a photograph and a packet of frame 3294 under slot 0's fog (2026-11-23, item 4612, `att-4612`)
+
+`docs/RENDERER.md` §3.32. **What the disk could not answer**: no photograph on disk shows unexplored ground. Every
+pool lane's `rise2.ini` holds `StartReveal=1`, the display reveal (`semaphore` bit 1, `Game::solo_checks@00588110`),
+so every take before this one drew the map lit. The line is the harness's lobby (Great Lakes, seed 12345, two
+players; `client --lobby` builds the same lobby) with `--rise2 StartReveal=0` and no camera line. The command file
+`~/ron-data/lab-experiments/2026-11-23-item-4612/photo3294.cmd` holds `3294 pause 1`:
+`zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1814b --map 14 --end-frame 3296
+--timeout 420 --log-window 3292 3296 --detail end:MISC,UNITS=3,GUYS=2,WORLD=6 --cover cover=0 --rise2 StartReveal=0
+--cmd-file <it> --tracer-def RON_STATE_FRAME=3294 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`,
+and `poolshot.py ~/ron-golden/run1814b 3294 --map 14` beside it.
+- **run1814**, the same line into `~/ron-golden/run1814`, launched 15:34:05 −05:00 after 60 s waiting on item 4613's
+  take on lane 1. Its `poolshot.py` started before the runner had made the run directory and refused (`no run
+  directory`). The packet and the gamelog were written, the paused take ran to its timeout (`TimeoutExpired` after
+  420 s, `waitrun.sh` exit 2), and the settings were restored. 124 GB free before it and 119 after.
+- **run1814b**, launched 15:41:48 with no wait. Its `poolshot.py` waited for the run directory, then took the
+  photograph at frame 3295 on the gamelog. The paused take ran to its timeout as run1814's did. Its gamelog is
+  run1814's past the header.
+- Minutes waited on another lane: one.
+
+Packet `~/ron-golden/run1814b/map-14/frame-snapshot.bin`, 796,728,028 bytes,
+SHA-256 `099cfbad8bd962339ca717e3e9f494ba2ad4fb462487fdc3bb23a3722eeb19be`. Gamelog
+`~/ron-golden/run1814b/map-14/gamelog.txt`, frames 3292–3295, 13,392,492 bytes,
+SHA-256 `2379e92c761e54d7d88ff81d85fac2c0038fbde512b940b28f9dc14fff534927`. run1814's packet,
+`~/ron-golden/run1814/map-14/frame-snapshot.bin`, 800,197,572 bytes, SHA-256
+`861f1551d0ef909f9b055289b7765eae40e43339869bad7cd98b8de1844e49a9`. Not filed.
+
+Photograph `~/ron-data/lab-experiments/2026-11-23-item-4612/run1814b-3294.png`: window 24215, 1920×1080 with no
+title bar, tagged `sRGB IEC61966-2.1`, so no colour match is owed. SHA-256
+`f4571d5c4e8d7a5948e548eb6073a161733981243fd60674a949ed214ec63c26`.
+
+**What it holds**:
+- **The reveal is off.** `pings_packet.py` reads `semaphore0 08` on both packets, where run1564's reads `0a`.
+- **The camera.** `packet_points.py`'s `state 0` line is the client's pinned camera with only `loc` changed:
+  `4524ff06` `46ec9fe1`, (2639.94, 30287.94) on run1814b, and (2632.34, 30280.34) on run1814. That is the capital's
+  point (3168, 30816) less about 528 on each axis, the cursor pin's diagonal drift (`docs/RENDERER.md` §3.31).
+- **The fog grids, whole.** The `WORLD=6` block prints `seen`, `seen2` and `seen3` per fog cell. On 3294 slot 0's bit
+  reads 210 cells in sight (`seen`), 127 seen once and not now (`seen2` only) and 14,063 never seen, on both takes.
+  **Our walk of the same lobby (`FreeRunner::from_lobby`, `Sim::observe(Some(0))`'s `fog`) equals it on all
+  14,400 cells.**
+- **All three show.** Each fog cell's centre is projected at height 500 through the packet's camera
+  (`render::camera::world_to_screen`). The view holds all 210 visible cells, all 127 explored and 149 unseen, and
+  80 of the unseen lie above the bar (y < 885).
+- **The fog draws on the main view and on the minimap.** The ground past slot 0's sight is darkened, with a soft
+  edge, and the minimap is black except the capital's patch. The photograph's mean luma at the fog cells above the
+  bar reads unseen 83.6, explored 135.1, visible 150.2. The client's still of the same frame and `loc` reads 147.8,
+  149.0, 139.6.
 ## run1813 — parity held out, seventh battery, row 28's file to the original's end (4247) with the checksum and ranges hooks, units, builds, guys and world kept (2026-11-23, item 4613, `att-4613`)
 
 `docs/RECGAME.md` §14.2. **What the disk could not answer**: run1805 holds sums only, so row 28's parting on 3956
