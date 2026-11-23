@@ -450,13 +450,9 @@ pub fn add_mountains(
             for (wt, hit) in w {
                 if hit {
                     alpha += wt * a;
-                    for k in 0..3 {
-                        col[k] += wt * c[k];
-                    }
-                } else {
-                    for k in 0..3 {
-                        col[k] += wt;
-                    }
+                }
+                for (v, ck) in col.iter_mut().zip(c) {
+                    *v += wt * if hit { ck } else { 1.0 };
                 }
             }
             if alpha <= 0.0 {
