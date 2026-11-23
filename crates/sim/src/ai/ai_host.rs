@@ -1136,10 +1136,19 @@ impl ScriptHost<'_> {
                 .is_some_and(|b| self.sim.buildings[b].active && self.building_is(b, producer))
         });
         let Some(o) = found else { return NO };
-        self.sim.ai.script_env.find_counters[counter::RESEARCH_PRODUCER] = i32::from(o);
         let Some(b) = self.sim.building_by_o(w, o) else {
             return NO;
         };
+        // **The one building `find_build` returns is asked, and an
+        // unassimilated one makes nothing** (item 4548): `can_queue` →
+        // `could_queue` → `BuildData::can_make@0062db10`, which refuses
+        // while `is_unassimilated@0062d470` holds, and
+        // `research_tech_with_cost@009ee700` returns 0 without looking
+        // further. run1796's who=1 finds its captured city's producer 2016
+        // first on 4776 and its `defensive` step 15 blocks there.
+        if self.sim.building_unassimilated(b) {
+            return NO;
+        }
         // `can_queue`: the price through the building, then `could_queue`.
         // `BuildData::can_queue@004d2030` asks `can_pay_cost(who, −1, city,
         // 1)`, the escrow flag set, so the **whole** bucket counts and the
@@ -1162,6 +1171,9 @@ impl ScriptHost<'_> {
         if !paid || self.sim.researching(w, t) || !self.sim.buildings[b].queue.has_room() {
             return NO;
         }
+        // `find_counters[0x1e]` is written on the success arm alone
+        // (`009ee700`: after `can_queue`, before `Group::add`).
+        self.sim.ai.script_env.find_counters[counter::RESEARCH_PRODUCER] = i32::from(o);
         self.action_queue_up(w, b, QueueType::Tech(t), 1);
         int(i32::from(o))
     }
