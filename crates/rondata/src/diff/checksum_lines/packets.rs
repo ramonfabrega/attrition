@@ -1153,6 +1153,18 @@ pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[
          on it for who=1's Bazooka 1/31, compare_target's raid /20 skipped for the unfinished \
          Small City 2/2027 (1613); no word walks it",
     ),
+    (
+        "run1814",
+        3294,
+        "the harness's lobby with the reveal off (item 4612): its photograph was lost, \
+         run1814b is its twin; no word walks it",
+    ),
+    (
+        "run1814b",
+        3294,
+        "the harness's lobby with the reveal off (item 4612): a renderer's packet beside \
+         its photograph of slot 0's fog; no word walks it",
+    ),
 ];
 
 /// **The takes' packets** (item 4159, step VII-b2): held by a take's walk
@@ -1188,7 +1200,8 @@ pub(super) const TAKES_HELD: &[(&str, i64, &str, i64)] = &[
 // Item 4433: run1715's packet at 3294 named, not held, (122, …, 12).
 // Item 4583: run1800's packet at 1563 named, not held, (123, …, 13).
 // Item 4590: run1803's packet at 2685 named, not held, (124, …, 14).
-const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (124, 87, 7, 12, 1, 3, 14);
+// Item 4612: run1814's and run1814b's at 3294 named, not held, (126, …, 16).
+const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (126, 87, 7, 12, 1, 3, 16);
 
 /// Every held packet's `(run, logger frame, game, the length its walk is
 /// whole to)`: a word's, a chapter's and the minted one.

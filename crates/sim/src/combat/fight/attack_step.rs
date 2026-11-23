@@ -220,6 +220,23 @@ impl Sim {
             // unit arm starts it 100 above the figure (§46.1).
             let sz = self.ground_z(from) + 100;
             self.fire_ammo(me, target, direct, frame, from, sz);
+            // **A self-destructing attacker dies with its shot** (item
+            // 4614, `docs/RECGAME.md` §14.4): `fight@005fd4d0:900`–`906`,
+            // straight after `fire_ammo`, a type whose `unit_flags`
+            // carries `n` (`0x2000`, the fire rafts and fire ships) takes
+            // `Object::die(this, 3, −1, 0)` and `fight` returns 0, with no
+            // reload. run1815's 2740: who=1's Heavy Fire Raft `1/87` (TI
+            // 335, sea) at (17544, 13464) fires on who=2's Transport Barges
+            // `2/60` and `2/71`, and theirs' deaths line on state 2741
+            // holds the raft in slot 0, before both barges its round sinks.
+            if self.units[i].ty.is_some_and(|t| {
+                self.tables.unit_types[t].cols.unit_flags
+                    & crate::ai::ai_load::uflags::SELF_DESTRUCT
+                    != 0
+            }) {
+                self.die_with(i, 3);
+                return false;
+            }
         }
         // Reload.
         self.units[i].combat.recharging = self.reload_frames(i);

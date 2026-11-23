@@ -12114,7 +12114,37 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4614 (run1815's ranges). `kill_contents` brings each
+        // rider out before its carrier's death (`Object::kill_contents
+        // @00645550`): on 2740 who=2's Peltasts `2/38`..`2/40` come ashore off
+        // the sunk barge `2/71` and die there, and the world's block 1101,
+        // `block.present`, reads ours 0 -> 1, theirs 1. A fire raft dies with
+        // its shot (`Unit::fight@005fd4d0:900`): who=1's Heavy Fire Raft `1/87`
+        // takes deaths slot 0 on 2741, ours alive -> dead, theirs dead. Deaths
+        // 2,741 -> 2,862, world 2,741 -> 2,862, builds 2,783 -> 2,887, ammo
+        // 2,988 -> 3,039, groups 2,751 -> 2,883, guys 2,741 -> 2,851, items
+        // 7,315 -> 7,799, goods 2,879 -> 2,998. Units and leaders still part on
+        // 2741 at who=2's barge `2/61`: ours wounds it for 12, theirs for 0.
+        moved: Some(Score {
+            states: 12001,
+            agreed: [
+                2741, 2887, 12001, 3039, 2862, 2883, 2851, 2741, 2951, 7799, 2998, 2862,
+            ],
+            first: &[
+                ("units", (2741, Some(205622988), 852594544)),
+                ("builds", (2862, Some(3055182203), 3564920762)),
+                ("ammo", (2791, Some(1984301831), 2513898174)),
+                ("deaths", (2862, Some(3648199562), 2008092393)),
+                ("groups", (2883, Some(763071651), 3332674898)),
+                ("guys", (2741, Some(2772467107), 1298234755)),
+                ("leaders", (2741, Some(2964172792), 1853075446)),
+                ("cities", (2951, Some(1452619764), 1435711476)),
+                ("items", (3100, Some(3288077661), 3279426907)),
+                ("goods", (2879, Some(2093806050), 2246636004)),
+                ("world", (2862, Some(3728056528), 3425675031)),
+            ],
+            over: None,
+        }),
     }),
     // run1809
     // row 108, as found 2026-11-23: 2 lines whole; units 7,421 of 12,001, first 7421; builds 7,421

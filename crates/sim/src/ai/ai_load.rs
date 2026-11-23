@@ -102,6 +102,12 @@ pub mod uflags {
     pub const NO_RESEARCH_PRICE: u32 = 0x80;
     /// `r` — `is_siege`.
     pub const FLAG_SIEGE: u32 = 0x20000;
+    /// `n` — **a self-destructing attacker**: the fire rafts and fire
+    /// ships. `Unit::fight@005fd4d0:900` kills one with its own shot,
+    /// `Object::die(this, 3, −1, 0)` right after `fire_ammo` (item 4614,
+    /// `docs/RECGAME.md` §14.4); `ObjectData::valid_target_const` hands
+    /// it sea units alone (`docs/COMBAT.md` §12.1).
+    pub const SELF_DESTRUCT: u32 = 0x2000;
     /// `v` — **fires on the move** (the Dragoon's `majv`, the Horse
     /// Archer's `mhv`). `Unit::do_move@005f7b30:60` calls
     /// `Unit::cavarch_fight` for such a type, and `Unit::move_step` walks
