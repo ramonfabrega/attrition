@@ -335,6 +335,13 @@ pub fn background(world: &mut crate::world::World, gpu: &crate::gpu::Gpu) -> Bac
             |i| t.flags[i] & sim::world::cell::FOREST != 0,
             c.tree,
         );
+        add_mountains(
+            &mut rgba,
+            (t.width, t.height),
+            &t.flags,
+            &t.tiles,
+            c.mountain,
+        );
     }
     world.set_coral_lit(coral_lit);
     Background { rgba, extent }
@@ -364,6 +371,101 @@ pub fn paint_cells(
             if on((cy * cells.0 + cx) as usize) {
                 let i = ((y * n + x) * 4) as usize;
                 rgba[i..i + 3].copy_from_slice(&colour);
+            }
+        }
+    }
+}
+
+/// The mountain feature's vertex alpha, `0x77` of `0xff`.
+pub const MOUNTAIN_ALPHA: u8 = 0x77;
+
+/// **The mountains** (item 4586; `docs/RENDERER.md` §3.32):
+/// `WorldMapBackground::render_feature@008cf710` under `MOUNTAIN_FEATURE`,
+/// drawn last. Every cell whose flags carry [`sim::world::cell::MOUNTAIN`]
+/// or [`sim::world::cell::CLIFF`] (`& 0x50`) is laid again as its terrain
+/// mesh, its 25 vertices white at alpha 0 (`0x00ffffff`), save the four
+/// corners of each of its sixteen tiles whose object field is a cliff or a
+/// mountain (`mask & 3` of 1 or 2), which take the tileset's `<MOUNTAINS
+/// minimap_color>` at alpha [`MOUNTAIN_ALPHA`]. The mesh's vertices are its
+/// own, so a corner on the cell's edge is coloured by the cell's own tiles
+/// alone. `mountain_feature_rs` selects the vertex colour and alpha and
+/// blends `SRCALPHA`, `ONE`: the colour times its alpha, both interpolated,
+/// added to the background and clamped. Each tile is interpolated
+/// bilinearly over its corners (an assumption: the mesh's two triangles
+/// a tile interpolate linearly, along a diagonal not read).
+pub fn add_mountains(
+    rgba: &mut [u8],
+    cells: (i32, i32),
+    flags: &[u16],
+    tiles: &[u16],
+    colour: [u8; 3],
+) {
+    use sim::world::{cell, tile};
+    let n = BACK as i32;
+    let tw = cells.0 * 4;
+    let on_cell = |cx: i32, cy: i32| {
+        flags[(cy * cells.0 + cx) as usize] & (cell::MOUNTAIN | cell::CLIFF) != 0
+    };
+    let on_tile = |x: i32, y: i32| {
+        matches!(
+            tiles[(y * tw + x) as usize] & tile::OBJECT,
+            tile::OBJECT_MOUNTAIN | tile::OBJECT_CLIFF
+        )
+    };
+    // A vertex of cell `(cx, cy)` at its local corner `(vx, vy)` in 0..=4:
+    // coloured when one of the cell's own tiles it bounds is.
+    let vert = |cx: i32, cy: i32, vx: i32, vy: i32| {
+        let mut hit = false;
+        for ty in (vy - 1).max(0)..=vy.min(3) {
+            for tx in (vx - 1).max(0)..=vx.min(3) {
+                hit |= on_tile(cx * 4 + tx, cy * 4 + ty);
+            }
+        }
+        hit
+    };
+    let a = f32::from(MOUNTAIN_ALPHA) / 255.0;
+    let c = colour.map(|v| f32::from(v) / 255.0);
+    for y in 0..n {
+        let fy = (y as f32 + 0.5) / n as f32 * (cells.1 * 4) as f32;
+        let cy = ((fy / 4.0) as i32).min(cells.1 - 1);
+        let ly = fy - (cy * 4) as f32;
+        let vy = (ly as i32).min(3);
+        let ay = ly - vy as f32;
+        for x in 0..n {
+            let fx = (x as f32 + 0.5) / n as f32 * tw as f32;
+            let cx = ((fx / 4.0) as i32).min(cells.0 - 1);
+            if !on_cell(cx, cy) {
+                continue;
+            }
+            let lx = fx - (cx * 4) as f32;
+            let vx = (lx as i32).min(3);
+            let ax = lx - vx as f32;
+            let w = [
+                ((1.0 - ax) * (1.0 - ay), vert(cx, cy, vx, vy)),
+                (ax * (1.0 - ay), vert(cx, cy, vx + 1, vy)),
+                ((1.0 - ax) * ay, vert(cx, cy, vx, vy + 1)),
+                (ax * ay, vert(cx, cy, vx + 1, vy + 1)),
+            ];
+            let (mut alpha, mut col) = (0.0f32, [0.0f32; 3]);
+            for (wt, hit) in w {
+                if hit {
+                    alpha += wt * a;
+                    for k in 0..3 {
+                        col[k] += wt * c[k];
+                    }
+                } else {
+                    for k in 0..3 {
+                        col[k] += wt;
+                    }
+                }
+            }
+            if alpha <= 0.0 {
+                continue;
+            }
+            let i = ((y * n + x) * 4) as usize;
+            for k in 0..3 {
+                let add = (col[k] * alpha * 255.0).round();
+                rgba[i + k] = (f32::from(rgba[i + k]) + add).min(255.0) as u8;
             }
         }
     }
@@ -456,8 +558,11 @@ pub(crate) mod tests {
     /// with no floor, water or surf, and the coral on the sand's light:
     /// `[425, 596, 500, 3354, 2419, 3600]` → `[416, 596, 475, 3361, 2629,
     /// 3600]`, within `NEAR` +210. Seen red: with the coral at its white
-    /// vertex, `[424, 596, 492, 3360, 2398, 3600]`.
-    pub const RUN1564_3279_MINIMAP: [usize; 6] = [416, 596, 475, 3361, 2629, 3600];
+    /// vertex, `[424, 596, 492, 3360, 2398, 3600]`. Item 4586, the
+    /// mountain feature ([`add_mountains`]): within `NEAR` 2,629 → 2,769
+    /// (+140; 151 cells in, 11 out), the water counts unmoved; without it
+    /// the row reads 2,629 again.
+    pub const RUN1564_3279_MINIMAP: [usize; 6] = [416, 596, 475, 3361, 2769, 3600];
 
     #[test]
     fn the_minimap_s_cells_on_run1564() {
