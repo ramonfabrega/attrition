@@ -697,6 +697,12 @@ impl Sim {
                 Waypoint::Move
             };
         };
+        crate::seam!(
+            "building_unseen",
+            who < 8
+                && self.buildings[tb].owner != who
+                && self.buildings[tb].ever_seen & (1 << who) == 0
+        );
         let (mut end, mut pass) = (false, false);
         let owner = self.buildings[tb].owner;
         let building = &self.buildings[tb];
@@ -870,6 +876,12 @@ impl Sim {
         };
         let mut open = true;
         if let Some(tb) = self.building_at_tile(last.pos.tile()) {
+            crate::seam!(
+                "building_unseen",
+                who < 8
+                    && self.buildings[tb].owner != who
+                    && self.buildings[tb].ever_seen & (1 << who) == 0
+            );
             let (host, there) = (self.buildings[b].pos, self.buildings[tb].pos);
             if let Some(s) =
                 self.gather_reseat(captain, b, find_angle(there.x - host.x, there.y - host.y))
@@ -927,6 +939,20 @@ impl Sim {
                 return;
             }
         } else if let Some(found) = self.unit_at_point(last.pos) {
+            crate::seam!(
+                "unit_unseen",
+                self.units[found].owner != who
+                    && !self.was_seen_fog(
+                        self.units[found].pos.tile().x >> 1,
+                        self.units[found].pos.tile().y >> 1,
+                        who
+                    )
+            );
+            crate::seam!(
+                "found_enemy_armed",
+                self.profile(crate::combat::Obj::Unit(captain)).attack != 0
+                    && self.is_enemy(who, self.units[found].owner)
+            );
             // **The third re-seat** (`619ad3`..`619c08`): round the
             // trainer's land ring from `find_angle(found − trainer)`, the
             // register pair at `619b6b`/`619b92`. SEAM: an armed captain
