@@ -9,7 +9,7 @@
 //! client [--install DIR] [--logs DIR] [--frame N] [--size WxH]
 //!        [--still OUT.bmp] [--frames N] [--play] [--trace OUT.json] [--record OUT.rcx]
 //!        [--look X,Y] [--zoom F] [--silhouette OUT.bmp] [--rest]
-//!        [--lobby] [--headless] [--page-still OUT.bmp] [--select O[,O…]]
+//!        [--lobby] [--headless] [--page-still OUT.bmp] [--select O[,O…]] [--fog]
 //!        [--page-of CAPTURE] [--seat TRIBE]… [--team SEAT=TEAM]…
 //! client --read-trace SESSION.json
 //! ```
@@ -41,6 +41,9 @@
 //! objects before `--still` draws, and the still carries the HUD (`hud`,
 //! item 4197): the window always does. Every session writes its
 //! trace (`trace`), and `--read-trace` prints the clock it holds.
+//! `--fog` draws slot 0's fog on the main view and the minimap
+//! (`minimap::fog`, item 4624), as the original does with the display's
+//! reveal off.
 //!
 //! The simulation stays headless: this crate depends on `sim`, `rondata`
 //! and `render`, and none of them on it (`tests::the_sim_takes_no_graphics`).
@@ -193,6 +196,8 @@ struct Args {
     /// Slot 0's objects selected before `--still` draws, with the HUD
     /// (item 4197): `--select O[,O…]`.
     select: Vec<i16>,
+    /// Draw slot 0's fog (item 4624, [`world::World::fog`]): `--fog`.
+    fog: bool,
 }
 
 fn parse() -> Result<Args, String> {
@@ -223,6 +228,7 @@ fn parse() -> Result<Args, String> {
         page_of: None,
         seats: Vec::new(),
         teams: Vec::new(),
+        fog: false,
         select: Vec::new(),
         trace: std::env::temp_dir().join(format!("attrition-client-{}.json", std::process::id())),
     };
@@ -255,6 +261,7 @@ fn parse() -> Result<Args, String> {
             "--mountain-flat" => a.mountain_flat = true,
             "--record" => a.record = Some(v()?.into()),
             "--lobby" => a.lobby = true,
+            "--fog" => a.fog = true,
             "--headless" => a.headless = true,
             "--page-still" => a.page_still = Some(v()?.into()),
             "--page-of" => a.page_of = Some(v()?),
@@ -473,6 +480,8 @@ fn draw(
     let surf_hdr = world.surf_hdr;
     let border_hdr = world.border_hdr;
     let objects_before_water = world.objects_under_water;
+    // Item 4624: the viewer's fog, when it is drawn.
+    let fog = world.fog_mesh();
     let (t, ground, patch) = world.drawn_terrain();
     let frame = gpu::Frame {
         terrain_version: version,
@@ -495,6 +504,7 @@ fn draw(
         shadows: &b.shadows,
         particles: &b.particles,
         minimap: None,
+        fog: fog.as_ref().map(|(m, v)| (&**m, *v)),
     };
     session.phase("gpu", || match target {
         Some(view) => {
@@ -592,6 +602,8 @@ pub(crate) fn still_minimap(
     let surf_hdr = world.surf_hdr;
     let border_hdr = world.border_hdr;
     let objects_before_water = world.objects_under_water;
+    // Item 4624: the viewer's fog, when it is drawn.
+    let fog = world.fog_mesh();
     let (t, ground, patch) = world.drawn_terrain();
     let frame = gpu::Frame {
         terrain_version: version,
@@ -614,6 +626,7 @@ pub(crate) fn still_minimap(
         shadows: &b.shadows,
         particles: &b.particles,
         minimap: None,
+        fog: fog.as_ref().map(|(m, v)| (&**m, *v)),
     };
     let rgba = gpu.still(size, camera, &frame);
     assert_eq!(
@@ -658,6 +671,7 @@ fn draw_page(
         shadows: &[],
         particles: &[],
         minimap: None,
+        fog: None,
     };
     let camera = pinned_camera();
     match target {
@@ -1270,6 +1284,9 @@ fn main() {
         a_lobby.then(|| opening::camera(&world.runner.scene(Some(0)), &world.runner.terrain()));
     if page.is_none() {
         session.phase("run to the frame", || world.run_to(args.frame));
+    }
+    if args.fog {
+        world.fog = Some(0);
     }
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());
     let mut camera = opening.unwrap_or_else(pinned_camera);

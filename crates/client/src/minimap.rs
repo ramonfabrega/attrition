@@ -70,6 +70,7 @@ pub fn minimap_camera(extent: (i32, i32)) -> render::Camera {
 }
 
 pub mod blips;
+pub mod fog;
 pub mod pings;
 
 /// The quad's corners on a `size` frame: [`QUAD`] kept at its distance
@@ -502,8 +503,9 @@ pub fn view_rect(
 /// 4601; `selection` the console's, `blink` the phase `graphic_tick & 8`)
 /// and the view's rectangle
 /// ([`view_rect`]), then the pings ([`pings`], item 4603: the entries
-/// the world holds, which our sim does not yet supply). The fog draws
-/// nothing on run1564's photograph and is not built.
+/// the world holds, which our sim does not yet supply). The fog
+/// ([`fog::layers`], item 4624) is drawn under [`crate::world::World::fog`];
+/// it draws nothing on run1564's photograph, whose reveal is on.
 pub fn overlays(
     world: &crate::world::World,
     view: &render::Camera,
@@ -527,6 +529,10 @@ pub fn overlays(
         };
         let who = who_texels(cells, &terr.owner, sea, colour);
         out.extend(borders(size, cells, &who));
+    }
+    // Item 4624: `render_fog`, after the borders and before the blips.
+    if let Some(plane) = world.fog_plane() {
+        out.extend(fog::layers(size, cells, &plane));
     }
     if let Some(atlas) = world.blip_atlas.as_ref() {
         out.push(blips::draw(
@@ -602,6 +608,9 @@ pub fn background(world: &mut crate::world::World, gpu: &crate::gpu::Gpu) -> Bac
         shadows: &[],
         particles: &[],
         minimap: gradient,
+        // `WorldMapBackground::render` draws no fog: the minimap's is
+        // `render_fog`'s multiply over it (item 4624).
+        fog: None,
     };
     let mut rgba = gpu.still(size, &camera, &frame);
     // The window's surface is BGRA, and the still reads it back as is.

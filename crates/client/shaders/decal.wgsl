@@ -15,3 +15,16 @@ fn fs_decal(i: VOut) -> @location(0) vec4<f32> {
     }
     return vec4<f32>(vec3<f32>(1.0 - a), 1.0);
 }
+
+// Item 4624 (`docs/RENDERER.md` §3.32.1): the fog, `TerrainOut::render_fow`.
+// The terrain's vertices again, `u` per vertex off `fog_tcoord_lookup`;
+// stage 0 `SELECTARG1(TEXTURE)` on the tileset's `fow_fade.tga`, clamped
+// and linear; blended `SRCALPHA`/`INVSRCALPHA`. The ramp's colour is black
+// wherever its alpha is not 0, so what is under it keeps `1 − α(u)`. The
+// pass writes that share into its keep map, composed into the frame before
+// the tone map as the shadows' is.
+@fragment
+fn fs_fow(i: VOut) -> @location(0) vec4<f32> {
+    let a = textureSample(tex, samp, i.uv).a;
+    return vec4<f32>(vec3<f32>(1.0 - a), 1.0);
+}
