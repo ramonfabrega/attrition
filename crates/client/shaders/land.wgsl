@@ -18,7 +18,21 @@ fn land_diffuse() -> f32 {
     return {LAND_DIFFUSE};
 }
 
+// Item 4584 (`docs/RENDERER.md` §3.32, "The background `NO_HDR`"): the
+// card's `minimap_mode`, which `D3D11GLGraphicCard::set_shader_options`
+// turns into option 26, `NO_HDR`, on every permutation; the camera
+// uniform's `range.z` carries it (1 for the minimap's background).
+// `ps_global.hlsl` under it: the HDR multiplier 1, the lit branch
+// `c · (diffuse + ambient)` with no 1.45 power and no specular,
+// `TL_FAKE_LIGHT`'s power kept, and the output saturated, not tone-mapped.
+fn land_no_hdr() -> bool {
+    return u.range.z > 0.5;
+}
+
 fn land_hdr() -> f32 {
+    if (land_no_hdr()) {
+        return 1.0;
+    }
     return {HDR_SCALE};
 }
 
@@ -80,7 +94,11 @@ fn land_lit_white(c: vec3<f32>, nl_in: f32) -> vec3<f32> {
 
 // The stage colour, saturated, to the lit branch's power.
 fn land_power(c: vec3<f32>) -> vec3<f32> {
-    return pow(clamp(c, vec3<f32>(0.0), vec3<f32>(1.0)), vec3<f32>({LIT_POWER}));
+    let s = clamp(c, vec3<f32>(0.0), vec3<f32>(1.0));
+    if (land_no_hdr()) {
+        return s;
+    }
+    return pow(s, vec3<f32>({LIT_POWER}));
 }
 
 // The material ambient (1) times the scene's, `gAmbientLight`.
@@ -91,7 +109,7 @@ fn land_ambient() -> vec3<f32> {
 // The lit branch on a stage colour already modulated by its vertex.
 fn land_shade(c: vec3<f32>, nl: f32) -> vec3<f32> {
     let l = land_shade_hdr(c, nl);
-    return vec3<f32>(land_tone(l.x), land_tone(l.y), land_tone(l.z));
+    return vec3<f32>(land_out(l.x), land_out(l.y), land_out(l.z));
 }
 
 // `land_shade` before the curve: the HDR value the card's target holds.
@@ -136,9 +154,12 @@ fn land_mapped(
     let ambient = land_ambient();
     let g = m.w * 512.0;
     let norm = ((g + 2.0) * (g + 4.0)) / (8.0 * pi * (pow(2.0, -g / 2.0) + g));
-    let spec = land_hdr() * m.z * norm * ld * pow(nh, g) * nl;
+    var spec = land_hdr() * m.z * norm * ld * pow(nh, g) * nl;
+    if (land_no_hdr()) {
+        spec = 0.0;
+    }
     let lum = max(land_hdr() * s * (vec3<f32>(diffuse) + ambient) + vec3<f32>(spec), vec3<f32>(0.0));
-    return vec3<f32>(land_tone(lum.x), land_tone(lum.y), land_tone(lum.z));
+    return vec3<f32>(land_out(lum.x), land_out(lum.y), land_out(lum.z));
 }
 
 // Item 4275 (§3.10, "The snowcap, drawn"): a land corner's vertex colour,
@@ -156,12 +177,20 @@ fn land_vertex(nl: f32) -> vec3<f32> {
 // multiplier, then the tone map at the clamp, `render::silhouette::fake_light`.
 fn land_fake(c: vec3<f32>) -> vec3<f32> {
     let l = pow(clamp(c, vec3<f32>(0.0), vec3<f32>(1.0)), vec3<f32>({FAKE_LIGHT_POWER})) * land_hdr();
-    return vec3<f32>(land_tone(l.x), land_tone(l.y), land_tone(l.z));
+    return vec3<f32>(land_out(l.x), land_out(l.y), land_out(l.z));
 }
 
 fn land_filmic(x: f32) -> f32 {
     let a = 0.15; let b = 0.50; let c = 0.10; let d = 0.20; let e = 0.02; let f = 0.30;
     return (x * (a * x + c * b) + d * e) / (x * (a * x + b) + d * f) - e / f;
+}
+
+// The lit branch's output: under `NO_HDR` saturated, else the curve.
+fn land_out(l: f32) -> f32 {
+    if (land_no_hdr()) {
+        return clamp(l, 0.0, 1.0);
+    }
+    return land_tone(l);
 }
 
 fn land_tone(l: f32) -> f32 {

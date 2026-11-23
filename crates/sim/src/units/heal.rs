@@ -53,6 +53,7 @@ impl Sim {
         self.ship_heal(i, frame, damaged);
         self.iroquois_heal(i, frame, damaged);
         self.senator_heal(i, frame, damaged);
+        self.president_heal(i, frame, damaged);
         self.ceo_heal(i, frame, damaged);
         self.supply_heal(i, frame, damaged);
         self.civilian_heal(i, frame, damaged);
@@ -102,11 +103,7 @@ impl Sim {
     /// stream this crate keeps; the third is the Conquer-the-World bonus.
     /// `healing` (`+0x38`) is [`Sim::mark_healed`] (item 3961); the
     /// `0x4000` clear is not carried. The Senator's arm is
-    /// [`Self::senator_heal`].
-    ///
-    /// SEAM: the President's arm (`0x163`, `:179`–`:203`), which heals on
-    /// an allied cell **or** one nobody owns; read, not built (parked
-    /// 3686a, which named it the Comrade's).
+    /// [`Self::senator_heal`], the President's [`Self::president_heal`].
     pub(crate) fn ceo_heal(&mut self, i: usize, frame: i64, damaged: bool) {
         const THECEO: i32 = 0x165;
         let rate = i64::from(self.tables.tuning.french_supply_heal_rate);
@@ -350,6 +347,63 @@ impl Sim {
             _ => false,
         };
         if ally && self.has_general(i, THESENATOR) {
+            self.repair_unit_damage(i, 1);
+            self.mark_healed(i, rate);
+        }
+    }
+
+    /// **The President's heal** — the second of `process_healing`'s three
+    /// economic-patriot arms (`005e0670:179`–`:203`, item 4577,
+    /// `docs/RECGAME.md` §13), on the Senator's and the CEO's phase:
+    ///
+    /// ```text
+    /// captain, not air, has_damage(1), inside_up < 0     # the head
+    /// domain == SEA → the ship heal;  is_supply → return
+    /// FRENCH_SUPPLY_HEAL_RATE != 0 and (o + frame) % rate == 0:
+    ///   leader counts a 0x163 (THEPRESIDENT, `+0x59c4`)
+    ///     and (the cell's owner < 0 or is an ally)
+    ///     and has_general(0, 0x163)  → repair_damage(1, 1, 1)
+    /// ```
+    ///
+    /// The Senator's arm differs in one predicate: a cell nobody owns
+    /// (`−1`, and the ambiguous `−2`) passes here and fails there
+    /// (`005e0670:184`, `iVar8 < 0 ||`). run1799's German Volksgrenadiers
+    /// `1/39` (TI 109, land, a captain), guarding who=1's President `1/17`
+    /// (TI 355) about 600 away, take `healing 20` on state 2342: `(39 +
+    /// 2341) % 20 == 0`, and the figure `1/40`'s one point of damage goes
+    /// (theirs `damage` 0, `damage_frac` 6, where ours held 1 and 8). This
+    /// crate carried the arm as a SEAM until then (parked 3686a, which
+    /// named it the Comrade's). The leader's count is answered by
+    /// `has_general`'s walk, which finds no President without one.
+    pub(crate) fn president_heal(&mut self, i: usize, frame: i64, damaged: bool) {
+        const THEPRESIDENT: i32 = 0x163;
+        let rate = i64::from(self.tables.tuning.french_supply_heal_rate);
+        if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
+            return;
+        }
+        let u = &self.units[i];
+        if !u.alive() || !u.on_map || u.inside.is_some() || u.inside_unit.is_some() {
+            return;
+        }
+        if !u.captain || !matches!(u.kind.domain, Domain::Land) {
+            return;
+        }
+        let Some(t) = u.ty else {
+            return;
+        };
+        let owner = u.owner;
+        if !damaged
+            || self.tables.unit_types[t]
+                .cols
+                .flag2(uflags2::SUPPLY_OR_HERO)
+        {
+            return;
+        }
+        let cell_ok = match self.world.owner_at(self.units[i].pos) {
+            Owner::Player(p) => self.is_ally(owner, p),
+            Owner::None | Owner::Ambiguous => true,
+        };
+        if cell_ok && self.has_general(i, THEPRESIDENT) {
             self.repair_unit_damage(i, 1);
             self.mark_healed(i, rate);
         }

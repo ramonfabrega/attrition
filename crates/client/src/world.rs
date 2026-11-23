@@ -1438,8 +1438,12 @@ impl World {
         self.land_hdr = on;
     }
 
+    /// [`World::coral_lit`].
+    pub fn coral_lit(&self) -> bool {
+        self.coral_lit
+    }
+
     /// Turn [`World::coral_lit`] on or off; the ground is laid again.
-    #[cfg(test)]
     pub fn set_coral_lit(&mut self, on: bool) {
         if self.coral_lit != on {
             self.coral_lit = on;

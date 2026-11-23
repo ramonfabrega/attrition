@@ -40403,7 +40403,7 @@ indexed from `BASE_UNITTYPES`), the cell's owner is an ally, and `has_general(0,
 `repair_damage(1, 1, 1)`. Nothing asks about motion. Player 1's Senator is `1/92` (TI 353, the Republic's patriot,
 `rules.xml`: "a general who also provides healing"), about four tiles from `1/50` on 8190. Parked 3686a had named
 this arm the Monarch's; the TypeIndex enum names `0x161` THESENATOR. `Sim::senator_heal` sits beside `ceo_heal`.
-The President's arm (`0x163`, `:179-203`, an allied cell **or** an unowned one) stays a SEAM.
+~~The President's arm (`0x163`, `:179-203`, an allied cell **or** an unowned one) stays a SEAM.~~ Built by item 4577 (`Sim::president_heal`, `docs/RECGAME.md` §13).
 
 ### 403.4 The score
 
@@ -40425,7 +40425,7 @@ which is theirs' value through 8420. `1/30` is 4 both sides from 8411.
 
 ### 403.6 What is not established
 
-- **The President's arm.** Read, not built.
+- ~~**The President's arm.** Read, not built.~~ Built by item 4577 (`docs/RECGAME.md` §13).
 - **Other lobbies' Senators.** A Republic AI elsewhere heals by the same arm now. What the full suite said is in the
   item's journal.
 

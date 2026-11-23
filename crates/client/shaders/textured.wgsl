@@ -51,7 +51,7 @@ fn fs_textured_lit(i: VOut) -> @location(0) vec4<f32> {
     let diffuse = max({UNIT_DIFFUSE} * i.owner.x / 3.14159265, 0.0);
     let ambient = vec3<f32>({UNIT_AMBIENT_R}, {UNIT_AMBIENT_G}, {UNIT_AMBIENT_B}) * land_ambient();
     let l = land_hdr() * land_power(stage) * (vec3<f32>(diffuse) + ambient);
-    return vec4<f32>(land_tone(l.x), land_tone(l.y), land_tone(l.z), 1.0);
+    return vec4<f32>(land_out(l.x), land_out(l.y), land_out(l.z), 1.0);
 }
 
 // Item 4217 (§3.22): a ground mesh's `owner.x` is the corner's N·L.

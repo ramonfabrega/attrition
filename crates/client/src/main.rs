@@ -480,6 +480,7 @@ fn draw(
         sprites: &b.sprites,
         shadows: &b.shadows,
         particles: &b.particles,
+        minimap: None,
     };
     session.phase("gpu", || match target {
         Some(view) => {
@@ -596,6 +597,7 @@ pub(crate) fn still_minimap(
         sprites: &b.sprites,
         shadows: &b.shadows,
         particles: &b.particles,
+        minimap: None,
     };
     let rgba = gpu.still(size, camera, &frame);
     assert_eq!(
@@ -639,6 +641,7 @@ fn draw_page(
         sprites: &[],
         shadows: &[],
         particles: &[],
+        minimap: None,
     };
     let camera = pinned_camera();
     match target {
