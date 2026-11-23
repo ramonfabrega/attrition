@@ -4676,7 +4676,7 @@ the background once, when it has a GPU, as the original does. Off
 edges (an assumption).
 
 **The presses.**
-- *Left.* `WorldMap::on_left_down@008c79b0` sets `moving_cam`.
+- *Left.* `WorldMap::on_left_down` sets `moving_cam`.
   `update_world_map@008d2ba0` then sets the game camera's `loc` to the
   minimap's plane point under the cursor, held to `[0, cells · 0x300]`
   each way. It skips this under `scroll_lock_flags & 4`. The window does
