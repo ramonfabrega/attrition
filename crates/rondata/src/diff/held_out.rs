@@ -1897,7 +1897,6 @@ pub(crate) mod tests {
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
                 crate::diff::harness::debug_watch(&built, built.sim.frame);
-                crate::diff::harness::debug_armies(&built, built.sim.frame);
             }
             let set = record.first_of(state - 1).expect("the state's set").clone();
             let all = record.ranges(&set).expect("the set's ranges");
