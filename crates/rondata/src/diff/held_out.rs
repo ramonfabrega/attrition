@@ -1796,6 +1796,85 @@ pub(crate) mod tests {
         );
     }
 
+    /// **Row 133's orphan check walks the sites by object number** (item
+    /// 4610, `docs/RECGAME.md` §13.5): run1797's ranges. On 2350 who=2 has
+    /// two unbuilt sites with no builder, `2/2003` (uid 112, started) and
+    /// `2/2033` (uid 69, which sits in an earlier slot of ours), and one idle
+    /// citizen, `2/11`. `check_orphaned_buildings@006c9f20` walks
+    /// `objects +0x1ec`'s list from `obj_base`, so 2003 takes the citizen and
+    /// 2033 takes `build_masks | 0x2000`. Ours walked slots: units range
+    /// 3699, record 11, `x` ours 10632, theirs 10608 on 2351; builds range
+    /// 2085, `build_masks` ours 8584, theirs 392; group 132's `facing` ours
+    /// 1, theirs 0. Every units, builds, groups and guys range on 2350 and
+    /// 2351, byte for byte, and `2/11` building 2003 on 2351.
+    #[test]
+    fn row_133_s_orphan_check_walks_its_sites_by_object_number_on_run1797_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 2350..=2351 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            if state == 2350 {
+                let started = built.sim.building_by_o(2, 2003).expect("2/2003");
+                let fresh = built.sim.building_by_o(2, 2033).expect("2/2033");
+                assert!(
+                    fresh < started,
+                    "2/2033 sits before 2/2003 in our slots: {fresh} against {started}"
+                );
+                assert!(!built.sim.buildings[started].active && !built.sim.buildings[fresh].active);
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (li, name) in [(0usize, "units"), (1, "builds"), (5, "groups"), (6, "guys")] {
+                let ours = lines[li].as_ref().expect("the line");
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == li).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{name} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+        }
+        let u = built.sim.unit_by_o(2, 11).expect("2/11");
+        let started = built.sim.building_by_o(2, 2003).expect("2/2003");
+        let fresh = built.sim.building_by_o(2, 2033).expect("2/2033");
+        assert!(
+            built.sim.units[u]
+                .orders
+                .iter()
+                .any(|o| matches!(o.body, sim::orders::Body::Build(b) if b == started)),
+            "2/11 builds 2/2003 on 2351: {:?}",
+            built.sim.units[u].orders
+        );
+        assert!(built.sim.buildings[fresh].no_builder && !built.sim.buildings[started].no_builder);
+    }
+
     /// Probe 4610: every differing field on units, builds, groups and guys
     /// over row 133's 2346..=2352.
     #[test]
@@ -11426,24 +11505,35 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 1's `bordering` ours 3, theirs 0; both agree now): leaders 2,367
         // -> 2,423 (first 2297 -> 2413), cities 2,543 -> 2,550 (first 2297
         // -> 2448); the first parting is units, builds, groups and guys on
-        // 2351.
+        // 2351. Then by item 4610 (`check_orphaned_buildings` walks the
+        // sites by object number, `006c9f20`'s `iVar9` from `obj_base`: on
+        // 2350 who=2's one idle citizen `2/11` went to the started site
+        // `2/2003` (uid 112) in theirs and to `2/2033` (uid 69, an earlier
+        // slot) in ours; on 2351 units range 3699, record 11, `x` ours
+        // 10632, theirs 10608, `y` 33096 against 33104; builds range 2085,
+        // record 2003, `build_masks` ours 8584, theirs 392; group 132's
+        // `facing` ours 1, theirs 0; all agree now): units 2,351 -> 2,376,
+        // builds 2,351 -> 2,370, ammo 3,015 -> 2,980 and deaths 2,598 ->
+        // 2,442 (falls past the parting), groups 2,351 -> 2,447, guys 2,351
+        // -> 2,399, goods 4,316 -> 4,136, world 2,352 -> 2,400; the first
+        // parting is builds alone on 2370.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                2351, 2351, 6085, 3015, 2598, 2351, 2351, 2423, 2550, 3007, 4316, 2352,
+                2376, 2370, 6085, 2980, 2442, 2447, 2399, 2423, 2550, 3007, 4136, 2400,
             ],
             first: &[
-                ("units", (2351, Some(2661760352), 642137970)),
-                ("builds", (2351, Some(3954915333), 3808376837)),
+                ("units", (2376, Some(677748407), 115580592)),
+                ("builds", (2370, Some(529748698), 155538138)),
                 ("ammo", (2408, Some(2284240743), 3727473848)),
                 ("deaths", (2442, Some(4112542119), 2232507217)),
-                ("groups", (2351, Some(1891790061), 96103660)),
-                ("guys", (2351, Some(414155518), 3824518074)),
+                ("groups", (2447, Some(1193197654), 2976956503)),
+                ("guys", (2399, Some(1659647306), 180630755)),
                 ("leaders", (2413, Some(4100878331), 924807165)),
                 ("cities", (2448, Some(3075952134), 2922597890)),
                 ("items", (3007, Some(3525321571), 3415154359)),
                 ("goods", (3258, Some(586774648), 569473142)),
-                ("world", (2352, Some(3018833008), 3021585520)),
+                ("world", (2400, Some(3284239694), 2824439106)),
             ],
             over: None,
         }),
