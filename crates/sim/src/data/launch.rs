@@ -1579,13 +1579,20 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // by 1 to 3 units, and `CHAR_ATTACK2` had none: `1/37` left from the
     // figure's own (6072, 9480) on 4499 where the original's left from
     // (6152, 9334), and its round struck a frame late, on 4505.
+    // **The rows are the original's own sweep since item 4591**
+    // (`docs/RECGAME.md` §13): `get_position` after `init_position` on
+    // run1579's packet, at every whole degree, admits one region a key
+    // (411, 196 and 113 lattice points, 361 of 361 headings each), and the
+    // rows are their centroids. The rounds' fit held 357, 361 and 329 of
+    // 361: row 33's `2/25` on 3385 (`CHAR_ATTACK3` at 4, facing
+    // 244,973,568) left from x 6906 where theirs left from 6907.
     (
         49,
         crate::units::anim::ATTACK1,
         1,
         Bay {
-            right: 33_072,
-            fwd: 139_813,
+            right: 33_049,
+            fwd: 139_808,
             dz: 218,
         },
     ),
@@ -1594,8 +1601,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         crate::units::anim::ATTACK2,
         7,
         Bay {
-            right: 11_452,
-            fwd: 166_595,
+            right: 11_451,
+            fwd: 166_599,
             dz: 176,
         },
     ),
@@ -1604,8 +1611,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         crate::units::anim::ATTACK3,
         4,
         Bay {
-            right: 12_256,
-            fwd: 162_078,
+            right: 12_330,
+            fwd: 162_102,
             dz: 178,
         },
     ),

@@ -3930,6 +3930,78 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 33's musket ball leaves from the original's socket** (item
+    /// 4591, `docs/RECGAME.md` §13): run1801, the ammo take of run1789's
+    /// file, `RNG_MASK=0x8u`. State 3386's ammo range 4, record 4, parted on
+    /// `launch.x` (ours 6906, theirs 6907) and the aim it sets: who=2's
+    /// Musketeers `2/25` (TI 99, land, piece 49) loosing `CHAR_ATTACK3` at
+    /// frame 4. Every ammo range on 3385 to 3400, byte for byte.
+    #[test]
+    fn row_33_s_musket_ball_leaves_from_the_original_s_socket_on_run1801_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 1) else {
+            eprintln!("skipping: row 33's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1801/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1801's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 33's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3385i64..=3400 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_ammo().expect("ours' ammo line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 3).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "ammo ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                assert_eq!(
+                    at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                    None,
+                    "ammo range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                    a.record,
+                    a.field
+                );
+                assert_eq!(a.bytes.len(), b.bytes.len(), "ammo range {k} on {state}");
+            }
+            if state == 3386 {
+                // Theirs' range 4 `launch.x, launch.y`.
+                let b = &theirs[4].bytes;
+                let word =
+                    |k: usize| i32::from_le_bytes(b[3 + 4 * k..7 + 4 * k].try_into().unwrap());
+                assert_eq!((word(1), word(2)), (6907, 32948), "theirs' launch");
+                // The ball, by name: `2/25`, TI 99, land.
+                let p = built
+                    .sim
+                    .combat
+                    .projectiles
+                    .iter()
+                    .find(|p| (p.launch.x, p.launch.y) == (6907, 32948))
+                    .expect("ours' ball");
+                let sim::combat::Obj::Unit(u) = p.shooter else {
+                    panic!("a unit's round")
+                };
+                let u = &built.sim.units[u];
+                assert_eq!((u.owner, u.index, u.type_index), (2, 25, 99));
+                assert_eq!(u.kind.domain, sim::territory::attrition::Domain::Land);
+            }
+        }
+    }
+
     /// **Row 105's CEO carries the CEO bit from its `set_type`** (item
     /// 4502, `docs/RECGAME.md` §11.1): run1752, the ranges take of
     /// run1748's file, holds every units range on 2982 and 2983. On 2983
@@ -9958,12 +10030,16 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // first parting 2411 (units and cities) is gone. Every line but ammo
         // is whole to 3,943; ammo 3,279 -> 3,927, parting first on 3386 (ours'
         // ammo sum 3321501423, theirs 3301971689).
+        // Moved by item 4591 (piece 49's bays, the original's `get_position`
+        // sweep on run1579's packet; run1801's ammo range 4 on 3386, who=2's
+        // Musketeers `2/25` `launch.x` ours 6906, theirs 6907): ammo 3,927 ->
+        // 3,944. **Whole**, twelve lines to the original's end 3,943.
         moved: Some(Score {
             states: 3944,
             agreed: [
-                3944, 3944, 3944, 3927, 3944, 3944, 3944, 3944, 3944, 3944, 3944, 3944,
+                3944, 3944, 3944, 3944, 3944, 3944, 3944, 3944, 3944, 3944, 3944, 3944,
             ],
-            first: &[("ammo", (3386, Some(3321501423), 3301971689))],
+            first: &[],
             over: None,
         }),
     }),
@@ -10291,9 +10367,10 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
 ];
 
 /// The sixth battery's line: games whole of the eight, and games taken.
-/// As found: row 153 whole to 12,000.
+/// As found: row 153 whole to 12,000. Item 4591: row 33 whole to the
+/// original's end 3,943 (piece 49's bays), 1 -> 2.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SIXTH_LINE: (usize, usize) = (1, 8);
+pub(crate) const HELD_OUT_SIXTH_LINE: (usize, usize) = (2, 8);
 
 /// The sixth battery (item 4566): three seats, a team and a scripted human
 /// a row, recorded to [`SIXTH_FRAMES`].
