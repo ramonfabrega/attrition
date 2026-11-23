@@ -238,6 +238,13 @@ impl Sim {
             ap.ammo_per_att,
             ap.uber_size,
         );
+        if std::env::var("RON_PROBE_4623").is_ok()
+            && let (Obj::Building(b), Obj::Unit(t)) = (attacker, target)
+        {
+            let (ao, aw) = self.obj_o_who(attacker);
+            let (to, tw) = self.obj_o_who(target);
+            eprintln!("P4623A {frame} by {aw}/{ao} ty {:?} on {tw}/{to} TI {} moving {} attacks {} attack {} pct {pct} dmg {dmg} dealt {}", self.buildings[b].ty, self.units[t].type_index, tt.moving, tt.attacks, self.attack_of(attacker), dealt.whole);
+        }
         if std::env::var("RON_PROBE_4623").is_ok() {
             let (to, tw) = self.obj_o_who(target);
             if tw == 2 && to == 0 {
