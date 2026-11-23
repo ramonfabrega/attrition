@@ -1489,7 +1489,10 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// one link a unit (`Build::add_gatherer@0062f640`).
 /// The merge under item 4535 (4537's guided rounds, by its subject; not
 /// bisected): 948 -> 950, ammo whole on run1487 and run1496.
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 950, 1053);
+/// Item 4592: 950 -> 951, cities whole on run1325c (two ranges before): a
+/// city's `vans` stand in the order the links were made
+/// (`ArrayBase<CaravanLink>::add@0046e550` appends).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 951, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
