@@ -155,6 +155,7 @@ fn an_anti_air_building_winds_up_and_fires_on_its_swing() {
     s.walls_inc_time(1);
     assert_eq!(s.buildings[r].recharging, 0, "no target: held at 0");
     s.buildings[r].target = Some(Obj::Unit(plane));
+    s.buildings[r].near = Some(Obj::Unit(plane));
     let mut seen = Vec::new();
     let mut rounds = Vec::new();
     for f in 0..33 {
@@ -175,6 +176,7 @@ fn an_anti_air_building_winds_up_and_fires_on_its_swing() {
     assert_eq!(p.num_guys, 0);
     assert_eq!(p.shooter, Obj::Building(r));
     s.buildings[r].target = None;
+    s.buildings[r].near = None;
     s.walls_inc_time(1);
     assert_eq!(s.buildings[r].recharging, 18, "−4 to 19, and down one");
     for _ in 0..30 {
@@ -183,6 +185,35 @@ fn an_anti_air_building_winds_up_and_fires_on_its_swing() {
     assert_eq!(s.buildings[r].recharging, 0, "down to 0, and held");
     s.walls_inc_time(0);
     assert_eq!(s.buildings[r].recharging, 0, "another leader's pass");
+}
+
+/// **The wind is gated on `near_o`, not the target** (item 4602,
+/// `docs/RECGAME.md` §13.5): `Wall::inc_time@0063fb60:204`. A building
+/// whose last search sighted a unit inside `0xf00` and took no target
+/// winds up to the top and holds there, firing nothing; with neither, it
+/// holds at 0; a target without a sighting winds down. run1797's SAM
+/// `2/2027` on 2166: `near_o` 71, `attack_ox` −1, `recharging` 0 → 1.
+#[test]
+fn an_anti_air_building_winds_on_its_sighting_without_a_target() {
+    let mut s = sim();
+    let r = radar(&mut s, true);
+    let plane = unit(&mut s, 0, Pos::new(21600, 16400), bomber());
+    s.walls_inc_time(1);
+    assert_eq!(s.buildings[r].recharging, 0, "neither: held at 0");
+    s.buildings[r].near = Some(Obj::Unit(plane));
+    let mut seen = Vec::new();
+    for f in 0..22 {
+        s.frame = f;
+        s.walls_inc_time(1);
+        seen.push(s.buildings[r].recharging);
+    }
+    assert_eq!(seen[..19], (1..=19).collect::<Vec<i32>>()[..], "a sighting winds up");
+    assert_eq!(seen[19..], [19, 19, 19], "no target: held at the top");
+    assert!(s.combat.projectiles.is_empty(), "and fires nothing");
+    s.buildings[r].near = None;
+    s.buildings[r].target = Some(Obj::Unit(plane));
+    s.walls_inc_time(1);
+    assert_eq!(s.buildings[r].recharging, 18, "a target and no sighting: down one");
 }
 
 /// **An anti-air unit keeps its angle at an aircraft, and only there**
