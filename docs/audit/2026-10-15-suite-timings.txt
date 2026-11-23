@@ -1,7 +1,7 @@
-# Every rondata release test timed alone, 2026-11-22, tools/suite_timings.py (tree cf483b9c).
+# Every rondata release test timed alone, 2026-11-23, tools/suite_timings.py (tree de60a62e).
 # One test per process, --test-threads 1, sequential, RON_INSTALL set; seconds then the test.
-# Sum 6,495 s over 2662 tests; --stale-only merged. Top 10 = 1368 s, top 30 = 2063, top 100 = 2673; 1143 tests under 1 s.
-# By module: held_out 867 s / 105 tests, mapgen 687 s / 133 tests, golden 363 s / 346 tests, audit 321 s / 124 tests, sample 305 s / 14 tests.
+# Sum 6,503 s over 2669 tests; --stale-only merged. Top 10 = 1368 s, top 30 = 2063, top 100 = 2673; 1146 tests under 1 s.
+# By module: held_out 875 s / 111 tests, mapgen 687 s / 133 tests, golden 363 s / 346 tests, audit 321 s / 124 tests, sample 305 s / 14 tests.
 216.02	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 199.71	diff::held_out::tests::the_held_out_games_score_as_pinned
 189.79	diff::held_out::tests::the_sixth_held_out_games_score_as_pinned
@@ -498,6 +498,7 @@
 2.86	diff::harness::tests::east_indies_20000_s_squad_push_reads_the_record_its_slot_last_held
 2.86	diff::roman_classical_pair::run1194_roman_classical_pair_closing_state
 2.86	diff::mongol_pair::run809_s_word_frame_is_widened_whole
+2.86	diff::held_out::tests::row_93_s_volksgrenadiers_heal_beside_their_president_on_run1799_s_ranges
 2.85	diff::aztec_alltech_pair::aztec_alltech_pair_run1147b_s_word_frame_is_widened_whole
 2.85	diff::russian_modern_pair::russian_modern_pair_run1166b_s_word_frame_is_widened_whole
 2.85	diff::sahara_toughest::tests::run668_s_word_frame_is_widened_whole
@@ -1100,6 +1101,7 @@
 1.60	diff::third::tests::run418_s_word_frame_is_widened_whole
 1.60	diff::sahara_toughest::tests::run547_s_word_frame_is_widened_whole
 1.60	diff::iroquois_sahara_word::run1001_s_word_frame_is_widened_whole
+1.59	diff::held_out::tests::row_133_s_computer_calls_a_citizen_to_repair_its_capital_on_run1797_s_ranges
 1.59	diff::american_information_pair::american_information_pair_run1409b_s_word_frame_is_widened_whole
 1.59	diff::audit::bantu_medieval_pair_corrections_change_nothing
 1.59	diff::minted::the_minimap_s_clicked_file_against_the_main_view_playback
@@ -1371,6 +1373,7 @@
 1.19	diff::checksum_lines::packets::lakota_gunpowder_pair_packets
 1.19	diff::golden::chapter_thirty_seven_holds_to_the_golden_word
 1.19	diff::maya_word::run973c_s_gap_is_widened_whole
+1.18	diff::held_out::tests::row_3_s_foundation_disband_refreshes_no_neighbour_on_run1796_s_ranges
 1.18	diff::minted::the_original_s_playback_of_the_chatted_file_walks_in_lockstep
 1.18	diff::minted::the_attacked_script_against_the_followed_playback_parts
 1.18	diff::roman_medieval_pair::roman_medieval_pair_run1275b_s_word_frame_is_widened_whole
@@ -1442,6 +1445,7 @@
 1.10	diff::persian_word::run984d_s_word_frame_is_widened_whole
 1.10	diff::unit::tests::run68_s_window_is_every_unit_s_whole_record_to_the_word
 1.10	diff::golden::chapter_sixteen_s_word_frame_is_widened_whole
+1.09	diff::held_out::tests::row_33_s_musket_ball_leaves_from_the_original_s_socket_on_run1801_s_ranges
 1.09	diff::golden::chapter_one_hundred_and_sixteen_s_window_is_widened_whole
 1.09	diff::coverage_pair::run669_s_word_frame_is_widened_whole
 1.09	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_first_parting
@@ -1915,6 +1919,7 @@
 0.61	diff::golden::chapter_eighty_holds_to_the_golden_word
 0.61	diff::golden::chapter_sixty_four_holds_to_the_golden_word
 0.61	debug_view::tests::selected_failure_exports_actual_replay_context
+0.61	diff::held_out::tests::row_133_s_computer_lists_no_bunker_in_its_attacked_capital_on_run1797_s_ranges
 0.60	diff::classical_melee::classical_melee_staging_walk
 0.60	diff::iroquois_word::run897_s_block_1_fog_plane_is_ours
 0.60	diff::golden::chapter_one_hundred_and_twelve_holds_to_the_golden_word
@@ -2012,6 +2017,7 @@
 0.42	diff::lakota_medieval_pair::lakota_medieval_pair_captures_say_their_lobby
 0.42	diff::turkish_information_pair::turkish_information_pair_captures_say_their_lobby
 0.42	diff::german_industrial_moderate_pair::german_industrial_moderate_pair_captures_say_their_lobby
+0.42	diff::held_out::tests::row_133_s_computer_offers_no_nuke_at_an_enemy_researching_the_shield_on_run1797_s_ranges
 0.41	trace::tests::complete_trace_frame_lookup_matches_a_single_pass_partition
 0.41	diff::lakota_enlightenment_pair::lakota_enlightenment_pair_captures_say_their_lobby
 0.40	diff::city::tests::run8_s_frame_2_income_is_the_city_and_nothing_the_citizens_have_reached
@@ -2586,6 +2592,7 @@
 0.01	diff::held_out::tests::a_battery_with_a_row_s_leaf_test_is_spent
 0.01	diff::held_out::tests::a_battery_with_a_row_not_whole_is_not_closed
 0.01	diff::held_out::tests::the_handoff_s_closed_parity_held_out_line_is_the_whole_batteries
+0.01	artdata::tests::the_minimap_colours_are_read
 0.00	diff::held_out::tests::the_handoff_s_open_parity_held_out_lines_are_the_pinned_scores
 0.00	diff::held_out::tests::the_sixth_held_out_line_reads_as_pinned
 0.00	diff::held_out::tests::the_sixth_s_files_are_minted

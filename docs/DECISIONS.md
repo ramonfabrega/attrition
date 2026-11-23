@@ -167,7 +167,8 @@ is append-only and amended in place, as it always was.
 - 150 extended by 151 — Ramon folds the spent batteries into the headline (28 of 31 on the pins of 43ee59434; item 4528 builds the count) and the fifth battery adds seats and a team, its first act reading whether the lobby page sets a team, and starts now with the seats alternating between batteries
 - 151 extended by 152 — The pass of 2026-11-22: the fifth battery was spent at item 4534 and folds, so the headline reads 39 of 47 on the pins that read 37 of 39 (a guard reads the row tests against the spent list); the sample's seat was stopped against its rule and reopens (every one of its four landings moved the `Parity:` line); the gate refuses while `origin/main` is behind the pushed tip (137 commits at the drain); the handoff's bound is 36 and the queue's preamble is read against it; entry 150 §1 to §3 confirmed; seven rows scored and four seats cut; a sixth battery is named, taken when the fifth reads 4 of 8
 - 152 extended by 153 — The pass of 2026-11-22, second: items 4565 and 4564 named one pair of fields (`targeted`, `attack_ox`) on the sample and on row 43, so one seat carries both; a probe of `launch_point`'s fallback over the forty held-out games and the sample lists eight pieces with no bay, and item 4559 builds them in one act; the sixth battery keeps its trigger, its item 4566 is written, and its games run to 12,000, past the state the sample parts on, with a scripted human (Ramon, the same day); the sample's seat moved 158 states a landing; `tools/guard.sh` asks `cargo fmt`
-- 153 standing — The pass of 2026-11-22, third: the sixth's found column fires neither branch of entry 152 §5 (six of eight rows part before 3,400, one runs whole to 12,000, one parts on 7675); a landing on a row that parts early bought 732 states and one deep in a game about 190, the sample's and a row's alike, so the seats go by first parting and the sample holds none of its own; eleven games scored and four seats cut; rows 73, 33 and 113 part units and cities on one state and take one seat; a print of `launch_point`'s fallback over the sixth's walks lists eleven pieces with no bay, and item 4574 builds them in one act; the sixth folds at its first leaf test, 44 of 55; a seventh battery is named, taken when the sixth reads 4 of 8; `waitrun.sh` gives a launch whose runner has not started a grace period (run1794 and run1795 played at once); Ramon, on the row: the fold stands, the fourth seat is the client's (item 4581, the minimap), and item 4580 counts the seams the held-out games enter
+- 153 extended by 154 — The pass of 2026-11-22, third: the sixth's found column fires neither branch of entry 152 §5 (six of eight rows part before 3,400, one runs whole to 12,000, one parts on 7675); a landing on a row that parts early bought 732 states and one deep in a game about 190, the sample's and a row's alike, so the seats go by first parting and the sample holds none of its own; eleven games scored and four seats cut; rows 73, 33 and 113 part units and cities on one state and take one seat; a print of `launch_point`'s fallback over the sixth's walks lists eleven pieces with no bay, and item 4574 builds them in one act; the sixth folds at its first leaf test, 44 of 55; a seventh battery is named, taken when the sixth reads 4 of 8; `waitrun.sh` gives a launch whose runner has not started a grace period (run1794 and run1795 played at once); Ramon, on the row: the fold stands, the fourth seat is the client's (item 4581, the minimap), and item 4580 counts the seams the held-out games enter
+- 154 standing — The pass of 2026-11-23: the seats by first parting bought 621 states a landing against 197 (twelve landings, row 3 and the sixth's rows 33 and 73 whole); the seam counter, run at the tip, named row 133's first parting (a hook entered once on state 1906) and its one pin had rotted unrun, so it is the pass's tenth act and item 4599 hooks the P notes; rows 93 and 83 take one seat; a lane's clock runs after its release step and its red is left to the booking gate; the held-out pins fail only on whole lines and first partings (item 4598); a sixth row writes under its own heading; the seventh's human keeps ordering through the game (item 4600).
 
 ## 1. Fidelity before divergence
 
@@ -15733,3 +15734,197 @@ recommendations: "sounds good lets do as you suggest."
 - **He plays the client himself**, and asked when. His list of what
   breaks is the first measure of the distance to a game played here;
   the client's seat takes its next items from it.
+
+## 154. The seam counter names a first parting when it is run, rows 93 and 83 take one seat, a lane's clock runs after its release step, the held-out pins are thinned, and the seventh's human keeps playing (2026-11-23)
+
+**What happened.** `commander` (Opus 5.5) ran twenty first-parent merges
+off the pass of 2026-11-22, third, between 00:37 and 07:14 −05:00, to
+the backstop, and gated whole (`gate-drain-1123.log`, exit 0 on
+`de60a62ee`, the tip, origin's branch and origin's main). The headline
+went 43 of 47 → 47 of 55: the sixth battery folded at its first leaf
+(item 4575) with row 153 whole and seven rows open, and rows 3, 33 and
+73 came whole after it. The pass ran on the `steer` row from 07:20
+−05:00 with no subagent and no capture. Its tables are in
+`docs/audit/2026-11-23-fable-pass-seams.md`.
+
+**§1. What the seats bought.** Entry 153 §2 sent the seats to the
+earliest first parting. Twelve landings sat on a held-out row (4574,
+4572, 4575, 4576, 4577, 4583, 4585, 4587, 4589, 4591, 4594, 4595):
+
+| where | landings | states gained before a first parting | a landing | USD a landing | games whole |
+|---|---|---|---|---|---|
+| the fifth's rows, the tranche before | 8 | 1,579 | 197 | 7.80 over six priced | 2 |
+| the fifth's row 3 and the sixth's rows, this tranche | 12 | 7,449 (row 3 1,011; the sixth 6,438) | 621 | 7.89 over eleven priced | 3 (rows 3, 33, 73) |
+
+One landing carried more than half of it: item 4583's link gate moved
+rows 73, 33 and 113 by 3,927 states together, which is entry 153 §4's
+one seat for three rows paid in one act. Three landings moved no first
+parting: 4574 by design (every fallback round sits past its row's
+parting), 4576 (a first act: the take and the leaf) and 4587 (four
+readings killed, a packet asked for). **And a row's landing moved the
+sample for the first time**: item 4585's fix on row 133 was the
+sample's own word, and its first parting went leaders 7407 → 7502 and
+its draws 7410 → 7613. Entry 153 §2 said nothing measured promised
+that; thirty-one row landings have now moved it once. **The rule
+stands.**
+
+**§2. The seam counter is an instrument a pass runs, and it named a
+first parting on its first run after landing.** Item 4580 hooked 37 of
+the 116 seam notes a counter can stand on and found none entered
+before a first parting that a whole row does not also enter. Its tests
+build only under a feature no gate builds. Run at the tip, eighteen
+landings later:
+
+- the one pin it holds had rotted: the sixth's fallback rounds read
+  `(133, 16)` against the pinned `(133, 21)`;
+- **row 133's table has `sim::orders::jobs::computer_repair_explore`
+  entered once, on state 1906, which is the row's first parting.** The
+  pass's own score of that row names the leaf there: units range 3967,
+  record 72 (the Citizen item 4594's recruit sends), `order.type` ours
+  3, theirs 1. The note under the hook says it in so many words: a
+  computer's repair swarm walks under a move order in the original and
+  an explore order here, held until both long words are measured with
+  it. Item 4594 made the arm reachable; the counter then named it, and
+  no lane had run the counter since;
+- **row 93's first leaf had been a note with no hook.** Item 4577 found
+  the President's heal with a 13 GB take and a probe. The readers'
+  table classes that note P (the state is carried, the arm omitted),
+  one of the 71 item 4580 left unhooked (parked 4580b).
+
+So two of the last ten leaves on the sixth were under a seam note, and
+the counter reaches one of them. Three rulings. **The counter is the
+pass's tenth act** (`docs/LOOP.md`), written to the pass's own
+directory (`RON_SEAMS_DIR`; this pass ran it unset and wrote the tip's
+tables over item 4580's), its pin re-pinned there, and a hook on a
+row's first parting pasted into that row's item with the note's
+sentence. **Item 4597's first act is the note's fix**, measured on the
+two long words and the rows. **Item 4599 hooks the P notes**, on the
+chain's seat. The readers' table was four Sonnet readings, which the
+roster forbids for a reading (`docs/LOOP.md`, "never Sonnet on a
+reading"): a sort that decides which notes are never hooked is one. It
+stands as a sort. Item 4599's builder writes each predicate itself
+against the code, and the 210 notes classed as reading state the port
+does not keep are one Sonnet reading until someone reads them: the
+tower arm's own comment (not among the 436) said a flag read as 0 that
+the crate carried under a name, and cost item 4585 a landing.
+
+**§3. The open rows' leaves, read against each other** (`score_recording`
+at the tip on the seven rows not whole and the sample; each exit 1 on a
+measured difference and each equal to its pin):
+
+| game, take | first parting | the leaf there |
+|---|---|---|
+| sixth, row 133, run1797 | units 1906 | record 72 `order.type` 3 against 1; §2's seam |
+| sixth, row 93, run1799 | units, builds, guys 2686 | unit 31's target; building 2027 `targeted` ours 1, theirs 2 |
+| sixth, row 53, run1790 | units, guys 3358 | sums only |
+| fifth, row 83, run1784 | units, builds, groups 3662 | unit 38 `targeted` 1 against 0; building 2043 `targeted` ours 1, theirs 2 |
+| fifth, row 43, run1787 | units, ammo, groups, guys, world 3833 | unit 8 stands 11 and 25 apart; group 128's `ox`, `oy` |
+| sixth, row 113, run1793 | cities 3995, eleven lines whole | sums only: ours 1934313053, theirs 1933788765 |
+| the sample, run1786 | leaders 7502 | range 479, record 3, `encrypt` ours 3200, theirs 3440 |
+| sixth, row 13, run1788 | units, builds, groups, guys 7675 | sums only |
+
+**Rows 93 and 83 take one seat** (entry 152 §2). Each parts where a
+captain's every-frame search for a building lands, in theirs, on the
+building it already holds (the count on it goes 1 → 2), and in ours on
+something else: an Oil Well on row 93, a unit on row 83. Item 4590's
+packet on row 93 is the one act; row 83 is scored again at its booking
+and item 4573 stays written behind it. That one term parts both is a
+hypothesis. One reading of it the pass killed before writing it down:
+that ours charges the searcher for its own mark. The mark is worth 48
+units of distance, and the well beats the city 13 to 2. Row 113's two
+sums share their low half and stand 8 apart in the high one, which is
+what the same bytes in another order give; that is arithmetic on two
+checksums, not a reading, and the take's first act will say.
+
+**§4. A lane's clock runs after its release step and never drains.**
+The client's frame-time test ran inside a lane's release step, beside
+the lane's own four test threads and the other lanes. Two of five
+client lanes landed on a gate that exited 1 on it (4581: p99 28.41 ms
+at host load 24.6, then 27.30 at 15.7; 4582: 25.84 at 47.1, then 20.68
+at 15.4), each re-ran it alone and argued the red in its journal, and
+the driver merged on that argument. A worker's reading of its own log
+is what parked 969 ruled out. The thirteen booking gates of the same
+tranche, which run it after their release step under a two-slot lease,
+read green beside load thirteen times. A lane that keeps the client
+crate now does the same: the release step skips it, a `clock` step
+follows, and a red there is printed (`Clock: red beside load … left to
+the booking gate`) and does not fail the lane, because a lane that
+drained the host to re-measure would stall the booking gate and every
+other lane, and the booking gate measures the merged tree alone
+anyway. `tools/explore/test_release_gate.py`'s `LaneClock`, three
+tests, seen red on the gate as handed over.
+
+**§5. The held-out pins hold what the queue books.** Eight of eleven
+sim lanes were refused on a moved base, twelve times, each because
+another landing had touched `held_out.rs`; four more gates went red on
+the merged tree for a count past some other row's first parting or for
+the sample's held frames (4577, 4583, 4585, 4594), and each was
+re-pinned as a named fall and gated again. No queue line carries those
+counts: the lines book whole lines, first partings and reach. Entry
+153 §8 left this for daylight. **Item 4598 thins the assertion and not
+the data**: a row's test fails on its whole lines and its first
+parting (the state and the lines on it), prints every other difference
+from the pin as drift, and the sample's held frames likewise; the pins
+stay and `repin.py` refreshes them at a booking. Its second half, if
+the first holds: a moved base whose one shared path is `held_out.rs`
+and whose merge is clean lands on the gate's verdict as a row list
+does. What this gives up: a landing that changes only the game past
+a first parting is no longer measured by a red, as item 4574's eleven
+pieces were (three rows' ammo, no first parting). Its measure becomes
+the drift the test prints, quoted in the journal.
+
+**§6. A row writes under its own heading.** Four updates conflicted on
+one paragraph of `docs/RECGAME.md` §13 that every sixth-row landing
+appended to, and two merges backed out on it (4575, 4591). The section
+now ends in a heading a row; a landing writes under its row's and
+touches nothing above them. The table is the found column and is not
+edited again.
+
+**§7. The seventh's human keeps playing.** Entry 153 §6 left one thing
+to the pass that sees the trigger near. The sixth reads 3 of 8 and row
+113 is one line from whole, so the next landing may fire it. The
+sixth's eight first leaves so far were all a computer's (a nuke arm, a
+trade gate, a heal, a tower's price, a repair recruit, a walk, a shot's
+serial, a socket) and the scripted human's three orders agree on every
+row. So what a person adds is still untouched, and the seventh takes
+it by the cheapest rule that needs no walk of ours: **§9's three
+orders, then every 600 frames to 11,400 the capital queues one Citizen
+and unit 0 moves 2,400 units along the next of its four headings**,
+all named from the built start. An order at an object that has died is
+part of the test. Item 4600 holds it, with one row minted and played
+first. The trigger is entry 153 §6's, unchanged: the sixth at 4 of 8,
+or Ramon's word.
+
+**§8. The tranche, measured.** Twenty merges in six hours thirty-seven
+minutes. Thirteen gate logs, 355.6 minutes: twelve scoped and the
+drain's whole gate, none red; admission 24,255.9 s summed, the longest
+762.2 s; four ended with the load past the sixteen cores. Seventeen
+lane sessions cost 123.26 USD, 7.25 a landing (sim 7.89 over eleven,
+the client 6.08 over six); items 4574 and 4580 were in-session builders
+and are not priced. A lane's clock read 80.6 minutes, 16.7 working and
+63.9 waiting, 43.1 on its own gate; items 4575 and 4585 waited 128 and
+115 minutes there. Two sessions went deep (4585 at 313 k, 4587 at
+351 k). Five captures. The commander's job directory, where the
+handoff's two tables were, went with the reap; both were made again
+from the gate logs and `lore`, and the figures above are those, with
+the two lanes that were still live when the handoff was written. The
+week read 32 % at 07:45 −05:00 on its third day; Fable's 12 % at the
+handoff.
+
+**§9. What the tranche parked.** Twenty-six findings in nineteen
+journals. Closed here or by a later landing of the same tranche: 4580b
+(item 4599), 4583a (the sixth was spent at item 4575, and the row's
+pin holds the gate), 4593a (item 4596), 4582a (built by 4584), 4584b
+(the mountains, 4586). 4580a's count is §2's pin. The rest name no
+score and stay in their journals; 4587a's patch is a commit a lane can
+pick (`46d807269`). Item 4593's seven loose probe copies under
+`~/ron-data/lab-experiments/` are byte for byte the ones in its item
+directory; nothing under the archive is deleted without Ramon's word.
+
+**§10. The seats.** Four, as the roster has them. **The chain's seat:
+item 4598 (§5), then 4599 (§2), then 4590. Parity seats: item 4592
+(row 113, one line from whole) and item 4597 (row 133, its cause
+named). The client's: item 4596 (the blips).** Unseated, by first
+parting: 4590 (rows 93 and 83) until the chain's seat reaches it, 4578
+(row 53), 4571 (row 43), 4569 (the sample) and 4579 (row 13); 4573
+rides 4590; 4600 waits its trigger.

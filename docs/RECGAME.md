@@ -1692,3 +1692,28 @@ moved. `row_33_s_musket_ball_leaves_from_the_original_s_socket_on_run1801_s_rang
 3400, and `data::launch::tests::the_original_s_release_agrees_at_every_heading_for_the_musketeers` the sweeps
 (`RON_BAY_SWEEPS_4591`, outside git). *Diff-backed*: the round's launch on 3386 and the row's twelve sums on every
 state. *Read, not diffed*: the `CHAR_ATTACK1` row's four headings the old fit missed; no capture has a round on one.
+
+**Where a row's landing writes** (DECISIONS 154 §6). Each open row has a heading below. A landing writes under its own
+row's heading and touches nothing above this paragraph: four updates conflicted on the one *Not established* paragraph
+above, and two merges backed out on it. The table above is the found column and is not edited again; `SCORES_SIXTH` and
+the queue's line hold what stands now.
+
+### 13.1 Row 13
+
+Open: units, builds, groups and guys part on 7675. run1788 holds sums (item 4579).
+
+### 13.2 Row 53
+
+Open: units and guys part on 3358. run1790 holds sums (item 4578).
+
+### 13.3 Row 93
+
+Open: units, builds and guys part on 2686, the Bazooka `1/31`'s re-search (item 4587; the packet is item 4590's).
+
+### 13.4 Row 113
+
+Open: cities part on 3995, eleven lines whole. run1793 holds sums (item 4592).
+
+### 13.5 Row 133
+
+Open: units part on 1906, record 72 `order.type` ours 3, theirs 1 (item 4597; DECISIONS 154 §2).

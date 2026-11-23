@@ -1983,9 +1983,10 @@ class WholeLaneGate(unittest.TestCase):
     lane_run = GateTests.lane_run
 
     def test_a_whole_lane_gate_runs_every_timed_test(self):
-        # Not widened (a tools/ path), and still nothing skipped.
+        # Not widened (a tools/ path), and still nothing skipped but the
+        # clock, which runs as its own step after (the pass of 2026-11-23).
         command, policy = self.release_command(touched=['tools/retire.py'], lane=True, whole=True)
-        self.assertNotIn('--skip', command)
+        self.assertEqual(skips_of(command), [gate.CLOCK_TEST])
         self.assertEqual(policy['lane']['skipped'], 0)
         self.assertTrue(policy['lane']['whole'])
         self.assertEqual(policy['lane']['tests'], [])
@@ -2007,11 +2008,11 @@ class WholeLaneGate(unittest.TestCase):
             self.assertTrue(lock.read_text().startswith(f'pid {os.getpid()} '), lock.read_text())
             self.assertNotIn('Whole lane: waiting', said)
             self.assertEqual([gate.step_name(c) for c, _ in calls],
-                             ['pins','offline','clippy','fmt','survey','guard','release'])
+                             ['pins','offline','clippy','fmt','survey','guard','release','clock'])
             self.assertIn("Lane verdict: red only on the commander's lines (2)", said)
             self.assertIn('Lane suite: every test, the timed ones included (--whole', said)
             release = next(c for c, _ in calls if '--release' in c)
-            self.assertNotIn('--skip', release)
+            self.assertEqual(skips_of(release), [gate.CLOCK_TEST])  # the pass of 2026-11-23
 
     def test_whole_refuses_with_tests_with_no_widen_and_without_lane(self):
         for kw, says in (({'whole': True}, '--whole is a lane gate'),
@@ -2208,17 +2209,80 @@ class QuietClock(unittest.TestCase):
         self.assertEqual([gate.step_name(c) for c in calls][-3:], ['release', 'clock', 'clock'])
         self.assertIn('Gate steps: 9 of 9 ran', out)
 
-    def test_a_lane_gate_keeps_the_clock_where_it_was(self):
-        # A lane that touches the client runs the clock in its release step as
-        # before, and one that does not leaves the whole client crate.
-        for touched in (['crates/client/src/x.rs'], ['crates/rondata/src/lobby.rs']):
-            with self.subTest(touched=touched):
-                calls, out, error = booking_calls(touched, lane=True, tests=WORD, isolated=False)
-                self.assertIsNone(error, out)
-                names = [gate.step_name(c) for c in calls]
-                self.assertNotIn('clock', names)
-                self.assertEqual(names[-1], 'release')
-                self.assertNotIn(gate.CLOCK_TEST, skips_of(calls[-1]))
+    def test_a_lane_that_leaves_the_client_runs_no_clock(self):
+        # A lane that does not touch the client leaves the whole client crate,
+        # the clock with it.
+        calls, out, error = booking_calls(['crates/rondata/src/lobby.rs'], lane=True, tests=WORD, isolated=False)
+        self.assertIsNone(error, out)
+        names = [gate.step_name(c) for c in calls]
+        self.assertNotIn('clock', names)
+        self.assertEqual(names[-1], 'release')
+        self.assertNotIn(gate.CLOCK_TEST, skips_of(calls[-1]))
+
+
+class LaneClock(unittest.TestCase):
+    """The pass of 2026-11-23: a lane that touches the client ran the clock
+    inside its release step, beside its own four test threads and beside the
+    other lanes. Two of the tranche's five client lanes landed on a gate that
+    exited 1 on it (4581: p99 28.41 ms at host load 24.6, then 27.30 at 15.7;
+    4582: 25.84 at 47.1, then 20.68 at 15.4) and argued the red away in
+    prose, while the thirteen booking gates of the same tranche, which run it
+    after their release step under a two-slot lease, read `Clock: green
+    beside load` thirteen times. So a lane runs it the booking gate's way,
+    after its release step and under the same small lease; it never drains
+    the host, which would stall the booking gate and the other lanes; and a
+    red beside load is printed and left to the booking gate, which measures
+    the merged tree alone. Red first: the release step ran it, nothing came
+    after, and the red was the lane's own."""
+
+    def test_a_lane_that_touches_the_client_runs_the_clock_after_its_release_step(self):
+        for isolated in (True, False):
+            for kw in ({'tests': WORD}, {'whole': True}):
+                with self.subTest(isolated=isolated, kw=kw):
+                    seen = []
+                    calls, out, error = booking_calls(['crates/client/src/x.rs'], lane=True, isolated=isolated,
+                                                      seen=seen, clock_exits=[0], **kw)
+                    self.assertIsNone(error, out)
+                    names = [gate.step_name(c) for c in calls]
+                    self.assertEqual(names[-2:], ['release', 'clock'])
+                    self.assertIn(gate.CLOCK_TEST, skips_of(release_of(calls)))
+                    self.assertEqual(calls[-1], gate.clock_command())
+                    self.assertFalse(seen[-1][1].get('drain'))
+                    self.assertIn('Clock: green beside load\n', out)
+                    self.assertIn(f'Gate steps: {len(names)} of {len(names)} ran', out)
+                    self.assertTrue(next(l for l in out.splitlines() if l.startswith('Gate steps:'))
+                                    .endswith('release, clock)'), out)
+
+    def test_a_lane_s_red_clock_is_printed_and_left_to_the_booking_gate(self):
+        seen = []
+        calls, out, error = booking_calls(['crates/client/src/x.rs'], lane=True, tests=WORD, seen=seen,
+                                          clock_exits=[101])
+        # Not the lane's red: the gate goes on and exits as its other steps say.
+        self.assertIsNone(error, out)
+        clocks = [(c, k) for c, k in seen if gate.step_name(c) == 'clock']
+        # One attempt, and it never drains the host from a lane.
+        self.assertEqual(len(clocks), 1)
+        self.assertFalse(clocks[0][1].get('drain'))
+        self.assertIn('Clock: red beside load (exit 101) — left to the booking gate, which measures it alone',
+                      out)
+        self.assertNotIn('drained lease', out)
+
+    def test_the_lane_s_policy_says_where_its_clock_runs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp); (path/'Data').mkdir(); (path/'Data/rules.xml').touch()
+            def run(command, **kwargs):
+                if gate.step_name(command) == 'release':
+                    release_ran(kwargs, log=RELEASE_LOG.replace(' ... FAILED', ' ... ok'))
+            for touched, said in ((['crates/client/src/x.rs'], 'after the release step'),
+                                  (['crates/rondata/src/lobby.rs'], 'left to the booking gate')):
+                with self.subTest(touched=touched), contextlib.redirect_stdout(io.StringIO()), \
+                        patch.object(gate, 'branch_paths', return_value=touched), \
+                        patch.object(gate, 'row_only_edits', return_value=set()):
+                    report = path/f'report-{len(touched[0])}'
+                    gate.gate(path, report_dir=report, run=run, lane=True, tests=WORD, git=UNMOVED,
+                              whole_lock=path/'whole-lane.lock')
+                    policy = json.loads((report/'gate-policy.json').read_text())
+                    self.assertIn(said, policy['lane']['clock'])
 
     def test_the_clock_test_is_the_one_its_file_names(self):
         source = (gate.ROOT/'crates/client/tests/clock.rs').read_text()

@@ -336,7 +336,13 @@ host budget only when that is red (DECISIONS 136 §2; the log's `Clock:`
 line says which). It broke two booking gates at loads of 13.5 to 15.6
 beside lanes and reads p99 14 ms alone; drained on every gate, it waited
 60.6 of eight gates' 193.3 minutes for the longest lease on the host to
-end. A booking gate has nine steps.
+end. A booking gate has nine steps. **A lane that keeps the client crate
+runs the clock the same way and never drains** (DECISIONS 154 §4): its
+release step skips it, a `clock` step follows under the two-slot lease,
+and a red there is printed on the `Clock:` line and left to the booking
+gate. Two client lanes of the tranche of 2026-11-23 landed on a gate
+that exited 1 on a clock run beside their own test threads, on their
+own reading of the log.
 
 **A booking gate is scoped, and the whole gate runs at a drain and at a
 pass** (DECISIONS 132 §5). A scoped gate widens to every timed test on any
@@ -497,7 +503,10 @@ a journal's own "for the Loop" line stays in the journal and is filed
 nowhere (`docs/DECISIONS.md` entry 125). **A handoff banked for a pass
 carries a `For the pass` part, and its counts are the tables'** —
 `tools/gates.py <tmp> --since <the last pass's gate log>` and `tools/tranche.py --base <base>`, pasted
-after `lore index`, never a count from memory. **A waiter on a lane is
+after `lore index`, never a count from memory, **and the tables' files
+go beside the gate logs** (`~/Library/Caches/attrition/gates/`), never
+in the job's temp directory, which the new row's reap removes
+(DECISIONS 154 §8). **A waiter on a lane is
 armed with `--deep 400`** (DECISIONS 131 §6). **A `--no-widen` lane gate
 keeps the widenings itself when its branch moves the sim's source**
 (DECISIONS 134 §3; every test ending `_widened_whole` or `_walked_whole`
@@ -511,7 +520,9 @@ first parting and neither of those counts toward the two (DECISIONS 148
 §5: four landings left the score on units 4248), **and the count of games
 whole is never the number** (DECISIONS 151 §1: a seat was stopped on two
 landings that each moved the first parting, because the count read 36 of
-39 across both). **A row's ranges take
+39 across both). **A sixth row's landing writes under its own
+row's heading in `docs/RECGAME.md` §13 and touches nothing above
+them** (DECISIONS 154 §6). **A row's ranges take
 keeps the lines its score parts on**, by the arguments `score_recording`
 prints, never all twelve: the disk is the limit, and a whole take reads
 9 GB while it runs (DECISIONS 148 §4). **A held-out game's found column is never re-pinned** (DECISIONS 144
@@ -525,7 +536,7 @@ the fifth reads 4 of 8 (DECISIONS 151 §6), recorded to 12,000 where the
 five before stop on 6,000, its human scripted (DECISIONS 152 §4: the
 sample parts past the end of every held-out game; Ramon, 2026-11-22);
 the seventh (rows 8 to 148) when the sixth reads 4 of 8 (DECISIONS 153
-§6). **The seats go by first parting** (DECISIONS 153 §2): a game one
+§6), its human ordering through the game (154 §7; item 4600). **The seats go by first parting** (DECISIONS 153 §2): a game one
 line or one field from whole first, then the lowest first parting, the
 sample sorted with the rows and holding no seat of its own; a landing
 on a row that parted early bought 732 states and one deep in a game
@@ -627,6 +638,17 @@ the tree is removed, DECISIONS 151 §7).
    is `~/ron-data/lab-experiments/2026-11-22-pass-third/bay-probe.patch`,
    and its count is read beside the run's exit code, since two runs of
    it have printed zero for a reason that was not zero rounds).
+10. **Its seam table** — `RON_SEAMS_DIR=<the pass's directory> zsh
+   tools/check.sh test --release -p rondata --features seam-count --
+   held_seams --test-threads 6`, about four minutes after its build:
+   every seam hook each held-out walk enters, marked against the walk's
+   first parting. A hook marked `=` or `<` on a parted row that no
+   whole row also enters is pasted into that row's item with the
+   note's own sentence, and the fallback's pin is re-pinned there. No
+   gate builds the feature, so nothing holds this between passes
+   (DECISIONS 154 §2: eighteen landings after it landed the pin read 21
+   where the tip fired 16, and the same run named row 133's first
+   parting, a hook entered once on state 1906).
 
 **It never moves what is the user's**: the
 roster, the worker count, the phase, the finish

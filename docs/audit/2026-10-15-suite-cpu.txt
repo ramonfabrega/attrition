@@ -1,6 +1,6 @@
-# Every rondata release test's CPU alone, 2026-11-22, tools/suite_timings.py (tree cf483b9c).
+# Every rondata release test's CPU alone, 2026-11-23, tools/suite_timings.py (tree de60a62e).
 # /usr/bin/time -l, one test per process, --test-threads 1; CPU seconds (user + sys), instructions retired (1e9), the test; -1 when unread.
-# Sum 7,795 CPU-seconds and 157.87e12 instructions over 2662 tests; the host's load 3.5 at the start and 3.7 at the end.
+# Sum 7,799 CPU-seconds and 157.97e12 instructions over 2669 tests; the host's load 1.7 at the start and 2.0 at the end.
 678.60	11859.81	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 340.78	6474.38	free::ages::the_draw_list_across_the_ages_resolves
 199.37	4888.75	diff::held_out::tests::the_held_out_games_score_as_pinned
@@ -1315,6 +1315,7 @@
 1.15	22.15	diff::sahara_toughest::tests::run491_s_word_frame_is_widened_whole
 1.15	23.82	diff::turkish_enlightenment_pair::run1159_turkish_enlightenment_pair_closing_state
 1.15	26.71	diff::world::tests::run39_s_bird_lands_on_576_and_spends_the_search_s_sixty
+1.15	22.78	diff::held_out::tests::row_93_s_volksgrenadiers_heal_beside_their_president_on_run1799_s_ranges
 1.14	24.39	diff::minted::the_followed_script_against_the_gathered_playback_parts
 1.14	24.69	diff::minted::the_original_s_playback_of_the_buildmasked_file_walks_in_lockstep
 1.14	24.71	diff::minted::the_original_s_playback_of_the_garrisoned_file_walks_in_lockstep
@@ -1379,6 +1380,7 @@
 1.08	21.05	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_run1208b_s_word_frame_is_widened_whole
 1.08	22.05	diff::mongol_pair::run779_s_word_frame_is_widened_whole
 1.08	23.76	diff::russian_modern_pair::russian_modern_pair_run1162d_s_census_is_widened_whole
+1.08	23.87	diff::held_out::tests::row_33_s_musket_ball_leaves_from_the_original_s_socket_on_run1801_s_ranges
 1.07	24.91	diff::army::tests::run29_s_halted_group_kept_its_members_formation_bytes
 1.07	21.73	diff::roman_medieval_pair::roman_medieval_pair_run1275b_s_word_frame_is_widened_whole
 1.07	22.40	diff::sahara_coverage::run683_s_road_searches_hold_node_for_node
@@ -1546,6 +1548,7 @@
 0.86	17.77	diff::iroquois_word::run928_s_word_frame_is_widened_whole
 0.86	17.16	diff::third_pair::run598_french_great_lakes_closing_state
 0.86	20.69	diff::checksum_lines::deaths::the_sea_packet_keeps_the_attrition_figure_alongside_three_round_impacts
+0.86	16.70	diff::held_out::tests::row_133_s_computer_calls_a_citizen_to_repair_its_capital_on_run1797_s_ranges
 0.85	14.46	diff::golden::chapter_fifty_five_s_word_frame_is_widened_whole
 0.85	14.56	diff::golden::chapter_fifty_six_s_word_frame_is_widened_whole
 0.85	15.03	diff::golden::chapter_fourteen_s_word_frame_is_widened_whole
@@ -1679,6 +1682,7 @@
 0.72	14.68	diff::third_pair::run609_s_closing_frame_is_widened_whole
 0.72	14.66	diff::held_out::tests::row_140_s_dutch_merchants_keep_their_cached_armour_on_run1725_s_ranges
 0.72	15.56	diff::held_out::tests::row_43_s_unbuilt_village_close_fixes_the_borders_on_run1787_s_ranges
+0.72	14.93	diff::held_out::tests::row_3_s_foundation_disband_refreshes_no_neighbour_on_run1796_s_ranges
 0.71	15.35	diff::british_classical_pair::british_classical_pair_captures_say_their_lobby
 0.71	14.97	diff::checksum_lines::packets::turkish_enlightenment_pair_packets
 0.71	12.60	diff::golden::chapter_one_hundred_and_nine_holds_to_the_golden_word
@@ -1828,6 +1832,7 @@
 0.60	11.22	diff::golden::chapter_seventeen_air_holds_to_the_golden_word
 0.60	10.69	diff::golden::chapter_seventy_eight_holds_to_the_golden_word
 0.60	13.60	diff::spanish_classical_pair::spanish_classical_pair_captures_say_their_lobby
+0.59	12.72	diff::held_out::tests::row_133_s_computer_lists_no_bunker_in_its_attacked_capital_on_run1797_s_ranges
 0.59	10.88	diff::golden::chapter_eighty_nine_holds_to_the_golden_word
 0.59	10.73	diff::golden::chapter_eighty_six_holds_to_the_golden_word
 0.59	10.49	diff::golden::chapter_ninety_four_holds_to_the_golden_word
@@ -1995,6 +2000,7 @@
 0.40	9.18	diff::turkish_information_pair::turkish_information_pair_captures_say_their_lobby
 0.40	9.21	diff::lakota_medieval_pair::lakota_medieval_pair_captures_say_their_lobby
 0.40	9.39	trace::tests::complete_trace_frame_lookup_matches_a_single_pass_partition
+0.40	8.92	diff::held_out::tests::row_133_s_computer_offers_no_nuke_at_an_enemy_researching_the_shield_on_run1797_s_ranges
 0.39	9.11	diff::american_information_pair::american_information_pair_an_american_aircraft_costs_a_fifth_less
 0.39	8.16	diff::german_modern_pair::german_modern_pair_captures_say_their_lobby
 0.38	8.67	diff::american_industrial_pair::american_industrial_pair_captures_say_their_lobby
@@ -2663,3 +2669,4 @@
 0.00	0.03	diff::held_out::tests::the_handoff_s_open_parity_held_out_lines_are_the_pinned_scores
 0.00	0.03	diff::held_out::tests::the_sixth_held_out_line_reads_as_pinned
 0.00	0.03	diff::held_out::tests::the_sixth_s_files_are_minted
+0.00	0.06	artdata::tests::the_minimap_colours_are_read

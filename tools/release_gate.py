@@ -70,7 +70,9 @@ and `clock` last — the client's wall-clock test, `--skip`ped in the release
 step and run after it under a small lease beside load, and — only if that
 is red — once more alone under a drained lease of the whole host budget,
 whose verdict is the step's (`CLOCK_TEST`; the pass of 2026-11-16). A lane
-gate has neither.
+gate has no `merge pins`; one that keeps the client crate runs `clock` after
+its release step too, under the small lease alone: its red is printed and
+left to the booking gate, and it never drains (the pass of 2026-11-23).
 
 The packets' wiring pin runs in every lane gate too, and its red is the
 worker's (the pass of 2026-11-17, second).
@@ -658,9 +660,24 @@ def client_crate_left(touched, *, lane, whole):
 # the whole host budget (`phase_budget`) taken by draining
 # (`resource_budget.py --drain`: each slot it takes it keeps, so lanes'
 # tests already admitted end into it and none is admitted beside it). The
-# gate's own release step is over by then. A lane gate is unchanged: one
-# that touches the client runs the clock in its release step, one that does
+# gate's own release step is over by then. ~~A lane gate is unchanged: one
+# that touches the client runs the clock in its release step~~, one that does
 # not leaves the client crate (`client_crate_left`).
+#
+# **A lane that touches the client runs it the same way, and never drains**
+# (the pass of 2026-11-23). Inside a lane's release step the clock ran beside
+# the lane's own four test threads and beside the other lanes: two of that
+# tranche's five client lanes landed on a gate that exited 1 on it (4581: p99
+# 28.41 ms at host load 24.6, then 27.30 at 15.7; 4582: 25.84 at 47.1, then
+# 20.68 at 15.4) and argued the red away in their journals, which is a
+# worker's own reading of a log (parked 969), while the thirteen booking
+# gates of the same tranche read `Clock: green beside load` thirteen times.
+# So a lane `--skip`s it in the release step and runs it after, under the
+# same two-slot lease. A red there is printed on the `Clock:` line and left
+# to the booking gate, which measures the merged tree alone: a drain from a
+# lane would stall the booking gate and every other lane behind it, and a
+# wall-clock ceiling read beside three lanes is not a measurement of the
+# branch.
 #
 # **A green beside load is a green; only a red drains** (the pass of
 # 2026-11-16). On the eight scoped booking gates after that pass (4284,
@@ -1268,7 +1285,10 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
                           'row_only': row_only, 'dropped': dropped, 'sim_source': sim_source,
                           'base_overlap': base_overlap,
                           'sim_crate': 'left to the booking gate' if sim_left else 'run',
-                          'client_crate': 'left to the booking gate' if client_left else 'run'}
+                          'client_crate': 'left to the booking gate' if client_left else 'run',
+                          'clock': ('left to the booking gate' if client_left else
+                                    'after the release step, beside load; a red is printed and left to '
+                                    'the booking gate')}
     (report_dir / 'gate-policy.json').write_text(json.dumps(policy, indent=2) + '\n')
     # No game launch: rondata surveys the user's data files.
     #
@@ -1307,7 +1327,10 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     # (`clock_command`; beside load first, alone under a drained lease only
     # after a red, the pass of 2026-11-16), which the release step therefore
     # skips.
-    release_skips = skips + ([] if lane else [CLOCK_TEST])
+    # A lane that keeps the client crate runs the clock the same way, after
+    # its release step, and never drains (the pass of 2026-11-23).
+    clock_step = not (lane and client_left)
+    release_skips = skips + ([CLOCK_TEST] if clock_step else [])
     if isolated:
         release = ([sys.executable, 'tools/isolated_tests.py', '--release',
                     '--output', str(report_dir / 'isolated'), '--test-threads', str(test_threads)]
@@ -1320,7 +1343,8 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
                    + ['--', f'--test-threads={test_threads}']
                    + (['--exact'] + [arg for name in release_skips for arg in ('--skip', name)]
                       if (lane or scope is not None or release_skips) else []))
-    commands += [release] if lane else [merge_pins_command(), release, clock_command()]
+    commands += ([release] + ([clock_command()] if clock_step else []) if lane
+                 else [merge_pins_command(), release, clock_command()])
     if scope is not None:
         print((f"Booking gate scoped to {scope}: " +
                (f"every timed test — a merge touches {len(widened)} path(s) that can move the pins ({widened[0]}"
@@ -1562,14 +1586,20 @@ def merge_pins_line(log, returncode):
             + ' — the release step did not run (the pass of 2026-11-15)')
 
 
-def _run_clock(command, *, run, env, log, drained_log):
+def _run_clock(command, *, run, env, log, drained_log, lane=False):
     """The booking gate's `clock` step (the pass of 2026-11-16): one attempt
     beside load under a small lease (`CLOCK_BESIDE_LOAD`); only if it is
     red, a second alone under the drained lease of the whole host, whose
-    exit is the step's. One `Clock:` line says which happened."""
+    exit is the step's. One `Clock:` line says which happened. A lane's is
+    the first attempt alone (the pass of 2026-11-23): its red is printed and
+    left to the booking gate, and the step goes on."""
     try:
         run(command, cwd=ROOT, env=env, check=True, log=log)
     except subprocess.CalledProcessError as first:
+        if lane:
+            print(f'Clock: red beside load (exit {first.returncode}) — left to the booking gate, which '
+                  'measures it alone; a lane never drains the host (the pass of 2026-11-23)', flush=True)
+            return
         print(f'Clock: red beside load (exit {first.returncode}); measuring once more alone under the '
               'drained lease', flush=True)
         try:
@@ -1604,7 +1634,7 @@ def _run_steps(commands, *, run, env, audit_dir, report_dir, require_fixtures, r
             reached.append(command)
             if is_clock(command):
                 _run_clock(command, run=run, env=child_env, log=extra['log'],
-                           drained_log=str(report_dir / 'clock-drained.log'))
+                           drained_log=str(report_dir / 'clock-drained.log'), lane=lane)
             else:
                 run(command, cwd=ROOT, env=child_env, check=True, **extra)
             completed = True

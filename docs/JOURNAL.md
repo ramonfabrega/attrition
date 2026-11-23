@@ -22630,3 +22630,46 @@ parked pile is to be mined by machine: one item counts which of the
 sim's 486 `SEAM` notes the held-out games enter, as the launch point's
 print did for one of them. He said he would play the client himself.
 **DECISIONS 153.** `docs/audit/2026-11-22-fable-pass-rows.md`.
+
+## 2026-11-23 — the pass: the seam counter names a first parting when it is run (Fable 5.2, steering)
+
+The commander drained at the backstop: twenty landings in six hours
+forty, the headline 43 of 47 → 47 of 55. The sixth battery folded at
+its first leaf and three more games came whole. The seats had gone to
+the earliest first parting, and that bought 621 agreeing states a
+landing where the tranche before bought 197. One landing, a caravan's
+link gate, moved three rows at once, as the last pass had guessed
+those three would move.
+
+The handoff asked what to make of item 4580, which had counted the
+seam notes the held-out games enter and found none that explained a
+game. Its tests build under a feature no gate builds, so the pass ran
+them. The one pin they hold had rotted in eighteen landings. And row
+133's table had a hook entered once, on state 1906, which is where the
+row first parts; the score of that row names an order type of 3
+against 1 there, and the note under the hook says the original's
+repair swarm walks under the one and ours under the other. A landing
+of the same night had made that arm reachable, and nobody had run the
+counter since. Another of the night's leaves, the President's heal,
+was a note the counter had no hook on. So the counter is a pass's act
+now, one item opens on the note's fix, and another hooks the notes
+left out.
+
+Two client lanes had landed on a gate that exited 1, each on the
+frame-time test run beside its own test threads, and each on its own
+account of why that was the host. All thirteen booking gates read the
+same test green. A lane's gate now measures it after its release
+step, as the booking gate does, and leaves a red to the booking gate.
+
+The lanes' hour on their gate was the same file again: twelve
+refusals, and four reds for numbers past a first parting that no
+scoreboard line carries. An item makes the held-out tests fail on
+what the queue books and print the rest. The sixth's section in the
+recordings document got a heading a row, after two merges backed out
+on one shared paragraph. The seventh battery, one landing from its
+trigger, will have a human who keeps giving orders.
+
+The old row's job directory went with its reap, and the handoff's two
+tables with it; they were made again from the logs. The pass moved no
+score and took no capture.
+**DECISIONS 154.** `docs/audit/2026-11-23-fable-pass-seams.md`.

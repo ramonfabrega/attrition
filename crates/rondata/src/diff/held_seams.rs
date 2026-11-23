@@ -12,9 +12,18 @@
 //! zsh tools/check.sh test --release -p rondata --features seam-count -- held_seams
 //! ```
 //!
-//! Each battery writes its table to
-//! `~/ron-data/lab-experiments/2026-11-23-item-4580/seams-<battery>.txt`
-//! (outside git) and prints it.
+//! Each battery writes its table to `$RON_SEAMS_DIR/seams-<battery>.txt`
+//! (outside git) and prints it; with the variable unset the directory is
+//! item 4580's, `~/ron-data/lab-experiments/2026-11-23-item-4580`. **A pass
+//! sets it to its own directory** (`docs/LOOP.md`, the pass's tenth act):
+//! the pass of 2026-11-23 ran this unset and wrote the tip's tables over the
+//! item's.
+//!
+//! **No gate builds the feature, so nothing here is held between passes.**
+//! Eighteen landings after it landed the fallback's pin read 21 where the
+//! tip fired 16, and the same run named row 133's first parting:
+//! `sim::orders::jobs::computer_repair_explore` entered once, on state 1906,
+//! where the units line parts on `order.type` 3 against 1.
 
 use crate::diff::held_out::tests::paths;
 use crate::diff::held_out::{Battery, FIFTH, FIRST, FOURTH, SECOND, SIXTH, THIRD};
@@ -110,8 +119,12 @@ fn count_battery(b: &Battery, file: &str) -> Option<Vec<Walk>> {
     let walks = walk_battery(b)?;
     let text = table(b.label, &walks);
     eprintln!("{text}");
-    let home = std::path::PathBuf::from(std::env::var_os("HOME").unwrap_or_default());
-    let dir = home.join("ron-data/lab-experiments/2026-11-23-item-4580");
+    let dir = std::env::var_os("RON_SEAMS_DIR")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| {
+            std::path::PathBuf::from(std::env::var_os("HOME").unwrap_or_default())
+                .join("ron-data/lab-experiments/2026-11-23-item-4580")
+        });
     if std::fs::create_dir_all(&dir).is_ok() {
         let _ = std::fs::write(dir.join(format!("seams-{file}.txt")), &text);
     }
@@ -141,14 +154,16 @@ fn fallback_rows(walks: &[Walk]) -> Vec<(usize, u64)> {
 /// hook laid on that `launch_point`) this counter reads the same five.
 /// After them, one row still enters it: row 133, 21 rounds from state
 /// 4370, past its first parting (956): keys no walk fired before 4574's
-/// rows moved its later states (parked 4580a).
+/// rows moved its later states (parked 4580a). **16 on `de60a62ee`** (the
+/// pass of 2026-11-23): items 4585 and 4594 moved row 133's game past its
+/// first parting, and the keys it fires there with it.
 const FALLBACK: [(&str, &[(usize, u64)]); 6] = [
     ("first", &[]),
     ("second", &[]),
     ("third", &[]),
     ("fourth", &[]),
     ("fifth", &[]),
-    ("sixth", &[(133, 21)]),
+    ("sixth", &[(133, 16)]),
 ];
 
 fn fallback_as_pinned(file: &str, walks: &[Walk]) {

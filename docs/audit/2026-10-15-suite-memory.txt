@@ -1,4 +1,4 @@
-# Every rondata release test's peak resident set alone, 2026-11-22, tools/suite_timings.py (tree cf483b9c).
+# Every rondata release test's peak resident set alone, 2026-11-23, tools/suite_timings.py (tree de60a62e).
 # /usr/bin/time -l, one test per process, --test-threads 1; MiB then the test; -1 when unread.
 5304	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 3662	diff::start::tests::every_lobby_s_start_built_from_its_choices
@@ -2054,6 +2054,7 @@
 66	diff::held_out::tests::row_100_s_jet_fighter_turns_through_set_angle_at_its_airbase_on_run1721_s_ranges
 66	diff::held_out::tests::row_95_s_ceo_dirties_its_economy_as_it_boards_its_freighter_on_run1770_s_ranges
 66	diff::held_out::tests::row_83_s_airbase_keeps_its_biplane_when_a_wonder_outscores_the_city_on_run1784_s_ranges
+65	diff::held_out::tests::row_93_s_volksgrenadiers_heal_beside_their_president_on_run1799_s_ranges
 65	diff::held_out::tests::row_110_s_special_forces_jam_the_tower_on_run1742_s_ranges
 65	diff::held_out::tests::row_10_s_helicopters_set_apart_keep_their_dest_angle_on_run1739_s_ranges
 65	checksum::playback::combat::window_a_unit_and_building_flags_match_on_both_sides_of_their_first_changes
@@ -2062,6 +2063,7 @@
 65	diff::held_out::tests::row_30_s_freighter_heads_its_cell_as_it_dies_into_its_platform_on_run1755_s_ranges
 65	diff::held_out::tests::row_83_s_taj_mahal_site_keeps_its_hits_through_a_blow_on_run1784_s_ranges
 65	diff::held_out::tests::row_43_s_slinger_stones_leave_from_piece_736_s_sockets_on_run1787_s_ranges
+64	diff::held_out::tests::row_133_s_computer_lists_no_bunker_in_its_attacked_capital_on_run1797_s_ranges
 64	diff::held_out::tests::row_103_s_president_clears_his_crew_by_their_cells_region_on_run1783_s_ranges
 64	diff::held_out::tests::row_63_s_fusilier_round_leaves_from_the_original_s_socket_on_run1782
 64	diff::held_out::tests::row_110_s_guided_rounds_re_plan_to_the_citizen_s_figure_height_on_run1742_s_ranges
@@ -2078,6 +2080,7 @@
 64	diff::held_out::tests::row_10_s_citizen_casting_the_transport_is_an_xport_peasant_on_run1739_s_ranges
 64	diff::held_out::tests::row_83_s_artillery_carries_the_supply_veto_s_mark_on_run1784_s_ranges
 64	diff::held_out::tests::row_43_s_village_holds_the_wounded_spearmen_on_run1787_s_ranges
+64	diff::held_out::tests::row_133_s_computer_calls_a_citizen_to_repair_its_capital_on_run1797_s_ranges
 63	diff::held_out::tests::the_sixth_held_out_eight_are_the_rows_the_rule_names_seated_and_scripted
 63	diff::held_out::tests::row_43_s_unbuilt_village_close_fixes_the_borders_on_run1787_s_ranges
 63	diff::held_out::tests::row_110_s_rider_leaves_an_empty_block_where_it_boarded_on_run1742_s_ranges
@@ -2115,6 +2118,7 @@
 62	diff::held_out::tests::row_60_s_observation_post_lights_seen3_on_run1722_s_ranges
 62	diff::held_out::tests::row_110_s_citizen_takes_the_civilian_heal_on_a_whole_unit_on_run1742_s_ranges
 62	diff::held_out::tests::row_23_s_fishermen_takes_copper_s_hit_points_on_run1781_s_ranges
+62	diff::held_out::tests::row_133_s_computer_offers_no_nuke_at_an_enemy_researching_the_shield_on_run1797_s_ranges
 61	diff::held_out::tests::row_83_s_computer_lists_a_caravan_by_its_ally_s_city_on_run1784_s_ranges
 61	diff::held_out::tests::row_30_s_decoy_member_lights_its_disc_on_run1755_s_ranges
 61	diff::held_out::tests::row_100_s_jet_fighter_walks_its_strafe_order_on_run1721_s_ranges
@@ -2124,6 +2128,7 @@
 61	diff::held_out::tests::row_140_s_dutch_merchants_keep_their_cached_armour_on_run1725_s_ranges
 61	diff::held_out::tests::row_90_s_barge_turns_with_the_snap_on_run1738_s_ranges
 61	diff::held_out::tests::row_75_s_crossbow_bolt_leaves_from_the_original_s_socket_on_run1768_s_ranges
+61	diff::held_out::tests::row_3_s_foundation_disband_refreshes_no_neighbour_on_run1796_s_ranges
 60	diff::held_out::tests::row_3_s_computer_blocks_on_its_captured_city_s_library_on_run1796_s_ranges
 60	diff::held_out::tests::row_100_s_strategic_bomber_drops_its_slot_s_last_accuracy_on_run1721_s_ranges
 60	diff::held_out::tests::row_60_s_pushed_caravan_keeps_its_crew_s_des_on_run1722_s_ranges
@@ -2133,6 +2138,7 @@
 60	stores::tests::the_frozen_leaves_every_store_writes_zero
 60	stores::tests::the_scan_s_premises_hold_on_the_image
 60	stores::tests::the_quiet_releases_writers_are_the_documented_ones
+60	diff::held_out::tests::row_33_s_musket_ball_leaves_from_the_original_s_socket_on_run1801_s_ranges
 59	diff::held_out::tests::row_140_s_dutch_seat_starts_with_both_stats_bits_on_run1725_s_ranges
 59	capture::archive::tests::byte_roundtrip_seeks_and_chunk_boundaries
 58	diff::held_out::tests::row_23_s_setup_claims_oil_under_the_colonized_limit_on_run1781_s_ranges
@@ -2306,6 +2312,7 @@
 6	diff::harness::prefix::tests::an_overlapping_walk_resumes_from_the_last_walk_s_start
 6	golden::tests::every_chapter_stages_what_it_says_it_stages
 6	golden::tests::an_issuer_line_naming_a_missing_object_is_refused_whole
+6	artdata::tests::the_minimap_colours_are_read
 5	diff::audit::the_closed_form_owes_the_same_audits
 5	diff::floors::tests::the_closed_form_is_every_row_whole
 5	artdata::tests::the_tileset_light_is_read

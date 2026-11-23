@@ -73,13 +73,6 @@ finish line's own counter, parity on the declared set (entry 143 §2).
 | **save and replay** | a game saved as seed plus orders, replayable here and written back into the original's recorded-game container | a saved game replays to the same hash; the original replays one of ours | the diff suite; the original on the capture lane | **step 3 stands** (`Recording:`): every recording on disk round-trips, and the original plays our order-free file for 24,000 of 24,000 frames (4058, run1560) |
 | **census** | the territory count tells the truth about the original's 3,611 simulation functions | ported · replaced by design · open, the readers' marks landed row by row (`docs/audit/2026-11-06-territory-*.md`; lore's scoring of the `replaced` groups) | `tools/census.py`'s pins | `Rubric:` 574 open of 3,611, 569 of them carrying a reader's ruling (entry 132); filler for an idle lane |
 
-**At the pass of 2026-11-18** (entry 142): **checksum** — parity reads 5 of 6 games: the minted game and four live windows the client
-recorded and the original played back (Codex, items 4362 to 4373), two with combat, so the ammo and deaths records are exercised; the sixth, the
-2017 sample, parts on state 0 on four lines and is read from there (item 4384); `LEADERS_HELD_OUT` 1, the demand's walk at 5677 of 6,081 after
-ten lanes, and the leaf is now tried on a small game our walk holds, found by a sweep in our own sim (item 4382); **orders** — every input
-kind is minted and the blind list is closed; the Repair pick's order is the last unplayed arm (item 4383); **renderer** — the settled border's
-band is blended in HDR and reads theirs' lavender; its row is re-fit to read by value (item 4385), and the seat then returns to the lake by the card's own draws (item 4386; entry 142 §7).
-
 **At the pass of 2026-11-18, second** (entry 143): **the milestone is closed**; **checksum** — step 5 ratified, nine of twelve lines
 on frame 91 and all twelve on every frame of the minted game; parity 5 of 6, the sample's state 0 at 3 parted ranges (item 4397); the
 demand's game, whole on 6,401 states, is played to its end, which ours reaches on 10929 (item 4396); the packets' lines, 608 of 1,053,
@@ -156,6 +149,15 @@ units and cities on one state and take one seat (item 4576), and the sixth's wal
 (item 4574); a seventh battery is named; the packets' lines 950 of 1,053; **orders** — whole by its counters; **renderer** — no
 landing; Ramon gives the fourth seat to the client, and it draws the minimap, which the window lacks (item 4581); item 4580
 counts the sim's `SEAM`s the held-out games enter.
+
+**At the pass of 2026-11-23** (entry 154): **checksum** — parity 47 of 55 (the sixth folded; rows 3, 33 and 73 whole); the sample
+parts first on leaders 7502 of 21,044, draws 7613, moved by a row's fix; parity held out 8, 8, 8, 8, 6 and 3 of 8 now, the sixth's
+reach 59 % and 74 % inside its first 6,001 states; the seats by first parting bought 621 states a landing against 197; the seam
+counter, run at the tip, named row 133's first parting (item 4597) and is the pass's tenth act, and item 4599 hooks the notes
+it does not reach; rows 93 and 83 take one seat (item 4590); the held-out tests fail on whole lines and first partings alone
+(item 4598); the seventh battery's human orders through the game (item 4600); the packets' lines 950 of 1,053; **orders** — whole
+by its counters; **renderer** — the client draws the minimap, 2,808 of 3,600 cells within 32 of the photograph's (items 4581 to
+4588), the blips next (item 4596); a lane's clock runs after its release step.
 
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it
