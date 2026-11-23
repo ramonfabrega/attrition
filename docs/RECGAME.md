@@ -1727,7 +1727,9 @@ and its one caller is `do_trade` (`:363`, `:371`, one add on each end). `Array<C
 the rest down, and its one caller is `end_trade_route`. So a city's links stand in the order they were made. This
 crate walked them by owner, then slot (`docs/CHECKSUM.md` §12, an assumption until now). The fix stamps each link
 when `do_trade` makes it (`Caravan::linked_at`, one past any standing link's), and `Sim::city_links` walks by the
-stamp. Membership is unchanged. `City::close`'s repath walk (`close_city_caravans`) reads the same order.
+stamp. Membership is unchanged. `City::close`'s repath walk (`close_city_caravans`) reads the same order. The fix
+also closes run1325c's packet on 5578 (the American Enlightenment pair): cities 2 ranges parted → 0, its who=1 city 3
+holding `(4,1) (3,1)`.
 
 Held by `diff::held_out::tests::row_113_s_city_walks_its_caravan_links_in_the_order_they_were_made_on_run1802_s_ranges`
 (every cities range on 3994 to 3996; red at range 11 on 3995 with the sort removed) and by
