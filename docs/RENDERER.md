@@ -4748,12 +4748,38 @@ terrain mesh.
   corners. Ours does not keep that exception.
 - The rivers (cell bit `0x1000`, tile bit `0x800`) are opaque in
   `minimap_color`. The mountains (cell bits `0x50`, tile height class 1
-  or 2) are drawn at alpha `0x77` and added (`dst_blend` ONE). Neither is
-  built.
+  or 2) are drawn at alpha `0x77` and added (`dst_blend` ONE). The rivers
+  are not built; the mountains are (item 4586, below).
 - Ours: `minimap::paint_cells` over the still, each pixel taking the cell
   its centre falls in. Within 32: **2,288 → 2,419** (+131), the water
   counts unmoved (`[425, 596, 500, 3354, 2419, 3600]`). Without it the row
   reads 2,288 again.
+
+**The mountains (item 4586).** *Opus 5.5; the ledger:
+`docs/journal/2026-11-23-item-4586.md`.* The land 4584 left darker was
+not the land's light: on the row's cells theirs over ours is 1.00 at the
+median, and the darker cells lie in blobs a few cells across, on the
+ranges. They are the mountain feature, drawn last.
+- `render_feature` under `MOUNTAIN_FEATURE` lays every cell whose flags
+  carry `0x50` (`MOUNTAIN` or `CLIFF`) again as its terrain mesh. Its 25
+  vertices are `0x00ffffff`, white at alpha 0. Then, for each of the
+  cell's sixteen tiles whose object field (`mask & 3`) is 2 or 1 (a
+  mountain or a cliff), the tile's four corners take `0x77 |` the
+  tileset's `<MOUNTAINS minimap_color>`, (133, 127, 105) on
+  `early_autumn`.
+- `mountain_feature_rs` selects the vertex colour and alpha and blends
+  `SRCALPHA`, `ONE` (the constructor, `WorldMapBackground@008d0f30`):
+  the colour, times its alpha, is added. A tile wholly inside a range
+  adds (62, 59, 49).
+- Ours: `minimap::add_mountains` over the still, after the forests. Each
+  tile is interpolated bilinearly over its corners, which is an
+  assumption: the mesh's diagonal is not read. Cell (2, 3) is theirs
+  (130, 127, 76) and was ours (92, 90, 53); it is now (154, 149, 102).
+- The row: `[416, 596, 475, 3361, 2629, 3600]` → `[416, 596, 475, 3361,
+  2769, 3600]`, within 32 **+140** (151 cells in, 11 out), the water
+  counts unmoved. Without it the row reads 2,629 again. The 11 out are
+  cells on a range's edge where ours adds the whole colour and theirs
+  less (4586a).
 
 **What the rest is.** Of the 1,181 unequal cells, theirs reads as an
 overlay on 267: 89 white (the view rectangle and blips), 137 the blue
@@ -4763,9 +4789,13 @@ unsorted.
 **Not established.**
 - ~~The background's colour, its forest blobs~~: the forests are drawn
   (above). ~~The tone~~: built (item 4584).
-- The land under `NO_HDR` reads darker than theirs. Cell (2, 3) is theirs
-  (130, 127, 76) and ours (92, 90, 53). This is most of the 72 cells
-  item 4584 lost (4584b).
+- ~~The land under `NO_HDR` reads darker than theirs (4584b)~~: it was
+  the mountain feature, built (item 4586, above). Where a range's edge
+  meets plain land, ours adds more than theirs on 11 cells, e.g. (34, 26)
+  theirs (195, 190, 132), ours (237, 226, 153); which tiles theirs
+  colours there is not read (4586a). In a range's heart theirs is
+  brighter still: cell (3, 3) is theirs (211, 209, 155), ours (149, 134,
+  81) (4586b).
 - The coral patches on the ocean cells' transitions still draw at the
   flat white vertex: cyan specks inside the lakes that theirs does not
   show. Cell (46, 48) is theirs (24, 100, 123) and ours (56, 219, 220)
@@ -4775,7 +4805,7 @@ unsorted.
   each frame, and ours lays it at the minimap camera's ramp (4584c).
 - ~~Whether the original tone-maps the background~~: it does not
   (above).
-- The rivers and the mountains as features (above).
+- The rivers as a feature (above). ~~The mountains~~: built (item 4586).
 - The fog, the borders, the blips and the view rectangle (above).
 - `setup_camera`'s own `dir`: the decompile loses the register, and the
   axes rest on the minimap camera's corners.
