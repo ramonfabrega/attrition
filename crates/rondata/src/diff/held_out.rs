@@ -3040,7 +3040,7 @@ pub(crate) mod tests {
             let (fails, drift) = held_verdict(&want, &got);
             for d in &drift {
                 eprintln!(
-                    "HELD OUT DRIFT row {} run{}: {d} (past the first parting; printed, not held)",
+                    "HELD OUT DRIFT row {} run{}: {d} (printed, not held)",
                     held.row,
                     b.run + k
                 );
