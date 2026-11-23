@@ -1124,6 +1124,185 @@ mod tests {
         assert_eq!((wb.damage / 1000 + 1000) * 10 / (d / 768 + 1), 217);
     }
 
+    /// Probe (item 4562, reverted whole): row 83's lines on run1784 around
+    /// 3359, every parted byte.
+    #[test]
+    fn probe_4562_row_83_units() {
+        if std::env::var("RON_PROBE_4562").is_err() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+            return;
+        };
+        let map = home.join("ron-golden/run1784/map-14");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            return;
+        };
+        let lo: i64 = std::env::var("RON_PROBE_LO")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(3641);
+        let hi: i64 = std::env::var("RON_PROBE_HI")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(3646);
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 83's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+                crate::diff::harness::debug_watch(&built, built.sim.frame);
+            }
+            let Some(set) = record.first_of(state - 1).cloned() else {
+                eprintln!("P4562 state {state} no set");
+                continue;
+            };
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            if let Some(ours) = lines[0].as_ref() {
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+                let want: i64 = std::env::var("RON_PROBE_REC")
+                    .ok()
+                    .and_then(|v| v.parse().ok())
+                    .unwrap_or(117);
+                for (k, a) in ours.ranges.iter().enumerate() {
+                    if i64::from(a.record) == want
+                        && k < 7702
+                        && (a.field == "who..y_internal" || a.field == "type")
+                    {
+                        eprintln!(
+                            "P4562 state {state} rec {want} range {k} {} ours {:02x?} theirs {:02x?}",
+                            a.field,
+                            a.bytes,
+                            theirs.get(k).map(|t| t.bytes.clone())
+                        );
+                    }
+                }
+            }
+            if let (Ok(who_want), Some(ob)) = (std::env::var("RON_PROBE_CHAIN"), lines[1].as_ref()) {
+                let who_want: i64 = who_want.parse().unwrap_or(2);
+                let tb: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+                let mut who_o = -1i64;
+                let mut who_t = -1i64;
+                let mut ty = -1i64;
+                for (a, r) in ob.ranges.iter().zip(&tb) {
+                    if a.field == "who..y_internal" {
+                        who_o = i64::from(a.bytes[0]);
+                        who_t = i64::from(r.bytes[0]);
+                    }
+                    if a.field == "orig_type" {
+                        ty = i64::from(i32::from_le_bytes(a.bytes[..4].try_into().unwrap()));
+                    }
+                    if a.field == "gather_down..infiltrate2" && (who_o == who_want || who_t == who_want) {
+                        let g = |b: &[u8], at: usize| i64::from(i16::from_le_bytes([b[at], b[at + 1]]));
+                        let mark = if a.bytes != r.bytes { " <<" } else { "" };
+                        eprintln!(
+                            "P4562C state {state} o {} who {who_o}/{who_t} prevty {ty} city {}/{} down {}/{}{mark}",
+                            a.record, g(&a.bytes, 2), g(&r.bytes, 2), g(&a.bytes, 4), g(&r.bytes, 4)
+                        );
+                    }
+                }
+            }
+            if let Ok(spec) = std::env::var("RON_PROBE_BUILD") {
+                let want: i64 = spec.parse().unwrap_or(2036);
+                for (bi, b) in built.sim.buildings.iter().enumerate() {
+                    if i64::from(b.index) == want {
+                        eprintln!(
+                            "P4562B state {state} ours b{bi} who {:?} o {} pos {:?} alive {} started {} orig_ty {:?} city {:?} hits {} chits {} ctime {}",
+                            b.owner, b.index, b.pos, b.alive, b.started,
+                            b.orig_ty.map(|t| format!("{:?}", built.sim.tables.build_types[t].ident)),
+                            b.city, b.hits, b.construct_hits, b.constr_time
+                        );
+                    }
+                }
+                if let Some(ob) = lines[1].as_ref() {
+                    let tb: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+                    for (a, r) in ob.ranges.iter().zip(&tb) {
+                        if i64::from(a.record) != want {
+                            continue;
+                        }
+                        let fo = crate::checksum::fields::range_fields("builds", &a.field, &a.bytes);
+                        let ft = crate::checksum::fields::range_fields("builds", &a.field, &r.bytes);
+                        eprintln!("P4562B state {state} {} ours {:?} theirs {:?}", a.field, fo, ft);
+                    }
+                }
+            }
+            for li in 0usize..12 {
+                if let (Some(ours), true) = (lines[li].as_ref(), std::env::var("RON_PROBE_DEC").is_ok()) {
+                    let names: Vec<&str> = crate::checksum::CHECKSUM_LINES.iter().map(|l| l.0).collect();
+                    let theirs: Vec<_> = all.iter().filter(|r| usize::from(r.line) == li).collect();
+                    for (a, b) in ours.ranges.iter().zip(&theirs) {
+                        if a.bytes != b.bytes {
+                            let d = crate::checksum::fields::differing_fields(names[li], &a.field, &a.bytes, &b.bytes);
+                            eprintln!("P4562D state {state} {} record {} {} {:?}", names[li], a.record, a.field, d);
+                        }
+                    }
+                }
+            }
+            for li in 0usize..12 {
+                let Some(ours) = lines[li].as_ref() else {
+                    continue;
+                };
+                let theirs: Vec<_> = all.iter().filter(|r| usize::from(r.line) == li).collect();
+                if ours.ranges.len() != theirs.len() {
+                    eprintln!(
+                        "P4562 state {state} line {li} count ours {} theirs {}",
+                        ours.ranges.len(),
+                        theirs.len()
+                    );
+                }
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    if a.bytes == b.bytes {
+                        continue;
+                    }
+                    let mut diffs = Vec::new();
+                    for (i, (x, y)) in a.bytes.iter().zip(&b.bytes).enumerate() {
+                        if x != y {
+                            diffs.push(format!("{i}:{x:#04x}/{y:#04x}"));
+                        }
+                    }
+                    if diffs.len() > 40 {
+                        diffs.truncate(40);
+                        diffs.push("...".into());
+                    }
+                    let head = |j: usize| -> String {
+                        (j.saturating_sub(3)..j)
+                            .map(|q| {
+                                format!(
+                                    "[{} {} {:02x?}]",
+                                    q,
+                                    ours.ranges[q].field,
+                                    &theirs[q].bytes[..theirs[q].bytes.len().min(12)]
+                                )
+                            })
+                            .collect::<Vec<_>>()
+                            .join(" ")
+                    };
+                    eprintln!(
+                        "P4562 state {state} line {li} range {k} record {} {} len {}/{} {} | ctx {}",
+                        a.record,
+                        a.field,
+                        a.bytes.len(),
+                        b.bytes.len(),
+                        diffs.join(" "),
+                        head(k)
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 103's caravan road is laid on the frame after the budget**
     /// (item 4544, `docs/ROADS.md` §8.3): run1783, the ranges take of
     /// row 103's file. A caravan's road search costs 3,207, 3,202 and
