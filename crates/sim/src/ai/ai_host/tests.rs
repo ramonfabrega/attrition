@@ -180,6 +180,101 @@ fn a_raid_is_the_city_s_raid_stamp_and_an_attack_its_attack_stamp() {
     assert_eq!(ask(&mut sim, "was_city_attacked", -1), OK);
 }
 
+/// **The scripts' `""` reads the leader's first live city alone** (item
+/// 4548; `get_city_index@009e2ba0` matches a city's `id`, empty on every
+/// random-map city, so `was_city_attacked@009fd510`'s walk over every city
+/// runs only for a name no city holds). run1796's who=1 has its third
+/// city captured on 4756, stamped 4756, and its first city unstamped; the
+/// original's `defensive` head answers no attack on 4776 and blocks. A
+/// zero stamp is no attack under a window too, on the found city's arm.
+#[test]
+fn the_empty_city_name_asks_the_first_live_city_alone() {
+    let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(2, 2), 1);
+    let city = |capital: bool| crate::cities::city::City {
+        alive: true,
+        owner: 0,
+        race: Some(0),
+        founder: 0,
+        building: 0,
+        members: Vec::new(),
+        reg: None,
+        pos: Pos::new(0, 0),
+        capital,
+        founding_capital: capital,
+        was_founding_capital: false,
+        unassimilated: false,
+        no_heal: false,
+        attacking: false,
+        ever_attacked: false,
+        alarm: false,
+        no_muster: false,
+        was_capital: 0,
+        capture_stamp: 0,
+        assimilation_timer: 0,
+        attack_stamp: 0,
+        reduce_stamp: 0,
+        raid_stamp: 0,
+        scouted: 0,
+        capture_strength: 0,
+        pop: 0,
+        has_citizen: false,
+        source: None,
+        trade_val: 0,
+        traded_with: [0; 8],
+    };
+    sim.cities.cities.push(city(true));
+    sim.cities.cities.push(city(false));
+    sim.cities.cities.push(city(false));
+    sim.frame = 4776;
+    let ask = |sim: &mut Sim, f: &str, name: &str, seconds: i32| {
+        let mut h = ScriptHost { sim, who: 0 };
+        h.call(
+            f,
+            &[
+                Value::Int(1),
+                Value::Str(name.to_string()),
+                Value::Int(seconds),
+            ],
+        )
+        .unwrap()
+    };
+    sim.cities.cities[2].attack_stamp = 4756;
+    sim.cities.cities[2].raid_stamp = 4756;
+    assert_eq!(
+        ask(&mut sim, "was_city_attacked", "", -1),
+        NO,
+        "the third city's stamp is not the first's"
+    );
+    assert_eq!(ask(&mut sim, "was_city_raided", "", -1), NO);
+    assert_eq!(
+        ask(&mut sim, "was_city_attacked", "City 2", -1),
+        OK,
+        "by its name"
+    );
+    assert_eq!(
+        ask(&mut sim, "was_city_attacked", "Nowhere", -1),
+        OK,
+        "a name no city holds walks them all"
+    );
+    assert_eq!(
+        ask(&mut sim, "was_city_attacked", "", 400),
+        NO,
+        "no stamp is no attack, inside any window"
+    );
+    sim.cities.cities[0].alive = false;
+    assert_eq!(
+        ask(&mut sim, "was_city_attacked", "", -1),
+        NO,
+        "the first live city is the second, unstamped"
+    );
+    sim.cities.cities[1].alive = false;
+    assert_eq!(
+        ask(&mut sim, "was_city_attacked", "", -1),
+        OK,
+        "and then the third"
+    );
+}
+
 /// **A cursor past the leader's last object restarts the lap at `base + 1`**
 /// (item 4546; `ScenarioFuncSet::find_build@009e2970`'s and
 /// `find_unit@009e2850`'s opening: a counter at or past the player's count,
