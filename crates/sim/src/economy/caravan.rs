@@ -189,6 +189,15 @@ impl Sim {
         if idle != threshold && !(idle - 2).is_multiple_of(5) {
             return false;
         }
+        self.think_caravan_now(u)
+    }
+
+    /// `think_caravan(this, 1)`: the search and the order without the idle
+    /// gate — `param_1` nonzero skips it (`005f5650:8`). `do_trade`'s
+    /// `LAB_005eda11` calls it this way when the kill left the unit with no
+    /// order (`5eda1c`..`5eda27`), so a refused route is given again on the
+    /// same tick, partnerless (item 4583, run1800).
+    pub(crate) fn think_caravan_now(&mut self, u: usize) -> bool {
         let Some(home) = self.find_trade_city(self.units[u].owner, self.units[u].pos) else {
             return false;
         };
@@ -286,6 +295,17 @@ impl Sim {
         c.owner == who || self.was_seen_fog(c.pos.tile().x >> 1, c.pos.tile().y >> 1, who)
     }
 
+    /// `do_trade@005ed270`'s `LAB_005eda11` (`5eda11`..`5eda27`): the order
+    /// is killed, and a unit left with none thinks again **ungated**
+    /// (`think_caravan(1)`), so a caravan whose route was refused holds a
+    /// fresh, partnerless `TRADE_ROUTE` at the end of the tick.
+    fn trade_give_up(&mut self, u: usize) {
+        self.kill_current_order(u);
+        if self.current_order(u).is_none() {
+            self.think_caravan_now(u);
+        }
+    }
+
     /// `Unit::add_trade_order@005e4dc0` with `QUEUE_NEW` and no far city:
     /// the order list is cleared and one `TRADE_ROUTE` put on it.
     fn add_trade_order(&mut self, u: usize, home: usize) {
@@ -336,7 +356,7 @@ impl Sim {
             return;
         };
         if !self.cities.cities[ord.home].alive {
-            self.kill_current_order(u);
+            self.trade_give_up(u);
             return;
         }
         // **The caravan and its home city in two regions** (the
@@ -350,7 +370,7 @@ impl Sim {
             .tregion_alt(self.cities.cities[ord.home].pos.tile());
         let transport = self.unit_can_transport(u);
         if at != home_at && !transport {
-            self.kill_current_order(u);
+            self.trade_give_up(u);
             return;
         }
         if ord.dest.is_none() {
@@ -370,11 +390,27 @@ impl Sim {
         // off it, needs `can_transport`.
         let dest_at = self.world.tregion_alt(self.cities.cities[dest].pos.tile());
         if (at != home_at || home_at != dest_at) && !transport {
-            self.kill_current_order(u);
+            self.trade_give_up(u);
             return;
         }
         if ord.started {
             self.trade_legs(u, v, ord);
+            return;
+        }
+        // **The link's own gate** (`5ed97a`..`5ed9b9`, ahead of the two
+        // `get_empty_trade_routes` and the link): unless both the partner
+        // and the home are the caravan owner's, its leader must
+        // `has_preq(BASE_BONUSTYPES)` (`0x6db810` at `5ed99b`), else
+        // `LAB_005eda11`. The partner search admits only the owner's own
+        // cities when the home is an ally's, so a caravan homed on an
+        // ally's city without the preq is refused here every tick: its
+        // partner is written, the order killed and given again (item 4583;
+        // run1800's packet at 1563, row 73's who=2 Caravan `2/31` homed on
+        // who=1's city 3, `docs/CARAVAN.md` §4).
+        let home_owner = self.cities.cities[ord.home].owner;
+        let dest_owner = self.cities.cities[dest].owner;
+        if !(dest_owner == who && home_owner == who) && !self.ally_caravan_preq_held(who) {
+            self.trade_give_up(u);
             return;
         }
         // The nearer city becomes the route's `city2` — the search's start —
@@ -466,10 +502,7 @@ impl Sim {
         // which is how a route survives its city being replaced in the
         // slot; this crate holds the city index and asks the city.
         if !self.cities.cities[home].alive || !self.cities.cities[dest].alive {
-            self.kill_current_order(u);
-            if self.current_order(u).is_none() {
-                self.think_caravan(u);
-            }
+            self.trade_give_up(u);
             return;
         }
         let target = if ord.loaded { home } else { dest };

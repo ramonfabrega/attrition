@@ -1069,6 +1069,12 @@ fn scaling_splits_into_whole_and_sixteenths() {
         scale(-5, 0x100, true, false, 1, 1),
         Sixteenths { whole: 1, frac: 0 }
     );
+    // **The product wraps** (`64a701`'s `imull`, item 4583): an ICBM's
+    // 12,000,000 at count 219 passes 2^31, and the floor makes it one hit.
+    assert_eq!(
+        scale(12_000_000, 219, true, false, 1, 1),
+        Sixteenths { whole: 1, frac: 0 }
+    );
     // A building's volley divides by ammo per attack and has no floor.
     assert_eq!(
         scale(8, 0x100, false, true, 4, 1),

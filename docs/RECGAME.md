@@ -1631,10 +1631,13 @@ and 3; `cat` 8 and 6).
 *Diff-backed*: every number above (the hook's twelve sums on every state, ours against theirs), and row 133's leaf on
 955 to 958 (every leaders range). *Read, not diffed*:
 that `script_rule`'s choices are what a person would make; only their effect on the original is compared. *Not
-established*: no other row names a leaf, since each take holds sums only, but row 73 (item 4576, run1798's ranges: on 1563
-who=2's Caravan `2/31` links its trade order to its ally who=1's city 3 in ours, while theirs' order keeps no partner
-through 1573 and is gone by 1575; `docs/journal/2026-11-23-item-4576.md`); a script past §9's three orders, or one issued
-after frame 90; whether row 13's 7675 and the sample's 7055 are one mechanism.
+established*: no other row names a leaf, since each take holds sums only, but row 73. Item 4576 read it off run1798's
+ranges: on 1563, who=2's Caravan `2/31` is homed on its ally who=1's city 3, and ours links its trade order. Item 4583
+built why theirs does not (run1800's packet, `docs/CARAVAN.md` §4): `do_trade`'s link gate refuses a home that is not
+the caravan owner's without `has_preq(BASE_BONUSTYPES)`, and `LAB_005eda11` gives the order again. That moved rows 73
+(first parting 1563 → 2779), 33 (whole but ammo, first 3386) and 113 (whole but cities, first 3995); none of the three
+new partings is read. Also not established: a script past §9's three orders, or one issued after frame 90; whether row
+13's 7675 and the sample's 7055 are one mechanism.
 
 **Row 93's first leaf: the President heals** (item 4577, run1799). run1799 is row 93's
 file to 12,000 with the checksum and ranges hooks (`RNG_MASK=0xffbu`). On state 2342, units range 1359 (record 39,
