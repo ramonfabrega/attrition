@@ -6740,7 +6740,7 @@ fn a_fire_raft_dies_with_its_shot() {
     };
     let raft = sea_type(&mut sim, crate::ai::ai_load::uflags::SELF_DESTRUCT);
     let frigate = sea_type(&mut sim, 0);
-    let mut fire = |sim: &mut Sim, ty: usize, x: i32| -> usize {
+    let fire = |sim: &mut Sim, ty: usize, x: i32| -> usize {
         let me = put(sim, 0, ty, Pos::new(0x1000 + x, 0x1000));
         sim.units[me].guys = vec![anim::Guy::fresh(-1)];
         let foe = put(sim, 1, frigate, Pos::new(0x1000 + x, 0x1100));
