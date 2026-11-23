@@ -139,6 +139,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the held-leaf probe (item 4159's eighteenth residue): off unless switched on by name, it reports the cells the leader-record sites already compare; it compares no field itself",
     ),
     (
+        "diff/held_seams.rs",
+        "the held-out walks' seam counter (item 4580): compiled only under the seam-count feature, it lists the sim's seam! hooks each walk enters and pins launch_point's fallback rounds; it compares no field",
+    ),
+    (
         "diff/transfer.rs",
         "the transfer harness (item 4159's step T): the crate's steps run on the original's printed record against its next printed record; no simulation runs, so no field of ours is compared",
     ),
