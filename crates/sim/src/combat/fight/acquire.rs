@@ -159,6 +159,10 @@ impl Sim {
         // is the action-is-an-attack arm (`600516`, `jmp 600877`), which
         // this crate carries as the `target` test above; an attack action
         // with no target keeps the old path (SEAM).
+        crate::seam!(
+            "attack_action_no_target",
+            st.target.is_none() && self.action_is_attack(responder)
+        );
         if !yielded
             && front.is_some()
             && !self.action_is_attack(responder)

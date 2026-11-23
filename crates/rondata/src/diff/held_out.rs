@@ -1361,6 +1361,78 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 133's repair recruit walks under a move order** (item 4597):
+    /// run1797 again. On 1905 `2/72` holds the capital's `REPAIR`; on 1906
+    /// `Unit::do_repair` swarms it to the site through
+    /// `Group::action_swarm_around@0070fbe0`, whose approach class
+    /// `local_40` is 1 (`MOVE_TO`) unless the order is `BUILD_AT` for a
+    /// computer (`:115`). Ours walked it under `EXPLORE_TO`: units range
+    /// 3967, record 72, `order.type` ours 3, theirs 1. Every units range on
+    /// 1905 and 1906, ours against theirs, byte for byte, and `2/72`'s
+    /// head on 1906 a `MOVE_TO` ahead of the repair.
+    #[test]
+    fn row_133_s_repair_recruit_walks_under_a_move_order_on_run1797_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 1905..=1906 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[0].as_ref().expect("the units line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+        let u = (0..built.sim.units.len())
+            .find(|&u| built.sim.units[u].owner == 2 && built.sim.units[u].index == 72)
+            .expect("2/72");
+        let capital = built.sim.building_by_o(2, 2000).expect("2/2000");
+        let orders = &built.sim.units[u].orders;
+        assert!(
+            matches!(
+                orders.front().map(|o| &o.body),
+                Some(sim::orders::Body::Move(m)) if m.kind == sim::orders::MoveKind::MoveTo
+            ),
+            "2/72's head on 1906 is a MOVE_TO: {orders:?}"
+        );
+        assert!(
+            orders
+                .iter()
+                .any(|o| matches!(o.body, sim::orders::Body::Repair(b) if b == capital)),
+            "2/72 still repairs the capital on 1906"
+        );
+    }
+
     /// **Row 83's computer lists a caravan by its ally's city** (item
     /// 4545, `docs/CARAVAN.md` §4): run1784, the ranges take of row 83's
     /// file. On 1956 who=2 (the added computer, team 0 with the human)
@@ -10557,14 +10629,18 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // -> 2,228 (first 2212), cities 1,951 -> 2,526 (first 2297), items
         // 2,676 -> 2,464 (first 2310 -> 2464), goods 2,418 -> 2,403 (first
         // 2418 -> 2403), world 1,906 -> 2,234 (first 2215); the first
-        // parting is units alone on 1906.
+        // parting is units alone on 1906. Then by item 4597 (a computer's
+        // repair swarm walks under `MOVE_TO`, `local_40` being 3 for
+        // `BUILD_AT` alone: `2/72`'s `order.type` ours 3, theirs 1 on 1906,
+        // both 1 now): units 2,126 -> 2,199 (first 1906 -> 2199); no other
+        // line moved, and the first parting is builds alone on 2166.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                2126, 2166, 6085, 2770, 2529, 2319, 2199, 2228, 2526, 2464, 2403, 2234,
+                2199, 2166, 6085, 2770, 2529, 2319, 2199, 2228, 2526, 2464, 2403, 2234,
             ],
             first: &[
-                ("units", (1906, Some(1946974484), 1532918034)),
+                ("units", (2199, Some(1612008737), 1025068445)),
                 ("builds", (2166, Some(2503049249), 2722332706)),
                 ("ammo", (2198, Some(2543630524), 2764270736)),
                 ("deaths", (2380, Some(2707033464), 2702642551)),

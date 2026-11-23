@@ -633,7 +633,20 @@ impl Sim {
                 let o = &self.tech[p];
                 mine + 3 < o.ages + o.epochs
             })
-            .map(|p| if self.is_ally(p as Player, who) { 1 } else { 2 })
+            .map(|p| {
+                // The SEAM's arm: a seat on team 8 under team style 7 is
+                // nobody's team, so the original counts 2 where an ally here
+                // counts 1.
+                crate::seam!(
+                    "epoch_team_style_7",
+                    self.ai.lobby.team_style == 7
+                        && self.is_ally(p as Player, who)
+                        && [p, who as usize]
+                            .iter()
+                            .any(|&s| self.leaders.team.get(s) == Some(&8))
+                );
+                if self.is_ally(p as Player, who) { 1 } else { 2 }
+            })
             .sum();
         if n == 0 {
             return Vec::new();
@@ -672,7 +685,20 @@ impl Sim {
                 let o = &self.tech[p];
                 mine + 1 < o.ages + i32::from(o.ages_queued)
             })
-            .map(|p| if self.is_ally(p as Player, who) { 1 } else { 2 })
+            .map(|p| {
+                // The SEAM's arm: a seat on team 8 under team style 7 is
+                // nobody's team, so the original counts 2 where an ally here
+                // counts 1.
+                crate::seam!(
+                    "age_team_style_7",
+                    self.ai.lobby.team_style == 7
+                        && self.is_ally(p as Player, who)
+                        && [p, who as usize]
+                            .iter()
+                            .any(|&s| self.leaders.team.get(s) == Some(&8))
+                );
+                if self.is_ally(p as Player, who) { 1 } else { 2 }
+            })
             .sum();
         if n == 0 {
             return Vec::new();
@@ -1849,7 +1875,11 @@ impl Sim {
                 && self.buildings[at].gather.is_empty()
                 && self.air_line_is(unit, crate::air::airbase::HELICOPTER))
         {
-            self.come_out(unit);
+            // The SEAM's arm: `come_out` refused, on which the original's
+            // unit dies and this one stays inside.
+            if !self.come_out(unit) {
+                crate::seam!("come_out_refused");
+            }
         }
         // **Under a gather point the aircraft takes a patrol over the list**
         // (item 947, `docs/PRODUCTION.md` "The gather point"; `62fadf`..
@@ -1900,6 +1930,17 @@ impl Sim {
         // clean; `Build::queue_up` raises nothing either.
         // SEAM: `Unit::init`'s Americans' Barracks arm is not modelled
         // (its Lakota arm is built, `docs/AI.md` §219).
+        crate::seam!(
+            "americans_barracks",
+            self.building_ident(at) == crate::cities::build::Ident::Barracks
+                && self.tech.get(who as usize).is_some_and(|p| {
+                    self.tables.tech_tree.has_tribe_bonus(
+                        &self.tables.setup,
+                        p,
+                        crate::ai::tribe::AMERICANS,
+                    )
+                })
+        );
         let container = matches!(
             self.building_ident(at),
             crate::cities::build::Ident::University | crate::cities::build::Ident::OilPlatform
@@ -1964,6 +2005,16 @@ impl Sim {
         let Some(rec) = self.unit_record(t) else {
             return;
         };
+        crate::seam!(
+            "carrier_queued",
+            self.tables.tech_tree.is(t, 0x134, false)
+                && self.units.iter().any(|u| {
+                    u.alive()
+                        && u.owner == who
+                        && u.ty
+                            .is_some_and(|t| self.tables.unit_types[t].type_index == 0x15f)
+                })
+        );
         let from = self.tables.tech_tree.get_graft(
             &self.tables.setup,
             &self.tech[who as usize],

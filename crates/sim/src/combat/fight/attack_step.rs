@@ -333,6 +333,14 @@ impl Sim {
     /// SEAM: an `ATTACK_GROUND` order with no aim bears on the order's
     /// point in the original; this crate writes nothing for it.
     pub(crate) fn set_all_pivots(&mut self, i: usize, g: usize, target: Option<Obj>) -> bool {
+        crate::seam!(
+            "attack_ground_aim",
+            target.is_none()
+                && matches!(
+                    self.current_order(i).map(|o| &o.body),
+                    Some(crate::orders::Body::AttackGround(_))
+                )
+        );
         let Some(ty) = self.units[i].ty else {
             return false;
         };
@@ -436,6 +444,7 @@ impl Sim {
         if !t.cols.flag(uflags::SIDEWAYS) {
             return direct;
         }
+        crate::seam!("sideways_at_building", matches!(target, Obj::Building(_)));
         /// `TypeIndex::PATROLBOAT`.
         const PATROLBOAT: i32 = 0x185;
         if t.type_index == PATROLBOAT && matches!(self.profile(target).domain, Domain::Sea) {
@@ -491,6 +500,17 @@ impl Sim {
         let rocks = self.units[i]
             .ty
             .is_some_and(|t| self.tables.unit_types[t].cols.flag(uflags::ROCKS));
+        crate::seam!(
+            "patrolboat_swing",
+            !rocks && self.units[i].type_index == 0x185
+        );
+        crate::seam!(
+            "flag_400_swing",
+            !rocks
+                && self.units[i]
+                    .ty
+                    .is_some_and(|t| self.tables.unit_types[t].cols.flag(0x400))
+        );
         if rocks {
             let attack_angle = self.units[i].movement.heading;
             let slot = if angle.0.wrapping_sub(attack_angle.0) >= 0 {
@@ -843,6 +863,7 @@ impl Sim {
                 .ty
                 .and_then(|t| {
                     let ti = self.tables.unit_types[t].type_index;
+                    crate::seam!("merchant_fire_proj", matches!(ti, 0x3d | 0x3e | 400));
                     self.roster.art.fire_proj.get(&ti).copied()
                 })
                 .unwrap_or(combat::FIRST_AMMO_PIECE),

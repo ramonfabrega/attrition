@@ -334,8 +334,10 @@ impl crate::Sim {
             Some(crate::orders::Body::Attack(_))
         ) && self.units[u].combat.mandatory;
         let (me, tp) = (self.units[u].pos, self.units[t].pos);
-        !mandatory
-            || vector_dist(tp.x - me.x, tp.y - me.y) < melee_far(self.max_range_of(Obj::Unit(u)))
+        let near =
+            vector_dist(tp.x - me.x, tp.y - me.y) < melee_far(self.max_range_of(Obj::Unit(u)));
+        crate::seam!("mandatory_far", mandatory && !near);
+        !mandatory || near
     }
 
     /// **`find_attack_pos`'s melee `return 0`** (`601803`–`601938`, item
