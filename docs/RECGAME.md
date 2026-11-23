@@ -1606,7 +1606,7 @@ pinned once in `SCORES_SIXTH`. That found column is the estimate: **1 of 8 whole
 | 73 | run1791 | Great Sahara, Industrial | the computers | 3,438, ended on 3437 | 1 | units, cities 1563 | 1,563 of 3,438 |
 | 93 | run1792 | Great Lakes, Modern | human + added | 12,001 | 1 | units 2342 | 2,342 of 6,001 |
 | 113 | run1793 | Great Lakes, Gunpowder | the computers | 4,573, ended on 4572 | 1 | units, guys, cities 2259 | 2,259 of 4,573 |
-| 133 | run1794 | Great Sahara, all techs | human + added | 6,085, ended on 6084 | 1 | leaders 956, builds 958; leaders 1757 (4575); **units, builds and leaders 1905** (4585) | 956 of 6,001; 1,905 now |
+| 133 | run1794 | Great Sahara, all techs | human + added | 6,085, ended on 6084 | 1 | leaders 956, builds 958; leaders 1757 (4575); units, builds and leaders 1905 (4585); **units 1906** (4594) | 956 of 6,001; 1,906 now |
 | 153 | run1795 | Great Lakes, difficulty 2 | the computers | 12,001 | **12** | whole | 6,001 of 6,001 |
 
 The original ended rows 33, 73 and 113, each with the two computers allied against the human, and row 133. Our walk
@@ -1636,8 +1636,16 @@ on both sides. Bit `0x8` (`ever_attacked`) spares the tower arm's halving (`docs
 13,500,000, and `check_income`'s 32-bit product (256 × that) wraps negative. Every line but walls moved again, and the
 row's first parting is units, builds and leaders on 1905.
 
+**Row 133's third leaf** (item 4594; run1797's ranges, no take). On 1905 the units, builds and leaders lines part on
+one unit. Who=2's Citizen `2/72` (TI 0x32) holds ours' `MOVE_TO` and `GATHER` of its Oil Well `2/2008` against theirs'
+one `REPAIR` of the capital `2/2000` (units range 3966). `2/2008`'s `gather_down` is 72 against −1 (builds range 2061).
+Who=2's `flags` byte 3 is 0x00 against 0x02 (leaders range 265), the dirty bit a killed `GATHER` raises. **Theirs
+acted**: the capital carries damage 5,949, past half its hits. On frame 1904 (`(1904 + 2000) & 63 == 0`)
+`Build::process`'s repair recruit sends it the nearest not-busy citizen (`docs/AI.md` §167). The arm is built. The
+row's first parting moves one state, to units alone on 1906. Builds go to 2166 and leaders to 2212.
+
 *Diff-backed*: every number above (the hook's twelve sums on every state, ours against theirs), and row 133's leaf on
-955 to 958 (every leaders range). *Read, not diffed*:
+955 to 958 (every leaders range), and its third on 1904 and 1905 (every units, builds and leaders range). *Read, not diffed*:
 that `script_rule`'s choices are what a person would make; only their effect on the original is compared. *Not
 established*: no other row names a leaf, since each take holds sums only, but row 73. Item 4576 read it off run1798's
 ranges: on 1563, who=2's Caravan `2/31` is homed on its ally who=1's city 3, and ours links its trade order. Item 4583

@@ -1222,6 +1222,85 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 133's computer calls a citizen to repair its capital**
+    /// (item 4594, `docs/AI.md` §80.2 H12): run1797, the ranges take of
+    /// row 133's file. who=2's capital `2/2000` (a Major City) carries
+    /// damage 5,949, past half its hits, with its city's `no_heal` clear
+    /// and no enemy within `0xc00`. On frame 1904, `(1904 + 2000) & 63 ==
+    /// 0`, `Build::process@0061edf0`'s repair recruit (`61fe00`..`61feed`)
+    /// gives the nearest not-busy citizen, `2/72` (TI 0x32) walking to its
+    /// Oil Well `2/2008`, a `QUEUE_NEW` repair of the capital. Ours had no
+    /// such arm: on 1905 units range 3966 (record 72) held ours' `MOVE_TO`
+    /// and `GATHER` against theirs' one `REPAIR` (13) of `2/2000`, builds
+    /// range 2061 held `2/2008`'s `gather_down` 72 against −1, and leaders
+    /// range 265 who=2's `flags` byte 3 0x00 against 0x02 (the economy's
+    /// dirty bit the killed gather raises). Every units, builds and leaders
+    /// range on 1904 and 1905, ours against theirs, byte for byte.
+    #[test]
+    fn row_133_s_computer_calls_a_citizen_to_repair_its_capital_on_run1797_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 1904..=1905 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (line, name) in [(0usize, "units"), (1, "builds"), (7, "leaders")] {
+                let ours = lines[line].as_ref().expect("the line");
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{name} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+            let u = (0..built.sim.units.len())
+                .find(|&u| built.sim.units[u].owner == 2 && built.sim.units[u].index == 72)
+                .expect("2/72");
+            let capital = built.sim.building_by_o(2, 2000).expect("2/2000");
+            let bd = &built.sim.buildings[capital];
+            assert!(
+                bd.damage > bd.hits_now() / 2,
+                "past half its hits on {state}"
+            );
+            let repairs = built.sim.units[u]
+                .orders
+                .iter()
+                .any(|o| matches!(o.body, sim::orders::Body::Repair(b) if b == capital));
+            assert_eq!(
+                repairs,
+                state == 1905,
+                "2/72 repairs the capital on {state}"
+            );
+        }
+    }
+
     /// **Row 83's computer lists a caravan by its ally's city** (item
     /// 4545, `docs/CARAVAN.md` §4): run1784, the ranges take of row 83's
     /// file. On 1956 who=2 (the added computer, team 0 with the human)
@@ -10130,10 +10209,14 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // been attacked), on the tree merged with 4583: ammo 4,267 ->
         // 3,785, deaths 3,406 -> 2,967, ours' `game_over` 9522 -> 9533; the
         // row's first parting 2686 stands.
+        // Then item 4594 (a computer's city past half its hits calls a
+        // citizen to repair it), on the tree merged with the base at
+        // `9d1f92690`: ammo 3,785 -> 3,426, deaths 2,967 -> 2,914, ours'
+        // `game_over` 9533 -> 11572; no first parting moved.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                2686, 2688, 12001, 3785, 2967, 2740, 2686, 2698, 2974, 3127, 3056, 2691,
+                2686, 2688, 12001, 3426, 2914, 2740, 2686, 2698, 2974, 3127, 3056, 2691,
             ],
             first: &[
                 ("units", (2686, Some(1210672926), 399075748)),
@@ -10148,7 +10231,7 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
                 ("goods", (3056, Some(2987562270), 2924123420)),
                 ("world", (2691, Some(2608492097), 2791665259)),
             ],
-            over: Some(9533),
+            over: Some(11572),
         }),
     }),
     // run1793
@@ -10236,24 +10319,33 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 1,758 -> 1,906, leaders 1,757 -> 1,905, cities 1,758 -> 1,951,
         // items 2,185 -> 2,676 (first 2051 -> 2310), goods 1,827 -> 2,418
         // (first 1758 -> 2418), world 1,758 -> 1,906; the first parting is
-        // units, builds and leaders on 1905.
+        // units, builds and leaders on 1905. Then by item 4594 (a computer's
+        // city past half its hits calls a citizen to repair it: who=2's
+        // `2/72` repairs its capital `2/2000` from 1904): units 1,905 ->
+        // 2,126 (first 1905 -> 1906), builds 1,905 -> 2,166, ammo 2,680 ->
+        // 2,770 (first 2184 -> 2198), deaths 2,382 -> 2,529 (first 2382 ->
+        // 2380), groups 2,067 -> 2,319, guys 1,906 -> 2,199, leaders 1,905
+        // -> 2,228 (first 2212), cities 1,951 -> 2,526 (first 2297), items
+        // 2,676 -> 2,464 (first 2310 -> 2464), goods 2,418 -> 2,403 (first
+        // 2418 -> 2403), world 1,906 -> 2,234 (first 2215); the first
+        // parting is units alone on 1906.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                1905, 1905, 6085, 2680, 2382, 2067, 1906, 1905, 1951, 2676, 2418, 1906,
+                2126, 2166, 6085, 2770, 2529, 2319, 2199, 2228, 2526, 2464, 2403, 2234,
             ],
             first: &[
-                ("units", (1905, Some(3775966775), 2122353837)),
-                ("builds", (1905, Some(711906929), 3198474279)),
-                ("ammo", (2184, Some(1), 775076783)),
-                ("deaths", (2382, Some(76880417), 72489504)),
-                ("groups", (2067, Some(2670601218), 1171464947)),
-                ("guys", (1906, Some(2990684265), 1020803684)),
-                ("leaders", (1905, Some(3323301309), 2867367359)),
-                ("cities", (1951, Some(2416327274), 4184292042)),
-                ("items", (2310, Some(1196240602), 1848060668)),
-                ("goods", (2418, Some(393574506), 289765478)),
-                ("world", (1906, Some(2974310201), 2850905871)),
+                ("units", (1906, Some(1946974484), 1532918034)),
+                ("builds", (2166, Some(2503049249), 2722332706)),
+                ("ammo", (2198, Some(2543630524), 2764270736)),
+                ("deaths", (2380, Some(2707033464), 2702642551)),
+                ("groups", (2319, Some(3104455634), 3483909122)),
+                ("guys", (2199, Some(2462162594), 722575079)),
+                ("leaders", (2212, Some(146369369), 1262971739)),
+                ("cities", (2297, Some(257638425), 3892330493)),
+                ("items", (2464, Some(1874012926), 1848060668)),
+                ("goods", (2403, Some(393574506), 289765478)),
+                ("world", (2215, Some(3265519555), 1222893509)),
             ],
             over: None,
         }),

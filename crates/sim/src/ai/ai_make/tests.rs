@@ -972,6 +972,75 @@ fn a_tied_builder_is_the_lower_object_number_not_the_elder() {
     assert_eq!(sent, vec![3], "the lower number keeps the tie");
 }
 
+/// **A computer's city past half its hits calls the nearest idle citizen
+/// to repair it** (item 4594; `Build::process@0061edf0`, `61fe00`..
+/// `61feed`): in the `(frame + o) & 63` block, a city building of a
+/// leader that is not human, its `damage` over `hits(0) / 2`, its city's
+/// `no_heal` (`city_flags & 2`) clear and `get_diff() > 1`, gives a
+/// not-busy citizen within `0x1e00` a `QUEUE_NEW` repair order with no
+/// action bit. Row 133's who=2 sends its Citizen `2/72` off the walk to an
+/// Oil Well onto its capital `2/2000` on frame 1904. Made to fail by
+/// taking the arm out of `process_building_tail` (the first repair is
+/// never given), and by flipping each gate.
+#[test]
+fn a_computer_s_city_past_half_its_hits_recruits_a_citizen_to_repair_it() {
+    let mut f = fx();
+    let s = &mut f.sim;
+    s.frame = 100;
+    s.ai.lobby.difficulty = 3;
+    let at = tile_pos(32, 32);
+    let b = s.init_build(1, f.village_rec, at, false);
+    s.activate(b, false, true);
+    let c = s.buildings[b].city.expect("a finished city has a record");
+    let mut u = crate::Unit::new(1, 0, tile_pos(36, 32), 40);
+    // The record whose tree entry is the tree's first unit type: the
+    // `is(PEASANTS, 1)` lineage `find_idle_citizen` walks.
+    u.ty = Some(0);
+    u.on_map = true;
+    let u = s.add_unit(u);
+    let repairs = |s: &Sim| {
+        s.units[u]
+            .orders
+            .iter()
+            .filter(|o| matches!(o.body, Body::Repair(x) if x == b))
+            .count()
+    };
+    let hits = s.buildings[b].hits_now();
+    // Exactly half is not past half.
+    s.buildings[b].damage = hits / 2;
+    s.city_repair_recruit(b);
+    assert_eq!(repairs(s), 0, "damage == hits / 2 is not past half");
+    s.buildings[b].damage = hits / 2 + 1;
+    s.city_repair_recruit(b);
+    assert_eq!(repairs(s), 1, "one past half recruits");
+    s.units[u].orders.clear();
+    for gate in ["no_heal", "difficulty", "human"] {
+        match gate {
+            "no_heal" => s.cities.cities[c].no_heal = true,
+            "difficulty" => s.ai.lobby.difficulty = 1,
+            _ => s.cities.nation[1].human = true,
+        }
+        s.city_repair_recruit(b);
+        assert_eq!(repairs(s), 0, "{gate} refuses");
+        s.cities.cities[c].no_heal = false;
+        s.ai.lobby.difficulty = 3;
+        s.cities.nation[1].human = false;
+    }
+    // Off the 64-frame phase, nothing; on it, the repair.
+    let o = i64::from(s.buildings[b].index);
+    let frame = 64 * 10 - o.rem_euclid(64);
+    s.process_building_tail(b, frame + 1);
+    assert_eq!(repairs(s), 0, "off the phase");
+    s.process_building_tail(b, frame);
+    assert_eq!(repairs(s), 1, "the recruit's repair");
+    let order = s.units[u].orders.back().copied().expect("an order");
+    assert_eq!(
+        order.flags & crate::orders::flag::ACTION,
+        0,
+        "no action bit"
+    );
+}
+
 /// A never-started site with no builder is disbanded where the danger
 /// map is positive, and gets a citizen where it is not.
 #[test]

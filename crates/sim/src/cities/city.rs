@@ -3193,6 +3193,7 @@ impl Sim {
         }
         // The capture re-test, twice a second, with the nearest enemy land
         // unit within sixteen tiles.
+        let mut enemy_near = false;
         if phase & 63 == 0 && self.capture_eligible(b) {
             let pos = self.buildings[b].pos;
             let mut best: Option<(i32, usize)> = None;
@@ -3210,11 +3211,15 @@ impl Sim {
                     best = Some((d, i));
                 }
             }
+            enemy_near = best.is_some();
             if let Some((_, u)) = best
                 && self.check_capture(b, u)
             {
                 return;
             }
+        }
+        if phase & 63 == 0 && !enemy_near {
+            self.city_repair_recruit(b);
         }
         if self.building_is_city(b)
             && let Some(c) = self.buildings[b].city

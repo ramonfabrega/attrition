@@ -1078,7 +1078,11 @@ pub(in crate::diff) mod tests {
     /// Item 4585 (a tower or fort is halved only while its city has never
     /// been attacked): 3188 -> 3377, +189, past the draw word, now 7613,
     /// measured on the tree merged with 4583; the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3377, Some(2929));
+    /// Item 4594 (a computer's city past half its hits calls a citizen to
+    /// repair it): 3377 -> 3450, +73, the sample's lines unmoved, measured
+    /// on the tree merged with the base at `9d1f92690`; the first shot
+    /// still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3450, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
