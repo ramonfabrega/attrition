@@ -345,12 +345,10 @@ fn to_uv(size: (i32, i32), px: f32, py: f32) -> Option<(f32, f32)> {
             let w2 = ((b.0 - a.0) * (py - a.1) - (px - a.0) * (b.1 - a.1)) / det;
             let w0 = 1.0 - w1 - w2;
             let eps = -1e-4;
-            (w0 >= eps && w1 >= eps && w2 >= eps).then(|| {
-                (
-                    w0 * ta.0 + w1 * tb.0 + w2 * tc.0,
-                    w0 * ta.1 + w1 * tb.1 + w2 * tc.1,
-                )
-            })
+            (w0 >= eps && w1 >= eps && w2 >= eps).then_some((
+                w0 * ta.0 + w1 * tb.0 + w2 * tc.0,
+                w0 * ta.1 + w1 * tb.1 + w2 * tc.1,
+            ))
         })
 }
 
