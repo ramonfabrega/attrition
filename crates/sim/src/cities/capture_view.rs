@@ -206,6 +206,17 @@ impl CaptureView for SimCapture<'_> {
     /// SEAM: only the Lakota bonus is a nation flag here; the Persians' is
     /// asked only to feed `find_capital`, which this crate does not model.
     fn has_tribe_bonus(&mut self, who: Player, id: i32) -> bool {
+        crate::seam!(
+            "tribe_bonus_not_lakota",
+            id != TRIBE_LAKOTA
+                && self.sim.tech.get(who as usize).is_some_and(|p| {
+                    self.sim.tables.tech_tree.has_tribe_bonus(
+                        &self.sim.tables.setup,
+                        p,
+                        id as usize,
+                    )
+                })
+        );
         id == TRIBE_LAKOTA && self.sim.cities.nation[who as usize].lakota
     }
     /// SEAM: the Persian second-capital flag is read after the plunder.

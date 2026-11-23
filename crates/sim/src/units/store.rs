@@ -794,6 +794,16 @@ impl Sim {
     /// [`Sim::counts_in_muster`]'s type half: population, or a
     /// governor-hero (the `is(0x134)` arm answers no, as there).
     pub(crate) fn type_counts_in_muster(&self, ty: usize) -> bool {
+        // `close_count`'s and `counts_in_muster`'s SEAM: the `is(0x134)`
+        // half of the population-0 arm, answered no here.
+        crate::seam!(
+            "pop0_line_134",
+            self.tables.unit_types[ty].price.pop == 0
+                && !self.type_is_hero(ty)
+                && self.tables.unit_types[ty]
+                    .tree
+                    .is_some_and(|t| self.tables.tech_tree.is(t, 0x134, false))
+        );
         self.tables.unit_types[ty].price.pop != 0 || self.type_is_hero(ty)
     }
 

@@ -64,6 +64,19 @@ impl BuildAttackView for SimBuildAttack<'_> {
         self.sim.buildings[self.b].city.map_or(-1, |c| c as i16)
     }
     fn tribe_can_type(&mut self) -> bool {
+        crate::seam!(
+            "general_refused",
+            self.sim
+                .tech
+                .get(self.sim.buildings[self.b].owner as usize)
+                .is_some_and(|p| {
+                    self.sim
+                        .tables
+                        .tech_tree
+                        .tribe_can_type(&self.sim.tables.setup, p, GENERAL)
+                        == 0
+                })
+        );
         true
     }
     fn type_slot_68_who(&mut self) -> i32 {

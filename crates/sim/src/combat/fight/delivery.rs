@@ -1338,6 +1338,15 @@ impl Sim {
         // site with `hits(0) <= 2 * damage` and `build_masks & 0x2000`
         // ([`crate::cities::Building::no_builder`]) is disbanded and the
         // call returns 1, a raze credited with no death. Not carried.
+        // `no_builder`'s one writer is a computer's site, so the owner's
+        // test is the bit's.
+        crate::seam!(
+            "site_abandon_disband",
+            matches!(taken, Taken::Alive { .. })
+                && !bd.active
+                && bd.no_builder
+                && hits <= 2 * bd.damage
+        );
         bd.damage_marked |= matches!(taken, Taken::Alive { .. });
         bd.sync_health();
         if matches!(taken, Taken::Died { .. }) {
