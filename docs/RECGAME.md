@@ -1656,7 +1656,7 @@ new partings is read.~~ Row 73's 2779 is read and built by item 4589 (`docs/ANIM
 idled by its guard stand, is put back on `CHAR_ATTACKWALK` by `Guy::move`'s moving walk; row 73 is whole but ammo,
 ~~first 3279, unread~~ first 3279, read and built by item 4595 (`docs/COMBAT.md` §24.4): who=2's Armored Car `2/32`,
 on `CHAR_ATTACKWALK` at the gone Citizen `0/4`, releases on 3278 into `Objects::add_ammo`, which counts `graph_index`
-1008 while `Ammo::init` refuses the round; **row 73 is whole on all twelve lines, 3,438 of 3,438**. Row 33's 3386 is named and closed by item 4591, below. Row 113's 3995 is not read. Also not established: a script past §9's three orders, or one issued after frame 90; whether row
+1008 while `Ammo::init` refuses the round; **row 73 is whole on all twelve lines, 3,438 of 3,438**. Row 33's 3386 is named and closed by item 4591, below. ~~Row 113's 3995 is not read.~~ Row 113's 3995 is read and built by item 4592 (§13.4). Also not established: a script past §9's three orders, or one issued after frame 90; whether row
 13's 7675 and the sample's 7055 are one mechanism.
 
 **Row 93's first leaf: the President heals** (item 4577, run1799). run1799 is row 93's
@@ -1712,7 +1712,30 @@ Open: units, builds and guys part on 2686, the Bazooka `1/31`'s re-search (item 
 
 ### 13.4 Row 113
 
-Open: cities part on 3995, eleven lines whole. run1793 holds sums (item 4592).
+**Whole: twelve lines of twelve, 4,573 of 4,573 states, to the original's end** (item 4592, run1802). Item 4583 left
+every line but cities whole, cities parting on 3995: ours' sum 1934313053, theirs 1933788765. The low halves are equal
+and the high ones 8 apart, so the line held the same bytes in another order.
+
+run1802 is run1793's file with the cities line's ranges (`RNG_MASK=0x100u`). On 3995, cities range 11 parts: record
+0, `vans[k]`, byte 4, `who`, ours 1, theirs 2. That is who=1's city 0 (`city` 0, `o` 2000). Its `vans` reads `(0,1)
+(1,1) (3,2) (3,1)` on theirs and `(0,1) (1,1) (3,1) (3,2)` on ours. who=1's Caravan `1/34` (TI 59, land, slot 3) links
+that city to who=2's city 1 on 3995. who=2's `2/131` (TI 59, land, slot 3) had joined the same city earlier. The ±1
+at a distance of 8 bytes accounts for the sum's 8.
+
+**The direction.** Theirs' `vans` is an `Array<CaravanLink>` per city. `ArrayBase<CaravanLink>::add@0046e550` appends,
+and its one caller is `do_trade` (`:363`, `:371`, one add on each end). `Array<CaravanLink>::remove@0046e4e0` shifts
+the rest down, and its one caller is `end_trade_route`. So a city's links stand in the order they were made. This
+crate walked them by owner, then slot (`docs/CHECKSUM.md` §12, an assumption until now). The fix stamps each link
+when `do_trade` makes it (`Caravan::linked_at`, one past any standing link's), and `Sim::city_links` walks by the
+stamp. Membership is unchanged. `City::close`'s repath walk (`close_city_caravans`) reads the same order.
+
+Held by `diff::held_out::tests::row_113_s_city_walks_its_caravan_links_in_the_order_they_were_made_on_run1802_s_ranges`
+(every cities range on 3994 to 3996; red at range 11 on 3995 with the sort removed) and by
+`cities_tests::a_city_s_caravan_links_stand_in_the_order_they_were_made`.
+
+**Not established.** No capture shows a link `end_trade_route` leaves standing, one whose end is no longer an active
+build in a live city. Theirs keeps such a link in the array, and ours' walk drops it, since it reads live caravan
+slots.
 
 ### 13.5 Row 133
 
