@@ -5044,9 +5044,13 @@ them.
   visibility test under the fog. ~~The building arms' slots~~: named
   (item 4596, above). ~~Not built (4596a)~~: built (item 4601, above),
   under mode 1 alone.
-- The captures' `stat_mode` and `semaphore[0]` are inferred from the
-  packet and not read (4601a). `graphic_tick` is taken in the live client
-  as the frame's bit 3, which is not established.
+- ~~The captures' `stat_mode` and `semaphore[0]` are inferred from the
+  packet and not read (4601a)~~: read off run1564's packet (item 4603,
+  §3.34): `stat_mode` 1, `semaphore` byte 0 0x0a (`& 0x42` set), and the
+  blink is the drawn tick's bit 3 (175 & 8), each an assertion.
+  `graphic_tick` is taken in the live client as the frame's bit 3, which
+  is not established: on run1564 the tick runs at about one per twenty
+  frames (§3.34).
 - The triangle's colour count: `8ce7c7` pushes 3 with the fill to the
   colour array's add, for four vertices.
 - The minimap camera's scale off run1564's map: there `m13/m15` is
@@ -5055,6 +5059,129 @@ them.
   packet's vertex colour is (0, 0, 255): the grab's display-profile round
   trip (`docs/RUNS.md`, run1564). Red differs by 42, past the row's 32
   (4593b).
+
+## 3.34 The minimap's pings (item 4603)
+
+*2026-11-23, Opus 5.5; the ledger: `docs/journal/2026-11-23-item-4603.md`.
+Built and held to the packet, 11 of 11 squares; the still draws none,
+because our sim supplies no entry (4603a). The probe's output is under
+`~/ron-data/lab-experiments/2026-11-23-item-4603/`.*
+
+**What `render_ping@008ca6d0` draws.** It is the last of `on_redraw`'s
+draws, and it walks the message window's `events` (`MessageWin +0x48c`, a
+`MessageWinList`: count `+0x10`, head `+0x14`; a node's `next` `+0x0`,
+`data` `+0x8`). Each entry is a `MessageWinEntry`: `x` `+0x4`, `y` `+0x8`,
+`frame` `+0xc`, `ping` `+0x10`, `ping_stamp` `+0x18` (a `graphic_tick`),
+`ping_times` `+0x1c`, `doober` `+0x20` and `color` `+0x68`.
+`add_event@007e9b70` and `add_message@007e9fb0` stamp `graphic_tick`,
+except for `ping` -4, which takes the frame.
+- *Skipped:* `ping` 0.
+- *-4:* the circle (`draw_minimap_circle@008c84a0`).
+- *Any other kind:* drawn while `elapsed / 8 < (k + 1) · ping_times`,
+  `elapsed` being `graphic_tick − ping_stamp` and `k` 1, or twice the
+  doober. A dead entry has its `ping` zeroed.
+- *The phase:* `(8 − elapsed % 8) · 0.125`. It starts at 1 and falls by
+  an eighth a tick, round and round.
+- *The kind picks the `TexPing`:* -10 attack, -8 wonder, -9 resource, -6
+  citylost, -7 citywon, -2 and -3 waypoint, and the rest default.
+  `init_texture_pings@008c9960` reads them off `effects_graphics.xml`'s
+  `<MINIMAP>`, one `<PING>` each. A phase's texture is numbered by its
+  path's first appearance.
+
+After the events, `render_ping` also draws:
+- the selection's gather lines and `draw_type_circle@008c89c0`;
+- the drop type;
+- the scene's own pings (`Scene +0x230`);
+- the ping splines (`ping_spline_gen +0x178`).
+
+Then `render_texture_pings@008c8dc0` draws each texture's squares and
+zeroes the counts, but not the data.
+
+**`add_texture_ping@008c8f70`.** Each phase whose span holds the phase
+`p` (`end ≤ p ≤ start`) adds one square.
+- *Where:* at the entry's point through `world_to_console@00583840`
+  onto `map_rect`, rounded half up, plus the window's place.
+- *The half side:* the background's `Texture::get_width@0041ed20` over
+  16, which is 256 → 16. A scaling phase multiplies it by
+  `(1 − (1 − p) · scalespeed) · scaleby`.
+- *The turn:* a turning ping turns `(1 − p) · 360 · rotate_speed` whole
+  degrees, its corner `(dx, dy)` going to `(dx cos a + dy sin a,
+  −dx sin a + dy cos a)`.
+- *The colour:* the phase's, or the entry's where the phase's is 0.
+- *The alpha:* 255 for a phase that does not fade. A fading phase rises
+  from 0 to 255 over its span's first half and falls back over its
+  second: `t = (p − start)/(end − start)`, `2·255·t` below a half, else
+  `2·255·(1 − t)`, truncated.
+- *The six vertices:* top-left, top-right, bottom-right, bottom-left,
+  top-left, bottom-right, with texcoords on the unit square's corners.
+- *The state* (`tex_ping_rs`, `WorldMap::init@008d2cd0`): colour
+  `SELECTARG2` (the diffuse), alpha `MODULATE` (texture times the
+  diffuse), blended `SRCALPHA`, `INVSRCALPHA`.
+
+**On run1564's packet** (`tools/render/pings_packet.py`): `graphic_tick`
+is 177. There are eleven entries:
+- two attacks at stamp 175 (frames 3269 and 3266; one at slot 0's
+  capital);
+- three wonders, at stamps 158, 155 and 110, all three at player 1's
+  base;
+- the capital's loss and its attack at 136;
+- two default pings, at 136 and 131;
+- two of no ping.
+
+The scene's pings and the splines are empty. The textures' arrays still
+hold the last drawn squares, and exactly one tick between the newest stamp
+and the packet's own lays them all: **175**. That gives 5 squares on
+texture 0, one each on 1 to 3, and the three turned wonders on 4 (at 11,
+45 and 11 degrees), every vertex within 0.01 and every colour exact. So the
+last minimap the process drew was two ticks before the packet. The
+photograph's pings are that tick's, to the eye. The tick runs at about
+one per twenty frames: stamps 136 at frame 2482 and 175 at 3269.
+
+**`map_rect`.** The ping's point is not the quad's own mapping
+(`to_screen`, which parts by a pixel either way on 54 vertices). It is the
+minimap camera's projection onto a 317 × 159 rectangle at (326, 910), the
+quad's bounds. That is the one rectangle of 314 to 319 by 156 to 161 at
+(324..328, 908..912) that places all six pinging entries.
+
+**4601a, read off the same packet.** `player_profile.prefs.stat_mode`
+(`0x00ecd074`) is 1. The game's `semaphore` (`Game +0x814`, a
+`BitMask<256>` whose bytes sit at its `+0xc`) has byte 0 0x0a, so
+`& 0x42` is set, and byte 1 0x01. The blink is 175's bit 3. All three are
+the blips' assumptions, asserted (`the_packet_s_profile_is_the_blips_assumptions`).
+
+**Built (item 4603).** `minimap::pings` builds the squares from the
+entries and a tick (`build`) and draws them (`draw`: the texture
+bilinear, as the blips' atlas; one layer a square and an alpha, in draw
+order). `overlays` draws them last. The world's entries are empty: the
+sim's alerts are not in `observe` (4603a). So `RUN1564_3279_MINIMAP`
+stays at 3,002 within 32. Fed the packet's eleven entries at tick 175, the
+still reads 3,213 (+211). That figure is measured in the row's test and
+not pinned, because it reads the original's events through our pixels.
+
+**The entries' sources** (4603a; not built, as no sim change is made here).
+Each is a `MessageWin::add_message` from the sim:
+- *The attack alert, -10:* `Object::do_damage@0064a480`, when the
+  console's object (or an ally's it sees) is struck. It is throttled by
+  the struck city's `CityData.attack_stamp` (`+0x14`, `300 < frame −
+  attack_stamp`), which our sim carries and the cities record checksums
+  (`docs/CHECKSUM.md`). The ping's point is the struck object's, which no
+  record holds.
+- *The wonder, -8:* `Build::activate@00623e20`.
+- *The rare, -9:* `World::reveal_fog@006b3d30`.
+- *A city lost or won, -6 and -7:* `Object::do_damage`'s capture branch.
+
+**Not established.**
+- The default pings' (-1) source: run1564's two are white, five times,
+  one at the capital on the frame of its loss.
+- The circle (-4), the doober's boxes, the selection's lines and type
+  circles, the scene's pings and the splines: none is on the packet, and
+  none is built.
+- The texture's filter: `tex_ping_rs` keeps `RenderState::init@00535ba0`'s
+  point filter. It is sampled bilinearly as the blips' atlas is on the
+  photograph (§3.33), and this is not held to a pixel.
+- `map_rect` on another frame size: run1564's is the quad's bounds.
+- The live client's tick: `graphic_tick`'s rate is read off two stamps,
+  not off its writer.
 
 ## 4. The stack
 
