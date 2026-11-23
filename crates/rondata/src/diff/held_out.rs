@@ -1919,6 +1919,17 @@ pub(crate) mod tests {
                     }
                 }
             }
+            if let Ok(v) = std::env::var("RON_PROBE_4613_RAW") {
+                let (a, b) = v.split_once('-').unwrap();
+                let (a, b): (usize, usize) = (a.parse().unwrap(), b.parse().unwrap());
+                let ours = lines[0].as_ref().unwrap();
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+                for k in a..=b {
+                    let o = ours.ranges.get(k).map(|r| format!("{} {} {:02x?}", r.record, r.field, r.bytes)).unwrap_or_default();
+                    let t = theirs.get(k).map(|r| format!("site {:08x} {:02x?}", r.site, r.bytes)).unwrap_or_default();
+                    eprintln!("RAW s{state} {k}\n   ours  {o}\n   theirs {t}");
+                }
+            }
             // our owners of each record the units line walks, in order
             if state == hi {
                 let mut seen = Vec::new();
