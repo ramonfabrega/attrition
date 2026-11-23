@@ -167,7 +167,7 @@ impl ConstructHost for SimConstruct<'_> {
         self.sim.num_wonders(city as usize, true)
     }
     fn start(&mut self) {
-        self.sim.start_building(self.b);
+        self.sim.start_building_announced(self.b, true);
     }
     fn disband(&mut self) {
         self.sim.disband_building(self.b, true);
