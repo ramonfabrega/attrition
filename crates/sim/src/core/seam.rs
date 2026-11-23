@@ -1,7 +1,7 @@
-//! `seam` — which `SEAM` notes a run walks through, and on which state
+//! `seam` — which seam notes a run walks through, and on which state
 //! (item 4580, DECISIONS 153 §10).
 //!
-//! A `SEAM` note says where this crate knowingly takes another path than the
+//! A seam note says where this crate knowingly takes another path than the
 //! original: a fallback, an arm it answers in place of one it does not carry.
 //! Read as prose, a note cannot say whether a game ever reaches it. The
 //! [`seam!`](crate::seam!) hook placed on the note's own arm can: under the
@@ -28,12 +28,12 @@
 macro_rules! seam {
     ($tag:literal) => {{
         #[cfg(feature = "seam-count")]
-        $crate::seam::hit(concat!(module_path!(), "::", $tag));
+        $crate::core::seam::hit(concat!(module_path!(), "::", $tag));
     }};
     ($tag:literal, $cond:expr) => {{
         #[cfg(feature = "seam-count")]
         if $cond {
-            $crate::seam::hit(concat!(module_path!(), "::", $tag));
+            $crate::core::seam::hit(concat!(module_path!(), "::", $tag));
         }
     }};
 }
@@ -110,37 +110,7 @@ mod counter {
         out.sort_by_key(|(name, e)| (e.first, *name));
         out
     }
-
-    #[cfg(test)]
-    mod tests {
-        /// The record counts only between `start` and `take`, keeps each
-        /// hook's first state, and sorts by it.
-        #[test]
-        fn a_hook_keeps_its_first_state_and_its_count() {
-            super::hit("before");
-            super::start();
-            super::at(7);
-            crate::seam!("late");
-            super::at(3);
-            crate::seam!("early");
-            super::at(9);
-            crate::seam!("late");
-            let got = super::take();
-            assert_eq!(
-                got,
-                vec![
-                    (
-                        "sim::seam::counter::tests::early",
-                        super::Entered { first: 3, count: 1 }
-                    ),
-                    (
-                        "sim::seam::counter::tests::late",
-                        super::Entered { first: 7, count: 2 }
-                    ),
-                ]
-            );
-            crate::seam!("after");
-            assert!(super::take().is_empty());
-        }
-    }
 }
+
+#[cfg(all(test, feature = "seam-count"))]
+mod tests;

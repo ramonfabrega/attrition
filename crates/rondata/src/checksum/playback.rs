@@ -171,7 +171,7 @@ fn score(
         // and one entered by the orders and tick below on the state they
         // produce. Nothing without the test's `seam-count` feature.
         #[cfg(feature = "seam-count")]
-        sim::seam::at(frame);
+        sim::core::seam::at(frame);
         let lines = state::ranges(&built.sim, &look, &tribes);
         for (i, line) in lines.iter().enumerate() {
             let value = line.as_ref().map(|l| l.adler());
@@ -186,7 +186,7 @@ fn score(
         }
         if frame < last {
             #[cfg(feature = "seam-count")]
-            sim::seam::at(frame + 1);
+            sim::core::seam::at(frame + 1);
             stream.apply(frame, &mut built);
             built.sim.command().tick();
         }

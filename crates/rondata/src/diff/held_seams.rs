@@ -1,6 +1,6 @@
 //! **The seams the held-out games enter** (item 4580, DECISIONS 153 §10):
 //! each battery's walks played again with the sim's `seam!` hooks counting
-//! (`sim::seam`), and for each game every hook entered with its first state,
+//! (`sim::core::seam`), and for each game every hook entered with its first state,
 //! beside the game's first parting. A hook entered on or before the first
 //! parting is a candidate cause; one entered after it can move only later
 //! columns (item 4574's 3,673 fallback rounds, every one after its row's
@@ -31,7 +31,7 @@ struct Walk {
     run: usize,
     states: u32,
     first: Option<(i32, Vec<&'static str>)>,
-    entered: Vec<(&'static str, sim::seam::Entered)>,
+    entered: Vec<(&'static str, sim::core::seam::Entered)>,
 }
 
 fn walk_battery(b: &Battery) -> Option<Vec<Walk>> {
@@ -47,9 +47,9 @@ fn walk_battery(b: &Battery) -> Option<Vec<Walk>> {
             continue;
         };
         let until = b.scores[k].as_ref().and_then(|p| p.last);
-        sim::seam::start();
+        sim::core::seam::start();
         let score = crate::checksum::playback::compare_until(inst.root(), &rcx, &take, until);
-        let entered = sim::seam::take();
+        let entered = sim::core::seam::take();
         let score = score.unwrap_or_else(|e| panic!("row {} run{}: {e}", held.row, b.run + k));
         let earliest = score.first.iter().flatten().map(|f| f.0).min();
         let first = earliest.map(|s| {

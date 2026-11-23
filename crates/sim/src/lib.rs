@@ -57,7 +57,6 @@ pub mod movement;
 pub mod num;
 pub mod observe;
 pub mod orders;
-pub mod seam;
 use self::units::set_type_adapter;
 pub mod tech;
 pub mod territory;

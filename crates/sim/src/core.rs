@@ -2,6 +2,7 @@
 
 pub mod flag_reads;
 pub mod frame;
+pub mod seam;
 pub mod tuning;
 pub mod type_index;
 

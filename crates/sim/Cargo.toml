@@ -14,7 +14,7 @@ version = "0.1.0"
 
 [features]
 # Item 4580: the `seam!` hooks count which `SEAM` notes a walk enters, on a
-# thread-local record the simulation never reads (`src/seam.rs`). Off, the
+# thread-local record the simulation never reads (`src/core/seam.rs`). Off, the
 # hook expands to nothing. Only a test turns it on (`rondata`'s own
 # `seam-count`); never a default.
 seam-count = []
