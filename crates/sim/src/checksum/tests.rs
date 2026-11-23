@@ -784,6 +784,57 @@ fn a_missile_s_strike_walks_its_point_its_air_row_and_its_own_three() {
     }
 }
 
+/// **A siege unit's ground order walks `AttackGroundOrder::walk_data@
+/// 00487a60`'s two ranges** (item 4606, `docs/RECGAME.md` §13.3): the
+/// flags byte through the virtual base, then `att_x`, `att_y`, `accuracy`
+/// (our `sea`) and `attack_unit` (`+0x4..+0x14`). run1799 on 2962: who=2's
+/// Howitzer `2/77` holds `17 00 00 00`, `00`, `80` (fired), (12984, 22872, 0, 1)
+/// ahead of its attack. Without the arm the walk went from the node byte
+/// straight to the next order's type.
+#[test]
+fn a_ground_order_walks_its_flags_and_its_point() {
+    use crate::orders::{AttackGroundOrder, Body, Order, flag};
+    use crate::world::Pos;
+    let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(60, 60), 2);
+    let u = sim.add_unit(crate::Unit::new(1, 16, Pos::new(480, 480), 10));
+    for (flags, sea, shots) in [(flag::FIRED, false, 1u8), (0, true, 2)] {
+        sim.units[u].orders.clear();
+        sim.units[u].orders.push_back(Order {
+            flags,
+            body: Body::AttackGround(AttackGroundOrder {
+                at: Pos::new(12984, 22872),
+                sea,
+                attack_unit: shots,
+            }),
+        });
+        let record = sim.units[u].index;
+        let ranges = sim.checksum_units().ranges;
+        let at = ranges
+            .iter()
+            .position(|r| r.record == record && r.field == "order.type")
+            .expect("the order's type");
+        assert_eq!(ranges[at].bytes, 0x17i32.to_le_bytes(), "ATTACK_GROUND");
+        let walked: Vec<(&str, Vec<u8>)> = ranges[at + 2..]
+            .iter()
+            .take_while(|r| r.field.starts_with("order."))
+            .map(|r| (r.field, r.bytes.clone()))
+            .collect();
+        assert_eq!(
+            walked,
+            vec![
+                ("order.flags", vec![flags]),
+                (
+                    "order.attack_ground",
+                    [12984i32, 22872, i32::from(sea), i32::from(shots)]
+                        .map(i32::to_le_bytes)
+                        .concat()
+                ),
+            ],
+            "run1799's 2/77 on 2962, flags {flags:#x}"
+        );
+    }
+}
+
 /// **A think walks the base's `UnitOrder::walk_data@0047f2b0`** (item
 /// 4414, `docs/RECGAME.md` §7): `ThinkOrder::vftable@00b48d88`'s `+0x8`
 /// is the base's walker, the flags byte alone. run1697 on 532: the

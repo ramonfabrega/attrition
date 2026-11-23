@@ -897,8 +897,8 @@ impl Sim {
             }
             Body::AttackGround(g) => {
                 // `AttackGroundOrder::walk_data@00487a60` (item 4606,
-                // run1799's units on 2962, who=1's `1/77` with a fired
-                // siege order on its head): the flags byte through the
+                // run1799's units on 2962, who=2's Howitzer `2/77` with a
+                // fired order on its head): the flags byte through the
                 // virtual base (`00487a83`), then `att_x`..`attack_unit`
                 // (`+0x4..+0x14`, `00487a91`). The PDB's `accuracy` at
                 // `+0xc` is the order's `sea`, which `fight`'s push writes.

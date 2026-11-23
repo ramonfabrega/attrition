@@ -1767,6 +1767,8 @@ Their offsets have not been grepped, and they walk 0 here.
 alone. No score parts on them yet.~~ `AirPatrolOrder` walks its own since item
 4474 (below); ~~`StrafeOrder` still hands over its type and node byte alone, and
 no score parts on it yet.~~ `StrafeOrder` walks its own since item 4491 (below).
+`AttackGroundOrder`'s flags and `att_x`..`attack_unit` (`487a83`, `487a91`) since item 4606, row 93's
+2962.
 
 **A plane's patrol walks fourteen ranges, and its exit turns through
 `Unit::set_angle`** (item 4474, diff-backed on row 100, run1721). On 2743 row
