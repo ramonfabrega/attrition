@@ -238,43 +238,6 @@ impl Sim {
             ap.ammo_per_att,
             ap.uber_size,
         );
-        if std::env::var("RON_PROBE_4623").is_ok()
-            && let (Obj::Building(b), Obj::Unit(t)) = (attacker, target)
-        {
-            let (ao, aw) = self.obj_o_who(attacker);
-            let (to, tw) = self.obj_o_who(target);
-            eprintln!("P4623A {frame} by {aw}/{ao} ty {:?} on {tw}/{to} TI {} moving {} attacks {} attack {} pct {pct} dmg {dmg} dealt {}", self.buildings[b].ty, self.units[t].type_index, tt.moving, tt.attacks, self.attack_of(attacker), dealt.whole);
-        }
-        if std::env::var("RON_PROBE_4623").is_ok()
-            && let Obj::Unit(t) = target
-            && self.units[t].owner == 2
-            && self.units[t].index == 0
-        {
-            let me = self.units[t].pos;
-            for (h, x) in self.units.iter().enumerate() {
-                let d = crate::world::vector_dist((x.pos.x - me.x).abs(), (x.pos.y - me.y).abs());
-                if x.alive() && d < 6000 {
-                    eprintln!("P4623N {frame} near {}/{} TI {} hero {} d {d} on_map {}", x.owner, x.index, x.type_index, self.is_hero_unit(h), x.on_map);
-                }
-            }
-        }
-        if std::env::var("RON_PROBE_4623").is_ok() {
-            let (to, tw) = self.obj_o_who(target);
-            if tw == 2 && to == 0 {
-                let (ao, aw) = self.obj_o_who(attacker);
-                let ati = match attacker { Obj::Unit(a) => self.units[a].type_index, _ => -1 };
-                if let Obj::Building(b) = attacker {
-                    let bd = &self.buildings[b];
-                    let base = crate::combat::object_attack_view::object_attack_steps(&mut super::attack_step::SimObjectAttack { sim: self, o: attacker });
-                    eprintln!("P4623B ty {:?} ident {:?} active {} damage {} hits {} city {:?} base {base} mods {} family {} citizen {}", bd.ty, bd.ty.map(|t| self.tables.build_types[t].ident), bd.active, bd.damage, bd.hits_now(), bd.city, self.mods_of(bd.owner as usize).attack, self.build_attack_terms(b), self.citizen_attack(attacker));
-                }
-                eprintln!(
-                    "P4623D {frame} by {aw}/{ao} TI {ati} on {tw}/{to} attack {:?} armor {:?} pct {pct} dmg {dmg} count {count} ammo {ammo} splash {splash} quiet {quiet} angle {angle:?} dealt {dealt:?} ap {ap:?} tp {tp:?} at {at:?} tt {tt:?}",
-                    self.attack_of(attacker),
-                    self.armor_of(target),
-                );
-            }
-        }
         // Step 6: `dtype`, which is the death animation's gate (§42.1).
         // `get_damage` leaves 2, or 3 for an EXPLOSIVE/BOMBARD attacker;
         // `do_damage` then overrides it to **4** for an ammo whose graphic
