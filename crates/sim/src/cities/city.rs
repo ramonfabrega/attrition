@@ -3016,6 +3016,7 @@ impl Sim {
         }
         self.trace.removed.push(b);
         self.forget(Obj::Building(b));
+        let mut temple_fixed = false;
         if self.building_is_city(b) {
             if let Some(c) = self.buildings[b].city
                 && self.cities.cities[c].alive
@@ -3040,6 +3041,8 @@ impl Sim {
                 self.sync_territory();
             }
         } else {
+            // An active Temple in a city fixes the borders there already.
+            temple_fixed = self.buildings[b].active && self.buildings[b].city.is_some();
             self.remove_from_city(b);
         }
         // `Build::close@00628980:211`–`:222`: a fort's close fixes the
@@ -3054,6 +3057,16 @@ impl Sim {
                 .ty
                 .is_some_and(|t| build::is_fort(&self.tables.build_types, t))
         {
+            self.sync_territory();
+        }
+        // **Every Temple's close fixes the borders, built or not** (item
+        // 4607, `docs/RECGAME.md` §13.5): `Build::close@00628980` at
+        // `0x628d28`..`0x628d5b` tests `is(0x1b5)` (TEMPLE) after the fort
+        // and dock arms and zeroes every region's resume index inline,
+        // `fix_all_borders`' own loop. Nothing else gates it. Row 133's
+        // who=2 Temple site `2/2009`, razed on frame 2295, restarts theirs'
+        // pass, and on 2297 who=0's `reg_terr[1]` reads 0 there.
+        if !temple_fixed && self.building_is(b, Ident::Temple) {
             self.sync_territory();
         }
         if was_first_library && !self.buildings[b].queue.items.is_empty() {
