@@ -357,6 +357,9 @@ pub struct World {
     /// `<BORDERTEX>`'s two textures, tinted; `None` where they do not read,
     /// and no edge is laid.
     edge_art: Option<crate::edge::EdgeArt>,
+    /// The tileset's minimap colours (item 4582; `minimap::background`);
+    /// `None` where `tilesets.xml` does not read them.
+    pub minimap_colors: Option<rondata::artdata::MinimapColors>,
     /// The switch the edge was laid at, `None` until laid on this terrain.
     edge_laid: Option<bool>,
     /// Draw the surf (item 4239, §3.27). On by default; the row's count as
@@ -1022,6 +1025,9 @@ impl World {
         let edge_art = tileset
             .as_deref()
             .and_then(|t| crate::edge::EdgeArt::load(&install, t, tint));
+        let minimap_colors = tileset
+            .as_deref()
+            .and_then(|t| rondata::artdata::minimap_colors(&install, t).ok());
         let ground = tileset.as_deref().and_then(|t| {
             let textures = crate::ground::GroundTextures::load(install.root(), t).ok()?;
             let flat = textures
@@ -1277,6 +1283,7 @@ impl World {
             borders_laid: (Vec::new(), false, (0, 0), false),
             edge: true,
             edge_art,
+            minimap_colors,
             edge_laid: None,
             surf: true,
             surf_art,
@@ -1431,8 +1438,12 @@ impl World {
         self.land_hdr = on;
     }
 
+    /// [`World::coral_lit`].
+    pub fn coral_lit(&self) -> bool {
+        self.coral_lit
+    }
+
     /// Turn [`World::coral_lit`] on or off; the ground is laid again.
-    #[cfg(test)]
     pub fn set_coral_lit(&mut self, on: bool) {
         if self.coral_lit != on {
             self.coral_lit = on;

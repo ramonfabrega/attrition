@@ -2655,6 +2655,81 @@ pub fn tileset_tint(install: &Install, tileset: &str) -> Result<[u8; 3], ArtFail
     Ok(out)
 }
 
+/// **The minimap's colours** (item 4582; `docs/RENDERER.md` §3.32), as
+/// `TileSet::init@0087b370` reads them into `TileSetData`, each as
+/// `[r, g, b]`: the `<TILESET>`'s `minimap_ocean` and
+/// `minimap_ocean_bottom` (the ocean's gradient,
+/// `WorldMapBackground::render@008cfc40`'s first quad), the `minimap_color`
+/// of its `<TREES>`, `<MOUNTAINS>` and `<RIVERS>` (`render_feature`'s), and
+/// `darkencolor` where `darkenminimap` is set. The loader parses each as a
+/// hexadecimal `0xRRGGBB` and swaps it into the card's byte order; the bytes
+/// here are the string's, red first.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct MinimapColors {
+    pub ocean: [u8; 3],
+    pub ocean_bottom: [u8; 3],
+    pub tree: [u8; 3],
+    pub mountain: [u8; 3],
+    pub river: [u8; 3],
+    pub darken: Option<[u8; 3]>,
+}
+
+/// [`MinimapColors`] for `tileset`.
+pub fn minimap_colors(install: &Install, tileset: &str) -> Result<MinimapColors, ArtFailure> {
+    let unnamed = |what: &str| ArtFailure::Unnamed(what.to_string());
+    let tpath = install.data("tilesets.xml");
+    let ttext = crate::read(&tpath).map_err(|_| unnamed("tilesets.xml"))?;
+    let tdoc = crate::parse(&tpath, &ttext).map_err(|_| unnamed("tilesets.xml"))?;
+    let set = tdoc
+        .descendants()
+        .find(|n| {
+            n.has_tag_name("TILESET")
+                && n.attribute("name")
+                    .is_some_and(|v| v.trim().eq_ignore_ascii_case(tileset))
+        })
+        .ok_or_else(|| unnamed(tileset))?;
+    let hex = |v: Option<&str>, what: &str| -> Result<[u8; 3], ArtFailure> {
+        let v = v
+            .ok_or_else(|| unnamed(&format!("{tileset}/{what}")))?
+            .trim();
+        let digits = v
+            .strip_prefix("0x")
+            .or_else(|| v.strip_prefix("0X"))
+            .unwrap_or(v);
+        let n =
+            u32::from_str_radix(digits, 16).map_err(|_| unnamed(&format!("{tileset}/{what}")))?;
+        Ok([(n >> 16) as u8, (n >> 8) as u8, n as u8])
+    };
+    let feature = |tag: &str| {
+        let c = set
+            .children()
+            .find(|c| c.is_element() && c.tag_name().name().eq_ignore_ascii_case(tag));
+        hex(
+            c.and_then(|c| c.attribute("minimap_color")),
+            &format!("{tag}/minimap_color"),
+        )
+    };
+    let darken = set
+        .attribute("darkenminimap")
+        .and_then(|v| v.trim().parse::<i32>().ok())
+        .is_some_and(|v| v != 0);
+    Ok(MinimapColors {
+        ocean: hex(set.attribute("minimap_ocean"), "minimap_ocean")?,
+        ocean_bottom: hex(
+            set.attribute("minimap_ocean_bottom"),
+            "minimap_ocean_bottom",
+        )?,
+        tree: feature("TREES")?,
+        mountain: feature("MOUNTAINS")?,
+        river: feature("RIVERS")?,
+        darken: if darken {
+            Some(hex(set.attribute("darkencolor"), "darkencolor")?)
+        } else {
+            None
+        },
+    })
+}
+
 /// **The surf's waves** (item 4235; `docs/FORMATS.md`, "The surf's section
 /// models"): each `<WAVE>` under `Data/effects_graphics.xml`'s `<SURF>`, in
 /// file order, as its `<WAVESECTION>`s' `model=` files with `.mot`
@@ -3428,6 +3503,30 @@ mod tests {
         assert_eq!(tileset_tint(&inst, "early_autumn").unwrap(), [18, 18, 0]);
         assert_eq!(tileset_tint(&inst, "Snowy").unwrap(), [0, 9, 38]);
         assert!(tileset_tint(&inst, "no such tileset").is_err());
+    }
+
+    /// **The minimap's colours** (item 4582; `docs/RENDERER.md` §3.32):
+    /// `early_autumn`'s ocean runs (18, 175, 248) to (6, 71, 100), its trees
+    /// (66, 85, 66), and it does not darken; `Snowy` darkens by (212, 212,
+    /// 212). The bytes are the string's, red first; the loader's swap into
+    /// the card's order is not applied here.
+    #[test]
+    fn the_minimap_colours_are_read() {
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install");
+            return;
+        };
+        let c = minimap_colors(&inst, "early_autumn").unwrap();
+        assert_eq!(c.ocean, [18, 175, 248]);
+        assert_eq!(c.ocean_bottom, [6, 71, 100]);
+        assert_eq!(c.tree, [66, 85, 66]);
+        assert_eq!(c.mountain, [0x85, 0x7f, 0x69]);
+        assert_eq!(c.river, [0x57, 0x68, 0x70]);
+        assert_eq!(c.darken, None);
+        let snowy = minimap_colors(&inst, "Snowy").unwrap();
+        assert_eq!(snowy.darken, Some([212, 212, 212]));
+        assert_eq!(snowy.mountain, [0xd2, 0xc9, 0xa6]);
+        assert!(minimap_colors(&inst, "no such tileset").is_err());
     }
 
     /// **The tileset's light** (item 4217; `docs/RENDERER.md` §3.22):

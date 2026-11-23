@@ -4628,7 +4628,8 @@ at its centre's pixel on the photograph and on the client's still.
 `[water on both, water on theirs, water on ours, the same side of water,
 every channel within 32, cells]`. **Minted at
 `[425, 596, 500, 3354, 2288, 3600]`**: 3,354 of 3,600 cells on the same
-side of water and 2,288 within 32 on every channel. A cell is water when
+side of water and 2,288 within 32 on every channel; **2,419** since item
+4582's forests. A cell is water when
 blue is more than 40 over red and not more than 40 under green. Seen red:
 a background turned a quarter (`dir_angle` 90) gives
 `[186, 596, 480, 2896, 1444, 3600]`. **The photograph's minimap is read
@@ -4687,12 +4688,94 @@ edges (an assumption).
   `minimap::to_world`'s point. That is §9 of `docs/CLIENT_INPUT.md`, whose
   order is ported and played.
 
+**The background's tone, read (item 4582).** *Opus 5.5; the ledger:
+`docs/journal/2026-11-23-item-4582.md`.* The original does not tone-map
+the background, and does not light it in HDR.
+- `WorldMapBackground::render` sets the card's `minimap_mode` for the
+  whole draw. The graphics DLL's
+  `D3D11GLGraphicCard::set_shader_options` adds `NO_HDR` (option 26) to
+  every permutation while it is set (its listing, `d3dgl.dll`).
+  `ps_global.hlsl` under `NO_HDR` takes the HDR multiplier at 1, drops
+  the lit branch's 1.45 power and its specular, and saturates the output.
+- The draw goes into the background's own buffer, then is copied into the
+  texture with alpha forced to `0xff`. The tone mapper never runs on it.
+- It is cleared to black. Then a screen-space quad, two triangles over
+  the texture, lays the tileset's ocean gradient: `minimap_ocean` at the
+  top-left, `minimap_ocean_bottom` at the bottom-right, and their mean on
+  the other two corners. On `early_autumn` these run (18, 175, 248) to
+  (6, 71, 100) (`rondata::artdata::minimap_colors`).
+- Then `TerrainOut::render` runs with its minimap flag, which skips
+  `render_ocean_floor`, then the mountains and the cliffs. No water pass
+  runs, so open water is the gradient.
+- Then the features: the trees, the rivers, the tileset's darken (a
+  multiply by `darkencolor`, `Snowy` alone), and the mountains last.
+- ~~Not built (4582a)~~: built by item 4584, below.
+
+**The background `NO_HDR` (item 4584).** *Opus 5.5; the ledger:
+`docs/journal/2026-11-23-item-4584.md`.* `gpu::Frame::minimap` carries
+the two ocean colours, and the frame is drawn as the original draws it.
+- The camera uniform's `range.z` is the card's `minimap_mode`. The land
+  shaders' `land_no_hdr` reads it: the multiplier is 1, the lit branch is
+  `c · (diffuse + ambient)` with no power and no specular, fake light
+  keeps its 1.9 power, and the output is saturated (`land_out`). That is
+  `ps_global.hlsl` read under `NO_HDR`.
+- `gpu::ocean_gradient` is laid over the clear before the terrain.
+- The floor, the water and the surf are not drawn. The faded land is
+  blended at its alpha over the gradient, and every layer goes straight
+  onto the target.
+- No expose pass runs after (no mean, no white, no bloom).
+- Open water is then exact: cell (26, 14) is theirs (13, 140, 198) and
+  ours (14, 139, 197); cell (41, 46) is (10, 99, 140) against (9, 99, 139).
+- **The coral.** At its white vertex it saturates to (56, 219, 220) on
+  every shore. With that alone, within 32 *falls* to 2,398. On the
+  sand's light and deep grey (`World::coral_lit`, the §3.18 reading that
+  draw 131 carries the sand layer's vertex colours) it reads as theirs.
+  Cell (17, 50) is theirs (31, 135, 132) and ours (35, 136, 137). The
+  background turns it on for its own draw alone; the main view keeps it
+  off (§3.27).
+- The row: `[425, 596, 500, 3354, 2419, 3600]` → `[416, 596, 475, 3361,
+  2629, 3600]`, within 32 **+210** (282 cells in, 72 out).
+
+**The forests (item 4582).** `WorldMapBackground::render_feature`, under
+its tree feature, lays every cell whose flags carry `FOREST` again as its
+terrain mesh.
+- All 25 of the cell's vertices take the tileset's `<TREES
+  minimap_color>`, (66, 85, 66), at alpha `0xff`, drawn source-alpha over
+  with the vertex colour selected: an opaque square. Under `NO_HDR` it
+  lands as those bytes.
+- The decompile's test that would leave a corner tile white compares the
+  map's tile coordinates, not the cell's, so it spares only the map's own
+  corners. Ours does not keep that exception.
+- The rivers (cell bit `0x1000`, tile bit `0x800`) are opaque in
+  `minimap_color`. The mountains (cell bits `0x50`, tile height class 1
+  or 2) are drawn at alpha `0x77` and added (`dst_blend` ONE). Neither is
+  built.
+- Ours: `minimap::paint_cells` over the still, each pixel taking the cell
+  its centre falls in. Within 32: **2,288 → 2,419** (+131), the water
+  counts unmoved (`[425, 596, 500, 3354, 2419, 3600]`). Without it the row
+  reads 2,288 again.
+
+**What the rest is.** Of the 1,181 unequal cells, theirs reads as an
+overlay on 267: 89 white (the view rectangle and blips), 137 the blue
+team's, 41 the red team's (4581b). 128 more read grey, fog or border
+unsorted.
+
 **Not established.**
-- The background's colour: ours is paler and less saturated than theirs,
-  and it has no forest blobs (`WorldMapBackground::render_feature`, which
-  draws the features, is unread). Our shore ring is wider.
-- Whether the original tone-maps the background: our still is drawn
-  through the client's HDR pass with its frame-mean white.
+- ~~The background's colour, its forest blobs~~: the forests are drawn
+  (above). ~~The tone~~: built (item 4584).
+- The land under `NO_HDR` reads darker than theirs. Cell (2, 3) is theirs
+  (130, 127, 76) and ours (92, 90, 53). This is most of the 72 cells
+  item 4584 lost (4584b).
+- The coral patches on the ocean cells' transitions still draw at the
+  flat white vertex: cyan specks inside the lakes that theirs does not
+  show. Cell (46, 48) is theirs (24, 100, 123) and ours (56, 219, 220)
+  (4584a).
+- Whether the original's deep corners carry `modify_ocean_floor`'s grey
+  on the background is not read. That grey is written per visible cell
+  each frame, and ours lays it at the minimap camera's ramp (4584c).
+- ~~Whether the original tone-maps the background~~: it does not
+  (above).
+- The rivers and the mountains as features (above).
 - The fog, the borders, the blips and the view rectangle (above).
 - `setup_camera`'s own `dir`: the decompile loses the register, and the
   axes rest on the minimap camera's corners.

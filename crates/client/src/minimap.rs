@@ -279,13 +279,20 @@ pub fn background(world: &mut crate::world::World, gpu: &crate::gpu::Gpu) -> Bac
     );
     let camera = background_camera(extent);
     let size = (BACK, BACK);
+    // Item 4584 (§3.32): the coral on the faded sand's light and deep grey,
+    // as draw 131 carries the sand layer's vertex colours (§3.18), for this
+    // draw alone; the window's own stays as it stands.
+    let coral_lit = world.coral_lit();
+    world.set_coral_lit(true);
     let version = world.runner.terrain().version;
     world.set_screen(&camera, size);
     world.drawn_terrain();
     let (patch_version, surf_version) = (world.patch_version(), world.surf_version());
-    let land_hdr = world.land_hdr();
-    let (surf_hdr, border_hdr) = (world.surf_hdr, world.border_hdr);
-    let objects_before_water = world.objects_under_water;
+    // Item 4584 (§3.32): under `NO_HDR` there is no HDR target, so every
+    // layer is blended straight onto the background's own.
+    let (land_hdr, surf_hdr, border_hdr) = (false, false, false);
+    let objects_before_water = false;
+    let gradient = world.minimap_colors.map(|c| [c.ocean, c.ocean_bottom]);
     let (t, ground, patch) = world.drawn_terrain();
     let frame = crate::gpu::Frame {
         terrain_version: version,
@@ -307,6 +314,7 @@ pub fn background(world: &mut crate::world::World, gpu: &crate::gpu::Gpu) -> Bac
         sprites: &[],
         shadows: &[],
         particles: &[],
+        minimap: gradient,
     };
     let mut rgba = gpu.still(size, &camera, &frame);
     // The window's surface is BGRA, and the still reads it back as is.
@@ -319,7 +327,46 @@ pub fn background(world: &mut crate::world::World, gpu: &crate::gpu::Gpu) -> Bac
             .iter_mut()
             .for_each(|p| p.swap(0, 2));
     }
+    if let Some(c) = world.minimap_colors {
+        let t = world.runner.terrain();
+        paint_cells(
+            &mut rgba,
+            (t.width, t.height),
+            |i| t.flags[i] & sim::world::cell::FOREST != 0,
+            c.tree,
+        );
+    }
+    world.set_coral_lit(coral_lit);
     Background { rgba, extent }
+}
+
+/// **The forests** (item 4582; `docs/RENDERER.md` §3.32):
+/// `WorldMapBackground::render_feature@008cf710` under `TREE_FEATURE`. Every
+/// cell whose flags carry `FOREST` is laid again as its terrain mesh, its
+/// 25 vertices in the tileset's `<TREES minimap_color>` at alpha `0xff`,
+/// drawn `SRCALPHA`, `INVSRCALPHA` with the vertex colour selected: an
+/// opaque square of that colour over the cell. The decompile's test that
+/// leaves a corner tile white compares the map's tile coordinates, not the
+/// cell's, so it leaves only the map's own corners, and those are not
+/// kept here. A pixel takes the cell its centre falls in, as the
+/// rasterizer does; the still is [`BACK`] square over the whole map.
+pub fn paint_cells(
+    rgba: &mut [u8],
+    cells: (i32, i32),
+    on: impl Fn(usize) -> bool,
+    colour: [u8; 3],
+) {
+    let n = BACK as i32;
+    for y in 0..n {
+        let cy = ((2 * y + 1) * cells.1 / (2 * n)).min(cells.1 - 1);
+        for x in 0..n {
+            let cx = ((2 * x + 1) * cells.0 / (2 * n)).min(cells.0 - 1);
+            if on((cy * cells.0 + cx) as usize) {
+                let i = ((y * n + x) * 4) as usize;
+                rgba[i..i + 3].copy_from_slice(&colour);
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -402,8 +449,15 @@ pub(crate) mod tests {
     /// water, every channel within NEAR, cells]`. Minted at the first act,
     /// the minimap drawn: 3,354 of 3,600 on the same side of water, 2,288
     /// within [`NEAR`]. Seen red: the background a quarter turn off
-    /// (`dir_angle` 90) gives `[186, 596, 480, 2896, 1444, 3600]`.
-    pub const RUN1564_3279_MINIMAP: [usize; 6] = [425, 596, 500, 3354, 2288, 3600];
+    /// (`dir_angle` 90) gives `[186, 596, 480, 2896, 1444, 3600]`. Item
+    /// 4582, the forests ([`paint_cells`]): within `NEAR` 2,288 → 2,419
+    /// (+131), the water counts unmoved; without them the row reads 2,288
+    /// again. Item 4584, the background `NO_HDR` over the ocean gradient
+    /// with no floor, water or surf, and the coral on the sand's light:
+    /// `[425, 596, 500, 3354, 2419, 3600]` → `[416, 596, 475, 3361, 2629,
+    /// 3600]`, within `NEAR` +210. Seen red: with the coral at its white
+    /// vertex, `[424, 596, 492, 3360, 2398, 3600]`.
+    pub const RUN1564_3279_MINIMAP: [usize; 6] = [416, 596, 475, 3361, 2629, 3600];
 
     #[test]
     fn the_minimap_s_cells_on_run1564() {
