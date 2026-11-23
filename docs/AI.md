@@ -24683,7 +24683,8 @@ theirs 1 (parked 3360a). The lobby is closed.
 **Coverage.** Diff-backed: who=1's wealth on 7776, `1/118`'s animation on 16512, the draw stream to 24000, the close.
 Listing-backed: the moving arm's gate (`5d9565`–`5d958a`). Reading only: `Leader::calc_gather:279`'s negative arm
 (dead at 10); and the moving arm's `CHAR_ATTACKWALK` request (`cavarch_o >= 0` and the type's `0x200000`), which
-`Sim::walk_for` does not make. Ours keeps sparing a figure already on `CHAR_ATTACKWALK` in its place (parked 3360c).
+`Sim::walk_for` does not make. ~~Ours keeps sparing a figure already on `CHAR_ATTACKWALK` in its place (parked 3360c).~~
+Built by item 4589 (`Sim::moving_walk`, `docs/ANIM.md` §16).
 
 ## 282. The battery's Aztec word closes: a scout's fog, and a detected decoy's bleed
 

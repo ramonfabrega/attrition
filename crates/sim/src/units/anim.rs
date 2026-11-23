@@ -2799,13 +2799,32 @@ impl Sim {
         // a moving figure holding `CHAR_TURN_*` is put back on the walk,
         // so a push turn (`detect_boat_collision` → `do_turn`) asked for
         // earlier in the frame never survives a frame the body moves. Only
-        // the standing arms above spare slots 21 and 22. `ATTACKWALK` is
-        // kept because the original asks for it again here (`cavarch_o >=
-        // 0` and the type's `0x200000`), which [`Sim::walk_for`] does not
-        // model. The Inca word at 16516 (item 3360).
-        if anim != ATTACKWALK {
-            let walk = self.walk_for(u);
-            self.guy_set_anim(u, g, walk, false, true);
+        // the standing arms above spare slots 21 and 22.
+        //
+        // **The moving walk is `CHAR_ATTACKWALK` while the unit is aimed**
+        // (item 4589, `docs/ANIM.md` §16): `Guy::move@005d9240` starts
+        // from `CHAR_WALK` and takes `CHAR_ATTACKWALK` when `cavarch_o >=
+        // 0` and the type's `+0x2b4 & 0x200000`, then lets the gather mask
+        // override both, and asks `set_anim(walk, 0, 1)` whatever the
+        // figure holds. A figure already on `CHAR_ATTACKWALK` is left
+        // alone by `set_anim`'s same-category return (the Inca word at
+        // 16516, item 3360); one a stand put on the idle earlier in the
+        // frame is put back on it, where reading "skip if already on it"
+        // walked it under the speed's `CHAR_SLOG` (row 73's ARMOREDCAR
+        // `2/70` on 2779, its guard stand after a one-step return).
+        let walk = self.moving_walk(u);
+        self.guy_set_anim(u, g, walk, false, true);
+    }
+
+    /// **`Guy::move@005d9240`'s moving walk** (the type test at `5d93fd`,
+    /// the gather mask from `5d9412`, the request at `5d958a`): `CHAR_ATTACKWALK` for a fire-on-the-move type holding
+    /// a target (`cavarch_o >= 0`, [`crate::Sim::fires_on_move`]),
+    /// `CHAR_WALK` otherwise, and the gather mask's carrying walk over
+    /// either ([`Sim::walk_for`]).
+    pub(crate) fn moving_walk(&self, u: usize) -> i8 {
+        match self.walk_for(u) {
+            WALK if self.units[u].cast_target.is_some() && self.fires_on_move(u) => ATTACKWALK,
+            walk => walk,
         }
     }
 
