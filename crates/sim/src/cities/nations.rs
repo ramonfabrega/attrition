@@ -596,6 +596,15 @@ impl Sim {
         if who >= self.tech.len() || self.tech[who].gov_hero_frame != frame + 1 {
             return;
         }
+        crate::seam!(
+            "city_trains_hero",
+            self.building_is_city(b)
+                && !(0..self.buildings.len()).any(|x| {
+                    self.buildings[x].alive
+                        && self.buildings[x].owner == self.buildings[b].owner
+                        && self.building_is(x, crate::cities::build::Ident::Senate)
+                })
+        );
         if !self.building_is(b, crate::cities::build::Ident::Senate) {
             return;
         }

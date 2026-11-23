@@ -536,6 +536,12 @@ impl Sim {
         match o {
             Obj::Unit(i) => {
                 let u = &self.units[i];
+                // `combat.rs`'s SEAM on `ANTIPATER_TRENCH`: `get_damage` reads
+                // the bit through `antipater_entrenched`, which no writer sets.
+                crate::seam!(
+                    "antipater_trench_unread",
+                    u.unit_masks2 & crate::combat::umask2::ANTIPATER_TRENCH != 0
+                );
                 Side {
                     unit: true,
                     packed: u.combat.packed,

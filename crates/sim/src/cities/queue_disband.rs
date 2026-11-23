@@ -204,6 +204,11 @@ impl Sim {
     pub(crate) fn disband_time(&self, at: usize) -> i32 {
         let b = &self.buildings[at];
         let Some(ty) = b.ty else { return 0 };
+        crate::seam!(
+            "city_not_held",
+            b.city
+                .is_some_and(|c| self.cities.cities[c].owner != b.owner)
+        );
         let tree = self.tables.build_types[ty].tree;
         let mut t = self.tables.build_types[ty].job_time * crate::cities::production::TIME_SCALE;
         if !tree.is_some_and(|id| self.tech[b.owner as usize].tech.get(id) == Some(&true)) {
