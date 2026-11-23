@@ -1742,11 +1742,6 @@ razes who=2's Temple site `2/2009` on 2295.
 **Items 4610, 4620**: units 2351 → 2376, builds → 2370 → 2432. The orphan check and a new city's sweep walk by
 object number.
 
-**Item 4623** (no score): the 2376 leaf is who=1's Redoubt `1/2025` striking who=2's Elite Special Forces `2/0` (TI
-77) on tick 2375. The blow is ours 18, theirs 11 (units range 3283, `damage` 47 against 40), and again on 2387. Ours'
-inputs are attack 180, table 100 and armour 0, and `2/0`'s whole record agrees on 2375. Which input of
-`get_damage@00644130` differs is the run1819 packet's to say.
-
 ## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
 
 DECISIONS 154 §7, 2026-11-23. Rows 8, 28, 48, 68, 88, 108, 128 and 148 of the order `Start:` counts, by the sixth's
