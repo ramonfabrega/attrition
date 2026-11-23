@@ -439,7 +439,7 @@ fn columns(lines: &[String]) -> (String, Vec<String>, u64) {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
 
     /// **The declaration** (item 4413's first act): the eight lobbies, named
@@ -781,7 +781,10 @@ mod tests {
     /// so the scores below skipped with `0 missing fixtures` on the gate's
     /// log. Seen with `HOME` pointed at an empty directory: sixteen requests
     /// missing, where the audit had counted none.
-    fn paths(b: &Battery, k: usize) -> (Option<std::path::PathBuf>, Option<std::path::PathBuf>) {
+    pub(crate) fn paths(
+        b: &Battery,
+        k: usize,
+    ) -> (Option<std::path::PathBuf>, Option<std::path::PathBuf>) {
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
         let rcx = crate::testenv::experiment(
             &home.join("ron-golden/recordings"),

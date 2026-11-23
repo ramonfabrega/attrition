@@ -587,6 +587,7 @@ impl Sim {
     /// own point. No traced game reaches the arm: a route whose `build_road`
     /// answered 0 has no caravan on it.
     fn trade_walk_no_road(&mut self, u: usize, city: usize, span: i32) {
+        crate::seam!("no_road_city_point");
         let to = self.cities.cities[city].pos;
         let here = self.units[u].pos;
         if crate::world::vector_dist((to.x - here.x).abs(), (to.y - here.y).abs()) > span + 0xc6 {

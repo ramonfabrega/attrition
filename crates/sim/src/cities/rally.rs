@@ -541,6 +541,7 @@ impl Sim {
             self.moved_to(captain, from, false);
             return Some(spot);
         }
+        crate::seam!("gather_reseat_none");
         None
     }
 

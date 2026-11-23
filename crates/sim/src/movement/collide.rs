@@ -2466,6 +2466,7 @@ impl Sim {
         // stands in for a state the original does not have rather than
         // for one it does.
         if self.units[o].guys.is_empty() {
+            crate::seam!("corner_no_guys");
             return Self::corner_of(size, ucell(self.units[o].pos), cell);
         }
         let body = self.units[o].movement.body.pos;

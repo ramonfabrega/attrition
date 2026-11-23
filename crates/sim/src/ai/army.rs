@@ -3434,7 +3434,9 @@ impl TransView for TransSim<'_> {
         let target = Obj::Building(self.sim.cities.cities[c].building);
         self.sim.find_muster_spot(self.who, self.slot, target, true)
     }
-    fn muster_fallback(&mut self, _c: usize) {}
+    fn muster_fallback(&mut self, _c: usize) {
+        crate::seam!("muster_fallback");
+    }
     fn set_marching(&mut self) {
         self.army().status = status::MARCHING;
     }

@@ -453,6 +453,7 @@ impl Sim {
                 return;
             }
             // SEAM: the computer's own proposals (`6c0a3f` on).
+            crate::seam!("own_proposals");
             return;
         }
         let mut s = self.leaders.declare[me].good_deeds[t];
@@ -587,6 +588,7 @@ impl Sim {
         }
         if gives {
             // SEAM: a positive need with a give of mine (`6c035d`).
+            crate::seam!("need_with_give");
             return;
         }
         // The counteroffer: the good it asks for (the best

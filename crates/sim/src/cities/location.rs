@@ -711,7 +711,10 @@ impl LocationView for SimLocation<'_> {
         // original's leader record; the crate counts none.
         match (Self::player(i), Self::region(tr)) {
             (Some(p), Some(r)) => self.sim.reg_cities(p, r),
-            _ => 0,
+            _ => {
+                crate::seam!("reg_cities_out_of_range");
+                0
+            }
         }
     }
     fn reg_forts(&self, i: i32, tr: i32) -> i32 {
@@ -806,7 +809,10 @@ impl LocationView for SimLocation<'_> {
         // so nothing is refused. No caller in this crate passes it.
         match Self::player(who) {
             Some(p) => self.sim.site_gather_count(self.ty, p, self.corner, md),
-            None => 1,
+            None => {
+                crate::seam!("calc_gather_playerless");
+                1
+            }
         }
     }
     fn store_gather(&mut self, n: i32) {
