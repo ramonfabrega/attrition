@@ -1643,8 +1643,10 @@ established*: no other row names a leaf, since each take holds sums only, but ro
 ranges: on 1563, who=2's Caravan `2/31` is homed on its ally who=1's city 3, and ours links its trade order. Item 4583
 built why theirs does not (run1800's packet, `docs/CARAVAN.md` §4): `do_trade`'s link gate refuses a home that is not
 the caravan owner's without `has_preq(BASE_BONUSTYPES)`, and `LAB_005eda11` gives the order again. That moved rows 73
-(first parting 1563 → 2779), 33 (whole but ammo, first 3386) and 113 (whole but cities, first 3995); none of the three
-new partings is read. Also not established: a script past §9's three orders, or one issued after frame 90; whether row
+(first parting 1563 → 2779), 33 (whole but ammo, first 3386) and 113 (whole but cities, first 3995). ~~none of the three
+new partings is read.~~ Row 73's 2779 is read and built by item 4589 (`docs/ANIM.md` §16): who=2's ARMOREDCAR `2/70`,
+idled by its guard stand, is put back on `CHAR_ATTACKWALK` by `Guy::move`'s moving walk; row 73 is whole but ammo,
+first 3279, unread. Rows 33's 3386 and 113's 3995 are not read. Also not established: a script past §9's three orders, or one issued after frame 90; whether row
 13's 7675 and the sample's 7055 are one mechanism.
 
 **Row 93's first leaf: the President heals** (item 4577, run1799). run1799 is row 93's
