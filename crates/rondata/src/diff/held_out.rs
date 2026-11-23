@@ -12060,7 +12060,29 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4619 (`Unit::target_opportunity`'s anti-siege shield
+        // read whole: the five group-66 Bazookas yield their chase of `0/7`
+        // to `1/25`'s `0/0` on 3955): 2 -> 7 lines whole (deaths, groups,
+        // guys, goods and world join walls and items); units 3,956 -> 4,247,
+        // first 3956 -> 4122; builds 3,956 -> 4,219, first 3956 -> 4037;
+        // ammo 4,030 -> 4,120, first 3963 -> 4027; leaders 3,958 -> 4,037,
+        // first 3958 -> 4037;
+        // cities 3,983 -> 4,247, first 3983 -> 4037. Lowest parting 3956 ->
+        // 4027 (ammo), 221 states from the original's end.
+        moved: Some(Score {
+            states: 4248,
+            agreed: [
+                4247, 4219, 4248, 4120, 4248, 4248, 4248, 4037, 4247, 4248, 4248, 4248,
+            ],
+            first: &[
+                ("units", (4122, Some(3093904767), 3997056397)),
+                ("builds", (4037, Some(3026336351), 2412788383)),
+                ("ammo", (4027, Some(1259473412), 2057767770)),
+                ("leaders", (4037, Some(1016138288), 3437169294)),
+                ("cities", (4037, Some(2470399905), 2943438759)),
+            ],
+            over: None,
+        }),
     }),
     // run1806
     // row 48, as found 2026-11-23: 1 line whole; units 7,150 of 12,001, first 5940; builds 7,170 of
