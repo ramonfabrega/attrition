@@ -8912,6 +8912,65 @@ fn a_caravan_homed_on_an_ally_s_city_links_only_under_trade() {
     );
 }
 
+/// **A city's `vans` stand in the order the links were made** (item 4592,
+/// `docs/CHECKSUM.md` §12). `ArrayBase<CaravanLink>::add@0046e550` appends
+/// and `do_trade` is its one caller, so the cities line walks a city's
+/// links oldest first, whatever their owners. run1802, the sixth battery's
+/// row 113 on 3995: who=1's city 0 held who=2's `2/3` before who=1's own
+/// `1/3`, linked a frame later, and this crate walked them by owner.
+#[test]
+fn a_city_s_caravan_links_stand_in_the_order_they_were_made() {
+    let mut w = World::new(60, 60);
+    w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(59, 59));
+    let mut sim = Sim::new(Tuning::RON, w, 3);
+    let t = install_types(&mut sim);
+    sim.ai.lobby.reveal_map = 2;
+    sim.make_allies(1, 2);
+    for p in [1, 2] {
+        sim.tech[p].epoch[tech::Line::Civic as usize] = 1;
+    }
+    let n = sim.tables.tech_tree.types.len();
+    sim.tables
+        .tech_tree
+        .add(tech::TypeDef::new("Trade", tech::Kind::Final));
+    sim.tables.tech_tree.roles.ally_caravan_preq = Some(n);
+    for p in 0..3 {
+        sim.tech[p].tech.resize(n + 1, false);
+        sim.tech[p].tech[n] = true;
+    }
+    let (_, home) = city_at(&mut sim, &t, 1, 20, 40);
+    let (_, first) = city_at(&mut sim, &t, 2, 60, 40);
+    let ty = sim.add_unit_type(citizen_type(t.village));
+    let link = |sim: &mut Sim, who: Player, x: i32| {
+        let u = spawn(sim, who, ty, tile_pos(x, 40));
+        let v = sim.init_caravan(who, u).expect("a slot");
+        sim.units[u].caravan = Some(v);
+        sim.economy.caravans[who as usize].slots[v].unit = Some(u);
+        sim.units[u].idle = 12;
+        assert!(sim.think_caravan(u), "who={who}: the order is given");
+        sim.units[u].idle = 0;
+        sim.do_trade(u);
+        let van = &sim.economy.caravans[who as usize].slots[v];
+        assert!(van.linked, "who={who}: the route is taken");
+        (v as i32, who as i32, [van.city_a, van.city_b])
+    };
+    // who=2's caravan first: its own city and its ally's.
+    let (v2, w2, ends2) = link(&mut sim, 2, 26);
+    assert!(ends2.contains(&Some(home)) && ends2.contains(&Some(first)));
+    // Then who=1's, on the same home, to who=2's second city.
+    let (_, second) = city_at(&mut sim, &t, 2, 85, 40);
+    let (v1, w1, ends1) = link(&mut sim, 1, 22);
+    assert!(
+        ends1.contains(&Some(home)) && ends1.contains(&Some(second)),
+        "who=1's route joins its city to who=2's second: {ends1:?}"
+    );
+    assert_eq!(
+        sim.city_links(home),
+        vec![(v2, w2), (v1, w1)],
+        "who=2's link, made first, walks first"
+    );
+}
+
 /// The untargeted crafts' fixture (item 1111, `docs/GOLDEN.md` §48): a
 /// Citizen (`PEASANTS`, 40 hits, LOS 2), the Militia (50), a General
 /// (`MANA 1000`) and an armed foot squad type, and the three rows as

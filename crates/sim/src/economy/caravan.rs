@@ -57,6 +57,16 @@ pub struct Caravan {
     pub city_a: Option<usize>,
     /// `city3`/`whose` (+0x4, +0x6) — the far city, and the goal.
     pub city_b: Option<usize>,
+    /// When `do_trade` linked the pair, as a rank among the links standing:
+    /// one past the largest any standing link holds. Not a `CaravanData`
+    /// field — it stands in for the order of each city's `vans`
+    /// (`CityData +0x74`, `Array<CaravanLink>`). `ArrayBase<CaravanLink>::add@0046e550`
+    /// appends, `do_trade` its one caller, and
+    /// `Array<CaravanLink>::remove@0046e4e0` shifts the rest down, its one
+    /// caller `end_trade_route`, so a city's links stand in the order they
+    /// were made (item 4592, run1802: row 113's who=1 city 0 on 3995, the
+    /// caravan `1/3` linked after who=2's `2/3`, walked after it).
+    pub linked_at: u64,
     /// `o` (+0xa) — the caravan unit.
     pub unit: Option<usize>,
     /// `road` (+0x10): the plan as `Stack<PathData>` — **world** positions,
@@ -271,6 +281,18 @@ impl Sim {
         !self.trade_route_exists(city, other) && !self.trade_route_exists(other, city)
     }
 
+    /// The largest [`Caravan::linked_at`] of any standing link, 0 with none.
+    pub(crate) fn newest_link(&self) -> u64 {
+        self.economy
+            .caravans
+            .iter()
+            .flat_map(|l| l.slots[..l.mark].iter())
+            .filter(|v| v.alive && v.linked)
+            .map(|v| v.linked_at)
+            .max()
+            .unwrap_or(0)
+    }
+
     /// One direction of the `vans` test: does any live route of any leader
     /// already join these two.
     fn trade_route_exists(&self, city: usize, other: usize) -> bool {
@@ -429,11 +451,15 @@ impl Sim {
         } else {
             (dest, ord.home)
         };
+        // Both cities' `vans` take the link at their end
+        // (`ArrayBase<CaravanLink>::add@0046e550`, `do_trade:363`, `:371`).
+        let linked_at = self.newest_link() + 1;
         let list = &mut self.economy.caravans[who as usize].slots[v];
         list.city_a = Some(a);
         list.city_b = Some(b);
         list.alive = true;
         list.linked = true;
+        list.linked_at = linked_at;
         ord.started = true;
         self.set_trade_order(u, ord);
         // **Both cities' trade, recomputed on the route's first call**

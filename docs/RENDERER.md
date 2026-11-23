@@ -5004,11 +5004,49 @@ walked through each class's primary bases). On the object they are
   118 quads, each vertex order top-left, top-right, bottom-right,
   bottom-left, window `158 79 484 988`, and the build's oracle.
 
+**Built (item 4601).** *Opus 5.5; the ledger:
+`docs/journal/2026-11-23-item-4601.md`.* `minimap::blips` lays the five
+layers off `runner.sim()` and draws them in `overlays`, between the
+borders and the view's rectangle. Its test holds run1564's packet quad
+for quad: 118 of 118, each rectangle within 0.01 and every colour and
+texcoord exact, on the world at the photograph's frame (`PHOTO_FRAME`
++ 1, where every other run1564 row reads it; at 3294 the units have moved
+on). Four predicates the reading above did not settle, each settled by
+the packet:
+- *The filter is `stat_mode` 1* (`player_profile.prefs`, the minimap's
+  mode). A unit is drawn only when its type is combat-role (`+0x2c8 &
+  0x10000`). A building is drawn only when its type attacks (`+0x1e8`) or
+  its line's basic type is `MILITARY_TRAINER` (`+0x2c0 & 0x40000000`,
+  `8cd944`–`8cda6d`). No citizen, scout, farm, temple or city part has a
+  blip on the packet. That settles 4593c: player 0's nine units are eight
+  type 50 and one type 75, none of them combat-role. Under mode 0 the test
+  parts on 16 buildings and 35 units.
+- *The console sees everything.* The packet draws all 15 live goody boxes
+  and all 36 goods, where the console's own fog has seen none. Run1564's
+  console has player flags 7 (its gamelog's `BEGIN PLAYER`), neither
+  `0x100` nor `0xd0`, so `semaphore[0] & 0x42` must be set. The sim does
+  not carry it, so `blips::SEES_ALL` takes it as set.
+- *The chain.* `up`/`up_who` are the cell's object chain
+  (`ObjectChain`). Our unit 0/0 holds `up 23`, `up_who 1`, as the dump
+  does.
+- *The blink.* `UnitOrder::is_attack` is the order's slot `+0x18` (the
+  PDB's `LF_ONEMETHOD`, `vftable offset = 24`). Three of player 1's
+  attackers at player 0's capital have no blip, so the packet's
+  `graphic_tick & 8` was set.
+
+The window, the projection, the atlas's rectangles, oil's two quads and
+the city's size 6 are as read above, and the packet agrees with all of
+them.
+
 **Not established.**
 - The predicates the frame does not exercise: `stat_mode` 1, 2 and 6,
   the selection's white on a unit, the idle flash, layer 4, and the
   visibility test under the fog. ~~The building arms' slots~~: named
-  (item 4596, above). Not built (4596a).
+  (item 4596, above). ~~Not built (4596a)~~: built (item 4601, above),
+  under mode 1 alone.
+- The captures' `stat_mode` and `semaphore[0]` are inferred from the
+  packet and not read (4601a). `graphic_tick` is taken in the live client
+  as the frame's bit 3, which is not established.
 - The triangle's colour count: `8ce7c7` pushes 3 with the fill to the
   colour array's add, for four vertices.
 - The minimap camera's scale off run1564's map: there `m13/m15` is

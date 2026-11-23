@@ -30,10 +30,10 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 Blind: never 336 · residue 336 · open 0
 Rubric: ported 739 · replaced by design 331 · open 570 of 3611 · lockstep bytes 78.1 % · ages held 8 of 8 · unit types seen 296 of 302
 Held-out: 8 of 9 whole · shortest 6147
-Parity: 47 of 55 whole · held out 41 of 48 · the sample parts first on leaders 7502 of 21044 · draws 7613
+Parity: 48 of 55 whole · held out 42 of 48 · the sample parts first on leaders 7502 of 21044 · draws 7613
 Parity held out, closed: first, second, third, fourth · 32 of 32 whole · lines 309 of 384 as found, 384 now · reach 66 % of states as found, 100 % now
 Parity held out, fifth: 6 of 8 whole · 8 taken · lines 30 of 96 as found, 74 now · first partings 3857 0 3192 1582 1956 1750 2977 whole as found, whole whole 3833 whole 3662 whole whole whole now · reach 48 % of states as found, 89 % now
-Parity held out, sixth: 3 of 8 whole · 8 taken · lines 20 of 96 as found, 52 now · first partings 7675 2411 3358 1563 2342 2259 956 whole as found, 7675 whole 3358 whole 2686 3995 2166 whole now · reach 49 % of states as found, 59 % now · reach in the first 6,001 states 59 % as found, 75 % now
+Parity held out, sixth: 4 of 8 whole · 8 taken · lines 20 of 96 as found, 53 now · first partings 7675 2411 3358 1563 2342 2259 956 whole as found, 7675 whole 3358 whole 2686 whole 2198 whole now · reach 49 % of states as found, 60 % now · reach in the first 6,001 states 59 % as found, 76 % now
 Structure: flat 11 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 21 · largest 3756
 Renderer: K 59 of M 60 · frames 35 of 35 · pieces 1465 of 1478 · resolved 1,237,711 of 1,237,726 objects over 110 lobbies
 Clock: ceilings on GreatLakes lobby, 600 frames off-screen from frame 0 · frame zero 1.5 s · p99 20 ms · slowest 400 ms (frame 1, first sight) · peak 320 MiB
@@ -41,7 +41,7 @@ Start: 161 of 161 lobbies · GreatLakes walked w24000 of 24,000
 Lobby: the page sets 161 of 161 lobbies · starts 161 of 161, walked 600 frames
 Hud: buttons mint the clicked file byte for byte, 2 of 2 keyed orders · the transport press 4 of 4 (4357) · the panel equals run1568's dump, 628 of 628 values · the bar equals the LEADERDATA record, 57,420 of 57,420 values · the clock reads the photographs' time, 3 of 3, and Game::tick on 109 of 109 packets · a wounded unit's panel equals run1571's dump, 840 of 840 values · the HUD draws the panels, 103 of 103 buildings and 36 of 36 citizens' pages, 2,711 of 2,711 buttons, paged as theirs, 468 of 468 states, the idle arms held on 3 packets, the standard panel 398 of 398 buttons, the picks 24 of 24 (4334 to 4349)
 Recording: 50 of 50 round-tripped · the original plays ours: GreatLakes 24,000 of 24,000 frames in lockstep (run1560) · with a person's orders (move_to, queue_up, build): 24,000 of 24,000 frames in lockstep, 299 records whole, each order's effect equal on both sides (run1561, run1561a) · right presses: 300 of 300 frames, each effect equal (run1568) · a box: 300 of 300 (run1569) · an attack: 6,900 of 6,900 frames, 210 records whole, the blow's hits equal (run1571) · a follow: 6,900 of 6,900 (run1573) · a gather point: 7,000 of 7,000 frames, 300 records whole (run1598) · a chat: 7,000 of 7,000 (run1599) · a pause: 7,000 of 7,000 draws, 300 of 300 records whole (run1601) · sell and buy: 7,000 of 7,000 draws, 300 of 300 records whole (run1604) · a city's gather: 7,000 of 7,000, 300 of 300 (run1605) · an unqueue: 7,000 of 7,000, 300 of 300, the capital's queue equal (run1606) · a repeated group: 7,000 of 7,000, 300 of 300 (run1607) · a city's rename: 7,000 of 7,000, 300 of 300 (run1609) · a hot key: 7,000 of 7,000, 300 of 300, slot 0's group 1 equal before and after (run1610, run1611) · a garrison: draws 7,000 of 7,000, the Citizen inside `0/2000` on 6767 on both sides, 300 of 300 records (run1613; 4277) · a buildmask: draws 7,000 of 7,000, the capital's mask and re-queue equal, 300 of 300 records (run1614; 4277) · a come_out: 7,000 of 7,000 frames, 300 of 300 records, the Citizen's exit equal on 6781 (run1616) · a stance: 7,000 of 7,000, 300 of 300 (run1617) · the console's ai off: 7,000 of 7,000, 300 of 300, slot 1's Citizens' retarget equal on 6982 (run1618) · a disband: draws 7,000 of 7,000, 300 of 300 records, the corpse equal (run1623) · an auto-explore: draws 7,500 of 7,500, 700 of 700 records whole, the Scout's path equal from 6819 (run1627) · the picks (follow, gather, attack): 7,500 of 7,500, 700 of 700, each effect equal (run1656) · the picks' other arms (the Move pick's ground order, the guard, the ground `ATTACK_TO`, `BUILD_AT` on a Farm site): 7,500 of 7,500, 700 of 700, 40 of 40 effects (run1663) · a minted `set_transport`: 7,500 of 7,500, 700 of 700, no effect at level 0 on both sides (run1668) · a repair after an attack: 8,500 of 8,500, each effect equal (run1679)
-Checksum: instrument 15 of 15 lines (run1562 f91) · state 9 of 12 lines, 425,499 of 425,499 bytes · packets 107 of 123 · lines 950 of 1,053
+Checksum: instrument 15 of 15 lines (run1562 f91) · state 9 of 12 lines, 425,499 of 425,499 bytes · packets 107 of 123 · lines 951 of 1,053
 
 **Opener: continue the tranche (`commander`, Opus 5.5)** — check the gate log the handoff's pass names (`gate-pass-1123.log`) ends `gate exit 0` and HEAD = origin/main = origin/worktree-replan-pdb; cut the four seats from the lanes line under "The queue" (DECISIONS 154 §10): the chain's on 4598, parity seats on 4592 and 4597, the client's on 4596.
 
@@ -51,26 +51,19 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2, 151 §5, 152 §1 to §4, 153 §2 to §10, 154 §1 to §10): four seats, all out: the chain's 4590 (rows 93 and 83, a packet; 4599 hooked 24 of the 71 P notes and none is entered on a parted row's first parting alone), a parity seat's 4592 (row 113, cities alone), a parity seat's 4602 (row 133's builds from 2166; 4597 moved units 1906 -> 2199) and the client's 4601 (the blips built, 4596a; item 4596 named their arms, no score). Unseated, by first parting with a row one line from whole first (153 §2): 4578 (row 53), 4571 (row 43), 4569 (the sample), 4579 (row 13); 4573 (row 83) rides 4590 and is scored again at its booking; 4600 (the seventh battery) is seated when the sixth reads 4 of 8 or on Ramon's word. A row's seat is refilled with the row's next word while its column moves; a seat that frees takes the next in this order, and 4569 before a hand-over when no row's item stands. Every take waits its turn, one game at a time; a script of several waits on each with `waitrun.sh` (153 §7). `docs/RECGAME.md` §12 stands at its ceiling: a fifth row's landing changes its row's cell there and writes its leaf in `docs/RUNS.md` and its journal; a sixth row's goes under its own row's heading in §13 (13.1 to 13.5) and touches nothing above them (154 §6). The driver's note names `seams.py --field` with the leaf's own field (153 §9). The sample's stop reads the `Parity:` line's first parting and its draw word, never the games' count (151 §1). The disk read 96 GB at the pass; every take still stops under 60.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2, 151 §5, 152 §1 to §4, 153 §2 to §10, 154 §1 to §10): four seats, all out: the chain's 4590 (rows 93 and 83, a packet; 4599 hooked 24 of the 71 P notes and none is entered on a parted row's first parting alone), a parity seat's 4600 (the seventh battery, the game lane; 4592 made row 113 whole, the sixth 4 of 8), a parity seat's 4604 (row 133's ammo from 2198; 4602 moved builds 2,166 -> 2,351) and the client's 4603 (the minimap's pings, 4601b; 4601 built the blips, within 32 2,808 -> 3,002). Unseated, by first parting with a row one line from whole first (153 §2): 4578 (row 53), 4571 (row 43), 4569 (the sample), 4579 (row 13); 4573 (row 83) rides 4590 and is scored again at its booking; A row's seat is refilled with the row's next word while its column moves; a seat that frees takes the next in this order, and 4569 before a hand-over when no row's item stands. Every take waits its turn, one game at a time; a script of several waits on each with `waitrun.sh` (153 §7). `docs/RECGAME.md` §12 stands at its ceiling: a fifth row's landing changes its row's cell there and writes its leaf in `docs/RUNS.md` and its journal; a sixth row's goes under its own row's heading in §13 (13.1 to 13.5) and touches nothing above them (154 §6). The driver's note names `seams.py --field` with the leaf's own field (153 §9). The sample's stop reads the `Parity:` line's first parting and its draw word, never the games' count (151 §1). The disk read 96 GB at the pass; every take still stops under 60.
 
-4592. **Parity held out, sixth: row 113's cities from 3995** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §13.4).
-Item 4583 left row 113 whole on every line but cities (first 3995). run1793 holds sums: first act, one take of
-`item4566-row113-12000.rcx`, `--end-frame 12000 --allow-early-end`, `RNG_MASK=0x100u`. The pass read the two sums: their low
-halves are equal and the high ones 8 apart, which the same bytes in another order give (arithmetic, not a reading; 154 §3).
-Re-pin `SCORES_SIXTH[5].moved`, never `found`.
+4604. **Parity held out, sixth: row 133's ammo from 2198** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §13.5).
+Item 4602 wound the SAM's recharge on its near object and turned an anti-air turret at its aim (builds 2,166 -> 2,351).
+Row 133 now parts first on ammo at 2198, and the seam counter enters `sim::combat::damage::attacker_shot_redoubt` first
+on 2198 itself, 1,214 times: its note first. run1797 holds the ranges: no take. Re-pin `SCORES_SIXTH[6].moved`, never
+`found`. It stops when two landings running move no column.
 
-4602. **Parity held out, sixth: row 133's builds from 2166** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §13.5).
-Item 4597 walked a computer's repair swarm under `MOVE_TO` (units 2,126 -> 2,199). Row 133 now parts first on builds 2166:
-range 2509, who=2's SAM 2/2027 (TI 0x20d), the build record's +0x7a `recharging` ours 0, theirs 1 (theirs acted); units
-follow on 2199, records 34 and 66, `order.air`. run1797 holds the ranges: no take. `seams.py --field recharging`. Re-pin
-`SCORES_SIXTH[6].moved`, never `found`. It stops when two landings running move no column.
-
-4601. **The minimap's blips, built** (a `render` item, scoped; the client's seat; `docs/RENDERER.md` §3.33; parked 4596a).
-Item 4596 named the arms and wrote the build's oracle (`tools/render/blips_packet.py`; the dump
-`~/ron-data/lab-experiments/2026-11-23-item-4596/run1564-blips.txt`): +0x90/+0x94 gather and flat (a farm is skipped),
-+0x2c the wonder's triangle, +0xfc the fort's size 3, the tower line a white quad beneath its colour, the captain the
-sim's own `captain` flag on a unit; no sim change. Build `minimap::blips` against the packet's 118 quads by 4596a's design, then re-pin
-`RUN1564_3279_MINIMAP`'s within-32 count (2,808 of 3,600). Open: player 0's nine units with no blip (4593c).
+4603. **The minimap's pings** (a `render` item, scoped; the client's seat; `docs/RENDERER.md` §3.33; parked 4601b).
+Item 4601 built the blips: `RUN1564_3279_MINIMAP` within 32 2,808 -> 3,002 of 3,600, 118 of 118 packet quads. What the
+eye still finds on run1564's photograph: white rings at player 1's base and a red pulse on player 0's capital, the last
+of `on_redraw`'s draws, unbuilt. Read the live pings off run1564's packet as the blips were read, build them, re-pin the
+within-32 count. 4601a (run1564's `stat_mode` and `semaphore[0]`, read) rides it if the packet read is open.
 
 4590. **Parity held out: rows 93 and 83, the captain's re-search, a packet** (a rules item, whole; the chain's seat, run1803; one seat,
 DECISIONS 154 §3; item 4587's journal, `docs/COMBAT.md` §63). On row 93's 2686 who=1's Bazooka 1/31 re-searches: ours takes
@@ -105,8 +98,8 @@ when two landings running leave the line's first parting and its draw word as th
 run1788 holds sums. First act, one take: `--end-frame 12000 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def
 RNG_MASK=0xfebu`. Re-pin `SCORES_SIXTH[0].moved`, never `found`. It stops when two landings running move no column.
 
-4600. **The seventh battery: rows 8 to 148, the human ordering through the game** (a rules item, whole; seated when the sixth
-reads 4 of 8 or on Ramon's word; DECISIONS 153 §6, 154 §7). The sixth's recipe (item 4566's journal; `docs/RECGAME.md` §13)
+4600. **The seventh battery: rows 8 to 148, the human ordering through the game** (a rules item, whole; a parity seat's, the game lane, run1804 to
+run1811; the sixth read 4 of 8 at item 4592; DECISIONS 153 §6, 154 §7). The sixth's recipe (item 4566's journal; `docs/RECGAME.md` §13)
 with one change: after §9's three orders, every 600 frames to 11,400 the capital queues one Citizen and unit 0 moves 2,400
 units along the next of its four headings, all named from the built start. Declare before any file; mint and play row 8
 alone first, then the seven; pin as found in a `SCORES_SEVENTH`; `launch_point`'s fallback and the seam table are the pass's.
