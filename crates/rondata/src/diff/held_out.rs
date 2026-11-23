@@ -1214,10 +1214,15 @@ pub(crate) mod tests {
         let (Some(rcx), Some(take)) = paths(&SEVENTH, 4) else {
             panic!("no take");
         };
-        let until = std::env::var("RON_PROBE_4614_UNTIL").ok().and_then(|v| v.parse().ok());
+        let until = std::env::var("RON_PROBE_4614_UNTIL")
+            .ok()
+            .and_then(|v| v.parse().ok());
         let score = crate::checksum::playback::compare_until(inst.root(), &rcx, &take, until)
             .expect("scored");
-        eprintln!("PROBE4614 states {} agreed {:?} first {:?}", score.states, score.agreed, score.first);
+        eprintln!(
+            "PROBE4614 states {} agreed {:?} first {:?}",
+            score.states, score.agreed, score.first
+        );
         for (line, d) in crate::checksum::CHECKSUM_LINES.iter().zip(&score.details) {
             if let Some(d) = d {
                 eprintln!("PROBE4614  {}: {d}", line.0);
