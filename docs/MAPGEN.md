@@ -4248,9 +4248,22 @@ tile, by `diff::checksum_lines::world` (`docs/CHECKSUM.md` §21) and the
 start walk's wide projection (`diff::start_walk`); the behind bit on five
 more games' late frames, dump-built (`diff::world`: run189's 14529,
 run240's 17087, run248's 17146, run72's 4802 and 4803, run93's 7932),
-whose `0x4` residues fell from 203, 262, 264, 32, 45 and 142 to 0. **On
-the reading alone**: the close's clear and the refresh as such, the
-bribe's re-mark, the depth static.
+whose `0x4` residues fell from 203, 262, 264, 32, 45 and 142 to 0. **The
+refresh's reason-0 skip** (item 4572): on run1796's 4989 who=2's Barracks
+foundation 2014 (TI 427, `SubObject::flags` 1, never started) disbands,
+and `disband_steps` closes an unstarted building with `close(0, -1, 0)`.
+Who=1's active 2016 (TI 435, a 5×5 at corner tile (32, 161), height 3)
+stands in the band's cell (8, 40), `(2, 0)` at `d = −3` from the
+Barracks' (9, 43). Theirs marks none of its 27 tiles on 4990 (x 29..=35,
+y 158..=164). Ours ran the refresh and set `0x4` on every one, so world
+range 3624 parted there (`0x07` against `0x03`). `Sim::close_building_for`
+keeps the reason, and the refresh runs for a reason other than 0 and 5
+(`diff::held_out`'s `row_3_s_foundation_disband_refreshes_no_neighbour_on
+_run1796_s_ranges`, every world range on both states). The scripts'
+`destroy_building@009f6fc0` calls `Build::close` (vslot `0x150`) with the
+same `(0, -1, 0)`. **On the reading alone**: the close's clear and the
+refresh as such, the bribe's re-mark, the depth static, and the script's
+reason 0 (no walk destroys a building by script; parked 4572a).
 
 **Not established**: a dump-built game holds no tileset
 (`World::land_set` is `None` outside the composed chain), so its
@@ -4258,7 +4271,9 @@ mid-game buildings write no ground — run1559b's packet's 31 cells
 (parked 4129b) stay; reason 0's close (`Leader::defeat_by`,
 `City::find_buildings`) clears and its copy, made by `Wall::swap_team`,
 never marks again, which the crate's silent close follows; whether a
-`weatherbase` flood ever passes `verify_land`'s 500.
+`weatherbase` flood ever passes `verify_land`'s 500; the scripts'
+`destroy_building` closing with reason 0, which no walk reaches (parked
+4572a).
 
 ## 36. The setup's census of the map: `World::analyze_map` (item 4147)
 
