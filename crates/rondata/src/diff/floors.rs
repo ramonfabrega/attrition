@@ -529,13 +529,16 @@ pub const MAPGEN: Mapgen = Mapgen {
 // `Object::do_launch`'s forts' and wonders' loops (`64fa71`..`64fda4`), its SEAM gone.
 // Item 4570: `sweep-lines` 17,288 -> 17,287 (-1): `City::has_citizen`, which nothing wrote, is gone
 // with its literal in `sweep/city_get_empty_trade_routes.rs`.
+// Item 4605: `fields` 21 -> 22 (+1), a named rise: `Sim.alerts`, the write-only alert stream the
+// minimap's pings read (`observe/alerts.rs`); `largest` 3,756 -> 3,774 (+18), a named rise: `air.rs`'
+// nuke launch and circle alerts (`do_missile_launch:74`, `Ammo::init:652`).
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 11),
     ("test-tails", 0),
     ("sweep-lines", 17_287),
     ("names", 15),
-    ("fields", 21),
-    ("largest", 3_756),
+    ("fields", 22),
+    ("largest", 3_774),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before

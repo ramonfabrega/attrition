@@ -204,14 +204,17 @@ impl Sim {
 
     /// `ally_stamp`'s step after arms 1 and 2 (§4.2): `frame −
     /// ally_stamp[att] > 300` takes the frame, for every pair of players.
-    pub(crate) fn step_ally_stamp(&mut self, vic: Player, att: Player, frame: i64) {
+    /// Answers whether it took the frame (the alert's gate, item 4605).
+    pub(crate) fn step_ally_stamp(&mut self, vic: Player, att: Player, frame: i64) -> bool {
         let a = usize::from(att);
         if a < 8
             && let Some(d) = self.tallies_mut(vic)
             && past(frame, d.ally_stamp[a], STAMP_WINDOW)
         {
             d.ally_stamp[a] = frame;
+            return true;
         }
+        false
     }
 
     /// **The territory step** (§4.2 step 4), after the city arms, on every
@@ -224,13 +227,13 @@ impl Sim {
         att: Player,
         raid: bool,
         frame: i64,
-    ) {
+    ) -> bool {
         let a = usize::from(att);
         if a >= 8 {
-            return;
+            return false;
         }
         let Some(d) = self.tallies_mut(vic) else {
-            return;
+            return false;
         };
         let cell = if raid {
             &mut d.raid_stamp[a]
@@ -239,7 +242,9 @@ impl Sim {
         };
         if past(frame, *cell, STAMP_WINDOW) {
             *cell = frame;
+            return true;
         }
+        false
     }
 
     /// **`attrition_stamp`'s peace and assassin arms**

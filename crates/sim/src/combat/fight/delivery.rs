@@ -93,6 +93,14 @@ impl Sim {
             return;
         }
         self.cities.cities[c].reduce_stamp = self.frame;
+        // **The city lost and won** (item 4605, `0064c7xx`): `add_event`
+        // at the building's point, `-6 - (striker is told)`, the striker's
+        // neon, `ping_times` -1. The victim reads -6 and the striker -7;
+        // an ally who sees the building is not carried (parked 4605b).
+        let (at, vic) = (self.pos_of(Obj::Building(b)), self.buildings[b].owner);
+        let tint = crate::observe::alerts::Tint::Neon(who);
+        self.alert(-6, at, 1 << vic, tint, -1);
+        self.alert(-7, at, 1 << who, tint, -1);
     }
 
     /// `Object::do_damage` (§7.1): computes, scales and delivers one hit from
@@ -435,15 +443,17 @@ impl Sim {
             Obj::Building(b) if self.buildings[b].active => {
                 if let Some(c) = self.buildings[b].city {
                     if !heavy {
-                        self.light_city_stamps(att, vic, c, frame);
+                        self.light_city_stamps(att, vic, c, target, frame);
                     } else if self.cities.cities[c].capital {
                         let stamp = &mut self.ai.ai[vic as usize].capital_stamp[att as usize];
                         if frame - *stamp > 300 {
                             *stamp = frame;
                             self.stamp_raid_and_attack(vic, att, frame);
                             alarm = true;
+                            // `0064ae20`: the capital's attack alert.
+                            self.attack_alert(target, 1 << vic);
                         }
-                        self.step_ally_stamp(vic, att, frame);
+                        self.ally_step(vic, att, target, frame);
                     } else {
                         let city = &mut self.cities.cities[c];
                         alarm = frame - city.attack_stamp > 300;
@@ -451,8 +461,10 @@ impl Sim {
                         city.raid_stamp = frame;
                         if alarm {
                             self.stamp_raid_and_attack(vic, att, frame);
+                            // `0064ab9c`: the city's attack alert.
+                            self.attack_alert(target, 1 << vic);
                         }
-                        self.step_ally_stamp(vic, att, frame);
+                        self.ally_step(vic, att, target, frame);
                     }
                 }
             }
@@ -476,7 +488,7 @@ impl Sim {
                     && bd.owner == vic
                     && let Some(c) = bd.city
                 {
-                    self.light_city_stamps(att, vic, c, frame);
+                    self.light_city_stamps(att, vic, c, target, frame);
                 }
             }
             _ => {}
@@ -487,9 +499,11 @@ impl Sim {
 
     /// §4.2 arm 3, the light arm on city `c`: the leader's two stamps on
     /// the city's own raid window, then the city's `raid_stamp` always.
-    fn light_city_stamps(&mut self, att: Player, vic: Player, c: usize, frame: i64) {
+    fn light_city_stamps(&mut self, att: Player, vic: Player, c: usize, target: Obj, frame: i64) {
         if frame - self.cities.cities[c].raid_stamp > 300 {
             self.stamp_raid_and_attack(vic, att, frame);
+            // `0064b200`: the raided city's alert.
+            self.attack_alert(target, 1 << vic);
         }
         self.cities.cities[c].raid_stamp = frame;
     }
@@ -515,7 +529,29 @@ impl Sim {
                         || self.is_merchant(t)
                 }
             };
-        self.step_territory_stamp(vic, att, raid, frame);
+        // `0064b5xx` and `0064b764`: the territory step's alert, told the
+        // victim when the striker is not its ally. The attack branch's
+        // scout arm (`ping_times` -1, `S_SCOUT_ATTACKED`) is not carried:
+        // every one is laid at -7 (parked 4605b).
+        if self.step_territory_stamp(vic, att, raid, frame) && !self.is_ally(att, vic) {
+            self.attack_alert(target, 1 << vic);
+        }
+    }
+
+    /// The ally step ([`Sim::step_ally_stamp`]) and its alert
+    /// (`0064ac4c`, `0064af4c`): the victim's allies are told.
+    fn ally_step(&mut self, vic: Player, att: Player, target: Obj, frame: i64) {
+        if self.step_ally_stamp(vic, att, frame) {
+            let told = self.allies_mask(vic);
+            self.attack_alert(target, told);
+        }
+    }
+
+    /// **The attack alert** (`ping` -10, `WHITE`, `ping_times` -7) at the
+    /// struck object's point (item 4605).
+    fn attack_alert(&mut self, target: Obj, told: u16) {
+        let at = self.pos_of(target);
+        self.alert(-10, at, told, crate::observe::alerts::Tint::White, -7);
     }
 
     /// **A hit on a building spills onto the hands at work on it**

@@ -1213,8 +1213,18 @@ impl Sim {
                     r: i32::try_from(d * 5).unwrap_or(i32::MAX),
                 }
             });
+            // **A building's spline is laid at 150** (item 4604,
+            // `docs/RECGAME.md` §13.5; `Ammo::init@0067bbf0`,
+            // `67cd32`..`67cdc5`): a shooter whose vslot `+0x18` answers 0
+            // passes `calc_from_dir` `unit_move_speed × 0x96`, not its
+            // type's `PROJ_SPEED`. run1797's SAM `2/2027` on 2198: a
+            // 3,028.5 polygon, `depth` 20 where ours read 15.
+            let speed = match shooter {
+                Obj::Building(_) => i64::from(combat::UNIT_MOVE_SPEED) * 0x96,
+                Obj::Unit(_) => d,
+            };
             // The spline is kept (item 3802): `Ammo::inc_time` steps it.
-            let path = combat::missile_spline(launch, sz, landing, ez, lead, d)
+            let path = combat::missile_spline(launch, sz, landing, ez, lead, speed)
                 .recycled(self.spline_pop());
             spline = Some(path);
             i32::try_from(path.len()).expect("at most SPLINE_MAX")
@@ -1251,7 +1261,18 @@ impl Sim {
                     combat::Spline::nuke((launch.x, launch.y, sz), (landing.x, landing.y, ez))
                         .recycled(self.spline_pop());
                 spline = Some(path);
-                i32::try_from(path.len()).expect("at most SPLINE_MAX") - 1
+                let time = i32::try_from(path.len()).expect("at most SPLINE_MAX") - 1;
+                // **The nuke's circle** (item 4605, `Ammo::init@0067bbf0:652`):
+                // `add_event` -4 at the landing, the shooter's neon, its
+                // `ping_times` the flight's frames, its radius the map's
+                // width `<< 8`; told every console.
+                if self.air_line_is(u, crate::air::airbase::NUCLEARMISSILE) {
+                    use crate::observe::alerts::{EVERYONE, Tint};
+                    let radius = self.world.width() << 8;
+                    let tint = Tint::Neon(self.units[u].owner);
+                    self.alert_with_radius(-4, landing, EVERYONE, tint, time, radius);
+                }
+                time
             }
         } else if p.siege {
             combat::siege_flight_time(

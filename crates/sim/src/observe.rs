@@ -1000,5 +1000,7 @@ impl Sim {
     }
 }
 
+pub mod alerts;
+
 #[cfg(test)]
 mod tests;

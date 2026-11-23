@@ -2055,7 +2055,14 @@ impl Sim {
 
     /// `Build::start@006273a0`: the site is committed — [`build_start_steps`] over this building.
     pub fn start_building(&mut self, b: usize) {
-        build_start_steps(&mut StartSite { sim: self, b }, false);
+        self.start_building_announced(b, false);
+    }
+
+    /// [`Sim::start_building`] with `Build::start`'s argument:
+    /// `Wall::do_construct`'s call passes 1 (vslot `0x1a4`), which raises
+    /// the begun-a-wonder alert (item 4605).
+    pub(crate) fn start_building_announced(&mut self, b: usize, announce: bool) {
+        build_start_steps(&mut StartSite { sim: self, b }, announce);
     }
 
     /// `Wall::start@0063e810`: answers whether it had already run (the original returns nonzero).
@@ -2641,6 +2648,17 @@ impl Sim {
         // the bonus for the ones the player has never held.
         self.claim_gather_slots(b, captured, counted);
         self.disband_rival_wonder_sites(b, ty); // lines 1294–1356
+        // **The wonder's alert** (item 4605, line 1782, inside `param_2`,
+        // `announce`): `ping` -8 at the building, `ping_times` -3, told
+        // every console — white to its owner, the owner's neon to the
+        // rest. `announce` is not carried; it is taken to be `counted`,
+        // the construction's and the cheat's finish (parked 4605b).
+        if counted && self.is_wonder_building(ty) {
+            use crate::observe::alerts::{EVERYONE, Tint};
+            let at = self.buildings[b].pos;
+            self.alert(-8, at, 1 << who, Tint::White, -3);
+            self.alert(-8, at, EVERYONE & !(1 << who), Tint::Neon(who), -3);
+        }
         // Activation flags the old city's roads before its final upgrade
         // sweep can attach buildings inside the enlarged radius (AI §176).
         if !self.building_is_city(b)

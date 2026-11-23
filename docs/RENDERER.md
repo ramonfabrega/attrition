@@ -5063,8 +5063,9 @@ them.
 ## 3.34 The minimap's pings (item 4603)
 
 *2026-11-23, Opus 5.5; the ledger: `docs/journal/2026-11-23-item-4603.md`.
-Built and held to the packet, 11 of 11 squares; the still draws none,
-because our sim supplies no entry (4603a). The probe's output is under
+Built and held to the packet, 11 of 11 squares; fed from our sim's alert
+stream by item 4605 (`docs/journal/2026-11-23-item-4605.md`), which equals
+the packet's entries. The probe's output is under
 `~/ron-data/lab-experiments/2026-11-23-item-4603/`.*
 
 **What `render_ping@008ca6d0` draws.** It is the last of `on_redraw`'s
@@ -5152,36 +5153,56 @@ the blips' assumptions, asserted (`the_packet_s_profile_is_the_blips_assumptions
 **Built (item 4603).** `minimap::pings` builds the squares from the
 entries and a tick (`build`) and draws them (`draw`: the texture
 bilinear, as the blips' atlas; one layer a square and an alpha, in draw
-order). `overlays` draws them last. The world's entries are empty: the
-sim's alerts are not in `observe` (4603a). So `RUN1564_3279_MINIMAP`
-stays at 3,002 within 32. Fed the packet's eleven entries at tick 175, the
-still reads 3,213 (+211). That figure is measured in the row's test and
-not pinned, because it reads the original's events through our pixels.
+order). `overlays` draws them last.
 
-**The entries' sources** (4603a; not built, as no sim change is made here).
-Each is a `MessageWin::add_message` from the sim:
-- *The attack alert, -10:* `Object::do_damage@0064a480`, when the
-  console's object (or an ally's it sees) is struck. It is throttled by
-  the struck city's `CityData.attack_stamp` (`+0x14`, `300 < frame −
-  attack_stamp`), which our sim carries and the cities record checksums
-  (`docs/CHECKSUM.md`). The ping's point is the struck object's, which no
-  record holds.
-- *The wonder, -8:* `Build::activate@00623e20`.
-- *The rare, -9:* `World::reveal_fog@006b3d30`.
-- *A city lost or won, -6 and -7:* `Object::do_damage`'s capture branch.
+**Fed (item 4605).** The sim raises each entry where the original calls
+the message window: an append-only log, `sim::observe::alerts`, read
+through `Sim::observe_alerts` and by nothing in the sim. An alert keeps the
+writer's `ping`, point, frame, `ping_times` argument, radius, colour
+(white or a player's neon) and the mask of players its console gate would
+tell. `pings::entries` keeps the console's, newest first, and resolves
+`ping_times` at `message_length` 5. The writers:
+- *The attack, -10* (`Object::do_damage@0064a480`), on the stamps
+  `city_alarm` already writes, when one crosses 300 frames: the capital's
+  (`capital_stamp`), the city's heavy (`attack_stamp`) and light
+  (`raid_stamp`) arms tell the victim; the ally step tells its allies; the
+  territory step tells the victim if the striker is not its ally.
+- *A city lost or won, -6 and -7* (`do_damage`'s tail): on
+  `reduce_stamp`'s write, -6 to the victim and -7 to the striker, in the
+  striker's neon.
+- *A wonder begun, -8* (`Build::start@006273a0:137`, `do_construct`'s
+  `start(1)`): a visible wonder tells everyone, in the owner's neon. *A
+  wonder finished, -8* (`Build::activate@00623e20:1782`): everyone.
+- *The nuke*: -1 at the silo on launch (`do_missile_launch:74`), -4 at
+  the landing (`Ammo::init@0067bbf0:652`; times the spline's points less
+  one, radius the width `<< 8`), -1 at the blast (`Ammo::do_damage@00678060:288`).
+
+**On run1564, our stream is the packet's.** At 3279 the console's alerts
+are the packet's nine pinging entries, and the dead -4 at 2363, kind for
+kind: point, frame, stamp, times, colour and radius. The stamps are laid on
+the capture's clock: the packet's own (frame, stamp) pairs, straight
+between them, since `graphic_tick` is the wall clock (`Game::loop_render`,
+one a `0x42` ms) and the take ran at about eighteen frames a tick. The
+packet's one entry ours lacks is a text message with no ping, at player 1's
+base on 1881 (4605a). `RUN1564_3279_MINIMAP` reads 3,002 → 3,213 within
+32 (+211), the packet's own entries' figure. The live client lays the
+stream at one tick a frame.
 
 **Not established.**
-- The default pings' (-1) source: run1564's two are white, five times,
-  one at the capital on the frame of its loss.
-- The circle (-4), the doober's boxes, the selection's lines and type
-  circles, the scene's pings and the splines: none is on the packet, and
-  none is built.
+- The default pings' (-1) other sources, and the rare (-9,
+  `World::reveal_fog`), are not built; none other is on the packet.
+- The scout arm of the territory step (`ping_times` -1), a city lost seen
+  by an ally, a non-nuke missile's launch, the wonder's capture, and
+  `Build::activate`'s `announce`, taken to be `counted` (4605b).
+- The -6/-7 colour is the striker's neon by the decompile's `get_neon`
+  argument, held to one take where the striker is player 1.
+- The circle (-4) is not drawn, nor the doober's boxes, the selection's
+  lines and type circles, the scene's pings or the splines.
 - The texture's filter: `tex_ping_rs` keeps `RenderState::init@00535ba0`'s
   point filter. It is sampled bilinearly as the blips' atlas is on the
   photograph (§3.33), and this is not held to a pixel.
 - `map_rect` on another frame size: run1564's is the quad's bounds.
-- The live client's tick: `graphic_tick`'s rate is read off two stamps,
-  not off its writer.
+- The live client's tick: one a frame is the play speed's, not a clock.
 
 ## 4. The stack
 

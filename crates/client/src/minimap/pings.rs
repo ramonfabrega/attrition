@@ -13,9 +13,9 @@
 //! The entries come from the sim's own alerts (`MessageWin::add_message`,
 //! `add_event`: the attack alert in `Object::do_damage`, the wonder in
 //! `Build::activate`, the rare in `World::reveal_fog`, the city's loss and
-//! capture). The sim does not supply them through `observe` (parked
-//! 4603a), so the client holds none ([`Live`]). [`build`] and [`draw`] are
-//! the client's half, held to run1564's packet quad for quad.
+//! capture). Item 4605 raises them in the sim (`sim::observe::alerts`)
+//! and [`entries`] turns the stream into the console's list. [`build`] and
+//! [`draw`] are the client's half, held to run1564's packet quad for quad.
 //!
 //! Not built: the circle (`ping` -4, `draw_minimap_circle`), the doober's
 //! boxes, the selection's gather lines and type circles, the scene's own
@@ -37,8 +37,65 @@ pub struct Entry {
     pub colour: u32,
 }
 
-/// The entries the client holds and the `graphic_tick` it draws them at.
-/// Empty: our sim supplies none (4603a).
+/// **The profile's `message_length`** (`player_profile.prefs`, read by
+/// `add_message` and `add_event`): 5, as run1564's entries resolve it (a
+/// -1 is 5 times, -3 10 and -7 20).
+pub const MESSAGE_LENGTH: i32 = 5;
+
+/// **The neon of `TeamColor` lists 0 and 1** (`TeamColor::get_neon`,
+/// run1559b's packet, frame 3294; `crate::silhouette`'s record): the
+/// wonder's, the nuke circle's and the city loss's colour. A slot past
+/// them takes its border colour ([`super::blips::team`]); not read.
+pub const NEON: [[u8; 3]; 2] = [[255, 0, 0], [70, 100, 255]];
+
+/// A tint as the entry's colour word, red in its low byte.
+pub fn tint_word(t: sim::observe::alerts::Tint) -> u32 {
+    match t {
+        sim::observe::alerts::Tint::White => 0xffff_ffff,
+        sim::observe::alerts::Tint::Neon(p) => match NEON.get(usize::from(p)) {
+            Some(&[r, g, b]) => 0xff00_0000 | u32::from(b) << 16 | u32::from(g) << 8 | u32::from(r),
+            None => super::blips::team(p),
+        },
+    }
+}
+
+/// **The sim's alerts as the console's message window holds them** (item
+/// 4605): those that tell `console`, newest first, as
+/// `LinkListBase::add` keeps `events` (entries of one duration). `stamp`
+/// is the client's `graphic_tick` at a frame; a -4 is stamped with its
+/// frame (`add_event@007e9b70`). `ping_times` resolves as `add_message`
+/// does: below -1 `(1 − t) · MESSAGE_LENGTH / 2`, -1 `MESSAGE_LENGTH`.
+pub fn entries(
+    alerts: &[sim::observe::alerts::Alert],
+    console: sim::Player,
+    stamp: &dyn Fn(i64) -> i32,
+) -> Vec<Entry> {
+    alerts
+        .iter()
+        .rev()
+        .filter(|a| a.tells(console))
+        .map(|a| Entry {
+            x: a.x,
+            y: a.y,
+            ping: a.ping,
+            stamp: if a.ping == -4 {
+                a.frame as i32
+            } else {
+                stamp(a.frame)
+            },
+            times: match a.times {
+                t if t < -1 => (1 - t) * MESSAGE_LENGTH / 2,
+                t if t < 0 => MESSAGE_LENGTH,
+                t => t,
+            },
+            doober: 0,
+            colour: tint_word(a.tint),
+        })
+        .collect()
+}
+
+/// The entries the client holds and the `graphic_tick` it draws them at
+/// ([`entries`] of the sim's stream, item 4605).
 #[derive(Clone, Debug, Default)]
 pub struct Live {
     pub entries: Vec<Entry>,
@@ -430,6 +487,8 @@ pub(crate) mod tests {
         pub stat_mode: i32,
         pub semaphore: [u8; 2],
         pub entries: Vec<Entry>,
+        /// Each entry's `frame` (`+0xc`) and `ping_radius` (`+0x14`).
+        pub frames: Vec<(i64, i32)>,
         pub phases: Vec<(String, Vec<Phase>)>,
         pub verts: Vec<Vec<Vert>>,
     }
@@ -450,6 +509,7 @@ pub(crate) mod tests {
             stat_mode: -1,
             semaphore: [0; 2],
             entries: Vec::new(),
+            frames: Vec::new(),
             phases: Vec::new(),
             verts: Vec::new(),
         };
@@ -467,15 +527,18 @@ pub(crate) mod tests {
                     let h = |k: &str| u8::from_str_radix(&key(&w, k), 16).expect(k);
                     p.semaphore = [h("semaphore0"), h("semaphore1")];
                 }
-                Some(&"event") => p.entries.push(Entry {
-                    x: n("x"),
-                    y: n("y"),
-                    ping: n("ping"),
-                    stamp: n("stamp"),
-                    times: n("times"),
-                    doober: n("doober"),
-                    colour: u32::from_str_radix(&key(&w, "color"), 16).unwrap(),
-                }),
+                Some(&"event") => {
+                    p.frames.push((i64::from(n("frame")), n("radius")));
+                    p.entries.push(Entry {
+                        x: n("x"),
+                        y: n("y"),
+                        ping: n("ping"),
+                        stamp: n("stamp"),
+                        times: n("times"),
+                        doober: n("doober"),
+                        colour: u32::from_str_radix(&key(&w, "color"), 16).unwrap(),
+                    })
+                }
                 Some(&"texping") => p.phases.push((w[1].to_string(), Vec::new())),
                 Some(&"phase") => {
                     let f = |k: &str| key(&w, k).parse::<f32>().expect(k);
@@ -608,6 +671,30 @@ pub(crate) mod tests {
     /// ([`the_pings_are_the_packet_s`]); the photograph's pings are this
     /// tick's to the eye.
     pub(crate) const DRAWN_TICK_RUN1564: i32 = 175;
+
+    /// **The capture's clock** (item 4605): run1564's `graphic_tick` at a
+    /// frame, read off the packet's own entries — each a `(frame, stamp)`
+    /// the original's wall clock wrote (`Game::loop_render`, one tick a
+    /// `0x42` ms) — and the packet's own `(3294, 177)`, laid straight
+    /// between them and truncated. It is the capture's, as the camera is:
+    /// the take ran at about eighteen frames a tick, which no sim knows.
+    pub(crate) fn capture_clock(p: &Packet) -> impl Fn(i64) -> i32 + '_ {
+        move |f| {
+            let mut pts: Vec<(i64, i64)> = p
+                .entries
+                .iter()
+                .zip(&p.frames)
+                .filter(|(e, (fr, _))| i64::from(e.stamp) != *fr)
+                .map(|(e, (fr, _))| (*fr, i64::from(e.stamp)))
+                .chain([(3294, i64::from(p.tick))])
+                .collect();
+            pts.sort_unstable();
+            pts.dedup();
+            let k = pts.partition_point(|q| q.0 <= f).clamp(1, pts.len() - 1);
+            let ((f0, t0), (f1, t1)) = (pts[k - 1], pts[k]);
+            (t0 + (f - f0) * (t1 - t0) / (f1 - f0).max(1)) as i32
+        }
+    }
 
     /// **4601a, read** (item 4603): run1564's profile holds `stat_mode` 1,
     /// [`super::super::blips::STAT_MODE`]; the game's `semaphore` byte 0 is

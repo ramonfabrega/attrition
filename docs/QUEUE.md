@@ -33,8 +33,8 @@ Held-out: 8 of 9 whole · shortest 6147
 Parity: 48 of 55 whole · held out 42 of 48 · the sample parts first on leaders 7502 of 21044 · draws 7613
 Parity held out, closed: first, second, third, fourth · 32 of 32 whole · lines 309 of 384 as found, 384 now · reach 66 % of states as found, 100 % now
 Parity held out, fifth: 6 of 8 whole · 8 taken · lines 30 of 96 as found, 74 now · first partings 3857 0 3192 1582 1956 1750 2977 whole as found, whole whole 3833 whole 3662 whole whole whole now · reach 48 % of states as found, 89 % now
-Parity held out, sixth: 4 of 8 whole · 8 taken · lines 20 of 96 as found, 53 now · first partings 7675 2411 3358 1563 2342 2259 956 whole as found, 7675 whole 3358 whole 2962 whole 2198 whole now · reach 49 % of states as found, 60 % now · reach in the first 6,001 states 59 % as found, 77 % now
-Structure: flat 11 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 21 · largest 3756
+Parity held out, sixth: 4 of 8 whole · 8 taken · lines 20 of 96 as found, 53 now · first partings 7675 2411 3358 1563 2342 2259 956 whole as found, 7675 whole 3358 whole 2962 whole 2297 whole now · reach 49 % of states as found, 60 % now · reach in the first 6,001 states 59 % as found, 77 % now
+Structure: flat 11 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 22 · largest 3774
 Renderer: K 59 of M 60 · frames 35 of 35 · pieces 1465 of 1478 · resolved 1,237,711 of 1,237,726 objects over 110 lobbies
 Clock: ceilings on GreatLakes lobby, 600 frames off-screen from frame 0 · frame zero 1.5 s · p99 20 ms · slowest 400 ms (frame 1, first sight) · peak 320 MiB
 Start: 161 of 161 lobbies · GreatLakes walked w24000 of 24,000
@@ -51,20 +51,13 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2, 151 §5, 152 §1 to §4, 153 §2 to §10, 154 §1 to §10): four seats, all out: the chain's 4606 (row 93 from 2962; 4590's packet, run1803, named the raid arm's finished-building test: row 93 2686 -> 2962, row 83 unmoved), a parity seat's 4600 (the seventh battery, the game lane; 4592 made row 113 whole, the sixth 4 of 8), a parity seat's 4604 (row 133's ammo from 2198; 4602 moved builds 2,166 -> 2,351) and the client's 4605 (the alert stream, 4603a; 4603 drew the pings, 11 of 11 packet quads, the row unfed at 3,002). Unseated, by first parting with a row one line from whole first (153 §2): 4578 (row 53), 4573 (row 83, 3662), 4571 (row 43), 4569 (the sample), 4579 (row 13); A row's seat is refilled with the row's next word while its column moves; a seat that frees takes the next in this order, and 4569 before a hand-over when no row's item stands. Every take waits its turn, one game at a time; a script of several waits on each with `waitrun.sh` (153 §7). `docs/RECGAME.md` §12 stands at its ceiling: a fifth row's landing changes its row's cell there and writes its leaf in `docs/RUNS.md` and its journal; a sixth row's goes under its own row's heading in §13 (13.1 to 13.5) and touches nothing above them (154 §6). The driver's note names `seams.py --field` with the leaf's own field (153 §9). The sample's stop reads the `Parity:` line's first parting and its draw word, never the games' count (151 §1). The disk read 96 GB at the pass; every take still stops under 60.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2, 151 §5, 152 §1 to §4, 153 §2 to §10, 154 §1 to §10): four seats, all out: the chain's 4606 (row 93 from 2962; 4590's packet, run1803, named the raid arm's finished-building test: row 93 2686 -> 2962, row 83 unmoved), a parity seat's 4600 (the seventh battery, the game lane; 4592 made row 113 whole, the sixth 4 of 8), a parity seat's 4607 (row 133's cities and leaders from 2297; 4604 moved ammo 2198 -> 2408) and the client's seat freed to 4578 (row 53, a take; 4605 fed the pings from our sim's alert stream, `RUN1564_3279_MINIMAP` 3,002 -> 3,213 of 3,600, and the client's next step is undesigned). Unseated, by first parting with a row one line from whole first (153 §2): 4573 (row 83, 3662), 4571 (row 43), 4569 (the sample), 4579 (row 13); A row's seat is refilled with the row's next word while its column moves; a seat that frees takes the next in this order, and 4569 before a hand-over when no row's item stands. Every take waits its turn, one game at a time; a script of several waits on each with `waitrun.sh` (153 §7). `docs/RECGAME.md` §12 stands at its ceiling: a fifth row's landing changes its row's cell there and writes its leaf in `docs/RUNS.md` and its journal; a sixth row's goes under its own row's heading in §13 (13.1 to 13.5) and touches nothing above them (154 §6). The driver's note names `seams.py --field` with the leaf's own field (153 §9). The sample's stop reads the `Parity:` line's first parting and its draw word, never the games' count (151 §1). The disk read 96 GB at the pass; every take still stops under 60.
 
-4604. **Parity held out, sixth: row 133's ammo from 2198** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §13.5).
-Item 4602 wound the SAM's recharge on its near object and turned an anti-air turret at its aim (builds 2,166 -> 2,351).
-Row 133 now parts first on ammo at 2198, and the seam counter enters `sim::combat::damage::attacker_shot_redoubt` first
-on 2198 itself, 1,214 times: its note first. run1797 holds the ranges: no take. Re-pin `SCORES_SIXTH[6].moved`, never
-`found`. It stops when two landings running move no column.
-
-4605. **The minimap's pings fed: an alert stream on `observe`** (a `render` item, scoped, touching `crates/sim` by name; the
-client's seat; `docs/RENDERER.md` §3.34; parked 4603a). Item 4603 drew the pings, 11 of 11 quads on run1564's packet; our
-sim supplies no entries, so `RUN1564_3279_MINIMAP` stays 3,002 of 3,600 (fed the packet's own, 3,213). The sim raises
-(kind, point, frame) where the original's message window is told: the attack alert from damage, throttled by the city
-record's `attack_stamp`; the wonder's activation; a rare revealed; a city lost or won. Write-only from the sim's side, no
-checksummed record or digest moved. Our stream on 3279 equals the packet's 11 entries; then the row re-pinned.
+4607. **Parity held out, sixth: row 133's cities and leaders from 2297** (a rules item, whole; a parity seat's;
+`docs/RECGAME.md` §13.5). Item 4604 flew the SAM's missile on the original's spline from its node's measured launch (ammo
+2198 -> 2408; units, leaders, cities and goods forward). Row 133 now parts first on cities and leaders at 2297, where
+4602a's cities count fell. run1797 holds the ranges: no take. Re-pin `SCORES_SIXTH[6].moved`, never `found`. It stops when
+two landings running move no column.
 
 4606. **Parity held out, sixth: row 93 from 2962** (a rules item, whole; the chain's seat; `docs/RECGAME.md` §13.3). Item 4590
 gave the raid arm's /20 the finished-building test (`flags & 4`) where ours asked alive (row 93 2686 -> 2962; our game_over
@@ -72,7 +65,7 @@ gave the raid arm's /20 the finished-building test (`flags & 4`) where ours aske
 holds the ranges, run1803 a packet at 2685: no take. Re-pin `SCORES_SIXTH[4].moved`, never `found`. It stops when two
 landings running move no column.
 
-4578. **Parity held out, sixth: row 53's units and guys from 3358** (a rules item, whole; unseated; `docs/RECGAME.md` §13.2). East
+4578. **Parity held out, sixth: row 53's units and guys from 3358** (a rules item, whole; the client's freed seat, run1812; `docs/RECGAME.md` §13.2). East
 Indies, Classical, the human with the added computer, 12,001 states. run1790 holds sums. First act, one take, row 93's
 arguments. Re-pin `SCORES_SIXTH[2].moved`, never `found`. It stops when two landings running move no column.
 
