@@ -399,9 +399,15 @@ fn build(
         overlay.1.extend(p.col);
     }
     // Item 4581: the HUD's minimap, under the plates and the bars.
-    let minimap = hud
+    // Item 4588: its overlays over it, the borders and the view's rectangle.
+    let minimap: Vec<gpu::ScreenLayer> = hud
         .and(world.minimap.as_ref())
-        .map(|back| minimap::layer(back, (size.0 as i32, size.1 as i32)));
+        .map(|back| {
+            let mut v = vec![minimap::layer(back, (size.0 as i32, size.1 as i32))];
+            v.extend(minimap::overlays(world, camera, size));
+            v
+        })
+        .unwrap_or_default();
     let underlay = hud.map_or_else(Default::default, |input| {
         selection::underlay(world, &input.selection)
     });
@@ -567,6 +573,7 @@ pub(crate) fn still_minimap(
     ));
     if let Some(back) = &back {
         screen.push(minimap::layer(back, (size.0 as i32, size.1 as i32)));
+        screen.extend(minimap::overlays(world, camera, size));
     }
     let version = world.runner.terrain().version;
     world.set_screen(camera, size);
