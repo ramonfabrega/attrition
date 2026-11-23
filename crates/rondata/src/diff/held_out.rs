@@ -1136,6 +1136,88 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 133's computer lists no Bunker in its attacked capital**
+    /// (item 4585, `docs/AI.md` §167): run1797, the ranges take of row
+    /// 133's file. On 1757 who=2 rebuilds its make list. Its capital's
+    /// `city_flags` are `0x405b` on both sides, and bit `0x8`
+    /// (`ever_attacked`) spares a tower's value the arm's halving
+    /// (`0x6c390f`). The Bunker (TI 442) is worth 13,500,000 there, and
+    /// `check_income`'s 256 × that wraps negative, so theirs lists none:
+    /// slot 2 is TI 273 at 6,478,056 and slot 8 the Market (TI 436) at
+    /// 5,610,000 in its second city. Ours halved the Bunker to 6,750,000
+    /// and listed it in slots 2 and 8. Every leaders range on 1756 and 1757,
+    /// ours against theirs, byte for byte: red on the tree before the fix
+    /// at range 308, record 2, `make_list[k]`, `t` ours 442, theirs 273.
+    #[test]
+    fn row_133_s_computer_lists_no_bunker_in_its_attacked_capital_on_run1797_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 1756..=1757 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_leaders();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "leaders' ranges on {state}"
+            );
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "leaders range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Who=2's capital: attacked, its flags the same on both sides.
+            let cities = built.sim.checksum_cities();
+            let flags = cities
+                .ranges
+                .iter()
+                .find(|r| r.record == 2 && r.field == "city_flags")
+                .expect("who=2's capital");
+            assert_eq!(flags.bytes, [0x5b, 0x40], "the capital's flags on {state}");
+            if state == 1757 {
+                let word = |k: usize, n: usize| {
+                    i32::from_le_bytes(theirs[k].bytes[4 * n..4 * n + 4].try_into().unwrap())
+                };
+                assert_eq!(ours.ranges[308].field, "make_list[k]");
+                assert_eq!(ours.ranges[308].record, 2);
+                assert_eq!(
+                    (word(308, 0), word(308, 1)),
+                    (273, 6_478_056),
+                    "theirs' slot 2"
+                );
+                assert_eq!(
+                    (word(314, 0), word(314, 1), word(314, 3)),
+                    (436, 5_610_000, 1),
+                    "theirs' slot 8, the Market in the second city"
+                );
+            }
+        }
+    }
+
     /// **Row 83's computer lists a caravan by its ally's city** (item
     /// 4545, `docs/CARAVAN.md` §4): run1784, the ranges take of row 83's
     /// file. On 1956 who=2 (the added computer, team 0 with the human)
