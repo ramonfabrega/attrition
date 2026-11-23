@@ -2218,13 +2218,6 @@ impl Sim {
                 // building at its ceiling (`health` 0) is still fired on
                 // (item 1648, 3439).
                 if !self.struck(target) {
-                    if std::env::var_os("RON_PROBE_4595").is_some() {
-                        let alive = match target {
-                            crate::combat::Obj::Unit(i) => self.units.get(i).map(|x| (x.alive(), x.on_map)),
-                            _ => None,
-                        };
-                        eprintln!("PROBE4595 frame {} unit {} owner {:?} target {:?} alive/on_map {:?} guys {:?}", self.frame, u, self.units[u].owner, target, alive, self.units[u].guys.iter().map(|g| (g.gpiece, g.anim, g.cur_time, g.last_time)).collect::<Vec<_>>());
-                    }
                     return;
                 }
                 Some(target)
