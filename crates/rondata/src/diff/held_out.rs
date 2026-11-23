@@ -1875,68 +1875,6 @@ pub(crate) mod tests {
         assert!(built.sim.buildings[fresh].no_builder && !built.sim.buildings[started].no_builder);
     }
 
-    /// Probe (item 4620): every differing range, by field, on run1797's
-    /// ranges over `RON_PROBE_4620`'s frames (`lo-hi`).
-    #[test]
-    fn probe_4620() {
-        let Ok(win) = std::env::var("RON_PROBE_4620") else {
-            return;
-        };
-        let (lo, hi) = win.split_once('-').map(|(a, b)| (a.parse::<i64>().unwrap(), b.parse::<i64>().unwrap())).unwrap();
-        let inst = crate::testenv::install().expect("install");
-        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(&SIXTH, 6) else { panic!("rcx") };
-        let ranges = crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges").expect("ranges");
-        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
-        let loaded = crate::load::load(&inst).expect("the install loads");
-        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
-        let rules = inst.rules().expect("rules");
-        let tribes = inst.tribe_defs(&rules).expect("tribes");
-        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
-        let mut stream = crate::input::Stream::pump(&rec);
-        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
-        let names = ["units", "builds", "cities", "goods", "items", "groups", "guys", "leaders", "world"];
-        let mut prev: Vec<String> = Vec::new();
-        for state in lo..=hi {
-            while built.sim.frame < state {
-                stream.apply(built.sim.frame as i32, &mut built);
-                built.sim.command().tick();
-            }
-            let now: Vec<String> = built.sim.buildings.iter().enumerate().map(|(i, x)| format!("slot {i} {}/{} ty {:?} active {} alive {} city {:?} pos {:?}", x.owner, x.index, x.ty.map(|t| built.sim.tables.build_types[t].ident), x.active, x.alive, x.city, x.pos)).collect();
-            for l in &now { if !prev.contains(l) { eprintln!("P4620 {state} + {l}"); } }
-            for l in &prev { if !now.contains(l) { eprintln!("P4620 {state} - {l}"); } }
-            if prev.is_empty() { for l in &now { if l.contains(" 2/") { eprintln!("P4620 {state} = {l}"); } } }
-            prev = now;
-            let set = record.first_of(state - 1).expect("the state's set").clone();
-            let all = record.ranges(&set).expect("the set's ranges");
-            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
-            for (ci, c) in built.sim.cities.cities.iter().enumerate() {
-                let ch = built.sim.city_chain(ci);
-                let row: Vec<_> = ch.iter().map(|&b| { let x = &built.sim.buildings[b]; (x.owner, x.index, x.active, x.alive) }).collect();
-                if row.iter().any(|r| matches!(r.1, 2007 | 2008 | 2026)) {
-                    eprintln!("P4620 {state} city {ci} chain {row:?}");
-                }
-                let _ = c;
-            }
-            for (li, name) in names.iter().enumerate() {
-                let Some(ours) = lines[li].as_ref() else { continue };
-                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == li).collect();
-                if ours.ranges.len() != theirs.len() {
-                    eprintln!("P4620 {state} {name} count ours {} theirs {}", ours.ranges.len(), theirs.len());
-                }
-                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
-                    if a.bytes != b.bytes {
-                        let d = crate::checksum::fields::differing_fields(name, a.field, &a.bytes, &b.bytes);
-                        eprintln!("P4620 {state} {name} range {k} record {} {} len {}/{} {:?}", a.record, a.field, a.bytes.len(), b.bytes.len(), d);
-                        if d.is_empty() && a.bytes.len() <= 64 {
-                            eprintln!("P4620   ours {:?}\nP4620   theirs {:?}", a.bytes, b.bytes);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     /// **Row 133's SAM flies its rockets on their splines** (item 4604,
     /// `docs/RECGAME.md` §13.5): run1797's ranges. On 2198 who=2's SAM
     /// `2/2027` launches its first SAM Rocket (`missile="1"`) at who=1's
