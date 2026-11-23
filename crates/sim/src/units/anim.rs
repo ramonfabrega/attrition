@@ -2217,15 +2217,32 @@ impl Sim {
                 // an object (`whom`/`ox` not −1), never its hit points: a
                 // building at its ceiling (`health` 0) is still fired on
                 // (item 1648, 3439).
-                if !self.struck(target) {
-                    return;
-                }
                 Some(target)
             }
         };
+        // **A gone target still takes a `graph_index`** (item 4595,
+        // `docs/COMBAT.md` §24.4). `Guy::execute_events@005d99c0` refuses
+        // a gone or changed target (`ObjectData +0x8 & 1`, `uid`) only on
+        // a figure whose animation is `CHAR_ATTACK2` (`:184`–`:197`); any
+        // other passes the package to `execute_game_events@008e48e0`,
+        // whose gate asks `whom`/`ox` not −1 and nothing else, and every
+        // due event calls `Objects::add_ammo@00658b10`. `Ammo::init`
+        // returns at `:181` on the target's clear `flags & 1`, the round's
+        // own `flags & 3` never set and no draw, and `add_ammo` counts
+        // `+0x1f8` all the same. run1798 on 3278: theirs' `graph_index`
+        // 1008 is in no state, and `2/37`'s pair is 1009 and 1010.
+        let refused = target.is_some_and(|t| !self.struck(t));
+        let gone = target.is_some_and(|t| !self.slot_live(t));
         let frame = self.frame;
         for g in 0..self.units[u].guys.len() {
             let guy = self.units[u].guys[g];
+            // SEAM: a target alive but not struck (off the map, or a
+            // building with no combat record) is refused whole here, where
+            // the original's non-`CHAR_ATTACK2` figure reaches `Ammo::init`
+            // past `:181`; no capture has entered it.
+            if refused && (category(guy.anim) == ATTACK2 || !gone) {
+                continue;
+            }
             let Some(times) = self
                 .roster
                 .art
@@ -2272,6 +2289,10 @@ impl Sim {
                         .map_or(0, |n| n.len());
                     let k = (i32::from(node) & 3) as usize;
                     if k < pivots && guy.turret.node_flags & (1 << k) == 0 {
+                        continue;
+                    }
+                    if gone {
+                        self.add_ammo_refused();
                         continue;
                     }
                     let facing = guy

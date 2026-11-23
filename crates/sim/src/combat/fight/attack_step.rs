@@ -723,6 +723,16 @@ impl Sim {
         self.add_ammo_to_slot(p, false);
     }
 
+    /// **`Objects::add_ammo@00658b10` on a round `Ammo::init` refuses**
+    /// (item 4595): a release at a target whose `flags & 1` is clear
+    /// returns at `Ammo::init@0067bbf0:181`, before any draw and before
+    /// the `flags | 2` at `:572`, so the slot stays free and the accuracy
+    /// at `:372` unwritten; `add_ammo` counts `+0x1f8` after the call
+    /// whatever it did.
+    pub(crate) fn add_ammo_refused(&mut self) {
+        self.combat.next_ammo_graph_index = self.combat.next_ammo_graph_index.wrapping_add(1);
+    }
+
     fn add_ammo_to_slot(&mut self, mut p: combat::Projectile, aimed: bool) {
         let live: Vec<u32> = self.combat.projectiles.iter().map(|q| q.slot).collect();
         let slot = lowest_free_slot(&live);
