@@ -1727,13 +1727,13 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: cities and leaders part first on 2297; units on 2351, ammo on 2408. run1797 holds the ranges.
+Open: units, builds, groups and guys part first on 2351; ammo on 2408. run1797's ranges hold each item's frames,
+every one *diff-backed*.
 
-**Item 4597** (DECISIONS 154 §2): units 1906 → 2199. A computer's `REPAIR` swarm walks under `MOVE_TO`
-(`Group::action_swarm_around@0070fbe0`, `docs/GROUPS.md`). Held on 1905–1906 by run1797's ranges. *Diff-backed*.
+**Item 4597** (DECISIONS 154 §2): units 1906 → 2199, a `REPAIR` swarm walks under `MOVE_TO` (`docs/GROUPS.md`).
+**Item 4602**: builds 2166 → 2351, an anti-air building's wind and turret (`docs/COMBAT.md` §84.7). **Item 4604**:
+ammo 2198 → 2408, the SAM's `missile="1"` spline (`docs/COMBAT.md` §84.3).
 
-**Item 4602**: builds 2166 → 2351. SAM `2/2027`'s `recharging` winds on `near_o` (71) with no target, and its turret
-(`+0x48`) turns at the sighting (`docs/COMBAT.md` §84.7). Held on 2165–2172 by run1797's ranges. *Diff-backed*.
-
-**Item 4604**: ammo 2198 → 2408, the first parting 2297. The SAM's rocket is `missile="1"`: a spline from its node's
-launch at `unit_move_speed × 0x96` (`docs/COMBAT.md` §84.3). Held on 2197–2227 by run1797's ranges. *Diff-backed*.
+**Item 4607**: leaders 2297 → 2413, cities 2297 → 2448. Every Temple's close fixes the borders, built or not:
+`Build::close@00628980` tests `is(0x1b5)` at `0x628d2c` and zeroes every region's resume index inline. who=1
+razes who=2's Temple site `2/2009` on frame 2295. Held on 2295–2300.

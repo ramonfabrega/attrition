@@ -10866,11 +10866,18 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // (first 2245 -> 2297), cities 2,442 -> 2,543, items 3,222 -> 3,007
         // (a fall past the parting, first 3035 -> 3007), goods 2,721 ->
         // 4,316 (first 2721 -> 3258); the first parting is cities and
-        // leaders on 2297.
+        // leaders on 2297. Then by item 4607 (every Temple's close fixes
+        // the borders, built or not, `Build::close@00628980`'s `is(0x1b5)`
+        // at `0x628d2c`: who=1 razes who=2's Temple site `2/2009` on frame
+        // 2295, and on 2297 who=0's `reg_terr[1]` ours 741, theirs 0, city
+        // 1's `bordering` ours 3, theirs 0; both agree now): leaders 2,367
+        // -> 2,423 (first 2297 -> 2413), cities 2,543 -> 2,550 (first 2297
+        // -> 2448); the first parting is units, builds, groups and guys on
+        // 2351.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                2351, 2351, 6085, 3015, 2598, 2351, 2351, 2367, 2543, 3007, 4316, 2352,
+                2351, 2351, 6085, 3015, 2598, 2351, 2351, 2423, 2550, 3007, 4316, 2352,
             ],
             first: &[
                 ("units", (2351, Some(2661760352), 642137970)),
@@ -10879,8 +10886,8 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
                 ("deaths", (2442, Some(4112542119), 2232507217)),
                 ("groups", (2351, Some(1891790061), 96103660)),
                 ("guys", (2351, Some(414155518), 3824518074)),
-                ("leaders", (2297, Some(1408658429), 210594455)),
-                ("cities", (2297, Some(257638425), 3892330493)),
+                ("leaders", (2413, Some(4100878331), 924807165)),
+                ("cities", (2448, Some(3075952134), 2922597890)),
                 ("items", (3007, Some(3525321571), 3415154359)),
                 ("goods", (3258, Some(586774648), 569473142)),
                 ("world", (2352, Some(3018833008), 3021585520)),
