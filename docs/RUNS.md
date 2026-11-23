@@ -41060,8 +41060,8 @@ minutes were spent waiting on another lane. `df -g ~` read 88 GB free before it 
 - **Re-scored by item 4570** (the assimilation tick asks the city building for its owner's Citizen,
   `has_general(this, 0, 0x164)`, `docs/CITIES.md` §8.1): on 3656 cities record 8, who=1's city `1/2043` (taken
   from who=2 on 3644), `assimilation_timer` ours 3644, theirs 3641, then 3638, as who=1's Citizen `1/15` (TI 356)
-  walks in. Cities 3,656 → 3,693, ammo 3,710 → 3,711, world 3,668 → 3,666 and goods 4,155 → 4,148 (named falls).
-  The row's first parting is units, builds and groups on 3662.
+  walks in. Cities 3,656 → 3,693, ammo 3,710 → 3,711, goods 4,155 → 4,148 (a named fall). The row's first
+  parting is units, builds and groups on 3662.
 - Filed by `filerun.py run1784 heldout5-row083-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1784-heldout5-row083-ranges.txt`, 2,869 bytes, SHA-256
   `a9b435ef5bd053ca7a1b9832b5ce70729ff25450cfd7d673a1485805af3a85f1`; `rontrace.log` → `Logs/rontrace-run1784.log`,

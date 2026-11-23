@@ -516,6 +516,9 @@ fn german_modern_pair_run1397_s_closing_state() {
     // one count is a city, `1/2069`'s `assimilation_timer` 5304 against
     // 5301 (3742c).
     pin_eq!(e.compared, 148, "units compared");
-    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 1], "the closing counts");
+    // Item 4570: [0, 0, 0, 0, 0, 0, 1] -> [0, 0, 0, 0, 0, 0, 0], 3742c
+    // closed: the assimilation tick asks the city building for its owner's
+    // Citizen (`has_general(this, 0, 0x164)`, `docs/CITIES.md` §8.1).
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }

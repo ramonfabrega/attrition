@@ -1330,7 +1330,7 @@ of the item that found it, under `## Parked`, as `- **<item><letter>. title**`
 - (3697b) Every who=1 building's `myhits` is a tenth low in ours at the close.
 - (3698a) Every who=1 building's `myhits` reads high in ours at the close.
 - (3698b) The Citizen `1/12`'s collision `pause` is the dump's first parted field on the word, not its cause.
-- (3699a) Napata's `assimilation_timer` at the close.
+- ~~(3699a) Napata's `assimilation_timer` at the close.~~ Closed by item 4570: the assimilation tick asks the city building for its owner's Citizen (`docs/CITIES.md` §8.1).
 - (3699b) The Siege Mortar's piece 225 has no `launch::BAYS` row.
 - (3700a) Who=1's leader stands apart before the word's window.
 - (3700b) The closing state is downstream of 4959.
@@ -1391,7 +1391,7 @@ of the item that found it, under `## Parked`, as `- **<item><letter>. title**`
 - (3740a) run1419 stalled before frame 0 twice on pool lane 1.
 - (3742a) Each aircraft's `mirror` parts on its takeoff block
 - (3742b) The Bombers' rounds over Napata: `accuracy` ours 0 against theirs 252..256
-- (3742c) The city `1/2069`'s `assimilation_timer`, 5304 in ours against 5301
+- ~~(3742c) The city `1/2069`'s `assimilation_timer`, 5304 in ours against 5301~~ Closed by item 4570: the assimilation tick asks the city building for its owner's Citizen (`docs/CITIES.md` §8.1).
 - (3742d) The human's city `0/2000` on 5157: `city_flags[0x4]` ours 0 against theirs 1, and `reduce_stamp` 4806 against 5156
 - (3742e) Two Volksgrenadiers' rounds leave from another point
 - (3743a) The T80DES's node-1 rounds leave the hull's square in ours, fired from `WALK`.
@@ -1422,7 +1422,7 @@ of the item that found it, under `## Parked`, as `- **<item><letter>. title**`
 - (3760a) A strafer's round carries the figure's own angle in theirs.
 - (3760b) Two of who=1's rounds lose their target in ours
 - (3760c) who=1's food bucket is 100 short in ours from 4120
-- (3760d) City `1/2055`'s `assimilation_timer` reads 4320 in ours against 4317 at the close
+- ~~(3760d) City `1/2055`'s `assimilation_timer` reads 4320 in ours against 4317 at the close~~ Closed by item 4570: the assimilation tick asks the city building for its owner's Citizen (`docs/CITIES.md` §8.1).
 - (3760e) `ABRAMDES` and the Strategic Bomber's Asian graph (`STRATEGICBOMBER-ASIAN`) take no rows
 - (3762a) The trackless crew's `des_angle` is a per-unit flag, not a per-guy field
 - (3762b) The booking's "theirs moves the Bombard" was the site label read as a walk
@@ -1563,7 +1563,7 @@ of the item that found it, under `## Parked`, as `- **<item><letter>. title**`
 - (3865a) A third computer seat on the click-free lane is not known to work.
 - (3865b) The French pair's Airbase holds 296 and never trains it.
 - (3865c) `SPANISH_EXTRA_SCOUT` is not carried.
-- (3866a) City `1/2046`'s `assimilation_timer` reads 3500 in ours against 3497 at the close
+- ~~(3866a) City `1/2046`'s `assimilation_timer` reads 3500 in ours against 3497 at the close~~ Closed by item 4570: the assimilation tick asks the city building for its owner's Citizen (`docs/CITIES.md` §8.1).
 - (3867a) A round keeps its dead target, on a second lobby
 - (3867b) The Toughest German Industrial computer fields no machine gun
 - (3868a) The Russian Missile Cruiser `2/16`'s rounds part on `ez` and on a dead target

@@ -302,7 +302,10 @@ fn british_modern_pair_run1433_s_closing_state() {
     // who=1's queues with no refund (`Leader::victory`, `docs/LEADERS.md`
     // §10.2), so nothing is born on the closing step on either side.
     pin_eq!(e.compared, 146, "units compared");
-    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 1], "the closing counts");
+    // Item 4570: [0, 0, 0, 0, 0, 0, 1] -> [0, 0, 0, 0, 0, 0, 0], `1/2050`'s
+    // stamp agrees: the assimilation tick asks the city building for its
+    // owner's Citizen (`has_general(this, 0, 0x164)`, `docs/CITIES.md` §8.1).
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(
         e.extra.clone(),
         Vec::<(i64, i64)>::new(),

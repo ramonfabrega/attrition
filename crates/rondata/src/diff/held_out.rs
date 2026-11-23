@@ -8837,8 +8837,8 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // `Build::find_city`, where ours had cleared the chain first. The
         // row's first parting is cities 3656.
         // Item 4570: cities 3,656 -> 3,693, first 3656 -> 3693; ammo 3,710
-        // -> 3,711; world 3,668 -> 3,666 and goods 4,155 -> 4,148, named
-        // falls past the first partings. run1784, the ranges take: on 3656
+        // -> 3,711; goods 4,155 -> 4,148, a named fall past the first
+        // partings (on the merged tree; world 3,668 unmoved). run1784, the ranges take: on 3656
         // cities record 8, who=1's city `1/2043` (taken from who=2 on 3644),
         // `assimilation_timer` ours 3644, theirs 3641, then 3638:
         // `Build::process@0061edf0:698` asks `has_general(this, 0, 0x164)`
@@ -8848,7 +8848,7 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3662, 3695, 6001, 3711, 3672, 3662, 3663, 3674, 3693, 4129, 4148, 3666,
+                3662, 3695, 6001, 3711, 3672, 3662, 3663, 3674, 3693, 4129, 4148, 3668,
             ],
             first: &[
                 ("units", (3662, Some(2263308614), 3663092386)),
