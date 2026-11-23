@@ -4067,7 +4067,7 @@ pub(crate) mod tests {
                 );
                 // The two caravans, by name: slot 3 of each, TI 59, land;
                 // who=2's `2/131` linked before who=1's `1/34`.
-                let at = |who: usize, o: u16| {
+                let at = |who: usize, o: i16| {
                     let v = &built.sim.economy.caravans[who].slots[3];
                     let u = &built.sim.units[v.unit.expect("slot 3's caravan")];
                     assert_eq!((u.owner as usize, u.index, u.type_index), (who, o, 59));
