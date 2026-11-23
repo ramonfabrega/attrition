@@ -5720,7 +5720,7 @@ mod tests {
                 .min()
                 .map_or("whole".to_string(), |v| v.to_string())
         };
-        let col = |now: bool| -> (usize, String, u64) {
+        let col = |now: bool| -> (usize, String, u64, u64) {
             let scores = b.scores.iter().map(|p| {
                 p.as_ref().map(|p| {
                     if now {
@@ -5738,17 +5738,37 @@ mod tests {
                 let before = first.map_or(s.states, |f| f.max(0).cast_unsigned());
                 (ran + u64::from(before), of + u64::from(s.states))
             });
+            // The reach inside the first 6,001 states, the length of the
+            // five batteries before the sixth (DECISIONS 152 §4).
+            let (ran6, of6) = scores.clone().flatten().fold((0u64, 0u64), |(ran, of), s| {
+                let first = s.first.iter().map(|f| f.1.0).min();
+                let states = s.states.min(SHORT_STATES);
+                let before = first.map_or(states, |f| f.max(0).cast_unsigned().min(states));
+                (ran + u64::from(before), of + u64::from(states))
+            });
             let firsts: Vec<String> = scores
                 .map(|s| s.map_or("-".to_string(), |s| lowest(&s)))
                 .collect();
-            (n, firsts.join(" "), 100 * ran / of.max(1))
+            (
+                n,
+                firsts.join(" "),
+                100 * ran / of.max(1),
+                100 * ran6 / of6.max(1),
+            )
         };
-        let (found, found_firsts, found_reach) = col(false);
-        let (now, now_firsts, now_reach) = col(true);
+        let (found, found_firsts, found_reach, found_short) = col(false);
+        let (now, now_firsts, now_reach, now_short) = col(true);
+        let short = if b.frames > 6000 {
+            format!(
+                " \u{b7} reach in the first 6,001 states {found_short} % as found, {now_short} % now"
+            )
+        } else {
+            String::new()
+        };
         format!(
             "{}: {} of {} whole \u{b7} {} taken \u{b7} lines {found} of {} as found, \
              {now} now \u{b7} first partings {found_firsts} as found, {now_firsts} now \u{b7} \
-             reach {found_reach} % of states as found, {now_reach} % now",
+             reach {found_reach} % of states as found, {now_reach} % now{short}",
             b.label,
             b.line.0,
             b.scores.len(),
@@ -5793,6 +5813,10 @@ mod tests {
             handoff_line_is_the_pinned_scores(b);
         }
     }
+
+    /// The states of a 6,000-frame game, the five batteries before the
+    /// sixth's length: the sixth's line reads its reach inside them too.
+    const SHORT_STATES: u32 = 6001;
 
     /// The closed line's head.
     const CLOSED_HEAD: &str = "Parity held out, closed:";
@@ -8498,12 +8522,244 @@ pub(crate) const HELD_OUT_SIXTH_HUMANS: [Scripted; 8] = [
 /// found column is pinned once and never re-pinned; it is the estimate
 /// (DECISIONS 151 §6, 152 §4).
 #[cfg(test)]
-pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] =
-    [None, None, None, None, None, None, None, None];
+pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
+    // run1788
+    // row 13, as found 2026-11-22: 2 lines whole; units 7,675 of 12,001, first 7675; builds 7,675
+    // of 12,001, first 7675; ammo 11,075 of 12,001, first 9001; groups 7,675 of 12,001, first 7675;
+    // guys 7,675 of 12,001, first 7675; leaders 7,751 of 12,001, first 7751; cities 8,001 of
+    // 12,001, first 8001; items 8,561 of 12,001, first 8561; goods 8,473 of 12,001, first 8286;
+    // world 7,676 of 12,001, first 7676; reach 7,675 of 12,001 states, 6,001 of 6,001 in the first
+    // 6,001.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 12001,
+            agreed: [
+                7675, 7675, 12001, 11075, 12001, 7675, 7675, 7751, 8001, 8561, 8473, 7676,
+            ],
+            first: &[
+                ("units", (7675, Some(1817632919), 4097706533)),
+                ("builds", (7675, Some(2607812443), 456200029)),
+                ("ammo", (9001, Some(1), 2054097555)),
+                ("groups", (7675, Some(2026795161), 1961455771)),
+                ("guys", (7675, Some(3912017497), 3171329874)),
+                ("leaders", (7751, Some(3296775262), 3204434973)),
+                ("cities", (8001, Some(3206817740), 3243124685)),
+                ("items", (8561, Some(759187207), 770721545)),
+                ("goods", (8286, Some(1321043981), 1349879823)),
+                ("world", (7676, Some(2649672179), 2530724234)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1789
+    // row 33, as found 2026-11-22: 1 line whole; units 2,411 of 3,944, first 2411; builds 2,483 of
+    // 3,944, first 2448; ammo 3,279 of 3,944, first 2849; deaths 2,910 of 3,944, first 2910; groups
+    // 2,566 of 3,944, first 2566; guys 2,412 of 3,944, first 2412; leaders 2,433 of 3,944, first
+    // 2433; cities 2,411 of 3,944, first 2411; items 3,414 of 3,944, first 3103; goods 3,119 of
+    // 3,944, first 2907; world 2,414 of 3,944, first 2414; reach 2,411 of 3,944 states, 2,411 of
+    // 3,944 in the first 6,001.
+    Some(FirstScore {
+        last: Some(3943),
+        found: Score {
+            states: 3944,
+            agreed: [
+                2411, 2483, 3944, 3279, 2910, 2566, 2412, 2433, 2411, 3414, 3119, 2414,
+            ],
+            first: &[
+                ("units", (2411, Some(3090837024), 2794807023)),
+                ("builds", (2448, Some(835850070), 3087470893)),
+                ("ammo", (2849, Some(2591427256), 1)),
+                ("deaths", (2910, Some(1951075586), 1)),
+                ("groups", (2566, Some(1395743986), 2512936357)),
+                ("guys", (2412, Some(1974607008), 839983040)),
+                ("leaders", (2433, Some(2744254649), 2938699901)),
+                ("cities", (2411, Some(2537762736), 2569744296)),
+                ("items", (3103, Some(529023019), 3376233514)),
+                ("goods", (2907, Some(3516364582), 3470227234)),
+                ("world", (2414, Some(3160934879), 3182954975)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1790
+    // row 53, as found 2026-11-22: 1 line whole; units 3,358 of 12,001, first 3358; builds 3,732 of
+    // 12,001, first 3732; ammo 4,959 of 12,001, first 3795; deaths 3,938 of 12,001, first 3707;
+    // groups 3,716 of 12,001, first 3716; guys 3,358 of 12,001, first 3358; leaders 3,707 of
+    // 12,001, first 3707; cities 3,825 of 12,001, first 3825; items 9,616 of 12,001, first 4495;
+    // goods 3,923 of 12,001, first 3832; world 3,707 of 12,001, first 3707; reach 3,358 of 12,001
+    // states, 3,358 of 6,001 in the first 6,001.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 12001,
+            agreed: [
+                3358, 3732, 12001, 4959, 3938, 3716, 3358, 3707, 3825, 9616, 3923, 3707,
+            ],
+            first: &[
+                ("units", (3358, Some(992329593), 1194311501)),
+                ("builds", (3732, Some(2175428037), 986670026)),
+                ("ammo", (3795, Some(684788378), 1)),
+                ("deaths", (3707, Some(1220611515), 3817282588)),
+                ("groups", (3716, Some(3464512650), 3450219541)),
+                ("guys", (3358, Some(479939638), 3928181788)),
+                ("leaders", (3707, Some(3179845721), 3311573076)),
+                ("cities", (3825, Some(4087239103), 2717798815)),
+                ("items", (4495, Some(3301772440), 3298888854)),
+                ("goods", (3832, Some(2135290454), 2227565146)),
+                ("world", (3707, Some(2727186382), 2158397478)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1791
+    // row 73, as found 2026-11-22: 1 line whole; units 1,563 of 3,438, first 1563; builds 1,569 of
+    // 3,438, first 1569; ammo 2,593 of 3,438, first 2557; deaths 2,604 of 3,438, first 2604; groups
+    // 1,678 of 3,438, first 1678; guys 1,564 of 3,438, first 1564; leaders 1,576 of 3,438, first
+    // 1576; cities 1,563 of 3,438, first 1563; items 2,589 of 3,438, first 1949; goods 2,460 of
+    // 3,438, first 2353; world 1,566 of 3,438, first 1566; reach 1,563 of 3,438 states, 1,563 of
+    // 3,438 in the first 6,001.
+    Some(FirstScore {
+        last: Some(3437),
+        found: Score {
+            states: 3438,
+            agreed: [
+                1563, 1569, 3438, 2593, 2604, 1678, 1564, 1576, 1563, 2589, 2460, 1566,
+            ],
+            first: &[
+                ("units", (1563, Some(4059076565), 2125891403)),
+                ("builds", (1569, Some(146391282), 1875296499)),
+                ("ammo", (2557, Some(4190309544), 1)),
+                ("deaths", (2604, Some(1), 2113539492)),
+                ("groups", (1678, Some(3126200451), 1300891790)),
+                ("guys", (1564, Some(374263833), 1839451683)),
+                ("leaders", (1576, Some(1096030747), 4201978914)),
+                ("cities", (1563, Some(4048038473), 2512136249)),
+                ("items", (1949, Some(1693995504), 1774735860)),
+                ("goods", (2353, Some(326399801), 337934141)),
+                ("world", (1566, Some(563759280), 2466466211)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1792
+    // row 93, as found 2026-11-22: 1 line whole; units 2,342 of 12,001, first 2342; builds 2,688 of
+    // 12,001, first 2686; ammo 3,815 of 12,001, first 2692; deaths 2,775 of 12,001, first 2775;
+    // groups 2,740 of 12,001, first 2740; guys 2,686 of 12,001, first 2686; leaders 2,698 of
+    // 12,001, first 2689; cities 2,974 of 12,001, first 2871; items 4,809 of 12,001, first 3127;
+    // goods 4,388 of 12,001, first 3157; world 2,691 of 12,001, first 2691; reach 2,342 of 12,001
+    // states, 2,342 of 6,001 in the first 6,001; ours' game over from 10112.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 12001,
+            agreed: [
+                2342, 2688, 12001, 3815, 2775, 2740, 2686, 2698, 2974, 4809, 4388, 2691,
+            ],
+            first: &[
+                ("units", (2342, Some(1169777861), 259155158)),
+                ("builds", (2686, Some(547053547), 644243435)),
+                ("ammo", (2692, Some(1859606587), 696997629)),
+                ("deaths", (2775, Some(2882887954), 2321178662)),
+                ("groups", (2740, Some(4287796956), 1715573666)),
+                ("guys", (2686, Some(384424200), 3607616169)),
+                ("leaders", (2689, Some(3893770918), 226245285)),
+                ("cities", (2871, Some(3617272752), 3487511460)),
+                ("items", (3127, Some(2121282860), 2092447016)),
+                ("goods", (3157, Some(2924123420), 3056768288)),
+                ("world", (2691, Some(2608492097), 2791665259)),
+            ],
+            over: Some(10112),
+        },
+        moved: None,
+    }),
+    // run1793
+    // row 113, as found 2026-11-22: 1 line whole; units 2,259 of 4,573, first 2259; builds 2,338 of
+    // 4,573, first 2323; ammo 3,335 of 4,573, first 2941; deaths 3,087 of 4,573, first 2993; groups
+    // 2,470 of 4,573, first 2470; guys 2,259 of 4,573, first 2259; leaders 2,351 of 4,573, first
+    // 2351; cities 2,259 of 4,573, first 2259; items 3,176 of 4,573, first 2526; goods 4,081 of
+    // 4,573, first 2666; world 2,261 of 4,573, first 2261; reach 2,259 of 4,573 states, 2,259 of
+    // 4,573 in the first 6,001; ours' game over from 4118.
+    Some(FirstScore {
+        last: Some(4572),
+        found: Score {
+            states: 4573,
+            agreed: [
+                2259, 2338, 4573, 3335, 3087, 2470, 2259, 2351, 2259, 3176, 4081, 2261,
+            ],
+            first: &[
+                ("units", (2259, Some(3462201175), 3106729391)),
+                ("builds", (2323, Some(52058802), 98261619)),
+                ("ammo", (2941, Some(1), 3925806276)),
+                ("deaths", (2993, Some(1), 1927744677)),
+                ("groups", (2470, Some(939459940), 872023246)),
+                ("guys", (2259, Some(1132056778), 3749433370)),
+                ("leaders", (2351, Some(417477691), 3343529196)),
+                ("cities", (2259, Some(6368709), 3892456893)),
+                ("items", (2526, Some(2178306644), 2195608150)),
+                ("goods", (2666, Some(1648268551), 1581946117)),
+                ("world", (2261, Some(1332653642), 414756426)),
+            ],
+            over: Some(4118),
+        },
+        moved: None,
+    }),
+    // run1794
+    // row 133, as found 2026-11-22: 1 line whole; units 1,162 of 6,085, first 1162; builds 958 of
+    // 6,085, first 958; ammo 2,371 of 6,085, first 1486; deaths 1,484 of 6,085, first 1484; groups
+    // 1,242 of 6,085, first 1242; guys 1,162 of 6,085, first 1162; leaders 956 of 6,085, first 956;
+    // cities 1,376 of 6,085, first 1376; items 1,798 of 6,085, first 1614; goods 1,758 of 6,085,
+    // first 1758; world 1,197 of 6,085, first 1197; reach 956 of 6,085 states, 956 of 6,001 in the
+    // first 6,001.
+    Some(FirstScore {
+        last: Some(6084),
+        found: Score {
+            states: 6085,
+            agreed: [
+                1162, 958, 6085, 2371, 1484, 1242, 1162, 956, 1376, 1798, 1758, 1197,
+            ],
+            first: &[
+                ("units", (1162, Some(3743709245), 4104174444)),
+                ("builds", (958, Some(696106489), 657638887)),
+                ("ammo", (1486, Some(1), 1951077369)),
+                ("deaths", (1484, Some(1), 3470790278)),
+                ("groups", (1242, Some(2943953166), 3106154756)),
+                ("guys", (1162, Some(23336544), 1735796580)),
+                ("leaders", (956, Some(1209252435), 1776794036)),
+                ("cities", (1376, Some(1412642287), 1429550575)),
+                ("items", (1614, Some(3614982968), 3623633722)),
+                ("goods", (1758, Some(4286740555), 139819094)),
+                ("world", (1197, Some(1966726756), 3748257716)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1795
+    // row 153, as found 2026-11-22: 12 lines whole; reach 12,001 of 12,001 states, 6,001 of 6,001
+    // in the first 6,001.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 12001,
+            agreed: [
+                12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001,
+            ],
+            first: &[],
+            over: None,
+        },
+        moved: None,
+    }),
+];
 
 /// The sixth battery's line: games whole of the eight, and games taken.
+/// As found: row 153 whole to 12,000.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SIXTH_LINE: (usize, usize) = (0, 0);
+pub(crate) const HELD_OUT_SIXTH_LINE: (usize, usize) = (1, 8);
 
 /// The sixth battery (item 4566): three seats, a team and a scripted human
 /// a row, recorded to [`SIXTH_FRAMES`].
