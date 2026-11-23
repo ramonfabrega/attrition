@@ -122,19 +122,6 @@ pub(super) fn explain(
             ));
         };
         let label = format!("range {n}, record {}, {}", a.record, a.field);
-        if std::env::var("RON_PROBE_4614").is_ok() {
-            for m in n.saturating_sub(2)..(n + 8) {
-                let oa = ours.ranges.get(m);
-                let ob = theirs.get(m);
-                eprintln!(
-                    "PROBE4614R {name} range {m}: ours {:?} {:02x?} | theirs site {:#x} {:02x?}",
-                    oa.map(|a| (a.record, a.field)),
-                    oa.map(|a| &a.bytes),
-                    ob.map_or(0, |b| b.site),
-                    ob.map(|b| &b.bytes)
-                );
-            }
-        }
         let Some(b) = b else {
             return Ok(format!(
                 "{label}: {} bytes in ours, absent in original",
