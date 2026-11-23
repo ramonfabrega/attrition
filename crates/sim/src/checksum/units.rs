@@ -895,6 +895,21 @@ impl Sim {
                 p(0x28, 4, i64::from(g.retry));
                 put("order.guard", b);
             }
+            Body::AttackGround(g) => {
+                // `AttackGroundOrder::walk_data@00487a60` (item 4606,
+                // run1799's units on 2962, who=1's `1/77` with a fired
+                // siege order on its head): the flags byte through the
+                // virtual base (`00487a83`), then `att_x`..`attack_unit`
+                // (`+0x4..+0x14`, `00487a91`). The PDB's `accuracy` at
+                // `+0xc` is the order's `sea`, which `fight`'s push writes.
+                put("order.flags", vec![o.flags]);
+                let mut b = vec![0u8; 0x14 - 0x4];
+                put_raw(&mut b, 0, 4, i64::from(g.at.x));
+                put_raw(&mut b, 4, 4, i64::from(g.at.y));
+                put_raw(&mut b, 8, 4, i64::from(g.sea));
+                put_raw(&mut b, 12, 4, i64::from(g.attack_unit));
+                put("order.attack_ground", b);
+            }
             Body::AirAttackGround(g) => {
                 // `AirAttackGroundOrder::walk_data@004875a0` (item 4459,
                 // run1721's units on 2587, a missile `1/84` laid in its
