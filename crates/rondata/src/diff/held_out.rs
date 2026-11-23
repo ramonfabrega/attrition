@@ -808,7 +808,10 @@ pub(crate) mod tests {
     /// `checksum::playback` on every state to the take's last, against its
     /// pinned score: [`FirstScore::moved`] where a later fix has moved it,
     /// else the score as found. A game with no take skips, and says so; a
-    /// take with no pin fails and prints the score to pin.
+    /// take with no pin fails and prints the score to pin. **What fails is
+    /// what the queue books** (item 4598, [`held_verdict`]): the whole
+    /// lines and the first parting; the rest of the pin prints as `HELD OUT
+    /// DRIFT` and is re-pinned at a booking.
     #[test]
     fn the_held_out_games_score_as_pinned() {
         games_score_as_pinned(&FIRST);
@@ -848,6 +851,63 @@ pub(crate) mod tests {
     #[test]
     fn the_sixth_held_out_games_score_as_pinned() {
         games_score_as_pinned(&SIXTH);
+    }
+
+    /// **The verdict holds the booked numbers and lets the rest drift**
+    /// (item 4598, DECISIONS 154 §5), on row 0's pin as found (units first
+    /// on 2990, guys on 3157, ten lines whole). Each bend is one a lane
+    /// made: a count or a parting past the first parting drifts (item
+    /// 4594's row 93 ammo and deaths); a bend on the first parting, a
+    /// whole line parting anywhere, or a parted line coming whole fails.
+    #[test]
+    fn a_held_pin_fails_on_its_whole_lines_and_first_parting_alone() {
+        let pin = SCORES[0].as_ref().expect("row 0's pin").found;
+        let got = |f: &dyn Fn(&mut Got)| -> (Vec<String>, Vec<String>) {
+            let mut g: Got = (pin.states, pin.agreed, pin.first.to_vec(), pin.over);
+            f(&mut g);
+            held_verdict(&pin, &g)
+        };
+        let units = 0;
+        let ammo = 3;
+        let guys = 6;
+        assert_eq!(got(&|_| ()), (vec![], vec![]), "the pin against itself");
+        // Past the first parting: drift, printed, not failed.
+        let (fails, drift) = got(&|g| {
+            g.1[guys] -= 7;
+            g.2[1].1.0 = 3200;
+            g.1[units] += 3;
+            g.2[0].1.1 = Some(1);
+            g.3 = Some(5000);
+        });
+        assert!(fails.is_empty(), "past the parting: {fails:?}");
+        assert_eq!(drift.len(), 5, "{drift:?}");
+        // On the first parting: its state.
+        let (fails, _) = got(&|g| g.2[0].1.0 = 2991);
+        assert_eq!(fails.len(), 1, "{fails:?}");
+        // On the first parting: a second line joins it.
+        let (fails, _) = got(&|g| g.2[1].1.0 = 2990);
+        assert_eq!(fails.len(), 1, "{fails:?}");
+        // A whole line parts past the first parting.
+        let (fails, _) = got(&|g| {
+            g.1[ammo] -= 1;
+            g.2.push(("ammo", (6000, Some(1), 2)));
+        });
+        assert_eq!(fails.len(), 1, "{fails:?}");
+        // A parted line comes whole: guys.
+        let (fails, _) = got(&|g| {
+            g.1[guys] = g.0;
+            g.2.truncate(1);
+        });
+        assert_eq!(fails.len(), 1, "{fails:?}");
+        // The states compared.
+        let (fails, _) = got(&|g| g.0 += 1);
+        assert!(fails.iter().any(|f| f.starts_with("states")), "{fails:?}");
+        // The row comes whole: the whole lines and the parting both move.
+        let (fails, _) = got(&|g| {
+            g.1 = [g.0; 12];
+            g.2.clear();
+        });
+        assert_eq!(fails.len(), 2, "{fails:?}");
     }
 
     /// The sixth battery's line, from its table alone (item 4566).
@@ -1299,6 +1359,78 @@ pub(crate) mod tests {
                 "2/72 repairs the capital on {state}"
             );
         }
+    }
+
+    /// **Row 133's repair recruit walks under a move order** (item 4597):
+    /// run1797 again. On 1905 `2/72` holds the capital's `REPAIR`; on 1906
+    /// `Unit::do_repair` swarms it to the site through
+    /// `Group::action_swarm_around@0070fbe0`, whose approach class
+    /// `local_40` is 1 (`MOVE_TO`) unless the order is `BUILD_AT` for a
+    /// computer (`:115`). Ours walked it under `EXPLORE_TO`: units range
+    /// 3967, record 72, `order.type` ours 3, theirs 1. Every units range on
+    /// 1905 and 1906, ours against theirs, byte for byte, and `2/72`'s
+    /// head on 1906 a `MOVE_TO` ahead of the repair.
+    #[test]
+    fn row_133_s_repair_recruit_walks_under_a_move_order_on_run1797_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 1905..=1906 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[0].as_ref().expect("the units line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+        let u = (0..built.sim.units.len())
+            .find(|&u| built.sim.units[u].owner == 2 && built.sim.units[u].index == 72)
+            .expect("2/72");
+        let capital = built.sim.building_by_o(2, 2000).expect("2/2000");
+        let orders = &built.sim.units[u].orders;
+        assert!(
+            matches!(
+                orders.front().map(|o| &o.body),
+                Some(sim::orders::Body::Move(m)) if m.kind == sim::orders::MoveKind::MoveTo
+            ),
+            "2/72's head on 1906 is a MOVE_TO: {orders:?}"
+        );
+        assert!(
+            orders
+                .iter()
+                .any(|o| matches!(o.body, sim::orders::Body::Repair(b) if b == capital)),
+            "2/72 still repairs the capital on 1906"
+        );
     }
 
     /// **Row 83's computer lists a caravan by its ally's city** (item
@@ -2977,11 +3109,20 @@ pub(crate) mod tests {
             };
             let want = pin.moved.unwrap_or(pin.found);
             let got = (score.states, score.agreed, first, score.over);
-            if got != (want.states, want.agreed, want.first.to_vec(), want.over) {
-                wrong.push(format!(
-                    "row {} run{}: states, agreeing, first partings, ours' end: got {got:?}",
+            let (fails, drift) = held_verdict(&want, &got);
+            for d in &drift {
+                eprintln!(
+                    "HELD OUT DRIFT row {} run{}: {d} (printed, not held)",
                     held.row,
                     b.run + k
+                );
+            }
+            if !fails.is_empty() {
+                wrong.push(format!(
+                    "row {} run{}: {}; got {got:?}",
+                    held.row,
+                    b.run + k,
+                    fails.join("; ")
                 ));
             }
         }
@@ -8776,6 +8917,76 @@ pub(crate) struct Battery {
     pub frames: i32,
 }
 
+/// A scored game in a pin's terms: states, each line's agreeing states,
+/// the lines' first partings, ours' end.
+#[cfg(test)]
+pub(crate) type Got = (u32, [u32; 12], Vec<First>, Option<i32>);
+
+/// **What a held-out pin holds** (item 4598, DECISIONS 154 §5): the
+/// queue books a row's whole lines and its first parting, so those are
+/// the assertion, and every other difference from the pin is drift the
+/// test prints. Returns `(fails, drift)`, each a line a person reads.
+///
+/// - **Fails**: the states compared; the set of whole lines (a line
+///   agreeing on every state and parting nowhere), either way; the first
+///   parting — its state and the lines that part on it — either way.
+/// - **Drift**: a parted line's agreeing count, a line's first parting
+///   past the row's, the Adlers on the first parting, ours' end.
+#[cfg(test)]
+pub(crate) fn held_verdict(want: &Score, got: &Got) -> (Vec<String>, Vec<String>) {
+    let names: Vec<&str> = crate::checksum::CHECKSUM_LINES[..12]
+        .iter()
+        .map(|l| l.0)
+        .collect();
+    let whole = |states: u32, agreed: &[u32; 12], first: &[First]| -> Vec<&str> {
+        names
+            .iter()
+            .zip(agreed)
+            .filter(|(n, a)| **a == states && !first.iter().any(|f| f.0 == **n))
+            .map(|(n, _)| *n)
+            .collect()
+    };
+    let parting = |first: &[First]| -> Option<(i32, Vec<&str>)> {
+        let at = first.iter().map(|f| f.1.0).min()?;
+        let mut lines: Vec<&str> = first.iter().filter(|f| f.1.0 == at).map(|f| f.0).collect();
+        lines.sort_unstable();
+        Some((at, lines))
+    };
+    let (states, agreed, first, over) = got;
+    let mut fails = Vec::new();
+    let mut drift = Vec::new();
+    if *states != want.states {
+        fails.push(format!("states {} -> {states}", want.states));
+    }
+    let (was, now) = (
+        whole(want.states, &want.agreed, want.first),
+        whole(*states, agreed, first),
+    );
+    if was != now {
+        fails.push(format!("whole lines {was:?} -> {now:?}"));
+    }
+    let (pw, pg) = (parting(want.first), parting(first));
+    if pw != pg {
+        fails.push(format!("first parting {pw:?} -> {pg:?}"));
+    }
+    for (i, n) in names.iter().enumerate() {
+        if want.agreed[i] != agreed[i] && !was.contains(n) && !now.contains(n) {
+            drift.push(format!("{n} agreeing {} -> {}", want.agreed[i], agreed[i]));
+        }
+        let (fw, fg) = (
+            want.first.iter().find(|f| f.0 == *n).map(|f| f.1),
+            first.iter().find(|f| f.0 == *n).map(|f| f.1),
+        );
+        if fw != fg && was.contains(n) == now.contains(n) {
+            drift.push(format!("{n} first {fw:?} -> {fg:?}"));
+        }
+    }
+    if want.over != *over {
+        drift.push(format!("ours' end {:?} -> {over:?}", want.over));
+    }
+    (fails, drift)
+}
+
 /// **A held-out row whole now**: its `now` column ([`FirstScore::moved`]
 /// where a fix has moved it, else as found) parts on no line and agrees on
 /// every state of all twelve. The one predicate: each battery's line
@@ -10335,14 +10546,18 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // -> 2,228 (first 2212), cities 1,951 -> 2,526 (first 2297), items
         // 2,676 -> 2,464 (first 2310 -> 2464), goods 2,418 -> 2,403 (first
         // 2418 -> 2403), world 1,906 -> 2,234 (first 2215); the first
-        // parting is units alone on 1906.
+        // parting is units alone on 1906. Then by item 4597 (a computer's
+        // repair swarm walks under `MOVE_TO`, `local_40` being 3 for
+        // `BUILD_AT` alone: `2/72`'s `order.type` ours 3, theirs 1 on 1906,
+        // both 1 now): units 2,126 -> 2,199 (first 1906 -> 2199); no other
+        // line moved, and the first parting is builds alone on 2166.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                2126, 2166, 6085, 2770, 2529, 2319, 2199, 2228, 2526, 2464, 2403, 2234,
+                2199, 2166, 6085, 2770, 2529, 2319, 2199, 2228, 2526, 2464, 2403, 2234,
             ],
             first: &[
-                ("units", (1906, Some(1946974484), 1532918034)),
+                ("units", (2199, Some(1612008737), 1025068445)),
                 ("builds", (2166, Some(2503049249), 2722332706)),
                 ("ammo", (2198, Some(2543630524), 2764270736)),
                 ("deaths", (2380, Some(2707033464), 2702642551)),

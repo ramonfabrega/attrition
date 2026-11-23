@@ -571,10 +571,20 @@ pub(in crate::diff) mod tests {
             "run1662's take"
         );
         assert_eq!(seen, SAMPLE_LINES, "the sample's lines against the hook");
+        // Item 4598 (DECISIONS 154 §5): the count of frames is past the
+        // sample's first parting and prints as drift; the first held frame
+        // is held.
+        if empty != SAMPLE_OURS_HELD.0 {
+            eprintln!(
+                "SAMPLE HELD DRIFT: ours none on {} -> {empty} frames \
+                 (past the first parting; printed, not held)",
+                SAMPLE_OURS_HELD.0
+            );
+        }
         assert_eq!(
-            (empty, first_held.map(|(f, _)| f)),
-            SAMPLE_OURS_HELD,
-            "the frames our walk holds no wall, shot or death"
+            first_held.map(|(f, _)| f),
+            SAMPLE_OURS_HELD.1,
+            "the first frame our walk holds a wall, shot or death"
         );
     }
 
@@ -1082,6 +1092,8 @@ pub(in crate::diff) mod tests {
     /// repair it): 3377 -> 3450, +73, the sample's lines unmoved, measured
     /// on the tree merged with the base at `9d1f92690`; the first shot
     /// still on 2929.
+    /// **Item 4598**: the count is drift the test prints, re-pinned at a
+    /// booking; the first held frame is what fails.
     const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3450, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's

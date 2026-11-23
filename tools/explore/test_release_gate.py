@@ -69,13 +69,19 @@ error: 1 target failed:
 WORD = ['the_gate_has_a_bounded_test_width']
 
 
-def git_fixture(commits=(), theirs=(), ours=(), theirs_diff=None):
+def git_fixture(commits=(), theirs=(), ours=(), theirs_diff=None, conflicts=None):
     """A `git` runner for the gate's own reads (`branch_paths`,
     `base_moved`), so no case reads the real tree. Item 3366: 3360's lane
     gate refused for a moved base, and seven of these cases failed above
     the refusal because they read the tree the gate ran in. `theirs_diff`
-    (Loop 3694) is the base side's `-U0` hunk text by path."""
+    (Loop 3694) is the base side's `-U0` hunk text by path; `conflicts`
+    (item 4598) the paths `git merge-tree` names conflicted."""
     def run(args, **kwargs):
+        if args[:2] == ['git', 'merge-tree']:
+            if conflicts is None:
+                raise AssertionError(f'the gate ran an unexpected git: {args}')
+            return SimpleNamespace(stdout='7ree\n' + ''.join(p + '\n' for p in conflicts),
+                                   returncode=1 if conflicts else 0)
         if args[:2] == ['git', 'merge-base']:
             out = 'f0rk\n'
         elif args[:2] == ['git', 'log']:
@@ -1738,6 +1744,52 @@ garbage line
             self.assertEqual(calls, [])
             self.assertIn('launch.rs', str(refused.exception))
             self.assertNotIn('coverage.rs', str(refused.exception))
+
+    def test_a_moved_base_whose_overlap_is_the_held_out_pins_merged_clean_gates_and_lands(self):
+        # Item 4598 (DECISIONS 154 §5): eight of eleven sim lanes were
+        # refused twelve times on a moved base whose shared path was
+        # `held_out.rs`, each because another landing had re-pinned a row.
+        # Its tests now hold a row's whole lines and first parting alone,
+        # so a clean merge of it lands on the verdict as a row list does;
+        # a conflict in it, or any other path beside it, still refuses.
+        held = 'crates/rondata/src/diff/held_out.rs'
+        commits = ['c2729a5 Book 4594 and 4595', '4a8c010 Merge worktree-att-4595 (11 commits)']
+        # (a) Merged clean: the gate runs all its steps and lands.
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls, run = self.lane_run(RELEASE_LOG)
+            with patch('builtins.print') as printed:
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD,
+                          git=git_fixture(commits=commits, theirs=[held, 'docs/QUEUE.md'],
+                                          ours=[held, 'crates/sim/src/data/launch.rs'], conflicts=[]))
+            said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
+            self.assertEqual(len(calls), 7)
+            self.assertIn('land on this verdict', said)
+            self.assertNotIn('gate again', said)
+            policy = json.loads((path/'report'/'gate-policy.json').read_text())
+            self.assertEqual(policy['lane']['base_overlap'],
+                             {'blocking': [], 'row_lists': [held], 'paperwork': []})
+        # (b) A conflict in it refuses, before the offline step.
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls, run = self.lane_run(RELEASE_LOG)
+            with patch('builtins.print'), self.assertRaises(ValueError) as refused:
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD,
+                          git=git_fixture(commits=commits, theirs=[held], ours=[held], conflicts=[held]))
+            self.assertEqual(calls, [])
+            self.assertIn('held_out.rs', str(refused.exception))
+            self.assertIn('before the offline step', str(refused.exception))
+        # (c) A sim path beside it still refuses, for the sim path alone.
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls, run = self.lane_run(RELEASE_LOG)
+            with patch('builtins.print'), self.assertRaises(ValueError) as refused:
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD,
+                          git=git_fixture(commits=commits, theirs=[held, 'crates/sim/src/data/launch.rs'],
+                                          ours=[held, 'crates/sim/src/data/launch.rs'], conflicts=[]))
+            self.assertEqual(calls, [])
+            self.assertIn('launch.rs', str(refused.exception))
+            self.assertNotIn('held_out.rs', str(refused.exception))
 
     # Item 3373: `writers::a_field_the_sim_writes_is_read_by_something` timed
     # at 1.08 s, over the lane budget, so `--lane --no-widen` left it to the
