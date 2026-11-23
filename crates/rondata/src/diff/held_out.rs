@@ -46,6 +46,12 @@ pub(crate) const HELD_OUT_FOURTH_ROWS: [usize; 8] = [15, 35, 55, 75, 95, 115, 13
 #[cfg(test)]
 pub(crate) const HELD_OUT_FIFTH_ROWS: [usize; 8] = [3, 23, 43, 63, 83, 103, 123, 143];
 
+/// **The sixth battery's rows** (DECISIONS 151 §6, 152 §4, item 4566): the
+/// same order, the rows ten past the fifth's, by the fifth's recipe, each
+/// recorded to [`SIXTH_FRAMES`] with the human scripted.
+#[cfg(test)]
+pub(crate) const HELD_OUT_SIXTH_ROWS: [usize; 8] = [13, 33, 53, 73, 93, 113, 133, 153];
+
 /// **What the fifth adds to its row's lobby** (DECISIONS 150 §2): one more
 /// seat and one team of two, made on the client's page after the lobby's
 /// own events (`lobby::events_for`) as a person makes them: a seat added
@@ -139,6 +145,263 @@ pub(crate) const HELD_OUT_FIFTH_SEATS: [Seated; 8] = [
     },
 ];
 
+/// **The sixth's additions** (DECISIONS 151 §6, 152 §4, item 4566), row
+/// for row with [`HELD_OUT_SIXTH_ROWS`], by the fifth's recipe. Every row's
+/// lobby is the human (seat 0, tribe 4) against one computer (seat 1) of
+/// tribe 11, 8, 2, 11, 12, 11, 17 and 6. The team alternates as the
+/// fifth's: on rows 13, 53, 93 and 133 the human and the added computer are
+/// team 0; on rows 33, 73, 113 and 153 the two computers are team 1. The
+/// added nations are 9, 10, 13, 14, 15, 16, 18 and 19: none already seated
+/// on its row, and none the fifth added.
+#[cfg(test)]
+pub(crate) const HELD_OUT_SIXTH_SEATS: [Seated; 8] = [
+    Seated {
+        tribe: 9,
+        mates: [0, 2],
+        team: 0,
+    },
+    Seated {
+        tribe: 10,
+        mates: [1, 2],
+        team: 1,
+    },
+    Seated {
+        tribe: 13,
+        mates: [0, 2],
+        team: 0,
+    },
+    Seated {
+        tribe: 14,
+        mates: [1, 2],
+        team: 1,
+    },
+    Seated {
+        tribe: 15,
+        mates: [0, 2],
+        team: 0,
+    },
+    Seated {
+        tribe: 16,
+        mates: [1, 2],
+        team: 1,
+    },
+    Seated {
+        tribe: 18,
+        mates: [0, 2],
+        team: 0,
+    },
+    Seated {
+        tribe: 19,
+        mates: [1, 2],
+        team: 1,
+    },
+];
+
+/// **The sixth's recordings close on frame 12,000** (DECISIONS 152 §4),
+/// twice the five before: the sample parts on state 7055, past the end of
+/// every earlier battery.
+#[cfg(test)]
+pub(crate) const SIXTH_FRAMES: i32 = 12_000;
+
+/// **A row's scripted human** (DECISIONS 152 §4): `RECGAME.md` §9's three
+/// orders, a unit moved, a Citizen trained and a Farm placed, on the
+/// minting's frames ([`crate::script::MOVE_FRAME`], `QUEUE_FRAME`,
+/// `BUILD_FRAME`), with the objects and points read off the row's own built
+/// start by [`script_rule`].
+#[cfg(test)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Scripted {
+    /// Slot 0's unit `0`, moved.
+    pub scout: i16,
+    /// Where it is sent.
+    pub scout_to: sim::Pos,
+    /// Slot 0's building `2000`, which trains one Citizen.
+    pub capital: i16,
+    /// Slot 0's Citizen nearest the Farm's site, which builds it.
+    pub builder: i16,
+    /// The Farm's drop point.
+    pub farm_at: sim::Pos,
+}
+
+/// The packages a [`Scripted`] human issues, in `RECGAME.md` §9.1's
+/// fields: the move a right-click's (`orders` 1, `form`/`width` −1) but
+/// `queued` 2, a plain click's; the `queue_up` one Citizen; the `build` a
+/// Farm dropped at one point, `queued` 2.
+#[cfg(test)]
+pub(crate) fn scripted_orders(h: &Scripted) -> Vec<crate::recgame::Order> {
+    use crate::commands::Command;
+    use crate::script::{BUILD_FRAME, CITIZEN, FARM_TYPE, MOVE_FRAME, QUEUE_FRAME};
+    let group = |o: i16| Command::Group {
+        who: 0,
+        objects: vec![o],
+    };
+    vec![
+        (
+            MOVE_FRAME,
+            0,
+            vec![
+                group(h.scout),
+                Command::MoveTo {
+                    to_x: h.scout_to.x,
+                    to_y: h.scout_to.y,
+                    set_angle: 0,
+                    angle: 0,
+                    orders: 1,
+                    queued: 2,
+                    form: -1,
+                    width: -1,
+                    disembark: 0,
+                },
+            ],
+        ),
+        (
+            QUEUE_FRAME,
+            0,
+            vec![
+                group(h.capital),
+                Command::QueueUp {
+                    unit: CITIZEN,
+                    num: 1,
+                },
+            ],
+        ),
+        (
+            BUILD_FRAME,
+            0,
+            vec![
+                group(h.builder),
+                Command::Build {
+                    x: h.farm_at.x,
+                    y: h.farm_at.y,
+                    x2: h.farm_at.x,
+                    y2: h.farm_at.y,
+                    build: FARM_TYPE,
+                    queued: 2,
+                },
+            ],
+        ),
+    ]
+}
+
+/// The rule's reach for the Farm's site: tiles from the capital's.
+#[cfg(test)]
+const FARM_REACH: i32 = 12;
+
+/// **The rule that reads a row's script off its built start** (item 4566):
+/// `RECGAME.md` §9.1's choices made general, so a held-out lobby gets the
+/// orders §9 gave run53's. Held against §9's own script on run53's lobby
+/// (`the_script_rule_gives_run53_s_lobby_the_minted_script`).
+///
+/// - **The move**: slot 0's unit `0`, sent 2,400 units (12.5 tiles) along
+///   the first of four headings — toward the map's centre on x, on y, then
+///   away on x, on y — whose point is on the map and in the unit's own
+///   region (`tregion_alt`), so the original and ours both walk it on land.
+/// - **The train**: slot 0's building `2000`, one Citizen, the Citizen
+///   available to slot 0.
+/// - **The Farm**: the Farm available to slot 0, the Citizen's and the
+///   Farm's prices together inside slot 0's stock; dropped at the tile
+///   centre nearest the capital, within [`FARM_REACH`] tiles, that our
+///   placement check calls clear (ties by y, then x); built by slot 0's
+///   Citizen nearest the drop point (ties by object number).
+///
+/// Refuses, with the reason, a start where one of them is wanting: that
+/// row's human is recorded idle.
+#[cfg(test)]
+pub(crate) fn script_rule(built: &crate::diff::Built) -> Result<Scripted, String> {
+    use sim::ids::scale::{HALF_TILE, UNITS_PER_CELL, UNITS_PER_TILE};
+    let s = &built.sim;
+    let scout_u = s.unit_by_o(0, 0).ok_or("slot 0 has no unit 0")?;
+    let from = s.units[scout_u].pos;
+    let region = s
+        .world
+        .tregion_alt(from.tile())
+        .ok_or("unit 0 stands in no region")?;
+    let (w, h) = (
+        s.world.width() * UNITS_PER_CELL,
+        s.world.height() * UNITS_PER_CELL,
+    );
+    let toward = |at: i32, extent: i32| if at < extent / 2 { 1 } else { -1 };
+    let (sx, sy) = (toward(from.x, w), toward(from.y, h));
+    const STEP: i32 = 2400;
+    let headings = [(sx, 0), (0, sy), (-sx, 0), (0, -sy)];
+    let scout_to = headings
+        .iter()
+        .map(|&(dx, dy)| sim::Pos {
+            x: from.x + dx * STEP,
+            y: from.y + dy * STEP,
+        })
+        .find(|p| {
+            (0..w).contains(&p.x)
+                && (0..h).contains(&p.y)
+                && s.world.tregion_alt(p.tile()) == Some(region)
+        })
+        .ok_or("no heading 2,400 units from unit 0 stays in its region")?;
+    let capital_b = s
+        .building_by_o(0, crate::script::CAPITAL)
+        .ok_or("slot 0 has no building 2000")?;
+    // The unit type whose tree entry's `TypeIndex` is the Citizen's.
+    let citizen = built
+        .unit_tree
+        .iter()
+        .position(|&t| built.type_index[t] == crate::script::CITIZEN)
+        .ok_or("no Citizen type")?;
+    if s.type_avail(0, crate::script::CITIZEN as usize) != sim::tech::AVAILABLE {
+        return Err("the Citizen is not available to slot 0".into());
+    }
+    let farm_ty = (crate::script::FARM_TYPE - crate::load::BASE_BUILDTYPES) as usize;
+    if s.type_avail(0, crate::script::FARM_TYPE as usize) != sim::tech::AVAILABLE {
+        return Err("the Farm is not available to slot 0".into());
+    }
+    let price: Vec<i32> = s
+        .price_of(0, citizen)
+        .iter()
+        .zip(s.building_price(0, farm_ty))
+        .map(|(a, b)| a + b)
+        .collect();
+    let stock = s.economy.ledgers[0].bucket;
+    if !price.iter().zip(stock).all(|(p, b)| *p <= b) {
+        return Err(format!(
+            "a Citizen and a Farm, {price:?}, pass slot 0's stock {stock:?}"
+        ));
+    }
+    let c = s.buildings[capital_b].pos;
+    let centre = |v: i32| v.div_euclid(UNITS_PER_TILE) * UNITS_PER_TILE + HALF_TILE;
+    let (cx, cy) = (centre(c.x), centre(c.y));
+    let mut sites: Vec<(i64, i32, i32)> = Vec::new();
+    for j in -FARM_REACH..=FARM_REACH {
+        for i in -FARM_REACH..=FARM_REACH {
+            let (x, y) = (cx + i * UNITS_PER_TILE, cy + j * UNITS_PER_TILE);
+            let d = i64::from(x - c.x).pow(2) + i64::from(y - c.y).pow(2);
+            sites.push((d, y, x));
+        }
+    }
+    sites.sort_unstable();
+    let farm_at = sites
+        .iter()
+        .map(|&(_, y, x)| sim::Pos { x, y })
+        .find(|&p| s.blocked_site(Some(0), farm_ty, p, None) == sim::cities::place::Blocked::Clear)
+        .ok_or("no clear Farm site near the capital")?;
+    let builder = s
+        .units
+        .iter()
+        .filter(|u| u.owner == 0 && u.alive() && u.ty == Some(citizen))
+        .min_by_key(|u| {
+            (
+                i64::from(u.pos.x - farm_at.x).pow(2) + i64::from(u.pos.y - farm_at.y).pow(2),
+                u.index,
+            )
+        })
+        .ok_or("slot 0 has no Citizen")?
+        .index;
+    Ok(Scripted {
+        scout: 0,
+        scout_to,
+        capital: crate::script::CAPITAL,
+        builder,
+        farm_at,
+    })
+}
+
 #[cfg(test)]
 fn fnv(text: &str) -> u64 {
     text.bytes().fold(0xcbf2_9ce4_8422_2325, |h, b| {
@@ -221,6 +484,174 @@ mod tests {
     /// `RON_HELD_OUT_PRINT=5` prints this table as Rust.
     #[test]
     fn the_fifth_held_out_eight_are_the_rows_the_rule_names_seated() {
+        seated_rows_are_the_table(
+            &HELD_OUT_FIFTH_ROWS,
+            &HELD_OUT_FIFTH_SEATS,
+            &HELD_OUT_FIFTH,
+            "5",
+        );
+    }
+
+    /// **The sixth declaration** (item 4566's first act; DECISIONS 151 §6,
+    /// 152 §4): rows 13, 33, …, 153, each with the seat and team
+    /// [`HELD_OUT_SIXTH_SEATS`] adds, and each row's human as
+    /// [`script_rule`] reads it off the row's start built from the page's
+    /// block, written out before any file is recorded.
+    /// `RON_HELD_OUT_PRINT=6` prints both tables as Rust.
+    #[test]
+    fn the_sixth_held_out_eight_are_the_rows_the_rule_names_seated_and_scripted() {
+        seated_rows_are_the_table(
+            &HELD_OUT_SIXTH_ROWS,
+            &HELD_OUT_SIXTH_SEATS,
+            &HELD_OUT_SIXTH,
+            "6",
+        );
+        let Some(dir) = crate::testenv::gamelog_dir() else {
+            return;
+        };
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install (set RON_INSTALL)");
+            return;
+        };
+        let roster = crate::lobby::Roster::read(inst.root()).expect("the roster");
+        let lobbies = crate::lobby::lobbies_on_disk(&dir, crate::corpus::Ledger::of_tree())
+            .expect("the logs");
+        let loaded = crate::load::load(&inst).unwrap();
+        let print = std::env::var("RON_HELD_OUT_PRINT").is_ok_and(|v| v == "6");
+        for (k, &row) in HELD_OUT_SIXTH_ROWS.iter().enumerate() {
+            let lobby = crate::lobby::Lobby::parse(&lobbies[row].block).expect("the row's block");
+            let mut c = crate::lobby::Choices::blank();
+            for e in crate::lobby::events_for(&lobby, &roster) {
+                c.apply(&e, &roster).expect("the row's own lobby");
+            }
+            for e in HELD_OUT_SIXTH_SEATS[k].events(c.seats.len()) {
+                c.apply(&e, &roster).expect("the additions");
+            }
+            let page = c.lobby();
+            let (info, players) = page.borrowed();
+            let start = crate::diff::from_lobby(&loaded, &info, &players, sim::Tuning::RON);
+            let built = crate::diff::built_from_lobby(&loaded, start).0;
+            let got = script_rule(&built);
+            if let Some(u) = built.sim.unit_by_o(0, 0) {
+                let ty = built.sim.units[u].ty.unwrap_or(0);
+                eprintln!(
+                    "row {row}: unit 0/0 {} TI {}",
+                    built.unit_type_names[ty], built.type_index[built.unit_tree[ty]]
+                );
+            }
+            if print {
+                println!("    // row {row}");
+                match &got {
+                    Ok(h) => println!("    {h:?},"),
+                    Err(why) => println!("    // idle: {why}"),
+                }
+                continue;
+            }
+            // A row the rule refuses fails here with its reason: it is
+            // recorded idle, and the declaration says so.
+            assert_eq!(
+                got,
+                Ok(HELD_OUT_SIXTH_HUMANS[k]),
+                "row {row}: the human the rule names"
+            );
+        }
+    }
+
+    /// **The rule gives run53's lobby the minted script** (item 4566):
+    /// [`script_rule`] on `RECGAME.md` §9's built start names §9's objects
+    /// and points, and [`scripted_orders`] of it is
+    /// [`crate::script::script`], package for package.
+    #[test]
+    fn the_script_rule_gives_run53_s_lobby_the_minted_script() {
+        let Some((_, built, _)) = crate::diff::minted::built_start() else {
+            eprintln!("skipping: no install or no run53 lobby dump");
+            return;
+        };
+        let h = script_rule(&built).expect("run53's start serves the rule");
+        assert_eq!(scripted_orders(&h), crate::script::script());
+    }
+
+    /// **The sixth's files are minted** (item 4566): opt-in by
+    /// `RON_SIXTH_DRAFTS=<dir>`, where `row<RRR>.rcx` is the client's idle
+    /// recording of the row (`client --record --headless --page-of
+    /// <capture> --seat <tribe> --team <a>=<t> --team <b>=<t> --frame 1`):
+    /// its header, donor and frame-0 package are the client's. The start
+    /// built from that header must give [`script_rule`] the declared
+    /// human; the packages are then minted again with
+    /// [`scripted_orders`], closing on [`SIXTH_FRAMES`], and written to
+    /// `RON_SIXTH_OUT/item4566-row<RRR>-12000.rcx`, never over a file.
+    #[test]
+    fn the_sixth_s_files_are_minted() {
+        let (Some(drafts), Some(out)) = (
+            std::env::var_os("RON_SIXTH_DRAFTS"),
+            std::env::var_os("RON_SIXTH_OUT"),
+        ) else {
+            eprintln!("skipping: RON_SIXTH_DRAFTS and RON_SIXTH_OUT name no directories");
+            return;
+        };
+        let inst = crate::testenv::install().expect("an install");
+        let loaded = crate::load::load(&inst).unwrap();
+        for (k, held) in HELD_OUT_SIXTH.iter().enumerate() {
+            let draft = std::path::Path::new(&drafts).join(format!("row{:03}.rcx", held.row));
+            let mut rec = crate::recgame::read(&draft.to_string_lossy()).expect("the draft");
+            let built = crate::checksum::playback::recording_start(&loaded, &rec);
+            let h = HELD_OUT_SIXTH_HUMANS[k];
+            assert_eq!(
+                script_rule(&built),
+                Ok(h),
+                "row {}: the file's start",
+                held.row
+            );
+            let leader =
+                crate::commands::decode(&rec.packages[0].data).expect("frame 0")[0].clone();
+            rec.packages =
+                crate::recgame::minted_packages(leader, &scripted_orders(&h), SIXTH_FRAMES)
+                    .expect("the script mints");
+            let path = std::path::Path::new(&out)
+                .join(format!("item4566-row{:03}-{SIXTH_FRAMES}.rcx", held.row));
+            let mut f = std::fs::File::create_new(&path).expect("an unused path");
+            std::io::Write::write_all(&mut f, &crate::recgame::write_gz(&rec)).unwrap();
+            eprintln!("wrote {}", path.display());
+        }
+    }
+
+    /// **The sixth's files carry the declared seats, team and orders**
+    /// (item 4566): each file's active slots are the declared rows', and
+    /// its packages are the frame-0 order, [`scripted_orders`] of the
+    /// row's human, and the closing package on [`SIXTH_FRAMES`].
+    #[test]
+    fn the_sixth_s_files_carry_the_declared_seats_team_and_orders() {
+        files_carry_the_declared_seats_and_team(&SIXTH);
+        for (k, held) in HELD_OUT_SIXTH.iter().enumerate() {
+            let (Some(rcx), _) = paths(&SIXTH, k) else {
+                continue;
+            };
+            let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("the file");
+            let h = HELD_OUT_SIXTH_HUMANS[k];
+            let orders: Vec<_> = rec.packages[1..rec.packages.len() - 1]
+                .iter()
+                .map(|p| (p.frame, p.play, crate::commands::decode(&p.data).unwrap()))
+                .collect();
+            assert_eq!(orders, scripted_orders(&h), "row {}: the orders", held.row);
+            let last = rec.packages.last().unwrap();
+            assert_eq!(
+                (last.frame, last.data.len()),
+                (SIXTH_FRAMES, 0),
+                "row {}: the closing package",
+                held.row
+            );
+        }
+    }
+
+    /// `rows` of `lobbies_on_disk`, each with `seats[k]` added on the page,
+    /// against `table`; `RON_HELD_OUT_PRINT=which` prints the table, each
+    /// row's own seats first as a comment.
+    fn seated_rows_are_the_table(
+        rows: &[usize; 8],
+        seats: &[Seated; 8],
+        table: &[HeldOut; 8],
+        which: &str,
+    ) {
         let Some(dir) = crate::testenv::gamelog_dir() else {
             eprintln!("skipping: no gamelog directory (set RON_GAMELOG_DIR)");
             return;
@@ -237,8 +668,8 @@ mod tests {
             crate::diff::START_LOBBIES,
             "the rows are of 161"
         );
-        let print = std::env::var("RON_HELD_OUT_PRINT").is_ok_and(|v| v == "5");
-        for (k, &row) in HELD_OUT_FIFTH_ROWS.iter().enumerate() {
+        let print = std::env::var("RON_HELD_OUT_PRINT").is_ok_and(|v| v == which);
+        for (k, &row) in rows.iter().enumerate() {
             let l = &lobbies[row];
             let lobby = crate::lobby::Lobby::parse(&l.block).expect("the row's block");
             let mut c = crate::lobby::Choices::blank();
@@ -250,8 +681,11 @@ mod tests {
                 Vec::<String>::new(),
                 "row {row}: the page"
             );
+            if print {
+                println!("    // row {row} as it stands: {:?}", columns(&c.lines()).1);
+            }
             assert_eq!(c.seats.len(), 2, "row {row}: two seats as it stands");
-            let add = &HELD_OUT_FIFTH_SEATS[k];
+            let add = &seats[k];
             for e in add.events(c.seats.len()) {
                 c.apply(&e, &roster)
                     .unwrap_or_else(|why| panic!("row {row}: {e:?} refused: {why}"));
@@ -276,7 +710,7 @@ mod tests {
                 println!("    }},");
                 continue;
             }
-            let want = &HELD_OUT_FIFTH[k];
+            let want = &table[k];
             assert_eq!(want.row, row, "the table's row {k}");
             assert_eq!(
                 (l.captures[0].as_str(), info.as_str(), players, digest),
@@ -351,7 +785,7 @@ mod tests {
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
         let rcx = crate::testenv::experiment(
             &home.join("ron-golden/recordings"),
-            &format!("item{}-row{:03}-6000.rcx", b.item, b.table[k].row),
+            &format!("item{}-row{:03}-{}.rcx", b.item, b.table[k].row, b.frames),
         );
         let run = home.join(format!("ron-golden/run{}", b.run + k));
         let map = std::fs::read_dir(&run)
@@ -404,6 +838,19 @@ mod tests {
     #[test]
     fn the_fifth_held_out_games_score_as_pinned() {
         games_score_as_pinned(&FIFTH);
+    }
+
+    /// `HELD_OUT_SIXTH[k]` played as `run1788 + k` (item 4566), held as
+    /// the first five are, on every state to 12,000.
+    #[test]
+    fn the_sixth_held_out_games_score_as_pinned() {
+        games_score_as_pinned(&SIXTH);
+    }
+
+    /// The sixth battery's line, from its table alone (item 4566).
+    #[test]
+    fn the_sixth_held_out_line_reads_as_pinned() {
+        line_reads_as_pinned(&SIXTH);
     }
 
     /// **A battery a lane has read a parting off is on [`SPENT`]** (the
@@ -2015,13 +2462,17 @@ mod tests {
     /// game declared before it was written.
     #[test]
     fn the_fifth_s_files_carry_the_declared_seats_and_team() {
+        files_carry_the_declared_seats_and_team(&FIFTH);
+    }
+
+    fn files_carry_the_declared_seats_and_team(b: &Battery) {
         let field = |row: &str, key: &str| -> i64 {
             row.split("; ")
                 .find_map(|kv| kv.strip_prefix(key)?.strip_prefix(' ')?.parse().ok())
                 .unwrap_or_else(|| panic!("{key} in {row}"))
         };
-        for (k, held) in HELD_OUT_FIFTH.iter().enumerate() {
-            let (Some(rcx), _) = paths(&FIFTH, k) else {
+        for (k, held) in b.table.iter().enumerate() {
+            let (Some(rcx), _) = paths(b, k) else {
                 eprintln!("skipping: row {} has no file", held.row);
                 continue;
             };
@@ -5928,7 +6379,7 @@ mod tests {
                 .min()
                 .map_or("whole".to_string(), |v| v.to_string())
         };
-        let col = |now: bool| -> (usize, String, u64) {
+        let col = |now: bool| -> (usize, String, u64, u64) {
             let scores = b.scores.iter().map(|p| {
                 p.as_ref().map(|p| {
                     if now {
@@ -5946,17 +6397,37 @@ mod tests {
                 let before = first.map_or(s.states, |f| f.max(0).cast_unsigned());
                 (ran + u64::from(before), of + u64::from(s.states))
             });
+            // The reach inside the first 6,001 states, the length of the
+            // five batteries before the sixth (DECISIONS 152 §4).
+            let (ran6, of6) = scores.clone().flatten().fold((0u64, 0u64), |(ran, of), s| {
+                let first = s.first.iter().map(|f| f.1.0).min();
+                let states = s.states.min(SHORT_STATES);
+                let before = first.map_or(states, |f| f.max(0).cast_unsigned().min(states));
+                (ran + u64::from(before), of + u64::from(states))
+            });
             let firsts: Vec<String> = scores
                 .map(|s| s.map_or("-".to_string(), |s| lowest(&s)))
                 .collect();
-            (n, firsts.join(" "), 100 * ran / of.max(1))
+            (
+                n,
+                firsts.join(" "),
+                100 * ran / of.max(1),
+                100 * ran6 / of6.max(1),
+            )
         };
-        let (found, found_firsts, found_reach) = col(false);
-        let (now, now_firsts, now_reach) = col(true);
+        let (found, found_firsts, found_reach, found_short) = col(false);
+        let (now, now_firsts, now_reach, now_short) = col(true);
+        let short = if b.frames > 6000 {
+            format!(
+                " \u{b7} reach in the first 6,001 states {found_short} % as found, {now_short} % now"
+            )
+        } else {
+            String::new()
+        };
         format!(
             "{}: {} of {} whole \u{b7} {} taken \u{b7} lines {found} of {} as found, \
              {now} now \u{b7} first partings {found_firsts} as found, {now_firsts} now \u{b7} \
-             reach {found_reach} % of states as found, {now_reach} % now",
+             reach {found_reach} % of states as found, {now_reach} % now{short}",
             b.label,
             b.line.0,
             b.scores.len(),
@@ -5965,48 +6436,117 @@ mod tests {
         )
     }
 
-    /// **The handoff's parity-held-out line is the pinned scores** (the
-    /// pass of 2026-11-19, second; DECISIONS 145 §1): `docs/QUEUE.md`
-    /// carries [`queue_line`] beside the older battery's `Held-out:` (parked
-    /// 4413a: two lines were named "held out" and only the battery's was
-    /// parsed). The found half never moves; a fix that moves a game's second
-    /// column moves the `now` half, and the commander writes it at the
-    /// booking. Made to fail first on a handoff with no such line.
+    /// **The handoff's closed line is the whole batteries** (item 4566;
+    /// DECISIONS 151 §6, 152 §4): every battery whose eight rows are taken
+    /// and whole now ([`Battery::closed`]) gives up its own line to one,
+    /// `Parity held out, closed:`, [`closed_line`], so the sixth's own line
+    /// leaves the handoff's bound where it stands. Seen red on a queue still
+    /// carrying the four whole batteries' lines.
     #[test]
-    fn the_handoff_s_parity_held_out_line_is_the_pinned_scores() {
-        handoff_line_is_the_pinned_scores(&FIRST);
+    fn the_handoff_s_closed_parity_held_out_line_is_the_whole_batteries() {
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
+        let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
+        let want = closed_line(BATTERIES);
+        let line = q.lines().find(|l| l.starts_with(CLOSED_HEAD));
+        assert_eq!(
+            line.map(str::trim_end),
+            want.as_deref(),
+            "docs/QUEUE.md's handoff carries the closed line (`diff::held_out::closed_line`)"
+        );
+        for b in BATTERIES.iter().filter(|b| b.closed()) {
+            let head = format!("{}:", b.label);
+            assert!(
+                !q.lines().any(|l| l.starts_with(&head)),
+                "`{head}` is closed: its row is the closed line's, not a line of its own"
+            );
+        }
     }
 
-    /// **The handoff's second parity-held-out line** (item 4462): the
-    /// second battery's [`queue_line`], `Parity held out, second:`, in the
-    /// first's grammar. Its found half is the estimate (DECISIONS 145 §2).
+    /// **The handoff carries each open battery's line** (the pass of
+    /// 2026-11-19, second, DECISIONS 145 §1; item 4566): every battery not
+    /// closed has its [`queue_line`] in the handoff, in the first's grammar,
+    /// its found half the estimate. The commander writes it at the booking.
     #[test]
-    fn the_handoff_s_parity_held_out_second_line_is_the_pinned_scores() {
-        handoff_line_is_the_pinned_scores(&SECOND);
+    fn the_handoff_s_open_parity_held_out_lines_are_the_pinned_scores() {
+        for b in BATTERIES.iter().filter(|b| !b.closed()) {
+            handoff_line_is_the_pinned_scores(b);
+        }
     }
 
-    /// **The handoff's third parity-held-out line** (item 4487): the third
-    /// battery's [`queue_line`], `Parity held out, third:`, in the first's
-    /// grammar. Its found half is the estimate (DECISIONS 147 §2).
-    #[test]
-    fn the_handoff_s_parity_held_out_third_line_is_the_pinned_scores() {
-        handoff_line_is_the_pinned_scores(&THIRD);
+    /// The states of a 6,000-frame game, the five batteries before the
+    /// sixth's length: the sixth's line reads its reach inside them too.
+    const SHORT_STATES: u32 = 6001;
+
+    /// The closed line's head.
+    const CLOSED_HEAD: &str = "Parity held out, closed:";
+
+    /// **The closed line** (item 4566): the closed batteries by name, their
+    /// rows whole of their rows, their lines as found of twelve a game and
+    /// now, and their reach as found and now, as [`queue_line`] sums them.
+    /// `None` when no battery is closed.
+    fn closed_line(all: &[&Battery]) -> Option<String> {
+        let closed: Vec<&&Battery> = all.iter().filter(|b| b.closed()).collect();
+        if closed.is_empty() {
+            return None;
+        }
+        let names: Vec<&str> = closed
+            .iter()
+            .map(|b| b.label.strip_prefix("Parity held out, ").unwrap_or("first"))
+            .collect();
+        let found = || {
+            closed
+                .iter()
+                .flat_map(|b| b.scores.iter().flatten().map(|p| p.found))
+        };
+        let now = || {
+            closed.iter().flat_map(|b| {
+                b.scores
+                    .iter()
+                    .flatten()
+                    .map(|p| p.moved.unwrap_or(p.found))
+            })
+        };
+        let lines = |s: Score| s.agreed.iter().filter(|&&a| a == s.states).count();
+        let reach = |it: &mut dyn Iterator<Item = Score>| {
+            let (ran, of) = it.fold((0u64, 0u64), |(ran, of), s| {
+                let first = s.first.iter().map(|f| f.1.0).min();
+                let before = first.map_or(s.states, |f| f.max(0).cast_unsigned());
+                (ran + u64::from(before), of + u64::from(s.states))
+            });
+            100 * ran / of.max(1)
+        };
+        let rows = 8 * closed.len();
+        Some(format!(
+            "{CLOSED_HEAD} {} \u{b7} {rows} of {rows} whole \u{b7} lines {} of {} as found, {} now \u{b7} \
+             reach {} % of states as found, {} % now",
+            names.join(", "),
+            found().map(lines).sum::<usize>(),
+            12 * rows,
+            now().map(lines).sum::<usize>(),
+            reach(&mut found()),
+            reach(&mut now()),
+        ))
     }
 
-    /// **The handoff's fourth parity-held-out line** (item 4510): the
-    /// fourth battery's [`queue_line`], `Parity held out, fourth:`, in the
-    /// first's grammar. Its found half is the estimate (DECISIONS 148 §2).
+    /// **The closed line goes red when a closed battery's row parts**:
+    /// the line counts every closed battery's lines, so one row of the
+    /// first battery bent off whole leaves it out of the closed set.
     #[test]
-    fn the_handoff_s_parity_held_out_fourth_line_is_the_pinned_scores() {
-        handoff_line_is_the_pinned_scores(&FOURTH);
-    }
-
-    /// **The handoff's fifth parity-held-out line** (item 4527): the fifth
-    /// battery's [`queue_line`], `Parity held out, fifth:`, in the first's
-    /// grammar. Its found half is the estimate (DECISIONS 149 §3, 150 §2).
-    #[test]
-    fn the_handoff_s_parity_held_out_fifth_line_is_the_pinned_scores() {
-        handoff_line_is_the_pinned_scores(&FIFTH);
+    fn a_battery_with_a_row_not_whole_is_not_closed() {
+        assert!(FIRST.closed(), "the first battery reads 8 of 8");
+        let mut scores = SCORES;
+        let p = SCORES[0].as_ref().unwrap();
+        scores[0] = Some(FirstScore {
+            last: p.last,
+            found: p.found,
+            moved: Some(p.found),
+        });
+        let bent = Battery {
+            scores: Box::leak(Box::new(scores)),
+            ..FIRST
+        };
+        assert!(!bent.closed(), "row 0 as found is not whole");
+        assert!(!SIXTH.closed() || SIXTH.whole_now() == 8);
     }
 
     fn handoff_line_is_the_pinned_scores(b: &Battery) {
@@ -7573,6 +8113,9 @@ pub(crate) struct Battery {
     /// The pins' name, for a failure's message.
     pub scores_name: &'static str,
     pub line: (usize, usize),
+    /// The recordings' closing frame (`item<N>-row<RRR>-<frames>.rcx`):
+    /// 6,000 for the first five, [`SIXTH_FRAMES`] for the sixth.
+    pub frames: i32,
 }
 
 /// **A held-out row whole now**: its `now` column ([`FirstScore::moved`]
@@ -7589,6 +8132,12 @@ pub(crate) fn whole_now(p: &FirstScore) -> bool {
 
 #[cfg(test)]
 impl Battery {
+    /// **Closed**: all eight rows taken and whole now, so the battery's
+    /// row in the handoff is the closed line's (item 4566).
+    pub(crate) fn closed(&self) -> bool {
+        self.scores.iter().all(Option::is_some) && self.whole_now() == self.scores.len()
+    }
+
     /// The battery's rows whole now, by [`whole_now`].
     pub(crate) fn whole_now(&self) -> usize {
         self.scores
@@ -7609,6 +8158,7 @@ pub(crate) const FIRST: Battery = Battery {
     scores: &SCORES,
     scores_name: "SCORES",
     line: HELD_OUT_LINE,
+    frames: 6000,
 };
 
 /// The second battery (item 4462).
@@ -7621,6 +8171,7 @@ pub(crate) const SECOND: Battery = Battery {
     scores: &SCORES_SECOND,
     scores_name: "SCORES_SECOND",
     line: HELD_OUT_SECOND_LINE,
+    frames: 6000,
 };
 
 /// **The third battery's scores**, `HELD_OUT_THIRD[k]` played as
@@ -7823,6 +8374,7 @@ pub(crate) const THIRD: Battery = Battery {
     scores: &SCORES_THIRD,
     scores_name: "SCORES_THIRD",
     line: HELD_OUT_THIRD_LINE,
+    frames: 6000,
 };
 
 /// **The fourth battery's scores**, `HELD_OUT_FOURTH[k]` played as
@@ -8008,6 +8560,7 @@ pub(crate) const FOURTH: Battery = Battery {
     scores: &SCORES_FOURTH,
     scores_name: "SCORES_FOURTH",
     line: HELD_OUT_FOURTH_LINE,
+    frames: 6000,
 };
 
 /// **The fifth battery's scores**, `HELD_OUT_FIFTH[k]` played as
@@ -8537,6 +9090,7 @@ pub(crate) const FIFTH: Battery = Battery {
     scores: &SCORES_FIFTH,
     scores_name: "SCORES_FIFTH",
     line: HELD_OUT_FIFTH_LINE,
+    frames: 6000,
 };
 
 /// **The spent batteries, folded into the headline** (DECISIONS 150 §1).
@@ -8551,3 +9105,441 @@ pub(crate) const FIFTH: Battery = Battery {
 /// `a_battery_with_a_row_s_leaf_test_is_spent` says when one joins.
 #[cfg(test)]
 pub(crate) const SPENT: &[&Battery] = &[&FIRST, &SECOND, &THIRD, &FOURTH, &FIFTH];
+
+/// **The sixth eight, as declared** (item 4566, before any file): rows 13,
+/// 33, …, 153 of `lobbies_on_disk`, each the human (tribe 4, slot 0)
+/// against the row's computer, with [`HELD_OUT_SIXTH_SEATS`]' seat and team
+/// added on the page; `MAP_SIZE 2` every row. Each is played to
+/// [`SIXTH_FRAMES`] with the human scripted ([`HELD_OUT_SIXTH_HUMANS`]),
+/// as `run1788 + k` for `HELD_OUT_SIXTH[k]`.
+#[cfg(test)]
+pub(crate) const HELD_OUT_SIXTH: [HeldOut; 8] = [
+    HeldOut {
+        row: 13,
+        capture: "gamelog-run1099-amazon-cover1-clickfree-diagonal.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 8; MAP_SIZE 2; PLAYERS 2; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 0; STARTING_TOWN 2; STARTING_RESOURCES 1; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 0; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 0; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 11; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; William the Conqueror",
+            "flags 1; tribe 9; who 2; team 0; handicap 0; play 2; pauses 0; diff 2; pop_cap_frame 0; King Philip II",
+        ],
+        digest: 0xa3ba0971242490d1,
+    },
+    HeldOut {
+        row: 33,
+        capture: "gamelog-run1158-greatsahara-turkish-enlightenment-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 7; MAP_SIZE 2; PLAYERS 2; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 3; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 4; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 4; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 8; who 1; team 1; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Mehmed II Khan Gazi",
+            "flags 1; tribe 10; who 2; team 1; handicap 0; play 2; pauses 0; diff 2; pop_cap_frame 0; King Louis XIV",
+        ],
+        digest: 0x6881f8e264299440,
+    },
+    HeldOut {
+        row: 53,
+        capture: "gamelog-run1259-eastindies-inca-classical-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 18; MAP_SIZE 2; PLAYERS 2; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 5; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 1; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 1; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 0; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 2; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Emperor Huayna Capac",
+            "flags 1; tribe 13; who 2; team 0; handicap 0; play 2; pauses 0; diff 2; pop_cap_frame 0; Tsar Peter the Great",
+        ],
+        digest: 0x46151db7b179fa2a,
+    },
+    HeldOut {
+        row: 73,
+        capture: "gamelog-run1335-greatsahara-british-industrial-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 7; MAP_SIZE 2; PLAYERS 2; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 4; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 5; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 5; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 11; who 1; team 1; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; William the Conqueror",
+            "flags 1; tribe 14; who 2; team 1; handicap 0; play 2; pauses 0; diff 2; pop_cap_frame 0; Emperor Shi Huangdi",
+        ],
+        digest: 0xe82e30c3c76842f0,
+    },
+    HeldOut {
+        row: 93,
+        capture: "gamelog-run1396-greatlakes-german-modern-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 14; MAP_SIZE 2; PLAYERS 2; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 4; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 6; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 6; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 0; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 12; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Alaric the Visigoth",
+            "flags 1; tribe 15; who 2; team 0; handicap 0; play 2; pauses 0; diff 2; pop_cap_frame 0; Queen Himiko",
+        ],
+        digest: 0xe88fb61345008795,
+    },
+    HeldOut {
+        row: 113,
+        capture: "gamelog-run1515b-lane2-lobby-leak-cover0-clickfree.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 14; MAP_SIZE 2; PLAYERS 2; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 5; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 4; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 4; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 11; who 1; team 1; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; William the Conqueror",
+            "flags 1; tribe 16; who 2; team 1; handicap 0; play 2; pauses 0; diff 2; pop_cap_frame 0; King Dangun",
+        ],
+        digest: 0x62787d8643bf3323,
+    },
+    HeldOut {
+        row: 133,
+        capture: "gamelog-run831-greatsahara-mongol-alltech-trace.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 7; MAP_SIZE 2; PLAYERS 2; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 3; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 8; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 0; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 17; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Batu Khan",
+            "flags 1; tribe 18; who 2; team 0; handicap 0; play 2; pauses 0; diff 2; pop_cap_frame 0; Tadodaho",
+        ],
+        digest: 0x3f5c8efb3780555a,
+    },
+    HeldOut {
+        row: 153,
+        capture: "gamelog-run983-greatlakes-roman-diff2-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 14; MAP_SIZE 2; PLAYERS 2; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 2; STARTING_TOWN 2; STARTING_RESOURCES 1; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 0; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 6; who 1; team 1; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Emperor Marcus Aurelius",
+            "flags 1; tribe 19; who 2; team 1; handicap 0; play 2; pauses 0; diff 2; pop_cap_frame 0; Crazy Horse",
+        ],
+        digest: 0xcf0f26b2da326655,
+    },
+];
+
+/// **The sixth's humans, as declared** (item 4566, before any file): each
+/// row's [`Scripted`] human as [`script_rule`] reads it off the row's start
+/// built from the page's block. No row is idle (a row the rule refused
+/// would be recorded idle, and this table would say so): every start has a unit `0`
+/// with a heading in its own region, a building `2000`, the Citizen and
+/// the Farm available and affordable, and a clear Farm site within
+/// [`FARM_REACH`] tiles of the capital.
+#[cfg(test)]
+pub(crate) const HELD_OUT_SIXTH_HUMANS: [Scripted; 8] = [
+    // row 13
+    Scripted {
+        scout: 0,
+        scout_to: sim::Pos { x: 37176, y: 35736 },
+        capital: 2000,
+        builder: 5,
+        farm_at: sim::Pos { x: 38112, y: 34464 },
+    },
+    // row 33
+    Scripted {
+        scout: 0,
+        scout_to: sim::Pos { x: 8184, y: 31128 },
+        capital: 2000,
+        builder: 13,
+        farm_at: sim::Pos { x: 5280, y: 30048 },
+    },
+    // row 53
+    Scripted {
+        scout: 0,
+        scout_to: sim::Pos { x: 22008, y: 41880 },
+        capital: 2000,
+        builder: 3,
+        farm_at: sim::Pos { x: 18912, y: 39840 },
+    },
+    // row 73
+    Scripted {
+        scout: 0,
+        scout_to: sim::Pos { x: 10488, y: 30360 },
+        capital: 2000,
+        builder: 10,
+        farm_at: sim::Pos { x: 6240, y: 29088 },
+    },
+    // row 93
+    Scripted {
+        scout: 0,
+        scout_to: sim::Pos { x: 43320, y: 41112 },
+        capital: 2000,
+        builder: 10,
+        farm_at: sim::Pos { x: 42912, y: 41568 },
+    },
+    // row 113
+    Scripted {
+        scout: 0,
+        scout_to: sim::Pos { x: 6648, y: 29592 },
+        capital: 2000,
+        builder: 11,
+        farm_at: sim::Pos { x: 3168, y: 29856 },
+    },
+    // row 133
+    Scripted {
+        scout: 0,
+        scout_to: sim::Pos { x: 34872, y: 37272 },
+        capital: 2000,
+        builder: 8,
+        farm_at: sim::Pos { x: 37728, y: 34464 },
+    },
+    // row 153
+    Scripted {
+        scout: 0,
+        scout_to: sim::Pos { x: 5880, y: 31896 },
+        capital: 2000,
+        builder: 4,
+        farm_at: sim::Pos { x: 2208, y: 30624 },
+    },
+];
+
+/// **The sixth battery's scores**, `HELD_OUT_SIXTH[k]` played as
+/// `run1788 + k` (item 4566): `None` until the original has played it. The
+/// found column is pinned once and never re-pinned; it is the estimate
+/// (DECISIONS 151 §6, 152 §4). Scored on `38bfbab38`'s tree and pinned on
+/// the merged tree `3b59df526`, where 43 commits of the base moved later
+/// lines of rows 53, 93 and 133 and no row's first parting.
+#[cfg(test)]
+pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
+    // run1788
+    // row 13, as found 2026-11-22: 2 lines whole; units 7,675 of 12,001, first 7675; builds 7,675
+    // of 12,001, first 7675; ammo 11,075 of 12,001, first 9001; groups 7,675 of 12,001, first 7675;
+    // guys 7,675 of 12,001, first 7675; leaders 7,751 of 12,001, first 7751; cities 8,001 of
+    // 12,001, first 8001; items 8,561 of 12,001, first 8561; goods 8,473 of 12,001, first 8286;
+    // world 7,676 of 12,001, first 7676; reach 7,675 of 12,001 states, 6,001 of 6,001 in the first
+    // 6,001.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 12001,
+            agreed: [
+                7675, 7675, 12001, 11075, 12001, 7675, 7675, 7751, 8001, 8561, 8473, 7676,
+            ],
+            first: &[
+                ("units", (7675, Some(1817632919), 4097706533)),
+                ("builds", (7675, Some(2607812443), 456200029)),
+                ("ammo", (9001, Some(1), 2054097555)),
+                ("groups", (7675, Some(2026795161), 1961455771)),
+                ("guys", (7675, Some(3912017497), 3171329874)),
+                ("leaders", (7751, Some(3296775262), 3204434973)),
+                ("cities", (8001, Some(3206817740), 3243124685)),
+                ("items", (8561, Some(759187207), 770721545)),
+                ("goods", (8286, Some(1321043981), 1349879823)),
+                ("world", (7676, Some(2649672179), 2530724234)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1789
+    // row 33, as found 2026-11-22: 1 line whole; units 2,411 of 3,944, first 2411; builds 2,483 of
+    // 3,944, first 2448; ammo 3,279 of 3,944, first 2849; deaths 2,910 of 3,944, first 2910; groups
+    // 2,566 of 3,944, first 2566; guys 2,412 of 3,944, first 2412; leaders 2,433 of 3,944, first
+    // 2433; cities 2,411 of 3,944, first 2411; items 3,414 of 3,944, first 3103; goods 3,119 of
+    // 3,944, first 2907; world 2,414 of 3,944, first 2414; reach 2,411 of 3,944 states, 2,411 of
+    // 3,944 in the first 6,001.
+    Some(FirstScore {
+        last: Some(3943),
+        found: Score {
+            states: 3944,
+            agreed: [
+                2411, 2483, 3944, 3279, 2910, 2566, 2412, 2433, 2411, 3414, 3119, 2414,
+            ],
+            first: &[
+                ("units", (2411, Some(3090837024), 2794807023)),
+                ("builds", (2448, Some(835850070), 3087470893)),
+                ("ammo", (2849, Some(2591427256), 1)),
+                ("deaths", (2910, Some(1951075586), 1)),
+                ("groups", (2566, Some(1395743986), 2512936357)),
+                ("guys", (2412, Some(1974607008), 839983040)),
+                ("leaders", (2433, Some(2744254649), 2938699901)),
+                ("cities", (2411, Some(2537762736), 2569744296)),
+                ("items", (3103, Some(529023019), 3376233514)),
+                ("goods", (2907, Some(3516364582), 3470227234)),
+                ("world", (2414, Some(3160934879), 3182954975)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1790
+    // row 53, as found 2026-11-22: 1 line whole; units 3,358 of 12,001, first 3358; builds 3,732 of
+    // 12,001, first 3732; ammo 3,992 of 12,001, first 3795; deaths 3,819 of 12,001, first 3707;
+    // groups 3,716 of 12,001, first 3716; guys 3,358 of 12,001, first 3358; leaders 3,707 of
+    // 12,001, first 3707; cities 3,825 of 12,001, first 3825; items 9,173 of 12,001, first 4574;
+    // goods 3,923 of 12,001, first 3832; world 3,707 of 12,001, first 3707; reach 3,358 of 12,001
+    // states, 3,358 of 6,001 in the first 6,001.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 12001,
+            agreed: [
+                3358, 3732, 12001, 3992, 3819, 3716, 3358, 3707, 3825, 9173, 3923, 3707,
+            ],
+            first: &[
+                ("units", (3358, Some(992329593), 1194311501)),
+                ("builds", (3732, Some(2175428037), 986670026)),
+                ("ammo", (3795, Some(684788378), 1)),
+                ("deaths", (3707, Some(1220611515), 3817282588)),
+                ("groups", (3716, Some(3464512650), 3450219541)),
+                ("guys", (3358, Some(479939638), 3928181788)),
+                ("leaders", (3707, Some(3179845721), 3311573076)),
+                ("cities", (3825, Some(4087239103), 2717798815)),
+                ("items", (4574, Some(3301772440), 3298888854)),
+                ("goods", (3832, Some(2135290454), 2227565146)),
+                ("world", (3707, Some(2727186382), 2158397478)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1791
+    // row 73, as found 2026-11-22: 1 line whole; units 1,563 of 3,438, first 1563; builds 1,569 of
+    // 3,438, first 1569; ammo 2,593 of 3,438, first 2557; deaths 2,604 of 3,438, first 2604; groups
+    // 1,678 of 3,438, first 1678; guys 1,564 of 3,438, first 1564; leaders 1,576 of 3,438, first
+    // 1576; cities 1,563 of 3,438, first 1563; items 2,589 of 3,438, first 1949; goods 2,460 of
+    // 3,438, first 2353; world 1,566 of 3,438, first 1566; reach 1,563 of 3,438 states, 1,563 of
+    // 3,438 in the first 6,001.
+    Some(FirstScore {
+        last: Some(3437),
+        found: Score {
+            states: 3438,
+            agreed: [
+                1563, 1569, 3438, 2593, 2604, 1678, 1564, 1576, 1563, 2589, 2460, 1566,
+            ],
+            first: &[
+                ("units", (1563, Some(4059076565), 2125891403)),
+                ("builds", (1569, Some(146391282), 1875296499)),
+                ("ammo", (2557, Some(4190309544), 1)),
+                ("deaths", (2604, Some(1), 2113539492)),
+                ("groups", (1678, Some(3126200451), 1300891790)),
+                ("guys", (1564, Some(374263833), 1839451683)),
+                ("leaders", (1576, Some(1096030747), 4201978914)),
+                ("cities", (1563, Some(4048038473), 2512136249)),
+                ("items", (1949, Some(1693995504), 1774735860)),
+                ("goods", (2353, Some(326399801), 337934141)),
+                ("world", (1566, Some(563759280), 2466466211)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1792
+    // row 93, as found 2026-11-22: 1 line whole; units 2,342 of 12,001, first 2342; builds 2,688 of
+    // 12,001, first 2686; ammo 3,799 of 12,001, first 2692; deaths 3,464 of 12,001, first 2775;
+    // groups 2,740 of 12,001, first 2740; guys 2,686 of 12,001, first 2686; leaders 2,698 of
+    // 12,001, first 2689; cities 2,974 of 12,001, first 2871; items 4,832 of 12,001, first 3127;
+    // goods 4,140 of 12,001, first 3157; world 2,691 of 12,001, first 2691; reach 2,342 of 12,001
+    // states, 2,342 of 6,001 in the first 6,001.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 12001,
+            agreed: [
+                2342, 2688, 12001, 3799, 3464, 2740, 2686, 2698, 2974, 4832, 4140, 2691,
+            ],
+            first: &[
+                ("units", (2342, Some(1169777861), 259155158)),
+                ("builds", (2686, Some(547053547), 644243435)),
+                ("ammo", (2692, Some(1859606587), 696997629)),
+                ("deaths", (2775, Some(2882887954), 2321178662)),
+                ("groups", (2740, Some(4287796956), 1715573666)),
+                ("guys", (2686, Some(384424200), 3607616169)),
+                ("leaders", (2689, Some(3893770918), 226245285)),
+                ("cities", (2871, Some(3617272752), 3487511460)),
+                ("items", (3127, Some(2121282860), 2092447016)),
+                ("goods", (3157, Some(2924123420), 3056768288)),
+                ("world", (2691, Some(2608492097), 2791665259)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1793
+    // row 113, as found 2026-11-22: 1 line whole; units 2,259 of 4,573, first 2259; builds 2,338 of
+    // 4,573, first 2323; ammo 3,335 of 4,573, first 2941; deaths 3,087 of 4,573, first 2993; groups
+    // 2,470 of 4,573, first 2470; guys 2,259 of 4,573, first 2259; leaders 2,351 of 4,573, first
+    // 2351; cities 2,259 of 4,573, first 2259; items 3,176 of 4,573, first 2526; goods 4,081 of
+    // 4,573, first 2666; world 2,261 of 4,573, first 2261; reach 2,259 of 4,573 states, 2,259 of
+    // 4,573 in the first 6,001; ours' game over from 4118.
+    Some(FirstScore {
+        last: Some(4572),
+        found: Score {
+            states: 4573,
+            agreed: [
+                2259, 2338, 4573, 3335, 3087, 2470, 2259, 2351, 2259, 3176, 4081, 2261,
+            ],
+            first: &[
+                ("units", (2259, Some(3462201175), 3106729391)),
+                ("builds", (2323, Some(52058802), 98261619)),
+                ("ammo", (2941, Some(1), 3925806276)),
+                ("deaths", (2993, Some(1), 1927744677)),
+                ("groups", (2470, Some(939459940), 872023246)),
+                ("guys", (2259, Some(1132056778), 3749433370)),
+                ("leaders", (2351, Some(417477691), 3343529196)),
+                ("cities", (2259, Some(6368709), 3892456893)),
+                ("items", (2526, Some(2178306644), 2195608150)),
+                ("goods", (2666, Some(1648268551), 1581946117)),
+                ("world", (2261, Some(1332653642), 414756426)),
+            ],
+            over: Some(4118),
+        },
+        moved: None,
+    }),
+    // run1794
+    // row 133, as found 2026-11-22: 1 line whole; units 1,162 of 6,085, first 1162; builds 958 of
+    // 6,085, first 958; ammo 2,517 of 6,085, first 1485; deaths 1,484 of 6,085, first 1484; groups
+    // 1,242 of 6,085, first 1242; guys 1,162 of 6,085, first 1162; leaders 956 of 6,085, first 956;
+    // cities 1,376 of 6,085, first 1376; items 1,614 of 6,085, first 1614; goods 1,758 of 6,085,
+    // first 1758; world 1,197 of 6,085, first 1197; reach 956 of 6,085 states, 956 of 6,001 in the
+    // first 6,001.
+    Some(FirstScore {
+        last: Some(6084),
+        found: Score {
+            states: 6085,
+            agreed: [
+                1162, 958, 6085, 2517, 1484, 1242, 1162, 956, 1376, 1614, 1758, 1197,
+            ],
+            first: &[
+                ("units", (1162, Some(3743709245), 4104174444)),
+                ("builds", (958, Some(696106489), 657638887)),
+                ("ammo", (1485, Some(1244795671), 1)),
+                ("deaths", (1484, Some(1), 3470790278)),
+                ("groups", (1242, Some(2943953166), 3106154756)),
+                ("guys", (1162, Some(23336544), 1735796580)),
+                ("leaders", (956, Some(1209252435), 1776794036)),
+                ("cities", (1376, Some(1412642287), 1429550575)),
+                ("items", (1614, Some(3614982968), 3623633722)),
+                ("goods", (1758, Some(4286740555), 139819094)),
+                ("world", (1197, Some(1966726756), 3748257716)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1795
+    // row 153, as found 2026-11-22: 12 lines whole; reach 12,001 of 12,001 states, 6,001 of 6,001
+    // in the first 6,001.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 12001,
+            agreed: [
+                12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001,
+            ],
+            first: &[],
+            over: None,
+        },
+        moved: None,
+    }),
+];
+
+/// The sixth battery's line: games whole of the eight, and games taken.
+/// As found: row 153 whole to 12,000.
+#[cfg(test)]
+pub(crate) const HELD_OUT_SIXTH_LINE: (usize, usize) = (1, 8);
+
+/// The sixth battery (item 4566): three seats, a team and a scripted human
+/// a row, recorded to [`SIXTH_FRAMES`].
+#[cfg(test)]
+pub(crate) const SIXTH: Battery = Battery {
+    label: "Parity held out, sixth",
+    item: 4566,
+    run: 1788,
+    table: &HELD_OUT_SIXTH,
+    scores: &SCORES_SIXTH,
+    scores_name: "SCORES_SIXTH",
+    line: HELD_OUT_SIXTH_LINE,
+    frames: SIXTH_FRAMES,
+};
+
+/// **Every battery, in order** (item 4566): the handoff's lines read them,
+/// the closed ones on one line and each open one on its own.
+#[cfg(test)]
+pub(crate) const BATTERIES: &[&Battery] = &[&FIRST, &SECOND, &THIRD, &FOURTH, &FIFTH, &SIXTH];
