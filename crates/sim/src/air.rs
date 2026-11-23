@@ -1940,6 +1940,13 @@ impl Sim {
         {
             self.buildings[b].visible = 0xff;
             self.update_local_seen_build(b);
+            // `do_missile_launch:74`/`:84` (item 4605): the nuke's launch,
+            // `ping` -1, `WHITE`, at the silo, told every console (its
+            // owner "launched", the rest "detected"). A missile that is not
+            // a nuke tells the others alone (`:61`); not carried, 4605b.
+            let at = self.buildings[b].pos;
+            use crate::observe::alerts::{EVERYONE, Tint};
+            self.alert(-1, at, EVERYONE, Tint::White, -1);
         }
         self.come_out(u);
         let frame = self.frame;
@@ -2095,6 +2102,17 @@ impl Sim {
             crate::combat::Spline::nuke((launch.x, launch.y, sz), (landing.x, landing.y, ez))
         });
         let spline = spline.map(|s| s.recycled(self.spline_pop()));
+        // **The nuke's circle** (item 4605, `Ammo::init@0067bbf0:652`):
+        // `add_event` -4 at the landing, the shooter's neon, its
+        // `ping_times` the spline's points less one (`+0x28`), its radius
+        // the map's width `<< 8`; told every console.
+        if self.air_line_is(u, crate::air::airbase::NUCLEARMISSILE) {
+            use crate::observe::alerts::{EVERYONE, Tint};
+            let time = spline.map_or(MISSILE_FLIGHT, |s| s.len() as i32 - 1);
+            let radius = self.world.width() << 8;
+            let tint = Tint::Neon(self.units[u].owner);
+            self.alert_with_radius(-4, landing, EVERYONE, tint, time, radius);
+        }
         self.add_ammo(crate::combat::Projectile {
             left: None,
             shooter: me,

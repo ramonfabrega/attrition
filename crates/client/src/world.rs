@@ -172,8 +172,8 @@ pub struct World {
     /// holds no `<MINIMAP>`.
     pub(crate) ping_set: Option<crate::minimap::pings::Set>,
     /// The message window's entries the minimap pings, and the
-    /// `graphic_tick` it draws them at: empty, as our sim supplies none
-    /// (parked 4603a).
+    /// `graphic_tick` it draws them at: the sim's alert stream, laid by
+    /// [`World::run_to`] (item 4605).
     pub(crate) pings: crate::minimap::pings::Live,
     /// Pose each figure at its slot and clock (item 4067). On by default
     /// since item 4069 drew the original's facing (`guy_placement`): posed,
@@ -1324,6 +1324,16 @@ impl World {
                 self.ease();
             }
         }
+        // **The pings' entries** (item 4605): the sim's alert stream at the
+        // nominal clock, one `graphic_tick` a frame (66 ms each at play
+        // speed, `Game::loop_render`'s `0x42`). A capture's own clock is
+        // the caller's to lay over it.
+        let alerts = self.runner.sim().observe_alerts(0);
+        let now = self.runner.frame() as i32;
+        self.pings = crate::minimap::pings::Live {
+            entries: crate::minimap::pings::entries(&alerts, CONSOLE, &|f| f as i32),
+            tick: now,
+        };
     }
 
     /// Whether a unit of type `ty` leans to the ground.

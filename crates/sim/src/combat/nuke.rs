@@ -142,6 +142,12 @@ impl Sim {
             struck: Vec::new(),
         });
         self.nuke_reveal(p.landing, self.profile(p.shooter).splash_area);
+        // `Ammo::do_damage:288` (item 4605): the blast's alert, `add_event`
+        // -1, `WHITE`, at the landing, told every console.
+        {
+            use crate::observe::alerts::{EVERYONE, Tint};
+            self.alert(-1, p.landing, EVERYONE, Tint::White, -1);
+        }
         self.nuke_do_damage(frame);
     }
 

@@ -1251,7 +1251,18 @@ impl Sim {
                     combat::Spline::nuke((launch.x, launch.y, sz), (landing.x, landing.y, ez))
                         .recycled(self.spline_pop());
                 spline = Some(path);
-                i32::try_from(path.len()).expect("at most SPLINE_MAX") - 1
+                let time = i32::try_from(path.len()).expect("at most SPLINE_MAX") - 1;
+                // **The nuke's circle** (item 4605, `Ammo::init@0067bbf0:652`):
+                // `add_event` -4 at the landing, the shooter's neon, its
+                // `ping_times` the flight's frames, its radius the map's
+                // width `<< 8`; told every console.
+                if self.air_line_is(u, crate::air::airbase::NUCLEARMISSILE) {
+                    use crate::observe::alerts::{EVERYONE, Tint};
+                    let radius = self.world.width() << 8;
+                    let tint = Tint::Neon(self.units[u].owner);
+                    self.alert_with_radius(-4, landing, EVERYONE, tint, time, radius);
+                }
+                time
             }
         } else if p.siege {
             combat::siege_flight_time(
