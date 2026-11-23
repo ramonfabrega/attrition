@@ -1636,7 +1636,7 @@ who=2's Caravan `2/31` links its trade order to its ally who=1's city 3 in ours,
 through 1573 and is gone by 1575; `docs/journal/2026-11-23-item-4576.md`); a script past §9's three orders, or one issued
 after frame 90; whether row 13's 7675 and the sample's 7055 are one mechanism.
 
-**Row 93's first leaf: the President heals** (item 4577, run1799, the sixth's first leaf test). run1799 is row 93's
+**Row 93's first leaf: the President heals** (item 4577, run1799). run1799 is row 93's
 file to 12,000 with the checksum and ranges hooks (`RNG_MASK=0xffbu`). On state 2342, units range 1359 (record 39,
 who=1) parts on `healing` alone: ours 0, theirs 20. The unit is who=1's Volksgrenadiers `1/39` (TI 109, land, a
 captain), walking under an `AttackTo` and guarding who=1's President `1/17` (TI 355, about 600 away). Its figure
