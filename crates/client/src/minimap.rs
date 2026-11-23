@@ -23,7 +23,8 @@
 //! Ours: the background is our own terrain drawn straight down
 //! ([`background_camera`]), and the HUD draws it one cell a quad
 //! ([`layer`]), each cell in the background's colour at its centre. The
-//! fog, the borders, the blips and the view's rectangle are not drawn.
+//! borders and the view's rectangle are drawn over it ([`overlays`]); the
+//! fog, the blips and the pings are not.
 
 /// **The quad's corners** (item 4581): `translated_verts`' screen x, y on
 /// run1564's packet at frame 3294, top, right, bottom, left, on the
@@ -265,6 +266,266 @@ pub fn layer(back: &Background, size: (i32, i32)) -> crate::gpu::ScreenLayer {
         pos,
         col,
     }
+}
+
+/// **`WorldMapFog::fill_colors_who@008d1070`'s alpha on a territory's
+/// inside**, `0x50`, and **on its edge**, 200 (item 4588).
+pub const WHO_INSIDE: u8 = 0x50;
+pub const WHO_EDGE: u8 = 200;
+
+/// **`who_render_state.alpha_ref`** as `WorldMap::render_borders@008cc490`
+/// sets it when its argument is 0: 100, against `CMP_GREATER`, so the
+/// inside's `0x50` is dropped and the edge alone is drawn (item 4588). The
+/// argument is 1, and the reference 0, under `stat_mode` 0 or without
+/// the profile's `prefs & 4`; run1564's photograph shows no inside, and
+/// the client draws this one.
+pub const WHO_ALPHA_REF: f32 = 100.0;
+
+/// The eight neighbours `fill_colors_who` walks, `move_x[1..9]` and
+/// `move_y[1..9]` (`.rdata`, read off the executable): `(-1, -1)` first,
+/// then clockwise.
+const MOVE: [(i32, i32); 8] = [
+    (-1, -1),
+    (0, -1),
+    (1, -1),
+    (1, 0),
+    (1, 1),
+    (0, 1),
+    (-1, 1),
+    (-1, 0),
+];
+
+/// **The who texture** (item 4588; `docs/RENDERER.md` §3.32, "The
+/// overlays"): `WorldMapFog::fill_colors_who@008d1070`, one texel a fog
+/// cell, `2 · cells` each way, row-major, `[r, g, b, a]`. A texel whose
+/// cell a player owns takes that player's `TeamColor::get_border` at
+/// [`WHO_INSIDE`], or at [`WHO_EDGE`] when one of its eight neighbours in
+/// the fog grid lies on a cell owned by anyone else or by no one. A
+/// neighbour off the grid, or on a cell of open water (`flags & 0x100`
+/// clear and the land class 1 or 2), is passed over. Every other texel is
+/// zero. Assumed here: the console sees every player's borders
+/// (`LeaderData::can_see_borders`), and no two owners are mutual allies
+/// (diplomacy 2 both ways, which would spare their shared edge).
+pub fn who_texels(
+    cells: (i32, i32),
+    owner: &[sim::Owner],
+    sea: impl Fn(usize) -> bool,
+    colour: impl Fn(sim::Player) -> [u8; 3],
+) -> Vec<[u8; 4]> {
+    let (fw, fh) = (cells.0 * 2, cells.1 * 2);
+    let cell = |fx: i32, fy: i32| ((fy >> 1) * cells.0 + (fx >> 1)) as usize;
+    let mut out = vec![[0u8; 4]; (fw * fh) as usize];
+    for fy in 0..fh {
+        for fx in 0..fw {
+            let sim::Owner::Player(p) = owner[cell(fx, fy)] else {
+                continue;
+            };
+            let edge = MOVE.iter().any(|&(dx, dy)| {
+                let (nx, ny) = (fx + dx, fy + dy);
+                if nx < 0 || ny < 0 || nx >= fw || ny >= fh || sea(cell(nx, ny)) {
+                    return false;
+                }
+                owner[cell(nx, ny)] != sim::Owner::Player(p)
+            });
+            let [r, g, b] = colour(p);
+            out[(fy * fw + fx) as usize] = [r, g, b, if edge { WHO_EDGE } else { WHO_INSIDE }];
+        }
+    }
+    out
+}
+
+/// The texcoord under the screen point `(px, py)` on the quad, or `None`
+/// outside it.
+fn to_uv(size: (i32, i32), px: f32, py: f32) -> Option<(f32, f32)> {
+    triangles(size)
+        .into_iter()
+        .find_map(|[(a, ta), (b, tb), (c, tc)]| {
+            let det = (b.0 - a.0) * (c.1 - a.1) - (c.0 - a.0) * (b.1 - a.1);
+            let w1 = ((px - a.0) * (c.1 - a.1) - (c.0 - a.0) * (py - a.1)) / det;
+            let w2 = ((b.0 - a.0) * (py - a.1) - (px - a.0) * (b.1 - a.1)) / det;
+            let w0 = 1.0 - w1 - w2;
+            let eps = -1e-4;
+            (w0 >= eps && w1 >= eps && w2 >= eps).then(|| {
+                (
+                    w0 * ta.0 + w1 * tb.0 + w2 * tc.0,
+                    w0 * ta.1 + w1 * tb.1 + w2 * tc.1,
+                )
+            })
+        })
+}
+
+/// One pixel's square, `(x, y)` to `(x + 1, y + 1)`, as two triangles in
+/// the frame's device coordinates.
+fn pixel(size: (i32, i32), x: i32, y: i32) -> [[f32; 3]; 6] {
+    let (sw, sh) = (size.0 as f32, size.1 as f32);
+    let ndc = |x: i32, y: i32| [x as f32 / sw * 2.0 - 1.0, 1.0 - y as f32 / sh * 2.0, 0.0];
+    let (a, b, c, d) = (ndc(x, y), ndc(x + 1, y), ndc(x + 1, y + 1), ndc(x, y + 1));
+    [a, b, c, a, c, d]
+}
+
+/// **The borders** (item 4588): `WorldMap::render_borders@008cc490` draws
+/// the who texture ([`who_texels`]) on the background's own two triangles,
+/// its texcoords the fog grid over the texture, `MIP_LINEAR` both ways,
+/// alpha-tested above [`WHO_ALPHA_REF`] and blended `SRCALPHA`,
+/// `INVSRCALPHA` with the texel's colour and alpha selected. Each pixel
+/// of the quad samples the texture bilinearly at its centre (a texel past
+/// the grid is zero), and a pixel that passes is one square in its
+/// filtered colour, gathered into one layer per alpha.
+pub fn borders(
+    size: (i32, i32),
+    cells: (i32, i32),
+    who: &[[u8; 4]],
+) -> Vec<crate::gpu::ScreenLayer> {
+    let (fw, fh) = (cells.0 * 2, cells.1 * 2);
+    let at = |x: i32, y: i32| {
+        if x < 0 || y < 0 || x >= fw || y >= fh {
+            [0.0f32; 4]
+        } else {
+            who[(y * fw + x) as usize].map(f32::from)
+        }
+    };
+    let q = quad(size);
+    let (x0, x1) = (q.iter().map(|p| p.0).min(), q.iter().map(|p| p.0).max());
+    let (y0, y1) = (q.iter().map(|p| p.1).min(), q.iter().map(|p| p.1).max());
+    let (Some(x0), Some(x1), Some(y0), Some(y1)) = (x0, x1, y0, y1) else {
+        return Vec::new();
+    };
+    let mut by: std::collections::BTreeMap<u8, crate::gpu::ScreenLayer> = Default::default();
+    for y in y0..=y1 {
+        for x in x0..=x1 {
+            let Some((u, v)) = to_uv(size, x as f32 + 0.5, y as f32 + 0.5) else {
+                continue;
+            };
+            let (tx, ty) = (u * fw as f32 - 0.5, v * fh as f32 - 0.5);
+            let (ix, iy) = (tx.floor() as i32, ty.floor() as i32);
+            let (ax, ay) = (tx - ix as f32, ty - iy as f32);
+            let (a, b, c, d) = (
+                at(ix, iy),
+                at(ix + 1, iy),
+                at(ix, iy + 1),
+                at(ix + 1, iy + 1),
+            );
+            let f: [f32; 4] = std::array::from_fn(|k| {
+                let top = a[k] + (b[k] - a[k]) * ax;
+                let bot = c[k] + (d[k] - c[k]) * ax;
+                top + (bot - top) * ay
+            });
+            if f[3] <= WHO_ALPHA_REF {
+                continue;
+            }
+            let l = by.entry(f[3].round().min(255.0) as u8).or_insert_with(|| {
+                crate::gpu::ScreenLayer {
+                    alpha: f[3].round().min(255.0) as u8,
+                    pos: Vec::new(),
+                    col: Vec::new(),
+                }
+            });
+            let c = [f[0] / 255.0, f[1] / 255.0, f[2] / 255.0];
+            for p in pixel(size, x, y) {
+                l.pos.push(p);
+                l.col.push(c);
+            }
+        }
+    }
+    by.into_values().collect()
+}
+
+/// **The view's rectangle** (item 4588): `WorldMap::draw_view_rect@008c7f70`,
+/// last of `on_redraw`'s draws. `get_view_rect@008c8120` takes the plane
+/// points under the main view's top-left and bottom-right pixels
+/// (`RenderWindow::mouse_to_xy_plane`); each goes through the minimap's
+/// camera to the window's pixels (`MiscAccess::world_to_console@00583840`,
+/// rounded half up), held to `[4, size - 4]`, and `Buffer::box` draws a one-pixel
+/// `WHITE` outline from the first to the second less one. `view` is the
+/// main camera and `screen` its frame; the box is held to the quad's
+/// bounds (an assumption: the window's rectangle is not read).
+pub fn view_rect(
+    size: (i32, i32),
+    extent: (i32, i32),
+    view: &render::Camera,
+    screen: (u32, u32),
+) -> crate::gpu::ScreenLayer {
+    let m = view.to_screen_matrix().0;
+    let (w, h) = (screen.0 as f32, screen.1 as f32);
+    let ground = |px: f32, py: f32| {
+        let sx = 2.0 * px / w - 1.0;
+        let sy = 1.0 - 2.0 * py / h;
+        let (a, b, e) = (m[0] - sx * m[3], m[4] - sx * m[7], sx * m[15] - m[12]);
+        let (c, d, f) = (m[1] - sy * m[3], m[5] - sy * m[7], sy * m[15] - m[13]);
+        let det = a * d - b * c;
+        ((e * d - b * f) / det, (a * f - e * c) / det)
+    };
+    let console = |px: f32, py: f32| {
+        let (x, y) = ground(px, py);
+        let (sx, sy) = to_screen(size, extent, x as i32, y as i32);
+        // `world_to_console@00583840`: truncated, then one more when the
+        // remainder is at least `__real_3f000000`, 0.5.
+        let round = |v: f32| v as i32 + i32::from(v - (v as i32) as f32 >= 0.5);
+        (round(sx), round(sy))
+    };
+    let q = quad(size);
+    let lo = (q[3].0 + 4, q[0].1 + 4);
+    let hi = (q[1].0 - 4, q[2].1 - 4);
+    let (a, b) = (console(0.0, 0.0), console(w, h));
+    let (x0, y0) = (a.0.max(lo.0), a.1.max(lo.1));
+    let (x1, y1) = (b.0.min(hi.0) - 1, b.1.min(hi.1) - 1);
+    let mut l = crate::gpu::ScreenLayer {
+        alpha: 255,
+        pos: Vec::new(),
+        col: Vec::new(),
+    };
+    let mut put = |x: i32, y: i32| {
+        for p in pixel(size, x, y) {
+            l.pos.push(p);
+            l.col.push([1.0; 3]);
+        }
+    };
+    for x in x0..=x1 {
+        put(x, y0);
+        put(x, y1);
+    }
+    for y in y0 + 1..y1 {
+        put(x0, y);
+        put(x1, y);
+    }
+    l
+}
+
+/// **The overlays** (item 4588; `docs/RENDERER.md` §3.32): what
+/// `WorldMap::on_redraw@008c81f0` draws over the background, in its order
+/// (`render_borders`, `render_fog`, `render_blips`, `draw_view_rect`,
+/// `render_ping`): the borders ([`borders`]) and the view's rectangle
+/// ([`view_rect`]). The fog draws nothing on run1564's photograph and is
+/// not built; nor are the blips and the pings.
+pub fn overlays(
+    world: &crate::world::World,
+    view: &render::Camera,
+    screen: (u32, u32),
+) -> Vec<crate::gpu::ScreenLayer> {
+    let size = (screen.0 as i32, screen.1 as i32);
+    let t = world.runner.terrain();
+    let terr = world.runner.territory();
+    let cells = (t.width, t.height);
+    let mut out = Vec::new();
+    if terr.width == t.width && terr.height == t.height {
+        let sea =
+            |i: usize| t.flags[i] & sim::world::cell::HALFLAND == 0 && matches!(t.land[i], 1 | 2);
+        let colour = |p: sim::Player| {
+            crate::borders::BORDER_COLOURS
+                .get(usize::from(p))
+                .copied()
+                .unwrap_or([255; 3])
+        };
+        let who = who_texels(cells, &terr.owner, sea, colour);
+        out.extend(borders(size, cells, &who));
+    }
+    out.push(view_rect(
+        size,
+        (cells.0 * CELL, cells.1 * CELL),
+        view,
+        screen,
+    ));
+    out
 }
 
 /// **The background drawn** (item 4581): the terrain alone, no figure, no
@@ -557,8 +818,60 @@ pub(crate) mod tests {
     /// vertex, `[424, 596, 492, 3360, 2398, 3600]`. Item 4586, the
     /// mountain feature ([`add_mountains`]): within `NEAR` 2,629 → 2,769
     /// (+140; 151 cells in, 11 out), the water counts unmoved; without it
-    /// the row reads 2,629 again.
-    pub const RUN1564_3279_MINIMAP: [usize; 6] = [416, 596, 475, 3361, 2769, 3600];
+    /// the row reads 2,629 again. Item 4588, the overlays ([`overlays`]):
+    /// `[416, 596, 475, 3361, 2769, 3600]` → `[465, 596, 534, 3400, 2808,
+    /// 3600]`, within `NEAR` +39 (50 cells in, 11 out): the borders 40 in
+    /// (21 of the blue team's, 19 of the red's) and 11 out, the view's
+    /// rectangle 10 in; the border's blue reads as water on both sides,
+    /// +49 cells. Seen red: the view's rectangle truncated rather than
+    /// rounded half up sits a pixel left of theirs, `[…, 2795, 3600]`.
+    pub const RUN1564_3279_MINIMAP: [usize; 6] = [465, 596, 534, 3400, 2808, 3600];
+
+    /// **The who texture's edge** (item 4588): a 2 × 1 map, player 0 on the
+    /// left cell and player 1 on the right; then the right cell open water.
+    #[test]
+    fn the_who_texture_marks_the_edge_alone() {
+        let o = [sim::Owner::Player(0), sim::Owner::Player(1)];
+        let colour = |p: sim::Player| [p * 100, 0, 0];
+        let who = who_texels((2, 1), &o, |_| false, colour);
+        // Fog grid 4 × 2: texels 0 and 3 are a fog cell from the other
+        // owner's cell; 1 and 2 touch it.
+        let a: Vec<u8> = who.iter().map(|t| t[3]).collect();
+        assert_eq!(a, [WHO_INSIDE, WHO_EDGE, WHO_EDGE, WHO_INSIDE].repeat(2));
+        assert_eq!(who[2][0], 100, "player 1's colour");
+        // Open water is passed over as a neighbour: player 0's edge texel
+        // no longer sees a stranger, while the water cell's own texel,
+        // still player 1's, sees player 0's land.
+        let who = who_texels((2, 1), &o, |i| i == 1, colour);
+        assert_eq!(who[1][3], WHO_INSIDE);
+        assert_eq!(who[2][3], WHO_EDGE);
+        // An unowned cell is a stranger too, and is itself left zero.
+        let o = [sim::Owner::Player(0), sim::Owner::None];
+        let who = who_texels((2, 1), &o, |_| false, colour);
+        assert_eq!(who[1][3], WHO_EDGE);
+        assert_eq!(who[2], [0; 4]);
+    }
+
+    /// **The view's rectangle on run1564** (item 4588): the photograph's
+    /// white box is x 458 to 499 and y 1028 to 1051, inclusive, read off
+    /// its pixels; [`view_rect`] from run1564's camera draws the same box.
+    /// Truncated instead of rounded, it would start at 457 and end at 498.
+    #[test]
+    fn the_view_rect_is_the_photograph_s() {
+        let camera = crate::ground::tests::run1564().camera;
+        let l = view_rect(QUAD_FRAME, (46080, 46080), &camera, (1920, 1080));
+        let px = |p: [f32; 3]| {
+            (
+                ((p[0] + 1.0) * 0.5 * 1920.0).round() as i32,
+                ((1.0 - p[1]) * 0.5 * 1080.0).round() as i32,
+            )
+        };
+        let pts: Vec<(i32, i32)> = l.pos.iter().map(|&p| px(p)).collect();
+        let xs = (pts.iter().map(|p| p.0).min(), pts.iter().map(|p| p.0).max());
+        let ys = (pts.iter().map(|p| p.1).min(), pts.iter().map(|p| p.1).max());
+        // A pixel's square runs to its far corner, one past.
+        assert_eq!((xs, ys), ((Some(458), Some(500)), (Some(1028), Some(1052))));
+    }
 
     #[test]
     fn the_minimap_s_cells_on_run1564() {
