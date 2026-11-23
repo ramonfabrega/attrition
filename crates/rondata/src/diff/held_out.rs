@@ -1197,7 +1197,11 @@ pub(crate) mod tests {
                 .iter()
                 .find(|r| r.record == 2 && r.field == "city_flags")
                 .expect("who=2's capital");
-            assert_eq!(flags.bytes, [0x5b, 0x40], "the capital's flags on {state}");
+            assert_eq!(
+                u16::from_le_bytes([flags.bytes[0], flags.bytes[1]]),
+                0x405b,
+                "the capital's flags on {state}"
+            );
             if state == 1757 {
                 let word = |k: usize, n: usize| {
                     i32::from_le_bytes(theirs[k].bytes[4 * n..4 * n + 4].try_into().unwrap())
