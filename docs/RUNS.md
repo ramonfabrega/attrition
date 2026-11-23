@@ -41175,6 +41175,11 @@ another lane. `df -g ~` read 98 GB free before it and 78 after the filing.
   groups 1,242 → 1,821, guys 1,162 → 1,758, cities 1,376 → 1,758, items 1,614 → 2,185, goods 1,758 → 1,827, world 1,197
   → 1,758. The row's first parting is leaders on 1757: range 308, record 2, `make_list[2]`, `t`'s low byte ours 0xba,
   theirs 0x11; `val` ours 6,749,936, theirs 6,477,032.
+- **Re-scored by item 4585** (a tower is halved only while its city has never been attacked; who=2 lists no Bunker in
+  its capital on 1757): units 1,758 → 1,905, builds 1,758 → 1,905, leaders 1,757 → 1,905, ammo 2,738 → 2,680, deaths
+  2,524 → 2,382, groups 1,821 → 2,067, guys 1,758 → 1,906, cities 1,758 → 1,951, items 2,185 → 2,676, goods 1,827 →
+  2,418, world 1,758 → 1,906. Decoded whole, 1757's slot 2 is ours' Bunker (TI 442) at 6,750,000 against theirs'
+  TI 273 at 6,478,056. The row's first parting is units, builds and leaders on 1905.
 - Filed by `filerun.py run1797 heldout6-row133-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1797-heldout6-row133-ranges.txt`, 2,845 bytes, SHA-256
   `6749d34e0502d81f475a0d6ac9e1e3de41cc2079e658cdd81533040e083d1be4`; `rontrace.log` → `Logs/rontrace-run1797.log`,
@@ -41182,7 +41187,9 @@ another lane. `df -g ~` read 98 GB free before it and 78 after the filing.
   in place.
 
 **What it holds**: `diff::held_out::tests::row_133_s_computer_offers_no_nuke_at_an_enemy_researching_the_shield_on_run1797_s_ranges`
-(every leaders range on states 955 to 958, theirs' Jet Fighter in who=2's fourth slot, who=1's shield queued).
+(every leaders range on states 955 to 958, theirs' Jet Fighter in who=2's fourth slot, who=1's shield queued) and
+`row_133_s_computer_lists_no_bunker_in_its_attacked_capital_on_run1797_s_ranges` (every leaders range on 1756 and 1757,
+the capital's flags `0x405b`, theirs' slots 2 and 8).
 ## run1796 — parity held out, fifth battery, row 3's file to 6000 with the checksum and ranges hooks, every line but walls kept (2026-11-22, item 4548, `att-4548`)
 
 `docs/RECGAME.md` §12.3, `docs/AI.md` §3.1; DECISIONS 148 §4. **What the disk could not answer**: run1773 holds
