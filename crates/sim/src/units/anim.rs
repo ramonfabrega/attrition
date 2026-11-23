@@ -2317,6 +2317,15 @@ impl Sim {
                                 .unwrap_or(0),
                         ),
                     };
+                    if std::env::var_os("RON_PROBE_4591").is_some() {
+                        let un = &self.units[u];
+                        eprintln!(
+                            "PROBE4591 f{} u{}/{} ti{} pos({},{}) facing {} follow {} pivot {} gpiece {} anim {} start {} node {} from({},{}) dz {}",
+                            self.frame, un.owner, un.index, un.type_index, un.pos.x, un.pos.y,
+                            un.movement.facing.0, facing.0, pivot.is_some(), guy.gpiece, guy.anim,
+                            start, node, from.x, from.y, dz
+                        );
+                    }
                     // A plane's figure flies at its own `z` (`GuyData +0x14`,
                     // the `GUY` record's), and that is the height the
                     // package carries (`Guy::execute_events@005d99c0:29`):
