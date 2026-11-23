@@ -10007,10 +10007,14 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 3,924 -> 4,263; deaths 3,464 -> 3,406, items 4,832 -> 3,127 and
         // goods 4,140 -> 3,056 (first 3157 -> 3056), all past 2686; ours'
         // walk now holds `game_over` from 9522, theirs plays to 12,000.
+        // Then item 4585 (a tower is halved only while its city has never
+        // been attacked), on the tree merged with 4577: ammo 4,263 -> 3,785,
+        // deaths 3,406 -> 2,967, ours' `game_over` 9522 -> 9533; the row's
+        // first parting 2686 stands.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                2686, 2688, 12001, 4263, 3406, 2740, 2686, 2698, 2974, 3127, 3056, 2691,
+                2686, 2688, 12001, 3785, 2967, 2740, 2686, 2698, 2974, 3127, 3056, 2691,
             ],
             first: &[
                 ("units", (2686, Some(1210672926), 399075748)),
@@ -10025,7 +10029,7 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
                 ("goods", (3056, Some(2987562270), 2924123420)),
                 ("world", (2691, Some(2608492097), 2791665259)),
             ],
-            over: Some(9522),
+            over: Some(9533),
         }),
     }),
     // run1793

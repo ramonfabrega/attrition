@@ -1069,8 +1069,11 @@ pub(in crate::diff) mod tests {
     /// bays): 4751 -> 3174, -1577, measured; the first shot still on 2929.
     /// Item 4577 (`process_healing`'s President arm): 3174 -> 3179, +5, a
     /// named rise past the draw word 7410, the sample's lines unmoved, the
-    /// frames not read one by one; the first shot still on 2929.
-    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3179, Some(2929));
+    /// frames not read one by one; the first shot still on 2929. Item
+    /// 4585 (a tower or fort is halved only while its city has never been
+    /// attacked): 3179 -> 3377, +198, past the draw word, now 7613; the
+    /// first shot still on 2929.
+    const SAMPLE_OURS_HELD: (usize, Option<i64>) = (3377, Some(2929));
 
     /// run1678's record (item 4384, `docs/RUNS.md` run1678): the sample's
     /// playback over 0..100 under the checksum and ranges hooks, all twelve
