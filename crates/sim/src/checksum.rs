@@ -408,21 +408,22 @@ impl Sim {
         b
     }
 
-    /// The caravan links ending at city `c`, `(cara, who)`, in the owner
-    /// and slot order of [`crate::economy::caravan::Caravans`]. `cara` is
-    /// taken as the caravan's slot in its owner's list and `who` as that
-    /// owner: **an assumption**, since no link stands on the scored frame
-    /// (`docs/CHECKSUM.md` §12).
+    /// The caravan links ending at city `c`, `(cara, who)`, in the order the
+    /// city's `vans` holds them: the order they were made
+    /// ([`crate::economy::caravan::Caravan::linked_at`]; item 4592, run1802's
+    /// cities ranges on 3995, `docs/CHECKSUM.md` §12). `cara` is the
+    /// caravan's slot in its owner's list and `who` that owner.
     pub(crate) fn city_links(&self, c: usize) -> Vec<(i32, i32)> {
         let mut out = Vec::new();
         for (who, list) in self.economy.caravans.iter().enumerate() {
             for (k, v) in list.slots[..list.mark].iter().enumerate() {
                 if v.alive && v.linked && (v.city_a == Some(c) || v.city_b == Some(c)) {
-                    out.push((k as i32, who as i32));
+                    out.push((v.linked_at, k as i32, who as i32));
                 }
             }
         }
-        out
+        out.sort_by_key(|&(at, _, _)| at);
+        out.into_iter().map(|(_, k, w)| (k, w)).collect()
     }
 
     /// **The cities line** (`CheckSums::check_cities@00937600`,

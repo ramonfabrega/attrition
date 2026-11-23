@@ -4143,6 +4143,83 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 113's city walks its caravan links in the order they were
+    /// made** (item 4592, `docs/RECGAME.md` §13.4, `docs/CHECKSUM.md` §12):
+    /// run1802, the cities take of run1793's file, `RNG_MASK=0x100u`. On
+    /// 3995 who=1's Caravan `1/3` links who=1's city 0 to who=2's city 1,
+    /// and city 0's `vans` already holds who=2's `2/3`: theirs appends, so
+    /// range 11, record 0, `vans[k]` byte 4 (`who`) reads 2, where a walk by
+    /// owner wrote 1. Every cities range on 3994 to 3996, byte for byte.
+    #[test]
+    fn row_113_s_city_walks_its_caravan_links_in_the_order_they_were_made_on_run1802_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 5) else {
+            eprintln!("skipping: row 113's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1802/map-14"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1802's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 113's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3994i64..=3996 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_cities();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 8).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "cities ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                assert_eq!(
+                    at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                    None,
+                    "cities range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                    a.record,
+                    a.field
+                );
+                assert_eq!(a.bytes.len(), b.bytes.len(), "cities range {k} on {state}");
+            }
+            if state == 3995 {
+                // Theirs' city 0 of who=1: `(cara, who)` at ranges 9 to 12.
+                let link = |k: usize| {
+                    let b = &theirs[k].bytes;
+                    (
+                        i32::from_le_bytes(b[0..4].try_into().unwrap()),
+                        i32::from_le_bytes(b[4..8].try_into().unwrap()),
+                    )
+                };
+                assert_eq!(
+                    [link(9), link(10), link(11), link(12)],
+                    [(0, 1), (1, 1), (3, 2), (3, 1)],
+                    "theirs' who=1 city 0"
+                );
+                // The two caravans, by name: slot 3 of each, TI 59, land;
+                // who=2's `2/131` linked before who=1's `1/34`.
+                let at = |who: usize, o: i16| {
+                    let v = &built.sim.economy.caravans[who].slots[3];
+                    let u = &built.sim.units[v.unit.expect("slot 3's caravan")];
+                    assert_eq!((u.owner as usize, u.index, u.type_index), (who, o, 59));
+                    assert_eq!(u.kind.domain, sim::territory::attrition::Domain::Land);
+                    v.linked_at
+                };
+                assert!(at(2, 131) < at(1, 34), "who=2's link made first");
+            }
+        }
+    }
+
     /// **Row 105's CEO carries the CEO bit from its `set_type`** (item
     /// 4502, `docs/RECGAME.md` §11.1): run1752, the ranges take of
     /// run1748's file, holds every units range on 2982 and 2983. On 2983
@@ -10489,12 +10566,18 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // first parting 2259 is gone and ours' game over at 4118 with it. Every
         // line but cities is whole to 4,572; cities 2,259 -> 3,995, parting on
         // 3995 (ours' sum 1934313053, theirs 1933788765).
+        // Moved by item 4592 (a city's `vans` in the order the links were
+        // made, run1802's ranges: cities range 11, record 0, `vans[k]`, byte
+        // 4, `who` ours 1, theirs 2 on 3995; who=1's city 0 holds who=2's
+        // `2/3` before who=1's own `1/3`): cities 3,995 -> 4,573. **The row
+        // is whole, twelve lines of twelve, 4,573 of 4,573 to the original's
+        // end.**
         moved: Some(Score {
             states: 4573,
             agreed: [
-                4573, 4573, 4573, 4573, 4573, 4573, 4573, 4573, 3995, 4573, 4573, 4573,
+                4573, 4573, 4573, 4573, 4573, 4573, 4573, 4573, 4573, 4573, 4573, 4573,
             ],
-            first: &[("cities", (3995, Some(1934313053), 1933788765))],
+            first: &[],
             over: None,
         }),
     }),
@@ -10593,8 +10676,10 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
 /// As found: row 153 whole to 12,000. Item 4591: row 33 whole to the
 /// original's end 3,943 (piece 49's bays), 1 -> 2. Item 4595 made row 73
 /// whole (a release at a gone target takes a `graph_index`): 2 -> 3.
+/// Item 4592 made row 113 whole (a city's `vans` in the order the links
+/// were made): 3 -> 4.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SIXTH_LINE: (usize, usize) = (3, 8);
+pub(crate) const HELD_OUT_SIXTH_LINE: (usize, usize) = (4, 8);
 
 /// The sixth battery (item 4566): three seats, a team and a scripted human
 /// a row, recorded to [`SIXTH_FRAMES`].
