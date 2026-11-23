@@ -1985,6 +1985,11 @@ pub(crate) mod tests {
                 let mut who = 0u8;
                 for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
                     if a.field == "who..y_internal" { who = a.bytes[0]; }
+                    if li == 0 && who == 2 && a.record == 0 && a.field == "myhits..launch_frames" {
+                        let w = |x: &[u8], o: usize| i32::from_le_bytes([x[o], x[o + 1], x[o + 2], x[o + 3]]);
+                        let h = |x: &[u8], o: usize| i16::from_le_bytes([x[o], x[o + 1]]);
+                        eprintln!("P4623U {state} max {}/{} damage {}/{} healing {}/{} frac {}/{} near {}:{}/{}:{}", w(&a.bytes, 0), w(&b.bytes, 0), w(&a.bytes, 4), w(&b.bytes, 4), h(&a.bytes, 0x18), h(&b.bytes, 0x18), a.bytes[0x1b], b.bytes[0x1b], h(&a.bytes, 0x16), h(&a.bytes, 0x14), h(&b.bytes, 0x16), h(&b.bytes, 0x14));
+                    }
                     if a.bytes != b.bytes {
                         let d = crate::checksum::fields::differing_fields(name, a.field, &a.bytes, &b.bytes);
                         eprintln!("P4623 {state} {name} range {k} who {who} record {} {} len {}/{} {:?}", a.record, a.field, a.bytes.len(), b.bytes.len(), d);
