@@ -1839,11 +1839,19 @@ pub(crate) mod tests {
                 if ours.ranges.len() != theirs.len() {
                     eprintln!("P4610 {state} {name} count ours {} theirs {}", ours.ranges.len(), theirs.len());
                 }
+                let mut shown = 0;
+                let wg: i16 = std::env::var("RON_PROBE_GROUP").ok().and_then(|v| v.parse().ok()).unwrap_or(132);
                 for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
-                    let watch = (name == "groups" && a.record == 132)
-                        || (name == "units" && a.record == 11);
+                    let watch = name == "groups" && a.record == wg;
                     if a.bytes != b.bytes {
-                        let d = crate::checksum::fields::differing_fields(name, a.field, &a.bytes, &b.bytes);
+                        shown += 1;
+                        if shown > 14 {
+                            continue;
+                        }
+                        let d = std::panic::catch_unwind(|| {
+                            crate::checksum::fields::differing_fields(name, a.field, &a.bytes, &b.bytes)
+                        })
+                        .unwrap_or_default();
                         eprintln!("P4610 {state} {name} k{k} rec {} {} diff {:?}", a.record, a.field, d);
                         if d.is_empty() {
                             eprintln!("P4610   ours {:02x?}\nP4610   theirs {:02x?}", a.bytes, b.bytes);
