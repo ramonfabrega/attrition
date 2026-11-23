@@ -2031,10 +2031,11 @@ pub(crate) mod tests {
                         let a = u.get(k);
                         let b = t.get(k);
                         let same = a.map(|r| &r.bytes) == b.map(|r| &r.bytes);
+                        let fits = a.map(|r| r.bytes.len()) == b.map(|r| r.bytes.len());
                         let name = a.map_or("-", |r| r.field);
                         let site = b.map_or(0, |r| r.site);
                         let dec = |x: Option<&[u8]>| {
-                            x.and_then(|x| {
+                            x.filter(|_| fits).and_then(|x| {
                                 crate::checksum::fields::range_fields("units", name, x)
                             })
                             .map(|v| {
