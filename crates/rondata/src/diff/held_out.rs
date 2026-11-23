@@ -73,18 +73,25 @@ pub(crate) struct Seated {
     pub team: i32,
 }
 
+/// **No seat added** (item 4600): a row whose own lobby already holds three
+/// seats, the most its `MAP_SIZE 2` holds, takes the team alone.
+#[cfg(test)]
+pub(crate) const NO_SEAT: u8 = u8::MAX;
+
 #[cfg(test)]
 impl Seated {
-    /// The page's events, after a lobby of `seats` seats.
+    /// The page's events, after a lobby of `seats` seats: no seat added
+    /// when `tribe` is [`NO_SEAT`].
     pub(crate) fn events(&self, seats: usize) -> Vec<crate::lobby::Event> {
         use crate::lobby::Event;
-        let mut e = vec![
-            Event::AddSeat,
-            Event::Nation {
+        let mut e = Vec::new();
+        if self.tribe != NO_SEAT {
+            e.push(Event::AddSeat);
+            e.push(Event::Nation {
                 seat: seats,
                 tribe: self.tribe,
-            },
-        ];
+            });
+        }
         for &seat in &self.mates {
             e.push(Event::Team {
                 seat,
@@ -308,34 +315,10 @@ const FARM_REACH: i32 = 12;
 /// row's human is recorded idle.
 #[cfg(test)]
 pub(crate) fn script_rule(built: &crate::diff::Built) -> Result<Scripted, String> {
-    use sim::ids::scale::{HALF_TILE, UNITS_PER_CELL, UNITS_PER_TILE};
+    use sim::ids::scale::{HALF_TILE, UNITS_PER_TILE};
     let s = &built.sim;
-    let scout_u = s.unit_by_o(0, 0).ok_or("slot 0 has no unit 0")?;
-    let from = s.units[scout_u].pos;
-    let region = s
-        .world
-        .tregion_alt(from.tile())
-        .ok_or("unit 0 stands in no region")?;
-    let (w, h) = (
-        s.world.width() * UNITS_PER_CELL,
-        s.world.height() * UNITS_PER_CELL,
-    );
-    let toward = |at: i32, extent: i32| if at < extent / 2 { 1 } else { -1 };
-    let (sx, sy) = (toward(from.x, w), toward(from.y, h));
-    const STEP: i32 = 2400;
-    let headings = [(sx, 0), (0, sy), (-sx, 0), (0, -sy)];
-    let scout_to = headings
-        .iter()
-        .map(|&(dx, dy)| sim::Pos {
-            x: from.x + dx * STEP,
-            y: from.y + dy * STEP,
-        })
-        .find(|p| {
-            (0..w).contains(&p.x)
-                && (0..h).contains(&p.y)
-                && s.world.tregion_alt(p.tile()) == Some(region)
-        })
-        .ok_or("no heading 2,400 units from unit 0 stays in its region")?;
+    let (from, headings, first) = scout_headings(built)?;
+    let scout_to = step(from, headings[first]);
     let capital_b = s
         .building_by_o(0, crate::script::CAPITAL)
         .ok_or("slot 0 has no building 2000")?;
@@ -400,6 +383,158 @@ pub(crate) fn script_rule(built: &crate::diff::Built) -> Result<Scripted, String
         builder,
         farm_at,
     })
+}
+
+/// The move's length: 2,400 units, 12.5 tiles (`RECGAME.md` §9.1).
+#[cfg(test)]
+const STEP: i32 = 2400;
+
+/// `at` moved [`STEP`] units along `heading`.
+#[cfg(test)]
+fn step(at: sim::Pos, (dx, dy): (i32, i32)) -> sim::Pos {
+    sim::Pos {
+        x: at.x + dx * STEP,
+        y: at.y + dy * STEP,
+    }
+}
+
+/// Where unit `0` stands, its four headings, and the first one taken.
+#[cfg(test)]
+type Headings = (sim::Pos, [(i32, i32); 4], usize);
+
+/// **Unit `0`'s four headings off the built start** (item 4566's, made a
+/// function by item 4600): where slot 0's unit `0` stands, its four
+/// headings in [`script_rule`]'s order — toward the map's centre on x, on
+/// y, then away on x, on y — and the first of them whose point [`STEP`]
+/// units off is on the map and in the unit's own region (`tregion_alt`).
+#[cfg(test)]
+fn scout_headings(built: &crate::diff::Built) -> Result<Headings, String> {
+    use sim::ids::scale::UNITS_PER_CELL;
+    let s = &built.sim;
+    let scout_u = s.unit_by_o(0, 0).ok_or("slot 0 has no unit 0")?;
+    let from = s.units[scout_u].pos;
+    let region = s
+        .world
+        .tregion_alt(from.tile())
+        .ok_or("unit 0 stands in no region")?;
+    let (w, h) = (
+        s.world.width() * UNITS_PER_CELL,
+        s.world.height() * UNITS_PER_CELL,
+    );
+    let toward = |at: i32, extent: i32| if at < extent / 2 { 1 } else { -1 };
+    let (sx, sy) = (toward(from.x, w), toward(from.y, h));
+    let headings = [(sx, 0), (0, sy), (-sx, 0), (0, -sy)];
+    let first = headings
+        .iter()
+        .position(|&d| {
+            let p = step(from, d);
+            (0..w).contains(&p.x)
+                && (0..h).contains(&p.y)
+                && s.world.tregion_alt(p.tile()) == Some(region)
+        })
+        .ok_or("no heading 2,400 units from unit 0 stays in its region")?;
+    Ok((from, headings, first))
+}
+
+/// **The seventh's rows** (DECISIONS 154 §7, item 4600): the same order,
+/// the rows five past the third's, by the sixth's recipe, each recorded to
+/// [`SEVENTH_FRAMES`] with the human ordering through the game.
+#[cfg(test)]
+pub(crate) const HELD_OUT_SEVENTH_ROWS: [usize; 8] = [8, 28, 48, 68, 88, 108, 128, 148];
+
+/// **The seventh's recordings close on frame 12,000**, as the sixth's.
+#[cfg(test)]
+pub(crate) const SEVENTH_FRAMES: i32 = SIXTH_FRAMES;
+
+/// **The seventh's rounds** (DECISIONS 154 §7): after `RECGAME.md` §9's
+/// three orders, one round every [`ROUND_EVERY`] frames, the last on
+/// [`ROUND_LAST`]: nineteen.
+#[cfg(test)]
+pub(crate) const ROUND_EVERY: i32 = 600;
+
+/// The seventh's last round's frame.
+#[cfg(test)]
+pub(crate) const ROUND_LAST: i32 = 11_400;
+
+/// **A row's ordering human** (DECISIONS 154 §7, item 4600): the sixth's
+/// [`Scripted`] three orders, then a round every [`ROUND_EVERY`] frames to
+/// [`ROUND_LAST`], each the capital queueing one Citizen and unit `0`
+/// moving [`STEP`] units along the next of its four headings
+/// ([`scout_headings`]' order, after the one the first move took). The
+/// moves are named from the built start, not walked: four of them close a
+/// square, so round `r`'s point is `square[(r - 1) % 4]`, and the square's
+/// last corner is the first move's point.
+#[cfg(test)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct Ordering {
+    /// The sixth's three orders.
+    pub first: Scripted,
+    /// The rounds' four points, in order.
+    pub square: [sim::Pos; 4],
+}
+
+/// **The rule that reads a row's ordering human off its built start**
+/// (item 4600): [`script_rule`], then the square. Unit `0` moved along
+/// heading `i` first (§9's move); round `r` moves it along heading
+/// `(i + r) % 4` from where round `r - 1` sent it. Nothing is filtered:
+/// a point off the unit's region, a unit or a capital gone by the
+/// round's frame, is part of the test (DECISIONS 154 §7).
+#[cfg(test)]
+pub(crate) fn ordering_rule(built: &crate::diff::Built) -> Result<Ordering, String> {
+    let first = script_rule(built)?;
+    let (_, headings, i) = scout_headings(built)?;
+    let mut at = first.scout_to;
+    let mut square = [at; 4];
+    for (r, corner) in square.iter_mut().enumerate() {
+        at = step(at, headings[(i + r + 1) % 4]);
+        *corner = at;
+    }
+    Ok(Ordering { first, square })
+}
+
+/// The packages an [`Ordering`] human issues: [`scripted_orders`], then
+/// each round one package, as one turn of a person's input carries
+/// both: the capital grouped and one Citizen queued (`queue_up`, num 1),
+/// then unit `0` grouped and moved in §9.1's fields (`orders` 1,
+/// `queued` 2, `form`/`width` −1).
+#[cfg(test)]
+pub(crate) fn ordering_orders(o: &Ordering) -> Vec<crate::recgame::Order> {
+    use crate::commands::Command;
+    let group = |obj: i16| Command::Group {
+        who: 0,
+        objects: vec![obj],
+    };
+    let mut out = scripted_orders(&o.first);
+    for (r, frame) in (ROUND_EVERY..=ROUND_LAST)
+        .step_by(ROUND_EVERY as usize)
+        .enumerate()
+    {
+        let to = o.square[r % 4];
+        out.push((
+            frame,
+            0,
+            vec![
+                group(o.first.capital),
+                Command::QueueUp {
+                    unit: crate::script::CITIZEN,
+                    num: 1,
+                },
+                group(o.first.scout),
+                Command::MoveTo {
+                    to_x: to.x,
+                    to_y: to.y,
+                    set_angle: 0,
+                    angle: 0,
+                    orders: 1,
+                    queued: 2,
+                    form: -1,
+                    width: -1,
+                    disembark: 0,
+                },
+            ],
+        ));
+    }
+    out
 }
 
 #[cfg(test)]
@@ -557,6 +692,220 @@ pub(crate) mod tests {
         }
     }
 
+    /// **The seventh declaration** (item 4600's first act; DECISIONS 154
+    /// §7): rows 8, 28, …, 148, each with the seat and team
+    /// [`HELD_OUT_SEVENTH_SEATS`] adds, and each row's human as
+    /// [`ordering_rule`] reads it off the row's start built from the page's
+    /// block, written out before any file is recorded.
+    /// `RON_HELD_OUT_PRINT=7` prints both tables as Rust.
+    #[test]
+    fn the_seventh_held_out_eight_are_the_rows_the_rule_names_seated_and_ordering() {
+        seated_rows_are_the_table(
+            &HELD_OUT_SEVENTH_ROWS,
+            &HELD_OUT_SEVENTH_SEATS,
+            &HELD_OUT_SEVENTH,
+            "7",
+        );
+        let Some(dir) = crate::testenv::gamelog_dir() else {
+            return;
+        };
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install (set RON_INSTALL)");
+            return;
+        };
+        let roster = crate::lobby::Roster::read(inst.root()).expect("the roster");
+        let lobbies = crate::lobby::lobbies_on_disk(&dir, crate::corpus::Ledger::of_tree())
+            .expect("the logs");
+        let loaded = crate::load::load(&inst).unwrap();
+        let print = std::env::var("RON_HELD_OUT_PRINT").is_ok_and(|v| v == "7");
+        for (k, &row) in HELD_OUT_SEVENTH_ROWS.iter().enumerate() {
+            let lobby = crate::lobby::Lobby::parse(&lobbies[row].block).expect("the row's block");
+            let mut c = crate::lobby::Choices::blank();
+            for e in crate::lobby::events_for(&lobby, &roster) {
+                c.apply(&e, &roster).expect("the row's own lobby");
+            }
+            for e in HELD_OUT_SEVENTH_SEATS[k].events(c.seats.len()) {
+                c.apply(&e, &roster).expect("the additions");
+            }
+            let page = c.lobby();
+            let (info, players) = page.borrowed();
+            let start = crate::diff::from_lobby(&loaded, &info, &players, sim::Tuning::RON);
+            let built = crate::diff::built_from_lobby(&loaded, start).0;
+            let got = ordering_rule(&built);
+            if let Some(u) = built.sim.unit_by_o(0, 0) {
+                let ty = built.sim.units[u].ty.unwrap_or(0);
+                let (w, h) = (
+                    built.sim.world.width() * sim::ids::scale::UNITS_PER_CELL,
+                    built.sim.world.height() * sim::ids::scale::UNITS_PER_CELL,
+                );
+                let region = built.sim.world.tregion_alt(built.sim.units[u].pos.tile());
+                let corners: Vec<String> = got
+                    .iter()
+                    .flat_map(|o| o.square)
+                    .map(|p| {
+                        let on = (0..w).contains(&p.x) && (0..h).contains(&p.y);
+                        let same = on && built.sim.world.tregion_alt(p.tile()) == region;
+                        format!(
+                            "({}, {}) {}",
+                            p.x,
+                            p.y,
+                            if same {
+                                "in"
+                            } else if on {
+                                "out"
+                            } else {
+                                "off"
+                            }
+                        )
+                    })
+                    .collect();
+                eprintln!(
+                    "row {row}: unit 0/0 {} TI {} at {:?}; corners {corners:?}",
+                    built.unit_type_names[ty],
+                    built.type_index[built.unit_tree[ty]],
+                    built.sim.units[u].pos
+                );
+            }
+            if print {
+                println!("    // row {row}");
+                match &got {
+                    Ok(h) => println!("    {h:?},"),
+                    Err(why) => println!("    // idle: {why}"),
+                }
+                continue;
+            }
+            assert_eq!(
+                got,
+                Ok(HELD_OUT_SEVENTH_HUMANS[k]),
+                "row {row}: the human the rule names"
+            );
+        }
+    }
+
+    /// **The ordering rule is the script rule and a square** (item 4600):
+    /// on run53's start, [`ordering_rule`]'s first three orders are
+    /// [`crate::script::script`], its four moves close on the first move's
+    /// point, each one [`STEP`] along one axis, and [`ordering_orders`]
+    /// issues nineteen rounds after them, from 600 to 11,400, each the
+    /// capital's Citizen then unit `0`'s move.
+    #[test]
+    fn the_ordering_rule_is_the_script_and_a_closed_square_on_run53_s_start() {
+        let Some((_, built, _)) = crate::diff::minted::built_start() else {
+            eprintln!("skipping: no install or no run53 lobby dump");
+            return;
+        };
+        let o = ordering_rule(&built).expect("run53's start serves the rule");
+        assert_eq!(Ok(o.first), script_rule(&built));
+        let orders = ordering_orders(&o);
+        assert_eq!(orders[..3], crate::script::script()[..]);
+        assert_eq!(o.square[3], o.first.scout_to, "four moves close the square");
+        let mut at = o.first.scout_to;
+        for p in o.square {
+            let (dx, dy) = ((p.x - at.x).abs(), (p.y - at.y).abs());
+            assert!(
+                (dx, dy) == (STEP, 0) || (dx, dy) == (0, STEP),
+                "{at:?} -> {p:?}"
+            );
+            at = p;
+        }
+        let rounds: Vec<i32> = orders[3..].iter().map(|o| o.0).collect();
+        assert_eq!(rounds, (1..=19).map(|r| 600 * r).collect::<Vec<_>>());
+        for (r, (_, play, cmds)) in orders[3..].iter().enumerate() {
+            assert_eq!(*play, 0);
+            let to = o.square[r % 4];
+            assert!(matches!(
+                cmds.as_slice(),
+                [
+                    crate::commands::Command::Group { who: 0, objects: a },
+                    crate::commands::Command::QueueUp { unit: 50, num: 1 },
+                    crate::commands::Command::Group { who: 0, objects: b },
+                    crate::commands::Command::MoveTo { to_x, to_y, queued: 2, orders: 1, .. },
+                ] if a == &[2000] && b == &[0] && (*to_x, *to_y) == (to.x, to.y)
+            ));
+        }
+        crate::recgame::minted_packages(
+            crate::commands::Command::Pause { state: 0 },
+            &orders,
+            SEVENTH_FRAMES,
+        )
+        .expect("the rounds mint");
+    }
+
+    /// **The seventh's files are minted** (item 4600): opt-in by
+    /// `RON_SEVENTH_DRAFTS=<dir>` and `RON_SEVENTH_OUT=<dir>`, as the
+    /// sixth's ([`the_sixth_s_files_are_minted`]): each row whose draft
+    /// `row<RRR>.rcx` is in the directory, its start checked against the
+    /// declared human, minted with [`ordering_orders`] and closing on
+    /// [`SEVENTH_FRAMES`], written to `item4600-row<RRR>-12000.rcx`, never
+    /// over a file. A row with no draft is skipped and named, so row 8 is
+    /// minted alone first.
+    #[test]
+    fn the_seventh_s_files_are_minted() {
+        let (Some(drafts), Some(out)) = (
+            std::env::var_os("RON_SEVENTH_DRAFTS"),
+            std::env::var_os("RON_SEVENTH_OUT"),
+        ) else {
+            eprintln!("skipping: RON_SEVENTH_DRAFTS and RON_SEVENTH_OUT name no directories");
+            return;
+        };
+        let inst = crate::testenv::install().expect("an install");
+        let loaded = crate::load::load(&inst).unwrap();
+        for (k, held) in HELD_OUT_SEVENTH.iter().enumerate() {
+            let draft = std::path::Path::new(&drafts).join(format!("row{:03}.rcx", held.row));
+            if !draft.exists() {
+                eprintln!("row {}: no draft, skipped", held.row);
+                continue;
+            }
+            let mut rec = crate::recgame::read(&draft.to_string_lossy()).expect("the draft");
+            let built = crate::checksum::playback::recording_start(&loaded, &rec);
+            let h = HELD_OUT_SEVENTH_HUMANS[k];
+            assert_eq!(
+                ordering_rule(&built),
+                Ok(h),
+                "row {}: the file's start",
+                held.row
+            );
+            let leader =
+                crate::commands::decode(&rec.packages[0].data).expect("frame 0")[0].clone();
+            rec.packages =
+                crate::recgame::minted_packages(leader, &ordering_orders(&h), SEVENTH_FRAMES)
+                    .expect("the rounds mint");
+            let path = std::path::Path::new(&out)
+                .join(format!("item4600-row{:03}-{SEVENTH_FRAMES}.rcx", held.row));
+            let mut f = std::fs::File::create_new(&path).expect("an unused path");
+            std::io::Write::write_all(&mut f, &crate::recgame::write_gz(&rec)).unwrap();
+            eprintln!("wrote {}", path.display());
+        }
+    }
+
+    /// **The seventh's files carry the declared seats, team and orders**
+    /// (item 4600): each file's active slots are the declared rows', and
+    /// its packages are the frame-0 order, [`ordering_orders`] of the
+    /// row's human, and the closing package on [`SEVENTH_FRAMES`].
+    #[test]
+    fn the_seventh_s_files_carry_the_declared_seats_team_and_orders() {
+        files_carry_the_declared_seats_and_team(&SEVENTH);
+        for (k, held) in HELD_OUT_SEVENTH.iter().enumerate() {
+            let (Some(rcx), _) = paths(&SEVENTH, k) else {
+                continue;
+            };
+            let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("the file");
+            let h = HELD_OUT_SEVENTH_HUMANS[k];
+            let orders: Vec<_> = rec.packages[1..rec.packages.len() - 1]
+                .iter()
+                .map(|p| (p.frame, p.play, crate::commands::decode(&p.data).unwrap()))
+                .collect();
+            assert_eq!(orders, ordering_orders(&h), "row {}: the orders", held.row);
+            let last = rec.packages.last().unwrap();
+            assert_eq!(
+                (last.frame, last.data.len()),
+                (SEVENTH_FRAMES, 0),
+                "row {}: the closing package",
+                held.row
+            );
+        }
+    }
+
     /// **The rule gives run53's lobby the minted script** (item 4566):
     /// [`script_rule`] on `RECGAME.md` §9's built start names §9's objects
     /// and points, and [`scripted_orders`] of it is
@@ -684,8 +1033,9 @@ pub(crate) mod tests {
             if print {
                 println!("    // row {row} as it stands: {:?}", columns(&c.lines()).1);
             }
-            assert_eq!(c.seats.len(), 2, "row {row}: two seats as it stands");
             let add = &seats[k];
+            let own = if add.tribe == NO_SEAT { 3 } else { 2 };
+            assert_eq!(c.seats.len(), own, "row {row}: {own} seats as it stands");
             for e in add.events(c.seats.len()) {
                 c.apply(&e, &roster)
                     .unwrap_or_else(|why| panic!("row {row}: {e:?} refused: {why}"));
@@ -853,6 +1203,19 @@ pub(crate) mod tests {
         games_score_as_pinned(&SIXTH);
     }
 
+    /// `HELD_OUT_SEVENTH[k]` played as `run1804 + k` (item 4600), held as
+    /// the first six are, on every state to 12,000.
+    #[test]
+    fn the_seventh_held_out_games_score_as_pinned() {
+        games_score_as_pinned(&SEVENTH);
+    }
+
+    /// The seventh battery's line, from its table alone (item 4600).
+    #[test]
+    fn the_seventh_held_out_line_reads_as_pinned() {
+        line_reads_as_pinned(&SEVENTH);
+    }
+
     /// **The verdict holds the booked numbers and lets the rest drift**
     /// (item 4598, DECISIONS 154 §5), on row 0's pin as found (units first
     /// on 2990, guys on 3157, ten lines whole). Each bend is one a lane
@@ -930,7 +1293,7 @@ pub(crate) mod tests {
     fn a_battery_with_a_row_s_leaf_test_is_spent() {
         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/src/diff/held_out.rs");
         let src = std::fs::read_to_string(path).expect("held_out.rs");
-        let all: [&Battery; 6] = [&FIRST, &SECOND, &THIRD, &FOURTH, &FIFTH, &SIXTH];
+        let all: [&Battery; 7] = [&FIRST, &SECOND, &THIRD, &FOURTH, &FIFTH, &SIXTH, &SEVENTH];
         let mut rows = std::collections::BTreeSet::new();
         for line in src.lines() {
             let Some(rest) = line.trim_start().strip_prefix("fn row_") else {
@@ -10948,4 +11311,495 @@ pub(crate) const SIXTH: Battery = Battery {
 /// **Every battery, in order** (item 4566): the handoff's lines read them,
 /// the closed ones on one line and each open one on its own.
 #[cfg(test)]
-pub(crate) const BATTERIES: &[&Battery] = &[&FIRST, &SECOND, &THIRD, &FOURTH, &FIFTH, &SIXTH];
+pub(crate) const BATTERIES: &[&Battery] =
+    &[&FIRST, &SECOND, &THIRD, &FOURTH, &FIFTH, &SIXTH, &SEVENTH];
+
+/// **The seventh's additions** (DECISIONS 154 §7, item 4600), row for row
+/// with [`HELD_OUT_SEVENTH_ROWS`], by the sixth's recipe: the human (seat
+/// 0, tribe 4) against the row's computer (seat 1, tribe 8, 13, 16, 11,
+/// 17, 5, 13 and 3), and a computer of a nation not already seated on its
+/// row: 20, 21, 22 and 23, which no battery has added, then 11, 17 and 0.
+/// **Row 108 adds no seat** ([`NO_SEAT`]): its own lobby holds three
+/// (Pericles, tribe 5, and Ramesses II, tribe 7, at seats 1 and 2), the
+/// most `MAP_SIZE 2` holds, so it takes the team alone. The team
+/// alternates as the sixth's: on rows 8, 48, 88 and 128 the human and the
+/// added computer are team 0; on rows 28, 68, 108 and 148 the two
+/// computers are team 1.
+#[cfg(test)]
+pub(crate) const HELD_OUT_SEVENTH_SEATS: [Seated; 8] = [
+    Seated {
+        tribe: 20,
+        mates: [0, 2],
+        team: 0,
+    },
+    Seated {
+        tribe: 21,
+        mates: [1, 2],
+        team: 1,
+    },
+    Seated {
+        tribe: 22,
+        mates: [0, 2],
+        team: 0,
+    },
+    Seated {
+        tribe: 23,
+        mates: [1, 2],
+        team: 1,
+    },
+    Seated {
+        tribe: 11,
+        mates: [0, 2],
+        team: 0,
+    },
+    Seated {
+        tribe: NO_SEAT,
+        mates: [1, 2],
+        team: 1,
+    },
+    Seated {
+        tribe: 17,
+        mates: [0, 2],
+        team: 0,
+    },
+    Seated {
+        tribe: 0,
+        mates: [1, 2],
+        team: 1,
+    },
+];
+
+/// **The seventh eight, as declared** (item 4600, before any file): rows
+/// 8, 28, …, 148 of `lobbies_on_disk`, each with [`HELD_OUT_SEVENTH_SEATS`]'
+/// seat and team on the page; `MAP_SIZE 2` every row. Each is played to
+/// [`SEVENTH_FRAMES`] with the human ordering ([`HELD_OUT_SEVENTH_HUMANS`]),
+/// as `run1804 + k` for `HELD_OUT_SEVENTH[k]`.
+#[cfg(test)]
+pub(crate) const HELD_OUT_SEVENTH: [HeldOut; 8] = [
+    HeldOut {
+        row: 8,
+        capture: "gamelog-run1010-greatsahara-turkish-diff3-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 7; MAP_SIZE 2; PLAYERS 2; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 3; STARTING_TOWN 2; STARTING_RESOURCES 1; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 0; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 0; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 8; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Mehmed II Khan Gazi",
+            "flags 1; tribe 20; who 2; team 0; handicap 0; play 2; pauses 0; diff 2; pop_cap_frame 0; George Washington",
+        ],
+        digest: 0xb46a53f83576e8d5,
+    },
+    HeldOut {
+        row: 28,
+        capture: "gamelog-run1148-eastindies-russian-modern-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 18; MAP_SIZE 2; PLAYERS 2; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 5; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 6; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 6; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 13; who 1; team 1; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Tsar Ivan the Terrible",
+            "flags 1; tribe 21; who 2; team 1; handicap 0; play 2; pauses 0; diff 2; pop_cap_frame 0; King Vikramaditya VI",
+        ],
+        digest: 0x8c91b0903a594bff,
+    },
+    HeldOut {
+        row: 48,
+        capture: "gamelog-run1249-greatsahara-korean-classical-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 7; MAP_SIZE 2; PLAYERS 2; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 5; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 1; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 1; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 0; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 16; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; King Jinheung",
+            "flags 1; tribe 22; who 2; team 0; handicap 0; play 2; pauses 0; diff 2; pop_cap_frame 0; Beatrix Wilhelmina Armgard",
+        ],
+        digest: 0x87fafc72dd921039,
+    },
+    HeldOut {
+        row: 68,
+        capture: "gamelog-run1315-eastindies-british-classical-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 18; MAP_SIZE 2; PLAYERS 2; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 4; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 1; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 1; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 11; who 1; team 1; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; William the Conqueror",
+            "flags 1; tribe 23; who 2; team 1; handicap 0; play 2; pauses 0; diff 2; pop_cap_frame 0; Darius",
+        ],
+        digest: 0xa502654d68779f02,
+    },
+    HeldOut {
+        row: 88,
+        capture: "gamelog-run1377-eastindies-mongol-medieval-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 18; MAP_SIZE 2; PLAYERS 2; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 4; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 2; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 2; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 0; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 17; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Batu Khan",
+            "flags 1; tribe 11; who 2; team 0; handicap 0; play 2; pauses 0; diff 2; pop_cap_frame 0; King Henry VIII",
+        ],
+        digest: 0xbca810f8e4adbabd,
+    },
+    HeldOut {
+        row: 108,
+        capture: "gamelog-run1449-greatsahara-classical-melee-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 7; MAP_SIZE 2; PLAYERS 2; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 0; STARTING_TOWN 2; STARTING_RESOURCES 7; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 1; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 1; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 5; who 1; team 1; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Pericles",
+            "flags 1; tribe 7; who 2; team 1; handicap 0; play 2; pauses 0; diff 2; pop_cap_frame 0; Pharaoh Ramesses II",
+        ],
+        digest: 0x2c1c2747021fa626,
+    },
+    HeldOut {
+        row: 128,
+        capture: "gamelog-run644-greatlakes-russian-diff2-24k-trace.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 14; MAP_SIZE 2; PLAYERS 2; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 2; STARTING_TOWN 2; STARTING_RESOURCES 1; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 0; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 0; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 13; who 1; team 8; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; Tsar Ivan the Terrible",
+            "flags 1; tribe 17; who 2; team 0; handicap 0; play 2; pauses 0; diff 2; pop_cap_frame 0; Genghis Khan",
+        ],
+        digest: 0x8d17c675445baf7b,
+    },
+    HeldOut {
+        row: 148,
+        capture: "gamelog-run972-greatsahara-bantu-diff4-start.txt",
+        info: "TEAM_STYLE 1; MAP_STYLE 7; MAP_SIZE 2; PLAYERS 2; MAX_OBSERVERS 0; GAME_SPEED 2; GAME_RULES 1; DIFFICULTY 4; STARTING_TOWN 2; STARTING_RESOURCES 1; STARTING_RESOURCES2 1; TECH_COST 3; REVEAL_MAP 1; POP_LIMIT 5; RUSH_RULES 0; CANNON_TIMES 0; STARTING_TECHNOLOGY 0; STARTING_TECHNOLOGY2 1; ENDING_TECHNOLOGY 7; ELIMINATION 1; VICTORY 0; WONDERWIN 5; SCORE_GOAL 4; POPWIN 8; TIME_LIMIT 1; CHAIRS 3; ECONWIN 2; SCENARIO_TYPE 0; SCRIPT_TYPE 0; MODS 0; (int)seed 12345; checksum_deep 0; checksum_window_size 256; checksum_failure_threshold 0; flags 0",
+        players: &[
+            "flags 7; tribe 4; who 0; team 8; handicap 0; play 0; pauses 0; diff 2; pop_cap_frame 0; Player",
+            "flags 1; tribe 3; who 1; team 1; handicap 0; play 1; pauses 0; diff 2; pop_cap_frame 0; King Shaka",
+            "flags 1; tribe 0; who 2; team 1; handicap 0; play 2; pauses 0; diff 2; pop_cap_frame 0; Emperor Acamapichtli",
+        ],
+        digest: 0xfd25e03af6273440,
+    },
+];
+
+/// **The seventh's humans** (item 4600), row for row with
+/// [`HELD_OUT_SEVENTH`]: each row's [`Ordering`] as [`ordering_rule`]
+/// reads it off the row's start built from the page's block. No row is
+/// idle. Unit `0` is a land unit on every row: Scout (TI 69) on 8, 48, 68,
+/// 108, 128 and 148; Special Forces (75) on 28; Explorer (71) on 88. On
+/// every row its first heading is the first of the four (toward the
+/// centre on x), and all four corners of its square are on the map and in
+/// its own region.
+#[cfg(test)]
+pub(crate) const HELD_OUT_SEVENTH_HUMANS: [Ordering; 8] = [
+    // row 8
+    Ordering {
+        first: Scripted {
+            scout: 0,
+            scout_to: sim::Pos { x: 34872, y: 37272 },
+            capital: 2000,
+            builder: 5,
+            farm_at: sim::Pos { x: 37344, y: 34464 },
+        },
+        square: [
+            sim::Pos { x: 34872, y: 34872 },
+            sim::Pos { x: 37272, y: 34872 },
+            sim::Pos { x: 37272, y: 37272 },
+            sim::Pos { x: 34872, y: 37272 },
+        ],
+    },
+    // row 28
+    Ordering {
+        first: Scripted {
+            scout: 0,
+            scout_to: sim::Pos { x: 12024, y: 12696 },
+            capital: 2000,
+            builder: 8,
+            farm_at: sim::Pos { x: 9120, y: 10464 },
+        },
+        square: [
+            sim::Pos { x: 12024, y: 15096 },
+            sim::Pos { x: 9624, y: 15096 },
+            sim::Pos { x: 9624, y: 12696 },
+            sim::Pos { x: 12024, y: 12696 },
+        ],
+    },
+    // row 48
+    Ordering {
+        first: Scripted {
+            scout: 0,
+            scout_to: sim::Pos { x: 34872, y: 34200 },
+            capital: 2000,
+            builder: 10,
+            farm_at: sim::Pos { x: 37728, y: 34464 },
+        },
+        square: [
+            sim::Pos { x: 34872, y: 31800 },
+            sim::Pos { x: 37272, y: 31800 },
+            sim::Pos { x: 37272, y: 34200 },
+            sim::Pos { x: 34872, y: 34200 },
+        ],
+    },
+    // row 68
+    Ordering {
+        first: Scripted {
+            scout: 0,
+            scout_to: sim::Pos { x: 11256, y: 10392 },
+            capital: 2000,
+            builder: 10,
+            farm_at: sim::Pos { x: 9120, y: 10848 },
+        },
+        square: [
+            sim::Pos { x: 11256, y: 12792 },
+            sim::Pos { x: 8856, y: 12792 },
+            sim::Pos { x: 8856, y: 10392 },
+            sim::Pos { x: 11256, y: 10392 },
+        ],
+    },
+    // row 88
+    Ordering {
+        first: Scripted {
+            scout: 0,
+            scout_to: sim::Pos { x: 22776, y: 41112 },
+            capital: 2000,
+            builder: 10,
+            farm_at: sim::Pos { x: 19104, y: 39840 },
+        },
+        square: [
+            sim::Pos { x: 22776, y: 38712 },
+            sim::Pos { x: 20376, y: 38712 },
+            sim::Pos { x: 20376, y: 41112 },
+            sim::Pos { x: 22776, y: 41112 },
+        ],
+    },
+    // row 108
+    Ordering {
+        first: Scripted {
+            scout: 0,
+            scout_to: sim::Pos { x: 10488, y: 29592 },
+            capital: 2000,
+            builder: 9,
+            farm_at: sim::Pos { x: 5280, y: 30048 },
+        },
+        square: [
+            sim::Pos { x: 10488, y: 27192 },
+            sim::Pos { x: 8088, y: 27192 },
+            sim::Pos { x: 8088, y: 29592 },
+            sim::Pos { x: 10488, y: 29592 },
+        ],
+    },
+    // row 128
+    Ordering {
+        first: Scripted {
+            scout: 0,
+            scout_to: sim::Pos { x: 43320, y: 41880 },
+            capital: 2000,
+            builder: 5,
+            farm_at: sim::Pos { x: 42912, y: 41568 },
+        },
+        square: [
+            sim::Pos { x: 43320, y: 39480 },
+            sim::Pos { x: 45720, y: 39480 },
+            sim::Pos { x: 45720, y: 41880 },
+            sim::Pos { x: 43320, y: 41880 },
+        ],
+    },
+    // row 148
+    Ordering {
+        first: Scripted {
+            scout: 0,
+            scout_to: sim::Pos { x: 8952, y: 31896 },
+            capital: 2000,
+            builder: 5,
+            farm_at: sim::Pos { x: 7392, y: 30048 },
+        },
+        square: [
+            sim::Pos { x: 8952, y: 29496 },
+            sim::Pos { x: 6552, y: 29496 },
+            sim::Pos { x: 6552, y: 31896 },
+            sim::Pos { x: 8952, y: 31896 },
+        ],
+    },
+];
+
+/// **The seventh battery's scores**, `HELD_OUT_SEVENTH[k]` played as
+/// `run1804 + k` (item 4600): `None` until the original has played it. The
+/// found column is pinned once and never re-pinned; it is the estimate
+/// (DECISIONS 154 §7). Scored on `f7d2e41c6`'s tree. Rows 128 and 148 are
+/// minted and untaken: the disk read 59 GB free before run1810, under the
+/// item's floor of 60.
+#[cfg(test)]
+pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
+    // run1804
+    // row 8, as found 2026-11-23: 2 lines whole; units 9,896 of 12,001, first 9896; builds 9,922 of
+    // 12,001, first 9922; ammo 11,146 of 12,001, first 9899; deaths 10,438 of 12,001, first 9929;
+    // groups 9,947 of 12,001, first 9932; guys 9,898 of 12,001, first 9898; leaders 9,908 of
+    // 12,001, first 9904; cities 10,091 of 12,001, first 9924; goods 11,576 of 12,001, first 11576;
+    // world 9,900 of 12,001, first 9900; reach 9,896 of 12,001 states, 6,001 of 6,001 in the first
+    // 6,001.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 12001,
+            agreed: [
+                9896, 9922, 12001, 11146, 10438, 9947, 9898, 9908, 10091, 12001, 11576, 9900,
+            ],
+            first: &[
+                ("units", (9896, Some(171630208), 2211249348)),
+                ("builds", (9922, Some(3512185841), 1350677998)),
+                ("ammo", (9899, Some(1426297917), 1293259664)),
+                ("deaths", (9929, Some(1508386744), 2245866602)),
+                ("groups", (9932, Some(2627816952), 467422711)),
+                ("guys", (9898, Some(2849304947), 1015869527)),
+                ("leaders", (9904, Some(2155332895), 1047774493)),
+                ("cities", (9924, Some(4210113495), 4140645333)),
+                ("goods", (11576, Some(3252516634), 3292886812)),
+                ("world", (9900, Some(4188360961), 2333888676)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1805
+    // row 28, as found 2026-11-23: 2 lines whole; units 3,956 of 4,248, first 3956; builds 3,956 of
+    // 4,248, first 3956; ammo 4,030 of 4,248, first 3963; deaths 4,021 of 4,248, first 4021; groups
+    // 3,973 of 4,248, first 3973; guys 3,956 of 4,248, first 3956; leaders 3,958 of 4,248, first
+    // 3958; cities 3,983 of 4,248, first 3983; goods 4,216 of 4,248, first 4011; world 3,956 of
+    // 4,248, first 3956; reach 3,956 of 4,248 states, 3,956 of 4,248 in the first 6,001.
+    Some(FirstScore {
+        last: Some(4247),
+        found: Score {
+            states: 4248,
+            agreed: [
+                3956, 3956, 4248, 4030, 4021, 3973, 3956, 3958, 3983, 4248, 4216, 3956,
+            ],
+            first: &[
+                ("units", (3956, Some(3894155877), 1909180687)),
+                ("builds", (3956, Some(157090054), 3057844487)),
+                ("ammo", (3963, Some(2790001298), 2854947519)),
+                ("deaths", (4021, Some(3224243742), 3228634655)),
+                ("groups", (3973, Some(4290454040), 1327899175)),
+                ("guys", (3956, Some(617490755), 841753209)),
+                ("leaders", (3958, Some(26406777), 35648267)),
+                ("cities", (3983, Some(4199698130), 16469717)),
+                ("goods", (4011, Some(2255352392), 2572546636)),
+                ("world", (3956, Some(16483), 1319911691)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1806
+    // row 48, as found 2026-11-23: 1 line whole; units 7,150 of 12,001, first 5940; builds 7,170 of
+    // 12,001, first 7170; ammo 8,363 of 12,001, first 5607; deaths 8,721 of 12,001, first 8721;
+    // groups 7,186 of 12,001, first 7186; guys 7,182 of 12,001, first 6555; leaders 7,176 of
+    // 12,001, first 7176; cities 7,183 of 12,001, first 7183; items 7,947 of 12,001, first 7947;
+    // goods 7,542 of 12,001, first 7430; world 7,183 of 12,001, first 7183; reach 5,607 of 12,001
+    // states, 5,607 of 6,001 in the first 6,001.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 12001,
+            agreed: [
+                7150, 7170, 12001, 8363, 8721, 7186, 7182, 7176, 7183, 7947, 7542, 7183,
+            ],
+            first: &[
+                ("units", (5940, Some(506938227), 3241886403)),
+                ("builds", (7170, Some(2387042259), 2315018235)),
+                ("ammo", (5607, Some(2828101927), 3052169677)),
+                ("deaths", (8721, Some(1), 2503022540)),
+                ("groups", (7186, Some(621207000), 1310973398)),
+                ("guys", (6555, Some(3089962720), 556209851)),
+                ("leaders", (7176, Some(405918586), 1583338567)),
+                ("cities", (7183, Some(2785309316), 2502718081)),
+                ("items", (7947, Some(3978827278), 3964409356)),
+                ("goods", (7430, Some(3608639283), 3559618353)),
+                ("world", (7183, Some(2594571357), 1902774908)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1807
+    // row 68, as found 2026-11-23: 12 lines whole to the original's end; 3,949 of 3,949 states.
+    Some(FirstScore {
+        last: Some(3948),
+        found: Score {
+            states: 3949,
+            agreed: [
+                3949, 3949, 3949, 3949, 3949, 3949, 3949, 3949, 3949, 3949, 3949, 3949,
+            ],
+            first: &[],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1808
+    // row 88, as found 2026-11-23: 1 line whole; units 2,741 of 12,001, first 2741; builds 2,783 of
+    // 12,001, first 2783; ammo 2,988 of 12,001, first 2791; deaths 2,741 of 12,001, first 2741;
+    // groups 2,751 of 12,001, first 2751; guys 2,741 of 12,001, first 2741; leaders 2,741 of
+    // 12,001, first 2741; cities 2,951 of 12,001, first 2951; items 7,315 of 12,001, first 2906;
+    // goods 2,879 of 12,001, first 2879; world 2,741 of 12,001, first 2741; reach 2,741 of 12,001
+    // states, 2,741 of 6,001 in the first 6,001.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 12001,
+            agreed: [
+                2741, 2783, 12001, 2988, 2741, 2751, 2741, 2741, 2951, 7315, 2879, 2741,
+            ],
+            first: &[
+                ("units", (2741, Some(3725650265), 852594544)),
+                ("builds", (2783, Some(998530289), 3813760236)),
+                ("ammo", (2791, Some(1), 2513898174)),
+                ("deaths", (2741, Some(2957319091), 2550737442)),
+                ("groups", (2751, Some(471656992), 1841031624)),
+                ("guys", (2741, Some(4290938662), 1298234755)),
+                ("leaders", (2741, Some(1601810301), 1853075446)),
+                ("cities", (2951, Some(1452619764), 1435711476)),
+                ("items", (2906, Some(3288077661), 3279426907)),
+                ("goods", (2879, Some(2093806050), 2246636004)),
+                ("world", (2741, Some(1926680119), 3718366906)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1809
+    // row 108, as found 2026-11-23: 2 lines whole; units 7,421 of 12,001, first 7421; builds 7,421
+    // of 12,001, first 7421; ammo 11,543 of 12,001, first 8370; groups 7,421 of 12,001, first 7421;
+    // guys 7,421 of 12,001, first 7421; leaders 7,551 of 12,001, first 7551; cities 7,583 of
+    // 12,001, first 7583; items 8,392 of 12,001, first 7585; goods 9,009 of 12,001, first 8784;
+    // world 7,422 of 12,001, first 7422; reach 7,421 of 12,001 states, 6,001 of 6,001 in the first
+    // 6,001.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 12001,
+            agreed: [
+                7421, 7421, 12001, 11543, 12001, 7421, 7421, 7551, 7583, 8392, 9009, 7422,
+            ],
+            first: &[
+                ("units", (7421, Some(3393241865), 1901678766)),
+                ("builds", (7421, Some(331793807), 2606286225)),
+                ("ammo", (8370, Some(1), 921766682)),
+                ("groups", (7421, Some(2172338358), 1917123)),
+                ("guys", (7421, Some(4128971196), 1422531110)),
+                ("leaders", (7551, Some(1473370479), 814143512)),
+                ("cities", (7583, Some(539043893), 624109624)),
+                ("items", (7585, Some(1328428020), 1345729526)),
+                ("goods", (8784, Some(3873929020), 3876812606)),
+                ("world", (7422, Some(4189256067), 281868672)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
+    // run1810
+    None,
+    // run1811
+    None,
+];
+
+/// The seventh battery's line: games whole of the eight, and games taken.
+/// As found: row 68 whole to the original's end 3,948, six taken.
+#[cfg(test)]
+pub(crate) const HELD_OUT_SEVENTH_LINE: (usize, usize) = (1, 6);
+
+/// The seventh battery (item 4600): the sixth's recipe, the human ordering
+/// every 600 frames to 11,400.
+#[cfg(test)]
+pub(crate) const SEVENTH: Battery = Battery {
+    label: "Parity held out, seventh",
+    item: 4600,
+    run: 1804,
+    table: &HELD_OUT_SEVENTH,
+    scores: &SCORES_SEVENTH,
+    scores_name: "SCORES_SEVENTH",
+    line: HELD_OUT_SEVENTH_LINE,
+    frames: SEVENTH_FRAMES,
+};

@@ -41579,3 +41579,131 @@ before it and 87 after filing.
 
 **What it holds**: `diff::held_out::tests::row_113_s_city_walks_its_caravan_links_in_the_order_they_were_made_on_run1802_s_ranges`
 (every cities range on states 3994 to 3996; who=1's `1/34` and who=2's `2/131`, TI 59, on 3995).
+
+## run1804 — parity held out, seventh battery, row 8: Great Sahara, Turkish (tribe 8), difficulty 3, the human ordering through the game, played to 12,000 (2026-11-23, item 4600, `att-4600`)
+
+`docs/RECGAME.md` §14; DECISIONS 154 §7. **What the disk could not answer**: no take of this lobby with a person's orders
+past frame 90; the row was declared before any file (`f7d2e41c6`). The file:
+`~/ron-golden/recordings/item4600-row008-12000.rcx`, 59,447 bytes, SHA-256 `c7862cfcac98cd7f3ab3c000d99e85b7a2fed103a1cfecd05de14c256b491e66`: the client's idle draft
+(`client --record <draft> --headless --page-of gamelog-run1010-greatsahara-turkish-diff3-start.txt --seat 20 --team 0=0 --team 2=0 --frame 1`, tribe 20 added, the human and the added computer on team 0) re-minted by
+`the_seventh_s_files_are_minted` with the row's orders (`HELD_OUT_SEVENTH_HUMANS`: §9's three, then nineteen rounds
+from 600 to 11,400), closing on 12,000.
+
+The take: run1788's line (`--recording <file> --end-frame 12000 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --tracer-def RON_CHECKSUMS --timeout 3600 --stall-seconds 120`) with `~/ron-golden/run1804`, alone, first, waited on with `waitrun.sh` in the background.
+- **The run**: pool lane 1, launched 11:21:17 −05:00, exited 11:36:50, 933 s, exit 0, `success`, relaunched: none. 12,001
+  frames, not ended early, map 7. **The original took the file.**
+- **Scored as found** on `f7d2e41c6`'s tree (`the_seventh_held_out_games_score_as_pinned`, `SCORES_SEVENTH[0]`):
+  2 of 12 lines whole (walls, items); **units 9,896**, first state 9896, ours 171630208, theirs 2211249348; **builds 9,922**, first state 9922, ours 3512185841, theirs 1350677998; **ammo 11,146**, first state 9899, ours 1426297917, theirs 1293259664; **deaths 10,438**, first state 9929, ours 1508386744, theirs 2245866602; **groups 9,947**, first state 9932, ours 2627816952, theirs 467422711; **guys 9,898**, first state 9898, ours 2849304947, theirs 1015869527; **leaders 9,908**, first state 9904, ours 2155332895, theirs 1047774493; **cities 10,091**, first state 9924, ours 4210113495, theirs 4140645333; **goods 11,576**, first state 11576, ours 3252516634, theirs 3292886812; **world 9,900**, first state 9900, ours 4188360961, theirs 2333888676.
+- Filed with `filerun.py run1804 heldout7-row008-12000`. In place, `~/ron-golden/run1804/map-7/`: `gamelog_p.txt`, 2,882
+  bytes, SHA-256 `ae55feff9651eb135a0a541e193f7fe777f7353ac57966e94cced3442574315d`; `rontrace.log`, 85,543,456 bytes, SHA-256 `a706b8b1635d96e8d2d96110cc314f76cb8da4439ac8f0603474f97c65040cf3`.
+
+**What it holds**: `diff::held_out::tests::the_seventh_held_out_games_score_as_pinned`.
+
+## run1805 — parity held out, seventh battery, row 28: East Indies, Russian (tribe 13), Modern, the human ordering through the game, played to 12,000 (2026-11-23, item 4600, `att-4600`)
+
+`docs/RECGAME.md` §14; DECISIONS 154 §7. **What the disk could not answer**: no take of this lobby with a person's orders
+past frame 90; the row was declared before any file (`f7d2e41c6`). The file:
+`~/ron-golden/recordings/item4600-row028-12000.rcx`, 59,120 bytes, SHA-256 `26bc56093e9c437b5293cfe54d771a30ac08acdea410995c0429b983242f8d02`: the client's idle draft
+(`client --record <draft> --headless --page-of gamelog-run1148-eastindies-russian-modern-start.txt --seat 21 --team 1=1 --team 2=1 --frame 1`, tribe 21 added, the two computers on team 1) re-minted by
+`the_seventh_s_files_are_minted` with the row's orders (`HELD_OUT_SEVENTH_HUMANS`: §9's three, then nineteen rounds
+from 600 to 11,400), closing on 12,000.
+
+The take: run1788's line (`--recording <file> --end-frame 12000 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --tracer-def RON_CHECKSUMS --timeout 3600 --stall-seconds 120`) with `~/ron-golden/run1805`, one of the chain after row 8, each waited on with `waitrun.sh` and then its receipt with no runner alive.
+- **The run**: pool lane 1, launched 11:38:52 −05:00, exited 11:45:02, 370 s, exit 0, `success`, relaunched: once before frame 0 (`exit_before_frame_zero`). 4,248
+  frames, **ended by the original** on 4247, map 18. **The original took the file.**
+- **Scored as found** on `f7d2e41c6`'s tree (`the_seventh_held_out_games_score_as_pinned`, `SCORES_SEVENTH[1]`):
+  2 of 12 lines whole (walls, items); **units 3,956**, first state 3956, ours 3894155877, theirs 1909180687; **builds 3,956**, first state 3956, ours 157090054, theirs 3057844487; **ammo 4,030**, first state 3963, ours 2790001298, theirs 2854947519; **deaths 4,021**, first state 4021, ours 3224243742, theirs 3228634655; **groups 3,973**, first state 3973, ours 4290454040, theirs 1327899175; **guys 3,956**, first state 3956, ours 617490755, theirs 841753209; **leaders 3,958**, first state 3958, ours 26406777, theirs 35648267; **cities 3,983**, first state 3983, ours 4199698130, theirs 16469717; **goods 4,216**, first state 4011, ours 2255352392, theirs 2572546636; **world 3,956**, first state 3956, ours 16483, theirs 1319911691.
+- Filed with `filerun.py run1805 heldout7-row028-12000`. In place, `~/ron-golden/run1805/map-18/`: `gamelog_p.txt`, 2,869
+  bytes, SHA-256 `99d333a36fff4d9310c43516353b2fa16805e8d38b8a31cadfbd65f74af73f43`; `rontrace.log`, 245,200,928 bytes, SHA-256 `f930aff38662ae94d261081bd4b48d311665a0ee63dafec13d44a2f943887a09`.
+
+**What it holds**: `diff::held_out::tests::the_seventh_held_out_games_score_as_pinned`.
+
+## run1806 — parity held out, seventh battery, row 48: Great Sahara, Korean (tribe 16), Classical, the human ordering through the game, played to 12,000 (2026-11-23, item 4600, `att-4600`)
+
+`docs/RECGAME.md` §14; DECISIONS 154 §7. **What the disk could not answer**: no take of this lobby with a person's orders
+past frame 90; the row was declared before any file (`f7d2e41c6`). The file:
+`~/ron-golden/recordings/item4600-row048-12000.rcx`, 59,115 bytes, SHA-256 `494d1441e90f578deb9f6dbf4b853ffff0dd6e4a96a86989df0637ee48794f93`: the client's idle draft
+(`client --record <draft> --headless --page-of gamelog-run1249-greatsahara-korean-classical-start.txt --seat 22 --team 0=0 --team 2=0 --frame 1`, tribe 22 added, the human and the added computer on team 0) re-minted by
+`the_seventh_s_files_are_minted` with the row's orders (`HELD_OUT_SEVENTH_HUMANS`: §9's three, then nineteen rounds
+from 600 to 11,400), closing on 12,000.
+
+The take: run1788's line (`--recording <file> --end-frame 12000 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --tracer-def RON_CHECKSUMS --timeout 3600 --stall-seconds 120`) with `~/ron-golden/run1806`, one of the chain after row 8, each waited on with `waitrun.sh` and then its receipt with no runner alive.
+- **The run**: pool lane 1, launched 11:45:18 −05:00, exited 12:00:34, 916 s, exit 0, `success`, relaunched: none. 12,001
+  frames, not ended early, map 7. **The original took the file.**
+- **Scored as found** on `f7d2e41c6`'s tree (`the_seventh_held_out_games_score_as_pinned`, `SCORES_SEVENTH[2]`):
+  1 of 12 lines whole (walls); **units 7,150**, first state 5940, ours 506938227, theirs 3241886403; **builds 7,170**, first state 7170, ours 2387042259, theirs 2315018235; **ammo 8,363**, first state 5607, ours 2828101927, theirs 3052169677; **deaths 8,721**, first state 8721, ours 1, theirs 2503022540; **groups 7,186**, first state 7186, ours 621207000, theirs 1310973398; **guys 7,182**, first state 6555, ours 3089962720, theirs 556209851; **leaders 7,176**, first state 7176, ours 405918586, theirs 1583338567; **cities 7,183**, first state 7183, ours 2785309316, theirs 2502718081; **items 7,947**, first state 7947, ours 3978827278, theirs 3964409356; **goods 7,542**, first state 7430, ours 3608639283, theirs 3559618353; **world 7,183**, first state 7183, ours 2594571357, theirs 1902774908.
+- Filed with `filerun.py run1806 heldout7-row048-12000`. In place, `~/ron-golden/run1806/map-7/`: `gamelog_p.txt`, 2,890
+  bytes, SHA-256 `7dc5a03b8b1ac891887674855fcd4ac35eedb9bb4a2fc6e279922355e804a280`; `rontrace.log`, 844,367,296 bytes, SHA-256 `11cdb1e6f36926eced30b08ca798f429f0f5a16494047c7c8ed65c6e7c4dba90`.
+
+**What it holds**: `diff::held_out::tests::the_seventh_held_out_games_score_as_pinned`.
+
+## run1807 — parity held out, seventh battery, row 68: East Indies, British (tribe 11), Classical, the human ordering through the game, played to 12,000 (2026-11-23, item 4600, `att-4600`)
+
+`docs/RECGAME.md` §14; DECISIONS 154 §7. **What the disk could not answer**: no take of this lobby with a person's orders
+past frame 90; the row was declared before any file (`f7d2e41c6`). The file:
+`~/ron-golden/recordings/item4600-row068-12000.rcx`, 59,122 bytes, SHA-256 `019cc309e4e25812ad9fe7de8acf2870038534af1f9e6195fbdf9c717dfab284`: the client's idle draft
+(`client --record <draft> --headless --page-of gamelog-run1315-eastindies-british-classical-start.txt --seat 23 --team 1=1 --team 2=1 --frame 1`, tribe 23 added, the two computers on team 1) re-minted by
+`the_seventh_s_files_are_minted` with the row's orders (`HELD_OUT_SEVENTH_HUMANS`: §9's three, then nineteen rounds
+from 600 to 11,400), closing on 12,000.
+
+The take: run1788's line (`--recording <file> --end-frame 12000 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --tracer-def RON_CHECKSUMS --timeout 3600 --stall-seconds 120`) with `~/ron-golden/run1807`, one of the chain after row 8, each waited on with `waitrun.sh` and then its receipt with no runner alive.
+- **The run**: pool lane 1, launched 12:01:03 −05:00, exited 12:06:50, 347 s, exit 0, `success`, relaunched: none. 3,949
+  frames, **ended by the original** on 3948, map 18. **The original took the file.**
+- **Scored as found** on `f7d2e41c6`'s tree (`the_seventh_held_out_games_score_as_pinned`, `SCORES_SEVENTH[3]`):
+  12 of 12 lines whole, every state.
+- Filed with `filerun.py run1807 heldout7-row068-12000`. In place, `~/ron-golden/run1807/map-18/`: `gamelog_p.txt`, 2,869
+  bytes, SHA-256 `0c9f7ac8a33fb8b90afd94b84b186318cde7a2a9985d29d18af1754e72209f96`; `rontrace.log`, 195,537,216 bytes, SHA-256 `e014b13e35f9b6d9410a84adcfbbab103c5411c72ae758ce214f6aeaabb5f4fc`.
+
+**What it holds**: `diff::held_out::tests::the_seventh_held_out_games_score_as_pinned`.
+
+## run1808 — parity held out, seventh battery, row 88: East Indies, Mongol (tribe 17), Medieval, the human ordering through the game, played to 12,000 (2026-11-23, item 4600, `att-4600`)
+
+`docs/RECGAME.md` §14; DECISIONS 154 §7. **What the disk could not answer**: no take of this lobby with a person's orders
+past frame 90; the row was declared before any file (`f7d2e41c6`). The file:
+`~/ron-golden/recordings/item4600-row088-12000.rcx`, 59,136 bytes, SHA-256 `02dced92e3acb49ca470088cba368e4c26feaa4492ab74539ac372211a7f873c`: the client's idle draft
+(`client --record <draft> --headless --page-of gamelog-run1377-eastindies-mongol-medieval-start.txt --seat 11 --team 0=0 --team 2=0 --frame 1`, tribe 11 added, the human and the added computer on team 0) re-minted by
+`the_seventh_s_files_are_minted` with the row's orders (`HELD_OUT_SEVENTH_HUMANS`: §9's three, then nineteen rounds
+from 600 to 11,400), closing on 12,000.
+
+The take: run1788's line (`--recording <file> --end-frame 12000 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --tracer-def RON_CHECKSUMS --timeout 3600 --stall-seconds 120`) with `~/ron-golden/run1808`, one of the chain after row 8, each waited on with `waitrun.sh` and then its receipt with no runner alive.
+- **The run**: pool lane 1, launched 12:07:04 −05:00, exited 12:21:57, 893 s, exit 0, `success`, relaunched: none. 12,001
+  frames, not ended early, map 18. **The original took the file.**
+- **Scored as found** on `f7d2e41c6`'s tree (`the_seventh_held_out_games_score_as_pinned`, `SCORES_SEVENTH[4]`):
+  1 of 12 lines whole (walls); **units 2,741**, first state 2741, ours 3725650265, theirs 852594544; **builds 2,783**, first state 2783, ours 998530289, theirs 3813760236; **ammo 2,988**, first state 2791, ours 1, theirs 2513898174; **deaths 2,741**, first state 2741, ours 2957319091, theirs 2550737442; **groups 2,751**, first state 2751, ours 471656992, theirs 1841031624; **guys 2,741**, first state 2741, ours 4290938662, theirs 1298234755; **leaders 2,741**, first state 2741, ours 1601810301, theirs 1853075446; **cities 2,951**, first state 2951, ours 1452619764, theirs 1435711476; **items 7,315**, first state 2906, ours 3288077661, theirs 3279426907; **goods 2,879**, first state 2879, ours 2093806050, theirs 2246636004; **world 2,741**, first state 2741, ours 1926680119, theirs 3718366906.
+- Filed with `filerun.py run1808 heldout7-row088-12000`. In place, `~/ron-golden/run1808/map-18/`: `gamelog_p.txt`, 2,881
+  bytes, SHA-256 `2e6bfa073fd26392da50019b7f3f0f38eacdff7daa02ca2bda2459ba467c9020`; `rontrace.log`, 1,305,585,280 bytes, SHA-256 `d0d97bb8a1ee9bd4bfb992b8e6c0d58aaaa228201f35b4f80d739c7103399f09`.
+
+**What it holds**: `diff::held_out::tests::the_seventh_held_out_games_score_as_pinned`.
+
+## run1809 — parity held out, seventh battery, row 108: Great Sahara, Classical, melee: Greek (tribe 5) and Egyptian (tribe 7), the human ordering through the game, played to 12,000 (2026-11-23, item 4600, `att-4600`)
+
+`docs/RECGAME.md` §14; DECISIONS 154 §7. **What the disk could not answer**: no take of this lobby with a person's orders
+past frame 90; the row was declared before any file (`f7d2e41c6`). The file:
+`~/ron-golden/recordings/item4600-row108-12000.rcx`, 59,116 bytes, SHA-256 `8a3c82951e4b697a14de1cbe1ef3d21aa5382ccd0719bc855b5305db7320d13a`: the client's idle draft
+(`client --record <draft> --headless --page-of gamelog-run1449-greatsahara-classical-melee-start.txt --team 1=1 --team 2=1 --frame 1`, no seat added (the lobby holds three), the two computers on team 1) re-minted by
+`the_seventh_s_files_are_minted` with the row's orders (`HELD_OUT_SEVENTH_HUMANS`: §9's three, then nineteen rounds
+from 600 to 11,400), closing on 12,000.
+
+The take: run1788's line (`--recording <file> --end-frame 12000 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --tracer-def RON_CHECKSUMS --timeout 3600 --stall-seconds 120`) with `~/ron-golden/run1809`, one of the chain after row 8, each waited on with `waitrun.sh` and then its receipt with no runner alive.
+- **The run**: pool lane 1, launched 12:22:43 −05:00, exited 12:38:25, 942 s, exit 0, `success`, relaunched: once before frame 0 (`exit_before_frame_zero`). 12,001
+  frames, not ended early, map 7. **The original took the file.**
+- **Scored as found** on `f7d2e41c6`'s tree (`the_seventh_held_out_games_score_as_pinned`, `SCORES_SEVENTH[5]`):
+  2 of 12 lines whole (walls, deaths); **units 7,421**, first state 7421, ours 3393241865, theirs 1901678766; **builds 7,421**, first state 7421, ours 331793807, theirs 2606286225; **ammo 11,543**, first state 8370, ours 1, theirs 921766682; **groups 7,421**, first state 7421, ours 2172338358, theirs 1917123; **guys 7,421**, first state 7421, ours 4128971196, theirs 1422531110; **leaders 7,551**, first state 7551, ours 1473370479, theirs 814143512; **cities 7,583**, first state 7583, ours 539043893, theirs 624109624; **items 8,392**, first state 7585, ours 1328428020, theirs 1345729526; **goods 9,009**, first state 8784, ours 3873929020, theirs 3876812606; **world 7,422**, first state 7422, ours 4189256067, theirs 281868672.
+- Filed with `filerun.py run1809 heldout7-row108-12000`. In place, `~/ron-golden/run1809/map-7/`: `gamelog_p.txt`, 2,878
+  bytes, SHA-256 `68a009a5c10f28dc47edac3f94977e1df3b4513a8d07a14a78dca8b1f2c43131`; `rontrace.log`, 145,103,648 bytes, SHA-256 `bb0e5c75dc4ba8b26309e793fbfdbfcf16c75a4c8ec1b75ee7acdfaf1c574439`.
+
+**What it holds**: `diff::held_out::tests::the_seventh_held_out_games_score_as_pinned`.
+
+## run1810 and run1811 — reserved for the seventh's rows 128 and 148, not taken (2026-11-23, item 4600)
+
+Both files are minted (`item4600-row128-12000.rcx`, 59,456 bytes, SHA-256
+`bfc24707ddd73c248519bc18a63b61ff6056810b98ae0f92534ad4f562c5bedf`; `item4600-row148-12000.rcx`, 59,448 bytes,
+SHA-256 `e65395540e5b8cea888267acd4ec68b5774ed381b4ab13eb2ca6a3bd15cfe4f3`) and read back by
+`the_seventh_s_files_carry_the_declared_seats_team_and_orders`. **Not played**: `df -g ~` read 59 GB free at 12:38:44
+before run1810, under the item's floor of 60, and the chain stopped. A later take keeps these numbers.
