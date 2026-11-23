@@ -1902,7 +1902,7 @@ pub(crate) mod tests {
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
             }
-            let now: Vec<String> = built.sim.buildings.iter().enumerate().map(|(i, x)| format!("slot {i} {}/{} ty {:?} active {} alive {} city {:?} pos {:?}", x.owner, x.index, x.ty.map(|t| built.sim.tables.build_types[t].name.clone()), x.active, x.alive, x.city, x.pos)).collect();
+            let now: Vec<String> = built.sim.buildings.iter().enumerate().map(|(i, x)| format!("slot {i} {}/{} ty {:?} active {} alive {} city {:?} pos {:?}", x.owner, x.index, x.ty.map(|t| built.sim.tables.build_types[t].ident), x.active, x.alive, x.city, x.pos)).collect();
             for l in &now { if !prev.contains(l) { eprintln!("P4620 {state} + {l}"); } }
             for l in &prev { if !now.contains(l) { eprintln!("P4620 {state} - {l}"); } }
             if prev.is_empty() { for l in &now { if l.contains(" 2/") { eprintln!("P4620 {state} = {l}"); } } }
