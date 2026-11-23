@@ -223,6 +223,57 @@ fn an_anti_air_building_winds_on_its_sighting_without_a_target() {
     );
 }
 
+/// **An anti-air building's missile flies its spline at 150, from its
+/// node's launch** (item 4604, `docs/RECGAME.md` §13.5). A release whose
+/// ammo is `missile="1"` (the SAM Rocket) is `Ammo::init`'s `local_30`
+/// arm: a `calc_from_dir` spline, traj 2. A building shooter lays it at
+/// `unit_move_speed × 0x96` (`67cd32`..`67cdc5`), not at its type's
+/// `PROJ_SPEED` (200 here). The round leaves its node's [`WALL_LAUNCH`]-
+/// shaped row: run1797's SAM `2/2027` node 1, (+16, −16, +223).
+///
+/// [`WALL_LAUNCH`]: crate::air::WALL_LAUNCH
+#[test]
+fn an_anti_air_building_s_missile_flies_its_spline_from_its_node() {
+    let mut s = sim();
+    let r = radar(&mut s, true);
+    let id = s.tables.build_types[s.buildings[r].ty.unwrap()]
+        .tree
+        .unwrap();
+    let cycle = s.tables.tech_tree.types[id].wall_cycle.as_mut().unwrap();
+    cycle.releases = vec![(2, 1, false, -1, true)];
+    cycle.launch = vec![(0, (136, -136, 227)), (1, (16, -16, 223))];
+    let plane = unit(&mut s, 0, Pos::new(22272, 16512 - 8 * 0x300), bomber());
+    s.buildings[r].near = Some(Obj::Unit(plane));
+    s.buildings[r].target = Some(Obj::Unit(plane));
+    for f in 0..30 {
+        s.frame = f;
+        s.walls_inc_time(1);
+        if !s.combat.projectiles.is_empty() {
+            break;
+        }
+    }
+    let p = s.combat.projectiles[0];
+    let at = s.buildings[r].pos;
+    assert_eq!(p.launch, Pos::new(at.x + 16, at.y - 16), "node 1's row");
+    assert_eq!(p.sz, s.world.tile_z(at.tile()) + 223);
+    let path = p.spline.expect("a missile flies a spline");
+    let combat::SplineArm::FromDir { ctl, depth } = path.arm() else {
+        panic!("calc_from_dir's arm: {:?}", path.arm())
+    };
+    let len = combat::polygon_length(&ctl);
+    assert_eq!(
+        i32::from(depth),
+        len.divss(crate::num::single::Single::from_i32(150))
+            .to_i32()
+    );
+    assert_ne!(
+        i32::from(depth),
+        len.divss(crate::num::single::Single::from_i32(200))
+            .to_i32(),
+        "not the type's PROJ_SPEED"
+    );
+}
+
 /// **An anti-air building's turret turns at its sighting** (item 4602,
 /// `docs/RECGAME.md` §13.5): `Build::process@0061edf0`'s `61ef10`..
 /// `61ef91`. With no target, off its 32-frame phase and the sighting out of

@@ -3293,6 +3293,14 @@ mod tests {
         );
         assert!(cycle(sim::air::AIRDEFENSE).is_some_and(|c| c.releases.len() == 1));
         assert!(cycle(sim::air::SAM).is_some_and(|c| c.releases.len() == 3));
+        // Item 4604: the SAM Rocket is `missile="1"`, and each of its three
+        // nodes has run1797's launch row; the Radar's `FlakShell` is not.
+        let sam = cycle(sim::air::SAM).unwrap();
+        assert!(sam.releases.iter().all(|r| r.4), "{:?}", sam.releases);
+        assert_eq!(
+            sam.launch,
+            vec![(0, (55, 6, 209)), (1, (16, -16, 223)), (2, (-7, -55, 209))]
+        );
         assert_eq!(cycle(sim::air::LOOKOUT), None);
         assert_eq!(cycle(sim::air::OBSERVATIONPOST), None);
         let radar = l.build_of_type_index(sim::air::RADAR).unwrap();
