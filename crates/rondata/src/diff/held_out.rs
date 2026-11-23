@@ -1433,6 +1433,68 @@ pub(crate) mod tests {
         );
     }
 
+    /// **Row 133's SAM winds on its sighting and turns its turret at it**
+    /// (item 4602, `docs/RECGAME.md` §13.5): run1797's ranges. On 2166
+    /// who=2's SAM `2/2027` holds `near_o` 71 (who 1) with no target
+    /// (`attack_ox` −1); `Wall::inc_time@0063fb60:204` winds `recharging`
+    /// on `near_o` alone (ours held 0 on the target's sign), and from 2167
+    /// `Build::process@0061edf0`'s `61ef10`..`61ef91` turns `job_counter`
+    /// (`+0x48`) at the sighting out of range (ours held 0x40000000).
+    /// Every builds range on 2165 to 2172, ours against theirs, byte for
+    /// byte, and the SAM's sighting is a unit of who=1 with no target.
+    #[test]
+    fn row_133_s_sam_winds_and_turns_at_its_sighting_on_run1797_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 2165..=2172 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[1].as_ref().expect("the builds line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "builds' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "builds range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+        let sam = built.sim.building_by_o(2, 2027).expect("2/2027");
+        let bd = &built.sim.buildings[sam];
+        assert_eq!(bd.target, None, "the SAM takes no target");
+        assert_eq!(bd.recharging, 7, "wound from 0 on 2165");
+        let Some(sim::combat::Obj::Unit(u)) = bd.near else {
+            panic!("the SAM's sighting is a unit: {:?}", bd.near)
+        };
+        assert_eq!((built.sim.units[u].owner, built.sim.units[u].index), (1, 71));
+    }
+
     /// **Row 83's computer lists a caravan by its ally's city** (item
     /// 4545, `docs/CARAVAN.md` §4): run1784, the ranges take of row 83's
     /// file. On 1956 who=2 (the added computer, team 0 with the human)
@@ -10550,24 +10612,37 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // repair swarm walks under `MOVE_TO`, `local_40` being 3 for
         // `BUILD_AT` alone: `2/72`'s `order.type` ours 3, theirs 1 on 1906,
         // both 1 now): units 2,126 -> 2,199 (first 1906 -> 2199); no other
-        // line moved, and the first parting is builds alone on 2166.
+        // line moved, and the first parting is builds alone on 2166. Then by
+        // item 4602 (an anti-air building winds on its sighting, `near_o`,
+        // not its target, and its turret turns at its aim: who=2's SAM
+        // `2/2027` on 2166 `recharging` ours 0, theirs 1, on 2167
+        // `job_counter` ours 0x40000000, theirs 0x42040000; both agree
+        // now): units 2,199 -> 2,245 (first 2199 -> 2245), builds 2,166 ->
+        // 2,351 (first 2166 -> 2351), ammo 2,770 -> 2,794, deaths 2,529 ->
+        // 2,598 (first 2380 -> 2443), groups 2,319 -> 2,351 (first 2319 ->
+        // 2351), guys 2,199 -> 2,351 (first 2199 -> 2351), leaders 2,228 ->
+        // 2,245 (first 2212 -> 2245), cities 2,526 -> 2,442 (a fall past its
+        // first parting, 2297 on both), items 2,464 -> 3,222 (first 2464 ->
+        // 3035), goods 2,403 -> 2,721 (first 2403 -> 2721), world 2,234 ->
+        // 2,352 (first 2215 -> 2352); the first parting is ammo alone on
+        // 2198.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                2199, 2166, 6085, 2770, 2529, 2319, 2199, 2228, 2526, 2464, 2403, 2234,
+                2245, 2351, 6085, 2794, 2598, 2351, 2351, 2245, 2442, 3222, 2721, 2352,
             ],
             first: &[
-                ("units", (2199, Some(1612008737), 1025068445)),
-                ("builds", (2166, Some(2503049249), 2722332706)),
-                ("ammo", (2198, Some(2543630524), 2764270736)),
-                ("deaths", (2380, Some(2707033464), 2702642551)),
-                ("groups", (2319, Some(3104455634), 3483909122)),
-                ("guys", (2199, Some(2462162594), 722575079)),
-                ("leaders", (2212, Some(146369369), 1262971739)),
+                ("units", (2245, Some(2027846971), 3206774003)),
+                ("builds", (2351, Some(3954915333), 3808376837)),
+                ("ammo", (2198, Some(2052571696), 2764270736)),
+                ("deaths", (2443, Some(36399604), 2340772696)),
+                ("groups", (2351, Some(1891790061), 96103660)),
+                ("guys", (2351, Some(414155518), 3824518074)),
+                ("leaders", (2245, Some(301623679), 3478743421)),
                 ("cities", (2297, Some(257638425), 3892330493)),
-                ("items", (2464, Some(1874012926), 1848060668)),
-                ("goods", (2403, Some(393574506), 289765478)),
-                ("world", (2215, Some(3265519555), 1222893509)),
+                ("items", (3035, Some(3443990203), 3415154359)),
+                ("goods", (2721, Some(454129774), 410876012)),
+                ("world", (2352, Some(3018833008), 3021585520)),
             ],
             over: None,
         }),
