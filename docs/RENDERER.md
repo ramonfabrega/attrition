@@ -4812,7 +4812,7 @@ slot (`LF_ONEMETHOD`, `vftable offset`). The order is `render_background`
 - *The fog.* `fill_colors_fog@008d1420` writes a grey per fog cell: 255
   seen, `0x80` ~~under a reveal~~ really seen, `0x50` ~~once seen~~
   seen by the region rule, 0 never (§3.32.1). `render_fog` multiplies
-  it in (`ZERO`, `SRCCOLOR`). Not built.
+  it in (`ZERO`, `SRCCOLOR`). ~~Not built~~: built (§3.32.2).
 - *The view rectangle.* `get_view_rect@008c8120` takes the plane points
   under the main view's top-left and bottom-right pixels.
   `MiscAccess::world_to_console@00583840` projects each through the
@@ -4967,6 +4967,7 @@ on theirs: the black minimap.
 **What the build needs.** A four-level plane from the three predicates,
 not `seen`/`seen2`. Then the main view's per-vertex `u`, `1 − α(u)` off
 `fow_fade.tga` in HDR before the tone map, and the minimap's multiply.
+~~Not built~~: built (§3.32.2).
 
 **Not established.**
 - What darkens the trees past sight. They are drawn after `render_fow`
@@ -4977,6 +4978,54 @@ not `seen`/`seen2`. Then the main view's per-vertex `u`, `1 − α(u)` off
 - The transition's rate (`Scene +0x8c`).
 - `fill_colors_fog`'s `flags & 2` branch (the full refill) inlines the
   `seen2` test and the leader exits. It is read as the same four levels.
+
+## 3.32.2 The fog, built (item 4624)
+
+*2026-11-23, Opus 5.5. The ledger: `docs/journal/2026-11-23-item-4624.md`.
+`client::minimap::fog`; checked by `minimap::fog::tests::the_four_levels_are_the_packet_s`,
+`the_fog_on_run1814b` (the rows), `a_corner_sums_the_cells_it_touches`
+and `artdata::tests::the_fog_ramp_is_the_tileset_s`.*
+
+- **The plane.** `Sim::observe_fog` gives each fog cell the first level
+  whose predicate holds: 3 `world_is_seen_fog`, 2 `was_really_seen_fog`,
+  1 `was_seen_fog`, 0. `Scene::fog` carries it (`sim::observe::fog`,
+  `UNSEEN`, `REGION`, `EXPLORED`, `VISIBLE`; `render::draw::FOG_VISIBLE`
+  is 3). It is a read; the checksum lines' walk never calls it. On
+  run1814b's frame 3294 it is the packet's `fog_lookup` on all 14,400
+  cells, 13,336 / 727 / 127 / 210.
+- **The main view.** Every tile of the terrain's mesh again, its corners'
+  floats the ground's, each corner's `u` `fog_tcoord_lookup` of the fog
+  cells it touches (`fill_fog_texcoords`: one cell ×4, two ×2, four ×1,
+  the grid's border copied out). `fs_fow` samples the tileset's
+  `<FOGTEX>` linearly and writes `1 − α` into a keep map, multiplied,
+  under the ground's depth (`LESSEQUAL`, no write). The frame pass is
+  split after its ground runs, and the keep is composed there through
+  the tone map, `T(T⁻¹(g) · keep)`, as the shadows' is (§3.7). The
+  transition is taken as settled.
+- **The minimap.** Each fog cell's diamond on the quad, black at alpha
+  `255 − grey` through the screen pass's blend: `d · grey`, point
+  filtered. After the borders, before the blips.
+- **Off by default.** `World::fog` names the viewer, `None` as under the
+  display reveal every pool lane holds; `client --fog` draws slot 0's.
+- **The rows**, on run1814b's 3294, the fog cells in view above the bar
+  at the packet's own projections, mean luma by level 1 / 2 / 3:
+  `RUN1814B_3294_FOG` ours 142.9 / 143.5 / 141.7 → **78.6 / 130.5 /
+  158.3**, theirs 75.0 / 125.2 / 156.4. Level 3 rises with no fog on it:
+  the frame's mean falls and the white with it (§3.21). The minimap's
+  median by level 0 to 3, `RUN1814B_3294_FOG_MINIMAP`: 148.9 / 152.8 /
+  154.9 / 146.3 → **0 / 48.2 / 78.1 / 146.3**, theirs 0 / 47.1 / 74.2 /
+  144.1.
+- **Diff-backed**: the plane, cell for cell. **Read alone**: the
+  texcoord rule, the table, the ramp's blend, the pass's place. The rows
+  hold them to the photograph, not to the card.
+
+**Not established.**
+- The minimap draws every blip over the fog, where theirs draws none
+  past sight (4624a).
+- Levels 1 and 2 read 3.6 and 5.3 brighter than theirs, the minimap's
+  3.9 at level 2. Whether the original's ground under the fog differs or
+  its compose does is not read.
+- The water's and cliffs' own fog (4621b), the trees' (4621a).
 
 ## 3.33 The minimap's blips, read (item 4593)
 

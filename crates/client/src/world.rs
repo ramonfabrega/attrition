@@ -371,6 +371,17 @@ pub struct World {
     /// The tileset's minimap colours (item 4582; `minimap::background`);
     /// `None` where `tilesets.xml` does not read them.
     pub minimap_colors: Option<rondata::artdata::MinimapColors>,
+    /// **The viewer whose fog is drawn** (item 4624; `docs/RENDERER.md`
+    /// §3.32.1), on the main view and the minimap; `None` draws none, as
+    /// the original does under the display reveal (`semaphore & 0x42`),
+    /// which every pool lane's `StartReveal=1` sets. Off by default.
+    pub fog: Option<sim::Player>,
+    /// The tileset's `<FOGTEX>` ramp (`rondata::artdata::fog_texture`).
+    fog_ramp: Option<std::sync::Arc<render::silhouette::Mips>>,
+    /// The fog mesh as laid: the terrain's version, the plane, the mesh.
+    fog_laid: Option<(u32, Vec<u8>, std::sync::Arc<TexturedMesh>)>,
+    /// Moves each time the fog mesh is laid again.
+    pub fog_version: u32,
     /// The switch the edge was laid at, `None` until laid on this terrain.
     edge_laid: Option<bool>,
     /// Draw the surf (item 4239, §3.27). On by default; the row's count as
@@ -1039,6 +1050,11 @@ impl World {
         let minimap_colors = tileset
             .as_deref()
             .and_then(|t| rondata::artdata::minimap_colors(&install, t).ok());
+        let fog_ramp = tileset.as_deref().and_then(|t| {
+            let path = rondata::artdata::fog_texture(&install, t).ok()?;
+            let img = render::tga::decode(&std::fs::read(path).ok()?).ok()?;
+            Some(std::sync::Arc::new(render::silhouette::Mips::new(img)))
+        });
         let ground = tileset.as_deref().and_then(|t| {
             let textures = crate::ground::GroundTextures::load(install.root(), t).ok()?;
             let flat = textures
@@ -1298,6 +1314,10 @@ impl World {
             edge: true,
             edge_art,
             minimap_colors,
+            fog: None,
+            fog_ramp,
+            fog_laid: None,
+            fog_version: 0,
             edge_laid: None,
             surf: true,
             surf_art,
@@ -1306,6 +1326,34 @@ impl World {
     }
 
     /// Step the game to `frame` (the dump's `FRAME frame`).
+    /// [`World::fog`]'s plane this frame ([`sim::Sim::observe_fog`]), or
+    /// `None` with no fog drawn.
+    pub fn fog_plane(&self) -> Option<Vec<u8>> {
+        self.runner.sim().observe_fog(self.fog?)
+    }
+
+    /// **The main view's fog mesh** (item 4624, [`crate::minimap::fog::mesh`])
+    /// and its version, laid again when the plane or the terrain moves;
+    /// `None` with no fog drawn or no ramp read.
+    pub fn fog_mesh(&mut self) -> Option<(std::sync::Arc<TexturedMesh>, u32)> {
+        let plane = self.fog_plane()?;
+        let ramp = self.fog_ramp.clone()?;
+        let version = self.runner.terrain().version;
+        if let Some((v, p, m)) = &self.fog_laid
+            && *v == version
+            && *p == plane
+        {
+            return Some((m.clone(), self.fog_version));
+        }
+        let t = self.runner.terrain();
+        let cells = (t.width, t.height);
+        let mesh = crate::minimap::fog::mesh(self.terrain(), cells, &plane, &ramp)?;
+        let mesh = std::sync::Arc::new(mesh);
+        self.fog_laid = Some((version, plane, mesh.clone()));
+        self.fog_version = self.fog_version.wrapping_add(1);
+        Some((mesh, self.fog_version))
+    }
+
     /// The ground art's `(tileset, World.seed)`, as the transition patch
     /// holds them: what a test checks a built start's ground against.
     #[cfg(test)]

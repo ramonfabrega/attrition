@@ -6754,6 +6754,103 @@ fn a_raider_weighs_an_unfinished_building_by_its_threat() {
     );
 }
 
+/// **The anti-siege shield keeps only a siege target** (item 4619,
+/// `Unit::target_opportunity@005fffc0:150`–`:166`, `docs/RECGAME.md`
+/// §14.2). A unit with any of `0x840002` (here `BOMBARD`) holding a
+/// non-mandatory attack yields it to a new unit attacker it can reach
+/// unless the held target's type is siege and the attacker's is not; and
+/// a shielded unit's held building goes through the range tests, where an
+/// unshielded one's yields at once (`600440`). Row 28's Bazookas yield
+/// their chase of a Citizen to `1/25`'s Special Forces on 3955 (run1816's
+/// packet). Each control changes one input. Made to fail by restoring the
+/// refusal on the mask alone.
+#[test]
+fn the_anti_siege_shield_keeps_only_a_siege_target() {
+    let shooter = |sim: &mut Sim, masks: u32| {
+        sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 15,
+                max_range: 4,
+                uber_size: 1,
+                obj_masks: masks,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        })
+    };
+    let held_type = |sim: &mut Sim, siege: bool| {
+        sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 0,
+                uber_size: 1,
+                siege,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        })
+    };
+    // `held`: `Some(siege)` a unit, `None` a building; `near` puts the held
+    // target in reach.
+    let run = |masks: u32, held: Option<bool>, attacker_siege: bool, near: bool| {
+        let (mut sim, _) = at_war();
+        let me_ty = shooter(&mut sim, masks);
+        let foe_ty = shooter(&mut sim, 0);
+        sim.tables.unit_types[foe_ty].combat.siege = attacker_siege;
+        let me = put(&mut sim, 1, me_ty, Pos::new(0x4000, 0x4000));
+        let at = if near { 0x4100 } else { 0x7000 };
+        let target = match held {
+            Some(siege) => {
+                let t = held_type(&mut sim, siege);
+                Obj::Unit(put(&mut sim, 0, t, Pos::new(at, 0x4000)))
+            }
+            None => {
+                let b = sim.add_building(0, Pos::new(at, 0x4000), 0);
+                sim.buildings[b].started = true;
+                sim.buildings[b].active = true;
+                sim.buildings[b].combat = Some(Profile {
+                    x_size: 1,
+                    y_size: 1,
+                    ..Profile::default()
+                });
+                sim.buildings[b].health = 500;
+                Obj::Building(b)
+            }
+        };
+        let foe = put(&mut sim, 0, foe_ty, Pos::new(0x4000, 0x4100));
+        sim.add_attack_order(me, target, crate::orders::QueuePos::New, false, true);
+        assert_eq!(sim.units[me].combat.target, Some(target), "the held attack");
+        sim.attack_action_yields(me, Obj::Unit(foe))
+    };
+    let bombard = crate::combat::mask::BOMBARD;
+    assert!(
+        run(bombard, Some(false), false, false),
+        "a shielded unit yields a non-siege target (row 28's Bazookas)"
+    );
+    assert!(
+        !run(bombard, Some(true), false, false),
+        "the shield keeps a siege target from a non-siege attacker"
+    );
+    assert!(
+        run(bombard, Some(true), true, false),
+        "a siege attacker takes it through the shield"
+    );
+    assert!(run(0, Some(true), false, false), "no mask, no shield");
+    assert!(
+        !run(bombard, Some(false), false, true),
+        "a held target in reach is kept"
+    );
+    assert!(
+        !run(bombard, None, false, true),
+        "a shielded unit's held building in reach takes the range tests"
+    );
+    assert!(
+        run(0, None, false, true),
+        "an unshielded unit's held building yields at once"
+    );
+}
+
 /// **A self-destructing attacker dies with its shot** (item 4614,
 /// `Unit::fight@005fd4d0:900`–`906`, `docs/RECGAME.md` §14.4): a type
 /// whose `unit_flags` carries `n` (`0x2000`, the fire rafts and fire

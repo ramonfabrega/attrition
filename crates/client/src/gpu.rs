@@ -394,6 +394,11 @@ pub struct Frame<'a> {
     /// quad of the ocean gradient, with no ocean floor, no water and no
     /// surf, and with no tone map, white or bloom after.
     pub minimap: Option<[[u8; 3]; 2]>,
+    /// **The fog** (item 4624; `docs/RENDERER.md` §3.32.1): the main
+    /// view's fog mesh ([`crate::minimap::fog::mesh`]) and its version,
+    /// kept on the GPU while the version stands. Its keep is composed into
+    /// the frame after every ground run and before the objects.
+    pub fog: Option<(&'a crate::world::TexturedMesh, u32)>,
 }
 
 /// **The ocean gradient** (item 4584; `docs/RENDERER.md` §3.32): the
@@ -664,6 +669,12 @@ pub struct Gpu {
     expose: crate::expose::Expose,
     shade_layout: wgpu::BindGroupLayout,
     decal_textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
+    /// The fog's pass (item 4624): the decal's multiply into a keep map,
+    /// under the ground's depth (`fow_rs`'s `LESSEQUAL`, no write); its
+    /// mesh on the GPU at its version, and its ramp.
+    fow: wgpu::RenderPipeline,
+    fow_mesh: std::sync::Mutex<Option<(u32, Vec<Uploaded>)>>,
+    fow_textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
     /// Where the silhouette pass falls (item 4171).
     pub silhouette_order: SilhouetteOrder,
     /// The particles' passes (item 4233): the smoke laid over, the fire
@@ -996,6 +1007,48 @@ impl Gpu {
             fragment: Some(wgpu::FragmentState {
                 module: &decal_module,
                 entry_point: Some("fs_decal"),
+                compilation_options: Default::default(),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: KEEP_FORMAT,
+                    blend: Some(wgpu::BlendState {
+                        color: multiply,
+                        alpha: multiply,
+                    }),
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+            }),
+            multiview_mask: None,
+            cache: None,
+        });
+        // Item 4624: the fog, the decal's multiply under the ground's depth.
+        let fow = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("fow"),
+            layout: Some(&sprite_pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: &decal_module,
+                entry_point: Some("vs_textured"),
+                compilation_options: Default::default(),
+                buffers: &[Some(wgpu::VertexBufferLayout {
+                    array_stride: 32,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &textured_attributes,
+                })],
+            },
+            primitive: wgpu::PrimitiveState {
+                cull_mode: None,
+                ..Default::default()
+            },
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: DEPTH_FORMAT,
+                depth_write_enabled: Some(false),
+                depth_compare: Some(wgpu::CompareFunction::LessEqual),
+                stencil: Default::default(),
+                bias: Default::default(),
+            }),
+            multisample: Default::default(),
+            fragment: Some(wgpu::FragmentState {
+                module: &decal_module,
+                entry_point: Some("fs_fow"),
                 compilation_options: Default::default(),
                 targets: &[Some(wgpu::ColorTargetState {
                     format: KEEP_FORMAT,
@@ -1522,6 +1575,9 @@ impl Gpu {
             shade,
             shade_layout,
             decal_textures: std::sync::Mutex::new(Default::default()),
+            fow,
+            fow_mesh: std::sync::Mutex::new(None),
+            fow_textures: std::sync::Mutex::new(Default::default()),
             tree,
             tree_sampler,
             tree_textures: std::sync::Mutex::new(Default::default()),
@@ -2055,6 +2111,17 @@ impl Gpu {
         let trees = self.tree_meshes(frame.trees);
         let shadows = self.decal_meshes(frame.shadows);
         let particles = self.particle_meshes(frame.particles);
+        let mut fow_mesh = self.fow_mesh.lock().unwrap();
+        match frame.fog {
+            Some((m, v)) if fow_mesh.as_ref().is_none_or(|(at, _)| *at != v) => {
+                *fow_mesh = Some((
+                    v,
+                    self.flat_meshes(std::slice::from_ref(m), &self.fow_textures, [1.0, 0.0, 0.0]),
+                ));
+            }
+            None => *fow_mesh = None,
+            _ => {}
+        }
         let depth = self.device.create_texture(&wgpu::TextureDescriptor {
             label: Some("depth"),
             size: wgpu::Extent3d {
@@ -2283,6 +2350,40 @@ impl Gpu {
             for run in frame_runs.into_iter().filter(|r| !r.is_empty()) {
                 self.draw_ground(&mut pass, None, None, run, None);
             }
+        }
+        // Item 4624 (§3.32.1): `render_fow` after every ground run (the
+        // mountains and their layers too) and before the objects, its keep
+        // taken into the frame through the tone map, as the shadows' is.
+        if let Some((_, fog)) = fow_mesh.as_ref().filter(|(_, m)| !m.is_empty()) {
+            self.fow_passes(&mut enc, &exposed, &depth_view, size, fog);
+        }
+        {
+            let mut pass = enc.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("frame objects"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &scene_view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: &depth_view,
+                    depth_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    }),
+                    stencil_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    }),
+                }),
+                timestamp_writes: None,
+                occlusion_query_set: None,
+                multiview_mask: None,
+            });
             pass.set_bind_group(0, &self.bind, &[]);
             // Item 4401: the underlays after the ground, before the
             // buildings, as `BuildOut::draw_underlays` comes before the
@@ -2441,6 +2542,114 @@ impl Gpu {
             }
         }
         self.queue.submit([enc.finish()]);
+    }
+
+    /// **The fog in HDR** (item 4624; `docs/RENDERER.md` §3.32.1): the fog
+    /// mesh into a keep map cleared white, each pixel multiplied by
+    /// `1 − α(u)` where the ground's depth lets it, then the frame copied
+    /// and composed with it through the tone map, `T(T⁻¹(g) · keep)`.
+    fn fow_passes(
+        &self,
+        enc: &mut wgpu::CommandEncoder,
+        exposed: &crate::expose::ExposeFrame,
+        depth_view: &wgpu::TextureView,
+        size: (u32, u32),
+        fog: &[Uploaded],
+    ) {
+        let extent = wgpu::Extent3d {
+            width: size.0,
+            height: size.1,
+            depth_or_array_layers: 1,
+        };
+        let keep = self.device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("fow keep"),
+            size: extent,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: KEEP_FORMAT,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+            view_formats: &[],
+        });
+        let keep_view = keep.create_view(&Default::default());
+        let depth_ops = Some(wgpu::Operations {
+            load: wgpu::LoadOp::Load,
+            store: wgpu::StoreOp::Store,
+        });
+        let stencil_ops = Some(wgpu::Operations {
+            load: wgpu::LoadOp::Load,
+            store: wgpu::StoreOp::Store,
+        });
+        {
+            let mut pass = enc.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("fow"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &keep_view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: depth_view,
+                    depth_ops,
+                    stencil_ops,
+                }),
+                timestamp_writes: None,
+                occlusion_query_set: None,
+                multiview_mask: None,
+            });
+            pass.set_bind_group(0, &self.bind, &[]);
+            pass.set_pipeline(&self.fow);
+            for (b, n, t) in fog {
+                pass.set_bind_group(1, t, &[]);
+                pass.set_vertex_buffer(0, b.slice(..));
+                pass.draw(0..*n, 0..1);
+            }
+        }
+        let (target, under) = (&exposed.scene, &exposed.under);
+        enc.copy_texture_to_texture(target.as_image_copy(), under.as_image_copy(), extent);
+        let bind = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("fow"),
+            layout: &self.shade_layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(
+                        &under.create_view(&Default::default()),
+                    ),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::TextureView(&keep_view),
+                },
+            ],
+        });
+        let mut pass = enc.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("fow composed"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: &target.create_view(&Default::default()),
+                depth_slice: None,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Load,
+                    store: wgpu::StoreOp::Store,
+                },
+            })],
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: depth_view,
+                depth_ops,
+                stencil_ops,
+            }),
+            timestamp_writes: None,
+            occlusion_query_set: None,
+            multiview_mask: None,
+        });
+        pass.set_pipeline(&self.shade);
+        pass.set_bind_group(0, &bind, &[]);
+        pass.draw(0..3, 0..1);
     }
 
     /// **The particles in HDR** (item 4237; `docs/RENDERER.md` §3.25):
