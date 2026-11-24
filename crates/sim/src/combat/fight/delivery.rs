@@ -912,6 +912,16 @@ impl Sim {
         if who == vw || self.is_ally(vw, who) {
             return;
         }
+        if std::env::var_os("RON_PROBE_4631").is_some() {
+            let kt = self.units[k].ty;
+            eprintln!(
+                "  probe4631 f{} plunder v {}/{} ty {:?} k {}/{} ty {:?} aztecs {} trainer {:?} buckets {:?}",
+                self.frame, vw, self.units[v].index, self.units[v].ty, who, self.units[k].index, kt,
+                self.cities.nation[who as usize].aztecs,
+                kt.and_then(|t| self.trainer_ident(t)),
+                self.economy.ledgers[who as usize].bucket
+            );
+        }
         let slay = self.cities.nation[who as usize].aztecs
             && self.units[k]
                 .ty
