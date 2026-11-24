@@ -12213,23 +12213,33 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // 2,882, world 2,862 -> 2,882, builds 2,887 -> 2,919, goods 2,998 ->
         // 2,999; ammo 3,039 -> 2,930 and items 7,799 -> 4,108 past the first
         // parting. The first parting moves 2741 -> 2791, on ammo alone.
+        // Moved by item 4625 (run1818's ranges): the Carrack's release keys
+        // (piece 292) take `BAYS` rows, so who=1's Carrack `1/82`'s round on
+        // 2790 leaves its starboard battery. Ammo record 0 on 2791: `sx, sy,
+        // sz` ours (16824, 11640, 0) -> (16866, 11729, 35), theirs (16866,
+        // 11729, 35); `ex, ey` (16800, 13142) -> (16817, 13159), `total_time`
+        // 18 -> 17, as theirs. Units 2,807 -> 2,902, builds 2,919 -> 2,953,
+        // ammo 2,930 -> 3,056, deaths 2,882 -> 2,922, groups 2,883 -> 2,928,
+        // guys 2,882 -> 2,907, leaders 2,879 -> 2,883, cities 2,951 -> 3,063,
+        // items 4,108 -> 7,829, world 2,882 -> 2,909. The first parting moves
+        // 2791 -> 2883, on leaders alone.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                2807, 2919, 12001, 2930, 2882, 2883, 2882, 2879, 2951, 4108, 2999, 2882,
+                2902, 2953, 12001, 3056, 2922, 2928, 2907, 2883, 3063, 7829, 2999, 2909,
             ],
             first: &[
-                ("units", (2807, Some(1281568671), 3372429074)),
-                ("builds", (2882, Some(527786112), 1897554046)),
-                ("ammo", (2791, Some(1984301831), 2513898174)),
-                ("deaths", (2882, Some(833621383), 1)),
-                ("groups", (2883, Some(763071651), 3332674898)),
-                ("guys", (2882, Some(3844627752), 1547092089)),
-                ("leaders", (2807, Some(1676328167), 2787687657)),
-                ("cities", (2951, Some(1433221107), 1435711476)),
-                ("items", (3126, Some(3288077661), 3279426907)),
+                ("units", (2902, Some(2295592567), 1737225847)),
+                ("builds", (2930, Some(3042007817), 1210604719)),
+                ("ammo", (2917, Some(4110299029), 4007210836)),
+                ("deaths", (2922, Some(3554618418), 1813388611)),
+                ("groups", (2928, Some(2156172100), 2500694867)),
+                ("guys", (2907, Some(4088558612), 3923407830)),
+                ("leaders", (2883, Some(3734682641), 314752102)),
+                ("cities", (3063, Some(1312439704), 836386168)),
+                ("items", (3201, Some(3288077661), 308941102)),
                 ("goods", (2999, Some(2477322729), 2684940781)),
-                ("world", (2882, Some(28101816), 1537856136)),
+                ("world", (2907, Some(1180419640), 1136379448)),
             ],
             over: None,
         }),

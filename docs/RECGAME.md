@@ -1849,8 +1849,8 @@ Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
 
 ### 14.4 Row 88
 
-Open: ammo parts on 2791, and units and leaders on 2807 (item 4622). run1808 holds sums, run1815 the ranges to 2991,
-with no ammo ranges.
+Open: leaders part on 2883, alone (item 4625). run1808 holds sums, run1815 the ranges to 2991 (units, deaths, guys,
+leaders and world), run1818 the ammo ranges to 2792.
 
 **Item 4614: a rider comes out before its carrier dies, and a fire raft dies with its shot.** Two fixes. Both are
 diff-backed by run1815's ranges (`docs/RUNS.md`), scored by `score_recording` on the item's tree.
@@ -1902,10 +1902,28 @@ file with `--end-frame 2792 --log-window 2790 2793 --tracer-def RON_CHECKSUMS --
 RNG_MASK=0x8`. Units part next on 2807, at range 4411, record 61: barge `2/61`'s `flags` read ours `0x01`, theirs
 `0x11`. Theirs is now wounded and ours is not.
 
+**Item 4625: the Carrack fires from its starboard battery.** run1818 kept the ammo ranges to 2792. Ammo record 0 on
+2791 is who=1's Carrack `1/82` (TI 342, sea, piece 292, `GALLEON-DEFAULT-AGE0`) firing `CHAR_ATTACK2`'s node-1 event
+(frame 14) at barge `2/61` on 2790: `sx, sy, sz` ours (16824, 11640, 0), theirs (16866, 11729, 35); `ex, ey`, `angle`
+and `total_time` (18, 17) follow. **Ours acted**: `launch_point` had no row for piece 292. Its nine `RELEASEEVENT`s
+(nodes 0..2 × `CHAR_ATTACK1`..`3`) are swept by `get_position.py … --init` on run1579's packet; `fit_bay.py` admits
+each over 361 of 361 headings but node 2's `CHAR_ATTACK2` frame 24, whose row misses heading 283 by one unit. Built as
+nine `BAYS` rows. Held by `data::launch::tests::the_carrack_s_round_leaves_its_starboard_battery` (mutation held) and
+`the_carrack_s_release_agrees_at_every_heading_but_one`. Diff-backed: run1818 agrees on all twelve lines to 2792.
+
+The score, `SCORES_SEVENTH[4].moved` (12,001 states): units 2,807 → 2,902, builds 2,919 → 2,953, ammo 2,930 → 3,056,
+deaths 2,882 → 2,922, groups 2,883 → 2,928, guys 2,882 → 2,907, leaders 2,879 → 2,883, cities 2,951 → 3,063, items
+4,108 → 7,829, world 2,882 → 2,909. **The first parting moves 2791 → 2883, on leaders alone.**
+
+**The next word, 2883, leaders.** run1815's ranges hold it: range 212, record 1 (who=1), `encrypt`, byte 0, ours `0x8c`,
+theirs `0x7d`. Units part next on 2902, range 3709, record 29: `myhits..`'s second word reads ours 12, theirs 0.
+
 **Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is still not built: a `0x2000`
 attacker that collides with a valid target sets it, fires and dies. No capture has been shown to reach it.
 A building shooter always splashes from the landing: `Build` and `Wall` fill vslot `+0x18` with the folded
-`Window::get_button@0041bff0`, `return 0`, and this crate's arm asks for a unit shooter.
+`Window::get_button@0041bff0`, `return 0`, and this crate's arm asks for a unit shooter. The Carrack's node-2 `CHAR_ATTACK2` row (frame 24) is one unit off at
+heading 283; no round on disk has been shown to fire it there. Piece 128's six attack keys (node 0) still fall back to
+the figure's square on row 88 after 2883 (a probe on `launch_point`'s fallback over run1808's 12,001 states).
 
 ### 14.5 Row 108
 

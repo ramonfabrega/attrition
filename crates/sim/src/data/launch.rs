@@ -7843,6 +7843,109 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 88,
         },
     ),
+    // **Item 4625: piece 292, the Carrack** (`GALLEON-DEFAULT-AGE0`,
+    // `Carrack.bh3`, unit type 342, sea; `docs/RECGAME.md` §14.4). Its
+    // `<UNIT>` gives nine `RELEASEEVENT`s, one a node and attack anim, all
+    // on the starboard side. Row 88 of the seventh held-out battery fired
+    // who=1's `1/82` from the figure's square on 2790, where the original's
+    // round left (42, 89) to its right at `sz` 35 (run1818's ranges, ammo
+    // record 0). `get_position.py … --init <node>,<anim>,<time>,3 sweep 292
+    // <node> <anim> <time>` on run1579's packet fills each key, and
+    // `fit_bay.py` admits one region a key, 361 of 361 headings, its
+    // centroid kept (109 to 4,321 lattice points), but for node 2's
+    // `CHAR_ATTACK2` frame 24: **no point reproduces all 361 headings**,
+    // and the row is the point that misses one, heading 283 (sweep
+    // `(-127, 70)`, ours `(-127, 71)`). The heights are the sweep's.
+    (
+        292,
+        crate::units::anim::ATTACK1,
+        29,
+        Bay {
+            right: 99_202,
+            fwd: 88_805,
+            dz: 35,
+        },
+    ),
+    (
+        292,
+        crate::units::anim::ATTACK1,
+        34,
+        Bay {
+            right: 100_129,
+            fwd: -27_681,
+            dz: 30,
+        },
+    ),
+    (
+        292,
+        crate::units::anim::ATTACK1,
+        19,
+        Bay {
+            right: 97_830,
+            fwd: -68_353,
+            dz: 37,
+        },
+    ),
+    (
+        292,
+        crate::units::anim::ATTACK2,
+        36,
+        Bay {
+            right: 100_816,
+            fwd: 52_335,
+            dz: 30,
+        },
+    ),
+    (
+        292,
+        crate::units::anim::ATTACK2,
+        14,
+        Bay {
+            right: 98_551,
+            fwd: 12_974,
+            dz: 35,
+        },
+    ),
+    (
+        292,
+        crate::units::anim::ATTACK2,
+        24,
+        Bay {
+            right: 97_789,
+            fwd: -107_946,
+            dz: 36,
+        },
+    ),
+    (
+        292,
+        crate::units::anim::ATTACK3,
+        34,
+        Bay {
+            right: 100_386,
+            fwd: 86_474,
+            dz: 32,
+        },
+    ),
+    (
+        292,
+        crate::units::anim::ATTACK3,
+        32,
+        Bay {
+            right: 99_614,
+            fwd: 12_048,
+            dz: 32,
+        },
+    ),
+    (
+        292,
+        crate::units::anim::ATTACK3,
+        29,
+        Bay {
+            right: 98_847,
+            fwd: -108_246,
+            dz: 32,
+        },
+    ),
 ];
 
 /// `(piece, animation slot, node)` → bay, for a piece whose every event
