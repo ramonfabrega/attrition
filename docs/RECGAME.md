@@ -1770,8 +1770,7 @@ bent by one. No file existed before it.
 **The files and takes.** The drafts and the minting are the sixth's (`the_seventh_s_files_are_minted`,
 `item4600-row<RRR>-12000.rcx`; `RON_RECGAME_DIR` names the donors' directory). Row 8 was minted and played alone first
 as run1804: **the original took it** to 12,000 with no relaunch. The other seven were then minted and chained, one at
-a time. **Rows 128 and 148 are not taken**: `df -g ~` read 59 GB free before run1810, under the item's floor of 60.
-Their files are minted and their run numbers (run1810, run1811) are kept.
+a time. Rows 128 and 148 waited for the disk (59 GB, under 60) and item 4611 took them (§14.6).
 
 As found, pinned once in `SCORES_SEVENTH`: **1 of 8 whole, 6 taken, 20 of 72 lines, reach 59 %** (of the six's
 states); **inside the first 6,001 states, 87 %**, against the sixth's 59 % as found.
@@ -1784,8 +1783,8 @@ states); **inside the first 6,001 states, 87 %**, against the sixth's 59 % as fo
 | 68 | run1807 | East Indies, Classical | the computers | 3,949, ended on 3948 | **12** | whole | — | 3,949 of 3,949 |
 | 88 | run1808 | East Indies, Medieval | human + added | 12,001 | 1 | units, deaths, guys, leaders, world 2741 | 4, on 2400 | 2,741 of 6,001 |
 | 108 | run1809 | Great Sahara, Classical, melee | the computers | 12,001 | 2 | units, builds, groups, guys 7421 | 12, on 7200 | 6,001 of 6,001 |
-| 128 | — | Great Lakes, difficulty 2 | human + added | not taken | | | | |
-| 148 | — | Great Sahara, difficulty 4 | the computers | not taken | | | | |
+| 128 | run1810 | Great Lakes, difficulty 2 | human + added | 12,001 | 11 | leaders 3338 | 5, on 3000 | 3,338 of 6,001 |
+| 148 | run1811 | Great Sahara, difficulty 4 | the computers | 12,001 | 1 | units 10879 | 18, on 10800 | 6,001 of 6,001 |
 
 The original ended rows 28 and 68, each with the two computers allied against the human. Walls agree on every state
 of all six, and items on rows 8, 28 and 68. `docs/RUNS.md` run1804 to run1809 holds every value, and the pins
@@ -1928,13 +1927,5 @@ Open: units, builds, groups and guys part on 7421. run1809 holds sums.
 
 ### 14.6 Rows 128 and 148
 
-Taken by item 4611 under the kept numbers, as found on `6fa43acc3`'s tree (`SCORES_SEVENTH[6]`, `[7]`). The line is
-now `(1, 8)`: 1 of 8 whole, 8 taken.
-
-| row | run | states | whole | lowest parting (state) | the last round before it | reach in the first 6,001 |
-|---|---|---|---|---|---|---|
-| 128 | run1810 | 12,001 | 11 | leaders 3338 | 5, on 3000 | 3,338 of 6,001 |
-| 148 | run1811 | 12,001 | 1 | units 10879 | 18, on 10800 | 6,001 of 6,001 |
-
-Open: row 128's leaders part alone on 3338 and agree again on 8,154 states of 12,001. Row 148's units part on 10879.
-Both takes hold sums. `docs/RUNS.md` run1810 and run1811 holds every value.
+Taken by item 4611, scored on `6fa43acc3`'s tree; the line is `(1, 8)`. Open: row 128's leaders on 3338, row 148's
+units on 10879. Both hold sums.
