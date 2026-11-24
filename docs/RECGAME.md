@@ -1843,6 +1843,23 @@ first parting 3956 → 4122, builds → 4037, leaders → 4037, cities → 4037.
 221 states from the end. run1813 keeps no ammo ranges, so the next word on this row needs a take: the ammo line from
 4027.
 
+**Item 4626, the India Bazooka's bay, and the row moves: 4027 → 4167.** run1820 is row 28's file to 4028 with the
+ammo line's ranges. On 4027 ammo range 1, record 1 is a new round in slot 1. It is who=2's `2/34`, a Bazooka (TI
+139, TY 89, land), firing at the capital `0/2000` on frame 4026 under `CHAR_ATTACK2` frame 7. The shooter, the target,
+`ez` and the graphic agree. The launch does not. The Bazooka plays **piece 1849** (base 89 at art style 5,
+`BAZOOKA-INDIA-AGE0`), and `launch::BAYS` had no row for it, so ours took `launch_point`'s SEAM and loosed from the
+figure's own square. run1816's packet (`get_position.py … entries 1849`) holds its three `AttachPos` rows, at
+piece 89's keys (17, 7 and 13 of `CHAR_ATTACK1..3`). `fit_bay.py` fits each sweep, 361 of 361 headings. Piece 89's
+rows hit only 224, 229 and 221 of them, and its `CHAR_ATTACK2` height is 150 against 151.
+
+*Diff-backed* (`row_28_s_round_at_the_capital_on_run1820_s_ranges`): every units, builds, ammo, guys and world
+range on 4026 and 4027, byte for byte. The value diff on 4027, record 1, ours before | theirs (all agree now):
+`launch` (12264, 12552) | (12208, 12465); `sz` 145 | 296; `landing` (10327, 10993) | (10329, 10990); `total_time`
+12 | 11; `angle` −619315200 | −628293632; `v1z` and `dx` follow. `SCORES_SEVENTH[1].moved`: 7 → 9 lines whole
+(units and cities join). Builds first parting 4037 → 4179, leaders 4037 → 4179. **The row's lowest parting is ammo
+4167**, 81 states from the end. run1813 and run1820 keep no ammo ranges there, so the next word needs a take: the
+ammo line from 4167 (`--end-frame 4168`, `RNG_MASK` with bit 3).
+
 ### 14.3 Row 48
 
 Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
