@@ -4440,6 +4440,46 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 146,
         },
     ),
+    // **Piece 1849, the Bazooka in the India art style** (type 139,
+    // `BAZOOKA-INDIA-AGE0`: base 89 at style 5; item 4626, `docs/RECGAME.md`
+    // §14.2): run1816's packet (row 28's game at 3955) holds its three
+    // `AttachPos` rows (node 0 at 17 of `CHAR_ATTACK1`, 7 of `2`, 13 of `3`),
+    // `RData +0x88` 1.0, no `<RESTRICTION>`; `fit_bay.py` fits each sweep (77,
+    // 128 and 121 lattice points; the centroid is kept, 361 of 361 headings
+    // each). Piece 89's rows reproduce 224, 229 and 221 of them, and its
+    // `CHAR_ATTACK2` height is 150 against this one's 151. Without them
+    // who=2's `2/34` loosed its round of 4026 at `0/2000` from its own
+    // square (12264, 12552, 145) against the original's (12208, 12465, 296).
+    (
+        1849,
+        crate::units::anim::ATTACK1,
+        17,
+        Bay {
+            right: 32_862,
+            fwd: 122_217,
+            dz: 127,
+        },
+    ),
+    (
+        1849,
+        crate::units::anim::ATTACK2,
+        7,
+        Bay {
+            right: 33_947,
+            fwd: 97_903,
+            dz: 151,
+        },
+    ),
+    (
+        1849,
+        crate::units::anim::ATTACK3,
+        13,
+        Bay {
+            right: 48_436,
+            fwd: 109_919,
+            dz: 146,
+        },
+    ),
     // **Piece 87, the Anti-tank Rifle in the default art style** (type
     // 137, `ANTITANKRIFLE`; item 3686, `docs/AI.md` §348.1): the piece the
     // Americans' rifles play here (`RON_DEBUG_GAP`'s `p87`). Taken as

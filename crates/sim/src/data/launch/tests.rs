@@ -709,6 +709,27 @@ fn run1424b_s_japanese_bazooka_leaves_from_its_bay() {
     assert_eq!((got.x, got.y, z), (5299, 30765, 664));
 }
 
+/// **The India Bazooka looses from piece 1849's bay** (item 4626,
+/// `docs/RECGAME.md` §14.2): row 28's who=2 `2/34` round of 4026 at
+/// `0/2000`, `CHAR_ATTACK2` frame 7, the figure at (12264, 12552) and
+/// −619315200 with `z` 145, lands in run1820's ammo range on 4027 from
+/// (12208, 12465, 296). Piece 89's row is a unit off in height (150) and
+/// misses 132 of 361 headings. Made to fail with the rows out of `BAYS`:
+/// the round leaves the figure's own square at 145.
+#[test]
+fn row_28_s_india_bazooka_leaves_from_its_bay() {
+    let got = launch_point(
+        Pos::new(12264, 12552),
+        Angle(-619_315_200),
+        1849,
+        crate::units::anim::ATTACK2,
+        7,
+        0,
+    );
+    let z = 145 + release_dz(1849, crate::units::anim::ATTACK2, 7, 0).unwrap_or(0);
+    assert_eq!((got.x, got.y, z), (12208, 12465, 296));
+}
+
 /// **The Egyptian Infantry and Bazooka loose from pieces 52 and 89's
 /// bays** (item 3747, `docs/AI.md` §371.1): run1426's `1/19` round of
 /// 3723 and `1/54`'s of 3840, each from the figure's `GUY` pose on the
