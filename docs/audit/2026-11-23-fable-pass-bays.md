@@ -53,7 +53,7 @@ is `2026-11-23-fable-pass-fog.md`.*
 | the gates (`tools/gates.py … --since gate-pass-1123b.log`) | 9, 267.8 minutes: eight scoped, all widened, and the drain's whole gate; one red, `gate-4629`, 32.7 minutes, on `the_seventh_held_out_games_score_as_pinned` reading run1810 in flight; admission 16,401.1 s summed, longest 975.5 s; one ended with the load past 16 |
 | what a seat bought (the bookings' own lines) | thirteen landings on a held-out row: 553 states before a first parting (row 28 292 over four and whole, row 88 161 over four, row 133 100 over five), 43 a landing; 313 of the 553 on three landings that built `BAYS` rows (4625 92, 4626 140, 4630 81) |
 | the thirteen games not whole (`score_recording` at `86a8d3da3`) | exit 1 on each, a measured difference, 9 to 53 seconds; every report's first parting equals its pin: row 133 builds 2451, row 88 units 2902, row 93 units 2965, row 128 leaders 3338, row 53 units and guys 3358, row 83 3662, row 43 3833, row 48 ammo 5607, row 108 7421, the sample leaders 7502, row 13 7675, row 8 units 9896, row 148 units 10879. Row 128 holds eleven lines whole to 12,001 and leaders on 8,154. Row 88's first run answered exit 2, `incomplete trace header or record`, on a trace log reading zero bytes (below), and exit 1 after the repair; under `~/ron-data/lab-experiments/2026-11-23-pass-third/` |
-| the seam table (`held_seams`, feature `seam-count`, seven tests, 255 s, 56 walks) | five green; the sixth red, `left: Some([(133, 642)])`, `right: Some([(133, 455)])`; the seventh red, `left: Some([(48, 20), (88, 991), (148, 143)])`, `right: Some([(28, 41), (48, 20), (88, 2092)])`. Entry 156 §3's table: `attack_ground_aim` on five open rows and no whole row, `launch::fallback` on four, `pivot::offset_at_unpinned` on two. Re-pinned; the feature's tests were not run again on the new pins |
+| the seam table (`held_seams`, feature `seam-count`, seven tests, 255 s, 56 walks) | five green; the sixth red, `left: Some([(133, 642)])`, `right: Some([(133, 455)])`; the seventh red, `left: Some([(48, 20), (88, 991), (148, 143)])`, `right: Some([(28, 41), (48, 20), (88, 2092)])`. Entry 156 §3's table: `attack_ground_aim` on five open rows and no whole row, `launch::fallback` on four, `pivot::offset_at_unpinned` on two. Run again on the re-pinned figures (`held-seams-2.log`, 254 s): seven green |
 | the bay probe (a print on `launch_point`'s fallback, the sixth's and the seventh's score tests) | exit 0, 414 s, both tests green with the print in; 1,796 lines, the counter's own total: piece 128 on row 88 (six keys, 991), 37 on row 148 (three, 143), 10 on row 48 (one, 20), and 206, 1133, 1485 and 1499 on row 133 (two, thirty, ten and three keys, 642); seven pieces, 55 keys, in `bay-probe.out`; the print taken out after, `crates/sim` clean |
 | the archives (`split.py --archive`, then `afsctool` over both trees in one run) | nothing to split; four files skipped over the compressor's limit, the same four; five trace logs printed `Resource temporarily unavailable`; 107 → 111 GB |
 | the four trace logs (`stat`, `xattr`, then `os.chflags`) | run1813, run1815, run1818 and run1819's `rontrace.log`, each with a second name under `Logs`: size 0, 33.2, 13.7, 11.4 and 14.4 MB of blocks, `com.apple.decmpfs` 16 bytes (`fpmc`, type 12, declaring 246,192,512, 100,517,856, 81,561,344 and 99,457,184 bytes), the flag off. With the flag set each reads to its declared length; the first three match the SHA-256 in `docs/RUNS.md`; run1819 scores 2,383 of 2,383 states, exit 0. The forks as found are under the pass's directory, `fork-backup/` |
@@ -151,8 +151,8 @@ carries no HUD, so the bar and the panels were not judged.
   what lays the plots or the plates.
 - **Nothing of rows 8, 48, 108, 148 or 13 is read.** Their takes hold
   sums.
-- **The re-pinned seam tests were not run again**, and no gate builds
-  the feature.
+- **No gate builds the seam feature**, so its pins hold only until
+  the next landing moves a row.
 - **No still was drawn at the tip.** The pair is item 4629's still and
   the photograph on file.
 - **`tools/ctx.py` still reads the driver's context from a builder**,
@@ -162,5 +162,17 @@ carries no HUD, so the bar and the panels were not judged.
 
 ## The gate
 
-Whole, by `tools/gate_run.sh`, once, on the pass's commit; the commit after
-it quotes the log here.
+Whole, by `tools/gate_run.sh`, once.
+
+- **`gate-pass-1123c.log`: `gate exit 0`** on `e2259006b`, the pass's
+  commit, 9 of 9 steps: offline 1.0, clippy 0.1, guard 0.6, merge pins
+  1.1, release 23.3, clock 0.1. `Clock: green beside load`. Admission
+  13.7 s over 1,591 leases; load 3.6 at its start and 8.5 at its end.
+  `Fixture audit: 207068 requests, 0 missing fixtures`, where the pass
+  before read two: run1810's and run1811's traces are taken. `Rows: one
+  driver row at most: steer be2dae47 (working)`; `Driver: 0 landings
+  since the last pass (backstop 20) · context 300 k`; `Trunk:
+  origin/main is origin/worktree-replan-pdb`. `Builders: 0 reaped`; 117
+  GB free by its count, 109 by `df -g ~`.
+- The commit that quotes this is documents only and ran no whole gate;
+  the reflex, `tools/guard.sh`, was green on it.
