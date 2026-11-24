@@ -204,6 +204,45 @@ impl Sim {
     pub(crate) fn building_range_terms(&self, b: usize) -> i32 {
         let bd = &self.buildings[b];
         let who = bd.owner;
+        let held = self.wonders_held(who);
+        let wonder = |w: usize| held & (1 << w) != 0;
+        let (tower, fort) = (self.is_tower_building(b), self.is_fort_building(b));
+        let mut r = self.type_range_terms(b);
+        if (tower || fort) && self.holds_general(b) {
+            r += self.tables.tuning.general_building_range;
+        }
+        if let Some(c) = bd.city
+            && self.is_city_building(b)
+        {
+            if self.cities.cities[c].alive && self.city_has(c, build::Ident::Temple) {
+                let mut t = self.tables.tuning.temple_upgrade_range
+                    [self.bonus_level(who, &self.tables.tech_tree.roles.temple_range_preq)];
+                if wonder(crate::tech::wonder::TIKAL) {
+                    t = ((self.tables.tuning.tikal_temple_hp + 100) * t + 99) / 100;
+                }
+                r += t;
+            }
+            if self.holds_general(b) {
+                r += self.tables.tuning.general_building_range;
+            }
+        }
+        r
+    }
+
+    /// **`BuildTypeData::get_building_range@00639990`** for building `b`'s
+    /// type and owner: the type's own range (`+0x1fc`, the profile's
+    /// `max_range`) and steps 1 and 2 of [`Self::building_range_terms`],
+    /// without `max_range`'s General and Temple. The minimap's ring round a
+    /// selected building is this, in tiles (`WorldMap::draw_type_circle@
+    /// 008c89c0`, item 4629).
+    pub fn building_range(&self, b: usize) -> i32 {
+        self.profile(Obj::Building(b)).max_range + self.type_range_terms(b)
+    }
+
+    /// Steps 1 and 2 of [`Self::building_range_terms`]:
+    /// `get_building_range`'s own terms past the type's range.
+    fn type_range_terms(&self, b: usize) -> i32 {
+        let who = self.buildings[b].owner;
         let n = &self.cities.nation[who as usize];
         let held = self.wonders_held(who);
         let wonder = |w: usize| held & (1 << w) != 0;
@@ -228,24 +267,6 @@ impl Sim {
                 r += self.tables.tuning.roman_fort_range;
             }
             r += self.tables.tuning.tower_fort_range[(self.tower_fort_los(who) - 1) as usize];
-        }
-        if (tower || fort) && self.holds_general(b) {
-            r += self.tables.tuning.general_building_range;
-        }
-        if let Some(c) = bd.city
-            && self.is_city_building(b)
-        {
-            if self.cities.cities[c].alive && self.city_has(c, build::Ident::Temple) {
-                let mut t = self.tables.tuning.temple_upgrade_range
-                    [self.bonus_level(who, &self.tables.tech_tree.roles.temple_range_preq)];
-                if wonder(crate::tech::wonder::TIKAL) {
-                    t = ((self.tables.tuning.tikal_temple_hp + 100) * t + 99) / 100;
-                }
-                r += t;
-            }
-            if self.holds_general(b) {
-                r += self.tables.tuning.general_building_range;
-            }
         }
         r
     }

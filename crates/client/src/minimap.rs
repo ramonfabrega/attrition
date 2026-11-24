@@ -70,6 +70,7 @@ pub fn minimap_camera(extent: (i32, i32)) -> render::Camera {
 }
 
 pub mod blips;
+pub mod circles;
 pub mod fog;
 pub mod pings;
 
@@ -502,8 +503,9 @@ pub fn view_rect(
 /// `render_ping`): the borders ([`borders`]), the blips ([`blips`], item
 /// 4601; `selection` the console's, `blink` the phase `graphic_tick & 8`)
 /// and the view's rectangle
-/// ([`view_rect`]), then the pings ([`pings`], item 4603: the entries
-/// the world holds, which our sim does not yet supply). The fog
+/// ([`view_rect`]), the rings round the selected buildings
+/// ([`circles`], item 4629), then the pings ([`pings`], item 4603: the
+/// entries the world holds, which our sim does not yet supply). The fog
 /// ([`fog::layers`], item 4624) is drawn under [`crate::world::World::fog`];
 /// it draws nothing on run1564's photograph, whose reveal is on.
 pub fn overlays(
@@ -547,6 +549,9 @@ pub fn overlays(
         view,
         screen,
     ));
+    // Item 4629: `render_ping`'s type circles, after the events' and
+    // before the texture pings it draws last.
+    out.push(circles::draw(&circles::build(world, selection, size), size));
     if let Some(set) = world.ping_set.as_ref() {
         let quads = pings::build(
             set,
@@ -870,7 +875,10 @@ pub(crate) mod tests {
     /// `[560, 596, 595, 3529, 3002, 3600]` → `[558, 596, 580, 3540, 3213,
     /// 3600]`, within `NEAR` +211, the packet's own entries' figure. Seen
     /// red: without the begun-a-wonder and the nuke circle's alerts, 3,112.
-    pub const RUN1564_3279_MINIMAP: [usize; 6] = [558, 596, 580, 3540, 3213, 3600];
+    /// Item 4629, the ring round the selected capital ([`circles`]; the
+    /// packet holds it at (389, 969), radius 9.3411): within `NEAR` 3,213
+    /// → 3,220, +7.
+    pub const RUN1564_3279_MINIMAP: [usize; 6] = [558, 596, 580, 3540, 3220, 3600];
 
     /// **The who texture's edge** (item 4588): a 2 × 1 map, player 0 on the
     /// left cell and player 1 on the right; then the right cell open water.
