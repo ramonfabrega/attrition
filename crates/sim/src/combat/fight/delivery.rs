@@ -896,8 +896,15 @@ impl Sim {
     /// `CARAVAN`, `SUPPLY_OR_HERO`) plunders by its own constant, `p3` and
     /// `p4` both 0 (item 3788). The Inca refund is [`Sim::inca_refund`].
     ///
-    /// SEAM: the victim redirect of a type with `+0x2b4 & 0x10` is not
-    /// carried.
+    /// **A transport answers for its cargo** (item 4631, `docs/RECGAME.md`
+    /// §14.4): `take_damage@00652020` at `6530a5`..`6530ba` redirects a
+    /// victim whose type carries `+0x2b4 & 0x10` (`uflags::FLAG_TRANSPORT`)
+    /// to the head of its `inside_down` before the ally test and the
+    /// General, CARA and SUPPLYWAGON `is` tests, and an empty one
+    /// (`inside_down < 0`, `js 0x6533b2`) skips the plunder and the Inca
+    /// refund whole. `Unit::plunder@00605b00` makes the same redirect for
+    /// its hero, supply and caravan tests; the Despot search keeps the
+    /// transport's own position. See [`Sim::plunder_victim`].
     pub(crate) fn unit_plunder(&mut self, v: usize, k: usize) {
         use crate::ai::ai_load::uflags2;
         const DESPOT: i32 = 0x160;
@@ -907,7 +914,11 @@ impl Sim {
         if !self.is_captain(v) || victim.decoy || self.curr_uber_size(v) != 1 {
             return;
         }
-        let (vw, at) = (victim.owner, victim.pos);
+        let at = victim.pos;
+        let Some(r) = self.plunder_victim(v) else {
+            return;
+        };
+        let vw = self.units[r].owner;
         let who = self.units[k].owner;
         if who == vw || self.is_ally(vw, who) {
             return;
@@ -922,7 +933,7 @@ impl Sim {
                 });
         if slay {
             crate::combat::plunder::plunder_steps(
-                &mut crate::combat::plunder::SimPlunder { sim: self, v },
+                &mut crate::combat::plunder::SimPlunder { sim: self, v, r },
                 k as i32,
                 i32::from(who),
                 1,
@@ -930,7 +941,7 @@ impl Sim {
             );
             return;
         }
-        let kind = self.units[v]
+        let kind = self.units[r]
             .ty
             .map_or(0, |t| self.tables.unit_types[t].cols.unit_flags2);
         // `take_damage@00652020`'s `is(GENERAL)`/`is(CARA)`/`is(SUPPLYWAGON)`
@@ -939,7 +950,7 @@ impl Sim {
         // `GENERAL_PLUNDER` 100 for who=1's Despot `1/28` on 1463).
         if kind & (uflags2::FLAG2_GENERAL | uflags2::FLAG2_CARAVAN | uflags2::SUPPLY_OR_HERO) != 0 {
             crate::combat::plunder::plunder_steps(
-                &mut crate::combat::plunder::SimPlunder { sim: self, v },
+                &mut crate::combat::plunder::SimPlunder { sim: self, v, r },
                 k as i32,
                 i32::from(who),
                 0,
@@ -955,7 +966,7 @@ impl Sim {
         // `Unit::plunder(victim, k, who, 0, 1)`: the Extended Edition's arm,
         // over the crate's own buckets and draws.
         crate::combat::plunder::plunder_steps(
-            &mut crate::combat::plunder::SimPlunder { sim: self, v },
+            &mut crate::combat::plunder::SimPlunder { sim: self, v, r },
             k as i32,
             i32::from(who),
             0,
@@ -981,7 +992,12 @@ impl Sim {
         if !self.is_captain(v) || victim.decoy || self.curr_uber_size(v) != 1 {
             return;
         }
-        let vw = victim.owner;
+        // The redirect `unit_plunder` makes (item 4631): an empty
+        // transport refunds nothing, and a laden one is its cargo's.
+        let Some(r) = self.plunder_victim(v) else {
+            return;
+        };
+        let vw = self.units[r].owner;
         if self.tables.tuning.inca_refund == 0
             || self.is_ally(vw, self.owner_of(by))
             || !self.economy.holdings[vw as usize].inca
@@ -989,7 +1005,7 @@ impl Sim {
             return;
         }
         crate::combat::plunder::plunder_steps(
-            &mut crate::combat::plunder::SimPlunder { sim: self, v },
+            &mut crate::combat::plunder::SimPlunder { sim: self, v, r },
             v as i32,
             i32::from(vw),
             0,
