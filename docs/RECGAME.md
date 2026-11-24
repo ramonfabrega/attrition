@@ -566,6 +566,14 @@ slot moves (4432; GROUPS §6.6); units → 2892, a `GARRISON` walks
 target and `search`, groups → 3053, the bell's group is pushed (4440;
 CHECKSUM §17).
 
+## 7.1 The 2017 sample's first parting
+
+**Diamonds on state 7502 (item 4569).** On run1786, player 3 gains rare bit
+22. Its five capped goods and its spare cap now agree at 3440, up from 3200.
+Leaders agree through 7649. The sample first parts on units and cities at
+7539. The draw count and sequence still first part at 7613. The whole-cast
+comparison and next differing ranges are in the [item journal](journal/2026-11-24-item-4569.md).
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte

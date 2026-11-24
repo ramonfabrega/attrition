@@ -1466,8 +1466,17 @@ rather than summing; then `bonus_cap`; then the clamp and the `<< 4`.
 commerce level 2 with Republic, carries **3792** against the 2992 this
 crate had: `150 × 125 / 100 + 50`, times 16. ~~Diamonds, the wonders and
 Virtual Reality are still not built.~~ **The wonders are built and the
-Pyramids' term is diff-backed, 2026-09-25** (§15); Diamonds and Virtual
-Reality are still not.
+Pyramids' term is diff-backed, 2026-09-25** (§15). Virtual Reality remains open.
+
+**Diamonds, measured on run1786 (item 4569).** On sample states 7501 → 7502,
+player 3's active and owned rare masks both gain bit 22. Its Commerce level
+stays at 2. The five capped goods and the seventh cap rise from 3200 to 3440
+in that same state. Knowledge stays at 15984. Applying the shipped 10%
+increase to the base 150 gives 165, followed by Republic's 50 and the
+sixteenths conversion. Applying it after Republic would give 3520. Every
+leaders range agrees on states 7495–7509. The ordering against the nation
+and wonder modifiers is reading-only on this recording, with an authored
+arithmetic test. The measured acquisition is in the ordinary skirmish mask.
 **The tier is read every frame** (item 4444, run1722), as the commerce
 level and the wonders are: `calc_resource_caps` runs outside the reassembly
 gate. Row 60's computer takes its republic on 968, and theirs' caps are 3200

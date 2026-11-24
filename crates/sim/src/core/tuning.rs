@@ -526,6 +526,8 @@ pub struct Tuning {
     pub french_woodies: i32,
     /// The same, for the Inca on wealth.
     pub inca_wealth_cap: i32,
+    /// Percentage increase from Diamonds, before flat commerce-cap bonuses.
+    pub diamonds_commerce: i32,
     /// `INCA_REFUND`: the percent of a dead Inca unit's price its leader
     /// gets back, in every good — `Object::take_damage@00652020`'s
     /// `LAB_00653354` arm into `Unit::plunder@00605b00`'s refund (item
@@ -1635,6 +1637,7 @@ impl Tuning {
         americans_marine_entrench: 5,
         french_woodies: 1,
         inca_wealth_cap: 33,
+        diamonds_commerce: 10,
         inca_refund: 25,
         republic_commerce_bonus: [50, 50, 50],
         pyramids_commerce: 50,
@@ -2259,6 +2262,7 @@ impl Tuning {
                 Slot::Value(T.americans_marine_entrench),
             ),
             ("INCA_WEALTH_CAP", Slot::Value(T.inca_wealth_cap)),
+            ("DIAMONDS_COMMERCE", Slot::Value(T.diamonds_commerce)),
             ("INCA_REFUND", Slot::Value(T.inca_refund)),
             (
                 "REPUBLIC_COMMERCE_BONUS",

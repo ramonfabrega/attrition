@@ -291,6 +291,8 @@ pub const AMBER: usize = 17;
 /// alone changes, the mask's writer calls `Regions::fix_all_borders`
 /// (`docs/ATTRITION.md`, "Territory").
 pub const GEMS: usize = 29;
+/// Diamonds in `resourcerules.xml`: bit 22 of the rare mask.
+pub const DIAMONDS: usize = 28;
 
 /// `TypeIndex::OBSIDIAN` — `resourcerules.xml`'s thirty-third `RESOURCE`.
 ///
@@ -1216,9 +1218,9 @@ pub fn mongol_nomadic_food(t: &Tuning, h: &Holdings) -> i32 {
 /// every slot first, then the one per-resource power — Egyptian food, French
 /// timber, Inca wealth. Each is a percentage of the running value and each
 /// truncates on its own, so a British Egyptian's food cap is
-/// `70 * 125 / 100 * 110 / 100` and not `70 * 137 / 100`. The wonder and
-/// rare terms are additions on the same value and are not here; they belong
-/// with the rest of the wonder layer.
+/// `70 * 125 / 100 * 110 / 100` and not `70 * 137 / 100`. Diamonds then
+/// raises this result by its percentage, before the flat wonder and Republic
+/// bonuses.
 ///
 /// The **republic** term is: the highest `REPUBLIC_n` held adds its
 /// `REPUBLIC_COMMERCE_BONUS`, once and not summed, after the wonders and
@@ -1230,7 +1232,17 @@ pub fn mongol_nomadic_food(t: &Tuning, h: &Holdings) -> i32 {
 /// on every frame of the window against the human's 1120, and
 /// `70 * 125 / 100` is 87 — the half is lost here, before the `* 16`.
 pub fn commerce_cap(t: &Tuning, h: &Holdings, r: Resource) -> i32 {
-    if r == Resource::Knowledge {
+    commerce_cap_slot(t, h, Some(r))
+}
+
+/// The seventh encrypted cap has no resource, wonder or scenario addition.
+/// It shares the British, Diamonds and Republic terms with the six goods.
+pub fn commerce_cap_seventh(t: &Tuning, h: &Holdings) -> i32 {
+    commerce_cap_slot(t, h, None)
+}
+
+fn commerce_cap_slot(t: &Tuning, h: &Holdings, good: Option<Resource>) -> i32 {
+    if good == Some(Resource::Knowledge) {
         return CAP_CEILING * RATE_SCALE;
     }
     let level = h.commerce.min(t.commerce_cap.len() - 1);
@@ -1238,40 +1250,20 @@ pub fn commerce_cap(t: &Tuning, h: &Holdings, r: Resource) -> i32 {
     if h.british {
         cap = cap * (100 + t.british_commerce) / 100;
     }
-    let nation = match r {
-        Resource::Food if h.egyptians => t.egyptian_food_commerce,
-        Resource::Timber if h.french => t.french_timber_commerce,
-        Resource::Wealth if h.inca => t.inca_wealth_cap,
+    let nation = match good {
+        Some(Resource::Food) if h.egyptians => t.egyptian_food_commerce,
+        Some(Resource::Timber) if h.french => t.french_timber_commerce,
+        Some(Resource::Wealth) if h.inca => t.inca_wealth_cap,
         _ => 0,
     };
     cap = cap * (100 + nation) / 100;
-    // The wonders' flat additions (`calc_resource_caps@006ce900`'s wonder
-    // arm, `docs/ECONOMY.md` §15). Diamonds, which comes before them, is
-    // not built.
-    cap += wonder_commerce(t, h.wonders, r);
-    if let Some(&bonus) = h
-        .republic
-        .checked_sub(1)
-        .and_then(|i| t.republic_commerce_bonus.get(i))
-    {
-        cap += bonus;
+    // gather_rares has rebuilt the mask for this frame. On run1786 the
+    // cap changes on the very state where player 3 first holds Diamonds.
+    if rares::rare_bit(h.rare_owned, DIAMONDS) {
+        cap = cap * (100 + t.diamonds_commerce) / 100;
     }
-    let cap = cap + h.bonus_cap[r.index()];
-    cap.clamp(0, CAP_CEILING) * RATE_SCALE
-}
-
-/// **The seventh cap** (`resource_cap[6]`, `LeaderDataEncrypt +0x48`):
-/// `calc_resource_caps@006ce900`'s last pass of its seven, the slot no good
-/// takes. It reaches no nation term and no wonder arm (each names a slot
-/// below six), so it is the base cap with the British term, the republic
-/// term and `bonus_cap[6]`, clamped and scaled as the six are
-/// (`docs/ECONOMY.md`, "The commerce cap"). Diamonds is not built, as in
-/// [`commerce_cap`]; `bonus_cap[6]` is not held and reads 0.
-pub fn commerce_cap_seventh(t: &Tuning, h: &Holdings) -> i32 {
-    let level = h.commerce.min(t.commerce_cap.len() - 1);
-    let mut cap = t.commerce_cap[level];
-    if h.british {
-        cap = cap * (100 + t.british_commerce) / 100;
+    if let Some(r) = good {
+        cap += wonder_commerce(t, h.wonders, r);
     }
     if let Some(&bonus) = h
         .republic
@@ -1280,6 +1272,7 @@ pub fn commerce_cap_seventh(t: &Tuning, h: &Holdings) -> i32 {
     {
         cap += bonus;
     }
+    let cap = cap + good.map_or(0, |r| h.bonus_cap[r.index()]);
     cap.clamp(0, CAP_CEILING) * RATE_SCALE
 }
 

@@ -431,6 +431,26 @@ fn a_republic_adds_fifty_to_every_capped_good() {
 }
 
 #[test]
+fn diamonds_raise_the_nation_adjusted_cap_before_flat_wonder_and_republic_bonuses() {
+    let t = Tuning::RON;
+    let mut h = Holdings::new();
+    h.british = true;
+    h.egyptians = true;
+    h.republic = 1;
+    h.wonders = 1 << crate::tech::wonder::PYRAMIDS;
+    h.rare_owned = 1 << (GEMS - BASE_RARE);
+    // 70 -> 87 (British) -> 95 (Egyptian food), then two flat fifties.
+    assert_eq!(commerce_cap(&t, &h, Resource::Food), 195 * RATE_SCALE);
+    h.rare_owned |= 1 << (DIAMONDS - BASE_RARE);
+    assert_eq!(commerce_cap(&t, &h, Resource::Food), 204 * RATE_SCALE);
+    assert_eq!(commerce_cap_seventh(&t, &h), 145 * RATE_SCALE);
+    assert_eq!(
+        commerce_cap(&t, &h, Resource::Knowledge),
+        CAP_CEILING * RATE_SCALE
+    );
+}
+
+#[test]
 fn the_last_commerce_tech_is_worth_seven_times_the_first() {
     let t = Tuning::RON;
     let mut h = Holdings::new();

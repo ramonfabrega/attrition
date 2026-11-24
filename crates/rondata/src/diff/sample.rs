@@ -820,6 +820,8 @@ pub(in crate::diff) mod tests {
     /// 7571 -> 7636, deaths 7710 -> 7796, groups 7483 -> 7625, guys 7411 ->
     /// 7612, leaders 7407 -> 7502, cities 7539 stands, items 9299 -> 8628,
     /// goods 7706 -> 8552, world 7413 -> 7612; leaders 7502 the lowest.
+    /// Item 4569: the Diamonds cap moves leaders 7502 -> 7650. Units and
+    /// cities on 7539 now part first. The draw word remains 7613.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 7539),
         ("builds", 7620),
@@ -828,7 +830,7 @@ pub(in crate::diff) mod tests {
         ("deaths", 7796),
         ("groups", 7625),
         ("guys", 7612),
-        ("leaders", 7502),
+        ("leaders", 7650),
         ("cities", 7539),
         ("items", 8628),
         ("goods", 8552),
@@ -1353,6 +1355,52 @@ pub(in crate::diff) mod tests {
         assert_eq!(got, pinned, "SAMPLE_RANGES_1772");
     }
 
+    /// run1786: the fifteen states around player 3 acquiring Diamonds.
+    /// Compare every player's complete leaders line, including the spare cap.
+    #[test]
+    fn diamonds_raise_the_sample_s_commerce_caps_on_acquisition() {
+        let (Some(inst), Some(rcx), Some(mut ranges)) = (install(), sample(), run1786()) else {
+            return;
+        };
+        let rec = crate::recgame::read(&rcx).expect("the sample parses");
+        let (mut built, _) = sample_start(&inst, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        for state in 7495..=7509 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.tick();
+            }
+            let set = ranges.first_of(state - 1).expect("run1786's state").clone();
+            assert_eq!(set.flags, 0);
+            let all = ranges.ranges(&set).expect("the set's ranges");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            let ours = built.sim.checksum_leaders();
+            assert_eq!(ours.ranges.len(), theirs.len(), "leaders on {state}");
+            for (i, (a, b)) in ours.ranges.iter().zip(theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "leaders {i} {} {} on {state}",
+                    a.record, a.field
+                );
+            }
+            let holdings = &built.sim.economy.holdings[3];
+            assert_eq!(holdings.commerce, 2);
+            assert!(holdings.republic > 0);
+            let ledger = &built.sim.economy.ledgers[3];
+            let (mask, cap) = if state < 7502 {
+                (0xa09080, 3200)
+            } else {
+                (0xe09080, 3440)
+            };
+            assert_eq!(ledger.rare, mask, "player 3 on {state}");
+            assert_eq!(
+                ledger.cap,
+                [cap, cap, cap, 15984, cap, cap],
+                "player 3 on {state}"
+            );
+        }
+    }
+
     /// The same walk over run1786's record, the eleven lines of its mask
     /// alone, pinned per line by [`SAMPLE_RANGES_1786`].
     /// `RON_SAMPLE_RANGES_DETAIL` and `RON_SAMPLE_RANGES_ALL` print as
@@ -1852,6 +1900,8 @@ pub(in crate::diff) mod tests {
     /// -> 7796, groups 7483 -> 7625, guys 7411 -> 7612, leaders 7407 ->
     /// 7502 (`479 3 encrypt`), world 7413 -> 7612; goods leaves the
     /// window (8552 on the hook's sums).
+    /// Item 4569: all six Diamonds cap differences at 7502 close.
+    /// The next leaders difference is record 2 on 7650.
     const SAMPLE_RANGES_1786: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
@@ -1896,11 +1946,11 @@ pub(in crate::diff) mod tests {
         ),
         (
             "leaders",
-            7502,
+            7650,
             675,
             675,
-            6,
-            "479 3 encrypt: +0x0 of 4|4: 800c0000|700d0000",
+            2,
+            "271 2 who..ally_mask: +0xa54 of 26914|26914: 03000200|04000200",
         ),
         ("cities", 7539, 64, 64, 2, "1 1 city..ter: scouted 0|8"),
         (
