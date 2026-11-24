@@ -5078,8 +5078,76 @@ run1814b's frame does not exercise: a box's or a good's `ever_seen`, the
 tribe arms, a unit's stealth, a building's `visible` byte.
 
 **Not established.**
-- The photograph's red ring round the selected capital on the minimap
-  (4627a).
+- ~~The photograph's red ring round the selected capital on the minimap
+  (4627a).~~ Built in §3.32.4 (item 4629): the selected building's range.
+
+## 3.32.4 The ring round a selected building, built (item 4629)
+
+*2026-11-23, Opus 5.5. The ledger: `docs/journal/2026-11-23-item-4629.md`.
+`client::minimap::circles`; checked by
+`minimap::circles::tests::the_ring_round_the_capital_on_run1814b`,
+`the_radius_is_the_packet_s` and `a_ring_is_cut_at_the_quad_s_edge`.*
+
+**What draws it.** Not the HUD and not a ping event: run1814b's packet
+holds no event (`pings_packet.py`: `events 0`). `WorldMap::render_ping@
+008ca6d0`, after the events, walks the console's selection. For a group
+of buildings (`GroupData::buildings`) whose `who` is the console's, each
+building gets `draw_type_circle@008c89c0` (vslot `+0x444`; the vtable
+is at `0x00b54a40`, `render_blips` its `+0x424`) with its type and world
+point. A building type whose `BuildTypeData::get_building_range@00639990`,
+asked of the console, is not 0 draws `draw_minimap_circle@008c84a0`
+(`+0x448`) of radius `range · 0xc0`, in the owner's `TeamColor::get_text`.
+`get_building_range` is the type's range (`+0x1fc`, the profile's
+`max_range`) and the Tower and Fort terms; `BuildData::max_range@0062e470`
+adds the General and the Temple on top, which the ring does not ask
+(`Sim::building_range`).
+
+**The ring** (`draw_minimap_circle`, its listing):
+- 73 points, every 5 degrees from 0 to 360, at `(cx + r cos a, cy + ½ r
+  sin a)`; `r` is `w · R / (cells · 0x300 · 1.413998)`, `w` the quad's
+  width and the factor the float at `0x00b69550`, not √2.
+- The centre is `MiscAccess::world_to_console@00583840` under the
+  minimap's camera, onto the quad's width and height, rounded half up,
+  from the quad's left and top. On run1814b it is (389, 969); the capital's
+  blip centre is (388.42, 966.70).
+- A point inside either of the quad's triangles joins the line strip. One
+  outside ends it: the strip takes the point and is drawn if it held two
+  or more, and the point starts the next. The last point ends the last.
+- Each strip is one colour, opaque, untextured, drawn after the blips (the
+  photograph's ring crosses the capital's blip's outline).
+- `TeamColor::get_text` is the record's `text` unless the game plays with
+  the profile's `prefs & 0x100`; run1814b's profile is `0x1f2e5055`. The
+  eight `TEAM_COLOR_TEXT_*` are the executable's bytes, and the packet
+  holds the same eight (`circles::TEXT_COLOURS`).
+- **The packet keeps the vertices.** `worldmap_ping_verts` (`0x00c8c3a0`,
+  count `+0x4`, data `+0x10`, 16 bytes a vertex) is reset to one point
+  after the draw, and its data is left. Run1814b's holds the 73 points
+  round (389, 969), radius 9.3411 by 4.6705.
+- The pixels follow the card's diamond-exit rule, pixel centres at
+  integers: the point (379.66, 969) lights column 380, and a segment
+  whose ends round to one pixel still lights it.
+
+**The rows**, on run1814b's frame 3294, the capital selected:
+- `RUN1814B_3294_RING_POINTS`, the packet's points against ours within
+  0.01 px: [73, 0, 0] → **[73, 73, 73]**.
+- `RUN1814B_3294_RING_PIXELS`, the photograph's `(255, 100, 100)`
+  against the still's in the ring's box, `[theirs, ours, both]`: seen red
+  at **[40, 0, 0]**, [40, 40, 38] with a stepping rasteriser, **[40, 40,
+  40]** with the diamond-exit rule.
+- `RUN1564_3279_MINIMAP` within 32: 3,213 → **3,220**. Run1564's packet
+  holds the same ring at the same point.
+
+**Diff-backed**: the ring's points, its colour, its pixels. **Read
+alone**: the strip's cut at the quad's edge (no capture's ring crosses
+it), the `prefs & 0x100` arm, the Tower and Fort terms on a ring.
+
+**Not established.**
+- `draw_type_circle`'s other arms (4629a). A building with no range whose
+  type is an air base or a silo draws the air units' reach (two rings,
+  the second in the neon at half). A selected unit of type `0x15f` draws
+  its own. No capture is known to show either.
+- The selection's gather lines (`Buffer::box` along a building's gather
+  points), drawn in the same walk (4629b).
 
 ## 3.33 The minimap's blips, read (item 4593)
 

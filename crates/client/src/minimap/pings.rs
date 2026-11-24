@@ -18,8 +18,9 @@
 //! [`draw`] are the client's half, held to run1564's packet quad for quad.
 //!
 //! Not built: the circle (`ping` -4, `draw_minimap_circle`), the doober's
-//! boxes, the selection's gather lines and type circles, the scene's own
-//! pings and the splines. None is on run1564's packet.
+//! boxes, the selection's gather lines, the scene's own pings and the
+//! splines. None is on run1564's packet. The selection's type circles are
+//! [`super::circles`] (item 4629).
 
 /// One `MessageWinEntry` as `render_ping` reads it: the world point
 /// (`x` `+0x4`, `y` `+0x8`), `ping` `+0x10` (the kind; 0 none), the
