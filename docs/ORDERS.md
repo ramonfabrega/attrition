@@ -3295,6 +3295,11 @@ route on the next, where this crate plans and steps at once (`1/28` on block
 
 **Item 3540**: an emplaced type (`unit_flags2 & 1`) on an invalid target sets
 `fight`'s `local_1c` and skips the reload gate (`docs/AI.md` §305).
+**Item 4632**: so does one on a **valid** target whose head order
+(`UnitData::get_order@0060b030`) carries `flags & 0x10`, the re-entry
+flag: `:92`–`100` clears the latch only when the target is valid *and*
+that bit is clear. Diff-backed by row 133's Flamethrower `1/115` on 2439
+(`docs/RECGAME.md` §13.5): it turns at its target while recharging.
 
 ## The other combat orders (§7.3 – §7.9)
 

@@ -1728,18 +1728,15 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: units, ammo, guys and world part first on 2440. run1797's ranges hold each item's frames, each *diff-backed*.
+Open: builds parts first on 2451. run1797's ranges hold each item's frames, each *diff-backed*.
 
-**Items 4597, 4602, 4604**: units → 2199, `REPAIR` under `MOVE_TO` (`docs/GROUPS.md`); builds → 2351, ammo →
-2408, an anti-air building's wind, turret and spline (`docs/COMBAT.md` §84).
+**Items 4597 to 4620**: units → 2376, builds → 2432, ammo → 2408, leaders → 2413, cities → 2448 (`docs/GROUPS.md`,
+`docs/COMBAT.md` §84, a Temple's close, two walks by object number; their journals).
 
-**Item 4607**: leaders → 2413, cities → 2448: every Temple's close fixes the borders (`is(0x1b5)`, `0x628d2c`).
+**Item 4628** (run1819's packet): units → 2440: `get_damage`'s rocky step reads the target's cell `flags & 8`.
 
-**Items 4610, 4620**: units → 2376, builds → 2432. The orphan check and a new city's sweep walk by object number.
-
-**Item 4628** (run1819's packet): units → 2440. On 2375 the Redoubt `1/2025` strikes `2/0` for ours 18, theirs 11:
-`get_damage`'s rocky step (`644c85`..`644cf2`, mask `0x2008164 & 0x10108`, the cell's `flags & 8`) cuts it, and ours
-read no cell.
+**Item 4632**: units → 2543. On 2439 the Flamethrower `1/115` (`recharging` 30, its attack's `flags` 16) turns at
+its target in theirs and swings in ours: `Unit::fight`'s emplaced latch (`:92`–`100`) takes the head order's `0x10`.
 
 ## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
 

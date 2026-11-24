@@ -11751,24 +11751,40 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // -> 2583), items 3,007 -> 2,753 and goods 4,136 -> 3,674 (falls
         // past the parting, first 3007 -> 2753 and 3258 -> 2685), world
         // 2,400 -> 2,440 (first 2400 -> 2440); the first parting is units,
-        // ammo, guys and world on 2440.
+        // ammo, guys and world on 2440. Then by item 4632 (the emplaced
+        // weapon's latch takes its head order's `FIGHT_REENTRY`,
+        // `Unit::fight@005fd4d0:92`-`100`: who=1's Flamethrower `1/115`, TI
+        // 131, on 2439 with `recharging` 30 and its attack's `flags` 16
+        // walks past the reload gate in theirs and turns; ours stood and
+        // swung, one draw `Guy::set_anim+0xf2f < Guy::move+0x166` over
+        // theirs' 25; units range 3114, record 115, `angle` ours
+        // 1206124544, theirs 1183514624 on 2440, the guy's `cur_anim` 12
+        // against 8 and `hold_attack` 0 against 1; all agree now): units
+        // 2,440 -> 2,543 (first 2440 -> 2543), ammo 3,045 -> 3,143 (first
+        // 2440 -> 2547), deaths 2,612 -> 2,563 (a fall past the parting,
+        // first 2457 stands), groups 2,445 -> 2,685 (first 2445 -> 2685),
+        // guys 2,440 -> 2,543 (first 2440 -> 2543), leaders 2,447 -> 2,749
+        // (first 2445 -> 2608), cities 2,583 -> 2,978 (first 2583 -> 2978),
+        // items 2,753 -> 3,148 (first 2753 -> 3007), goods 3,674 -> 3,983
+        // (first 2685 -> 3322), world 2,440 -> 2,680 (first 2440 -> 2680);
+        // the first parting is builds alone on 2451.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                2440, 2451, 6085, 3045, 2612, 2445, 2440, 2447, 2583, 2753, 3674, 2440,
+                2543, 2451, 6085, 3143, 2563, 2685, 2543, 2749, 2978, 3148, 3983, 2680,
             ],
             first: &[
-                ("units", (2440, Some(3643362165), 837035619)),
+                ("units", (2543, Some(3075655271), 2039728566)),
                 ("builds", (2451, Some(2666296210), 3002692520)),
-                ("ammo", (2440, Some(4195036005), 2463640192)),
-                ("deaths", (2457, Some(3856489402), 2458741352)),
-                ("groups", (2445, Some(1477034087), 1193197654)),
-                ("guys", (2440, Some(1621384669), 4245511913)),
-                ("leaders", (2445, Some(3298587354), 2180412120)),
-                ("cities", (2583, Some(3115797513), 3339931136)),
-                ("items", (2753, Some(3523094179), 3540395687)),
-                ("goods", (2685, Some(514685040), 410876012)),
-                ("world", (2440, Some(500256310), 2864074462)),
+                ("ammo", (2547, Some(3276077082), 122615738)),
+                ("deaths", (2457, Some(2931452735), 2458741352)),
+                ("groups", (2685, Some(293453109), 2102443375)),
+                ("guys", (2543, Some(963907415), 2794328742)),
+                ("leaders", (2608, Some(4049621251), 4085010693)),
+                ("cities", (2978, Some(1121539707), 1131566715)),
+                ("items", (3007, Some(3525321571), 3415154359)),
+                ("goods", (3322, Some(569473142), 586774648)),
+                ("world", (2680, Some(3147089146), 4135110218)),
             ],
             over: None,
         }),
