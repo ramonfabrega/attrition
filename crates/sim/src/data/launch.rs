@@ -4440,6 +4440,46 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 146,
         },
     ),
+    // **Piece 1849, the Bazooka in the India art style** (type 139,
+    // `BAZOOKA-INDIA-AGE0`: base 89 at style 5; item 4626, `docs/RECGAME.md`
+    // §14.2): run1816's packet (row 28's game at 3955) holds its three
+    // `AttachPos` rows (node 0 at 17 of `CHAR_ATTACK1`, 7 of `2`, 13 of `3`),
+    // `RData +0x88` 1.0, no `<RESTRICTION>`; `fit_bay.py` fits each sweep (77,
+    // 128 and 121 lattice points; the centroid is kept, 361 of 361 headings
+    // each). Piece 89's rows reproduce 224, 229 and 221 of them, and its
+    // `CHAR_ATTACK2` height is 150 against this one's 151. Without them
+    // who=2's `2/34` loosed its round of 4026 at `0/2000` from its own
+    // square (12264, 12552, 145) against the original's (12208, 12465, 296).
+    (
+        1849,
+        crate::units::anim::ATTACK1,
+        17,
+        Bay {
+            right: 32_862,
+            fwd: 122_217,
+            dz: 127,
+        },
+    ),
+    (
+        1849,
+        crate::units::anim::ATTACK2,
+        7,
+        Bay {
+            right: 33_947,
+            fwd: 97_903,
+            dz: 151,
+        },
+    ),
+    (
+        1849,
+        crate::units::anim::ATTACK3,
+        13,
+        Bay {
+            right: 48_436,
+            fwd: 109_919,
+            dz: 146,
+        },
+    ),
     // **Piece 87, the Anti-tank Rifle in the default art style** (type
     // 137, `ANTITANKRIFLE`; item 3686, `docs/AI.md` §348.1): the piece the
     // Americans' rifles play here (`RON_DEBUG_GAP`'s `p87`). Taken as
@@ -7841,6 +7881,109 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             right: 0,
             fwd: 146_477,
             dz: 88,
+        },
+    ),
+    // **Item 4625: piece 292, the Carrack** (`GALLEON-DEFAULT-AGE0`,
+    // `Carrack.bh3`, unit type 342, sea; `docs/RECGAME.md` §14.4). Its
+    // `<UNIT>` gives nine `RELEASEEVENT`s, one a node and attack anim, all
+    // on the starboard side. Row 88 of the seventh held-out battery fired
+    // who=1's `1/82` from the figure's square on 2790, where the original's
+    // round left (42, 89) to its right at `sz` 35 (run1818's ranges, ammo
+    // record 0). `get_position.py … --init <node>,<anim>,<time>,3 sweep 292
+    // <node> <anim> <time>` on run1579's packet fills each key, and
+    // `fit_bay.py` admits one region a key, 361 of 361 headings, its
+    // centroid kept (109 to 4,321 lattice points), but for node 2's
+    // `CHAR_ATTACK2` frame 24: **no point reproduces all 361 headings**,
+    // and the row is the point that misses one, heading 283 (sweep
+    // `(-127, 70)`, ours `(-127, 71)`). The heights are the sweep's.
+    (
+        292,
+        crate::units::anim::ATTACK1,
+        29,
+        Bay {
+            right: 99_202,
+            fwd: 88_805,
+            dz: 35,
+        },
+    ),
+    (
+        292,
+        crate::units::anim::ATTACK1,
+        34,
+        Bay {
+            right: 100_129,
+            fwd: -27_681,
+            dz: 30,
+        },
+    ),
+    (
+        292,
+        crate::units::anim::ATTACK1,
+        19,
+        Bay {
+            right: 97_830,
+            fwd: -68_353,
+            dz: 37,
+        },
+    ),
+    (
+        292,
+        crate::units::anim::ATTACK2,
+        36,
+        Bay {
+            right: 100_816,
+            fwd: 52_335,
+            dz: 30,
+        },
+    ),
+    (
+        292,
+        crate::units::anim::ATTACK2,
+        14,
+        Bay {
+            right: 98_551,
+            fwd: 12_974,
+            dz: 35,
+        },
+    ),
+    (
+        292,
+        crate::units::anim::ATTACK2,
+        24,
+        Bay {
+            right: 97_789,
+            fwd: -107_946,
+            dz: 36,
+        },
+    ),
+    (
+        292,
+        crate::units::anim::ATTACK3,
+        34,
+        Bay {
+            right: 100_386,
+            fwd: 86_474,
+            dz: 32,
+        },
+    ),
+    (
+        292,
+        crate::units::anim::ATTACK3,
+        32,
+        Bay {
+            right: 99_614,
+            fwd: 12_048,
+            dz: 32,
+        },
+    ),
+    (
+        292,
+        crate::units::anim::ATTACK3,
+        29,
+        Bay {
+            right: 98_847,
+            fwd: -108_246,
+            dz: 32,
         },
     ),
 ];

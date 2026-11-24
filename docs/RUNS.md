@@ -41831,6 +41831,28 @@ read 133 GB free before it and 121 after filing.
 
 **What it holds**: `diff::held_out::tests::row_28_s_bazookas_drop_their_chase_of_a_citizen_on_run1813_s_ranges`
 (every units, builds, guys and world range on 3955; theirs' `1/35` and `1/52` on 3956).
+## run1818 — parity held out, seventh battery, row 88's file to 2,792 with the checksum and ranges hooks, ammo kept (2026-11-23, item 4625, `att-4625`)
+
+`docs/RECGAME.md` §14.4. **What the disk could not answer**: run1808 holds sums only, and run1815's ranges
+(`RNG_MASK=0x8d1u`) keep no ammo, so row 88's parting on 2791, ammo alone, named no leaf. The take is the queue's line
+on run1808's file: `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1818 --recording ~/ron-golden/recordings/item4600-row088-12000.rcx --end-frame 2792 --allow-early-end
+--cover cover=1 --log-window 2790 2793 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS
+--tracer-def RON_RANGES --tracer-def RNG_MASK=0x8u`, waited on with `waitrun.sh` in the background. The lane was free at
+launch (`ron_lane_state`); `df -g ~` read 89 GB free before it and 88 after filing.
+- **The run**: pool lane 1, launched 18:26:01 −05:00, exited 18:30:05: **244.0 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 2,793 frames, `last_frame` 2792, not ended early, seed 12345, map 18. The recording's
+  SHA-256 is run1808's (`02dced92…`). Players: tribe 4 (who 0, flags 7), tribe 17 (who 1), tribe 11 (who 2).
+- **The record**: `~/ron-golden/run1818/map-18/rontrace.ranges`, 269,136 bytes, SHA-256
+  `5e5e7dd6bf86da60e69b11139049d20ce312fd30f1710e14d5110b6ebe8c3519`; `rontrace.log`, 81,561,344 bytes, SHA-256
+  `b44e03010444068f4b39eba72b2b0eff140555c562888018d9fb42e7ec31dc45`; `gamelog_p.txt`, 2,881 bytes, SHA-256
+  `0d2c63a3813ad959e96d8dc26d0a87522ac26016ab7dd75b77ae4832d3af800b`.
+- Filed with `filerun.py run1818 heldout7-row088-ammo-ranges`.
+
+**What it named**: ammo range 1, record 0 on 2791 is the round who=1's Carrack `1/82` (TI 342, sea) fired on 2790 at
+who=2's barge `2/61`. Theirs leaves (16866, 11729) at `sz` 35, ours left the figure's own square (16824, 11640) at 0:
+the Carrack's piece 292 had no release row (`docs/RECGAME.md` §14.4). Read by `score_recording` on the item's tree,
+which agrees on all twelve lines through 2792 after the fix; no test reads the ranges.
 
 ## run1816 — parity held out, seventh battery, row 28's file to 3,960, a packet at logger frame 3955 (2026-11-23, item 4619, `att-4619`)
 
@@ -41862,3 +41884,55 @@ free. `df -g ~` read 89 GB free before it and 81 after filing.
 
 **What it holds**: the arm behind row 28's first leaf (`docs/journal/2026-11-23-item-4619.md`). No test reads the
 packet. The row 28 test holds its consequence on run1813's ranges for 3956.
+
+## run1819 — parity held out, sixth battery, row 133's file to 2,382, a packet at logger frame 2375 (2026-11-23, item 4628, `att-4628`)
+
+`docs/RECGAME.md` §13.5. **What the disk could not answer**: run1797's ranges print `2/0`'s `damage` (ours 47, theirs
+40 on 2376) and every field `get_damage` reads off both records, all agreeing, never the blow's steps; a packet holds
+the state the blow reads. The take: `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1819 --recording ~/ron-golden/recordings/item4566-row133-12000.rcx
+--end-frame 2382 --allow-early-end --cover cover=1 --log-window 2370 2380 --detail end:MISC --timeout 1800
+--stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_STATE_FRAME=2375 --tracer-def
+"RON_STATE_PLAN=\"$P/plan.h\""`, `P=~/ron-data/lab-experiments/2026-09-23-item-597/plan` exported. Waited on with
+`waitrun.sh` in the background; the lane was free. `df -g ~` read 89 GB free before it and 84 after.
+- **The run**: pool lane 2, launched 18:58:09 −05:00, exited 19:01:21: **192.0 s**, exit 0, `success`, no page fault,
+  no relaunch, `last_frame` 2382, seed 12345, map 7; the recording's SHA-256 is run1794's (`ca4af2d6…`).
+- **The packet**: `frame_snapshot.py ~/ron-golden/run1819/map-7 $P/plan.json` verified frame 2375, all 8 anchors, the
+  logger return and the completion receipt. `map-7/frame-snapshot.bin`, 952,378,152 bytes, SHA-256
+  `01449a4f61c9257ae63a766e459a17fd60673bc9af772f134ca7a91088968849`.
+- **Read off it**: `tools/recomp/ammo.py` lists the Redoubt's round at `0x1556c29c`, slot 7, `1/2025 -> 2/0`, `t
+  16/17`, splash 0. `step4.py <exe> <packet> --entry 678060 --this 1556c29c` (4,106 instructions) reaches
+  `Object::do_damage`'s `get_damage` call (`64a4f7`) once, and it returns **11**. Hooked inside: the target's armour
+  (`*0x124`, `6441b1`) 0; the attacker's attack (`*0x120`, `6441be`) 180; the table's `-0x18` 100; `iVar8` (`edi`)
+  180 at every block to `644b7d`; `(180 + 5) / 10 − 0` = 18 at `644ba2`; the overkill arm not taken (`*0x18` on the
+  Redoubt 0); **the rocky arm taken at `644cdd`: `edi` 18 → 11** (`rocky_modifier` 170, `18 × 170 >> 8`). The gate's
+  mask `-0x8(%ebp)`, written at `6441e7` from the target type's `+0x1e4`, is **`0x2008164`** (`--watch
+  7d0ffdbc+4`). Scratch: `~/ron-data/lab-experiments/2026-11-23-item-4628/`.
+- Filed with `filerun.py run1819 heldout6-row133-packet2375`: `gamelog-run1819-heldout6-row133-packet2375.txt`, 2,862
+  bytes; `rontrace-run1819.log`, 99,457,184 bytes.
+## run1820 — parity held out, seventh battery, row 28's file to 4028 with the checksum and ranges hooks, ammo kept (2026-11-23, item 4626, `att-4626`)
+
+`docs/RECGAME.md` §14.2. **What the disk could not answer**: run1813 keeps units, builds, guys and world ranges only,
+and run1805 sums only, so row 28's ammo parting on 4027 named no leaf. The take: `TMPDIR=<fresh> RON_LANE_WAIT=7200
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1820 --recording
+~/ron-golden/recordings/item4600-row028-12000.rcx --end-frame 4028 --allow-early-end --cover cover=1 --log-window
+4021 4029 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES
+--tracer-def RNG_MASK=0x84bu`, waited on with `waitrun.sh` in the background. A first launch with `--log-window 4021
+4030` refused in `live_session.stage` before any game (the window passes the quit frame + 1); nothing ran. The lane
+was free. `df -g ~` read 89 GB free before it and 88 after filing.
+- **The run**: pool lane 1, launched 18:57:56 −05:00, exited 19:03:06: **309.2 s**, exit 0, `success`, no page
+  fault, no relaunch, `last_frame` 4028, seed 12345, map 18. The recording's SHA-256 is run1805's (`26bc5609…`).
+- **The record**, `~/ron-golden/run1820/map-18/rontrace.ranges`, 3,393,388,480 bytes, SHA-256
+  `e00da3efe872bd13146617a930bf60e3880793d5c0cf293b7f5499120aa45aed`, split by `filerun.py` into 4 pieces and
+  compressed (3.16 GiB on disk before, 0.32 after).
+- **Scored** (`score_recording … ~/ron-golden/run1820/map-18`, on `e0845aeca`): first state 4027 (ammo), range 1,
+  record 1, `rolling..start_roll_angle`: who=2's `2/34` round at `0/2000`, launched from (12264, 12552, 145) in ours
+  against (12208, 12465, 296). Every other line 4029 of 4029. On the item's tree every line is 4029 of 4029.
+- **Filed** with `filerun.py run1820 heldout7-row028-ammo4027`: `gamelog_p.txt` →
+  `Logs/gamelog-run1820-heldout7-row028-ammo4027.txt`, 2,887 bytes, SHA-256
+  `34a009e50ac4a49abd9bab21e6391abc0d20b3a789d7dd57ac8e84e16aeaedea`; `rontrace.log` → `Logs/rontrace-run1820.log`,
+  207,060,192 bytes, SHA-256 `fa8370fdad9e37bf9ece6383920aae495ef61fa909d66db2f51906ae7f4bc0da`, both linked; the
+  record stays in place.
+
+**What it holds**: `diff::held_out::tests::row_28_s_round_at_the_capital_on_run1820_s_ranges` (every units, builds,
+ammo, guys and world range on 4026 and 4027).

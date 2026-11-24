@@ -1172,6 +1172,13 @@ pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[
          stepped on it, 1/25's think_attack handing group 66 the Special Forces 0/0 and five \
          Bazookas yielding their chase of 0/7; no word walks it",
     ),
+    (
+        "run1819",
+        2375,
+        "the sixth battery's row 133 with a packet at 2375 (item 4628): Ammo::do_damage \
+         stepped on it for the Redoubt 1/2025's round at 2/0, get_damage's rocky step \
+         taking 18 to 11; no word walks it",
+    ),
 ];
 
 /// **The takes' packets** (item 4159, step VII-b2): held by a take's walk
@@ -1209,7 +1216,8 @@ pub(super) const TAKES_HELD: &[(&str, i64, &str, i64)] = &[
 // Item 4590: run1803's packet at 2685 named, not held, (124, …, 14).
 // Item 4612: run1814's and run1814b's at 3294 named, not held, (126, …, 16).
 // Item 4619: run1816's packet at 3955 named, not held, (127, …, 17).
-const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (127, 87, 7, 12, 1, 3, 17);
+// Item 4628: run1819's packet at 2375 named, not held, (128, …, 18).
+const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (128, 87, 7, 12, 1, 3, 18);
 
 /// Every held packet's `(run, logger frame, game, the length its walk is
 /// whole to)`: a word's, a chapter's and the minted one.

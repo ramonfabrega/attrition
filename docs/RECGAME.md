@@ -1728,19 +1728,18 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: units part first on 2376; ammo on 2408. run1797's ranges hold each item's frames, each
-*diff-backed*.
+Open: units, ammo, guys and world part first on 2440. run1797's ranges hold each item's frames, each *diff-backed*.
 
-**Item 4597** (DECISIONS 154 §2): units 1906 → 2199, a `REPAIR` swarm walks under `MOVE_TO` (`docs/GROUPS.md`).
-**Item 4602**: builds 2166 → 2351, an anti-air building's wind and turret (`docs/COMBAT.md` §84.7). **Item 4604**:
-ammo 2198 → 2408, the SAM's `missile="1"` spline (`docs/COMBAT.md` §84.3).
+**Items 4597, 4602, 4604**: units → 2199, `REPAIR` under `MOVE_TO` (`docs/GROUPS.md`); builds → 2351, ammo →
+2408, an anti-air building's wind, turret and spline (`docs/COMBAT.md` §84).
 
-**Item 4607**: leaders 2297 → 2413, cities 2297 → 2448. Every Temple's close fixes the borders, built or not:
-`Build::close@00628980` tests `is(0x1b5)` at `0x628d2c` and zeroes every region's resume index inline. who=1
-razes who=2's Temple site `2/2009` on 2295.
+**Item 4607**: leaders → 2413, cities → 2448: every Temple's close fixes the borders (`is(0x1b5)`, `0x628d2c`).
 
-**Items 4610, 4620**: units 2351 → 2376, builds → 2370 → 2432. The orphan check and a new city's sweep walk by
-object number.
+**Items 4610, 4620**: units → 2376, builds → 2432. The orphan check and a new city's sweep walk by object number.
+
+**Item 4628** (run1819's packet): units → 2440. On 2375 the Redoubt `1/2025` strikes `2/0` for ours 18, theirs 11:
+`get_damage`'s rocky step (`644c85`..`644cf2`, mask `0x2008164 & 0x10108`, the cell's `flags & 8`) cuts it, and ours
+read no cell.
 
 ## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
 
@@ -1809,39 +1808,37 @@ Open: units part on 9896, round 16's move on 9600 the last order before it. run1
 Open: units, builds, guys and world part on 3956; the original ends the game on 4247. run1805 holds sums; run1813
 holds units, builds, guys and world ranges to the end.
 
-**Item 4613, the first leaf** (the seventh's; it joins `held_out::SPENT`). On 3956 units range 5, record 0, who=0's
-Special Forces `0/0` (TI 75): `targeted` ours 5, theirs 6. Builds range 7, the capital `0/2000`: `targeted` ours 0,
-theirs 1. Guys and world (section 9's collision block) follow from `1/35`'s position.
+**Item 4613, the first leaf** (the seventh's; it joins `held_out::SPENT`). On 3956 units range 5, `0/0` (Special
+Forces, TI 75) `targeted` ours 5, theirs 6; builds range 7, `0/2000` `targeted` 0 against 1. *Diff-backed*
+(`row_28_s_bazookas_drop_their_chase_of_a_citizen_on_run1813_s_ranges`): who=1's Bazookas `1/35` and `1/52` chase
+Citizen `0/7` on both sides through 3955, every range agreeing there; on 3955 theirs ends both walks and retargets
+both, ours keeps them. The review and `do_move`'s dead-target arm are ruled out (`docs/journal/2026-11-23-item-4613.md`).
 
-*Diff-backed* (`row_28_s_bazookas_drop_their_chase_of_a_citizen_on_run1813_s_ranges`): who=1's Bazookas `1/35` and
-`1/52` (TI 139, land, army slot 1, whose target is `0/2000`) chase who=0's Citizen `0/7` (TI 50) under `[MOVE,
-ATTACK 0/7]` on both sides through 3955. Every units, builds, guys and world range agrees on 3955. On frame 3955
-**theirs acted**: it ends both walks and retargets both. `1/35` holds one order, an ATTACK on `0/2000`, and no path.
-`1/52` heads `[ATTACK 0/0, …]` with one path node spent. Ours keeps both walks and both targets. Both new targets
-took a search's bump (`Object::find_nearby_target`'s `00649ba6`, §33 of `docs/COMBAT.md`). `0/7`'s own record agrees
-on 3956: it stands at (10248, 12600), where it arrived on 3955.
+**Item 4619, the arm, and the row moves: 3956 → 4027.** *Read on a packet* (run1816, `RON_STATE_FRAME=3955`): a third
+member of group 66, `1/25`, finds `0/0` in `Unit::think_attack` and hands it to `Group::target_opportunity`; each member
+takes `Unit::target_opportunity`'s yield and re-searches. Ours refused the yield in `attack_action_yields` on the mask
+`0x840002` alone; the original refuses only when the held target is siege and the attacker neither siege nor a
+building (`005fffc0:150`–`:166`), and a shielded unit holding a building takes the range tests (`600440`). Both arms
+are built. *Diff-backed* (the row 28 test, extended): on 3956, ours before | theirs, `1/35` `path.length` 11 | 0,
+`unit_masks2` 0 | 16; `1/52` `flags` 17 | `0x91`, `path.length` 8 | 7; `0/0` `targeted` 5 | 6; all agree now.
+`SCORES_SEVENTH[1].moved` 2 → 7 lines whole; the lowest parting ammo 4027 (`docs/journal/2026-11-23-item-4619.md`).
 
-*Read, not diffed*: the arm that ends the walks. It is not the review: `(3955 + o) & 0xf` is 6 and 7 for the two.
-It is not `do_move`'s dead-target arm, because `0/7` lives. Theirs spends five `Unit::fight+0x9b0 < Unit::do_attack`
-rolls on 3955 (draws 24 to 28, each `% 5` non-zero), and the seed agrees on 3956.
+**Item 4626, the India Bazooka's bay, and the row moves: 4027 → 4167.** run1820 is row 28's file to 4028 with the
+ammo line's ranges. On 4027 ammo range 1, record 1 is a new round in slot 1. It is who=2's `2/34`, a Bazooka (TI
+139, TY 89, land), firing at the capital `0/2000` on frame 4026 under `CHAR_ATTACK2` frame 7. The shooter, the target,
+`ez` and the graphic agree. The launch does not. The Bazooka plays **piece 1849** (base 89 at art style 5,
+`BAZOOKA-INDIA-AGE0`), and `launch::BAYS` had no row for it, so ours took `launch_point`'s SEAM and loosed from the
+figure's own square. run1816's packet (`get_position.py … entries 1849`) holds its three `AttachPos` rows, at
+piece 89's keys (17, 7 and 13 of `CHAR_ATTACK1..3`). `fit_bay.py` fits each sweep, 361 of 361 headings. Piece 89's
+rows hit only 224, 229 and 221 of them, and its `CHAR_ATTACK2` height is 150 against 151.
 
-**Item 4619, the arm, and the row moves: 3956 → 4027.** *Read on a packet* (run1816, `RON_STATE_FRAME=3955`; `step4.py`
-on `Objects::process_all`): neither Bazooka's own `process` ends its walk. A third member of their group 66, the
-Bazooka `1/25`, finds `0/0` in `Unit::think_attack` and hands it to `Group::target_opportunity`. Each of the five
-members `1/35`, `1/41`, `1/49`, `1/52` and `1/64` then takes `Unit::target_opportunity`'s yield: `repath` from
-`+0x54d`, `kill_current_order` from `+0x556`. Each one's `fight` then re-searches (the five rolls), so `1/35` takes
-`0/2000` and `1/52` takes `0/0`. Ours made the same hand-off and refused it in `attack_action_yields`, on the mask
-`0x840002` alone (the Bazooka carries it). The original refuses only when the held target's type is siege and the new
-attacker is neither siege nor a building (`005fffc0:150`–`:166`). For a held building, a shielded unit takes the
-range tests (`600440`). Both arms are built.
-
-*Diff-backed* (the row 28 test, extended): every units, builds, guys and world range on 3956, byte for byte. The
-value diff on 3956, ours before | theirs: `1/35` `path.length` 11 | 0, `unit_masks2` 0 | 16, `orders_x/y` (10200,
-14472) | (8184, 16056); `1/52` `flags` 17 | −111 (`0x91`), `visible` 0 | 1, `path.length` 8 | 7; `0/0` `targeted` 5 |
-6. All agree now. `SCORES_SEVENTH[1].moved`: 2 → 7 lines whole (deaths, groups, guys, goods and world join). Units
-first parting 3956 → 4122, builds → 4037, leaders → 4037, cities → 4037. **The row's lowest parting is ammo 4027**,
-221 states from the end. run1813 keeps no ammo ranges, so the next word on this row needs a take: the ammo line from
-4027.
+*Diff-backed* (`row_28_s_round_at_the_capital_on_run1820_s_ranges`): every units, builds, ammo, guys and world
+range on 4026 and 4027, byte for byte. The value diff on 4027, record 1, ours before | theirs (all agree now):
+`launch` (12264, 12552) | (12208, 12465); `sz` 145 | 296; `landing` (10327, 10993) | (10329, 10990); `total_time`
+12 | 11; `angle` −619315200 | −628293632; `v1z` and `dx` follow. `SCORES_SEVENTH[1].moved`: 7 → 9 lines whole
+(units and cities join). Builds first parting 4037 → 4179, leaders 4037 → 4179. **The row's lowest parting is ammo
+4167**, 81 states from the end. run1813 and run1820 keep no ammo ranges there, so the next word needs a take: the
+ammo line from 4167 (`--end-frame 4168`, `RNG_MASK` with bit 3).
 
 ### 14.3 Row 48
 
@@ -1849,8 +1846,8 @@ Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
 
 ### 14.4 Row 88
 
-Open: ammo parts on 2791, and units and leaders on 2807 (item 4622). run1808 holds sums, run1815 the ranges to 2991,
-with no ammo ranges.
+Open: leaders part on 2883, alone (item 4625). run1808 holds sums, run1815 the ranges to 2991 (units, deaths, guys,
+leaders and world), run1818 the ammo ranges to 2792.
 
 **Item 4614: a rider comes out before its carrier dies, and a fire raft dies with its shot.** Two fixes. Both are
 diff-backed by run1815's ranges (`docs/RUNS.md`), scored by `score_recording` on the item's tree.
@@ -1902,10 +1899,28 @@ file with `--end-frame 2792 --log-window 2790 2793 --tracer-def RON_CHECKSUMS --
 RNG_MASK=0x8`. Units part next on 2807, at range 4411, record 61: barge `2/61`'s `flags` read ours `0x01`, theirs
 `0x11`. Theirs is now wounded and ours is not.
 
+**Item 4625: the Carrack fires from its starboard battery.** run1818 kept the ammo ranges to 2792. Ammo record 0 on
+2791 is who=1's Carrack `1/82` (TI 342, sea, piece 292, `GALLEON-DEFAULT-AGE0`) firing `CHAR_ATTACK2`'s node-1 event
+(frame 14) at barge `2/61` on 2790: `sx, sy, sz` ours (16824, 11640, 0), theirs (16866, 11729, 35); `ex, ey`, `angle`
+and `total_time` (18, 17) follow. **Ours acted**: `launch_point` had no row for piece 292. Its nine `RELEASEEVENT`s
+(nodes 0..2 × `CHAR_ATTACK1`..`3`) are swept by `get_position.py … --init` on run1579's packet; `fit_bay.py` admits
+each over 361 of 361 headings but node 2's `CHAR_ATTACK2` frame 24, whose row misses heading 283 by one unit. Built as
+nine `BAYS` rows. Held by `data::launch::tests::the_carrack_s_round_leaves_its_starboard_battery` (mutation held) and
+`the_carrack_s_release_agrees_at_every_heading_but_one`. Diff-backed: run1818 agrees on all twelve lines to 2792.
+
+The score, `SCORES_SEVENTH[4].moved` (12,001 states): units 2,807 → 2,902, builds 2,919 → 2,953, ammo 2,930 → 3,056,
+deaths 2,882 → 2,922, groups 2,883 → 2,928, guys 2,882 → 2,907, leaders 2,879 → 2,883, cities 2,951 → 3,063, items
+4,108 → 7,829, world 2,882 → 2,909. **The first parting moves 2791 → 2883, on leaders alone.**
+
+**The next word, 2883, leaders.** run1815's ranges hold it: range 212, record 1 (who=1), `encrypt`, byte 0, ours `0x8c`,
+theirs `0x7d`. Units part next on 2902, range 3709, record 29: `myhits..`'s second word reads ours 12, theirs 0.
+
 **Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is still not built: a `0x2000`
 attacker that collides with a valid target sets it, fires and dies. No capture has been shown to reach it.
 A building shooter always splashes from the landing: `Build` and `Wall` fill vslot `+0x18` with the folded
-`Window::get_button@0041bff0`, `return 0`, and this crate's arm asks for a unit shooter.
+`Window::get_button@0041bff0`, `return 0`, and this crate's arm asks for a unit shooter. The Carrack's node-2 `CHAR_ATTACK2` row (frame 24) is one unit off at
+heading 283; no round on disk has been shown to fire it there. Piece 128's six attack keys (node 0) still fall back to
+the figure's square on row 88 after 2883 (a probe on `launch_point`'s fallback over run1808's 12,001 states).
 
 ### 14.5 Row 108
 
