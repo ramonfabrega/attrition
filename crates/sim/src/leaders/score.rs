@@ -286,16 +286,26 @@ impl Sim {
     /// one carrying nothing scores nothing. A scripted, empty Transport
     /// Freighter sunk is no kill on the score (item 4159's 4187a).
     pub(crate) fn score_victim(&self, u: usize) -> Option<(usize, Player)> {
-        let ty = self.units[u].ty?;
-        let transport = self.tables.unit_types[ty].cols.unit_flags
-            & crate::ai::ai_load::uflags::FLAG_TRANSPORT
-            != 0;
-        if !transport {
-            return Some((ty, self.units[u].owner));
-        }
-        let head = (0..self.units.len())
-            .find(|&p| self.units[p].inside_unit == Some(u) && self.units[p].alive())?;
+        let head = self.plunder_victim(u)?;
         Some((self.units[head].ty?, self.units[head].owner))
+    }
+
+    /// **The unit a dying `u` answers for** in `Object::take_damage@00652020`
+    /// (`6530a5`..`6530ba`, `:520`–`:528`): `u` itself, or, when its type
+    /// carries `+0x2b4 & 0x10` (`uflags::FLAG_TRANSPORT`), the head of its
+    /// `inside_down`; `None` for an empty transport, which `js 0x6533b2`
+    /// takes past the score, the plunder and the Inca refund. The head is
+    /// the lowest live slot aboard (item 4631).
+    pub(crate) fn plunder_victim(&self, u: usize) -> Option<usize> {
+        let transport = self.units[u].ty.is_some_and(|ty| {
+            self.tables.unit_types[ty].cols.unit_flags & crate::ai::ai_load::uflags::FLAG_TRANSPORT
+                != 0
+        });
+        if !transport {
+            return Some(u);
+        }
+        (0..self.units.len())
+            .find(|&p| self.units[p].inside_unit == Some(u) && self.units[p].alive())
     }
 
     /// **`Leader::compute_score@006ec560`** (§18.2), `forced` its argument:
