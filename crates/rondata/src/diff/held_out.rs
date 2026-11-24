@@ -11737,24 +11737,38 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // `city_down` ours 2008, theirs 2007; range 2221, record 2007, ours
         // -1, theirs 2008; range 2259, record 2008, ours 2007, theirs -1; all
         // agree now): builds 2,370 -> 2,432 (first 2370 -> 2432); no other
-        // line moved, and the first parting is units alone on 2376.
+        // line moved, and the first parting is units alone on 2376. Then by
+        // item 4628 (`get_damage`'s rocky step reads the target's cell
+        // `WData.flags & 8`, `644c85`..`644cf2`, run1819's packet: the
+        // Redoubt `1/2025`'s blow on the Elite Special Forces `2/0` on 2375
+        // is 18 -> 11; units range 3283, record 0, `damage` ours 47, theirs
+        // 40 on 2376; both 40 now): units 2,376 -> 2,440 (first 2376 ->
+        // 2440), builds 2,432 -> 2,451 (first 2432 -> 2451), ammo 2,980 ->
+        // 3,045 (first 2408 -> 2440), deaths 2,442 -> 2,612 (first 2442 ->
+        // 2457), groups 2,447 -> 2,445 (a fall past the parting, first 2447
+        // -> 2445), guys 2,399 -> 2,440 (first 2399 -> 2440), leaders 2,423
+        // -> 2,447 (first 2413 -> 2445), cities 2,550 -> 2,583 (first 2448
+        // -> 2583), items 3,007 -> 2,753 and goods 4,136 -> 3,674 (falls
+        // past the parting, first 3007 -> 2753 and 3258 -> 2685), world
+        // 2,400 -> 2,440 (first 2400 -> 2440); the first parting is units,
+        // ammo, guys and world on 2440.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                2376, 2432, 6085, 2980, 2442, 2447, 2399, 2423, 2550, 3007, 4136, 2400,
+                2440, 2451, 6085, 3045, 2612, 2445, 2440, 2447, 2583, 2753, 3674, 2440,
             ],
             first: &[
-                ("units", (2376, Some(677748407), 115580592)),
-                ("builds", (2432, Some(2924899778), 1632988777)),
-                ("ammo", (2408, Some(2284240743), 3727473848)),
-                ("deaths", (2442, Some(4112542119), 2232507217)),
-                ("groups", (2447, Some(1193197654), 2976956503)),
-                ("guys", (2399, Some(1659647306), 180630755)),
-                ("leaders", (2413, Some(4100878331), 924807165)),
-                ("cities", (2448, Some(3075952134), 2922597890)),
-                ("items", (3007, Some(3525321571), 3415154359)),
-                ("goods", (3258, Some(586774648), 569473142)),
-                ("world", (2400, Some(3284239694), 2824439106)),
+                ("units", (2440, Some(3643362165), 837035619)),
+                ("builds", (2451, Some(2666296210), 3002692520)),
+                ("ammo", (2440, Some(4195036005), 2463640192)),
+                ("deaths", (2457, Some(3856489402), 2458741352)),
+                ("groups", (2445, Some(1477034087), 1193197654)),
+                ("guys", (2440, Some(1621384669), 4245511913)),
+                ("leaders", (2445, Some(3298587354), 2180412120)),
+                ("cities", (2583, Some(3115797513), 3339931136)),
+                ("items", (2753, Some(3523094179), 3540395687)),
+                ("goods", (2685, Some(514685040), 410876012)),
+                ("world", (2440, Some(500256310), 2864074462)),
             ],
             over: None,
         }),

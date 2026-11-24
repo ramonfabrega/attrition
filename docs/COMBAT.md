@@ -2249,7 +2249,8 @@ the cavalry/vehicle flank reduction (no mounted unit was placed — the run
 had no `Cataphract`-class name in Ancient), splash, the overkill window
 (no two squads shared a target long enough to read it), the projectile's
 scatter and flight-time arithmetic against the logged `AMMO` records, and
-the height and rocky terms (flat arena). Each is a line in the next file.
+the height ~~and rocky~~ terms (flat arena). Each is a line in the next file.
+(Rocky: run1819's packet, item 4628, `docs/RECGAME.md` §13.5.)
 
 ---
 
