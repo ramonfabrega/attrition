@@ -533,7 +533,7 @@ pub(crate) mod tests {
 
     /// `blips_packet.py`'s dump: the window, then every quad by layer.
     fn read_packet(path: &std::path::Path) -> Option<(Vec<i32>, [Vec<Quad>; LAYERS])> {
-        let Ok(text) = std::fs::read_to_string(&path) else {
+        let Ok(text) = std::fs::read_to_string(path) else {
             println!("skipping: no blips packet at {}", path.display());
             return None;
         };
@@ -706,7 +706,7 @@ pub(crate) mod tests {
         let mut camera = crate::pinned_camera();
         (camera.loc_x, camera.loc_y) = super::super::fog::tests::RUN1814B_LOC;
         let size = (photo.width as u32, photo.height as u32);
-        let mut side = |world: &mut crate::world::World, fog: bool| {
+        let side = |world: &mut crate::world::World, fog: bool| {
             world.fog = fog.then_some(crate::world::CONSOLE);
             assert_eq!(sees_all(world), !fog);
             let ours = build(world, &sel, super::super::QUAD_FRAME, BLINK_RUN1814B);
