@@ -12290,10 +12290,18 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // guys 2,882 -> 2,907, leaders 2,879 -> 2,883, cities 2,951 -> 3,063,
         // items 4,108 -> 7,829, world 2,882 -> 2,909. The first parting moves
         // 2791 -> 2883, on leaders alone.
+        // Moved by item 4631 (run1815's ranges): a transport's kill plunders
+        // as its cargo (`Object::take_damage@00652020` `6530a5`..`6530ba`).
+        // who=2's barge `2/61` dies on 2882 carrying the Despot `2/24`, and
+        // who=1's Despot `1/14` is in reach: who=1's `encrypt` on 2883 reads
+        // `bucket[1]` (timber) ours 15,500 -> 15,485, theirs 15,485, and
+        // `bucket[2]` (wealth) ours 17,667 -> 17,767, theirs 17,767
+        // (`GENERAL_PLUNDER` 100 over the Despot's 15). Leaders 2,883 ->
+        // 2,926. The first parting moves 2883 -> 2902, on units alone.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                2902, 2953, 12001, 3056, 2922, 2928, 2907, 2883, 3063, 7829, 2999, 2909,
+                2902, 2953, 12001, 3056, 2922, 2928, 2907, 2926, 3063, 7829, 2999, 2909,
             ],
             first: &[
                 ("units", (2902, Some(2295592567), 1737225847)),
@@ -12302,7 +12310,7 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
                 ("deaths", (2922, Some(3554618418), 1813388611)),
                 ("groups", (2928, Some(2156172100), 2500694867)),
                 ("guys", (2907, Some(4088558612), 3923407830)),
-                ("leaders", (2883, Some(3734682641), 314752102)),
+                ("leaders", (2922, Some(58701732), 3241064354)),
                 ("cities", (3063, Some(1312439704), 836386168)),
                 ("items", (3201, Some(3288077661), 308941102)),
                 ("goods", (2999, Some(2477322729), 2684940781)),
