@@ -1,7 +1,7 @@
-# Every rondata release test timed alone, 2026-11-23, tools/suite_timings.py (tree 274d282e).
+# Every rondata release test timed alone, 2026-11-23, tools/suite_timings.py (tree 86a8d3da).
 # One test per process, --test-threads 1, sequential, RON_INSTALL set; seconds then the test.
-# Sum 6,728 s over 2682 tests; --stale-only merged. Top 10 = 1489 s, top 30 = 2260, top 100 = 2878; 1154 tests under 1 s.
-# By module: held_out 1100 s / 124 tests, mapgen 687 s / 133 tests, golden 363 s / 346 tests, audit 321 s / 124 tests, sample 305 s / 14 tests.
+# Sum 6,738 s over 2689 tests; --stale-only merged. Top 10 = 1489 s, top 30 = 2260, top 100 = 2878; 1157 tests under 1 s.
+# By module: held_out 1110 s / 130 tests, mapgen 687 s / 133 tests, golden 363 s / 346 tests, audit 321 s / 124 tests, sample 305 s / 14 tests.
 216.02	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 211.47	diff::held_out::tests::the_seventh_held_out_games_score_as_pinned
 199.71	diff::held_out::tests::the_held_out_games_score_as_pinned
@@ -554,6 +554,7 @@
 2.63	diff::harness::checkpoint::tests::recorded_checkpoint_preserves_cursor_selection_and_existing_report
 2.63	diff::korean_medieval_pair::korean_medieval_pair_run1331b_s_word_frame_is_widened_whole
 2.63	diff::roman_word::run899b_roman_closing_state
+2.62	diff::held_out::tests::row_28_s_round_on_run1821_s_ranges
 2.62	diff::coverage_pair::run715_s_word_frame_is_widened_whole
 2.61	lobby::tests::a_bent_page_parts_the_east_indies_start
 2.61	diff::golden::chapter_thirty_three_s_word_frame_is_widened_whole
@@ -610,6 +611,7 @@
 2.47	diff::aztec_alltech_pair::run1147_aztec_alltech_pair_closing_state
 2.47	diff::build::tests::run39_s_build_queues_are_the_original_s_clock
 2.47	diff::held_out::tests::row_95_s_mlrs_bears_from_its_pivot_node_on_run1770_s_ranges
+2.46	diff::held_out::tests::row_28_s_round_at_the_capital_on_run1820_s_ranges
 2.46	diff::maya_ancient_pair::maya_ancient_pair_first_parting
 2.46	diff::roman_modern_pair::roman_modern_pair_first_parting
 2.46	diff::roman_gunpowder_pair::roman_gunpowder_pair_run1357c_s_closing_window_is_widened_whole
@@ -684,6 +686,7 @@
 2.30	diff::american_industrial_pair::american_industrial_pair_first_parting
 2.30	diff::french_word::run982_s_word_frame_is_widened_whole
 2.30	stores::tests::the_scan_finds_dow_s_writers_and_a_perturbed_scan_misses_them
+2.29	diff::held_out::tests::row_28_s_bazookas_drop_their_chase_of_a_citizen_on_run1813_s_ranges
 2.29	diff::turkish_word::run898b_turkish_closing_state
 2.29	diff::checksum_lines::packets::british_enlightenment_pair_packets
 2.29	diff::golden::run255_s_repair_is_the_original_s_unit_for_unit
@@ -995,6 +998,7 @@
 1.75	diff::roman_classical_pair::roman_classical_pair_run1194b_s_word_frame_is_widened_whole
 1.75	diff::korean_medieval_pair::korean_medieval_pair_run1331_s_closing_state
 1.75	diff::held_out::tests::row_130_s_helicopters_set_apart_keep_their_dest_angle_on_run1754_s_ranges
+1.74	diff::held_out::tests::row_133_s_new_city_sweeps_its_buildings_by_object_number_on_run1797_s_ranges
 1.74	diff::turkish_information_pair::turkish_information_pair_run1446_s_closing_state
 1.74	diff::japanese_industrial_pair::japanese_industrial_pair_first_parting
 1.74	free::tests::m_is_counted_from_the_free_run_and_agrees_with_the_lobby_s_dumps
@@ -1727,6 +1731,7 @@
 0.77	diff::checksum_lines::the_items_line_is_the_original_s_range_by_range
 0.77	diff::golden::chapter_three_s_restage_holds_to_its_word
 0.77	diff::golden::chapter_twenty_holds_to_the_golden_word
+0.76	diff::held_out::tests::row_133_s_orphan_check_walks_its_sites_by_object_number_on_run1797_s_ranges
 0.76	diff::checksum_lines::deaths::the_disbanded_scout_and_dog_match_the_whole_packet
 0.76	diff::greek_word::run961b_s_word_frame_is_widened_whole
 0.76	diff::golden::chapter_one_hundred_and_twenty_five_s_window_is_widened_whole
@@ -2293,6 +2298,7 @@
 0.02	capture::archive::tests::lz4_payload_crc_is_checked_even_with_valid_metadata
 0.02	mapgen::tests::great_sahara_s_groups_parse_as_read
 0.02	diff::harness::trunk::tests::the_game_s_other_stand_up_rides_the_trunk_and_carries_its_own_fields
+0.02	artdata::tests::the_fog_ramp_is_the_tileset_s
 0.01	diff::held_out::tests::the_second_held_out_line_reads_as_pinned
 0.01	diff::checksum_lines::packets::city_names::the_city_names_score_is_the_table
 0.01	artdata::tests::the_tileset_light_is_read
@@ -2605,6 +2611,7 @@
 0.01	artdata::tests::the_minimap_colours_are_read
 0.01	diff::held_out::tests::a_held_pin_fails_on_its_whole_lines_and_first_parting_alone
 0.01	diff::held_out::tests::the_seventh_held_out_line_reads_as_pinned
+0.01	diff::held_out::tests::a_trace_with_no_receipt_is_a_take_in_flight
 0.00	diff::held_out::tests::the_seventh_s_files_are_minted
 0.00	diff::held_out::tests::the_handoff_s_open_parity_held_out_lines_are_the_pinned_scores
 0.00	diff::held_out::tests::the_sixth_held_out_line_reads_as_pinned

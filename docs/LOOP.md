@@ -542,12 +542,16 @@ sample parts past the end of every held-out game; Ramon, 2026-11-22);
 the seventh (rows 8 to 148) when the sixth reads 4 of 8 (DECISIONS 153
 §6), its human ordering through the game (154 §7; item 4600); the
 eighth (rows 18 to 158) when the seventh reads 4 of 8 (DECISIONS 155 §2). **The seats go by first parting** (DECISIONS 153 §2): a game one
-line or one field from whole first, **and with it a row whose first
-parting stands within 600 states of its last state** (DECISIONS 155 §4:
-the one game a tranche made whole stood 578 out), then the lowest first
+line or one field from whole first, then the lowest first
 parting, the sample sorted with the rows and holding no seat of its own; a landing
 on a row that parted early bought 732 states and one deep in a game
-about 190, whoever's game it was. A seat that frees takes the next
+about 190, whoever's game it was (the rank entry 155 §4 gave a row
+near its end went on its own bet, 156 §4). **Before that order, an item
+whose first act an instrument on disk has already named, a probe's
+table or a seam no whole row enters, takes a seat**, the one that
+reaches the most open rows first (DECISIONS 156 §2: three landings
+each found by a take of its own a piece the pass's probe had listed
+under an unseated item, 313 of a tranche's 553 states). A seat that frees takes the next
 item in the lanes line's order, and the sample's before a hand-over
 when no row's item stands. **A script of several takes waits on each**
 with `waitrun.sh`, which gives a launch 120 seconds to show its runner
@@ -583,10 +587,14 @@ read are in `docs/audit/2026-11-09-loop-retired-clauses.md`, "Retired
 2026-11-14: the pass's first acts, the figures"):
 
 1. **The archives' compression, backgrounded** — `python3
-   tools/trace/split.py --archive`, then `afsctool -c -f -T LZFSE -J8` on
-   `~/ron-data` and `~/ron-golden`, never beside a gate or a take
-   (DECISIONS 77; 149 §1: `afsctool` skips a file of 2^31 bytes, and
-   fourteen records stood raw, 48.8 GiB, until they were split).
+   tools/archive_compress.py`, which splits, compresses one tree at a
+   time and scans for a file left reading empty, never beside a gate or
+   a take, **and never `afsctool` on both trees in one run** (DECISIONS
+   77; 149 §1: `afsctool` skips a file of 2^31 bytes, and fourteen
+   records stood raw, 48.8 GiB, until they were split; 156 §6: a filed
+   take is a hard link, two of the compressor's workers took one inode
+   by its two names, and four trace logs read zero bytes until
+   `--repair` set their flag back).
 2. **The suite's re-timing beside it** — `python3 tools/suite_timings.py
    <install> --stale-only`, committed (DECISIONS 132 §6: on 2026-11-13
    the file was four days old and 189 tests were untimed, so every lane

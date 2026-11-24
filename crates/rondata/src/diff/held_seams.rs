@@ -163,15 +163,19 @@ fn fallback_rows(walks: &[Walk]) -> Vec<(usize, u64)> {
 /// items 4604 and 4607 moved the row to 2351. **The seventh, counted for
 /// the first time on the same tip** (item 4600's six takes): rows 28 (41
 /// rounds from state 4039), 48 (20 from 8334) and 88 (2,092 from 2793),
-/// each past its row's first parting; item 4618 names their keys.
+/// each past its row's first parting; item 4618 names their keys. **642
+/// and (48, 20), (88, 991), (148, 143) on `86a8d3da3`** (the pass of
+/// 2026-11-23, third): row 28 is whole (items 4626, 4630), row 88 keeps
+/// 991 from state 2925 after item 4625's Carrack, row 148 is taken (item
+/// 4611) and fires 143 from 10888, nine states past its first parting.
 const FALLBACK: [(&str, &[(usize, u64)]); 7] = [
     ("first", &[]),
     ("second", &[]),
     ("third", &[]),
     ("fourth", &[]),
     ("fifth", &[]),
-    ("sixth", &[(133, 455)]),
-    ("seventh", &[(28, 41), (48, 20), (88, 2092)]),
+    ("sixth", &[(133, 642)]),
+    ("seventh", &[(48, 20), (88, 991), (148, 143)]),
 ];
 
 fn fallback_as_pinned(file: &str, walks: &[Walk]) {

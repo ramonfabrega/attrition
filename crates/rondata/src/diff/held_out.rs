@@ -1158,7 +1158,8 @@ pub(crate) mod tests {
     /// `checksum::playback` on every state to the take's last, against its
     /// pinned score: [`FirstScore::moved`] where a later fix has moved it,
     /// else the score as found. A game with no take skips, and says so; a
-    /// take with no pin fails and prints the score to pin. **What fails is
+    /// take with no pin fails and prints the score to pin, unless it has no
+    /// receipt either (`in_flight`). **What fails is
     /// what the queue books** (item 4598, [`held_verdict`]): the whole
     /// lines and the first parting; the rest of the pin prints as `HELD OUT
     /// DRIFT` and is re-pinned at a booking.
@@ -4181,6 +4182,30 @@ pub(crate) mod tests {
         }
     }
 
+    /// **A take in flight** (DECISIONS 156 §5): the runner writes
+    /// `<run>/receipt.json` when the game has exited, so a trace with no
+    /// receipt beside its map directory is still being written, or died.
+    /// `gate-4629` went red on run1810's trace, twenty minutes into its
+    /// take, on a row no pin yet named.
+    fn in_flight(take: &std::path::Path) -> bool {
+        take.parent()
+            .and_then(std::path::Path::parent)
+            .is_none_or(|run| !run.join("receipt.json").is_file())
+    }
+
+    #[test]
+    fn a_trace_with_no_receipt_is_a_take_in_flight() {
+        let run = std::env::temp_dir().join(format!("attrition-in-flight-{}", std::process::id()));
+        let map = run.join("map-7");
+        std::fs::create_dir_all(&map).expect("the run directory");
+        let take = map.join("rontrace.log");
+        std::fs::write(&take, b"RONT").expect("the trace");
+        assert!(in_flight(&take), "no receipt yet");
+        std::fs::write(run.join("receipt.json"), b"[]").expect("the receipt");
+        assert!(!in_flight(&take), "the receipt is written");
+        std::fs::remove_dir_all(&run).expect("removed");
+    }
+
     fn games_score_as_pinned(b: &Battery) {
         let Some(inst) = crate::testenv::install() else {
             return;
@@ -4196,6 +4221,14 @@ pub(crate) mod tests {
                 continue;
             };
             let pin = &b.scores[k];
+            if pin.is_none() && in_flight(&take) {
+                eprintln!(
+                    "skipping: row {} run{} has no receipt and no pin, a take in flight",
+                    held.row,
+                    b.run + k
+                );
+                continue;
+            }
             let until = pin.as_ref().and_then(|p| p.last);
             let score =
                 match crate::checksum::playback::compare_until(inst.root(), &rcx, &take, until) {

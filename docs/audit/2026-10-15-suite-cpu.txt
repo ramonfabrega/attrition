@@ -1,6 +1,6 @@
-# Every rondata release test's CPU alone, 2026-11-23, tools/suite_timings.py (tree 274d282e).
+# Every rondata release test's CPU alone, 2026-11-23, tools/suite_timings.py (tree 86a8d3da).
 # /usr/bin/time -l, one test per process, --test-threads 1; CPU seconds (user + sys), instructions retired (1e9), the test; -1 when unread.
-# Sum 8,021 CPU-seconds and 162.61e12 instructions over 2682 tests; the host's load 3.1 at the start and 3.2 at the end.
+# Sum 8,029 CPU-seconds and 162.78e12 instructions over 2689 tests; the host's load 7.2 at the start and 6.8 at the end.
 678.60	11859.81	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 340.78	6474.38	free::ages::the_draw_list_across_the_ages_resolves
 211.18	4446.25	diff::held_out::tests::the_seventh_held_out_games_score_as_pinned
@@ -613,6 +613,7 @@
 2.29	47.88	diff::harness::tests::run261_s_gap_is_widened_whole
 2.29	43.45	diff::roman_gunpowder_pair::roman_gunpowder_pair_run1357c_s_closing_window_is_widened_whole
 2.29	51.45	diff::world::tests::run189_s_world_has_the_original_s_roads_at_14529
+2.29	48.82	diff::held_out::tests::row_28_s_round_on_run1821_s_ranges
 2.28	48.33	diff::american_industrial_pair::american_industrial_pair_first_parting
 2.28	42.97	diff::aztec_medieval_pair::aztec_medieval_pair_run1322_s_closing_window_is_widened_whole
 2.28	45.63	diff::iroquois_enlightenment_pair::iroquois_enlightenment_pair_first_parting
@@ -700,6 +701,7 @@
 2.12	39.84	diff::lakota_pair::run853_s_word_frame_is_widened_whole
 2.12	42.85	diff::spanish_lakes_word::run1013b_s_gap_is_widened_whole
 2.12	46.82	diff::harness::tests::run80_s_word_frame_is_widened_whole
+2.12	45.59	diff::held_out::tests::row_28_s_round_at_the_capital_on_run1820_s_ranges
 2.11	50.16	diff::setup::tests::the_map_s_tallies_are_every_start_dump_s
 2.11	44.96	diff::mongol_enlightenment_pair::mongol_enlightenment_pair_run1346_s_closing_state
 2.11	39.60	diff::transfer::the_held_leaves_transfer_on_the_original_s_printed_inputs
@@ -773,6 +775,7 @@
 1.97	45.29	diff::harness::tests::run39_s_long_trace_says_where_the_second_map_s_word_parts
 1.97	35.61	diff::minted::the_right_pressed_minted_script_s_effects_on_our_walk
 1.97	40.07	diff::roman_medieval_pair::roman_medieval_pair_run1277_s_word_frame_is_widened_whole
+1.97	42.64	diff::held_out::tests::row_28_s_bazookas_drop_their_chase_of_a_citizen_on_run1813_s_ranges
 1.96	39.29	diff::audit::persian_medieval_pair_corrections_change_nothing
 1.96	40.92	diff::french_classical_pair::french_classical_pair_run1262_s_closing_state
 1.96	39.63	diff::audit::french_enlightenment_pair_corrections_change_nothing
@@ -1469,6 +1472,7 @@
 0.97	23.56	diff::start_walk::recording::the_demand_s_ammo_parts_by_range_on_run1696
 0.97	23.29	diff::start_walk::recording::the_demand_s_ammo_parts_by_range_on_run1698
 0.97	18.12	diff::held_out::tests::row_63_s_army_skips_an_ally_it_does_not_call_strong_on_run1782
+0.97	19.93	diff::held_out::tests::row_133_s_new_city_sweeps_its_buildings_by_object_number_on_run1797_s_ranges
 0.96	18.63	diff::persian_word::run984d_s_word_frame_is_widened_whole
 0.96	15.54	diff::golden::chapter_fifty_s_word_frame_is_widened_whole
 0.96	19.26	diff::information_melee::information_melee_run1468_s_word_window_is_widened_whole
@@ -1665,6 +1669,7 @@
 0.75	13.06	diff::golden::chapter_thirty_five_s_v2_blast_is_compared_field_for_field
 0.75	12.50	diff::golden::run235_s_bombs_are_the_original_s_record_for_record
 0.75	17.74	diff::checksum_lines::deaths::the_disbanded_scout_and_dog_match_the_whole_packet
+0.75	16.96	diff::held_out::tests::row_133_s_orphan_check_walks_its_sites_by_object_number_on_run1797_s_ranges
 0.74	15.43	diff::airbase_melee::airbase_melee_run1496_s_window_is_widened_whole
 0.74	13.82	diff::golden::chapter_three_s_restage_numbers_its_objects
 0.74	12.34	diff::golden::run265_s_rounds_are_the_original_s_record_for_record
@@ -2265,6 +2270,7 @@
 0.01	0.32	ledger::tests::every_differ_module_is_on_the_ledger
 0.01	0.43	typesdump::tests::reads_types_and_the_table_from_a_small_dump
 0.01	0.27	diff::held_out::tests::the_fifth_s_files_carry_the_declared_seats_and_team
+0.01	0.20	artdata::tests::the_fog_ramp_is_the_tileset_s
 0.00	0.03	artdata::tests::a_building_piece_names_its_build_entry
 0.00	0.02	artdata::tests::a_chunk_whose_keys_do_not_fill_it_is_refused
 0.00	0.03	artdata::tests::a_gaia_entry_s_piece_is_the_bird_range_s
@@ -2683,3 +2689,4 @@
 0.00	0.03	diff::held_out::tests::a_held_pin_fails_on_its_whole_lines_and_first_parting_alone
 0.00	0.03	diff::held_out::tests::the_seventh_held_out_line_reads_as_pinned
 0.00	0.03	diff::held_out::tests::the_seventh_s_files_are_minted
+0.00	0.03	diff::held_out::tests::a_trace_with_no_receipt_is_a_take_in_flight

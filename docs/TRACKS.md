@@ -143,15 +143,6 @@ units and cities on one state and take one seat (item 4576), and the sixth's wal
 landing; Ramon gives the fourth seat to the client, and it draws the minimap, which the window lacks (item 4581); item 4580
 counts the sim's `SEAM`s the held-out games enter.
 
-**At the pass of 2026-11-23** (entry 154): **checksum** — parity 47 of 55 (the sixth folded; rows 3, 33 and 73 whole); the sample
-parts first on leaders 7502 of 21,044, draws 7613, moved by a row's fix; parity held out 8, 8, 8, 8, 6 and 3 of 8 now, the sixth's
-reach 59 % and 74 % inside its first 6,001 states; the seats by first parting bought 621 states a landing against 197; the seam
-counter, run at the tip, named row 133's first parting (item 4597) and is the pass's tenth act, and item 4599 hooks the notes
-it does not reach; rows 93 and 83 take one seat (item 4590); the held-out tests fail on whole lines and first partings alone
-(item 4598); the seventh battery's human orders through the game (item 4600); the packets' lines 950 of 1,053; **orders** — whole
-by its counters; **renderer** — the client draws the minimap, 2,808 of 3,600 cells within 32 of the photograph's (items 4581 to
-4588), the blips next (item 4596); a lane's clock runs after its release step.
-
 **At the pass of 2026-11-23, second** (entry 155): **checksum** — parity 48 of 55 (row 113 whole); the sample as it stood, leaders
 7502, draws 7613; parity held out 8, 8, 8, 8, 6 and 4 of 8 now, the sixth's reach 61 %; the seventh, its human ordering through the
 game, read 1 of 8 and 20 of 72 lines as found on six rows taken, 59 % by reach and 87 % inside its first 6,001 states, and folds at
@@ -159,6 +150,16 @@ its first leaf; eight row landings bought 163 states each on late-age rows; a ro
 near-whole, and the seventh's row 28 takes the first seat (item 4613); rows 133 and 43 name one shape (item 4610); the packets'
 lines 951 of 1,053; **orders** — whole by its counters; **renderer** — the minimap 3,213 of 3,600 cells (items 4596 to 4605); the
 client's seat takes the fog, which no capture on file shows (item 4612); a capture is filed once.
+
+**At the pass of 2026-11-23, third** (entry 156): **checksum** — parity 50 of 63 (the seventh folded on its eight rows; its row 28
+whole, item 4630); the sample as it stood, leaders 7502, draws 7613; parity held out 8, 8, 8, 8, 6, 4 and 2 of 8 now, the seventh's
+reach 60 % and 86 % inside its first 6,001 states; thirteen row landings bought 43 states each, 313 of the 553 on three that built
+launch points a probe had already listed, so an item an instrument has named is seated before a row's next word: the seam
+`attack_ground_aim`, entered by five open rows and no whole one (item 4608), and the pieces with no bay, 1,796 rounds on four rows
+(item 4618); the near-end rank goes on its own bet; row 128 stands one line from whole (item 4635); a take in flight is not scored;
+the packets' lines 951 of 1,053; **orders** — whole by its counters; **renderer** — the fog, its blips and the selection ring drawn
+on run1814b (items 4612 to 4629); the client's seat takes the capital's ground, the Farm's plots and the buildings' plates (item
+4636); the archives are compressed one tree at a time.
 
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it

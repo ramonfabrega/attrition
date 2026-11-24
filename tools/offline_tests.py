@@ -93,6 +93,7 @@ SUITES = (
     'test_shape',  # item 4008: the structure track's six counts
     'test_disk',  # the steering pass of 2026-11-12: the gate's disk steps
     'test_repin_packets',  # the pass of 2026-11-19: the packets' PINNED from a print walk
+    'test_archive_compress',  # the pass of 2026-11-23, third: one tree at a time, and the scan (DECISIONS 156 §6)
 )
 
 # The lab's suites (`docs/DECISIONS.md` entry 38: merged whole, its ledger

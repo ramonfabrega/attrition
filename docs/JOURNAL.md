@@ -22722,3 +22722,51 @@ on every run since the eleventh. A capture is filed as a link now, a
 gate keeps two days, and the test cleans up. The pass moved no score
 and took no capture.
 **DECISIONS 155.** `docs/audit/2026-11-23-fable-pass-fog.md`.
+
+## 2026-11-23 — the pass, third: a named fix goes first, and the pass mends what its own first act broke (Fable 5.2, steering)
+
+The commander drained its four seats on nineteen landings and handed
+over with nothing out. The headline read 50 of 63: the new battery's
+eight games had joined the count, one whole as found and one made
+whole in the evening.
+
+The seats had bought less again. Thirteen landings on held-out rows
+gained 43 agreeing states each, where the two tranches before gained
+163 and 621. The pass counted what kind each landing was. Seven found
+a rule by reading a leaf. Two moved nothing. One was a seam's fix. And
+three built launch points for unit models that had none, which between
+them gained more than half of everything: a Carrack, a Bazooka, an
+Infantry in India's dress. All three had been on a list the pass
+before printed, five pieces and nineteen keys, filed as one item
+behind a row's seat and never seated. Each lane found its piece again
+with a capture of its own. So the rule now is that an item an
+instrument has already named goes first, before any row's next word.
+Two such stand: the pieces still without a launch point, and a seam
+the counter finds on five open rows and on no whole one, where an
+order to fire at the ground aims a turret in theirs and writes
+nothing in ours.
+
+The bet of the pass before was scored. It had seated a game that
+parted 292 states from its end, to be whole in two landings or the
+clause would go. It was whole in four, two of them those same listed
+pieces. The clause went.
+
+Then the pass broke something. Its first act compresses the archives,
+and the pass before had made a filed capture a hard link, one file
+under a name in each archive. Given both archives in one run the
+compressor took such a file by both names at once, and four trace
+logs came out reading zero bytes. It showed when a game that had
+scored that afternoon answered that its trace was incomplete. Each
+file still held its data with one flag unset. The pass copied the
+forks aside, set the flag, and read every file back to its length;
+three match the checksums the ledger holds. It made the fault again
+on scratch files, seventeen of twenty-four, and built the tool that
+compresses one archive at a time and looks afterwards.
+
+A gate had gone red in the tranche on a capture still being written;
+the scorer now passes over a trace that has no receipt yet. And the
+client's seat, whose next step nobody had designed, takes what the
+photograph shows around the capital and ours does not: the Farm's
+wheat, and the paving under the buildings. The pass moved no score
+and took no capture.
+**DECISIONS 156.** `docs/audit/2026-11-23-fable-pass-bays.md`.
