@@ -1971,7 +1971,17 @@ pub(crate) mod tests {
         for state in lo..=hi {
             while built.sim.frame < state {
                 stream.apply(built.sim.frame as i32, &mut built);
+                let f0 = built.sim.frame;
+                let sites = std::env::var("RON_PROBE_SITES").ok().and_then(|v| v.parse::<i64>().ok()) == Some(f0);
+                built.sim.trace.trace_phases = sites;
+                let seed0 = built.sim.rng.seed;
                 built.sim.command().tick();
+                if sites {
+                    eprintln!("S4632 f{f0} seed {seed0:#010x}");
+                    for (k, (label, who)) in crate::diff::harness::attributed_sites(&built).iter().enumerate() {
+                        eprintln!("S4632 f{f0} {k} {who}: {label}");
+                    }
+                }
                 crate::diff::harness::debug_watch(&built, built.sim.frame);
                 crate::diff::harness::debug_ammo(&built, built.sim.frame);
             }
