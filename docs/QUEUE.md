@@ -156,7 +156,7 @@ Parity held at 5 of 6 and packet lines at 661 of 1,053 on that tip. Whole branch
 
 `codex/checksum-scoring` (4452) starts from `ed15741e8`. Held-out scorer 203.3 → 76.2s alone. Eight-thread booking 11m47s, full required-fixture gate 22m46s, both green on `fc3a10565`. All 54,659 compared states kept their range bytes and checksums.
 
-`codex/nov24-handoff` (4638) starts from `dc14bfc51`. The booking clock's admission and retry measurements are in [item 4638](journal/2026-11-24-item-4638.md). Direct branch, pending batch validation.
+`codex/nov24-handoff` (4638) starts from `dc14bfc51`. The [booking clock](journal/2026-11-24-item-4638.md) took 64–73 s under sustained contention, down from 177–215 s. The [sample's Diamonds correction](journal/2026-11-24-item-4569.md) moves its first disagreement from 7502 to 7539, with draws still at 7613. Direct branch ready for integration. All nine required-fixture stages passed on `cf5ee64f5` in 27.27 min. The next sample item is 4639.
 
 ## How to maintain this file
 
