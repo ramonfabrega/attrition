@@ -41884,3 +41884,30 @@ free. `df -g ~` read 89 GB free before it and 81 after filing.
 
 **What it holds**: the arm behind row 28's first leaf (`docs/journal/2026-11-23-item-4619.md`). No test reads the
 packet. The row 28 test holds its consequence on run1813's ranges for 3956.
+
+## run1820 — parity held out, seventh battery, row 28's file to 4028 with the checksum and ranges hooks, ammo kept (2026-11-23, item 4626, `att-4626`)
+
+`docs/RECGAME.md` §14.2. **What the disk could not answer**: run1813 keeps units, builds, guys and world ranges only,
+and run1805 sums only, so row 28's ammo parting on 4027 named no leaf. The take: `TMPDIR=<fresh> RON_LANE_WAIT=7200
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1820 --recording
+~/ron-golden/recordings/item4600-row028-12000.rcx --end-frame 4028 --allow-early-end --cover cover=1 --log-window
+4021 4029 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES
+--tracer-def RNG_MASK=0x84bu`, waited on with `waitrun.sh` in the background. A first launch with `--log-window 4021
+4030` refused in `live_session.stage` before any game (the window passes the quit frame + 1); nothing ran. The lane
+was free. `df -g ~` read 89 GB free before it and 88 after filing.
+- **The run**: pool lane 1, launched 18:57:56 −05:00, exited 19:03:06: **309.2 s**, exit 0, `success`, no page
+  fault, no relaunch, `last_frame` 4028, seed 12345, map 18. The recording's SHA-256 is run1805's (`26bc5609…`).
+- **The record**, `~/ron-golden/run1820/map-18/rontrace.ranges`, 3,393,388,480 bytes, SHA-256
+  `e00da3efe872bd13146617a930bf60e3880793d5c0cf293b7f5499120aa45aed`, split by `filerun.py` into 4 pieces and
+  compressed (3.16 GiB on disk before, 0.32 after).
+- **Scored** (`score_recording … ~/ron-golden/run1820/map-18`, on `e0845aeca`): first state 4027 (ammo), range 1,
+  record 1, `rolling..start_roll_angle`: who=2's `2/34` round at `0/2000`, launched from (12264, 12552, 145) in ours
+  against (12208, 12465, 296). Every other line 4029 of 4029. On the item's tree every line is 4029 of 4029.
+- **Filed** with `filerun.py run1820 heldout7-row028-ammo4027`: `gamelog_p.txt` →
+  `Logs/gamelog-run1820-heldout7-row028-ammo4027.txt`, 2,887 bytes, SHA-256
+  `34a009e50ac4a49abd9bab21e6391abc0d20b3a789d7dd57ac8e84e16aeaedea`; `rontrace.log` → `Logs/rontrace-run1820.log`,
+  207,060,192 bytes, SHA-256 `fa8370fdad9e37bf9ece6383920aae495ef61fa909d66db2f51906ae7f4bc0da`, both linked; the
+  record stays in place.
+
+**What it holds**: `diff::held_out::tests::row_28_s_round_at_the_capital_on_run1820_s_ranges` (every units, builds,
+ammo, guys and world range on 4026 and 4027).
