@@ -699,7 +699,7 @@ pub(crate) mod tests {
     /// **4601a, read** (item 4603): run1564's profile holds `stat_mode` 1,
     /// [`super::super::blips::STAT_MODE`]; the game's `semaphore` byte 0 is
     /// 0x0a, so `& 0x42` is set and the console sees everything
-    /// ([`super::super::blips::SEES_ALL`]), and byte 1 lacks 8, so a good
+    /// ([`super::super::blips::sees_all`], `World::fog` `None`), and byte 1 lacks 8, so a good
     /// still asks `type_avail`. The blink 4601 inferred is the drawn tick's
     /// bit 3: 175 & 8 is set ([`super::super::blips::tests::BLINK_RUN1564`]).
     #[test]
@@ -713,7 +713,7 @@ pub(crate) mod tests {
             p.stat_mode, p.semaphore[0], p.semaphore[1]
         );
         assert_eq!(p.stat_mode, i32::from(blips::STAT_MODE));
-        assert_eq!(p.semaphore[0] & 0x42 != 0, blips::SEES_ALL);
+        assert_ne!(p.semaphore[0] & 0x42, 0, "run1564 plays under the reveal");
         assert_eq!(p.semaphore[1] & 8, 0);
         assert_eq!(DRAWN_TICK_RUN1564 & 8 != 0, blips::tests::BLINK_RUN1564);
     }
