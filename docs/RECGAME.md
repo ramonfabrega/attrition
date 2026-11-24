@@ -1728,19 +1728,18 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: units part first on 2376; ammo on 2408. run1797's ranges hold each item's frames, each
-*diff-backed*.
+Open: units, ammo, guys and world part first on 2440. run1797's ranges hold each item's frames, each *diff-backed*.
 
-**Item 4597** (DECISIONS 154 §2): units 1906 → 2199, a `REPAIR` swarm walks under `MOVE_TO` (`docs/GROUPS.md`).
-**Item 4602**: builds 2166 → 2351, an anti-air building's wind and turret (`docs/COMBAT.md` §84.7). **Item 4604**:
-ammo 2198 → 2408, the SAM's `missile="1"` spline (`docs/COMBAT.md` §84.3).
+**Items 4597, 4602, 4604**: units → 2199, `REPAIR` under `MOVE_TO` (`docs/GROUPS.md`); builds → 2351, ammo →
+2408, an anti-air building's wind, turret and spline (`docs/COMBAT.md` §84).
 
-**Item 4607**: leaders 2297 → 2413, cities 2297 → 2448. Every Temple's close fixes the borders, built or not:
-`Build::close@00628980` tests `is(0x1b5)` at `0x628d2c` and zeroes every region's resume index inline. who=1
-razes who=2's Temple site `2/2009` on 2295.
+**Item 4607**: leaders → 2413, cities → 2448: every Temple's close fixes the borders (`is(0x1b5)`, `0x628d2c`).
 
-**Items 4610, 4620**: units 2351 → 2376, builds → 2370 → 2432. The orphan check and a new city's sweep walk by
-object number.
+**Items 4610, 4620**: units → 2376, builds → 2432. The orphan check and a new city's sweep walk by object number.
+
+**Item 4628** (run1819's packet): units → 2440. On 2375 the Redoubt `1/2025` strikes `2/0` for ours 18, theirs 11:
+`get_damage`'s rocky step (`644c85`..`644cf2`, mask `0x2008164 & 0x10108`, the cell's `flags & 8`) cuts it, and ours
+read no cell.
 
 ## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
 
