@@ -5020,12 +5020,66 @@ and `artdata::tests::the_fog_ramp_is_the_tileset_s`.*
   hold them to the photograph, not to the card.
 
 **Not established.**
-- The minimap draws every blip over the fog, where theirs draws none
-  past sight (4624a).
+- ~~The minimap draws every blip over the fog, where theirs draws none
+  past sight (4624a).~~ Built (§3.32.3, item 4627).
 - Levels 1 and 2 read 3.6 and 5.3 brighter than theirs, the minimap's
   3.9 at level 2. Whether the original's ground under the fog differs or
   its compose does is not read.
 - The water's and cliffs' own fog (4621b), the trees' (4621a).
+
+## 3.32.3 The blips under the fog, built (item 4627)
+
+*2026-11-23, Opus 5.5. The ledger: `docs/journal/2026-11-23-item-4627.md`.
+`client::minimap::blips`; checked by
+`minimap::blips::tests::the_blips_under_the_fog_on_run1814b` and
+`the_blips_are_the_packet_s` (run1564, under the reveal).*
+
+**The test is each object's own `is_seen`** (vslot `+0x48`), asked of the
+console with `0`, and skipped under `semaphore[0] & 0x42` or the console's
+observer flags (§3.33). Per arm:
+- *Goody box*, `ItemData::is_seen@00677850`: the item's `ever_seen` under
+  the ally mask; then, with tribe bonus 9 on the console's own cell,
+  `was_seen`; else `WorldData::is_seen`, the sight now.
+  `Sim::goody_is_seen`, over the port `goody_item_is_seen` already held.
+- *Good*, `GoodData::is_seen@0066e4c0`: `ever_seen` under the ally mask;
+  then `was_seen` for oil or tribe bonus 9 or 4 (never fish or whales);
+  else `was_really_seen`. `Sim::good_is_seen`, the Porcelain Tower's port.
+- *Unit*, `UnitData::is_seen@00607a60`: the scene's `seen`
+  (`Sim::target_seen_by`).
+- *Building*, `BuildData::is_seen@0062e1a0`, through
+  `WallData::is_seen@00642bd0`; *city*, `CityData::is_seen@00739560`, its
+  centre building's: `Sim::build_is_seen`.
+
+**The goods' second gate.** A good also needs
+`LeaderData::type_avail(console, ty, 1)` unless `semaphore[1] & 8`
+(`render_blips@008cc700`, the goods loop). Neither packet sets it
+(`pings_packet.py`: byte 1 lacks 8 on run1564 and is `01` on run1814b).
+The harness's `type_avail` (`rondata::free`) answers it. Run1814b's
+capital region holds one oil the console has seen. Its packet draws none,
+and ours is false there.
+
+**The reveal is `World::fog` `None`** (`blips::sees_all`), as the fog's own
+layers take it (§3.32.2). Run1814b's `semaphore[0]` is `0x08`, so there
+the test runs.
+
+**The rows**, on run1814b's frame 3294 under slot 0's fog, the capital
+selected, `graphic_tick` 163 (no blink):
+- `RUN1814B_3294_BLIPS`, quad for quad off the packet by layer 0 to 2,
+  `[theirs, ours, ours that are theirs]`: [0, 19, 0] / [1, 51, 0] /
+  [1, 3, 0] → **[0, 0, 0] / [1, 1, 1] / [1, 1, 1]**. Layers 3 and 4 are 0
+  both sides.
+- `RUN1814B_3294_BLIP_PIXELS`, the still's pixel at every blip's centre
+  within 24 a channel of the photograph's: 16 of 58 → **2 of 2**.
+- Under the reveal (`_REVEALED`) the boxes and far buildings stay: 19 /
+  19 / 3 quads, 2 of 41 pixels. Run1564's packet stays 118 of 118.
+
+**Diff-backed**: the two blips, to the quad. **Read alone**: the arms that
+run1814b's frame does not exercise: a box's or a good's `ever_seen`, the
+tribe arms, a unit's stealth, a building's `visible` byte.
+
+**Not established.**
+- The photograph's red ring round the selected capital on the minimap
+  (4627a).
 
 ## 3.33 The minimap's blips, read (item 4593)
 
@@ -5179,7 +5233,7 @@ the packet:
   and all 36 goods, where the console's own fog has seen none. Run1564's
   console has player flags 7 (its gamelog's `BEGIN PLAYER`), neither
   `0x100` nor `0xd0`, so `semaphore[0] & 0x42` must be set. The sim does
-  not carry it, so `blips::SEES_ALL` takes it as set.
+  not carry it; `blips::sees_all` reads it off `World::fog` (§3.32.3).
 - *The chain.* `up`/`up_who` are the cell's object chain
   (`ObjectChain`). Our unit 0/0 holds `up 23`, `up_who 1`, as the dump
   does.
@@ -5195,7 +5249,7 @@ them.
 **Not established.**
 - The predicates the frame does not exercise: `stat_mode` 1, 2 and 6,
   the selection's white on a unit, the idle flash, layer 4, and the
-  visibility test under the fog. ~~The building arms' slots~~: named
+  ~~visibility test under the fog~~ (§3.32.3). ~~The building arms' slots~~: named
   (item 4596, above). ~~Not built (4596a)~~: built (item 4601, above),
   under mode 1 alone.
 - ~~The captures' `stat_mode` and `semaphore[0]` are inferred from the
