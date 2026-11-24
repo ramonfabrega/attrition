@@ -330,7 +330,7 @@ fn infantry_on_a_rock_cell_takes_the_rocky_cut() {
     assert!(plain > 2, "plain ground: {plain}");
     assert_eq!(
         blow(crate::ids::cell::ROCK),
-        plain * 170 >> 8,
+        (plain * 170) >> 8,
         "rock: {plain} × rocky_modifier 170 >> 8"
     );
     // Another cell bit leaves the blow alone.
