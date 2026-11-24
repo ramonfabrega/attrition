@@ -921,6 +921,17 @@ impl Sim {
                 kt.and_then(|t| self.trainer_ident(t)),
                 self.economy.ledgers[who as usize].bucket
             );
+            for r in 0..self.units.len() {
+                if self.units[r].inside_unit == Some(v) {
+                    let x = &self.units[r];
+                    eprintln!(
+                        "  probe4631   rider {}/{} slot {r} ti {:#x} ty {:?} alive {} hero {} supply {} o_up {:?} transport_flag {}",
+                        x.owner, x.index, x.type_index, x.ty, x.alive(), self.is_hero_unit(r), self.is_supply_unit(r), x.o_up,
+                        self.units[v].ty.map_or(0, |t| self.tables.unit_types[t].cols.unit_flags & crate::ai::ai_load::uflags::FLAG_TRANSPORT)
+                    );
+                }
+            }
+            eprintln!("  probe4631   general_plunder {} caravan_plunder {}", self.tables.tuning.general_plunder, self.tables.tuning.caravan_plunder);
             for h in 0..self.units.len() {
                 let x = &self.units[h];
                 if x.owner == who && (x.type_index == 0x160 || x.type_index == 0x16d) {
