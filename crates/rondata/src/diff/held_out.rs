@@ -12218,9 +12218,9 @@ pub(crate) const HELD_OUT_SEVENTH_HUMANS: [Ordering; 8] = [
 /// **The seventh battery's scores**, `HELD_OUT_SEVENTH[k]` played as
 /// `run1804 + k` (item 4600): `None` until the original has played it. The
 /// found column is pinned once and never re-pinned; it is the estimate
-/// (DECISIONS 154 §7). Scored on `f7d2e41c6`'s tree. Rows 128 and 148 are
-/// minted and untaken: the disk read 59 GB free before run1810, under the
-/// item's floor of 60.
+/// (DECISIONS 154 §7). Rows 8 to 108 scored on `f7d2e41c6`'s tree; rows
+/// 128 and 148, untaken there (the disk read 59 GB before run1810), were
+/// played by item 4611 and scored on `6fa43acc3`'s.
 #[cfg(test)]
 pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
     // run1804
@@ -12470,17 +12470,62 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         moved: None,
     }),
     // run1810
-    None,
+    // row 128, as found 2026-11-23 (item 4611, on `6fa43acc3`'s tree): 11 lines whole; leaders
+    // 8,154 of 12,001, first 3338; reach 3,338 of 12,001 states, 3,338 of 6,001 in the first
+    // 6,001.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 12001,
+            agreed: [
+                12001, 12001, 12001, 12001, 12001, 12001, 12001, 8154, 12001, 12001, 12001, 12001,
+            ],
+            first: &[("leaders", (3338, Some(2712824495), 2415749278))],
+            over: None,
+        },
+        moved: None,
+    }),
     // run1811
-    None,
+    // row 148, as found 2026-11-23 (item 4611, on `6fa43acc3`'s tree): 1 line whole; units 10,879
+    // of 12,001, first 10879; builds 10,930 of 12,001, first 10908; ammo 10,970 of 12,001, first
+    // 10888; deaths 10,994 of 12,001, first 10994; groups 11,045 of 12,001, first 10933; guys
+    // 10,909 of 12,001, first 10909; leaders 10,944 of 12,001, first 10908; cities 10,964 of
+    // 12,001, first 10908; items 11,556 of 12,001, first 11459; goods 11,695 of 12,001, first
+    // 11198; world 10,913 of 12,001, first 10912; reach 10,879 of 12,001 states, 6,001 of 6,001
+    // in the first 6,001.
+    Some(FirstScore {
+        last: None,
+        found: Score {
+            states: 12001,
+            agreed: [
+                10879, 10930, 12001, 10970, 10994, 11045, 10909, 10944, 10964, 11556, 11695, 10913,
+            ],
+            first: &[
+                ("units", (10879, Some(3473404783), 2285826991)),
+                ("builds", (10908, Some(3337499215), 3915461255)),
+                ("ammo", (10888, Some(2756447483), 379062916)),
+                ("deaths", (10994, Some(2387741884), 2392132797)),
+                ("groups", (10933, Some(907293491), 3971560240)),
+                ("guys", (10909, Some(1753099358), 2173644070)),
+                ("leaders", (10908, Some(1527486154), 257660620)),
+                ("cities", (10908, Some(3068282017), 1805141196)),
+                ("items", (11459, Some(1489378100), 1460542256)),
+                ("goods", (11198, Some(4110382930), 4015224652)),
+                ("world", (10912, Some(304981228), 1792976066)),
+            ],
+            over: None,
+        },
+        moved: None,
+    }),
 ];
 
 /// The seventh battery's line: games whole of the eight, and games taken.
 /// As found: row 68 whole to the original's end 3,948, six taken.
 /// Item 4630 made row 28 whole to the original's end 4,247 (piece 1812's
-/// bays): 1 -> 2.
+/// bays): 1 -> 2. Item 4611 took rows 128 and 148 (run1810, run1811):
+/// six taken -> eight.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SEVENTH_LINE: (usize, usize) = (2, 6);
+pub(crate) const HELD_OUT_SEVENTH_LINE: (usize, usize) = (2, 8);
 
 /// The seventh battery (item 4600): the sixth's recipe, the human ordering
 /// every 600 frames to 11,400.
