@@ -369,8 +369,7 @@ impl Sim {
         for (k, w) in city.traded_with.iter().enumerate() {
             put(0x2c + 4 * k, &w.to_le_bytes());
         }
-        // `scouted` (+0x4c): no writer in this crate; `City::init` zeroes it.
-        put(0x4c, &0i16.to_le_bytes());
+        put(0x4c, &city.scouted.to_le_bytes());
         put(0x4e, &i16b(i64::from(ai.in_port)));
         put(0x50, &i16b(i64::from(ai.peasant_dist)));
         put(0x52, &i16b(i64::from(city.trade_val)));

@@ -570,9 +570,16 @@ CHECKSUM §17).
 
 **Diamonds on state 7502 (item 4569).** On run1786, player 3 gains rare bit
 22. Its five capped goods and its spare cap now agree at 3440, up from 3200.
-Leaders agree through 7649. The sample first parts on units and cities at
-7539. The draw count and sequence still first part at 7613. The whole-cast
-comparison and next differing ranges are in the [item journal](journal/2026-11-24-item-4569.md).
+Leaders agree through 7649. At that landing the first disagreement moved
+to units and cities on 7539. [Diamonds comparison](journal/2026-11-24-item-4569.md)
+
+**Scout 3/0 on state 7538 (item 4639).** The recorded package sets its
+auto-explore bit. At the second checksum of that state the Scout's mask
+is 258 and both city marks are still zero. By the next state cities 1
+and 2 both carry player 3's bit, 8. Emitting those live fields moves
+units to 7612 and cities to 7825. Units, guys and world now first part
+at the birth of Merchant 3/23. Draws first part at 7613.
+[Scout comparison](journal/2026-11-24-item-4639.md)
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 

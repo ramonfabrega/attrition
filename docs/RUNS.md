@@ -41104,6 +41104,9 @@ read 91 GB free before it and 79 GB after (before the split).
   3440. Every leaders range agrees on 7495–7509. Leaders first part on 7650 (range 271, record 2,
   `who..ally_mask`, offset 2644, ours `03000200`, theirs `04000200`). Units and cities first part on 7539.
   Draws still part on 7613.
+- **Re-scored by item 4639.** The Scout's mask goes 2 → 258 between ordinals 0 and 1 of trace frame 7537.
+  Cities 1 and 2 go 0 → 8 on trace frame 7538. All 56,581 units ranges and 704 cities ranges agree across
+  states 7534–7543 including the package boundary. Units first part at 7612, cities at 7825, draws at 7613.
 
 Archive `gamelog-run1786-sample2017-playback-ranges-8000.txt`, 3,775 bytes,
 SHA-256 `d830e578dbf52dd5833270e0f6c8854b4218ae4b39d6c862c48171d6c55f7644`; `rontrace-run1786.log`, 134,658,432

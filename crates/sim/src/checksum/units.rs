@@ -459,6 +459,7 @@ impl Sim {
             (0x20, un.gather_here),
             (0x40, un.waiting_on),
             (0x80, un.attrition != 0),
+            (0x100, un.auto_explore),
             (0x200, un.trade_unloaded),
             (0x400, un.was_builder),
             (0x800, un.cloak),

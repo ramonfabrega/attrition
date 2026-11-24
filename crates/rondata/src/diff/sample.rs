@@ -822,8 +822,10 @@ pub(in crate::diff) mod tests {
     /// goods 7706 -> 8552, world 7413 -> 7612; leaders 7502 the lowest.
     /// Item 4569: the Diamonds cap moves leaders 7502 -> 7650. Units and
     /// cities on 7539 now part first. The draw word remains 7613.
+    /// Item 4639: emitting the Scout's live mode and the cities' marks
+    /// moves units to 7612 and cities to 7825. The draw word holds.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 7539),
+        ("units", 7612),
         ("builds", 7620),
         ("walls", 21044),
         ("ammo", 7636),
@@ -831,7 +833,7 @@ pub(in crate::diff) mod tests {
         ("groups", 7625),
         ("guys", 7612),
         ("leaders", 7650),
-        ("cities", 7539),
+        ("cities", 7825),
         ("items", 8628),
         ("goods", 8552),
         ("world", 7612),
@@ -1401,6 +1403,70 @@ pub(in crate::diff) mod tests {
         }
     }
 
+    #[test]
+    fn the_sample_s_scout_order_and_city_marks_match_both_recorded_lines() {
+        let (Some(inst), Some(rcx), Some(mut ranges)) = (install(), sample(), run1786()) else {
+            return;
+        };
+        let rec = crate::recgame::read(&rcx).unwrap();
+        let (mut built, _) = sample_start(&inst, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        while built.sim.frame < 7534 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.tick();
+        }
+        let mut compare = |sim: &sim::Sim, ordinal: u32| {
+            let state = sim.frame;
+            let set = ranges
+                .sets
+                .iter()
+                .find(|s| s.frame == state - 1 && s.ordinal == ordinal)
+                .expect("run1786's package boundary")
+                .clone();
+            assert_eq!(set.flags, 0);
+            let scout = sim
+                .units
+                .iter()
+                .find(|u| u.alive() && u.owner == 3 && u.index == 0)
+                .unwrap();
+            assert_eq!(
+                scout.auto_explore,
+                state > 7538 || ordinal == 1,
+                "Scout 3/0 on {state}/{ordinal}"
+            );
+            let marked = if state > 7538 { 8 } else { 0 };
+            for city in &sim.cities.cities[1..=2] {
+                assert_eq!(city.scouted & 8, marked, "city on {state}/{ordinal}");
+            }
+            let original = ranges.ranges(&set).unwrap();
+            for (line, ours) in [(0, sim.checksum_units()), (8, sim.checksum_cities())] {
+                let theirs: Vec<_> = original.iter().filter(|r| r.line == line).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "{} on {state}/{ordinal}",
+                    ours.name
+                );
+                for (i, (a, b)) in ours.ranges.iter().zip(theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{} {i} {} {} on {state}/{ordinal}",
+                        ours.name, a.record, a.field
+                    );
+                }
+            }
+        };
+        while built.sim.frame <= 7543 {
+            let state = built.sim.frame;
+            compare(&built.sim, 0);
+            stream.apply(state as i32, &mut built);
+            if state == 7538 {
+                compare(&built.sim, 1);
+            }
+            built.tick();
+        }
+    }
+
     /// The same walk over run1786's record, the eleven lines of its mask
     /// alone, pinned per line by [`SAMPLE_RANGES_1786`].
     /// `RON_SAMPLE_RANGES_DETAIL` and `RON_SAMPLE_RANGES_ALL` print as
@@ -1905,11 +1971,11 @@ pub(in crate::diff) mod tests {
     const SAMPLE_RANGES_1786: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
-            7539,
-            5158,
-            5158,
-            1,
-            "3239 0 collide_frame..play: unit_masks 2|258",
+            7612,
+            5234,
+            5234,
+            5,
+            "3796 23 who..y_internal: z 461|458, x 12168|12552, y 9960|10584",
         ),
         (
             "builds",
@@ -1952,7 +2018,14 @@ pub(in crate::diff) mod tests {
             2,
             "271 2 who..ally_mask: +0xa54 of 26914|26914: 03000200|04000200",
         ),
-        ("cities", 7539, 64, 64, 2, "1 1 city..ter: scouted 0|8"),
+        (
+            "cities",
+            7825,
+            64,
+            64,
+            2,
+            "38 14 city_flags: +0x0 of 2|2: 4f00|4900",
+        ),
         (
             "world",
             7612,

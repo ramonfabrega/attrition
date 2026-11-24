@@ -30,7 +30,7 @@ Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · 
 Blind: never 336 · residue 336 · open 0
 Rubric: ported 739 · replaced by design 331 · open 570 of 3611 · lockstep bytes 78.1 % · ages held 8 of 8 · unit types seen 296 of 302
 Held-out: 8 of 9 whole · shortest 6147
-Parity: 50 of 63 whole · held out 44 of 56 · the sample parts first on units 7539 of 21044 · draws 7613
+Parity: 50 of 63 whole · held out 44 of 56 · the sample parts first on units 7612 of 21044 · draws 7613
 Parity held out, closed: first, second, third, fourth · 32 of 32 whole · lines 309 of 384 as found, 384 now · reach 66 % of states as found, 100 % now
 Parity held out, fifth: 6 of 8 whole · 8 taken · lines 30 of 96 as found, 74 now · first partings 3857 0 3192 1582 1956 1750 2977 whole as found, whole whole 3833 whole 3662 whole whole whole now · reach 48 % of states as found, 89 % now
 Parity held out, sixth: 4 of 8 whole · 8 taken · lines 20 of 96 as found, 53 now · first partings 7675 2411 3358 1563 2342 2259 956 whole as found, 7675 whole 3358 whole 2965 whole 2451 whole now · reach 49 % of states as found, 61 % now · reach in the first 6,001 states 59 % as found, 78 % now
@@ -52,7 +52,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2, 151 §5, 152 §1 to §4, 153 §2 to §10, 154 §1 to §10, 155 §1 to §8, 156 §1 to §8): the pass designed four seats, none out: the chain's 4635 (the seventh's row 128, eleven lines whole, leaders alone on 3338; 153 §2), a parity seat's 4608 (the seam `attack_ground_aim`, entered by rows 93, 88, 133, 53 and 83 and by no whole row; 156 §2, §3), a parity seat's 4618 (the pieces with no bay, 1,796 rounds on rows 88, 148, 133 and 48) and the client's 4636 (the capital's ground; 156 §7). 4635 opens on a take; 4608 and 4618 open on a fix an instrument has named, and each scores every row it reaches at its booking. Unseated, by first parting (153 §2): 4634 (row 133, 2451), 4633 (row 88, 2902), 4609 (row 53, 3358), 4573 (row 83, 3662; scored again at 4608's booking), 4571 (row 43, 3833), 4615 (the seventh's row 48), 4616 (row 108), 4639 (the sample), 4579 (row 13), 4617 (row 8), 4637 (row 148). A row's seat is refilled with the row's next word while its column moves: 4608's seat keeps row 93 after its first act, and 4618's goes to 4634 after its second. A seat that frees takes the next in this order, and 4639 before a hand-over when no row's item stands. An item an instrument names later, a seam no whole row enters or a probe's table, is minted ahead of that order (156 §2). Every take waits its turn, one game at a time; a script of several waits on each with `waitrun.sh` (153 §7). `docs/RECGAME.md` §12 stands at its ceiling: a fifth row's landing changes its row's cell there and writes its leaf in `docs/RUNS.md` and its journal; a sixth row's goes under its own row's heading in §13 (13.1 to 13.5) and touches nothing above them (154 §6). The driver's note names `seams.py --field` with the leaf's own field (153 §9). The sample's stop reads the `Parity:` line's first parting and its draw word, never the games' count (151 §1). The disk read 109 GB at the pass's end; every take still stops under 60.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2, 151 §5, 152 §1 to §4, 153 §2 to §10, 154 §1 to §10, 155 §1 to §8, 156 §1 to §8): the pass designed four seats, none out: the chain's 4635 (the seventh's row 128, eleven lines whole, leaders alone on 3338; 153 §2), a parity seat's 4608 (the seam `attack_ground_aim`, entered by rows 93, 88, 133, 53 and 83 and by no whole row; 156 §2, §3), a parity seat's 4618 (the pieces with no bay, 1,796 rounds on rows 88, 148, 133 and 48) and the client's 4636 (the capital's ground; 156 §7). 4635 opens on a take; 4608 and 4618 open on a fix an instrument has named, and each scores every row it reaches at its booking. Unseated, by first parting (153 §2): 4634 (row 133, 2451), 4633 (row 88, 2902), 4609 (row 53, 3358), 4573 (row 83, 3662; scored again at 4608's booking), 4571 (row 43, 3833), 4615 (the seventh's row 48), 4616 (row 108), 4641 (the sample), 4579 (row 13), 4617 (row 8), 4637 (row 148). A row's seat is refilled with the row's next word while its column moves: 4608's seat keeps row 93 after its first act, and 4618's goes to 4634 after its second. A seat that frees takes the next in this order, and 4641 before a hand-over when no row's item stands. An item an instrument names later, a seam no whole row enters or a probe's table, is minted ahead of that order (156 §2). Every take waits its turn, one game at a time; a script of several waits on each with `waitrun.sh` (153 §7). `docs/RECGAME.md` §12 stands at its ceiling: a fifth row's landing changes its row's cell there and writes its leaf in `docs/RUNS.md` and its journal; a sixth row's goes under its own row's heading in §13 (13.1 to 13.5) and touches nothing above them (154 §6). The driver's note names `seams.py --field` with the leaf's own field (153 §9). The sample's stop reads the `Parity:` line's first parting and its draw word, never the games' count (151 §1). The disk read 109 GB at the pass's end; every take still stops under 60.
 
 4635. **Parity held out, seventh: row 128's leaders from 3338** (a rules item, whole; the chain's seat; `docs/RECGAME.md` §14.6).
 Item 4611 took rows 128 and 148 as found (run1810, run1811). The pass scored row 128 on run1810: eleven lines whole on 12,001 of
@@ -115,14 +115,14 @@ at 4608's booking. Re-pin `SCORES_FIFTH[4].moved`, never `found`. It stops when 
 row 133's writer, the formation's. run1787 holds every line: no take. Re-pin `SCORES_FIFTH[2].moved`, never `found`.
 It stops when two landings running move no column.
 
-4639. **The 2017 sample: units and cities from 7539** (a rules item, whole; unseated; `docs/RECGAME.md` §7).
-Item 4569 moved leaders 7502 → 7650 when player 3 acquired Diamonds. First parting 7539: units range 3239, record 0,
-`unit_masks` ours 2, theirs 258, and cities range 1, record 1, `scouted` ours 0, theirs 8. Draws still part on 7613.
-run1786 identifies Scout 3/0 (TI 69): its mask flips between the two sets on trace frame 7537. Cities 1 and 2 both
-gain bit 8. First act: compare the scout's live auto-explore flag, the recorded package and both city marks. Re-pin `SAMPLE_LINES` and `SAMPLE_WALKED`. Stop after two landings leave both words unchanged.
+4641. **The 2017 sample: the Merchant's birth at 7612** (a rules item, whole; unseated; `docs/RECGAME.md` §7.1).
+Item 4639 moved units 7539 → 7612 and cities 7539 → 7825. Merchant 3/23, TI 61, appears at (12168,9960)
+here and (12552,10584) in run1786. Units, guys and world first part together. Building 3/2018 finishes the job,
+while 3/2027's Merchant job continues. Compare the trainer's gather point and the ejection candidates through
+birth. The draw count and sequence first part at 7613. Use the existing record. Stop after two landings move neither word.
 
 4579. **Parity held out, sixth: row 13's units, builds, groups and guys from 7675** (a rules item, whole; unseated;
-`docs/RECGAME.md` §13.1). Amazon, the human with the added computer; the one row that parts past 6,000, beside the sample's 7539.
+`docs/RECGAME.md` §13.1). Amazon, the human with the added computer; the one row that parts past 6,000, beside the sample's 7612.
 run1788 holds sums. First act, one take: `--end-frame 12000 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def
 RNG_MASK=0xfebu`. Re-pin `SCORES_SIXTH[0].moved`, never `found`. It stops when two landings running move no column.
 
@@ -157,6 +157,8 @@ Parity held at 5 of 6 and packet lines at 661 of 1,053 on that tip. Whole branch
 `codex/checksum-scoring` (4452) starts from `ed15741e8`. Held-out scorer 203.3 → 76.2s alone. Eight-thread booking 11m47s, full required-fixture gate 22m46s, both green on `fc3a10565`. All 54,659 compared states kept their range bytes and checksums.
 
 `codex/nov24-handoff` (4638) starts from `dc14bfc51`. The [booking clock](journal/2026-11-24-item-4638.md) took 64–73 s under sustained contention, down from 177–215 s. The [sample's Diamonds correction](journal/2026-11-24-item-4569.md) moves its first disagreement from 7502 to 7539, with draws still at 7613. Direct branch ready for integration. All nine required-fixture stages passed on `cf5ee64f5` in 27.27 min. The next sample item is 4639.
+
+`codex/coverage-scout` (4640) starts from the validated handoff `d57298444`. [Field coverage](journal/2026-11-24-item-4640.md) takes 323.52 s warm at eight workers, down from 332.73 s. The [Scout correction](journal/2026-11-24-item-4639.md) moves units to 7612 and cities to 7825. Direct branch pending batch validation.
 
 ## How to maintain this file
 

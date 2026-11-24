@@ -859,7 +859,7 @@ here keeps, written as the constant `City::init@00737050` leaves.
 | `attack_stamp`, `raid_stamp`, `reduce_stamp`, `capture_stamp`, `assimilation_timer` | +0x14..+0x28, 4 each | holds | 0 each | 0 each |
 | `capture_strength` | +0x28, 4 | holds | 0 | 0 |
 | `traded_with[8]` | +0x2c, 4 each | holds | 0 each | 0 each |
-| `scouted` | +0x4c, 2 | zero (`City::init`, copied by `City::capture@00736c40`) | 0 | 0 |
+| `scouted` | +0x4c, 2 | holds the scouting player bits (run1786, item 4639) | 0 | 0 |
 | `in_port`, `peasant_dist` | +0x4e, +0x50, 2 each | holds (`CityAi`, the owner's copy) | 0, 1 | 0, 1 |
 | `trade_val` | +0x52, 2 | holds | 0 | 0 |
 | `conquest_node` | +0x54, 2 | zero: −1, `City::init`'s `0xffff` (Conquer the World, cut) | −1 | −1 |
@@ -906,8 +906,9 @@ the shape of a non-empty `vans` array (run1100's stream, not ours).
   bytes; `free`; `plundered`; `ocean`, `bordering`, `ocean_filled`,
   `dock_tile`, `was_capital_flags`; `ter[2]` and `ter[5]`; and city
   flags `0x2`, `0x4`, `0x8`, `0x20`, `0x40`, `0x80`, `0x100`, `0x200`,
-  `0x400`, `0x1000`, `0x2000`, `0x8000`. `scouted` and `plundered` have
-  no writer here; a capture that sets one is the check.
+  `0x400`, `0x1000`, `0x2000`, `0x8000`. Run1786 later sets
+  `scouted` to 8 in two cities one tick after Scout 3/0 takes `unit_masks`
+  bit `0x100` (item 4639). The witness for `plundered` is still owed.
 - ~~**A city with a caravan link.** The image emits §8's shape with `size`
   10, `cara` the caravan's slot in its owner's list and `who` that
   owner, in owner-then-slot order. Each of those is an assumption: no
