@@ -12439,8 +12439,10 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
 
 /// The seventh battery's line: games whole of the eight, and games taken.
 /// As found: row 68 whole to the original's end 3,948, six taken.
+/// Item 4630 made row 28 whole to the original's end 4,247 (piece 1812's
+/// bays): 1 -> 2.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SEVENTH_LINE: (usize, usize) = (1, 6);
+pub(crate) const HELD_OUT_SEVENTH_LINE: (usize, usize) = (2, 6);
 
 /// The seventh battery (item 4600): the sixth's recipe, the human ordering
 /// every 600 frames to 11,400.
