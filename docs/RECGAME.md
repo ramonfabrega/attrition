@@ -1847,81 +1847,59 @@ Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
 
 ### 14.4 Row 88
 
-Open: leaders part on 2883, alone (item 4625). run1808 holds sums, run1815 the ranges to 2991 (units, deaths, guys,
-leaders and world), run1818 the ammo ranges to 2792.
+Open: units part on 2902, alone (item 4631). run1808 holds sums, run1815 the ranges to 2991 (units, deaths, guys,
+leaders and world), run1818 the ammo ranges to 2792. The stories are the items' journals.
 
-**Item 4614: a rider comes out before its carrier dies, and a fire raft dies with its shot.** Two fixes. Both are
-diff-backed by run1815's ranges (`docs/RUNS.md`), scored by `score_recording` on the item's tree.
+**Item 4614: a rider comes out before its carrier dies, and a fire raft dies with its shot.** Both are diff-backed by
+run1815's ranges.
 
-- **The seam's fix first** (DECISIONS 155 §9). `Object::kill_contents@00645550` calls `Unit::come_out(p, 0)` and then
-  `Unit::die_uber(p, 0)` on each head of `inside_down`. This crate let each rider die aboard. Now `kill_contents` runs
-  `Sim::rider_come_out`, the come-out half of `eject_riders`: the boat's ring for the captain, the captain's for each
-  member, every tail. It then kills the squad in `die_uber`'s order (`o_down` members in chain order, the captain
-  last). A rider whose `come_out` refuses still dies aboard through `close_inside_disc`. On 2740 who=2's Peltasts
-  `2/38`..`2/40` (TI 84) come ashore off the sunk barge `2/71` (TI 320) and die there. The Elite Longbowmen
-  `2/20`..`2/22` (TI 178) aboard `2/60` find no spot and die aboard. **Measured off**, with both fixes otherwise in:
-  world parts on 2741 at range 4934, record 1101, `block.present`, ours 0, theirs 1. **On**, world agrees to 2861.
-  Row 53 (run1790): its one rider on 3706 (TI 209, aboard `2/106`) finds no spot, and the fix alone moves no column
-  there. The second's row 110 stays whole.
-- **The leaf the take named.** On 2741 units range 2770, record 87: ours walks who=1's `1/87`, a Heavy Fire Raft
-  (`HEAVYFIRERAFT`, TI 335, sea), at (17544, 13464), 140 hits. Theirs has ended who=1's walk there and walks who=2's
-  `2/0`. Theirs' deaths slot 0 on 2741 is that raft (who 1, `o` 87, at its point, no impact piece), ahead of the
-  barges `2/60` and `2/71`, which ours holds in slots 0 and 1. Leaders who=1's `leader_flags & 0x800000` read ours
-  clear, theirs set. **Theirs acted**: the raft died on the frame its round sank both barges (their records carry
-  piece `0xeaf5`, `FIRST_AMMO_PIECE`). `Unit::fight@005fd4d0:900`–`906`: straight after `fire_ammo`, a type whose
-  `unit_flags` carries `n` (`0x2000`, `uflags::SELF_DESTRUCT`) takes `Object::die(this, 3, −1, 0)`, and `fight`
-  returns 0. This crate fired and reloaded. Built in `fight_as`'s ranged arm. Held by
+- **The seam's fix** (DECISIONS 155 §9). `Object::kill_contents@00645550` calls `Unit::come_out(p, 0)` and then
+  `Unit::die_uber(p, 0)` on each head of `inside_down`; this crate let each rider die aboard. `kill_contents` now runs
+  `Sim::rider_come_out` (the boat's ring for the captain, the captain's for each member) and kills the squad in
+  `die_uber`'s order, the captain last; a rider whose `come_out` refuses dies aboard through `close_inside_disc`. On
+  2740 who=2's Peltasts `2/38`..`2/40` (TI 84) come ashore off the sunk barge `2/71` (TI 320) and die there. Off,
+  world parts on 2741 (range 4934, record 1101, `block.present` ours 0, theirs 1); on, it agrees to 2861.
+- **A fire raft dies with its shot.** On 2741 theirs' deaths slot 0 is who=1's Heavy Fire Raft `1/87` (TI 335); ours
+  kept it alive. `Unit::fight@005fd4d0:900`–`906`: after `fire_ammo`, a type whose `unit_flags` carries `0x2000`
+  (`uflags::SELF_DESTRUCT`) takes `Object::die(this, 3, −1, 0)`. Built in `fight_as`'s ranged arm, held by
   `combat::fight::tests::a_fire_raft_dies_with_its_shot`.
 
-The score, `SCORES_SEVENTH[4].moved` (12,001 states): deaths 2,741 → 2,862, world 2,741 → 2,862, builds 2,783 →
-2,887, ammo 2,988 → 3,039, groups 2,751 → 2,883, guys 2,741 → 2,851, items 7,315 → 7,799, goods 2,879 → 2,998. The
-first parting stands on 2741, on units, guys and leaders. Row 53 drifts: deaths, leaders and world 3707 → 3713, its
-first parting 3358 standing.
+**Item 4622: a self-destructing shooter splashes from the shot's middle.** `Ammo::do_damage@00678060` at `678652`
+calls the shooter's vslot `+0x18` (on `Unit`, `return 1`) and at `678675` tests its type's `unit_flags & 0x2000`; with
+both, `678681`..`6786a0` set the splash centre to `((sx + ex) / 2, (sy + ey) / 2)`, truncated, which the cell walk and
+both arms' distances read. Barge `2/61`'s `myhits..` on 2741 read ours 12, theirs 0. Built in `Sim::land`, held by
+`combat::fight::tests::a_self_destructing_shooter_splashes_from_the_shot_s_middle`.
 
-**Item 4622: a self-destructing shooter splashes from the shot's middle.** On 2741 who=2's third barge `2/61` (TI
-320) read `flags` ours `0x11`, theirs `0x01`, and `myhits..` ours 12, theirs 0. Our splash from the raft's round had
-reached it, and theirs' had not. `Ammo::do_damage@00678060`'s splash arm was read in the listing. At `678652` it
-calls the shooter's vslot `+0x18`: on `Unit`, the folded `Buffer::is_pending_load@0041e0e0`, `return 1`. At `678675`
-it tests the shooter type's `unit_flags & 0x2000` (`n`, `uflags::SELF_DESTRUCT`). With both, `678681`..`6786a0` set
-the centre to `((sx + ex) / 2, (sy + ey) / 2)`, truncated toward zero; otherwise it is the landing. The cell walk
-(`6786d8`..`6786ee`) and both arms' distances (`67888f`, `6788e0`, `678a58`..`678a8c`) read that centre.
-`hit_target` and `check_hit` keep the landing. The raft is already dead when its round lands, and its type is read
-all the same. Built in `Sim::land`. Held by `combat::fight::tests::a_self_destructing_shooter_splashes_from_the_shot_s_middle`,
-which fails with the centre kept at the landing. Diff-backed by run1815's ranges: units agree to 2806, and the first
-difference moves to 2791.
+**Item 4625: the Carrack fires from its starboard battery.** Ammo record 0 on 2791 is who=1's Carrack `1/82` (TI 342,
+piece 292) firing `CHAR_ATTACK2`'s node 1 at `2/61` on 2790: `sx, sy, sz` ours (16824, 11640, 0), theirs (16866,
+11729, 35). **Ours acted**: `launch_point` had no row for piece 292. Its nine `RELEASEEVENT`s are swept on run1579's
+packet and fitted, built as nine `BAYS` rows, held by `data::launch::tests::the_carrack_s_round_leaves_its_starboard_battery`
+and `the_carrack_s_release_agrees_at_every_heading_but_one`. run1818 agrees on all twelve lines to 2792.
 
-The score, `SCORES_SEVENTH[4].moved`: units 2,741 → 2,807, leaders 2,741 → 2,879, guys 2,851 → 2,882, deaths and
-world 2,862 → 2,882, builds 2,887 → 2,919, goods 2,998 → 2,999. Ammo (3,039 → 2,930) and items (7,799 → 4,108) drop
-past the first parting. **The first parting moves 2741 → 2791, on ammo alone**, which has parted there since the row
-was found.
+**Item 4631: a transport's kill plunders as its cargo.** On 2883 who=1's `encrypt` reads `bucket[1]` (timber) ours
+15,500, theirs 15,485, and `bucket[2]` (wealth) ours 17,667, theirs 17,767. On 2882 the Carrack's round sinks `2/61`
+carrying who=2's Despot `2/24` (TI 0x160), with who=1's Despot `1/14` 2,115 away (reach 2,304). Both sides draw four
+times in `Unit::plunder@00605b00` (theirs at `+0x4e5`). **Ours acted**: it asked the barge whether it was a hero, and
+paid the Despot's 15 in the least-stocked good. `Object::take_damage@00652020` at `653090` tests the victim type's
+`+0x2b4 & 0x10` and at `6530a5`..`6530a9` takes `inside_down_who` and `inside_down`, so the ally test and the
+GENERAL/CARA/SUPPLYWAGON `is` tests read the cargo's head. An empty transport (`js 0x6533b2` at `6530ba`) skips the
+plunder and the Inca refund. `plunder` redirects the same way, so `GENERAL_PLUNDER` 100 beats the 15 and is paid in
+wealth. Built as `Sim::plunder_victim` (which `score_victim` reads) in `unit_plunder` and `inca_refund`. Held by
+`cities_tests::a_transport_s_kill_plunders_as_its_cargo`; the mutation with the redirect dropped fails it.
 
-**The next word, 2791, ammo.** run1808 and run1815 hold no ammo ranges. The take `score_recording` names is row 88's
-file with `--end-frame 2792 --log-window 2790 2793 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def
-RNG_MASK=0x8`. Units part next on 2807, at range 4411, record 61: barge `2/61`'s `flags` read ours `0x01`, theirs
-`0x11`. Theirs is now wounded and ours is not.
+The score, `SCORES_SEVENTH[4].moved` (12,001 states). 4614: deaths and world 2,741 → 2,862, groups → 2,883, guys →
+2,851. 4622: units → 2,807, leaders → 2,879; first 2741 → 2791. 4625: units → 2,902, ammo → 3,056, deaths → 2,922,
+groups → 2,928, guys → 2,907, leaders → 2,883, items → 7,829, world → 2,909; first 2791 → 2883. 4631: leaders 2,883 →
+2,926. **The first parting moves 2883 → 2902, on units alone.**
 
-**Item 4625: the Carrack fires from its starboard battery.** run1818 kept the ammo ranges to 2792. Ammo record 0 on
-2791 is who=1's Carrack `1/82` (TI 342, sea, piece 292, `GALLEON-DEFAULT-AGE0`) firing `CHAR_ATTACK2`'s node-1 event
-(frame 14) at barge `2/61` on 2790: `sx, sy, sz` ours (16824, 11640, 0), theirs (16866, 11729, 35); `ex, ey`, `angle`
-and `total_time` (18, 17) follow. **Ours acted**: `launch_point` had no row for piece 292. Its nine `RELEASEEVENT`s
-(nodes 0..2 × `CHAR_ATTACK1`..`3`) are swept by `get_position.py … --init` on run1579's packet; `fit_bay.py` admits
-each over 361 of 361 headings but node 2's `CHAR_ATTACK2` frame 24, whose row misses heading 283 by one unit. Built as
-nine `BAYS` rows. Held by `data::launch::tests::the_carrack_s_round_leaves_its_starboard_battery` (mutation held) and
-`the_carrack_s_release_agrees_at_every_heading_but_one`. Diff-backed: run1818 agrees on all twelve lines to 2792.
+**The next word, 2902, units.** run1815's ranges hold it: range 3709, record 29, `myhits..launch_frames` byte 4 ours
+`0x0c`, theirs `0x00` (damage ours 12, theirs 0). Guys and world part on 2907, ammo on 2917, deaths and leaders on 2922.
 
-The score, `SCORES_SEVENTH[4].moved` (12,001 states): units 2,807 → 2,902, builds 2,919 → 2,953, ammo 2,930 → 3,056,
-deaths 2,882 → 2,922, groups 2,883 → 2,928, guys 2,882 → 2,907, leaders 2,879 → 2,883, cities 2,951 → 3,063, items
-4,108 → 7,829, world 2,882 → 2,909. **The first parting moves 2791 → 2883, on leaders alone.**
-
-**The next word, 2883, leaders.** run1815's ranges hold it: range 212, record 1 (who=1), `encrypt`, byte 0, ours `0x8c`,
-theirs `0x7d`. Units part next on 2902, range 3709, record 29: `myhits..`'s second word reads ours 12, theirs 0.
-
-**Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is still not built: a `0x2000`
-attacker that collides with a valid target sets it, fires and dies. No capture has been shown to reach it.
-A building shooter always splashes from the landing: `Build` and `Wall` fill vslot `+0x18` with the folded
-`Window::get_button@0041bff0`, `return 0`, and this crate's arm asks for a unit shooter. The Carrack's node-2 `CHAR_ATTACK2` row (frame 24) is one unit off at
-heading 283; no round on disk has been shown to fire it there. Piece 128's six attack keys (node 0) still fall back to
-the figure's square on row 88 after 2883 (a probe on `launch_point`'s fallback over run1808's 12,001 states).
+**Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is not built: no capture has been shown
+to reach it. A building shooter always splashes from the landing (`Build` and `Wall` fill vslot `+0x18` with a
+`return 0`). The Carrack's node-2 `CHAR_ATTACK2` row (frame 24) is one unit off at heading 283; piece 128's six
+node-0 attack keys still fall back to the figure's square on row 88 after 2883. A transport's head rider is taken as
+the lowest live slot aboard, not read off `inside_down`'s ring order; no capture yet kills a mixed cargo.
 
 ### 14.5 Row 108
 
