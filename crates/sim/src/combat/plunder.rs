@@ -365,10 +365,14 @@ fn post<V: PlunderView>(v: &mut V, msg: Str, text: Str, who: i32) {
 pub struct SimPlunder<'a> {
     pub sim: &'a mut Sim,
     pub v: usize,
+    /// The unit the victim answers for: `v` itself, or a transport's head
+    /// rider ([`Sim::plunder_victim`], item 4631).
+    pub r: usize,
 }
 
 impl PlunderView for SimPlunder<'_> {
-    type Ty = ();
+    /// A unit type record.
+    type Ty = Option<usize>;
     type Bub = ();
     fn flags68(&mut self) -> i32 {
         0
@@ -384,10 +388,11 @@ impl PlunderView for SimPlunder<'_> {
         (p.x, p.y)
     }
     fn this_redirects(&mut self) -> bool {
-        false
+        // `+0x2b4 & 0x10`: the transport flag; `r` is its head rider.
+        self.r != self.v
     }
     fn this_redirect(&mut self) -> (i32, i32) {
-        (-1, -1)
+        (i32::from(self.sim.units[self.r].owner), self.r as i32)
     }
     fn thedespot_unit_plunder(&mut self) -> i32 {
         self.sim.tables.tuning.thedespot_unit_plunder
@@ -444,8 +449,11 @@ impl PlunderView for SimPlunder<'_> {
         // `Leader::init` sets -1.0 and only a scenario script writes it.
         Single::from_i32(-1).bits()
     }
-    fn unit_type(&mut self, _who: i32, _index: i32) {}
-    fn unit_is_42(&mut self, _who: i32, _index: i32, _ty: ()) -> bool {
+    fn unit_type(&mut self, _who: i32, index: i32) -> Option<usize> {
+        // `index` is a slot: the victim's or its redirect's.
+        self.sim.units[index as usize].ty
+    }
+    fn unit_is_42(&mut self, _who: i32, _index: i32, _ty: Option<usize>) -> bool {
         false
     }
     fn unit_cached_type(&mut self, _who: i32, _index: i32) -> i32 {
@@ -455,23 +463,26 @@ impl PlunderView for SimPlunder<'_> {
     fn tribe_default_type(&mut self, _who: i32) -> i32 {
         0
     }
-    fn unittype_record(&mut self, _index: i32) {}
-    fn price(&mut self, _ty: (), good: i32, who: i32) -> i32 {
+    fn unittype_record(&mut self, _index: i32) -> Option<usize> {
+        None
+    }
+    fn price(&mut self, ty: Option<usize>, good: i32, who: i32) -> i32 {
         // `TypeData::get_cost(good, who, −1, −1, 1, 1, −1)` on the unit's
         // own type: the refund's one caller (item 3788). The `is(0x42)`
-        // re-type is answered "no" above, so the type is the unit's.
-        self.sim.units[self.v].ty.map_or(0, |t| {
+        // re-type is answered "no" above, so the type is the unit's (a
+        // transport's, its head rider's, item 4631).
+        ty.map_or(0, |t| {
             self.sim.price_of(who as crate::Player, t)[good as usize]
         })
     }
-    fn unit_is_hero(&mut self, _who: i32, _index: i32) -> bool {
-        self.sim.is_hero_unit(self.v)
+    fn unit_is_hero(&mut self, _who: i32, index: i32) -> bool {
+        self.sim.is_hero_unit(index as usize)
     }
-    fn unit_is_supply(&mut self, _who: i32, _index: i32) -> bool {
-        self.sim.is_supply_unit(self.v)
+    fn unit_is_supply(&mut self, _who: i32, index: i32) -> bool {
+        self.sim.is_supply_unit(index as usize)
     }
-    fn unit_is_caravan(&mut self, _who: i32, _index: i32) -> bool {
-        self.sim.units[self.v].ty.is_some_and(|t| {
+    fn unit_is_caravan(&mut self, _who: i32, index: i32) -> bool {
+        self.sim.units[index as usize].ty.is_some_and(|t| {
             self.sim.tables.unit_types[t]
                 .cols
                 .flag2(crate::ai::ai_load::uflags2::FLAG2_CARAVAN)

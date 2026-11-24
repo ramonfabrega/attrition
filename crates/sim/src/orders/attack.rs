@@ -402,18 +402,26 @@ impl Sim {
         // target's order on the next frame whatever its `recharging`.
         // run1184's Flamethrowers `1/84` and `1/129` (TypeIndex 131) drop
         // their attack on the human's dead building `0/2004` on block 4345
-        // with `recharging` 23 and 12. The latch's other half — the
-        // current order's [`flag::FIGHT_REENTRY`] on a valid target — is a
-        // SEAM: it would enter the strike arms while recharging, and no
-        // capture has an emplaced weapon there.
+        // with `recharging` 23 and 12. **The latch's other half** (item
+        // 4632, `docs/RECGAME.md` §13.5): on a valid target it is still
+        // set when the current order (`UnitData::get_order@0060b030`, the
+        // list's head) carries [`flag::FIGHT_REENTRY`] — `:95`'s
+        // `(flags & 0x10) == 0` is the conjunct that clears it — so the
+        // unit enters the strike arms while recharging and turns at its
+        // target. Row 133's Flamethrower `1/115` on 2439, `recharging` 30
+        // and its attack's `flags` 16: theirs turns and holds the swing,
+        // where ours stood and swung.
         let emplaced = self.units[u]
             .ty
             .is_some_and(|t| self.tables.unit_types[t].cols.flag2(uflags2::EMPLACED));
         let latch = emplaced
-            && match self.units[u].combat.target {
+            && (match self.units[u].combat.target {
                 Some(t) => !self.valid_target(me, t),
                 None => true,
-            };
+            } || self.units[u]
+                .orders
+                .front()
+                .is_some_and(|o| o.flags & flag::FIGHT_REENTRY != 0));
         // **A melee-and-ranged type walks past the reload gate** (item
         // 3568, `docs/AI.md` §308): `fight@005fd4d0:106`'s `unit_flags &
         // 0x400` test sits ahead of the idle block, and a set bit falls

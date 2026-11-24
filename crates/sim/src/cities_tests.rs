@@ -2130,6 +2130,81 @@ fn an_inca_unit_killed_by_an_enemy_refunds_a_quarter_of_its_price() {
     assert_eq!(sim.rng, rng, "and no draw");
 }
 
+/// **A transport's kill plunders as its cargo** (item 4631,
+/// `docs/RECGAME.md` §14.4): `take_damage@00652020` at `6530a5`..`6530ba`
+/// redirects a victim whose type carries `+0x2b4 & 0x10` to the head of
+/// its `inside_down`, and `Unit::plunder@00605b00` asks that unit whether
+/// it is a hero. run1815's who=1 took 100 wealth on 2882 for who=2's
+/// barge `2/61`, carrying the Despot `2/24`, with its own Despot `1/14` in
+/// reach: four draws, and `GENERAL_PLUNDER` beats the Despot's 15. An
+/// empty transport (`js 0x6533b2`) pays nothing and draws nothing.
+#[test]
+fn a_transport_s_kill_plunders_as_its_cargo() {
+    let mut sim = world_sim();
+    let _ = install_types(&mut sim);
+    let hero = sim.add_unit_type(crate::UnitType {
+        hits: 100,
+        type_index: 0x160,
+        price: crate::economy::cost::Price {
+            pop: 1,
+            ..crate::economy::cost::Price::default()
+        },
+        cols: crate::ai::ai_load::UnitCols {
+            unit_flags2: crate::ai::ai_load::uflags2::FLAG2_GENERAL,
+            ..crate::ai::ai_load::UnitCols::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let barge = sim.add_unit_type(crate::UnitType {
+        hits: 200,
+        type_index: 0x10e,
+        price: crate::economy::cost::Price {
+            pop: 1,
+            ..crate::economy::cost::Price::default()
+        },
+        cols: crate::ai::ai_load::UnitCols {
+            unit_flags: crate::ai::ai_load::uflags::FLAG_TRANSPORT,
+            ..crate::ai::ai_load::UnitCols::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let foot = sim.add_unit_type(crate::UnitType {
+        hits: 40,
+        type_index: 0x32,
+        price: crate::economy::cost::Price {
+            pop: 1,
+            ..crate::economy::cost::Price::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let boat = sim.init_unit(0, barge, tile_pos(40, 40));
+    let killer = sim.init_unit(1, foot, tile_pos(41, 40));
+    let _despot = sim.init_unit(1, hero, tile_pos(41, 41));
+    sim.economy.holdings[1].available = [true, true, true, true, true, false];
+    sim.economy.ledgers[1].bucket = [500, 500, 500, 0, 44, 0];
+    let start = sim.economy.ledgers[1].bucket;
+    let rng = sim.rng;
+    sim.unit_plunder(boat, killer);
+    assert_eq!(
+        sim.economy.ledgers[1].bucket, start,
+        "an empty barge pays nothing"
+    );
+    assert_eq!(sim.rng, rng, "and draws nothing, the Despot in reach");
+    let rider = sim.init_unit(0, hero, tile_pos(40, 40));
+    sim.units[rider].inside_unit = Some(boat);
+    let mut want = sim.rng;
+    for _ in 0..4 {
+        let _ = want.roll();
+    }
+    sim.unit_plunder(boat, killer);
+    assert_eq!(sim.rng, want, "four draws: the Despot's search found one");
+    assert_eq!(
+        sim.economy.ledgers[1].bucket,
+        [500, 500, 600, 0, 44, 0],
+        "GENERAL_PLUNDER 100 in wealth, over the Despot's 15 in metal"
+    );
+}
+
 /// **A hero's killer takes `GENERAL_PLUNDER` in wealth** (item 3788):
 /// `take_damage`'s `is(GENERAL)`/`is(CARA)`/`is(SUPPLYWAGON)` arm calls
 /// `plunder(v, k, who, 0, 0)`, the base constant with no draw. run1461b's

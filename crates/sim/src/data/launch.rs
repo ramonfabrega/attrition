@@ -4480,6 +4480,74 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 146,
         },
     ),
+    // **Piece 1812, the Infantry in the India art style** (type 102,
+    // `INFANTRY-INDIA-AGE0`: base 52 at style 5; item 4630, `docs/RECGAME.md`
+    // §14.2): run1816's packet (row 28's game at 3955) holds its six
+    // `AttachPos` rows at piece 52's keys, `RData +0x88` 1.0; `fit_bay.py`
+    // fits each sweep to piece 52's regions exactly (49, 98, 915, 819, 348
+    // and 322 lattice points, the same centroids and heights). Without them
+    // who=2's `2/50` loosed its round of 4166 from its own square (13032,
+    // 9000, 24) against the original's (12973, 9025, 144).
+    (
+        1812,
+        crate::units::anim::ATTACK1,
+        12,
+        Bay {
+            right: 23_820,
+            fwd: 87_417,
+            dz: 167,
+        },
+    ),
+    (
+        1812,
+        crate::units::anim::ATTACK1,
+        13,
+        Bay {
+            right: 20_717,
+            fwd: 82_052,
+            dz: 170,
+        },
+    ),
+    (
+        1812,
+        crate::units::anim::ATTACK2,
+        4,
+        Bay {
+            right: 9667,
+            fwd: 64_207,
+            dz: 120,
+        },
+    ),
+    (
+        1812,
+        crate::units::anim::ATTACK2,
+        14,
+        Bay {
+            right: 25_919,
+            fwd: 60_398,
+            dz: 118,
+        },
+    ),
+    (
+        1812,
+        crate::units::anim::ATTACK2,
+        24,
+        Bay {
+            right: 21_173,
+            fwd: 62_648,
+            dz: 121,
+        },
+    ),
+    (
+        1812,
+        crate::units::anim::ATTACK3,
+        12,
+        Bay {
+            right: 31_494,
+            fwd: 138_342,
+            dz: 107,
+        },
+    ),
     // **Piece 87, the Anti-tank Rifle in the default art style** (type
     // 137, `ANTITANKRIFLE`; item 3686, `docs/AI.md` §348.1): the piece the
     // Americans' rifles play here (`RON_DEBUG_GAP`'s `p87`). Taken as
