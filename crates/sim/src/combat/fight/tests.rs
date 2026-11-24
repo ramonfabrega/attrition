@@ -4261,6 +4261,50 @@ fn an_emplaced_weapon_drops_a_dead_target_s_order_while_recharging() {
     }
 }
 
+/// **An emplaced weapon whose order carries the re-entry flag walks past
+/// the reload gate on a live target** (item 4632, `docs/RECGAME.md`
+/// §13.5). `Unit::fight@005fd4d0:92`-`100`: the latch is clear only when
+/// the target is valid **and** the head order's `flags & 0x10` is clear,
+/// so a gun-line type (`unit_flags2 & 1`) whose order carries
+/// `FIGHT_REENTRY` falls through to `LAB_005fd648`'s cell-centre snap
+/// while recharging. Row 133's Flamethrower `1/115` on 2439: `recharging`
+/// 30, attack `flags` 16, and theirs turns at its target where ours stood.
+/// Without the bit, or without the flag, the unit returns at the gate
+/// where it stands.
+#[test]
+fn an_emplaced_weapon_with_the_re_entry_flag_walks_past_the_reload_gate() {
+    for (emplaced, reentry) in [(true, true), (true, false), (false, true), (false, false)] {
+        let (mut sim, ty) = at_war();
+        if emplaced {
+            sim.tables.unit_types[ty].cols.unit_flags2 |= crate::ai::ai_load::uflags2::EMPLACED;
+        }
+        let here = Pos::new(0x1000, 0x1000);
+        let me = put(&mut sim, 0, ty, here);
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+        sim.units[me].combat.stance = Stance::HoldFire;
+        sim.add_attack_order(
+            me,
+            Obj::Unit(foe),
+            crate::orders::QueuePos::First,
+            true,
+            false,
+        );
+        if reentry {
+            sim.units[me].orders.front_mut().expect("the attack").flags |=
+                crate::orders::flag::FIGHT_REENTRY;
+        }
+        sim.units[me].combat.recharging = 12;
+        sim.work(me, 0);
+        let snapped = sim.units[me].pos != here;
+        assert_eq!(
+            snapped,
+            emplaced && reentry,
+            "emplaced {emplaced}, re-entry {reentry}: at {:?}",
+            sim.units[me].pos
+        );
+    }
+}
+
 /// **A recharging melee unit with no order steps nothing**:
 /// `Unit::work@0060d180:79-86`'s gate returns for a non-`ATTACK` unit
 /// with `recharging` (`+0xae`) above nought and no range (`+0x1fc`)
