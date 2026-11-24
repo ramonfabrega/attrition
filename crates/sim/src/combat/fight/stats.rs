@@ -562,7 +562,14 @@ impl Sim {
                     // 19688 on the General's decoy Light Horse `1/82`,
                     // `take_damage` 0x19a2 after the uber divide).
                     decoy: u.decoy,
-                    rocky: false,
+                    // Step 22's tile: `get_damage@00644130` at
+                    // `644c8e`..`644cd7` reads `WData.flags & 8` (`cell::ROCK`)
+                    // on the cell under the target, the same index as the
+                    // owner test below. Item 4628 (`docs/RECGAME.md` §13.5):
+                    // run1819's packet takes row 133's Redoubt blow on the
+                    // Elite Special Forces `2/0` from 18 to 11 here, and
+                    // nothing else in `get_damage` parts.
+                    rocky: self.world.cell_data(u.pos.cell()).flags & crate::ids::cell::ROCK != 0,
                     tile_owned_by_attacker: self
                         .world
                         .owner_at(u.pos)
