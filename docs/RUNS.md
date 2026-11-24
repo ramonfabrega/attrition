@@ -41936,3 +41936,29 @@ was free. `df -g ~` read 89 GB free before it and 88 after filing.
 
 **What it holds**: `diff::held_out::tests::row_28_s_round_at_the_capital_on_run1820_s_ranges` (every units, builds,
 ammo, guys and world range on 4026 and 4027).
+
+## run1821 — parity held out, seventh battery, row 28's file to 4168 with the checksum and ranges hooks, ammo kept (2026-11-23, item 4630, `att-4630`)
+
+`docs/RECGAME.md` §14.2. **What the disk could not answer**: run1813 keeps no ammo ranges and run1820 ends at 4028,
+so row 28's ammo parting on 4167 named no leaf. The take: `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh
+tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1821 --recording
+~/ron-golden/recordings/item4600-row028-12000.rcx --end-frame 4168 --allow-early-end --cover cover=1 --log-window
+4161 4169 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES
+--tracer-def RNG_MASK=0x84bu`, waited on with `waitrun.sh` in the background. All three lanes were free. `df -g ~`
+read 82 GB free before it and 91 after filing.
+- **The run**: pool lane 1, launched 20:14:22 −05:00, exited 20:19:40: **317.8 s**, exit 0, `success`, no page
+  fault, no relaunch, `last_frame` 4168, seed 12345, map 18. The recording's SHA-256 is run1805's (`26bc5609…`).
+- **The record**, `~/ron-golden/run1821/map-18/rontrace.ranges`, 3,555,468,836 bytes, SHA-256
+  `60818e1786915172450af09337edd6467c3cdfb183a6a5a2087f4f42133ec579`, split by `filerun.py` into 4 pieces and
+  compressed (3.31 GiB on disk before, 0.34 after).
+- **Scored** (`score_recording … ~/ron-golden/run1821/map-18`, on `68ecaa00d`): first state 4167 (ammo), range 1,
+  record 0, `rolling..start_roll_angle`: who=2's `2/50` round at `0/2000`, launched from (13032, 9000, 24) in ours
+  against (12973, 9025, 144). Every other line 4169 of 4169. On the item's tree every line is 4169 of 4169.
+- **Filed** with `filerun.py run1821 heldout7-row028-ammo4167`: `gamelog_p.txt` →
+  `Logs/gamelog-run1821-heldout7-row028-ammo4167.txt`, 2,887 bytes, SHA-256
+  `9c75968723f99f7b580ac0290594b03ead8e81169840a9ca8bd3192b14435152`; `rontrace.log` → `Logs/rontrace-run1821.log`,
+  227,476,704 bytes, SHA-256 `83312d410630e796c3cc27013650177ee7963d5fe0efde57accf3da5219c0284`, both linked; the
+  record stays in place.
+
+**What it holds**: `diff::held_out::tests::row_28_s_round_on_run1821_s_ranges` (every units, builds, ammo, guys and
+world range on 4166 and 4167).
