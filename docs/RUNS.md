@@ -41862,3 +41862,29 @@ free. `df -g ~` read 89 GB free before it and 81 after filing.
 
 **What it holds**: the arm behind row 28's first leaf (`docs/journal/2026-11-23-item-4619.md`). No test reads the
 packet. The row 28 test holds its consequence on run1813's ranges for 3956.
+
+## run1819 — parity held out, sixth battery, row 133's file to 2,382, a packet at logger frame 2375 (2026-11-23, item 4628, `att-4628`)
+
+`docs/RECGAME.md` §13.5. **What the disk could not answer**: run1797's ranges print `2/0`'s `damage` (ours 47, theirs
+40 on 2376) and every field `get_damage` reads off both records, all agreeing, never the blow's steps; a packet holds
+the state the blow reads. The take: `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1819 --recording ~/ron-golden/recordings/item4566-row133-12000.rcx
+--end-frame 2382 --allow-early-end --cover cover=1 --log-window 2370 2380 --detail end:MISC --timeout 1800
+--stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_STATE_FRAME=2375 --tracer-def
+"RON_STATE_PLAN=\"$P/plan.h\""`, `P=~/ron-data/lab-experiments/2026-09-23-item-597/plan` exported. Waited on with
+`waitrun.sh` in the background; the lane was free. `df -g ~` read 89 GB free before it and 84 after.
+- **The run**: pool lane 2, launched 18:58:09 −05:00, exited 19:01:21: **192.0 s**, exit 0, `success`, no page fault,
+  no relaunch, `last_frame` 2382, seed 12345, map 7; the recording's SHA-256 is run1794's (`ca4af2d6…`).
+- **The packet**: `frame_snapshot.py ~/ron-golden/run1819/map-7 $P/plan.json` verified frame 2375, all 8 anchors, the
+  logger return and the completion receipt. `map-7/frame-snapshot.bin`, 952,378,152 bytes, SHA-256
+  `01449a4f61c9257ae63a766e459a17fd60673bc9af772f134ca7a91088968849`.
+- **Read off it**: `tools/recomp/ammo.py` lists the Redoubt's round at `0x1556c29c`, slot 7, `1/2025 -> 2/0`, `t
+  16/17`, splash 0. `step4.py <exe> <packet> --entry 678060 --this 1556c29c` (4,106 instructions) reaches
+  `Object::do_damage`'s `get_damage` call (`64a4f7`) once, and it returns **11**. Hooked inside: the target's armour
+  (`*0x124`, `6441b1`) 0; the attacker's attack (`*0x120`, `6441be`) 180; the table's `-0x18` 100; `iVar8` (`edi`)
+  180 at every block to `644b7d`; `(180 + 5) / 10 − 0` = 18 at `644ba2`; the overkill arm not taken (`*0x18` on the
+  Redoubt 0); **the rocky arm taken at `644cdd`: `edi` 18 → 11** (`rocky_modifier` 170, `18 × 170 >> 8`). The gate's
+  mask `-0x8(%ebp)`, written at `6441e7` from the target type's `+0x1e4`, is **`0x2008164`** (`--watch
+  7d0ffdbc+4`). Scratch: `~/ron-data/lab-experiments/2026-11-23-item-4628/`.
+- Filed with `filerun.py run1819 heldout6-row133-packet2375`: `gamelog-run1819-heldout6-row133-packet2375.txt`, 2,862
+  bytes; `rontrace-run1819.log`, 99,457,184 bytes.

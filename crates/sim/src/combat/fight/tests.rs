@@ -290,6 +290,53 @@ fn a_decoy_target_dies_to_any_round() {
     }
 }
 
+/// **Infantry on rocky ground takes `get_damage`'s step 22** (item 4628,
+/// `docs/RECGAME.md` §13.5): a target whose type mask carries an
+/// infantry bit (`& 0x10108`), standing on a cell whose `WData.flags`
+/// has `cell::ROCK` (`644c85`..`644cf2`), takes `dmg × rocky_modifier >>
+/// 8`. `target_side` wrote `rocky` false for every unit; run1819's packet
+/// struck row 133's Elite Special Forces `2/0` for 11 where this crate
+/// dealt 18. Made to fail with the cell's flag unread.
+#[test]
+fn infantry_on_a_rock_cell_takes_the_rocky_cut() {
+    let blow = |flags: u16| {
+        let (mut sim, _) = at_war();
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 400,
+            combat: Profile {
+                attack: 180,
+                max_range: 4,
+                uber_size: 1,
+                obj_masks: combat::mask::MODERN_INF,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let at = Pos::new(2016, 2016);
+        sim.world.set_cell_data(
+            at.cell(),
+            crate::world::CellData {
+                flags,
+                ..crate::world::CellData::default()
+            },
+        );
+        let me = put(&mut sim, 1, ty, Pos::new(1000, 1000));
+        let them = put(&mut sim, 0, ty, at);
+        let p = round(&sim, me, Some(Obj::Unit(them)), at, 0);
+        sim.land(p, 2375);
+        400 - sim.units[them].health
+    };
+    let plain = blow(0);
+    assert!(plain > 2, "plain ground: {plain}");
+    assert_eq!(
+        blow(crate::ids::cell::ROCK),
+        plain * 170 >> 8,
+        "rock: {plain} × rocky_modifier 170 >> 8"
+    );
+    // Another cell bit leaves the blow alone.
+    assert_eq!(blow(crate::ids::cell::FOREST), plain);
+}
+
 /// **A burning round kills with `dtype` 4** (item 3580, `docs/AI.md`
 /// §313): `Object::do_damage@0064a480`'s `verify_ammo_flags(…, 0x10)`
 /// on the round's ammo piece — `effects_graphics.xml`'s `flame="1"`,
