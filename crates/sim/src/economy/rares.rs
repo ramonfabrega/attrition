@@ -175,8 +175,9 @@ impl Sim {
     /// (Spanish) or 4 (Nubians); every other case takes the bare
     /// `was_really_seen@006b54f0`. The sweep
     /// (`crates/sim/tests/sweep/good_data_is_seen.rs`) holds the original's
-    /// arms; this is their one reader in the simulation.
-    pub(crate) fn good_is_seen(&self, gi: usize, who: Player) -> bool {
+    /// arms; this is their one reader in the simulation, and the minimap's
+    /// goods blips read it under the fog (item 4627).
+    pub fn good_is_seen(&self, gi: usize, who: Player) -> bool {
         let Some(g) = self.world.goods().get(gi) else {
             return false;
         };

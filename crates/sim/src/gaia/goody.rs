@@ -434,6 +434,16 @@ impl Sim {
         self.world_is_seen_fog(x + 1, y + 1, who)
     } // twin of ItemData::is_seen
 
+    /// `ItemData::is_seen@00677850` of goody box `i` for `who`, at the
+    /// box's own cell ([`Sim::goody_item_is_seen`]): the minimap's layer-0
+    /// blip under the fog (item 4627, `docs/RENDERER.md` §3.33). A read.
+    pub fn goody_is_seen(&self, i: usize, who: Player) -> bool {
+        self.gaia
+            .goody_items
+            .get(i)
+            .is_some_and(|it| self.goody_item_is_seen(it.pos.cell(), who))
+    }
+
     /// `Unit::get_goody_box@005f7690`: a one-member group, and an
     /// `EXPLORE_TO` to the box's **cell centre** at `QUEUE_FIRST`.
     ///
