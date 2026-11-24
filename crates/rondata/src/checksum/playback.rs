@@ -172,9 +172,6 @@ fn score(
         // produce. Nothing without the test's `seam-count` feature.
         #[cfg(feature = "seam-count")]
         sim::core::seam::at(frame);
-        if std::env::var_os("RON_PROBE_4631").is_some() && (2878..=2886).contains(&frame) {
-            eprintln!("  probe4631 f{frame} who1 buckets {:?} leftover {:?}", built.sim.economy.ledgers[1].bucket, built.sim.economy.ledgers[1].leftover);
-        }
         let lines = state::ranges(&built.sim, &look, &tribes);
         for (i, line) in lines.iter().enumerate() {
             let value = line.as_ref().map(|l| l.adler());
