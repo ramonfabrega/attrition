@@ -158,7 +158,7 @@ Parity held at 5 of 6 and packet lines at 661 of 1,053 on that tip. Whole branch
 
 `codex/nov24-handoff` (4638) starts from `dc14bfc51`. The [booking clock](journal/2026-11-24-item-4638.md) took 64–73 s under sustained contention, down from 177–215 s. The [sample's Diamonds correction](journal/2026-11-24-item-4569.md) moves its first disagreement from 7502 to 7539, with draws still at 7613. Direct branch ready for integration. All nine required-fixture stages passed on `cf5ee64f5` in 27.27 min. The next sample item is 4639.
 
-`codex/coverage-scout` (4640) starts from the validated handoff `d57298444`. [Field coverage](journal/2026-11-24-item-4640.md) takes 323.52 s warm at eight workers, down from 332.73 s. The [Scout correction](journal/2026-11-24-item-4639.md) moves units to 7612 and cities to 7825. Direct branch pending batch validation.
+`codex/coverage-scout` (4640) starts from `d57298444`. The [warm whole gate](journal/2026-11-24-item-4640.md) took 24m43s at eight library slots and 22m52s with `--library-slots 12`. The [Scout correction](journal/2026-11-24-item-4639.md) moves units to 7612 and cities to 7825. All nine required-fixture stages passed on `d9b082003`. Next sample item 4641.
 
 ## How to maintain this file
 
