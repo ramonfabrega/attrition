@@ -1831,8 +1831,8 @@ Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
 
 ### 14.4 Row 88
 
-Open: ammo parts on 2791, and units and leaders on 2807 (item 4622). run1808 holds sums, run1815 the ranges to 2991,
-with no ammo ranges.
+Open: leaders part on 2883, alone (item 4625). run1808 holds sums, run1815 the ranges to 2991 (units, deaths, guys,
+leaders and world), run1818 the ammo ranges to 2792.
 
 **Item 4614: a rider comes out before its carrier dies, and a fire raft dies with its shot.** Two fixes. Both are
 diff-backed by run1815's ranges (`docs/RUNS.md`), scored by `score_recording` on the item's tree.
@@ -1884,10 +1884,43 @@ file with `--end-frame 2792 --log-window 2790 2793 --tracer-def RON_CHECKSUMS --
 RNG_MASK=0x8`. Units part next on 2807, at range 4411, record 61: barge `2/61`'s `flags` read ours `0x01`, theirs
 `0x11`. Theirs is now wounded and ours is not.
 
+**Item 4625: the Carrack fires from its starboard battery.** run1818 (`docs/RUNS.md`) kept the ammo ranges to 2792.
+Ammo range 1, record 0 on 2791 is the round who=1's Carrack `1/82` (TI 342, sea, piece 292, `GALLEON-DEFAULT-AGE0`,
+`Carrack.bh3`) fired on 2790 at who=2's barge `2/61`, `CHAR_ATTACK2`'s node-1 event at frame 14. The shooter, the target,
+the piece, the accuracy (292) and `num_guys` agree. The points do not:
+
+| field | ours | theirs |
+|---|---|---|
+| `sx, sy, sz` | (16824, 11640, 0) | (16866, 11729, 35) |
+| `ex, ey` | (16800, 13142) | (16817, 13159) |
+| `total_time` | 18 | 17 |
+| `angle` | `0x77d20000` | `0x78670000` |
+
+**Ours acted**: `launch_point` found no row for piece 292 and the round left the figure's own square. The Carrack's
+`<UNIT>` gives nine `RELEASEEVENT`s, one for each node (0..2) and attack anim (`CHAR_ATTACK1`..`3`). `get_position.py …
+--init <node>,<anim>,<time>,3 sweep 292 <node> <anim> <time>` on run1579's packet fills each key. `fit_bay.py` admits one
+region a key over 361 of 361 headings, its centroid kept (109 to 4,321 lattice points), all near 98 to 100 units to
+starboard. The exception is node 2's `CHAR_ATTACK2` frame 24: no lattice point reproduces all 361 headings, and the row
+is the point that misses only heading 283, by one unit (sweep `(-127, 70)`, ours `(-127, 71)`). The heights are the
+sweep's (30 to 37). The landing, the angle and the flight follow from the launch: `ex, ey`, `angle`, `total_time`, `v1z` and `dx`
+are theirs once `sx, sy, sz` are. Built as nine `BAYS` rows in `crates/sim/src/data/launch.rs`. Held by
+`data::launch::tests::the_carrack_s_round_leaves_its_starboard_battery`, which fails with the frame-14 row removed
+(`tools/mutate.py`, exit 101), and by `the_carrack_s_release_agrees_at_every_heading_but_one` (`$RON_BAY_SWEEPS_4625`).
+Diff-backed by run1818's ranges: all twelve lines agree through 2792.
+
+The score, `SCORES_SEVENTH[4].moved` (12,001 states): units 2,807 → 2,902, builds 2,919 → 2,953, ammo 2,930 → 3,056,
+deaths 2,882 → 2,922, groups 2,883 → 2,928, guys 2,882 → 2,907, leaders 2,879 → 2,883, cities 2,951 → 3,063, items
+4,108 → 7,829, world 2,882 → 2,909. **The first parting moves 2791 → 2883, on leaders alone.**
+
+**The next word, 2883, leaders.** run1815's ranges hold it: range 212, record 1 (who=1), `encrypt`, byte 0, ours `0x8c`,
+theirs `0x7d`. Units part next on 2902, range 3709, record 29: `myhits..`'s second word reads ours 12, theirs 0.
+
 **Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is still not built: a `0x2000`
 attacker that collides with a valid target sets it, fires and dies. No capture has been shown to reach it.
 A building shooter always splashes from the landing: `Build` and `Wall` fill vslot `+0x18` with the folded
-`Window::get_button@0041bff0`, `return 0`, and this crate's arm asks for a unit shooter.
+`Window::get_button@0041bff0`, `return 0`, and this crate's arm asks for a unit shooter. The Carrack's node-2 `CHAR_ATTACK2` row (frame 24) is one unit off at
+heading 283; no round on disk has been shown to fire it there. Piece 128's six attack keys (node 0) still fall back to
+the figure's square on row 88 after 2883 (a probe on `launch_point`'s fallback over run1808's 12,001 states).
 
 ### 14.5 Row 108
 

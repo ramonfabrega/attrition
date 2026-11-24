@@ -41831,3 +41831,25 @@ read 133 GB free before it and 121 after filing.
 
 **What it holds**: `diff::held_out::tests::row_28_s_bazookas_drop_their_chase_of_a_citizen_on_run1813_s_ranges`
 (every units, builds, guys and world range on 3955; theirs' `1/35` and `1/52` on 3956).
+## run1818 — parity held out, seventh battery, row 88's file to 2,792 with the checksum and ranges hooks, ammo kept (2026-11-23, item 4625, `att-4625`)
+
+`docs/RECGAME.md` §14.4. **What the disk could not answer**: run1808 holds sums only, and run1815's ranges
+(`RNG_MASK=0x8d1u`) keep no ammo, so row 88's parting on 2791, ammo alone, named no leaf. The take is the queue's line
+on run1808's file: `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1818 --recording ~/ron-golden/recordings/item4600-row088-12000.rcx --end-frame 2792 --allow-early-end
+--cover cover=1 --log-window 2790 2793 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS
+--tracer-def RON_RANGES --tracer-def RNG_MASK=0x8u`, waited on with `waitrun.sh` in the background. The lane was free at
+launch (`ron_lane_state`); `df -g ~` read 89 GB free before it and 88 after filing.
+- **The run**: pool lane 1, launched 18:26:01 −05:00, exited 18:30:05: **244.0 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 2,793 frames, `last_frame` 2792, not ended early, seed 12345, map 18. The recording's
+  SHA-256 is run1808's (`02dced92…`). Players: tribe 4 (who 0, flags 7), tribe 17 (who 1), tribe 11 (who 2).
+- **The record**: `~/ron-golden/run1818/map-18/rontrace.ranges`, 269,136 bytes, SHA-256
+  `5e5e7dd6bf86da60e69b11139049d20ce312fd30f1710e14d5110b6ebe8c3519`; `rontrace.log`, 81,561,344 bytes, SHA-256
+  `b44e03010444068f4b39eba72b2b0eff140555c562888018d9fb42e7ec31dc45`; `gamelog_p.txt`, 2,881 bytes, SHA-256
+  `0d2c63a3813ad959e96d8dc26d0a87522ac26016ab7dd75b77ae4832d3af800b`.
+- Filed with `filerun.py run1818 heldout7-row088-ammo-ranges`.
+
+**What it named**: ammo range 1, record 0 on 2791 is the round who=1's Carrack `1/82` (TI 342, sea) fired on 2790 at
+who=2's barge `2/61`. Theirs leaves (16866, 11729) at `sz` 35, ours left the figure's own square (16824, 11640) at 0:
+the Carrack's piece 292 had no release row (`docs/RECGAME.md` §14.4). Read by `score_recording` on the item's tree,
+which agrees on all twelve lines through 2792 after the fix; no test reads the ranges.
