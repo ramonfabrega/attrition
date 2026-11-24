@@ -173,11 +173,6 @@ fn score(
         #[cfg(feature = "seam-count")]
         sim::core::seam::at(frame);
         if std::env::var_os("RON_PROBE_4631").is_some() && (2878..=2886).contains(&frame) {
-            for (h, x) in built.sim.units.iter().enumerate() {
-                if x.owner == 1 && x.index == 14 {
-                    eprintln!("  probe4631 f{frame} 1/14 h {h} alive {} on_map {} inside {:?} pos {:?}", x.alive(), x.on_map, x.inside, x.pos);
-                }
-            }
             eprintln!("  probe4631 f{frame} who1 buckets {:?} leftover {:?}", built.sim.economy.ledgers[1].bucket, built.sim.economy.ledgers[1].leftover);
         }
         let lines = state::ranges(&built.sim, &look, &tribes);
