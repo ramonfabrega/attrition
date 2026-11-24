@@ -1809,39 +1809,20 @@ Open: units part on 9896, round 16's move on 9600 the last order before it. run1
 Open: units, builds, guys and world part on 3956; the original ends the game on 4247. run1805 holds sums; run1813
 holds units, builds, guys and world ranges to the end.
 
-**Item 4613, the first leaf** (the seventh's; it joins `held_out::SPENT`). On 3956 units range 5, record 0, who=0's
-Special Forces `0/0` (TI 75): `targeted` ours 5, theirs 6. Builds range 7, the capital `0/2000`: `targeted` ours 0,
-theirs 1. Guys and world (section 9's collision block) follow from `1/35`'s position.
+**Item 4613, the first leaf** (the seventh's; it joins `held_out::SPENT`). On 3956 units range 5, `0/0` (Special
+Forces, TI 75) `targeted` ours 5, theirs 6; builds range 7, `0/2000` `targeted` 0 against 1. *Diff-backed*
+(`row_28_s_bazookas_drop_their_chase_of_a_citizen_on_run1813_s_ranges`): who=1's Bazookas `1/35` and `1/52` chase
+Citizen `0/7` on both sides through 3955, every range agreeing there; on 3955 theirs ends both walks and retargets
+both, ours keeps them. The review and `do_move`'s dead-target arm are ruled out (`docs/journal/2026-11-23-item-4613.md`).
 
-*Diff-backed* (`row_28_s_bazookas_drop_their_chase_of_a_citizen_on_run1813_s_ranges`): who=1's Bazookas `1/35` and
-`1/52` (TI 139, land, army slot 1, whose target is `0/2000`) chase who=0's Citizen `0/7` (TI 50) under `[MOVE,
-ATTACK 0/7]` on both sides through 3955. Every units, builds, guys and world range agrees on 3955. On frame 3955
-**theirs acted**: it ends both walks and retargets both. `1/35` holds one order, an ATTACK on `0/2000`, and no path.
-`1/52` heads `[ATTACK 0/0, …]` with one path node spent. Ours keeps both walks and both targets. Both new targets
-took a search's bump (`Object::find_nearby_target`'s `00649ba6`, §33 of `docs/COMBAT.md`). `0/7`'s own record agrees
-on 3956: it stands at (10248, 12600), where it arrived on 3955.
-
-*Read, not diffed*: the arm that ends the walks. It is not the review: `(3955 + o) & 0xf` is 6 and 7 for the two.
-It is not `do_move`'s dead-target arm, because `0/7` lives. Theirs spends five `Unit::fight+0x9b0 < Unit::do_attack`
-rolls on 3955 (draws 24 to 28, each `% 5` non-zero), and the seed agrees on 3956.
-
-**Item 4619, the arm, and the row moves: 3956 → 4027.** *Read on a packet* (run1816, `RON_STATE_FRAME=3955`; `step4.py`
-on `Objects::process_all`): neither Bazooka's own `process` ends its walk. A third member of their group 66, the
-Bazooka `1/25`, finds `0/0` in `Unit::think_attack` and hands it to `Group::target_opportunity`. Each of the five
-members `1/35`, `1/41`, `1/49`, `1/52` and `1/64` then takes `Unit::target_opportunity`'s yield: `repath` from
-`+0x54d`, `kill_current_order` from `+0x556`. Each one's `fight` then re-searches (the five rolls), so `1/35` takes
-`0/2000` and `1/52` takes `0/0`. Ours made the same hand-off and refused it in `attack_action_yields`, on the mask
-`0x840002` alone (the Bazooka carries it). The original refuses only when the held target's type is siege and the new
-attacker is neither siege nor a building (`005fffc0:150`–`:166`). For a held building, a shielded unit takes the
-range tests (`600440`). Both arms are built.
-
-*Diff-backed* (the row 28 test, extended): every units, builds, guys and world range on 3956, byte for byte. The
-value diff on 3956, ours before | theirs: `1/35` `path.length` 11 | 0, `unit_masks2` 0 | 16, `orders_x/y` (10200,
-14472) | (8184, 16056); `1/52` `flags` 17 | −111 (`0x91`), `visible` 0 | 1, `path.length` 8 | 7; `0/0` `targeted` 5 |
-6. All agree now. `SCORES_SEVENTH[1].moved`: 2 → 7 lines whole (deaths, groups, guys, goods and world join). Units
-first parting 3956 → 4122, builds → 4037, leaders → 4037, cities → 4037. **The row's lowest parting is ammo 4027**,
-221 states from the end. run1813 keeps no ammo ranges, so the next word on this row needs a take: the ammo line from
-4027.
+**Item 4619, the arm, and the row moves: 3956 → 4027.** *Read on a packet* (run1816, `RON_STATE_FRAME=3955`): a third
+member of group 66, `1/25`, finds `0/0` in `Unit::think_attack` and hands it to `Group::target_opportunity`; each member
+takes `Unit::target_opportunity`'s yield and re-searches. Ours refused the yield in `attack_action_yields` on the mask
+`0x840002` alone; the original refuses only when the held target is siege and the attacker neither siege nor a
+building (`005fffc0:150`–`:166`), and a shielded unit holding a building takes the range tests (`600440`). Both arms
+are built. *Diff-backed* (the row 28 test, extended): on 3956, ours before | theirs, `1/35` `path.length` 11 | 0,
+`unit_masks2` 0 | 16; `1/52` `flags` 17 | `0x91`, `path.length` 8 | 7; `0/0` `targeted` 5 | 6; all agree now.
+`SCORES_SEVENTH[1].moved` 2 → 7 lines whole; the lowest parting ammo 4027 (`docs/journal/2026-11-23-item-4619.md`).
 
 **Item 4626, the India Bazooka's bay, and the row moves: 4027 → 4167.** run1820 is row 28's file to 4028 with the
 ammo line's ranges. On 4027 ammo range 1, record 1 is a new round in slot 1. It is who=2's `2/34`, a Bazooka (TI
