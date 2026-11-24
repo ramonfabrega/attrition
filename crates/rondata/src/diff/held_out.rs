@@ -2255,6 +2255,94 @@ pub(crate) mod tests {
         check(&built, 4027);
     }
 
+    /// **Row 28's India Infantry looses from its bay** (item 4630,
+    /// `docs/RECGAME.md` §14.2): run1821, row 28's file to 4168 with the
+    /// ammo line's ranges. who=2's `2/50` (Infantry, TI 102, piece 1812)
+    /// fires at the capital `0/2000` on 4166; theirs' round leaves (12973,
+    /// 9025, 144), ours left the figure's square (13032, 9000, 24). Every
+    /// units, builds, ammo, guys and world range on 4166 and 4167.
+    #[test]
+    fn row_28_s_round_on_run1821_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SEVENTH, 1) else {
+            eprintln!("skipping: row 28's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1821/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1821's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 28's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let mut check = |built: &crate::diff::setup::Built, state: i64| {
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            if state == 4167 {
+                // Theirs' launch by value: ammo range 1, record 0, `launch.x`,
+                // `launch.y` and `sz` at bytes 7, 11 and 15.
+                let word =
+                    |b: &[u8], at: usize| i32::from_le_bytes(b[at..at + 4].try_into().unwrap());
+                let ammo = lines[3].as_ref().expect("ammo");
+                assert_eq!(ammo.ranges[1].record, 0);
+                assert_eq!(ammo.ranges[1].field, "rolling..start_roll_angle");
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == 3).collect();
+                let b = &theirs[1].bytes;
+                assert_eq!(
+                    (word(b, 7), word(b, 11), word(b, 15)),
+                    (12973, 9025, 144),
+                    "theirs' launch"
+                );
+            }
+            for (line, name) in [
+                (0, "units"),
+                (1, "builds"),
+                (3, "ammo"),
+                (6, "guys"),
+                (11, "world"),
+            ] {
+                let ours = lines[line].as_ref().expect("the line");
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{name} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+        };
+        while built.sim.frame < 4166 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        // The shooter by name: who=2's Infantry on piece 1812.
+        let u = built.sim.unit_by_o(2, 50).expect("who=2's Infantry");
+        let ty = built.sim.units[u].ty.expect("a type");
+        assert_eq!(built.sim.tables.unit_types[ty].type_index, 102, "2/50's TI");
+        assert_eq!(built.sim.units[u].guys[0].gpiece, 1812, "2/50's piece");
+        assert_eq!(
+            built.sim.units[u].kind.domain,
+            sim::territory::attrition::Domain::Land
+        );
+        check(&built, 4166);
+        stream.apply(built.sim.frame as i32, &mut built);
+        built.sim.command().tick();
+        check(&built, 4167);
+    }
+
     /// **Row 133's Temple site's close fixes the borders** (item 4607,
     /// `docs/RECGAME.md` §13.5): run1797's ranges. who=1 razes who=2's
     /// unfinished Temple `2/2009` on frame 2295 (state 2296).
@@ -12174,16 +12262,18 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // 4,120 -> 4,184, first 4027 -> 4167; leaders 4,037 -> 4,246, first
         // 4037 -> 4179; cities 4,247 -> 4,248, first 4037 -> whole. Lowest
         // parting 4027 -> 4167 (ammo), 81 states from the original's end.
+        // Moved by item 4630 (piece 1812, the India Infantry, releases from
+        // its bay: who=2's `2/50` round of 4166 at `0/2000` leaves (12973,
+        // 9025, 144), not its own square (13032, 9000, 24)): 9 -> 12 lines
+        // whole, the row whole; builds 4,246 -> 4,248, first 4179 -> whole;
+        // ammo 4,184 -> 4,248, first 4167 -> whole; leaders 4,246 -> 4,248,
+        // first 4179 -> whole.
         moved: Some(Score {
             states: 4248,
             agreed: [
-                4248, 4246, 4248, 4184, 4248, 4248, 4248, 4246, 4248, 4248, 4248, 4248,
+                4248, 4248, 4248, 4248, 4248, 4248, 4248, 4248, 4248, 4248, 4248, 4248,
             ],
-            first: &[
-                ("builds", (4179, Some(2504425650), 3386147036)),
-                ("ammo", (4167, Some(2583038949), 3014593676)),
-                ("leaders", (4179, Some(2522953583), 1265186673)),
-            ],
+            first: &[],
             over: None,
         }),
     }),
