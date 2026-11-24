@@ -81,6 +81,7 @@ class Lease:
         # A draining lease's slots by index, and its hold on `drain.lock`.
         self.drained = {'cpu': {}, 'memory': {}}
         self.drain_fd = None
+        self.whole_drain = None
 
     def describe(self, child=None):
         with (self.directory / 'admission.lock').open('a') as mutex:
@@ -101,6 +102,13 @@ class Lease:
             raise RuntimeError('lease already acquired')
         with (self.directory / 'admission.lock').open('a') as mutex:
             fcntl.flock(mutex, fcntl.LOCK_EX)
+            # A booking clock can be between drain polls just as an old job
+            # releases its slots. Leave those slots for that clock.
+            with (self.directory / 'whole-drain.lock').open('a') as priority:
+                try:
+                    fcntl.flock(priority, fcntl.LOCK_SH | fcntl.LOCK_NB)
+                except BlockingIOError:
+                    return False
             for kind, needed, total in [('cpu', self.cpu, CPU),
                                         ('memory', self.memory, MEMORY_MIB // QUANTUM_MIB)]:
                 found = 0
@@ -140,6 +148,9 @@ class Lease:
             self.drain_fd = fd
         with (self.directory / 'admission.lock').open('a') as mutex:
             fcntl.flock(mutex, fcntl.LOCK_EX)
+            if self.cpu == CPU and self.memory == MEMORY_MIB // QUANTUM_MIB and self.whole_drain is None:
+                self.whole_drain = (self.directory / 'whole-drain.lock').open('a')
+                fcntl.flock(self.whole_drain, fcntl.LOCK_EX)
             for kind, needed, total in [('cpu', self.cpu, CPU),
                                         ('memory', self.memory, MEMORY_MIB // QUANTUM_MIB)]:
                 held = self.drained[kind]
@@ -165,6 +176,9 @@ class Lease:
             os.close(fd)
         self.fds = []
         self.drained = {'cpu': {}, 'memory': {}}
+        if self.whole_drain is not None:
+            self.whole_drain.close()
+            self.whole_drain = None
         if self.drain_fd is not None:
             os.close(self.drain_fd)
             self.drain_fd = None

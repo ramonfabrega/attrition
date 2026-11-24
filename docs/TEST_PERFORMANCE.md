@@ -24,6 +24,14 @@ and warm/cold input-cache state explicit. A local test gain is not a suite gain.
 
 ## Reading a gate profile
 
+The last `clock` step measures a 600-frame lobby session. Read its small-lease
+and drained-lease logs separately. Each supervisor prints `wait_seconds` for
+admission and `run_seconds` for the admitted command. A broken frame-time
+ceiling can make the command itself wait for host load to drop before measuring
+again. That wait counts as run time. The whole-host clock gives already
+running jobs time to finish and has priority over new ordinary leases.
+The [clock journal](journal/2026-11-24-item-4638.md) records the controls.
+
 For checksum playback, time the complete scorer with the gate's recorded CPU
 reservation. The held-out test visits every scored state of eight recordings.
 Its printed result includes counts and first divergences. To compare changes

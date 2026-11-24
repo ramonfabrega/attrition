@@ -707,8 +707,9 @@ def client_crate_left(touched, *, lane, whole):
 # again under the drained lease of the whole host as above, whose verdict
 # is the step's. The log says which on one `Clock:` line. The test's own
 # rule (`crates/client/tests/clock.rs`) still runs inside each attempt: a
-# broken first session waits up to 600 s for the one-minute load to fall to
-# the core count before a second session is measured, and only two broken
+# broken first session waits for the one-minute load to fall to the core
+# count, up to 30 s in the booking probe and 600 s in a lane or under
+# the drained lease, before a second session is measured. Only two broken
 # sessions are red. The first attempt's reservation: the client's own
 # session is one process whose peak resident set the ceilings pin at 320
 # MiB (`render::clock::CLOCK`), beside a one-thread test harness and cargo's
@@ -1635,7 +1636,8 @@ def _run_clock(command, *, run, env, log, drained_log, lane=False):
     the first attempt alone (the pass of 2026-11-23): its red is printed and
     left to the booking gate, and the step goes on."""
     try:
-        run(command, cwd=ROOT, env=env, check=True, log=log)
+        run(command, cwd=ROOT, env=dict(env, RON_CLOCK_BOOKING_PROBE='0' if lane else '1'),
+            check=True, log=log)
     except subprocess.CalledProcessError as first:
         if lane:
             print(f'Clock: red beside load (exit {first.returncode}) — left to the booking gate, which '
@@ -1644,7 +1646,8 @@ def _run_clock(command, *, run, env, log, drained_log, lane=False):
         print(f'Clock: red beside load (exit {first.returncode}); measuring once more alone under the '
               'drained lease', flush=True)
         try:
-            run(command, cwd=ROOT, env=env, check=True, log=drained_log, drain=True)
+            run(command, cwd=ROOT, env=dict(env, RON_CLOCK_BOOKING_PROBE='0'),
+                check=True, log=drained_log, drain=True)
         except subprocess.CalledProcessError:
             print(f'Clock: red beside load (exit {first.returncode}), then red alone under the drained lease',
                   flush=True)

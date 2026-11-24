@@ -335,7 +335,9 @@ runs last, and alone only after a red**: a booking gate leaves it out of
 its release step and measures it as a final step, first beside load under
 a lease of two slots, and once more under a draining lease of the whole
 host budget only when that is red (DECISIONS 136 §2; the log's `Clock:`
-line says which). It broke two booking gates at loads of 13.5 to 15.6
+line says which). A broken first session waits up to 30 seconds for the host
+to quiet in the booking probe, or 600 seconds in a lane or an exclusive
+attempt, before measuring again (TEST_PERFORMANCE, item 4638). It broke two booking gates at loads of 13.5 to 15.6
 beside lanes and reads p99 14 ms alone; drained on every gate, it waited
 60.6 of eight gates' 193.3 minutes for the longest lease on the host to
 end. A booking gate has nine steps. **A lane that keeps the client crate

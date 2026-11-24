@@ -2320,6 +2320,7 @@ class LaneClock(unittest.TestCase):
                     self.assertIn(gate.CLOCK_TEST, skips_of(release_of(calls)))
                     self.assertEqual(calls[-1], gate.clock_command())
                     self.assertFalse(seen[-1][1].get('drain'))
+                    self.assertEqual(seen[-1][1]['env']['RON_CLOCK_BOOKING_PROBE'], '0')
                     self.assertIn('Clock: green beside load\n', out)
                     self.assertIn(f'Gate steps: {len(names)} of {len(names)} ran', out)
                     self.assertTrue(next(l for l in out.splitlines() if l.startswith('Gate steps:'))
@@ -2404,6 +2405,7 @@ class ClockBesideLoad(unittest.TestCase):
         self.assertEqual(len(clocks), 1)
         self.assertFalse(clocks[0][1].get('drain'))
         self.assertIn('Clock: green beside load\n', out)
+        self.assertEqual(clocks[0][1]['env']['RON_CLOCK_BOOKING_PROBE'], '1')
         self.assertNotIn('drained lease', out)
         # One step, one minute entry, however many attempts.
         self.assertIn(', clock ', next(l for l in out.splitlines() if l.startswith('Gate minutes:')))
@@ -2420,6 +2422,7 @@ class ClockBesideLoad(unittest.TestCase):
                 self.assertEqual([c for c, _ in clocks], [gate.clock_command()] * 2)
                 self.assertFalse(clocks[0][1].get('drain'))
                 self.assertIs(clocks[1][1].get('drain'), True)
+                self.assertEqual([k['env']['RON_CLOCK_BOOKING_PROBE'] for _, k in clocks], ['1', '0'])
                 # Each attempt keeps its own log.
                 self.assertNotEqual(clocks[0][1]['log'], clocks[1][1]['log'])
                 self.assertIn(f'Clock: red beside load (exit 101), then {verdict} alone under the drained '

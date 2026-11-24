@@ -31,6 +31,9 @@ fn gamelog_dir() -> PathBuf {
 /// cores for the better part of an hour and both sessions, 17 s apart,
 /// broke p99 (50.04 ms, then 73.75 ms) on a client an A/B read at 5.5.
 const QUIET_WITHIN: Duration = Duration::from_secs(600);
+/// The booking probe has an exclusive remeasurement available. Give a
+/// short burst time to finish before making new jobs wait for that lease.
+const BOOKING_QUIET_WITHIN: Duration = Duration::from_secs(30);
 /// The load average is a one-minute mean; five seconds between reads is
 /// fine-grained against it.
 const QUIET_POLL: Duration = Duration::from_secs(5);
@@ -85,7 +88,7 @@ enum Wait {
     /// It fell under after this long, at this load.
     Quiet { waited: Duration, load: f64 },
     /// It stayed over its cores for the whole bound; the last load read.
-    StayedLoaded { load: f64 },
+    StayedLoaded { waited: Duration, load: f64 },
 }
 
 /// Wait, polling `read`, until the load is at or under `cores`, for at most
@@ -113,6 +116,7 @@ fn wait_for_quiet(
         }
     }
     Wait::StayedLoaded {
+        waited,
         load: load.unwrap_or_default(),
     }
 }
@@ -135,11 +139,11 @@ fn verdict(
         load_words(second.1, cores)
     );
     Some(match wait {
-        Wait::StayedLoaded { load } => format!(
+        Wait::StayedLoaded { waited, load } => format!(
             "the host stayed loaded: {load:.2} on {cores} cores for {} s; unmeasured, re-run \
              (both sessions broke the clock's ceilings on a host over its cores, which says \
              nothing about the client): {sessions}",
-            QUIET_WITHIN.as_secs()
+            waited.as_secs()
         ),
         _ => format!(
             "the clock breaks its ceilings twice running (render::clock::CLOCK): {sessions}"
@@ -217,22 +221,21 @@ fn the_great_lakes_lobby_plays_under_the_clock_s_ceilings() {
         first.join("; "),
         load_words(first_load, cores)
     );
-    let wait = wait_for_quiet(
-        host_load,
-        cores,
-        QUIET_WITHIN,
-        QUIET_POLL,
-        std::thread::sleep,
-    );
+    let within = if std::env::var("RON_CLOCK_BOOKING_PROBE").as_deref() == Ok("1") {
+        BOOKING_QUIET_WITHIN
+    } else {
+        QUIET_WITHIN
+    };
+    let wait = wait_for_quiet(host_load, cores, within, QUIET_POLL, std::thread::sleep);
     match &wait {
         Wait::None => {}
         Wait::Quiet { waited, load } => eprintln!(
             "clock: waited {} s for the host to fall to {load:.2} on {cores} cores",
             waited.as_secs()
         ),
-        Wait::StayedLoaded { load } => eprintln!(
+        Wait::StayedLoaded { waited, load } => eprintln!(
             "clock: the host stayed loaded ({load:.2} on {cores} cores) for {} s; measuring anyway",
-            QUIET_WITHIN.as_secs()
+            waited.as_secs()
         ),
     }
     let (second, second_load) = session();
@@ -290,7 +293,13 @@ fn a_host_that_stays_loaded_is_named_not_the_client() {
     // its bound, and a second break under it says so in a driver's words.
     let mut slept = Duration::ZERO;
     let wait = wait_for_quiet(|| Some(50.9), 16, QUIET_WITHIN, QUIET_POLL, |d| slept += d);
-    assert_eq!(wait, Wait::StayedLoaded { load: 50.9 });
+    assert_eq!(
+        wait,
+        Wait::StayedLoaded {
+            waited: QUIET_WITHIN,
+            load: 50.9
+        }
+    );
     assert!(slept >= QUIET_WITHIN && slept < QUIET_WITHIN + QUIET_POLL);
     let first = vec!["p99 frame 50.04 ms over its ceiling 20".to_string()];
     let second = vec!["p99 frame 73.75 ms over its ceiling 20".to_string()];
@@ -304,6 +313,9 @@ fn a_host_that_stays_loaded_is_named_not_the_client() {
         "{message}"
     );
     assert!(message.contains("51.20 on 16 cores"), "{message}");
+    let probe = wait_for_quiet(|| Some(50.9), 16, BOOKING_QUIET_WITHIN, QUIET_POLL, |_| {});
+    let message = verdict((&first, Some(51.2)), (&second, Some(50.9)), &probe, 16).unwrap();
+    assert!(message.contains("for 30 s; unmeasured"), "{message}");
     // A second session under every ceiling passes, whatever the host did.
     assert_eq!(
         verdict((&first, Some(51.2)), (&[], Some(50.9)), &wait, 16),

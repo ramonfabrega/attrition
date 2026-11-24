@@ -197,6 +197,9 @@ class Admission(unittest.TestCase):
             self.assertFalse(second.try_drain())
             self.assertEqual(second.fds, [])
             busy.close()
+            # The old workload has released its slots, but the drainer has
+            # not polled again. A new job used to win this race indefinitely.
+            self.assertFalse(late.try_acquire())
             self.assertTrue(whole.try_drain())
             self.assertEqual(len(whole.fds), budget.CPU + budget.MEMORY_MIB // budget.QUANTUM_MIB)
             self.assertFalse(late.try_acquire())
@@ -209,6 +212,22 @@ class Admission(unittest.TestCase):
             late.close()
             self.assertTrue(second.try_drain())
             second.close()
+
+    def test_cancelled_whole_drain_reopens_admission_and_partial_drains_can_share(self):
+        with tempfile.TemporaryDirectory() as d:
+            busy = budget.Lease(d, 1, 256)
+            whole = budget.Lease(d, budget.CPU, budget.MEMORY_MIB)
+            partial = budget.Lease(d, 2, 512)
+            late = budget.Lease(d, 1, 256)
+            try:
+                self.assertTrue(busy.try_acquire())
+                self.assertFalse(whole.try_drain())
+                whole.close()
+                self.assertTrue(partial.try_drain())
+                self.assertTrue(late.try_acquire())
+            finally:
+                for lease in (busy, whole, partial, late):
+                    lease.close()
 
     def test_supervise_drains_when_asked(self):
         with tempfile.TemporaryDirectory() as d, patch.object(budget, 'sample_rss', return_value=(1, 1)):
