@@ -1985,7 +1985,23 @@ pub(crate) mod tests {
                     eprintln!("P4632 {state} {name} count ours {} theirs {}", ours.ranges.len(), theirs.len());
                 }
                 let mut who = 0u8;
-                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                let (mut i, mut j) = (0usize, 0usize);
+                let mut pairs = Vec::new();
+                while i < ours.ranges.len() && j < theirs.len() {
+                    if ours.ranges[i].bytes == theirs[j].bytes || ours.ranges[i].bytes.len() == theirs[j].bytes.len() && ours.ranges[i].bytes.len() > 1 {
+                        pairs.push((i, j)); i += 1; j += 1; continue;
+                    }
+                    // resync: skip up to 40 on either side where the next 4 agree
+                    let ok = |a: usize, b: usize| (0..4).all(|t| a + t < ours.ranges.len() && b + t < theirs.len() && ours.ranges[a + t].bytes == theirs[b + t].bytes);
+                    let mut found = None;
+                    'r: for d in 1..40 { for (da, db) in [(d, 0), (0, d)] { if ok(i + da, j + db) { found = Some((da, db)); break 'r; } } }
+                    if let Some((da, db)) = found {
+                        for t in 0..da { eprintln!("P4632 {state} {name} ours-only range {} record {} {} len {}", i + t, ours.ranges[i + t].record, ours.ranges[i + t].field, ours.ranges[i + t].bytes.len()); }
+                        for t in 0..db { eprintln!("P4632 {state} {name} theirs-only range {} len {} {:?}", j + t, theirs[j + t].bytes.len(), &theirs[j + t].bytes[..theirs[j + t].bytes.len().min(24)]); }
+                        i += da; j += db;
+                    } else { pairs.push((i, j)); i += 1; j += 1; }
+                }
+                for (k, (a, b)) in pairs.iter().map(|&(i, j)| (&ours.ranges[i], theirs[j])).enumerate() {
                     if a.field == "who..y_internal" { who = a.bytes[0]; }
                     if a.bytes != b.bytes {
                         let d = crate::checksum::fields::differing_fields(name, a.field, &a.bytes, &b.bytes);
