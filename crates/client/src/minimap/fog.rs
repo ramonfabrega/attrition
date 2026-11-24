@@ -304,16 +304,19 @@ pub(crate) mod tests {
     /// `[cells, the photograph's median luma, ours]`, ×10 and rounded.
     /// Minted at item 4624's build: ours 148.9 / 152.8 / 154.9 / 146.3 →
     /// 0 / 48.2 / 78.1 / 146.3 against theirs 0 / 47.1 / 74.2 / 144.1.
+    /// Item 4627 culls the blips by the console's sight: level 1 48.2 →
+    /// 48.0, the oil and the far blips off its cells.
     pub const RUN1814B_3294_FOG_MINIMAP: [[i64; 3]; 4] = [
         [13_336, 0, 0],
-        [727, 471, 482],
+        [727, 471, 480],
         [127, 742, 781],
         [210, 1441, 1463],
     ];
-    /// The same with no fog drawn.
+    /// The same with no fog drawn. Item 4627: levels 0 and 1 148.9 →
+    /// 148.7 and 152.8 → 152.6, the oils' blips gone (`type_avail`).
     pub const RUN1814B_3294_FOG_MINIMAP_UNFOGGED: [[i64; 3]; 4] = [
-        [13_336, 0, 1489],
-        [727, 471, 1528],
+        [13_336, 0, 1487],
+        [727, 471, 1526],
         [127, 742, 1549],
         [210, 1441, 1463],
     ];

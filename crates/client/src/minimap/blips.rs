@@ -39,14 +39,18 @@ pub const BLACK: u32 = 0xff00_0000;
 /// triangle, a white texel of the atlas.
 pub const DOT: f32 = 0.1;
 
-/// **The console sees everything** (item 4601): `render_blips`' arms skip
-/// their `is_seen(console)` test under `semaphore[0] & 0x42` or the
-/// console's player flags `0x100` or `0xd0`. Run1564's console has flags
-/// 7 (its gamelog's `BEGIN PLAYER`), so the semaphore is what lets the
-/// packet draw all 15 live goody boxes, all 36 goods and player 1's units
-/// across the map where the console's own fog has seen none. The sim does
-/// not carry the semaphore; taken as set (parked 4601a).
-pub const SEES_ALL: bool = true;
+/// **Does the console see everything?** (items 4601, 4627):
+/// `render_blips`' arms skip their `is_seen(console)` test under
+/// `semaphore[0] & 0x42` (the display reveal) or the console's player
+/// flags `0x100` or `0xd0`. The client carries the reveal as
+/// [`crate::world::World::fog`] `None`, as the main view's and the
+/// minimap's fog do (item 4624). Run1564's semaphore byte 0 is `0x0a`, the
+/// reveal set, so its packet draws all 15 live goody boxes, all 36 goods
+/// and player 1's units across the map; run1814b's is `0x08`, and its
+/// packet draws two blips, a good and the console's capital (item 4627).
+pub fn sees_all(world: &crate::world::World) -> bool {
+    world.fog.is_none()
+}
 
 /// **The minimap's filter** (item 4601): `player_profile.prefs.stat_mode`,
 /// the profile's minimap mode. Under 1, the one built, `render_blips`
@@ -247,7 +251,13 @@ pub fn team(p: sim::Player) -> u32 {
 ///
 /// - *Seen.* Every arm draws what the console's player sees, unless the
 ///   game's `semaphore[0] & 0x42` or the console's player flags `0x100` or
-///   `0xd0` say it sees everything ([`SEES_ALL`]).
+///   `0xd0` say it sees everything ([`sees_all`]). Each arm asks its own
+///   object's `is_seen` (vslot `+0x48`, item 4627): a goody box
+///   `ItemData::is_seen@00677850` ([`sim::Sim::goody_is_seen`]), a good
+///   `GoodData::is_seen@0066e4c0` ([`sim::Sim::good_is_seen`]), a unit
+///   `UnitData::is_seen@00607a60` (the scene's `seen`), a building
+///   `BuildData::is_seen@0062e1a0` and a city `CityData::is_seen@00739560`,
+///   its centre's ([`sim::Sim::build_is_seen`]).
 /// - *The players.* The units and buildings of slots 0 to 7 whose leader
 ///   lives; the cities of every slot.
 /// - *The chain.* A captain with a unit captain above it on its cell's
@@ -273,7 +283,7 @@ pub fn build(
         win: window(size).map(|v| v as f32),
         layers: empty(),
     };
-    let all_seen = SEES_ALL;
+    let all_seen = sees_all(world);
     let colour = |who: sim::Player, id: ObjId| {
         if who == console && selection.contains(&id) {
             WHITE
@@ -282,14 +292,21 @@ pub fn build(
         }
     };
     // Layer 0: the goody boxes.
-    for g in &sim.gaia.goody_items {
-        if g.alive && (all_seen || g.ever_seen >> console & 1 != 0) {
+    for (i, g) in sim.gaia.goody_items.iter().enumerate() {
+        if g.alive && (all_seen || sim.goody_is_seen(i, console)) {
             lay.add(0, g.pos, GOODY, GOODY, 2, false);
         }
     }
     // Layer 1: the goods.
-    for g in sim.observe_goods() {
-        if !g.alive || !(all_seen || sim.good_ever_seen(g.pos, console)) {
+    for (gi, g) in sim.observe_goods().into_iter().enumerate() {
+        if !g.alive || !(all_seen || sim.good_is_seen(gi, console)) {
+            continue;
+        }
+        // `LeaderData::type_avail(console, ty, 1)`, asked unless
+        // `semaphore[1] & 8`, which neither packet sets (item 4627): an oil
+        // the console's age cannot use has no blip. Run1814b's capital
+        // region holds one, seen, and the packet draws none.
+        if !world.runner.type_avail(console, g.ty) {
             continue;
         }
         match g.ty {
@@ -495,15 +512,28 @@ pub fn draw(
 pub(crate) mod tests {
     use super::*;
 
-    /// The probe's dump of run1564's packet (item 4596).
-    fn packet() -> Option<(Vec<i32>, [Vec<Quad>; LAYERS])> {
-        let path = std::env::var_os("RON_BLIPS_PACKET")
+    /// A file of the lab's, or the variable's path.
+    fn lab(var: &str, rel: &str) -> std::path::PathBuf {
+        std::env::var_os(var)
             .map(std::path::PathBuf::from)
             .unwrap_or_else(|| {
                 std::path::PathBuf::from(std::env::var_os("HOME").unwrap_or_default())
-                    .join("ron-data/lab-experiments/2026-11-23-item-4596/run1564-blips.txt")
-            });
-        let Ok(text) = std::fs::read_to_string(&path) else {
+                    .join("ron-data/lab-experiments")
+                    .join(rel)
+            })
+    }
+
+    /// The probe's dump of run1564's packet (item 4596).
+    fn packet() -> Option<(Vec<i32>, [Vec<Quad>; LAYERS])> {
+        read_packet(&lab(
+            "RON_BLIPS_PACKET",
+            "2026-11-23-item-4596/run1564-blips.txt",
+        ))
+    }
+
+    /// `blips_packet.py`'s dump: the window, then every quad by layer.
+    fn read_packet(path: &std::path::Path) -> Option<(Vec<i32>, [Vec<Quad>; LAYERS])> {
+        let Ok(text) = std::fs::read_to_string(path) else {
             println!("skipping: no blips packet at {}", path.display());
             return None;
         };
@@ -532,6 +562,35 @@ pub(crate) mod tests {
         Some((window, layers))
     }
 
+    /// Ours against theirs, quad for quad, layer by layer in the order
+    /// laid: each rectangle within 0.01, colour and texcoords exact. One
+    /// line a quad that parts.
+    fn parting(ours: &[Vec<Quad>; LAYERS], theirs: &[Vec<Quad>; LAYERS]) -> Vec<String> {
+        let mut bad = Vec::new();
+        for l in 0..LAYERS {
+            println!(
+                "layer {l}: ours {} theirs {}",
+                ours[l].len(),
+                theirs[l].len()
+            );
+            for k in 0..ours[l].len().max(theirs[l].len()) {
+                let (a, b) = (ours[l].get(k), theirs[l].get(k));
+                if !matches!((a, b), (Some(a), Some(b)) if same(a, b)) {
+                    bad.push(format!("layer {l} quad {k}: ours {a:?} theirs {b:?}"));
+                }
+            }
+        }
+        bad
+    }
+
+    fn same(a: &Quad, b: &Quad) -> bool {
+        a.colour == b.colour
+            && a.uv == b.uv
+            && (0..4).all(|v| {
+                (a.xy[v].0 - b.xy[v].0).abs() <= 0.01 && (a.xy[v].1 - b.xy[v].1).abs() <= 0.01
+            })
+    }
+
     /// **The packet, quad for quad** (item 4601): every blip run1564's
     /// packet holds at frame 3294, its rectangle within 0.01 of ours and
     /// its colour and texcoords exact, layer by layer in the order laid.
@@ -549,36 +608,170 @@ pub(crate) mod tests {
             return;
         };
         let sel = capital_selected(&p.world);
+        assert!(sees_all(&p.world), "run1564 plays under the reveal");
         let ours = build(&p.world, &sel, super::super::QUAD_FRAME, BLINK_RUN1564);
-        let mut bad = Vec::new();
-        for l in 0..LAYERS {
-            println!(
-                "layer {l}: ours {} theirs {}",
-                ours[l].len(),
-                theirs[l].len()
-            );
-            for k in 0..ours[l].len().max(theirs[l].len()) {
-                let (a, b) = (ours[l].get(k), theirs[l].get(k));
-                let same = match (a, b) {
-                    (Some(a), Some(b)) => {
-                        a.colour == b.colour
-                            && a.uv == b.uv
-                            && (0..4).all(|v| {
-                                (a.xy[v].0 - b.xy[v].0).abs() <= 0.01
-                                    && (a.xy[v].1 - b.xy[v].1).abs() <= 0.01
-                            })
-                    }
-                    _ => false,
-                };
-                if !same {
-                    bad.push(format!("layer {l} quad {k}: ours {a:?} theirs {b:?}"));
-                }
-            }
-        }
+        let bad = parting(&ours, &theirs);
         for b in &bad {
             println!("{b}");
         }
         assert!(bad.is_empty(), "{} quads part", bad.len());
+    }
+
+    /// run1814b's phase: the packet's `graphic_tick` is 163, and 163 & 8 is
+    /// clear (`pings_packet.py`, item 4627).
+    const BLINK_RUN1814B: bool = false;
+
+    /// **`RUN1814B_3294_BLIPS`** (item 4627; `docs/RENDERER.md` §3.32.3):
+    /// on run1814b's frame 3294, under slot 0's fog, by layer 0 to 4:
+    /// `[theirs, ours, ours that are theirs]`, quad for quad off the
+    /// packet. Seen red under the reveal ([`RUN1814B_3294_BLIPS_REVEALED`]).
+    /// Minted at item 4627's build: before it (every blip seen, no
+    /// `type_avail`) ours laid 19 / 51 / 3 quads on layers 0 to 2 and
+    /// none of them theirs; now 0 / 1 / 1, both theirs.
+    pub const RUN1814B_3294_BLIPS: [[usize; 3]; LAYERS] =
+        [[0, 0, 0], [1, 1, 1], [1, 1, 1], [0, 0, 0], [0, 0, 0]];
+    /// The same under the reveal ([`sees_all`]), the goods' `type_avail`
+    /// kept: the 15 oils' 32 quads are gone, the boxes and the far
+    /// buildings stay.
+    pub const RUN1814B_3294_BLIPS_REVEALED: [[usize; 3]; LAYERS] =
+        [[0, 19, 0], [1, 19, 0], [1, 3, 0], [0, 0, 0], [0, 0, 0]];
+    /// **`RUN1814B_3294_BLIP_PIXELS`**: on the client's still beside the
+    /// photograph, the centre pixel of every blip either side lays (ours
+    /// and theirs, one a place): `[blips, pixels within 24 a channel of the
+    /// photograph's]`. Seen red under the reveal
+    /// ([`RUN1814B_3294_BLIP_PIXELS_REVEALED`]). Minted at item 4627's
+    /// build: before it 58 blips, 16 agreeing (the oils' black centres on
+    /// the black among them); now 2 of 2.
+    pub const RUN1814B_3294_BLIP_PIXELS: [usize; 2] = [2, 2];
+    pub const RUN1814B_3294_BLIP_PIXELS_REVEALED: [usize; 2] = [41, 2];
+
+    /// **The blips under the fog** (item 4627): run1814b's packet, quad
+    /// for quad, and the still's pixels at every blip's centre against the
+    /// photograph's; then the same under the reveal, the red side.
+    #[test]
+    fn the_blips_under_the_fog_on_run1814b() {
+        let Some((window_bits, theirs)) = read_packet(&lab(
+            "RON_BLIPS_PACKET_RUN1814B",
+            "2026-11-23-item-4627/run1814b-blips.txt",
+        )) else {
+            return;
+        };
+        assert_eq!(window(super::super::QUAD_FRAME).to_vec(), window_bits);
+        // The packet's game: `semaphore` byte 0 lacks `0x42`, so the
+        // console sees only what it sees; the profile's mode is 1.
+        let pings = lab(
+            "RON_PINGS_PACKET_RUN1814B",
+            "2026-11-23-item-4627/run1814b-pings.txt",
+        );
+        let Ok(text) = std::fs::read_to_string(&pings) else {
+            println!("skipping: no pings packet at {}", pings.display());
+            return;
+        };
+        let word = |k: &str| -> u32 {
+            let w: Vec<&str> = text.split_whitespace().collect();
+            let i = w.iter().position(|v| *v == k).expect(k);
+            u32::from_str_radix(w[i + 1], if k == "semaphore0" { 16 } else { 10 }).unwrap()
+        };
+        assert_eq!(word("semaphore0") & 0x42, 0, "run1814b plays under its fog");
+        assert_eq!(word("stat_mode"), u32::from(STAT_MODE));
+        assert_eq!(word("graphic_tick") & 8 != 0, BLINK_RUN1814B);
+        let photo_path = lab(
+            "RON_PHOTO_RUN1814B",
+            "2026-11-23-item-4624/run1814b-3294.tga",
+        );
+        let Ok(bytes) = std::fs::read(&photo_path) else {
+            println!("skipping: no photograph at {}", photo_path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let root = std::env::var_os("RON_INSTALL")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| std::path::PathBuf::from("../../game"));
+        let mut world = match crate::world::World::open_game(
+            &root,
+            &crate::world::gamelog_dir(),
+            crate::world::Game::Lobby,
+        ) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        // The world as the fog's rows read it (item 4624).
+        world.run_to(3294);
+        world.blend = crate::world::Blend::Last;
+        world.run_to(3295);
+        let sel = capital_selected(&world);
+        let mut camera = crate::pinned_camera();
+        (camera.loc_x, camera.loc_y) = super::super::fog::tests::RUN1814B_LOC;
+        let size = (photo.width as u32, photo.height as u32);
+        let side = |world: &mut crate::world::World, fog: bool| {
+            world.fog = fog.then_some(crate::world::CONSOLE);
+            assert_eq!(sees_all(world), !fog);
+            let ours = build(world, &sel, super::super::QUAD_FRAME, BLINK_RUN1814B);
+            let bad = parting(&ours, &theirs);
+            for b in &bad {
+                println!("{b}");
+            }
+            let row: [[usize; 3]; LAYERS] = std::array::from_fn(|l| {
+                let same_k = (0..ours[l].len().min(theirs[l].len()))
+                    .filter(|&k| same(&ours[l][k], &theirs[l][k]))
+                    .count();
+                [theirs[l].len(), ours[l].len(), same_k]
+            });
+            let still = crate::still_minimap(
+                world,
+                &camera,
+                size,
+                crate::gpu::SilhouetteOrder::Before,
+                wgpu::TextureFormat::Rgba8Unorm,
+                &sel,
+                &|_| None,
+                true,
+            );
+            if let Some(dir) = std::env::var_os("RON_STILL_DIR") {
+                let name = format!(
+                    "still-run1814b-3294-blips-{}.bmp",
+                    if fog { "fog" } else { "revealed" }
+                );
+                let out = std::path::PathBuf::from(dir).join(name);
+                std::fs::write(&out, crate::gpu::bmp(&still, size)).expect("the still writes");
+            }
+            // Every blip's centre pixel, one a place.
+            let mut at: Vec<(i32, i32)> = ours
+                .iter()
+                .chain(theirs.iter())
+                .flatten()
+                .map(|q| {
+                    let (x, y) = ((q.xy[0].0 + q.xy[2].0) / 2.0, (q.xy[0].1 + q.xy[2].1) / 2.0);
+                    (x.floor() as i32, y.floor() as i32)
+                })
+                .collect();
+            at.sort_unstable();
+            at.dedup();
+            let w = photo.width;
+            let agree = at
+                .iter()
+                .filter(|&&(x, y)| {
+                    let i = (y as usize * w + x as usize) * 4;
+                    (0..3).all(|c| {
+                        (i32::from(still[i + c]) - i32::from(photo.rgba[i + c])).abs() <= 24
+                    })
+                })
+                .count();
+            (row, [at.len(), agree])
+        };
+        let (revealed, revealed_px) = side(&mut world, false);
+        let (fogged, fogged_px) = side(&mut world, true);
+        println!("RUN1814B_3294_BLIPS_REVEALED: {revealed:?}");
+        println!("RUN1814B_3294_BLIP_PIXELS_REVEALED: {revealed_px:?}");
+        println!("RUN1814B_3294_BLIPS: {fogged:?}");
+        println!("RUN1814B_3294_BLIP_PIXELS: {fogged_px:?}");
+        assert_eq!(revealed, RUN1814B_3294_BLIPS_REVEALED);
+        assert_eq!(revealed_px, RUN1814B_3294_BLIP_PIXELS_REVEALED);
+        assert_eq!(fogged, RUN1814B_3294_BLIPS);
+        assert_eq!(fogged_px, RUN1814B_3294_BLIP_PIXELS);
     }
 
     /// The packet's phase: three of player 1's attackers at player 0's
