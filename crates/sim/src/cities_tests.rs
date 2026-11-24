@@ -2177,7 +2177,7 @@ fn a_transport_s_kill_plunders_as_its_cargo() {
         },
         ..crate::UnitType::default()
     });
-    let boat = sim.init_unit(2, barge, tile_pos(40, 40));
+    let boat = sim.init_unit(0, barge, tile_pos(40, 40));
     let killer = sim.init_unit(1, foot, tile_pos(41, 40));
     let _despot = sim.init_unit(1, hero, tile_pos(41, 41));
     sim.economy.holdings[1].available = [true, true, true, true, true, false];
@@ -2190,7 +2190,7 @@ fn a_transport_s_kill_plunders_as_its_cargo() {
         "an empty barge pays nothing"
     );
     assert_eq!(sim.rng, rng, "and draws nothing, the Despot in reach");
-    let rider = sim.init_unit(2, hero, tile_pos(40, 40));
+    let rider = sim.init_unit(0, hero, tile_pos(40, 40));
     sim.units[rider].inside_unit = Some(boat);
     let mut want = sim.rng;
     for _ in 0..4 {
