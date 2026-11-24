@@ -132,18 +132,32 @@ impl<T: Copy + Default> Chunks<T> {
         self.len = 0;
     }
 
+    #[cold]
+    fn add_chunk(&mut self) {
+        self.chunks
+            .push(vec![T::default(); CHUNK].into_boxed_slice());
+    }
+
+    #[inline]
     fn push(&mut self, v: T) {
-        if self.len == self.chunks.len() * CHUNK {
-            self.chunks
-                .push(vec![T::default(); CHUNK].into_boxed_slice());
+        if self.len / CHUNK == self.chunks.len() {
+            self.add_chunk();
         }
         self.chunks[self.len / CHUNK][self.len % CHUNK] = v;
         self.len += 1;
     }
 
-    fn extend(&mut self, vs: &[T]) {
-        for &v in vs {
-            self.push(v);
+    fn extend(&mut self, mut values: &[T]) {
+        while !values.is_empty() {
+            let chunk = self.len / CHUNK;
+            if chunk == self.chunks.len() {
+                self.add_chunk();
+            }
+            let at = self.len % CHUNK;
+            let count = values.len().min(CHUNK - at);
+            self.chunks[chunk][at..at + count].copy_from_slice(&values[..count]);
+            self.len += count;
+            values = &values[count..];
         }
     }
 }
@@ -1872,21 +1886,20 @@ pub struct Guy {
 /// One of `GuyData::log_data`'s `*((dword*) &name)` lines, by `name`:
 /// every such line shares the key `*((dword*)` and carries `&name)` at the
 /// head of its value.
-fn dword_of(g: &Block<'_>, name: &str) -> Option<i64> {
-    let tag = format!("&{name})");
-    g.all("*((dword*)")
-        .into_iter()
-        .find_map(|v| v.trim().strip_prefix(tag.as_str())?.trim().parse().ok())
+fn dword_of(values: &[&str], tag: &str) -> Option<i64> {
+    values
+        .iter()
+        .find_map(|v| v.trim().strip_prefix(tag)?.trim().parse().ok())
 }
 
-/// A four-slot array the record prints as `name[0]` … `name[3]`, whole
-/// or not at all.
-fn four_of(g: &Block<'_>, name: &str) -> Option<[i64; 4]> {
-    let mut out = [0; 4];
-    for (k, v) in out.iter_mut().enumerate() {
-        *v = g.int(&format!("{name}[{k}]"))?;
-    }
-    Some(out)
+/// A four-slot array, whole or absent. Stop at the first unreadable slot.
+fn four_of(g: &Block<'_>, keys: [&str; 4]) -> Option<[i64; 4]> {
+    Some([
+        g.int(keys[0])?,
+        g.int(keys[1])?,
+        g.int(keys[2])?,
+        g.int(keys[3])?,
+    ])
 }
 
 impl Guy {
@@ -3511,137 +3524,187 @@ pub fn path_of(b: Block<'_>) -> Vec<PathDump> {
         .collect()
 }
 
+/// Read a record's requested scalar integers in one pass. Visiting backwards
+/// leaves the first occurrence, including a malformed value, as `Block::int` does.
+macro_rules! read_scalar_ints {
+    ($block:ident, $out:ident, $($field:ident),+ $(,)?) => {{
+        #[cfg(test)]
+        if reads::active() {
+            $(reads::note($block.log, $block.node, stringify!($field));)+
+        }
+        for (key, value) in $block.fields_raw().rev() {
+            match key {
+                $(stringify!($field) => $out.$field = value.trim().parse().ok(),)+
+                _ => {}
+            }
+        }
+    }};
+}
+
+fn guy_of(g: Block<'_>) -> Guy {
+    let dwords = g.all("*((dword*)");
+    let mut guy = Guy {
+        kind: g.int("type"),
+        pos: match (g.int("x"), g.int("y"), g.int("z")) {
+            (Some(x), Some(y), Some(z)) => Some(Pos { x, y, z }),
+            _ => None,
+        },
+        // `des_x`/`des_y` carry no `z`, so the third slot is the
+        // figure's own — a `Pos` here is a point, not a placement.
+        des: match (g.int("des_x"), g.int("des_y")) {
+            (Some(x), Some(y)) => Some(Pos { x, y, z: 0 }),
+            _ => None,
+        },
+        track: match (g.int("track_dx"), g.int("track_dy")) {
+            (Some(x), Some(y)) => Some((x, y)),
+            _ => None,
+        },
+        // `last_x`/`last_y` carry a `last_z` of their own, and it is
+        // the figure's, so the third slot is filled where the record
+        // has it and left at zero where it does not.
+        last_pos: match (g.int("last_x"), g.int("last_y")) {
+            (Some(x), Some(y)) => Some(Pos {
+                x,
+                y,
+                z: g.int("last_z").unwrap_or(0),
+            }),
+            _ => None,
+        },
+        bank: dword_of(&dwords, "&bank)"),
+        last_bank: dword_of(&dwords, "&last_bank)"),
+        pitch: dword_of(&dwords, "&pitch)"),
+        last_pitch: dword_of(&dwords, "&last_pitch)"),
+        turret_angles: four_of(
+            &g,
+            [
+                "turret_angles[0]",
+                "turret_angles[1]",
+                "turret_angles[2]",
+                "turret_angles[3]",
+            ],
+        ),
+        des_turret_angles: four_of(
+            &g,
+            [
+                "des_turret_angles[0]",
+                "des_turret_angles[1]",
+                "des_turret_angles[2]",
+                "des_turret_angles[3]",
+            ],
+        ),
+        ..Guy::default()
+    };
+    read_scalar_ints!(
+        g,
+        guy,
+        angle,
+        cur_time,
+        end_time,
+        last_time,
+        cur_anim,
+        gpiece,
+        guy_flags,
+        stopped,
+        guy_num,
+        hold_attack,
+        queued_attack,
+        ox,
+        whom,
+        des_angle,
+        last_speed,
+        avg_speed,
+        node_flags,
+        des_node_flags
+    );
+    guy
+}
+
 fn unit_of(b: Block<'_>) -> Option<UnitDump> {
     let (flags, o, who, pos) = object_base(b)?;
     let orders = orders_of(b);
     let path = path_of(b);
-    let guys = b
-        .kids("GUY")
-        .map(|g| Guy {
-            kind: g.int("type"),
-            pos: match (g.int("x"), g.int("y"), g.int("z")) {
-                (Some(x), Some(y), Some(z)) => Some(Pos { x, y, z }),
-                _ => None,
-            },
-            angle: g.int("angle"),
-            cur_time: g.int("cur_time"),
-            end_time: g.int("end_time"),
-            last_time: g.int("last_time"),
-            cur_anim: g.int("cur_anim"),
-            gpiece: g.int("gpiece"),
-            guy_flags: g.int("guy_flags"),
-            stopped: g.int("stopped"),
-            guy_num: g.int("guy_num"),
-            hold_attack: g.int("hold_attack"),
-            queued_attack: g.int("queued_attack"),
-            ox: g.int("ox"),
-            whom: g.int("whom"),
-            // `des_x`/`des_y` carry no `z`, so the third slot is the
-            // figure's own — a `Pos` here is a point, not a placement.
-            des: match (g.int("des_x"), g.int("des_y")) {
-                (Some(x), Some(y)) => Some(Pos { x, y, z: 0 }),
-                _ => None,
-            },
-            des_angle: g.int("des_angle"),
-            track: match (g.int("track_dx"), g.int("track_dy")) {
-                (Some(x), Some(y)) => Some((x, y)),
-                _ => None,
-            },
-            // `last_x`/`last_y` carry a `last_z` of their own, and it is
-            // the figure's, so the third slot is filled where the record
-            // has it and left at zero where it does not.
-            last_pos: match (g.int("last_x"), g.int("last_y")) {
-                (Some(x), Some(y)) => Some(Pos {
-                    x,
-                    y,
-                    z: g.int("last_z").unwrap_or(0),
-                }),
-                _ => None,
-            },
-            last_speed: g.int("last_speed"),
-            avg_speed: g.int("avg_speed"),
-            bank: dword_of(&g, "bank"),
-            last_bank: dword_of(&g, "last_bank"),
-            pitch: dword_of(&g, "pitch"),
-            last_pitch: dword_of(&g, "last_pitch"),
-            turret_angles: four_of(&g, "turret_angles"),
-            des_turret_angles: four_of(&g, "des_turret_angles"),
-            node_flags: g.int("node_flags"),
-            des_node_flags: g.int("des_node_flags"),
-        })
-        .collect();
+    let guys = b.kids("GUY").map(guy_of).collect();
     // `myhits`, `damage` and `damage_frac` sit on the `OBJECT` level, one
     // in from `UNITDATA`'s own fields and one out from `SUBOBJECT`'s —
     // `the_unit_s_hit_points_are_the_object_block_s` pins that against a
     // decoy on either side, which is item 478's lesson one record over.
-    let obj = b.find("OBJECT");
-    Some(UnitDump {
+    let mut unit = UnitDump {
         flags,
         o,
         who,
         pos,
-        angle: b.int("angle"),
         guys,
         orders,
         path,
-        group: b.int("group"),
-        form: b.int("form"),
-        form_mod: b.int("form_mod"),
-        stance: b.int("stance"),
-        orders_x: b.int("orders_x"),
-        orders_y: b.int("orders_y"),
-        dest_angle: b.int("dest_angle"),
-        tolerance: b.int("tolerance"),
-        path_recursion: b.int("path_recursion"),
-        gather_down: b.int("gather_down"),
-        idle: b.int("idle"),
-        unit_masks: b.int("unit_masks"),
-        unit_masks2: b.int("unit_masks2"),
-        attrition: b.int("attrition"),
-        myspeed: b.int("myspeed"),
-        o_up: b.int("o_up"),
-        o_down: b.int("o_down"),
-        inside_up: b.int("inside_up"),
-        myhits: obj.and_then(|o| o.int("myhits")),
-        damage: obj.and_then(|o| o.int("damage")),
-        damage_frac: obj.and_then(|o| o.int("damage_frac")),
-        mylos: obj.and_then(|o| o.int("mylos")),
-        infiltrated: obj.and_then(|o| o.int("infiltrated")),
-        visible: obj.and_then(|o| o.int("visible")),
-        hold_frames: obj.and_then(|o| o.int("hold_frames")),
-        collide: b.int("collide"),
-        collide_frame: b.int("collide_frame"),
-        collide_o: b.int("collide_o"),
-        collide_who: b.int("collide_who"),
-        collide_guy: b.int("collide_guy"),
-        recharging: b.int("recharging"),
-        cavarch_o: b.int("cavarch_o"),
-        cavarch_who: b.int("cavarch_who"),
-        // `UNITDATA`'s own indent, like `recharging` and unlike `damage` —
-        // the `OBJECT` block one in carries no `damage_frame` at all, and
-        // the animals' nested `UNITDATA` is what puts one an indent
-        // further out (§41.1).
-        damage_frame: b.int("damage_frame"),
-        damage_o: b.int("damage_o"),
-        damage_who: b.int("damage_who"),
-        safe: b.int("safe"),
-        start_dist: b.int("start_dist"),
-        spell_time: b.int("spell_time"),
-        trench_angle: b.int("trench_angle"),
-        mana_burn: b.int("mana_burn"),
-        full: b.int("full"),
-        waiting: b.int("waiting"),
-        rare: b.int("rare"),
-        good_obj: b.int("good_obj"),
-        num_queued: b.int("num_queued"),
-        queue_time: b.int("queue_time"),
-        healing: b.int("healing"),
-        uid: obj.and_then(|o| o.int("uid")),
-        down: obj.and_then(|o| o.int("down")),
-        down_who: obj.and_then(|o| o.int("down_who")),
-        up: obj.and_then(|o| o.int("up")),
-        up_who: obj.and_then(|o| o.int("up_who")),
-    })
+        ..UnitDump::default()
+    };
+    // The damage frame and attacker belong to UNITDATA, including the
+    // one nested in ANIMALDATA. The OBJECT child has the hit points.
+    read_scalar_ints!(
+        b,
+        unit,
+        angle,
+        group,
+        form,
+        form_mod,
+        stance,
+        orders_x,
+        orders_y,
+        dest_angle,
+        tolerance,
+        path_recursion,
+        gather_down,
+        idle,
+        unit_masks,
+        unit_masks2,
+        attrition,
+        myspeed,
+        o_up,
+        o_down,
+        inside_up,
+        collide,
+        collide_frame,
+        collide_o,
+        collide_who,
+        collide_guy,
+        recharging,
+        cavarch_o,
+        cavarch_who,
+        damage_frame,
+        damage_o,
+        damage_who,
+        safe,
+        start_dist,
+        spell_time,
+        trench_angle,
+        mana_burn,
+        full,
+        waiting,
+        rare,
+        good_obj,
+        num_queued,
+        queue_time,
+        healing
+    );
+    if let Some(object) = b.find("OBJECT") {
+        read_scalar_ints!(
+            object,
+            unit,
+            myhits,
+            damage,
+            damage_frac,
+            mylos,
+            infiltrated,
+            visible,
+            hold_frames,
+            uid,
+            down,
+            down_who,
+            up,
+            up_who
+        );
+    }
+    Some(unit)
 }
 
 fn build_of(b: Block<'_>) -> Option<BuildDump> {
@@ -4508,6 +4571,49 @@ mod tests {
     use super::*;
 
     #[test]
+    fn scalar_reads_keep_first_values_and_record_the_requested_names() {
+        let log = Log::parse_eager(
+            "BEGIN UNITDATA\n damage_frame bad\n damage_frame 12\n angle 3\n angle 9\n extra 5\n",
+        );
+        let block = log.roots().next().unwrap();
+        reads::start();
+        let expected = (
+            block.int("damage_frame"),
+            block.int("angle"),
+            block.int("healing"),
+        );
+        let expected_reads = reads::stop();
+        reads::start();
+        let mut unit = UnitDump::default();
+        read_scalar_ints!(block, unit, damage_frame, angle, healing);
+        let actual_reads = reads::stop();
+        assert_eq!(expected, (None, Some(3), None));
+        assert_eq!((unit.damage_frame, unit.angle, unit.healing), expected);
+        assert_eq!(actual_reads, expected_reads);
+    }
+
+    #[test]
+    fn figure_angles_keep_the_first_valid_tag_and_require_all_four_slots() {
+        let log = Log::parse_eager(concat!(
+            "BEGIN GUY\n *((dword*) &bank) bad\n *((dword*) &pitch) 42\n ",
+            "*((dword*) &bank) 9\n *((dword*) &bank) 12\n ",
+            "turret_angles[0] 7\n turret_angles[2] 8\n",
+        ));
+        let block = log.roots().next().unwrap();
+        reads::start();
+        let guy = guy_of(block);
+        let seen = reads::stop();
+        assert_eq!(
+            (guy.bank, guy.pitch, guy.last_pitch),
+            (Some(9), Some(42), None)
+        );
+        assert_eq!(guy.turret_angles, None);
+        let names = &seen[&block.read_key()];
+        assert!(names.contains("turret_angles[1]"));
+        assert!(!names.contains("turret_angles[2]"));
+    }
+
+    #[test]
     fn indexed_fields_keep_file_order_and_record_only_requested_names() {
         let log =
             Log::parse_eager("BEGIN LEADERDATA\n flags bad\n other skipped\n flags 42\n empty\n");
@@ -4966,6 +5072,20 @@ BEGIN GAME
         assert_eq!(c.get(0), 0);
         assert_eq!(c.get(CHUNK - 1), CHUNK as u32 - 1);
         assert_eq!(c.get(CHUNK + 2), CHUNK as u32 + 2);
+        c.clear();
+        c.extend(&vec![7; CHUNK - 1]);
+        c.extend(&[8, 9, 10]);
+        assert_eq!(c.chunks.len(), 2);
+        assert_eq!(c.len(), CHUNK + 2);
+        assert_eq!(
+            (
+                c.get(CHUNK - 2),
+                c.get(CHUNK - 1),
+                c.get(CHUNK),
+                c.get(CHUNK + 1)
+            ),
+            (7, 8, 9, 10)
+        );
     }
 
     #[test]

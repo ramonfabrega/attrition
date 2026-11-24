@@ -61,7 +61,8 @@ sys.path.insert(0, str(ROOT / 'tools'))
 import gate_profile
 import scoped_shadow
 from resource_budget import DEFAULT, MEMORY_MIB, QUANTUM_MIB
-from test_runtime import child_environment, allocator_policy, execution_timeout
+from test_runtime import (DEFAULT_LIBRARY_SLOTS, QUIET_LIBRARY_SLOTS, child_environment,
+                          allocator_policy, execution_timeout)
 
 PROFILE = ROOT / 'docs/audit/2026-10-16-isolated-profile.json'
 ONE = re.compile(r'^test result: ok\. 1 passed; 0 failed; 0 ignored; 0 measured; \d+ filtered out;', re.M)
@@ -358,6 +359,10 @@ def run_one(binary, name, number, output, directory, memory, cancelled, known=Tr
     env = child_environment(test_name=name)
     env['RON_TEST_CPU'] = str(cpu)
     limit = min(MEMORY_MIB, math.ceil(memory * 1.5 / QUANTUM_MIB) * QUANTUM_MIB) if known else UNKNOWN_LIMIT_MIB
+    if cpu > DEFAULT_LIBRARY_SLOTS:
+        # Extra simultaneous walkers share the original RSS ceiling. Reserve
+        # all of it so a neighboring job cannot book their extra headroom.
+        memory = limit
     command = wrapper(directory, memory, cpu=cpu, limit=limit, timeout=execution_timeout(name)) + [
         '/usr/bin/time', '-l', str(binary), '--exact', name, '--test-threads=1']
     prior = env.get('RON_GATE_SHADOW_FROM') if name == scoped_shadow.AGES else None
@@ -434,7 +439,7 @@ def head_running(log):
         return False
 
 
-def isolated(binary, output, directory, slots=8, skips=(), stop=None, started=None, groups=None, peaks=None):
+def isolated(binary, output, directory, slots=DEFAULT_LIBRARY_SLOTS, skips=(), stop=None, started=None, groups=None, peaks=None):
     """`stop` and `started` are the release step's lanes (Loop 4042): a
     signal here stops the lane beside the library too, and `started` is set
     once the head of the queue — the widest, longest test — is running, so
@@ -814,7 +819,8 @@ def main():
     parser.add_argument('--release', action='store_true', required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--resource-directory', type=Path, default=DEFAULT)
-    parser.add_argument('--slots', type=int, choices=range(1, 9), default=8)
+    parser.add_argument('--slots', type=int, choices=(*range(1, DEFAULT_LIBRARY_SLOTS + 1), QUIET_LIBRARY_SLOTS),
+                        default=DEFAULT_LIBRARY_SLOTS)
     parser.add_argument('--test-threads', type=int, default=4)
     parser.add_argument('--skip', action='append', default=[], help='exact libtest names excluded by the gate selection')
     parser.add_argument('--exclude-package', action='append', default=[],

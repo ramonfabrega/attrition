@@ -82,6 +82,13 @@ two-slot reservation. One worker runs the four process-supervision suites.
 The other runs the remaining modules. Each prints its complete results,
 and either worker's failure fails the step. Omit `--jobs 2` to run serially.
 
+The isolated library uses eight CPU slots by default. For a quiet host,
+`--library-slots 12` books twelve for field coverage, then uses the same
+pool for the remaining library tests. Wider field coverage reserves its
+entire 4,608 MiB ceiling. `--test-threads` selects the width of the other
+release binaries. Both pools participate in the shared 20-slot admission
+limit. See the [width measurements](journal/2026-11-24-item-4640.md).
+
 On macOS, copy the printed `--sample TEST_OR_GROUP` command to sample the
 process under its recorded CPU reservation, memory ceiling, allocator setting,
 install, fixture directories and cache verifiers. The command checks the executable's SHA-256.
@@ -143,6 +150,12 @@ generic window advanced `tail - start` ticks, including
 reports its own timings. See the [field-coverage journal](journal/2026-11-19-item-4409.md).
 An audit is followed by the ordinary coverage test, so the legacy walk cannot
 supply missing coverage to a normal passing verdict.
+
+Unit, object and figure records read their optional integer fields together.
+They retain the first occurrence, including a malformed first value. The
+field recorder still registers exactly the keys each reader requests. The
+[parser measurements](journal/2026-11-24-item-4640.md) compare the previous
+and current generations' serialized records as well as the two replay walks.
 
 ## Coverage recording
 

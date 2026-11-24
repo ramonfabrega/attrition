@@ -101,7 +101,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
-from test_runtime import child_environment, allocator_policy
+from test_runtime import DEFAULT_LIBRARY_SLOTS, QUIET_LIBRARY_SLOTS, child_environment, allocator_policy
 from resource_budget import CPU as HOST_CPU_SLOTS, MEMORY_MIB as HOST_MEMORY_MIB, OFF_MARKER, admission_off
 
 # One whole lane gate at a time, host-wide (the tranche of 2026-11-12).
@@ -1163,7 +1163,8 @@ def check_whole(*, lane, tests, whole, no_widen):
 
 def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, run=run_logged,
          lane=False, tests=None, item=None, base='worktree-replan-pdb', scope=None, isolated=None,
-         no_widen=False, whole=False, git=subprocess.run, whole_lock=None, shadow_from=None):
+         no_widen=False, whole=False, git=subprocess.run, whole_lock=None, shadow_from=None,
+         library_slots=DEFAULT_LIBRARY_SLOTS):
     # `git` runs the gate's own reads of the tree (`branch_paths`,
     # `base_moved`); the offline cases hand it a fixture so none reads the
     # tree the gate runs in (item 3366).
@@ -1179,6 +1180,10 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         raise ValueError('--scope is the booking gate\'s; a lane gate has --tests and --base')
     if isolated is None:
         isolated = True
+    if type(library_slots) is not int or library_slots not in (DEFAULT_LIBRARY_SLOTS, QUIET_LIBRARY_SLOTS):
+        raise ValueError(f'library slots must be {DEFAULT_LIBRARY_SLOTS} or {QUIET_LIBRARY_SLOTS}')
+    if not isolated and library_slots != DEFAULT_LIBRARY_SLOTS:
+        raise ValueError('--library-slots requires the isolated runner')
     if shadow_from is not None and (scope is None or lane or not isolated or not require_fixtures):
         raise ValueError('--shadow-from requires an isolated --scope gate with --require-fixtures')
     tests = list(tests or [])
@@ -1302,7 +1307,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
                                    'cargo_build_jobs': 8, 'all_phases': True,
                                    'off_marker': str(OFF_MARKER), 'off': OFF_MARKER.exists()}}
     if isolated:
-        policy['isolated'] = {'slots': 8, 'global_cpu_slots': HOST_CPU_SLOTS, 'global_reserved_mib': HOST_MEMORY_MIB}
+        policy['isolated'] = {'slots': library_slots, 'global_cpu_slots': HOST_CPU_SLOTS, 'global_reserved_mib': HOST_MEMORY_MIB}
     if not lane:
         # The pass of 2026-11-15: the booking gate's merge pins and quiet clock;
         # the pass of 2026-11-16: the clock beside load first, drained only
@@ -1375,7 +1380,8 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     release_skips = skips + ([CLOCK_TEST] if clock_step else [])
     if isolated:
         release = ([sys.executable, 'tools/isolated_tests.py', '--release',
-                    '--output', str(report_dir / 'isolated'), '--test-threads', str(test_threads)]
+                    '--output', str(report_dir / 'isolated'), '--test-threads', str(test_threads),
+                    '--slots', str(library_slots)]
                    + [a for p in left_packages for a in ('--exclude-package', p)]
                    + [arg for name in release_skips for arg in ('--skip', name)])
     else:
@@ -1826,6 +1832,8 @@ def main():
     parser.add_argument('--test-threads', type=int, choices=WIDTHS, default=2,
                         help='release width: 2-4 under 20 GiB in combined mode, 6/8 under 32 GiB; '
                              'isolated rondata tests each use one thread; default: 2')
+    parser.add_argument('--library-slots', type=int, choices=(DEFAULT_LIBRARY_SLOTS, QUIET_LIBRARY_SLOTS),
+                        default=DEFAULT_LIBRARY_SLOTS, help='isolated rondata CPU slots (default 8, quiet host 12)')
     execution = parser.add_mutually_exclusive_group()
     execution.add_argument('--isolated', action='store_true', default=None,
                            help='isolate rondata tests (default for all gate modes)')
@@ -1863,7 +1871,7 @@ def main():
         gate(args.install, report_dir=args.report_dir, require_fixtures=args.require_fixtures,
              test_threads=args.test_threads, lane=args.lane, tests=args.tests, item=args.item,
              base=args.base, scope=args.scope, isolated=args.isolated, no_widen=args.no_widen,
-             whole=args.whole, shadow_from=args.shadow_from)
+             whole=args.whole, shadow_from=args.shadow_from, library_slots=args.library_slots)
     except ValueError as exc:
         parser.error(str(exc))
 

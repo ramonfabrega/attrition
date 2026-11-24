@@ -2,6 +2,11 @@
 import os
 import sys
 
+# Concurrent library CPU slots on the shared host and on an explicitly
+# requested quiet-host run. The other release binaries use --test-threads.
+DEFAULT_LIBRARY_SLOTS = 8
+QUIET_LIBRARY_SLOTS = 12
+
 
 def bounded_test(name):
     """Measured repeated walks; other isolated tests keep the system policy."""

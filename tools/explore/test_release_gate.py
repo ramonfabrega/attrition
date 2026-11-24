@@ -151,6 +151,18 @@ class IsolatedGate(unittest.TestCase):
             self.assertIn('tools/isolated_tests.py', release_of(calls))
             self.assertEqual(json.loads((report/'fixture-coverage.json').read_text())['missing_fixtures'], 0)
             self.assertEqual(json.loads((report/'gate-policy.json').read_text())['memory_cap_gib'], 32)
+            release = release_of(calls)
+            self.assertEqual(release[release.index('--slots') + 1], '8')
+
+            calls.clear()
+            wide = gate.gate(install, report_dir=Path(d)/'wide', require_fixtures=True,
+                             test_threads=4, library_slots=12, run=run)
+            release = release_of(calls)
+            self.assertEqual(release[release.index('--slots') + 1], '12')
+            self.assertEqual(release[release.index('--test-threads') + 1], '4')
+            self.assertEqual(json.loads((wide/'gate-policy.json').read_text())['isolated']['slots'], 12)
+            with self.assertRaisesRegex(ValueError, 'requires the isolated runner'):
+                gate.gate(install, isolated=False, library_slots=12)
 
     def test_small_checks_share_capacity_and_scoped_gate_cannot_silently_widen(self):
         self.assertEqual(gate.phase_budget(['python3', 'tools/offline_tests.py']), (2, 1024))

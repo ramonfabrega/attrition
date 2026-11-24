@@ -607,11 +607,15 @@ class Width(unittest.TestCase):
             out = Path(d)
             (out / 'tests').mkdir()
             with patch.object(runner.subprocess, 'Popen', Child), patch.object(runner, 'binary_stamp', return_value=(0,)):
-                row = runner.run_one('fake', 'wide', 1, out, out, 2048, lambda: False, True, 4)
-        command = seen['command']
-        self.assertEqual(command[command.index('--cpu') + 1], '4')
-        self.assertEqual(seen['env']['RON_TEST_CPU'], '4')
-        self.assertEqual(row['cpu_slots'], 4)
+                for cpu, memory in ((4, 3072), (8, 3072), (12, 4608)):
+                    row = runner.run_one('fake', 'wide', cpu, out, out, 3072, lambda: False, True, cpu)
+                    command = seen['command']
+                    self.assertEqual(command[command.index('--cpu') + 1], str(cpu))
+                    self.assertEqual(seen['env']['RON_TEST_CPU'], str(cpu))
+                    self.assertEqual(row['cpu_slots'], cpu)
+                    self.assertEqual(command[command.index('--memory-mib') + 1], str(memory))
+                    self.assertEqual(command[command.index('--limit-mib') + 1], '4608')
+                    self.assertEqual((row['reservation_mib'], row['limit_mib']), (memory, 4608))
 
 
 class Lanes(unittest.TestCase):
