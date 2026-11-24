@@ -931,6 +931,11 @@ impl Sim {
                         crate::world::vector_dist((x.pos.x - self.units[v].pos.x).abs(), (x.pos.y - self.units[v].pos.y).abs()),
                         self.hero_radius(h)
                     );
+                    eprintln!(
+                        "  probe4631     inside {:?} upg {} gr {} mil {} ty {:?} health {} flags? marching {:?}",
+                        x.inside, self.general_upgrade_level(who), self.tables.tuning.general_radius,
+                        self.tables.tuning.mil_patriot_radius_bonus, x.ty, x.health, x.marching.is_some()
+                    );
                 }
             }
         }
