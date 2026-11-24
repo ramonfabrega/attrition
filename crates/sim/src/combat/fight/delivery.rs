@@ -921,18 +921,6 @@ impl Sim {
                 kt.and_then(|t| self.trainer_ident(t)),
                 self.economy.ledgers[who as usize].bucket
             );
-            for h in 0..self.units.len() {
-                let x = &self.units[h];
-                if x.owner == who && (x.type_index == 0x160 || x.type_index == 0x16d) {
-                    eprintln!(
-                        "  probe4631   hero {}/{} ti {:#x} alive {} on_map {} is_hero {} counted {} pos {:?} victim {:?} dist {} radius {}",
-                        x.owner, x.index, x.type_index, x.alive(), x.on_map, self.is_hero_unit(h),
-                        self.hero_counted(who, x.type_index), x.pos, self.units[v].pos,
-                        crate::world::vector_dist((x.pos.x - self.units[v].pos.x).abs(), (x.pos.y - self.units[v].pos.y).abs()),
-                        self.hero_radius(h)
-                    );
-                }
-            }
         }
         let slay = self.cities.nation[who as usize].aztecs
             && self.units[k]
