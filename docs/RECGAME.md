@@ -1899,5 +1899,5 @@ Open: units, builds, groups and guys part on 7421. run1809 holds sums.
 
 ### 14.6 Rows 128 and 148
 
-Taken by item 4611, scored on `6fa43acc3`'s tree; the line is `(1, 8)`. Open: row 128's leaders on 3338, row 148's
+Taken by item 4611, found on `6fa43acc3`'s tree; with item 4630's row 28 the line is `(2, 8)`. Open: row 128's leaders on 3338, row 148's
 units on 10879. Both hold sums.
