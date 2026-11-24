@@ -1928,4 +1928,13 @@ Open: units, builds, groups and guys part on 7421. run1809 holds sums.
 
 ### 14.6 Rows 128 and 148
 
-Not taken: the files are minted, and run1810 and run1811 are kept for them.
+Taken by item 4611 under the kept numbers, as found on `6fa43acc3`'s tree (`SCORES_SEVENTH[6]`, `[7]`). The line is
+now `(1, 8)`: 1 of 8 whole, 8 taken.
+
+| row | run | states | whole | lowest parting (state) | the last round before it | reach in the first 6,001 |
+|---|---|---|---|---|---|---|
+| 128 | run1810 | 12,001 | 11 | leaders 3338 | 5, on 3000 | 3,338 of 6,001 |
+| 148 | run1811 | 12,001 | 1 | units 10879 | 18, on 10800 | 6,001 of 6,001 |
+
+Open: row 128's leaders part alone on 3338 and agree again on 8,154 states of 12,001. Row 148's units part on 10879.
+Both takes hold sums. `docs/RUNS.md` run1810 and run1811 holds every value.

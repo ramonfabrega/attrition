@@ -41725,13 +41725,50 @@ The take: run1788's line (`--recording <file> --end-frame 12000 --allow-early-en
 
 **What it holds**: `diff::held_out::tests::the_seventh_held_out_games_score_as_pinned`.
 
-## run1810 and run1811 — reserved for the seventh's rows 128 and 148, not taken (2026-11-23, item 4600)
+## run1810 and run1811 — parity held out, seventh battery, rows 128 and 148, played to 12,000 (2026-11-23, items 4600 and 4611, `att-4611`)
 
 Both files are minted (`item4600-row128-12000.rcx`, 59,456 bytes, SHA-256
 `bfc24707ddd73c248519bc18a63b61ff6056810b98ae0f92534ad4f562c5bedf`; `item4600-row148-12000.rcx`, 59,448 bytes,
 SHA-256 `e65395540e5b8cea888267acd4ec68b5774ed381b4ab13eb2ca6a3bd15cfe4f3`) and read back by
-`the_seventh_s_files_carry_the_declared_seats_team_and_orders`. **Not played**: `df -g ~` read 59 GB free at 12:38:44
-before run1810, under the item's floor of 60, and the chain stopped. A later take keeps these numbers.
+`the_seventh_s_files_carry_the_declared_seats_team_and_orders`. Item 4600 did not play them: `df -g ~` read 59 GB free
+at 12:38:44 before run1810, under the item's floor of 60, and the chain stopped. **Item 4611 took both** under the
+numbers kept for them, one game at a time. `df -g ~` read 92 GB before run1810 and 91 before run1811.
+
+The take: run1788's line (`--recording <file> --end-frame 12000 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --tracer-def RON_CHECKSUMS --timeout 3600 --stall-seconds 120`) through `viadriver.sh
+golden_capture.sh`. Each was waited on with `waitrun.sh` in the background, and run1811 launched after run1810's
+receipt was on disk, with every pool lane `free`. Scored by `the_seventh_held_out_games_score_as_pinned` on
+`6fa43acc3`'s tree.
+
+**run1810, row 128**: Great Lakes, Russian (tribe 13), difficulty 2, tribe 17 added, the human and the added computer
+on team 0 (page `gamelog-run644-greatlakes-russian-diff2-24k-trace.txt`).
+- **The run**: pool lane 1, launched 20:37:50 −05:00, exited 20:52:20, 870 s, exit 0, `success`, relaunched: none.
+  12,001 frames, not ended early, map 14; players who 0 tribe 4, who 1 tribe 13, who 2 tribe 17. **The original took
+  the file.**
+- **Scored as found** (`SCORES_SEVENTH[6]`): **11 of 12 lines whole**; **leaders 8,154**, first state 3338, ours
+  2712824495, theirs 2415749278. Reach 3,338 of 12,001 states.
+- Filed with `filerun.py run1810 heldout7-row128-12000` (linked). In place, `~/ron-golden/run1810/map-14/`:
+  `gamelog_p.txt`, 2,882 bytes, SHA-256 `d711eb4a3434be4ce3e71c7e26a9481ca266b2741f717fd61e38c911a660ccd2`;
+  `rontrace.log`, 187,909,824 bytes, SHA-256 `95e38b74199657f0f22d13679196aa3bc6de1e7dd85e8fea60d587324da13ac1`.
+
+**run1811, row 148**: Great Sahara, Bantu (tribe 3), difficulty 4, tribe 0 added, the two computers on team 1 (page
+`gamelog-run972-greatsahara-bantu-diff4-start.txt`).
+- **The run**: pool lane 1, launched 20:52:47 −05:00, exited 21:08:26, 939 s, exit 0, `success`, relaunched: none.
+  12,001 frames, not ended early, map 7; players who 0 tribe 4, who 1 tribe 3, who 2 tribe 0. **The original took the
+  file.**
+- **Scored as found** (`SCORES_SEVENTH[7]`): 1 of 12 lines whole (walls); **units 10,879**, first state 10879, ours
+  3473404783, theirs 2285826991; **builds 10,930**, first state 10908, ours 3337499215, theirs 3915461255; **ammo
+  10,970**, first state 10888, ours 2756447483, theirs 379062916; **deaths 10,994**, first state 10994, ours
+  2387741884, theirs 2392132797; **groups 11,045**, first state 10933, ours 907293491, theirs 3971560240; **guys
+  10,909**, first state 10909, ours 1753099358, theirs 2173644070; **leaders 10,944**, first state 10908, ours
+  1527486154, theirs 257660620; **cities 10,964**, first state 10908, ours 3068282017, theirs 1805141196; **items
+  11,556**, first state 11459, ours 1489378100, theirs 1460542256; **goods 11,695**, first state 11198, ours
+  4110382930, theirs 4015224652; **world 10,913**, first state 10912, ours 304981228, theirs 1792976066.
+- Filed with `filerun.py run1811 heldout7-row148-12000` (linked). In place, `~/ron-golden/run1811/map-7/`:
+  `gamelog_p.txt`, 2,877 bytes, SHA-256 `031ae877c5722bbe1cab64772ac46e9426ac3680a171136f41d003152c898847`;
+  `rontrace.log`, 134,684,480 bytes, SHA-256 `b8974fd6c04487f36a4af3c1eafa6ac917b5e44219b9d34569f9c356bb0e9b38`.
+
+**What it holds**: `diff::held_out::tests::the_seventh_held_out_games_score_as_pinned`.
 
 ## run1814 and run1814b — the harness's lobby with the reveal off: a photograph and a packet of frame 3294 under slot 0's fog (2026-11-23, item 4612, `att-4612`)
 
