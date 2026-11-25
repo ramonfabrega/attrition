@@ -943,14 +943,6 @@ impl Sim {
             return;
         }
         let c = self.captain_of(i);
-        if std::env::var("RON_PROBE_4637").is_ok() && !self.units[c].slay_marked {
-            let (v, a) = (&self.units[c], &self.units[k]);
-            eprintln!(
-                "PROBE4637 frame {} victim {}/{} ty {:?} dom {:?} hp {}/{} | by {}/{} ty {:?} dom {:?}",
-                self.frame, v.owner, v.index, v.ty, v.kind.domain, v.health, v.max_health,
-                a.owner, a.index, a.ty, a.kind.domain
-            );
-        }
         self.units[c].slay_marked = true;
     }
 
