@@ -174,6 +174,12 @@ pub(in crate::diff) fn compare(
         .zip(ours)
         .map(|(name, o)| {
             let t = theirs.get(*name).unwrap_or(&empty);
+            if std::env::var("RON_PROBE_4637").is_ok() && *name == "units" {
+                for i in differing_ranges(o, t) {
+                    let d = FirstDifference::at(o, t, i);
+                    eprintln!("PROBE4637 {d} ours {:02x?} theirs {:02x?}", d.ours.as_deref().map(|b| &b[..b.len().min(48)]), d.theirs.as_deref().map(|b| &b[..b.len().min(48)]));
+                }
+            }
             let mut differences = differing_ranges(o, t);
             let first = differences.next().map(|i| FirstDifference::at(o, t, i));
             LineOutcome {
