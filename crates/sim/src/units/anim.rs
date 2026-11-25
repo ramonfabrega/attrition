@@ -2270,6 +2270,13 @@ impl Sim {
             crate::combat::Obj::Building(_) => !self.struck(t),
         });
         let gone = target.is_some_and(|t| !self.slot_live(t));
+        if std::env::var("RON_PROBE_4683B").is_ok()
+            && let Some(t @ crate::combat::Obj::Unit(_)) = target
+            && !self.struck(t)
+            && self.slot_live(t)
+        {
+            eprintln!("B4683 f{} shooter {}/{} at an off-map unit", self.frame, self.units[u].owner, self.units[u].index);
+        }
         let frame = self.frame;
         for g in 0..self.units[u].guys.len() {
             let guy = self.units[u].guys[g];
