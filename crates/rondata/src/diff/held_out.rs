@@ -13812,13 +13812,20 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // goods 3,562 -> 4,002, world 3,149 -> 3,443; items 8,719 -> 8,480
         // (first 4053 -> 4135). The first parting moves 3095 -> 3112, on
         // units, which stood.
+        // Moved by item 4680 (run1840's ranges): `Ammo::inc_time@0067d380`'s
+        // first statement bumps a shooter's `hold_frames` on its slot's
+        // `flags & 1` alone (`67d3c4`), never `is_on_map`. On 3112 who=1's
+        // Elite Javelineers `1/72` and `1/73` (TI 84) board `1/112` with
+        // rounds in the air; units ranges 3089 and 3107, `hold_frames` ours
+        // 1 -> 0, as theirs. Units 3,112 -> 3,442. The first parting moves
+        // 3112 -> 3441, on ammo, which stood.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                3112, 3513, 12001, 3462, 3475, 3490, 3442, 3446, 3576, 8480, 4002, 3443,
+                3442, 3513, 12001, 3462, 3475, 3490, 3442, 3446, 3576, 8480, 4002, 3443,
             ],
             first: &[
-                ("units", (3112, Some(2802773391), 493219213)),
+                ("units", (3442, Some(2298525788), 1001115229)),
                 ("builds", (3487, Some(3993328074), 3816708623)),
                 ("ammo", (3441, Some(98448818), 3176415250)),
                 ("deaths", (3475, Some(3483578464), 3736809576)),
