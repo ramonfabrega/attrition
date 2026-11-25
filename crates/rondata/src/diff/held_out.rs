@@ -2396,11 +2396,12 @@ pub(crate) mod tests {
             }
             if state == 3338 {
                 // who=1's `reg_terr[1]` by value: byte 5208 of its long range.
-                let long = theirs
+                let k = ours
+                    .ranges
                     .iter()
-                    .find(|r| r.record == 1 && r.field == "who..ally_mask")
+                    .position(|r| r.record == 1 && r.field == "who..ally_mask")
                     .expect("who=1's long range");
-                let v = u16::from_le_bytes(long.bytes[5208..5210].try_into().unwrap());
+                let v = u16::from_le_bytes(theirs[k].bytes[5208..5210].try_into().unwrap());
                 assert_eq!(v, 104, "theirs' recount, one frame in");
             }
             if state == 3340 {
