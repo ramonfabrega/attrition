@@ -1208,9 +1208,8 @@ impl Sim {
             sixteenths += x.damage_frac;
             at = x.o_down;
         }
-        let uber = c
-            .ty
-            .map_or(1, |t| self.tables.unit_types[t].combat.uber_size.max(1));
+        let uber =
+            c.ty.map_or(1, |t| self.tables.unit_types[t].combat.uber_size.max(1));
         sum += (uber - self.curr_uber_size(captain)) * c.max_health / uber;
         if sixteenths > 15 {
             sum += sixteenths >> 4;
