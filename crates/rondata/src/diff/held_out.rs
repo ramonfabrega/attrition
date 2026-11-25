@@ -1347,7 +1347,6 @@ pub(crate) mod tests {
             stream.apply(built.sim.frame as i32, &mut built);
             built.sim.command().tick();
         }
-        let mut prev_img: Option<Vec<sim::checksum::leaders::LeaderRange>> = None;
         loop {
             let state = built.sim.frame;
             let set = record.first_of(state - 1).expect("set").clone();
@@ -1358,18 +1357,6 @@ pub(crate) mod tests {
                 ours.extend(built.sim.leader_image(who as sim::Player));
             }
             eprintln!("state {state}: ours {} ranges, theirs {}", ours.len(), theirs.len());
-            if let Some(prev) = &prev_img {
-                let prev: &Vec<sim::checksum::leaders::LeaderRange> = prev;
-                for (a, b) in prev.iter().zip(&ours) {
-                    for (la, lb) in a.leaves.iter().zip(&b.leaves) {
-                        if la.values != lb.values && !la.name.starts_with("score") {
-                            let d: Vec<_> = la.values.iter().flatten().zip(lb.values.iter().flatten()).enumerate().filter(|(_, (x, y))| x != y).take(6).map(|(i, (x, y))| format!("[{i}] {x}->{y}")).collect();
-                            eprintln!("  moved who={} {} {}: {}", b.record, b.field, la.name, d.join(" "));
-                        }
-                    }
-                }
-            }
-            prev_img = Some(ours.clone());
             for (k, (a, b)) in ours.iter().zip(&theirs).enumerate() {
                 let mut at = 0usize;
                 for leaf in &a.leaves {
