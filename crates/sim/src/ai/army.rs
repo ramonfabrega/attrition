@@ -450,6 +450,23 @@ impl Sim {
         a.num_captains = captains;
         a.num_decoys = decoys;
         a.num_standard = captains - casters - supply - decoys - aa;
+        // **`Army::remove_group@006f8b50` on the group the prune emptied**
+        // (item 4676, `docs/RECGAME.md` §14.4): `Army::normalize@006f9b50`
+        // removes a group whose `num` is 0 once its record still names the
+        // army, and `remove_group` writes the record's `army` (`+0x8`) −1
+        // and nothing else. The record stays on its pool index, `who`,
+        // `stamp`, the point and the counts as they were, so it moves to
+        // the index's own [`crate::groups::group::Pushed`] seat, replacing
+        // the stale entry there, as `Army::close`'s does; the army is left
+        // with no group and its next join pushes. A group `Group::kill`
+        // emptied reads `army` −1 already (`unlinked`), and `remove_group`
+        // leaves it on the army. Row 88's who=2 army 0 loses `2/34` on 3094
+        // and slot 130 prints `army` −1, `stamp` 1523, not the empty entry
+        // of 741 that slot held before the army took it.
+        if a.units.is_empty() && a.group.pool.is_some() && !a.group.unlinked {
+            let state = std::mem::take(&mut a.group);
+            self.seat_orphan(who, Vec::new(), state);
+        }
     }
 
     /// `Army::add_unit(o)@006f9f40` (§3.2): into the one group, if not

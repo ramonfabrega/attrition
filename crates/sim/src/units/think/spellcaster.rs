@@ -25,21 +25,32 @@
 //!     -> 0
 //! ```
 //!
-//! SEAMS, each drawing nothing where it stands:
-//! - **the targets**: every target search goes through
-//!   [`Sim::spell_valid_target`], which since item 2971 reads the Sniper's
-//!   and Counterintelligence's arms (`docs/GOLDEN.md` §115); Bribe's
-//!   (item 2812) too, and since item 2994 Sabotage's and Pilfer's
-//!   (`docs/GOLDEN.md` §116);
-//! - **the Spy's cloak**: not carried, so a Spy is read as uncloaked and
-//!   returns 0 — the original's Spy arm draws nothing either way;
+//! **The targets are searched** (item 4675, `docs/RECGAME.md` §13.5):
+//! row 133's who=2 Spy `2/84` bribes who=1's Assault Infantry `1/87` on
+//! run1797's frame 3478, where this crate's Spy arm stood at the cloak.
+//! The four searches are [`Sim::caster_find`] (`ObjectsData::find
+//! @0065c6b0`, Counterintelligence's) and [`Sim::caster_find_unit`]
+//! (`ObjectsData::find_unit@0065ca80`, Bribe's and the Sniper's), each
+//! filtered by `Search::valid_filter@0067dbb0`'s `FILTER_SPELL_TARGET`
+//! arm (`0067e385`: [`Sim::spell_valid_target`], then for Bribe and the
+//! Sniper an undamaged target, `+0x24 == 0`) and, for `find_unit`,
+//! `FILTER_COMBAT` (`0067debf`: an attack and the combat role, `+0x2c8 &
+//! 0x10000`). The cloak is [`Sim::unit_is_cloaked`], `is_castable` is
+//! [`Sim::spell_castable`], and `get_range(who, -1, -1)` is
+//! [`Sim::spell_range_at`] with no target.
+//!
 //! - ~~**the hero arm**~~: built as [`Sim::think_hero`] (item 1305,
 //!   `docs/AI.md` §99.13), reached from `Army::use_generals`;
-//! - **the human arm**, which `Unit::think`'s special turn reaches: it
-//!   draws nothing and casts only through the same refused targets.
+//! - **the human arm**, which `Unit::think`'s special turn reaches, casts
+//!   through the same searches.
+//!
+//! SEAM: [`Sim::spell_castable`] is a partial reading of `is_castable`
+//! (its own SEAM names the rest).
 
 use crate::Sim;
+use crate::combat::Obj;
 use crate::orders::QueuePos;
+use crate::world::{Player, Pos};
 
 /// The special arm's coin, `Random::get` returning to `005f2bb3`.
 pub const SITE_SPECIAL_COIN: &str = "Unit::think_spellcaster+0x413";
@@ -286,14 +297,15 @@ fn hero_arm_steps<V: CasterView>(v: &mut V) -> bool {
     true
 }
 
-/// [`CasterView`] over the crate's [`Sim`] for the unit `u`. The targets
-/// and the casting predicates are the module's SEAMs (above): the Spy is
-/// never cloaked, `is_castable` and the searches answer no.
+/// [`CasterView`] over the crate's [`Sim`] for the unit `u`.
 struct SimCaster<'a> {
     s: &'a mut Sim,
     u: usize,
     /// The leader's units, in the order the original's list holds them.
     mine: Vec<usize>,
+    /// The last search's find, whose owner is `objects +0x200`, the
+    /// `whom` the cast tail hands `add_cast_order` (`005f2c9b`).
+    found: Option<Obj>,
 }
 
 impl CasterView for SimCaster<'_> {
@@ -337,8 +349,7 @@ impl CasterView for SimCaster<'_> {
         self.s.is_moving(self.u)
     }
     fn cloaked(&mut self) -> bool {
-        // SEAM: the cloak (module doc); a Spy is read as uncloaked.
-        false
+        self.s.unit_is_cloaked(self.u)
     }
     fn avg_speed(&self) -> i32 {
         let unit = &self.s.units[self.u];
@@ -347,10 +358,8 @@ impl CasterView for SimCaster<'_> {
             .and_then(|g| g.follow)
             .map_or(unit.movement.body.avg_speed, |f| f.body.avg_speed)
     }
-    fn castable(&mut self, _spell: i32) -> bool {
-        // SEAM: the Sniper's and Counterintelligence's searches (module doc).
-        crate::seam!("castable");
-        false
+    fn castable(&mut self, spell: i32) -> bool {
+        self.s.spell_castable(spell, self.u)
     }
     fn mana(&mut self) -> i32 {
         self.s.unit_mana(self.u)
@@ -361,14 +370,24 @@ impl CasterView for SimCaster<'_> {
     fn spell_mana(&self, spell: i32) -> i32 {
         self.s.spell(spell).map_or(0, |d| d.mana)
     }
-    fn range(&mut self, _spell: i32) -> i32 {
-        0
+    fn range(&mut self, spell: i32) -> i32 {
+        let who = self.s.units[self.u].owner;
+        self.s.spell_range_at(spell, who, None)
     }
-    fn find(&mut self, _spell: i32, _mode: i32, _range: i32) -> i32 {
-        -1
+    fn find(&mut self, spell: i32, mode: i32, range: i32) -> i32 {
+        let who = self.s.units[self.u].owner;
+        let at = self.s.units[self.u].pos;
+        self.found = self.s.caster_find(spell, who, mode, at, range);
+        self.found.map_or(-1, |o| i32::from(self.s.obj_number(o)))
     }
-    fn find_unit(&mut self, _spell: i32, _range: i32) -> i32 {
-        -1
+    fn find_unit(&mut self, spell: i32, range: i32) -> i32 {
+        let who = self.s.units[self.u].owner;
+        let at = self.s.units[self.u].pos;
+        self.found = self
+            .s
+            .caster_find_unit(spell, who, at, range)
+            .map(Obj::Unit);
+        self.found.map_or(-1, |o| i32::from(self.s.obj_number(o)))
     }
     fn army(&mut self) -> i32 {
         self.s.army_of(self.u).map_or(-1, |a| a as i32)
@@ -404,12 +423,13 @@ impl CasterView for SimCaster<'_> {
         self.s.units[o as usize].decoy
     }
     fn add_cast(&mut self, target: i32, spell: i32) {
-        // A targeted cast is the SEAM of the searches; only the hero arm's
-        // casts on the unit's own position are reached.
-        debug_assert!(target < 0, "a targeted cast is unreachable");
+        // `add_cast_order(o, objects +0x200, x, y, spell, QUEUE_FIRST, 0)`
+        // at the caster's own point (`005f2c80`): the target is the last
+        // search's find, or none for the hero arm's `-1`.
         let at = self.s.units[self.u].pos;
+        let t = if target >= 0 { self.found } else { None };
         self.s
-            .add_cast_order_on(self.u, spell, None, at, QueuePos::First, false);
+            .add_cast_order_on(self.u, spell, t, at, QueuePos::First, false);
     }
 }
 
@@ -421,7 +441,155 @@ impl Sim {
         let mine = (0..self.units.len())
             .filter(|&i| self.units[i].owner == who)
             .collect();
-        think_spellcaster_steps(&mut SimCaster { s: self, u, mine })
+        think_spellcaster_steps(&mut SimCaster {
+            s: self,
+            u,
+            mine,
+            found: None,
+        })
+    }
+
+    /// `Search::valid_search@0067daa0(leader, mode, who)`: whether a
+    /// candidate of `whom` is in the search `mode` of `who` (0 all, 1 own,
+    /// 2 at peace, 3 enemy, 4 allied, 5 not allied, 6 not own, 7 not
+    /// enemy), each asked of the candidate's leader.
+    pub(crate) fn valid_search(&self, mode: i32, who: Player, whom: Player) -> bool {
+        match mode {
+            1 => whom == who,
+            2 => !self.is_ally(whom, who) && !self.is_enemy(whom, who),
+            3 => self.is_enemy(whom, who),
+            4 => self.is_ally(whom, who),
+            5 => !self.is_ally(whom, who),
+            6 => whom != who,
+            7 => !self.is_enemy(whom, who),
+            _ => true,
+        }
+    }
+
+    /// `valid_filter`'s `FILTER_SPELL_TARGET` arm (`0067e385`) for the
+    /// craft `s` of `who`: `is_valid_target(s, who, o, whom, 0)`, then by
+    /// the craft (the byte table at `0067e5e8`): Bribe and the Sniper
+    /// (`0x275`, `0x281`) want the object undamaged (`+0x24 == 0`,
+    /// `0067e425`), Counterintelligence (`0x277`) nothing more, the
+    /// Informer (`0x27f`) a building the `0067e3c4` arm passes, and every
+    /// other craft is refused (`0067e442`).
+    fn spell_target_filter(&self, s: i32, who: Player, o: Obj) -> bool {
+        use crate::ids::spell;
+        if !self.spell_valid_target(s, who, o) {
+            return false;
+        }
+        match s {
+            spell::BRIBE | spell::SNIPER => match o {
+                Obj::Unit(u) => self.units[u].max_health == self.units[u].health,
+                Obj::Building(b) => self.buildings[b].hits == self.buildings[b].health,
+            },
+            spell::COUNTERINTEL => true,
+            // SEAM: the Informer's building arm (`0067e3c4`: a building,
+            // active, its vslot `+0x178` positive); no caller here asks it.
+            _ => false,
+        }
+    }
+
+    /// **`ObjectsData::find@0065c6b0(at, mode, who, range, ·,
+    /// FILTER_SPELL_TARGET, s, who, ·, ·, ·, 0)`**, as
+    /// `think_spellcaster` asks it for Counterintelligence: the nearest
+    /// object, unit or building, of a leader below eight in the search
+    /// `mode`, in use (`+8 & 1`), that the craft's filter keeps, within
+    /// `range` by `vector_dist` of its own point — the **last** of a tie
+    /// (`<=` against the running best, `first` 0). Under ten cells of
+    /// `0x300` the walk is the circle's cells' chains round `at`'s cell;
+    /// else each live leader's objects in number order (units below
+    /// 2000, then buildings). `find`'s second filter is never read.
+    pub(crate) fn caster_find(
+        &self,
+        s: i32,
+        who: Player,
+        mode: i32,
+        at: Pos,
+        range: i32,
+    ) -> Option<Obj> {
+        let mut best: Option<(i32, Obj)> = None;
+        let mut take = |o: Obj| {
+            let (whom, alive) = match o {
+                Obj::Unit(u) => (self.units[u].owner, self.units[u].alive()),
+                Obj::Building(b) => (self.buildings[b].owner, self.buildings[b].alive),
+            };
+            if whom >= crate::world::PLAYER_SLOTS
+                || !alive
+                || !self.valid_search(mode, who, whom)
+                || !self.spell_target_filter(s, who, o)
+            {
+                return;
+            }
+            let p = self.pos_of(o);
+            let d = crate::world::vector_dist((p.x - at.x).abs(), (p.y - at.y).abs());
+            if (range < 0 || d <= range) && best.is_none_or(|(e, _)| d <= e) {
+                best = Some((d, o));
+            }
+        };
+        let ring = (range + 0x2ff) / 0x300;
+        if range >= 0 && ring < 10 {
+            let circ = crate::ai::ai_place::circle();
+            let cell = at.cell();
+            for k in 0..circ.radius[ring as usize] {
+                let c = crate::Cell::new(cell.x + circ.x[k], cell.y + circ.y[k]);
+                if c.x < 0 || c.y < 0 || c.x >= self.world.width() || c.y >= self.world.height() {
+                    continue;
+                }
+                for o in self.object_chain(c) {
+                    take(o);
+                }
+            }
+        } else {
+            let mut all: Vec<(Player, i32, Obj)> = (0..self.units.len())
+                .map(|u| {
+                    (
+                        self.units[u].owner,
+                        self.units[u].index as i32,
+                        Obj::Unit(u),
+                    )
+                })
+                .chain((0..self.buildings.len()).map(|b| {
+                    (
+                        self.buildings[b].owner,
+                        self.buildings[b].index as i32,
+                        Obj::Building(b),
+                    )
+                }))
+                .filter(|&(w, _, _)| w < crate::world::PLAYER_SLOTS && self.player_alive(w))
+                .collect();
+            all.sort_by_key(|&(w, i, _)| (w, i));
+            for (_, _, o) in all {
+                take(o);
+            }
+        }
+        best.map(|(_, o)| o)
+    }
+
+    /// **`ObjectsData::find_unit@0065ca80(at, SEARCH_ENEMY, who, range, 0,
+    /// FILTER_SPELL_TARGET, s, who, FILTER_COMBAT, 0, 0)`**, as
+    /// `think_spellcaster` asks it for Bribe and the Sniper (`005f2a74`,
+    /// `005f2b5a`): the nearest enemy unit, in use and on the map, that the
+    /// craft's filter keeps and that `FILTER_COMBAT` keeps (`0067debf`: its
+    /// type's attack, `+0x1e8`, and the combat role, `+0x2c8 & 0x10000`),
+    /// by [`Sim::find_unit_walk`].
+    pub(crate) fn caster_find_unit(
+        &self,
+        s: i32,
+        who: Player,
+        at: Pos,
+        range: i32,
+    ) -> Option<usize> {
+        self.find_unit_walk(at, range, |i| {
+            let u = &self.units[i];
+            u.alive()
+                && u.on_map
+                && self.valid_search(3, who, u.owner)
+                && self.spell_target_filter(s, who, Obj::Unit(i))
+                && self.attack_of(Obj::Unit(i)) != 0
+                && self.profile(Obj::Unit(i)).combat_role
+        })
+        .map(|(_, i)| i)
     }
 }
 

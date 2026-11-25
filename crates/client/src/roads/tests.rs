@@ -308,8 +308,12 @@ fn the_records_against_the_packet_s() {
 /// **Item 4673: white 576 → 598, laid 485 → 490, the packet's piece 286 →
 /// 304.** The crossroads' 22 were the rings round their joined corners
 /// (`roads::corner_loops`). The one left is the T at (19, 163).
+/// **Item 4677: intersections 320 → 561, the packet's piece 304 → 453.**
+/// The door carries the bits the simulation's mesh leaves as each run is
+/// laid (`sim::movement::mesh::RoadMesh::mark_intersections`, `docs/RENDERER.md` §6.5),
+/// where they were evaluated once here.
 const RUN1559B_RECORDS: (usize, usize, usize, usize, usize, usize, usize) =
-    (599, 599, 599, 598, 320, 490, 304);
+    (599, 599, 599, 598, 561, 490, 453);
 
 /// **The ring's tiles** (item 4199, §3.19; the rule committed before its
 /// count): for every building whose type is a city (`is(VILLAGE)`), the
@@ -412,9 +416,10 @@ const RING_MOVE: (i32, i32) = (12, 0);
 /// Item 4272: the luma before 10 → 6 and moved 8 → 6 of 24, drawn unchanged (a named fall: the grass under the ring with no road, which the drawn row does not score): the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
 /// Item 4292: the luma before and moved 6 → 11, drawn 20 → 21 of 24 (a rise from 6 and 20): the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
 /// Item 4311: the luma before 11 → 15 and moved 11 → 13 of 24, drawn unchanged: the map's edge border drawn (item 4311, `docs/RENDERER.md` §3.15) moves the frame's mean, so its white.
+/// Item 4677: drawn luma 21 → 20 of 24, a named fall: tile (13, 156), a 70-pixel sliver, takes the packet's piece (element 18 at its orientation 0, where ours was 2), and its luma goes 50.7 → 48.6 against theirs 58.5, over the bar.
 const RUN1559B_3279_RING: [[(usize, usize); 2]; 3] = [
     [(1, 24), (15, 24)],
-    [(21, 24), (21, 24)],
+    [(21, 24), (20, 24)],
     [(1, 24), (13, 24)],
 ];
 /// **`RUN1570_RING`** (item 4199), the same on run1570's photograph: hue
@@ -695,7 +700,13 @@ fn the_plates_quads_are_the_packet_s() {
 /// (`roads::corner_loops`): its eight candidates are the packet's to the
 /// byte, the four found nothing to match before, and the four inside took
 /// element 14. The 17 left part on the orientation or the straight (4199a).
-const RUN1814B_PLATE_PIECES: [usize; 3] = [54, 54, 37];
+/// **Item 4677: 37 → 52.** Sixteen of the seventeen parted on an
+/// intersection bit the packet holds and we did not; the door now carries
+/// the mesh's own (`sim::movement::mesh::RoadMesh::mark_intersections`, `docs/RENDERER.md` §6.5). The two left: (11, 154), theirs element 15
+/// orientation 7 on `4400cc04`, ours 16 at 3 on `4400cc00`, one bit short;
+/// (16, 156), theirs 15 at 4, ours 16 at 0, on the same candidate
+/// `11003300`, the fractal's pick.
+const RUN1814B_PLATE_PIECES: [usize; 3] = [54, 54, 52];
 
 /// **The plates we lay against the packet's records** (item 4653, §6.2):
 /// on run1814b's lobby at the photograph's frame, every piece our walk
@@ -809,8 +820,10 @@ fn every_alpha_key_is_its_own() {
 /// **Item 4673: our walk 752 → 768 cells, 304 → 318 of the card's 320,
 /// corners 912 → 954, the piece's texcoord 558 → 642**: element 1's four
 /// plates laid, so our walk's cells are the packet's picks'.
+/// **Item 4677: the piece's texcoord on our walk 642 → 912 of 954**: the
+/// intersections the door carries (`sim::movement::mesh::RoadMesh::mark_intersections`, `docs/RENDERER.md` §6.5).
 const RUN1833_DRAW_81: [[usize; 10]; 2] = [
-    [640, 320, 320, 768, 318, 318, 954, 954, 642, 954],
+    [640, 320, 320, 768, 318, 318, 954, 954, 912, 954],
     [640, 320, 320, 768, 318, 318, 954, 954, 948, 954],
 ];
 
@@ -955,6 +968,7 @@ fn a_joined_corner_holds_its_ring() {
         refs2: 0,
         made: false,
         c4: false,
+        inter: 0,
         road: 0x1ff,
         footprint: 0,
     };
@@ -988,12 +1002,16 @@ fn a_joined_corner_holds_its_ring() {
 /// [`RUN1814B_PLATE_BOX`]: `[the packet's, the connections equal, the white
 /// lines equal, the intersections equal]`. Before the rings, white 46 of
 /// 54: the eight tiles of element 1's block, (12–15, 155–156).
-const RUN1814B_PLATE_CANDIDATES: [usize; 4] = [54, 54, 54, 33];
+/// **Item 4677: intersections 33 → 51**, the door's
+/// (`sim::movement::mesh::RoadMesh::mark_intersections`, `docs/RENDERER.md` §6.5). The three
+/// apart are a bit the packet holds and we do not: (11, 154) `S`,
+/// (11, 160) `E`, (15, 155) `S`.
+const RUN1814B_PLATE_CANDIDATES: [usize; 4] = [54, 54, 54, 51];
 
 /// **The plates' candidates are the packet's** (item 4673, §6.4): the
 /// white lines whole in the box, element 1's block among them. The
 /// intersections part on 21, each a bit the packet holds and we do not,
-/// sticky as run1559b's are (4199a).
+/// sticky as run1559b's are (4199a); item 4677, on 3.
 #[test]
 fn the_plates_candidates_are_the_packet_s() {
     let Some(pk) = packet("1814b") else {

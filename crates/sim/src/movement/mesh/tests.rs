@@ -475,3 +475,28 @@ fn a_building_that_starts_over_a_road_takes_it_under_its_blocked_tiles() {
     );
     assert!(!is_road(&sim, under.x, under.y), "and its road is gone");
 }
+
+/// **The intersections keep their history** (item 4677,
+/// `docs/RENDERER.md` §6.5): a straight laid west to east, tile by tile.
+/// Each tile is redone when its east neighbour is laid, and at that moment
+/// the neighbour is the run's end, joined west alone, so the tile takes
+/// `E` (`0x10`). Nothing redoes it again, so the bit stands once the run
+/// has grown past it. The second tile takes `W` too, toward the first.
+/// The same five tiles evaluated once, on the finished run, would mark the
+/// second tile's `W` and the fourth's `E` alone.
+#[test]
+fn a_straight_keeps_the_intersections_it_was_laid_with() {
+    let mut sim = bare();
+    lay(
+        &mut sim,
+        &[(10, 10), (11, 10), (12, 10), (13, 10), (14, 10)],
+    );
+    let inter = |x| {
+        sim.movement
+            .mesh
+            .elem(&sim.world, Pos::new(x, 10))
+            .unwrap()
+            .inter
+    };
+    assert_eq!([10, 11, 12, 13, 14].map(inter), [0, 0x11, 0x10, 0x10, 0]);
+}

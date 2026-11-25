@@ -337,3 +337,74 @@ fn the_leader_s_ambush_bit_stands_while_a_hero_ambushes() {
     assert!(!sim.leaders.ambush[1], "the last expiry drops it");
     assert_eq!(word(&sim), 0);
 }
+
+/// **A computer's cloaked Spy bribes** (item 4675, `docs/RECGAME.md`
+/// §13.5; run1797's frame 3478, row 133's Spy `2/84` on `1/87`): the Spy
+/// arm finds the nearest enemy soldier undamaged within five Bribe
+/// ranges and lays the Bribe on it, first in its list; an uncloaked Spy
+/// casts nothing; a damaged soldier nearer is passed over
+/// (`valid_filter`'s `0067e425`), and so is one past five ranges.
+/// Made to fail with the damage test dropped and with the cloak read as
+/// absent.
+#[test]
+fn a_cloaked_ai_spy_bribes_the_nearest_undamaged_enemy_soldier_within_five_ranges() {
+    use crate::ai::ai_load::uflags;
+    use crate::combat::Obj;
+    use crate::orders::{Body, SpellType, spell};
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+    let (mut s, _) = ai_scout();
+    s.ai.lobby.difficulty = 5;
+    let mut tree = TechTree::new();
+    while tree.types.len() <= SPY {
+        let name = if tree.types.len() == SPY {
+            "Spy"
+        } else {
+            "filler"
+        };
+        tree.add(TypeDef::unit(name, UnitTraits::default()));
+    }
+    s.set_tech_tree(tree);
+    let spy_ty = s.add_unit_type(crate::UnitType {
+        mana: 1000,
+        tree: Some(SPY),
+        type_index: SPY as i32,
+        ..crate::UnitType::default()
+    });
+    let soldier_ty = s.add_unit_type(crate::UnitType::default());
+    s.tables.unit_types[soldier_ty].combat.attack = 5;
+    s.tables.unit_types[soldier_ty].combat.combat_role = true;
+    s.orders.spells =
+        vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+    s.orders.spells[usize::try_from(spell::BRIBE - spell::FIRST).unwrap()] = SpellType {
+        flags: 0x2 | 0x20 | 0x80,
+        range: 2 * 192,
+        mana: 500,
+        job_time: 10,
+        from: [Some(SPY), None],
+        ..SpellType::default()
+    };
+    let at = crate::Pos::new(5 * 768 + 384, 5 * 768 + 384);
+    let mut u = crate::Unit::new(1, 3, at, 20);
+    u.ty = Some(spy_ty);
+    let spy = s.add_unit(u);
+    let soldier = |s: &mut Sim, o: i16, dx: i32| {
+        let mut u = crate::Unit::new(0, o, crate::Pos::new(at.x + dx, at.y), 20);
+        u.ty = Some(soldier_ty);
+        s.add_unit(u)
+    };
+    soldier(&mut s, 7, 2 * 192 * 5 + 200);
+    let near = soldier(&mut s, 8, 1500);
+    let hurt = soldier(&mut s, 9, 600);
+    s.units[hurt].health -= 1;
+    s.declare_war(0, 1);
+    assert!(!s.think_spellcaster(spy), "uncloaked, the Spy stands");
+    assert!(s.units[spy].orders.is_empty());
+    s.tables.unit_types[spy_ty].cols.unit_flags |= uflags::CLOAKED;
+    assert!(s.think_spellcaster(spy), "cloaked, it bribes");
+    let cast = s.units[spy].orders.front().expect("the cast, first");
+    assert!(
+        matches!(&cast.body, Body::Cast(c) if c.spell == spell::BRIBE
+            && c.target == Some(Obj::Unit(near))),
+        "the undamaged soldier within five ranges: {cast:?}"
+    );
+}

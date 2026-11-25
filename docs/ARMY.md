@@ -211,7 +211,21 @@ Zero `role`, `num_units`, `num_captains`, `num_standard`, `num_decoys`.
 Then over the groups **from the last to the first**: `Group::normalize`;
 if the group now has **no units, or is a building group** (`+0x49`),
 `remove_group(it)` and **return** — one removal per call, the rest waits
-for the next tick. Else:
+for the next tick.
+
+**The removed record stays on its pool index** (item 4676,
+`docs/RECGAME.md` §14.4). `remove_group@006f8b50` writes the record's
+`army` −1 and nothing else, so `who`, `stamp`, the point, `order_num`,
+`form_num` and `facing` stand until a later `copy_group` into the slot.
+The crate's army carries its one group as its own record, so
+`Sim::army_normalize` moves an emptied, still linked record to its index's
+`Pushed` seat through `seat_orphan`, as `close_army` does (§22), and the
+army's next join pushes. A group `Group::kill` emptied is not removed:
+its `clear(-1)` already wrote `army` −1, and `remove_group` asks the record
+to name the army. Diff-backed by run1839 (row 88's who=2 slot 130 on
+3095).
+
+Else:
 
 ```
 num_units    += group.num
@@ -636,7 +650,7 @@ army 0) are this arithmetic. `use_generals`/`use_spies`/`use_scouts`
 (§14) each walk the units and give the first hero / spy / special unit a
 `Unit::think_spellcaster` turn, stopping at the first that returns 1. `use_generals` is built (item 1302, `docs/AI.md`
 §99.14: run346's army 4 lays its General's Create Decoys on 11410 and
-11538); `use_spies` and `use_scouts` are not (parked 980).
+11538); ~~`use_spies` and `use_scouts` are not~~: both are, the Spy's bribe by item 4675.
 
 ## 6. The tick — `Army::process`, after the gate
 
