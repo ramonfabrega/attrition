@@ -1551,6 +1551,23 @@ impl Sim {
                 &self.mods_of(self.owner_of(attacker) as usize),
             )
         };
+        if std::env::var("RON_PROBE_4652").is_ok()
+            && self.frame == 2964
+            && let Obj::Unit(a) = attacker
+            && self.units[a].owner == 2
+            && self.units[a].index == 51
+            && let Obj::Unit(t) = target
+            && (self.units[t].index == 38 || self.units[t].index == 39 || self.units[t].index == 51)
+        {
+            let tu = &self.units[t];
+            eprintln!(
+                "PROBE4652 terms 1/{} TI {} cost {} t_attack {} left {} health {} max {} dmg {} ai {} combat_role {} full {} v_before_dmg {} armor {} at {:?} side {:?} pct {}",
+                tu.index,
+                tu.ty.map_or(-1, |x| self.tables.unit_types[x].type_index as i64),
+                tp.cost, t_attack, left, tu.health, tu.max_health, dmg, ai, tp.combat_role, tu.full, v,
+                self.armor_of(target), self.pos_of(target), self.target_side(target, attacker), self.table_pct(attacker, target)
+            );
+        }
         // **`0064ef4b`, both arms.** A human multiplies; a computer
         // leader on the lobby's own difficulty divides, and a candidate it
         // cannot hurt at all scores zero rather than dividing by nothing.
