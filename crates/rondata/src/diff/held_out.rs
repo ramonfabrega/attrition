@@ -2015,6 +2015,68 @@ pub(crate) mod tests {
         );
     }
 
+    /// **Row 133's SAM rocket strikes its own capital with the recapture
+    /// bonus** (item 4655, `docs/RECGAME.md` §13.5): run1797's ranges, the
+    /// row's builds parting on 2451 (range 2180, record 2000, `damage` ours
+    /// 5,963, theirs 5,985). On 2450 two rounds land, as the ammo line on
+    /// both sides says: aircraft `1/70`'s (dead before 2446) for 46, and
+    /// the SAM `2/2027`'s rocket, its target `1/70` gone, which comes down
+    /// at (6277, 29986) on who=2's own capital `2/2000`. Step 20 makes it
+    /// 22 (attack 290, armour 7, pct 100), and `get_damage`'s last step
+    /// doubles it: the capital's city's race is the attacker's player
+    /// (`RECAPTURE_CITY_MODIFIER` 512). Every builds range on 2450 to 2452,
+    /// ours against theirs, byte for byte, and the capital's `damage`.
+    #[test]
+    fn row_133_s_sam_rocket_strikes_its_own_capital_with_the_recapture_bonus_on_run1797_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let mut damage = Vec::new();
+        for state in 2450..=2452 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for line in [1usize, 3] {
+                let ours = lines[line].as_ref().expect("the line");
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == line as u8).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "line {line}'s ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "line {line} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+            let cap = built.sim.building_by_o(2, 2000).expect("2/2000");
+            damage.push(built.sim.buildings[cap].damage);
+        }
+        assert_eq!(damage, vec![5895, 5985, 6031], "46 + 44 on 2451, 46 on 2452");
+    }
+
     /// **Row 28's two Bazookas drop their chase of a Citizen on one tick**
     /// (item 4613, `docs/RECGAME.md` §14.2): run1813's ranges, the
     /// seventh's first leaf. who=1's Bazookas `1/35` and `1/52` (TI 139,
