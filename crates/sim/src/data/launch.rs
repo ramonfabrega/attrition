@@ -8636,6 +8636,690 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 126,
         },
     ),
+    // **The bays' lister, item 4651** (`docs/COMBAT.md` §55): sixty-six rows
+    // for nineteen pieces of a held piece's family (its type or its
+    // `GRAPH`) whose every swept key no held row reproduces, each the
+    // centroid of the region `fit_bay.py` admits over 361 of 361 headings of
+    // `init_position` and `get_position` on run1579's packet.
+    // type 68 PARTISANS DEFAULT: fitted, no held row reproduces it.
+    (
+        18,
+        crate::units::anim::ATTACK1,
+        14,
+        Bay {
+            right: 20_612,
+            fwd: 90_178,
+            dz: 163,
+        },
+    ),
+    (
+        18,
+        crate::units::anim::ATTACK2,
+        15,
+        Bay {
+            right: 17_519,
+            fwd: 75_785,
+            dz: 133,
+        },
+    ),
+    (
+        18,
+        crate::units::anim::ATTACK3,
+        4,
+        Bay {
+            right: 14_855,
+            fwd: 74_427,
+            dz: 133,
+        },
+    ),
+    // type 83 JAVELINEERS ARAB: fitted, no held row reproduces it.
+    (
+        385,
+        crate::units::anim::ATTACK1,
+        12,
+        Bay {
+            right: 35_119,
+            fwd: 60_718,
+            dz: 170,
+        },
+    ),
+    (
+        385,
+        crate::units::anim::ATTACK2,
+        6,
+        Bay {
+            right: -1_547,
+            fwd: 49_504,
+            dz: 176,
+        },
+    ),
+    (
+        385,
+        crate::units::anim::ATTACK3,
+        27,
+        Bay {
+            right: 19_209,
+            fwd: 31_386,
+            dz: 158,
+        },
+    ),
+    // type 141 TOW ARAB: fitted, no held row reproduces it.
+    (
+        443,
+        crate::units::anim::ATTACK1,
+        17,
+        Bay {
+            right: 27_881,
+            fwd: 97_234,
+            dz: 125,
+        },
+    ),
+    (
+        443,
+        crate::units::anim::ATTACK2,
+        7,
+        Bay {
+            right: 29_732,
+            fwd: 76_384,
+            dz: 143,
+        },
+    ),
+    (
+        443,
+        crate::units::anim::ATTACK3,
+        13,
+        Bay {
+            right: 40_449,
+            fwd: 86_848,
+            dz: 139,
+        },
+    ),
+    // type 311 ATTACKHELICOPTER ARAB: fitted, no held row reproduces it.
+    (
+        613,
+        crate::units::anim::ATTACK2,
+        1,
+        Bay {
+            right: -72_559,
+            fwd: 41_859,
+            dz: 41,
+        },
+    ),
+    (
+        613,
+        crate::units::anim::ATTACK2,
+        7,
+        Bay {
+            right: 78_169,
+            fwd: 27_468,
+            dz: 41,
+        },
+    ),
+    // type 69 SCOUT AMERICAN: fitted, no held row reproduces it.
+    (
+        723,
+        crate::units::anim::ATTACK2,
+        23,
+        Bay {
+            right: 6_506,
+            fwd: 65_950,
+            dz: 135,
+        },
+    ),
+    // type 83 JAVELINEERS AMERICAN: fitted, no held row reproduces it.
+    (
+        737,
+        crate::units::anim::ATTACK1,
+        12,
+        Bay {
+            right: 32_282,
+            fwd: 64_350,
+            dz: 169,
+        },
+    ),
+    (
+        737,
+        crate::units::anim::ATTACK2,
+        6,
+        Bay {
+            right: -7_922,
+            fwd: 46_634,
+            dz: 173,
+        },
+    ),
+    (
+        737,
+        crate::units::anim::ATTACK3,
+        27,
+        Bay {
+            right: 15_707,
+            fwd: 31_771,
+            dz: 157,
+        },
+    ),
+    // type 304 BOMBER AMERICAN: fitted, no held row reproduces it.
+    (
+        958,
+        crate::units::anim::ATTACK2,
+        1,
+        Bay {
+            right: -70_896,
+            fwd: 67_418,
+            dz: -19,
+        },
+    ),
+    (
+        958,
+        crate::units::anim::ATTACK2,
+        5,
+        Bay {
+            right: 67_650,
+            fwd: -16_399,
+            dz: -19,
+        },
+    ),
+    (
+        958,
+        crate::units::anim::ATTACK2,
+        8,
+        Bay {
+            right: -70_896,
+            fwd: 67_418,
+            dz: -19,
+        },
+    ),
+    (
+        958,
+        crate::units::anim::ATTACK2,
+        13,
+        Bay {
+            right: 67_650,
+            fwd: -16_399,
+            dz: -19,
+        },
+    ),
+    (
+        958,
+        crate::units::anim::ATTACK2,
+        15,
+        Bay {
+            right: -70_896,
+            fwd: 67_418,
+            dz: -19,
+        },
+    ),
+    (
+        958,
+        crate::units::anim::ATTACK2,
+        19,
+        Bay {
+            right: 67_650,
+            fwd: -16_399,
+            dz: -19,
+        },
+    ),
+    (
+        958,
+        crate::units::anim::ATTACK2,
+        21,
+        Bay {
+            right: -70_896,
+            fwd: 67_418,
+            dz: -19,
+        },
+    ),
+    (
+        958,
+        crate::units::anim::ATTACK2,
+        24,
+        Bay {
+            right: 67_650,
+            fwd: -16_399,
+            dz: -19,
+        },
+    ),
+    (
+        958,
+        crate::units::anim::ATTACK2,
+        28,
+        Bay {
+            right: -70_896,
+            fwd: 67_418,
+            dz: -19,
+        },
+    ),
+    (
+        958,
+        crate::units::anim::ATTACK2,
+        31,
+        Bay {
+            right: 67_650,
+            fwd: -16_399,
+            dz: -19,
+        },
+    ),
+    // type 68 PARTISANS ASIAN: fitted, no held row reproduces it.
+    (
+        1074,
+        crate::units::anim::ATTACK1,
+        12,
+        Bay {
+            right: 70_739,
+            fwd: 56_268,
+            dz: 116,
+        },
+    ),
+    (
+        1074,
+        crate::units::anim::ATTACK1,
+        13,
+        Bay {
+            right: 69_642,
+            fwd: 60_181,
+            dz: 108,
+        },
+    ),
+    (
+        1074,
+        crate::units::anim::ATTACK2,
+        4,
+        Bay {
+            right: 13_804,
+            fwd: 89_764,
+            dz: 164,
+        },
+    ),
+    (
+        1074,
+        crate::units::anim::ATTACK2,
+        14,
+        Bay {
+            right: 26_720,
+            fwd: 20_701,
+            dz: 218,
+        },
+    ),
+    (
+        1074,
+        crate::units::anim::ATTACK2,
+        24,
+        Bay {
+            right: 15_958,
+            fwd: 92_251,
+            dz: 122,
+        },
+    ),
+    (
+        1074,
+        crate::units::anim::ATTACK3,
+        12,
+        Bay {
+            right: 32_060,
+            fwd: 51_679,
+            dz: 126,
+        },
+    ),
+    // type 69 SCOUT ASIAN: fitted, no held row reproduces it.
+    (
+        1075,
+        crate::units::anim::ATTACK2,
+        23,
+        Bay {
+            right: 10_865,
+            fwd: 67_249,
+            dz: 156,
+        },
+    ),
+    // type 324 DROMON ASIAN: fitted, no held row reproduces it.
+    (
+        1330,
+        crate::units::anim::ATTACKWALK,
+        2,
+        Bay {
+            right: -149,
+            fwd: 170_585,
+            dz: 52,
+        },
+    ),
+    (
+        1330,
+        crate::units::anim::ATTACKWALK,
+        10,
+        Bay {
+            right: 1_115,
+            fwd: -7_707,
+            dz: 52,
+        },
+    ),
+    (
+        1330,
+        crate::units::anim::ATTACKWALK,
+        17,
+        Bay {
+            right: -1_718,
+            fwd: 76_381,
+            dz: 52,
+        },
+    ),
+    (
+        1330,
+        crate::units::anim::ATTACK1,
+        2,
+        Bay {
+            right: -149,
+            fwd: 170_585,
+            dz: 52,
+        },
+    ),
+    (
+        1330,
+        crate::units::anim::ATTACK1,
+        10,
+        Bay {
+            right: 1_115,
+            fwd: -7_707,
+            dz: 52,
+        },
+    ),
+    (
+        1330,
+        crate::units::anim::ATTACK1,
+        17,
+        Bay {
+            right: -1_718,
+            fwd: 76_381,
+            dz: 52,
+        },
+    ),
+    (
+        1330,
+        crate::units::anim::ATTACK2,
+        2,
+        Bay {
+            right: -149,
+            fwd: 170_585,
+            dz: 52,
+        },
+    ),
+    (
+        1330,
+        crate::units::anim::ATTACK2,
+        10,
+        Bay {
+            right: 1_115,
+            fwd: -7_707,
+            dz: 52,
+        },
+    ),
+    (
+        1330,
+        crate::units::anim::ATTACK2,
+        17,
+        Bay {
+            right: -1_718,
+            fwd: 76_381,
+            dz: 52,
+        },
+    ),
+    // type 69 SCOUT NA: fitted, no held row reproduces it.
+    (
+        1427,
+        crate::units::anim::ATTACK2,
+        23,
+        Bay {
+            right: 3_596,
+            fwd: 76_500,
+            dz: 168,
+        },
+    ),
+    // type 100 RIFLEMEN NA: fitted, no held row reproduces it.
+    (
+        1458,
+        crate::units::anim::ATTACK1,
+        10,
+        Bay {
+            right: 16_289,
+            fwd: 121_420,
+            dz: 170,
+        },
+    ),
+    (
+        1458,
+        crate::units::anim::ATTACK2,
+        15,
+        Bay {
+            right: 6_158,
+            fwd: 134_019,
+            dz: 124,
+        },
+    ),
+    (
+        1458,
+        crate::units::anim::ATTACK3,
+        16,
+        Bay {
+            right: 14_124,
+            fwd: 120_779,
+            dz: 170,
+        },
+    ),
+    // type 137 ANTITANKRIFLE NA: fitted, no held row reproduces it.
+    (
+        1495,
+        crate::units::anim::ATTACK1,
+        18,
+        Bay {
+            right: 17_436,
+            fwd: 180_450,
+            dz: 60,
+        },
+    ),
+    (
+        1495,
+        crate::units::anim::ATTACK2,
+        4,
+        Bay {
+            right: 5_266,
+            fwd: 179_652,
+            dz: 63,
+        },
+    ),
+    (
+        1495,
+        crate::units::anim::ATTACK3,
+        16,
+        Bay {
+            right: -2_040,
+            fwd: 162_082,
+            dz: 83,
+        },
+    ),
+    // type 309 JETFIGHTERBOMBER NA: fitted, no held row reproduces it.
+    (
+        1667,
+        crate::units::anim::ATTACK2,
+        4,
+        Bay {
+            right: -169_361,
+            fwd: -93_784,
+            dz: -70,
+        },
+    ),
+    (
+        1667,
+        crate::units::anim::ATTACK2,
+        9,
+        Bay {
+            right: 169_610,
+            fwd: -93_782,
+            dz: -71,
+        },
+    ),
+    // type 69 SCOUT INDIA: fitted, no held row reproduces it.
+    (
+        1779,
+        crate::units::anim::ATTACK2,
+        23,
+        Bay {
+            right: 6_133,
+            fwd: 77_710,
+            dz: 171,
+        },
+    ),
+    // type 98 ARQUEBUSIERS INDIA: fitted, no held row reproduces it.
+    (
+        1808,
+        crate::units::anim::ATTACK1,
+        6,
+        Bay {
+            right: 17_748,
+            fwd: 141_904,
+            dz: 189,
+        },
+    ),
+    (
+        1808,
+        crate::units::anim::ATTACK2,
+        25,
+        Bay {
+            right: 42_168,
+            fwd: 116_515,
+            dz: 168,
+        },
+    ),
+    (
+        1808,
+        crate::units::anim::ATTACK3,
+        23,
+        Bay {
+            right: 27_266,
+            fwd: 115_577,
+            dz: 175,
+        },
+    ),
+    // type 68 PARTISANS DEFAULT gender: fitted, no held row reproduces it.
+    (
+        6354,
+        crate::units::anim::ATTACK1,
+        10,
+        Bay {
+            right: 10_733,
+            fwd: 107_147,
+            dz: 158,
+        },
+    ),
+    (
+        6354,
+        crate::units::anim::ATTACK2,
+        15,
+        Bay {
+            right: 2_908,
+            fwd: 120_340,
+            dz: 113,
+        },
+    ),
+    (
+        6354,
+        crate::units::anim::ATTACK3,
+        16,
+        Bay {
+            right: 9_012,
+            fwd: 106_658,
+            dz: 158,
+        },
+    ),
+    // type 68 PARTISANS ASIAN gender: fitted, no held row reproduces it.
+    (
+        7410,
+        crate::units::anim::ATTACK1,
+        12,
+        Bay {
+            right: 68_178,
+            fwd: 62_598,
+            dz: 119,
+        },
+    ),
+    (
+        7410,
+        crate::units::anim::ATTACK1,
+        13,
+        Bay {
+            right: 67_227,
+            fwd: 66_320,
+            dz: 112,
+        },
+    ),
+    (
+        7410,
+        crate::units::anim::ATTACK2,
+        4,
+        Bay {
+            right: 7_557,
+            fwd: 92_745,
+            dz: 165,
+        },
+    ),
+    (
+        7410,
+        crate::units::anim::ATTACK2,
+        14,
+        Bay {
+            right: 21_561,
+            fwd: 24_774,
+            dz: 219,
+        },
+    ),
+    (
+        7410,
+        crate::units::anim::ATTACK2,
+        24,
+        Bay {
+            right: 10_083,
+            fwd: 94_311,
+            dz: 123,
+        },
+    ),
+    (
+        7410,
+        crate::units::anim::ATTACK3,
+        12,
+        Bay {
+            right: 30_445,
+            fwd: 58_511,
+            dz: 130,
+        },
+    ),
+    // type 68 PARTISANS NA gender: fitted, no held row reproduces it.
+    (
+        7762,
+        crate::units::anim::ATTACK1,
+        10,
+        Bay {
+            right: 10_953,
+            fwd: 117_837,
+            dz: 161,
+        },
+    ),
+    (
+        7762,
+        crate::units::anim::ATTACK2,
+        15,
+        Bay {
+            right: 3_064,
+            fwd: 131_119,
+            dz: 115,
+        },
+    ),
+    (
+        7762,
+        crate::units::anim::ATTACK3,
+        16,
+        Bay {
+            right: 9_084,
+            fwd: 117_244,
+            dz: 161,
+        },
+    ),
 ];
 
 /// `(piece, animation slot, node)` → bay, for a piece whose every event
@@ -9047,11 +9731,157 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
             dz: 27,
         },
     ),
+    // **The Fighter's Native American and Indian sets** (pieces 1647 and 1999,
+    // item 4651): each node's eight `CHAR_ATTACK2` events sweep to one
+    // point on run1579's `init_position`, as 239's do, at another point.
+    (
+        1647,
+        crate::units::anim::ATTACK2,
+        0,
+        Bay {
+            right: -85_887,
+            fwd: 5_684,
+            dz: 1,
+        },
+    ),
+    (
+        1647,
+        crate::units::anim::ATTACK2,
+        1,
+        Bay {
+            right: 85_370,
+            fwd: 5_701,
+            dz: 1,
+        },
+    ),
+    (
+        1999,
+        crate::units::anim::ATTACK2,
+        0,
+        Bay {
+            right: -74_245,
+            fwd: 39_501,
+            dz: 1,
+        },
+    ),
+    (
+        1999,
+        crate::units::anim::ATTACK2,
+        1,
+        Bay {
+            right: 73_441,
+            fwd: 39_521,
+            dz: 1,
+        },
+    ),
 ];
 
+/// **A piece that releases from another's rows** (item 4651): `(piece,
+/// source)`, where every `<RELEASEEVENT>` key of `piece` was swept with
+/// `init_position` and `get_position` on run1579's packet (584's walk key
+/// on run1816's) and `source`'s [`BAYS`] or [`GUNS`] row at the same key
+/// reproduces it at 361 of 361 headings. The bays' lister
+/// (`rondata::artdata`'s
+/// `every_release_of_a_bay_piece_s_family_has_its_row`) named the keys:
+/// another art set, age, gender or type of a piece the crate already held,
+/// which no capture had fired. A source of another type (an elite, or a
+/// `GRAPH` shared) agrees there to the unit; a piece here holds no row of
+/// its own (`tests::a_piece_that_reads_another_s_bays_holds_none`).
+const SAME_AS: &[(i32, i32)] = &[
+    (19, 371),    // type 69 SCOUT DEFAULT as type 69 SCOUT ARAB
+    (75, 73),     // type 125 HVYMACHINEGUN DEFAULT as type 123 MACHINEGUN DEFAULT
+    (327, 294),   // type 377 MANOWAR DEFAULT as type 344 MANOWAR DEFAULT
+    (330, 52),    // type 380 INFANTRY DEFAULT as type 102 INFANTRY DEFAULT
+    (331, 52),    // type 381 INFANTRY DEFAULT as type 102 INFANTRY DEFAULT
+    (332, 52),    // type 382 INFANTRY DEFAULT as type 102 INFANTRY DEFAULT
+    (333, 52),    // type 383 INFANTRY DEFAULT as type 102 INFANTRY DEFAULT
+    (336, 49),    // type 386 MUSKETEERS DEFAULT as type 99 MUSKETEERS DEFAULT
+    (338, 251),   // type 388 ADVFIGHTER DEFAULT as type 301 ADVFIGHTER DEFAULT
+    (346, 293),   // type 396 FRIGATE DEFAULT as type 343 FRIGATE DEFAULT
+    (370, 6706),  // type 68 PARTISANS ARAB as type 68 PARTISANS ARAB gender
+    (386, 1090),  // type 84 PELTASTS ARAB as type 84 PELTASTS ASIAN
+    (400, 48),    // type 98 ARQUEBUSIERS ARAB as type 98 ARQUEBUSIERS DEFAULT
+    (401, 753),   // type 99 MUSKETEERS ARAB as type 99 MUSKETEERS AMERICAN
+    (402, 50),    // type 100 RIFLEMEN ARAB as type 100 RIFLEMEN DEFAULT
+    (404, 57),    // type 102 INFANTRY ARAB as type 107 REDGUARD DEFAULT
+    (406, 1462),  // type 104 ASSAULTINFANTRY ARAB as type 104 ASSAULTINFANTRY NA
+    (425, 73),    // type 123 MACHINEGUN ARAB as type 123 MACHINEGUN DEFAULT
+    (427, 73),    // type 125 HVYMACHINEGUN ARAB as type 123 MACHINEGUN DEFAULT
+    (429, 1133),  // type 127 ADVMACHINEGUN ARAB as type 127 ADVMACHINEGUN ASIAN
+    (438, 86),    // type 136 FUSILIER ARAB as type 136 FUSILIER DEFAULT
+    (439, 87),    // type 137 ANTITANKRIFLE ARAB as type 137 ANTITANKRIFLE DEFAULT
+    (474, 122),   // type 172 CROSSBOWMEN ARAB as type 172 CROSSBOWMEN DEFAULT
+    (569, 217),   // type 267 BOMBARD ARAB as type 267 BOMBARD DEFAULT
+    (570, 218),   // type 268 CANNON ARAB as type 268 CANNON DEFAULT
+    (571, 219),   // type 269 ARTILLERY ARAB as type 269 ARTILLERY DEFAULT
+    (584, 232),   // type 282 FLAKGUN ARAB as type 282 FLAKGUN DEFAULT
+    (586, 234),   // type 284 AVENGER ARAB as type 284 AVENGER DEFAULT
+    (682, 57),    // type 380 INFANTRY ARAB as type 107 REDGUARD DEFAULT
+    (683, 57),    // type 381 INFANTRY ARAB as type 107 REDGUARD DEFAULT
+    (684, 57),    // type 382 INFANTRY ARAB as type 107 REDGUARD DEFAULT
+    (685, 57),    // type 383 INFANTRY ARAB as type 107 REDGUARD DEFAULT
+    (688, 753),   // type 386 MUSKETEERS ARAB as type 99 MUSKETEERS AMERICAN
+    (738, 737),   // type 84 PELTASTS AMERICAN as type 83 JAVELINEERS AMERICAN
+    (781, 1133),  // type 127 ADVMACHINEGUN AMERICAN as type 127 ADVMACHINEGUN ASIAN
+    (922, 218),   // type 268 CANNON AMERICAN as type 268 CANNON DEFAULT
+    (1040, 753),  // type 386 MUSKETEERS AMERICAN as type 99 MUSKETEERS AMERICAN
+    (1106, 67),   // type 100 RIFLEMEN ASIAN as type 117 MANCHURIFLEMEN DEFAULT
+    (1129, 73),   // type 123 MACHINEGUN ASIAN as type 123 MACHINEGUN DEFAULT
+    (1329, 273),  // type 323 BARK ASIAN as type 323 BARK DEFAULT
+    (1346, 290),  // type 340 TRIREME ASIAN as type 340 TRIREME DEFAULT
+    (1347, 291),  // type 341 GALLEY ASIAN as type 341 GALLEY DEFAULT
+    (1349, 293),  // type 343 FRIGATE ASIAN as type 343 FRIGATE DEFAULT
+    (1350, 294),  // type 344 MANOWAR ASIAN as type 344 MANOWAR DEFAULT
+    (1383, 294),  // type 377 MANOWAR ASIAN as type 344 MANOWAR DEFAULT
+    (1386, 52),   // type 380 INFANTRY ASIAN as type 102 INFANTRY DEFAULT
+    (1387, 52),   // type 381 INFANTRY ASIAN as type 102 INFANTRY DEFAULT
+    (1388, 52),   // type 382 INFANTRY ASIAN as type 102 INFANTRY DEFAULT
+    (1389, 52),   // type 383 INFANTRY ASIAN as type 102 INFANTRY DEFAULT
+    (1392, 49),   // type 386 MUSKETEERS ASIAN as type 99 MUSKETEERS DEFAULT
+    (1402, 293),  // type 396 FRIGATE ASIAN as type 343 FRIGATE DEFAULT
+    (1426, 18),   // type 68 PARTISANS NA as type 68 PARTISANS DEFAULT
+    (1460, 52),   // type 102 INFANTRY NA as type 102 INFANTRY DEFAULT
+    (1481, 73),   // type 123 MACHINEGUN NA as type 123 MACHINEGUN DEFAULT
+    (1483, 73),   // type 125 HVYMACHINEGUN NA as type 123 MACHINEGUN DEFAULT
+    (1497, 1849), // type 139 BAZOOKA NA as type 139 BAZOOKA INDIA
+    (1530, 120),  // type 172 CROSSBOWMEN NA as type 170 BOWMEN DEFAULT
+    (1624, 216),  // type 266 TREBUCHET NA as type 266 TREBUCHET DEFAULT
+    (1627, 219),  // type 269 ARTILLERY NA as type 269 ARTILLERY DEFAULT
+    (1738, 52),   // type 380 INFANTRY NA as type 102 INFANTRY DEFAULT
+    (1739, 52),   // type 381 INFANTRY NA as type 102 INFANTRY DEFAULT
+    (1740, 52),   // type 382 INFANTRY NA as type 102 INFANTRY DEFAULT
+    (1741, 52),   // type 383 INFANTRY NA as type 102 INFANTRY DEFAULT
+    (1744, 1457), // type 386 MUSKETEERS NA as type 99 MUSKETEERS NA
+    (1778, 18),   // type 68 PARTISANS INDIA as type 68 PARTISANS DEFAULT
+    (1810, 1458), // type 100 RIFLEMEN INDIA as type 100 RIFLEMEN NA
+    (1833, 73),   // type 123 MACHINEGUN INDIA as type 123 MACHINEGUN DEFAULT
+    (1835, 73),   // type 125 HVYMACHINEGUN INDIA as type 123 MACHINEGUN DEFAULT
+    (1846, 1494), // type 136 FUSILIER INDIA as type 136 FUSILIER NA
+    (1847, 1495), // type 137 ANTITANKRIFLE INDIA as type 137 ANTITANKRIFLE NA
+    (1880, 1176), // type 170 BOWMEN INDIA as type 170 BOWMEN ASIAN
+    (1978, 218),  // type 268 CANNON INDIA as type 268 CANNON DEFAULT
+    (1979, 219),  // type 269 ARTILLERY INDIA as type 269 ARTILLERY DEFAULT
+    (2090, 52),   // type 380 INFANTRY INDIA as type 102 INFANTRY DEFAULT
+    (2091, 52),   // type 381 INFANTRY INDIA as type 102 INFANTRY DEFAULT
+    (2092, 52),   // type 382 INFANTRY INDIA as type 102 INFANTRY DEFAULT
+    (2093, 52),   // type 383 INFANTRY INDIA as type 102 INFANTRY DEFAULT
+    (2096, 1809), // type 386 MUSKETEERS INDIA as type 99 MUSKETEERS INDIA
+    (8114, 1074), // type 68 PARTISANS INDIA gender as type 68 PARTISANS ASIAN
+];
+
+/// The piece whose rows `gpiece` reads: [`SAME_AS`]'s, or its own.
+fn rows_of(gpiece: i32) -> i32 {
+    SAME_AS
+        .iter()
+        .find(|(p, _)| *p == gpiece)
+        .map_or(gpiece, |&(_, q)| q)
+}
+
 /// The bay a piece releases from, or `None` when none is measured: a
-/// [`BAYS`] row by the event's frame, or a [`GUNS`] row by its node.
+/// [`BAYS`] row by the event's frame, or a [`GUNS`] row by its node,
+/// read on [`rows_of`]'s piece.
 pub fn bay(gpiece: i32, anim: i8, starttime: u32, node: i8) -> Option<Bay> {
+    let gpiece = rows_of(gpiece);
     BAYS.iter()
         .find(|(p, a, t, _)| *p == gpiece && *a == anim && *t == starttime)
         .map(|(_, _, _, b)| *b)
@@ -9060,6 +9890,19 @@ pub fn bay(gpiece: i32, anim: i8, starttime: u32, node: i8) -> Option<Bay> {
                 .find(|(p, a, n, _)| *p == gpiece && *a == anim && *n == node)
                 .map(|(_, _, _, b)| *b)
         })
+}
+
+/// Every piece [`BAYS`] or [`GUNS`] holds a row for, ascending and once
+/// each — the families the bays' lister walks (item 4651).
+pub fn bay_pieces() -> Vec<i32> {
+    let mut v: Vec<i32> = BAYS
+        .iter()
+        .map(|r| r.0)
+        .chain(GUNS.iter().map(|r| r.0))
+        .collect();
+    v.sort_unstable();
+    v.dedup();
+    v
 }
 
 /// The release height over the figure, from whichever table measures it.
