@@ -363,8 +363,11 @@ class TheLiveTree(unittest.TestCase):
     # the human block's clear of `unit_masks & 0x4000000`
     # (`orders/think.rs`), whose SEAM names `think_spellcaster` as not
     # called from that block for a human unit while the function is in the
-    # tree; parked 4351a (its journal), the wiring's to close.
-    DOORS = 14
+    # tree; parked 4351a (its journal), the wiring's to close. 14 → 13:
+    # item 4675 wired `think_spellcaster`'s Spy arm through
+    # `spell_valid_target` and the searches, and the module's SEAMS
+    # paragraph that named them missing is gone.
+    DOORS = 13
 
     def test_the_seams_a_door_outlived_are_the_pinned_count(self):
         self.assertEqual(len(seams.doors()), self.DOORS)
