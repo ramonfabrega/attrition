@@ -312,8 +312,13 @@ fn the_records_against_the_packet_s() {
 /// The door carries the bits the simulation's mesh leaves as each run is
 /// laid (`sim::movement::mesh::RoadMesh::mark_intersections`, `docs/RENDERER.md` §6.5),
 /// where they were evaluated once here.
+/// **Item 4678: intersections 561 → 571, the packet's piece 453 → 459**,
+/// `add_roads`' own marks on the tile it lays (§6.6). Of the 28 apart, 27
+/// are the start's roads: this walk opens on the original's dump, and
+/// `RoadMesh::seed` builds their elements with no history. The 28th,
+/// (215, 82), was laid on frame 1688.
 const RUN1559B_RECORDS: (usize, usize, usize, usize, usize, usize, usize) =
-    (599, 599, 599, 598, 561, 490, 453);
+    (599, 599, 599, 598, 571, 490, 459);
 
 /// **The ring's tiles** (item 4199, §3.19; the rule committed before its
 /// count): for every building whose type is a city (`is(VILLAGE)`), the
@@ -706,7 +711,10 @@ fn the_plates_quads_are_the_packet_s() {
 /// orientation 7 on `4400cc04`, ours 16 at 3 on `4400cc00`, one bit short;
 /// (16, 156), theirs 15 at 4, ours 16 at 0, on the same candidate
 /// `11003300`, the fractal's pick.
-const RUN1814B_PLATE_PIECES: [usize; 3] = [54, 54, 52];
+/// **Item 4678: 52 → 53.** (11, 154) takes its `S` from `add_roads`' own
+/// marks on the tile it lays (`docs/RENDERER.md` §6.6) and is element 15
+/// at 7, the packet's. (16, 156) is left.
+const RUN1814B_PLATE_PIECES: [usize; 3] = [54, 54, 53];
 
 /// **The plates we lay against the packet's records** (item 4653, §6.2):
 /// on run1814b's lobby at the photograph's frame, every piece our walk
@@ -822,8 +830,10 @@ fn every_alpha_key_is_its_own() {
 /// plates laid, so our walk's cells are the packet's picks'.
 /// **Item 4677: the piece's texcoord on our walk 642 → 912 of 954**: the
 /// intersections the door carries (`sim::movement::mesh::RoadMesh::mark_intersections`, `docs/RENDERER.md` §6.5).
+/// **Item 4678: 912 → 930**, `add_roads`' own marks on the tile it lays
+/// (§6.6); the packet's own picks hold at 948.
 const RUN1833_DRAW_81: [[usize; 10]; 2] = [
-    [640, 320, 320, 768, 318, 318, 954, 954, 912, 954],
+    [640, 320, 320, 768, 318, 318, 954, 954, 930, 954],
     [640, 320, 320, 768, 318, 318, 954, 954, 948, 954],
 ];
 
@@ -1006,7 +1016,11 @@ fn a_joined_corner_holds_its_ring() {
 /// (`sim::movement::mesh::RoadMesh::mark_intersections`, `docs/RENDERER.md` §6.5). The three
 /// apart are a bit the packet holds and we do not: (11, 154) `S`,
 /// (11, 160) `E`, (15, 155) `S`.
-const RUN1814B_PLATE_CANDIDATES: [usize; 4] = [54, 54, 54, 51];
+/// **Item 4678: 51 → 53.** (11, 154) and (11, 160) take their bits from
+/// `add_roads`' second pass, which marks the tile it lays (§6.6). (15, 155)
+/// is left: (14, 155)'s split clears its `S` and only the line passes'
+/// pushes onto the ping-pong lists would redo it (4677a).
+const RUN1814B_PLATE_CANDIDATES: [usize; 4] = [54, 54, 54, 53];
 
 /// **The plates' candidates are the packet's** (item 4673, §6.4): the
 /// white lines whole in the box, element 1's block among them. The

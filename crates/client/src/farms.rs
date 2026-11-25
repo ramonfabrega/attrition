@@ -394,7 +394,10 @@ pub(crate) mod tests {
     /// Item 4670: 40 → 31, a named fall: the trees past sight darkened
     /// re-tone the frame (the drawn row holds 48 of 48).
     /// Item 4673: 31 → 32, element 1's four plates laid beside the plots.
-    const RUN1814B_3294_FARM_UNDERLAY: [(usize, usize); 2] = [(9, 48), (32, 48)];
+    /// Item 4678: 32 → 31, a named fall: tile (14, 168), ours Y 171.4
+    /// against theirs 142.8 on both sides of the change, tips over the
+    /// luma reader's edge as the frame's white moves with the plates.
+    const RUN1814B_3294_FARM_UNDERLAY: [(usize, usize); 2] = [(9, 48), (31, 48)];
     const RUN1814B_3294_FARM_BOXES: [(usize, usize); 2] = [(48, 48), (48, 48)];
 
     /// **The frame `FarmsOut::draw` last built run1814b's mesh on**: the
