@@ -836,6 +836,10 @@ pub(in crate::diff) mod tests {
     /// Item 4645: the outdoor regrowth order moves the common prefix to 9602.
     /// Item 4646: the factory follows its object rally and every open line advances.
     /// Items 4647–4648: the city exit and gathering list leave unit 16 first on 10653.
+    /// Item 4683 (a release at a unit off the map makes its round): goods
+    /// 12348 -> 12319, a named fall. Ammo agrees to 11492 on both trees, so
+    /// no round the original lacks is made before then; past it the arm is
+    /// reached on 11753..12017, after units' 10653 and the five lines' 11487.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 10653),
         ("builds", 11487),
@@ -847,7 +851,7 @@ pub(in crate::diff) mod tests {
         ("leaders", 11487),
         ("cities", 11503),
         ("items", 12663),
-        ("goods", 12348),
+        ("goods", 12319),
         ("world", 11487),
     ];
 

@@ -234,6 +234,14 @@ fn the_records_against_the_packet_s() {
     };
     let scene = p.world.runner.roads();
     let ours = candidates(&scene);
+    // Item 4682: the intersections each tile's piece was picked on, where
+    // they are not the ones standing now.
+    let repicked: BTreeMap<(i32, i32), (u8, u8)> = scene
+        .roads
+        .iter()
+        .filter(|r| r.picked != r.inter)
+        .map(|r| ((r.x, r.y), (r.picked, r.inter)))
+        .collect();
     // Item 4653: the plates are laid beside bucket 2; this row counts the
     // modern pieces it was written on.
     let all = p.world.road_pieces();
@@ -266,8 +274,12 @@ fn the_records_against_the_packet_s() {
         if let Some(l) = laid.get(&t) {
             let hit = l.elem as i32 == r.elem && l.rot == r.rot;
             n[5] += usize::from(hit);
+            let held = repicked
+                .get(&t)
+                .map(|(p, i)| format!(" picked on {p:02x}, {i:02x} now"))
+                .unwrap_or_default();
             println!(
-                "drawn {t:?}: theirs elem {} rot {} age {}, ours elem {} rot {}{}",
+                "drawn {t:?}: theirs elem {} rot {} age {}, ours elem {} rot {}{held}{}",
                 r.elem,
                 r.rot,
                 r.age,
@@ -317,8 +329,12 @@ fn the_records_against_the_packet_s() {
 /// are the start's roads: this walk opens on the original's dump, and
 /// `RoadMesh::seed` builds their elements with no history. The 28th,
 /// (215, 82), was laid on frame 1688.
+/// **Item 4682: the packet's piece 459 → 471**: each piece is picked on
+/// the intersections `find_piece` last read (`RoadTile::picked`,
+/// `docs/RENDERER.md` §6.7), where a neighbour's `mark_splits` has since
+/// zeroed the low byte without a re-pick.
 const RUN1559B_RECORDS: (usize, usize, usize, usize, usize, usize, usize) =
-    (599, 599, 599, 598, 571, 490, 459);
+    (599, 599, 599, 598, 571, 490, 471);
 
 /// **The ring's tiles** (item 4199, §3.19; the rule committed before its
 /// count): for every building whose type is a city (`is(VILLAGE)`), the
@@ -714,7 +730,12 @@ fn the_plates_quads_are_the_packet_s() {
 /// **Item 4678: 52 → 53.** (11, 154) takes its `S` from `add_roads`' own
 /// marks on the tile it lays (`docs/RENDERER.md` §6.6) and is element 15
 /// at 7, the packet's. (16, 156) is left.
-const RUN1814B_PLATE_PIECES: [usize; 3] = [54, 54, 53];
+/// **Item 4682: 53 → 54.** (16, 156)'s piece is picked on the
+/// intersections `find_piece` last read, `E` (`11003310`), which a
+/// neighbour's `mark_splits` has since zeroed without a re-pick
+/// (`docs/RENDERER.md` §6.7): element 15 at 4, the packet's, at our own
+/// fractal height 30.
+const RUN1814B_PLATE_PIECES: [usize; 3] = [54, 54, 54];
 
 /// **The plates we lay against the packet's records** (item 4653, §6.2):
 /// on run1814b's lobby at the photograph's frame, every piece our walk
@@ -832,8 +853,12 @@ fn every_alpha_key_is_its_own() {
 /// intersections the door carries (`sim::movement::mesh::RoadMesh::mark_intersections`, `docs/RENDERER.md` §6.5).
 /// **Item 4678: 912 → 930**, `add_roads`' own marks on the tile it lays
 /// (§6.6); the packet's own picks hold at 948.
+/// **Item 4682: 930 → 948**, (16, 156) picked on the intersections
+/// `find_piece` last read (§6.7): our walk's piece texcoord is the packet's
+/// own picks'. The six apart are (12, 156)'s, which the buffer holds no
+/// box of.
 const RUN1833_DRAW_81: [[usize; 10]; 2] = [
-    [640, 320, 320, 768, 318, 318, 954, 954, 930, 954],
+    [640, 320, 320, 768, 318, 318, 954, 954, 948, 954],
     [640, 320, 320, 768, 318, 318, 954, 954, 948, 954],
 ];
 
@@ -979,6 +1004,7 @@ fn a_joined_corner_holds_its_ring() {
         made: false,
         c4: false,
         inter: 0,
+        picked: 0,
         road: 0x1ff,
         footprint: 0,
     };
