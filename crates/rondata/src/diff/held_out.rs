@@ -12183,16 +12183,23 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 2,749 -> 2,751 (first 2608 -> 2751), goods 3,983 -> 3,961 (a fall
         // past the parting), ours' end none -> 6040; the first parting is
         // deaths alone on 2457.
+        // Then item 4659 (`get_damage`'s building arm writes `dtype` 3 when
+        // `BuildData::get_shot` is 4, the Redoubt's alone: on 2456 who=1's
+        // Redoubt `1/2025` kills who=2's Elite Special Forces `2/0`; deaths
+        // slot 7 on 2457, `cur_anim` ours 17, theirs 19, `place.angle` ours
+        // 0xbd69188d, theirs 0xe9b90000, impact angle ours 100.0, theirs
+        // 38.0, all agree now): deaths 2,563 -> 3,206 (first 2457 -> 3206);
+        // the first parting is ammo alone on 2547.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                2643, 2768, 6085, 3144, 2563, 2685, 2677, 2751, 2978, 3148, 3961, 2680,
+                2643, 2768, 6085, 3144, 3206, 2685, 2677, 2751, 2978, 3148, 3961, 2680,
             ],
             first: &[
                 ("units", (2566, Some(1723402503), 567609615)),
                 ("builds", (2689, Some(2754752570), 3680907824)),
                 ("ammo", (2547, Some(3276077082), 122615738)),
-                ("deaths", (2457, Some(2931452735), 2458741352)),
+                ("deaths", (3206, Some(1000348558), 2108296578)),
                 ("groups", (2685, Some(293453109), 2102443375)),
                 ("guys", (2677, Some(1670959914), 1725420330)),
                 ("leaders", (2751, Some(2269206203), 3698742979)),

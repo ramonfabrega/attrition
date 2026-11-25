@@ -12173,7 +12173,7 @@ fn a_redoubt_s_kill_rolls_the_explosive_death() {
     };
     let anim = kill(&sim);
     assert!(matches!(anim, Some(17 | 18)), "a Tower's: {anim:?}");
-    sim.tables.build_types[t.tower].tree = Some(combat::REDOUBT);
+    sim.tables.build_types[t.tower].shot = Some(4);
     let anim = kill(&sim);
     assert!(matches!(anim, Some(19 | 20)), "a Redoubt's: {anim:?}");
 }

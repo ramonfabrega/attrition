@@ -1416,12 +1416,12 @@ pub const fn scatter(t: &Tuning, acc: i32, land_unit: bool, missile: bool, exact
 /// that roll 64832.
 ///
 /// **`get_shot@0062dd90` answers 4 for one type alone**, the `REDOUBT`
-/// (`0x1be`, [`REDOUBT`]): its switch on the type's `TypeIndex` (`ptype
-/// +4`) gives 1, 2, 0 or 5 to the other walls and defences and a
-/// leader-dependent 0, 1 or 2 by default, so only the `== 4` test this
-/// step reads is carried, as `shot_is_four` (item 4659, `docs/RECGAME.md`
-/// §13.5: row 133's Redoubt `1/2025` kills the Elite Special Forces `2/0`
-/// on 2456, `cur_anim` 19 on run1797's ranges).
+/// (`0x1be`): its switch on the type's `TypeIndex` gives 1, 2, 0 or 5 to
+/// the other named walls and defences and the owner's `ages` arm 0, 1 or 2
+/// by default. The caller passes `building_shot(b) == 4` as
+/// `shot_is_four` (item 4659, `docs/RECGAME.md` §13.5: row 133's Redoubt
+/// `1/2025` kills the Elite Special Forces `2/0` on 2456, `cur_anim` 19 on
+/// run1797's ranges).
 pub const fn death_type(amask: u32, attacker_is_building: bool, shot_is_four: bool) -> i32 {
     if attacker_is_building {
         return if shot_is_four { 3 } else { 2 };
@@ -1431,10 +1431,6 @@ pub const fn death_type(amask: u32, attacker_is_building: bool, shot_is_four: bo
     }
     2
 }
-
-/// **The `REDOUBT`'s `TypeIndex`** (`0x1be`), the one type
-/// `BuildData::get_shot@0062dd90` answers 4 for ([`death_type`]).
-pub const REDOUBT: usize = 0x1be;
 
 /// The death animation `Unit::close` picks for a `dtype` (§42.1):
 /// `dtype * 2 + 0xd + roll % 2`, or `roll % 2 + 0x11` when `dtype == 4`.
