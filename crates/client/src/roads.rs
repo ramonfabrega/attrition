@@ -140,10 +140,12 @@ impl Pieces {
 ///
 /// A neighbour is written only where it holds a record. Item 4673: the
 /// rings round a joined corner, which the original holds from its history
-/// ([`corner_loops`]). The intersections
-/// are `mark_intersections`': a tile joined east and west takes `E` where its
-/// east neighbour is not also joined both ways, and `W` likewise; north and
-/// south the same.
+/// ([`corner_loops`]). The intersections are the door's
+/// ([`RoadTile::inter`], item 4677): `mark_intersections`' bits as the
+/// simulation's mesh leaves them, run by run (§6.5). A tile joined east and
+/// west takes `E` where its east neighbour was not also joined both ways
+/// when the tile was last redone, and the bit stays until it is redone
+/// again; north and south the same.
 pub fn candidates(scene: &RoadsScene) -> BTreeMap<(i32, i32), u32> {
     let rec: BTreeMap<(i32, i32), &RoadTile> =
         scene.roads.iter().map(|r| ((r.x, r.y), r)).collect();
@@ -235,25 +237,9 @@ pub fn candidates(scene: &RoadsScene) -> BTreeMap<(i32, i32), u32> {
         *white.get_mut(&at).expect("its own record") |= own;
     }
     corner_loops(&rec, &mut white);
-    let joined = |t: (i32, i32), both: u8| rec.get(&t).map(|r| r.dirs & both == both);
     rec.iter()
         .map(|(&at, r)| {
-            let mut inter = 0u8;
-            for (both, (fwd, fb), (back, bb)) in [
-                (bit::E | bit::W, (E, bit::E), (W, bit::W)),
-                (bit::N | bit::S, (N, bit::N), (S, bit::S)),
-            ] {
-                if r.dirs & both != both {
-                    continue;
-                }
-                for (k, b) in [(fwd, fb), (back, bb)] {
-                    let t = (at.0 + STEP[k].0, at.1 + STEP[k].1);
-                    if joined(t, both) == Some(false) {
-                        inter |= b;
-                    }
-                }
-            }
-            let word = u32::from_be_bytes([r.dirs, 0, white[&at], inter]);
+            let word = u32::from_be_bytes([r.dirs, 0, white[&at], r.inter]);
             (at, word)
         })
         .collect()
