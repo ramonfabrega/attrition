@@ -285,6 +285,12 @@ pub fn get_damage_steps<F: DamageFacts>(
     // 17. Decoy.
     if f.target_is_unit() && f.target_decoy() {
         armor = 0;
+        if std::env::var("RON_PROBE_4657").is_ok() {
+            let st = f.attack_stat();
+            if st != attack {
+                eprintln!("PROBE4657 frame {} decoy step17 object_attack {st} attack {attack} base {base}", f.frame());
+            }
+        }
         base = f.attack_stat().max(base).wrapping_mul(1000);
     }
     // 18. Unfriendly territory.
