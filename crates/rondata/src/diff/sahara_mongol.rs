@@ -233,5 +233,6 @@ fn run834_s_word_frame_is_widened_whole() {
     // Item 4159's third residue: 249 -> 94, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
     // Item 4159r14, the Mongol Stable arm of `get_cost` (`MONGOL_STABLE_COST`, a tenth off a Stable unit's base): 94 -> 77.
     // Item 4508: 59 -> 52, a computer's bomber searches round itself (`find_new_bomber_target`).
-    pin_eq!(w.firsts.len(), 52, "run834 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    // Item 4679: 52 -> 48, `process_attrition`'s kind block's hero is `is(GENERAL)` (`docs/ATTRITION.md` check 8).
+    pin_eq!(w.firsts.len(), 48, "run834 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
 }

@@ -372,7 +372,15 @@ only the first one reached is the reason.
    being gathered from (set in `Unit::add_gather_order` when the type's
    vslot `0x94` returns 0 and the type is not the University), not a scenario
    flag. **Merchants, heroes and supply units** skip the rest of the block
-   and are **not** exempt here. Everything else is exempt if its type has
+   and are **not** exempt here. **"Hero" is the General** (item 4679):
+   the test is vslot `0xc4`, `UnitData::is_hero@0046ce60`, the type's
+   `unit_flags2 & 0x20`, which `UnitType::init_final_flags@0061dc70` sets
+   for `is(GENERAL)` alone; "supply" is the same word's `0x40`, the supply
+   and government-hero lineages. Until item 4679 the port read the
+   `OBJ_MASK` hero bit, so the General — zero base attack — fell to the
+   exemption below and bled nothing. *Diff-backed*: row 133's General
+   `1/119` on run1797's 3561 took period 48 and `unit_masks | 0x80` in
+   theirs and nothing in ours (`docs/RECGAME.md` §13.5). Everything else is exempt if its type has
    **zero base attack** (`+0x1e8`), is flagged `is_special` — `unit_flags2 &
    0x10`, which `UnitType::init_final_flags` sets for the **scout** line, so
    that is concretely what "special" means here — is a spy
