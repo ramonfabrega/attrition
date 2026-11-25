@@ -1154,10 +1154,10 @@ pub(crate) mod tests {
     }
 
     /// Probe (item 4674): every differing range on run1838's ranges over
-    /// `RON_PROBE_4674`'s frames (`lo-hi`), with the unit behind a units range.
+    /// `RON_PROBE_4676`'s frames (`lo-hi`), with the unit behind a units range.
     #[test]
-    fn probe_4674() {
-        let Ok(win) = std::env::var("RON_PROBE_4674") else {
+    fn probe_4676() {
+        let Ok(win) = std::env::var("RON_PROBE_4676") else {
             return;
         };
         let (lo, hi) = win
@@ -1170,7 +1170,7 @@ pub(crate) mod tests {
             panic!("rcx")
         };
         let ranges =
-            crate::testenv::experiment(&home.join("ron-golden/run1838/map-18"), "rontrace.ranges")
+            crate::testenv::experiment(&home.join("ron-golden/run1839/map-18"), "rontrace.ranges")
                 .expect("ranges");
         let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 88's file");
         let loaded = crate::load::load(&inst).expect("the install loads");
@@ -1196,12 +1196,12 @@ pub(crate) mod tests {
                 let seed0 = built.sim.rng.seed;
                 built.sim.command().tick();
                 if sites {
-                    eprintln!("S4674 f{f0} seed {seed0:#010x}");
+                    eprintln!("S4676 f{f0} seed {seed0:#010x}");
                     for (k, (label, who)) in crate::diff::harness::attributed_sites(&built)
                         .iter()
                         .enumerate()
                     {
-                        eprintln!("S4674 f{f0} {k} {who}: {label}");
+                        eprintln!("S4676 f{f0} {k} {who}: {label}");
                     }
                 }
                 crate::diff::harness::debug_watch(&built, built.sim.frame);
@@ -1217,7 +1217,7 @@ pub(crate) mod tests {
                 let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == li).collect();
                 if ours.ranges.len() != theirs.len() {
                     eprintln!(
-                        "P4674 {state} {name} count ours {} theirs {}",
+                        "P4676 {state} {name} count ours {} theirs {}",
                         ours.ranges.len(),
                         theirs.len()
                     );
@@ -1255,7 +1255,7 @@ pub(crate) mod tests {
                     if let Some((da, db)) = found {
                         for t in 0..da {
                             eprintln!(
-                                "P4674 {state} {name} ours-only range {} record {} {} len {}",
+                                "P4676 {state} {name} ours-only range {} record {} {} len {}",
                                 i + t,
                                 ours.ranges[i + t].record,
                                 ours.ranges[i + t].field,
@@ -1264,7 +1264,7 @@ pub(crate) mod tests {
                         }
                         for t in 0..db {
                             eprintln!(
-                                "P4674 {state} {name} theirs-only range {} len {} {:?}",
+                                "P4676 {state} {name} theirs-only range {} len {} {:?}",
                                 j + t,
                                 theirs[j + t].bytes.len(),
                                 &theirs[j + t].bytes[..theirs[j + t].bytes.len().min(24)]
@@ -1291,7 +1291,7 @@ pub(crate) mod tests {
                             name, a.field, &a.bytes, &b.bytes,
                         );
                         eprintln!(
-                            "P4674 {state} {name} range {k} who {who} record {} {} len {}/{} {:?}",
+                            "P4676 {state} {name} range {k} who {who} record {} {} len {}/{} {:?}",
                             a.record,
                             a.field,
                             a.bytes.len(),
@@ -1300,19 +1300,19 @@ pub(crate) mod tests {
                         );
                         if std::env::var("RON_PROBE_ALL").is_ok() {
                             eprintln!(
-                                "P4674   all ours {:?}\nP4674   all theirs {:?}",
+                                "P4676   all ours {:?}\nP4676   all theirs {:?}",
                                 crate::checksum::fields::range_fields(name, a.field, &a.bytes),
                                 crate::checksum::fields::range_fields(name, a.field, &b.bytes)
                             );
                         }
                         if d.is_empty() && a.bytes.len() <= 64 {
-                            eprintln!("P4674   ours {:?}\nP4674   theirs {:?}", a.bytes, b.bytes);
+                            eprintln!("P4676   ours {:?}\nP4676   theirs {:?}", a.bytes, b.bytes);
                         }
                         if li == 0 {
                             if let Some(u) = built.sim.unit_by_o(who, a.record) {
                                 let un = &built.sim.units[u];
                                 eprintln!(
-                                    "P4674   unit slot {u} TI {} pos ({}, {})",
+                                    "P4676   unit slot {u} TI {} pos ({}, {})",
                                     un.type_index, un.pos.x, un.pos.y
                                 );
                             }
