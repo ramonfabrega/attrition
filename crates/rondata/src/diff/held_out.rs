@@ -1208,12 +1208,44 @@ pub(crate) mod tests {
                 if std::env::var("RON_PROBE_POOL").is_ok() {
                     for (k, a) in built.sim.ai.armies[2].list.iter().enumerate() {
                         if a.group.pool.is_some() {
-                            eprintln!("G4676 f{} army2 slot {k} valid {} army {} pool {:?} units {:?} st {:?}", built.sim.frame, a.valid, a.army, a.group.pool, a.units.iter().map(|&u| built.sim.units[u].index).collect::<Vec<_>>(), (a.group.form, a.group.stamp, a.group.order_num, a.group.unlinked, a.group.role, a.group.speed));
+                            eprintln!(
+                                "G4676 f{} army2 slot {k} valid {} army {} pool {:?} units {:?} st {:?}",
+                                built.sim.frame,
+                                a.valid,
+                                a.army,
+                                a.group.pool,
+                                a.units
+                                    .iter()
+                                    .map(|&u| built.sim.units[u].index)
+                                    .collect::<Vec<_>>(),
+                                (
+                                    a.group.form,
+                                    a.group.stamp,
+                                    a.group.order_num,
+                                    a.group.unlinked,
+                                    a.group.role,
+                                    a.group.speed
+                                )
+                            );
                         }
                     }
                     for (k, p) in built.sim.orders.pushed.iter().enumerate() {
                         if p.who == 2 {
-                            eprintln!("G4676 f{} pushed {k} pool {:?} list {:?} st {:?}", built.sim.frame, p.state.pool, p.list.iter().map(|&u| built.sim.units[u].index).collect::<Vec<_>>(), (p.state.form, p.state.stamp, p.state.order_num, p.state.unlinked));
+                            eprintln!(
+                                "G4676 f{} pushed {k} pool {:?} list {:?} st {:?}",
+                                built.sim.frame,
+                                p.state.pool,
+                                p.list
+                                    .iter()
+                                    .map(|&u| built.sim.units[u].index)
+                                    .collect::<Vec<_>>(),
+                                (
+                                    p.state.form,
+                                    p.state.stamp,
+                                    p.state.order_num,
+                                    p.state.unlinked
+                                )
+                            );
                         }
                     }
                 }
@@ -1291,13 +1323,28 @@ pub(crate) mod tests {
                         j += 1;
                     }
                 }
-                if let Some((wl, wr)) = std::env::var("RON_PROBE_REC").ok().as_deref().and_then(|w| w.split_once(':')).map(|(a, b)| (a.to_string(), b.parse::<i16>().unwrap())) {
+                if let Some((wl, wr)) = std::env::var("RON_PROBE_REC")
+                    .ok()
+                    .as_deref()
+                    .and_then(|w| w.split_once(':'))
+                    .map(|(a, b)| (a.to_string(), b.parse::<i16>().unwrap()))
+                {
                     if wl == *name {
                         for &(i, j) in &pairs {
                             let (a, b) = (&ours.ranges[i], theirs[j]);
                             if a.record == wr {
-                                eprintln!("R4676 {state} {name} {} {} ours {:?}", a.record, a.field, crate::checksum::fields::range_fields(name, a.field, &a.bytes));
-                                eprintln!("R4676 {state} {name} {} {} theirs {:?}", a.record, a.field, crate::checksum::fields::range_fields(name, a.field, &b.bytes));
+                                eprintln!(
+                                    "R4676 {state} {name} {} {} ours {:?}",
+                                    a.record,
+                                    a.field,
+                                    crate::checksum::fields::range_fields(name, a.field, &a.bytes)
+                                );
+                                eprintln!(
+                                    "R4676 {state} {name} {} {} theirs {:?}",
+                                    a.record,
+                                    a.field,
+                                    crate::checksum::fields::range_fields(name, a.field, &b.bytes)
+                                );
                             }
                         }
                     }
