@@ -1805,7 +1805,7 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: builds parts first on 2451. run1797's ranges hold each item's frames, each *diff-backed*.
+Open: deaths parts first on 2457. run1797's ranges hold each item's frames, each *diff-backed*.
 
 **Items 4597 to 4620**: units → 2376, builds → 2432, ammo → 2408, leaders → 2413, cities → 2448 (`docs/GROUPS.md`,
 `docs/COMBAT.md` §84, a Temple's close, two walks by object number; their journals).

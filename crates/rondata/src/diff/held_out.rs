@@ -12090,25 +12090,34 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // order's figures on the order's point, aimed or not): units 2,543 -> 2,643 (first 2543 ->
         // 2566) and guys 2,543 -> 2,677 (first 2543 -> 2677), past the row's first parting 2451
         // (builds), which stands.
+        // Then item 4655 (`get_damage`'s recapture step reads the target
+        // city's race, `:477`-`:494`, whoever owns the building: on 2450 the
+        // SAM `2/2027`'s rocket, its target `1/70` dead, strikes who=2's own
+        // capital `2/2000` for 44, not 22; builds range 2180, record 2000,
+        // `damage` ours 5,963, theirs 5,985 on 2451, both 5,985 now): builds
+        // 2,451 -> 2,768 (first 2451 -> 2689), ammo 3,143 -> 3,144, leaders
+        // 2,749 -> 2,751 (first 2608 -> 2751), goods 3,983 -> 3,961 (a fall
+        // past the parting), ours' end none -> 6040; the first parting is
+        // deaths alone on 2457.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                2643, 2451, 6085, 3143, 2563, 2685, 2677, 2749, 2978, 3148, 3983, 2680,
+                2643, 2768, 6085, 3144, 2563, 2685, 2677, 2751, 2978, 3148, 3961, 2680,
             ],
             first: &[
                 ("units", (2566, Some(1723402503), 567609615)),
-                ("builds", (2451, Some(2666296210), 3002692520)),
+                ("builds", (2689, Some(2754752570), 3680907824)),
                 ("ammo", (2547, Some(3276077082), 122615738)),
                 ("deaths", (2457, Some(2931452735), 2458741352)),
                 ("groups", (2685, Some(293453109), 2102443375)),
                 ("guys", (2677, Some(1670959914), 1725420330)),
-                ("leaders", (2608, Some(4049621251), 4085010693)),
+                ("leaders", (2751, Some(2269206203), 3698742979)),
                 ("cities", (2978, Some(1121539707), 1131566715)),
                 ("items", (3007, Some(3525321571), 3415154359)),
                 ("goods", (3322, Some(569473142), 586774648)),
                 ("world", (2680, Some(3147089146), 4135110218)),
             ],
-            over: None,
+            over: Some(6040),
         }),
     }),
     // run1795
