@@ -42232,3 +42232,23 @@ after filing.
 - Filed: `gamelog-run1832-heldout6-row053-packet3357.txt`, 2,890 bytes; `rontrace-run1832.log`, 123,870,016 bytes.
 
 **What it holds**: why row 53's 3358 parts (`docs/journal/2026-11-25-item-4609.md`). No test reads it yet.
+
+## run1833 — run1814b's line with the card probe: the plates' draw, its stream and the post chain (2026-11-25, item 4661, `att-4661`)
+
+`docs/RENDERER.md` §6.1, "The card's draw". **What the disk could not answer**: what thins the client's plates
+(4658a). run1814b holds a packet, not the card's draw. The line is run1814b's without the packet defines, with the
+card's three: `TMPDIR=<fresh> zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1833
+--map 14 --end-frame 3296 --timeout 420 --log-window 3292 3296 --detail end:MISC,UNITS=3,GUYS=2 --cover cover=0
+--rise2 StartReveal=0 --cmd-file ~/ron-data/lab-experiments/2026-11-23-item-4612/photo3294.cmd --tracer-def
+RON_CARD_PROBE --tracer-def RON_CARD_STREAMS --tracer-def RON_CARD_POST`, and `poolshot.py ~/ron-golden/run1833 3294
+--map 14` beside it.
+- Launched 04:12 −05:00, the lane free, 86 GB free before and 85 after. One take, no startup fault. The paused take
+  ran to its timeout (`waitrun.sh` exit 2), as run1814b's did. Not filed.
+- Passes after 3263 and 3279; 14 post readbacks (`post-00.raw` … `post-13.raw`). The photograph (window 25424,
+  frame 3295 on the gamelog) equals 3279's `flip` readback (`post-13.raw`) on every pixel, MAD 0.0.
+- **What it holds**: draw 81 of the 3279 pass is the plates (`early_road_pieces.tga` | `autumn_Middle_Road.tga`,
+  enables 0x3c004), with its 842 vertices and 1,920 indices.
+
+Trace `~/ron-golden/run1833/map-14/rontrace.log`, 24,092,352 bytes, SHA-256
+`575d3bbc558e7750bade4adce2679cce1898ad071c9877867c0255255480bd84`. Photograph `~/ron-golden/run1833-3294.png`,
+SHA-256 `9fcb6667427343d0f20eb5e5c86c2fb6db0caf0a6c377ae3522b47b1edd969a7`.

@@ -1445,7 +1445,10 @@ fn a_function_a_booking_names_is_in_the_export() {
 /// **154** with item 4127's `TileSet::get_supertile_texture@0087a770`, cited by
 /// that item's journal alone as the getter nothing calls (no document under
 /// `docs/*.md` cites it, so `DEAD_CITED` takes no row).
-const UNREFERENCED: usize = 148 + 1 + 1 + 1 + 1 + 1 + 1;
+/// **155** with item 4661's `TileSet::get_road_texture@008780e0`, inlined into
+/// `RoadsOut::render`; `docs/RENDERER.md` §6.1 names it without an address, so
+/// `DEAD_CITED` takes no row.
+const UNREFERENCED: usize = 148 + 1 + 1 + 1 + 1 + 1 + 1 + 1;
 
 /// What `docs/EMULATOR.md` §4 enumerates as dead and the residue table does
 /// not hold as unreferenced, each for a reason the table's own rows give.
