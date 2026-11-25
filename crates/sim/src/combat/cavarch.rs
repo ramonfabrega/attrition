@@ -244,6 +244,9 @@ impl crate::Sim {
                 return;
             }
             let found = self.find_melee_target_as(u, -1, 0, true);
+            if std::env::var("RON_PROBE_4674_PIV").is_ok() && self.units[u].owner == 1 && self.units[u].index == 46 {
+                eprintln!("CAV f{} found {found:?} uid {:?} pos {:?}", self.frame, found.map(|t| self.obj_uid(t)), found.map(|t| self.pos_of(t)));
+            }
             self.cavarch_take(u, found);
             self.combat.retargets[who] += 1;
             return;
