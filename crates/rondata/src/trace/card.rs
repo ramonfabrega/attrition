@@ -107,6 +107,57 @@ pub struct CardDraw {
     pub textures: [u32; 2],
     pub names: [String; 2],
     pub stream: Option<Stream>,
+    /// Item 4665: what the draw draws, under `RON_CARD_STREAMS` (item
+    /// 4386; records 14 to 17): the bound stream's stride (record 14's
+    /// `mStructSize`), its bytes from the draw's first vertex, the index
+    /// count (record 15's `mCurrentLength`), whether they are dwords, and
+    /// their bytes. Empty without the define.
+    pub drawn: Drawn,
+}
+
+/// The stream and indices a draw draws (records 14 to 17).
+#[derive(Clone, Debug, Default)]
+pub struct Drawn {
+    pub stride: u32,
+    pub vertices: Vec<u8>,
+    pub index_count: u32,
+    pub dword: bool,
+    pub indices: Vec<u8>,
+}
+
+impl Drawn {
+    /// Vertex `k`'s first `N` floats.
+    pub fn floats<const N: usize>(&self, k: usize) -> Option<[f32; N]> {
+        let at = k * self.stride as usize;
+        let b = self.vertices.get(at..at + 4 * N)?;
+        Some(std::array::from_fn(|i| {
+            f32::from_le_bytes(b[4 * i..4 * i + 4].try_into().unwrap())
+        }))
+    }
+
+    /// The vertices the bytes hold whole.
+    pub fn vertex_count(&self) -> usize {
+        match self.stride {
+            0 => 0,
+            s => self.vertices.len() / s as usize,
+        }
+    }
+
+    /// The indices, three a triangle of a list.
+    pub fn index_list(&self) -> Vec<u32> {
+        let size = if self.dword { 4 } else { 2 };
+        let n = (self.index_count as usize).min(self.indices.len() / size);
+        (0..n)
+            .map(|k| {
+                let b = &self.indices[k * size..(k + 1) * size];
+                if self.dword {
+                    u32::from_le_bytes(b.try_into().unwrap())
+                } else {
+                    u32::from(u16::from_le_bytes(b.try_into().unwrap()))
+                }
+            })
+            .collect()
+    }
 }
 
 impl CardDraw {
@@ -283,6 +334,7 @@ pub fn draws(bytes: &[u8]) -> Vec<CardDraw> {
                     textures: [0; 2],
                     names: [String::new(), String::new()],
                     stream: pending.take(),
+                    drawn: Drawn::default(),
                 });
             }
             11 => {
@@ -318,6 +370,23 @@ pub fn draws(bytes: &[u8]) -> Vec<CardDraw> {
                         }
                     }
                     7 => d.frames.copy_from_slice(&w[2..6]),
+                    14 => d.drawn.stride = w[5],
+                    15 => {
+                        d.drawn.index_count = w[4];
+                        d.drawn.dword = w[5] >> 31 == 1;
+                    }
+                    16 | 17 => {
+                        let buf = if w[1] == 16 {
+                            &mut d.drawn.vertices
+                        } else {
+                            &mut d.drawn.indices
+                        };
+                        let end = w[2] as usize + 16;
+                        if buf.len() < end {
+                            buf.resize(end, 0);
+                        }
+                        put(buf, w[2], &w[3..7]);
+                    }
                     _ => {}
                 }
             }
@@ -335,6 +404,28 @@ mod tests {
 
     fn rec(w: [u32; 8]) -> Vec<u8> {
         w.iter().flat_map(|v| v.to_le_bytes()).collect()
+    }
+
+    /// Item 4665: records 14 to 17, the stream and indices a draw draws,
+    /// read back: two vertices of stride 12 and one u16 triangle.
+    #[test]
+    fn a_draw_s_stream_reads_back() {
+        let f = |x: f32| x.to_bits();
+        let mut b = Vec::new();
+        b.extend(rec([K_CARD, 0, 0, 81, 1, 0x591a45, 0, 3279]));
+        b.extend(rec([K_CARD, 14, 7, 8, 0, 12, 2, 3279]));
+        b.extend(rec([K_CARD, 15, 9, 10, 3, 2, 1, 3279]));
+        b.extend(rec([K_CARD, 16, 0, f(1.0), f(2.0), f(3.0), f(4.0), 3279]));
+        b.extend(rec([K_CARD, 16, 16, f(5.0), f(6.0), 0, 0, 3279]));
+        b.extend(rec([K_CARD, 17, 0, 0x0001_0000, 0x0000_0001, 0, 0, 3279]));
+        let d = &draws(&b)[0];
+        assert_eq!(
+            (d.drawn.stride, d.drawn.index_count, d.drawn.dword),
+            (12, 3, false)
+        );
+        assert_eq!(d.drawn.vertex_count(), 2);
+        assert_eq!(d.drawn.floats::<3>(1), Some([4.0, 5.0, 6.0]));
+        assert_eq!(d.drawn.index_list(), [0, 1, 1]);
     }
 
     /// A draw's records read back field by field, and a record of another

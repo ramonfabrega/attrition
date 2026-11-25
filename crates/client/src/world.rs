@@ -363,6 +363,9 @@ pub struct World {
     /// default; the plates' row as drawn before turns it off, which is the
     /// roads as item 4199 left them, bucket 2 alone.
     pub early_roads: bool,
+    /// Times each plate is laid, [`PLATE_LAYS`] (item 4665); the row's
+    /// arm laid once sets 1. Read when the roads are laid again.
+    pub(crate) plate_lays: usize,
     /// The by-half of the plates' row (item 4653): each tile's element and
     /// orientation taken from the packet's record instead of our walk.
     #[cfg(test)]
@@ -734,11 +737,19 @@ pub const ROAD_BUCKET: i32 = 2;
 /// tiles (842 of 842 of run1814b's helper-0 vertices).
 pub const PLATE_BUCKET: i32 = 0;
 pub const PLATE_PIECE: i32 = -200_022;
-/// `Gpu::alpha_texture`'s cache key: 921, not 913, which is
-/// [`BORDER_ALPHA_INDEX`]'s, whose ramp the plates sampled until item 4661.
-pub const PLATE_ALPHA: usize = 921;
+/// `Gpu::alpha_texture`'s cache key: 902. At 913 it was
+/// [`BORDER_ALPHA_INDEX`]'s, whose ramp the plates sampled until item 4661;
+/// at 921 it was the surf's mask 1 ([`SURF_ALPHA`] + 1, inside
+/// [`SURF_MASKS`]), which they sampled until item 4665.
+pub const PLATE_ALPHA: usize = 902;
 /// The tile page's texcoords a tile (`RenderHelper::tex1` on the packet).
 pub const PLATE_PAGE_TILES: f32 = 4.0;
+/// **Each plate is laid twice** (item 4665, §6.1): run1833's draw 81 holds
+/// its 842 vertices as 421 pairs, each piece's grid repeated at once, every
+/// field equal, and its 1,920 indices draw both. The file's alpha blended
+/// over itself covers `1 − (1 − a)²`. Why `build_render_data` adds them
+/// twice is not read.
+pub const PLATE_LAYS: usize = 2;
 
 /// The age bucket `Terrain::add_weathering` takes for every age past its
 /// gate (`4 < age` → 2), `WEATHERELEM age="2"`, Modern (item 4190).
@@ -1425,6 +1436,7 @@ impl World {
             roads: true,
             roads_shift: (0, 0),
             early_roads: true,
+            plate_lays: PLATE_LAYS,
             #[cfg(test)]
             road_pick: None,
             road_art,
@@ -2414,6 +2426,18 @@ impl World {
         .collect()
     }
 
+    /// The plates' mesh as the frame lays it (item 4665, §6.1).
+    #[cfg(test)]
+    pub(crate) fn plate_mesh(&mut self) -> Option<PatchMesh> {
+        let laid: Vec<crate::roads::Laid> = self
+            .road_pieces()
+            .into_iter()
+            .filter(|(b, _)| *b == PLATE_BUCKET)
+            .map(|(_, l)| l)
+            .collect();
+        self.road_mesh(&laid, true)
+    }
+
     /// The pieces as one [`PatchMesh`] (item 4199, §3.19): each piece's box
     /// cut at the tile lines inside it, as the packet's vertices stand, each
     /// corner on the ground's own triangle (`TerrainMesh::build`'s `[a, b,
@@ -2473,7 +2497,8 @@ impl World {
             v.push(b);
             v
         };
-        for l in laid {
+        let lays = if plate { self.plate_lays } else { 1 };
+        for l in laid.iter().flat_map(|l| std::iter::repeat_n(l, lays)) {
             let [x0, y0, x1, y1] = l.rect;
             let [nw, ne, sw, se] = l.uv;
             let uv = |x: f32, y: f32| {
@@ -3677,6 +3702,9 @@ mod tests {
             super::LAND_OIL_ALPHA,
             super::FARM_PIG_ALPHA,
             super::FARM_WHEAT_ALPHA,
+            // Item 4665: the plates sat at 921, the surf's mask 1.
+            super::LAND_FADE_ALPHA,
+            super::PLATE_ALPHA,
         ];
         for (i, k) in ones.iter().enumerate() {
             assert!(

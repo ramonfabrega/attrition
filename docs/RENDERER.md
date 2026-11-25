@@ -6192,10 +6192,42 @@ equals its `flip` readback on every pixel.
 - `TileSet::get_road_texture` is dead in the image: `RoadsOut::render`
   reads `road_textures[bucket]` inline. It is `blind::RESIDUE`.
 
+**The mesh, against draw 81** (item 4665, 2026-11-25, Opus 5.5;
+`docs/journal/2026-11-25-item-4665.md`). The vertex diff on run1833's
+stream, no take (`roads::tests::the_plates_mesh_is_draw_81_s`; the reader
+is `rondata::trace::card`'s `Drawn`, records 14 to 17):
+- *The cells.* Draw 81 draws 640 triangles on 320 cells. Ours lays 304 of
+  them at the same corners, with the same diagonal. The 16 apart are
+  element 1's four plates our walk does not lay (4653b).
+- *The texcoords.* The tile page's (UV1) is equal on 912 of 912 corners.
+  The piece's (UV0) is equal on 558 on our walk: the rest are the tiles
+  whose element or orientation the fractal picks apart (4199a). The height
+  is within a unit on 912. With the packet's own picks, 318 of the 320
+  cells are ours (the two apart are (12, 156), the piece the buffer holds
+  no box of), and the piece's texcoord is equal on 948 of 954 corners.
+- *Twice.* The stream's 842 vertices are 421 pairs. Each piece's grid is
+  repeated at once, every field equal, and the 1,920 indices draw both
+  copies. So the file's alpha is blended over itself and covers
+  `1 − (1 − a)²`. `PLATE_LAYS` lays each plate twice.
+  `tools/render/road_records.py` already dropped the repeats on the
+  packet ("the buffer can hold a piece twice").
+- *The squares were the cache key again* (4661a). The mesh rasterised in
+  Python through draw 81's own matrices on the file's alpha lays the
+  bands, as draw 81's does. `PLATE_ALPHA` 921 is `SURF_ALPHA + 1`, inside
+  the surf's 64 keys: the plates sampled the surf's mask 1. That is item
+  4279's snowcap trap. Now 902, and both key guards check the surf's range.
+- *The row*: drawn **41**, theirs **44** of 46 on hue (from 24 and 22), luma 42
+  and 42. Laid once instead of twice, it is 41 and 44 on hue too (luma 43 and 42). On
+  draw 81's own coverage (51,574 pixels), the mean absolute error against
+  the photograph is 23.15 before the plates, 15.61 with each plate laid
+  once and 15.27 laid twice. Twice is the closer of the two on every
+  coverage band.
+
 **Diff-backed**: the farms' corners and sizes, the wheat boxes whole
 (positions, colours, texcoords, heights, wind), the underlay's corners and
 texcoords; the plates' quads and tile-page texcoords, and their
-`RenderState`. **Read alone**: the draw state's arithmetic in our pass (the
+`RenderState`; the plates' cells, texcoords and heights against draw 81's
+stream, and each laid twice (item 4665). **Read alone**: the draw state's arithmetic in our pass (the
 packet holds the `RenderState`, not the card's pixels); the plates' alpha
 uncomplemented (item 4658: the load, the bind, the state's arguments and
 d3dgl's table, one reading, no score resting on it). **On the row alone**:
@@ -6222,8 +6254,13 @@ dropped by item 4661, whose card take backs the file's alpha by a diff.
 - ~~What thins the plates to blotches where the photograph's bands are opaque
   (4658a).~~ Item 4661: the borders' alpha, on a shared cache key ("The
   card's draw"). The four element-1 plates our walk does not lay (4653b).
-- Why our plates lay tile-sized squares where draw 81 lays bands (4661a).
-  The stream is on disk; our mesh's vertices against it are the next diff.
+- ~~Why our plates lay tile-sized squares where draw 81 lays bands
+  (4661a).~~ Item 4665 ("The mesh, against draw 81"): the mesh is draw
+  81's, and the plates were sampling the surf's mask 1 on key 921.
+- Why `build_render_data` adds each plate twice (4665a). The card's draw and the
+  packet's helper hold every piece twice on this frame. Whether every
+  frame does, and whether the modern bucket's helper does too, has not
+  been read.
 - The trees past sight stay lit (4621a). Not touched here.
 
 ## 7. What is not established, and what needs Ramon's word

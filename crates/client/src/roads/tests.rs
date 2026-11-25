@@ -516,10 +516,16 @@ const RUN1814B_PLATE_BOX: [i32; 4] = [7, 151, 19, 163];
 /// own alpha, uncomplemented, and untested in depth (run1833's draw 81),
 /// they lay sand in tile-sized squares where the photograph has bands
 /// (4661a). Tile (19, 159): theirs (235, 182, 65), drawn (208, 184, 68).
+/// **Item 4665: drawn hue 24 → 41, theirs 22 → 44; luma 42 and 43 → 42
+/// and 42.** 921 was the surf's mask 1 (`SURF_ALPHA + 1`), so the plates
+/// still never sampled `early_road_pieces.tga`. On it (key 902), each plate
+/// laid twice as draw 81 lays it ([`crate::world::PLATE_LAYS`]). Laid once,
+/// 41 and 44 too, luma 43 and 42. Tile (19, 159): drawn (226, 187, 67)
+/// Y 185.3.
 const RUN1814B_3294_PLATES: [[(usize, usize); 2]; 3] = [
     [(12, 46), (43, 46)],
-    [(24, 46), (42, 46)],
-    [(22, 46), (43, 46)],
+    [(41, 46), (42, 46)],
+    [(44, 46), (42, 46)],
 ];
 
 /// **The plates' row** (item 4653, §6.1): our door holds the packet's 54
@@ -565,6 +571,7 @@ fn the_plates_on_run1814b() {
             .collect::<BTreeMap<_, _>>()
     });
     let mut rows = [[(0, 0); 2]; 3];
+    let once = std::env::var_os("RON_PLATES_ONCE").is_some();
     for (k, (early, pick, what)) in [
         (false, false, "before"),
         (true, false, "drawn"),
@@ -578,6 +585,7 @@ fn the_plates_on_run1814b() {
         }
         p.world.roads = true;
         p.world.early_roads = early;
+        p.world.plate_lays = if once { 1 } else { crate::world::PLATE_LAYS };
         p.world.road_pick = if pick { picks.clone() } else { None };
         p.world.relay_roads();
         let s = still(&mut p, &format!("run1814b-3294-plates-{what}"));
@@ -735,7 +743,8 @@ fn the_plates_against_the_packet_s() {
 /// **Every alpha key is its own** (item 4661): `Gpu::alpha_texture` caches
 /// an alpha by its index, so two layers on one key share the first one's
 /// texture. The plates sat on the borders' 913 from item 4653 to 4661 and
-/// sampled the borders' ramp. Made to fail: `PLATE_ALPHA` back at 913.
+/// sampled the borders' ramp. Made to fail: `PLATE_ALPHA` back at 913;
+/// item 4665, at 921, inside the surf's masks.
 #[test]
 fn every_alpha_key_is_its_own() {
     use crate::world::*;
@@ -761,4 +770,158 @@ fn every_alpha_key_is_its_own() {
             assert_ne!(ka, kb, "{a} and {b} share alpha key {ka}");
         }
     }
+    // Item 4665: a family that owns a range owns every key in it. The
+    // plates moved to 921, the surf's mask 1, and sampled it.
+    let surf = SURF_ALPHA..SURF_ALPHA + SURF_MASKS;
+    for (a, k) in keys.iter().filter(|(a, _)| *a != "SURF_ALPHA") {
+        assert!(
+            !surf.contains(k),
+            "{a} at {k} inside the surf's masks {surf:?}"
+        );
+    }
+}
+
+/// **`RUN1833_DRAW_81`** (item 4665, §6.1): run1833's draw 81, the plates,
+/// against our plate mesh on run1814b's lobby at the photograph's frame:
+/// `[its triangles, distinct by position, each drawn twice, ours distinct,
+/// ours on its cells, those laid as many times as its, their corners, the tile page's texcoord equal, the
+/// piece's texcoord equal, the corner's height within a unit]`, our walk
+/// then the packet's own element and orientation (the by-half).
+/// 640 triangles on 320 cells, every one twice. We lay 752 cells (the box
+/// and past it), 304 of them the card's: the 16 apart are element 1's four
+/// plates our walk does not lay (4653b). The tile page's texcoord is
+/// whole; the piece's parts on 354 of 912 corners on our walk, the tiles
+/// whose element or orientation the fractal picks apart (4199a). With the
+/// packet's own: 318 of the 320 cells (the two apart are (12, 156), the
+/// piece the buffer holds no box of, `RUN1814B_PLATE_QUADS`), the piece's
+/// texcoord 948 of 954.
+const RUN1833_DRAW_81: [[usize; 10]; 2] = [
+    [640, 320, 320, 752, 304, 304, 912, 912, 558, 912],
+    [640, 320, 320, 768, 318, 318, 954, 954, 948, 954],
+];
+
+/// **The plates' mesh is draw 81's** (item 4665, §6.1): run1833's card
+/// keeps the plates' stream (`RON_CARD_STREAMS`): 842 vertices at stride
+/// 52, position, normal, UV0 (the piece's), UV1 (the tile page's), and
+/// 1,920 indices, each piece's cells drawn twice. Our mesh, cell by cell
+/// at the same corners. Made to fail: [`crate::world::PLATE_LAYS`] at 1.
+#[test]
+fn the_plates_mesh_is_draw_81_s() {
+    let path = std::env::var_os("RON_TRACE_RUN1833")
+        .map(PathBuf::from)
+        .or_else(|| {
+            std::env::var_os("HOME")
+                .map(|h| PathBuf::from(h).join("ron-golden/run1833/map-14/rontrace.log"))
+        });
+    let Some(bytes) = path.as_ref().and_then(|p| std::fs::read(p).ok()) else {
+        println!("skipping: no run1833 trace at {path:?}");
+        return;
+    };
+    let Some(mut p) = crate::farms::tests::probe() else {
+        return;
+    };
+    let draws = rondata::trace::card::draws(&bytes);
+    let d = draws
+        .iter()
+        .find(|d| d.frame == 3279 && d.index == 81)
+        .expect("draw 81 after 3279");
+    assert_eq!(
+        (d.names[0].as_str(), d.drawn.stride, d.drawn.vertex_count()),
+        ("./terrain art/roads/early_road_pieces.tga", 52, 842),
+        "the plates' draw"
+    );
+    let v: Vec<[f32; 10]> = (0..842)
+        .map(|k| d.drawn.floats::<10>(k).expect("a vertex"))
+        .collect();
+    let idx = d.drawn.index_list();
+    let cell = |t: [[f32; 3]; 3]| {
+        let mut k = t.map(|p| (p[0].round() as i32, p[1].round() as i32));
+        k.sort();
+        k
+    };
+    // Each cell's triangles, with every corner's (z, uv0, uv1).
+    type Corner = (f32, [f32; 2], [f32; 2]);
+    let mut card: BTreeMap<[(i32, i32); 3], Vec<Vec<((i32, i32), Corner)>>> = BTreeMap::new();
+    for t in idx.chunks_exact(3) {
+        let c = |i: u32| v[i as usize];
+        let pos = [0, 1, 2].map(|j| {
+            let a = c(t[j]);
+            [a[0], a[1], a[2]]
+        });
+        let corners = (0..3)
+            .map(|j| {
+                let a = c(t[j]);
+                (
+                    (a[0].round() as i32, a[1].round() as i32),
+                    (a[2], [a[6], a[7]], [a[8], a[9]]),
+                )
+            })
+            .collect();
+        card.entry(cell(pos)).or_default().push(corners);
+    }
+    let twice = card.values().filter(|ts| ts.len() == 2).count();
+    let mut rows = [[0; 10]; 2];
+    let picks = packet("1814b").map(|pk| {
+        pk.records
+            .iter()
+            .filter(|(_, r)| r.refs != 0 && r.rot <= 7 && r.elem >= 0)
+            .map(|(&t, r)| (t, (r.elem as usize, r.rot)))
+            .collect::<BTreeMap<_, _>>()
+    });
+    for (k, pick) in [None, picks].into_iter().enumerate() {
+        p.world.roads = true;
+        p.world.early_roads = true;
+        p.world.road_pick = pick;
+        let m = p.world.plate_mesh().expect("the plates are laid");
+        let mut ours: BTreeMap<[(i32, i32); 3], (usize, Vec<((i32, i32), Corner)>)> =
+            BTreeMap::new();
+        for (j, t) in m.positions.chunks_exact(3).enumerate() {
+            let corners = (0..3)
+                .map(|q| {
+                    let i = 3 * j + q;
+                    let a = m.positions[i];
+                    (
+                        (a[0].round() as i32, a[1].round() as i32),
+                        (a[2], m.alpha_uvs[i], m.uvs[i]),
+                    )
+                })
+                .collect();
+            let e = ours.entry(cell([t[0], t[1], t[2]])).or_insert((0, corners));
+            e.0 += 1;
+        }
+        let (mut shared, mut corners, mut page, mut piece, mut high) = (0, 0, 0, 0, 0);
+        let mut lays = 0;
+        for (key, ts) in &card {
+            let Some((n, mine)) = ours.get(key) else {
+                continue;
+            };
+            shared += 1;
+            lays += usize::from(*n == ts.len());
+            for (at, (z, uv0, uv1)) in &ts[0] {
+                let (_, (oz, ouv0, ouv1)) = mine.iter().find(|(a, _)| a == at).expect("a corner");
+                corners += 1;
+                let same = |a: &[f32; 2], b: &[f32; 2]| {
+                    (a[0] - b[0]).abs() < 1e-5 && (a[1] - b[1]).abs() < 1e-5
+                };
+                page += usize::from(same(uv1, ouv1));
+                piece += usize::from(same(uv0, ouv0));
+                high += usize::from((z - oz).abs() <= 1.0);
+            }
+        }
+        rows[k] = [
+            idx.len() / 3,
+            card.len(),
+            twice,
+            ours.len(),
+            shared,
+            lays,
+            corners,
+            page,
+            piece,
+            high,
+        ];
+        println!("run1833 draw 81 against our plates ({k}): {:?}", rows[k]);
+    }
+    p.world.road_pick = None;
+    assert_eq!(rows, RUN1833_DRAW_81);
 }
