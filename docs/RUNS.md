@@ -41919,7 +41919,9 @@ RON_RANGES --tracer-def RNG_MASK=0xffbu`, waited on with `waitrun.sh` in the bac
 
 **What it named**: ammo range 43, record 15 on 3028 is the round who=1's Heavy Fire Raft `1/94` (TI 335, sea) fired on
 3027 at `2/83`: `sz` ours −173, theirs 100, and `v1z` after it (`docs/RECGAME.md` §14.4). After the fix nothing parts to
-3032; units part on 3033. Read by item 4664's range printer (a probe, reverted); no test reads the ranges.
+3032; units part on 3033. Read by item 4664's range printer (a probe, reverted); no test reads the ranges. **Item 4668**
+read it again: on 3033 `1/83`'s `damage` ours 3, theirs 7, the round of `1/72` that `check_hit`'s tie put on `1/66` in
+ours; after the fix nothing parts to 3040 (`docs/RECGAME.md` §14.4).
 
 ## run1816 — parity held out, seventh battery, row 28's file to 3,960, a packet at logger frame 3955 (2026-11-23, item 4619, `att-4619`)
 
