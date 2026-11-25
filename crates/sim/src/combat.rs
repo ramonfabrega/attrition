@@ -1409,18 +1409,22 @@ pub const fn scatter(t: &Tuning, acc: i32, land_unit: bool, missile: bool, exact
 /// `get_damage` opens at 2 and the only writers are three: **EXPLOSIVE**
 /// (`obj_masks & 0x800000`) and **BOMBARD** (`& 0x2`) each make it 3, and
 /// a **building** attacker overwrites whatever those left — 3 when
-/// `BuildData::get_shot() == 4` (the `REDOUBT`), 2 otherwise. So an
-/// ordinary arrow from an ordinary archer is 2, which run112's four
-/// `DEATH_OBJS` records confirm from the other end: `cur_anim 17` is
-/// `2 * dtype + 0xd + roll % 2` with an even roll, and the trace's own
-/// seed at `0060fb06` on frame 683 makes that roll 64832.
+/// `BuildData::get_shot() == 4`, 2 otherwise. So an ordinary arrow from an
+/// ordinary archer is 2, which run112's four `DEATH_OBJS` records confirm
+/// from the other end: `cur_anim 17` is `2 * dtype + 0xd + roll % 2` with
+/// an even roll, and the trace's own seed at `0060fb06` on frame 683 makes
+/// that roll 64832.
 ///
-/// **`get_shot` is not modelled**, so a `REDOUBT`'s shot is 2 here and 3
-/// in the original; it changes a death animation index and no capture on
-/// disk has one.
-pub const fn death_type(amask: u32, attacker_is_building: bool) -> i32 {
+/// **`get_shot@0062dd90` answers 4 for one type alone**, the `REDOUBT`
+/// (`0x1be`): its switch on the type's `TypeIndex` gives 1, 2, 0 or 5 to
+/// the other named walls and defences and the owner's `ages` arm 0, 1 or 2
+/// by default. The caller passes `building_shot(b) == 4` as
+/// `shot_is_four` (item 4659, `docs/RECGAME.md` §13.5: row 133's Redoubt
+/// `1/2025` kills the Elite Special Forces `2/0` on 2456, `cur_anim` 19 on
+/// run1797's ranges).
+pub const fn death_type(amask: u32, attacker_is_building: bool, shot_is_four: bool) -> i32 {
     if attacker_is_building {
-        return 2;
+        return if shot_is_four { 3 } else { 2 };
     }
     if amask & (mask::EXPLOSIVE | mask::BOMBARD) != 0 {
         return 3;

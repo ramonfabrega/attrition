@@ -7443,8 +7443,10 @@ bearing, not the wound, and the flank is 57 plus a height point (§46.5). That l
   `effects_graphics.xml`, which no arrow carries. This crate still loads no
   ammo flags, so a missile (`SmallRocket`, `SAM Rocket`, `SubTorpedo`, the
   `AARocket`s) at a land unit would roll here; no capture fires one.
-- **`get_shot`**, so a `REDOUBT`'s shot gives `dtype` 2 here and 3 in the
-  original. It changes a death animation index; no capture has one.
+- ~~**`get_shot`**, so a `REDOUBT`'s shot gives `dtype` 2 here and 3 in the
+  original. It changes a death animation index; no capture has one.~~ Closed
+  by item 4659 (`docs/RECGAME.md` §13.5): the step asks `building_shot`;
+  run1797's Redoubt kill on 2456 is the capture.
 - ~~**`DEATH_OBJS`' `gpiece`**, the dead unit's own death piece
   (`DeathObj::init`'s `vtable[0x178](param_7, packed)`). Parsed and not
   compared — this crate loads no art for it.~~ Compared since item 4175:
