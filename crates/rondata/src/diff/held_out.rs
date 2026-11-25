@@ -1222,7 +1222,7 @@ pub(crate) mod tests {
                     if a.bytes != b.bytes {
                         let d = crate::checksum::fields::differing_fields(name, a.field, &a.bytes, &b.bytes);
                         eprintln!("P4664 {state} {name} range {k} who {who} record {} {} len {}/{} {:?}", a.record, a.field, a.bytes.len(), b.bytes.len(), d);
-                        if d.is_empty() && a.bytes.len() <= 64 {
+                        if d.is_empty() && a.bytes.len() <= 128 {
                             eprintln!("P4664   ours {:?}\nP4664   theirs {:?}", a.bytes, b.bytes);
                         }
                         if li == 0 {
