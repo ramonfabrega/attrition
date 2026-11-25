@@ -42211,3 +42211,24 @@ run1830's line with `RON_STATE_FRAME=2964`. Pool lane, launched 02:14:06 −05:0
 - Filed: `gamelog-run1830b-heldout6-row093-packet2964.txt`, 2,891 bytes; `rontrace-run1830b.log`, 91,773,952 bytes.
 
 **What it holds**: the term behind row 93's 2965 (`docs/journal/2026-11-25-item-4654.md`). No test reads it yet.
+
+## run1832 — parity held out, sixth battery, row 53's file to 3,363, a packet at logger frame 3357 (2026-11-25, item 4609, `att-4609`)
+
+`docs/RECGAME.md` §13.2. **What the disk could not answer**: run1812's ranges print `2/76`'s `z`, never the world's
+cell chains that `Wall::init`'s update_z loop walks. The take: run1812's line with `--end-frame 3363 --log-window 3351
+3361 --timeout 1800 --tracer-def RON_CHECKSUMS --tracer-def RON_STATE_FRAME=3357 --tracer-def
+"RON_STATE_PLAN=\"$P/plan.h\""` (`P` exported, run1803's plan). **3357, not the brief's 3356**: Smelter `2/2040` first
+stands on block 3358 on both sides (ours' walk; the builds line agrees to 3731), so its placement is tick 3357
+(`docs/EMULATOR.md` §8; item 4654's correction). Pool lane 1, launched 03:17:03 −05:00, exit 0, `success`, 288.5 s,
+`last_frame` 3363, seed 12345, map 18; the recording's SHA-256 is run1790's (`e4b6a2d6…`); 77 GB free before it, 75
+after filing.
+- **The packet**: `frame_snapshot.py` verified frame 3357; 863,706,572 bytes, SHA-256
+  `1817160458055428561e4c5bc67b5d0aa8e72de0fb42a29fa2dfb54830095ba1`. `2/76` at `0x14878b1c`, `2/91` at
+  `0x1487a0ac`, `2/130` at `0x1487d8d4`.
+- **Read, not stepped**: world `*0xc06188` (60 × 60 cells, `+0x134`), objects `*0xc0618c`. `2/76`: vtable `0xb417d0`,
+  slot `+8` `0x46cda0`, flags 0x11, `z` 22, type domain 0. **No cell's chain (`WData +0x8/+0xa`, `ObjectData
+  +0x2c/+0x2e`) holds `2/76` or `2/91`**; cell (49, 25) holds `2/130 → 2/34`. Scratch:
+  `$CLAUDE_JOB_DIR`-local readers, re-derivable from the journal.
+- Filed: `gamelog-run1832-heldout6-row053-packet3357.txt`, 2,890 bytes; `rontrace-run1832.log`, 123,870,016 bytes.
+
+**What it holds**: why row 53's 3358 parts (`docs/journal/2026-11-25-item-4609.md`). No test reads it yet.

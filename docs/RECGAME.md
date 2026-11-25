@@ -1782,7 +1782,7 @@ Open: units, builds, groups and guys part on 7675. run1788 holds sums (item 4579
 ### 13.2 Row 53
 
 Open: units and guys part on 3358 (item 4578, run1812): who=2's standing Phalanx `2/76` (TI 133, land), `z` ours 29,
-theirs 22, under Smelter `2/2040`'s terraform. The rest: `docs/journal/2026-11-23-item-4578.md`.
+theirs 22, under Smelter `2/2040`'s terraform. 4609 (run1832): the two stand on no world cell's chain. Journals 4578, 4609.
 
 ### 13.3 Row 93
 
@@ -1918,7 +1918,7 @@ Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
 
 ### 14.4 Row 88
 
-Open: units part on 2902, alone (item 4631). run1808 holds sums, run1815 the ranges to 2991 (units, deaths, guys,
+Open: units, guys and leaders part on 2985 (item 4633). run1808 holds sums, run1815 the ranges to 2991 (units, deaths, guys,
 leaders and world), run1818 the ammo ranges to 2792. The stories are the items' journals.
 
 **Item 4614: a rider comes out before its carrier dies, and a fire raft dies with its shot.** Both are diff-backed by
@@ -1958,19 +1958,27 @@ plunder and the Inca refund. `plunder` redirects the same way, so `GENERAL_PLUND
 wealth. Built as `Sim::plunder_victim` (which `score_victim` reads) in `unit_plunder` and `inca_refund`. Held by
 `cities_tests::a_transport_s_kill_plunders_as_its_cargo`; the mutation with the redirect dropped fails it.
 
+**Item 4633: a boat's damage comes ashore on its squad's tail.** On 2902 units range 3709 reads `damage` ours 12, theirs 0,
+on who=2's Elite Javelineers captain `2/29` (TI 84), and theirs' 12 is on the tail `2/31`. On 2901 the barge `2/65` (TI
+320, 44 of 50) unloads them. `Unit::same_damage@005f9400` walks the receiving squad from its last live figure up `o_up`,
+owing the larger damage fraction of `myhits` less the squad's `total_damage@00609c00`: 30/256 of 110 is 12, on the tail.
+Built in `Sim::same_damage` (`docs/TRANSPORT.md` §6.4), held by
+`ai::transport::tests::a_boat_s_damage_comes_ashore_on_its_squad_s_tail`.
+
 The score, `SCORES_SEVENTH[4].moved` (12,001 states). 4614: deaths and world 2,741 → 2,862, groups → 2,883, guys →
 2,851. 4622: units → 2,807, leaders → 2,879; first 2741 → 2791. 4625: units → 2,902, ammo → 3,056, deaths → 2,922,
 groups → 2,928, guys → 2,907, leaders → 2,883, items → 7,829, world → 2,909; first 2791 → 2883. 4631: leaders 2,883 →
-2,926. **The first parting moves 2883 → 2902, on units alone.**
+2,926. 4633: units → 2,985, builds → 3,015, ammo → 3,170, guys → 2,985, leaders → 3,011, goods → 3,543; first 2902 →
+2985.
 
-**The next word, 2902, units.** run1815's ranges hold it: range 3709, record 29, `myhits..launch_frames` byte 4 ours
-`0x0c`, theirs `0x00` (damage ours 12, theirs 0). Guys and world part on 2907, ammo on 2917, deaths and leaders on 2922.
+**The next word, 2985: units, guys and leaders.** run1815's ranges hold it: who=1's `1/61` (TI 266), `order.target`
+ours `ox` 64, `whom` 2, `uid` 94, theirs −1, −1, 93; `near_o` ours 46, theirs 31; `cur_time` ours 60, theirs 61.
 
 **Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is not built: no capture has been shown
 to reach it. A building shooter always splashes from the landing (`Build` and `Wall` fill vslot `+0x18` with a
 `return 0`). The Carrack's node-2 `CHAR_ATTACK2` row (frame 24) is one unit off at heading 283; piece 128's six
 node-0 attack keys still fall back to the figure's square on row 88 after 2883. A transport's head rider is taken as
-the lowest live slot aboard, not read off `inside_down`'s ring order; no capture yet kills a mixed cargo.
+the lowest live slot aboard, not read off `inside_down`'s ring order; no capture yet kills a mixed cargo. `eject_riders` walks riders in slot order too (4633a): the chain order moved nothing on run1815.
 
 ### 14.5 Row 108
 

@@ -551,7 +551,12 @@ object, in order:
    kept because it is the arm the call passes.
 2. **`Unit::come_out(passenger, 0)`** — the spot, and §4.1's army coin at
    its tail.
-3. **`Unit::same_damage(passenger, boat)`** — the mirror of §6.2's line 2.
+3. **`Unit::same_damage(passenger, boat)`** — the mirror of §6.2's line 2. It is a squad walk (item 4633,
+   `docs/RECGAME.md` §14.4): the receiver is the passenger's last live figure; the fraction is the larger of its
+   squad's `total_damage` and the boat's, over each one's hits; what is owed is that fraction of `myhits` less the
+   squad's own, laid on from the tail up `o_up`. A member short of a figure's share takes it as its `damage`, one owed
+   a share dies, and the captain takes the rest, one short of death. run1815's 2902: the barge `2/65`'s 12 lands on
+   the tail `2/31`, not on its captain `2/29`.
 4. **`param_3 != 0`**, and then the passenger's type's `uber_size`
    (`+0x308`) splits it:
    - **`== 1`**: the boat's whole order list is moved onto the passenger,
