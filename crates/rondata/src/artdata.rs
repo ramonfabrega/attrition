@@ -2585,7 +2585,7 @@ pub fn underlay_textures(
     Ok((snowcaps, list))
 }
 
-/// **The tileset's road pages** (item 4653; `docs/RENDERER.md` §6.1):
+/// **The tileset's road pages** (item 4653; `docs/RENDERER.md` §6.2):
 /// `<ROADTEX>`' `TEXTURE` `name=` under `tileset`, in file order.
 /// `TileSet::init@0087b370` loads each into `TileSetData::road_textures`,
 /// tinted by the tileset's tint (`ImageIO::set_tint`), and

@@ -380,13 +380,16 @@ pub(crate) mod tests {
     /// Item 4653: luma 29 → 30, the capital's plates drawn beside the plots.
     /// Item 4661: 30 → 29, a named fall: the plates on their own alpha, no
     /// longer the borders' ramp.
-    const RUN1814B_3294_FARM_BEFORE: [(usize, usize); 2] = [(2, 48), (29, 48)];
+    /// Item 4665: 29 → 30, the plates on `early_road_pieces.tga` at last
+    /// (921 was the surf's mask 1), laid twice.
+    const RUN1814B_3294_FARM_BEFORE: [(usize, usize); 2] = [(2, 48), (30, 48)];
 
     /// **The row by half** (item 4650): the `wheatfarm` underlay alone, and
     /// the wheat boxes alone over the grass.
     /// Item 4653: the underlay alone, luma 40 → 39, a named fall, the plates
-    /// drawn (their HDR round trip re-tones the frame, §6.1).
-    const RUN1814B_3294_FARM_UNDERLAY: [(usize, usize); 2] = [(9, 48), (39, 48)];
+    /// drawn (their HDR round trip re-tones the frame, §6.2).
+    /// Item 4665: 39 → 40, the plates on their own alpha at last.
+    const RUN1814B_3294_FARM_UNDERLAY: [(usize, usize); 2] = [(9, 48), (40, 48)];
     const RUN1814B_3294_FARM_BOXES: [(usize, usize); 2] = [(48, 48), (48, 48)];
 
     /// **The frame `FarmsOut::draw` last built run1814b's mesh on**: the

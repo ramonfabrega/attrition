@@ -188,7 +188,7 @@ fn fs_snowcap(i: VOut) -> @location(0) vec4<f32> {
     return vec4<f32>(land_fake(t * land_vertex(i.nl)), a);
 }
 
-// Item 4653 (`docs/RENDERER.md` §6.1): the plates, `RoadsOut`'s tile page
+// Item 4653 (`docs/RENDERER.md` §6.2): the plates, `RoadsOut`'s tile page
 // under `roads_rs_alpha` (`RoadsOut +0x2f0` on run1814b's packet): stage 0
 // `SELECTARG2(DIFFUSE)` on colour and `SELECTARG1(TEXTURE)` on alpha, the
 // piece's alpha at UV0; stage 1 `MODULATE(TEXTURE, CURRENT)` on both, the

@@ -542,7 +542,7 @@ enum PatchKind {
     /// `Borders::process_all`, so the ground between two of the strip's
     /// samples never covers it.
     Border,
-    /// The plates (item 4653, §6.1): `roads_rs_alpha`'s two stages, the
+    /// The plates (item 4653, §6.2): `roads_rs_alpha`'s two stages, the
     /// tile page's colour through `TL_FAKE_LIGHT` at the piece's alpha
     /// times the page's.
     Plate,
@@ -614,7 +614,7 @@ pub struct Gpu {
     /// the coral on the land pass's HDR target ([`LAND_HDR_FORMAT`]), and the
     /// two full-screen passes that take the frame there and back.
     hdr_lit: wgpu::RenderPipeline,
-    /// The plates on the land pass's HDR target (item 4653, §6.1).
+    /// The plates on the land pass's HDR target (item 4653, §6.2).
     hdr_plate: wgpu::RenderPipeline,
     hdr_faded: wgpu::RenderPipeline,
     hdr_floor: wgpu::RenderPipeline,
@@ -1411,7 +1411,7 @@ impl Gpu {
             LAND_HDR_FORMAT,
             wgpu::CompareFunction::LessEqual,
         );
-        // Item 4653 (§6.1): the plates blended before the curve, as the
+        // Item 4653 (§6.2): the plates blended before the curve, as the
         // card blends `roads_rs_alpha`'s `TL_FAKE_LIGHT` on its HDR target.
         // Item 4661: `roads_rs_alpha`'s enables 0x3c004 carry no `ZENABLE`
         // (`rise.pdb`'s `RenderEnables`; run1833's card, draw 81), so the
@@ -2469,7 +2469,7 @@ impl Gpu {
                 pass.draw(0..3, 0..1);
             }
         }
-        // Item 4653 (§6.1): the runs through `draw_split`, whose plate arm
+        // Item 4653 (§6.2): the runs through `draw_split`, whose plate arm
         // blends a run of plates on the HDR target; the rest draw as in the
         // frame pass (the border arm off, as here before).
         let extent = wgpu::Extent3d {
@@ -2990,7 +2990,7 @@ impl Gpu {
         lake: Option<&wgpu::BindGroup>,
     ) {
         let is_border = |p: &UploadedPatch| border_hdr && p.5 == PatchKind::Border;
-        // Item 4653 (§6.1): a run of plates on the land pass's HDR target,
+        // Item 4653 (§6.2): a run of plates on the land pass's HDR target,
         // where their overlaps blend as the card's do.
         let is_plate = |p: &UploadedPatch| plate_hdr && p.5 == PatchKind::Plate;
         let mut i = 0;

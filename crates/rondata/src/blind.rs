@@ -1577,7 +1577,7 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// selected Citizen `0/6`: `Console::exec_keymap` → `Options::exec` case 3 → `do_repair` on 724,
 /// which arms the pick (`MessageWin::add_instructions` on 724, `picked_spot` not entered); open
 /// 1 → 0.
-/// **336 → 337** with item 4653: `docs/RENDERER.md` §6.1 cites `TileSet::get_road_texture`, the
+/// **336 → 337** with item 4653: `docs/RENDERER.md` §6.2 cites `TileSet::get_road_texture`, the
 /// plates' stage-1 texture, which no trace enters (run1814b's packet holds what it returns); open
 /// unchanged.
 #[rustfmt::skip]
@@ -3300,7 +3300,7 @@ pub const RESIDUE: &[(u32, &str)] = &[
          inlined at its one use; no reference in the executable (item 4661's \
          scan; the byte before is padding). The live copy is RoadsOut::render \
          @008943d0's stage-1 bind, which reads road_textures[bucket] for a bucket \
-         under 2 itself (docs/RENDERER.md §6.1)",
+         under 2 itself (docs/RENDERER.md §6.2)",
     ),
     (
         0x0087_a770,

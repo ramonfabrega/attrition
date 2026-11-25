@@ -359,10 +359,13 @@ pub struct World {
     /// The roads' made-to-fail (item 4199): every piece moved by this many
     /// tiles.
     pub roads_shift: (i32, i32),
-    /// Lay the early age bucket, the plates (item 4653, §6.1). On by
+    /// Lay the early age bucket, the plates (item 4653, §6.2). On by
     /// default; the plates' row as drawn before turns it off, which is the
     /// roads as item 4199 left them, bucket 2 alone.
     pub early_roads: bool,
+    /// Times each plate is laid, [`PLATE_LAYS`] (item 4665); the row's
+    /// arm laid once sets 1. Read when the roads are laid again.
+    pub(crate) plate_lays: usize,
     /// The by-half of the plates' row (item 4653): each tile's element and
     /// orientation taken from the packet's record instead of our walk.
     #[cfg(test)]
@@ -728,17 +731,25 @@ pub const ROAD_ALPHA: usize = 911;
 /// road pieces (item 4199, §3.19).
 pub const ROAD_PAGE: u8 = 0;
 pub const ROAD_BUCKET: i32 = 2;
-/// **The plates** (item 4653, §6.1): page 0's early age bucket, a tile
+/// **The plates** (item 4653, §6.2): page 0's early age bucket, a tile
 /// page — `early_road_pieces.tga`'s alpha at the piece's texcoords over the
 /// tileset's first `<ROADTEX>` at the tile's own, `x / 4` and `y / 4` in
 /// tiles (842 of 842 of run1814b's helper-0 vertices).
 pub const PLATE_BUCKET: i32 = 0;
 pub const PLATE_PIECE: i32 = -200_022;
-/// `Gpu::alpha_texture`'s cache key: 921, not 913, which is
-/// [`BORDER_ALPHA_INDEX`]'s, whose ramp the plates sampled until item 4661.
-pub const PLATE_ALPHA: usize = 921;
+/// `Gpu::alpha_texture`'s cache key: 902. At 913 it was
+/// [`BORDER_ALPHA_INDEX`]'s, whose ramp the plates sampled until item 4661;
+/// at 921 it was the surf's mask 1 ([`SURF_ALPHA`] + 1, inside
+/// [`SURF_MASKS`]), which they sampled until item 4665.
+pub const PLATE_ALPHA: usize = 902;
 /// The tile page's texcoords a tile (`RenderHelper::tex1` on the packet).
 pub const PLATE_PAGE_TILES: f32 = 4.0;
+/// **Each plate is laid twice** (item 4665, §6.2): run1833's draw 81 holds
+/// its 842 vertices as 421 pairs, each piece's grid repeated at once, every
+/// field equal, and its 1,920 indices draw both. The file's alpha blended
+/// over itself covers `1 − (1 − a)²`. Why `build_render_data` adds them
+/// twice is not read.
+pub const PLATE_LAYS: usize = 2;
 
 /// The age bucket `Terrain::add_weathering` takes for every age past its
 /// gate (`4 < age` → 2), `WEATHERELEM age="2"`, Modern (item 4190).
@@ -1292,7 +1303,7 @@ impl World {
             // Item 4212 (§3.21): `roads.xml`'s pages are not the tileset's
             // `<ROADTEX>`, and their loader sets no tint.
             let img = render::tga::decode(&bytes).ok()?;
-            // Item 4653 (§6.1): the plates' page. `TileSet::init` tints the
+            // Item 4653 (§6.2): the plates' page. `TileSet::init` tints the
             // `<ROADTEX>` entries; `roads.xml`'s alpha is not.
             let plates = (|| {
                 let (_, file) = art
@@ -1425,6 +1436,7 @@ impl World {
             roads: true,
             roads_shift: (0, 0),
             early_roads: true,
+            plate_lays: PLATE_LAYS,
             #[cfg(test)]
             road_pick: None,
             road_art,
@@ -2167,7 +2179,7 @@ impl World {
         }
         // Item 4199 (§3.19): the roads, after the weathering and before the
         // first mountain layer, laid again when the frame or a switch moves.
-        // Item 4653 (§6.1): the plates first, as `RoadsOut::render` walks
+        // Item 4653 (§6.2): the plates first, as `RoadsOut::render` walks
         // its helpers by `page · 3 + bucket`.
         let key = (frame, self.roads, self.roads_shift, self.early_roads);
         let laid_key = (
@@ -2361,7 +2373,7 @@ impl World {
     /// [`crate::roads::laid`] lays whose owner's age bucket is
     /// [`ROAD_BUCKET`] and whose piece is on [`ROAD_PAGE`], moved by
     /// [`World::roads_shift`] tiles, each beside its bucket. Item 4653
-    /// (§6.1): and [`PLATE_BUCKET`]'s, the plates, while
+    /// (§6.2): and [`PLATE_BUCKET`]'s, the plates, while
     /// [`World::early_roads`] is set and their art reads. A cell nobody
     /// holds takes the record's `prev_age`, which the door does not carry;
     /// it lays nothing here.
@@ -2414,11 +2426,23 @@ impl World {
         .collect()
     }
 
+    /// The plates' mesh as the frame lays it (item 4665, §6.2).
+    #[cfg(test)]
+    pub(crate) fn plate_mesh(&mut self) -> Option<PatchMesh> {
+        let laid: Vec<crate::roads::Laid> = self
+            .road_pieces()
+            .into_iter()
+            .filter(|(b, _)| *b == PLATE_BUCKET)
+            .map(|(_, l)| l)
+            .collect();
+        self.road_mesh(&laid, true)
+    }
+
     /// The pieces as one [`PatchMesh`] (item 4199, §3.19): each piece's box
     /// cut at the tile lines inside it, as the packet's vertices stand, each
     /// corner on the ground's own triangle (`TerrainMesh::build`'s `[a, b,
     /// d]`, `[b, c, d]`) and its texcoord the box's bilinear; the texture is
-    /// its own alpha. Item 4653 (§6.1): a `plate`'s texture is the tile
+    /// its own alpha. Item 4653 (§6.2): a `plate`'s texture is the tile
     /// page at [`PLATE_PAGE_TILES`] a tile, its alpha `early_road_pieces`
     /// at the piece's texcoords.
     fn road_mesh(&mut self, laid: &[crate::roads::Laid], plate: bool) -> Option<PatchMesh> {
@@ -2473,7 +2497,8 @@ impl World {
             v.push(b);
             v
         };
-        for l in laid {
+        let lays = if plate { self.plate_lays } else { 1 };
+        for l in laid.iter().flat_map(|l| std::iter::repeat_n(l, lays)) {
             let [x0, y0, x1, y1] = l.rect;
             let [nw, ne, sw, se] = l.uv;
             let uv = |x: f32, y: f32| {
@@ -3677,6 +3702,9 @@ mod tests {
             super::LAND_OIL_ALPHA,
             super::FARM_PIG_ALPHA,
             super::FARM_WHEAT_ALPHA,
+            // Item 4665: the plates sat at 921, the surf's mask 1.
+            super::LAND_FADE_ALPHA,
+            super::PLATE_ALPHA,
         ];
         for (i, k) in ones.iter().enumerate() {
             assert!(
