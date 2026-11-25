@@ -211,7 +211,21 @@ Zero `role`, `num_units`, `num_captains`, `num_standard`, `num_decoys`.
 Then over the groups **from the last to the first**: `Group::normalize`;
 if the group now has **no units, or is a building group** (`+0x49`),
 `remove_group(it)` and **return** — one removal per call, the rest waits
-for the next tick. Else:
+for the next tick.
+
+**The removed record stays on its pool index** (item 4676,
+`docs/RECGAME.md` §14.4). `remove_group@006f8b50` writes the record's
+`army` −1 and nothing else, so `who`, `stamp`, the point, `order_num`,
+`form_num` and `facing` stand until a later `copy_group` into the slot.
+The crate's army carries its one group as its own record, so
+`Sim::army_normalize` moves an emptied, still linked record to its index's
+`Pushed` seat through `seat_orphan`, as `close_army` does (§22), and the
+army's next join pushes. A group `Group::kill` emptied is not removed:
+its `clear(-1)` already wrote `army` −1, and `remove_group` asks the record
+to name the army. Diff-backed by run1839 (row 88's who=2 slot 130 on
+3095).
+
+Else:
 
 ```
 num_units    += group.num
