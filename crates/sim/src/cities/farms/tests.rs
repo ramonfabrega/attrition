@@ -850,3 +850,50 @@ fn the_gates() {
     s.farms_inc_time();
     assert_ne!(s.rng.seed, seed, "five: chance (5 − 4)·20/8 = 2");
 }
+
+/// **A dead farm's record rolls again under its number's next building**
+/// (item 4669, `Farms::inc_time@008d8600`; run1797's frame 2675). The
+/// walk asks the object at the record's `(who, o)` for `flags & 4`, never
+/// the record's own `valid` byte: the closed farm's own object answers 0
+/// and its record rests; a later building that takes the number rests it
+/// while a site, and the frame it is finished the dead farm's sixteen
+/// empty cells take their crop draw. Made to fail with the gate read off
+/// the record's own farm (`alive && active`): the last assertion parts.
+#[test]
+fn a_dead_farm_s_record_rolls_under_its_number_s_next_complete_building() {
+    let (mut s, b) = farm_sim();
+    let other = s.add_build_type(build::BuildType {
+        ident: Ident::default(),
+        x_size: 2,
+        y_size: 2,
+        flags: build::flags::FLAT,
+        job_time: 100,
+        hits: 500,
+        ..build::BuildType::default()
+    });
+    let seed = s.rng.seed;
+    s.farms_inc_time();
+    assert_ne!(s.rng.seed, seed, "the live farm's sixteen empty cells draw");
+    // Closed: its own object carries no flags, and nothing else has the number.
+    s.buildings[b].alive = false;
+    let seed = s.rng.seed;
+    s.farms_inc_time();
+    assert_eq!(s.rng.seed, seed, "a dead farm's record rests");
+    // A later building takes the number, a site first.
+    let n = s.init_build(0, other, Pos::new(10 * 192 + 96, 10 * 192 + 96), false);
+    assert_eq!(
+        s.buildings[n].index, s.buildings[b].index,
+        "the next building takes the freed number"
+    );
+    assert!(!s.cities.farm_order.contains(&n), "and is no farm");
+    assert_eq!(
+        s.cities.farm_order,
+        vec![b],
+        "the dead farm's record stays listed"
+    );
+    s.farms_inc_time();
+    assert_eq!(s.rng.seed, seed, "a site at the number rests it");
+    s.activate(n, false, true);
+    s.farms_inc_time();
+    assert_ne!(s.rng.seed, seed, "finished: the dead farm's record draws");
+}

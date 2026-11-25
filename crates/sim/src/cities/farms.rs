@@ -675,6 +675,22 @@ impl Sim {
         }
     }
 
+    /// Whether the object now at farm `b`'s record number is a complete
+    /// building — `Farms::inc_time@008d8600`'s `(who, o)` lookup and its
+    /// `flags & 4` (`Build` vtable) test. The number's occupant is its
+    /// latest building ([`Sim::building_slot_state`]'s reading); a closed
+    /// one carries no flags.
+    pub(crate) fn farm_record_slot_complete(&self, b: usize) -> bool {
+        let (who, o) = (self.buildings[b].owner, self.buildings[b].index);
+        let at = self
+            .buildings
+            .iter()
+            .rposition(|x| x.owner == who && x.index == o)
+            .unwrap_or(b);
+        let occupant = &self.buildings[at];
+        occupant.alive && occupant.active
+    }
+
     /// `WallData::tile_corner@00643440` of building `b`: its footprint's
     /// corner tile, the one `Farms::add` and `Farms::recalc_heights` sample
     /// a farm's heights from.
@@ -1066,7 +1082,20 @@ impl Sim {
     }
 
     /// `Farms::inc_time`, from `Objects::inc_time` after the ammo — every
-    /// complete, enabled farm, in building order.
+    /// record of the list that is not a pasture and whose object number
+    /// holds a complete building, in the list's order.
+    ///
+    /// **The gate is the record's number, not its farm** (item 4669,
+    /// `docs/SYNC.md` §3.3). `Farms::inc_time@008d8600` never reads the
+    /// record's `valid` byte (`+0xbc`), the only thing `Farms::remove`
+    /// clears: it looks up whatever object stands at the record's `(who,
+    /// o)` *now* and asks it `flags & 4`. A demolished farm's own object
+    /// answers 0 (`Build::close` zeroes the flags), so its record rests —
+    /// until a later building takes the number and is finished, when the
+    /// dead farm's cells advance and roll again. Run1797's frame 2675:
+    /// who=2's Farm 2003 is dead, the building of type 106 that took 2003
+    /// activates in the objects phase, and the original's walk spends a
+    /// third crop draw on the dead farm's five empty cells.
     pub fn farms_inc_time(&mut self) {
         // The `Farms` list, in activation order (`Sim::farm_order`) — not
         // the buildings' — because the sprout's `% empty` draw is spent by
@@ -1074,10 +1103,13 @@ impl Sim {
         let order = self.cities.farm_order.clone();
         for b in order {
             let bd = &self.buildings[b];
-            if !bd.alive || !bd.active || bd.farm.farm_type == ANIMAL_FARM {
+            if bd.farm.farm_type == ANIMAL_FARM {
                 continue;
             }
             if self.building_ident(b) != crate::cities::build::Ident::Farm {
+                continue;
+            }
+            if !self.farm_record_slot_complete(b) {
                 continue;
             }
             let empty = self.buildings[b].farm.advance();
