@@ -760,8 +760,9 @@ impl Sim {
     /// ·, who, 1, ·, FILTER_SEEN, who, 0)@00659890` as the routing asks it
     /// at a point with no building (`619ab2`..`619acd`). Its search index
     /// is never read (`Search::valid_search(·, 0, …)` answers 1), so every
-    /// player's unit is a candidate. SEAM: the seen filter.
-    fn unit_at_point(&self, at: crate::Pos) -> Option<usize> {
+    /// player's unit is a candidate if the trainee's owner can see it.
+    /// The sample's Merchant 4/16 covers the point but is hidden from 3/23.
+    fn unit_at_point(&self, at: crate::Pos, who: Player) -> Option<usize> {
         let mut best: Option<(i32, usize)> = None;
         for (o, u) in self.units.iter().enumerate() {
             if u.owner >= 8 || !u.alive() || !u.on_map {
@@ -769,10 +770,13 @@ impl Sim {
             }
             let d = crate::world::vector_dist(at.x - u.pos.x, at.y - u.pos.y);
             let br = self.profile(crate::combat::Obj::Unit(o)).big_radius;
+            if d - br > 1 || !self.target_seen_by(who, crate::combat::Obj::Unit(o)) {
+                continue;
+            }
             if d <= br {
                 return Some(o);
             }
-            if d - br <= 1 && best.is_none_or(|(bd, _)| d - br <= bd) {
+            if best.is_none_or(|(bd, _)| d - br <= bd) {
                 best = Some((d - br, o));
             }
         }
@@ -938,16 +942,7 @@ impl Sim {
             if !open {
                 return;
             }
-        } else if let Some(found) = self.unit_at_point(last.pos) {
-            crate::seam!(
-                "unit_unseen",
-                self.units[found].owner != who
-                    && !self.was_seen_fog(
-                        self.units[found].pos.tile().x >> 1,
-                        self.units[found].pos.tile().y >> 1,
-                        who
-                    )
-            );
+        } else if let Some(found) = self.unit_at_point(last.pos, who) {
             crate::seam!(
                 "found_enemy_armed",
                 self.profile(crate::combat::Obj::Unit(captain)).attack != 0

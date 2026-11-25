@@ -42006,3 +42006,35 @@ read 82 GB free before it and 91 after filing.
 
 **What it holds**: `diff::held_out::tests::row_28_s_round_on_run1821_s_ranges` (every units, builds, ammo, guys and
 world range on 4166 and 4167).
+
+## run1822 — 2017 sample, Merchant 3/23's birth, packet at state 7611 (2026-11-24, item 4641)
+
+Run1786 holds the new unit's complete ranges and its Market's rally order.
+Its checksum excludes terrain tile masks and the return from the rally
+lookup. Pool lane 1 replayed the installed recording, SHA-256
+`df7830d7b6c77e1318a1ef5b7725ae2f0b0c8db5957bed85db0479b506f72649`.
+With `P=~/ron-data/lab-experiments/2026-09-23-item-597/plan`, use
+`tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1822
+--recording "<install>/external-recgames/seifer008 - Toughest AI 4 v 1.rcx"
+--end-frame 7615 --cover cover=1 --log-window 7609 7614 --detail end:MISC
+--timeout 1800 --stall-seconds 120 --tracer-def RON_CHECKSUMS
+--tracer-def RON_STATE_FRAME=7611 --tracer-def "RON_STATE_PLAN=\"$P/plan.h\""`.
+`TMPDIR` was a fresh directory inside the item's evidence directory.
+
+- `waitrun.sh` returned 0. Map 7, seed 340513920, launch to exit 545.73 s.
+  The recording reached 7615 with zero page faults and relaunches. The runner restored all five settings.
+- `tools/explore/frame_snapshot.py ~/ron-golden/run1822/map-7 "$P/plan.json"`
+  verified all eight anchors, the logger return and the completion receipt.
+  The packet is 897,532,132 bytes, SHA-256
+  `f6b73efced0ca21f9f6cd8765c76650cffadace4080960ec85eea545ae137291`.
+  All 57,600 tile masks matched our state 7611. Both candidate exit tiles
+  were open, with clear occupancy in the five-by-five quarter-tile footprint.
+- On that packet, enter `ObjectsData::find_unit_with_radius` with
+  `uv run --offline tools/recomp/step4.py <install>/riseofnations.exe <packet>
+  --entry 659890 --this c0ab70 --args 14731,7289,0,3,1,0,17,3,0 --dump c0ad70+4
+  --out <fresh-output>`. The recorded rally filter returns −1. Change only 17 to 0
+  for the all-units control and it returns 16 with owner 4. Both calls returned
+  without any Windows import. Local reports and `compare-tiles.py` are in
+  `~/ron-data/lab-experiments/2026-11-24-codex-merchant.ch6hlc/`.
+- Filed by `tools/gamelog/filerun.py run1822 sample2017-merchant-birth-7611`.
+  The archive links the 3,775-byte gamelog and 133,824,576-byte trace.

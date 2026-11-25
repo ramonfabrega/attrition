@@ -1191,6 +1191,13 @@ candidate, on open ground.
   `619b92`). run338's `0/13`, its point on the Chariot `0/10`: (2376,
   14808) on 858. An armed captain and an enemy found take attack orders
   down the squad instead of the move (read, not built).
+- **An unseen unit at the point** (item 4641). The lookup tests whether
+  the trainee's owner currently sees the candidate. In run1822 the original
+  returns no unit for player 3 at (14731,7289). With the filter open it
+  returns Merchant 4/16, 53 units from the point with a body radius of 96.
+  Skipping that extra placement leaves 3/23 on its first exit spot when the
+  lone move searches again. The trainee itself occupies that spot, so it
+  finishes at (12552,10584), exactly as recorded in run1786.
 - **A re-seat's spot is the leg's origin**: the building arm's and the
   third re-seat's outputs are copied into `[esp+0x2c]/[esp+0x54]`
   (`61936d`, `619bf6`), so a squad's move angle is measured from where

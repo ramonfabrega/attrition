@@ -581,6 +581,16 @@ units to 7612 and cities to 7825. Units, guys and world now first part
 at the birth of Merchant 3/23. Draws first part at 7613.
 [Scout comparison](journal/2026-11-24-item-4639.md)
 
+**Merchant 3/23 on state 7612 (item 4641).** The Market's rally point
+overlaps Merchant 4/16. On run1822's state 7611, the original's lookup
+at that point finds 4/16 with all units eligible and returns no unit when
+it uses player 3's visibility. Applying that filter removes an extra
+placement at (11880,9912). The final placement (12552,10584), move target
+(14952,7608) and destination angle 465764352 match run1786. Units, figures
+and world agree through 7934. Group 2's order first differs on 7935, draws
+on 7949. Goods first differs on 8548, four frames earlier downstream.
+[Merchant comparison](journal/2026-11-24-item-4641.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte
