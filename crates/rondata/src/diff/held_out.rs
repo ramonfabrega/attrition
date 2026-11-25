@@ -4673,69 +4673,6 @@ pub(crate) mod tests {
         }
     }
 
-    #[test]
-    fn probe_4681() {
-        if std::env::var("RON_PROBE_4681").is_err() {
-            return;
-        }
-        let inst = crate::testenv::install().expect("install");
-        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(&SIXTH, 4) else { panic!("rcx") };
-        let map = home.join("ron-golden/run1799/map-14");
-        let ranges = crate::testenv::experiment(&map, "rontrace.ranges").expect("ranges");
-        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
-        let loaded = crate::load::load(&inst).expect("the install loads");
-        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
-        let rules = inst.rules().expect("rules");
-        let tribes = inst.tribe_defs(&rules).expect("tribes");
-        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
-        let mut stream = crate::input::Stream::pump(&rec);
-        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
-        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(3054);
-        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(3058);
-        let watch: Vec<i16> = std::env::var("RON_PROBE_O").ok().map(|v| v.split(',').filter_map(|x| x.parse().ok()).collect()).unwrap_or(vec![77]);
-        for state in lo..=hi {
-            while built.sim.frame < state {
-                stream.apply(built.sim.frame as i32, &mut built);
-                built.sim.command().tick();
-            }
-            let t77: Vec<usize> = built.sim.units.iter().enumerate().filter(|(_, u)| u.alive() && u.owner == 2 && u.index == 77).map(|(i, _)| i).collect();
-            for (k, p) in built.sim.combat.projectiles.iter().enumerate() {
-                if p.target.is_some_and(|t| matches!(t, sim::combat::Obj::Unit(i) if t77.contains(&i))) || p.owner == 1 {
-                    let sh = match p.shooter { sim::combat::Obj::Unit(i) => format!("unit {}/{} alive {} captain {}", built.sim.units[i].owner, built.sim.units[i].index, built.sim.units[i].alive(), built.sim.units[i].combat.captain), o => format!("{o:?}") };
-                    eprintln!("P4681 state {state} ammo {k} shooter {sh} owner {} target {:?} left {:?} cur {} total {} landing {:?}", p.owner, p.target, p.left, p.cur_time, p.total_time, p.landing);
-                }
-            }
-            for u in built.sim.units.iter().filter(|u| u.alive() && u.owner == 1 && u.combat.target.is_some_and(|t| matches!(t, sim::combat::Obj::Unit(i) if t77.contains(&i)))) {
-                eprintln!("P4681 state {state} striker {}/{} ty {:?} captain {} recharging {}", u.owner, u.index, u.ty.map(|t| loaded.unit_names[t].clone()), u.combat.captain, u.combat.recharging);
-            }
-            for u in built.sim.units.iter().filter(|u| u.alive() && (watch.contains(&u.index) || (u.owner == 1 && watch.contains(&(u.combat.captain as i16))))) {
-                let ty = u.ty.map(|t| (loaded.unit_names[t].clone(), built.sim.tables.unit_types[t].type_index));
-                eprintln!(
-                    "P4681 state {state} unit {}/{} {:?} hp? combat {:?}",
-                    u.owner, u.index, ty, u.combat
-                );
-            }
-            let set = record.first_of(state - 1).expect("the state's set").clone();
-            let all = record.ranges(&set).expect("the set's ranges");
-            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
-            let ours = lines[0].as_ref().expect("units");
-            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
-            eprintln!("P4681 state {state} counts ours {} theirs {}", ours.ranges.len(), theirs.len());
-            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
-                if a.bytes != b.bytes {
-                    let offs: Vec<String> = a.bytes.iter().zip(&b.bytes).enumerate().filter(|(_, (x, y))| x != y).map(|(i, (x, y))| {
-                        let name = if a.field == "collide_frame..play" {
-                            sim::checksum::units::UNIT_FIELDS.iter().find(|(_, o, w)| i + 0x48 >= *o && i + 0x48 < o + w).map(|f| f.0).unwrap_or("?")
-                        } else { "" };
-                        format!("{i}({name}):{x:#x}|{y:#x}")
-                    }).collect();
-                    eprintln!("P4681 state {state} range {k} record {} {} len {}|{}: {}", a.record, a.field, a.bytes.len(), b.bytes.len(), offs.join(" "));
-                }
-            }
-        }
-    }
-
     /// **Row 43's Slinger stones leave from piece 736's sockets** (item
     /// 4547, `docs/RECGAME.md` §12.3): run1787, the ranges take of row 43's
     /// file. who=2's Slingers `2/30` and `2/29` (TI 82, land, piece 736,
