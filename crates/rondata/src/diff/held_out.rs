@@ -12578,25 +12578,37 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 3,323, deaths 3,632 -> 3,008, groups 3,002 -> 3,004, items 5,437 -> 3,954 (first 3468 ->
         // 3146), goods 4,397 -> 4,117, ours' `game_over` 9802 -> 11109; all past the row's first
         // parting 2965 (units), which stands, and guys 2966 stands.
+        // Then item 4657 (`get_damage@00644130`'s step 17 calls
+        // `ObjectData::attack@006469f0` directly at `644a04`, so the decoy's
+        // `max(attack, base) × 1000` takes no `UnitData::attack` override,
+        // `Sim::object_attack`): on 2964's tick who=2's Infantry `2/51` (TI
+        // 102, land) scores the decoy `1/38` (TI 258) at 20,000 as theirs
+        // (run1830b), where ours' Citizen arm made 260 of its 240 and
+        // 594,950, and picks as theirs. The row's first parting moves 2965
+        // -> 3058, units alone: units 2,965 -> 3,108, builds 3,026 -> 3,269,
+        // ammo 3,323 -> 3,879, deaths 3,008 -> 3,612, groups 3,004 -> 3,473,
+        // guys 2,967 -> 3,416, leaders 2,983 -> 3,449, cities 3,376 ->
+        // 3,707, items 3,954 -> 6,297, goods 4,117 -> 4,563, world 2,975 ->
+        // 3,184; ours' `game_over` 11109 -> none, both play to 12,000.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                2965, 3026, 12001, 3323, 3008, 3004, 2967, 2983, 3376, 3954, 4117, 2975,
+                3108, 3269, 12001, 3879, 3612, 3473, 3416, 3449, 3707, 6297, 4563, 3184,
             ],
             first: &[
-                ("units", (2965, Some(2944560567), 523660729)),
-                ("builds", (3004, Some(2482202651), 4285163131)),
-                ("ammo", (2978, Some(1714572981), 3065139014)),
-                ("deaths", (3008, Some(3817289519), 3817489508)),
-                ("groups", (2982, Some(1074681641), 115365832)),
-                ("guys", (2966, Some(96889624), 2207673204)),
-                ("leaders", (2983, Some(3337828037), 36057006)),
-                ("cities", (3376, Some(897138611), 842153906)),
-                ("items", (3146, Some(2121282860), 2092447016)),
-                ("goods", (3157, Some(2924123420), 3056768288)),
-                ("world", (2975, Some(4068279797), 2248541463)),
+                ("units", (3058, Some(4270193561), 4037082007)),
+                ("builds", (3269, Some(1882890068), 5807727)),
+                ("ammo", (3420, Some(2050829256), 3783208006)),
+                ("deaths", (3433, Some(1040278336), 1142973249)),
+                ("groups", (3458, Some(349811072), 1738456272)),
+                ("guys", (3399, Some(3910598501), 3104440211)),
+                ("leaders", (3441, Some(1041176352), 4221441822)),
+                ("cities", (3652, Some(1847345313), 121454513)),
+                ("items", (3619, Some(613036389), 584200545)),
+                ("goods", (4147, Some(3351549222), 3201602850)),
+                ("world", (3089, Some(484523747), 2319858450)),
             ],
-            over: Some(11109),
+            over: None,
         }),
     }),
     // run1793
