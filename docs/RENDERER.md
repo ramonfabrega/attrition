@@ -6352,8 +6352,8 @@ and `the_plates_candidates_are_the_packet_s`.*
 make a block two tiles high and four wide, x 12–15 and y 155–156. The
 packet lays element 1 (`5100f300`, a T with its white lines whole) on all
 eight tiles. Our walk's connections were the packet's on all eight, but our
-white bytes were a subset of theirs on every one: (13, 155) `0x21` against
-`0x3f`, (13, 156) `0x12` against `0xf3`. So the four end tiles matched
+white bytes were a subset of theirs on every one (the table below). So the
+four end tiles matched
 no piece's orientation, and the four inside matched element 14, the same T
 with fewer lines.
 
