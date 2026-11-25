@@ -1560,6 +1560,15 @@ impl Sim {
             && (self.units[t].index == 38 || self.units[t].index == 39 || self.units[t].index == 51)
         {
             let tu = &self.units[t];
+            let apos = self.pos_of(attacker);
+            let centre = Pos::new(apos.x.div_euclid(48) * 48 + 0x18, apos.y.div_euclid(48) * 48 + 0x18);
+            eprintln!(
+                "PROBE4652 range 1/{} attacker at ({},{}) forest {} dist_centre {} dist_raw {} max_range {} reach {} in_range {}",
+                tu.index, apos.x, apos.y,
+                self.world.tile_mask(apos.tile()) & crate::world::tile::SURFACE == crate::world::tile::SURFACE_FOREST,
+                self.attack_dist_from(attacker, centre, target), self.attack_dist(attacker, target),
+                self.max_range_of(attacker), self.max_range_of(attacker) * 0xc0 + 6, self.is_in_range(attacker, target)
+            );
             let fog = crate::vision::UNITS_PER_FOG;
             eprintln!(
                 "PROBE4652 detect 1/{} decoy {} seen3 {:#x} at fog ({},{}) stored_mask(2) {:#x} seen_mask(2) {:#x} detected {}",
