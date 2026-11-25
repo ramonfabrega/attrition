@@ -843,6 +843,9 @@ pub const TRACES: &[&str] = &[
     // 724, beside the Barracks `0/2007` the console's `damage_object` wounded
     // on 640.
     "rontrace-run1675.log",
+    // Item 4646: the sample factory’s trainee joins hot-key slot 55 on 9601.
+    // Its live HIT at 007160c0 covers the hot-key group’s virtual member count.
+    "rontrace-run1826.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
