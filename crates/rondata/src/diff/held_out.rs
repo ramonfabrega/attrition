@@ -9230,7 +9230,7 @@ pub(crate) mod tests {
             "row 148 from units 10879** (a rules item, whole; unseated)",
             "row 148 from units 10879** (a rules item, whole; the chain's)",
         );
-        assert_eq!(out_of_seat_order(&seated, rows), [String::new(); 0]);
+        assert!(out_of_seat_order(&seated, rows).is_empty());
         // A lower first parting behind a higher one is named too.
         let swapped = "4668. **Parity held out, seventh: row 88's units from 3033** (a rules \
                        item, whole; unseated)\n\
