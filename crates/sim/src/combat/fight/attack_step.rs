@@ -344,20 +344,24 @@ impl Sim {
     /// (`005d8ed7`–`005d8f02`: the unsigned difference, `~` past a half
     /// turn, below `0xaaa_aaaa`). The ±45° test does not gate the write.
     ///
+    /// **Under an `ATTACK_GROUND` order the bearing is to the order's
+    /// point** (item 4608, `docs/COMBAT.md` §55.3): `005d8c69`..`005d8d2b`
+    /// reads the unit's head order (`UnitData::order_type`), and when that
+    /// is `ATTACK_GROUND` takes `att_x`/`att_y` (`+0x4`/`+0x8`, unmasked)
+    /// off vslot `+0xd0` — `lea eax,[ecx-0x18]; ret` at `0047ff40`, the
+    /// order itself — **whatever the figure's aim**, and the gone test's
+    /// `return 1` is taken only under any other order. `do_attack_ground`
+    /// clears the aim (`set_attack(−1, −1)`) before its swing, and
+    /// `Guy::move`'s re-aim then bears on the point.
+    ///
     /// SEAM: the node's vector is pinned for the Chariot's figure and the
     /// Bomb Vessel's only (`pivot::NODES`); any other piece bears from the
     /// unit's point.
-    /// SEAM: an `ATTACK_GROUND` order with no aim bears on the order's
-    /// point in the original; this crate writes nothing for it.
     pub(crate) fn set_all_pivots(&mut self, i: usize, g: usize, target: Option<Obj>) -> bool {
-        crate::seam!(
-            "attack_ground_aim",
-            target.is_none()
-                && matches!(
-                    self.current_order(i).map(|o| &o.body),
-                    Some(crate::orders::Body::AttackGround(_))
-                )
-        );
+        let ground = match self.current_order(i).map(|o| &o.body) {
+            Some(crate::orders::Body::AttackGround(o)) => Some(o.at),
+            _ => None,
+        };
         let Some(ty) = self.units[i].ty else {
             return false;
         };
@@ -378,10 +382,12 @@ impl Sim {
         // `005d8c69`: the gone test is the target slot's `flags & 1`, never
         // its hit points — a city at its ceiling is still borne on
         // ([`Sim::struck`]; item 3635).
-        let Some(target) = target.filter(|&t| self.struck(t)) else {
-            return true;
+        let to = match (ground, target.filter(|&t| self.struck(t))) {
+            (Some(at), _) => at,
+            (None, Some(t)) => self.pos_of(t),
+            (None, None) => return true,
         };
-        let (from, to) = (self.units[i].pos, self.pos_of(target));
+        let from = self.units[i].pos;
         let guy = self.units[i].guys.get(g).copied();
         let facing = match guy.and_then(|x| x.follow) {
             Some(f) => f.facing,

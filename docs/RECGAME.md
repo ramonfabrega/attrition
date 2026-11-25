@@ -1786,7 +1786,7 @@ theirs 22, under Smelter `2/2040`'s terraform. The rest: `docs/journal/2026-11-2
 
 ### 13.3 Row 93
 
-2686 → 2965 by 4590 (run1803; `docs/COMBAT.md` §68.1), 4606 (`docs/CHECKSUM.md` §18). Open: units on 2965.
+2686 → 2965 by 4590 (run1803; `docs/COMBAT.md` §68.1), 4606 (`docs/CHECKSUM.md` §18). Open: units on 2965. 4608 bore `ATTACK_GROUND`'s figures on its point (COMBAT §55.3); no parting moved.
 
 ### 13.4 Row 113
 
@@ -1978,6 +1978,8 @@ Open: units, builds, groups and guys part on 7421. run1809 holds sums.
 
 Taken by item 4611, found on `6fa43acc3`'s tree; with item 4630's row 28 the line is `(2, 8)`. Open: row 128's leaders on 3338, row 148's
 units on 10879. Both hold sums.
+
+**Item 4618** (piece 37's bays): row 148 has 11 lines whole, every one but units, which still part on 10879.
 
 **Item 4635, row 128's Russian age, and the row is whole.** run1828 holds row 128's leaders ranges to 12000. On 3338
 leaders range 1, record 0, `reg_terr[1]`: ours 198, theirs 0; who=1's 495 | 104 and who=2's 447 | 0, with

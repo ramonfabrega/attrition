@@ -3002,3 +3002,60 @@ fn the_original_s_release_agrees_on_every_cell_for_item_4574() {
     assert_eq!(rows, 11 * 256 * 361, "{dir}");
     assert!(off.is_empty(), "{} cells disagree", off.len());
 }
+
+/// **Item 4618's pivot rows agree with the original on every cell**
+/// (`docs/COMBAT.md` §55): `$RON_RELEASE_TABLE_4618` is the directory holding
+/// `pivot-<piece>-n<node>-a<anim>-t<time>.txt` (`deg i t x y z`, every facing
+/// degree × every turret step), outside git
+/// (`~/ron-data/lab-experiments/2026-11-24-item-4618/pivots/`), written by
+/// `get_position.py … pivot 10 0 <anim> 22 1` on run1819's packet, which
+/// stores the Armed Caravan's (10) entries: its three keys.
+#[test]
+fn the_original_s_release_agrees_on_every_cell_for_item_4618() {
+    let Ok(dir) = std::env::var("RON_RELEASE_TABLE_4618") else {
+        eprintln!("skipping: set RON_RELEASE_TABLE_4618 (item 4618's oracle)");
+        return;
+    };
+    let mut names: Vec<_> = std::fs::read_dir(&dir)
+        .expect("RON_RELEASE_TABLE_4618")
+        .map(|e| e.expect("entry").file_name().into_string().expect("utf-8"))
+        .filter(|n| n.starts_with("pivot-") && n.ends_with(".txt"))
+        .collect();
+    names.sort();
+    let (mut files, mut rows, mut off) = (0, 0, Vec::new());
+    for name in names {
+        // `pivot-<piece>-n<node>-a<anim>-t<time>.txt`
+        let f: Vec<&str> = name[..name.len() - ".txt".len()].split('-').collect();
+        let piece: i32 = f[1].parse().expect("piece");
+        let node: i8 = f[2][1..].parse().expect("node");
+        let anim: i8 = f[3][1..].parse().expect("anim");
+        let time: u32 = f[4][1..].parse().expect("time");
+        let r =
+            release_node(piece, anim, time, node).unwrap_or_else(|| panic!("no row for {name}"));
+        assert_eq!(r.node, i32::from(node), "{name}");
+        let table = std::fs::read_to_string(format!("{dir}/{name}")).expect("table");
+        for line in table.lines() {
+            let c: Vec<i32> = line
+                .split_whitespace()
+                .take(6)
+                .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                .collect();
+            let got = release_offset_at(&r, c[0], c[2]);
+            if got != (c[3], c[4], c[5]) {
+                off.push(format!(
+                    "{piece} a{anim} t{time} ({}, {}, {}, {}) ours {got:?} z {}",
+                    c[0], c[2], c[3], c[4], c[5]
+                ));
+            }
+            rows += 1;
+        }
+        files += 1;
+    }
+    for o in &off {
+        eprintln!("LAND {o}");
+    }
+    // The Armed Caravan's three keys.
+    assert_eq!(files, 3, "{dir}");
+    assert_eq!(rows, 3 * 256 * 361, "{dir}");
+    assert!(off.is_empty(), "{} cells disagree", off.len());
+}
