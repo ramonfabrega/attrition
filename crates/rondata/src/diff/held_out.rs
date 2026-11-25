@@ -12592,7 +12592,16 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Item 4618 (piece 37's three bays, the Xopilli Atlatl's 143 rounds
+        // from 10888): 1 -> 11 lines whole; units part first on 10879 still.
+        moved: Some(Score {
+            states: 12001,
+            agreed: [
+                10879, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001,
+            ],
+            first: &[("units", (10879, Some(3473404783), 2285826991))],
+            over: None,
+        }),
     }),
 ];
 
