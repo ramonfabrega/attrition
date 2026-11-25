@@ -251,8 +251,7 @@ impl Sim {
         } else if ammo && flame {
             4
         } else {
-            let shot_is_four =
-                matches!(attacker, Obj::Building(b) if self.building_shot(b) == 4);
+            let shot_is_four = matches!(attacker, Obj::Building(b) if self.building_shot(b) == 4);
             combat::death_type(
                 ap.obj_masks,
                 !matches!(attacker, Obj::Unit(_)),
