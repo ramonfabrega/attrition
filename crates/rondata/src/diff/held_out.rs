@@ -1154,10 +1154,10 @@ pub(crate) mod tests {
     }
 
     /// Probe (item 4674): every differing range on run1838's ranges over
-    /// `RON_PROBE_4680`'s frames (`lo-hi`), with the unit behind a units range.
+    /// `RON_PROBE_4683`'s frames (`lo-hi`), with the unit behind a units range.
     #[test]
-    fn probe_4680() {
-        let Ok(win) = std::env::var("RON_PROBE_4680") else {
+    fn probe_4683() {
+        let Ok(win) = std::env::var("RON_PROBE_4683") else {
             return;
         };
         let (lo, hi) = win
@@ -1170,7 +1170,7 @@ pub(crate) mod tests {
             panic!("rcx")
         };
         let ranges =
-            crate::testenv::experiment(&home.join("ron-golden/run1840/map-18"), "rontrace.ranges")
+            crate::testenv::experiment(&home.join("ron-golden/run1842/map-18"), "rontrace.ranges")
                 .expect("ranges");
         let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 88's file");
         let loaded = crate::load::load(&inst).expect("the install loads");
@@ -1266,6 +1266,24 @@ pub(crate) mod tests {
                         ours.ranges.len(),
                         theirs.len()
                     );
+                }
+                if *name == "ammo" && std::env::var("RON_PROBE_DUMPAMMO").is_ok() {
+                    let dec = |b: &[u8]| -> String {
+                        if b.len() != 99 {
+                            return format!("{:?}", b);
+                        }
+                        let acc = i16::from_le_bytes([b[1], b[2]]);
+                        let w: Vec<i32> = (0..24)
+                            .map(|k| i32::from_le_bytes(b[3 + 4 * k..7 + 4 * k].try_into().unwrap()))
+                            .collect();
+                        format!("roll {} acc {acc} gp {} launch ({},{},{}) land ({},{},{}) t {}/{} angle {} splash {} slot {} graph {} owner {} o {} guys {} whom {} ox {} traj {} rest {:?}", b[0], w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8], w[9], w[10], w[11], w[12], w[13], w[14], w[15], w[16], w[17], w[18], &w[19..])
+                    };
+                    for r in &ours.ranges {
+                        eprintln!("A4683 {state} ours rec {} {} {}", r.record, r.field, dec(&r.bytes));
+                    }
+                    for r in &theirs {
+                        eprintln!("A4683 {state} theirs {}", dec(&r.bytes));
+                    }
                 }
                 let mut who = 0u8;
                 let (mut i, mut j) = (0usize, 0usize);
