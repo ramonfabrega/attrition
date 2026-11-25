@@ -1781,8 +1781,8 @@ Open: units, builds, groups and guys part on 7675. run1788 holds sums (item 4579
 
 ### 13.2 Row 53
 
-Open: units and guys part on 3358 (item 4578, run1812): who=2's standing Phalanx `2/76` (TI 133, land), `z` ours 29,
-theirs 22, under Smelter `2/2040`'s terraform. 4609 (run1832): the two stand on no world cell's chain. 4660: 3358 → 3713, the stored heights (`docs/COLLISION.md` §3.3); units, guys, deaths, leaders and world part on 3713. Journals 4578, 4609, 4660.
+Open: five lines part on 3713. 4660 moved 3358 → 3713: the stored heights (`docs/COLLISION.md` §3.3). Journals
+4578, 4609, 4660.
 
 ### 13.3 Row 93
 
