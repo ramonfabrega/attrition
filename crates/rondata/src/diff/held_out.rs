@@ -2736,7 +2736,7 @@ pub(crate) mod tests {
             }
             if state == 10879 {
                 let r = &ours.ranges[28];
-                assert_eq!((r.record, r.field.as_ref()), (1, "collide_frame..play"));
+                assert_eq!((r.record, r.field), (1, "collide_frame..play"));
                 assert_eq!(theirs[28].bytes[33], 0x40, "theirs' 0x4000, one frame in");
                 assert!(citizen(&built), "ours marks 0/1");
             }
