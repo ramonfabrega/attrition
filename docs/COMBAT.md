@@ -10091,6 +10091,17 @@ stays idle. Nothing is named for it.
   other rows read off a packet and never swept cell by cell carry the same
   gap is not established. The Asian Heavy Machine Gun's (piece 1131) rows
   rest on run1579's `init_position` alone: no packet of the 145 stores it.
+- **Keys outside every held family** (item 4651): the bays' lister
+  (`rondata::artdata`'s `every_release_of_a_bay_piece_s_family_has_its_row`)
+  asserts only the pieces of a type or `GRAPH` some `launch::BAYS` or `GUNS`
+  row already holds. On the install it counts 532 bay-arm keys and 263
+  pivot-arm keys of other pieces that resolve to no row and leave from the
+  figure's square if a round ever plays them. No battery reaches one
+  (`held_seams::FALLBACK` empty). The 93 slotless keys (a `-PACKED` piece's
+  `CHAR_ATTACK1`, the bowmen's `CHAR_GROUP_IDLE1`) are taken as never
+  played, from the slot list and not from a reading of `set_anim`. The
+  Arab Avenger's (586) `CHAR_ATTACKWALK` is 234's by the art alone: no
+  packet on disk holds 234's walk.
 
 ### 55.6 Coverage
 
@@ -10104,7 +10115,13 @@ stays idle. Nothing is named for it.
   run147's packet): the pivot branch on all 369,664 cells; the four rows'
   entries; `fast_angle_to_degrees`' table. On run486's packet (item
   1257, `tools/recomp/get_position.py`): piece 296's seven entries, its
-  scale, 277,248 release cells and its node's 361 degrees.
+  scale, 277,248 release cells and its node's 361 degrees. **Item 4651**,
+  on run1579's packet after `init_position` (`tools/recomp/sweep_keys.py`;
+  one key on run1816's): 659 keys of 100 pieces the bays' lister named, at
+  361 headings each. 561 are read through `launch::SAME_AS` from a held
+  piece's row, and 98 by 66 fitted `BAYS` rows and four `GUNS` rows. The
+  Arab Flak Gun's and Avenger's node-0 keys agree on all 6 × 92,416 pivot
+  cells as 232's and 234's.
 - **Listing-backed**: the release call's arguments, the pivot branch's
   nested call and rotation, `set_all_pivots`' writes, `Guy::process`'
   step, the gate.
