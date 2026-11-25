@@ -1579,7 +1579,11 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// Item 4592: 950 -> 951, cities whole on run1325c (two ranges before): a
 /// city's `vans` stand in the order the links were made
 /// (`ArrayBase<CaravanLink>::add@0046e550` appends).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 951, 1053);
+/// Item 4660: 951 -> 955, units and guys whole on run1264b and run1320b
+/// (two ranges and one before): a terraform rewrites only the heights
+/// `Wall::init@0063e9b0`'s `update_z` walk refreshes, the chained land
+/// units round the building (`docs/COLLISION.md` §3.3).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 955, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
