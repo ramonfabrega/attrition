@@ -413,9 +413,6 @@ impl Sim {
             None => self.units[i].movement.facing,
         };
         let piece = guy.map_or(-1, |x| x.gpiece);
-        if std::env::var("RON_PROBE_4674_PIV").is_ok() && self.units[i].owner == 1 && self.units[i].index == 46 {
-            eprintln!("PIV f{} g{g} target {target:?} from {from:?} to {to:?} facing {} unit facing {} heading {} follow {:?} nodes {nodes:?} piece {piece} angles {:?}", self.frame, facing.0, self.units[i].movement.facing.0, self.units[i].movement.heading.0, guy.and_then(|x| x.follow).map(|f| f.facing.0), self.units[i].guys[g].turret.angles);
-        }
         let turret = &mut self.units[i].guys[g].turret;
         pivot_steps(
             nodes.len(),
