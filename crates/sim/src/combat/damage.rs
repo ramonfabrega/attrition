@@ -285,14 +285,6 @@ pub fn get_damage_steps<F: DamageFacts>(
     // 17. Decoy.
     if f.target_is_unit() && f.target_decoy() {
         armor = 0;
-        if std::env::var("RON_PROBE_4654").is_ok() && f.frame() == 2964 {
-            let st = f.attack_stat();
-            eprintln!(
-                "PROBE4654 decoy attack_stat {st} base {base} attack {attack} pct {pct} az {} tz {}",
-                f.attacker_z(),
-                f.target_z()
-            );
-        }
         base = f.attack_stat().max(base).wrapping_mul(1000);
     }
     // 18. Unfriendly territory.
@@ -346,9 +338,6 @@ pub fn get_damage_steps<F: DamageFacts>(
     // 23. Height.
     let az = f.attacker_z();
     let tz = f.target_z();
-    if std::env::var("RON_PROBE_4654").is_ok() && f.frame() == 2964 {
-        eprintln!("PROBE4654 pre_height dmg {dmg} base {base} az {az} tz {tz}");
-    }
     if f.target_domain() != 2 && f.attacker_domain() != 2 && !f.attacker_obj_type_siege() && tz < az
     {
         let num = az
