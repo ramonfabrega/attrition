@@ -192,7 +192,7 @@ fn the_emulated_original_agrees_on_every_row() {
                         let t = self.ty(w);
                         rd32(&self.p[t], 0x24) != 0
                     }
-                    fn elem_alive(&mut self, i: i32) -> bool {
+                    fn elem_under_attack(&mut self, i: i32) -> bool {
                         let w = self.obj(self.tw_(), i);
                         let t = self.ty(w);
                         self.p[t][0x60] & 0x20 != 0

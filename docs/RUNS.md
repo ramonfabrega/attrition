@@ -42038,3 +42038,30 @@ With `P=~/ron-data/lab-experiments/2026-09-23-item-597/plan`, use
   `~/ron-data/lab-experiments/2026-11-24-codex-merchant.ch6hlc/`.
 - Filed by `tools/gamelog/filerun.py run1822 sample2017-merchant-birth-7611`.
   The archive links the 3,775-byte gamelog and 133,824,576-byte trace.
+
+## run1823 — 2017 sample, group 2's muster, packet at state 7934 (2026-11-24, item 4642)
+
+Replay run1822's recording with the same plan and capture options, changing
+the output to `~/ron-golden/run1823`, the log window to 7931–7937, the end
+frame to 7938 and `RON_STATE_FRAME` to 7934. Pool lane 1 reached 7938 in
+565.29 s with zero page faults and relaunches and restored all five settings.
+The host's `waitrun.sh` exited 0. The sandboxed wait could not see host
+processes and exited 2. The driver's receipt is
+`/tmp/ron-runs/viadriver-20261124-190150-83447.log`.
+
+- Eight anchors, logger root and completion receipt verified with
+  `frame_snapshot.py`. Packet 918,700,312 bytes, SHA-256
+  `839093970103feac2bae91a974511b4f71caf50f726abec582c207cb7b3330c7`.
+- Farm 2/2006 holds damage 9. The two completed original muster calls
+  differ only in its current alert. The clear flag returns (3,39), hurry 0.
+  The set flag returns (6,45), hurry 1. On the unmodified group decision
+  the move is to (2860,30423) at angle 1390804992. The enclosing replay
+  reached the move call and stopped later processing the group.
+- `tools/gamelog/filerun.py run1823 sample2017-army-muster-7934` linked
+  the 3,775-byte gamelog and 136,659,712-byte trace. The input, packet
+  and replay outputs stay outside Git. The reports, capture check and
+  commands sit in `~/ron-data/lab-experiments/2026-11-24-codex-merchant.ch6hlc/group7935/`
+  (`step-army.py`, `status-clear.log`, `status-set.log`, `original-process.log`).
+- Row 43 of the fifth held-out battery (run1775/1787) also gains its
+  recorded destination. Its first different checksum moves 3833 → 3899,
+  the builds line. The eleven previously open lines each gain agreement.

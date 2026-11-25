@@ -591,6 +591,14 @@ and world agree through 7934. Group 2's order first differs on 7935, draws
 on 7949. Goods first differs on 8548, four frames earlier downstream.
 [Merchant comparison](journal/2026-11-24-item-4641.md)
 
+**Group 2 on state 7935 (item 4642).** Player 0 sends the same fifteen
+members to (2860,30423), as in run1786. Farm 2/2006 has nine points of
+old damage. Setting its current alert in the original changes the muster
+cell from (3,39) to (6,45), the destination our previous walk chose.
+Run1786 now agrees on all eleven recorded lines through state 8000.
+The first difference in run1651 is at 8523 and the draws agree through 8533.
+[Recorded group destinations](journal/2026-11-24-item-4642.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte
@@ -1518,7 +1526,7 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 |---|---|---|---|---|---|---|
 | 3 | run1773 | Great Sahara, difficulty 3 | human + added | 6,001 | **12** | ~~3857, 4777, world 4990~~ whole (MAPGEN §35) |
 | 23 | run1774 | Atlantic Sea Power | the computers | 6,001 | 10 | **leaders 0**, units 5695 |
-| 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~3192, 3223, 3299, 3442~~ 3833 |
+| 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~3192, 3223, 3299, 3442, 3833~~ 3899 |
 | 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, to 4222 | **12** | ~~1582, 1789, 3683, 3986~~ whole |
 | 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | ~~1956, 2811, 3041, 3359, 3645, 3656~~ units 3662 |
 | 103 | run1778 | East Indies, Modern | the computers | 3,295, to 3294 | **12** | ~~1750, 1757, 1790, 2557 (GROUPS §3.4), ammo 2860, world 2983~~ whole (COLLISION §2) |

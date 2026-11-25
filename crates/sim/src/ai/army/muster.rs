@@ -63,7 +63,7 @@ pub trait MusterView {
     /// `objects[tw][i]->vtable[0xac]()->+0x24 != 0`.
     fn elem_damaged(&mut self, i: i32) -> bool;
     /// `objects[tw][i]->vtable[0xac]()->+0x60 & 0x20`.
-    fn elem_alive(&mut self, i: i32) -> bool;
+    fn elem_under_attack(&mut self, i: i32) -> bool;
     /// `objects[tw][i]->vtable[0xac]()->+0x74`: the next handle, negative for none.
     fn elem_next(&mut self, i: i32) -> i32;
     /// `objects[tw][i]`'s point as a cell (`div_3_table[(+0x10 ^ 0x63637) >> 8]`, `+0x14`).
@@ -132,7 +132,7 @@ pub fn find_muster_spot_steps<V: MusterView>(v: &mut V) -> bool {
         if first >= 0 {
             let mut i = first;
             loop {
-                if v.elem_damaged(i) && v.elem_alive(i) {
+                if v.elem_damaged(i) && v.elem_under_attack(i) {
                     let mut f = v.find_combat(i);
                     if f < 0 {
                         f = v.find_target(i);
@@ -350,7 +350,7 @@ struct Elem {
     b: Option<usize>,
     pos: Pos,
     damaged: bool,
-    alive: bool,
+    under_attack: bool,
 }
 
 /// [`MusterView`] on the crate's state: the army `slot` of `who`, the target
@@ -390,8 +390,8 @@ impl<'a> SimMuster<'a> {
                         Elem {
                             b: Some(m),
                             pos: bd.pos,
-                            damaged: bd.health < bd.hits,
-                            alive: bd.alive,
+                            damaged: bd.damage != 0,
+                            under_attack: bd.is_under_attack(),
                         }
                     })
                     .collect()
@@ -400,7 +400,7 @@ impl<'a> SimMuster<'a> {
                 b: None,
                 pos: sim.pos_of(target),
                 damaged: false,
-                alive: false,
+                under_attack: false,
             }],
         };
         let city = match target {
@@ -493,8 +493,8 @@ impl MusterView for SimMuster<'_> {
     fn elem_damaged(&mut self, i: i32) -> bool {
         self.elems[i as usize].damaged
     }
-    fn elem_alive(&mut self, i: i32) -> bool {
-        self.elems[i as usize].alive
+    fn elem_under_attack(&mut self, i: i32) -> bool {
+        self.elems[i as usize].under_attack
     }
     fn elem_next(&mut self, i: i32) -> i32 {
         if (i as usize) + 1 < self.elems.len() {

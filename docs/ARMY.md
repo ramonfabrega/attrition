@@ -1261,6 +1261,14 @@ target's own cell; then `muster_y += 1`, or `−= 1` on the map's last row;
 chase left, and a best there overrides it. (The first implementation
 returned here, and every own-city search skipped the ring.)
 
+Run1823 isolates the two states of Farm 2/2006 on sample frame 7934.
+It has damage 9. With its recorded alert clear, the original returns
+(3,39), `hurry = 0`. Setting only the current alert returns (6,45),
+`hurry = 1`. The simulation reads `Building.damage` and
+`Building::is_under_attack` independently. A site can also have less
+health than its completed capacity with zero damage.
+[Item 4642](journal/2026-11-24-item-4642.md)
+
 Both enemy lookups are `find_unit`, whose leader loop stops at eight, so
 **gaia's animals are not in their search space** and no diplomacy question
 is asked about one. Asking it is what the first fuzzed seed panicked on

@@ -1853,7 +1853,9 @@ fn the_muster_search_survives_a_gaia_unit_with_a_two_wide_table() {
     );
     let b = sim.cities.cities[c].building;
     sim.buildings[b].hits = 100;
-    sim.buildings[b].health = 50;
+    sim.buildings[b].damage = 50;
+    sim.buildings[b].sync_health();
+    sim.buildings[b].under_attack = 2;
     let slot = sim.init_army(1, Some(c));
     let sheep = put(
         &mut sim,
@@ -1877,7 +1879,9 @@ fn a_gaia_unit_is_never_the_muster_point_even_at_war() {
     let t = soldier_type(&mut sim);
     let b = sim.cities.cities[c].building;
     sim.buildings[b].hits = 100;
-    sim.buildings[b].health = 50;
+    sim.buildings[b].damage = 50;
+    sim.buildings[b].sync_health();
+    sim.buildings[b].under_attack = 2;
     let slot = sim.init_army(1, Some(c));
     let g = usize::from(crate::world::PLAYER_SLOTS);
     sim.leaders.at_war[1][g] = true;
@@ -1925,7 +1929,9 @@ fn an_enemy_ship_beside_a_damaged_building_is_never_the_muster_point() {
     let t = soldier_type(&mut sim);
     let b = sim.cities.cities[c].building;
     sim.buildings[b].hits = 100;
-    sim.buildings[b].health = 50;
+    sim.buildings[b].damage = 50;
+    sim.buildings[b].sync_health();
+    sim.buildings[b].under_attack = 2;
     let slot = sim.init_army(1, Some(c));
     sim.leaders.at_war[1][0] = true;
     sim.leaders.at_war[0][1] = true;
@@ -1951,6 +1957,18 @@ fn an_enemy_ship_beside_a_damaged_building_is_never_the_muster_point() {
     assert!(sim.find_muster_spot(1, slot, Obj::Building(b), false));
     assert_eq!(sim.ai.armies[1].list[slot].hurry, 1);
     assert_eq!(sim.ai.armies[1].list[slot].muster, ship_cell);
+    // Old damage survives the latch. Its first-stage bit alone cannot start a chase.
+    sim.buildings[b].under_attack = 1;
+    sim.find_muster_spot(1, slot, Obj::Building(b), false);
+    assert_eq!(sim.ai.armies[1].list[slot].hurry, 0);
+    // A partly built site can have fewer hits than its finished type without any damage.
+    sim.buildings[b].active = false;
+    sim.buildings[b].construct_hits = 50;
+    sim.buildings[b].damage = 0;
+    sim.buildings[b].sync_health();
+    sim.buildings[b].under_attack = 2;
+    sim.find_muster_spot(1, slot, Obj::Building(b), false);
+    assert_eq!(sim.ai.armies[1].list[slot].hurry, 0);
 }
 
 // ---- the forts pass (§12, item 4341) ----

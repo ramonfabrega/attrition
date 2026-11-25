@@ -502,7 +502,8 @@ pub(in crate::diff) mod tests {
     /// attacked, `city_flags & 0x8` at `0x6c390f`: computer 0 lists no
     /// Fort-line `0x1bc` on 7407): 7410 -> 7613, +203.
     /// Item 4641: the hidden Merchant at the rally point is passed over, 7613 -> 7949.
-    const SAMPLE_WALKED: (i64, i64) = (7949, 21044);
+    /// Item 4642: the stored under-attack latch moves the count and sequence to 8534.
+    const SAMPLE_WALKED: (i64, i64) = (8534, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -826,19 +827,20 @@ pub(in crate::diff) mod tests {
     /// Item 4639: emitting the Scout's live mode and the cities' marks
     /// moves units to 7612 and cities to 7825. The draw word holds.
     /// Item 4641 moves the first shared difference to 7935. Goods parts four frames earlier downstream.
+    /// Item 4642 moves every open line forward. Units, groups, guys, leaders and world meet on 8523.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 7935),
-        ("builds", 7958),
+        ("units", 8523),
+        ("builds", 8544),
         ("walls", 21044),
-        ("ammo", 7959),
-        ("deaths", 8068),
-        ("groups", 7935),
-        ("guys", 7935),
-        ("leaders", 7951),
-        ("cities", 8126),
-        ("items", 8709),
-        ("goods", 8548),
-        ("world", 7935),
+        ("ammo", 8546),
+        ("deaths", 8538),
+        ("groups", 8523),
+        ("guys", 8523),
+        ("leaders", 8523),
+        ("cities", 8758),
+        ("items", 11748),
+        ("goods", 8979),
+        ("world", 8523),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -1428,32 +1430,42 @@ pub(in crate::diff) mod tests {
         }
     }
 
-    #[test]
-    fn the_sample_s_merchant_rally_matches_the_recorded_birth_and_first_steps() {
-        let (Some(inst), Some(rcx), Some(mut ranges)) = (install(), sample(), run1786()) else {
+    fn assert_sample_window(first: i64, last: i64) {
+        use super::super::checksum_lines::packets::{Pieces, our_lines};
+        let (Some(inst), Some(rcx), Some(mut ranges), Some(pieces)) =
+            (install(), sample(), run1786(), Pieces::read())
+        else {
             return;
         };
+        assert_eq!(ranges.mask, u32::from(SAMPLE_RANGES_1786_KEPT));
         let rec = crate::recgame::read(&rcx).unwrap();
         let (mut built, _) = sample_start(&inst, &rec);
         let mut stream = crate::input::Stream::pump(&rec);
-        while built.sim.frame <= 7618 {
+        while built.sim.frame <= last {
             let state = built.sim.frame;
-            if state >= 7610 {
+            if state >= first {
                 let set = ranges.first_of(state - 1).expect("run1786's state").clone();
                 assert_eq!(set.flags, 0);
                 let original = ranges.ranges(&set).unwrap();
-                let sim = &built.sim;
-                for (line, ours) in [
-                    (0, sim.checksum_units()),
-                    (6, sim.checksum_guys()),
-                    (11, sim.checksum_world()),
-                ] {
-                    assert_recorded_line(&original, line, ours, state, set.ordinal);
+                for (line, ours) in our_lines(&built.sim, &pieces).into_iter().enumerate() {
+                    if ranges.mask & (1 << line) != 0 {
+                        assert_recorded_line(&original, line as u8, ours, state, set.ordinal);
+                    }
                 }
             }
             stream.apply(state as i32, &mut built);
             built.tick();
         }
+    }
+
+    #[test]
+    fn the_sample_s_merchant_rally_matches_the_recorded_birth_and_first_steps() {
+        assert_sample_window(7610, 7618);
+    }
+
+    #[test]
+    fn the_sample_s_group_orders_and_first_steps_match_the_recorded_muster() {
+        assert_sample_window(7932, 7941);
     }
 
     #[test]
@@ -2008,62 +2020,6 @@ pub(in crate::diff) mod tests {
     /// window (8552 on the hook's sums).
     /// Item 4569: all six Diamonds cap differences at 7502 close.
     /// The next leaders difference is record 2 on 7650.
-    const SAMPLE_RANGES_1786: &[(&str, i64, usize, usize, usize, &str)] = &[
-        (
-            "units",
-            7935,
-            5611,
-            5619,
-            4388,
-            "865 37 collide_frame..play: dest_angle 130482176|1390804992, orders_x 4344|3000, orders_y 34776|29784",
-        ),
-        (
-            "builds",
-            7958,
-            4671,
-            4671,
-            1,
-            "2687 2029 who..y_internal: z 591|567, x 6528|6720, y 32832|32640",
-        ),
-        (
-            "ammo",
-            7959,
-            6,
-            6,
-            1,
-            "1 0 rolling..start_roll_angle: +0x7 of 99|99: 3d270000|7f260000",
-        ),
-        (
-            "groups",
-            7935,
-            622,
-            622,
-            3,
-            "8 2 id..march: ox 5028|2860, oy 34756|30423, o_angle 130482176|1390804992",
-        ),
-        (
-            "guys",
-            7935,
-            1718,
-            1718,
-            14,
-            "324 44 guy: x 14952|14939, z 528|529, angle -649068544|-1042153472, last_angle -649068544|-1042153472, des_x 14952|14939, des_angle -649068544|-1042153472, cur_time 25|1, end_time 31|13, last_time 24|0, last_speed 0|13, avg_speed 0|3, cur_anim 0|7, stopped 1|0",
-        ),
-        (
-            "leaders",
-            7951,
-            675,
-            675,
-            9,
-            "271 2 who..ally_mask: +0x7d8 of 26914|26914: ae010000|a7010000",
-        ),
-        (
-            "world",
-            7935,
-            7745,
-            7745,
-            2,
-            "6482 2545 block.body: +0x17 of 96|96: 01f801c0|00f800e0",
-        ),
-    ];
+    /// Items 4641 and 4642: the rally and muster corrections carry all eleven kept lines through 8000.
+    const SAMPLE_RANGES_1786: &[(&str, i64, usize, usize, usize, &str)] = &[];
 }

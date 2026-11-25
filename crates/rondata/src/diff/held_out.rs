@@ -4129,6 +4129,48 @@ pub(crate) mod tests {
         }
     }
 
+    /// Item 4642 also changes Great Sahara's group destination. Run1787
+    /// keeps every field around the first step of the recorded formation.
+    #[test]
+    fn row_43_s_muster_and_first_steps_match_run1787() {
+        use crate::diff::checksum_lines::packets::{Pieces, compare, our_lines};
+        let (Some(inst), Some(pieces), (Some(rcx), _)) =
+            (crate::testenv::install(), Pieces::read(), paths(&FIFTH, 2))
+        else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1787/map-7"), "rontrace.ranges")
+        else {
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).unwrap();
+        assert_eq!(record.mask, 0xffb);
+        for state in 3831..=3836 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let theirs = crate::diff::checksum_frames::record::stream_at(&mut record, state)
+                .expect("run1787 covers the muster");
+            let ours = our_lines(&built.sim, &pieces);
+            for (line, outcome) in compare(&ours, &theirs).iter().enumerate() {
+                if record.mask & (1 << line) != 0 {
+                    assert_eq!(
+                        outcome.parted, 0,
+                        "state {state}, line {line}: {:?}",
+                        outcome.first
+                    );
+                }
+            }
+        }
+    }
+
     /// **The fifth's files carry the declared seats and team** (item
     /// 4527): each `item4527-row<RRR>-6000.rcx` the client recorded, read
     /// back, holds the declaration's three `PLAYER` rows slot for slot —
@@ -10862,23 +10904,25 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // (first 4054 -> 4111), world 3,444 -> 3,833: the row's first
         // parting 3442 -> 3833; our walk plays to 6000 (`over` 5784 ->
         // none).
+        // Item 4642: muster uses the building's current alert. The original
+        // group destination now agrees on 3833; builds first part on 3899.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3833, 3860, 6001, 3874, 3834, 3833, 3833, 3841, 4149, 4060, 4215, 3833,
+                4341, 4201, 6001, 4356, 4416, 4239, 4341, 4341, 4351, 5173, 4413, 4341,
             ],
             first: &[
-                ("units", (3833, Some(1063871697), 3771527344)),
-                ("builds", (3836, Some(3277758791), 3550257923)),
-                ("ammo", (3833, Some(360194904), 4117177268)),
-                ("deaths", (3834, Some(577683051), 3586444649)),
-                ("groups", (3833, Some(84469381), 1152364802)),
-                ("guys", (3833, Some(2979218740), 2376421982)),
-                ("leaders", (3834, Some(3876452743), 116652551)),
-                ("cities", (4040, Some(2684897422), 3243722708)),
-                ("items", (4060, Some(1899511835), 1951416351)),
-                ("goods", (4111, Some(3160241942), 3168892696)),
-                ("world", (3833, Some(2651722436), 2013008494)),
+                ("units", (4341, Some(630316088), 571078055)),
+                ("builds", (3899, Some(2786105460), 2620233851)),
+                ("ammo", (4356, Some(1671400503), 4115106818)),
+                ("deaths", (4416, Some(1680720123), 2417413765)),
+                ("groups", (3995, Some(866943998), 1455327226)),
+                ("guys", (4341, Some(3154895219), 3388006762)),
+                ("leaders", (4341, Some(3434555180), 2510759726)),
+                ("cities", (4341, Some(2806731487), 1671058207)),
+                ("items", (4887, Some(2284009543), 2246522949)),
+                ("goods", (4413, Some(3243865884), 3324606240)),
+                ("world", (4341, Some(234423208), 3308913912)),
             ],
             over: None,
         }),
