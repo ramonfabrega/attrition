@@ -1786,7 +1786,7 @@ theirs 22, under Smelter `2/2040`'s terraform. The rest: `docs/journal/2026-11-2
 
 ### 13.3 Row 93
 
-2686 → 2965 by 4590 (run1803; `docs/COMBAT.md` §68.1), 4606 (`docs/CHECKSUM.md` §18). Open: units on 2965. 4608 bore `ATTACK_GROUND`'s figures on its point (COMBAT §55.3); no parting moved.
+2686 → 2965 by 4590 (run1803; `docs/COMBAT.md` §68.1), 4606 (`docs/CHECKSUM.md` §18). Open: units on 2965: `2/51` takes the decoy `1/38`, theirs `1/39` (4652). 4608 (COMBAT §55.3), 4652 moved no parting.
 
 ### 13.4 Row 113
 

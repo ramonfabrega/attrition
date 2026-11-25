@@ -52,14 +52,15 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2, 151 §5, 152 §1 to §4, 153 §2 to §10, 154 §1 to §10, 155 §1 to §8, 156 §1 to §8): the pass designed four seats, none out: the chain's 4634 (row 133, 2451; 153 §2), a parity seat's 4652 (row 93's units on 2965, after 4608 closed the seam `attack_ground_aim`; 156 §2, §3), a parity seat's 4651 (the bays' lister, after 4618 emptied the fallback) and the client's 4650 (the Farm's plots; 156 §7).  Unseated, by first parting (153 §2): 4633 (row 88, 2902), 4609 (row 53, 3358), 4573 (row 83, 3662), 4571 (row 43, 3899), 4615 (the seventh's row 48), 4616 (row 108), 4649 (the sample), 4579 (row 13), 4617 (row 8), 4637 (row 148). A row's seat is refilled with the row's next word while its column moves: 4652's seat keeps row 93, and 4651's goes to 4633 after it lands. A seat that frees takes the next in this order, and 4649 before a hand-over when no row's item stands. An item an instrument names later, a seam no whole row enters or a probe's table, is minted ahead of that order (156 §2). Every take waits its turn, one game at a time; a script of several waits on each with `waitrun.sh` (153 §7). `docs/RECGAME.md` §12 stands at its ceiling: a fifth row's landing changes its row's cell there and writes its leaf in `docs/RUNS.md` and its journal; a sixth row's goes under its own row's heading in §13 (13.1 to 13.5) and touches nothing above them (154 §6). The driver's note names `seams.py --field` with the leaf's own field (153 §9). The sample's stop reads the `Parity:` line's first parting and its draw word, never the games' count (151 §1). The disk read 134 GB at the settlement's end; every take still stops under 60.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2, 151 §5, 152 §1 to §4, 153 §2 to §10, 154 §1 to §10, 155 §1 to §8, 156 §1 to §8): the pass designed four seats, none out: the chain's 4634 (row 133, 2451; 153 §2), a parity seat's 4654 (row 93's units on 2965, the packet; 156 §2, §3), a parity seat's 4651 (the bays' lister, after 4618 emptied the fallback) and the client's 4653 (the plates; 156 §7).  Unseated, by first parting (153 §2): 4633 (row 88, 2902), 4609 (row 53, 3358), 4573 (row 83, 3662), 4571 (row 43, 3899), 4615 (the seventh's row 48), 4616 (row 108), 4649 (the sample), 4579 (row 13), 4617 (row 8), 4637 (row 148). A row's seat is refilled with the row's next word while its column moves: 4654's seat keeps row 93, and 4651's goes to 4633 after it lands. A seat that frees takes the next in this order, and 4649 before a hand-over when no row's item stands. An item an instrument names later, a seam no whole row enters or a probe's table, is minted ahead of that order (156 §2). Every take waits its turn, one game at a time; a script of several waits on each with `waitrun.sh` (153 §7). `docs/RECGAME.md` §12 stands at its ceiling: a fifth row's landing changes its row's cell there and writes its leaf in `docs/RUNS.md` and its journal; a sixth row's goes under its own row's heading in §13 (13.1 to 13.5) and touches nothing above them (154 §6). The driver's note names `seams.py --field` with the leaf's own field (153 §9). The sample's stop reads the `Parity:` line's first parting and its draw word, never the games' count (151 §1). The disk read 134 GB at the settlement's end; every take still stops under 60.
 
-4652. **Parity held out, sixth: row 93's units from 2965** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §13.3).
-Item 4608 closed the seam `attack_ground_aim`: `Guy::set_all_pivots` bears on the head `ATTACK_GROUND` order's point, aimed or not;
-the hook's entries 270, 2,689, 580, 555, 165 and 3 -> 0, every whole row whole, no first parting moved; past the partings row 133's
-units 2,543 -> 2,643, row 93's deaths 3,632 -> 3,008. Guy 51's `des_angle` on 2966 is `GuyData +0x64`, and guys still part there.
-On 2965: units range 1786, record 38, `targeted` ours 2, theirs 1; run1799 holds the ranges, run1803 a packet at 2685: no take.
-Re-pin `SCORES_SIXTH[4].moved`, never `found`. It stops when two landings running move no column.
+4654. **Parity held out, sixth: row 93's units from 2965, the packet** (a rules item, whole; a parity seat's; `docs/RECGAME.md`
+§13.3). Item 4652 named the leaf and moved no column (the line's first): on 2964 Infantry 2/51 (TI 102) runs `find_nearby_target`
+and ours takes who=1's decoy 1/38 (TI 258), theirs 1/39 (TI 109); on 2965 range 5560 record 51 `order.target` uid 67 against 68.
+`get_damage`'s decoy x1000 makes `compare_target`'s product wrap i32, so a 1 % difference in damage flips the pick, and no dump prints
+it; every printed input agrees. First act, a packet at `RON_STATE_FRAME=2963` entering `Object::find_nearby_target` for 2/51,
+hooked at `compare_target`'s and `get_damage`'s returns for 1/38 and 1/39. Re-pin `SCORES_SIXTH[4].moved`, never `found`. A second
+landing that moves no column ends the line.
 
 4651. **The pieces with no bay, the second act: a lister** (a rules item, whole; a parity seat's; DECISIONS 156 §2, 152 §3).
 Item 4618 built every key the bay probe listed (56 `BAYS` rows, the Albatross's two guns, the Armed Caravan's pivot):
@@ -68,13 +69,12 @@ and 48 unmoved (every round fell past their partings). Second act: a lister of e
 the pieces the packets on disk load (item 4630's note), so a copy no probe has fired is built before a row reaches it. Then
 `pivot::offset_at_unpinned` on row 133, 664 entries from 3665. It stops when two landings running move no column.
 
-4650. **The Farm's plots on run1814b, built** (a render item, scoped; the client's seat; DECISIONS 156 §7; `docs/RENDERER.md`
-§6.1). Item 4636 read the packet: the plots are `FarmsOut::draw`'s wheat boxes (480 vertices, 3 farms by 16 plots by 10) and the
-`wheatfarm` underlay off `WallOut::draw_weathering` (75 vertices); the plates are the roads at age 0, 142 records, 61 round the
-capital, which our roads drop by keeping bucket 2 alone. `RUN1814B_3294_FARM` minted red: hue 2, luma 29 of 48. First
-act: the wheat boxes and the underlay, `FieldScene` carrying percent and status (it touches `crates/sim` by a door: say so). Then
-the plates, bucket 0 through `RoadsOut`'s tile page on a row of the 61 tiles; the trees' fog after (4621a). It stops and says so
-when a landing moves no pixel.
+4653. **The buildings' plates on run1814b: road bucket 0** (a render item, scoped; the client's seat; DECISIONS 156 §7;
+`docs/RENDERER.md` §6.1). Item 4650 built the Farm's plots: `RUN1814B_3294_FARM` hue 2 -> 48, luma 29 -> 48 of 48, the wheat boxes
+the packet's 480 vertices bit for bit, the `wheatfarm` underlay 75 of 75 corners (its light parked 4650a, 23 corners 2 to 7 steps
+off). The plates are the roads at age 0: 142 records, 61 round slot 0's capital, which our roads drop by keeping bucket 2 alone.
+First act: bucket 0 through `RoadsOut`'s tile page, a row minted red on the 61 tiles first. The trees' fog after (4621a). It
+stops and says so when a landing moves no pixel.
 
 4634. **Parity held out, sixth: row 133's builds from 2451** (a rules item, whole; the chain's seat; `docs/RECGAME.md` §13.5).
 Item 4632 gave the emplaced latch its head order's FIGHT_REENTRY (`Unit::fight`); units 2,440 -> 2,543, world 2440 -> 2680, first
