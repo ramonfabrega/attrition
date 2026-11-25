@@ -102,7 +102,7 @@ impl Sim {
     /// draws `internal_random` only for the console's allies, which is no
     /// stream this crate keeps; the third is the Conquer-the-World bonus.
     /// `healing` (`+0x38`) is [`Sim::mark_healed`] (item 3961); the
-    /// `0x4000` clear is not carried. The Senator's arm is
+    /// `0x4000` clear is [`Sim::heal_clears_slay_mark`]. The Senator's arm is
     /// [`Self::senator_heal`], the President's [`Self::president_heal`].
     pub(crate) fn ceo_heal(&mut self, i: usize, frame: i64, damaged: bool) {
         const THECEO: i32 = 0x165;
@@ -135,6 +135,7 @@ impl Sim {
         }
         self.repair_unit_damage(i, 1);
         self.mark_healed(i, rate);
+        self.heal_clears_slay_mark(i);
     }
 
     /// **The supply heal** — `process_healing`'s on-map arm after the
@@ -165,7 +166,8 @@ impl Sim {
     /// 1143) % 20 == 0`.
     ///
     /// The sparkle arm draws only for the console's allies, which is no
-    /// stream this crate keeps; the `0x4000` clear is not carried.
+    /// stream this crate keeps; the `0x4000` clear is
+    /// [`Sim::heal_clears_slay_mark`].
     pub(crate) fn supply_heal(&mut self, i: usize, frame: i64, damaged: bool) {
         let u = &self.units[i];
         if !u.alive() || !u.on_map || u.inside.is_some() || u.inside_unit.is_some() {
@@ -216,6 +218,7 @@ impl Sim {
         if found.is_some() {
             self.repair_unit_damage(i, 1);
             self.mark_healed(i, rate);
+            self.heal_clears_slay_mark(i);
         }
     }
 
@@ -349,6 +352,7 @@ impl Sim {
         if ally && self.has_general(i, THESENATOR) {
             self.repair_unit_damage(i, 1);
             self.mark_healed(i, rate);
+            self.heal_clears_slay_mark(i);
         }
     }
 
@@ -406,6 +410,7 @@ impl Sim {
         if cell_ok && self.has_general(i, THEPRESIDENT) {
             self.repair_unit_damage(i, 1);
             self.mark_healed(i, rate);
+            self.heal_clears_slay_mark(i);
         }
     }
 
@@ -587,6 +592,19 @@ impl Sim {
         t.half_step = f.half_step;
         t.carry = f.carry;
         t.combat.packed = f.combat.packed;
+        t.slay_marked = f.slay_marked;
+    }
+
+    /// The `unit_masks &= ~0x4000` that follows the repair in six of
+    /// `Unit::process_healing@005e0670`'s on-map arms (`:98`, `:141`,
+    /// `:170`, `:196`, `:224`, `:258`): cleared once the captain's
+    /// `damage` (`+0x24`) is 0 (item 4637; [`crate::Unit::slay_marked`]).
+    /// The garrison heal clears it whatever the damage (`:369`).
+    pub(crate) fn heal_clears_slay_mark(&mut self, i: usize) {
+        let u = &mut self.units[i];
+        if u.captain && u.max_health - u.health == 0 {
+            u.slay_marked = false;
+        }
     }
 
     /// `UnitData::has_damage(this, 1)@00609b50` from the captain: a figure
@@ -707,7 +725,8 @@ impl Sim {
     ///
     /// The sparkle arm draws only for the console's allies, which is no
     /// stream this crate keeps; `healing` (`+0x38`) is
-    /// [`Self::mark_healed`] (item 3961); the `0x4000` clear is not carried.
+    /// [`Self::mark_healed`] (item 3961); the `0x4000` clear is
+    /// [`Self::heal_clears_slay_mark`].
     pub(crate) fn iroquois_heal(&mut self, i: usize, frame: i64, damaged: bool) {
         let u = &self.units[i];
         if !u.alive() || !u.on_map || u.inside.is_some() || u.inside_unit.is_some() {
@@ -743,6 +762,7 @@ impl Sim {
         if ally {
             self.repair_unit_damage(i, 1);
             self.mark_healed(i, rate);
+            self.heal_clears_slay_mark(i);
         }
     }
 

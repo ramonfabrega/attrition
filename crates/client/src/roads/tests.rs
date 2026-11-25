@@ -305,8 +305,15 @@ fn the_records_against_the_packet_s() {
 /// part on 279 (parked 4199a). The pieces part where they do: an
 /// intersection bit widens `find_map`'s candidates, and the fractal picks
 /// another straight.
+/// **Item 4673: white 576 → 598, laid 485 → 490, the packet's piece 286 →
+/// 304.** The crossroads' 22 were the rings round their joined corners
+/// (`roads::corner_loops`). The one left is the T at (19, 163).
+/// **Item 4677: intersections 320 → 561, the packet's piece 304 → 453.**
+/// The door carries the bits the simulation's mesh leaves as each run is
+/// laid (`sim::movement::mesh::RoadMesh::mark_intersections`, `docs/RENDERER.md` §6.5),
+/// where they were evaluated once here.
 const RUN1559B_RECORDS: (usize, usize, usize, usize, usize, usize, usize) =
-    (599, 599, 599, 576, 320, 485, 286);
+    (599, 599, 599, 598, 561, 490, 453);
 
 /// **The ring's tiles** (item 4199, §3.19; the rule committed before its
 /// count): for every building whose type is a city (`is(VILLAGE)`), the
@@ -409,9 +416,10 @@ const RING_MOVE: (i32, i32) = (12, 0);
 /// Item 4272: the luma before 10 → 6 and moved 8 → 6 of 24, drawn unchanged (a named fall: the grass under the ring with no road, which the drawn row does not score): the template alphas untinted (item 4272, `docs/RENDERER.md` §3.22) move the frame's mean, so its white.
 /// Item 4292: the luma before and moved 6 → 11, drawn 20 → 21 of 24 (a rise from 6 and 20): the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
 /// Item 4311: the luma before 11 → 15 and moved 11 → 13 of 24, drawn unchanged: the map's edge border drawn (item 4311, `docs/RENDERER.md` §3.15) moves the frame's mean, so its white.
+/// Item 4677: drawn luma 21 → 20 of 24, a named fall: tile (13, 156), a 70-pixel sliver, takes the packet's piece (element 18 at its orientation 0, where ours was 2), and its luma goes 50.7 → 48.6 against theirs 58.5, over the bar.
 const RUN1559B_3279_RING: [[(usize, usize); 2]; 3] = [
     [(1, 24), (15, 24)],
-    [(21, 24), (21, 24)],
+    [(21, 24), (20, 24)],
     [(1, 24), (13, 24)],
 ];
 /// **`RUN1570_RING`** (item 4199), the same on run1570's photograph: hue
@@ -522,9 +530,12 @@ const RUN1814B_PLATE_BOX: [i32; 4] = [7, 151, 19, 163];
 /// laid twice as draw 81 lays it ([`crate::world::PLATE_LAYS`]). Laid once,
 /// 41 and 44 too, luma 43 and 42. Tile (19, 159): drawn (226, 187, 67)
 /// Y 185.3.
+/// **Item 4673: drawn hue 41 → 44, theirs' 44; luma 42 and 42.** Element
+/// 1's four plates laid (the rings round the joined corners,
+/// `roads::corner_loops`), so our walk lays the packet's 54 records.
 const RUN1814B_3294_PLATES: [[(usize, usize); 2]; 3] = [
     [(12, 46), (43, 46)],
-    [(41, 46), (42, 46)],
+    [(44, 46), (42, 46)],
     [(44, 46), (42, 46)],
 ];
 
@@ -684,7 +695,18 @@ fn the_plates_quads_are_the_packet_s() {
 /// (15, 155) and (15, 156), where those four go not traced (4653b); the
 /// 21 others part on the orientation or the straight the fractal picks,
 /// as run1559b's do (4199a).
-const RUN1814B_PLATE_PIECES: [usize; 3] = [54, 50, 29];
+/// **Item 4673: 50 → 54 and 29 → 37.** The 2 × 4 block of element 1
+/// carries the white rings round its three joined corners
+/// (`roads::corner_loops`): its eight candidates are the packet's to the
+/// byte, the four found nothing to match before, and the four inside took
+/// element 14. The 17 left part on the orientation or the straight (4199a).
+/// **Item 4677: 37 → 52.** Sixteen of the seventeen parted on an
+/// intersection bit the packet holds and we did not; the door now carries
+/// the mesh's own (`sim::movement::mesh::RoadMesh::mark_intersections`, `docs/RENDERER.md` §6.5). The two left: (11, 154), theirs element 15
+/// orientation 7 on `4400cc04`, ours 16 at 3 on `4400cc00`, one bit short;
+/// (16, 156), theirs 15 at 4, ours 16 at 0, on the same candidate
+/// `11003300`, the fractal's pick.
+const RUN1814B_PLATE_PIECES: [usize; 3] = [54, 54, 52];
 
 /// **The plates we lay against the packet's records** (item 4653, §6.2):
 /// on run1814b's lobby at the photograph's frame, every piece our walk
@@ -795,8 +817,13 @@ fn every_alpha_key_is_its_own() {
 /// packet's own: 318 of the 320 cells (the two apart are (12, 156), the
 /// piece the buffer holds no box of, `RUN1814B_PLATE_QUADS`), the piece's
 /// texcoord 948 of 954.
+/// **Item 4673: our walk 752 → 768 cells, 304 → 318 of the card's 320,
+/// corners 912 → 954, the piece's texcoord 558 → 642**: element 1's four
+/// plates laid, so our walk's cells are the packet's picks'.
+/// **Item 4677: the piece's texcoord on our walk 642 → 912 of 954**: the
+/// intersections the door carries (`sim::movement::mesh::RoadMesh::mark_intersections`, `docs/RENDERER.md` §6.5).
 const RUN1833_DRAW_81: [[usize; 10]; 2] = [
-    [640, 320, 320, 752, 304, 304, 912, 912, 558, 912],
+    [640, 320, 320, 768, 318, 318, 954, 954, 912, 954],
     [640, 320, 320, 768, 318, 318, 954, 954, 948, 954],
 ];
 
@@ -925,4 +952,95 @@ fn the_plates_mesh_is_draw_81_s() {
     }
     p.world.road_pick = None;
     assert_eq!(rows, RUN1833_DRAW_81);
+}
+
+/// **A joined corner holds its ring** (item 4673, `docs/RENDERER.md`
+/// §6.4): a 2 × 2 block of road records, each joined to the next round
+/// their shared corner, takes the eight white halves that ring it, two on
+/// each tile; with one of the four joins cut, none.
+#[test]
+fn a_joined_corner_holds_its_ring() {
+    let tile = |x: i32, y: i32, dirs: u8| RoadTile {
+        x,
+        y,
+        dirs,
+        refs: 1,
+        refs2: 0,
+        made: false,
+        c4: false,
+        inter: 0,
+        road: 0x1ff,
+        footprint: 0,
+    };
+    let block = |cut: u8| RoadsScene {
+        tiles_wide: 2,
+        tiles_high: 2,
+        roads: vec![
+            tile(0, 0, bit::E | bit::S),
+            tile(1, 0, bit::W | bit::S),
+            tile(1, 1, bit::W | bit::N),
+            tile(0, 1, (bit::E | bit::N) & !cut),
+        ],
+    };
+    let white = |c: &BTreeMap<(i32, i32), u32>, t: (i32, i32)| (c[&t] >> 8 & 0xff) as u8;
+    let c = candidates(&block(0));
+    assert_eq!(
+        [(0, 0), (1, 0), (1, 1), (0, 1)].map(|t| white(&c, t)),
+        [
+            bit::SE | bit::E,
+            bit::SW | bit::S,
+            bit::NW | bit::W,
+            bit::NE | bit::N
+        ]
+    );
+    let cut = candidates(&block(bit::N));
+    assert_eq!(white(&cut, (1, 0)) & (bit::SW | bit::S), 0, "made to fail");
+}
+
+/// **`RUN1814B_PLATE_CANDIDATES`** (item 4673, §6.4): our candidates
+/// against the packet's on run1814b, over its records with a reference in
+/// [`RUN1814B_PLATE_BOX`]: `[the packet's, the connections equal, the white
+/// lines equal, the intersections equal]`. Before the rings, white 46 of
+/// 54: the eight tiles of element 1's block, (12–15, 155–156).
+/// **Item 4677: intersections 33 → 51**, the door's
+/// (`sim::movement::mesh::RoadMesh::mark_intersections`, `docs/RENDERER.md` §6.5). The three
+/// apart are a bit the packet holds and we do not: (11, 154) `S`,
+/// (11, 160) `E`, (15, 155) `S`.
+const RUN1814B_PLATE_CANDIDATES: [usize; 4] = [54, 54, 54, 51];
+
+/// **The plates' candidates are the packet's** (item 4673, §6.4): the
+/// white lines whole in the box, element 1's block among them. The
+/// intersections part on 21, each a bit the packet holds and we do not,
+/// sticky as run1559b's are (4199a); item 4677, on 3.
+#[test]
+fn the_plates_candidates_are_the_packet_s() {
+    let Some(pk) = packet("1814b") else {
+        return;
+    };
+    let Some(p) = crate::farms::tests::probe() else {
+        return;
+    };
+    let [x0, y0, x1, y1] = RUN1814B_PLATE_BOX;
+    let inside = |t: (i32, i32)| (x0..=x1).contains(&t.0) && (y0..=y1).contains(&t.1);
+    let ours = candidates(&p.world.runner.roads());
+    let mut row = [0; 4];
+    for (t, r) in pk
+        .records
+        .iter()
+        .filter(|(t, r)| inside(**t) && r.refs != 0)
+    {
+        row[0] += 1;
+        let Some(&c) = ours.get(t) else {
+            continue;
+        };
+        for (i, k) in [3, 1, 0].into_iter().enumerate() {
+            let same = (c >> (8 * k)) & 0xff == (r.flags >> (8 * k)) & 0xff;
+            row[1 + i] += usize::from(same);
+        }
+        if c != r.flags {
+            println!("candidate {t:?}: theirs {:08x}, ours {c:08x}", r.flags);
+        }
+    }
+    println!("run1814b plate candidates: {row:?}");
+    assert_eq!(row, RUN1814B_PLATE_CANDIDATES);
 }

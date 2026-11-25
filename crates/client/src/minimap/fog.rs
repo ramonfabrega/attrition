@@ -302,9 +302,10 @@ pub(crate) mod tests {
     /// alpha at last, laid twice: 1307 → 1306 (toward) and 1593 → 1603
     /// (away from 1564, a named fall). Item 4670, the trees past sight
     /// darkened (`adjust_tree_colors`): 788 → 767, 1306 → 1258 and 1603 →
-    /// 1581, all three toward theirs.
+    /// 1581, all three toward theirs. Item 4673, element 1's four plates
+    /// laid: 1581 → 1580, toward theirs.
     pub const RUN1814B_3294_FOG: [[i64; 3]; 3] =
-        [[80, 750, 767], [93, 1252, 1258], [209, 1564, 1581]];
+        [[80, 750, 767], [93, 1252, 1258], [209, 1564, 1580]];
     /// The same cells on the client's still with no fog drawn, the row as
     /// it stood before item 4624. Each row: the main view's cells at that
     /// fog level, the photograph's median luma, ours (×10). Item 4650's
@@ -318,8 +319,10 @@ pub(crate) mod tests {
     /// ramp laid it before. Item 4665, the plates on their own alpha at
     /// last (921 was the surf's mask 1), laid twice: 1431 → 1430 and 1437 →
     /// 1436 (toward, a tenth each) and 1424 → 1434 (toward 156.4).
+    /// Item 4673, element 1's four plates laid: 1434 → 1433, a named fall
+    /// (a tenth away from 156.4).
     pub const RUN1814B_3294_UNFOGGED: [[i64; 3]; 3] =
-        [[80, 750, 1430], [93, 1252, 1436], [209, 1564, 1434]];
+        [[80, 750, 1430], [93, 1252, 1436], [209, 1564, 1433]];
     /// **`RUN1814B_3294_FOG_MINIMAP`**: the minimap's fog cells, each at its
     /// centre's pixel through [`super::super::to_screen`], by level 0 to 3:
     /// `[cells, the photograph's median luma, ours]`, ×10 and rounded.

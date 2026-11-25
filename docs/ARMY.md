@@ -650,7 +650,7 @@ army 0) are this arithmetic. `use_generals`/`use_spies`/`use_scouts`
 (§14) each walk the units and give the first hero / spy / special unit a
 `Unit::think_spellcaster` turn, stopping at the first that returns 1. `use_generals` is built (item 1302, `docs/AI.md`
 §99.14: run346's army 4 lays its General's Create Decoys on 11410 and
-11538); `use_spies` and `use_scouts` are not (parked 980).
+11538); ~~`use_spies` and `use_scouts` are not~~: both are, the Spy's bribe by item 4675.
 
 ## 6. The tick — `Army::process`, after the gate
 

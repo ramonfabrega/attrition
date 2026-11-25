@@ -466,6 +466,7 @@ impl Sim {
             (0x800, un.cloak),
             (0x1000, un.blown),
             (0x2000, un.ambushing.is_some()),
+            (0x4000, un.slay_marked),
             (0x8000, un.marching.is_some()),
             (0x10000, un.fought),
             (0x20000, un.casting),

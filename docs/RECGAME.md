@@ -1991,15 +1991,14 @@ Open: units, builds, groups and guys part on 7421. run1809 holds sums.
 
 ### 14.6 Rows 128 and 148
 
-Taken by item 4611, found on `6fa43acc3`'s tree; with item 4630's row 28 the line is `(2, 8)`. Open: row 128's leaders on 3338, row 148's
-units on 10879. Both hold sums.
+Taken by item 4611 (run1810, run1811, sums). Both whole to 12,000, 12,001 of 12,001 on every line.
 
-**Item 4618** (piece 37's bays): row 148 has 11 lines whole, every one but units, which still part on 10879.
+**Row 128** (item 4635, run1828): on 3338 leaders range 1, record 0, `reg_terr[1]` ours 198, theirs 0.
+`Leader::gain_tech@006dcb60:1305`–`:1322` fixes the borders for a temple or fort border prerequisite, a Civic epoch,
+or an age under tribe bonus 0xd, the table moved or not. *Diff-backed*
+(`row_128_s_russian_age_fixes_the_borders_on_run1828_s_ranges`).
 
-**Item 4635, row 128's Russian age, and the row is whole.** run1828 holds row 128's leaders ranges to 12000. On 3338
-leaders range 1, record 0, `reg_terr[1]`: ours 198, theirs 0; who=1's 495 | 104 and who=2's 447 | 0, with
-`reg_known_rares[1]` zeroed. On 3336 who=1 (tribe 13, the Russians) enters the Classical age on both sides.
-`Leader::gain_tech@006dcb60:1305`–`:1322` calls `Regions::fix_all_borders` for a temple or fort border prerequisite,
-a Civic epoch, or an age under tribe bonus 0xd, whether the table moves or not; ours fixed only on a moved table.
-*Diff-backed* (`row_128_s_russian_age_fixes_the_borders_on_run1828_s_ranges`). `SCORES_SEVENTH[6].moved`: 11 → 12
-lines whole, 12,001 of 12,001 on every line (`docs/journal/2026-11-25-item-4635.md`).
+**Row 148** (item 4618's bays, then item 4637, run1836): on 10879 units range 28, record 1 (the Citizen `0/1`),
+`unit_masks` ours 12, theirs 16396. `take_damage@00652020`'s `0x6529da` marks the victim's captain `0x4000` on a hit
+by an Aztec Barracks, Stable or Dock unit. *Diff-backed* (`row_148_s_aztec_slayer_marks_its_victim_on_run1836_s_ranges`);
+its clear and its disband pay rest on the reading. Journals: items 4618, 4635, 4637.
