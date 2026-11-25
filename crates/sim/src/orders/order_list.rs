@@ -705,6 +705,7 @@ impl Sim {
             && let Body::Attack(a) = &mut self.units[u].orders[k].body
         {
             a.target = id;
+            a.cleared_uid = None;
         }
         self.units[u].combat.target = target;
     }
@@ -758,6 +759,7 @@ impl Sim {
                 in_range: false,
                 ever_in_range: false,
                 new_ord: true,
+                cleared_uid: None,
             }),
         };
         match pos {

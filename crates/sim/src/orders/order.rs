@@ -558,6 +558,12 @@ pub struct AttackOrder {
     pub ever_in_range: bool,
     /// "Has not struck yet" — 1 at creation, cleared by the first strike.
     pub new_ord: bool,
+    /// The `uid` (`+0x10`) a target cleared by `Unit::work`'s uid test
+    /// keeps: `Unit::work@0060d180:330`–`:333` writes `ox` and `whom`
+    /// (`+0x8`, `+0xc`) −1 and leaves `+0x10` as it was, so the dump
+    /// prints `(−1, −1, uid)` (item 4662). `None` everywhere else, and
+    /// read only while [`Self::target`] is `None`.
+    pub cleared_uid: Option<u16>,
 }
 
 /// The fields of `CastOrder` this crate keeps (§1.2's value 14).

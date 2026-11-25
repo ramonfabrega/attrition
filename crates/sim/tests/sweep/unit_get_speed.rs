@@ -25,6 +25,7 @@ fn order(s: &mut Sim, scratch: usize, kind: i64) -> Order {
                 in_range: false,
                 ever_in_range: false,
                 new_ord: true,
+                cleared_uid: None,
             }),
         },
         4 => Order {

@@ -164,6 +164,9 @@ impl Unit {
 mod chase_tests;
 
 #[cfg(test)]
+mod reused_target_tests;
+
+#[cfg(test)]
 mod resolve_block_tests;
 
 #[cfg(test)]
