@@ -52,7 +52,7 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2, 151 §5, 152 §1 to §4, 153 §2 to §10, 154 §1 to §10, 155 §1 to §8, 156 §1 to §8): the pass designed four seats, none out: the chain's 4635 (the seventh's row 128, eleven lines whole, leaders alone on 3338; 153 §2), a parity seat's 4608 (the seam `attack_ground_aim`, entered by rows 93, 88, 133, 53, 83 and 48 and by no whole row; 156 §2, §3), a parity seat's 4651 (the bays' lister, after 4618 emptied the fallback) and the client's 4650 (the Farm's plots; 156 §7). 4635 opens on a take; 4608 opens on a fix an instrument has named, and each scores every row it reaches at its booking. Unseated, by first parting (153 §2): 4634 (row 133, 2451), 4633 (row 88, 2902), 4609 (row 53, 3358), 4573 (row 83, 3662; scored again at 4608's booking), 4571 (row 43, 3899), 4615 (the seventh's row 48), 4616 (row 108), 4649 (the sample), 4579 (row 13), 4617 (row 8), 4637 (row 148). A row's seat is refilled with the row's next word while its column moves: 4608's seat keeps row 93 after its first act, and 4651's goes to 4634 after it lands. A seat that frees takes the next in this order, and 4649 before a hand-over when no row's item stands. An item an instrument names later, a seam no whole row enters or a probe's table, is minted ahead of that order (156 §2). Every take waits its turn, one game at a time; a script of several waits on each with `waitrun.sh` (153 §7). `docs/RECGAME.md` §12 stands at its ceiling: a fifth row's landing changes its row's cell there and writes its leaf in `docs/RUNS.md` and its journal; a sixth row's goes under its own row's heading in §13 (13.1 to 13.5) and touches nothing above them (154 §6). The driver's note names `seams.py --field` with the leaf's own field (153 §9). The sample's stop reads the `Parity:` line's first parting and its draw word, never the games' count (151 §1). The disk read 134 GB at the settlement's end; every take still stops under 60.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2, 151 §5, 152 §1 to §4, 153 §2 to §10, 154 §1 to §10, 155 §1 to §8, 156 §1 to §8): the pass designed four seats, none out: the chain's 4635 (the seventh's row 128, eleven lines whole, leaders alone on 3338; 153 §2), a parity seat's 4652 (row 93's units on 2965, after 4608 closed the seam `attack_ground_aim`; 156 §2, §3), a parity seat's 4651 (the bays' lister, after 4618 emptied the fallback) and the client's 4650 (the Farm's plots; 156 §7). 4635 opens on a take. Unseated, by first parting (153 §2): 4634 (row 133, 2451), 4633 (row 88, 2902), 4609 (row 53, 3358), 4573 (row 83, 3662), 4571 (row 43, 3899), 4615 (the seventh's row 48), 4616 (row 108), 4649 (the sample), 4579 (row 13), 4617 (row 8), 4637 (row 148). A row's seat is refilled with the row's next word while its column moves: 4652's seat keeps row 93, and 4651's goes to 4634 after it lands. A seat that frees takes the next in this order, and 4649 before a hand-over when no row's item stands. An item an instrument names later, a seam no whole row enters or a probe's table, is minted ahead of that order (156 §2). Every take waits its turn, one game at a time; a script of several waits on each with `waitrun.sh` (153 §7). `docs/RECGAME.md` §12 stands at its ceiling: a fifth row's landing changes its row's cell there and writes its leaf in `docs/RUNS.md` and its journal; a sixth row's goes under its own row's heading in §13 (13.1 to 13.5) and touches nothing above them (154 §6). The driver's note names `seams.py --field` with the leaf's own field (153 §9). The sample's stop reads the `Parity:` line's first parting and its draw word, never the games' count (151 §1). The disk read 134 GB at the settlement's end; every take still stops under 60.
 
 4635. **Parity held out, seventh: row 128's leaders from 3338** (a rules item, whole; the chain's seat; `docs/RECGAME.md` §14.6).
 Item 4611 took rows 128 and 148 as found (run1810, run1811). The pass scored row 128 on run1810: eleven lines whole on 12,001 of
@@ -61,13 +61,12 @@ ranges. First act, one take on `item4600-row128-12000.rcx` (a run number the bri
 RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0x80u`. Re-pin `SCORES_SEVENTH[6].moved`, never `found`. It stops
 when two landings running move no column.
 
-4608. **The seam `attack_ground_aim`, then row 93 from 2965** (a rules item, whole; a parity seat's; DECISIONS 156 §2;
-`docs/RECGAME.md` §13.3). `held_seams` on `05ba34976`: the hook is entered by row 93 first on 2962 (270 times), row 88 on 2919
-(2,689; it parts on 2902), row 133 on 2541 (580), row 53 on 4385 (555), the fifth's row 83 on 4853 (165) and the seventh's row 48
-on 11998 (3), and by none of 44 whole rows. Its note: an `ATTACK_GROUND` order with no aim bears on the order's point in theirs; guy
-51's `des_angle` reads ours 0 on row 93's 2966. First act: the note's fix, no take, all six rows scored at its booking. Then
-row 93's units on 2965: range 1786, record 38, `targeted` ours 2, theirs 1 (run1799 holds the ranges, run1803 a packet at 2685). Re-pin
-`SCORES_SIXTH[4].moved`, never `found`. It stops when two landings running move no column.
+4652. **Parity held out, sixth: row 93's units from 2965** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §13.3).
+Item 4608 closed the seam `attack_ground_aim`: `Guy::set_all_pivots` bears on the head `ATTACK_GROUND` order's point, aimed or not;
+the hook's entries 270, 2,689, 580, 555, 165 and 3 -> 0, every whole row whole, no first parting moved; past the partings row 133's
+units 2,543 -> 2,643, row 93's deaths 3,632 -> 3,008. Guy 51's `des_angle` on 2966 is `GuyData +0x64`, and guys still part there.
+On 2965: units range 1786, record 38, `targeted` ours 2, theirs 1; run1799 holds the ranges, run1803 a packet at 2685: no take.
+Re-pin `SCORES_SIXTH[4].moved`, never `found`. It stops when two landings running move no column.
 
 4651. **The pieces with no bay, the second act: a lister** (a rules item, whole; a parity seat's; DECISIONS 156 §2, 152 §3).
 Item 4618 built every key the bay probe listed (56 `BAYS` rows, the Albatross's two guns, the Armed Caravan's pivot):
@@ -87,14 +86,13 @@ when a landing moves no pixel.
 4634. **Parity held out, sixth: row 133's builds from 2451** (a rules item, whole; unseated, first; `docs/RECGAME.md` §13.5).
 Item 4632 gave the emplaced latch its head order's FIGHT_REENTRY (`Unit::fight`); units 2,440 -> 2,543, world 2440 -> 2680, first
 parting 2440 -> 2451 on builds alone. On 2451: builds range 2180, record 2000, who=2's capital 2/2000, `damage` ours 5,963, theirs
-5,985. The row's game ends on state 6084. It enters `attack_ground_aim` on 2541 and the fallback on 3183 (items 4608, 4618).
+5,985. The row's game ends on state 6084. 
 run1797 holds the ranges: no take. Re-pin `SCORES_SIXTH[6].moved`, never `found`. It stops when two landings running move no
 column.
 
 4633. **Parity held out, seventh: row 88's units from 2902** (a rules item, whole; unseated; `docs/RECGAME.md` §14.4).
 Item 4631 let a transport's kill plunder as its cargo (`take_damage`); leaders 2,883 -> 2,926, first parting 2883 -> 2902 on
-units alone. On 2902: units range 3709, record 29, `damage` ours 12, theirs 0; guys part on 2907, ammo on 2917. The row enters
-`attack_ground_aim` on 2919 and the fallback on 2925 (items 4608, 4618). run1815 holds the ranges to 2,991: no take. Re-pin
+units alone. On 2902: units range 3709, record 29, `damage` ours 12, theirs 0; guys part on 2907, ammo on 2917.  run1815 holds the ranges to 2,991: no take. Re-pin
 `SCORES_SEVENTH[4].moved`, never `found`. It stops when two landings running move no column.
 
 4609. **Parity held out, sixth: row 53's units and guys from 3358, the packet** (a rules item, whole; unseated; `docs/RECGAME.md`
@@ -105,8 +103,7 @@ act: a packet at `RON_STATE_FRAME=3356` over `Wall::init`'s update_z loop, `--wa
 
 4573. **Parity held out, fifth: row 83's units, builds and groups from 3662** (a rules item, whole; unseated; DECISIONS 154
 §3; `docs/RECGAME.md` §12.3). On 3662: unit record 38 `targeted` ours 1, theirs 0; building 2043 `targeted` 1 against 2;
-group 130 `think_frame` 3661 against 0. run1784 holds every line: no take. 4590 left the row standing (4590b); it is scored again
-at 4608's booking. Re-pin `SCORES_FIFTH[4].moved`, never `found`. It stops when two landings running move no column.
+group 130 `think_frame` 3661 against 0. run1784 holds every line: no take. 4590 left the row standing (4590b); 4608's seam fix left it on 3662. Re-pin `SCORES_FIFTH[4].moved`, never `found`. It stops when two landings running move no column.
 
 4571. **Parity held out, fifth: row 43's builds from 3899** (a rules item, whole; unseated;
 `docs/RECGAME.md` §12.3). Item 4642 restored the group's march on 3833. Builds alone first part on 3899,
@@ -136,7 +133,7 @@ sums. First act, one take: `--end-frame 10146 --tracer-def RON_CHECKSUMS --trace
 Re-pin `SCORES_SEVENTH[0]`'s moved column. It stops when two landings running move no column.
 
 4637. **Parity held out, seventh: row 148 from units 10879** (a rules item, whole; unseated; `docs/RECGAME.md` §14.6). run1811
-holds sums, walls alone whole. The fallback fires first on 10888, nine states on (item 4618). First act, one take: `--end-frame
+holds sums, walls alone whole. The fallback is empty since item 4618. First act, one take: `--end-frame
 11129 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0x1u`. Re-pin `SCORES_SEVENTH[7]`'s moved column.
 It stops when two landings running move no column.
 
