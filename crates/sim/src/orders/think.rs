@@ -186,8 +186,8 @@ impl Sim {
         // falls through. Row 88's Trebuchet `1/61` on 2984: its attack-ground
         // ends, the Attack under it names `2/63` at uid 93, and the barge now
         // numbered 63 is another; theirs prints `(−1, −1, 93)` on 2985 where
-        // ours retargeted `2/64`. SEAM: the `STRAFE` arm (`0x10`, vslot
-        // `+0x88`) and the trade route's (`0xf`) after it are not built here;
+        // ours retargeted `2/64`. SEAM: the strafe order's arm (type `0x10`,
+        // vslot `+0x88`) and the trade route's (`0xf`) after it are not built here;
         // the build and gather orders' reuse test sits at the head of this
         // function.
         if let (Some(a), Some((_, _, uid)), Some(t)) = (action, held, holder)
