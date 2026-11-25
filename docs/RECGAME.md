@@ -1786,7 +1786,7 @@ Open: five lines part on 3713. 4660 moved 3358 → 3713: the stored heights (`do
 
 ### 13.3 Row 93
 
-2686 → 2965 by 4590 (run1803; `docs/COMBAT.md` §68.1), 4606 (`docs/CHECKSUM.md` §18). Open: units on 2965: `2/51` takes the decoy `1/38`, theirs `1/39` (4652). 4608 (COMBAT §55.3), 4652 moved no parting. 4654 (run1830b): step 17's decoy attack is `ObjectData::attack`, theirs 240, ours 260; not built.
+2686 → 2965 by 4590 (run1803; `docs/COMBAT.md` §68.1), 4606 (`docs/CHECKSUM.md` §18). 2965 → 3058 by 4657 (run1830b: step 17's decoy attack is `ObjectData::attack`, 240; its journal). Open: units on 3058.
 
 ### 13.4 Row 113
 
