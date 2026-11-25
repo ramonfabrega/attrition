@@ -4673,6 +4673,95 @@ pub(crate) mod tests {
         }
     }
 
+    /// **A dead squad's round strikes under its shooter's own number**
+    /// (item 4681, `docs/RECGAME.md` §13.3): run1799, the ranges take of
+    /// row 93's file. who=1's Volksgrenadiers `1/39`, `1/40` and `1/41`
+    /// (TI 109, land, captain 39) all die on 3055's tick; the round `1/39`
+    /// loosed on 3054 lands on who=2's Howitzer `2/77` (TI 271, land) on
+    /// 3057, past its 30-frame overkill window, and theirs' units range
+    /// 5933 (record 77, `damage_o`) prints 39 on 3058, where ours printed
+    /// 41: `UnitData::get_captain@00610ab0` is `o` once the squad's last
+    /// death has cleared every link. Every units range on states 3056 to
+    /// 3058, byte for byte.
+    #[test]
+    fn row_93_s_dead_squad_s_round_strikes_under_its_own_number_on_run1799_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            eprintln!("skipping: row 93's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1799/map-14");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1799's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3056i64..=3058 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let squad: Vec<_> = built
+                .sim
+                .units
+                .iter()
+                .filter(|u| u.owner == 1 && (39..=41).contains(&u.index))
+                .collect();
+            assert_eq!(squad.len(), 3, "who=1's 39, 40 and 41 hold their slots");
+            for u in &squad {
+                assert!(!u.alive(), "1/{} is dead on {state}", u.index);
+                let ty = u.ty.expect("a type");
+                assert_eq!(built.sim.tables.unit_types[ty].type_index, 109, "TI");
+                assert_eq!(
+                    u.combat.captain,
+                    i32::from(u.index),
+                    "1/{}'s captain is its own number",
+                    u.index
+                );
+            }
+            if state == 3058 {
+                let h = built
+                    .sim
+                    .units
+                    .iter()
+                    .find(|u| u.alive() && u.owner == 2 && u.index == 77)
+                    .expect("2/77");
+                let ty = h.ty.expect("a type");
+                assert_eq!(loaded.unit_names[ty], "Howitzer", "2/77's name");
+                assert_eq!(built.sim.tables.unit_types[ty].type_index, 271, "2/77's TI");
+                assert_eq!(h.kind.domain, sim::territory::attrition::Domain::Land);
+                assert_eq!(
+                    (h.combat.damage_frame, h.combat.damage_o, h.combat.damage_who),
+                    (3057, 39, 1),
+                    "theirs' range 5933: damage_o 39"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[0].as_ref().expect("units");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+    }
+
     /// **Row 43's Slinger stones leave from piece 736's sockets** (item
     /// 4547, `docs/RECGAME.md` §12.3): run1787, the ranges take of row 43's
     /// file. who=2's Slingers `2/30` and `2/29` (TI 82, land, piece 736,
@@ -12696,13 +12785,22 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // guys 2,967 -> 3,416, leaders 2,983 -> 3,449, cities 3,376 ->
         // 3,707, items 3,954 -> 6,297, goods 4,117 -> 4,563, world 2,975 ->
         // 3,184; ours' `game_over` 11109 -> none, both play to 12,000.
+        // Then item 4681 (`relink_squad`'s whole-squad arm leaves every dead
+        // figure its own captain, `UnitData::get_captain@00610ab0` reading
+        // `o` for `o_up < 0`): the round of who=1's dead Volksgrenadier
+        // `1/39` (TI 109, land) lands on the Howitzer `2/77` on 3057 under
+        // 39, as theirs (run1799's units range 5933, record 77, `damage_o`
+        // ours 41, theirs 39 on 3058). The row's first parting 3058 -> 3089
+        // (units and world): units 3,108 -> 3,203; ammo 3,879 -> 3,819,
+        // deaths 3,612 -> 3,433 and items 6,297 -> 5,761, named falls past
+        // 3089; goods 4,563 -> 4,615.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                3108, 3269, 12001, 3879, 3612, 3473, 3416, 3449, 3707, 6297, 4563, 3184,
+                3203, 3269, 12001, 3819, 3433, 3473, 3416, 3449, 3707, 5761, 4615, 3184,
             ],
             first: &[
-                ("units", (3058, Some(4270193561), 4037082007)),
+                ("units", (3089, Some(759273441), 560568761)),
                 ("builds", (3269, Some(1882890068), 5807727)),
                 ("ammo", (3420, Some(2050829256), 3783208006)),
                 ("deaths", (3433, Some(1040278336), 1142973249)),
