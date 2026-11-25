@@ -4164,7 +4164,10 @@ fn a_dead_aircraft_s_blow_costs_a_site_its_progress() {
         sim.buildings[site].job_counter, 9_800,
         "a dead one: 4 points, 200 off"
     );
-    let big = combat::Sixteenths { whole: 600, frac: 0 };
+    let big = combat::Sixteenths {
+        whole: 600,
+        frac: 0,
+    };
     sim.damage_building(site, big, Some(Obj::Unit(p)), 3, false);
     assert_eq!(sim.buildings[site].job_counter, 0, "never below zero");
 }

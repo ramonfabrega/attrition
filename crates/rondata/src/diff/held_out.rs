@@ -4996,14 +4996,23 @@ pub(crate) mod tests {
             let k = 1383;
             assert_eq!(ours.ranges[k].record, 2031);
             assert_eq!(ours.ranges[k].field, "job_counter..demolition");
-            let word = |at: usize| i32::from_le_bytes(theirs[k].bytes[at..at + 4].try_into().unwrap());
+            let word =
+                |at: usize| i32::from_le_bytes(theirs[k].bytes[at..at + 4].try_into().unwrap());
             if state == 3268 {
                 assert_eq!(word(0), 305_046, "theirs' job_counter before the blow");
                 assert_eq!(bd.job_counter, 305_046);
             } else {
                 assert!(!sim.units[m].alive(), "2/106 closed by {state}");
-                assert_eq!((word(0), word(12)), (0, 6051), "theirs' job_counter, construct_hits");
-                assert_eq!((bd.job_counter, bd.construct_hits), (0, 6051), "ours on {state}");
+                assert_eq!(
+                    (word(0), word(12)),
+                    (0, 6051),
+                    "theirs' job_counter, construct_hits"
+                );
+                assert_eq!(
+                    (bd.job_counter, bd.construct_hits),
+                    (0, 6051),
+                    "ours on {state}"
+                );
                 assert_eq!(bd.job_counter_2, 305_196, "job_counter_2 is not cut");
             }
         }
