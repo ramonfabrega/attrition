@@ -9976,6 +9976,14 @@ node_flags` (`anim::Turret`):
   when `des[k]` is within 15° of `turret[k]` (`005d8ed7`–`005d8f02`: the
   unsigned difference, `~` past a half turn, below `0xaaa_aaaa`). The
   ±45° test does not gate the write.
+- **Under an `ATTACK_GROUND` head order the bearing is to the order's
+  point, aimed or not** (item 4608; `005d8c69`..`005d8d2b`): the order's
+  `att_x`/`att_y` (`+0x4`/`+0x8`, unmasked) off vslot `+0xd0`, which is
+  `lea eax,[ecx-0x18]; ret` at `0047ff40` (the order itself, read in the
+  PE). `do_attack_ground` clears the aim (`set_attack(−1, −1)`) before its
+  swing, so `Guy::move`'s re-aim reaches the call with none and bears on
+  the point. This crate carried it as a SEAM, writing nothing, until item
+  4608; `a_figure_under_an_attack_ground_order_bears_on_its_point` holds it.
 - It is called from `Unit::set_attack@005fce70`, for each aimed figure;
   from `Guy::move@005d9240:71, 95, 102`, when a deferred swing is paid,
   on both arms; and from `Unit::move_step`'s cavalry-archer arm

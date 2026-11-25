@@ -11086,10 +11086,14 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // Then item 4585 (a tower is halved only while its city has never
         // been attacked): goods 4,148 -> 4,087 agreeing, its first parting
         // 4087 standing; the row's first parting stands.
+        // Then item 4608 (`Guy::set_all_pivots` bears an `ATTACK_GROUND`
+        // order's figures on the order's point, aimed or not): items 4,129 -> 4,069 (first 4129 ->
+        // 4053) and goods 4,087 -> 4,117 (first 4087 -> 4117), past the row's first parting 3662,
+        // which stands.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3662, 3695, 6001, 3711, 3672, 3662, 3663, 3674, 3693, 4129, 4087, 3668,
+                3662, 3695, 6001, 3711, 3672, 3662, 3663, 3674, 3693, 4069, 4117, 3668,
             ],
             first: &[
                 ("units", (3662, Some(2263308614), 3663092386)),
@@ -11100,8 +11104,8 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
                 ("guys", (3663, Some(2600191005), 3603350278)),
                 ("leaders", (3674, Some(1864656474), 2352703069)),
                 ("cities", (3693, Some(1156464184), 3186376370)),
-                ("items", (4129, Some(898052486), 912470408)),
-                ("goods", (4087, Some(3194787109), 3189019939)),
+                ("items", (4053, Some(912470408), 898052486)),
+                ("goods", (4117, Some(3194787109), 3189019939)),
                 ("world", (3666, Some(282235351), 271225303)),
             ],
             over: None,
@@ -11571,23 +11575,28 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // past the row's first parting 3358, which stands: ammo 3,992 ->
         // 3,918 and items 9,173 -> 9,154, named falls; deaths 3,819 -> 3,880.
         // No first parting moved.
+        // Then item 4608 (`Guy::set_all_pivots` bears an `ATTACK_GROUND`
+        // order's figures on the order's point, aimed or not): ammo 3,918 -> 3,880, deaths 3,880 ->
+        // 3,810, groups 3,716 -> 3,726, leaders 3,707 -> 3,715, cities 3,825 -> 3,951, items 9,154
+        // -> 8,940, goods 3,923 -> 3,865, world 3,707 -> 3,721; all past the row's first parting
+        // 3358, which stands.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                3358, 3732, 12001, 3918, 3880, 3716, 3358, 3707, 3825, 9154, 3923, 3707,
+                3358, 3732, 12001, 3880, 3810, 3726, 3358, 3715, 3951, 8940, 3865, 3721,
             ],
             first: &[
                 ("units", (3358, Some(992329593), 1194311501)),
                 ("builds", (3732, Some(2175428037), 986670026)),
-                ("ammo", (3795, Some(684788378), 1)),
-                ("deaths", (3707, Some(1220611515), 3817282588)),
-                ("groups", (3716, Some(3464512650), 3450219541)),
+                ("ammo", (3807, Some(1), 2355366420)),
+                ("deaths", (3713, Some(3855424552), 2127964779)),
+                ("groups", (3714, Some(1263612184), 908409090)),
                 ("guys", (3358, Some(479939638), 3928181788)),
-                ("leaders", (3707, Some(3179845721), 3311573076)),
-                ("cities", (3825, Some(4087239103), 2717798815)),
-                ("items", (4574, Some(3301772440), 3298888854)),
+                ("leaders", (3713, Some(2512362065), 969579214)),
+                ("cities", (3951, Some(4088156871), 4088615623)),
+                ("items", (4596, Some(3298888854), 3301772440)),
                 ("goods", (3832, Some(2135290454), 2227565146)),
-                ("world", (3707, Some(2727186382), 2158397478)),
+                ("world", (3713, Some(2100724504), 1088191604)),
             ],
             over: None,
         }),
@@ -11728,10 +11737,15 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // `targeted` ours 2, theirs 1); no other line moved. Cities 3,367 ->
         // 3,376 (first 3376) was measured on the base `b6c90c0a9` before the
         // fix, a merge's, not this item's.
+        // Then item 4608 (`Guy::set_all_pivots` bears an `ATTACK_GROUND`
+        // order's figures on the order's point, aimed or not): builds 3,078 -> 3,026, ammo 3,483 ->
+        // 3,323, deaths 3,632 -> 3,008, groups 3,002 -> 3,004, items 5,437 -> 3,954 (first 3468 ->
+        // 3146), goods 4,397 -> 4,117, ours' `game_over` 9802 -> 11109; all past the row's first
+        // parting 2965 (units), which stands, and guys 2966 stands.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                2965, 3078, 12001, 3483, 3632, 3002, 2967, 2983, 3376, 5437, 4397, 2975,
+                2965, 3026, 12001, 3323, 3008, 3004, 2967, 2983, 3376, 3954, 4117, 2975,
             ],
             first: &[
                 ("units", (2965, Some(2944560567), 523660729)),
@@ -11741,12 +11755,12 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
                 ("groups", (2982, Some(1074681641), 115365832)),
                 ("guys", (2966, Some(96889624), 2207673204)),
                 ("leaders", (2983, Some(3337828037), 36057006)),
-                ("cities", (3376, Some(850608050), 842153906)),
-                ("items", (3468, Some(2092447016), 2127050028)),
+                ("cities", (3376, Some(897138611), 842153906)),
+                ("items", (3146, Some(2121282860), 2092447016)),
                 ("goods", (3157, Some(2924123420), 3056768288)),
                 ("world", (2975, Some(4068279797), 2248541463)),
             ],
-            over: Some(9802),
+            over: Some(11109),
         }),
     }),
     // run1793
@@ -11933,18 +11947,22 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // items 2,753 -> 3,148 (first 2753 -> 3007), goods 3,674 -> 3,983
         // (first 2685 -> 3322), world 2,440 -> 2,680 (first 2440 -> 2680);
         // the first parting is builds alone on 2451.
+        // Then item 4608 (`Guy::set_all_pivots` bears an `ATTACK_GROUND`
+        // order's figures on the order's point, aimed or not): units 2,543 -> 2,643 (first 2543 ->
+        // 2566) and guys 2,543 -> 2,677 (first 2543 -> 2677), past the row's first parting 2451
+        // (builds), which stands.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                2543, 2451, 6085, 3143, 2563, 2685, 2543, 2749, 2978, 3148, 3983, 2680,
+                2643, 2451, 6085, 3143, 2563, 2685, 2677, 2749, 2978, 3148, 3983, 2680,
             ],
             first: &[
-                ("units", (2543, Some(3075655271), 2039728566)),
+                ("units", (2566, Some(1723402503), 567609615)),
                 ("builds", (2451, Some(2666296210), 3002692520)),
                 ("ammo", (2547, Some(3276077082), 122615738)),
                 ("deaths", (2457, Some(2931452735), 2458741352)),
                 ("groups", (2685, Some(293453109), 2102443375)),
-                ("guys", (2543, Some(963907415), 2794328742)),
+                ("guys", (2677, Some(1670959914), 1725420330)),
                 ("leaders", (2608, Some(4049621251), 4085010693)),
                 ("cities", (2978, Some(1121539707), 1131566715)),
                 ("items", (3007, Some(3525321571), 3415154359)),
@@ -12495,10 +12513,17 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // `bucket[2]` (wealth) ours 17,667 -> 17,767, theirs 17,767
         // (`GENERAL_PLUNDER` 100 over the Despot's 15). Leaders 2,883 ->
         // 2,926. The first parting moves 2883 -> 2902, on units alone.
+        // Then item 4608 (`Guy::set_all_pivots` bears an `ATTACK_GROUND`
+        // order's figures on the order's point, aimed or not): builds 7,170 -> 7,183 (first 7170 ->
+        // 7183) and ammo 8,363 -> 8,372, past the row's first parting 5607 (ammo), which stands.
+        // Then item 4608 (`Guy::set_all_pivots` bears an `ATTACK_GROUND`
+        // order's figures on the order's point, aimed or not): ammo 3,056 -> 3,062 and items 7,829
+        // -> 7,968, and ours' walk now ends on `game_over` 7465 where it played on; past the row's
+        // first parting 2902, which stands.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                2902, 2953, 12001, 3056, 2922, 2928, 2907, 2926, 3063, 7829, 2999, 2909,
+                2902, 2953, 12001, 3062, 2922, 2928, 2907, 2926, 3063, 7968, 2999, 2909,
             ],
             first: &[
                 ("units", (2902, Some(2295592567), 1737225847)),
@@ -12513,7 +12538,7 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
                 ("goods", (2999, Some(2477322729), 2684940781)),
                 ("world", (2907, Some(1180419640), 1136379448)),
             ],
-            over: None,
+            over: Some(7465),
         }),
     }),
     // run1809

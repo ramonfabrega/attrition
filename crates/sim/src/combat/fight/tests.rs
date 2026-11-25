@@ -888,6 +888,59 @@ fn a_pivot_bears_from_its_node() {
     );
 }
 
+/// **Under an `ATTACK_GROUND` order a figure bears on the order's point,
+/// aimed or not** (item 4608, `Guy::set_all_pivots@005d8bc0`,
+/// `005d8c69`..`005d8d2b`): `do_attack_ground` clears the aim before its
+/// swing, and `Guy::move`'s re-aim reaches the call with none. Theirs takes
+/// `att_x`/`att_y` off the head order and writes `des_turret_angles`; with
+/// no order, a figure with no aim writes nothing and answers 1. A live aim
+/// under the order is passed over for the point too.
+///
+/// Made to fail first: with the seam's old body (the aim alone) the first
+/// assertion reads `des[0]` 0 and `des_flags` 0, row 93's guy 51 on 2966.
+#[test]
+fn a_figure_under_an_attack_ground_order_bears_on_its_point() {
+    let (mut sim, ty) = at_war();
+    sim.roster.art.pivots.insert(
+        sim.tables.unit_types[ty].type_index,
+        [(4, (-180, 180))].into_iter().collect(),
+    );
+    sim.tables.unit_types[ty].combat.max_range = 8;
+    let here = Pos::new(3000, 3000);
+    let me = put(&mut sim, 0, ty, here);
+    sim.units[me].guys = vec![anim::Guy::fresh(-1)];
+    sim.units[me].movement.facing = Angle(0);
+    let point = Pos::new(3000 + 768, 3000 + 768);
+    let bearing = find_angle(768, 768).0;
+    // No order, no aim: nothing is written and the answer is 1.
+    sim.units[me].guys[0].turret.des = [7, 0, 0, 0];
+    assert!(sim.set_all_pivots(me, 0, None));
+    assert_eq!(sim.units[me].guys[0].turret.des[0], 7, "no order, no write");
+    sim.enqueue(
+        me,
+        crate::orders::Order {
+            flags: 0,
+            body: crate::orders::Body::AttackGround(crate::orders::AttackGroundOrder {
+                at: point,
+                sea: false,
+                attack_unit: 2,
+            }),
+        },
+        crate::orders::QueuePos::First,
+    );
+    sim.set_all_pivots(me, 0, None);
+    let t = sim.units[me].guys[0].turret;
+    assert_eq!((t.des[0], t.des_flags), (bearing, 1), "the point, unaimed");
+    // A live foe due south: the order's point still wins.
+    let foe = put(&mut sim, 1, ty, Pos::new(3000, 4536));
+    sim.units[me].guys[0].turret.des = [0; 4];
+    sim.set_all_pivots(me, 0, Some(Obj::Unit(foe)));
+    assert_eq!(
+        sim.units[me].guys[0].turret.des[0], bearing,
+        "the point, aimed"
+    );
+}
+
 /// `ObjectData::valid_target_const@006472c0`'s first line, `7 < who`,
 /// which runs *before* the diplomacy question. To show that it is the
 /// leader bound doing the work and not the sim's short table, the table
