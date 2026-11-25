@@ -2257,7 +2257,7 @@ pub(crate) mod tests {
         while built.sim.frame < 3622 {
             stream.apply(built.sim.frame as i32, &mut built);
             built.sim.command().tick();
-            if built.sim.frame >= 3560 {
+            if built.sim.frame >= 3560 && built.sim.cities.cities.len() > 12 {
                 let c = &built.sim.cities.cities[12];
                 let ai = built.sim.ai.ai.get(c.owner as usize).and_then(|a| a.city_ai.get(12));
                 eprintln!(
