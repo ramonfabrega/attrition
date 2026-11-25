@@ -546,3 +546,47 @@ fn a_piece_keeps_the_intersections_it_was_picked_on() {
     };
     assert_eq!([11, 12, 13].map(at), [(0x11, 0), (0, 0), (0x10, 0)]);
 }
+
+/// **A joined corner holds its ring** (item 4687, `docs/RENDERER.md`
+/// §6.8): run1814b's element-1 block, (10–17, 153–158) moved up by 145,
+/// laid tile by tile with (15, 155) last. (15, 10) takes the packet's
+/// word, `4500cf04`: its white byte `cf` carries the ring's two halves
+/// round the corner below it (`0x400`, `0x200`), which `leech_codes`' line
+/// half copies back after each `flags = 0`. Made to fail: with
+/// `leech_lines` returning at once, the lines read `004800` (red). This
+/// order does not reach the split that zeroes its `S`; the push that
+/// re-marks it is pinned on the walk (`RUN1814B_PLATE_CANDIDATES`, 54 →
+/// 53 with `tex_push` returning at once).
+#[test]
+fn a_joined_corner_holds_its_ring() {
+    let mut sim = bare();
+    lay(
+        &mut sim,
+        &[
+            (11, 8),
+            (11, 9),
+            (11, 10),
+            (10, 10),
+            (12, 10),
+            (13, 10),
+            (14, 10),
+            (15, 8),
+            (15, 9),
+            (12, 11),
+            (13, 11),
+            (14, 11),
+            (15, 11),
+            (16, 11),
+            (17, 11),
+            (12, 12),
+            (12, 13),
+            (15, 10),
+        ],
+    );
+    let e = sim
+        .movement
+        .mesh
+        .elem(&sim.world, Pos::new(15, 10))
+        .unwrap();
+    assert_eq!((e.flags, e.lines, e.inter), (0x4500_0000, 0x00_cf00, 0x04));
+}

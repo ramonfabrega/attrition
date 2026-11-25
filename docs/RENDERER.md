@@ -6580,11 +6580,12 @@ tile it lays (`add_roads:334`–`338`), and that the line passes push onto
 the lists, from one reading.
 
 **Not established.**
-- Which line pass redoes (15, 155) in the original, and whether the
+- ~~Which line pass redoes (15, 155) in the original~~ (item 4687, §6.8:
+  the line passes' pushes, with `leech_codes`' line half), and whether the
   lists' extra redos are sim-idempotent. A redo runs
   `mark_and_trim_directions`, `leech_codes` and `set_diags` again, and
-  `set_diags` can lay a road. Settled by the lines in the mesh (4677a),
-  under the corpus.
+  `set_diags` can lay a road. Still open: §6.8 redoes those tiles for the
+  texture alone (4687a).
 - ~~(16, 156)'s pick on the packet's own candidate (`11003300`): theirs
   element 15 at 4, ours 16 at 0. Either the fractal's height or
   `find_map`'s order.~~ Item 4682 (§6.7): the intersections the pick read.
@@ -6646,10 +6647,93 @@ one search of the export for its name.
 
 **Not established.**
 - The white and yellow bytes the pick read. Ours are the client's
-  evaluation as the tile stands, not as it stood at its pick. The line
-  passes' pushes (4677a) would carry them.
+  evaluation as the tile stands, not as it stood at its pick. ~~The line
+  passes' pushes (4677a) would carry them.~~ Item 4687 (§6.8): the mesh
+  carries them now (`RoadTile::lines`); the client does not read them yet
+  (4687b).
 - run1559b's 19 still apart: the start's seeded roads (4678a) and the
   line bytes above.
+
+## 6.8 The line passes and their pushes (item 4687)
+
+*2026-11-25, Opus 5.5. The ledger: `docs/journal/2026-11-25-item-4687.md`.
+`sim::movement::mesh`'s `Elem::lines`, `Elem::joins`, `RoadMesh::tex`,
+`white_lines`, `yellow_lines`, `fixup_lines`, `delete_straglers`,
+`leech_lines` and `Sim::texture_redo`; the door's `RoadTile::lines`; the
+test `a_joined_corner_holds_its_ring` (sim) and the re-pinned rows of
+`roads::tests`. This item touches `crates/sim`, texture only.*
+
+**What redoes (15, 155).** §6.6 left run1814b's (15, 155) with its `S`
+zeroed by (14, 155)'s split and nothing to redo it. The four line passes
+each set a line bit on a neighbour and, when the bit is fresh, push the
+neighbour onto the ping-pong's other list with `ArrayBase<int>::add_unique`:
+- `RoadsOut::mark_white_lines@00892c10`, 16 sites;
+- `RoadsOut::mark_yellow_lines@00892550` through
+  `RoadsOut::set_neighbor@00890c30`, 12;
+- `RoadsOut::fixup_lines@00891210`, 16;
+- `RoadsOut::delete_straglers@008910b0`, 4, the tile itself.
+
+A pushed tile is redone by `Roads::redo_changed_roads@0088e670` in the
+next round, and its marks are run again. Those fresh bits exist only
+because `RoadsOut::leech_codes@00890da0` copies a neighbour's line bits
+along with its claim: north's `0x400` becomes this tile's `0x8000`, and so
+on, eight bits for each cardinal. That copy is what holds a joined corner's
+ring (`client::roads`' `corner_loops`) through a redo's `flags = 0`.
+
+**The build.** The mesh keeps the line bytes (`Elem::lines`, `0x00ff_ff00`
+of the dword) and `mark_splits`' joins on the tile's own element
+(`Elem::joins`). Both are texture only, and the redo's `flags = 0` clears
+both. The four passes run in the original's order, inside
+`mark_intersections` and the fourth pass. `leech_codes` takes its line half
+(`leech_lines`). In the original a pushed tile's redo rewrites its
+connections, and the simulation must not (parked 4687a). So the pushes go
+to two texture lists of their own (`RoadMesh::tex`). A tile on one of
+those, and not on the matching simulation list, is redone by
+`Sim::texture_redo`: its lines, intersections and joins are cleared, then
+`leech_lines`, the marks, `fixup_lines`, `delete_straglers` and the pick
+run on its connections as they stand. `set_diags` is not run; the marks run
+as its zero answer would let them. The cursor and the caches are restored
+afterwards. `add_roads`' ping-pong counts both lists, so a round with only
+texture tiles still runs.
+
+**The value diff** (the packet's `road_records.py` flags; ours the door's
+`lines` and `inter`):
+
+| tile | theirs | ours before | ours now |
+|---|---|---|---|
+| run1814b (15, 155) | `4500cf04` | `4500cf00` | `4500cf04` |
+| run1814b (12, 155) mesh lines | `3f00` | (none) | `3f00` |
+| run1814b (11, 155) mesh lines | `f300` | (none) | `f300` |
+
+- *run1814b's box* (`RUN1814B_PLATE_CANDIDATES`): intersections **53 → 54
+  of 54**. With `tex_push` returning at once, (15, 155) reads `4500cf00`
+  again and the row is 53 (red).
+- *run1814b, every record with an element* (a probe, not kept): the
+  mesh's white byte 126 of 126, its yellow 126 of 126, and the
+  intersections 126 of 126.
+- *run1559b* (`RUN1559B_RECORDS`): intersections **571 → 580 of 599**,
+  and the packet's piece holds at 471. The mesh's white is 597 of 599 and
+  its yellow 596 of 599. The client's own white is 598.
+- *The rows*: `RUN1559B_3279_RING`'s drawn luma is **20 → 21 of 24**, back
+  where it stood before item 4677's named fall. `RUN1559B_3279_PLUME`,
+  `RUN1570_PLUME` and `RUN1559B_3279_SELECTED` each move by single
+  pixels, through the frame's white.
+- `RUN1814B_PLATE_PIECES` holds at 54 and `RUN1833_DRAW_81` at 948.
+
+**Diff-backed**: run1814b's 54 and run1559b's 580, and the mesh's line
+bytes against both packets (a probe). **Read alone**: the texture-only
+redo standing in for the original's full one. The two differ only where a
+pushed tile's `set_diags` would answer non-zero, or its re-derived
+connections would differ from the standing ones.
+
+**Not established.**
+- Whether the original's redos of pushed tiles ever change a connection
+  (4687a).
+- The client still draws from its own white and yellow
+  (`candidates`, `corner_loops`), not from the mesh's lines (4687b).
+- `mark_splits`' joins on the neighbour it joins, and `mark_yellow_lines`'
+  dropped claim, are not kept past the pass.
+- run1559b's 19 apart, as in §6.7.
 
 ## 7. What is not established, and what needs Ramon's word
 
