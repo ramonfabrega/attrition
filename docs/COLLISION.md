@@ -539,6 +539,23 @@ capture has diffed that arm. Every other off-map close takes the paint as
 well: a unit dying inside a building, and the boat into its platform above. This
 crate paints only for the sunk boat's riders.
 
+### 3.3 The chain decides whose height a terraform refreshes (2026-11-25, item 4660)
+
+A unit's `z` (`ObjectData +0xc`) and each figure's `z` and `last_z` (`GuyData +0x14`, `+0x70`) are stored. They
+are written by `Unit::set_new_location@005f8d20` (`find_tcoord_z` at the new tile, on every call that passes its
+shore arm, moved or not), `Guy::set_new_location@005d86f0` (the ground at the new point; with `param_3`,
+`last_z = z`), `Guy::move@005d9240`'s head (`last_z = z`) and `Unit::update_z@00606590` (the unit's `z` and every
+figure's `z`, no `last_z`). **`Wall::init@0063e9b0` calls `update_z` on chained units only**: after its
+terraform it walks the first 81 cells of `move_x`/`move_y` round the building's cell for a `VILLAGE`-lineage type
+(`is(0x19e)`), 25 for any other, each cell's chain from its head, and refreshes each object whose vslot `+8`
+answers (a live unit) and whose type's domain (`+0x218`) is 0 (`0063eb70`..`0063ec43`). Every other stored height
+keeps the ground it was written on. `crate::units::stored_z` holds a height only where it differs from the ground.
+
+**Diff-backed**: run1812's units and guys ranges on 3357 to 3359, where who=2's Phalanx `2/76` (on no chain)
+keeps `z` 22 and its figure 21 under Smelter `2/2040`
+(`row_53_s_unchained_phalanx_keeps_its_height_under_the_smelter_on_run1812_s_ranges`); the walk's predicates
+rest on a reading of `Wall::init` alone. Not established: §10.
+
 ## 4. `Unit::detect_unit_collision`
 
 `detect_unit_collision(x, y, quick, boats, _, nocoll, top_only)`. The three
@@ -2521,6 +2538,10 @@ three clauses rests on `get_action@00608450` read against the dump's own
 
 ## 10. What is not established
 
+- **The stored heights' edges (§3.3, item 4660).** A figure's held `z` is read only while its body stands on the
+  point it was held at, so a `Guy::set_new_location` onto the same point without `param_3` keeps it here where the
+  original rewrites it. A stand-up from a dump holds no height. The renderer, the movement and a building target's
+  aim read the ground; `TerrainOut::terraform_for_nuke`'s crater refreshes nothing here.
 - **The never-entered functions this document cites (item 3414).** Two are in `blind::NEVER` on the base
   `6d3ffc37`. `Leader::process@006b88b0` is accepted residue. `Unit::do_form_change@005e8670` is read in
   `docs/GROUPS.md` §38 (item 3413), which proposes it for `RESIDUE`: no site makes a `CHANGE_FORM` order. It is

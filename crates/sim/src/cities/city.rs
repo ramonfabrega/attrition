@@ -1716,7 +1716,9 @@ impl Sim {
         // measurement: the AI's three farms had moved 182 tiles of height
         // that the original leaves exactly where the map generator put
         // them.
+        let mut heights = None;
         if !restore && self.tables.build_types[ty].ident != Ident::Farm {
+            heights = Some(self.height_snapshot());
             let (bw, bh) = (
                 self.tables.build_types[ty].x_size,
                 self.tables.build_types[ty].y_size,
@@ -1729,6 +1731,11 @@ impl Sim {
             // terraform (item 4035; `Building::z`).
             self.buildings[b].z = self.world.object_z(self.buildings[b].pos.tile());
         }
+        // `Wall::init`'s tail (`0063eb70`..`0063ec43`): `Unit::update_z` on
+        // the chained land units round the building; every other stored
+        // height stays where the new ground left it (item 4660,
+        // `crate::units::stored_z`).
+        self.wall_init_z(b, heights);
         // Membership is decided at placement, restoring or not.
         if !build::is_city(&self.tables.build_types, ty) {
             self.find_city(b);

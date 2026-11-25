@@ -16,6 +16,7 @@ pub mod slots;
 pub mod stance;
 pub mod starting;
 pub mod store;
+pub mod stored_z;
 pub mod think;
 pub mod unit;
 pub mod unit_set_type_view;
