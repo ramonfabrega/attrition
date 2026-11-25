@@ -3410,7 +3410,7 @@ mod tests {
     fn the_general_is_the_attrition_block_s_hero_and_is_not_exempt() {
         let Some(i) = install() else { return };
         let l = load(&i).unwrap();
-        let g = sim::ids::ty::GENERAL as usize - 0x32;
+        let g = sim::ids::ty::GENERAL - 0x32;
         assert_eq!(l.unit_names[g], "General");
         let t = &l.unit_types[g];
         assert_eq!(t.combat.attack, 0, "the General has no base attack");
