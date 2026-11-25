@@ -8440,6 +8440,60 @@ fn rally_barracks(sim: &mut Sim) -> (Types, usize, usize) {
     (t, b, squad)
 }
 
+/// Run1827, slot 55: the hot-key override counts living members without
+/// shifting a retired member's number or formation data (item 4646).
+#[test]
+fn a_trainee_appends_after_a_retired_hotkey_member_and_keeps_the_stored_role() {
+    use crate::groups::hotkey::HotKeySlot;
+
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut kind = citizen_type(t.village);
+    kind.cols.role = 0x20;
+    let ty = sim.add_unit_type(kind);
+    let retired = spawn(&mut sim, 0, ty, tile_pos(8, 8));
+    let target = spawn(&mut sim, 0, ty, tile_pos(10, 8));
+    let recruit = spawn(&mut sim, 0, ty, tile_pos(12, 8));
+    let target_o = sim.units[target].index;
+    let dead_o = sim.units[retired].index;
+    let new_o = sim.units[recruit].index;
+    sim.units[retired].health = 0;
+    let slot = HotKeySlot {
+        who: 0,
+        num: 2,
+        list: vec![dead_o, target_o],
+        off: vec![(1, 2), (3, 4)],
+        curr: vec![(5, 6), (7, 8)],
+        angles: vec![9, 10],
+        role: 0x8000,
+        ..Default::default()
+    };
+    sim.orders.hotkeys.insert(1, slot);
+    sim.copy_rally_hotkeys(i32::from(target_o), 0, recruit);
+    let slot = sim.hotkey_slot(1).unwrap().clone();
+    assert_eq!(slot.num, 3);
+    assert_eq!(slot.list, [dead_o, target_o, new_o]);
+    assert_eq!(slot.off, [(1, 2), (3, 4), (0, 0)]);
+    assert_eq!(slot.curr, [(5, 6), (7, 8), (0, 0)]);
+    assert_eq!(slot.angles, [9, 10, 0]);
+    assert_eq!(slot.role, 0x8020);
+    sim.frame += 1;
+    sim.copy_rally_hotkeys(i32::from(target_o), 0, recruit);
+    assert_eq!(sim.hotkey_slot(1), Some(&slot));
+
+    // The original uses the stored count for capacity even with retired members.
+    let mut full = slot.clone();
+    full.num = 128;
+    full.list = vec![dead_o; 128];
+    full.list[0] = target_o;
+    full.off.resize(128, (1, 2));
+    full.curr.resize(128, (3, 4));
+    full.angles.resize(128, 5);
+    sim.orders.hotkeys.insert(1, full.clone());
+    sim.copy_rally_hotkeys(i32::from(target_o), 0, recruit);
+    assert_eq!(sim.hotkey_slot(1), Some(&full));
+}
+
 /// **A squad trained under a ground point** (run312's `0/11`..`0/13` on
 /// 856): it leaves on the bearing to the point, not due south, and each
 /// member is sent there under one group move, `ATTACK_TO` for an armed

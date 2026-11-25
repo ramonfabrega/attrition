@@ -2186,9 +2186,11 @@ The key's arms, the issuer and the receiver are read from the decompile, one rea
 is read off its offsets against `GroupData`'s type record. The playback backs the command's bytes and the copy into
 the slot the command names (§22.4).
 
-- **A selection of units.** The walk pushes a group of buildings alone. A unit group's pool record (its formation
-  offsets) is what `copy_group` copies; no hot key on units is played.
-- **The slot's other writers** are not carried: `HotKeyGroups::kill`, `copy` (a unit coming out), `find_group` (a
+- **A selection of units.** Run1825 covers the recorded assignment of slot 55. Run1826 covers a factory trainee
+  joining the target’s slot. Run1827 controls show that a retired member keeps its place and offsets. An append
+  preserves the existing role bits. A duplicate or a full slot leaves the stamp and stored speeds alone.
+  [Slot captures and controls](journal/2026-11-24-item-4646.md)
+- **The slot's remaining writers** include `HotKeyGroups::kill`, `find_group` (a
   rename, `docs/GROUPS.md`), and whatever puts the capital in F1 before the first frame. A slot no hot key wrote reads
   as `HotKeyGroups::clear` left it.
 - **The screen group** (ctrl and a key with nothing selected) is not minted: its `x` and `y` are the camera's floats.

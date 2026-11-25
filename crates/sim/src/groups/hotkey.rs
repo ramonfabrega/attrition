@@ -78,6 +78,8 @@ impl Sim {
         if player != i32::from(who) || self.unit_by_o(who, o).is_none() {
             return;
         }
+        let mut squad = Group::stack(who);
+        self.group_add(&mut squad, trainee);
         let first = u16::from(who) * 18;
         for key in first..first + 18 {
             let Some(slot) = self.orders.hotkeys.get(&key) else {
@@ -86,48 +88,35 @@ impl Sim {
             if slot.who != who || slot.buildings || slot.num == 0 || !slot.list.contains(&o) {
                 continue;
             }
-            let mut updated = slot.clone();
+            // HotKeyGroup::get_num counts live members without moving stored slots.
+            // Group::add checks the stored list for duplicates and its 128-slot limit.
+            let added: Vec<_> = squad
+                .list
+                .iter()
+                .copied()
+                .take(128usize.saturating_sub(slot.list.len()))
+                .take_while(|&unit| !slot.list.contains(&self.units[unit].index))
+                .collect();
+            if added.is_empty() {
+                continue;
+            }
             let mut group = Group::stack(who);
-            // Group::get_num drops dead members and shifts their offsets.
-            for index in (0..updated.list.len()).rev() {
-                if let Some(unit) = self.unit_by_o(who, updated.list[index]) {
-                    group.list.push(unit);
-                } else {
-                    updated.list.remove(index);
-                    updated.off.remove(index);
-                    updated.curr.remove(index);
-                    updated.angles.remove(index);
-                }
-            }
-            group.list.reverse();
-            if slot.num < 4 {
-                updated.role = self.group_find_role(&group.list);
-                updated.speed = self.group_compute_speed(&group);
-                updated.new_speed = updated.speed;
-            }
-            let retained = group.list.len();
-            self.group_add(&mut group, trainee);
-            let added = &group.list[retained..];
-            if !added.is_empty() {
-                updated
-                    .list
-                    .extend(added.iter().map(|&u| self.units[u].index));
-                updated.off.resize(group.list.len(), (0, 0));
-                updated.curr.resize(group.list.len(), (0, 0));
-                updated.angles.resize(group.list.len(), 0);
-                // Adding a follower calls get_num again. If dead members
-                // left a small group, that call normalizes its living role.
-                if added.len() > 1 && retained + 1 < 4 {
-                    updated.role = self.group_find_role(&group.list);
-                } else {
-                    updated.role |= self.group_find_role(added);
-                }
-                updated.speed = self.group_compute_speed(&group);
-                updated.new_speed = updated.speed;
-                updated.stamp = self.frame;
-            }
-            updated.num = updated.list.len() as i32;
-            self.orders.hotkeys.insert(key, updated);
+            group
+                .list
+                .extend(slot.list.iter().filter_map(|&id| self.unit_by_o(who, id)));
+            group.list.extend_from_slice(&added);
+            let speed = self.group_compute_speed(&group);
+            let role = self.group_find_role(&added);
+            let slot = self.orders.hotkeys.get_mut(&key).unwrap();
+            slot.list.extend(added.iter().map(|&u| self.units[u].index));
+            slot.num = slot.list.len() as i32;
+            slot.off.resize(slot.list.len(), (0, 0));
+            slot.curr.resize(slot.list.len(), (0, 0));
+            slot.angles.resize(slot.list.len(), 0);
+            slot.role |= role;
+            slot.speed = speed;
+            slot.new_speed = speed;
+            slot.stamp = self.frame;
         }
     }
 

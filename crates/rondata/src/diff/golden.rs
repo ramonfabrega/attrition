@@ -4662,11 +4662,13 @@ fn chapter_thirty_three_s_word_frame_is_widened_whole() {
 // `Unit::kill_current_order@005e2cb0`'s move branch, and the order the
 // EXIT kills, are not read (the EXIT's own `set_angle(0)` turns 6° and
 // cannot flip it).
-const WANT_CH33: &[&str] = &["2314 0/6 mirror"];
+// Item 4646: the object rally restores the escort exit; mirror 1 matches on 2314.
+const WANT_CH33: &[&str] = &[];
 
 // **What parts in the pool** on run358: chapter twenty-two's ten, and
 // slot 1's `facing` on 2314.
-const WANT_CH33_POOL: &[&str] = &["2314 slot 1 facing"];
+// Item 4646 also restores slot 1’s facing on that block.
+const WANT_CH33_POOL: &[&str] = &[];
 
 /// **Chapter thirty-four, pinned** — the launch commands' other arms
 /// (`docs/GOLDEN.md` §43, item 1009, run362). Twenty-seven staged lines:
@@ -8127,7 +8129,8 @@ const WANT_CH40: &[&str] = &[
 /// −1 in the original and 9 here. Item 4222: slot 4's `new_speed`/`speed`
 /// on 882 agree since a push of buildings normalizes `last_group`'s slot,
 /// as `Group::equals_group@00708000` does (`docs/GROUPS.md` §3.4).
-const WANT_CH40_POOL: &[&str] = &["802 slot 4 form"];
+// Item 4643: the selected spell clears the formation; slot 4 reads −1 on 802.
+const WANT_CH40_POOL: &[&str] = &[];
 
 /// **run422 whole, both directions** (item 1111, `docs/GOLDEN.md` §48):
 /// every dumped record on every block of the capture, and the pool.

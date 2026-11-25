@@ -2857,6 +2857,9 @@ The gathering list keeps its allocated tile slots across removals. Run1827
 compares all 218 tiles before the list shrinks and all 108 after it shrinks.
 The allocation stays at 320, including after another 40 tiles leave the
 list. The build checksum includes this word whenever the list has entries.
+In held-out row 133 a woodcutter’s 80-slot allocation also survives
+reuse of its building number by a village. Run1797 records both occupants
+and run1819 measures the village’s empty list in memory.
 [Original tile-list fields](journal/2026-11-24-item-4648.md)
 
 ### 17.3 How it is established
