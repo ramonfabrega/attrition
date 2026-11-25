@@ -604,6 +604,11 @@ pub struct TerritoryState {
     /// `GameDaemon::check_borders` (`Region::fix_borders@00680f60`): the
     /// next one zeroes `reg_known_rares` ([`Sim::fix_borders`]).
     pub borders_fixed: bool,
+    /// **A gained tech owes a border fix** (item 4635, `docs/RECGAME.md`
+    /// §14.6): `Leader::gain_tech@006dcb60:1305`–`:1322` calls
+    /// `Regions::fix_all_borders` on its own predicate, whether or not the
+    /// border table moves; [`crate::Sim::apply_gained`] spends it.
+    pub gain_fix_owed: bool,
     /// **The fixed pass still reaching the map** (item 1106,
     /// [`border_pass`]): the owners a fix computed and every region's resume
     /// index. `None` once every land region is done.

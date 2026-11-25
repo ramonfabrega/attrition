@@ -1786,7 +1786,7 @@ theirs 22, under Smelter `2/2040`'s terraform. The rest: `docs/journal/2026-11-2
 
 ### 13.3 Row 93
 
-2686 → 2965 by 4590 (run1803; `docs/COMBAT.md` §68.1), 4606 (`docs/CHECKSUM.md` §18). Open: units on 2965. 4608 bore `ATTACK_GROUND`'s figures on its point (COMBAT §55.3); no parting moved.
+2686 → 2965 by 4590 (run1803; `docs/COMBAT.md` §68.1), 4606 (`docs/CHECKSUM.md` §18). Open: units on 2965: `2/51` takes the decoy `1/38`, theirs `1/39` (4652). 4608 (COMBAT §55.3), 4652 moved no parting.
 
 ### 13.4 Row 113
 
@@ -1980,3 +1980,11 @@ Taken by item 4611, found on `6fa43acc3`'s tree; with item 4630's row 28 the lin
 units on 10879. Both hold sums.
 
 **Item 4618** (piece 37's bays): row 148 has 11 lines whole, every one but units, which still part on 10879.
+
+**Item 4635, row 128's Russian age, and the row is whole.** run1828 holds row 128's leaders ranges to 12000. On 3338
+leaders range 1, record 0, `reg_terr[1]`: ours 198, theirs 0; who=1's 495 | 104 and who=2's 447 | 0, with
+`reg_known_rares[1]` zeroed. On 3336 who=1 (tribe 13, the Russians) enters the Classical age on both sides.
+`Leader::gain_tech@006dcb60:1305`–`:1322` calls `Regions::fix_all_borders` for a temple or fort border prerequisite,
+a Civic epoch, or an age under tribe bonus 0xd, whether the table moves or not; ours fixed only on a moved table.
+*Diff-backed* (`row_128_s_russian_age_fixes_the_borders_on_run1828_s_ranges`). `SCORES_SEVENTH[6].moved`: 11 → 12
+lines whole, 12,001 of 12,001 on every line (`docs/journal/2026-11-25-item-4635.md`).

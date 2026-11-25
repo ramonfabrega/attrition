@@ -225,6 +225,7 @@ impl Sim {
                 supply: vec![crate::territory::supply::Network::default(); players],
                 borders: vec![territory::PlayerBorders::plain(&tuning); players],
                 borders_fixed: false,
+                gain_fix_owed: false,
                 border_pass: None,
                 territory_won: Vec::new(),
                 good_seen_bits: Vec::new(),
