@@ -1204,6 +1204,19 @@ pub(crate) mod tests {
                         eprintln!("S4676 f{f0} {k} {who}: {label}");
                     }
                 }
+                crate::diff::harness::debug_armies(&built, built.sim.frame);
+                if std::env::var("RON_PROBE_POOL").is_ok() {
+                    for (k, a) in built.sim.ai.armies[2].list.iter().enumerate() {
+                        if a.group.pool.is_some() {
+                            eprintln!("G4676 f{} army2 slot {k} valid {} army {} pool {:?} units {:?} st {:?}", built.sim.frame, a.valid, a.army, a.group.pool, a.units.iter().map(|&u| built.sim.units[u].index).collect::<Vec<_>>(), (a.group.form, a.group.stamp, a.group.order_num, a.group.unlinked, a.group.role, a.group.speed));
+                        }
+                    }
+                    for (k, p) in built.sim.orders.pushed.iter().enumerate() {
+                        if p.who == 2 {
+                            eprintln!("G4676 f{} pushed {k} pool {:?} list {:?} st {:?}", built.sim.frame, p.state.pool, p.list.iter().map(|&u| built.sim.units[u].index).collect::<Vec<_>>(), (p.state.form, p.state.stamp, p.state.order_num, p.state.unlinked));
+                        }
+                    }
+                }
                 crate::diff::harness::debug_watch(&built, built.sim.frame);
                 crate::diff::harness::debug_ammo(&built, built.sim.frame);
             }
