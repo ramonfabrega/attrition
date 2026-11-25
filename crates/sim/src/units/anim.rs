@@ -2187,7 +2187,7 @@ impl Sim {
     /// original adds the event node's offset through
     /// `GraphicPieces::get_position` — a float, and a graphic one. SEAM:
     /// the original also refuses the event when the target's `uid` has
-    /// changed under it; this crate tests that the target is still active.
+    /// changed under it; this crate tests that the target's slot is live.
     fn guy_release_events(&mut self, u: usize) {
         if self.roster.art.releases.is_empty() {
             return;
@@ -2256,15 +2256,26 @@ impl Sim {
         // own `flags & 3` never set and no draw, and `add_ammo` counts
         // `+0x1f8` all the same. run1798 on 3278: theirs' `graph_index`
         // 1008 is in no state, and `2/37`'s pair is 1009 and 1010.
-        let refused = target.is_some_and(|t| !self.struck(t));
+        //
+        // **A unit off the map is fired at** (item 4683, `docs/RECGAME.md`
+        // §14.4): neither gate asks for the map. `Guy::execute_events`'
+        // `CHAR_ATTACK2` arm (`:184`–`:197`) tests the target's
+        // `ObjectData +0x8 & 1` and its `uid`, and `Ammo::init@0067bbf0:178`
+        // its `flags & 1` alone; a boarded unit keeps both (item 4680). So
+        // a unit target is refused when its slot is gone, and nothing else.
+        // run1842's Caravel `2/111` (TI 325, sea), moving, fires on 3440 at
+        // the Explorer `1/0` (TI 71) that boards `1/141` that tick.
+        let refused = target.is_some_and(|t| match t {
+            crate::combat::Obj::Unit(_) => !self.slot_live(t),
+            crate::combat::Obj::Building(_) => !self.struck(t),
+        });
         let gone = target.is_some_and(|t| !self.slot_live(t));
         let frame = self.frame;
         for g in 0..self.units[u].guys.len() {
             let guy = self.units[u].guys[g];
-            // SEAM: a target alive but not struck (off the map, or a
-            // building with no combat record) is refused whole here, where
-            // the original's non-`CHAR_ATTACK2` figure reaches `Ammo::init`
-            // past `:181` and makes the round.
+            // SEAM: a building alive but with no combat record is refused
+            // whole here, where the original's non-`CHAR_ATTACK2` figure
+            // reaches `Ammo::init` past `:181` and makes the round.
             if refused && (category(guy.anim) == ATTACK2 || !gone) {
                 continue;
             }

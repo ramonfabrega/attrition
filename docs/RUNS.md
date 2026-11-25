@@ -42407,3 +42407,31 @@ board `1/112` that tick with a round each in the air: `hold_frames` ours 1, thei
 `Ammo::inc_time@0067d380` tests the shooter's slot `flags & 1` alone (`67d3c4`); ours asked `is_on_map` too
 (`docs/COMBAT.md` §42.3). After the fix nothing parts to 3118. Read by item 4680's range printer (a probe, reverted);
 no test reads the ranges.
+
+## run1842 — parity held out, seventh battery, row 88's file to 3,447 with the checksum and ranges hooks, every line but walls kept (2026-11-25, item 4683, `att-4683`)
+
+`docs/RECGAME.md` §14.4. **What the disk could not answer**: row 88 parts on 3441 on ammo, past run1840's ranges (to
+3118). The take is run1840's line to 3,447 with `--log-window 3435 3442` and the same mask, `0xffb`, which is what
+`score_recording` on run1808's sums names on the base (every line but walls parts):
+`TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1842
+--recording ~/ron-golden/recordings/item4600-row088-12000.rcx --end-frame 3447 --allow-early-end --cover cover=1
+--log-window 3435 3442 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def
+RON_RANGES --tracer-def RNG_MASK=0xffbu`, waited on with `waitrun.sh` in the background. All three lanes read free at
+launch (`ron_lane_state`); `df -g ~` read 80 GB free before it and 79 after filing.
+- **The run**: pool lane 1, launched 15:08:49 −05:00, exited 15:13:06: **256.6 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 3,448 frames, `last_frame` 3447, not ended early, seed 12345, map 18. The recording's
+  SHA-256 is run1808's (`02dced92…`). Players: tribe 4 (who 0, flags 7), tribe 17 (who 1), tribe 11 (who 2).
+- **The record**: `~/ron-golden/run1842/map-18/rontrace.ranges`, 3,412,387,772 bytes, SHA-256
+  `544286a3ac4aab1a35bb8ce908fbd6b9ec928aeb74d77cca475af09124f7f8bb`, split in four by `filerun.py` and compressed
+  in place (3.18 GiB on disk before, 0.30 after). `gamelog_p.txt`, 2,879 bytes, SHA-256
+  `dbcccdab005270a5b681ae721ebac017ded238e45969318ecb7468b8f10c6196`; `rontrace.log`, 162,350,560 bytes, SHA-256
+  `2071b353ced94d4af79e4e31347ed76d1d426a153c57cd5a40516213cda83be3`.
+- Filed with `filerun.py run1842 heldout7-row088-ammo3441-ranges`.
+
+**What it named**: the ammo line on 3441, 12 ranges ours against 15 theirs: theirs' slot 4 is a round from who=2's
+Caravel `2/111` (TI 325, sea), moving, at the Explorer `1/0` (TI 71), which boards `1/141` on tick 3440; `graph_index`
+130, launch (16759, 3578, 30), landing (17388, 4615, 75), `t` 1/6. Theirs' tick 3440 spends 147 draws, ours 145: the
+two are `Ammo::init+0xcd9` and `+0xd0b` under `GraphicEvents::execute_game_events`. Ours refused the release at a
+target off the map; neither `Guy::execute_events`' `CHAR_ATTACK2` refusal nor `Ammo::init:178` asks for the map
+(`docs/COMBAT.md` §24.4). After the fix nothing parts to 3447. Read by item 4683's range printer (a probe, reverted);
+no test reads the ranges.

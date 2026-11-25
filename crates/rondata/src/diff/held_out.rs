@@ -4910,6 +4910,104 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 93's decoy Tiger Tank leaves the chain at its death** (item
+    /// 4685, `docs/RECGAME.md` §13.3): run1799, row 93's whole-length
+    /// ranges. who=1's Tiger Tank `1/38` (TI 258, land), a decoy, dies on
+    /// 3089's tick over the Bazooka `1/35` (TI 140) on cell (16, 29).
+    /// `Unit::close@0060ee50` zeroes `param_1` for a decoy, so
+    /// `Object::close` takes `remove_from_world` though the type blocks
+    /// while dead: `1/35` heads the cell with `up` −1 (units range 1417,
+    /// record 35; world range 1780, record 1756, cell byte 8 `0x23`).
+    /// Every units and world range on states 3088 to 3090, byte for byte.
+    #[test]
+    fn row_93_s_decoy_tiger_tank_leaves_the_chain_at_its_death_on_run1799_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            eprintln!("skipping: row 93's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1799/map-14");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1799's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3088i64..=3090 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let slot = |o: i16| {
+                built
+                    .sim
+                    .units
+                    .iter()
+                    .rposition(|u| u.owner == 1 && u.index == o)
+                    .expect("who=1's slot")
+            };
+            let (tank, bazooka) = (slot(38), slot(35));
+            for (u, ti, name) in [(tank, 258, "Tiger Tank"), (bazooka, 140, "Bazooka")] {
+                let ty = built.sim.units[u].ty.expect("a type");
+                assert_eq!(
+                    built.sim.tables.unit_types[ty].type_index, ti,
+                    "{name}'s TI"
+                );
+                assert_eq!(loaded.unit_names[ty], name);
+                assert_eq!(
+                    built.sim.units[u].kind.domain,
+                    sim::territory::attrition::Domain::Land
+                );
+            }
+            let cell = sim::Cell { x: 16, y: 29 };
+            assert_eq!(
+                built.sim.units[bazooka].pos.cell(),
+                cell,
+                "1/35 on (16, 29)"
+            );
+            if state == 3088 {
+                assert!(built.sim.units[tank].alive() && built.sim.units[tank].decoy);
+                assert_eq!(built.sim.units[bazooka].chain.up, 38, "the decoy above it");
+            } else {
+                assert!(!built.sim.units[tank].alive(), "1/38 dead on {state}");
+                assert_eq!(built.sim.units[bazooka].chain.up, -1, "1/35 heads the cell");
+                assert_eq!(built.sim.object_head_words(cell), (35, 1), "WData::down");
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[0].as_ref().expect("units");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            let ours = built.sim.checksum_world();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "world's ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "world range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+    }
+
     /// **Row 43's Slinger stones leave from piece 736's sockets** (item
     /// 4547, `docs/RECGAME.md` §12.3): run1787, the ranges take of row 43's
     /// file. who=2's Slingers `2/30` and `2/29` (TI 82, land, piece 736,
@@ -12942,23 +13040,36 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // (units and world): units 3,108 -> 3,203; ammo 3,879 -> 3,819,
         // deaths 3,612 -> 3,433 and items 6,297 -> 5,761, named falls past
         // 3089; goods 4,563 -> 4,615.
+        // Then item 4685 (`Unit::close@0060ee50` zeroes `param_1` at `:592`
+        // when its draw arm does not run, so a decoy's `Object::close`
+        // takes `remove_from_world` whatever `blocks_while_dead` says):
+        // who=1's decoy Tiger Tank `1/38` (TI 258, land), killed on 3089's
+        // tick, leaves the chain over the Bazooka `1/35` (TI 140) on cell
+        // (16, 29), as theirs (run1799's units range 1417, record 35, `up`
+        // ours 38, theirs −1; world range 1780, record 1756, cell byte 8
+        // ours 0x26, theirs 0x23, on 3089). The row's first parting 3089 ->
+        // 3269 (builds, which stands): units 3,203 -> 4,130 (first 4130),
+        // world 3,184 -> 4,181 (first 4181), ammo 3,819 -> 4,639, deaths
+        // 3,433 -> 4,197, groups 3,473 -> 4,167, guys 3,416 -> 4,180,
+        // leaders 3,449 -> 4,174 (first 3441 -> 3524), cities 3,707 ->
+        // 4,221, items 5,761 -> 6,516, goods 4,615 -> 4,797.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                3203, 3269, 12001, 3819, 3433, 3473, 3416, 3449, 3707, 5761, 4615, 3184,
+                4130, 3269, 12001, 4639, 4197, 4167, 4180, 4174, 4221, 6516, 4797, 4181,
             ],
             first: &[
-                ("units", (3089, Some(759273441), 560568761)),
+                ("units", (4130, Some(1238553357), 396940046)),
                 ("builds", (3269, Some(1882890068), 5807727)),
-                ("ammo", (3420, Some(2050829256), 3783208006)),
-                ("deaths", (3433, Some(1040278336), 1142973249)),
-                ("groups", (3458, Some(349811072), 1738456272)),
-                ("guys", (3399, Some(3910598501), 3104440211)),
-                ("leaders", (3441, Some(1041176352), 4221441822)),
-                ("cities", (3652, Some(1847345313), 121454513)),
-                ("items", (3619, Some(613036389), 584200545)),
-                ("goods", (4147, Some(3351549222), 3201602850)),
-                ("world", (3089, Some(484523747), 2319858450)),
+                ("ammo", (4190, Some(4179374870), 2728667563)),
+                ("deaths", (4197, Some(4115287177), 4203236490)),
+                ("groups", (4131, Some(3248158095), 1415640466)),
+                ("guys", (4180, Some(1398272031), 1868298625)),
+                ("leaders", (3524, Some(18748832), 2462586271)),
+                ("cities", (4221, Some(140919747), 372917197)),
+                ("items", (6187, Some(1365126693), 1373777447)),
+                ("goods", (4452, Some(3368850730), 3351549222)),
+                ("world", (4181, Some(2240145056), 2958026358)),
             ],
             over: None,
         }),
@@ -13861,23 +13972,36 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // rounds in the air; units ranges 3089 and 3107, `hold_frames` ours
         // 1 -> 0, as theirs. Units 3,112 -> 3,442. The first parting moves
         // 3112 -> 3441, on ammo, which stood.
+        // Moved by item 4683 (run1842's ranges): `Guy::execute_events`'
+        // `CHAR_ATTACK2` refusal and `Ammo::init@0067bbf0:178` test the
+        // target's `flags & 1` (and `uid`), never the map. On tick 3440
+        // who=2's Caravel `2/111` (TI 325, sea) fires on the move at the
+        // Explorer `1/0` (TI 71), which boards `1/141` that tick; ours refused
+        // it. Ammo on 3441: 12 ranges ours, 15 theirs; slot 4, `graph_index`
+        // 130, launch (16759, 3578, 30), landing (17388, 4615, 75), `t` 1/6,
+        // ours none -> theirs. Units 3,442 -> 3,582, builds 3,513 -> 3,586,
+        // ammo 3,462 -> 3,604 (first 3441 -> 3599), deaths 3,475 -> 3,675,
+        // groups 3,490 -> 3,585, guys 3,442 -> 3,583, leaders 3,446 -> 3,585,
+        // cities 3,576 -> 3,751, items 8,480 -> 8,804, goods 4,002 -> 4,054
+        // (first 3728 -> 3872), world 3,443 -> 3,574. The first parting moves
+        // 3441 -> 3574, on world.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                3442, 3513, 12001, 3462, 3475, 3490, 3442, 3446, 3576, 8480, 4002, 3443,
+                3582, 3586, 12001, 3604, 3675, 3585, 3583, 3585, 3751, 8804, 4054, 3574,
             ],
             first: &[
-                ("units", (3442, Some(2298525788), 1001115229)),
-                ("builds", (3487, Some(3993328074), 3816708623)),
-                ("ammo", (3441, Some(98448818), 3176415250)),
-                ("deaths", (3475, Some(3483578464), 3736809576)),
-                ("groups", (3490, Some(2530233576), 768756967)),
-                ("guys", (3442, Some(2992131002), 2338016094)),
-                ("leaders", (3446, Some(149996412), 1264501630)),
-                ("cities", (3576, Some(794707692), 843073261)),
+                ("units", (3582, Some(96578577), 2013759880)),
+                ("builds", (3586, Some(111187840), 3176568745)),
+                ("ammo", (3599, Some(939402172), 609690385)),
+                ("deaths", (3675, Some(2727518681), 4027887385)),
+                ("groups", (3585, Some(1864425716), 2587942655)),
+                ("guys", (3583, Some(176317156), 249587974)),
+                ("leaders", (3585, Some(2961689531), 241617861)),
+                ("cities", (3751, Some(1956137991), 1891060740)),
                 ("items", (4135, Some(308941102), 314708274)),
-                ("goods", (3728, Some(500298274), 255193629)),
-                ("world", (3443, Some(2643984986), 361300663)),
+                ("goods", (3872, Some(606990886), 361886241)),
+                ("world", (3574, Some(3203944514), 4203960669)),
             ],
             over: None,
         }),
