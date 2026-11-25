@@ -7398,6 +7398,11 @@ initial `max`, `inc_time`'s bump, and `DeathObj::inc_time`'s — are on a
 slot alive until its last arrow lands. It has nothing to say about a
 target.
 
+**The slot's `flags & 1` alone, not `is_on_map`** (item 4680,
+`docs/RECGAME.md` §14.4; `67d3c4` `testb $0x1, 0x8(%eax)`): a live
+shooter that boards a boat with its round in the air is not bumped. The
+crate asked `is_on_map` too until item 4680, which run1840 parted on 3112.
+
 That is now a row rather than a reading. `hold_frames` is printed in the
 `OBJECT` block at every detail level and `coverage`'s pin had carried it
 as unread since the guard was built; `crate::diff::compare` reads it as a

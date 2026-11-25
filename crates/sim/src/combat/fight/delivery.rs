@@ -2090,11 +2090,18 @@ impl Sim {
     pub(crate) const NUKE_SPREAD: i32 = 0x1e;
 
     /// **`Ammo::inc_time@0067d380`'s first statement**: every frame, a
-    /// shot in flight whose shooter is no longer active bumps the
+    /// shot in flight whose shooter's slot is closed bumps the
     /// shooter's `hold_frames` (§42.3). On dead slots only, which is why
     /// the dump prints `hold_frames 0` on every living unit of every
     /// capture — the row `crate::diff::compare` now carries. The death
     /// objects' own bump is [`Self::death_objs_inc_time`], after the walk.
+    ///
+    /// **The slot's `flags & 1` alone, never `is_on_map`** (item 4680,
+    /// `docs/RECGAME.md` §14.4): `67d3c4` is `testb $0x1, 0x8(%eax)` and
+    /// `jne` past the `incw 0x32(%eax)`. A shooter that boarded a boat with
+    /// its round in the air is live and off the map, and is not bumped:
+    /// on run1840's 3112 who=1's Elite Javelineers `1/72` and `1/73` board
+    /// `1/112` with rounds in flight, `hold_frames` theirs 0.
     pub(crate) fn hold_frames_tick(&mut self) {
         for k in 0..self.combat.projectiles.len() {
             // A crash round bumps its own plane's slot in its step
@@ -2105,7 +2112,7 @@ impl Sim {
             let Obj::Unit(s) = self.combat.projectiles[k].shooter else {
                 continue;
             };
-            if !self.active(Obj::Unit(s)) {
+            if !self.slot_live(Obj::Unit(s)) {
                 self.units[s].hold_frames += 1;
             }
         }

@@ -5235,6 +5235,41 @@ fn a_puncturing_round_into_the_ground_stays_two_hundred_frames() {
     assert!(sim.combat.projectiles.is_empty(), "closed at 200");
 }
 
+/// **A shooter that boards with its round in the air is not held**
+/// (item 4680, `docs/RECGAME.md` §14.4): `Ammo::inc_time@0067d380`'s
+/// first statement bumps the shooter's `hold_frames` when its slot's
+/// `flags & 1` is clear (`67d3c4`), and asks nothing about the map. On
+/// run1840's 3112 who=1's Elite Javelineers `1/72` and `1/73` board
+/// `1/112` with rounds in flight and theirs holds `hold_frames` 0, where
+/// ours, asking `is_on_map` too, counted 1 and 2. Off the map and alive:
+/// no bump; dead: one.
+#[test]
+fn a_shooter_that_boards_with_its_round_in_the_air_is_not_held() {
+    let (mut sim, ty) = at_war();
+    let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+    let mut p = shot(
+        me,
+        Pos::new(0x1000, 0x1000),
+        Pos::new(0x1000, 0x1400),
+        1,
+        0,
+        0,
+    );
+    p.rolling = false;
+    sim.add_ammo(p);
+    assert_eq!(sim.combat.projectiles.len(), 1, "the round is in the air");
+    sim.units[me].on_map = false;
+    let held = sim.units[me].hold_frames;
+    sim.hold_frames_tick();
+    assert_eq!(
+        sim.units[me].hold_frames, held,
+        "aboard and alive: the slot is open, no bump"
+    );
+    sim.units[me].health = 0;
+    sim.hold_frames_tick();
+    assert_eq!(sim.units[me].hold_frames, held + 1, "dead: held");
+}
+
 /// **The death pool holds 100 records and evicts the oldest that does
 /// not block** (item 3971, `Objects::add_death@00653b60`,
 /// `docs/GOLDEN.md` §177). A hundred deaths fill it; the hundred-and-
