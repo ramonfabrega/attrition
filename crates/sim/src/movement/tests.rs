@@ -768,6 +768,7 @@ fn the_group_cap_is_flag_zero_s_and_an_action_order_is_exempt() {
             in_range: false,
             ever_in_range: false,
             new_ord: true,
+            cleared_uid: None,
         }),
     });
     assert_eq!(

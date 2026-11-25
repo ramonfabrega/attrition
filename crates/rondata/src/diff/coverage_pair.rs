@@ -2488,7 +2488,11 @@ fn run1075_s_garrison_window_is_widened_whole() {
     // Item 4556: 163 -> 162, `Wall::inc_time`'s site refresh runs in the
     // leader walk, ahead of the ammo list (`docs/CITIES.md` §3.4): the row
     // 2554 `1/2033` `construct_hits` (ours 10323, theirs 10359) leaves.
-    pin_eq!(w.firsts.len(), 162, "initial run1075 baseline");
+    // Item 4633: 162 -> 160, `Unit::same_damage` walks the receiving squad
+    // from its tail (`docs/TRANSPORT.md` §6.4): on 2594 who=1's `1/135`
+    // `hits_left` (ours 130, theirs 127) and `damage` (ours 0, theirs 3)
+    // leave, both agreeing.
+    pin_eq!(w.firsts.len(), 160, "initial run1075 baseline");
 }
 
 /// `Ammo::init+0xcd9` (`0x67c8c9`): the first of a round's two landing

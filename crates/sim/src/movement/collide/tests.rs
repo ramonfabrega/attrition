@@ -1769,6 +1769,7 @@ fn two_members_of_one_group_pass_through_each_other() {
             in_range: false,
             ever_in_range: false,
             new_ord: true,
+            cleared_uid: None,
         }),
     });
     assert!(
@@ -2375,6 +2376,7 @@ fn attackers_on_a_dead_target_are_hard_to_each_other() {
                 in_range: false,
                 ever_in_range: false,
                 new_ord: true,
+                cleared_uid: None,
             }),
         };
         sim.enqueue_order(u, order, QueuePos::New);

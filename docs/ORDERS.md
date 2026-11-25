@@ -6236,6 +6236,11 @@ spends a draw in the capture.
 - The army group's `speed`/`new_speed`, 0 against 25 from 616. That is
   `Group::add`'s `compute_speed` for a group with an id. It spends no
   draw here.
+- `Unit::work@0060d180`'s uid test on an attack (built by item 4662,
+  `docs/RECGAME.md` §14.4) marks the object now holding `(whom, ox)`
+  and clears a stale current attack to `(−1, −1, uid)`. Its `STRAFE`
+  arm (`0x10`, vslot `+0x88`), the trade route's after it, and a
+  mandatory order's search on a cleared pair are not built.
 
 ## 23. A human's fishing boat deploys itself, above `ai off` (item 543, 2026-09-22)
 

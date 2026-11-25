@@ -251,7 +251,12 @@ impl Sim {
         } else if ammo && flame {
             4
         } else {
-            combat::death_type(ap.obj_masks, !matches!(attacker, Obj::Unit(_)))
+            let shot_is_four = matches!(attacker, Obj::Building(b) if self.building_shot(b) == 4);
+            combat::death_type(
+                ap.obj_masks,
+                !matches!(attacker, Obj::Unit(_)),
+                shot_is_four,
+            )
         };
         // `local_70` (`do_damage@0064a480`, `0064a8ac`): the struck city
         // building was still below its ceiling when the hit began.

@@ -1805,7 +1805,7 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: deaths parts first on 2457. run1797's ranges hold each item's frames, each *diff-backed*.
+Open: ammo parts on 2547 (4659: deaths → 3206, Redoubt `dtype` 3). run1797's ranges hold the items' frames, *diff-backed*.
 
 **Items 4597 to 4620**: units → 2376, builds → 2432, ammo → 2408, leaders → 2413, cities → 2448 (`docs/GROUPS.md`,
 `docs/COMBAT.md` §84, a Temple's close, two walks by object number; their journals).
@@ -1916,7 +1916,7 @@ Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
 
 ### 14.4 Row 88
 
-Open: units part on 2902, alone (item 4631). run1808 holds sums, run1815 the ranges to 2991 (units, deaths, guys,
+Open: ammo parts on 3028 (item 4662). run1808 holds sums, run1815 the ranges to 2991 (units, deaths, guys,
 leaders and world), run1818 the ammo ranges to 2792. The stories are the items' journals.
 
 **Item 4614: a rider comes out before its carrier dies, and a fire raft dies with its shot.** Both are diff-backed by
@@ -1956,19 +1956,33 @@ plunder and the Inca refund. `plunder` redirects the same way, so `GENERAL_PLUND
 wealth. Built as `Sim::plunder_victim` (which `score_victim` reads) in `unit_plunder` and `inca_refund`. Held by
 `cities_tests::a_transport_s_kill_plunders_as_its_cargo`; the mutation with the redirect dropped fails it.
 
+**Item 4633: a boat's damage comes ashore on its squad's tail.** On 2902 units range 3709 reads `damage` ours 12, theirs 0,
+on who=2's Elite Javelineers captain `2/29` (TI 84), and theirs' 12 is on the tail `2/31`. On 2901 the barge `2/65` (TI
+320, 44 of 50) unloads them. `Unit::same_damage@005f9400` walks the receiving squad from its last live figure up `o_up`,
+owing the larger damage fraction of `myhits` less the squad's `total_damage@00609c00`: 30/256 of 110 is 12, on the tail.
+Built in `Sim::same_damage` (`docs/TRANSPORT.md` §6.4), held by
+`ai::transport::tests::a_boat_s_damage_comes_ashore_on_its_squad_s_tail`.
+
 The score, `SCORES_SEVENTH[4].moved` (12,001 states). 4614: deaths and world 2,741 → 2,862, groups → 2,883, guys →
 2,851. 4622: units → 2,807, leaders → 2,879; first 2741 → 2791. 4625: units → 2,902, ammo → 3,056, deaths → 2,922,
 groups → 2,928, guys → 2,907, leaders → 2,883, items → 7,829, world → 2,909; first 2791 → 2883. 4631: leaders 2,883 →
-2,926. **The first parting moves 2883 → 2902, on units alone.**
+2,926. 4633: units → 2,985, builds → 3,015, ammo → 3,170, guys → 2,985, leaders → 3,011, goods → 3,543; first 2902 →
+2985. 4662: units → 3,033, builds → 3,144, ammo → 3,391, deaths → 3,463, guys → 3,069, leaders → 3,134, world → 3,086;
+first 2985 → 3028.
 
-**The next word, 2902, units.** run1815's ranges hold it: range 3709, record 29, `myhits..launch_frames` byte 4 ours
-`0x0c`, theirs `0x00` (damage ours 12, theirs 0). Guys and world part on 2907, ammo on 2917, deaths and leaders on 2922.
+**Item 4662: a stale attack is cleared, not retargeted.** On 2984 who=1's Trebuchet `1/61` (TI 266) ends its
+attack-ground; the Attack under it names `2/63` at uid 93, a number another barge holds. `Unit::work@0060d180:300`–`:340`
+marks the object at `(whom, ox)` in danger and, on the uid mismatch, writes `ox`/`whom` −1 and returns; `fight` searches on
+2985. On 2985 `order.target` ours (64, 2, 94) → (−1, −1, 93), theirs (−1, −1, 93). Held by
+`orders::reused_target_tests::an_attack_on_a_reused_number_is_cleared_and_searches_a_frame_later`.
+
+**The next word, 3028: ammo**, past every range on disk (run1815 to 2991, run1818 to 2792): a take is owed.
 
 **Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is not built: no capture has been shown
 to reach it. A building shooter always splashes from the landing (`Build` and `Wall` fill vslot `+0x18` with a
 `return 0`). The Carrack's node-2 `CHAR_ATTACK2` row (frame 24) is one unit off at heading 283; piece 128's six
 node-0 attack keys still fall back to the figure's square on row 88 after 2883. A transport's head rider is taken as
-the lowest live slot aboard, not read off `inside_down`'s ring order; no capture yet kills a mixed cargo.
+the lowest live slot aboard, not read off `inside_down`'s ring order; no capture yet kills a mixed cargo. `eject_riders` walks riders in slot order too (4633a): the chain order moved nothing on run1815.
 
 ### 14.5 Row 108
 
