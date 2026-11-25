@@ -1976,13 +1976,9 @@ marks the object at `(whom, ox)` in danger and, on the uid mismatch, writes `ox`
 2985. On 2985 `order.target` ours (64, 2, 94) → (−1, −1, 93), theirs (−1, −1, 93). Held by
 `orders::reused_target_tests::an_attack_on_a_reused_number_is_cleared_and_searches_a_frame_later`.
 
-**Item 4664: a ship's round leaves 100 above the water.** `Object::fire_ammo@0064c8b0:166`'s unit arm launches from the
-figure's `z` + 100, and a ship's figure stands at 0. On 3027 (run1834) who=1's Heavy Fire Raft `1/94` (TI 335, sea) fires
-on `2/83`: ammo `sz` ours −173 (the seabed, −273) → 100, theirs 100. Built in `Sim::unit_launch_z`, held by
-`combat::fight::tests::a_ship_s_round_leaves_above_the_water_not_the_seabed`.
-
-**The next word, 3033: units**, on run1834's ranges: who=1's Light Cavalry `1/83` (TI 210) `damage` ours 3, theirs 7,
-`damage_frame` 2988 against 3032.
+**Item 4664: a ship fires from the water** (`Object::fire_ammo@0064c8b0:166`, figure `z` + 100): on 3028 raft
+`1/94`'s round `sz` ours −173 → 100, theirs 100;
+`combat::fight::tests::a_ship_s_round_leaves_above_the_water_not_the_seabed`. Next: 3033, units.
 
 **Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is not built: no capture has been shown
 to reach it. A building shooter always splashes from the landing (`Build` and `Wall` fill vslot `+0x18` with a
