@@ -524,3 +524,25 @@ fn a_tile_laid_into_a_gap_marks_itself() {
     };
     assert_eq!(inter(13), 0x10);
 }
+
+/// **A piece keeps the intersections it was picked on** (item 4682,
+/// `docs/RENDERER.md` §6.7): `find_piece` runs in the redo's fourth pass
+/// and in `add_roads`' own, on the tiles of the list. The straight
+/// 10..=14 picks (11, 10) on `0x11` and (13, 10) on `0x10`. A road laid
+/// south of (12, 10) makes it a T, whose `mark_splits` joins east and west
+/// and zeroes both neighbours' bytes; neither is on the list, so neither is
+/// picked again, and each keeps the piece it had. Made to fail: with
+/// `note_pick` empty, both read 0.
+#[test]
+fn a_piece_keeps_the_intersections_it_was_picked_on() {
+    let mut sim = bare();
+    lay(
+        &mut sim,
+        &[(10, 10), (11, 10), (12, 10), (13, 10), (14, 10), (12, 11)],
+    );
+    let at = |x| {
+        let e = sim.movement.mesh.elem(&sim.world, Pos::new(x, 10)).unwrap();
+        (e.picked, e.inter)
+    };
+    assert_eq!([11, 12, 13].map(at), [(0x11, 0), (0, 0), (0x10, 0)]);
+}

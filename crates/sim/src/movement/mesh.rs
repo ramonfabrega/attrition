@@ -133,6 +133,12 @@ pub struct Elem {
     /// client, which keeps it apart from [`Elem::flags`] so no reader of
     /// the connections can see it.
     pub inter: u8,
+    /// [`Elem::inter`] as `RoadsOut::find_piece@00890c90` last read it
+    /// (item 4682, `docs/RENDERER.md` §6.7). The record's piece is picked
+    /// there, in the redo's fourth pass and in `add_roads`' own, and only
+    /// there; a neighbour's `mark_splits` that zeroes [`Elem::inter`] later
+    /// leaves the piece as it was. Texture only, like [`Elem::inter`].
+    pub picked: u8,
 }
 
 /// `Roads`' own state: the element store, the modification queue, and the two
@@ -413,6 +419,15 @@ impl RoadMesh {
                 }
                 Some(_) => {}
             }
+        }
+    }
+
+    /// **The pick's intersections** (item 4682, `docs/RENDERER.md` §6.7):
+    /// `find_piece` at `t` reads the element's flags whole, so the piece is
+    /// the one [`Elem::inter`] names now, until the tile is picked again.
+    fn note_pick(&mut self, world: &World, t: Pos) {
+        if let Some(e) = self.elems.get_mut(&index_of(world, t)) {
+            e.picked = e.inter;
         }
     }
 
@@ -1167,8 +1182,10 @@ impl RedoView for SimRedo<'_> {
     }
     fn finish_pieces(&mut self, _list: i32) {
         // `find_piece` picks the road tile's own piece, so the C4 a corner
-        // left on it goes (§12; the pick itself is not modelled).
+        // left on it goes (§12; the pick itself is the client's, on the
+        // intersections it reads here: item 4682).
         let at = self.sim.movement.mesh.at;
+        self.sim.movement.mesh.note_pick(&self.sim.world, at);
         if self.sim.world.tile_mask(at) & tile::SURFACE == tile::SURFACE_ROAD
             && let Some(e) = self
                 .sim
@@ -1267,8 +1284,10 @@ impl RoadsView for SimRoads<'_> {
     }
     fn find_piece(&mut self) {
         // The piece the pick settles on is the road tile's own, so the C4 a
-        // corner left on it goes (§12; the pick itself is not modelled).
+        // corner left on it goes (§12; the pick itself is the client's, on
+        // the intersections it reads here: item 4682).
         let at = self.sim.movement.mesh.at;
+        self.sim.movement.mesh.note_pick(&self.sim.world, at);
         if self.sim.world.tile_mask(at) & tile::SURFACE == tile::SURFACE_ROAD
             && let Some(e) = self
                 .sim
