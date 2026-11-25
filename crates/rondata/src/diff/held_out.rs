@@ -13370,23 +13370,34 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // items 8,398 -> 8,405; ammo 3,392 -> 3,394 and items 8,590 -> 8,398
         // stood on the base (the mutation's score). The first parting moves
         // 3033 -> 3069, on units and guys.
+        // Moved by item 4674 (run1838's ranges): `Guy::set_all_pivots
+        // @005d8bc0` bears on the slot `objects[whom][ox]`, no uid. On tick
+        // 3068 who=1's Steppe Nomad `1/46` (TI 200) holds `2/61` (uid 91),
+        // dead, its number now a Transport Barge's. Units range 2404, record
+        // 46 `cavarch_o` ours -1 -> 61, theirs 61; its guy's
+        // `des_turret_angles[0]` ours 0 -> -701431808, theirs -701431808.
+        // Units 3,069 -> 3,112, builds 3,144 -> 3,158, ammo 3,394 -> 3,400,
+        // deaths 3,463 -> 3,474, guys 3,069 -> 3,149, leaders 3,134 -> 3,158,
+        // items 8,405 -> 8,719 (first 4135 -> 4053), goods 3,500 -> 3,562,
+        // world 3,086 -> 3,149. The first parting moves 3069 -> 3095, on
+        // groups, which stood.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                3069, 3144, 12001, 3394, 3463, 3095, 3069, 3134, 3313, 8405, 3500, 3086,
+                3112, 3158, 12001, 3400, 3474, 3095, 3149, 3158, 3313, 8719, 3562, 3149,
             ],
             first: &[
-                ("units", (3069, Some(3225147323), 4084455149)),
-                ("builds", (3144, Some(3531851268), 1209124357)),
+                ("units", (3112, Some(2802773391), 493219213)),
+                ("builds", (3158, Some(3521179818), 3712217865)),
                 ("ammo", (3383, Some(1), 2980055740)),
-                ("deaths", (3463, Some(4004785731), 1478238545)),
+                ("deaths", (3474, Some(3326357348), 2286428706)),
                 ("groups", (3095, Some(3354359777), 3950803518)),
-                ("guys", (3069, Some(2438684783), 234578274)),
-                ("leaders", (3075, Some(2998777053), 2372580574)),
+                ("guys", (3149, Some(3836241446), 1600546288)),
+                ("leaders", (3158, Some(2939005412), 1730390507)),
                 ("cities", (3313, Some(4151394957), 891306669)),
-                ("items", (4135, Some(308941102), 314708274)),
-                ("goods", (3116, Some(2794516976), 3169382901)),
-                ("world", (3086, Some(183371053), 233702701)),
+                ("items", (4053, Some(314708274), 308941102)),
+                ("goods", (3562, Some(4321815), 41808409)),
+                ("world", (3149, Some(3792573037), 100471405)),
             ],
             over: None,
         }),

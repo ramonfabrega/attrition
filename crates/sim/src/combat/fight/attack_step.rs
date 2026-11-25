@@ -373,6 +373,14 @@ impl Sim {
     /// clears the aim (`set_attack(−1, −1)`) before its swing, and
     /// `Guy::move`'s re-aim then bears on the point.
     ///
+    /// **The target is the slot, not the object** (item 4674,
+    /// `005d8c3c`..`005d8c65`, `005d8d29`..`005d8d58`): the gone test and the bearing both read
+    /// `objects[whom][ox]`, the figure's own pair, and no `uid`. A target
+    /// whose number has gone to a newcomer is borne on at the newcomer.
+    /// Row 88's Steppe Nomad `1/46` on tick 3068 holds `2/61` (uid 91),
+    /// dead, its number now a Transport Barge's; theirs bears on the
+    /// barge and keeps `cavarch_o` 61, where ours dropped it.
+    ///
     /// SEAM: the node's vector is pinned for the Chariot's figure and the
     /// Bomb Vessel's only (`pivot::NODES`); any other piece bears from the
     /// unit's point.
@@ -400,7 +408,17 @@ impl Sim {
         self.units[i].guys[g].turret.des_flags = 0;
         // `005d8c69`: the gone test is the target slot's `flags & 1`, never
         // its hit points — a city at its ceiling is still borne on
-        // ([`Sim::struck`]; item 3635).
+        // ([`Sim::struck`]; item 3635). **The slot is the figure's
+        // `objects[whom][ox]`** (`+0x9f`, `+0x8e`), read with no `uid`, and
+        // the bearing is to whatever holds it now: on a reused number, the
+        // newcomer (item 4674).
+        let target = target.map(|t| {
+            let o = match t {
+                Obj::Unit(x) => self.units[x].index,
+                Obj::Building(b) => self.buildings[b].index,
+            };
+            self.object_holding(self.owner_of(t), o).unwrap_or(t)
+        });
         let to = match (ground, target.filter(|&t| self.struck(t))) {
             (Some(at), _) => at,
             (None, Some(t)) => self.pos_of(t),

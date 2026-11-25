@@ -174,6 +174,55 @@ fn a_city_at_its_ceiling_is_still_borne_on() {
     }
 }
 
+/// **A dead target whose number has gone on is borne on at the newcomer**
+/// (item 4674, `docs/RECGAME.md` §14.4): `Guy::set_all_pivots@005d8bc0`
+/// reads `objects[whom][ox]` for its gone test (`005d8c3c`..`005d8c65`)
+/// and its bearing (`005d8d29`..`005d8d58`), with no `uid`. Row 88's
+/// Steppe Nomad `1/46` on tick 3068 still holds `2/61` (uid 91), dead,
+/// its number now a Transport Barge's: theirs keeps `cavarch_o` 61 and
+/// turns its turret to the barge (`des_turret_angles[0]` −701431808),
+/// where ours dropped it to −1. With no newcomer the slot is gone and
+/// the target is dropped.
+#[test]
+fn a_dead_target_s_number_held_by_a_newcomer_is_borne_on() {
+    use crate::movement::find_angle;
+    for reused in [true, false] {
+        let (mut sim, ty) = field(true);
+        const NOMADS: i32 = 200;
+        sim.tables.unit_types[ty].type_index = NOMADS;
+        sim.roster
+            .art
+            .pivots
+            .insert(NOMADS, [(4, (-160, 160))].into_iter().collect());
+        let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
+        let old = put(&mut sim, 0, ty, Pos::new(3000, 4200));
+        sim.units[old].health = 0;
+        if reused {
+            let newcomer = put(&mut sim, 0, ty, Pos::new(4200, 3600));
+            sim.units[newcomer].index = sim.units[old].index;
+        }
+        sim.units[me].movement.facing = find_angle(1, 0);
+        sim.units[me].cast_target = Some(Obj::Unit(old));
+        let walk = sim.cavarch_step_anim(me);
+        if reused {
+            assert_eq!(
+                walk,
+                crate::units::anim::ATTACKWALK,
+                "the newcomer is borne on"
+            );
+            assert_eq!(sim.cavarch_o(me), i64::from(sim.units[old].index));
+            let want = find_angle(1200, 600).0.wrapping_sub(find_angle(1, 0).0);
+            assert_eq!(
+                sim.units[me].guys[0].turret.des[0], want,
+                "the newcomer's bearing"
+            );
+        } else {
+            assert_eq!(walk, crate::units::anim::WALK, "a gone slot is dropped");
+            assert_eq!(sim.cavarch_o(me), -1);
+        }
+    }
+}
+
 /// **The fire on the move's bearing is off the unit's heading, not its
 /// figure's facing** (`find_nearby_target@00648da0`'s `param_4` arm
 /// reads `UnitData +0x50`, `angle`; item 3530, `docs/AI.md` §305). Two
