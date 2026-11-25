@@ -429,7 +429,10 @@ pub fn laid(p: &Pieces, scene: &RoadsScene, height: impl Fn(i32, i32) -> u8) -> 
         .iter()
         .filter(|r| r.refs != 0)
         .map(|r| {
-            let (e, rot) = find_map(p, cands[&(r.x, r.y)], height(r.x, r.y));
+            // Item 4682: the piece is picked on the intersections `find_piece`
+            // last read (`RoadTile::picked`), not the ones standing now.
+            let cand = cands[&(r.x, r.y)] & !0xff | u32::from(r.picked);
+            let (e, rot) = find_map(p, cand, height(r.x, r.y));
             lay(&p.pieces[e], e, (r.x, r.y), rot)
         })
         .collect()

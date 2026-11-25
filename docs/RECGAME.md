@@ -1786,7 +1786,7 @@ Open: five lines part on 3713. 4660 moved 3358 → 3713: the stored heights (`do
 
 ### 13.3 Row 93
 
-2686 → 2965 by 4590 (run1803; `docs/COMBAT.md` §68.1), 4606 (`docs/CHECKSUM.md` §18). 2965 → 3058 by 4657 (run1830b: step 17's decoy attack is `ObjectData::attack`, 240; its journal). Open: units on 3058.
+2686 → 2965 by 4590 (run1803; `docs/COMBAT.md` §68.1), 4606 (`docs/CHECKSUM.md` §18); → 3058 by 4657 (run1830b); → 3089 by 4681 (run1799; `docs/COMBAT.md` §47.2). Open: units on 3089.
 
 ### 13.4 Row 113
 

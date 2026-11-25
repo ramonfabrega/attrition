@@ -2163,6 +2163,150 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 133's General bleeds on hostile ground** (item 4679,
+    /// `docs/ATTRITION.md` check 8): run1797's ranges, the row's units
+    /// parting on 3562 at units range 3218, record 119 — who=1's General
+    /// `1/119` (TI 54, land), whose phase `3561 + 119` is a refresh. The
+    /// draw stream agrees on 3561, 28 draws a side; theirs' General takes
+    /// `attrition` 48 and `unit_masks | 0x80` (0x40008 → 0x40088), ours
+    /// nothing: `process_attrition`'s kind block asks `is_hero`, the
+    /// type's `unit_flags2 & 0x20` (`is(GENERAL)`), which skips the
+    /// zero-attack exemption a General would otherwise take. Every units
+    /// range on 3562 and 3563, byte for byte.
+    #[test]
+    fn row_133_s_general_bleeds_on_hostile_ground_on_run1797() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 3561 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let general = built.sim.unit_by_o(1, 119).expect("1/119");
+        assert_eq!(
+            built.sim.units[general].type_index, 54,
+            "1/119 is the General"
+        );
+        assert_eq!(built.sim.units[general].attrition, 0, "1/119 entering 3561");
+        for state in [3562, 3563] {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            assert_eq!(built.sim.frame, state);
+            assert_eq!(
+                built.sim.units[general].attrition, 48,
+                "1/119's period on {state}"
+            );
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[0].as_ref().expect("the units line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+    }
+
+    /// **Row 133's Citizen comes out at the ground under its spot** (item
+    /// 4684, `docs/RECGAME.md` §13.5): run1797's ranges, the row's units
+    /// parting on 3613 (units range 6687, record 3, `z` ours 661, theirs
+    /// 770). who=2's Citizen `2/3` (TI 50) stands in `2/2018` through 3612
+    /// with a height a terraform held at 661, and comes out on 3613 at
+    /// (19320, 29496): `Unit::come_out@00617c10` and its `set_new_location`
+    /// store the ground at the spot's tile. Every units range on 3613 and
+    /// 3614.
+    #[test]
+    fn row_133_s_citizen_comes_out_at_the_ground_under_its_spot_on_run1797() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 3612 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let citizen = built.sim.unit_by_o(2, 3).expect("2/3");
+        assert_eq!(built.sim.units[citizen].type_index, 50, "2/3 is a Citizen");
+        assert!(
+            built.sim.units[citizen].inside.is_some(),
+            "2/3 inside on 3612"
+        );
+        assert_eq!(
+            built.sim.units[citizen].z_held,
+            Some(661),
+            "2/3's held height"
+        );
+        for state in [3613, 3614] {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            assert_eq!(built.sim.frame, state);
+            let u = &built.sim.units[citizen];
+            assert!(u.on_map, "2/3 out on {state}");
+            assert_eq!((u.pos.x, u.pos.y), (19320, 29496), "2/3's spot on {state}");
+            assert_eq!(u.z_held, None, "2/3's height is the ground's on {state}");
+            assert_eq!(
+                built.sim.world.object_z(u.pos.tile()),
+                770,
+                "the ground at the spot"
+            );
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[0].as_ref().expect("the units line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+    }
+
     /// **Row 133's dead farm rolls under its number's next building** (item
     /// 4669, `docs/SYNC.md` §3.3): run1797's ranges and trace, the row's
     /// units and guys parting on 2677 (units range 4225, record 18, guy
@@ -4655,6 +4799,99 @@ pub(crate) mod tests {
                     (g.at.x, g.at.y, g.sea, g.attack_unit),
                     (12984, 22872, false, 1),
                     "theirs' range 6365: b8320000 58590000 0 1"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[0].as_ref().expect("units");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+    }
+
+    /// **A dead squad's round strikes under its shooter's own number**
+    /// (item 4681, `docs/RECGAME.md` §13.3): run1799, the ranges take of
+    /// row 93's file. who=1's Volksgrenadiers `1/39`, `1/40` and `1/41`
+    /// (TI 109, land, captain 39) all die on 3055's tick; the round `1/39`
+    /// loosed on 3054 lands on who=2's Howitzer `2/77` (TI 271, land) on
+    /// 3057, past its 30-frame overkill window, and theirs' units range
+    /// 5933 (record 77, `damage_o`) prints 39 on 3058, where ours printed
+    /// 41: `UnitData::get_captain@00610ab0` is `o` once the squad's last
+    /// death has cleared every link. Every units range on states 3056 to
+    /// 3058, byte for byte.
+    #[test]
+    fn row_93_s_dead_squad_s_round_strikes_under_its_own_number_on_run1799_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            eprintln!("skipping: row 93's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1799/map-14");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1799's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3056i64..=3058 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let squad: Vec<_> = built
+                .sim
+                .units
+                .iter()
+                .filter(|u| u.owner == 1 && (39..=41).contains(&u.index))
+                .collect();
+            assert_eq!(squad.len(), 3, "who=1's 39, 40 and 41 hold their slots");
+            for u in &squad {
+                assert!(!u.alive(), "1/{} is dead on {state}", u.index);
+                let ty = u.ty.expect("a type");
+                assert_eq!(built.sim.tables.unit_types[ty].type_index, 109, "TI");
+                assert_eq!(
+                    u.combat.captain,
+                    i32::from(u.index),
+                    "1/{}'s captain is its own number",
+                    u.index
+                );
+            }
+            if state == 3058 {
+                let h = built
+                    .sim
+                    .units
+                    .iter()
+                    .find(|u| u.alive() && u.owner == 2 && u.index == 77)
+                    .expect("2/77");
+                let ty = h.ty.expect("a type");
+                assert_eq!(loaded.unit_names[ty], "Howitzer", "2/77's name");
+                assert_eq!(built.sim.tables.unit_types[ty].type_index, 271, "2/77's TI");
+                assert_eq!(h.kind.domain, sim::territory::attrition::Domain::Land);
+                assert_eq!(
+                    (
+                        h.combat.damage_frame,
+                        h.combat.damage_o,
+                        h.combat.damage_who
+                    ),
+                    (3057, 39, 1),
+                    "theirs' range 5933: damage_o 39"
                 );
             }
             let set = record.first_of(state - 1).expect("the state's set").clone();
@@ -12696,13 +12933,22 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // guys 2,967 -> 3,416, leaders 2,983 -> 3,449, cities 3,376 ->
         // 3,707, items 3,954 -> 6,297, goods 4,117 -> 4,563, world 2,975 ->
         // 3,184; ours' `game_over` 11109 -> none, both play to 12,000.
+        // Then item 4681 (`relink_squad`'s whole-squad arm leaves every dead
+        // figure its own captain, `UnitData::get_captain@00610ab0` reading
+        // `o` for `o_up < 0`): the round of who=1's dead Volksgrenadier
+        // `1/39` (TI 109, land) lands on the Howitzer `2/77` on 3057 under
+        // 39, as theirs (run1799's units range 5933, record 77, `damage_o`
+        // ours 41, theirs 39 on 3058). The row's first parting 3058 -> 3089
+        // (units and world): units 3,108 -> 3,203; ammo 3,879 -> 3,819,
+        // deaths 3,612 -> 3,433 and items 6,297 -> 5,761, named falls past
+        // 3089; goods 4,563 -> 4,615.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                3108, 3269, 12001, 3879, 3612, 3473, 3416, 3449, 3707, 6297, 4563, 3184,
+                3203, 3269, 12001, 3819, 3433, 3473, 3416, 3449, 3707, 5761, 4615, 3184,
             ],
             first: &[
-                ("units", (3058, Some(4270193561), 4037082007)),
+                ("units", (3089, Some(759273441), 560568761)),
                 ("builds", (3269, Some(1882890068), 5807727)),
                 ("ammo", (3420, Some(2050829256), 3783208006)),
                 ("deaths", (3433, Some(1040278336), 1142973249)),
@@ -12961,13 +13207,26 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 6,017 -> 4,349 (first 5741 -> 4349, past the new first parting),
         // goods 4,518 -> 5,233, world 3,479 -> 3,620 (first 3479 -> 3620),
         // ours' end 5971 -> none; the first parting is units on 3562.
+        // Then item 4679 (`Unit::process_attrition`'s kind block asks
+        // `is_hero`, `unit_flags2 & 0x20`, `is(GENERAL)`: who=1's General
+        // `1/119`, TI 54, bleeds on 3561's refresh; units range 3218,
+        // record 119, `attrition` ours 0, theirs 48, `unit_masks` ours
+        // 0x40008, theirs 0x40088 on 3562, both agree now): units 3,562 ->
+        // 3,617 (first 3562 -> 3613); the first parting is units on 3613.
+        // Then item 4684 (`Unit::come_out@00617c10` stores the ground at
+        // the spot's tile as the unit's `z`, `:510`-`:513` and
+        // `set_new_location`'s `LAB_005f9033`, whatever height a terraform
+        // held it at inside: who=2's Citizen `2/3`, TI 50, out of `2/2018`
+        // on 3613 at (19320, 29496); units range 6687, record 3, `z` ours
+        // 661, theirs 770, both 770 now): units 3,617 -> 3,620 (first 3613
+        // -> 3620); the first parting is cities on 3619.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                3562, 3638, 6085, 3635, 3638, 3631, 3620, 3628, 3619, 4349, 5233, 3620,
+                3620, 3638, 6085, 3635, 3638, 3631, 3620, 3628, 3619, 4349, 5233, 3620,
             ],
             first: &[
-                ("units", (3562, Some(2727018761), 1006567865)),
+                ("units", (3620, Some(1149618426), 3102179925)),
                 ("builds", (3633, Some(1817557812), 568507539)),
                 ("ammo", (3623, Some(3273187188), 1994117052)),
                 ("deaths", (3638, Some(750708600), 755033978)),

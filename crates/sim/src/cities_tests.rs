@@ -3441,6 +3441,31 @@ fn a_unit_out_of_a_building_clears_the_disc_it_stood_inside() {
     assert_eq!(sim.units[h].coll_at, Some(sim.units[h].pos));
 }
 
+/// `Unit::come_out@00617c10:510`–`:513` and `:518` (item 4684): a unit out
+/// of a building stores the ground at its spot's tile as its `z`, whatever
+/// height a terraform held it at inside. run1797's Citizen `2/3`, held at
+/// 661 in `2/2018`, came out on 3613 where the ground reads 770.
+#[test]
+fn a_unit_out_of_a_building_takes_the_ground_at_its_spot_as_its_z() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, b);
+    let h = spawn(&mut sim, 0, hoplite, tile_pos(52, 40));
+    sim.go_inside(h, b);
+    let held = sim.world.object_z(sim.units[h].pos.tile()) + 109;
+    sim.units[h].z_held = Some(held);
+    assert_eq!(sim.unit_stored_z(h), held, "held inside");
+    assert!(sim.come_out(h));
+    assert_eq!(
+        sim.unit_stored_z(h),
+        sim.world.object_z(sim.units[h].pos.tile()),
+        "the ground at the spot, not the held height"
+    );
+}
+
 #[test]
 fn the_garrison_heal_runs_every_twenty_frames_where_the_unit_was_trained() {
     let mut sim = world_sim();
