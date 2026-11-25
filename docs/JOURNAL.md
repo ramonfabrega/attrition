@@ -22795,3 +22795,51 @@ The first seam run died because its log sat in a tree the compressor
 was rewriting. The disk went from 73 to 134 GB free.
 
 `docs/audit/2026-11-24-astra-settlement.md`.
+
+## 2026-11-25 — the pass: the game one line from whole was last in line (Fable 5.2, steering)
+
+The commander ran twenty-three landings overnight, passed the backstop
+and handed over with nothing out. The headline read 51 of 63: one more
+game agreed with the original to its last state.
+
+The pass counted what the seats had bought, and the count was lopsided.
+Seventeen landings sat on a held-out game and gained 9,518 agreeing
+states between them. One of the seventeen gained 8,663. It was on a
+game that already agreed on eleven of its twelve lines, and one take
+and one fix made it whole. The other sixteen gained 53 each.
+
+Then the pass scored every open game, as it does, and read the lines
+beside the first partings. A second game stood in the same place. A
+landing early in the night had built launch points for the pieces that
+were firing without one, and the seventh battery's row 148 had gone
+from one line whole to eleven: units alone parts, 1,122 states from the
+end. The handoff listed its item last, because the order of the
+unseated is kept by first parting and row 148 parts latest of all. The
+rule that such a game goes first was three decisions old and was a
+sentence. It is a test now: the queue's unseated items stand in the
+file in the order a freed seat takes them, and the test reads that
+order against the pins. Row 148 has the first seat.
+
+One gate had gone red in the night, and the pass followed it back. A
+booking had left the queue file 121 bytes over a ceiling. The lane cut
+from that commit could not get its gate past the paperwork step, ran
+its own tests by hand, and landed. Two pins it had moved were in
+nobody's hand-run list, and the booking gate found them 39 minutes in.
+The guard that asks every journal to quote its gate's verdict had
+passed the journal, because the journal said, in so many words, that
+there was no verdict to quote. The guard asks for a verdict a gate
+prints now, and the gate says what to do when it stops early.
+
+Row 93's line had been ended by the stop rule on two landings that
+moved nothing. Both were readings. The second had run the original's
+own function on the original's own state and named the fix to one
+term, and the line ended before anyone built it. The stop counts
+builds now. The pass read the one open question at the address, where
+the original's answer of exactly 20,000 comes from, and it is a
+product that overflows.
+
+The seam counter named one new place: a siege army's search for a
+building, which ours answers with nothing, entered by three open games
+before they part and by no whole game. It is an item with a seat. The
+pass moved no score and took no capture.
+**DECISIONS 157.** `docs/audit/2026-11-25-fable-pass-seats.md`.

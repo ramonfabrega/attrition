@@ -240,6 +240,11 @@ COMMANDERS_LINES = (
     # closed line, and each open battery's own (item 4566; 151 §6, 152 §4).
     'the_handoff_s_closed_parity_held_out_line_is_the_whole_batteries',
     'the_handoff_s_open_parity_held_out_lines_are_the_pinned_scores',
+    # The unseated rows' order (the pass of 2026-11-25; DECISIONS 157 §2): a
+    # landing that moves a row's first parting, or leaves it one line from
+    # whole, moves where its item stands, and the paragraph is the
+    # commander's to move at the booking.
+    'the_handoff_s_unseated_rows_stand_in_the_seats_order',
     # Parity's own line (the pass of 2026-11-20, second; DECISIONS 147 §5).
     'the_handoff_s_parity_line_is_the_pinned_sample',
     # The rubric's line (the forty-ninth pass, Ramon's: the steer's pin).
@@ -1042,6 +1047,21 @@ CARGO_TESTS_FAILED = 101
 LANE_GREEN = 'Lane verdict: green, nothing red'
 
 
+# The pass of 2026-11-25 (DECISIONS 157 §4): a lane's gate that stops at the
+# guard has run none of the lane's pins and prints no verdict. Item 4650's
+# lane was cut off a booking commit whose queue was red there (the handoff
+# over its ceiling, a line naming a function the export does not hold); its
+# gate stopped at the guard twice, the lane ran its filters by hand and
+# landed, and the booking gate went red 38.9 minutes later on two client
+# pins no gate had run. The forgiveness of `COMMANDERS_LINES` is the release
+# step's; a red here says what to do instead.
+LANE_GUARD_RED = ('Lane guard: red before the release step, so this gate printed no verdict and ran none of '
+                  "the lane's pins. A red that names `docs/QUEUE.md` is the base's and the driver's to mend: "
+                  'send the driver one line naming the test, take `ccc update <ref>` when the base has moved, '
+                  'and run this gate again. A lane lands on a `Lane verdict:` this gate printed, never on '
+                  'filters run by hand (item 4650).')
+
+
 # Loop 4030 (the seventy-fifth pass): 3995 wired a port-backed function and
 # its lane gate ran the census pin — 0.72 s alone, under the lane budget, so
 # every lane runs it — and forgave its red as the commander's line (Loop
@@ -1691,6 +1711,8 @@ def _run_steps(commands, *, run, env, audit_dir, report_dir, require_fixtures, r
         except subprocess.CalledProcessError as failure:
             if is_merge_pins(command):
                 print(merge_pins_line(extra['log'], failure.returncode), flush=True)
+            if lane and step_name(command) == 'guard':
+                print(LANE_GUARD_RED, flush=True)
             if not (lane and is_release and failure.returncode == CARGO_TESTS_FAILED):
                 raise
             held = failure

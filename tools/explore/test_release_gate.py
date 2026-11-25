@@ -785,6 +785,32 @@ garbage line
             self.assertEqual(len([l for l in said if l.startswith('Lane verdict:')]), 1)
             self.assertNotIn('Lane verdict: green, nothing red', said)
 
+    def test_a_lane_gate_red_at_the_guard_says_it_has_no_verdict_and_what_to_do(self):
+        # The pass of 2026-11-25 (DECISIONS 157 §4): item 4650's lane was cut
+        # off a booking commit whose queue was red at the guard, so its gate
+        # stopped there twice, the lane ran its filters by hand and landed,
+        # and the booking gate went red on two client pins no gate had run.
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls=[]
+            def run(command, **kwargs):
+                calls.append((command, kwargs['env']))
+                if gate.step_name(command) == 'guard':
+                    raise subprocess.CalledProcessError(101, command)
+            with patch('builtins.print') as printed, self.assertRaises(subprocess.CalledProcessError):
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD, git=UNMOVED)
+            said=[str(c.args[0]) for c in printed.call_args_list if c.args]
+            self.assertEqual(gate.step_name(calls[-1][0]), 'guard')
+            self.assertIn(gate.LANE_GUARD_RED, said)
+            self.assertFalse([l for l in said if l.startswith('Lane verdict:')])
+            self.assertIn('ccc update', gate.LANE_GUARD_RED)
+            # The commander's gate takes no advice: its guard's red is its own.
+            calls.clear()
+            with patch('builtins.print') as printed, self.assertRaises(subprocess.CalledProcessError):
+                gate.gate(path, report_dir=path/'report2', run=run, git=UNMOVED)
+            said=[str(c.args[0]) for c in printed.call_args_list if c.args]
+            self.assertNotIn(gate.LANE_GUARD_RED, said)
+
     def test_a_lane_gate_red_on_the_worker_s_own_test_stops_and_names_it(self):
         own=RELEASE_LOG.replace(
             'test diff::floors::the_gate_has_a_bounded_test_width ... ok',

@@ -315,6 +315,14 @@ def file_tests(text, prefix):
     return out
 
 
+# `#[cfg(all(test, feature = "seam-count"))] mod held_seams;` — a module
+# behind a cargo feature is in no gate's build, so its tests are no filter's
+# matches (the pass of 2026-11-25, DECISIONS 157 §8: items 4608 and 4618 were
+# briefed with `held_seams`, and each lane's first gate exited 2 or ran
+# nothing on it).
+FEATURE_MOD = re.compile(r'#\[cfg\([^\]]*\bfeature\s*=[^\]]*\]\s*(?:pub(?:\([^)]*\))?\s+)?mod\s+(\w+)\s*;')
+
+
 @functools.lru_cache(maxsize=None)
 def test_fns(crates=None):
     """`{full test name: ignored?}` over the workspace's sources — the names
@@ -328,11 +336,12 @@ def test_fns(crates=None):
     doctests aside, and 1,447 more (a `#[path]` file under its own path too,
     a debug-only test), which can only let a filter through."""
     crates = [ROOT / c for c in crates] if crates else sorted(p for p in (ROOT / 'crates').iterdir() if p.is_dir())
-    out = {}
+    out, gated = {}, set()
     for crate in crates:
         for path in sorted(list((crate / 'src').rglob('*.rs')) + list((crate / 'tests').glob('*.rs'))):
             text = path.read_text(errors='replace')
             mod = module_of(path, crate)
+            gated.update('::'.join(mod + [name]) for name in FEATURE_MOD.findall(text))
             for name, ign in file_tests(text, mod).items():
                 out[name] = out.get(name, False) or ign
             for target, alias in PATH_MOD.findall(text):
@@ -340,7 +349,8 @@ def test_fns(crates=None):
                 if other.is_file():
                     for name, ign in file_tests(other.read_text(errors='replace'), mod + [alias]).items():
                         out[name] = out.get(name, False) or ign
-    return out
+    return {name: ign for name, ign in out.items()
+            if not any(name.startswith(g + '::') for g in gated)}
 
 
 SIM_CRATE = 'sim'

@@ -1,4 +1,4 @@
-# Every rondata release test's peak resident set alone, 2026-11-24, tools/suite_timings.py (tree 05ba3497).
+# Every rondata release test's peak resident set alone, 2026-11-25, tools/suite_timings.py (tree 2a2faa6c).
 # /usr/bin/time -l, one test per process, --test-threads 1; MiB then the test; -1 when unread.
 5304	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 3662	diff::start::tests::every_lobby_s_start_built_from_its_choices
@@ -2062,10 +2062,13 @@
 71	diff::held_out::tests::row_63_s_fort_pick_walks_the_fort_records_on_run1782
 71	diff::held_out::tests::row_28_s_round_at_the_capital_on_run1820_s_ranges
 70	diff::sample::tests::the_sample_s_ranges_to_3100_name_each_first_parting
+69	diff::held_out::tests::row_53_s_fire_raft_rams_and_sinks_on_run1835_s_ranges
+69	diff::held_out::tests::row_133_s_sam_rocket_strikes_its_own_capital_with_the_recapture_bonus_on_run1797_s_ranges
 68	diff::held_out::tests::row_43_s_muster_and_first_steps_match_run1787
 68	diff::held_out::tests::row_83_s_barracks_re_homes_when_its_city_is_taken_on_run1784_s_ranges
 68	diff::held_out::tests::row_93_s_siege_order_walks_its_point_on_run1799_s_ranges
 68	diff::held_out::tests::row_28_s_round_on_run1821_s_ranges
+67	diff::held_out::tests::row_133_s_attack_helicopter_fires_from_its_pod_on_run1797_s_ranges
 67	diff::checksum_lines::deaths::the_disbanded_scout_and_dog_match_the_whole_packet
 67	diff::held_out::tests::row_110_s_space_program_sees_every_enemy_building_in_the_danger_map_on_run1742_s_ranges
 67	diff::held_out::tests::row_133_s_sam_flies_its_rockets_on_their_splines_on_run1797_s_ranges
@@ -2079,6 +2082,8 @@
 66	diff::held_out::tests::row_100_s_jet_fighter_turns_through_set_angle_at_its_airbase_on_run1721_s_ranges
 66	diff::held_out::tests::row_95_s_ceo_dirties_its_economy_as_it_boards_its_freighter_on_run1770_s_ranges
 66	diff::held_out::tests::row_83_s_airbase_keeps_its_biplane_when_a_wonder_outscores_the_city_on_run1784_s_ranges
+65	diff::held_out::tests::row_53_s_unchained_phalanx_keeps_its_height_under_the_smelter_on_run1812_s_ranges
+65	diff::held_out::tests::row_133_s_redoubt_kills_with_the_explosive_death_on_run1797_s_ranges
 65	diff::held_out::tests::row_93_s_volksgrenadiers_heal_beside_their_president_on_run1799_s_ranges
 65	diff::held_out::tests::row_110_s_special_forces_jam_the_tower_on_run1742_s_ranges
 65	diff::held_out::tests::row_10_s_helicopters_set_apart_keep_their_dest_angle_on_run1739_s_ranges
@@ -2088,6 +2093,7 @@
 65	diff::held_out::tests::row_30_s_freighter_heads_its_cell_as_it_dies_into_its_platform_on_run1755_s_ranges
 65	diff::held_out::tests::row_83_s_taj_mahal_site_keeps_its_hits_through_a_blow_on_run1784_s_ranges
 65	diff::held_out::tests::row_43_s_slinger_stones_leave_from_piece_736_s_sockets_on_run1787_s_ranges
+65	diff::held_out::tests::row_133_s_aa_unit_marks_the_special_forces_jamming_it_on_run1797_s_ranges
 64	diff::held_out::tests::row_113_s_city_walks_its_caravan_links_in_the_order_they_were_made_on_run1802_s_ranges
 64	diff::held_out::tests::row_133_s_temple_site_close_fixes_the_borders_on_run1797_s_ranges
 64	diff::held_out::tests::row_133_s_computer_lists_no_bunker_in_its_attacked_capital_on_run1797_s_ranges
@@ -2109,6 +2115,7 @@
 64	diff::held_out::tests::row_43_s_village_holds_the_wounded_spearmen_on_run1787_s_ranges
 64	diff::held_out::tests::row_133_s_computer_calls_a_citizen_to_repair_its_capital_on_run1797_s_ranges
 64	diff::held_out::tests::row_133_s_orphan_check_walks_its_sites_by_object_number_on_run1797_s_ranges
+64	diff::held_out::tests::row_128_s_russian_age_fixes_the_borders_on_run1828_s_ranges
 63	diff::held_out::tests::the_sixth_held_out_eight_are_the_rows_the_rule_names_seated_and_scripted
 63	diff::held_out::tests::row_43_s_unbuilt_village_close_fixes_the_borders_on_run1787_s_ranges
 63	diff::held_out::tests::row_110_s_rider_leaves_an_empty_block_where_it_boarded_on_run1742_s_ranges
@@ -2185,6 +2192,7 @@
 51	load::tests::the_citizen_loads_as_the_harness_transcribed_it
 51	load::tests::the_shipped_tables_load_without_a_warning
 51	load::tests::every_building_has_a_page
+51	artdata::tests::every_release_of_a_bay_piece_s_family_has_its_row
 50	load::tests::the_russian_and_chinese_free_tech_blocks_are_loaded
 50	load::tests::the_combat_table_is_not_uniform_and_a_known_pair_holds
 50	load::tests::the_tree_files_ages_epochs_and_governments
@@ -2346,6 +2354,8 @@
 6	golden::tests::every_chapter_stages_what_it_says_it_stages
 6	golden::tests::an_issuer_line_naming_a_missing_object_is_refused_whole
 6	artdata::tests::the_minimap_colours_are_read
+5	diff::held_out::tests::the_handoff_s_unseated_rows_stand_in_the_seats_order
+5	diff::held_out::tests::a_row_one_line_from_whole_is_read_first_and_the_rest_by_first_parting
 5	diff::held_out::tests::a_held_pin_fails_on_its_whole_lines_and_first_parting_alone
 5	diff::audit::the_closed_form_owes_the_same_audits
 5	diff::floors::tests::the_closed_form_is_every_row_whole
@@ -2533,6 +2543,7 @@
 5	diff::held_out::tests::the_seventh_s_files_are_minted
 5	diff::held_out::tests::the_seventh_held_out_line_reads_as_pinned
 5	diff::held_out::tests::a_trace_with_no_receipt_is_a_take_in_flight
+5	trace::card::tests::a_draw_s_stream_reads_back
 4	commands::tests::the_empty_group_is_the_same_selection
 4	commands::tests::the_mp_obfuscation_reverses
 4	diff::floors::tests::the_handoff_s_golden_line_is_the_pinned_word

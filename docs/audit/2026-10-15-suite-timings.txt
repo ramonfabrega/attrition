@@ -1,7 +1,7 @@
-# Every rondata release test timed alone, 2026-11-24, tools/suite_timings.py (tree 05ba3497).
+# Every rondata release test timed alone, 2026-11-25, tools/suite_timings.py (tree 2a2faa6c).
 # One test per process, --test-threads 1, sequential, RON_INSTALL set; seconds then the test.
-# Sum 6,803 s over 2706 tests; --stale-only merged. Top 10 = 1489 s, top 30 = 2260, top 100 = 2894; 1159 tests under 1 s.
-# By module: held_out 1112 s / 131 tests, mapgen 687 s / 133 tests, golden 363 s / 346 tests, sample 362 s / 26 tests, audit 321 s / 124 tests.
+# Sum 6,815 s over 2717 tests; --stale-only merged. Top 10 = 1489 s, top 30 = 2260, top 100 = 2894; 1166 tests under 1 s.
+# By module: held_out 1123 s / 140 tests, mapgen 687 s / 133 tests, golden 363 s / 346 tests, sample 362 s / 26 tests, audit 321 s / 124 tests.
 216.02	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 211.47	diff::held_out::tests::the_seventh_held_out_games_score_as_pinned
 199.71	diff::held_out::tests::the_held_out_games_score_as_pinned
@@ -709,6 +709,7 @@
 2.28	diff::harness::tests::run136_s_word_is_one_cell_of_1_62_s_search
 2.28	diff::korean_ancient_pair::korean_ancient_pair_run1200_s_closing_frame_is_widened_whole
 2.28	diff::golden::chapter_one_hundred_s_window_is_widened_whole
+2.28	diff::held_out::tests::row_53_s_fire_raft_rams_and_sinks_on_run1835_s_ranges
 2.27	diff::sahara_toughest::tests::run470_is_great_sahara_at_toughest_and_its_word_holds
 2.27	diff::french_word::run977b_french_closing_state
 2.27	diff::sahara_coverage::run767_s_word_frame_is_widened_whole
@@ -829,6 +830,7 @@
 2.03	diff::golden::chapter_one_s_word_frame_is_widened_whole
 2.03	diff::spanish_gunpowder_pair::spanish_gunpowder_pair_run1303_s_gap_is_widened_whole
 2.03	diff::dutch_sahara_word::run995d_s_walk_back_is_widened_whole
+2.03	diff::held_out::tests::row_128_s_russian_age_fixes_the_borders_on_run1828_s_ranges
 2.02	diff::french_medieval_pair::french_medieval_pair_run1393_s_closing_state
 2.02	diff::minted::the_right_pressed_minted_script_s_effects_on_our_walk
 2.01	diff::harness::tests::run143_s_word_frame_is_widened_whole
@@ -886,6 +888,7 @@
 1.93	diff::harness::tests::run294_s_departure_is_widened_whole
 1.93	diff::third_pair::run624_s_word_frame_is_widened_whole
 1.93	diff::minted::the_marketed_minted_script_s_effects_on_our_walk
+1.92	diff::held_out::tests::row_133_s_aa_unit_marks_the_special_forces_jamming_it_on_run1797_s_ranges
 1.92	diff::minted::what_the_stance_does_on_our_walk
 1.92	diff::bantu_modern_pair::bantu_modern_pair_run1425_s_word_frame_is_widened_whole
 1.92	diff::checksum_lines::packets::mongol_medieval_pair_packets
@@ -982,6 +985,7 @@
 1.80	diff::second::tests::run439_s_word_frame_is_widened_whole
 1.80	diff::dutch_sahara_word::run990b_dutch_sahara_closing_state
 1.80	diff::bantu_modern_pair::bantu_modern_pair_first_parting
+1.80	diff::held_out::tests::row_53_s_unchained_phalanx_keeps_its_height_under_the_smelter_on_run1812_s_ranges
 1.79	diff::checksum_lines::packets::japanese_industrial_pair_packets
 1.79	diff::harness::tests::run152_s_word_frame_is_widened_whole
 1.79	diff::golden::chapter_twenty_four_s_word_frame_is_widened_whole
@@ -1583,6 +1587,7 @@
 0.96	diff::leader::tests::run114_s_offers_are_the_original_s_own
 0.96	diff::golden::chapter_fourteen_s_word_frame_is_widened_whole
 0.96	diff::greek_classical_pair::greek_classical_pair_captures_say_their_lobby
+0.95	diff::held_out::tests::row_133_s_attack_helicopter_fires_from_its_pod_on_run1797_s_ranges
 0.95	diff::egyptian_word::run967_s_word_frame_is_widened_whole
 0.95	diff::golden::chapter_eighty_nine_s_window_is_widened_whole
 0.95	diff::american_modern_pair::american_modern_pair_run1151b_s_word_frame_is_widened_whole
@@ -1598,6 +1603,7 @@
 0.94	diff::golden::chapter_thirty_holds_to_the_golden_word
 0.94	diff::minted::the_buildmasked_game_s_round_in_flight_is_the_packet_s
 0.94	diff::held_out::tests::row_30_s_freighter_heads_its_cell_as_it_dies_into_its_platform_on_run1755_s_ranges
+0.94	diff::held_out::tests::row_133_s_redoubt_kills_with_the_explosive_death_on_run1797_s_ranges
 0.93	diff::world::tests::run20_s_pasture_grows_nothing_and_its_five_animals_draw_six
 0.93	diff::sahara_toughest::tests::run469_s_trace_holds_to_its_end
 0.93	diff::checksum_lines::packets::minted_packet
@@ -1606,6 +1612,7 @@
 0.93	diff::golden::chapter_seventeen_airground_s_window_is_widened_whole
 0.93	diff::golden::chapter_one_hundred_and_thirteen_s_window_is_widened_whole
 0.93	diff::leader::tests::run111_s_universities_hold_the_scholars_this_crate_counts
+0.93	diff::held_out::tests::row_133_s_sam_rocket_strikes_its_own_capital_with_the_recapture_bonus_on_run1797_s_ranges
 0.92	diff::held_out::tests::row_60_s_dragoon_keeps_its_dropped_target_s_uid_on_run1722_s_ranges
 0.92	diff::golden::chapter_thirty_five_s_v2_is_counted_out_and_fired_field_for_field
 0.92	diff::sahara_coverage::run677_s_word_frame_is_widened_whole
@@ -2047,6 +2054,7 @@
 0.42	diff::turkish_information_pair::turkish_information_pair_captures_say_their_lobby
 0.42	diff::german_industrial_moderate_pair::german_industrial_moderate_pair_captures_say_their_lobby
 0.42	diff::held_out::tests::row_133_s_computer_offers_no_nuke_at_an_enemy_researching_the_shield_on_run1797_s_ranges
+0.41	artdata::tests::every_release_of_a_bay_piece_s_family_has_its_row
 0.41	trace::tests::complete_trace_frame_lookup_matches_a_single_pass_partition
 0.41	diff::lakota_enlightenment_pair::lakota_enlightenment_pair_captures_say_their_lobby
 0.40	diff::city::tests::run8_s_frame_2_income_is_the_city_and_nothing_the_citizens_have_reached
@@ -2628,6 +2636,9 @@
 0.01	diff::held_out::tests::the_seventh_held_out_line_reads_as_pinned
 0.01	diff::held_out::tests::a_trace_with_no_receipt_is_a_take_in_flight
 0.01	gamelog::tests::figure_angles_keep_the_first_valid_tag_and_require_all_four_slots
+0.01	trace::card::tests::a_draw_s_stream_reads_back
+0.01	diff::held_out::tests::the_handoff_s_unseated_rows_stand_in_the_seats_order
+0.01	diff::held_out::tests::a_row_one_line_from_whole_is_read_first_and_the_rest_by_first_parting
 0.00	gamelog::tests::scalar_reads_keep_first_values_and_record_the_requested_names
 0.00	diff::held_out::tests::the_seventh_s_files_are_minted
 0.00	diff::held_out::tests::the_handoff_s_open_parity_held_out_lines_are_the_pinned_scores

@@ -1437,7 +1437,10 @@ before-reading section:
   the one writer of `leader:treaties` the item needed was found only as
   `0x00e3a424`, never by the field's name; `standing.py` prints each
   field's offset, its grep spellings and the slot's address off the
-  export (`tools/pdb_layout.py`).
+  export (`tools/pdb_layout.py`). A second case (parked 4666a): a write
+  through a virtual call whose out-parameter the decompiler drops shows
+  no field name and no offset on its own line, and the listing's
+  `orl $0x8, 0x6c(` finds it.
 
 One row of the brief, from the sixty-eighth tranche
 (`docs/audit/2026-11-06-fable-pass-68.md`):

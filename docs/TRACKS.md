@@ -73,19 +73,6 @@ finish line's own counter, parity on the declared set (entry 143 §2).
 | **save and replay** | a game saved as seed plus orders, replayable here and written back into the original's recorded-game container | a saved game replays to the same hash; the original replays one of ours | the diff suite; the original on the capture lane | **step 3 stands** (`Recording:`): every recording on disk round-trips, and the original plays our order-free file for 24,000 of 24,000 frames (4058, run1560) |
 | **census** | the territory count tells the truth about the original's 3,611 simulation functions | ported · replaced by design · open, the readers' marks landed row by row (`docs/audit/2026-11-06-territory-*.md`; lore's scoring of the `replaced` groups) | `tools/census.py`'s pins | `Rubric:` 574 open of 3,611, 569 of them carrying a reader's ruling (entry 132); filler for an idle lane |
 
-**At the pass of 2026-11-19** (entry 144): **checksum** — parity 6 of 7, the demand's game ratified as the seventh with its end tick
-pinned; the sample's lowest first parting 532 of 21,044 (item 4414); the packets' lines 690 of 1,053 (items 4415, 4417); a game is
-declared before the original plays it, and parity held out is booked on eight lobbies nobody tuned for (item 4413); **orders** — whole
-by its counters; a live game shows no city name, and the third seat ports the founding name (item 4416); **renderer** — the selected
-city's band, plate and bar are drawn; the lake has no seat, three takes of one state agreeing on 3.8 % of it.
-
-**At the pass of 2026-11-19, second** (entry 145): **checksum** — parity 6 of 7; parity held out ratified at 0 of 8 as found, 64 of 96
-lines, and parsed on the scoreboard: the four Ancient starts are near whole and the four later starts part for good by 2239 and are ended
-by the original (items 4435, 4436, each game's ranges taken once); a held-out game is spent once a lane reads it, and a second battery
-is named; the sample's lowest first parting 2700 of 21,044 (item 4432); the packets' lines 771 of 1,053 (items 4430, 4431); **orders** —
-whole by its counters; **renderer** — the plate reads the city's name in the install's face; the client opens every lobby on Great
-Lakes' camera (item 4437), and theirs' buildings carry a team colour ours lack (item 4438).
-
 **At the pass of 2026-11-20** (entry 146): **checksum** — parity 6 of 7; parity held out 3 of 8 now, 78 of 96 lines (0 of 8 and 64 as
 found); the pass scored the rows with ranges on disk by leaf, and rows 80 and 100 part builds on one bit, row 80 on nothing else (item
 4455); row 140 is three states from whole and takes its ranges (item 4457); the sample's lowest first parting 3878 of 21,044 (item
@@ -160,6 +147,15 @@ launch points a probe had already listed, so an item an instrument has named is 
 the packets' lines 951 of 1,053; **orders** — whole by its counters; **renderer** — the fog, its blips and the selection ring drawn
 on run1814b (items 4612 to 4629); the client's seat takes the capital's ground, the Farm's plots and the buildings' plates (item
 4636); the archives are compressed one tree at a time.
+
+**At the pass of 2026-11-25** (entry 157): **checksum** — parity 51 of 63 (the seventh's row 128 whole, item 4635); the sample
+parts first on units 10653, draws 11488 (the settlement of 2026-11-24, Astra's branch); parity held out 8, 8, 8, 8, 6, 4 and 3 of 8
+now; seventeen row landings bought 9,518 states, 8,663 of them on the one game that stood a line from whole and 855 on the other
+sixteen; row 148 stands one line from whole and takes the first seat (item 4637), and a guard holds the queue's unseated rows to
+the seats' order; the stop counts builds, and row 93's item is one (item 4657); the siege muster's seam, entered by three open rows
+before their first partings and by no whole row, is an item (4672); a lane lands on a verdict its gate printed; the packets' lines
+955 of 1,053; **orders** — whole by its counters; **renderer** — the Farm's plots and the buildings' plates drawn on run1814b
+(items 4636 to 4665); the client's seat takes the trees past sight (item 4670).
 
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it

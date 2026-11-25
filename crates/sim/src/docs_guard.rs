@@ -2354,6 +2354,53 @@ fn a_journal_carries_no_tool_call_markup() {
 /// item booked after that pass.
 const JOURNAL_QUOTES_THE_GATE_FROM: u32 = 3265;
 
+/// The first item whose lane journal quotes a verdict a gate prints (the
+/// pass of 2026-11-25, DECISIONS 157 §4). The guard below is satisfied by
+/// the two words anywhere, and item 4650's journal carried them in "The
+/// gate has no `Lane verdict:` line for this branch": its lane's gate had
+/// stopped at the guard step twice on the queue's own lines, the lane ran
+/// its filters by hand and landed, and the booking gate went red on two
+/// client pins no gate had run.
+const JOURNAL_QUOTES_A_PRINTED_VERDICT_FROM: u32 = 4672;
+
+/// What `tools/release_gate.py` prints as a lane's verdict (`LANE_GREEN`
+/// and `lane_verdict`'s two sentences), and a builder's sentence, whose
+/// gate is the booking gate.
+const PRINTED_VERDICTS: [&str; 4] = [
+    "Lane verdict: green, nothing red",
+    "Lane verdict: red only on the commander's lines",
+    "Lane verdict: red on the worker's own",
+    "Lane verdict: none of its own (a builder runs no lane gate",
+];
+
+/// Whether a journal written on a lane's branch quotes a verdict a gate
+/// printed. A journal that names no lane branch is not a lane's.
+fn a_lane_s_journal_quotes_a_printed_verdict(text: &str) -> bool {
+    !text.contains("worktree-att-") || PRINTED_VERDICTS.iter().any(|v| text.contains(v))
+}
+
+#[test]
+fn a_sentence_that_says_there_is_no_verdict_is_not_a_quote() {
+    let lane = "Worker lane, branch `worktree-att-4650`.\n";
+    let none = "The gate has no `Lane verdict:` line for this branch.";
+    assert!(!a_lane_s_journal_quotes_a_printed_verdict(&format!(
+        "{lane}{none}"
+    )));
+    for verdict in PRINTED_VERDICTS {
+        assert!(a_lane_s_journal_quotes_a_printed_verdict(&format!(
+            "{lane}- {verdict} (1): x"
+        )));
+    }
+    // A direct branch's journal names no lane and words its own line.
+    assert!(a_lane_s_journal_quotes_a_printed_verdict(
+        "Lane verdict: direct Codex branch, no lane gate"
+    ));
+    // Item 4650's own journal is the case, and it stands before the mark.
+    let journal = docs().join("journal/2026-11-25-item-4650.md");
+    let text = std::fs::read_to_string(journal).expect("item 4650's journal");
+    assert!(!a_lane_s_journal_quotes_a_printed_verdict(&text));
+}
+
 #[test]
 fn a_journal_quotes_its_lane_verdict_and_gate_minutes() {
     let mut silent = Vec::new();
@@ -2378,6 +2425,14 @@ fn a_journal_quotes_its_lane_verdict_and_gate_minutes() {
             .collect();
         if !missing.is_empty() {
             silent.push(format!("{name}: no {}", missing.join(", no ")));
+        }
+        if item >= JOURNAL_QUOTES_A_PRINTED_VERDICT_FROM
+            && !a_lane_s_journal_quotes_a_printed_verdict(&text)
+        {
+            silent.push(format!(
+                "{name}: no verdict a gate printed (a gate that stops at the guard has run \
+                 none of the lane's pins: `ccc update`, gate again; DECISIONS 157 §4)"
+            ));
         }
     }
     // 575 journals from item 3265 on, 2026-11-09.

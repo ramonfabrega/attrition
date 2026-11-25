@@ -371,6 +371,18 @@ class ABriefIsComposed(unittest.TestCase):
         self.assertIn('battery_floors', brief.filters('residue', ['battery_floors']))
         self.assertIn('nations::', brief.filters('residue', ['nations::']))
 
+    def test_a_filter_whose_only_matches_sit_behind_a_feature_is_refused(self):
+        # The pass of 2026-11-25 (DECISIONS 157 §8): items 4608 and 4618 were
+        # briefed with `held_seams`, a module `diff.rs` declares under
+        # `feature = "seam-count"`, which no gate builds; each lane's first
+        # gate exited 2 or ran nothing on it.
+        self.assertFalse([n for n in brief.test_fns() if 'held_seams::' in n])
+        with self.assertRaises(ValueError) as e:
+            brief.filters('residue', ['held_seams'])
+        self.assertIn('held_seams', str(e.exception))
+        # Its ungated neighbour is still listed.
+        self.assertTrue([n for n in brief.test_fns() if 'held_out::' in n])
+
     def test_a_filter_that_matches_no_test_is_refused(self):
         # Loop 3818: the sixty-fourth's commander named `map_resources` for
         # 3807 and 3811, a module with no tests, and 3811's first lane gate

@@ -283,7 +283,12 @@ worker that has not landed **ninety
 minutes** after its spawn sends a one-line status instead — the item, the
 step it is on, whether a gate is running — because two lanes on one box
 stretch every lane's wall clock, and wall clock is the one signal a
-commander cannot read. **A worker's story is its own file**,
+commander cannot read. **A lane lands on a `Lane verdict:` its gate
+printed** (DECISIONS 157 §4): a gate that stops at the guard has run none
+of the lane's pins, prints what to do instead, and `docs_guard` refuses a
+lane's journal that quotes no printed verdict; item 4650's lane landed on
+filters run by hand and the booking gate went red on two pins no gate had
+run. **A worker's story is its own file**,
 `docs/journal/<date>-item-<N>.md`; it touches neither `docs/JOURNAL.md`
 nor `docs/QUEUE.md`, and the numbers it reports are the commander's to
 book and to write on the scoreboard line. **A number a worker reports is
@@ -519,8 +524,12 @@ keeps the widenings itself when its branch moves the sim's source**
 since 135 §6): a brief carries no line for it. **A lane lands one act, so
 an item's stop rule is the driver's to count** (DECISIONS 145 §4): two
 landings running on one item's line that move no number end the line. The
-driver says so at the second booking and seats what the lanes line names
-next. **On the sample the number is the `Parity:` line**, its lowest
+driver says so at the second booking and seats what the queue's order names
+next. **The count is of builds** (DECISIONS 157 §3): a landing that ends at
+its first act under entry 134 §9 and names a term with both sides' values
+is not one of the two, the item after it builds before it reads, and three
+landings running with no build end the line (row 93's line was ended on a
+reading and a packet, its one-term build never begun). **On the sample the number is the `Parity:` line**, its lowest
 first parting or its draw word: a landing that moves some other line's
 first parting and neither of those counts toward the two (DECISIONS 148
 §5: four landings left the score on units 4248), **and the count of games
@@ -548,13 +557,22 @@ line or one field from whole first, then the lowest first
 parting, the sample sorted with the rows and holding no seat of its own; a landing
 on a row that parted early bought 732 states and one deep in a game
 about 190, whoever's game it was (the rank entry 155 §4 gave a row
-near its end went on its own bet, 156 §4). **Before that order, an item
+near its end went on its own bet, 156 §4). **The queue's unseated row items
+stand in that order, and a guard holds the file to it**
+(`the_handoff_s_unseated_rows_stand_in_the_seats_order`, DECISIONS 157 §2:
+item 4618 left the seventh's row 148 parting on one line, and five
+landings later the handoff listed its item last); the booking that moves a
+row's first parting moves its paragraph. **Before that order, an item
 whose first act an instrument on disk has already named, a probe's
 table or a seam no whole row enters, takes a seat**, the one that
 reaches the most open rows first (DECISIONS 156 §2: three landings
 each found by a take of its own a piece the pass's probe had listed
-under an unseated item, 313 of a tranche's 553 states). A seat that frees takes the next
-item in the lanes line's order, and the sample's before a hand-over
+under an unseated item, 313 of a tranche's 553 states), **when a row
+enters its hook before its first parting or within 100 states past it**
+(DECISIONS 157 §5: three such fixes moved no first parting at their own
+landings, and the rows then walked through hooks 17, 23 and 90 states
+ahead; one 988 ahead waits). A seat that frees takes the first unseated
+item in the queue's order, and the sample's before a hand-over
 when no row's item stands. **A script of several takes waits on each**
 with `waitrun.sh`, which gives a launch 120 seconds to show its runner
 (DECISIONS 153 §7: run1794's waiter exited before the runner existed,
@@ -639,7 +657,8 @@ the tree is removed, DECISIONS 151 §7).
 9. **Its held-out rows scored by leaf** — `score_recording` on every
    row not whole, seconds each: a row whose ranges take is on disk names
    its leaves, a row that holds sums prints the one take its parted lines
-   ask for, and both are pasted into the items it books (DECISIONS 146 §2:
+   ask for, **with the lines whole beside each first parting** (DECISIONS
+   157 §2), and both are pasted into the items it books (DECISIONS 146 §2:
    two rows parted on one bit no item had named; 148 §3: five of eight
    leaves on disk had no item) — **and each battery's reach read off its
    line**, the states its games run before their first parting, which
@@ -663,7 +682,9 @@ the tree is removed, DECISIONS 151 §7).
    whole row also enters is pasted into that row's item with the
    note's own sentence, **and a hook marked `=` whatever the whole
    rows enter** (DECISIONS 155 §9: the seventh's row 88, a hook one
-   whole row entered once), and the fallback's pin is re-pinned there. No
+   whole row entered once), **a hook no whole row enters that an open row
+   enters before its first parting is minted as an item of its own**
+   (DECISIONS 157 §5), and the fallback's pin is re-pinned there. No
    gate builds the feature, so nothing holds this between passes
    (DECISIONS 154 §2: eighteen landings after it landed the pin read 21
    where the tip fired 16, and the same run named row 133's first

@@ -9121,6 +9121,157 @@ pub(crate) mod tests {
             b.scores_name
         );
     }
+
+    /// An open row as the seats read it: its battery's ordinal, its row,
+    /// the lines it parts on now and its first parting.
+    type OpenRow = (&'static str, usize, usize, i32);
+
+    /// Every row of an open battery that is not whole, off the pins.
+    fn open_rows() -> Vec<OpenRow> {
+        let mut rows = Vec::new();
+        for b in BATTERIES.iter().filter(|b| !b.closed()) {
+            let ordinal = b.label.strip_prefix("Parity held out, ").unwrap_or("first");
+            for (h, p) in b.table.iter().zip(b.scores.iter()) {
+                let Some(p) = p else { continue };
+                let s = p.moved.unwrap_or(p.found);
+                let parted = s.agreed.iter().filter(|&&a| a != s.states).count();
+                if let Some(first) = s.first.iter().map(|f| f.1.0).min() {
+                    rows.push((ordinal, h.row, parted, first));
+                }
+            }
+        }
+        rows
+    }
+
+    /// The queue's row items that hold no seat, in the file's order: the
+    /// battery's ordinal, the row and the item's number. An item is
+    /// `N. **Parity held out, <ordinal>: row <R>…** (<its marks>)`, and it
+    /// holds no seat when its marks say `unseated`.
+    fn unseated_row_items(queue: &str) -> Vec<(String, usize, String)> {
+        let lines: Vec<&str> = queue.lines().collect();
+        let mut out = Vec::new();
+        for (i, l) in lines.iter().enumerate() {
+            let Some((number, rest)) = l.split_once(". **Parity held out, ") else {
+                continue;
+            };
+            if number.is_empty() || !number.bytes().all(|b| b.is_ascii_digit()) {
+                continue;
+            }
+            let Some((ordinal, rest)) = rest.split_once(": row ") else {
+                continue;
+            };
+            let digits: String = rest.chars().take_while(char::is_ascii_digit).collect();
+            let Ok(row) = digits.parse::<usize>() else {
+                continue;
+            };
+            let two = format!("{l} {}", lines.get(i + 1).copied().unwrap_or(""));
+            let marks = two
+                .split_once("** (")
+                .and_then(|(_, m)| m.split_once(')'))
+                .map_or("", |(m, _)| m);
+            if marks.contains("unseated") {
+                out.push((ordinal.to_string(), row, number.to_string()));
+            }
+        }
+        out
+    }
+
+    /// Where the queue's unseated row items stand out of the seats' order
+    /// (DECISIONS 147, 152 §1, 153 §2, 157 §2): a game one line from whole
+    /// first, then the lowest first parting. Each answer names the item to
+    /// move and the one it goes before.
+    fn out_of_seat_order(queue: &str, rows: &[OpenRow]) -> Vec<String> {
+        let key = |ordinal: &str, row: usize| {
+            rows.iter()
+                .find(|r| r.0 == ordinal && r.1 == row)
+                .map(|r| (r.2 != 1, r.3))
+        };
+        let items: Vec<(String, (bool, i32))> = unseated_row_items(queue)
+            .into_iter()
+            .filter_map(|(o, row, n)| key(&o, row).map(|k| (format!("{n} ({o}, row {row})"), k)))
+            .collect();
+        let mut out = Vec::new();
+        for (i, (name, k)) in items.iter().enumerate() {
+            if let Some((before, kb)) = items[..i].iter().find(|(_, kb)| kb > k) {
+                let why = if !k.0 && kb.0 {
+                    "one line from whole".to_string()
+                } else {
+                    format!("parting first on {}, before {}", k.1, kb.1)
+                };
+                out.push(format!("item {name}, {why}, goes before item {before}"));
+            }
+        }
+        out
+    }
+
+    #[test]
+    fn a_row_one_line_from_whole_is_read_first_and_the_rest_by_first_parting() {
+        let rows: &[OpenRow] = &[
+            ("sixth", 133, 11, 2677),
+            ("sixth", 93, 11, 2965),
+            ("seventh", 88, 11, 3033),
+            ("seventh", 148, 1, 10879),
+        ];
+        // The handoff of 2026-11-25 as found: row 148 last, by first parting.
+        let found = "4669. **Parity held out, sixth: row 133's units from 2677** (a rules item, \
+                     whole; unseated,\nrow 133's next word)\n\
+                     4668. **Parity held out, seventh: row 88's units from 3033** (a rules item, \
+                     whole; unseated)\n\
+                     4637. **Parity held out, seventh: row 148 from units 10879** (a rules item, \
+                     whole; unseated)\n";
+        assert_eq!(
+            out_of_seat_order(found, rows),
+            [
+                "item 4637 (seventh, row 148), one line from whole, goes before item 4669 (sixth, row 133)"
+            ]
+        );
+        // Seated, it is out of the order's reach, and the rest stand in order.
+        let seated = found.replace(
+            "row 148 from units 10879** (a rules item, whole; unseated)",
+            "row 148 from units 10879** (a rules item, whole; the chain's)",
+        );
+        assert_eq!(out_of_seat_order(&seated, rows), [String::new(); 0]);
+        // A lower first parting behind a higher one is named too.
+        let swapped = "4668. **Parity held out, seventh: row 88's units from 3033** (a rules \
+                       item, whole; unseated)\n\
+                       4657. **Parity held out, sixth: row 93's units from 2965, one term** (a \
+                       rules item, whole; unseated)\n";
+        assert_eq!(
+            out_of_seat_order(swapped, rows),
+            [
+                "item 4657 (sixth, row 93), parting first on 2965, before 3033, goes before item 4668 (seventh, row 88)"
+            ]
+        );
+        // A seam's item and the sample's are no row's, and are not ordered.
+        let other = "4656. **The seam `pivot::offset_at_unpinned` on row 133** (a rules item, \
+                     whole; unseated)\n";
+        assert_eq!(unseated_row_items(other), []);
+    }
+
+    /// **The queue's unseated rows stand in the seats' order** (the pass of
+    /// 2026-11-25, DECISIONS 157 §2). Item 4618's bays left the seventh's
+    /// row 148 parting on units alone, eleven lines whole to 12,001, and
+    /// the handoff five landings later still listed its item last, by first
+    /// parting: the rule that a game one line from whole goes first was
+    /// prose. The commander moves the item's paragraph at the booking.
+    #[test]
+    fn the_handoff_s_unseated_rows_stand_in_the_seats_order() {
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
+        let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
+        let rows = open_rows();
+        assert!(
+            rows.len() >= 2 || BATTERIES.iter().all(|b| b.closed()),
+            "the pins hold the open rows"
+        );
+        let out = out_of_seat_order(&q, &rows);
+        assert!(
+            out.is_empty(),
+            "docs/QUEUE.md lists its unseated `Parity held out` items in the order a freed seat \
+             takes them, a game one line from whole first and then by first parting \
+             (`diff::held_out::open_rows`); move the paragraph:\n{}",
+            out.join("\n")
+        );
+    }
 }
 
 /// **The eight, as declared** (item 4413, before any take): rows 0, 20, …,
