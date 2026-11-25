@@ -16,7 +16,9 @@ fn fs_tree(i: VOut) -> @location(0) vec4<f32> {
     if (t.a <= 0.0) {
         discard;
     }
-    let stage = clamp(t.rgb + vec3<f32>({current} - 0.5), vec3<f32>(0.0), vec3<f32>(1.0));
+    // `ADDSIGNED(TEXTURE, CURRENT)`, `CURRENT` the corner's diffuse in the
+    // third attribute: `GREY`, or `DARK_GREY` past sight (item 4670).
+    let stage = clamp(t.rgb + vec3<f32>(i.owner.x - 0.5), vec3<f32>(0.0), vec3<f32>(1.0));
     let toned = fake_tone(stage);
     return vec4<f32>(toned, t.a);
 }
