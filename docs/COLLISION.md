@@ -551,6 +551,14 @@ terraform it walks the first 81 cells of `move_x`/`move_y` round the building's 
 answers (a live unit) and whose type's domain (`+0x218`) is 0 (`0063eb70`..`0063ec43`). Every other stored height
 keeps the ground it was written on. `crate::units::stored_z` holds a height only where it differs from the ground.
 
+**A unit inside keeps its held height until it comes out, and then drops it** (item 4684): `Unit::come_out@00617c10`
+stores `find_tcoord_z` of the spot's tile into `+0xc` before `remove_from_inside` (`:510`–`:513`), and its
+`set_new_location(spot, 1, 1)` (`6186bc`) finds the point already stored and falls to `LAB_005f9033`, which writes it
+again. Ours drops `z_held` in `come_out_place` (out of a building) and `land_passenger` (out of a boat). **Diff-backed**
+for the building: run1797's Citizen `2/3`, held at 661 in `2/2018`, out on 3613 at (19320, 29496) where the ground
+reads 770 (`row_133_s_citizen_comes_out_at_the_ground_under_its_spot_on_run1797`). The boat's arm rests on the reading
+alone: no capture yet lands a passenger a terraform held.
+
 **Diff-backed**: run1812's units and guys ranges on 3357 to 3359, where who=2's Phalanx `2/76` (on no chain)
 keeps `z` 22 and its figure 21 under Smelter `2/2040`
 (`row_53_s_unchained_phalanx_keeps_its_height_under_the_smelter_on_run1812_s_ranges`); the walk's predicates

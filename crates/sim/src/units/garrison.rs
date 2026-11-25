@@ -697,6 +697,16 @@ impl Sim {
         u.inside = None;
         u.on_map = true;
         u.pos = spot;
+        // **The unit's `z` is the ground at the spot** (item 4684,
+        // `docs/RECGAME.md` §13.5): `Unit::come_out@00617c10:510`–`:513`
+        // stores `find_tcoord_z` of the spot's tile into `+0xc` before
+        // `remove_from_inside`, and `:518`'s `set_new_location(spot, 1, 1)`
+        // finds the point already stored and falls to `LAB_005f9033`, which
+        // writes it again. A height a terraform held while the unit was
+        // inside ([`Sim::wall_init_z`]) does not come out with it: run1797's
+        // Citizen `2/3`, held at 661 in `2/2018`, out on 3613 at (19320,
+        // 29496), where the ground reads 770.
+        u.z_held = None;
         let (heading, facing, frame_facing, des_angle) = match angle {
             Some(a) => (a, a, a, u.movement.des_angle),
             None => (
