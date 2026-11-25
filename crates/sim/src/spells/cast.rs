@@ -619,6 +619,9 @@ impl Sim {
         {
             return 0;
         }
+        if let Some(group) = self.gstate_mut(g) {
+            group.form = -1;
+        }
         let on_map = |s: &Sim, u: usize| s.units[u].alive() && s.units[u].on_map;
         // The `m` craft's caster: the most `mana_left` among the members
         // that can cast it and are not already casting it. SEAM: the

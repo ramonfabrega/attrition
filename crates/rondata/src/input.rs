@@ -1857,6 +1857,21 @@ impl Stream {
             // `OPTION_TRANSPORT`'s order (item 4375, `docs/CLIENT_INPUT.md`
             // §32.14): `process_set_transport@00948f60`'s one call.
             Command::SetTransport { flag } => group_set_transport(built, it.who, &objects, *flag),
+            Command::Spell {
+                ox,
+                whom,
+                spell,
+                x,
+                y,
+            } => group_spell(
+                built,
+                it.who,
+                &objects,
+                *spell,
+                *ox,
+                *whom,
+                Pos::new(*x, *y),
+            ),
             Command::Guard { ox, whom, queued } => {
                 group_guard(built, it.who, &objects, *ox, *whom, *queued)
             }

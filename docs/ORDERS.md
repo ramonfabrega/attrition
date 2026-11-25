@@ -7800,6 +7800,12 @@ cast it, and `Unit::do_cast@005ebfe0`'s **targeted half** — §6.9's
 untargeted arm is the other — runs it. `docs/GOLDEN.md` §27 is the
 chapter; run245 its capture; run246's packet the emulator's first frame.
 
+The recording pump dispatches a spell through this same group action.
+On run1824, player 3's Forced March on frame 8522 clears group 198's
+formation from 0 to −1 before the simulation ticks. Dispatching the spell
+alone restores the unit order but leaves the old formation in place.
+[Item 4643](journal/2026-11-24-item-4643.md)
+
 **`action_spell`'s default arm** (`GroupOut::validate_spell@007095e0`
 again first: the Informer, `DOUBLE_AGENT`, refuses an object its player
 has already infiltrated):

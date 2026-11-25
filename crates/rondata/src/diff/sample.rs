@@ -503,7 +503,8 @@ pub(in crate::diff) mod tests {
     /// Fort-line `0x1bc` on 7407): 7410 -> 7613, +203.
     /// Item 4641: the hidden Merchant at the rally point is passed over, 7613 -> 7949.
     /// Item 4642: the stored under-attack latch moves the count and sequence to 8534.
-    const SAMPLE_WALKED: (i64, i64) = (8534, 21044);
+    /// Item 4643: the spell package moves the count and sequence to 9507.
+    const SAMPLE_WALKED: (i64, i64) = (9507, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -828,19 +829,20 @@ pub(in crate::diff) mod tests {
     /// moves units to 7612 and cities to 7825. The draw word holds.
     /// Item 4641 moves the first shared difference to 7935. Goods parts four frames earlier downstream.
     /// Item 4642 moves every open line forward. Units, groups, guys, leaders and world meet on 8523.
+    /// Item 4643: the recorded Forced March clears group 198's formation.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 8523),
-        ("builds", 8544),
+        ("units", 9234),
+        ("builds", 9521),
         ("walls", 21044),
-        ("ammo", 8546),
-        ("deaths", 8538),
-        ("groups", 8523),
-        ("guys", 8523),
-        ("leaders", 8523),
-        ("cities", 8758),
-        ("items", 11748),
-        ("goods", 8979),
-        ("world", 8523),
+        ("ammo", 9732),
+        ("deaths", 9873),
+        ("groups", 9234),
+        ("guys", 9507),
+        ("leaders", 9551),
+        ("cities", 9601),
+        ("items", 12663),
+        ("goods", 10436),
+        ("world", 9518),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -1172,6 +1174,10 @@ pub(in crate::diff) mod tests {
         ranges_record("RON_SAMPLE_RANGES_1786", "run1786")
     }
 
+    fn run1824() -> Option<crate::trace::ranges::Record> {
+        ranges_record("RON_SAMPLE_RANGES_1824", "run1824")
+    }
+
     fn ranges_record(var: &str, run: &str) -> Option<crate::trace::ranges::Record> {
         let path = match std::env::var(var) {
             Ok(p) => std::path::PathBuf::from(p),
@@ -1295,7 +1301,7 @@ pub(in crate::diff) mod tests {
     fn the_sample_s_ranges_to_4500_name_each_first_parting() {
         let Some(rec) = run1726() else { return };
         let Some((frames, got)) =
-            walk_kept_ranges(rec, SAMPLE_RANGES_1726_WINDOW, SAMPLE_RANGES_1726_KEPT)
+            walk_kept_ranges(rec, 0..=SAMPLE_RANGES_1726_WINDOW, SAMPLE_RANGES_1726_KEPT)
         else {
             return;
         };
@@ -1320,7 +1326,7 @@ pub(in crate::diff) mod tests {
     fn the_sample_s_ranges_to_5350_name_each_first_parting() {
         let Some(rec) = run1771() else { return };
         let Some((frames, got)) =
-            walk_kept_ranges(rec, SAMPLE_RANGES_1771_WINDOW, SAMPLE_RANGES_1771_KEPT)
+            walk_kept_ranges(rec, 0..=SAMPLE_RANGES_1771_WINDOW, SAMPLE_RANGES_1771_KEPT)
         else {
             return;
         };
@@ -1345,7 +1351,7 @@ pub(in crate::diff) mod tests {
     fn the_sample_s_ranges_to_6400_name_each_first_parting() {
         let Some(rec) = run1772() else { return };
         let Some((frames, got)) =
-            walk_kept_ranges(rec, SAMPLE_RANGES_1772_WINDOW, SAMPLE_RANGES_1772_KEPT)
+            walk_kept_ranges(rec, 0..=SAMPLE_RANGES_1772_WINDOW, SAMPLE_RANGES_1772_KEPT)
         else {
             return;
         };
@@ -1430,42 +1436,66 @@ pub(in crate::diff) mod tests {
         }
     }
 
-    fn assert_sample_window(first: i64, last: i64) {
+    fn assert_sample_window(
+        record: Option<crate::trace::ranges::Record>,
+        first: i64,
+        last: i64,
+        after_package: Option<(i64, u32)>,
+    ) {
         use super::super::checksum_lines::packets::{Pieces, our_lines};
         let (Some(inst), Some(rcx), Some(mut ranges), Some(pieces)) =
-            (install(), sample(), run1786(), Pieces::read())
+            (install(), sample(), record, Pieces::read())
         else {
             return;
         };
-        assert_eq!(ranges.mask, u32::from(SAMPLE_RANGES_1786_KEPT));
+        assert_eq!(ranges.mask, 0xffb);
         let rec = crate::recgame::read(&rcx).unwrap();
         let (mut built, _) = sample_start(&inst, &rec);
         let mut stream = crate::input::Stream::pump(&rec);
+        let mut compare = |sim: &sim::Sim, ordinal| {
+            let state = sim.frame;
+            let set = ranges
+                .sets
+                .iter()
+                .find(|s| s.frame == state - 1 && s.ordinal == ordinal)
+                .expect("recorded checksum at the package boundary")
+                .clone();
+            assert_eq!(set.flags, 0);
+            let original = ranges.ranges(&set).unwrap();
+            for (line, ours) in our_lines(sim, &pieces).into_iter().enumerate() {
+                if ranges.mask & (1 << line) != 0 {
+                    assert_recorded_line(&original, line as u8, ours, state, ordinal);
+                }
+            }
+        };
         while built.sim.frame <= last {
             let state = built.sim.frame;
             if state >= first {
-                let set = ranges.first_of(state - 1).expect("run1786's state").clone();
-                assert_eq!(set.flags, 0);
-                let original = ranges.ranges(&set).unwrap();
-                for (line, ours) in our_lines(&built.sim, &pieces).into_iter().enumerate() {
-                    if ranges.mask & (1 << line) != 0 {
-                        assert_recorded_line(&original, line as u8, ours, state, set.ordinal);
-                    }
-                }
+                compare(&built.sim, 0);
             }
             stream.apply(state as i32, &mut built);
+            if let Some((frame, ordinal)) = after_package
+                && frame == state
+            {
+                compare(&built.sim, ordinal);
+            }
             built.tick();
         }
     }
 
     #[test]
     fn the_sample_s_merchant_rally_matches_the_recorded_birth_and_first_steps() {
-        assert_sample_window(7610, 7618);
+        assert_sample_window(run1786(), 7610, 7618, None);
     }
 
     #[test]
     fn the_sample_s_group_orders_and_first_steps_match_the_recorded_muster() {
-        assert_sample_window(7932, 7941);
+        assert_sample_window(run1786(), 7932, 7941, None);
+    }
+
+    #[test]
+    fn the_sample_s_forced_march_matches_before_and_after_the_package() {
+        assert_sample_window(run1824(), 8519, 8535, Some((8522, 2)));
     }
 
     #[test]
@@ -1527,7 +1557,7 @@ pub(in crate::diff) mod tests {
     fn the_sample_s_ranges_to_8000_name_each_first_parting() {
         let Some(rec) = run1786() else { return };
         let Some((frames, got)) =
-            walk_kept_ranges(rec, SAMPLE_RANGES_1786_WINDOW, SAMPLE_RANGES_1786_KEPT)
+            walk_kept_ranges(rec, 0..=SAMPLE_RANGES_1786_WINDOW, SAMPLE_RANGES_1786_KEPT)
         else {
             return;
         };
@@ -1543,6 +1573,24 @@ pub(in crate::diff) mod tests {
         assert_eq!(got, pinned, "SAMPLE_RANGES_1786");
     }
 
+    /// Run1786 covers states 0–8000. Run1824 extends the same eleven
+    /// recorded lines through state 10000. Compare the entire extension.
+    #[test]
+    fn the_sample_s_ranges_from_8001_to_10000_name_each_first_parting() {
+        let Some(rec) = run1824() else { return };
+        assert_eq!(rec.mask, 0xffb);
+        assert!(!rec.truncated);
+        let Some((frames, got)) = walk_kept_ranges(rec, 8001..=10000, 0xffb) else {
+            return;
+        };
+        assert_eq!(frames, 2000);
+        let pinned: Vec<SampleRange> = SAMPLE_RANGES_1824
+            .iter()
+            .map(|&(l, f, t, o, p, x)| (l, f, t, o, p, x.to_string()))
+            .collect();
+        assert_eq!(got, pinned, "SAMPLE_RANGES_1824");
+    }
+
     /// The walk the ranges tests share: our sample from state 0 to
     /// `window`, each frame's twelve lines against the record's set.
     /// `(sets compared, each parting line's first parting)`, or `None` when
@@ -1551,7 +1599,7 @@ pub(in crate::diff) mod tests {
         rec: crate::trace::ranges::Record,
         window: i64,
     ) -> Option<(usize, Vec<SampleRange>)> {
-        walk_kept_ranges(rec, window, 0xfff)
+        walk_kept_ranges(rec, 0..=window, 0xfff)
     }
 
     /// [`walk_ranges`] over a take that keeps the lines of `kept` alone
@@ -1559,7 +1607,7 @@ pub(in crate::diff) mod tests {
     /// a line the take dropped is not compared (DECISIONS 148 §4).
     fn walk_kept_ranges(
         mut rec: crate::trace::ranges::Record,
-        window: i64,
+        window: std::ops::RangeInclusive<i64>,
         kept: u16,
     ) -> Option<(usize, Vec<SampleRange>)> {
         use super::super::checksum_lines::packets::{Pieces, STATE_LINES, compare, our_lines};
@@ -1580,9 +1628,11 @@ pub(in crate::diff) mod tests {
         let mut stream = crate::input::Stream::pump(&rec_game);
         let mut seen: Vec<Option<FirstSeen>> = vec![None; 12];
         let mut frames = 0usize;
-        while built.sim.frame <= window {
+        while built.sim.frame <= *window.end() {
             let f = built.sim.frame;
-            if let Some(theirs) = super::super::checksum_frames::record::stream_at(&mut rec, f) {
+            if window.contains(&f)
+                && let Some(theirs) = super::super::checksum_frames::record::stream_at(&mut rec, f)
+            {
                 frames += 1;
                 let ours = our_lines(&built.sim, &pieces);
                 if detail == Some(f) {
@@ -2022,4 +2072,72 @@ pub(in crate::diff) mod tests {
     /// The next leaders difference is record 2 on 7650.
     /// Items 4641 and 4642: the rally and muster corrections carry all eleven kept lines through 8000.
     const SAMPLE_RANGES_1786: &[(&str, i64, usize, usize, usize, &str)] = &[];
+
+    const SAMPLE_RANGES_1824: &[(&str, i64, usize, usize, usize, &str)] = &[
+        (
+            "units",
+            9234,
+            7457,
+            7457,
+            7,
+            "5057 16 collide_frame..play: group 196|199",
+        ),
+        (
+            "builds",
+            9521,
+            5602,
+            5602,
+            1,
+            "3313 2003 myhits..launch_frames: up 7|-1",
+        ),
+        (
+            "ammo",
+            9732,
+            3,
+            3,
+            1,
+            "1 0 rolling..start_roll_angle: +0x13 of 99|99: 6c270000|48270000",
+        ),
+        (
+            "deaths",
+            9873,
+            4,
+            2,
+            2,
+            "2 -1 00936bff: +0x0 of 0|4: |01000000",
+        ),
+        (
+            "groups",
+            9234,
+            628,
+            634,
+            369,
+            "262 196 id..march: num 6|0, form 0|-1, stamp 8871|9233, ox 8976|0, oy 19636|0, o_angle -458883072|0, order_num 7|0, role 331023|0, think_frame 9179|0, new_speed 25|0, speed 25|0, form_num 6|0, who 3|0",
+        ),
+        (
+            "guys",
+            9507,
+            2252,
+            2252,
+            1,
+            "1200 54 guy: angle 1431655765|-2147483648, des_angle 1431655765|-2147483648, end_time 30|15, cur_anim 0|7, stopped 1|0",
+        ),
+        (
+            "leaders",
+            9551,
+            675,
+            675,
+            5,
+            "271 2 who..ally_mask: +0x7d8 of 26914|26914: 16020000|0a020000",
+        ),
+        ("cities", 9601, 84, 84, 1, "1 1 city..ter: peasant_dist 2|1"),
+        (
+            "world",
+            9518,
+            7911,
+            7911,
+            3,
+            "4304 583 block.body: +0x19 of 96|96: 1c001c00|00000000",
+        ),
+    ];
 }

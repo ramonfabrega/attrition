@@ -596,8 +596,16 @@ members to (2860,30423), as in run1786. Farm 2/2006 has nine points of
 old damage. Setting its current alert in the original changes the muster
 cell from (3,39) to (6,45), the destination our previous walk chose.
 Run1786 now agrees on all eleven recorded lines through state 8000.
-The first difference in run1651 is at 8523 and the draws agree through 8533.
+Run1662 first differs at 8523. Run1651’s draws agree through 8533.
 [Recorded group destinations](journal/2026-11-24-item-4642.md)
+
+**Forced March on frame 8522 (item 4643).** Player 3 repeats the preceding
+selection of unit 27 and issues spell 636. Before ticking, run1824 records
+a second checksum with ordinal 2. Its group 198 now has formation −1. The
+recorded cast and all eleven kept lines agree on both sides of the package
+and through 8535. Units and groups next differ at 9234, following the
+assignment of hot key 55. The first unequal draw is on 9507.
+[Forced March comparison](journal/2026-11-24-item-4643.md)
 
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 

@@ -42065,3 +42065,36 @@ processes and exited 2. The driver's receipt is
 - Row 43 of the fifth held-out battery (run1775/1787) also gains its
   recorded destination. Its first different checksum moves 3833 → 3899,
   the builds line. The eleven previously open lines each gain agreement.
+
+## run1824 — 2017 sample, eleven field lines through 10000 and a packet at 8522 (2026-11-24, item 4643)
+
+Run1786 ends at 8000. Run1662's checksums alone could not identify which
+group field changed in the Forced March package. Run1824 combines
+run1786's checksum and range hooks (`RNG_MASK=0xffbu`) with run1823's
+snapshot plan. Same installed recording, SHA-256
+`df7830d7b6c77e1318a1ef5b7725ae2f0b0c8db5957bed85db0479b506f72649`.
+Use run1823's command with output `~/ron-golden/run1824`, end 10000,
+log window 8519–8527, timeout 3600, and `RON_STATE_FRAME=8522`,
+adding `--tracer-def RON_RANGES --tracer-def RNG_MASK=0xffbu`.
+
+- Pool lane 1 played to 10000 in 717.75 s with zero page faults and
+  relaunches. All five settings restored, host `waitrun.sh` exit 0.
+  Receipt `/tmp/ron-runs/viadriver-20261124-191211-92034.log`.
+- All 10,518 sets on 10,001 states re-sum on every kept line. All sixteen
+  words of each set match run1662, including the ordinal after a package.
+  All 8,404 overlapping sets match run1786. In total 190,639,199 ranges
+  folded 6,671,033,101 bytes. No overflow or truncation.
+- The packet at 8522 passed all eight anchor checks, logger return and
+  completion receipt. Its payload is 1,006,899,200 bytes in 205 ranges,
+  SHA-256 `321c0b5911001ef7ae6a809eaf26a682996845ba688d5688ba87253bd6c4bd75`
+  for the packet. On 8522/2 group 198's formation is −1. All eleven
+  lines match through 8535 with the recorded spell and the formation
+  reset. Items and goods stay whole to 10000. The next difference is
+  the hot-key group on 9234.
+- Filed as `run1824 sample2017-playback-ranges-10000`. The archive
+  links the 3,777-byte gamelog and 202,689,248-byte trace. Ranges
+  9,722,285,908 bytes in ten pieces, SHA-256
+  `fbc5f7d1c06c07be2b089463a2a9d2115c4e2a66a63866b2d6999297557e7d47`;
+  disk allocation 9.06 GiB → 0.91 GiB. `verify.rs`, `verify.log`,
+  `packet-check.json` and `filed.log` are in
+  `~/ron-data/lab-experiments/2026-11-24-codex-merchant.ch6hlc/sample8523/`.
