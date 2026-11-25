@@ -841,8 +841,10 @@ fn the_plates_mesh_is_draw_81_s() {
     };
     // Each cell's triangles, with every corner's (z, uv0, uv1).
     type Corner = (f32, [f32; 2], [f32; 2]);
-    let mut card: BTreeMap<[(i32, i32); 3], Vec<Vec<((i32, i32), Corner)>>> = BTreeMap::new();
-    for t in idx.chunks_exact(3) {
+    type Cell = [(i32, i32); 3];
+    type Corners = Vec<((i32, i32), Corner)>;
+    let mut card: BTreeMap<Cell, Vec<Corners>> = BTreeMap::new();
+    for t in idx.as_chunks::<3>().0 {
         let c = |i: u32| v[i as usize];
         let pos = [0, 1, 2].map(|j| {
             let a = c(t[j]);
@@ -873,9 +875,8 @@ fn the_plates_mesh_is_draw_81_s() {
         p.world.early_roads = true;
         p.world.road_pick = pick;
         let m = p.world.plate_mesh().expect("the plates are laid");
-        let mut ours: BTreeMap<[(i32, i32); 3], (usize, Vec<((i32, i32), Corner)>)> =
-            BTreeMap::new();
-        for (j, t) in m.positions.chunks_exact(3).enumerate() {
+        let mut ours: BTreeMap<Cell, (usize, Corners)> = BTreeMap::new();
+        for (j, t) in m.positions.as_chunks::<3>().0.iter().enumerate() {
             let corners = (0..3)
                 .map(|q| {
                     let i = 3 * j + q;
