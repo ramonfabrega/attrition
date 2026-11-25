@@ -1326,63 +1326,6 @@ pub(crate) mod tests {
         }
     }
 
-    /// PROBE 4635: row 128's leaders on run1828, every parted leaf.
-    #[test]
-    fn probe_4635_row_128_leaders() {
-        if std::env::var("RON_PROBE_4635").is_err() {
-            return;
-        }
-        let inst = crate::testenv::install().expect("install");
-        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(&SEVENTH, 6) else { panic!("rcx") };
-        let ranges = home.join("ron-golden/run1828/map-14/rontrace.ranges");
-        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("file");
-        let loaded = crate::load::load(&inst).expect("load");
-        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
-        let mut stream = crate::input::Stream::pump(&rec);
-        let mut record = crate::trace::ranges::Record::open(&ranges).expect("record");
-        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(3330);
-        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(3340);
-        while built.sim.frame < lo {
-            stream.apply(built.sim.frame as i32, &mut built);
-            built.sim.command().tick();
-        }
-        loop {
-            let state = built.sim.frame;
-            let set = record.first_of(state - 1).expect("set").clone();
-            let all = record.ranges(&set).expect("ranges");
-            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
-            let mut ours = Vec::new();
-            for who in 0..8u8 {
-                ours.extend(built.sim.leader_image(who as sim::Player));
-            }
-            eprintln!("state {state}: ours {} ranges, theirs {}", ours.len(), theirs.len());
-            for (k, (a, b)) in ours.iter().zip(&theirs).enumerate() {
-                let mut at = 0usize;
-                for leaf in &a.leaves {
-                    for e in 0..leaf.count {
-                        let w = leaf.width;
-                        let o = leaf.values.as_ref().and_then(|v| v.get(e).copied());
-                        let t = b.bytes.get(at..at + w).map(|x| {
-                            let mut v: i64 = 0;
-                            for (i, byte) in x.iter().enumerate() { v |= (*byte as i64) << (8 * i); }
-                            v
-                        });
-                        let ob = o.map(|v| v & if w >= 8 { -1 } else { (1i64 << (8 * w)) - 1 });
-                        if ob != t {
-                            eprintln!("  range {k} record {} {} {}[{e}] @{at}: ours {:?} theirs {:?}", a.record, a.field, leaf.name, o, t);
-                        }
-                        at += w;
-                    }
-                }
-                if at != b.bytes.len() { eprintln!("  range {k} length ours {at} theirs {}", b.bytes.len()); }
-            }
-            if state >= hi { break; }
-            stream.apply(built.sim.frame as i32, &mut built);
-            built.sim.command().tick();
-        }
-    }
-
     /// **Row 23's setup claims oil under the colonized limit** (item 4534,
     /// `docs/RECGAME.md` §12.3): run1781 holds every leaders range from
     /// state 0. `Setup::build_game@005ac190:881` runs `World::analyze_map`
