@@ -460,6 +460,56 @@ impl Sim {
             .count()
     }
 
+    /// **`ObjectsData::find_unit@0065ca80`'s two walks, and the last of a
+    /// tie** (item 4668, `docs/RECGAME.md` §14.4): the nearest unit `fits`
+    /// keeps within `range` of `at` by `vector_dist` from the object's own
+    /// point (`65cf16`..`65cf3c`), with its distance. Both walks compare
+    /// `<=` against the running best (`65cf44`, and `65cd2f` on the
+    /// circle's), so a tie goes to the **last** candidate in walk order.
+    /// While `total_units` is under `circle_radius[ring_index(range)]` the
+    /// walk is the lists, leader by leader below eight, each one's units in
+    /// `o` order; else the ring's cells in circle order round `at`'s cell
+    /// (`div_3_table[x >> 8]`), each cell's chain from its head, owners
+    /// below eight. `fits` answers the caller's filters (alive and on the
+    /// map, the search mode, the filters' arms) and the range test is
+    /// here.
+    pub(crate) fn find_unit_walk(
+        &self,
+        at: Pos,
+        range: i32,
+        mut fits: impl FnMut(usize) -> bool,
+    ) -> Option<(i32, usize)> {
+        let mut best: Option<(i32, usize)> = None;
+        let mut take = |u: usize| {
+            if self.units[u].owner >= crate::world::PLAYER_SLOTS || !fits(u) {
+                return;
+            }
+            let p = self.units[u].pos;
+            let d = crate::world::vector_dist((p.x - at.x).abs(), (p.y - at.y).abs());
+            if d <= range && best.is_none_or(|(bd, _)| d <= bd) {
+                best = Some((d, u));
+            }
+        };
+        let circle = crate::ai::ai_place::circle();
+        let ring = Self::ring_index(range);
+        if self.total_units() < circle.radius[ring] {
+            let mut all: Vec<usize> = (0..self.units.len()).collect();
+            all.sort_by_key(|&u| (self.units[u].owner, self.units[u].index));
+            for u in all {
+                take(u);
+            }
+        } else {
+            let c0 = at.cell();
+            for i in 0..circle.radius[ring] {
+                let c = crate::Cell::new(c0.x + circle.x[i], c0.y + circle.y[i]);
+                for u in self.cell_chain(c) {
+                    take(u);
+                }
+            }
+        }
+        best
+    }
+
     /// `find_units@0065a620`'s list-walk reach (listing `65aa72..65aaa6`):
     /// a candidate is kept when `vector_dist − R <= range`, R its
     /// `push_size` if it is a sea unit and its `big_radius` otherwise.

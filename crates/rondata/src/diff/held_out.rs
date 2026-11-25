@@ -13360,13 +13360,23 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // record 15 `sz` ours -173 -> 100, theirs 100 (ours read the seabed,
         // -273). Ammo 3,391 -> 3,392 (first 3028 -> 3383). The first parting
         // moves 3028 -> 3033, on units.
+        // Moved by item 4668 (run1834's ranges): `Ammo::check_hit@00678d90`'s
+        // `find_unit` keeps the last of a tie. On 3032 who=1's Elite
+        // Javelineers `1/72`'s round, its Pikeman `2/25` gone, lands 144 from
+        // both Light Cavalry `1/66` and `1/83` (TI 210) in one cell; theirs
+        // strikes `1/83`. Units range 2733, record 83 `damage` ours 3 -> 7,
+        // theirs 7 (`damage_frac` 10 -> 4); range 2205, record 66 `damage`
+        // ours 39 -> 38, theirs 38. Units 3,033 -> 3,069 (first 3033 -> 3069),
+        // items 8,398 -> 8,405; ammo 3,392 -> 3,394 and items 8,590 -> 8,398
+        // stood on the base (the mutation's score). The first parting moves
+        // 3033 -> 3069, on units and guys.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                3033, 3144, 12001, 3392, 3463, 3095, 3069, 3134, 3313, 8590, 3500, 3086,
+                3069, 3144, 12001, 3394, 3463, 3095, 3069, 3134, 3313, 8405, 3500, 3086,
             ],
             first: &[
-                ("units", (3033, Some(3546334183), 3496526911)),
+                ("units", (3069, Some(3225147323), 4084455149)),
                 ("builds", (3144, Some(3531851268), 1209124357)),
                 ("ammo", (3383, Some(1), 2980055740)),
                 ("deaths", (3463, Some(4004785731), 1478238545)),
