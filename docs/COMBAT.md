@@ -10106,6 +10106,12 @@ stays idle. Nothing is named for it.
   played, from the slot list and not from a reading of `set_anim`. The
   Arab Avenger's (586) `CHAR_ATTACKWALK` is 234's by the art alone: no
   packet on disk holds 234's walk.
+- **A row fitted at fewer headings than 361 can be a unit off at the
+  rest** (item 4663): the Attack Helicopter's two `GUNS` rows (piece 261)
+  were item 3804's centres at heading 0 alone and reproduced 201 and 197
+  of the original's 361 headings; row 133 parted on 2547 at 319°. Which
+  other `BAYS`, `GUNS` or `MEASURED` rows no 361-heading sweep checks is
+  not counted (parked 4663a).
 
 ### 55.6 Coverage
 
@@ -10125,7 +10131,11 @@ stays idle. Nothing is named for it.
   361 headings each. 561 are read through `launch::SAME_AS` from a held
   piece's row, and 98 by 66 fitted `BAYS` rows and four `GUNS` rows. The
   Arab Flak Gun's and Avenger's node-0 keys agree on all 6 × 92,416 pivot
-  cells as 232's and 234's.
+  cells as 232's and 234's. **Item 4663**, the same way: the Attack
+  Helicopter's (piece 261) two `CHAR_ATTACK2` keys, refitted by
+  `fit_bay.py` to 361 of 361 headings each (regions of 360 and 914
+  points), and diff-backed by row 133's ammo line on 2546–2548
+  (run1797's ranges, `1/14`'s node-0 rocket at 319°).
 - **Listing-backed**: the release call's arguments, the pivot branch's
   nested call and rotation, `set_all_pivots`' writes, `Guy::process`'
   step, the gate.
