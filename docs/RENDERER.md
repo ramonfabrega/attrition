@@ -6100,7 +6100,55 @@ source alpha over. `client::gpu` blends a run of plates on the land pass's
 HDR target (`fs_plate_hdr` in `land_hdr_pass`), where the overlaps of
 neighbouring pieces build as the card's do. The frame pass's runs now go
 through `draw_split` for it. **The coverage is the complement of the file's
-alpha**, an assumption the row backs and no reading yet does (4653a).
+alpha**, an assumption the row backs and the reading below refutes (4653a).
+
+**The alpha, read** (item 4658, 2026-11-25, Opus 5.5;
+`docs/journal/2026-11-25-item-4658.md`). The original lays the file's own
+alpha. **No step between the file and the blend complements it.**
+- *The load.* `RoadsPieces::one_time_init@00896660` takes each `<ROADPAGE>`
+  `<TEXTURE>` into `element_pages` in file order, through
+  `Texture::init(name, PF_DXT3, MEM_HARDWARE, 0, 2)`. `tilepage` sets the
+  page's bit in `alpha_pages`. `PF_DXT3` becomes `PF_32`; `ImageIO::load`
+  reads its fourth argument (0) only for the 0x10 and 0x8 format overrides,
+  and `load_tga@00512ac0` hands the fifth (2) to the surface. `decode_tga`
+  honours `YReversed` (descriptor bit 5) as `render::tga::decode` does.
+  `<TILEPAGE>` is not read here.
+- *The bind.* `RoadsOut::render@008943d0` binds `element_pages[page · 3 +
+  bucket]` (`Roads +0x6c`; `Roads` holds its `RoadsPieces` at +0x40) at
+  stage 0, so bucket 0 is `early_road_pieces.tga`.
+- *The state.* `RoadsOut::one_time_init@00893bf0` writes `+0x2f0`'s stage 0
+  alpha `TOP_SELECTARG1` on argument 5, and stage 1's `TOP_MODULATE` on (5,
+  0). `rise.pdb`'s argument enum is `TA_CURRENT` 0, `TA_DIFFUSE` 1,
+  `TA_TEXTURE` 5, `TA_TFACTOR` 6 and `TA_COMPLEMENT` `0x80000000`: the
+  water's stage-1 alpha argument is `-0x7ffffffb` (`TA_TEXTURE |
+  TA_COMPLEMENT`, `TerrainOut::one_time_init`), and the plates' is a bare 5.
+  `tex_coord_index` keeps `RenderState::init`'s 0 and 1. The blend is
+  `BLENDMODE_SRCALPHA` 5 over `BLENDMODE_INVSRCALPHA` 6.
+- *The shader.* `d3dgl.dll`'s argument table (`0x100fe0c8`, built at
+  `0x10002730`) spells index 5 `COLOR_TEXTURE($NUM0)`; the complemented
+  spellings are 7 to 13 (`COMPLEMENT(COLOR_TEXTURE($NUM0))` is 12). The
+  install's `shader_texture_data.h` returns stage 2's alpha, `tex2.a ·
+  tex1.a`.
+- *Stage 1's page.* The `<ROADTEX>` entries' alpha is 255 on 44,442 of
+  65,536 texels and no texel is 0 (`s_Middle_Road.tga`, 11). It does not
+  complement either.
+
+**What the row was measuring.** The early page's alpha is 0 on the page's
+empty texels, where the modern page's is (23,287 texels both, 265 early's
+alone). Inside an element it is a narrower path than the modern road:
+32,693 texels over half on both, 9,291 on the modern road alone. Over the
+packet's 54 piece boxes the early alpha is over half on 40 % of the texels
+(mean 0.41). So the file's alpha lays opaque sand on two-fifths of each piece,
+and its complement on the rest. The row is a tile's mean, so it scores the
+wider coverage, whatever its shape. Re-measured with the file's alpha: drawn
+**32**, the packet's own pieces **30**, against the complement's 37 and 43.
+
+**What the eye finds.** The photograph's sand is opaque bands about a tile
+wide along the tile lines round each block of buildings, the plaza's red line
+on their outer rim. **Neither arm draws that**: both lay faint blotches
+(`~/ron-data/lab-experiments/2026-11-25-item-4658/zoom4.png`: the photograph,
+before, the complement, the file's alpha). Something past the alpha thins
+the plates. It is not read here (4658a).
 
 The diff: helper 0's 54 pieces are `lay`'s boxes and texcoords from the
 records' own elements and orientations on 53 of 54, and their page corners
@@ -6119,8 +6167,10 @@ read (177, 178, 74).
 (positions, colours, texcoords, heights, wind), the underlay's corners and
 texcoords; the plates' quads and tile-page texcoords, and their
 `RenderState`. **Read alone**: the draw state's arithmetic in our pass (the
-packet holds the `RenderState`, not the card's pixels). **On the row
-alone**: the plates' complemented alpha (4653a).
+packet holds the `RenderState`, not the card's pixels); the plates' alpha
+uncomplemented (item 4658: the load, the bind, the state's arguments and
+d3dgl's table, one reading, no score resting on it). **On the row alone**:
+the client's complemented alpha, which that reading refutes (4658a).
 
 **Not established.**
 - The wind's motion over a game (`Scene::wind_vec` is the view's; the
@@ -6136,8 +6186,11 @@ alone**: the plates' complemented alpha (4653a).
 - ~~The road state `+0x2f0`'s blend and stage ops, and whether the tile page's
   texcoords are the tile's or the piece's.~~ Read off the packet by item 4653
   ("The plates, drawn"): the tile's, over 4.
-- Where the plates' alpha is complemented (4653a), and the four element-1
-  plates our walk does not lay (4653b).
+- ~~Where the plates' alpha is complemented (4653a).~~ Read by item 4658
+  ("The alpha, read"): nowhere; the original lays the file's alpha. The
+  client still complements it, on the row alone, until 4658a is read.
+- What thins the plates to blotches where the photograph's bands are opaque
+  (4658a), and the four element-1 plates our walk does not lay (4653b).
 - The trees past sight stay lit (4621a). Not touched here.
 
 ## 7. What is not established, and what needs Ramon's word
