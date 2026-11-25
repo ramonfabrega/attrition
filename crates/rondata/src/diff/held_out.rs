@@ -4910,6 +4910,50 @@ pub(crate) mod tests {
         }
     }
 
+    /// Probe 4685 (reverted whole): row 93's units 35 and 38, every owner,
+    /// alive, cell and chain words, on each change over 2900..=3089.
+    #[test]
+    fn probe_4685_row_93_chain() {
+        if std::env::var("RON_PROBE_4685").is_err() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let lo: i64 = std::env::var("RON_PROBE_4685").unwrap().parse().unwrap_or(2900);
+        let mut last = std::collections::BTreeMap::new();
+        while built.sim.frame <= 3090 {
+            if built.sim.frame >= lo {
+                for (i, u) in built.sim.units.iter().enumerate() {
+                    if u.index != 35 && u.index != 38 {
+                        continue;
+                    }
+                    let ty = u.ty.map(|t| built.sim.tables.unit_types[t].type_index);
+                    let name = u.ty.map(|t| loaded.unit_names[t].clone());
+                    let c = u.pos.cell();
+                    let w = built.sim.unit_chain_words(i);
+                    let line = format!(
+                        "slot {i} {}/{} TI {ty:?} {name:?} alive {} inside {:?}/{:?} cell ({}, {}) pos ({}, {}) words {w:?} hp {}",
+                        u.owner, u.index, u.alive(), u.inside, u.inside_unit, c.x, c.y, u.pos.x, u.pos.y, u.health
+                    );
+                    if last.get(&i) != Some(&line) {
+                        eprintln!("P4685 f{} {line}", built.sim.frame);
+                        last.insert(i, line);
+                    }
+                }
+            }
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+    }
+
     /// **Row 43's Slinger stones leave from piece 736's sockets** (item
     /// 4547, `docs/RECGAME.md` §12.3): run1787, the ranges take of row 43's
     /// file. who=2's Slingers `2/30` and `2/29` (TI 82, land, piece 736,
