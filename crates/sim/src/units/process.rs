@@ -237,16 +237,25 @@ impl Sim {
             // `move_unit` asks nothing of the unit's life, so the disc moves
             // with the body here as it would on a live one.
             //
-            // [`Sim::disembark`] is the only death this crate takes inside
-            // a unit's own work; it leaves the boat dead and off the map.
-            // SEAM: a unit killed in its own work with a death animation
-            // (`Unit::close`'s `param_1 != 0`) has its figures handed to
-            // `Objects::kill_guy` first, and this crate kills none that way
-            // there. `coll_repaint` takes the boat too (item 1223): the
+            // [`Sim::disembark`] leaves the boat dead and off the map.
+            // `coll_repaint` takes the boat too (item 1223): the
             // sixty-fourth-frame repaint re-marks the disc the close cleared.
-            if self.units[i].kind.domain == crate::territory::attrition::Domain::Sea
-                && !self.units[i].on_map
-            {
+            //
+            // **And so does a unit killed on the map in its own work** (item
+            // 4689, `docs/RECGAME.md` §14.4): a self-destructing attacker's
+            // `Object::die(this, 3, −1, 0)` from `fight` (item 4614) or from
+            // its ram (item 4667). `Unit::close`'s death arm hands each figure
+            // to `Objects::kill_guy@00659410`, which clears its disc and puts
+            // the guy on the render list (`+0x26c`) without touching the
+            // unit's guy array or counts; `Object::close` →
+            // `remove_from_world` clears it again. `Guy::process@005e0230`
+            // then runs on the figure, and its repaint asks nothing of the
+            // unit's life. Row 88's 3573 (run1843): who=1's Heavy Fire Raft
+            // `1/139` (TI 335, sea), standing since 3562, fires and sinks
+            // in its `fight`, and 3573 + 139 is a multiple of 64, so theirs
+            // holds its whole 9×9 disc round unit cell (450, 334) on 3574.
+            let on_map = self.units[i].on_map;
+            if on_map || self.units[i].kind.domain == crate::territory::attrition::Domain::Sea {
                 let from = self.units[i].movement.body.pos;
                 self.process_movement(i);
                 let to = self.units[i].movement.body.pos;
@@ -290,7 +299,8 @@ impl Sim {
     /// took off the map repaints, on its phase and standing, the disc that
     /// took it off has just cleared, and nothing owns the bits after.
     /// [`Sim::process_unit`] reaches the repaint for each on that one frame
-    /// alone.
+    /// alone. A unit its think killed on the map is the third
+    /// ([`Sim::repaints_dead_on_map`], item 4689).
     pub(crate) fn repaints_off_map(&self, u: usize) -> bool {
         let unit = &self.units[u];
         // A boat that stepped ashore in its own work (item 1223,
@@ -306,6 +316,16 @@ impl Sim {
         // world cell (40, 54) from 3791.
         let went_inside =
             unit.alive() && !unit.on_map && (unit.inside.is_some() || unit.inside_unit.is_some());
-        dead_boat || went_inside
+        dead_boat || went_inside || self.repaints_dead_on_map(u)
+    }
+
+    /// **A unit killed on the map in its own work still repaints**
+    /// (item 4689, `docs/RECGAME.md` §14.4): `Guy::process@005e0230`
+    /// runs on its figures after `Unit::close` has cleared the disc, and
+    /// its repaint gates on the guy alone. [`Sim::process_unit`]'s dead
+    /// arm is the only path that hands a dead unit on the map to
+    /// [`Sim::coll_repaint`].
+    pub(crate) fn repaints_dead_on_map(&self, u: usize) -> bool {
+        !self.units[u].alive() && self.units[u].on_map
     }
 }

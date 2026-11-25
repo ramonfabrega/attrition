@@ -5171,6 +5171,95 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 88's fire raft sunk in its own work repaints its disc** (item
+    /// 4689, `docs/RECGAME.md` §14.4): run1843, row 88's ranges to 3590.
+    /// who=1's Heavy Fire Raft `1/139` (TI 335, sea), standing since 3562,
+    /// fires and sinks in its own `fight` on 3573's tick; 3573 + 139 is a
+    /// multiple of 64, so `Guy::process`'s repaint re-marks the 9×9 disc
+    /// `Unit::close` cleared: world `block.body` records 1227, 1228, 1287
+    /// and 1288 hold unit cells (446..454, 330..338) on 3574. Every world
+    /// range on states 3573 to 3575, byte for byte.
+    #[test]
+    fn row_88_s_fire_raft_sunk_in_its_own_work_repaints_its_disc_on_run1843_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SEVENTH, 4) else {
+            eprintln!("skipping: row 88's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1843/map-18");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1843's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 88's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3573i64..=3575 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let raft = built
+                .sim
+                .units
+                .iter()
+                .rposition(|u| u.owner == 1 && u.index == 139)
+                .expect("who=1's slot");
+            let ty = built.sim.units[raft].ty.expect("a type");
+            assert_eq!(
+                built.sim.tables.unit_types[ty].type_index, 335,
+                "the raft's TI"
+            );
+            assert_eq!(loaded.unit_names[ty], "Heavy Fire Raft");
+            assert_eq!(
+                built.sim.units[raft].kind.domain,
+                sim::territory::attrition::Domain::Sea
+            );
+            assert_eq!(
+                built.sim.units[raft].alive(),
+                state == 3573,
+                "1/139 on {state}"
+            );
+            let ours = built.sim.checksum_world();
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "world's ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "world range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            if state == 3574 {
+                let n = sim::movement::collide::UCELLS_PER_CELL;
+                for x in 446..=454 {
+                    for y in 330..=338 {
+                        let (cx, cy) = (x / n, y / n);
+                        let rec = i16::try_from(cy * 60 + cx).expect("a record");
+                        let body = ours
+                            .ranges
+                            .iter()
+                            .find(|r| r.field == "block.body" && r.record == rec)
+                            .expect("the cell's block");
+                        let i = (x % n) * n + (y % n);
+                        assert_eq!(
+                            body.bytes[(i / 8) as usize] >> (i % 8) & 1,
+                            1,
+                            "unit cell ({x}, {y}) marked on 3574"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     /// **Row 43's Slinger stones leave from piece 736's sockets** (item
     /// 4547, `docs/RECGAME.md` §12.3): run1787, the ranges take of row 43's
     /// file. who=2's Slingers `2/30` and `2/29` (TI 82, land, piece 736,
@@ -14166,23 +14255,39 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // cities 3,576 -> 3,751, items 8,480 -> 8,804, goods 4,002 -> 4,054
         // (first 3728 -> 3872), world 3,443 -> 3,574. The first parting moves
         // 3441 -> 3574, on world.
+        // Moved by item 4689 (run1843's ranges): `Unit::process@00610bc0`
+        // runs `Guy::process` over the guy array after the `+0x188` think
+        // with no test between, so a unit killed on the map in its own work
+        // takes its sixty-fourth-frame repaint after `Unit::close` cleared
+        // its disc. On tick 3573 who=1's Heavy Fire Raft `1/139` (TI 335,
+        // sea), standing since 3562, fires and sinks in its `fight`; 3573 +
+        // 139 is 58 x 64. World on 3574, `block.body` records 1227, 1228,
+        // 1287 and 1288: the 81 bits of unit cells (446..454, 330..338)
+        // ours 0 -> 1, as theirs (record 1228's count ours 25 -> 67, theirs
+        // 67). Units 3,582 -> 4,327 (first 4027), builds 3,586 -> 4,383
+        // (first 3717), ammo 3,604 -> 4,187 (first 4166), deaths 3,675 ->
+        // 4,443, groups 3,585 -> 4,368 (first 4363), guys 3,583 -> 4,384,
+        // leaders 3,585 -> 4,199, cities 3,751 -> 4,488 (first 4486), items
+        // 8,804 -> 9,597 (first 4135 -> 5885), goods 4,054 -> 4,679 (first
+        // 4625), world 3,574 -> 4,394. The first parting moves 3574 -> 3717,
+        // on builds.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                3582, 3586, 12001, 3604, 3675, 3585, 3583, 3585, 3751, 8804, 4054, 3574,
+                4327, 4383, 12001, 4187, 4443, 4368, 4384, 4199, 4488, 9597, 4679, 4394,
             ],
             first: &[
-                ("units", (3582, Some(96578577), 2013759880)),
-                ("builds", (3586, Some(111187840), 3176568745)),
-                ("ammo", (3599, Some(939402172), 609690385)),
-                ("deaths", (3675, Some(2727518681), 4027887385)),
-                ("groups", (3585, Some(1864425716), 2587942655)),
-                ("guys", (3583, Some(176317156), 249587974)),
-                ("leaders", (3585, Some(2961689531), 241617861)),
-                ("cities", (3751, Some(1956137991), 1891060740)),
-                ("items", (4135, Some(308941102), 314708274)),
-                ("goods", (3872, Some(606990886), 361886241)),
-                ("world", (3574, Some(3203944514), 4203960669)),
+                ("units", (4027, Some(4187914694), 1875804615)),
+                ("builds", (3717, Some(4119222040), 1630950939)),
+                ("ammo", (4166, Some(2844747041), 735145102)),
+                ("deaths", (4443, Some(1493940272), 2950874289)),
+                ("groups", (4363, Some(1430150107), 2640665236)),
+                ("guys", (4384, Some(2966912178), 3125639190)),
+                ("leaders", (4199, Some(626313703), 2804271541)),
+                ("cities", (4486, Some(471488175), 2265470475)),
+                ("items", (5885, Some(3509651581), 3503884409)),
+                ("goods", (4625, Some(2004087359), 1940648509)),
+                ("world", (4394, Some(593842110), 2211663771)),
             ],
             over: None,
         }),

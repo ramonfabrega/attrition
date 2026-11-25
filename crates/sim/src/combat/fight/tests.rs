@@ -7273,6 +7273,62 @@ fn a_fire_raft_dies_with_its_shot() {
     assert!(!sim.units[r].alive(), "the raft dies with its shot");
 }
 
+/// **A fire raft that sinks in its own work repaints its disc on its
+/// sixty-fourth frame** (item 4689, `docs/RECGAME.md` §14.4):
+/// `Unit::process@00610bc0` runs `Guy::process` over the guy array after
+/// the `+0x188` think with no test between, and `Objects::kill_guy` leaves
+/// the array alone, so the dead raft's standing figure takes
+/// `Guy::process@005e0230`'s repaint after `Unit::close` cleared its disc.
+/// Row 88's 3573 (run1843): who=1's Heavy Fire Raft `1/139` (TI 335)
+/// fires and sinks standing on `(3573 + 139) % 64 == 0`, and theirs holds
+/// its whole 9×9 on 3574. Off the phase the death leaves the disc clear.
+///
+/// Made to fail by sending the dead-in-work arm of `process_unit` back to
+/// the boat off the map alone: the disc is clear on the phase frame too.
+#[test]
+fn a_fire_raft_that_sinks_in_its_own_work_repaints_its_disc_on_its_phase() {
+    for (off, marked) in [(0, true), (1, false)] {
+        let (mut sim, land) = at_war();
+        let sea_type = |sim: &mut Sim, flags: u32| {
+            let mut t = sim.tables.unit_types[land].clone();
+            t.combat.domain = Domain::Sea;
+            t.combat.block_radius = 4 * 48;
+            t.kind.domain = Domain::Sea;
+            t.cols.unit_flags = flags;
+            sim.add_unit_type(t)
+        };
+        let raft = sea_type(&mut sim, crate::ai::ai_load::uflags::SELF_DESTRUCT);
+        let frigate = sea_type(&mut sim, 0);
+        let me = put(&mut sim, 0, raft, Pos::new(0x1000, 0x1000));
+        sim.units[me].guys = vec![anim::Guy::fresh(-1)];
+        let foe = put(&mut sim, 1, frigate, Pos::new(0x1000, 0x1100));
+        sim.units[foe].guys = vec![anim::Guy::fresh(-1)];
+        sim.add_attack_order(
+            me,
+            Obj::Unit(foe),
+            crate::orders::QueuePos::New,
+            false,
+            true,
+        );
+        sim.coll_add(me);
+        let c = crate::movement::collide::ucell(sim.units[me].pos);
+        assert!(sim.movement.coll.get(c.x, c.y), "the raft's disc stands");
+        let o = i64::from(sim.units[me].index);
+        sim.frame = 64 * 100 - o + off;
+        let frame = sim.frame;
+        sim.process_unit(me, frame, &mut Vec::new());
+        assert!(!sim.units[me].alive(), "the raft sank in its own fight");
+        assert!(sim.units[me].on_map, "on the map");
+        for (dx, dy) in [(0, 0), (-4, -4), (4, 4), (4, -4), (-4, 4)] {
+            assert_eq!(
+                sim.movement.coll.get(c.x + dx, c.y + dy),
+                marked,
+                "off {off}: the disc at ({dx}, {dy})"
+            );
+        }
+    }
+}
+
 /// **A ship's round leaves 100 above the water, not the seabed** (item
 /// 4664, `Object::fire_ammo@0064c8b0:166`, `docs/RECGAME.md` §14.4): the
 /// unit arm launches from each figure's own `z` (`+0x14`) plus 100, and a

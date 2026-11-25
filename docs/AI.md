@@ -20050,8 +20050,9 @@ Its first scoring passed the test: the fixture's own disc round the unit's point
 Frame **4246: ours 156 draws, theirs 157, index 147** — ours `Guy::set_anim+0x97a < Unit::do_move+0x11cf`, theirs `< Unit::move_step+0x823`;
 block 4247 opens on the swapped Citizen `1/186` (its collision with `1/80`). Parked 2091.
 
-Not established: whether a dead boat with a death animation (`Unit::close`'s `param_1 != 0`, `Objects::kill_guy`) steps its figure too —
-this crate kills none that way there (the arm's SEAM); and the step on a frame that is also the boat's sixty-fourth (`coll_repaint`
+Not established: ~~whether a dead boat with a death animation (`Unit::close`'s `param_1 != 0`, `Objects::kill_guy`) steps its figure too —
+this crate kills none that way there (the arm's SEAM)~~ (built by item 4689, `docs/RECGAME.md` §14.4: a raft sunk on the map in its own
+`fight` takes `Guy::process`, diff-backed by its repaint on run1843's 3574; its step stands on the reading); and the step on a frame that is also the boat's sixty-fourth (`coll_repaint`
 re-marks the same disc, so no capture separates the two).
 
 ## 209. Great Sahara (All Technologies)'s closing state agrees: Tikal, `City::init`'s record and a byte (2026-10-13, item 2106)
