@@ -961,20 +961,22 @@ fn read_corpus() -> Vec<(String, Vec<Rec>)> {
 // to each leaf the record prints there (supply_mark's none); moving pairs
 // barracks 703 -> 704, combat 983 -> 985, high_buildings 730 -> 739,
 // stable 347 -> 348, territory_high 290 -> 292; no parting added.
+// Items 4641–4648 add 21 pairs per leaf. One further supply-mark pair moves.
+// The two previously named queue partings are still the only partings.
 const PINNED: &[(&str, usize, usize, usize)] = &[
-    ("air_queued", 481_820, 288, 0),
-    ("average_damage_rate", 481_586, 1482, 0),
-    ("average_death_rate", 481_586, 1419, 0),
-    ("average_hit_rate", 481_586, 1286, 0),
-    ("average_kill_rate", 481_586, 1527, 0),
-    ("barracks_queued", 481_820, 704, 1),
-    ("combat_queued", 481_820, 985, 1),
-    ("dock_queued", 481_820, 136, 0),
-    ("factory_queued", 481_820, 188, 0),
-    ("high_buildings", 481_618, 739, 0),
-    ("stable_queued", 481_820, 348, 0),
-    ("supply_mark", 480_080, 82, 0),
-    ("territory_high", 481_822, 292, 0),
+    ("air_queued", 481_841, 288, 0),
+    ("average_damage_rate", 481_607, 1482, 0),
+    ("average_death_rate", 481_607, 1419, 0),
+    ("average_hit_rate", 481_607, 1286, 0),
+    ("average_kill_rate", 481_607, 1527, 0),
+    ("barracks_queued", 481_841, 704, 1),
+    ("combat_queued", 481_841, 985, 1),
+    ("dock_queued", 481_841, 136, 0),
+    ("factory_queued", 481_841, 188, 0),
+    ("high_buildings", 481_639, 739, 0),
+    ("stable_queued", 481_841, 348, 0),
+    ("supply_mark", 480_101, 83, 0),
+    ("territory_high", 481_843, 292, 0),
 ];
 
 /// The leaves released on transfer: each transfers on every pair (no

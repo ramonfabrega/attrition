@@ -1179,6 +1179,31 @@ pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[
          stepped on it for the Redoubt 1/2025's round at 2/0, get_damage's rocky step \
          taking 18 to 11; no word walks it",
     ),
+    (
+        "run1822",
+        7611,
+        "2017 sample, Merchant birth and the visibility predicate (item 4641)",
+    ),
+    (
+        "run1823",
+        7934,
+        "2017 sample, group 2 before its muster (item 4642)",
+    ),
+    (
+        "run1824",
+        8522,
+        "2017 sample before its recorded group spell (item 4643); the sample walk compares the accompanying field ranges",
+    ),
+    (
+        "run1826",
+        9601,
+        "2017 sample, factory rally and hot-key slot 55 (item 4646)",
+    ),
+    (
+        "run1827",
+        10206,
+        "2017 sample, Senator and city predicate controls (item 4647); the sample walk compares the accompanying field ranges",
+    ),
 ];
 
 /// **The takes' packets** (item 4159, step VII-b2): held by a take's walk
@@ -1217,7 +1242,8 @@ pub(super) const TAKES_HELD: &[(&str, i64, &str, i64)] = &[
 // Item 4612: run1814's and run1814b's at 3294 named, not held, (126, …, 16).
 // Item 4619: run1816's packet at 3955 named, not held, (127, …, 17).
 // Item 4628: run1819's packet at 2375 named, not held, (128, …, 18).
-const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (128, 87, 7, 12, 1, 3, 18);
+// Items 4641–4648: five sample packets named, (133, …, 23).
+const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (133, 87, 7, 12, 1, 3, 23);
 
 /// Every held packet's `(run, logger frame, game, the length its walk is
 /// whole to)`: a word's, a chapter's and the minted one.
