@@ -355,8 +355,8 @@ fn a_cloaked_ai_spy_bribes_the_nearest_undamaged_enemy_soldier_within_five_range
     let (mut s, _) = ai_scout();
     s.ai.lobby.difficulty = 5;
     let mut tree = TechTree::new();
-    while tree.types.len() <= SPY as usize {
-        let name = if tree.types.len() == SPY as usize {
+    while tree.types.len() <= SPY {
+        let name = if tree.types.len() == SPY {
             "Spy"
         } else {
             "filler"
