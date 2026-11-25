@@ -1494,7 +1494,14 @@ pub fn load_tables(
             exempt_kind: attrition::kind_exempt(&KindFacts {
                 worker,
                 merchant,
-                hero: hero(i),
+                // **`UnitData::is_hero@0046ce60`, vslot `0xc4`**: the type's
+                // `unit_flags2 & 0x20`, which `UnitType::init_final_flags`
+                // sets for `is(GENERAL)` alone — not the `OBJ_MASK` hero bit
+                // [`UnitTraits::hero`] reads. A General has no base attack,
+                // so it fell to the zero-attack exemption and bled nothing
+                // (item 4679: row 133's General `1/119` on 3561, theirs'
+                // `attrition` 48, ours 0; `docs/ATTRITION.md`, check 8).
+                hero: cols[i].flag2(ai_load::uflags2::FLAG2_GENERAL),
                 supply: is_supply,
                 attack: c.attack,
                 special: scout(i),
@@ -3390,6 +3397,24 @@ mod tests {
             (32, 58, 85)
         );
         assert_eq!((hit(sl, sc, front), hit(sl, wag, rear)), (53, 53));
+    }
+
+    /// **The attrition block's hero is the General** (item 4679,
+    /// `docs/ATTRITION.md` check 8): `Unit::process_attrition@005e11a0`
+    /// asks vslot `0xc4`, `UnitData::is_hero`, the type's `unit_flags2 &
+    /// 0x20`, which `UnitType::init_final_flags` sets for `is(GENERAL)`.
+    /// The General has no base attack, so read as an ordinary type it would
+    /// fall to the zero-attack exemption; as a hero it skips the inner tests
+    /// and bleeds.
+    #[test]
+    fn the_general_is_the_attrition_block_s_hero_and_is_not_exempt() {
+        let Some(i) = install() else { return };
+        let l = load(&i).unwrap();
+        let g = sim::ids::ty::GENERAL - 0x32;
+        assert_eq!(l.unit_names[g], "General");
+        let t = &l.unit_types[g];
+        assert_eq!(t.combat.attack, 0, "the General has no base attack");
+        assert!(!t.kind.exempt_kind, "the General bleeds as a hero");
     }
 
     #[test]

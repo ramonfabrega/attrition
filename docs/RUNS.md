@@ -42381,3 +42381,29 @@ Lanes 1 to 3 read `free` at launch; no minutes waited on another lane.
 
 **What it holds**: the Aztec slayer's mark (`take_damage@00652020`, `0x6529da`), read by
 `rondata::diff::held_out::tests::row_148_s_aztec_slayer_marks_its_victim_on_run1836_s_ranges`.
+
+## run1840 — parity held out, seventh battery, row 88's file to 3,118 with the checksum and ranges hooks, every line but walls kept (2026-11-25, item 4680, `att-4680`)
+
+`docs/RECGAME.md` §14.4. **What the disk could not answer**: row 88 parts on 3112 on units, past run1839's ranges (to
+3100). The take is run1839's line to 3,118 with `--log-window 3106 3113` and the same mask, `0xffb`, which is what
+`score_recording` on run1808's sums names (every line but walls parts):
+`TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1840
+--recording ~/ron-golden/recordings/item4600-row088-12000.rcx --end-frame 3118 --allow-early-end --cover cover=1
+--log-window 3106 3113 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def
+RON_RANGES --tracer-def RNG_MASK=0xffbu`, waited on with `waitrun.sh` in the background. The lane was free at launch
+(`ron_lane_state`); `df -g ~` read 79 GB free before it and 90 after filing.
+- **The run**: pool lane 1, launched 14:04:22 −05:00, exited 14:08:39: **257.2 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 3,119 frames, `last_frame` 3118, not ended early, seed 12345, map 18. The recording's
+  SHA-256 is run1808's (`02dced92…`). Players: tribe 4 (who 0, flags 7), tribe 17 (who 1), tribe 11 (who 2).
+- **The record**: `~/ron-golden/run1840/map-18/rontrace.ranges`, 2,996,720,712 bytes, SHA-256
+  `bb71a052dd8d1bedc160628e391d61defe6d57844231b2188ff21072d0c2844e`, split in three by `filerun.py` and compressed
+  in place (2.79 GiB on disk before, 0.26 after). `gamelog_p.txt`, 2,879 bytes, SHA-256
+  `664fde0a2845c7270e68550d0b3ab48f15e39100e9d526bce5d73cb624bb6d01`; `rontrace.log`, 105,599,424 bytes, SHA-256
+  `97222eab6115942ca275ee3b13d7067b96ea2d7a3802691f7742663372957c22`.
+- Filed with `filerun.py run1840 heldout7-row088-units3112-ranges`.
+
+**What it named**: units ranges 3089 and 3107 on 3112, who=1's Elite Javelineers `1/72` and `1/73` (TI 84), which
+board `1/112` that tick with a round each in the air: `hold_frames` ours 1, theirs 0 (2 and 0 on 3113).
+`Ammo::inc_time@0067d380` tests the shooter's slot `flags & 1` alone (`67d3c4`); ours asked `is_on_map` too
+(`docs/COMBAT.md` §42.3). After the fix nothing parts to 3118. Read by item 4680's range printer (a probe, reverted);
+no test reads the ranges.

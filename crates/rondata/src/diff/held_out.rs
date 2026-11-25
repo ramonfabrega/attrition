@@ -2163,6 +2163,74 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 133's General bleeds on hostile ground** (item 4679,
+    /// `docs/ATTRITION.md` check 8): run1797's ranges, the row's units
+    /// parting on 3562 at units range 3218, record 119 — who=1's General
+    /// `1/119` (TI 54, land), whose phase `3561 + 119` is a refresh. The
+    /// draw stream agrees on 3561, 28 draws a side; theirs' General takes
+    /// `attrition` 48 and `unit_masks | 0x80` (0x40008 → 0x40088), ours
+    /// nothing: `process_attrition`'s kind block asks `is_hero`, the
+    /// type's `unit_flags2 & 0x20` (`is(GENERAL)`), which skips the
+    /// zero-attack exemption a General would otherwise take. Every units
+    /// range on 3562 and 3563, byte for byte.
+    #[test]
+    fn row_133_s_general_bleeds_on_hostile_ground_on_run1797() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 3561 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let general = built.sim.unit_by_o(1, 119).expect("1/119");
+        assert_eq!(
+            built.sim.units[general].type_index, 54,
+            "1/119 is the General"
+        );
+        assert_eq!(built.sim.units[general].attrition, 0, "1/119 entering 3561");
+        for state in [3562, 3563] {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            assert_eq!(built.sim.frame, state);
+            assert_eq!(
+                built.sim.units[general].attrition, 48,
+                "1/119's period on {state}"
+            );
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[0].as_ref().expect("the units line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+    }
+
     /// **Row 133's dead farm rolls under its number's next building** (item
     /// 4669, `docs/SYNC.md` §3.3): run1797's ranges and trace, the row's
     /// units and guys parting on 2677 (units range 4225, record 18, guy
@@ -12961,13 +13029,19 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 6,017 -> 4,349 (first 5741 -> 4349, past the new first parting),
         // goods 4,518 -> 5,233, world 3,479 -> 3,620 (first 3479 -> 3620),
         // ours' end 5971 -> none; the first parting is units on 3562.
+        // Then item 4679 (`Unit::process_attrition`'s kind block asks
+        // `is_hero`, `unit_flags2 & 0x20`, `is(GENERAL)`: who=1's General
+        // `1/119`, TI 54, bleeds on 3561's refresh; units range 3218,
+        // record 119, `attrition` ours 0, theirs 48, `unit_masks` ours
+        // 0x40008, theirs 0x40088 on 3562, both agree now): units 3,562 ->
+        // 3,617 (first 3562 -> 3613); the first parting is units on 3613.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                3562, 3638, 6085, 3635, 3638, 3631, 3620, 3628, 3619, 4349, 5233, 3620,
+                3617, 3638, 6085, 3635, 3638, 3631, 3620, 3628, 3619, 4349, 5233, 3620,
             ],
             first: &[
-                ("units", (3562, Some(2727018761), 1006567865)),
+                ("units", (3613, Some(137067954), 928218438)),
                 ("builds", (3633, Some(1817557812), 568507539)),
                 ("ammo", (3623, Some(3273187188), 1994117052)),
                 ("deaths", (3638, Some(750708600), 755033978)),
@@ -13595,13 +13669,20 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // goods 3,562 -> 4,002, world 3,149 -> 3,443; items 8,719 -> 8,480
         // (first 4053 -> 4135). The first parting moves 3095 -> 3112, on
         // units, which stood.
+        // Moved by item 4680 (run1840's ranges): `Ammo::inc_time@0067d380`'s
+        // first statement bumps a shooter's `hold_frames` on its slot's
+        // `flags & 1` alone (`67d3c4`), never `is_on_map`. On 3112 who=1's
+        // Elite Javelineers `1/72` and `1/73` (TI 84) board `1/112` with
+        // rounds in the air; units ranges 3089 and 3107, `hold_frames` ours
+        // 1 -> 0, as theirs. Units 3,112 -> 3,442. The first parting moves
+        // 3112 -> 3441, on ammo, which stood.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                3112, 3513, 12001, 3462, 3475, 3490, 3442, 3446, 3576, 8480, 4002, 3443,
+                3442, 3513, 12001, 3462, 3475, 3490, 3442, 3446, 3576, 8480, 4002, 3443,
             ],
             first: &[
-                ("units", (3112, Some(2802773391), 493219213)),
+                ("units", (3442, Some(2298525788), 1001115229)),
                 ("builds", (3487, Some(3993328074), 3816708623)),
                 ("ammo", (3441, Some(98448818), 3176415250)),
                 ("deaths", (3475, Some(3483578464), 3736809576)),
