@@ -740,12 +740,8 @@ impl Sim {
             left: None,
             ..p
         };
-        let ht = self.hit_target(&p);
-        if !ht {
+        if !self.hit_target(&p) {
             target = self.check_hit(&p);
-        }
-        if std::env::var_os("RON_PROBE_4668_LAND").is_some() {
-            eprintln!("L4668 f{frame} slot {} shooter {:?} tgt {:?} land ({}, {}) hit_target {ht} -> {:?} splash {}", p.slot, p.shooter, p.target, p.landing.x, p.landing.y, target, p.splash_area);
         }
         if p.splash_area == 0 {
             let Some(t) = target else {

@@ -278,9 +278,6 @@ impl Sim {
         };
         // The city alarm, before the take (`0064a9f8`..`0064b2c4`).
         let alarm = self.city_alarm(attacker, target, ap.siege, dealt.whole, frame);
-        if std::env::var_os("RON_PROBE_4668_LAND").is_some() {
-            eprintln!("D4668 f{frame} {attacker:?} -> {target:?} count {count} splash {splash} dmg {dmg} dealt {dealt:?}");
-        }
         // Step 7: take.
         let taken = self.take_damage_typed(
             target,
