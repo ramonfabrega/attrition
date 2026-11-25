@@ -260,21 +260,6 @@ impl Sim {
                 shot_is_four,
             )
         };
-        if std::env::var("RON_PROBE_4659").is_ok() && (2450..=2457).contains(&frame) {
-            if let Obj::Unit(v) = target {
-                let vu = &self.units[v];
-                eprintln!(
-                    "PROBE4659 f{frame} tgt {}/{} ty {:?} health {:?} by {:?} who {} masks {:#x} ammo {ammo} flame {flame} dtype {dtype} angle {:?} dealt {:?} splash {splash}",
-                    vu.owner, vu.index, vu.ty, vu.health, attacker, self.owner_of(attacker), ap.obj_masks, angle, dealt.whole
-                );
-                if let Obj::Building(b) = attacker {
-                    eprintln!("PROBE4659   attacker building {}/{} ty {:?}", self.buildings[b].owner, self.buildings[b].index, self.buildings[b].ty);
-                }
-                if let Obj::Unit(a) = attacker {
-                    eprintln!("PROBE4659   attacker unit {}/{} ty {:?}", self.units[a].owner, self.units[a].index, self.units[a].ty);
-                }
-            }
-        }
         // `local_70` (`do_damage@0064a480`, `0064a8ac`): the struck city
         // building was still below its ceiling when the hit began.
         let fresh = matches!(target, Obj::Building(b)
