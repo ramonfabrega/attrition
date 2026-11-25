@@ -95,6 +95,12 @@ impl Sim {
     /// nothing. The `city_flags & 0x1000` arm beside it (a cell within four
     /// cells of the city) is not modelled: no capture reads it.
     fn mark_bordering(&mut self, who: Owner, who2: Owner, won: i32, cell: crate::world::Cell) {
+        if std::env::var_os("RON_PROBE_4686").is_some() && won == 12 {
+            eprintln!(
+                "probe4686 frame {} enter won {won} who {who:?} who2 {who2:?} cell ({}, {})",
+                self.frame, cell.x, cell.y
+            );
+        }
         let (Some(p), Some(q)) = (who.player(), who2.player()) else {
             return;
         };

@@ -2254,9 +2254,17 @@ pub(crate) mod tests {
         let loaded = crate::load::load(&inst).expect("the install loads");
         let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
         let mut stream = crate::input::Stream::pump(&rec);
-        while built.sim.frame < 3622 {
+        while built.sim.frame < 3640 {
             stream.apply(built.sim.frame as i32, &mut built);
             built.sim.command().tick();
+            if built.sim.frame >= 3590 {
+                eprintln!(
+                    "probe4686 state {} cities {} pass {:?}",
+                    built.sim.frame,
+                    built.sim.cities.cities.len(),
+                    built.sim.territory.border_pass.as_ref().map(|p| p.index.clone())
+                );
+            }
             if built.sim.frame >= 3560 && built.sim.cities.cities.len() > 12 {
                 let c = &built.sim.cities.cities[12];
                 let ai = built.sim.ai.ai.get(c.owner as usize).and_then(|a| a.city_ai.get(12));
