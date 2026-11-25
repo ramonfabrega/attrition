@@ -3228,6 +3228,106 @@ mod tests {
         assert!(lengths.contains_key(&12682), "and its crew's");
     }
 
+    /// **The bays' lister** (item 4651, `docs/COMBAT.md` §55): every
+    /// `<RELEASEEVENT>` key of every piece in a held piece's family — the
+    /// pieces of the type of a piece `launch::BAYS` or `GUNS` holds, in any
+    /// art set, age, gender or crew, and the pieces of another type that
+    /// plays the same `GRAPH` — resolves where `Sim::guy_release_events`
+    /// resolves it: `pivot::release_node`, else `launch::bay`, else
+    /// `launch::node`. A key whose animation the piece has no slot for
+    /// (`piece_lengths`) never plays and is left out: the `-PACKED` pieces'
+    /// one `CHAR_ATTACK1` event and the bowmen's `CHAR_GROUP_IDLE1` arrow.
+    ///
+    /// Red before item 4651's rows: 683 keys, 676 on the bay arm (528 of a
+    /// held type, 148 of a held `GRAPH`) and 7 on the pivot arm. Keys outside
+    /// every held family are printed as a census, not asserted.
+    #[test]
+    fn every_release_of_a_bay_piece_s_family_has_its_row() {
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install");
+            return;
+        };
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let units = inst.units().expect("unitrules.xml");
+        let graphs: Vec<String> = units
+            .records
+            .iter()
+            .map(|r| {
+                r.text("GRAPH")
+                    .unwrap_or_default()
+                    .trim()
+                    .to_ascii_uppercase()
+            })
+            .collect();
+        let unit = |p: i32| (0..TOTAL_UNIT_PIECES - 6).contains(&p);
+        let held: Vec<i32> = sim::data::launch::bay_pieces()
+            .into_iter()
+            .filter(|&p| unit(p))
+            .collect();
+        let types: BTreeSet<i32> = held.iter().map(|p| p % NUM_PIECES).collect();
+        let family: BTreeSet<&str> = types.iter().map(|&b| graphs[b as usize].as_str()).collect();
+        let (mut missing, mut census) = (Vec::new(), BTreeMap::<&str, usize>::new());
+        for (&piece, slots) in &loaded.piece_releases {
+            if !unit(piece) {
+                continue;
+            }
+            let b = piece % NUM_PIECES;
+            let ours = types.contains(&b) || family.contains(graphs[b as usize].as_str());
+            let plays = |anim: i8| {
+                loaded
+                    .piece_lengths
+                    .get(&piece)
+                    .is_some_and(|l| l.contains_key(&anim))
+            };
+            let pivots = loaded
+                .pivot_restrictions
+                .get(&(b + 0x32))
+                .map_or(0, |m| m.len() as i32);
+            for (&anim, rows) in slots {
+                for &(t, node, ..) in rows {
+                    let resolved = sim::data::pivot::release_node(piece, anim, t, node).is_some()
+                        || sim::data::launch::bay(piece, anim, t, node).is_some()
+                        || sim::data::launch::node(piece, anim, t).is_some();
+                    if resolved {
+                        continue;
+                    }
+                    let arm = if !plays(anim) {
+                        "slotless"
+                    } else if (i32::from(node) & 3) < pivots {
+                        "pivot"
+                    } else {
+                        "bay"
+                    };
+                    if ours && arm != "slotless" {
+                        missing.push(format!(
+                            "{piece} ({}) {arm} {anim}/{t}/{node}",
+                            graphs[b as usize]
+                        ));
+                    } else {
+                        *census
+                            .entry(match (ours, arm) {
+                                (true, _) => "family slotless",
+                                (false, "bay") => "outside bay",
+                                (false, "pivot") => "outside pivot",
+                                _ => "outside slotless",
+                            })
+                            .or_default() += 1;
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "the bays' lister: {} held pieces, census {census:?}",
+            held.len()
+        );
+        assert!(
+            missing.is_empty(),
+            "{} keys of a held piece's family have no row: {:?}",
+            missing.len(),
+            &missing[..missing.len().min(30)]
+        );
+    }
+
     /// The install's own [`crate::load::Loaded::gender_packed`].
     fn gender_packed(inst: &Install) -> BTreeSet<i32> {
         crate::load::load(inst)
