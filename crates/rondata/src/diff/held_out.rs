@@ -5008,6 +5008,95 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 88's fire raft sunk in its own work repaints its disc** (item
+    /// 4689, `docs/RECGAME.md` §14.4): run1843, row 88's ranges to 3590.
+    /// who=1's Heavy Fire Raft `1/139` (TI 335, sea), standing since 3562,
+    /// fires and sinks in its own `fight` on 3573's tick; 3573 + 139 is a
+    /// multiple of 64, so `Guy::process`'s repaint re-marks the 9×9 disc
+    /// `Unit::close` cleared: world `block.body` records 1227, 1228, 1287
+    /// and 1288 hold unit cells (446..454, 330..338) on 3574. Every world
+    /// range on states 3573 to 3575, byte for byte.
+    #[test]
+    fn row_88_s_fire_raft_sunk_in_its_own_work_repaints_its_disc_on_run1843_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SEVENTH, 4) else {
+            eprintln!("skipping: row 88's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1843/map-18");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1843's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 88's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3573i64..=3575 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let raft = built
+                .sim
+                .units
+                .iter()
+                .rposition(|u| u.owner == 1 && u.index == 139)
+                .expect("who=1's slot");
+            let ty = built.sim.units[raft].ty.expect("a type");
+            assert_eq!(
+                built.sim.tables.unit_types[ty].type_index, 335,
+                "the raft's TI"
+            );
+            assert_eq!(loaded.unit_names[ty], "Heavy Fire Raft");
+            assert_eq!(
+                built.sim.units[raft].kind.domain,
+                sim::territory::attrition::Domain::Sea
+            );
+            assert_eq!(
+                built.sim.units[raft].alive(),
+                state == 3573,
+                "1/139 on {state}"
+            );
+            let ours = built.sim.checksum_world();
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 11).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "world's ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "world range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            if state == 3574 {
+                let n = sim::movement::collide::UCELLS_PER_CELL;
+                for x in 446..=454 {
+                    for y in 330..=338 {
+                        let (cx, cy) = (x / n, y / n);
+                        let rec = i16::try_from(cy * 60 + cx).expect("a record");
+                        let body = ours
+                            .ranges
+                            .iter()
+                            .find(|r| r.field == "block.body" && r.record == rec)
+                            .expect("the cell's block");
+                        let i = (x % n) * n + (y % n);
+                        assert_eq!(
+                            body.bytes[(i / 8) as usize] >> (i % 8) & 1,
+                            1,
+                            "unit cell ({x}, {y}) marked on 3574"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     /// **Row 43's Slinger stones leave from piece 736's sockets** (item
     /// 4547, `docs/RECGAME.md` §12.3): run1787, the ranges take of row 43's
     /// file. who=2's Slingers `2/30` and `2/29` (TI 82, land, piece 736,
