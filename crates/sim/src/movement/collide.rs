@@ -644,7 +644,7 @@ impl CollGrid {
     }
 
     /// The map's width in world cells.
-    pub const fn cells_wide(&self) -> i32 {
+    const fn cells_wide(&self) -> i32 {
         self.w / UCELLS_PER_CELL
     }
 
