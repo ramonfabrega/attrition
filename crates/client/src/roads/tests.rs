@@ -32,17 +32,24 @@ struct Packet {
     elements: Vec<Element>,
     records: BTreeMap<(i32, i32), Record>,
     pieces: Vec<([f32; 4], [[f32; 2]; 4])>,
+    /// Item 4653: each piece's tile-page texcoords (`tex1`) at the same
+    /// corners, where its pass holds them.
+    pages: Vec<Option<[[f32; 2]; 4]>>,
 }
 
 /// `tools/render/road_records.py` on a packet, the file at `$RON_ROADS_<RUN>`
 /// or the item's lab directory. Nothing it holds enters the repository.
 fn packet(run: &str) -> Option<Packet> {
     let var = format!("RON_ROADS_{}", run.to_uppercase());
+    // Item 4653: run1814b's dump, with the tile page's texcoords.
+    let item = if run == "1814b" {
+        "2026-11-25-item-4653"
+    } else {
+        "2026-11-13-item-4199"
+    };
     let path = std::env::var_os(&var).map(PathBuf::from).or_else(|| {
         std::env::var_os("HOME").map(|h| {
-            PathBuf::from(h).join(format!(
-                "ron-data/lab-experiments/2026-11-13-item-4199/roads-{run}.txt"
-            ))
+            PathBuf::from(h).join(format!("ron-data/lab-experiments/{item}/roads-{run}.txt"))
         })
     })?;
     let Ok(text) = std::fs::read_to_string(&path) else {
@@ -53,6 +60,7 @@ fn packet(run: &str) -> Option<Packet> {
         elements: Vec::new(),
         records: BTreeMap::new(),
         pieces: Vec::new(),
+        pages: Vec::new(),
     };
     for line in text.lines() {
         let f: Vec<&str> = line.split_whitespace().collect();
@@ -101,6 +109,9 @@ fn packet(run: &str) -> Option<Packet> {
                     [num(2), num(3), num(4), num(5)],
                     std::array::from_fn(|k| pair(f[u + k])),
                 ));
+                let g = f.iter().position(|x| *x == "page").map(|i| i + 1);
+                p.pages
+                    .push(g.map(|g| std::array::from_fn(|k| pair(f[g + k]))));
             }
             _ => {}
         }
@@ -223,11 +234,18 @@ fn the_records_against_the_packet_s() {
     };
     let scene = p.world.runner.roads();
     let ours = candidates(&scene);
-    let laid: BTreeMap<(i32, i32), Laid> = p
-        .world
-        .road_pieces()
+    // Item 4653: the plates are laid beside bucket 2; this row counts the
+    // modern pieces it was written on.
+    let all = p.world.road_pieces();
+    let plates = all
+        .iter()
+        .filter(|(b, _)| *b == crate::world::PLATE_BUCKET)
+        .count();
+    println!("plates laid on run1559b: {plates}");
+    let laid: BTreeMap<(i32, i32), Laid> = all
         .into_iter()
-        .map(|l| (l.tile, l))
+        .filter(|(b, _)| *b == crate::world::ROAD_BUCKET)
+        .map(|(_, l)| (l.tile, l))
         .collect();
     let mut n = [0usize; 6];
     for (&t, r) in pk.records.iter().filter(|(_, r)| r.refs != 0) {
@@ -469,4 +487,240 @@ fn draw_91_s_state() {
     assert!(!r.has("ENABLE_LIGHTING") && !r.has("ENABLE_VERTEX_COLOR_DIFFUSE"));
     // The packet's buffer: 450 vertices.
     assert_eq!(r.args[1], 450);
+}
+
+/// **The plates' box on run1814b** (item 4653, `docs/RENDERER.md` §6.1):
+/// the tiles, inclusive, that `tools/render/road_records.py` finds ringing
+/// slot 0's city on the packet, x 7 to 19 and y 151 to 163. It holds 61
+/// records, 54 with a reference, and the packet's helper 0 (page 0, age
+/// bucket 0) draws 54 pieces. The seven without one are `refs 0/0` at
+/// rotation 10, which `build_render_data` skips; our door holds the 54.
+const RUN1814B_PLATE_BOX: [i32; 4] = [7, 151, 19, 163];
+
+/// **`RUN1814B_3294_PLATES`** (item 4653; §6.1): `[before, drawn,
+/// theirs]`, each `[(agree, scored)]` on hue then luma, over each road
+/// record of our door inside [`RUN1814B_PLATE_BOX`] with at least
+/// `HUE.min_pixels` ground or object-window pixels, as the ring's row takes
+/// them. Before is the roads as item 4199 left them, bucket 2 alone, which
+/// lays nothing in the Ancient Age: the mint, hue **12** and luma 43 of 46,
+/// and the made-to-fail. Drawn, hue **37**; theirs, the packet's own element
+/// and orientation on every tile (the by-half), **43** and luma 42. Tile
+/// (19, 159), 915 pixels: theirs (235, 182, 65) Y 184.7, before (177, 178,
+/// 74), drawn (217, 185, 69) Y 181.7. On the way: the file's alpha as it
+/// stands, on the frame, 29 (theirs 27); blended on the HDR target, 32
+/// (30); its complement, 37 (43).
+const RUN1814B_3294_PLATES: [[(usize, usize); 2]; 3] = [
+    [(12, 46), (43, 46)],
+    [(37, 46), (43, 46)],
+    [(43, 46), (42, 46)],
+];
+
+/// **The plates' row** (item 4653, §6.1): our door holds the packet's 54
+/// records with a reference in the box, and no other; the photograph's
+/// pixels on them against the still, before and drawn.
+#[test]
+fn the_plates_on_run1814b() {
+    use crate::weathering::tests::{count, plaza_tiles, still};
+    let Some(mut p) = crate::farms::tests::probe() else {
+        return;
+    };
+    let [x0, y0, x1, y1] = RUN1814B_PLATE_BOX;
+    let inside = |x: i32, y: i32| (x0..=x1).contains(&x) && (y0..=y1).contains(&y);
+    let scene = p.world.runner.roads();
+    let tiles: BTreeSet<(i32, i32)> = scene
+        .roads
+        .iter()
+        .filter(|r| inside(r.x, r.y))
+        .map(|r| (r.x, r.y))
+        .collect();
+    let referenced = scene
+        .roads
+        .iter()
+        .filter(|r| inside(r.x, r.y) && r.refs != 0)
+        .count();
+    assert_eq!(
+        (tiles.len(), referenced),
+        (54, 54),
+        "the packet's records with a reference in the box"
+    );
+    let (_, any, why) = crate::ground::tests::ground_why(&mut p);
+    let pixels: Vec<Option<(i32, i32)>> = any
+        .into_iter()
+        .zip(why)
+        .map(|(t, w)| t.filter(|t| tiles.contains(t) && (w == 0 || w == 2)))
+        .collect();
+    // The by-half: the packet's own element and orientation on each tile.
+    let picks = packet("1814b").map(|pk| {
+        pk.records
+            .iter()
+            .filter(|(_, r)| r.refs != 0 && r.rot <= 7 && r.elem >= 0)
+            .map(|(&t, r)| (t, (r.elem as usize, r.rot)))
+            .collect::<BTreeMap<_, _>>()
+    });
+    let mut rows = [[(0, 0); 2]; 3];
+    for (k, (early, pick, what)) in [
+        (false, false, "before"),
+        (true, false, "drawn"),
+        (true, true, "theirs"),
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        if pick && picks.is_none() {
+            continue;
+        }
+        p.world.roads = true;
+        p.world.early_roads = early;
+        p.world.road_pick = if pick { picks.clone() } else { None };
+        p.world.relay_roads();
+        let s = still(&mut p, &format!("run1814b-3294-plates-{what}"));
+        rows[k] = count(
+            &format!("RUN1814B_3294_PLATES {what}"),
+            &plaza_tiles(&p, &pixels, &s),
+        );
+    }
+    p.world.early_roads = true;
+    p.world.road_pick = None;
+    assert_eq!(rows, RUN1814B_3294_PLATES);
+}
+
+/// **`RUN1814B_PLATE_QUADS`** (item 4653, §6.1): on run1814b's packet,
+/// `[the packet's pieces, their tile-page corners at the box over
+/// PLATE_PAGE_TILES, the records laid by lay from their own element and
+/// orientation that are a drawn piece, those records]`.
+/// 54 pieces, 54 pages, 53 of 54 records: the one apart is (12, 156),
+/// element 1 at orientation 5, a piece the buffer holds no box of.
+const RUN1814B_PLATE_QUADS: [usize; 4] = [54, 54, 53, 54];
+
+/// **The plates' quads are the packet's** (item 4653, §6.1): helper 0's
+/// pieces, page 0's age bucket 0, are [`lay`]'s boxes and texcoords from
+/// each record's element and orientation, and the tile page's texcoord at
+/// every corner is the corner's tile over [`crate::world::PLATE_PAGE_TILES`]
+/// — the tile's, never the piece's. Made to fail: the page's texcoord at
+/// a third of the tile, or at the piece's own.
+#[test]
+fn the_plates_quads_are_the_packet_s() {
+    let (Some(art), Some(pk)) = (art(), packet("1814b")) else {
+        return;
+    };
+    let per = crate::world::PLATE_PAGE_TILES;
+    let page_of = |b: &[f32; 4], k: f32| {
+        [(b[0], b[1]), (b[2], b[1]), (b[0], b[3]), (b[2], b[3])].map(|(x, y)| [x / k, y / k])
+    };
+    let pages = pk
+        .pieces
+        .iter()
+        .zip(&pk.pages)
+        .filter(|((b, _), g)| **g == Some(page_of(b, per)))
+        .count();
+    let thirds = pk
+        .pieces
+        .iter()
+        .zip(&pk.pages)
+        .filter(|((b, _), g)| **g == Some(page_of(b, 3.0)))
+        .count();
+    let own = pk
+        .pieces
+        .iter()
+        .zip(&pk.pages)
+        .filter(|((_, uv), g)| **g == Some(*uv))
+        .count();
+    assert_eq!((thirds, own), (0, 0), "the made-to-fail: no other page");
+    let drawn: BTreeSet<String> = pk.pieces.iter().map(|q| format!("{q:?}")).collect();
+    let (mut hit, mut tried) = (0, 0);
+    for (&tile, r) in &pk.records {
+        let Some(piece) = usize::try_from(r.elem).ok().and_then(|e| art.pieces.get(e)) else {
+            continue;
+        };
+        if r.refs == 0 || r.rot > 7 {
+            continue;
+        }
+        // Only the records in view have a piece in the buffer.
+        let near = pk.pieces.iter().any(|(b, _)| {
+            (b[0]..b[2]).contains(&(tile.0 as f32 + 0.5))
+                && (b[1]..b[3]).contains(&(tile.1 as f32 + 0.5))
+        });
+        if !near {
+            continue;
+        }
+        tried += 1;
+        let l = lay(piece, r.elem as usize, tile, r.rot);
+        if drawn.contains(&format!("{:?}", (l.rect, l.uv))) {
+            hit += 1;
+        } else {
+            println!(
+                "plate quad {tile:?} elem {} rot {}: ours {:?}",
+                r.elem,
+                r.rot,
+                (l.rect, l.uv)
+            );
+        }
+    }
+    let row = [pk.pieces.len(), pages, hit, tried];
+    println!("run1814b plate quads: {row:?}");
+    assert_eq!(row, RUN1814B_PLATE_QUADS);
+}
+
+/// **`RUN1814B_PLATE_PIECES`** (item 4653, §6.1): our walk on run1814b
+/// against the packet's records with a reference in
+/// [`RUN1814B_PLATE_BOX`]: `[the packet's, ours laid as plates, ours on
+/// the packet's element and orientation]`.
+/// 54, 50, 29: we lay no plate at element 1's (12, 155), (12, 156),
+/// (15, 155) and (15, 156), where those four go not traced (4653b); the
+/// 21 others part on the orientation or the straight the fractal picks,
+/// as run1559b's do (4199a).
+const RUN1814B_PLATE_PIECES: [usize; 3] = [54, 50, 29];
+
+/// **The plates we lay against the packet's records** (item 4653, §6.1):
+/// on run1814b's lobby at the photograph's frame, every piece our walk
+/// lays in the box is a plate (slot 0 is in the Ancient Age), and each
+/// against the record's own element and orientation.
+#[test]
+fn the_plates_against_the_packet_s() {
+    let Some(pk) = packet("1814b") else {
+        return;
+    };
+    let Some(mut p) = crate::farms::tests::probe() else {
+        return;
+    };
+    let [x0, y0, x1, y1] = RUN1814B_PLATE_BOX;
+    let inside = |t: (i32, i32)| (x0..=x1).contains(&t.0) && (y0..=y1).contains(&t.1);
+    let ours: BTreeMap<(i32, i32), (i32, Laid)> = p
+        .world
+        .road_pieces()
+        .into_iter()
+        .filter(|(_, l)| inside(l.tile))
+        .map(|(b, l)| (l.tile, (b, l)))
+        .collect();
+    let plates = ours
+        .values()
+        .filter(|(b, _)| *b == crate::world::PLATE_BUCKET)
+        .count();
+    let mut theirs = 0;
+    let mut same = 0;
+    for (&t, r) in pk
+        .records
+        .iter()
+        .filter(|(t, r)| inside(**t) && r.refs != 0)
+    {
+        theirs += 1;
+        let Some((_, l)) = ours.get(&t) else {
+            println!(
+                "plate {t:?}: theirs elem {} rot {}, ours none",
+                r.elem, r.rot
+            );
+            continue;
+        };
+        let hit = l.elem as i32 == r.elem && l.rot == r.rot;
+        same += usize::from(hit);
+        if !hit {
+            println!(
+                "plate {t:?}: theirs elem {} rot {} flags {:08x}, ours elem {} rot {} PARTS",
+                r.elem, r.rot, r.flags, l.elem, l.rot
+            );
+        }
+    }
+    let row = [theirs, plates, same];
+    println!("run1814b plates: {row:?}");
+    assert_eq!(row, RUN1814B_PLATE_PIECES);
 }
