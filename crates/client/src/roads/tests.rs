@@ -999,7 +999,7 @@ fn the_plates_candidates_are_the_packet_s() {
     let Some(pk) = packet("1814b") else {
         return;
     };
-    let Some(mut p) = crate::farms::tests::probe() else {
+    let Some(p) = crate::farms::tests::probe() else {
         return;
     };
     let [x0, y0, x1, y1] = RUN1814B_PLATE_BOX;
