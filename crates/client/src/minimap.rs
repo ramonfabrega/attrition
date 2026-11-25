@@ -616,6 +616,7 @@ pub fn background(world: &mut crate::world::World, gpu: &crate::gpu::Gpu) -> Bac
         // `WorldMapBackground::render` draws no fog: the minimap's is
         // `render_fog`'s multiply over it (item 4624).
         fog: None,
+        wheat: None,
     };
     let mut rgba = gpu.still(size, &camera, &frame);
     // The window's surface is BGRA, and the still reads it back as is.

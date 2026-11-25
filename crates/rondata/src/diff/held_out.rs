@@ -2344,6 +2344,83 @@ pub(crate) mod tests {
         check(&built, 4167);
     }
 
+    /// **Row 128's Russians enter the Classical age and the borders are
+    /// fixed** (item 4635, `docs/RECGAME.md` §14.6): run1828's leaders
+    /// ranges to 12000. who=1 (tribe 13, tribe bonus 0xd) gains the age on
+    /// 3336; `Leader::gain_tech@006dcb60:1322` calls
+    /// `Regions::fix_all_borders` for an age under that bonus whether the
+    /// border table moves or not, so on 3338 every leader's `reg_terr[1]`
+    /// recounts from 0 (who=1's 104, the others' 0) and `check_borders`
+    /// zeroes `reg_known_rares`. Ours held 198, 495 and 447. The leaders
+    /// line on states 3336 to 3340, byte for byte.
+    #[test]
+    fn row_128_s_russian_age_fixes_the_borders_on_run1828_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SEVENTH, 6) else {
+            eprintln!("skipping: row 128's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1828/map-14"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1828's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 128's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 3336 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let ages = |b: &crate::diff::setup::Built| b.sim.tech[1].ages;
+        let before = ages(&built);
+        loop {
+            let state = built.sim.frame;
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_leaders();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "leaders' ranges on {state}"
+            );
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "leaders range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            if state == 3338 {
+                // who=1's `reg_terr[1]` by value: byte 5208 of its long range.
+                let k = ours
+                    .ranges
+                    .iter()
+                    .position(|r| r.record == 1 && r.field == "who..ally_mask")
+                    .expect("who=1's long range");
+                let v = u16::from_le_bytes(theirs[k].bytes[5208..5210].try_into().unwrap());
+                assert_eq!(v, 104, "theirs' recount, one frame in");
+            }
+            if state == 3340 {
+                break;
+            }
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        assert_eq!(
+            ages(&built),
+            before + 1,
+            "who=1 enters an age in the window"
+        );
+    }
+
     /// **Row 133's Temple site's close fixes the borders** (item 4607,
     /// `docs/RECGAME.md` §13.5): run1797's ranges. who=1 razes who=2's
     /// unfinished Temple `2/2009` on frame 2295 (state 2296).
@@ -12585,7 +12662,19 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
             first: &[("leaders", (3338, Some(2712824495), 2415749278))],
             over: None,
         },
-        moved: None,
+        // Moved by item 4635 (`Leader::gain_tech`'s border arm: who=1, the
+        // Russians, enters the Classical age on 3336 and theirs' fix
+        // restarts every region's count; on 3338 `reg_terr[1]` ours 198,
+        // 495, 447 against theirs 0, 104, 0): 11 -> 12 lines whole, the row
+        // whole; leaders 8,154 -> 12,001, first 3338 -> whole.
+        moved: Some(Score {
+            states: 12001,
+            agreed: [
+                12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001,
+            ],
+            first: &[],
+            over: None,
+        }),
     }),
     // run1811
     // row 148, as found 2026-11-23 (item 4611, on `6fa43acc3`'s tree): 1 line whole; units 10,879
@@ -12634,9 +12723,10 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
 /// As found: row 68 whole to the original's end 3,948, six taken.
 /// Item 4630 made row 28 whole to the original's end 4,247 (piece 1812's
 /// bays): 1 -> 2. Item 4611 took rows 128 and 148 (run1810, run1811):
-/// six taken -> eight.
+/// six taken -> eight. Item 4635 made row 128 whole to 12,000 (the
+/// Russian age's border fix): 2 -> 3.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SEVENTH_LINE: (usize, usize) = (2, 8);
+pub(crate) const HELD_OUT_SEVENTH_LINE: (usize, usize) = (3, 8);
 
 /// The seventh battery (item 4600): the sixth's recipe, the human ordering
 /// every 600 frames to 11,400.

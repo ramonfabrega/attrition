@@ -5974,7 +5974,9 @@ lines and fog shading, projectiles and corpses, then candidate C.
 ## 6.1 The capital's ground on run1814b: the Farm's plots and the buildings' plates (item 4636)
 
 *2026-11-24, Opus 5.5. The ledger: `docs/journal/2026-11-24-item-4636.md`.
-`client::farms`; checked by `farms::tests::the_farm_on_run1814b`.*
+`client::farms`; checked by `farms::tests::the_farm_on_run1814b`. Built by
+item 4650 (2026-11-25, Opus 5.5; `docs/journal/2026-11-25-item-4650.md`):
+"The plots, drawn" below.*
 
 **What the photograph shows.** On run1814b's frame 3294 (Ancient Age) the
 original lays wheat plots on slot 0's farms, with three Citizens on them,
@@ -6036,16 +6038,70 @@ the plaza's row does (§3.17). Hue **2** and luma **29 of 48**. Tile
 (10, 165), 1,032 pixels: theirs (186, 156, 51) Y 153.4, ours grass
 (185, 188, 74) Y 174.5.
 
-**Diff-backed**: the farms' corners and sizes (ours against the packet's
-blocks). **Read alone**: everything else above. The packet's vertex counts
-and road ages back the reading's arithmetic but not the draws' pixels.
+**The plots, drawn** (item 4650). The door's `FieldScene` carries each
+cell's `adds` and `status` (`sim::cities::farms::Farm`, `col · 4 + row`,
+the draw's own `percent[col][row]`); `client::farms::percent` rebuilds the
+`0.005f` sums and the cut cell's `0.01f` decay. The rest, off the packet
+and the listing:
+- *The template* is `build_box@008d6140`'s (`wheat_box_verts`, `_faces`,
+  `_cols`, `_rows`, `wheat_use_wind`, `wheat_box_texs` at `0xED119C`, the
+  texcoord set by `(col + row) & 1`).
+- *The height* is `FarmsData`'s `wheat_max_height` (`+0x4c`) and
+  `wheat_min_height` (`+0x50`), the `<FARM>`'s 36 and 10 × 3.0
+  (`Farms::init@008d9310`): 108 and 30 on the packet. An empty plot still
+  stands 30 high.
+- *The colour* (`plot_colour`): `start_color` (`farms +0x40`), the
+  `<FARM>`'s stalk (166, 216, 188, 173), its alpha raised by `percent · 4`
+  below a quarter; toward white by `2 · (percent − ¼)`, opaque, to three
+  quarters; white past. `get_global_color` is the identity on the packet.
+- *The wind*: `(tri / 16 − 1) · 25000 · percent` along `Scene::wind_vec`
+  (`+0x2e8`; the packet's (5.43e-5, 6.47e-5) pinned as `WIND_VEC`), `tri`
+  the triangle wave of `(frame + 5 · row + 17 · col + corner_y + corner_x)
+  & 63`, on the template's z = 1 vertices.
+- *The draw*: `TileSetData::wheat_texture` (`+0x98c`, the tileset's
+  `FARMTEX`, untinted) at stage 0, the farms' `RenderState` at `farms +
+  0x70`: enables 0x20087 (the trees'), `MODULATE(TEXTURE, DIFFUSE)` on
+  colour and alpha, stage 1 disabled, `alpha_func` `CMP_ALWAYS`, source
+  alpha over, cull 2. `Scene::render@008b3270` calls it after the objects
+  and the ammo. `client::gpu`'s `wheat` pass: `fs_wheat` through the trees'
+  `TL_FAKE_LIGHT` arithmetic, LessEqual, depth written.
+- *The underlay* goes through `crate::oil::mesh` as classes 0 and 1 of
+  `render_weathering(0, 3)`, after the footprint weathering and before
+  the land oil: `add_weather_underlay(corner, 4, 4, …, 0, 0, 0)`, UV
+  `i / 4` on both stages, alpha 255.
+
+**The diff.** Our boxes at frame **3280**, the frame the packet's stamp
+(218,666) names, against its 480 vertices: **480 of 480 whole**, every
+position's bits, colour and texcoord (`farms::tests::the_wheat_is_the_packet_s`;
+440 at 3279 and at 3281). The mesh is fourteen frames older than the
+dump's records: its four growing or cut plots are fourteen frames behind
+them. The `wheatfarm` underlay against the packet's slot 1 (the farms in
+view): **75 of 75 corners and texcoords**, colour 48 exact and 52 within a
+step (`the_underlay_is_the_packet_s_slot_1`; parked 4650a).
+
+**The row.** `RUN1814B_3294_FARM` **48 of 48 on hue and 48 of 48 on luma**
+(from 2 and 29). Tile (8, 165), 908 pixels: theirs (197, 147, 45) Y 150.6,
+ours (194, 143, 45) Y 147.7. The underlay alone reads 9 and 40, the boxes
+alone 48 and 48; both off is the mint's 2 and 29.
+
+**Diff-backed**: the farms' corners and sizes, the wheat boxes whole
+(positions, colours, texcoords, heights, wind), the underlay's corners and
+texcoords. **Read alone**: the draw state's arithmetic in our pass (the
+packet holds the `RenderState`, not the card's pixels), the plates below.
+The packet's road ages back the reading's arithmetic but not the draws'
+pixels.
 
 **Not established.**
-- The wheat boxes' texture (the tileset's wheat texture, not read), their
-  colour (`get_global_color`, the farm's tint between `farms +0x40` and
-  `+0x48`), the full height (`farms +0x4c`, `+0x50`), and the wind.
-- The door's `FieldScene` carries no `percent` or `status`. The plots'
-  build needs both.
+- The wind's motion over a game (`Scene::wind_vec` is the view's; the
+  packet's is pinned). The sway is about one world unit.
+- The blend runs on the tone-mapped target here, where the original
+  blends in HDR (§3.23); the wheat's own alpha is under 1 only on plots
+  below a quarter.
+- The cull: our pass draws both windings (the original culls mode 2). The
+  box is open, so no face is drawn twice.
+- The low-scalability arm (no wind, `section_render +0xc` clear), and a
+  farm building with no record (`draw_weathering` gives it `wheatfarm`).
+- The underlay's light on 23 corners of the capital's farm ground (4650a).
 - The road state `+0x2f0`'s blend and stage ops, and whether the tile page's
   texcoords are the tile's or the piece's.
 - The trees past sight stay lit (4621a). Not touched here.

@@ -255,6 +255,10 @@ impl Sim {
             .filter(|&(k, _)| held & (1 << k) != 0)
             .map(|(_, &w)| w)
             .collect();
+        let had_t = self
+            .tables
+            .tech_tree
+            .has_tech(&self.tables.setup, &self.tech[who as usize], t);
         let events = self.tables.tech_tree.gain_tech(
             &self.tables.setup,
             &mut self.tech[who as usize],
@@ -262,6 +266,34 @@ impl Sim {
             frame,
         );
         self.pay_arriving_goods(who, &had_preq, &events);
+        // **The border arm** (item 4635, `docs/RECGAME.md` §14.6):
+        // `gain_tech@006dcb60:1305`–`:1322`, past the tech gate, calls
+        // `Regions::fix_all_borders` when the tech is a prerequisite of
+        // bonus 28–30 (the temple's borders) or 37–39 (the fort's), an
+        // epoch of category 1 (Civic; `is_epoch_type`, `TechTypeData +0x14`),
+        // or an age for a leader with tribe bonus 0xd (the Russians;
+        // `is_age_type`). The fix restarts every region's count whether the
+        // table moved or not: run1828's who=1 enters the Classical age on
+        // 3336 and theirs' `reg_terr[1]` recounts from 0 on 3338.
+        if !had_t {
+            let roles = &self.tables.tech_tree.roles;
+            let preq = roles
+                .temple_borders_preq
+                .iter()
+                .chain(&roles.fort_borders_preq)
+                .any(|&p| p == Some(t));
+            let owed = preq
+                || match self.tables.tech_tree.kind(t) {
+                    tech::Kind::Epoch { line, .. } => line == tech::Line::Civic,
+                    tech::Kind::Age(_) => self.tables.tech_tree.has_tribe_bonus(
+                        &self.tables.setup,
+                        &self.tech[who as usize],
+                        13,
+                    ),
+                    _ => false,
+                };
+            self.territory.gain_fix_owed |= owed;
+        }
         // `:437`–`:452`: gaining `ALLY_LOS`'s prerequisite (Mathematics) ORs
         // each other slot with `leader_flags & 1` that `is_ally` names —
         // `diplos` 2 both ways — into the stored `ally_mask`. The gate is
@@ -715,7 +747,9 @@ impl Sim {
         // this leader's cities, because `compute_reg_territory` reads the
         // level rather than a cached bonus. Guarded on the table actually
         // changing so an ordinary tech does not repaint 3,600 cells.
-        if self.territory.borders[who as usize] != self.player_borders(who) {
+        let owed = self.territory.gain_fix_owed;
+        self.territory.gain_fix_owed = false;
+        if owed || self.territory.borders[who as usize] != self.player_borders(who) {
             self.sync_territory();
         }
     }

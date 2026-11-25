@@ -401,6 +401,16 @@ pub struct FieldScene {
     /// `terrain_height[col][row]`, `heights[col * 5 + row]`
     /// ([`crate::cities::farms::Farm::heights`]).
     pub heights: [i32; 25],
+    /// `percent[col][row]` as its count of `0.005f` adds
+    /// ([`crate::cities::farms::Farm::adds`]), `col * 4 + row`: the
+    /// height and colour `FarmsOut::draw` gives each plot's box (item
+    /// 4650, `docs/RENDERER.md` §6.1). A read only, outside the checksum
+    /// lines' walk.
+    pub adds: [i32; 16],
+    /// `status[col][row]` ([`crate::cities::farms::Farm::state`]): which
+    /// of the two `0.005f` sequences `adds` counts, the cut cell's
+    /// decaying from `1.0f` (item 4650).
+    pub status: [u8; 16],
 }
 
 /// One projectile in flight.
@@ -695,6 +705,8 @@ impl Sim {
                     y_size: b.ty.map_or(0, |t| self.tables.build_types[t].y_size),
                     farm_type: b.farm.farm_type,
                     heights: b.farm.heights,
+                    adds: b.farm.adds,
+                    status: b.farm.state,
                 }),
                 gather: b
                     .ty
