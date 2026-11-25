@@ -8745,7 +8745,11 @@ promotes the figure below it. run112 prints both:
 caches, [`sim::Unit::captain`] and [`sim::combat::State::captain`], and
 the original reads both live (`UnitData::is_captain@0046ceb0` is `o_up <
 0`, and `UnitData::get_captain@00610ab0` walks `o_up`). So a promotion
-re-points both down the whole chain, dead slots included.
+re-points both down the whole chain, dead slots included, and the
+whole-squad arm, which clears every dead figure's links, leaves each its
+own captain (`get_captain` answers `o`, `+0xa`, for `o_up < 0`). A round a
+dead figure loosed strikes under that number (item 4681, run1799: row 93's
+`2/77` prints `damage_o` 39 on 3058, the dead `1/39`'s own).
 
 **Diff-backed.** `o_up` and `o_down` are compared per frame now (§47.5).
 Across the whole of run112's window every figure's links agree. With the
