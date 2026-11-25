@@ -2015,6 +2015,67 @@ pub(crate) mod tests {
         );
     }
 
+    /// Probe (item 4659): row 133's deaths ranges on 2455..2458, both sides.
+    #[test]
+    fn probe_4659_deaths() {
+        if std::env::var("RON_PROBE_4659").is_err() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            return;
+        };
+        let ranges =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+                .expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let lo: u32 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(2455);
+        let hi: u32 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(2458);
+        let words = |b: &[u8]| -> String {
+            let mut out = Vec::new();
+            let mut i = 0;
+            while i + 4 <= b.len() {
+                out.push(i32::from_le_bytes([b[i], b[i + 1], b[i + 2], b[i + 3]]).to_string());
+                i += 4;
+            }
+            if i < b.len() {
+                out.push(format!("tail {:02x?}", &b[i..]));
+            }
+            out.join(" ")
+        };
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let line = 4usize;
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == line as u8).collect();
+            eprintln!("== state {state}: deaths ours {:?} theirs {}", lines[line].as_ref().map(|l| l.ranges.len()), theirs.len());
+            if let Some(ours) = lines[line].as_ref() {
+                for a in &ours.ranges {
+                    eprintln!("  ours  rec {} {}: {}", a.record, a.field, words(&a.bytes));
+                }
+            }
+            for b in &theirs {
+                eprintln!("  their start {:#x} len {}: {}", b.start, b.bytes.len(), words(&b.bytes));
+            }
+            eprintln!("  ours deaths list: {:?}", built.sim.combat.deaths.iter().map(|d| (d.who, d.o, d.first_frame)).collect::<Vec<_>>());
+        }
+    }
+
     /// **Row 133's SAM rocket strikes its own capital with the recapture
     /// bonus** (item 4655, `docs/RECGAME.md` §13.5): run1797's ranges, the
     /// row's builds parting on 2451 (range 2180, record 2000, `damage` ours
