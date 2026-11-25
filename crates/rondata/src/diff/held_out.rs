@@ -13111,13 +13111,20 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // record 119, `attrition` ours 0, theirs 48, `unit_masks` ours
         // 0x40008, theirs 0x40088 on 3562, both agree now): units 3,562 ->
         // 3,617 (first 3562 -> 3613); the first parting is units on 3613.
+        // Then item 4684 (`Unit::come_out@00617c10` stores the ground at
+        // the spot's tile as the unit's `z`, `:510`-`:513` and
+        // `set_new_location`'s `LAB_005f9033`, whatever height a terraform
+        // held it at inside: who=2's Citizen `2/3`, TI 50, out of `2/2018`
+        // on 3613 at (19320, 29496); units range 6687, record 3, `z` ours
+        // 661, theirs 770, both 770 now): units 3,617 -> 3,620 (first 3613
+        // -> 3620); the first parting is cities on 3619.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                3617, 3638, 6085, 3635, 3638, 3631, 3620, 3628, 3619, 4349, 5233, 3620,
+                3620, 3638, 6085, 3635, 3638, 3631, 3620, 3628, 3619, 4349, 5233, 3620,
             ],
             first: &[
-                ("units", (3613, Some(137067954), 928218438)),
+                ("units", (3620, Some(1149618426), 3102179925)),
                 ("builds", (3633, Some(1817557812), 568507539)),
                 ("ammo", (3623, Some(3273187188), 1994117052)),
                 ("deaths", (3638, Some(750708600), 755033978)),
