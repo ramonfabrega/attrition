@@ -4391,14 +4391,6 @@ fn the_hotkeyed_minted_packages_round_trip() {
 /// 4270): the frame the package is consumed on, and the two after it.
 const HOTKEY_READ_AT: [i64; 3] = [6740, 6741, 6742];
 
-/// **Where a whole dump falls on our count**: a `@dumpall` on frame `N` is
-/// written inside the take's `FRAME N` block **after** that frame's
-/// packages ran — run1610's block 6740 holds the hot key's slot stamped
-/// 6740 — so it is our walk's state at `N + 1`, where the end-frame records
-/// of the same block are its state at `N` (the renamed take's `CITY` on
-/// 6730 still prints the founding name).
-const DUMPALL_LAGS: i64 = 1;
-
 /// Slot 0's hot-key group [`crate::script::HOTKEY_KEY`] on one frame (item
 /// 4270): the `HOTKEYGROUPDATA` record's fields in the dump's order — its
 /// `GROUPDATA`'s, each member's six arrays as `name[k]`, then `loc_x`,
@@ -4430,11 +4422,11 @@ fn hotkey_record(id: i64, s: Option<&sim::groups::hotkey::HotKeySlot>) -> Vec<(S
     put("order_num", "0".into());
     put("priority", "1".into());
     put("stamp", s.stamp.to_string());
-    put("role", "0".into());
+    put("role", s.role.to_string());
     put("form", "-1".into());
     put("think_frame", "0".into());
     put("facing", "0".into());
-    put("new_speed", "0".into());
+    put("new_speed", s.new_speed.to_string());
     put("speed", s.speed.to_string());
     put("form_num", "0".into());
     for k in 0..s.list.len() {
@@ -4477,21 +4469,23 @@ fn hotkey_effects_ours(orders: &[Order], at: &[i64]) -> Vec<HotKeyEffect> {
 }
 
 /// The original's, off the take's whole dumps in the `FRAME` blocks
-/// `blocks` (the first `HOTKEYGROUPS` of each), each on our count
-/// ([`DUMPALL_LAGS`]): the `HOTKEYGROUPDATA` whose `GROUPDATA` has `id`
+/// (the first `HOTKEYGROUPS` of each). Each pair maps a printed block
+/// to the simulation state that includes the same writes. A package can
+/// assign a hot key before that frame ticks. A training completion writes
+/// it during the tick. Read the `HOTKEYGROUPDATA` whose `GROUPDATA` has `id`
 /// `key`, every field
 /// in order, a member's `name[scan]` numbered by its place. The nested
 /// `GROUPDATA` has no `END` of its own, so the parser hands it the
 /// wrapper's `loc_x`, `loc_y` and `valid` and the wrapper's `END` line;
 /// the reader keeps the three once and drops the `END`.
-fn hotkey_effects_theirs(take: &str, blocks: &[i64], key: i64) -> Option<Vec<HotKeyEffect>> {
+fn hotkey_effects_theirs(take: &str, blocks: &[(i64, i64)], key: i64) -> Option<Vec<HotKeyEffect>> {
     let mut source = crate::capture::indexed::IndexedCapture::open(&dump(take)?).unwrap();
     let mut theirs = Vec::new();
     for index in 0..source.frames().len() {
         let n = source.frames()[index].number;
-        if !blocks.contains(&n) {
+        let Some(&(_, state)) = blocks.iter().find(|&&(block, _)| block == n) else {
             continue;
-        }
+        };
         let text = source.read_frame(index).unwrap();
         let log = crate::gamelog::Log::parse(&text);
         let (_, frame) = log.frames().into_iter().next().expect("indexed frame");
@@ -4520,7 +4514,7 @@ fn hotkey_effects_theirs(take: &str, blocks: &[i64], key: i64) -> Option<Vec<Hot
             }
         }
         theirs.push(HotKeyEffect {
-            frame: n + DUMPALL_LAGS,
+            frame: state,
             fields,
         });
     }
@@ -4624,9 +4618,10 @@ fn the_original_s_playback_of_the_hotkeyed_file_walks_in_lockstep() {
     // run1611's whole dump in block 6739, the frame before the package, then
     // run1610's in blocks 6740 and 6741.
     let key = i64::from(crate::script::HOTKEY_KEY);
-    let mut theirs = hotkey_effects_theirs(HOTKEYED_BEFORE, &[6739], key).expect("run1611");
+    let mut theirs = hotkey_effects_theirs(HOTKEYED_BEFORE, &[(6739, 6740)], key).expect("run1611");
     theirs.extend(
-        hotkey_effects_theirs(HOTKEYED_WALKED[0].0, &[6740, 6741], key).expect("the take's dumps"),
+        hotkey_effects_theirs(HOTKEYED_WALKED[0].0, &[(6740, 6741), (6741, 6742)], key)
+            .expect("the take's dumps"),
     );
     for t in &theirs {
         eprintln!("HOTKEY EFFECT theirs {t:?}");
@@ -4639,17 +4634,13 @@ fn the_original_s_playback_of_the_hotkeyed_file_walks_in_lockstep() {
     );
 }
 
-/// Hot-key group 55 lives outside the checksum pool. Run1825 dumps the
-/// separate hot-key table on both sides of the recorded assignment.
-#[test]
-fn the_sample_s_unit_hotkey_slot_matches_run1825() {
-    const TAKE: &str = "gamelog-run1825-sample2017-unit-hotkey-9233.txt";
+/// Compare the separate slot in two original dumps with the same recorded
+/// game played by the simulation. A cleared slot prints its default fields.
+fn assert_sample_hotkey(take: &str, blocks: [(i64, i64); 2], stamp: i64, members: &[i16]) {
     let (Some(inst), Some(rcx), Some(theirs)) = (
         install(),
         super::sample::tests::sample(),
-        // Consecutive @dumpall requests print two tables in block 9233,
-        // one on each side of the package. The adjacent blocks each have one.
-        hotkey_effects_theirs(TAKE, &[9232, 9234], 55),
+        hotkey_effects_theirs(take, &blocks, 55),
     ) else {
         return;
     };
@@ -4658,22 +4649,41 @@ fn the_sample_s_unit_hotkey_slot_matches_run1825() {
     let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
     let mut stream = crate::input::Stream::pump(&rec);
     let mut ours = Vec::new();
-    for frame in [9233, 9235] {
+    for (_, frame) in blocks {
         tick_to(&mut built, Some(&mut stream), frame);
         let slot = built.sim.hotkey_slot(55);
-        if frame == 9235 {
+        if frame == blocks[1].1 {
             let slot = slot.expect("player 3 assigned hot key 55");
-            assert_eq!(slot.stamp, 9233);
-            assert_eq!(slot.list, [66, 67, 68, 16, 69, 74, 27]);
+            assert_eq!(slot.stamp, stamp);
+            assert_eq!(slot.list, members);
         }
         ours.push(HotKeyEffect {
             frame,
             fields: hotkey_record(55, slot),
         });
     }
-    assert_eq!(
-        ours, theirs,
-        "the separate hot-key slot before and after assignment"
+    assert_eq!(ours, theirs, "the separate hot-key slot in {take}");
+}
+
+#[test]
+fn the_sample_s_unit_hotkey_slot_matches_run1825() {
+    // Consecutive @dumpall requests print two tables in block 9233,
+    // one on each side of the package. The adjacent blocks each have one.
+    assert_sample_hotkey(
+        "gamelog-run1825-sample2017-unit-hotkey-9233.txt",
+        [(9232, 9233), (9234, 9235)],
+        9233,
+        &[66, 67, 68, 16, 69, 74, 27],
+    );
+}
+
+#[test]
+fn the_sample_s_factory_trainee_inherits_the_rally_targets_hotkey() {
+    assert_sample_hotkey(
+        "gamelog-run1826-sample2017-factory-object-rally.txt",
+        [(9601, 9601), (9602, 9602)],
+        9601,
+        &[66, 67, 68, 16, 69, 74, 27, 34],
     );
 }
 

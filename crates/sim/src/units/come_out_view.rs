@@ -141,6 +141,11 @@ pub trait ComeOutView {
     fn barge(&mut self, player: i32, h: i32) -> i32;
     /// An object's point (`+0x10`, `+0x14`, `^ 0x63637`).
     fn object_pos(&self, player: i32, h: i32) -> (i32, i32);
+    /// A rally node names an object by its player's object number. The
+    /// live adapter stores its host as a simulation index instead.
+    fn rally_object_pos(&self, player: i32, o: i32) -> (i32, i32) {
+        self.object_pos(player, o)
+    }
     /// `this->guys[0]->+0x40 = 90.0`.
     fn set_figure_90(&mut self);
     /// The host's vslot `0x20` (is a building, as the gather block asks).
@@ -270,7 +275,7 @@ pub fn come_out_steps<V: ComeOutView>(v: &mut V, param1: i32) -> Exit {
                     if idx >= 0 && v.is_captain() && pl < 8 {
                         v.copy_hotkeys(idx, pl);
                     }
-                    v.object_pos(pl, idx)
+                    v.rally_object_pos(pl, idx)
                 } else {
                     (node.a, node.b)
                 };
@@ -406,8 +411,7 @@ const UNIT_HOST: i32 = 1 << 30;
 /// Not modelled, each a leaf the port has no state for: the figures' `+0xd0` word,
 /// the leader's `0x2000000` flag, the figure's `+0x40` 90.0 for a missile,
 /// the barge a land unit leaving an Oil Platform gets (`host_is(0x1a6)` is
-/// false here), and a gather point on an object (`kind 3`, which no capture
-/// sets). The placement itself — `set_pos`, `find_tcoord_z`,
+/// false here). The placement itself — `set_pos`, `find_tcoord_z`,
 /// `remove_from_inside` — is [`Sim::come_out_place`]'s, after the walk.
 pub(crate) struct SimComeOut<'a> {
     pub(crate) sim: &'a mut Sim,
@@ -570,6 +574,17 @@ impl ComeOutView for SimComeOut<'_> {
         };
         (p.x, p.y)
     }
+    fn rally_object_pos(&self, player: i32, o: i32) -> (i32, i32) {
+        let p = match self
+            .sim
+            .gather_object(Pos::new(o, player))
+            .expect("live rally head")
+        {
+            Obj::Building(b) => self.sim.buildings[b].pos,
+            Obj::Unit(u) => self.sim.units[u].pos,
+        };
+        (p.x, p.y)
+    }
     fn set_figure_90(&mut self) {
         // `617fc7`: guy 0's `turret_inc` (item 4420).
         if let Some(g) = self.sim.units[self.unit].guys.first_mut() {
@@ -591,10 +606,9 @@ impl ComeOutView for SimComeOut<'_> {
         h
     }
     fn bd_has_list(&self, bd: i32) -> bool {
-        // Not modelled: a point on an object (`kind 3`).
         self.sim
             .first_gather(self.building_of(bd))
-            .is_some_and(|p| p.action != 3)
+            .is_some_and(|p| p.action != 3 || self.sim.gather_object(p.pos).is_some())
     }
     fn bd_gather_inside(&mut self, bd: i32) -> bool {
         self.sim.gather_inside(self.building_of(bd))
@@ -611,7 +625,9 @@ impl ComeOutView for SimComeOut<'_> {
             b: p.pos.y,
         }
     }
-    fn copy_hotkeys(&mut self, _a: i32, _b: i32) {}
+    fn copy_hotkeys(&mut self, target: i32, player: i32) {
+        self.sim.copy_rally_hotkeys(target, player, self.unit);
+    }
     fn find_angle(&mut self, dx: i32, dy: i32) -> i32 {
         find_angle(dx, dy).0
     }

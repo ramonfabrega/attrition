@@ -1171,6 +1171,17 @@ candidate, on open ground.
   the Woodcutter's spot (4248, 28632) and no gather order: the snapped
   point keeps action 0. It gathers of its own accord from 984.
 
+**An object as the first gather point (item 4646).** Player 3's factory
+2045 has a type-3 node naming unit 27. When trainee 34 leaves on 9601,
+the exit search starts from the named object's current position. The final
+routing still has the node's original pair of numbers and the free point
+found by that search. In the original, the trainee emerges at
+(10872,20760) and receives a move to (8952,21240). Replacing the node
+with a ground point at unit 27's position produces the same destination
+but puts the trainee 240 units south of the original exit. All eleven
+lines of run1824 match through 10000 with the object node preserved.
+[Factory rally comparison](journal/2026-11-24-item-4646.md)
+
 **The other arms** (item 955, `docs/GOLDEN.md` §40, run338):
 - **The list is walked from its head** (`618c10`..`61918f`).
   `add_gather_point` under `QUEUE_LAST` appends at the tail and the head

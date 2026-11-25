@@ -620,6 +620,13 @@ the original. Units, guys, world and the draw stream next part on 9602,
 when factory 3/2045 finishes unit 3/34 with an object as its rally point.
 [Outdoor repair comparison](journal/2026-11-24-item-4645.md)
 
+**The factory's object rally (item 4646).** Trainee 3/34 takes a move to
+(8952,21240), leaving from (10872,20760). It previously left from
+(11544,21624) and had no order. The entire 8001–10000 extension now
+agrees on its eleven field lines. Both the first state difference and the
+first unequal draw advance from 9602 to 10207.
+[Factory rally comparison](journal/2026-11-24-item-4646.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte

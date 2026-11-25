@@ -2129,6 +2129,13 @@ carry. The hot-keyed script mints 24 of 24 and the recorded hot keys 8 of 8. The
 **Stage 0.** A key has no pixel. On 6740 the capital, the selection the key copies, is slot 0's and standing
 (`minted_hotkeyed_at_the_opening_camera`), and hot-key group 1 is empty on our walk (§22.4).
 
+A hot key can change during training. In run1826 factory 3/2045 rallies
+on unit 27, a member of hot-key slot 55. The next trainee, 34, joins the
+same hot key. Run1826 prints seven then eight members, with the group's
+stamp changing from 9233 to 9601, role to 262400 and both speeds to 30.
+The original's unit and group checksum lines independently match the
+factory exit. [Factory and hot-key records](journal/2026-11-24-item-4646.md)
+
 ### 22.3 The counts and the file
 
 - `INPUT_HOTKEYED`: **24 of 24**. The renamed events, then ctrl and `1` on 6740, through the HUD and the layer under the

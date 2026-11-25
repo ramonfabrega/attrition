@@ -42116,3 +42116,24 @@ adding `--tracer-def RON_RANGES --tracer-def RNG_MASK=0xffbu`.
   gamelog and 191,990,784 bytes of trace. Receipt in `~/ron-golden/run1825/map-7/`.
   Command file, launch, filed paths and regression output are in
   `~/ron-data/lab-experiments/2026-11-24-codex-merchant.ch6hlc/hotkey9233/`.
+
+## run1826 — 2017 sample, the factory's object rally and hot key 55 (2026-11-24, item 4646)
+
+- Run1825's recording and plan, end 9606, log window 9598–9605,
+  `RON_STATE_FRAME=9601`, `@dumpall` on 9601, `--detail end:MISC`.
+  The first Wine launch exited before frame zero after 2.61 s (code 5).
+  The capture runner retried once. The successful game reached all
+  9,607 states with no page fault and restored the five settings. Total
+  1,297.88 s. Host receipt `/tmp/ron-runs/viadriver-20261124-194635-39380.log`.
+- All 10,117 original checksum sets match run1662 on every ordinal and
+  all sixteen words through state 9606. The snapshot on 9601 checked all
+  eight anchors across the logger return and verified its completion.
+  Payload 916,787,200 bytes in 204 ranges. Packet SHA-256
+  `64bf68407d76f0e75bb2b1302b0c66b7fd4a63cf554c765b6b9eb09932d09d52`.
+- Slot 55 in block 9601 still has the seven objects of run1825, stamp
+  9233, role and both speeds 0. In block 9602 its eighth object is 34,
+  stamp 9601, role 262400, speed and new speed 30. The new unit's
+  regular pool link stays independent of its hot key. Filed as
+  `run1826 sample2017-factory-object-rally`, gamelog 69,622,449 bytes,
+  trace 189,638,976 bytes. The checks, receipt and command file are in
+  `~/ron-data/lab-experiments/2026-11-24-codex-merchant.ch6hlc/unit9602/`.

@@ -871,9 +871,6 @@ impl Sim {
         mut prev: crate::Pos,
         group: Option<&crate::groups::group::Group>,
     ) {
-        if last.action == 3 {
-            return;
-        }
         let who = self.units[captain].owner;
         let Some(ty) = self.units[captain].ty else {
             return;

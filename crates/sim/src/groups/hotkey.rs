@@ -17,11 +17,13 @@
 //! - **`clear` 1**: `num` 0 and `valid` 0, and with `valid` the camera's
 //!   point and zoom. The floats are carried as their bits.
 //!
-//! SEAM: a slot's other writers (`HotKeyGroups::kill`, `copy`,
+//! A building's object rally also adds its trainee to the target's hot
+//! keys (`HotKeyGroups::copy`, item 4646).
+//! SEAM: a slot's other writers (`HotKeyGroups::kill`,
 //! `find_group`; the capital the original holds in its F1 slot from the
 //! first frame) are not carried. A slot no hot key wrote reads `None`.
 
-use crate::groups::group::GroupState;
+use crate::groups::group::{Group, GroupState};
 use crate::{Player, Sim};
 
 /// One hot-key group as a hot key last wrote it: `copy_group`'s fields,
@@ -35,6 +37,8 @@ pub struct HotKeySlot {
     pub o_dist: i32,
     pub o_angle: i32,
     pub buildings: bool,
+    pub role: u32,
+    pub new_speed: i32,
     pub speed: i32,
     pub stamp: i64,
     /// `+0x8cc`: the members' object numbers.
@@ -65,6 +69,68 @@ pub struct HotKey {
 pub const HOTKEY_GROUPS: i32 = 0xa2;
 
 impl Sim {
+    /// A trainee inherits each of its live rally target's unit hot keys.
+    /// A hot key keeps its own offsets and membership independently of the
+    /// command group in the pool. Adding a unit leaves its pool link alone.
+    pub(crate) fn copy_rally_hotkeys(&mut self, target: i32, player: i32, trainee: usize) {
+        let who = self.units[trainee].owner;
+        let Ok(o) = i16::try_from(target) else { return };
+        if player != i32::from(who) || self.unit_by_o(who, o).is_none() {
+            return;
+        }
+        let first = u16::from(who) * 18;
+        for key in first..first + 18 {
+            let Some(slot) = self.orders.hotkeys.get(&key) else {
+                continue;
+            };
+            if slot.who != who || slot.buildings || slot.num == 0 || !slot.list.contains(&o) {
+                continue;
+            }
+            let mut updated = slot.clone();
+            let mut group = Group::stack(who);
+            // Group::get_num drops dead members and shifts their offsets.
+            for index in (0..updated.list.len()).rev() {
+                if let Some(unit) = self.unit_by_o(who, updated.list[index]) {
+                    group.list.push(unit);
+                } else {
+                    updated.list.remove(index);
+                    updated.off.remove(index);
+                    updated.curr.remove(index);
+                    updated.angles.remove(index);
+                }
+            }
+            group.list.reverse();
+            if slot.num < 4 {
+                updated.role = self.group_find_role(&group.list);
+                updated.speed = self.group_compute_speed(&group);
+                updated.new_speed = updated.speed;
+            }
+            let retained = group.list.len();
+            self.group_add(&mut group, trainee);
+            let added = &group.list[retained..];
+            if !added.is_empty() {
+                updated
+                    .list
+                    .extend(added.iter().map(|&u| self.units[u].index));
+                updated.off.resize(group.list.len(), (0, 0));
+                updated.curr.resize(group.list.len(), (0, 0));
+                updated.angles.resize(group.list.len(), 0);
+                // Adding a follower calls get_num again. If dead members
+                // left a small group, that call normalizes its living role.
+                if added.len() > 1 && retained + 1 < 4 {
+                    updated.role = self.group_find_role(&group.list);
+                } else {
+                    updated.role |= self.group_find_role(added);
+                }
+                updated.speed = self.group_compute_speed(&group);
+                updated.new_speed = updated.speed;
+                updated.stamp = self.frame;
+            }
+            updated.num = updated.list.len() as i32;
+            self.orders.hotkeys.insert(key, updated);
+        }
+    }
+
     /// `process_hotkey` for `who`'s package: with `clear` 0, the package's
     /// pool slot (the one `who` pushed last, `Groups::last_group`) is copied
     /// into slot `k.group`; with `clear` 1, the slot is emptied and, with
