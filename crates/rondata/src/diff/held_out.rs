@@ -1222,6 +1222,9 @@ pub(crate) mod tests {
                     if a.bytes != b.bytes {
                         let d = crate::checksum::fields::differing_fields(name, a.field, &a.bytes, &b.bytes);
                         eprintln!("P4674 {state} {name} range {k} who {who} record {} {} len {}/{} {:?}", a.record, a.field, a.bytes.len(), b.bytes.len(), d);
+                        if std::env::var("RON_PROBE_ALL").is_ok() {
+                            eprintln!("P4674   all ours {:?}\nP4674   all theirs {:?}", crate::checksum::fields::range_fields(name, a.field, &a.bytes), crate::checksum::fields::range_fields(name, a.field, &b.bytes));
+                        }
                         if d.is_empty() && a.bytes.len() <= 64 {
                             eprintln!("P4674   ours {:?}\nP4674   theirs {:?}", a.bytes, b.bytes);
                         }
