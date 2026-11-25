@@ -4121,6 +4121,54 @@ fn a_site_loses_progress_by_the_points_a_blow_took_and_none_to_an_aircraft() {
     assert_eq!(sim.buildings[site].damage, 18, "every blow still lands");
 }
 
+/// **A dead aircraft's blow costs a site its progress** (item 4688,
+/// `docs/COMBAT.md` §7.2): `Object::take_damage@00652020` reads the
+/// attacker's domain only for a slot in use (`testb $0x1, 0x8(%eax)` at
+/// `00652367`). A missile closes on its own impact, so its blow is cut
+/// from `job_counter` as a land unit's would be; row 93's 6311-point blow
+/// on 3268 zeroed who=1's Statue of Liberty site. A live aircraft still
+/// costs nothing.
+#[test]
+fn a_dead_aircraft_s_blow_costs_a_site_its_progress() {
+    use crate::territory::attrition::Domain;
+    let mut sim = arena();
+    let mut plane = hoplite_type();
+    plane.kind.domain = Domain::Air;
+    plane.combat.domain = Domain::Air;
+    let plane = sim.add_unit_type(plane);
+    let tower_ty = sim.add_build_type(crate::cities::build::BuildType::default());
+    let site = sim.add_building(0, Pos::new(1000, 1000), 0);
+    {
+        let bd = &mut sim.buildings[site];
+        bd.ty = Some(tower_ty);
+        bd.active = false;
+        bd.hits = 1000;
+        bd.construct_hits = 1000;
+        bd.health = 1000;
+        bd.job_counter = 10_000;
+    }
+    let p = combatant(
+        &mut sim,
+        1,
+        plane,
+        Pos::new(1000, 1000 + 192),
+        movement::Angle::NORTH,
+    );
+    sim.units[p].kind.domain = Domain::Air;
+    let blow = combat::Sixteenths { whole: 4, frac: 0 };
+    sim.damage_building(site, blow, Some(Obj::Unit(p)), 1, false);
+    assert_eq!(sim.buildings[site].job_counter, 10_000, "a live aircraft");
+    sim.units[p].health = 0;
+    sim.damage_building(site, blow, Some(Obj::Unit(p)), 2, false);
+    assert_eq!(
+        sim.buildings[site].job_counter, 9_800,
+        "a dead one: 4 points, 200 off"
+    );
+    let big = combat::Sixteenths { whole: 600, frac: 0 };
+    sim.damage_building(site, big, Some(Obj::Unit(p)), 3, false);
+    assert_eq!(sim.buildings[site].job_counter, 0, "never below zero");
+}
+
 #[test]
 fn splash_hurts_the_neighbours_as_a_fringe_and_never_the_shooters_side() {
     let mut sim = arena();

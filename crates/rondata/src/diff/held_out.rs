@@ -4919,6 +4919,96 @@ pub(crate) mod tests {
     /// while dead: `1/35` heads the cell with `up` −1 (units range 1417,
     /// record 35; world range 1780, record 1756, cell byte 8 `0x23`).
     /// Every units and world range on states 3088 to 3090, byte for byte.
+    /// **Row 93's dead missile's blow costs who=1's Statue of Liberty site its
+    /// progress** (item 4688, `docs/COMBAT.md` §7.2): run1799, the ranges
+    /// take of run1792's file. On 3268 who=2's `2/106` (TI 315, air, a Nuclear Missile) lands
+    /// a 6311-point blow on the site `1/2031` after it has closed.
+    /// `Object::take_damage@00652020` reads the attacker's domain only for
+    /// a slot in use (`00652367`), so the blow is cut from `job_counter`,
+    /// 6311 × 50 past its 305,196: zero, and the inc_time walk's
+    /// `construct_hits` 6051. Red on the base at builds range 1383 on
+    /// 3269, record 2031 `job_counter..demolition` byte 0: ours 305196,
+    /// theirs 0, and `construct_hits` ours 8614, theirs 6051. Every builds
+    /// range on 3268 to 3270, byte for byte.
+    #[test]
+    fn row_93_s_dead_missile_s_blow_costs_the_site_its_progress_on_run1799_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            eprintln!("skipping: row 93's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1799/map-14");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1799's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3268i64..=3270 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[1].as_ref().expect("builds");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "builds' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                assert_eq!(
+                    at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                    None,
+                    "builds range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                    a.record,
+                    a.field
+                );
+            }
+            let sim = &built.sim;
+            let m = sim
+                .units
+                .iter()
+                .rposition(|u| u.owner == 2 && u.index == 106)
+                .expect("2/106");
+            let ty = sim.units[m].ty.expect("a type");
+            assert_eq!(sim.tables.unit_types[ty].type_index, 315, "2/106's TI");
+            assert_eq!(loaded.unit_names[ty], "Nuclear Missile");
+            assert_eq!(
+                sim.units[m].kind.domain,
+                sim::territory::attrition::Domain::Air
+            );
+            let site = sim.building_by_o(1, 2031).expect("1/2031");
+            let bd = &sim.buildings[site];
+            assert_eq!(
+                loaded.build_type_names[bd.ty.expect("its type")],
+                "Statue of Liberty"
+            );
+            assert!(!bd.active, "1/2031 is a site on {state}");
+            let k = 1383;
+            assert_eq!(ours.ranges[k].record, 2031);
+            assert_eq!(ours.ranges[k].field, "job_counter..demolition");
+            let word = |at: usize| i32::from_le_bytes(theirs[k].bytes[at..at + 4].try_into().unwrap());
+            if state == 3268 {
+                assert_eq!(word(0), 305_046, "theirs' job_counter before the blow");
+                assert_eq!(bd.job_counter, 305_046);
+            } else {
+                assert!(!sim.units[m].alive(), "2/106 closed by {state}");
+                assert_eq!((word(0), word(12)), (0, 6051), "theirs' job_counter, construct_hits");
+                assert_eq!((bd.job_counter, bd.construct_hits), (0, 6051), "ours on {state}");
+                assert_eq!(bd.job_counter_2, 305_196, "job_counter_2 is not cut");
+            }
+        }
+    }
+
     #[test]
     fn row_93_s_decoy_tiger_tank_leaves_the_chain_at_its_death_on_run1799_s_ranges() {
         let Some(inst) = crate::testenv::install() else {
