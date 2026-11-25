@@ -1916,7 +1916,7 @@ Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
 
 ### 14.4 Row 88
 
-Open: units, guys and leaders part on 2985 (item 4633). run1808 holds sums, run1815 the ranges to 2991 (units, deaths, guys,
+Open: ammo parts on 3028 (item 4662). run1808 holds sums, run1815 the ranges to 2991 (units, deaths, guys,
 leaders and world), run1818 the ammo ranges to 2792. The stories are the items' journals.
 
 **Item 4614: a rider comes out before its carrier dies, and a fire raft dies with its shot.** Both are diff-backed by
@@ -1967,10 +1967,16 @@ The score, `SCORES_SEVENTH[4].moved` (12,001 states). 4614: deaths and world 2,7
 2,851. 4622: units → 2,807, leaders → 2,879; first 2741 → 2791. 4625: units → 2,902, ammo → 3,056, deaths → 2,922,
 groups → 2,928, guys → 2,907, leaders → 2,883, items → 7,829, world → 2,909; first 2791 → 2883. 4631: leaders 2,883 →
 2,926. 4633: units → 2,985, builds → 3,015, ammo → 3,170, guys → 2,985, leaders → 3,011, goods → 3,543; first 2902 →
-2985.
+2985. 4662: units → 3,033, builds → 3,144, ammo → 3,391, deaths → 3,463, guys → 3,069, leaders → 3,134, world → 3,086;
+first 2985 → 3028.
 
-**The next word, 2985: units, guys and leaders.** run1815's ranges hold it: who=1's `1/61` (TI 266), `order.target`
-ours `ox` 64, `whom` 2, `uid` 94, theirs −1, −1, 93; `near_o` ours 46, theirs 31; `cur_time` ours 60, theirs 61.
+**Item 4662: a stale attack is cleared, not retargeted.** On 2984 who=1's Trebuchet `1/61` (TI 266) ends its
+attack-ground; the Attack under it names `2/63` at uid 93, a number another barge holds. `Unit::work@0060d180:300`–`:340`
+marks the object at `(whom, ox)` in danger and, on the uid mismatch, writes `ox`/`whom` −1 and returns; `fight` searches on
+2985. On 2985 `order.target` ours (64, 2, 94) → (−1, −1, 93), theirs (−1, −1, 93). Held by
+`orders::reused_target_tests::an_attack_on_a_reused_number_is_cleared_and_searches_a_frame_later`.
+
+**The next word, 3028: ammo**, past every range on disk (run1815 to 2991, run1818 to 2792): a take is owed.
 
 **Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is not built: no capture has been shown
 to reach it. A building shooter always splashes from the landing (`Build` and `Wall` fill vslot `+0x18` with a
