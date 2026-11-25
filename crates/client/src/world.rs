@@ -359,7 +359,7 @@ pub struct World {
     /// The roads' made-to-fail (item 4199): every piece moved by this many
     /// tiles.
     pub roads_shift: (i32, i32),
-    /// Lay the early age bucket, the plates (item 4653, §6.1). On by
+    /// Lay the early age bucket, the plates (item 4653, §6.2). On by
     /// default; the plates' row as drawn before turns it off, which is the
     /// roads as item 4199 left them, bucket 2 alone.
     pub early_roads: bool,
@@ -731,7 +731,7 @@ pub const ROAD_ALPHA: usize = 911;
 /// road pieces (item 4199, §3.19).
 pub const ROAD_PAGE: u8 = 0;
 pub const ROAD_BUCKET: i32 = 2;
-/// **The plates** (item 4653, §6.1): page 0's early age bucket, a tile
+/// **The plates** (item 4653, §6.2): page 0's early age bucket, a tile
 /// page — `early_road_pieces.tga`'s alpha at the piece's texcoords over the
 /// tileset's first `<ROADTEX>` at the tile's own, `x / 4` and `y / 4` in
 /// tiles (842 of 842 of run1814b's helper-0 vertices).
@@ -744,7 +744,7 @@ pub const PLATE_PIECE: i32 = -200_022;
 pub const PLATE_ALPHA: usize = 902;
 /// The tile page's texcoords a tile (`RenderHelper::tex1` on the packet).
 pub const PLATE_PAGE_TILES: f32 = 4.0;
-/// **Each plate is laid twice** (item 4665, §6.1): run1833's draw 81 holds
+/// **Each plate is laid twice** (item 4665, §6.2): run1833's draw 81 holds
 /// its 842 vertices as 421 pairs, each piece's grid repeated at once, every
 /// field equal, and its 1,920 indices draw both. The file's alpha blended
 /// over itself covers `1 − (1 − a)²`. Why `build_render_data` adds them
@@ -1303,7 +1303,7 @@ impl World {
             // Item 4212 (§3.21): `roads.xml`'s pages are not the tileset's
             // `<ROADTEX>`, and their loader sets no tint.
             let img = render::tga::decode(&bytes).ok()?;
-            // Item 4653 (§6.1): the plates' page. `TileSet::init` tints the
+            // Item 4653 (§6.2): the plates' page. `TileSet::init` tints the
             // `<ROADTEX>` entries; `roads.xml`'s alpha is not.
             let plates = (|| {
                 let (_, file) = art
@@ -2179,7 +2179,7 @@ impl World {
         }
         // Item 4199 (§3.19): the roads, after the weathering and before the
         // first mountain layer, laid again when the frame or a switch moves.
-        // Item 4653 (§6.1): the plates first, as `RoadsOut::render` walks
+        // Item 4653 (§6.2): the plates first, as `RoadsOut::render` walks
         // its helpers by `page · 3 + bucket`.
         let key = (frame, self.roads, self.roads_shift, self.early_roads);
         let laid_key = (
@@ -2373,7 +2373,7 @@ impl World {
     /// [`crate::roads::laid`] lays whose owner's age bucket is
     /// [`ROAD_BUCKET`] and whose piece is on [`ROAD_PAGE`], moved by
     /// [`World::roads_shift`] tiles, each beside its bucket. Item 4653
-    /// (§6.1): and [`PLATE_BUCKET`]'s, the plates, while
+    /// (§6.2): and [`PLATE_BUCKET`]'s, the plates, while
     /// [`World::early_roads`] is set and their art reads. A cell nobody
     /// holds takes the record's `prev_age`, which the door does not carry;
     /// it lays nothing here.
@@ -2426,7 +2426,7 @@ impl World {
         .collect()
     }
 
-    /// The plates' mesh as the frame lays it (item 4665, §6.1).
+    /// The plates' mesh as the frame lays it (item 4665, §6.2).
     #[cfg(test)]
     pub(crate) fn plate_mesh(&mut self) -> Option<PatchMesh> {
         let laid: Vec<crate::roads::Laid> = self
@@ -2442,7 +2442,7 @@ impl World {
     /// cut at the tile lines inside it, as the packet's vertices stand, each
     /// corner on the ground's own triangle (`TerrainMesh::build`'s `[a, b,
     /// d]`, `[b, c, d]`) and its texcoord the box's bilinear; the texture is
-    /// its own alpha. Item 4653 (§6.1): a `plate`'s texture is the tile
+    /// its own alpha. Item 4653 (§6.2): a `plate`'s texture is the tile
     /// page at [`PLATE_PAGE_TILES`] a tile, its alpha `early_road_pieces`
     /// at the piece's texcoords.
     fn road_mesh(&mut self, laid: &[crate::roads::Laid], plate: bool) -> Option<PatchMesh> {

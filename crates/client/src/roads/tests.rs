@@ -489,7 +489,7 @@ fn draw_91_s_state() {
     assert_eq!(r.args[1], 450);
 }
 
-/// **The plates' box on run1814b** (item 4653, `docs/RENDERER.md` §6.1):
+/// **The plates' box on run1814b** (item 4653, `docs/RENDERER.md` §6.2):
 /// the tiles, inclusive, that `tools/render/road_records.py` finds ringing
 /// slot 0's city on the packet, x 7 to 19 and y 151 to 163. It holds 61
 /// records, 54 with a reference, and the packet's helper 0 (page 0, age
@@ -497,7 +497,7 @@ fn draw_91_s_state() {
 /// rotation 10, which `build_render_data` skips; our door holds the 54.
 const RUN1814B_PLATE_BOX: [i32; 4] = [7, 151, 19, 163];
 
-/// **`RUN1814B_3294_PLATES`** (item 4653; §6.1): `[before, drawn,
+/// **`RUN1814B_3294_PLATES`** (item 4653; §6.2): `[before, drawn,
 /// theirs]`, each `[(agree, scored)]` on hue then luma, over each road
 /// record of our door inside [`RUN1814B_PLATE_BOX`] with at least
 /// `HUE.min_pixels` ground or object-window pixels, as the ring's row takes
@@ -528,7 +528,7 @@ const RUN1814B_3294_PLATES: [[(usize, usize); 2]; 3] = [
     [(44, 46), (42, 46)],
 ];
 
-/// **The plates' row** (item 4653, §6.1): our door holds the packet's 54
+/// **The plates' row** (item 4653, §6.2): our door holds the packet's 54
 /// records with a reference in the box, and no other; the photograph's
 /// pixels on them against the still, before and drawn.
 #[test]
@@ -599,7 +599,7 @@ fn the_plates_on_run1814b() {
     assert_eq!(rows, RUN1814B_3294_PLATES);
 }
 
-/// **`RUN1814B_PLATE_QUADS`** (item 4653, §6.1): on run1814b's packet,
+/// **`RUN1814B_PLATE_QUADS`** (item 4653, §6.2): on run1814b's packet,
 /// `[the packet's pieces, their tile-page corners at the box over
 /// PLATE_PAGE_TILES, the records laid by lay from their own element and
 /// orientation that are a drawn piece, those records]`.
@@ -607,7 +607,7 @@ fn the_plates_on_run1814b() {
 /// element 1 at orientation 5, a piece the buffer holds no box of.
 const RUN1814B_PLATE_QUADS: [usize; 4] = [54, 54, 53, 54];
 
-/// **The plates' quads are the packet's** (item 4653, §6.1): helper 0's
+/// **The plates' quads are the packet's** (item 4653, §6.2): helper 0's
 /// pieces, page 0's age bucket 0, are [`lay`]'s boxes and texcoords from
 /// each record's element and orientation, and the tile page's texcoord at
 /// every corner is the corner's tile over [`crate::world::PLATE_PAGE_TILES`]
@@ -676,7 +676,7 @@ fn the_plates_quads_are_the_packet_s() {
     assert_eq!(row, RUN1814B_PLATE_QUADS);
 }
 
-/// **`RUN1814B_PLATE_PIECES`** (item 4653, §6.1): our walk on run1814b
+/// **`RUN1814B_PLATE_PIECES`** (item 4653, §6.2): our walk on run1814b
 /// against the packet's records with a reference in
 /// [`RUN1814B_PLATE_BOX`]: `[the packet's, ours laid as plates, ours on
 /// the packet's element and orientation]`.
@@ -686,7 +686,7 @@ fn the_plates_quads_are_the_packet_s() {
 /// as run1559b's do (4199a).
 const RUN1814B_PLATE_PIECES: [usize; 3] = [54, 50, 29];
 
-/// **The plates we lay against the packet's records** (item 4653, §6.1):
+/// **The plates we lay against the packet's records** (item 4653, §6.2):
 /// on run1814b's lobby at the photograph's frame, every piece our walk
 /// lays in the box is a plate (slot 0 is in the Ancient Age), and each
 /// against the record's own element and orientation.
@@ -781,7 +781,7 @@ fn every_alpha_key_is_its_own() {
     }
 }
 
-/// **`RUN1833_DRAW_81`** (item 4665, §6.1): run1833's draw 81, the plates,
+/// **`RUN1833_DRAW_81`** (item 4665, §6.2): run1833's draw 81, the plates,
 /// against our plate mesh on run1814b's lobby at the photograph's frame:
 /// `[its triangles, distinct by position, each drawn twice, ours distinct,
 /// ours on its cells, those laid as many times as its, their corners, the tile page's texcoord equal, the
@@ -800,7 +800,7 @@ const RUN1833_DRAW_81: [[usize; 10]; 2] = [
     [640, 320, 320, 768, 318, 318, 954, 954, 948, 954],
 ];
 
-/// **The plates' mesh is draw 81's** (item 4665, §6.1): run1833's card
+/// **The plates' mesh is draw 81's** (item 4665, §6.2): run1833's card
 /// keeps the plates' stream (`RON_CARD_STREAMS`): 842 vertices at stride
 /// 52, position, normal, UV0 (the piece's), UV1 (the tile page's), and
 /// 1,920 indices, each piece's cells drawn twice. Our mesh, cell by cell

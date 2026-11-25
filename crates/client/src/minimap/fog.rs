@@ -307,7 +307,7 @@ pub(crate) mod tests {
     /// 125.2) and 1417 → 1423 (toward 156.4). Item 4653's plates: 1432 →
     /// 1430, 1438 → 1436 and 1423 → 1431, all toward theirs (their run takes
     /// the land pass's HDR round trip, which re-tones the frame;
-    /// `docs/RENDERER.md` §6.1). Item 4661's plates on their own alpha:
+    /// `docs/RENDERER.md` §6.2). Item 4661's plates on their own alpha:
     /// 1430 → 1431 and 1436 → 1437 (away, a tenth each) and 1431 → 1424
     /// (away from 156.4): a named fall, the plates' sand where the borders'
     /// ramp laid it before.
