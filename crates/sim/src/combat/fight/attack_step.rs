@@ -243,6 +243,25 @@ impl Sim {
         true
     }
 
+    /// **A self-destructing unit's ram** (item 4667,
+    /// `Unit::resolve_unit_collision@005f9d30:84`–`:91`): blocked by `c`,
+    /// unit `i` aims at it (`Unit::set_attack`), fires at it
+    /// (`Object::fire_ammo`'s unit arm, as `fight`'s ranged arm calls it:
+    /// from its own square, 100 above the ground) and dies
+    /// (`Object::die(this, 3, −1, 0)`). No `fight`: no swing, no turn, no
+    /// reload. The caller has asked `valid_target` and the type's `n`
+    /// flag (`docs/COLLISION.md` §6, step 1).
+    pub(crate) fn ram(&mut self, i: usize, c: usize) {
+        let (me, target) = (Obj::Unit(i), Obj::Unit(c));
+        self.set_attack(i, target);
+        let (from, to) = (self.units[i].pos, self.units[c].pos);
+        let direct = find_angle(to.x - from.x, to.y - from.y);
+        let sz = self.ground_z(from) + 100;
+        let frame = self.frame;
+        self.fire_ammo(me, target, direct, frame, from, sz);
+        self.die_with(i, 3);
+    }
+
     /// **`UnitData::recharge()`** (vslot `+0x134`, §8.3), as the byte
     /// `recharging` holds it: a siege type out of supply and off its own
     /// ground reloads slower.
