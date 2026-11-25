@@ -11053,14 +11053,18 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // none).
         // Item 4642: muster uses the building's current alert. The original
         // group destination now agrees on 3833; builds first part on 3899.
+        // Then item 4655 (`get_damage`'s recapture step reads the target
+        // city's race, whoever owns the building): builds 4,201 -> 4,353
+        // (first 3899 -> 4350); the row's first parting is groups alone on
+        // 3995.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                4341, 4201, 6001, 4356, 4416, 4239, 4341, 4341, 4351, 5173, 4413, 4341,
+                4341, 4353, 6001, 4356, 4416, 4239, 4341, 4341, 4351, 5173, 4413, 4341,
             ],
             first: &[
                 ("units", (4341, Some(630316088), 571078055)),
-                ("builds", (3899, Some(2786105460), 2620233851)),
+                ("builds", (4350, Some(4014773854), 1772852329)),
                 ("ammo", (4356, Some(1671400503), 4115106818)),
                 ("deaths", (4416, Some(1680720123), 2417413765)),
                 ("groups", (3995, Some(866943998), 1455327226)),
@@ -11237,23 +11241,32 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // order's figures on the order's point, aimed or not): items 4,129 -> 4,069 (first 4129 ->
         // 4053) and goods 4,087 -> 4,117 (first 4087 -> 4117), past the row's first parting 3662,
         // which stands.
+        // Then item 4655 (`get_damage`'s recapture step reads the target
+        // city's race, whoever owns the building): units 3,662 -> 3,706,
+        // builds 3,695 -> 3,730 (first 3662 -> 3718), ammo 3,711 -> 3,747
+        // (first 3665 -> 3706), deaths 3,672 -> 3,715, groups 3,662 ->
+        // 3,746 (first -> 3733), guys 3,663 -> 3,706, leaders 3,674 ->
+        // 3,746 (first -> 3714), cities 3,693 -> 3,751, items 4,069 ->
+        // 4,893, goods 4,117 -> 4,166 (first -> 4155), world 3,668 ->
+        // 3,706; the row's first parting is units, ammo, guys and world on
+        // 3706.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3662, 3695, 6001, 3711, 3672, 3662, 3663, 3674, 3693, 4069, 4117, 3668,
+                3706, 3730, 6001, 3747, 3715, 3746, 3706, 3746, 3751, 4893, 4166, 3706,
             ],
             first: &[
-                ("units", (3662, Some(2263308614), 3663092386)),
-                ("builds", (3662, Some(2125117544), 3277305961)),
-                ("ammo", (3665, Some(2841584632), 2939692204)),
-                ("deaths", (3672, Some(1706167525), 1719209194)),
-                ("groups", (3662, Some(700922587), 4145494656)),
-                ("guys", (3663, Some(2600191005), 3603350278)),
-                ("leaders", (3674, Some(1864656474), 2352703069)),
-                ("cities", (3693, Some(1156464184), 3186376370)),
-                ("items", (4053, Some(912470408), 898052486)),
-                ("goods", (4117, Some(3194787109), 3189019939)),
-                ("world", (3666, Some(282235351), 271225303)),
+                ("units", (3706, Some(1442083163), 2455439998)),
+                ("builds", (3718, Some(3072307388), 431271696)),
+                ("ammo", (3706, Some(1338324735), 459028267)),
+                ("deaths", (3715, Some(2424789091), 2467256425)),
+                ("groups", (3733, Some(716527825), 2283821262)),
+                ("guys", (3706, Some(4002952463), 3588110382)),
+                ("leaders", (3714, Some(2035969356), 3149425998)),
+                ("cities", (3751, Some(3595451697), 3592174896)),
+                ("items", (4893, Some(947073420), 912470408)),
+                ("goods", (4155, Some(3194787109), 3189019939)),
+                ("world", (3706, Some(2648689735), 889900131)),
             ],
             over: None,
         }),
