@@ -3878,6 +3878,19 @@ pub(crate) mod tests {
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
             }
+            for u in built.sim.units.iter().filter(|u| u.alive() && u.owner == 2 && [51, 20, 55, 77].contains(&u.index)) {
+                if state < 2962 { break; }
+                let ty = u.ty.expect("a type");
+                eprintln!(
+                    "PROBE4652 state {state} unit 2/{} {} TI {} {:?} orders {:?} target {:?}",
+                    u.index,
+                    loaded.unit_names[ty],
+                    built.sim.tables.unit_types[ty].type_index,
+                    u.kind.domain,
+                    u.orders.iter().map(|o| format!("{:?}", o.body)).collect::<Vec<_>>(),
+                    u.combat.target,
+                );
+            }
             let set = record.first_of(state - 1).expect("the state's set").clone();
             let all = record.ranges(&set).expect("the set's ranges");
             let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
@@ -3891,8 +3904,10 @@ pub(crate) mod tests {
                     );
                 }
                 if a.bytes != b.bytes {
-                    eprintln!("PROBE4652 state {state} first differing range {k} record {} {}", a.record, a.field);
-                    break;
+                    eprintln!(
+                        "PROBE4652 state {state} differing range {k} record {} {} ours {:02x?} theirs {:02x?}",
+                        a.record, a.field, a.bytes, b.bytes
+                    );
                 }
             }
         }
