@@ -229,7 +229,7 @@ impl AttackGroundView for SimAttackGround<'_> {
     fn fire_ammo(&mut self) {
         let from = self.s.units[self.u].pos;
         let direct = crate::movement::find_angle(self.g.at.x - from.x, self.g.at.y - from.y);
-        let sz = self.s.ground_z(from) + 100;
+        let sz = self.s.unit_launch_z(self.u, from);
         self.s.fire_ammo_ground(
             Obj::Unit(self.u),
             self.g,
