@@ -1980,3 +1980,11 @@ Taken by item 4611, found on `6fa43acc3`'s tree; with item 4630's row 28 the lin
 units on 10879. Both hold sums.
 
 **Item 4618** (piece 37's bays): row 148 has 11 lines whole, every one but units, which still part on 10879.
+
+**Item 4635, row 128's Russian age, and the row is whole.** run1828 holds row 128's leaders ranges to 12000. On 3338
+leaders range 1, record 0, `reg_terr[1]`: ours 198, theirs 0; who=1's 495 | 104 and who=2's 447 | 0, with
+`reg_known_rares[1]` zeroed. On 3336 who=1 (tribe 13, the Russians) enters the Classical age on both sides.
+`Leader::gain_tech@006dcb60:1305`–`:1322` calls `Regions::fix_all_borders` for a temple or fort border prerequisite,
+a Civic epoch, or an age under tribe bonus 0xd, whether the table moves or not; ours fixed only on a moved table.
+*Diff-backed* (`row_128_s_russian_age_fixes_the_borders_on_run1828_s_ranges`). `SCORES_SEVENTH[6].moved`: 11 → 12
+lines whole, 12,001 of 12,001 on every line (`docs/journal/2026-11-25-item-4635.md`).

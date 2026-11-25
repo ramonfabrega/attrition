@@ -42157,3 +42157,27 @@ adding `--tracer-def RON_RANGES --tracer-def RNG_MASK=0xffbu`.
   `d47af736534e2f05792ec3d36050860d761d484b93f96ede014bc678bb882be2`.
   `~/ron-data/lab-experiments/2026-11-24-codex-merchant.ch6hlc/farm10207/`
   holds the command file, checks, logs and original predicate controls.
+
+## run1828 — parity held out, seventh battery, row 128's file to 12,000 with the checksum hook and the leaders ranges (2026-11-24, item 4635, `att-4635`)
+
+`docs/RECGAME.md` §14.6. **What the disk could not answer**: run1810 holds sums only, so row 128's parting on 3338
+named no leaf. The take is the queue's one-take line on run1810's file: `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh
+tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1828 --recording
+~/ron-golden/recordings/item4600-row128-12000.rcx --end-frame 12000 --allow-early-end --cover cover=1 --log-window
+3332 3344 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES
+--tracer-def RNG_MASK=0x80u`, waited on with `waitrun.sh` in the background. The lane was `free` at launch; `df -g ~`
+read 130 GB free before it and 122 after.
+- **The run**: pool lane 1, launched 23:38:11 −05:00, exited 23:52:32: **860.3 s**, exit 0, `success`, no page fault,
+  no relaunch. 12,001 frames, `last_frame` 12000, not ended early; seed 12345, map 14. The recording's SHA-256 is
+  run1810's (`bfc24707…`). Players: tribe 4 (who 0, flags 7), tribe 13 (who 1), tribe 17 (who 2).
+- **The record**, `~/ron-golden/run1828/map-14/rontrace.ranges`, 1,131,269,692 bytes, SHA-256
+  `d8d4b6dbf7b155a2d28220cb62f1b0dea4a52945a3395036b376ff239a81294d`, under 2^31 and not split.
+- **Scored** (`score_recording … ~/ron-golden/run1828/map-14`, on `df102cc6e`): the sums are run1810's, leaders
+  8,154 of 12,001, first 3338, every other line whole. **Leaders range 1, record 0, `who..ally_mask` byte 5208
+  (`reg_terr[1]`): ours 0xc6 (198), theirs 0x00.** On the item's tree (`3a5694880`) all twelve lines agree on 12,001
+  of 12,001 states.
+- **Filed** with `filerun.py run1828 heldout7-row128-leaders`: `gamelog_p.txt` →
+  `Logs/gamelog-run1828-heldout7-row128-leaders.txt`, 2,882 bytes, SHA-256
+  `c61e44d07cb33f8fcef9db32d03da600ac36d84f2cd5e3bf9fcc34f98e9da48a`; `rontrace.log` → `Logs/rontrace-run1828.log`,
+  192,602,464 bytes, SHA-256 `dd90b0aedac57028372cf1f77ccbf0c61fd73aebfe8c79a5bd8d3b8b07cdad52`, both linked; the
+  record stays in place.
