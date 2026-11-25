@@ -42252,3 +42252,30 @@ RON_CARD_PROBE --tracer-def RON_CARD_STREAMS --tracer-def RON_CARD_POST`, and `p
 Trace `~/ron-golden/run1833/map-14/rontrace.log`, 24,092,352 bytes, SHA-256
 `575d3bbc558e7750bade4adce2679cce1898ad071c9877867c0255255480bd84`. Photograph `~/ron-golden/run1833-3294.png`,
 SHA-256 `9fcb6667427343d0f20eb5e5c86c2fb6db0caf0a6c377ae3522b47b1edd969a7`.
+
+## run1835 — parity held out, sixth battery, row 53's file to 3,720 with the checksum and ranges hooks, the five lines that part on 3713 kept (2026-11-25, item 4667, `att-4667`)
+
+`docs/RECGAME.md` §13.2. **What the disk could not answer**: run1812's ranges end on 3608 and run1790 holds sums
+only, so row 53's parting on 3713 (units, deaths, guys, leaders and world) named no leaf. The take is run1812's line
+with the window to 3720 and the mask of the five lines (`RNG_MASK=0x8d1u`): `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh
+tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1835 --recording
+~/ron-golden/recordings/item4566-row053-12000.rcx --end-frame 3720 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def
+RNG_MASK=0x8d1u`, waited on with `waitrun.sh` in the background. `df -g ~` read 82 GB free before it, 77 after filing.
+- **The run**: pool lane 1, launched 06:57:04 −05:00, exited 07:02:00: **295.9 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 3,721 frames, `last_frame` 3720, not ended early, seed 12345, map 18. The recording's
+  SHA-256 is run1790's (`e4b6a2d6…`). Players: tribe 4 (who 0, flags 7), tribe 2 (who 1), tribe 13 (who 2).
+- **The record**: `~/ron-golden/run1835/map-18/rontrace.ranges`, 3,125,202,076 bytes, SHA-256
+  `518b02af18a822688faba1d69fba422c847327cb6b0c68a754a90c00d1ecfc07`, compressed in place by `filerun.py` (2.91 →
+  0.25 GiB on disk).
+- **Scored** (`score_recording … ~/ron-golden/run1835/map-18`, on `496f23072`): first state 3713 (units, deaths,
+  guys, leaders, world). **Units range 1496, record 49, `flags`: ours 0x11, theirs 0x01** — theirs holds no `1/49`
+  (who=1's Fire Raft, TI 334, sea) and steps from `1/48` to the Caravan `1/50`; theirs' deaths line adds the raft at
+  (17794, 13388). Theirs' draws 31 to 33 on 3712: `Ammo::init` twice `< Object::fire_ammo`, then `Unit::close <
+  Object::die < Unit::resolve_unit_collision+0xc6`. On the item's tree: first state 3716, leaders alone.
+- Filed by `filerun.py run1835 heldout6-row053-ranges3720`: `gamelog_p.txt` →
+  `Logs/gamelog-run1835-heldout6-row053-ranges3720.txt`, 2,891 bytes; `rontrace.log` → `Logs/rontrace-run1835.log`,
+  147,777,952 bytes.
+
+**What it holds**: the Fire Raft's ram (`docs/COLLISION.md` §6 step 1), read by
+`rondata::diff::held_out::tests::row_53_s_fire_raft_rams_and_sinks_on_run1835_s_ranges`.
