@@ -205,7 +205,7 @@ impl Sim {
                 "D4634 f{frame} {:?} -> {:?} dmg {dmg} count {count} ammo {ammo} splash {splash} attack {:?} armor {:?} pct {pct} apa {} uber {} alive {} unit_alive {:?}",
                 attacker, target, self.attack_of(attacker), self.armor_of(target), ap.ammo_per_att, ap.uber_size,
                 self.obj_alive(attacker),
-                match attacker { Obj::Unit(u) => Some((self.units[u].owner, self.units[u].index, self.units[u].type_index, self.units[u].hits)), _ => None },
+                match attacker { Obj::Unit(u) => Some((self.units[u].owner, self.units[u].index, self.units[u].type_index, self.units[u].health)), _ => None },
             );
         }
         // Step 2: the target's captain reacts, and the overkill record.
