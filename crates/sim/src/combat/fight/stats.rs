@@ -587,6 +587,20 @@ impl Sim {
                     under_construction: !bd.active,
                     attacks: self.attack_of(o) != 0,
                     in_unfriendly_territory: self.in_unfriendly_territory(b),
+                    // Step 28's input, `get_damage@00644130:477`–`:494`: an
+                    // active city building (`BuildData +0x8 & 0x20`, the
+                    // `VILLAGE` lineage) with a city (`+0x72 >= 0`) whose
+                    // `race` (`CityData +0x5f`) is the attacker's player. It
+                    // asks nothing about who owns the building, so a player
+                    // striking its own capital takes it too (item 4655,
+                    // `docs/RECGAME.md` §13.5): row 133's SAM `2/2027`'s
+                    // rocket, its target dead, comes down on who=2's capital
+                    // `2/2000` on 2450 for 44, not 22.
+                    recapturable_city: bd.active
+                        && self.building_is_city(b)
+                        && bd.city.is_some_and(|c| {
+                            self.cities.cities[c].race == Some(self.owner_of(attacker))
+                        }),
                     z: self.world.object_z(bd.pos.tile()),
                     tile_owned_by_attacker: self
                         .world
