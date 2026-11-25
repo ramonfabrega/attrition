@@ -5971,6 +5971,85 @@ from `sim`. None is minted: item numbers and the queue are the commander's.
 team colours, animation poses, buildings' construction stages, territory
 lines and fog shading, projectiles and corpses, then candidate C.
 
+## 6.1 The capital's ground on run1814b: the Farm's plots and the buildings' plates (item 4636)
+
+*2026-11-24, Opus 5.5. The ledger: `docs/journal/2026-11-24-item-4636.md`.
+`client::farms`; checked by `farms::tests::the_farm_on_run1814b`.*
+
+**What the photograph shows.** On run1814b's frame 3294 (Ancient Age) the
+original lays wheat plots on slot 0's farms, with three Citizens on them,
+and a sandy plate round every building of the capital. The client draws
+grass under both. **Both are read off the packet, and neither needs a take.**
+
+**The plots are two draws**, both left in the packet:
+- **The wheat boxes**, `FarmsOut::draw@008d75f0`. For each farm that is not
+  the pasture (`FarmStruct::farm_type` 1), it walks the 4 × 4 grid of plots.
+  Each plot gets a copy of the box template `wheat_box_verts` (`0x00C8C3D8`:
+  10 vertices, a ±96 top quad at z 1 and three sides down to z 0, 18
+  indices) at the plot's tile centre. Its height is `percent` of the full,
+  and its foot is on `terrain_height[5][5]`. The packet's `wheat_verts`
+  (`0x00C8C464`) holds **480 vertices, 3 farms × 16 plots × 10**, x 1535 to
+  3072, y 30911 to 32450. The top vertices sway in the wind
+  (`wheat_use_wind`). A farm's corner is its tile less `size >> 1`
+  ([`farms::corner`]); the packet's three blocks stand at tiles (9, 161),
+  (8, 165) and (12, 165), and ours stand there too.
+- **The `wheatfarm` underlay**, `WallOut::draw_weathering@0063dde0`. For a
+  building of type `0x1a1` (the farm) whose record's `farm_type & 1` is
+  clear, it calls `TerrainOut::add_weather_underlay@00874d00` over 4 × 4
+  tiles from the corner, with the internal string at `+0x22cf4`. A farm
+  with the bit set takes `+0x22d08`, faded by its build share. The texture
+  is the tileset's `<UNDERLAYS>` entry by that name (`farm_wheat.tga`;
+  `pigfarm` is `farm_animals.tga`). The packet's underlay helpers
+  (`TerrainOut +0x4bf0`, one `RenderHelper` of 0x13c per entry, in file
+  order) hold **`wheatfarm` 75 vertices (three 5 × 5 grids), x 1536 to 3072,
+  y 30912 to 32448**, the same ground. `pigfarm` and `oil` hold 0, `rough`
+  117 and `snowcap` 63 (the snowcap of §3.10).
+- `FarmStruct` (0xc0): `who`, `o`, `percent[4][4]`, `terrain_height[5][5]`,
+  `status[4][4]`, `valid`, `farm_type`. Slot 0's three are o 2002, 2003 and
+  2004, `farm_type` 0, 0 and 4. In each, 3 to 5 plots are at `percent` 0
+  and `status` 0. These are the photograph's bare patches.
+
+**The plates are the roads at age 0**, not the weathering:
+- `Terrain::add_weathering@00850120` refuses an age below 6. On the
+  listing, `0x85014a` is `cmp edx, 6; jl` on the sixth argument, so the
+  `size + 1` arm of §3.17 lays nothing in the Ancient Age.
+- `tools/render/road_records.py` on run1814b's packet prints **142 road
+  tiles, every one at `prev_age` 0**. Sixty-one ring slot 0's city
+  (x 7 to 19, y 151 to 163).
+- `RoadsOut::render@008943d0` draws each page and age bucket through its own
+  helper, at index `page · 3 + bucket`. On a page whose tile-page bit is set
+  (`+0x9c`), it binds the page's pieces at stage 0 and the tileset's
+  `road_textures[bucket]` at stage 1. A card with a third stage also gets
+  `road_mtrl_textures[bucket]` at stage 2. The state is `+0x2f0`, where the
+  modern page takes `+0x188` and stage 0 alone.
+- `Data/roads.xml`'s age-0 texture is `early_road_pieces.tga`, an alpha
+  ("the real texture to show through" is the tile page). The tilesets'
+  `<ROADTEX>` first entry is the colour: `*_Middle_Road.tga`, which is
+  `autumn_Middle_Road.tga` on the autumn tilesets.
+- `World::road_pieces` keeps bucket 2 alone (`ROAD_BUCKET`), so the client
+  lays none of the 61.
+
+**The row.** `RUN1814B_3294_FARM`, minted red: each tile of slot 0's farms'
+footprints (48) with at least `HUE.min_pixels` ground pixels. It compares
+the photograph's mean and the still's on `HUE` and on `LUMA_READER`, as
+the plaza's row does (§3.17). Hue **2** and luma **29 of 48**. Tile
+(10, 165), 1,032 pixels: theirs (186, 156, 51) Y 153.4, ours grass
+(185, 188, 74) Y 174.5.
+
+**Diff-backed**: the farms' corners and sizes (ours against the packet's
+blocks). **Read alone**: everything else above. The packet's vertex counts
+and road ages back the reading's arithmetic but not the draws' pixels.
+
+**Not established.**
+- The wheat boxes' texture (`TileSet::get_wheat_texture@00878190`), their
+  colour (`get_global_color`, the farm's tint between `farms +0x40` and
+  `+0x48`), the full height (`farms +0x4c`, `+0x50`), and the wind.
+- The door's `FieldScene` carries no `percent` or `status`. The plots'
+  build needs both.
+- The road state `+0x2f0`'s blend and stage ops, and whether the tile page's
+  texcoords are the tile's or the piece's.
+- The trees past sight stay lit (4621a). Not touched here.
+
 ## 7. What is not established, and what needs Ramon's word
 
 ### 7.1 Not established
