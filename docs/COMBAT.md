@@ -741,7 +741,9 @@ tmask  = T.type.obj_masks
 16. **River**: T is a unit and T's `z < 0`: `base = (base * river_modifier) >>
     8`.
 17. **Decoy**: T is a unit with `unit_masks & 1`: `armor = 0`; `base =
-    max(A.attack(), base) * 1000`. Anything kills a decoy. ~~This crate's
+    max(ObjectData::attack(A), base) * 1000`, the direct call at `644a04`,
+    no `attack()` override (~~`A.attack()`~~, item 4657: run1830b's
+    Citizen arm). Anything kills a decoy. ~~This crate's
     target side carried the bit false for every unit~~ (item 3385,
     `docs/AI.md` §293): run1011e's packet struck a General's decoy Light
     Horse for 19688 where this crate dealt 6. **Diff-backed** by the Inca

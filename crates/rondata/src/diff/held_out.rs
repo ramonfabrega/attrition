@@ -12003,23 +12003,35 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // 4,893, goods 4,117 -> 4,166 (first -> 4155), world 3,668 ->
         // 3,706; the row's first parting is units, ammo, guys and world on
         // 3706.
+        // Then item 4657 (`get_damage`'s step 17 takes the attacker's own
+        // `ObjectData::attack`, no `attack()` override): on 3705's tick
+        // decoys are struck and ranked under an object attack of 220, 200
+        // or 190 where ours took 240, 220 or 210 (a probe, reverted whole).
+        // The row's first parting moves 3706 -> 3715, deaths alone, whose
+        // sum parts as before (ours 2424789091 -> 2495174764, theirs
+        // 2467256425): units 3,706 -> 3,716, builds 3,730 -> 3,744 (first
+        // 3718 -> 3744), ammo 3,747 -> 3,754 (first 3706 -> 3718), guys
+        // 3,706 -> 3,716, world 3,706 -> 3,723, goods 4,166 -> 4,690 (first
+        // 4155 -> 4690); leaders 3,746 -> 3,745 (first 3714 -> 3742) and
+        // items 4,893 -> 4,164 (first 4893 -> 3986), named falls past the
+        // parting.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3706, 3730, 6001, 3747, 3715, 3746, 3706, 3746, 3751, 4893, 4166, 3706,
+                3716, 3744, 6001, 3754, 3715, 3746, 3716, 3745, 3751, 4164, 4690, 3723,
             ],
             first: &[
-                ("units", (3706, Some(1442083163), 2455439998)),
-                ("builds", (3718, Some(3072307388), 431271696)),
-                ("ammo", (3706, Some(1338324735), 459028267)),
-                ("deaths", (3715, Some(2424789091), 2467256425)),
+                ("units", (3716, Some(510734992), 4255724178)),
+                ("builds", (3744, Some(889368479), 4063342494)),
+                ("ammo", (3718, Some(2536770229), 2487159505)),
+                ("deaths", (3715, Some(2495174764), 2467256425)),
                 ("groups", (3733, Some(716527825), 2283821262)),
-                ("guys", (3706, Some(4002952463), 3588110382)),
-                ("leaders", (3714, Some(2035969356), 3149425998)),
+                ("guys", (3716, Some(752224755), 3990227445)),
+                ("leaders", (3742, Some(536833669), 3717361283)),
                 ("cities", (3751, Some(3595451697), 3592174896)),
-                ("items", (4893, Some(947073420), 912470408)),
-                ("goods", (4155, Some(3194787109), 3189019939)),
-                ("world", (3706, Some(2648689735), 889900131)),
+                ("items", (3986, Some(1289238888), 2096903490)),
+                ("goods", (4690, Some(3285620014), 3223622949)),
+                ("world", (3723, Some(104781893), 10999633)),
             ],
             over: None,
         }),
@@ -12672,25 +12684,37 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 3,323, deaths 3,632 -> 3,008, groups 3,002 -> 3,004, items 5,437 -> 3,954 (first 3468 ->
         // 3146), goods 4,397 -> 4,117, ours' `game_over` 9802 -> 11109; all past the row's first
         // parting 2965 (units), which stands, and guys 2966 stands.
+        // Then item 4657 (`get_damage@00644130`'s step 17 calls
+        // `ObjectData::attack@006469f0` directly at `644a04`, so the decoy's
+        // `max(attack, base) × 1000` takes no `UnitData::attack` override,
+        // `Sim::object_attack`): on 2964's tick who=2's Infantry `2/51` (TI
+        // 102, land) scores the decoy `1/38` (TI 258) at 20,000 as theirs
+        // (run1830b), where ours' Citizen arm made 260 of its 240 and
+        // 594,950, and picks as theirs. The row's first parting moves 2965
+        // -> 3058, units alone: units 2,965 -> 3,108, builds 3,026 -> 3,269,
+        // ammo 3,323 -> 3,879, deaths 3,008 -> 3,612, groups 3,004 -> 3,473,
+        // guys 2,967 -> 3,416, leaders 2,983 -> 3,449, cities 3,376 ->
+        // 3,707, items 3,954 -> 6,297, goods 4,117 -> 4,563, world 2,975 ->
+        // 3,184; ours' `game_over` 11109 -> none, both play to 12,000.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                2965, 3026, 12001, 3323, 3008, 3004, 2967, 2983, 3376, 3954, 4117, 2975,
+                3108, 3269, 12001, 3879, 3612, 3473, 3416, 3449, 3707, 6297, 4563, 3184,
             ],
             first: &[
-                ("units", (2965, Some(2944560567), 523660729)),
-                ("builds", (3004, Some(2482202651), 4285163131)),
-                ("ammo", (2978, Some(1714572981), 3065139014)),
-                ("deaths", (3008, Some(3817289519), 3817489508)),
-                ("groups", (2982, Some(1074681641), 115365832)),
-                ("guys", (2966, Some(96889624), 2207673204)),
-                ("leaders", (2983, Some(3337828037), 36057006)),
-                ("cities", (3376, Some(897138611), 842153906)),
-                ("items", (3146, Some(2121282860), 2092447016)),
-                ("goods", (3157, Some(2924123420), 3056768288)),
-                ("world", (2975, Some(4068279797), 2248541463)),
+                ("units", (3058, Some(4270193561), 4037082007)),
+                ("builds", (3269, Some(1882890068), 5807727)),
+                ("ammo", (3420, Some(2050829256), 3783208006)),
+                ("deaths", (3433, Some(1040278336), 1142973249)),
+                ("groups", (3458, Some(349811072), 1738456272)),
+                ("guys", (3399, Some(3910598501), 3104440211)),
+                ("leaders", (3441, Some(1041176352), 4221441822)),
+                ("cities", (3652, Some(1847345313), 121454513)),
+                ("items", (3619, Some(613036389), 584200545)),
+                ("goods", (4147, Some(3351549222), 3201602850)),
+                ("world", (3089, Some(484523747), 2319858450)),
             ],
-            over: Some(11109),
+            over: None,
         }),
     }),
     // run1793
