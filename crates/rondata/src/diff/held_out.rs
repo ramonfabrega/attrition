@@ -4809,7 +4809,11 @@ pub(crate) mod tests {
                 assert_eq!(built.sim.tables.unit_types[ty].type_index, 271, "2/77's TI");
                 assert_eq!(h.kind.domain, sim::territory::attrition::Domain::Land);
                 assert_eq!(
-                    (h.combat.damage_frame, h.combat.damage_o, h.combat.damage_who),
+                    (
+                        h.combat.damage_frame,
+                        h.combat.damage_o,
+                        h.combat.damage_who
+                    ),
                     (3057, 39, 1),
                     "theirs' range 5933: damage_o 39"
                 );
