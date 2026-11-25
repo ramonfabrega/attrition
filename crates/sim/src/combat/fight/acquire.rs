@@ -1677,7 +1677,21 @@ impl Sim {
             // took the nearer.
             let peasant = matches!(target, Obj::Unit(u) if self.is_peasant(u));
             let sea_raider = raiding && ai_raider && matches!(ap.domain, Domain::Sea);
-            if sea_raider {
+            // **A decoy the searcher has detected is worth a quarter, and
+            // no weight** (`0064ed2d`–`0064ed5c`, item 4652,
+            // `docs/COMBAT.md` §12.3): a target with `unit_masks & 1` for
+            // which `UnitData::is_detected@0060a630` answers the
+            // searcher's owner (`this +9`) takes `v / 4`, signed toward
+            // zero, and jumps to `0064efff`, past every raid and role
+            // weight below and onto the siege divide. Row 93's Infantry
+            // `2/51` (TI 102, land) took who=1's decoy `1/39` over the
+            // decoy `1/38` on run1799's 2964, where the `+1,000,000`
+            // made `1/38` the winner.
+            let detected_decoy = matches!(target, Obj::Unit(u)
+                if self.units[u].decoy && self.unit_is_detected(u, self.owner_of(attacker)));
+            if detected_decoy {
+                v /= 4;
+            } else if sea_raider {
                 let line = |o: Obj, t: crate::tech::TypeId| matches!(o, Obj::Unit(u) if self.unit_line_is(u, t));
                 let flags_of = |o: Obj| match o {
                     Obj::Unit(u) => self.units[u]

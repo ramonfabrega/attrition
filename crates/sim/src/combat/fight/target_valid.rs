@@ -575,6 +575,20 @@ impl Sim {
             && un.unit_masks2 & 0x8000 == 0
     }
 
+    /// **`UnitData::is_detected@0060a630`**: the owner always; anyone
+    /// else when the unit's fog cell (`pos / 0x180`, `div_3_table[pos >>
+    /// 7]`) carries a bit of `who`'s stored ally mask (`LeaderData
+    /// +0x6929`) in `seen3`, the inner disc of a `DETECT` object
+    /// ([`crate::world::World::seen3`]).
+    pub(crate) fn unit_is_detected(&self, u: usize, who: crate::Player) -> bool {
+        let un = &self.units[u];
+        if who == un.owner {
+            return true;
+        }
+        let fog = crate::vision::UNITS_PER_FOG;
+        self.world.seen3(un.pos.x / fog, un.pos.y / fog) & self.stored_ally_mask(who) != 0
+    }
+
     pub fn unit_stealth_hides(&self, u: usize, who: crate::Player) -> bool {
         let un = &self.units[u];
         let Some(t) = un.ty else {
