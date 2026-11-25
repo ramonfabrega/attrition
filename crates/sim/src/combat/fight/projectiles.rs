@@ -369,7 +369,7 @@ impl Sim {
                 // [`Sim::hold_frames_tick`]: a crash is laid inside this walk,
                 // and the frame it is laid on bumps its plane's slot too.
                 if let Obj::Unit(s) = p.shooter
-                    && !self.active(p.shooter)
+                    && !self.slot_live(p.shooter)
                 {
                     self.units[s].hold_frames += 1;
                 }
@@ -384,7 +384,7 @@ impl Sim {
                     // and `cur_time >= total_time` ends it.
                     self.combat.projectiles[i].cur_time += 1;
                     if let Obj::Unit(s) = p.shooter
-                        && !self.active(p.shooter)
+                        && !self.slot_live(p.shooter)
                     {
                         self.units[s].hold_frames += 1;
                     }
@@ -573,7 +573,7 @@ impl Sim {
             q.total_time = q.cur_time - 1;
             q.cur_time += 1;
             if let Obj::Unit(s) = p.shooter
-                && !self.active(p.shooter)
+                && !self.slot_live(p.shooter)
             {
                 self.units[s].hold_frames += 1;
             }
