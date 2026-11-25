@@ -3319,9 +3319,34 @@ impl Sim {
 
         let who = self.units[u].owner;
         let other = self.collider_of(u);
-        // `005f9d30:96`: `update_action` runs on every path past step 0
-        // (step 1, the suicide attacker, is not modelled), and its
-        // `orders_x/y` and `dest_angle` writes are the original's own.
+        // Step 1: **a self-destructing unit rams what it ran into**
+        // (item 4667, `docs/COLLISION.md` §6; `005f9d30:79`–`:94`). A type
+        // whose `unit_flags` (`UnitType +0x2b4`) carries `n` (`0x2000`, the
+        // fire rafts and fire ships), blocked by an object it may attack
+        // (`Object::valid_target(collide_o, collide_who, 0)`), aims at it
+        // (`Unit::set_attack`), fires at it (`Object::fire_ammo`, the unit
+        // arm: from its own square, 100 above the ground) and dies
+        // (vslot `+0x158`, `Object::die(this, 3, −1, 0)`), before
+        // `update_action`. Every collider this crate records is a unit
+        // (`record_hit`, `name_pusher`). Row 53's 3712 (run1835): who=1's
+        // Fire Raft `1/49` (TI 334, sea), bumping who=2's `2/108`, fires
+        // and sinks there in theirs (draws 31 to 33: `Ammo::init`, then
+        // `Object::die < Unit::resolve_unit_collision+0xc6`) where ours
+        // turned to an attack order.
+        if let Some(c) = other
+            && self.units[u].ty.is_some_and(|t| {
+                self.tables.unit_types[t].cols.unit_flags
+                    & crate::ai::ai_load::uflags::SELF_DESTRUCT
+                    != 0
+            })
+            && self.valid_target(Obj::Unit(u), Obj::Unit(c))
+        {
+            self.ram(u, c);
+            return;
+        }
+        // `005f9d30:96`: `update_action` runs on every path past steps 0
+        // and 1, and its `orders_x/y` and `dest_angle` writes are the
+        // original's own.
         let action = self.update_action(u);
         let attacking =
             action.is_some_and(|a| matches!(self.units[u].orders[a].body, Body::Attack(_)));

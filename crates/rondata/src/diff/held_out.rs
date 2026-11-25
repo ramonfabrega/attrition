@@ -3308,6 +3308,59 @@ pub(crate) mod tests {
         );
     }
 
+    /// **Row 53 on 3713** (item 4667, `docs/RECGAME.md` §13.2): run1835,
+    /// the ranges take of row 53's file to 3720 (units, deaths, guys,
+    /// leaders and world kept). Every kept line's ranges on 3712 to 3714,
+    /// ours against theirs, byte for byte.
+    #[test]
+    fn row_53_on_3713_against_run1835_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 2) else {
+            eprintln!("skipping: row 53's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1835/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1835's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 53's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3712..=3714 {
+            while built.sim.frame < state {
+                crate::diff::harness::debug_watch(&built, built.sim.frame);
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            crate::diff::harness::debug_watch(&built, built.sim.frame);
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (li, name) in [(0u8, "units"), (4, "deaths"), (6, "guys"), (7, "leaders")] {
+                let ours = lines[usize::from(li)].as_ref().expect(name);
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == li).collect();
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{name} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+            }
+        }
+    }
+
     /// **Row 83's Airbase keeps its Biplane in when an enemy wonder out of
     /// reach outscores the city** (item 4562, `docs/RECGAME.md` §12.3):
     /// run1784, the ranges take of row 83's file. who=2's computer sortie
