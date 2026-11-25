@@ -487,11 +487,12 @@ mod tests {
     /// Item 4319: the drawn plume 10,772 → 10,773 of 20,161 → 20,165, past 2,236 → 2,238, dense 1,016 → 1,015 (a named fall of one); the packet's 11,728 → 11,726 (a named fall of two): the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24) moves the frame's mean, so its white.
     /// Item 4438: the drawn plume 10,773 → 10,765 of 20,165 → 19,963, past 2,238 → 2,263, dense 1,015 → 980 (a named fall of the reader's base); the packet's 11,726 → 11,707: the buildings' trim drawn in the owner's colour (item 4438, `docs/RENDERER.md` §5.3) reddens the fires-off scene each pixel is classed against.
     /// Item 4677: the drawn plume 10,765 → 10,762 of 19,963 → 19,958 (a named fall of three), past 2,263 → 2,264, dense 980 → 981; the packet's 11,707 → 11,700 (a named fall of seven): the plates' and the asphalt's pieces on the packet's element on more tiles (item 4677, `docs/RENDERER.md` §6.5) move the frame's mean, so its white.
+    /// Item 4687: the drawn plume 10,762 → 10,765 of 19,958 → 19,959, past 2,264 → 2,263, dense 981 → 980; the packet's 11,700 → 11,707: the line passes in the mesh, their pushes redone for the texture alone, and `leech_codes`' line half (item 4687, `docs/RENDERER.md` §6.8) move the intersections some pieces are picked on, so the frame's mean and its white.
     const RUN1559B_3279_PLUME: PlumeRows = [
-        ((10762, 19958, 2264), (14800, 981)),
-        ((0, 19958, 0), (0, 0)),
-        ((19958, 19958, 0), (16897, 3061)),
-        ((11700, 19958, 1867), (14029, 1834)),
+        ((10765, 19959, 2263), (14801, 980)),
+        ((0, 19959, 0), (0, 0)),
+        ((19959, 19959, 0), (16891, 3068)),
+        ((11707, 19959, 1866), (14030, 1834)),
     ];
     /// **`RUN1570_PLUME`**, on run1570's frame 3327: as run1559b's. Seen
     /// at **316** of 18,871 (made to fail: 944). Item 4233: **316 →
@@ -520,11 +521,12 @@ mod tests {
     /// Item 4319: the drawn plume 10,825 → 10,827 of 19,322 → 19,324, past 1,918 → 1,916; the packet's 12,012 → 12,015, past 1,479 → 1,478: the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24) moves the frame's mean, so its white.
     /// Item 4438: the drawn plume 10,827 → 10,829 of 19,324 → 19,071, past 1,916 → 1,933, dense 1,002 → 982; the packet's 12,015 → 12,003 (a named fall of twelve): the buildings' trim drawn in the owner's colour (item 4438, `docs/RENDERER.md` §5.3) reddens the fires-off scene each pixel is classed against.
     /// Item 4677: the drawn plume 10,829 → 10,834 of 19,071 → 19,065, past 1,933 → 1,934, dense 982 → 981; the packet's 12,003 → 12,004: the plates' and the asphalt's pieces on the packet's element on more tiles (item 4677, `docs/RENDERER.md` §6.5) move the frame's mean, so its white.
+    /// Item 4687: the drawn plume 10,834 → 10,829 of 19,065 → 19,066 (a named fall of five), past 1,934 → 1,933, dense 981 → 982; the packet's 12,004 → 12,003 (a named fall of one): the line passes in the mesh, their pushes redone for the texture alone, and `leech_codes`' line half (item 4687, `docs/RENDERER.md` §6.8) move the intersections some pieces are picked on, so the frame's mean and its white.
     const RUN1570_PLUME: PlumeRows = [
-        ((10834, 19065, 1934), (14672, 981)),
-        ((0, 19065, 0), (0, 0)),
-        ((19065, 19065, 0), (16030, 3035)),
-        ((12004, 19065, 1489), (13381, 2241)),
+        ((10829, 19066, 1933), (14671, 982)),
+        ((0, 19066, 0), (0, 0)),
+        ((19066, 19066, 0), (16026, 3040)),
+        ((12003, 19066, 1488), (13382, 2240)),
     ];
 
     #[test]

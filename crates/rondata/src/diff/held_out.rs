@@ -2307,6 +2307,70 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 133's captured city keeps the border pass's near mark** (item
+    /// 4686): run1797's ranges, the row's cities parting on 3619 (range 59,
+    /// record 12, `city_flags` ours 0x010f, theirs 0x110f). who=1 takes the
+    /// city on 3619 and its new record is 12; `City::capture@00736c40:86`
+    /// writes the new flags as the old's `& 0xf13f`, which keeps `0x1000`,
+    /// a mark this crate held on the loser's half of the record. City 12
+    /// is unassimilated, so its own cells' winner is `-2` and the pass
+    /// cannot mark it again. Every cities range on 3619 and 3620.
+    #[test]
+    fn row_133_s_captured_city_keeps_the_near_border_mark_on_run1797() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 3618 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        assert_eq!(built.sim.cities.cities.len(), 12, "no city 12 on 3618");
+        for state in [3619, 3620] {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            assert_eq!(built.sim.frame, state);
+            let city = &built.sim.cities.cities[12];
+            assert!(city.alive && city.owner == 1, "who=1's city 12 on {state}");
+            assert!(city.unassimilated, "taken, not founded");
+            assert!(
+                built.sim.ai.ai[1].city_ai[12].near_border,
+                "0x1000 came across on {state}"
+            );
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[8].as_ref().expect("the cities line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 8).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "cities' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "cities range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+    }
+
     /// **Row 133's dead farm rolls under its number's next building** (item
     /// 4669, `docs/SYNC.md` §3.3): run1797's ranges and trace, the row's
     /// units and guys parting on 2677 (units range 4225, record 18, guy
@@ -13440,10 +13504,18 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // on 3613 at (19320, 29496); units range 6687, record 3, `z` ours
         // 661, theirs 770, both 770 now): units 3,617 -> 3,620 (first 3613
         // -> 3620); the first parting is cities on 3619.
+        // Then item 4686 (`City::capture@00736c40:86` writes the new
+        // record's flags as the old's `& 0xf13f`, which keeps the border
+        // pass's `0x1000`: who=1 takes city 12 on 3619; cities range 59,
+        // record 12, `city_flags` ours 0x010f, theirs 0x110f, both 0x110f
+        // now): cities 3,619 -> 3,659 (first 3619 -> 3659), ammo 3,635 ->
+        // 3,625 (a fall past the parting, first 3623 stands), goods 5,233 ->
+        // 5,300, ours' end none -> 6058; the first parting is units, guys
+        // and world on 3620.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                3620, 3638, 6085, 3635, 3638, 3631, 3620, 3628, 3619, 4349, 5233, 3620,
+                3620, 3638, 6085, 3625, 3638, 3631, 3620, 3628, 3659, 4349, 5300, 3620,
             ],
             first: &[
                 ("units", (3620, Some(1149618426), 3102179925)),
@@ -13453,12 +13525,12 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
                 ("groups", (3631, Some(4049642139), 2114518873)),
                 ("guys", (3620, Some(1210952132), 2242359453)),
                 ("leaders", (3628, Some(4025832092), 4018492060)),
-                ("cities", (3619, Some(2699322066), 3335807714)),
+                ("cities", (3659, Some(3270928094), 2729731718)),
                 ("items", (4349, Some(1284182481), 1281298895)),
                 ("goods", (4476, Some(586774648), 601192570)),
                 ("world", (3620, Some(901823717), 1172813965)),
             ],
-            over: None,
+            over: Some(6058),
         }),
     }),
     // run1795

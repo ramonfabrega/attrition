@@ -547,6 +547,10 @@ pub struct RoadTile {
     /// The intersections as the tile's piece was last picked (item 4682;
     /// `crate::movement::mesh::Elem::picked`).
     pub picked: u8,
+    /// `flags`' second and third bytes, the white and yellow lines the line
+    /// passes left on the tile, history and all, in place (`0x00ff_ff00`;
+    /// item 4687, `crate::movement::mesh::Elem::lines`).
+    pub lines: u32,
     /// `fill_cache`'s `road_cache`: bit `k` set when compass neighbour `k`
     /// (`MOVE_X`/`MOVE_Y` order, 0 the tile itself, 1 NW, 2 N … 8 W) is a
     /// road tile (`tile::SURFACE == SURFACE_ROAD`). Off the map is clear.
@@ -980,6 +984,7 @@ impl Sim {
                     c4: e.c4,
                     inter: e.inter,
                     picked: e.picked,
+                    lines: e.lines,
                     road,
                     footprint,
                 }

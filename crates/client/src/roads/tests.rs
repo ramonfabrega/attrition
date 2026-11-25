@@ -333,8 +333,11 @@ fn the_records_against_the_packet_s() {
 /// the intersections `find_piece` last read (`RoadTile::picked`,
 /// `docs/RENDERER.md` §6.7), where a neighbour's `mark_splits` has since
 /// zeroed the low byte without a re-pick.
+/// **Item 4687: intersections 571 → 580**: the line passes in the mesh
+/// with their pushes (redone for the texture alone) and `leech_codes`'
+/// line half (`docs/RENDERER.md` §6.8). The packet's piece holds at 471.
 const RUN1559B_RECORDS: (usize, usize, usize, usize, usize, usize, usize) =
-    (599, 599, 599, 598, 571, 490, 471);
+    (599, 599, 599, 598, 580, 490, 471);
 
 /// **The ring's tiles** (item 4199, §3.19; the rule committed before its
 /// count): for every building whose type is a city (`is(VILLAGE)`), the
@@ -438,9 +441,10 @@ const RING_MOVE: (i32, i32) = (12, 0);
 /// Item 4292: the luma before and moved 6 → 11, drawn 20 → 21 of 24 (a rise from 6 and 20): the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
 /// Item 4311: the luma before 11 → 15 and moved 11 → 13 of 24, drawn unchanged: the map's edge border drawn (item 4311, `docs/RENDERER.md` §3.15) moves the frame's mean, so its white.
 /// Item 4677: drawn luma 21 → 20 of 24, a named fall: tile (13, 156), a 70-pixel sliver, takes the packet's piece (element 18 at its orientation 0, where ours was 2), and its luma goes 50.7 → 48.6 against theirs 58.5, over the bar.
+/// Item 4687: drawn luma 20 → 21 of 24, a rise back to the count before item 4677's named fall: the line passes in the mesh, their pushes redone for the texture alone, and `leech_codes`' line half (item 4687, `docs/RENDERER.md` §6.8) move the intersections some pieces are picked on, so the frame's mean and its white.
 const RUN1559B_3279_RING: [[(usize, usize); 2]; 3] = [
     [(1, 24), (15, 24)],
-    [(21, 24), (20, 24)],
+    [(21, 24), (21, 24)],
     [(1, 24), (13, 24)],
 ];
 /// **`RUN1570_RING`** (item 4199), the same on run1570's photograph: hue
@@ -1005,6 +1009,7 @@ fn a_joined_corner_holds_its_ring() {
         c4: false,
         inter: 0,
         picked: 0,
+        lines: 0,
         road: 0x1ff,
         footprint: 0,
     };
@@ -1046,7 +1051,10 @@ fn a_joined_corner_holds_its_ring() {
 /// `add_roads`' second pass, which marks the tile it lays (§6.6). (15, 155)
 /// is left: (14, 155)'s split clears its `S` and only the line passes'
 /// pushes onto the ping-pong lists would redo it (4677a).
-const RUN1814B_PLATE_CANDIDATES: [usize; 4] = [54, 54, 54, 53];
+/// **Item 4687: 53 → 54 of 54.** (15, 155) is `4500cf04` as theirs: the
+/// line passes push it after (14, 155)'s split, and its redo for the
+/// texture alone re-marks its `S` (`docs/RENDERER.md` §6.8).
+const RUN1814B_PLATE_CANDIDATES: [usize; 4] = [54, 54, 54, 54];
 
 /// **The plates' candidates are the packet's** (item 4673, §6.4): the
 /// white lines whole in the box, element 1's block among them. The

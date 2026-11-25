@@ -93,7 +93,8 @@ impl Sim {
     /// declares war on the other (`diplos == 0` on a side). A fort's win, a
     /// runner-up that is none or `Ambiguous`, or the same player twice, marks
     /// nothing. The `city_flags & 0x1000` arm beside it (a cell within four
-    /// cells of the city) is not modelled: no capture reads it.
+    /// cells of the city) is [`crate::ai::CityAi::near_border`], carried to
+    /// the taker by a capture (item 4686).
     fn mark_bordering(&mut self, who: Owner, who2: Owner, won: i32, cell: crate::world::Cell) {
         let (Some(p), Some(q)) = (who.player(), who2.player()) else {
             return;

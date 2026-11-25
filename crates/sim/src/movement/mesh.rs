@@ -139,7 +139,23 @@ pub struct Elem {
     /// there; a neighbour's `mark_splits` that zeroes [`Elem::inter`] later
     /// leaves the piece as it was. Texture only, like [`Elem::inter`].
     pub picked: u8,
+    /// `+0x4`'s second and third bytes, the **white and yellow lines**
+    /// (`0x0000_ff00` and `0x00ff_0000`, item 4687, `docs/RENDERER.md`
+    /// §6.8), in place: `mark_white_lines@00892c10`,
+    /// `mark_yellow_lines@00892550`, `fixup_lines@00891210` and
+    /// `delete_straglers@008910b0` write them, and the redo pass's
+    /// `flags = 0` clears them. Texture only, like [`Elem::inter`].
+    pub lines: u32,
+    /// The cardinals `mark_splits@00891d40` joined this tile in, beyond
+    /// [`Elem::flags`] (item 4687). The original writes them into the
+    /// element, where the tile's own later texture passes read them; here
+    /// they are kept apart so no reader of the connections sees them, and
+    /// the redo pass's `flags = 0` clears them. Texture only.
+    pub joins: u32,
 }
+
+/// The line bytes of `+0x4` ([`Elem::lines`]).
+pub const LINES: u32 = 0x00ff_ff00;
 
 /// `Roads`' own state: the element store, the modification queue, and the two
 /// lists the redo pass ping-pongs between.
@@ -160,6 +176,12 @@ pub struct RoadMesh {
     remove: ModQueue,
     /// `changed_roads` (`+0x150`) and `changed_roads2` (`+0x16c`).
     redo: [Vec<i32>; 2],
+    /// The line passes' pushes (item 4687, `docs/RENDERER.md` §6.8): in the
+    /// original they go onto `changed_roads`/`changed_roads2` with the rest.
+    /// Here a tile on one of these and not on the matching [`RoadMesh::redo`]
+    /// list is redone for its texture alone ([`Sim::texture_redo`]), so
+    /// nothing the simulation reads is written (parked 4687a).
+    tex: [Vec<i32>; 2],
     /// `RoadsData::tx` / `ty`.
     at: Pos,
     /// `neighbor_cache` — a building footprint that is not a road.
@@ -361,6 +383,310 @@ impl RoadMesh {
         }
     }
 
+    /// `ArrayBase<int>::add_unique` from a texture pass: the same list the
+    /// original names, kept in [`RoadMesh::tex`].
+    fn tex_push(&mut self, index: i32, list: i32) {
+        if list == 0 {
+            return;
+        }
+        let l = &mut self.tex[usize::from(list != 1)];
+        if !l.contains(&index) {
+            l.push(index);
+        }
+    }
+
+    /// The cursor's own line bits: `set` raised, then `clear` dropped.
+    fn own_lines(&mut self, world: &World, set: u32, clear: u32) {
+        if let Some(e) = self.elems.get_mut(&index_of(world, self.at)) {
+            e.lines = (e.lines | set) & !clear;
+        }
+    }
+
+    fn lines_of(&self, world: &World, t: Pos) -> u32 {
+        self.elems.get(&index_of(world, t)).map_or(0, |e| e.lines)
+    }
+
+    /// `RoadsOut::set_neighbor@00890c30` on the line bits, with the push its
+    /// callers make: the neighbour at the offset, if it has an element and
+    /// holds none of `set`, takes `set`, drops `clear`, and goes on the
+    /// list. Answers whether it did.
+    fn line_neighbour(
+        &mut self,
+        world: &World,
+        dx: i32,
+        dy: i32,
+        set: u32,
+        clear: u32,
+        list: i32,
+    ) -> bool {
+        let i = index_of(world, Pos::new(self.at.x + dx, self.at.y + dy));
+        let Some(e) = self.elems.get_mut(&i) else {
+            return false;
+        };
+        if e.lines & set != 0 {
+            return false;
+        }
+        e.lines = (e.lines | set) & !clear;
+        self.tex_push(i, list);
+        true
+    }
+
+    /// One line: the cursor's `own` raised, and `nb` on the neighbour at the
+    /// offset, pushed when it is fresh — the shape of every site in
+    /// `mark_white_lines` and `fixup_lines`.
+    fn line(&mut self, world: &World, own: u32, (dx, dy): (i32, i32), nb: u32, list: i32) {
+        self.own_lines(world, own, 0);
+        self.line_neighbour(world, dx, dy, nb, 0, list);
+    }
+
+    /// **`RoadsOut::mark_white_lines@00892c10`** (item 4687): the white edge
+    /// lines along each claimed run, on the side with no road, and round a
+    /// corner whose diagonal is a building footprint. `g` is the tile's
+    /// connections with `mark_splits`' joins.
+    fn white_lines(&mut self, world: &World, g: u32, list: i32) {
+        use dir::{E, N, S, W};
+        let (road, blocked) = (self.road, self.blocked);
+        if g & (N | S) != 0 {
+            if !road[4] {
+                if road[2] {
+                    self.line(world, 0x4000, (0, -1), 0x800, list);
+                }
+                if road[6] {
+                    self.line(world, 0x800, (0, 1), 0x4000, list);
+                }
+            }
+            if !road[8] {
+                if road[2] {
+                    self.line(world, 0x8000, (0, -1), 0x400, list);
+                }
+                if road[6] {
+                    self.line(world, 0x400, (0, 1), 0x8000, list);
+                }
+            }
+        }
+        if g & (E | W) != 0 {
+            if !road[2] {
+                if road[4] {
+                    self.line(world, 0x2000, (1, 0), 0x100, list);
+                }
+                if road[8] {
+                    self.line(world, 0x100, (-1, 0), 0x2000, list);
+                }
+            }
+            if !road[6] {
+                if road[4] {
+                    self.line(world, 0x1000, (1, 0), 0x200, list);
+                }
+                if road[8] {
+                    self.line(world, 0x200, (-1, 0), 0x1000, list);
+                }
+            }
+        }
+        if g & N != 0 && g & W != 0 && blocked[1] {
+            self.line(world, 0x8000, (0, -1), 0x400, list);
+            self.line(world, 0x100, (-1, 0), 0x2000, list);
+        }
+        if g & N != 0 && g & E != 0 && blocked[3] {
+            self.line(world, 0x4000, (0, -1), 0x800, list);
+            self.line(world, 0x2000, (1, 0), 0x100, list);
+        }
+        if g & S != 0 && g & W != 0 && blocked[7] {
+            self.line(world, 0x400, (0, 1), 0x8000, list);
+            self.line(world, 0x200, (-1, 0), 0x1000, list);
+        }
+        if g & S != 0 && g & E != 0 && blocked[5] {
+            self.line(world, 0x800, (0, 1), 0x4000, list);
+            self.line(world, 0x1000, (1, 0), 0x200, list);
+        }
+    }
+
+    /// **`RoadsOut::mark_yellow_lines@00892550`** (item 4687): a straight
+    /// run beside a road that does not join it takes the yellow line in
+    /// place of the white on that side, and so do its neighbours along the
+    /// run; the side road goes on the list when either took one. A road
+    /// beside it with no element drops the tile's claim toward it and ends
+    /// the pass, which here only `g` sees (the answer).
+    fn yellow_lines(&mut self, world: &World, mut g: u32, list: i32) -> u32 {
+        use dir::{E, N, S, W};
+        let road = self.road;
+        let at = self.at;
+        // (the side, its road cache, the claim the side road must lack, the
+        // two along-run arms: (cache, own set, own clear, offset, nb set,
+        // nb clear)).
+        type Arm = (usize, u32, u32, (i32, i32), u32, u32);
+        let side = |m: &mut RoadMesh,
+                    g: &mut u32,
+                    k: usize,
+                    own: u32,
+                    back: u32,
+                    (dx, dy): (i32, i32),
+                    arms: [Arm; 2]|
+         -> bool {
+            if !road[k] {
+                return true;
+            }
+            let Some(n) = m.elem(world, Pos::new(at.x + dx, at.y + dy)) else {
+                *g &= !own;
+                return false;
+            };
+            if (n.flags | n.joins) & back != 0 {
+                return true;
+            }
+            let mut fresh = false;
+            for (c, os, oc, (ax, ay), ns, nc) in arms {
+                if road[c] {
+                    m.own_lines(world, os, oc);
+                    fresh |= m.line_neighbour(world, ax, ay, ns, nc, list);
+                }
+            }
+            if fresh {
+                m.tex_push(index_of(world, Pos::new(at.x + dx, at.y + dy)), list);
+            }
+            true
+        };
+        if g & (N | S) != 0 && g & (E | W) == 0 {
+            if !side(
+                self,
+                &mut g,
+                4,
+                E,
+                W,
+                (1, 0),
+                [
+                    (2, 0x40_0000, 0x4000, (0, -1), 0x8_0000, 0x800),
+                    (6, 0x8_0000, 0x800, (0, 1), 0x40_0000, 0x4000),
+                ],
+            ) {
+                return g;
+            }
+            side(
+                self,
+                &mut g,
+                8,
+                W,
+                E,
+                (-1, 0),
+                [
+                    (2, 0x80_0000, 0x8000, (0, -1), 0x4_0000, 0x400),
+                    (6, 0x4_0000, 0x400, (0, 1), 0x80_0000, 0x8000),
+                ],
+            );
+            return g;
+        }
+        if g & (E | W) == 0 || g & (N | S) != 0 {
+            return g;
+        }
+        if !side(
+            self,
+            &mut g,
+            2,
+            N,
+            S,
+            (0, -1),
+            [
+                (4, 0x20_0000, 0x2000, (1, 0), 0x1_0000, 0x100),
+                (8, 0x1_0000, 0x100, (-1, 0), 0x20_0000, 0x2000),
+            ],
+        ) {
+            return g;
+        }
+        side(
+            self,
+            &mut g,
+            6,
+            S,
+            N,
+            (0, 1),
+            [
+                (4, 0x10_0000, 0x1000, (1, 0), 0x2_0000, 0x200),
+                (8, 0x2_0000, 0x200, (-1, 0), 0x10_0000, 0x1000),
+            ],
+        );
+        g
+    }
+
+    /// The cursor's connections as its texture passes read them: the
+    /// element's own and `mark_splits`' joins ([`Elem::joins`]).
+    fn tex_dirs(&self, world: &World) -> u32 {
+        self.elems
+            .get(&index_of(world, self.at))
+            .map_or(0, |e| e.flags | e.joins)
+    }
+
+    /// **`RoadsOut::fixup_lines@00891210`** (item 4687): a white line under
+    /// a yellow goes, and a line that reaches a claimed corner is carried
+    /// round it onto the neighbour — eight white sites, then eight yellow.
+    fn fixup_lines(&mut self, world: &World, list: i32) {
+        use dir::{E, N, S, W};
+        type Turn = (u32, u32, u32, (i32, i32), u32);
+        let g = self.tex_dirs(world);
+        // (the yellow over it, the white it drops).
+        let drops = [
+            (0x80_0000, 0x8000),
+            (0x40_0000, 0x4000),
+            (0x20_0000, 0x2000),
+            (0x10_0000, 0x1000),
+            (0x8_0000, 0x800),
+            (0x4_0000, 0x400),
+            (0x2_0000, 0x200),
+            (0x1_0000, 0x100),
+        ];
+        // (the line, the claim, the line it turns into, the neighbour, its bit).
+        let turns: [Turn; 8] = [
+            (0x8000, W, 0x100, (-1, 0), 0x2000),
+            (0x4000, E, 0x2000, (1, 0), 0x100),
+            (0x2000, N, 0x4000, (0, -1), 0x800),
+            (0x1000, S, 0x800, (0, 1), 0x4000),
+            (0x800, E, 0x1000, (1, 0), 0x200),
+            (0x400, W, 0x200, (-1, 0), 0x1000),
+            (0x200, S, 0x400, (0, 1), 0x8000),
+            (0x100, N, 0x8000, (0, -1), 0x400),
+        ];
+        let turn = |m: &mut RoadMesh, (have, claim, to, off, nb): Turn| {
+            let l = m.lines_of(world, m.at);
+            if l & have != 0 && g & claim != 0 && l & to == 0 {
+                m.line(world, to, off, nb, list);
+            }
+        };
+        for (k, (yellow, white)) in drops.into_iter().enumerate() {
+            let l = self.lines_of(world, self.at);
+            if l & (yellow | white) == yellow | white {
+                self.own_lines(world, 0, white);
+            }
+            turn(self, turns[k]);
+        }
+        for t in [
+            (0x80_0000, W, 0x1_0000, (-1, 0), 0x20_0000),
+            (0x40_0000, E, 0x20_0000, (1, 0), 0x1_0000),
+            (0x20_0000, N, 0x40_0000, (0, -1), 0x8_0000),
+            (0x10_0000, S, 0x8_0000, (0, 1), 0x40_0000),
+            (0x8_0000, E, 0x10_0000, (1, 0), 0x2_0000),
+            (0x4_0000, W, 0x2_0000, (-1, 0), 0x10_0000),
+            (0x2_0000, S, 0x4_0000, (0, 1), 0x80_0000),
+            (0x1_0000, N, 0x80_0000, (0, -1), 0x4_0000),
+        ] {
+            turn(self, t);
+        }
+    }
+
+    /// **`RoadsOut::delete_straglers@008910b0`** (item 4687): a line pair
+    /// along a cardinal the tile does not claim goes, and the tile itself
+    /// goes on the list.
+    fn delete_straglers(&mut self, world: &World, list: i32) {
+        let g = self.tex_dirs(world);
+        for (any, claim) in [
+            (0x00c0_c000, dir::N),
+            (0x0030_3000, dir::E),
+            (0x000c_0c00, dir::S),
+            (0x0003_0300, dir::W),
+        ] {
+            if self.lines_of(world, self.at) & any != 0 && g & claim == 0 {
+                self.own_lines(world, 0, any);
+                self.tex_push(index_of(world, self.at), list);
+            }
+        }
+    }
+
     /// `flags |= mask` on a neighbour that has an element, creating one if it
     /// has none, and the redo-list entry the change earns. The original
     /// spells this three ways in three functions and they are the same
@@ -402,6 +728,7 @@ impl RoadMesh {
     /// texture passes this crate does not run, and only the direction is
     /// taken.
     fn leech_codes(&mut self, world: &World) {
+        self.leech_lines(world);
         let at = self.at;
         for (d, own, back, dx, dy) in CARDINALS {
             if !self.road[d] {
@@ -419,6 +746,57 @@ impl RoadMesh {
                 }
                 Some(_) => {}
             }
+        }
+    }
+
+    /// **`leech_codes`' line half** (item 4687, `docs/RENDERER.md` §6.8):
+    /// each cardinal road neighbour lends this tile the lines that run on
+    /// into it — a north neighbour's west-side line going south (`0x400`)
+    /// is this tile's going north (`0x8000`), and so on, white and yellow.
+    /// The same walk as the claims, ending at the same neighbour with no
+    /// element; texture only, so it reads and writes [`Elem::lines`] alone.
+    /// This is what holds a joined corner's ring (`client::roads`'
+    /// `corner_loops`) through a redo's `flags = 0`.
+    fn leech_lines(&mut self, world: &World) {
+        let at = self.at;
+        let maps: [[(u32, u32); 4]; 4] = [
+            [
+                (0x400, 0x8000),
+                (0x800, 0x4000),
+                (0x4_0000, 0x80_0000),
+                (0x8_0000, 0x40_0000),
+            ],
+            [
+                (0x8000, 0x400),
+                (0x4000, 0x800),
+                (0x80_0000, 0x4_0000),
+                (0x40_0000, 0x8_0000),
+            ],
+            [
+                (0x100, 0x2000),
+                (0x200, 0x1000),
+                (0x1_0000, 0x20_0000),
+                (0x2_0000, 0x10_0000),
+            ],
+            [
+                (0x2000, 0x100),
+                (0x1000, 0x200),
+                (0x20_0000, 0x1_0000),
+                (0x10_0000, 0x2_0000),
+            ],
+        ];
+        for ((d, _, _, dx, dy), map) in CARDINALS.into_iter().zip(maps) {
+            if !self.road[d] {
+                continue;
+            }
+            let Some(n) = self.elem(world, Pos::new(at.x + dx, at.y + dy)) else {
+                return;
+            };
+            let got = map
+                .iter()
+                .filter(|(from, _)| n.lines & from != 0)
+                .fold(0, |a, (_, to)| a | to);
+            self.own_lines(world, got, 0);
         }
     }
 
@@ -445,7 +823,11 @@ impl RoadMesh {
     /// own joins are taken into a local copy, because the original's later
     /// arms and `mark_intersections` read them back. A neighbour with no
     /// element ends either function where the original returns.
-    fn mark_intersections(&mut self, world: &World) {
+    ///
+    /// Item 4687 runs the two line passes between them, in the original's
+    /// order (`mark_white_lines`, `mark_yellow_lines`), on the same joins,
+    /// and keeps the joins in [`Elem::joins`] for the passes after.
+    fn mark_intersections(&mut self, world: &World, list: i32) {
         let at = self.at;
         let mut g = self.flags_at(world, at);
         let road = self.road;
@@ -507,6 +889,8 @@ impl RoadMesh {
             }
         };
         splits();
+        self.white_lines(world, g, list);
+        let g = self.yellow_lines(world, g, list);
         let both = |t: Pos, pair: u32| -> Option<bool> {
             self.elem(world, t).map(|n| n.flags & pair == pair)
         };
@@ -528,6 +912,7 @@ impl RoadMesh {
         }
         if let Some(e) = self.elems.get_mut(&index_of(world, at)) {
             e.inter |= inter;
+            e.joins |= g & !e.flags & dir::ORTHOG;
         }
     }
 
@@ -1040,9 +1425,64 @@ impl Sim {
     /// `Roads::redo_changed_roads@0088e670` — the passes over one of the two
     /// lists; see [`redo_changed_roads_steps`], which this runs over the
     /// list `which` names.
+    ///
+    /// Then the tiles only the line passes put on that list (item 4687),
+    /// for their texture alone ([`Sim::texture_redo`]).
     fn redo_changed_roads(&mut self, which: usize, list: i32, param: i32) {
         let work = self.movement.mesh.redo[which].clone();
+        let tex: Vec<i32> = (self.movement.mesh.tex[which].iter())
+            .filter(|i| !work.contains(i))
+            .copied()
+            .collect();
         redo_changed_roads_steps(&mut SimRedo { sim: self }, &work, list, param);
+        self.texture_redo(&tex, list);
+    }
+
+    /// **The redo of a tile the line passes pushed** (item 4687,
+    /// `docs/RENDERER.md` §6.8), texture only: the original runs
+    /// `redo_changed_roads@0088e670`'s four passes on it as on any listed
+    /// tile, and those rewrite its connections (parked 4687a). Here the
+    /// tile's line bytes, intersections and joins are cleared and
+    /// re-marked on its connections as they stand, then
+    /// `fixup_lines`, `delete_straglers` and the pick. `set_diags` is not
+    /// run, and the marks are taken as its zero answer would take them.
+    /// The cursor and the caches are restored after, so nothing the
+    /// simulation reads is written.
+    fn texture_redo(&mut self, tiles: &[i32], list: i32) {
+        if tiles.is_empty() {
+            return;
+        }
+        let world = &self.world;
+        let m = &mut self.movement.mesh;
+        let saved = (m.at, m.blocked, m.road);
+        let has = |m: &RoadMesh, i: i32| m.elems.contains_key(&i);
+        for &i in tiles {
+            if let Some(e) = m.elems.get_mut(&i) {
+                e.inter = 0;
+                e.lines = 0;
+                e.joins = 0;
+            }
+        }
+        for &i in tiles {
+            if !has(m, i) {
+                continue;
+            }
+            m.at = tile_of(world, i);
+            m.fill_cache(world, m.at);
+            m.leech_lines(world);
+            m.mark_intersections(world, list);
+            m.fixup_lines(world, list);
+        }
+        for &i in tiles {
+            if !has(m, i) {
+                continue;
+            }
+            m.at = tile_of(world, i);
+            m.fixup_lines(world, list);
+            m.delete_straglers(world, list);
+            m.note_pick(world, m.at);
+        }
+        (m.at, m.blocked, m.road) = saved;
     }
 }
 
@@ -1153,6 +1593,8 @@ impl RedoView for SimRedo<'_> {
             .get_mut(&index_of(&self.sim.world, at))
         {
             e.inter = 0;
+            e.lines = 0;
+            e.joins = 0;
         }
     }
     fn fill_cache(&mut self) {
@@ -1175,16 +1617,25 @@ impl RedoView for SimRedo<'_> {
         let at = self.sim.movement.mesh.at;
         self.sim.movement.mesh.fill_cache(&self.sim.world, at);
     }
-    fn texture_marks(&mut self, _list: i32) {
-        // Item 4677: the intersections alone (`RoadMesh::mark_intersections`);
-        // the white and yellow lines are the client's (`client::roads`).
-        self.sim.movement.mesh.mark_intersections(&self.sim.world);
+    fn texture_marks(&mut self, list: i32) {
+        // Items 4677 and 4687: the splits' clears, the lines, the
+        // intersections and `fixup_lines`, texture only; the line passes'
+        // pushes go to the texture lists (`RoadMesh::tex`).
+        let m = &mut self.sim.movement.mesh;
+        m.mark_intersections(&self.sim.world, list);
+        m.fixup_lines(&self.sim.world, list);
     }
-    fn finish_pieces(&mut self, _list: i32) {
+    fn finish_pieces(&mut self, list: i32) {
+        // `fixup_lines` and `delete_straglers` on the lines (item 4687);
         // `find_piece` picks the road tile's own piece, so the C4 a corner
         // left on it goes (§12; the pick itself is the client's, on the
         // intersections it reads here: item 4682).
         let at = self.sim.movement.mesh.at;
+        self.sim.movement.mesh.fixup_lines(&self.sim.world, list);
+        self.sim
+            .movement
+            .mesh
+            .delete_straglers(&self.sim.world, list);
         self.sim.movement.mesh.note_pick(&self.sim.world, at);
         if self.sim.world.tile_mask(at) & tile::SURFACE == tile::SURFACE_ROAD
             && let Some(e) = self
@@ -1268,19 +1719,33 @@ impl RoadsView for SimRoads<'_> {
     /// marks on the tile being laid, as the redo pass runs them
     /// ([`RoadMesh::mark_intersections`]). A tile laid joined both ways
     /// between two runs takes its bits here, and nothing redoes it after.
+    ///
+    /// Item 4687: `mark_splits(1)`, `mark_white_lines(1)` and
+    /// `mark_yellow_lines(1)` run in here, before the marks, as one pass on
+    /// the joins they share; the three hooks above stay empty.
     fn mark_intersections(&mut self) {
-        self.sim.movement.mesh.mark_intersections(&self.sim.world);
-    }
-    fn fixup_lines(&mut self, _arg: i32) {}
-    fn elem_flags(&self) -> u32 {
         self.sim
             .movement
             .mesh
-            .flags_at(&self.sim.world, self.sim.movement.mesh.at)
+            .mark_intersections(&self.sim.world, 1);
+    }
+    fn fixup_lines(&mut self, arg: i32) {
+        self.sim.movement.mesh.fixup_lines(&self.sim.world, arg);
+    }
+    /// The dword whole as the original's pass reads it: the connections
+    /// and the line bytes ([`Elem::lines`]); the stragglers' masks the add
+    /// arm runs inline write the line bytes back apart.
+    fn elem_flags(&self) -> u32 {
+        let m = &self.sim.movement.mesh;
+        m.flags_at(&self.sim.world, m.at) | m.lines_of(&self.sim.world, m.at)
     }
     fn set_elem_flags(&mut self, flags: u32) {
         let at = self.sim.movement.mesh.at;
-        self.sim.movement.mesh.set_flags(&self.sim.world, at, flags);
+        let world = &self.sim.world;
+        if let Some(e) = self.sim.movement.mesh.elems.get_mut(&index_of(world, at)) {
+            e.lines = flags & LINES;
+            e.flags = flags & !LINES;
+        }
     }
     fn find_piece(&mut self) {
         // The piece the pick settles on is the road tile's own, so the C4 a
@@ -1299,14 +1764,22 @@ impl RoadsView for SimRoads<'_> {
             e.c4 = false;
         }
     }
+    /// The list as the original holds it: the simulation's entries and the
+    /// line passes' ([`RoadMesh::tex`]), each tile once.
     fn redo_len(&self, which: usize) -> i32 {
-        self.sim.movement.mesh.redo[which].len() as i32
+        let m = &self.sim.movement.mesh;
+        let extra = m.tex[which]
+            .iter()
+            .filter(|i| !m.redo[which].contains(i))
+            .count();
+        (m.redo[which].len() + extra) as i32
     }
     fn redo_changed_roads(&mut self, which: usize, arg: i32, param: i32) {
         self.sim.redo_changed_roads(which, arg, param);
     }
     fn redo_clear(&mut self, which: usize) {
         self.sim.movement.mesh.redo[which].clear();
+        self.sim.movement.mesh.tex[which].clear();
     }
     fn tile_flags(&self, _x: i32, _y: i32) -> u16 {
         0
@@ -1325,6 +1798,8 @@ impl RoadsView for SimRoads<'_> {
     fn finish(&mut self) {
         self.sim.movement.mesh.redo[0].clear();
         self.sim.movement.mesh.redo[1].clear();
+        self.sim.movement.mesh.tex[0].clear();
+        self.sim.movement.mesh.tex[1].clear();
         self.sim.movement.mesh.mods.count = 0;
     }
 }

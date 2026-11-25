@@ -835,3 +835,46 @@ impl Sim {
         }
     }
 }
+
+impl Sim {
+    /// `City::capture@00736c40:86`–`:88`: the new record's `city_flags` are
+    /// the old one's `& 0xf13f`. Of what this crate holds, that carries the
+    /// attack bits (`0x2`, `0x4`, `0x8`), `0x2000` (the army's no-muster
+    /// mark), `0x8000` (once the founding capital) and `0x1000`, the border
+    /// pass's near mark, which sits on the owner's half of the record
+    /// ([`crate::ai::CityAi::near_border`]) and so moves to the taker's
+    /// (item 4686: row 133's who=1 takes city 12 on 3619 at `city_flags`
+    /// 0x110f in the original, 0x010f here before). `0x10` and `0x4000`
+    /// are the capital arm's, after it; `0x100` is the caller's.
+    pub(crate) fn capture_carry_flags(&mut self, newcity: usize, old: usize, a: Player) {
+        let oldc = &self.cities.cities[old];
+        let o = oldc.owner;
+        let bits = (
+            oldc.no_heal,
+            oldc.attacking,
+            oldc.ever_attacked,
+            oldc.no_muster,
+            oldc.was_founding_capital,
+        );
+        let nc = &mut self.cities.cities[newcity];
+        (
+            nc.no_heal,
+            nc.attacking,
+            nc.ever_attacked,
+            nc.no_muster,
+            nc.was_founding_capital,
+        ) = bits;
+        let near = self
+            .ai
+            .ai
+            .get(o as usize)
+            .and_then(|l| l.city_ai.get(old))
+            .is_some_and(|r| r.near_border);
+        if near && let Some(l) = self.ai.ai.get_mut(a as usize) {
+            if l.city_ai.len() <= newcity {
+                l.city_ai.resize(newcity + 1, crate::ai::CityAi::default());
+            }
+            l.city_ai[newcity].near_border = true;
+        }
+    }
+}
