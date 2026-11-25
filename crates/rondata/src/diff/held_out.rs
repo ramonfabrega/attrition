@@ -2176,10 +2176,92 @@ pub(crate) mod tests {
             .and_then(|v| v.parse().ok())
             .unwrap_or(0);
         let name = crate::checksum::CHECKSUM_LINES[line].0;
+        let trace = crate::trace::Trace::read(
+            &crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.log")
+                .expect("log"),
+        )
+        .expect("reads")
+        .expect("parses");
         for state in lo..=hi {
             while built.sim.frame < state {
-                stream.apply(built.sim.frame as i32, &mut built);
+                let f = built.sim.frame;
+                stream.apply(f as i32, &mut built);
+                if std::env::var("RON_PROBE_WORDS").is_ok() {
+                    let t = trace.frame_draws(f);
+                    if let Some(d) = t.first()
+                        && d.seed != built.sim.rng.seed
+                    {
+                        eprintln!(
+                            "WORD parts entering {f}: ours {:#x} theirs {:#x} (theirs' draws {})",
+                            built.sim.rng.seed,
+                            d.seed,
+                            t.len()
+                        );
+                    }
+                }
+                let watch = std::env::var("RON_PROBE_DRAWS").is_ok() && f == state - 1;
+                if watch {
+                    built.sim.trace.trace_phases = true;
+                    built.sim.trace.phase_marks.clear();
+                }
+                let w0 = built.sim.rng.seed;
+                if let Ok(fr) = std::env::var("RON_PROBE_FARMS")
+                    && fr.split(',').any(|x| x.parse::<i64>().ok() == Some(f))
+                {
+                    for (b, bd) in built.sim.buildings.iter().enumerate() {
+                        if bd.owner as i32 == 2 && (2002..=2006).contains(&bd.index) {
+                            eprintln!(
+                                "SLOT f{f} b{b} who 2 idx {} ty {:?} alive {} active {} started {} activated {} hits {} at ({},{})",
+                                bd.index, bd.ty, bd.alive, bd.active, bd.started, bd.activated, bd.hits, bd.pos.x, bd.pos.y
+                            );
+                        }
+                    }
+                    for &b in &built.sim.cities.farm_order {
+                        let bd = &built.sim.buildings[b];
+                        eprintln!(
+                            "FARM f{f} b{b} who {:?} idx {} ty {:?} alive {} active {} started {} activated {} hits {} ft {} at ({},{}) state {:?} adds {:?}",
+                            bd.owner, bd.index, bd.ty, bd.alive, bd.active, bd.started, bd.activated, bd.hits,
+                            bd.farm.farm_type, bd.pos.x, bd.pos.y, bd.farm.state, bd.farm.adds
+                        );
+                    }
+                }
                 built.sim.command().tick();
+                if watch {
+                    built.sim.trace.trace_phases = false;
+                    let td = trace.frame_draws(f);
+                    eprintln!(
+                        "## frame {f}: word ours {w0:#x} theirs {:?}; ours {} draws, theirs {}",
+                        td.first().map(|d| format!("{:#x}", d.seed)),
+                        crate::diff::report::draws_between(w0, built.sim.rng.seed).unwrap_or(9999),
+                        td.len()
+                    );
+                    let mut ours: Vec<(String, i32)> = Vec::new();
+                    let marks = &built.sim.trace.phase_marks;
+                    for (i, (label, from)) in marks.iter().enumerate() {
+                        let to = marks.get(i + 1).map_or(built.sim.rng.seed, |m| m.1);
+                        let mut r = sim::combat::Rng::new(*from);
+                        while r.seed != to {
+                            let v = r.roll();
+                            ours.push((label.clone(), v));
+                        }
+                    }
+                    for k in 0..ours.len().max(td.len()) {
+                        let a = ours.get(k);
+                        let b = td.get(k);
+                        let bl = b.map(|d| trace.label(d));
+                        let mark = match (a, b) {
+                            (Some(a), Some(b)) if Some(&a.0) == bl.as_ref() && Some(a.1) == b.value() => " ",
+                            _ => "*",
+                        };
+                        eprintln!(
+                            "  {mark}{k:3} ours {:?} | theirs {:?} {:?} up {:x?}",
+                            a,
+                            bl,
+                            b.and_then(|d| d.value()),
+                            b.map(|d| d.up)
+                        );
+                    }
+                }
             }
             let set = record.first_of(state - 1).expect("the state's set").clone();
             let all = record.ranges(&set).expect("the set's ranges");
@@ -2194,6 +2276,27 @@ pub(crate) mod tests {
                 ours.len(),
                 theirs.len()
             );
+            if let Ok(w) = std::env::var("RON_PROBE_UNITS") {
+                let mut cur = String::new();
+                for (k, r) in ours.iter().enumerate() {
+                    if r.field == "who..y_internal"
+                        && let Some(f) = crate::checksum::fields::range_fields(name, r.field, &r.bytes)
+                    {
+                        cur = format!("{}/{}", f[0].1, f[1].1);
+                    }
+                    if w.split(',').any(|x| x == cur) {
+                        let t = theirs.get(k).map(|t| {
+                            crate::checksum::fields::range_fields(name, r.field, &t.bytes)
+                        });
+                        eprintln!(
+                            "  U {cur} {} ours {:?}\n      theirs {:?}",
+                            r.field,
+                            crate::checksum::fields::range_fields(name, r.field, &r.bytes),
+                            t
+                        );
+                    }
+                }
+            }
             let mut head = String::new();
             let mut shown = 0;
             for k in 0..ours.len().max(theirs.len()) {
