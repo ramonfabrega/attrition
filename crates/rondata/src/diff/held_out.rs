@@ -4920,6 +4920,55 @@ pub(crate) mod tests {
     /// record 35; world range 1780, record 1756, cell byte 8 `0x23`).
     /// Every units and world range on states 3088 to 3090, byte for byte.
     #[test]
+    fn probe_4688() {
+        if std::env::var("RON_PROBE_4688").is_err() {
+            return;
+        }
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else { panic!("rcx") };
+        let map = home.join("ron-golden/run1799/map-14");
+        let ranges = crate::testenv::experiment(&map, "rontrace.ranges").expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(3266);
+        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(3270);
+        let want: i32 = std::env::var("RON_PROBE_REC").ok().and_then(|v| v.parse().ok()).unwrap_or(2031);
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[1].as_ref().expect("builds");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+            eprintln!("== state {state}: builds ranges ours {} theirs {}", ours.ranges.len(), theirs.len());
+            let mut first = None;
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                if a.bytes != b.bytes && first.is_none() { first = Some(k); }
+                if a.record as i32 == want {
+                    eprintln!("  r{k} rec {} {}: ours {:02x?}\n                 theirs {:02x?}", a.record, a.field, a.bytes, b.bytes);
+                }
+            }
+            eprintln!("  first parted range {first:?}");
+            for (bi, b) in built.sim.buildings.iter().enumerate() {
+                if b.index as i32 == want {
+                    let name = b.ty.map(|t| loaded.build_type_names[t].clone());
+                    eprintln!("  ours slot {bi} who={} o={} {name:?} alive={} active={} jc={} jc2={} ct={} chits={} hits={} health={} pos={:?} queue={:?}",
+                        b.owner, b.index, b.alive, b.active, b.job_counter, b.job_counter_2, b.constr_time, b.construct_hits, b.hits, b.health, b.pos, b.queue);
+                }
+            }
+        }
+    }
+
+    #[test]
     fn row_93_s_decoy_tiger_tank_leaves_the_chain_at_its_death_on_run1799_s_ranges() {
         let Some(inst) = crate::testenv::install() else {
             return;
