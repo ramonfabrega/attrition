@@ -363,6 +363,59 @@ fn taking_over_a_valid_slot_orphans_its_group() {
     );
 }
 
+/// **The recount's `remove_group` leaves the emptied record on its index**
+/// (item 4676, `docs/RECGAME.md` §14.4): `Army::normalize@006f9b50`
+/// removes a linked group whose last member died, and
+/// `Army::remove_group@006f8b50` writes only its `army` −1. The groups
+/// line prints that record on the slot (`army` −1, its own `who` and
+/// `stamp`), not the stale empty entry the slot held before the army took
+/// it, and the army's next join pushes a fresh group.
+#[test]
+fn the_recount_removes_an_emptied_group_and_leaves_its_record_on_the_slot() {
+    use crate::groups::group::{GroupState, Pushed};
+    let (mut sim, c) = sim_with_city();
+    let t = soldier_type(&mut sim);
+    let slot = sim.init_army(1, Some(c));
+    let u = put(&mut sim, 1, t, Pos::new(0x3000, 0x3000));
+    sim.army_add_unit(1, slot, u);
+    let s = sim.ai.armies[1].list[slot].group.pool.expect("seated");
+    {
+        let st = &mut sim.ai.armies[1].list[slot].group;
+        st.stamp = 1523;
+        st.order_num = 4;
+    }
+    // The empty entry the slot held before the army took it (row 88's 741).
+    sim.orders.pushed.push(Pushed {
+        who: 1,
+        list: Vec::new(),
+        state: GroupState {
+            pool: Some(s),
+            stamp: 741,
+            ..GroupState::default()
+        },
+        builds: Vec::new(),
+    });
+    sim.units[u].health = 0;
+    sim.army_normalize(1, slot);
+    let id = 64 + i16::from(s);
+    let line = sim.checksum_groups();
+    let rec = line
+        .ranges
+        .iter()
+        .find(|r| r.record == id && r.field == "id..march")
+        .expect("the slot's record");
+    // The walk starts at `+0x4`: the field at `+f` is `bytes[f − 4..]`.
+    let word = |f: usize| i32::from_le_bytes(rec.bytes[f - 4..f].try_into().unwrap());
+    assert_eq!(word(0x8), -1, "`remove_group` writes `army` −1");
+    assert_eq!(word(0x14), 1523, "the army's record, not the stale 741");
+    assert_eq!(word(0x2c), 4, "its `order_num` stands");
+    assert_eq!(rec.bytes[0x4a - 4], 1, "`who` stands");
+    assert!(
+        sim.ai.armies[1].list[slot].group.pool.is_none(),
+        "the army holds no group, so its next join pushes"
+    );
+}
+
 #[test]
 fn target_strength_counts_living_nondecoy_cavalry_lineage() {
     use crate::tech::{TypeDef, UnitTraits};

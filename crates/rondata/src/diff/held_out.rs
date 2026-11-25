@@ -11803,17 +11803,24 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // city's race, whoever owns the building): builds 4,201 -> 4,353
         // (first 3899 -> 4350); the row's first parting is groups alone on
         // 3995.
+        // Then item 4676 (`Army::normalize@006f9b50`'s `remove_group
+        // @006f8b50` leaves an emptied group's record on its pool index with
+        // `army` -1, `docs/ARMY.md` §3.3; built on row 88's run1839): groups
+        // 4,239 -> 4,341 (first 3995 -> 4341), items 5,173 -> 5,298. The
+        // row's first parting moves 3995 -> 4341, on units, groups, guys,
+        // leaders, cities and world. Measured by the scoring test alone; no
+        // range of row 43 was read.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                4341, 4353, 6001, 4356, 4416, 4239, 4341, 4341, 4351, 5173, 4413, 4341,
+                4341, 4353, 6001, 4356, 4416, 4341, 4341, 4341, 4351, 5298, 4413, 4341,
             ],
             first: &[
                 ("units", (4341, Some(630316088), 571078055)),
                 ("builds", (4350, Some(4014773854), 1772852329)),
                 ("ammo", (4356, Some(1671400503), 4115106818)),
                 ("deaths", (4416, Some(1680720123), 2417413765)),
-                ("groups", (3995, Some(866943998), 1455327226)),
+                ("groups", (4341, Some(3090802498), 1869277035)),
                 ("guys", (4341, Some(3154895219), 3388006762)),
                 ("leaders", (4341, Some(3434555180), 2510759726)),
                 ("cities", (4341, Some(2806731487), 1671058207)),
@@ -13551,23 +13558,36 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // items 8,405 -> 8,719 (first 4135 -> 4053), goods 3,500 -> 3,562,
         // world 3,086 -> 3,149. The first parting moves 3069 -> 3095, on
         // groups, which stood.
+        // Moved by item 4676 (run1839's ranges): `Army::normalize@006f9b50`'s
+        // `remove_group@006f8b50` on the group its prune empties writes the
+        // record's `army` -1 and leaves it on its index. On tick 3094 who=2's
+        // army 0 loses its last member `2/34` (dead); groups range 214, record
+        // 130 (who=2's slot 2) `army` ours 0 -> -1, `stamp` 741 -> 1523,
+        // `form` -1 -> 0, `(ox, oy)` (0, 0) -> (8201, 15112), `order_num` 0
+        // -> 4, `think_frame` 0 -> 3005, as theirs (ours printed the empty
+        // entry the slot held before the army took it). Builds 3,158 -> 3,513,
+        // ammo 3,400 -> 3,462, deaths 3,474 -> 3,475, groups 3,095 -> 3,490,
+        // guys 3,149 -> 3,442, leaders 3,158 -> 3,446, cities 3,313 -> 3,576,
+        // goods 3,562 -> 4,002, world 3,149 -> 3,443; items 8,719 -> 8,480
+        // (first 4053 -> 4135). The first parting moves 3095 -> 3112, on
+        // units, which stood.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                3112, 3158, 12001, 3400, 3474, 3095, 3149, 3158, 3313, 8719, 3562, 3149,
+                3112, 3513, 12001, 3462, 3475, 3490, 3442, 3446, 3576, 8480, 4002, 3443,
             ],
             first: &[
                 ("units", (3112, Some(2802773391), 493219213)),
-                ("builds", (3158, Some(3521179818), 3712217865)),
-                ("ammo", (3383, Some(1), 2980055740)),
-                ("deaths", (3474, Some(3326357348), 2286428706)),
-                ("groups", (3095, Some(3354359777), 3950803518)),
-                ("guys", (3149, Some(3836241446), 1600546288)),
-                ("leaders", (3158, Some(2939005412), 1730390507)),
-                ("cities", (3313, Some(4151394957), 891306669)),
-                ("items", (4053, Some(314708274), 308941102)),
-                ("goods", (3562, Some(4321815), 41808409)),
-                ("world", (3149, Some(3792573037), 100471405)),
+                ("builds", (3487, Some(3993328074), 3816708623)),
+                ("ammo", (3441, Some(98448818), 3176415250)),
+                ("deaths", (3475, Some(3483578464), 3736809576)),
+                ("groups", (3490, Some(2530233576), 768756967)),
+                ("guys", (3442, Some(2992131002), 2338016094)),
+                ("leaders", (3446, Some(149996412), 1264501630)),
+                ("cities", (3576, Some(794707692), 843073261)),
+                ("items", (4135, Some(308941102), 314708274)),
+                ("goods", (3728, Some(500298274), 255193629)),
+                ("world", (3443, Some(2643984986), 361300663)),
             ],
             over: None,
         }),

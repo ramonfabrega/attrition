@@ -4868,8 +4868,7 @@ pub(super) fn chapter_three_s_restage_is_widened_whole() {
         rows_on(WIDENING_CHAPTER_THREE_RESTAGE.0 + 1, WORD + 1),
         vec![
             "736 0/7 ammo[0].ox: ours -1 theirs 8",
-            "736 0/7 ammo[0].whom: ours -1 theirs 1",
-            "847 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }"
+            "736 0/7 ammo[0].whom: ours -1 theirs 1"
         ],
         "a row past run146's first rounds moved"
     );
@@ -4907,16 +4906,13 @@ pub(super) fn chapter_three_s_restage_is_widened_whole() {
     // block). The blocks kept whole are 865–866, the old word's, and
     // 868–869, the catapult's first retaliation and the block it drops
     // it, as well as the capture's `!quit` block, 1001. Every `0/6` row
-    // is gone from them; the scout's `facing` row stands on each until it
-    // ends, and 1001 is quiet.
+    // is gone from them, and 1001 is quiet. The scout's `facing` row stood
+    // on each until item 4676 (`Army::normalize`'s `remove_group` leaves
+    // the emptied record on its pool index, `docs/ARMY.md` §3.3) took it,
+    // and its 847 row above with it.
     pin_eq!(
         whole,
-        vec![
-            "865 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
-            "866 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
-            "868 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
-            "869 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
-        ],
+        Vec::<&String>::new(),
         "a row on run146's whole blocks moved"
     );
 }
