@@ -747,7 +747,8 @@ impl Sim {
         // this leader's cities, because `compute_reg_territory` reads the
         // level rather than a cached bonus. Guarded on the table actually
         // changing so an ordinary tech does not repaint 3,600 cells.
-        let owed = std::mem::take(&mut self.territory.gain_fix_owed);
+        let owed = self.territory.gain_fix_owed;
+        self.territory.gain_fix_owed = false;
         if owed || self.territory.borders[who as usize] != self.player_borders(who) {
             self.sync_territory();
         }
