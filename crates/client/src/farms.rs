@@ -378,7 +378,9 @@ pub(crate) mod tests {
     /// **The row as drawn before** (item 4636's mint): both switches off,
     /// the grass on the plots. It is the made-to-fail: the same row, red.
     /// Item 4653: luma 29 → 30, the capital's plates drawn beside the plots.
-    const RUN1814B_3294_FARM_BEFORE: [(usize, usize); 2] = [(2, 48), (30, 48)];
+    /// Item 4661: 30 → 29, a named fall: the plates on their own alpha, no
+    /// longer the borders' ramp.
+    const RUN1814B_3294_FARM_BEFORE: [(usize, usize); 2] = [(2, 48), (29, 48)];
 
     /// **The row by half** (item 4650): the `wheatfarm` underlay alone, and
     /// the wheat boxes alone over the grass.
