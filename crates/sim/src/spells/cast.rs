@@ -552,6 +552,14 @@ impl Sim {
     /// SEAM: `has_wonder(0x211)` is read as absent — the term adds 0 with
     /// the shipped `TERRA_COTTA_RANGE` either way.
     pub(crate) fn spell_range(&self, s: i32, who: crate::Player, t: Obj) -> i32 {
+        self.spell_range_at(s, who, Some(t))
+    }
+
+    /// [`Sim::spell_range`] with the target optional: `get_range(who, -1,
+    /// -1)`, as `Unit::think_spellcaster@005f27a0` asks it before any
+    /// search (item 4675), adds the upgrades and takes none of the
+    /// target's one-tile arms.
+    pub(crate) fn spell_range_at(&self, s: i32, who: crate::Player, t: Option<Obj>) -> i32 {
         let mut r = self.spell(s).map_or(0, |d| d.range);
         if r == 0 {
             return 0;
@@ -560,8 +568,9 @@ impl Sim {
         if s == spell::BRIBE || s == spell::COUNTERINTEL {
             r += ups * self.tables.tuning.spy_bribe_upgrade_range * 0xc0;
             let one_tile = match t {
-                Obj::Unit(v) => self.is_siege_unit(v) || self.is_supply_unit(v),
-                Obj::Building(_) => true,
+                Some(Obj::Unit(v)) => self.is_siege_unit(v) || self.is_supply_unit(v),
+                Some(Obj::Building(_)) => true,
+                None => false,
             };
             if one_tile {
                 r = 0xc0;
@@ -569,12 +578,12 @@ impl Sim {
         }
         if s == spell::INFORMER {
             r += ups * self.tables.tuning.spy_informer_upgrade_range * 0xc0;
-            if matches!(t, Obj::Building(_)) {
+            if matches!(t, Some(Obj::Building(_))) {
                 r = (r + 1) / 2;
             }
         }
         if s == 0x281
-            && let Obj::Unit(_) = t
+            && let Some(t @ Obj::Unit(_)) = t
             && self.profile(t).obj_masks & crate::combat::mask::VEHICLE != 0
         {
             r = 0xc0;
