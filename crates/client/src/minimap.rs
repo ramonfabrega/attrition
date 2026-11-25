@@ -879,9 +879,9 @@ pub(crate) mod tests {
     /// Item 4629, the ring round the selected capital ([`circles`]; the
     /// packet holds it at (389, 969), radius 9.3411): within `NEAR` 3,213
     /// → 3,220, +7.
-    /// Item 4653: within `NEAR` 3,220 → 3,219, a named fall of one cell, the
-    /// plates drawn: their run takes the land pass's HDR round trip, which
-    /// re-tones the frame (`docs/RENDERER.md` §6.1).
+    /// Item 4650's plots: the fifth column, the cells within `NEAR` of the
+    /// photograph on every channel, 3,220 → 3,219, a named fall of one cell
+    /// (measured with item 4653's plates off; the plates move none).
     pub const RUN1564_3279_MINIMAP: [usize; 6] = [558, 596, 580, 3540, 3219, 3600];
 
     /// **The who texture's edge** (item 4588): a 2 × 1 map, player 0 on the

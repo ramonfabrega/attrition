@@ -296,9 +296,12 @@ pub(crate) mod tests {
     pub const RUN1814B_3294_FOG: [[i64; 3]; 3] =
         [[80, 750, 786], [93, 1252, 1305], [209, 1564, 1583]];
     /// The same cells on the client's still with no fog drawn, the row as
-    /// it stood before item 4624. Item 4653: ours 1429 → 1430, 1435 → 1436
-    /// and 1417 → 1431, the capital's plates drawn (their run takes the land
-    /// pass's HDR round trip, `land_hdr_pass`, which re-tones the frame;
+    /// it stood before item 4624. Each row: the main view's cells at that
+    /// fog level, the photograph's median luma, ours (×10). Item 4650's
+    /// plots: ours 1429 → 1432 and 1435 → 1438 (away from theirs, 75.0 and
+    /// 125.2) and 1417 → 1423 (toward 156.4). Item 4653's plates: 1432 →
+    /// 1430, 1438 → 1436 and 1423 → 1431, all toward theirs (their run takes
+    /// the land pass's HDR round trip, which re-tones the frame;
     /// `docs/RENDERER.md` §6.1).
     pub const RUN1814B_3294_UNFOGGED: [[i64; 3]; 3] =
         [[80, 750, 1430], [93, 1252, 1436], [209, 1564, 1431]];
@@ -317,11 +320,14 @@ pub(crate) mod tests {
     ];
     /// The same with no fog drawn. Item 4627: levels 0 and 1 148.9 →
     /// 148.7 and 152.8 → 152.6, the oils' blips gone (`type_avail`).
+    /// Item 4650's plots: level 3 146.3 → 143.8, toward theirs (144.1).
+    /// Item 4653's plates: level 0 148.7 → 148.6 (theirs 0), level 3 143.8
+    /// → 143.5, away by 0.3: the HDR round trip re-tones the frame (§6.1).
     pub const RUN1814B_3294_FOG_MINIMAP_UNFOGGED: [[i64; 3]; 4] = [
-        [13_336, 0, 1487],
+        [13_336, 0, 1486],
         [727, 471, 1526],
         [127, 742, 1549],
-        [210, 1441, 1463],
+        [210, 1441, 1435],
     ];
 
     fn luma(rgba: &[u8], w: usize, x: i32, y: i32) -> f64 {
