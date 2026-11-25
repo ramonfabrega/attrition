@@ -11646,17 +11646,24 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // city's race, whoever owns the building): builds 4,201 -> 4,353
         // (first 3899 -> 4350); the row's first parting is groups alone on
         // 3995.
+        // Then item 4676 (`Army::normalize@006f9b50`'s `remove_group
+        // @006f8b50` leaves an emptied group's record on its pool index with
+        // `army` -1, `docs/ARMY.md` §3.3; built on row 88's run1839): groups
+        // 4,239 -> 4,341 (first 3995 -> 4341), items 5,173 -> 5,298. The
+        // row's first parting moves 3995 -> 4341, on units, groups, guys,
+        // leaders, cities and world. Measured by the scoring test alone; no
+        // range of row 43 was read.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                4341, 4353, 6001, 4356, 4416, 4239, 4341, 4341, 4351, 5173, 4413, 4341,
+                4341, 4353, 6001, 4356, 4416, 4341, 4341, 4341, 4351, 5298, 4413, 4341,
             ],
             first: &[
                 ("units", (4341, Some(630316088), 571078055)),
                 ("builds", (4350, Some(4014773854), 1772852329)),
                 ("ammo", (4356, Some(1671400503), 4115106818)),
                 ("deaths", (4416, Some(1680720123), 2417413765)),
-                ("groups", (3995, Some(866943998), 1455327226)),
+                ("groups", (4341, Some(3090802498), 1869277035)),
                 ("guys", (4341, Some(3154895219), 3388006762)),
                 ("leaders", (4341, Some(3434555180), 2510759726)),
                 ("cities", (4341, Some(2806731487), 1671058207)),
