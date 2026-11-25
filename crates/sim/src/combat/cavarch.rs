@@ -109,6 +109,9 @@ impl crate::Sim {
             return;
         }
         let attacking = self.attack_action_clears(u);
+        if std::env::var("RON_PROBE_4674_PIV").is_ok() && self.units[u].owner == 1 && self.units[u].index == 46 && frame > 3060 {
+            eprintln!("HEAD f{frame} attacking {attacking} idle {} rech {} target {:?} action {:?} orders {:?}", self.units[u].cavarch_idle, self.units[u].combat.recharging, self.units[u].cast_target, self.action_of(u), self.units[u].orders.iter().map(|o| format!("{:?}", o.body).chars().take(60).collect::<String>()).collect::<Vec<_>>());
+        }
         if self.units[u].combat.stance == Stance::HoldFire || attacking {
             self.cavarch_clear(u);
             return;
