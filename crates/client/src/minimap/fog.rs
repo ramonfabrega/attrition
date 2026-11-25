@@ -296,8 +296,10 @@ pub(crate) mod tests {
     /// Item 4650's plots: 786 → 789, 1305 → 1308, 1583 → 1592, all away
     /// from theirs. Item 4653's plates: → 787 and 1306 (toward) and 1600
     /// (away): the HDR round trip re-tones the frame (§6.1).
+    /// Item 4661's plates on their own alpha: → 788 and 1307 (away by a
+    /// tenth) and 1593 (toward 1564).
     pub const RUN1814B_3294_FOG: [[i64; 3]; 3] =
-        [[80, 750, 787], [93, 1252, 1306], [209, 1564, 1600]];
+        [[80, 750, 788], [93, 1252, 1307], [209, 1564, 1593]];
     /// The same cells on the client's still with no fog drawn, the row as
     /// it stood before item 4624. Each row: the main view's cells at that
     /// fog level, the photograph's median luma, ours (×10). Item 4650's
@@ -320,22 +322,25 @@ pub(crate) mod tests {
     /// 48.0, the oil and the far blips off its cells.
     /// Item 4650's plots: level 3 1463 → 1438 (toward theirs, 1441).
     /// Item 4653's plates: 1438 → 1435, away by 3 (§6.1).
+    /// Item 4661's plates on their own alpha: 1435 → 1438, toward theirs.
     pub const RUN1814B_3294_FOG_MINIMAP: [[i64; 3]; 4] = [
         [13_336, 0, 0],
         [727, 471, 480],
         [127, 742, 781],
-        [210, 1441, 1435],
+        [210, 1441, 1438],
     ];
     /// The same with no fog drawn. Item 4627: levels 0 and 1 148.9 →
     /// 148.7 and 152.8 → 152.6, the oils' blips gone (`type_avail`).
     /// Item 4650's plots: level 3 146.3 → 143.8, toward theirs (144.1).
     /// Item 4653's plates: level 0 148.7 → 148.6 (theirs 0), level 3 143.8
     /// → 143.5, away by 0.3: the HDR round trip re-tones the frame (§6.1).
+    /// Item 4661's plates on their own alpha: level 0 148.6 → 148.7 (theirs
+    /// 0), level 3 143.5 → 143.8, toward theirs (144.1).
     pub const RUN1814B_3294_FOG_MINIMAP_UNFOGGED: [[i64; 3]; 4] = [
-        [13_336, 0, 1486],
+        [13_336, 0, 1487],
         [727, 471, 1526],
         [127, 742, 1549],
-        [210, 1441, 1435],
+        [210, 1441, 1438],
     ];
 
     fn luma(rgba: &[u8], w: usize, x: i32, y: i32) -> f64 {
