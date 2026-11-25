@@ -2008,7 +2008,7 @@ impl Sim {
     /// object's number and owner, or — on a cell with nothing threaded —
     /// the cell's own pair, which the map writes (−1 and 0 empty; −2 and the
     /// good's index, `Objects::init_good@00653f30`; −3 and the box's).
-    pub(crate) fn object_head_words(&self, c: crate::Cell) -> (i16, i16) {
+    pub fn object_head_words(&self, c: crate::Cell) -> (i16, i16) {
         let s = (c.y as usize) * (self.world.width() as usize) + (c.x as usize);
         match self.terrain.object_heads[s] {
             Some(h) => {

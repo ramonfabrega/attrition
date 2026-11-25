@@ -413,7 +413,13 @@ which is not what the chain implies, because two of them are left stale.
   `UnitTypeData::blocks_while_dead@00470440` alone (`unit_flags &
   0x800000`). That wreck stays on the chain until `clear_blocking`. A
   building's type has no override, so a building always leaves at its
-  close.
+  close. **`param_1` is what `Unit::close@0060ee50` leaves of it**: `:592`
+  zeroes it whenever the death-animation arm does not run (a decoy,
+  `unit_masks & 1`; a unit off the map; the unpacked merchant's arm), so a
+  decoy of a blocking type leaves the chain and its disc at its death,
+  with no death record (item 4685, `Sim::close_draws`; diff-backed on
+  run1799's 3089: row 93's decoy Tiger Tank `1/38` leaves the Bazooka
+  `1/35` heading (16, 29), units range 1417, world range 1780).
 
 **What this crate holds.** [`ObjectChain`] on every `Unit` and `Building`
 (`Unit::chain`, `Building::chain`): the four words, written where the
