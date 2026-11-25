@@ -1916,7 +1916,7 @@ Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
 
 ### 14.4 Row 88
 
-Open: units and guys part on 3069 (item 4668). run1808 holds sums, run1815 the ranges to 2991 (units, deaths, guys,
+Open: groups part on 3095 (item 4674). run1808 holds sums, run1815 the ranges to 2991 (units, deaths, guys,
 leaders and world), run1818 the ammo ranges to 2792. The stories are the items' journals.
 
 **Item 4614: a rider comes out before its carrier dies, and a fire raft dies with its shot.** Both are diff-backed by
@@ -1936,14 +1936,12 @@ run1815's ranges.
 **Item 4622: a self-destructing shooter splashes from the shot's middle.** `Ammo::do_damage@00678060` at `678652`
 calls the shooter's vslot `+0x18` (on `Unit`, `return 1`) and at `678675` tests its type's `unit_flags & 0x2000`; with
 both, `678681`..`6786a0` set the splash centre to `((sx + ex) / 2, (sy + ey) / 2)`, truncated, which the cell walk and
-both arms' distances read. Barge `2/61`'s `myhits..` on 2741 read ours 12, theirs 0. Built in `Sim::land`, held by
-`combat::fight::tests::a_self_destructing_shooter_splashes_from_the_shot_s_middle`.
+both arms' distances read. Barge `2/61`'s `myhits..` on 2741 read ours 12, theirs 0. Built in `Sim::land` (journal 4622).
 
 **Item 4625: the Carrack fires from its starboard battery.** Ammo record 0 on 2791 is who=1's Carrack `1/82` (TI 342,
 piece 292) firing `CHAR_ATTACK2`'s node 1 at `2/61` on 2790: `sx, sy, sz` ours (16824, 11640, 0), theirs (16866,
 11729, 35). **Ours acted**: `launch_point` had no row for piece 292. Its nine `RELEASEEVENT`s are swept on run1579's
-packet and fitted, built as nine `BAYS` rows, held by `data::launch::tests::the_carrack_s_round_leaves_its_starboard_battery`
-and `the_carrack_s_release_agrees_at_every_heading_but_one`. run1818 agrees on all twelve lines to 2792.
+packet and fitted, built as nine `BAYS` rows, held by `data::launch::tests::the_carrack_s_round_leaves_its_starboard_battery`. run1818 agrees on all twelve lines to 2792.
 
 **Item 4631: a transport's kill plunders as its cargo.** On 2883 who=1's `encrypt` reads `bucket[1]` (timber) ours
 15,500, theirs 15,485, and `bucket[2]` (wealth) ours 17,667, theirs 17,767. On 2882 the Carrack's round sinks `2/61`
@@ -1966,7 +1964,8 @@ The score, `SCORES_SEVENTH[4].moved` (12,001 states). 4614: deaths and world 2,7
 groups → 2,928, guys → 2,907, leaders → 2,883, items → 7,829, world → 2,909; first 2791 → 2883. 4631: leaders 2,883 →
 2,926. 4633: units → 2,985, builds → 3,015, ammo → 3,170, guys → 2,985, leaders → 3,011, goods → 3,543; first 2902 →
 2985. 4662: units → 3,033, builds → 3,144, ammo → 3,391, deaths → 3,463, guys → 3,069, leaders → 3,134, world → 3,086;
-first 2985 → 3028. 4664: ammo → 3,392; first 3028 → 3033. 4668: units → 3,069; first 3033 → 3069.
+first 2985 → 3028. 4664: ammo → 3,392; first 3028 → 3033. 4668: units → 3,069; first 3033 → 3069. 4674: units →
+3,112, guys → 3,149; first 3069 → 3095.
 
 **Item 4662: a stale attack is cleared, not retargeted.** On 2984 who=1's Trebuchet `1/61` (TI 266) ends its
 attack-ground; the Attack under it names `2/63` at uid 93, a number another barge holds. `Unit::work@0060d180:300`–`:340`
@@ -1975,11 +1974,12 @@ marks the object at `(whom, ox)` in danger and, on the uid mismatch, writes `ox`
 `orders::reused_target_tests::an_attack_on_a_reused_number_is_cleared_and_searches_a_frame_later`.
 
 **Item 4664: a ship fires from the water** (`Object::fire_ammo@0064c8b0:166`, figure `z` + 100): on 3028 raft
-`1/94`'s round `sz` ours −173 → 100, theirs 100;
-`combat::fight::tests::a_ship_s_round_leaves_above_the_water_not_the_seabed`.
+`1/94`'s round `sz` ours −173 → 100, theirs 100.
 
-**Item 4668: `check_hit` takes the last of a tie** (`docs/COMBAT.md` §9.4): on 3033 `1/83`'s `damage` ours 3 → 7,
-theirs 7. Next: 3069, units and guys.
+**Item 4668: `check_hit` takes the last of a tie** (`docs/COMBAT.md` §9.4): on 3033 `1/83`'s `damage` ours 3 → 7 as theirs.
+
+**Item 4674: `set_all_pivots` bears on `objects[whom][ox]`**: on 3069 `1/46`'s `cavarch_o` ours −1 → 61 as theirs.
+Next: 3095, groups.
 
 **Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is not built: no capture has been shown
 to reach it. A building shooter always splashes from the landing (`Build` and `Wall` fill vslot `+0x18` with a
