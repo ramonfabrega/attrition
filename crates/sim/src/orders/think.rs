@@ -141,6 +141,9 @@ impl Sim {
         } else {
             self.update_action(u)
         };
+        if std::env::var("RON_PROBE_4662").is_ok() && self.units[u].owner == 1 && self.units[u].index == 61 {
+            eprintln!("W4662 f{frame} action {:?} tgt {:?} orders {:?}", action, self.units[u].combat.target, self.units[u].orders);
+        }
         if action.is_some_and(|a| self.units[u].orders[a].index() == index::ATTACK)
             && let Some(t) = self.units[u].combat.target
         {
@@ -233,6 +236,9 @@ impl Sim {
             Some(Body::AirPatrol(_)) => self.do_air_patrol(u, frame),
             Some(Body::AirAttackGround(_)) => self.do_air_attack_ground(u, frame),
             Some(Body::Think) => self.do_think_order(u, frame),
+        }
+        if std::env::var("RON_PROBE_4662").is_ok() && self.units[u].owner == 1 && self.units[u].index == 61 {
+            eprintln!("W4662 f{frame} after job tgt {:?} orders {:?}", self.units[u].combat.target, self.units[u].orders);
         }
         // `60dadd`, after `do_job`: two Helicopters set apart.
         self.helicopter_spread(u);
