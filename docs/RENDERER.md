@@ -3051,7 +3051,8 @@ channel, (133, 123, 100) against (148, 138, 112), so luma does not move (~~4199b
 
 **The records.** Our walk on 3279 against the packet's 3294, 599 records with a reference: 599 ours, connections 599,
 white lines 576, intersections 320; of the 485 pieces we lay, 286 are the packet's element and orientation. The
-white partings are junctions; the intersections are set and never cleared as a ring is laid tile by tile beside a
+white partings are junctions (~~22 of 23~~: the rings round a joined corner, item 4673, §6.4: white 598, pieces 304 of
+490; the one left is the T at (19, 163)); the intersections are set and never cleared as a ring is laid tile by tile beside a
 half-built one, so a once-only evaluation misses 279 (4199a), and an extra intersection widens the candidates so the
 fractal picks another straight.
 
@@ -6179,7 +6180,7 @@ The diff: helper 0's 54 pieces are `lay`'s boxes and texcoords from the
 records' own elements and orientations on 53 of 54, and their page corners
 the box over 4 on 54 of 54 (`roads::tests::the_plates_quads_are_the_packet_s`).
 Our walk lays 50 of the 54, 29 on the packet's element and orientation
-(`the_plates_against_the_packet_s`; 4653b, 4199a).
+(`the_plates_against_the_packet_s`; ~~4653b~~ §6.4: 54 of 54, 37; 4199a).
 
 **The row.** `RUN1814B_3294_PLATES`, minted red on the door's 54 road tiles
 in x 7–19, y 151–163 (46 scored): hue **12 → 37 of 46**, luma 43 → 43. With
@@ -6265,7 +6266,8 @@ dropped by item 4661, whose card take backs the file's alpha by a diff.
   client still complements it, on the row alone, until 4658a is read.
 - ~~What thins the plates to blotches where the photograph's bands are opaque
   (4658a).~~ Item 4661: the borders' alpha, on a shared cache key ("The
-  card's draw"). The four element-1 plates our walk does not lay (4653b).
+  card's draw"). ~~The four element-1 plates our walk does not lay
+  (4653b).~~ Item 4673 (§6.4): the rings round the joined corners.
 - ~~Why our plates lay tile-sized squares where draw 81 lays bands
   (4661a).~~ Item 4665 ("The mesh, against draw 81"): the mesh is draw
   81's, and the plates were sampling the surf's mask 1 on key 921.
@@ -6339,6 +6341,90 @@ photograph by the row.
   darkened.
 - `tree_sprite_data` (the low-detail trees, `section_render[10]` clear)
   takes the same call and is not drawn by the client.
+
+## 6.4 Element 1's plates on run1814b (item 4673)
+
+*2026-11-25, Opus 5.5. The ledger: `docs/journal/2026-11-25-item-4673.md`.
+`client::roads::corner_loops`; the tests `a_joined_corner_holds_its_ring`
+and `the_plates_candidates_are_the_packet_s`.*
+
+**Where the four went** (4653b). South of the market the capital's roads
+make a block two tiles high and four wide, x 12–15 and y 155–156. The
+packet lays element 1 (`5100f300`, a T with its white lines whole) on all
+eight tiles. Our walk's connections were the packet's on all eight, but our
+white bytes were a subset of theirs on every one: (13, 155) `0x21` against
+`0x3f`, (13, 156) `0x12` against `0xf3`. So the four end tiles matched
+no piece's orientation, and the four inside matched element 14, the same T
+with fewer lines.
+
+**The missing halves ring the block's three inner corners.** Round the
+corner between (13, 155), (14, 155), (14, 156) and (13, 156), theirs holds
+`SE | E`, `SW | S`, `NW | W` and `NE | N`. `RoadsOut::mark_white_lines@00892c10`
+cannot mark them, because each of the four has a road on every side it would
+mark (`fill_cache@00893b30`'s `road_cache`, read again: the arms are ours).
+They are a fixed point of two passes we do not run:
+- `RoadsOut::fixup_lines@00891210` continues a half into the next one
+  round the tile's corner where the tile is joined that way: `SE` joined
+  east sets `E`, `SW` joined south sets `S`, `NW` joined west sets `W`,
+  `NE` joined north sets `N`. Each set also puts the half's twin on the
+  neighbour across the edge.
+- `RoadsOut::leech_codes@00890da0` takes a road neighbour's twin back onto
+  the tile.
+
+Twins pair as `mark_white_lines`' puts do: the tile's `E` is the east
+tile's `SW`, its `S` the south tile's `NW`, its `W` the west tile's `NE`,
+its `N` the north tile's `SE`. So once one half of a ring stands, the ring
+holds whatever is re-marked. `Roads::redo_changed_roads@0088e670` zeroes
+only the changed tiles' flags before it leeches. In the original a half
+stands from a time when one of the four was laid before its neighbour. The
+door carries no such history.
+
+**The build.** `corner_loops` marks every ring round a corner where four
+records meet, each joined to the next round it. Before it, the fixed point
+of `fixup_lines`' eight arms and `leech_codes` was run alone on the current
+state, and it moved nothing on either packet: no half of a ring is ever
+marked fresh. That closure is not kept.
+
+**The value diff** (the packet's `road_records.py` flags against
+`candidates`):
+
+| tile | theirs | ours before | ours now |
+|---|---|---|---|
+| (12, 155) | `15003f00` | `15002700` | `15003f00` |
+| (13, 155) | `15003f00` | `15002100` | `15003f00` |
+| (14, 155) | `15003f10` | `15002110` | `15003f10` |
+| (15, 155) | `4500cf04` | `4500c904` | `4500cf04` |
+| (12, 156) | `5400fc40` | `54009c40` | `5400fc40` |
+| (13, 156) | `5100f301` | `51001201` | `5100f301` |
+| (14, 156) | `5100f300` | `51001200` | `5100f300` |
+| (15, 156) | `5100f300` | `51007200` | `5100f300` |
+
+- *In the plates' box* (`RUN1814B_PLATE_CANDIDATES`): white 46 → 54 of 54.
+  The intersections are 33 of 54; the 21 apart are each a bit the packet
+  holds and we do not (4199a).
+- *Laid* (`RUN1814B_PLATE_PIECES`): 50 → 54 of 54, the packet's element
+  and orientation 29 → 37. All eight of the block are element 1 at the
+  packet's orientation.
+- *Draw 81* (`RUN1833_DRAW_81`): our walk's cells 304 → 318 of 320, the
+  same as the packet's own picks. The two apart are (12, 156), whose
+  piece the buffer holds no box of. The piece's texcoord is 558 → 642 of
+  954 corners.
+- *run1559b* (`RUN1559B_RECORDS`): white 576 → 598 of 599. The
+  crossroads' 22 were rings too, and the T at (19, 163) is left. Pieces
+  laid 485 → 490, the packet's 286 → 304.
+- *The row* (`RUN1814B_3294_PLATES`): drawn hue **41 → 44 of 46**, the
+  by-half's 44; luma 42 and 42.
+
+**Diff-backed**: the block's eight candidates and the box's white lines
+(54 of 54), run1559b's 598. **Read alone**: `fixup_lines`' and
+`leech_codes`' arms, and the pairs. No score rests on them: the ring is
+built from the packets' bytes, and the reading says why it holds.
+
+**Not established.**
+- Whether every joined corner holds its ring. On both packets every one
+  does. A block laid whole in one `add_roads` call, with no half of a
+  ring standing, would not, and the door cannot tell the two apart.
+- The intersections' history (4199a).
 
 ## 7. What is not established, and what needs Ramon's word
 
