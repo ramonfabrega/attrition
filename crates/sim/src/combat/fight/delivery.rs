@@ -207,6 +207,10 @@ impl Sim {
                 (self.obj_alive(attacker), at.z, tt.z, self.tables.tuning.height_bonus, self.tables.tuning.height_increment, self.pos_of(attacker), self.pos_of(target)),
                 match attacker { Obj::Unit(u) => Some((self.units[u].owner, self.units[u].index, self.units[u].type_index, self.units[u].health)), _ => None },
             );
+            if let Obj::Building(ab) = attacker {
+                let sp = match source { HitSource::Round(Some(p)) => Some((p.splash_area, p.target, p.air, p.owner)), _ => None };
+                eprintln!("D4634   attacker b{ab} {}/{} ty {:?} round {:?}", self.buildings[ab].owner, self.buildings[ab].index, self.buildings[ab].ty, sp);
+            }
         }
         // Step 2: the target's captain reacts, and the overkill record.
         if let Obj::Unit(t) = target
