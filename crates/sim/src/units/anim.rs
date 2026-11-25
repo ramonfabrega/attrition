@@ -2338,17 +2338,6 @@ impl Sim {
                                 .unwrap_or(0),
                         ),
                     };
-                    if std::env::var("RON_PROBE_4663").is_ok() {
-                        eprintln!(
-                            "PROBE4663 frame {} u {} who {:?} ty {:?} pos ({}, {}) facing {} follow {:?} guy g {} gpiece {} anim {} start {} node {} cur {} last {} pivot {} from ({}, {}) dz {}",
-                            self.frame, u, self.units[u].owner,
-                            self.units[u].ty.map(|t| self.tables.unit_types[t].type_index),
-                            self.units[u].pos.x, self.units[u].pos.y,
-                            self.units[u].movement.facing.0, guy.follow.map(|f| f.facing.0),
-                            g, guy.gpiece, guy.anim, start, node, guy.cur_time, guy.last_time,
-                            pivot.is_some(), from.x, from.y, dz
-                        );
-                    }
                     // A plane's figure flies at its own `z` (`GuyData +0x14`,
                     // the `GUY` record's), and that is the height the
                     // package carries (`Guy::execute_events@005d99c0:29`):
