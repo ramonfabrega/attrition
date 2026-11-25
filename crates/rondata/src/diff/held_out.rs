@@ -2062,7 +2062,11 @@ pub(crate) mod tests {
             for line in [1usize, 3] {
                 let ours = lines[line].as_ref().expect("the line");
                 let theirs: Vec<_> = all.iter().filter(|r| r.line == line as u8).collect();
-                assert_eq!(ours.ranges.len(), theirs.len(), "line {line}'s ranges on {state}");
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {line}'s ranges on {state}"
+                );
                 for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
                     assert_eq!(
                         a.bytes, b.bytes,
@@ -2074,7 +2078,11 @@ pub(crate) mod tests {
             let cap = built.sim.building_by_o(2, 2000).expect("2/2000");
             damage.push(built.sim.buildings[cap].damage);
         }
-        assert_eq!(damage, vec![5895, 5985, 6031], "46 + 44 on 2451, 46 on 2452");
+        assert_eq!(
+            damage,
+            vec![5895, 5985, 6031],
+            "46 + 44 on 2451, 46 on 2452"
+        );
     }
 
     /// **Row 28's two Bazookas drop their chase of a Citizen on one tick**
