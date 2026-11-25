@@ -1194,6 +1194,35 @@ pub(crate) mod tests {
                     == Some(f0);
                 built.sim.trace.trace_phases = sites;
                 let seed0 = built.sim.rng.seed;
+                if (3572..=3574).contains(&f0) {
+                    if let Some(u) = Some(510usize) {
+                        let un = &built.sim.units[u];
+                        let gp: Vec<_> = un
+                            .guys
+                            .iter()
+                            .map(|g| g.follow.as_ref().map(|f| (f.body.pos.x, f.body.pos.y)))
+                            .collect();
+                        eprintln!(
+                            "W4689 f{f0} raft pos ({}, {}) body ({}, {}) guys {:?} coll_at {:?} on_map {} hp {}",
+                            un.pos.x, un.pos.y, un.movement.body.pos.x, un.movement.body.pos.y, gp,
+                            un.coll_at, un.on_map, un.health
+                        );
+                        let w = &built.sim.world;
+                        for cy in 19..=22 {
+                            let row: Vec<_> = (26..=29)
+                                .map(|cx| w.region_of(sim::world::Cell::new(cx, cy)))
+                                .collect();
+                            eprintln!("W4689 f{f0} regions y{cy} x26..29 {:?}", row);
+                        }
+                        let t = un.movement.body.pos.tile();
+                        eprintln!(
+                            "W4689 f{f0} tile {:?} tregion {:?} tregion_alt {:?}",
+                            t,
+                            w.tregion(t),
+                            w.tregion_alt(t)
+                        );
+                    }
+                }
                 built.sim.command().tick();
                 if sites {
                     eprintln!("S4676 f{f0} seed {seed0:#010x}");
@@ -1367,6 +1396,15 @@ pub(crate) mod tests {
                         }
                     }
                 }
+                if *name == "world" {
+                    for &(i, j) in &pairs {
+                        let (a, b) = (&ours.ranges[i], theirs[j]);
+                        if a.field == "block.body" && [1227, 1228, 1287, 1288].contains(&a.record) {
+                            let c = |v: &[u8]| v.iter().map(|x| x.count_ones()).sum::<u32>();
+                            eprintln!("C4689 {state} rec {} ours {} theirs {}", a.record, c(&a.bytes), c(&b.bytes));
+                        }
+                    }
+                }
                 for (k, (a, b)) in pairs
                     .iter()
                     .map(|&(i, j)| (&ours.ranges[i], theirs[j]))
@@ -1393,6 +1431,35 @@ pub(crate) mod tests {
                                 crate::checksum::fields::range_fields(name, a.field, &a.bytes),
                                 crate::checksum::fields::range_fields(name, a.field, &b.bytes)
                             );
+                        }
+                        if a.field == "block.body" {
+                            let n = sim::movement::collide::UCELLS_PER_CELL;
+                            let xs = built.sim.movement.coll.cells_wide();
+                            let (cx, cy) = (i32::from(a.record) % xs, i32::from(a.record) / xs);
+                            for i in 0..(n * n) {
+                                let (bo, bt) = (
+                                    a.bytes[(i / 8) as usize] >> (i % 8) & 1,
+                                    b.bytes[(i / 8) as usize] >> (i % 8) & 1,
+                                );
+                                if bo != bt {
+                                    eprintln!(
+                                        "B4689 {state} cell ({cx},{cy}) ucell ({}, {}) ours {bo} theirs {bt}",
+                                        cx * n + i / n,
+                                        cy * n + i % n
+                                    );
+                                    for (k, un) in built.sim.units.iter().enumerate().filter(|_| std::env::var("RON_NEAR").is_ok()) {
+                                        let c = sim::movement::collide::ucell(un.pos);
+                                        if (c.x - (cx * n + i / n)).abs() <= 2
+                                            && (c.y - (cy * n + i % n)).abs() <= 2
+                                        {
+                                            eprintln!(
+                                                "B4689   near slot {k} {:?}/{} TI {} pos ({}, {}) on_map {} hp {}",
+                                                un.owner, un.index, un.type_index, un.pos.x, un.pos.y, un.on_map, un.health
+                                            );
+                                        }
+                                    }
+                                }
+                            }
                         }
                         if d.is_empty() && a.bytes.len() <= 64 {
                             eprintln!("P4676   ours {:?}\nP4676   theirs {:?}", a.bytes, b.bytes);
