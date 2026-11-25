@@ -1916,8 +1916,8 @@ Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
 
 ### 14.4 Row 88
 
-Open: world parts on 3574 (item 4683). run1808 holds sums, run1815 the ranges to 2991 (units, deaths, guys,
-leaders and world), run1818 the ammo ranges to 2792, run1840 and run1842 every line but walls to 3118 and 3447. The stories are the items' journals.
+Open: builds parts on 3717 (item 4689). run1808 holds sums, run1815 the ranges to 2991 (units, deaths, guys,
+leaders and world), run1818 the ammo ranges to 2792, run1840, 1842 and 1843 every line but walls to 3118, 3447 and 3590. The stories are the items' journals.
 
 **Item 4614: a rider comes out before its carrier dies, and a fire raft dies with its shot.** Both are diff-backed by
 run1815's ranges.
@@ -1936,7 +1936,7 @@ run1815's ranges.
 **Item 4622: a self-destructing shooter splashes from the shot's middle.** `Ammo::do_damage@00678060` at `678652`
 calls the shooter's vslot `+0x18` (on `Unit`, `return 1`) and at `678675` tests its type's `unit_flags & 0x2000`; with
 both, `678681`..`6786a0` set the splash centre to `((sx + ex) / 2, (sy + ey) / 2)`, truncated, which the cell walk and
-both arms' distances read. Barge `2/61`'s `myhits..` on 2741 read ours 12, theirs 0. Built in `Sim::land` (journal 4622).
+both arms' distances read. Barge `2/61`'s `myhits..` on 2741 read ours 12, theirs 0. Built in `Sim::land`.
 
 **Item 4625: the Carrack fires from its starboard battery.** Ammo record 0 on 2791 is who=1's Carrack `1/82` (TI 342,
 piece 292) firing `CHAR_ATTACK2`'s node 1 at `2/61` on 2790: `sx, sy, sz` ours (16824, 11640, 0), theirs (16866,
@@ -1959,9 +1959,9 @@ owing the larger damage fraction of `myhits` less the squad's `total_damage@0060
 Built in `Sim::same_damage` (`docs/TRANSPORT.md` §6.4), held by
 `ai::transport::tests::a_boat_s_damage_comes_ashore_on_its_squad_s_tail`.
 
-The score, `SCORES_SEVENTH[4].moved` (12,001 states; each landing's columns are in its comment). The first parting:
+The score, `SCORES_SEVENTH[4].moved` (12,001 states; columns in each comment). The first parting:
 2741 → 2791 (4622) → 2883 (4625) → 2902 (4631) → 2985 (4633) → 3028 (4662) → 3033 (4664) → 3069 (4668) → 3095 (4674)
-→ 3112 (4676; groups → 3,490, builds → 3,513, guys → 3,442, leaders → 3,446) → 3441 (4680; units → 3,442) → 3574 (4683).
+→ 3112 (4676) → 3441 (4680) → 3574 (4683) → 3717 (4689).
 
 **Item 4662: a stale attack is cleared, not retargeted.** On 2984 who=1's Trebuchet `1/61` (TI 266) ends its
 attack-ground; the Attack under it names `2/63` at uid 93, a number another barge holds. `Unit::work@0060d180:300`–`:340`
@@ -1983,6 +1983,8 @@ index (`docs/ARMY.md` §3.3): on 3095 slot 130's `army` ours 0 → −1, `stamp`
 `hold_frames`, boarded with a round in the air, ours 1 → 0 as theirs.
 
 **Item 4683: a unit off the map is fired at** (`Ammo::init:178`): on 3441 `2/111`'s round at the boarding `1/0`, ours none, theirs slot 4.
+
+**Item 4689: a raft sunk in its work repaints** (`Guy::process`, frame 64): on 3574 `1/139`'s 9×9 bits ours 0 → 1 as theirs.
 
 **Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is not built: no capture has been shown
 to reach it. A building shooter always splashes from the landing (`Build` and `Wall` fill vslot `+0x18` with a

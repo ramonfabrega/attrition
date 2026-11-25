@@ -42435,3 +42435,30 @@ two are `Ammo::init+0xcd9` and `+0xd0b` under `GraphicEvents::execute_game_event
 target off the map; neither `Guy::execute_events`' `CHAR_ATTACK2` refusal nor `Ammo::init:178` asks for the map
 (`docs/COMBAT.md` §24.4). After the fix nothing parts to 3447. Read by item 4683's range printer (a probe, reverted);
 no test reads the ranges.
+
+## run1843 — parity held out, seventh battery, row 88's file to 3,590 with the checksum and ranges hooks, every line but walls kept (2026-11-25, item 4689, `att-4689`)
+
+`docs/RECGAME.md` §14.4. **What the disk could not answer**: row 88 parts on 3574 on world, past run1842's ranges (to
+3447). The take is run1842's line to 3,590 with `--log-window 3567 3590` and the same mask, `0xffb`, which is what
+`score_recording` on run1808's sums names on the base (every line but walls parts):
+`TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1843
+--recording ~/ron-golden/recordings/item4600-row088-12000.rcx --end-frame 3590 --allow-early-end --cover cover=1
+--log-window 3567 3590 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def
+RON_RANGES --tracer-def RNG_MASK=0xffbu`, waited on with `waitrun.sh` in the background. All three lanes read free at
+launch (`ron_lane_state`); `df -g ~` read 77 GB free before it and 94 after filing.
+- **The run**: pool lane 1, launched 17:17:20 −05:00, exited 17:21:51: **270.2 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 3,591 frames, `last_frame` 3590, not ended early, seed 12345, map 18. The
+  recording's SHA-256 is run1808's (`02dced92…`). Players: tribe 4 (who 0, flags 7), tribe 17 (who 1), tribe 11 (who 2).
+- **The record**: `~/ron-golden/run1843/map-18/rontrace.ranges`, 3,596,474,068 bytes, SHA-256
+  `b03ebcc4fa14ca1e7efed770115989b199a189277ec5b5bfc8272e5927f09d07`, split in four by `filerun.py` and compressed
+  in place (3.35 GiB on disk before, 0.32 after). `gamelog_p.txt`, 2,879 bytes, SHA-256
+  `866de7f2e5bfe4d7e71caaaee865f100e341d0d4d4b38936670769ef4d1881a4`; `rontrace.log`, 171,500,832 bytes, SHA-256
+  `3876df6c05ac6d953fb03ff9b10719cf5c5ca3c931c5ac73c4a2fe43a68d1520`.
+- Filed with `filerun.py run1843 heldout7-row088-world3574-ranges`.
+
+**What it named**: the world line on 3574, four `block.body` ranges (records 1227, 1228, 1287, 1288): theirs holds the
+81 bits of unit cells (446..454, 330..338), ours none. They are the whole 9×9 disc of who=1's Heavy Fire Raft `1/139`
+(TI 335, sea), which stood from 3562 and on tick 3573 fires and sinks in its own `fight` (theirs' draws
+`Unit::close+0xcb6 < Object::die+0x29 < Unit::fight+0x1e27`; 19 draws on both sides). `Unit::process@00610bc0` runs
+`Guy::process` on the dead figure, and 3573 + 139 is 58 × 64: the repaint re-marks the disc the close cleared. After
+the fix nothing parts to 3590. Read by item 4689's range printer (a probe, reverted); no test reads the ranges.
