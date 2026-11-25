@@ -1104,19 +1104,118 @@ impl Sim {
         Some(b)
     }
 
-    /// `Unit::same_damage(o, who)@005f9400`: the boat comes out of the
-    /// conversion as damaged, in 256ths of its own hit points, as the unit
-    /// that cast it.
+    /// **`Unit::same_damage(this, host)@005f9400`**: `to` comes out of a
+    /// conversion as damaged as `from`, in 256ths of hit points, and the
+    /// damage owed is laid on `to`'s squad figure by figure (item 4633,
+    /// `docs/RECGAME.md` §14.4). Both directions of a boat take it: a
+    /// boarding gives the boat its passengers' damage, an unload gives
+    /// the passenger the boat's.
     ///
-    /// SEAM: the original walks both squads and spreads the damage figure by
-    /// figure, killing whole figures off a squad too hurt to carry it. Every
-    /// unit that boards in a capture so far is a single figure at full
-    /// health, where the walk and this line agree on zero.
-    pub(crate) fn same_damage(&mut self, boat: usize, u: usize) {
-        let hits = self.units[u].max_health.max(1);
-        let frac = ((hits - self.units[u].health).max(0) << 8) / hits;
-        let boat_hits = self.units[boat].max_health;
-        self.units[boat].health = boat_hits - ((boat_hits * frac) >> 8);
+    /// - **The receiver is the squad's last live figure**: from `to`,
+    ///   `o_down` is followed while the next figure is alive.
+    /// - **The fraction is the larger of the two**: the receiving squad's
+    ///   own [`Sim::total_damage`] over its `myhits`, and `from`'s over
+    ///   its own, each `<< 8` and divided.
+    /// - **What is owed** is that fraction of the receiver's `myhits`
+    ///   (`>> 8`, toward zero) less the squad's [`Sim::total_damage`];
+    ///   nothing when it is not positive.
+    /// - **It lands from the tail up** (`o_up`): a member owed less than a
+    ///   figure's share (`myhits / uber_size`) takes it as its `damage`
+    ///   (`+0x24`, written, not added); a member owed at least a share dies
+    ///   (`Object::die(f, 0, −1, 0)`) and passes the rest up; the captain
+    ///   takes what is left, one short of its squad's remaining hits.
+    ///
+    /// run1815's 2902: who=2's barge `2/65` (TI 320), 44 of 50, unloads
+    /// the Elite Javelineers squad `2/29`..`2/31` (TI 84). Its 6 lost are
+    /// 30/256, so 110 × 30 >> 8 = 12 is owed, and theirs puts it on the
+    /// tail `2/31`. The captain `2/29` comes out first, and the old line
+    /// gave it the 12.
+    pub(crate) fn same_damage(&mut self, to: usize, from: usize) {
+        let mut tail = to;
+        for _ in 0..self.units.len() {
+            match self.units[tail].o_down {
+                Some(d) if self.units[d].alive() => tail = d,
+                _ => break,
+            }
+        }
+        let myhits = self.units[tail].max_health.max(1);
+        let uber = self.units[tail]
+            .ty
+            .map_or(1, |t| self.tables.unit_types[t].combat.uber_size.max(1));
+        let share = myhits / uber;
+        let had = self.total_damage(tail);
+        let own = (had << 8) / myhits;
+        let from_hits = self.units[from].max_health.max(1);
+        let theirs = (self.total_damage(from) << 8) / from_hits;
+        let frac = own.max(theirs);
+        let mut owed = ((myhits * frac) / 256 - had).max(0);
+        if owed == 0 {
+            return;
+        }
+        let mut f = tail;
+        for _ in 0..self.units.len() {
+            if !self.units[f].alive() {
+                return;
+            }
+            let Some(up) = self.units[f].o_up else {
+                // The captain: what is left, one short of the squad's
+                // remaining hits.
+                let room = myhits - self.total_damage(f) - 1;
+                let unit = &mut self.units[f];
+                unit.health = unit.max_health - owed.min(room);
+                return;
+            };
+            if owed < share {
+                let unit = &mut self.units[f];
+                unit.health = unit.max_health - owed;
+                return;
+            }
+            self.die_quietly(f);
+            owed -= share;
+            if owed == 0 {
+                return;
+            }
+            f = up;
+        }
+    }
+
+    /// **`UnitData::total_damage(this, 0, NULL)@00609c00`**: a squad's
+    /// damage, asked of any figure. The walk climbs `o_up` to the captain
+    /// and sums the `damage` of the captain and of each live figure down
+    /// its `o_down` chain, the walk stopping at the first dead one; it adds
+    /// a whole figure's share, `myhits / uber_size`, for each figure the
+    /// squad has lost (`(uber_size − curr_uber_size) × myhits / uber_size`),
+    /// and the chain's summed sixteenths (`damage_frac`, `+0x3b`) `>> 4`
+    /// once they pass 15.
+    pub(crate) fn total_damage(&self, u: usize) -> i32 {
+        let mut captain = u;
+        for _ in 0..self.units.len() {
+            let Some(a) = self.units[captain].o_up else {
+                break;
+            };
+            captain = a;
+        }
+        let c = &self.units[captain];
+        let mut sum = c.max_health - c.health;
+        let mut sixteenths = c.damage_frac;
+        let mut at = c.o_down;
+        for _ in 0..self.units.len() {
+            let Some(m) = at.filter(|&m| self.units[m].alive()) else {
+                break;
+            };
+            let x = &self.units[m];
+            sum += x.max_health - x.health;
+            sixteenths += x.damage_frac;
+            at = x.o_down;
+        }
+        let uber = c
+            .ty
+            .map_or(1, |t| self.tables.unit_types[t].combat.uber_size.max(1));
+        sum += (uber - self.curr_uber_size(captain)) * c.max_health / uber;
+        if sixteenths > 15 {
+            sum += sixteenths >> 4;
+        }
+        sum
     }
 
     /// **The stamp `Object::insert_inside@00647e90` would give a figure
