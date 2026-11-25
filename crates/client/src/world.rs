@@ -207,6 +207,11 @@ pub struct World {
     /// Draw the map's trees (item 4080, `render::trees`). On by default;
     /// `--no-trees` turns it off.
     pub trees: bool,
+    /// **Darken the trees past sight** (item 4670, `docs/RENDERER.md`
+    /// §6.3): with [`World::fog`] set, a tree whose fog cell is not seen
+    /// takes `DARK_GREY` as `adjust_tree_colors` gives it. On by default;
+    /// the row turns it off to find the trees it moves.
+    pub tree_fog: bool,
     /// How candidate C reads a tree's pixel (`docs/RENDERER.md` §5.3).
     pub tree_pixels: TreePixels,
     /// How the trees' leaves are drawn in the key buffer (item 4082).
@@ -940,7 +945,7 @@ pub const TREE_ALPHA_REF: u8 = 0;
 pub const TREE_CULL: render::silhouette::Cull = render::silhouette::Cull::CounterClockwise;
 
 /// One tree texture's faces as corners and texcoords (item 4173).
-type TreeFaces = (Vec<[f32; 3]>, Vec<[f32; 2]>);
+type TreeFaces = (Vec<[f32; 3]>, Vec<[f32; 2]>, Vec<u8>);
 
 /// One tree model at rest: its vertices and its faces.
 pub type TreeModel = (Vec<[f32; 3]>, Vec<[u16; 3]>);
@@ -1384,6 +1389,7 @@ impl World {
             runner,
             terrain: (u32::MAX, TerrainMesh::default()),
             trees: true,
+            tree_fog: true,
             tree_pixels: TreePixels::Ground,
             leaves: Leaves::Alpha,
             silhouettes: Silhouettes::Drawn,
@@ -1755,6 +1761,7 @@ impl World {
                     uvs: Vec::new(),
                     mips: mips.clone(),
                     light: Vec::new(),
+                    diffuse: Vec::new(),
                 })
                 .collect();
             // Item 4178 (§3.12): the land pass draws no `OCEAN` tile;
@@ -2902,6 +2909,38 @@ impl World {
             .collect()
     }
 
+    /// **Each tree's diffuse** (item 4670; `docs/RENDERER.md` §6.3), one
+    /// beside each of `trees` ([`World::tree_list`]'s):
+    /// `RTreeData::adjust_tree_colors@009236f0` (and
+    /// `TreeTransformMethod::execute@00921790`, which lays the same grey
+    /// when a tree enters the cache) gives a tree `GREY`, or
+    /// `DARK_GREY` when `WorldData::is_seen` is false at its fog cell — its
+    /// `TCoord` (the place over 192) halved. Under the display reveal, as
+    /// with [`World::fog`] `None`, every tree is `GREY`.
+    pub fn tree_diffuse(&self, trees: &[render::trees::Tree]) -> Vec<u8> {
+        use render::silhouette::{TREE_DIFFUSE, TREE_DIFFUSE_UNSEEN};
+        use sim::ids::scale::UNITS_PER_FOG;
+        let plane = self.fog_plane().filter(|_| self.tree_fog);
+        let Some(plane) = plane else {
+            return vec![TREE_DIFFUSE; trees.len()];
+        };
+        let t = self.runner.terrain();
+        let fog = (t.width * 2, t.height * 2);
+        trees
+            .iter()
+            .map(|tree| {
+                let fx = (tree.at.0.max(0) / UNITS_PER_FOG).min(fog.0 - 1);
+                let fy = (tree.at.1.max(0) / UNITS_PER_FOG).min(fog.1 - 1);
+                let level = plane.get((fy * fog.0 + fx) as usize).copied();
+                if level == Some(sim::observe::fog::VISIBLE) {
+                    TREE_DIFFUSE
+                } else {
+                    TREE_DIFFUSE_UNSEEN
+                }
+            })
+            .collect()
+    }
+
     /// **The trees as the client draws them** (item 4173; §3.7, "The trees'
     /// own colour"): each face that samples a texture into that texture's
     /// mesh — `piece` the texture's index, `who` [`TREE_WHO`] — for
@@ -2914,7 +2953,15 @@ impl World {
         };
         let mut by: BTreeMap<usize, TreeFaces> = BTreeMap::new();
         let cuts = self.tree_cuts();
-        for (d, cut) in self.tree_drawings().iter().zip(&cuts) {
+        // One grey a drawing: the trees `tree_drawings` keeps, in its order.
+        let trees = self.tree_list();
+        let greys: Vec<u8> = trees
+            .iter()
+            .zip(self.tree_diffuse(&trees))
+            .filter(|(t, _)| art.models.get(t.model).is_some_and(Option::is_some))
+            .map(|(_, g)| g)
+            .collect();
+        for ((d, cut), &grey) in self.tree_drawings().iter().zip(&cuts).zip(&greys) {
             for (ti, tri) in d.tris.iter().enumerate() {
                 let textured = cut.as_ref().and_then(|c| {
                     let k = *c.image.get(ti)?;
@@ -2926,6 +2973,7 @@ impl World {
                         let e = by.entry(k).or_default();
                         e.0.extend(tri);
                         e.1.extend(uv);
+                        e.2.extend([grey; 3]);
                     }
                     None => {
                         let lit = shade(*tri);
@@ -2938,7 +2986,7 @@ impl World {
             }
         }
         by.into_iter()
-            .filter_map(|(k, (positions, uvs))| {
+            .filter_map(|(k, (positions, uvs, diffuse))| {
                 Some(TexturedMesh {
                     piece: k as i32,
                     who: TREE_WHO,
@@ -2946,6 +2994,7 @@ impl World {
                     uvs,
                     mips: art.leaf_mips.get(k)?.clone()?,
                     light: Vec::new(),
+                    diffuse,
                 })
             })
             .collect()
@@ -3038,6 +3087,7 @@ impl World {
                     uvs,
                     mips: self.shadow_texture(piece)?.clone(),
                     light: Vec::new(),
+                    diffuse: Vec::new(),
                 })
             })
             .collect()
@@ -3565,6 +3615,7 @@ impl World {
                     uvs: d.uvs.iter().flatten().copied().collect(),
                     mips,
                     light,
+                    diffuse: Vec::new(),
                 });
                 continue;
             }
@@ -3606,6 +3657,11 @@ pub struct TexturedMesh {
     /// figure (`piece` not negative), a lit figure's (item 4345,
     /// [`World::lit_figure`]); empty, unlit.
     pub light: Vec<f32>,
+    /// **A tree corner's diffuse** (item 4670, `docs/RENDERER.md` §6.3),
+    /// one a position: the `D3DCOLOR` grey `RTreeData::adjust_tree_colors`
+    /// writes, which stage 0's `ADDSIGNED` adds. Empty on every other mesh,
+    /// and on a tree mesh read as [`render::silhouette::TREE_DIFFUSE`].
+    pub diffuse: Vec<u8>,
 }
 
 /// One drawn object, placed: a draw-list entry's owner, object and piece,

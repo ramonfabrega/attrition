@@ -107,6 +107,7 @@ pub fn mesh(
         uvs,
         mips: ramp.clone(),
         light: Vec::new(),
+        diffuse: Vec::new(),
     })
 }
 
@@ -299,9 +300,11 @@ pub(crate) mod tests {
     /// Item 4661's plates on their own alpha: → 788 and 1307 (away by a
     /// tenth) and 1593 (toward 1564). Item 4665, the plates on their own
     /// alpha at last, laid twice: 1307 → 1306 (toward) and 1593 → 1603
-    /// (away from 1564, a named fall).
+    /// (away from 1564, a named fall). Item 4670, the trees past sight
+    /// darkened (`adjust_tree_colors`): 788 → 767, 1306 → 1258 and 1603 →
+    /// 1581, all three toward theirs.
     pub const RUN1814B_3294_FOG: [[i64; 3]; 3] =
-        [[80, 750, 788], [93, 1252, 1306], [209, 1564, 1603]];
+        [[80, 750, 767], [93, 1252, 1258], [209, 1564, 1581]];
     /// The same cells on the client's still with no fog drawn, the row as
     /// it stood before item 4624. Each row: the main view's cells at that
     /// fog level, the photograph's median luma, ours (×10). Item 4650's
