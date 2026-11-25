@@ -555,7 +555,6 @@ impl MusterView for SimMuster<'_> {
             .find_enemy_combat_building(self.who, p, SIEGE_BUILDING_RADIUS)
         {
             Some(b) => {
-                crate::seam!("probe4672_siege_building_found");
                 let c = self.sim.buildings[b].pos.cell();
                 self.found_at(c)
             }
