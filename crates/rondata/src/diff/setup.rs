@@ -1555,12 +1555,20 @@ pub(crate) fn start_of_game(
             // nothing. run59's census is what caught it: the human, which
             // builds nothing all game, held `gather_slots[timber]` 0 against
             // the original's 6 (`docs/ECONOMY.md`, "The census at the word").
+            if let Some(size) = b
+                .mining_size
+                .and_then(|n| i32::try_from(n).ok())
+                .filter(|&n| n > 0)
+            {
+                sim.buildings[handle].gather_from_capacity = size;
+            }
             if !b.gather_from.is_empty() {
                 sim.buildings[handle].gather_from = b
                     .gather_from
                     .iter()
                     .map(|&(x, y)| Pos::new(x as i32, y as i32))
                     .collect();
+                sim.buildings[handle].update_gather_capacity();
                 // `Build::find_gather_tiles` line 88: the list is what the
                 // slot count is surveyed from (`crates/sim/src/economy/gather.rs`).
                 sim.buildings[handle].gather_max = Some(sim.max_gatherers(handle));

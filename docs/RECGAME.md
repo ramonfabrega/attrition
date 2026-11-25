@@ -636,6 +636,13 @@ All eleven recorded lines agree over the exit. Buildings next differ on
 10261 and the draw sequence on 11488.
 [City exit, original predicate controls and tile-list boundary](journal/2026-11-24-item-4647.md)
 
+**The retained gathering list (item 4648).** Building 2/2017 has 218 tiles
+on 10260, 108 on 10261 and 68 on 10653. In each state the original list
+has 320 allocated slots. Carrying the allocation as the list shrinks
+moves buildings to 11487. The first state difference is now unit 16 on
+10653. Draws hold to 11488.
+[Gathering list comparison](journal/2026-11-24-item-4648.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte

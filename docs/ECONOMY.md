@@ -2853,6 +2853,12 @@ gather_from.length = 0                               # +0x9c = 0
   Within a frame, the original interleaves each building's queue with
   its re-entry, and this crate does not.
 
+The gathering list keeps its allocated tile slots across removals. Run1827
+compares all 218 tiles before the list shrinks and all 108 after it shrinks.
+The allocation stays at 320, including after another 40 tiles leave the
+list. The build checksum includes this word whenever the list has entries.
+[Original tile-list fields](journal/2026-11-24-item-4648.md)
+
 ### 17.3 How it is established
 
 - **The listing**: `006292a1`–`00629335` (the tail; the `and` that

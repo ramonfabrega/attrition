@@ -270,7 +270,9 @@ impl GatherTileView for SimGatherTile<'_> {
         }
     }
     fn push_tile(&mut self, x: i32, y: i32) {
-        self.sim.buildings[self.b].gather_from.push(Pos::new(x, y));
+        let site = &mut self.sim.buildings[self.b];
+        site.gather_from.push(Pos::new(x, y));
+        site.update_gather_capacity();
     }
     fn rnd(&mut self) -> i32 {
         self.sim.mark(crate::orders::SITE_TILE_WAIT);

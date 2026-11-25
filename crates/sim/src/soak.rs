@@ -306,6 +306,7 @@ fn scenario(rng: &mut Rng) -> (Sim, Types) {
             sim.buildings[b].gather_from = (0..8)
                 .map(|k| Pos::new(at.x + rng.get(-6, 6), at.y + rng.get(-6, 6) + k % 2))
                 .collect();
+            sim.buildings[b].update_gather_capacity();
         }
     }
 

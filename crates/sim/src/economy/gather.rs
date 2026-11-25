@@ -586,6 +586,7 @@ impl Sim {
             self.world.set_tile_bits(t, GATHERED_FROM);
         }
         self.buildings[b].gather_from = list;
+        self.buildings[b].update_gather_capacity();
         self.buildings[b].gather_max = Some(self.max_gatherers(b));
     }
 

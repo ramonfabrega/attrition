@@ -835,9 +835,10 @@ pub(in crate::diff) mod tests {
     /// Item 4644: hot-key group 55 moves units to 9506 and groups to 9671.
     /// Item 4645: the outdoor regrowth order moves the common prefix to 9602.
     /// Item 4646: the factory follows its object rally and every open line advances.
+    /// Items 4647–4648: the city exit and gathering list leave unit 16 first on 10653.
     const SAMPLE_LINES: &[(&str, i64)] = &[
         ("units", 10653),
-        ("builds", 10261),
+        ("builds", 11487),
         ("walls", 21044),
         ("ammo", 11492),
         ("deaths", 11497),
@@ -1524,6 +1525,11 @@ pub(in crate::diff) mod tests {
     }
 
     #[test]
+    fn the_sample_s_shortened_gather_list_keeps_its_recorded_allocation() {
+        assert_sample_window(run1827(), 10259, 10263, None);
+    }
+
+    #[test]
     fn the_sample_s_scout_order_and_city_marks_match_both_recorded_lines() {
         let (Some(inst), Some(rcx), Some(mut ranges)) = (install(), sample(), run1786()) else {
             return;
@@ -2126,11 +2132,11 @@ pub(in crate::diff) mod tests {
         ),
         (
             "builds",
-            10261,
-            6017,
-            6017,
+            11487,
+            6318,
+            6318,
             1,
-            "2528 2017 gather_from.size: gather_from.size 160|320",
+            "941 2022 myhits..launch_frames: targeted 1|0",
         ),
         ("ammo", 11492, 15, 18, 3, "15 5 flags: +0x0 of 1|0: 02|"),
         (

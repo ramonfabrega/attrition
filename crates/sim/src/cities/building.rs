@@ -179,6 +179,8 @@ pub struct Building {
     /// `BuildData::gather_from`: a woodcutter's or mine's resource tiles, in
     /// tiles, in the shuffled order the original keeps. An input.
     pub gather_from: Vec<Pos>,
+    /// Allocated tile slots in the original MiningList, kept when tiles are removed.
+    pub gather_from_capacity: i32,
     /// `MiningList::mtn` (`BuildData +0xb4`): the placed mountain range a
     /// mine's list was filled from — [`crate::Sim::find_nearest_mountain`]'s
     /// placed index — or −1. `BuildTypeData::find_gather_tcoords@0063bdc0`
@@ -259,6 +261,14 @@ pub struct Building {
 }
 
 impl Building {
+    /// MiningList starts with five slots and doubles when a new tile would exceed the block.
+    pub fn update_gather_capacity(&mut self) {
+        self.gather_from_capacity = self.gather_from_capacity.max(5);
+        while self.gather_from.len() > self.gather_from_capacity as usize {
+            self.gather_from_capacity *= 2;
+        }
+    }
+
     /// `hits(0)`: the site's growing figure while not active, the full one
     /// after.
     pub const fn hits_now(&self) -> i32 {
@@ -419,7 +429,7 @@ impl Sim {
             .expect("a player's building band is full");
         let z = self.world.object_z(pos.tile());
         let uid = self.next_uid(owner);
-        let chain = self.building_slot_chain(owner, index);
+        let (chain, gather_from_capacity) = self.building_slot_state(owner, index);
         self.buildings.push(Building {
             owner,
             index,
@@ -477,6 +487,7 @@ impl Sim {
             gather_head: None,
             gather_max: None,
             gather_from: Vec::new(),
+            gather_from_capacity,
             mtn: -1,
             cliff: -1,
             gather_bumped: false,
@@ -495,21 +506,24 @@ impl Sim {
         b
     }
 
+    /// The chain and allocated gathering list survive slot reuse.
     /// **The chain words a building's `Object::init@00647750` starts
     /// from**: its number's last occupant's `down_who` and `up_who`, or
     /// `Object::Object@00646e80`'s −1s on a number never used
     /// ([`crate::movement::collide::ObjectChain::reinit`]).
-    pub(crate) fn building_slot_chain(
+    pub(crate) fn building_slot_state(
         &self,
         owner: Player,
         index: i16,
-    ) -> crate::movement::collide::ObjectChain {
-        crate::movement::collide::ObjectChain::reinit(
-            self.buildings
-                .iter()
-                .rev()
-                .find(|b| b.owner == owner && b.index == index)
-                .map(|b| &b.chain),
+    ) -> (crate::movement::collide::ObjectChain, i32) {
+        let prev = self
+            .buildings
+            .iter()
+            .rev()
+            .find(|b| b.owner == owner && b.index == index);
+        (
+            crate::movement::collide::ObjectChain::reinit(prev.map(|b| &b.chain)),
+            prev.map_or(5, |b| b.gather_from_capacity),
         )
     }
 

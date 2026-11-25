@@ -1588,7 +1588,7 @@ impl Sim {
             .expect("a player's building band is full");
         let z = self.world.object_z(pos.tile());
         let uid = self.next_uid(who);
-        let chain = self.building_slot_chain(who, index);
+        let (chain, gather_from_capacity) = self.building_slot_state(who, index);
         if !restore && let Some(t) = self.cities.city_tally.get_mut(who as usize) {
             t.buildings_built += 1;
         }
@@ -1652,6 +1652,7 @@ impl Sim {
             gather_head: None,
             gather_max: None,
             gather_from: Vec::new(),
+            gather_from_capacity,
             mtn: -1,
             cliff: -1,
             gather_bumped: false,

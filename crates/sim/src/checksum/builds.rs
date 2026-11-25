@@ -98,12 +98,6 @@ const BASE_TECHTYPES: i32 = 0x220;
 /// `DISBAND`'s `TypeIndex`, a queue entry's `type` for a disband job.
 const DISBAND_TYPE: i16 = 0x29a;
 
-/// The `size` an empty `MiningList` reports (`size 5` on every building
-/// record of run 1562's frame-91 dump whose list is empty), and the base its
-/// growth doubles from: `ArrayBaseSimpleCopy<WCoordData>::increase_size
-/// @004225c0` with the list's `increment` −1 adds the current size.
-const MINING_SIZE_EMPTY: i32 = 5;
-
 /// A `Range`-building closure's bytes, little endian, by width.
 fn put(b: &mut [u8], base: usize, at: usize, width: usize, v: i64) {
     let bytes = v.to_le_bytes();
@@ -495,11 +489,10 @@ impl Sim {
         let n = bd.gather_from.len() as i32;
         put("gather_from.length", n.to_le_bytes().to_vec());
         if n > 0 {
-            let mut size = MINING_SIZE_EMPTY;
-            while size < n {
-                size *= 2;
-            }
-            put("gather_from.size", size.to_le_bytes().to_vec());
+            put(
+                "gather_from.size",
+                bd.gather_from_capacity.to_le_bytes().to_vec(),
+            );
             put("gather_from.increment", (-1i16).to_le_bytes().to_vec());
             put("gather_from.flags", vec![0]);
             for t in &bd.gather_from {
