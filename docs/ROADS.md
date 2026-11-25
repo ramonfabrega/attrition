@@ -1071,7 +1071,7 @@ under it is taken away when the farm starts. The residue is **32** now, bit
   and it is an argument rather than a measurement.
 - The rendering tail of `set_diags` (`element_num`, `rotation`, the `0xc000`
   and `0x1000`/`0x200` support codes) and `mark_white_lines`,
-  `mark_yellow_lines`, ~~`mark_intersections`~~ (item 4677: the low byte alone, into `Elem::inter`, which nothing here reads; `docs/RENDERER.md` §6.5), `fixup_lines`, `find_piece`,
+  `mark_yellow_lines`, ~~`mark_intersections`~~ (item 4677: the low byte alone, into `Elem::inter`, which nothing here reads; `docs/RENDERER.md` §6.5; in `add_roads`' second pass too since item 4678, §6.6), `fixup_lines`, `find_piece`,
   ~~`leech_codes`~~ (it lends direction bits: §11), `delete_straglers`. Of these only the tail matters beyond
   texture choice: it calls `get_road_data(create = 1)` on tiles **that are
   not roads**, which is the one way an element comes to stand on a plain
