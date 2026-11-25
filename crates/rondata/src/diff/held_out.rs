@@ -13143,14 +13143,24 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 3,433 -> 4,197, groups 3,473 -> 4,167, guys 3,416 -> 4,180,
         // leaders 3,449 -> 4,174 (first 3441 -> 3524), cities 3,707 ->
         // 4,221, items 5,761 -> 6,516, goods 4,615 -> 4,797.
+        // Then item 4688 (`Object::take_damage@00652020`'s air skip reads
+        // the attacker's `flags & 1` first, `00652367`): who=2's Nuclear
+        // Missile `2/106` (TI 315, air), closed on its own impact, lands
+        // 6311 on who=1's Statue of Liberty site `1/2031` on 3268 and cuts
+        // its `job_counter` to 0, as theirs (run1799's builds range 1383,
+        // record 2031, `job_counter..demolition` byte 0: ours 305196,
+        // theirs 0; `construct_hits` ours 8614, theirs 6051, on 3269). The
+        // row's first parting 3269 -> 3524 (leaders, which stands): builds
+        // 3,269 -> 4,136 (first 4132), ammo 4,639 -> 4,728; items 6,516 ->
+        // 6,513, a named fall past its first, 6187.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                4130, 3269, 12001, 4639, 4197, 4167, 4180, 4174, 4221, 6516, 4797, 4181,
+                4130, 4136, 12001, 4728, 4197, 4167, 4180, 4174, 4221, 6513, 4797, 4181,
             ],
             first: &[
                 ("units", (4130, Some(1238553357), 396940046)),
-                ("builds", (3269, Some(1882890068), 5807727)),
+                ("builds", (4132, Some(3833615637), 3514979604)),
                 ("ammo", (4190, Some(4179374870), 2728667563)),
                 ("deaths", (4197, Some(4115287177), 4203236490)),
                 ("groups", (4131, Some(3248158095), 1415640466)),
