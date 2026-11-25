@@ -324,7 +324,11 @@ impl Sim {
     /// `self.buildings`), since a closed object keeps its slot and `uid`
     /// until `Objects::find_free` hands the number on.
     pub(crate) fn object_holding(&self, who: Player, o: i16) -> Option<crate::combat::Obj> {
-        if let Some(u) = self.units.iter().rposition(|x| x.owner == who && x.index == o) {
+        if let Some(u) = self
+            .units
+            .iter()
+            .rposition(|x| x.owner == who && x.index == o)
+        {
             return Some(crate::combat::Obj::Unit(u));
         }
         self.buildings

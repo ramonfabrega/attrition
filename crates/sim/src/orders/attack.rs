@@ -569,8 +569,7 @@ impl Sim {
                 if capturable != 0 && self.capture_approach(u, target, state.mandatory) {
                     return false;
                 }
-                if let Some(done) = self.mandatory_substitute(u, target, state.mandatory, frame)
-                {
+                if let Some(done) = self.mandatory_substitute(u, target, state.mandatory, frame) {
                     return done;
                 }
             }

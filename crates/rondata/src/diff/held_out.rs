@@ -1160,11 +1160,18 @@ pub(crate) mod tests {
         let Ok(win) = std::env::var("RON_PROBE_4633") else {
             return;
         };
-        let (lo, hi) = win.split_once('-').map(|(a, b)| (a.parse::<i64>().unwrap(), b.parse::<i64>().unwrap())).unwrap();
+        let (lo, hi) = win
+            .split_once('-')
+            .map(|(a, b)| (a.parse::<i64>().unwrap(), b.parse::<i64>().unwrap()))
+            .unwrap();
         let inst = crate::testenv::install().expect("install");
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(&SEVENTH, 4) else { panic!("rcx") };
-        let ranges = crate::testenv::experiment(&home.join("ron-golden/run1815/map-18"), "rontrace.ranges").expect("ranges");
+        let (Some(rcx), _) = paths(&SEVENTH, 4) else {
+            panic!("rcx")
+        };
+        let ranges =
+            crate::testenv::experiment(&home.join("ron-golden/run1815/map-18"), "rontrace.ranges")
+                .expect("ranges");
         let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 88's file");
         let loaded = crate::load::load(&inst).expect("the install loads");
         let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
@@ -1173,18 +1180,27 @@ pub(crate) mod tests {
         let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
         let mut stream = crate::input::Stream::pump(&rec);
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
-        let names = ["units", "builds", "walls", "ammo", "deaths", "groups", "guys", "leaders", "cities", "items", "goods", "world"];
+        let names = [
+            "units", "builds", "walls", "ammo", "deaths", "groups", "guys", "leaders", "cities",
+            "items", "goods", "world",
+        ];
         for state in lo..=hi {
             while built.sim.frame < state {
                 stream.apply(built.sim.frame as i32, &mut built);
                 let f0 = built.sim.frame;
-                let sites = std::env::var("RON_PROBE_SITES").ok().and_then(|v| v.parse::<i64>().ok()) == Some(f0);
+                let sites = std::env::var("RON_PROBE_SITES")
+                    .ok()
+                    .and_then(|v| v.parse::<i64>().ok())
+                    == Some(f0);
                 built.sim.trace.trace_phases = sites;
                 let seed0 = built.sim.rng.seed;
                 built.sim.command().tick();
                 if sites {
                     eprintln!("S4633 f{f0} seed {seed0:#010x}");
-                    for (k, (label, who)) in crate::diff::harness::attributed_sites(&built).iter().enumerate() {
+                    for (k, (label, who)) in crate::diff::harness::attributed_sites(&built)
+                        .iter()
+                        .enumerate()
+                    {
                         eprintln!("S4633 f{f0} {k} {who}: {label}");
                     }
                 }
@@ -1195,40 +1211,103 @@ pub(crate) mod tests {
             let all = record.ranges(&set).expect("the set's ranges");
             let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
             for (li, name) in names.iter().enumerate() {
-                let Some(ours) = lines[li].as_ref() else { continue };
+                let Some(ours) = lines[li].as_ref() else {
+                    continue;
+                };
                 let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == li).collect();
                 if ours.ranges.len() != theirs.len() {
-                    eprintln!("P4633 {state} {name} count ours {} theirs {}", ours.ranges.len(), theirs.len());
+                    eprintln!(
+                        "P4633 {state} {name} count ours {} theirs {}",
+                        ours.ranges.len(),
+                        theirs.len()
+                    );
                 }
                 let mut who = 0u8;
                 let (mut i, mut j) = (0usize, 0usize);
                 let mut pairs = Vec::new();
                 while i < ours.ranges.len() && j < theirs.len() {
-                    if ours.ranges[i].bytes == theirs[j].bytes || ours.ranges[i].bytes.len() == theirs[j].bytes.len() && ours.ranges[i].bytes.len() > 1 {
-                        pairs.push((i, j)); i += 1; j += 1; continue;
+                    if ours.ranges[i].bytes == theirs[j].bytes
+                        || ours.ranges[i].bytes.len() == theirs[j].bytes.len()
+                            && ours.ranges[i].bytes.len() > 1
+                    {
+                        pairs.push((i, j));
+                        i += 1;
+                        j += 1;
+                        continue;
                     }
                     // resync: skip up to 40 on either side where the next 4 agree
-                    let ok = |a: usize, b: usize| (0..4).all(|t| a + t < ours.ranges.len() && b + t < theirs.len() && ours.ranges[a + t].bytes == theirs[b + t].bytes);
+                    let ok = |a: usize, b: usize| {
+                        (0..4).all(|t| {
+                            a + t < ours.ranges.len()
+                                && b + t < theirs.len()
+                                && ours.ranges[a + t].bytes == theirs[b + t].bytes
+                        })
+                    };
                     let mut found = None;
-                    'r: for d in 1..40 { for (da, db) in [(d, 0), (0, d)] { if ok(i + da, j + db) { found = Some((da, db)); break 'r; } } }
+                    'r: for d in 1..40 {
+                        for (da, db) in [(d, 0), (0, d)] {
+                            if ok(i + da, j + db) {
+                                found = Some((da, db));
+                                break 'r;
+                            }
+                        }
+                    }
                     if let Some((da, db)) = found {
-                        for t in 0..da { eprintln!("P4633 {state} {name} ours-only range {} record {} {} len {}", i + t, ours.ranges[i + t].record, ours.ranges[i + t].field, ours.ranges[i + t].bytes.len()); }
-                        for t in 0..db { eprintln!("P4633 {state} {name} theirs-only range {} len {} {:?}", j + t, theirs[j + t].bytes.len(), &theirs[j + t].bytes[..theirs[j + t].bytes.len().min(24)]); }
-                        i += da; j += db;
-                    } else { pairs.push((i, j)); i += 1; j += 1; }
+                        for t in 0..da {
+                            eprintln!(
+                                "P4633 {state} {name} ours-only range {} record {} {} len {}",
+                                i + t,
+                                ours.ranges[i + t].record,
+                                ours.ranges[i + t].field,
+                                ours.ranges[i + t].bytes.len()
+                            );
+                        }
+                        for t in 0..db {
+                            eprintln!(
+                                "P4633 {state} {name} theirs-only range {} len {} {:?}",
+                                j + t,
+                                theirs[j + t].bytes.len(),
+                                &theirs[j + t].bytes[..theirs[j + t].bytes.len().min(24)]
+                            );
+                        }
+                        i += da;
+                        j += db;
+                    } else {
+                        pairs.push((i, j));
+                        i += 1;
+                        j += 1;
+                    }
                 }
-                for (k, (a, b)) in pairs.iter().map(|&(i, j)| (&ours.ranges[i], theirs[j])).enumerate() {
-                    if a.field == "who..y_internal" { who = a.bytes[0]; }
+                for (k, (a, b)) in pairs
+                    .iter()
+                    .map(|&(i, j)| (&ours.ranges[i], theirs[j]))
+                    .enumerate()
+                {
+                    if a.field == "who..y_internal" {
+                        who = a.bytes[0];
+                    }
                     if a.bytes != b.bytes {
-                        let d = crate::checksum::fields::differing_fields(name, a.field, &a.bytes, &b.bytes);
-                        eprintln!("P4633 {state} {name} range {k} who {who} record {} {} len {}/{} {:?}", a.record, a.field, a.bytes.len(), b.bytes.len(), d);
+                        let d = crate::checksum::fields::differing_fields(
+                            name, a.field, &a.bytes, &b.bytes,
+                        );
+                        eprintln!(
+                            "P4633 {state} {name} range {k} who {who} record {} {} len {}/{} {:?}",
+                            a.record,
+                            a.field,
+                            a.bytes.len(),
+                            b.bytes.len(),
+                            d
+                        );
                         if d.is_empty() && a.bytes.len() <= 64 {
                             eprintln!("P4633   ours {:?}\nP4633   theirs {:?}", a.bytes, b.bytes);
                         }
                         if li == 0 {
                             if let Some(u) = built.sim.unit_by_o(who, a.record) {
                                 let un = &built.sim.units[u];
-                                eprintln!("P4633   unit slot {u} TI {} pos ({}, {})", un.type_index, un.pos.x, un.pos.y);
+                                eprintln!(
+                                    "P4633   unit slot {u} TI {} pos ({}, {})",
+                                    un.type_index, un.pos.x, un.pos.y
+                                );
                             }
                         }
                     }
