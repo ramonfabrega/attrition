@@ -12088,6 +12088,53 @@ fn a_militia_tower_and_a_templed_city_reach_a_tile_further() {
     );
 }
 
+/// **A city's own race takes the recapture bonus on it, whoever owns it**
+/// (item 4655, `docs/RECGAME.md` §13.5): `get_damage@00644130`'s last step
+/// (`:477`–`:494`) scales a blow on an active city building whose city's
+/// `race` (`CityData +0x5f`) is the attacker's player by
+/// `RECAPTURE_CITY_MODIFIER` (512, ×2) and asks nothing about the
+/// building's owner. Row 133's SAM `2/2027`, its rocket's target dead,
+/// strikes who=2's own capital `2/2000` on 2450 for 44 where step 20 makes
+/// 22. A city of another race, or a building that is not the city
+/// centre, takes the blow unscaled.
+///
+/// Made to fail by dropping the race test in `target_side`'s building arm.
+#[test]
+fn a_city_s_own_race_takes_the_recapture_bonus_on_it() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (centre, c) = city_at(&mut sim, &t, 0, 32, 32);
+    let tower = sim.place_building(0, t.tower, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, tower);
+    let barracks = sim.place_building(0, t.barracks, tile_pos(26, 38)).unwrap();
+    finish(&mut sim, barracks);
+    sim.buildings[tower].combat = Some(combat::Profile {
+        attack: 220,
+        ammo_per_att: 1,
+        ..combat::Profile::default()
+    });
+    assert_eq!(sim.cities.cities[c].race, Some(0), "founded by its owner");
+    let blow = |sim: &Sim, target: usize| {
+        let mut s = sim.clone();
+        let before = s.buildings[target].damage;
+        s.do_damage(
+            Obj::Building(tower),
+            Obj::Building(target),
+            crate::movement::Angle(0),
+            true,
+            0x100,
+            false,
+            true,
+            2450,
+        );
+        s.buildings[target].damage - before
+    };
+    assert_eq!(blow(&sim, centre), 44, "its own race: 22 doubled");
+    assert_eq!(blow(&sim, barracks), 22, "not the city centre");
+    sim.cities.cities[c].race = Some(1);
+    assert_eq!(blow(&sim, centre), 22, "a city of another race");
+}
+
 /// **`BuildData::get_base_garrison_arrows@0062e340`** (item 3970): a Mayan
 /// building adds `MAYA_GARRISON_ARROWS` to its type's `BASE_ARROWS`, so an
 /// ungarrisoned Tower of `BASE_ARROWS 0` shoots — chapter 126's City

@@ -823,7 +823,9 @@ tmask  = T.type.obj_masks
     >> 8`. *(Corrected by `docs/CITIES.md` §7.4: an earlier draft said "the
     city's original owner", which is `founder` at `+0x60`. So the bonus is for
     the nation a stolen city still belongs to while it is unassimilated, and
-    is gone once it assimilates.)*
+    is gone once it assimilates.)* It asks nothing about T's owner. **Built
+    by item 4655** (its input was never written before): diff-backed by
+    row 133's SAM rocket on its own capital, run1797's 2451.
 
 Return `dmg` — whole hits, possibly zero or negative; `do_damage` clamps and
 scales next.
