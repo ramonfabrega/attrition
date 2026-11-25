@@ -2386,7 +2386,11 @@ pub(crate) mod tests {
             let all = record.ranges(&set).expect("the set's ranges");
             let ours = built.sim.checksum_leaders();
             let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
-            assert_eq!(ours.ranges.len(), theirs.len(), "leaders' ranges on {state}");
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "leaders' ranges on {state}"
+            );
             for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
                 assert_eq!(
                     a.bytes, b.bytes,
@@ -2410,7 +2414,11 @@ pub(crate) mod tests {
             stream.apply(built.sim.frame as i32, &mut built);
             built.sim.command().tick();
         }
-        assert_eq!(ages(&built), before + 1, "who=1 enters an age in the window");
+        assert_eq!(
+            ages(&built),
+            before + 1,
+            "who=1 enters an age in the window"
+        );
     }
 
     /// **Row 133's Temple site's close fixes the borders** (item 4607,
@@ -12681,9 +12689,10 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
 /// As found: row 68 whole to the original's end 3,948, six taken.
 /// Item 4630 made row 28 whole to the original's end 4,247 (piece 1812's
 /// bays): 1 -> 2. Item 4611 took rows 128 and 148 (run1810, run1811):
-/// six taken -> eight.
+/// six taken -> eight. Item 4635 made row 128 whole to 12,000 (the
+/// Russian age's border fix): 2 -> 3.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SEVENTH_LINE: (usize, usize) = (2, 8);
+pub(crate) const HELD_OUT_SEVENTH_LINE: (usize, usize) = (3, 8);
 
 /// The seventh battery (item 4600): the sixth's recipe, the human ordering
 /// every 600 frames to 11,400.
