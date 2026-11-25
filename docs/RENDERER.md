@@ -6508,8 +6508,9 @@ marks.
   seeded roads hold 27, and the line passes' pushes hold the rest.
 - The white and yellow lines are still the client's evaluation plus
   `corner_loops`, not the mesh's history (4677a).
-- (16, 156)'s pick, on the same candidate as the packet's: the fractal
-  height, or `find_map`'s order.
+- ~~(16, 156)'s pick, on the same candidate as the packet's: the fractal
+  height, or `find_map`'s order.~~ Item 4682 (§6.7): neither; the piece
+  was picked on `E` before a neighbour's `mark_splits` zeroed it.
 - A map's own roads (`RoadMesh::seed`) carry no history; neither
   photograph's ring is one.
 
@@ -6584,10 +6585,71 @@ the lists, from one reading.
   `mark_and_trim_directions`, `leech_codes` and `set_diags` again, and
   `set_diags` can lay a road. Settled by the lines in the mesh (4677a),
   under the corpus.
-- (16, 156)'s pick on the packet's own candidate (`11003300`): theirs
+- ~~(16, 156)'s pick on the packet's own candidate (`11003300`): theirs
   element 15 at 4, ours 16 at 0. Either the fractal's height or
-  `find_map`'s order.
+  `find_map`'s order.~~ Item 4682 (§6.7): the intersections the pick read.
 - The start's roads on a dump-opened walk: the original's laying order.
+
+## 6.7 The piece a tile was picked on (item 4682)
+
+*2026-11-25, Opus 5.5. The ledger: `docs/journal/2026-11-25-item-4682.md`.
+`sim::movement::mesh`'s `Elem::picked` and `RoadMesh::note_pick`, the
+door's `RoadTile::picked`, and `client::roads::laid`; the test
+`a_piece_keeps_the_intersections_it_was_picked_on` (sim) and the
+re-pinned rows of `roads::tests`. This item touches `crates/sim`.*
+
+**Neither candidate.** §6.6 left (16, 156) to the fractal's height or
+`find_map`'s order. Both are ours on every other record in run1814b's box:
+the 43 other records with more than two candidates each pick the
+packet's index at our own height. At (16, 156) our height is 30. On `11003300` the sixteen
+candidates run elements 15 to 18, four turns each. Height 30 gives index
+4, element 16 at 0. The packet's 15 at 4 is index 2, which needs a height
+of 13 to 18. On `11003310` or `11003301` (22 candidates) height 30 gives
+element 15 at 4.
+
+**Where the piece is picked.** `RoadsOut::find_piece@00890c90` runs
+`RoadsPieces::find_map@00897840` on the element's flags as they stand and
+writes the element and the turn into the record. Two callers run it:
+`Roads::redo_changed_roads@0088e670`'s fourth pass, after every listed
+tile's marks, and `Roads::add_roads@0088f4b0`'s own last pass
+(`add_roads:402`). A tile off the list is never picked again. Its low
+byte can still change: a listed neighbour's `mark_splits` zeroes it
+(§6.5). The record then holds today's flags and yesterday's piece. Our
+client picked every frame from the flags as they stand.
+
+**The build.** The mesh keeps `Elem::picked`, the intersection byte as
+`find_piece` last read it. `note_pick` writes it at both callers. The door
+carries it, and `roads::laid` picks on the candidate with its low byte
+replaced by `picked`. `candidates` still answers the flags as they stand,
+which is what the packet's records print.
+
+**The value diff** (the packet's `road_records.py` element and turn
+against `roads::laid`; ours picked on the byte the door carries):
+
+| tile | theirs | ours before | ours now | picked on | now |
+|---|---|---|---|---|---|
+| run1814b (16, 156) | 15 / 4 | 16 / 0 | 15 / 4 | `10` | `00` |
+
+- *run1814b's box* (`RUN1814B_PLATE_PIECES`): the packet's piece **53 →
+  54 of 54**.
+- *Draw 81* (`RUN1833_DRAW_81`): our walk's piece texcoord **930 → 948
+  of 954**, what the packet's own picks give. The six apart are
+  (12, 156), which the buffer holds no box of.
+- *run1559b* (`RUN1559B_RECORDS`): the packet's piece **459 → 471 of
+  490**. All 21 drawn tiles picked on a byte other than the standing one
+  take the packet's piece, among them (180, 109) on `44`, (185, 108) on
+  `10`, (195, 116) on `40` and (232, 95) on `11`, each standing `00`.
+
+**Diff-backed**: run1814b's 54, draw 81's 948 and run1559b's 471.
+**Read alone**: that `find_piece` has no caller but the two above, from
+one search of the export for its name.
+
+**Not established.**
+- The white and yellow bytes the pick read. Ours are the client's
+  evaluation as the tile stands, not as it stood at its pick. The line
+  passes' pushes (4677a) would carry them.
+- run1559b's 19 still apart: the start's seeded roads (4678a) and the
+  line bytes above.
 
 ## 7. What is not established, and what needs Ramon's word
 
