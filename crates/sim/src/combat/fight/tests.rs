@@ -7026,3 +7026,39 @@ fn a_fire_raft_dies_with_its_shot() {
     let r = fire(&mut sim, raft, 0x400);
     assert!(!sim.units[r].alive(), "the raft dies with its shot");
 }
+
+/// **A ship's round leaves 100 above the water, not the seabed** (item
+/// 4664, `Object::fire_ammo@0064c8b0:166`, `docs/RECGAME.md` §14.4): the
+/// unit arm launches from each figure's own `z` (`+0x14`) plus 100, and a
+/// ship's figure stands at 0. run1834's 3027: who=1's Heavy Fire Raft
+/// `1/94` (TI 335) fires over a seabed at −273 and theirs' round reads
+/// `sz` 100, where ours read −173. A land shooter on the same ground
+/// still leaves 100 above it.
+#[test]
+fn a_ship_s_round_leaves_above_the_water_not_the_seabed() {
+    let (mut sim, land) = at_war();
+    let n = sim.world.corner_stride() * (sim.world.height() * crate::world::TILES_PER_CELL + 1);
+    assert!(sim.world.set_corner_grid(vec![-273_000_000; n as usize]));
+    let mut t = sim.tables.unit_types[land].clone();
+    t.combat.domain = Domain::Sea;
+    t.kind.domain = Domain::Sea;
+    let ship = sim.add_unit_type(t);
+    let launch = |sim: &mut Sim, ty: usize, x: i32| -> i32 {
+        let me = put(sim, 0, ty, Pos::new(0x1000 + x, 0x1000));
+        sim.units[me].guys = vec![anim::Guy::fresh(-1)];
+        let foe = put(sim, 1, ship, Pos::new(0x1000 + x, 0x1100));
+        let before = sim.combat.projectiles.len();
+        sim.fight_pub(me, Obj::Unit(foe), 633);
+        assert_eq!(sim.combat.projectiles.len(), before + 1, "one round");
+        let me = Obj::Unit(me);
+        sim.combat
+            .projectiles
+            .iter()
+            .find(|p| p.shooter == me)
+            .expect("the round")
+            .sz
+    };
+    assert_eq!(sim.ground_z(Pos::new(0x1000, 0x1000)), -273, "the seabed");
+    assert_eq!(launch(&mut sim, ship, 0), 100, "the ship's round");
+    assert_eq!(launch(&mut sim, land, 0x400), -173, "the land unit's round");
+}
