@@ -2004,3 +2004,10 @@ leaders range 1, record 0, `reg_terr[1]`: ours 198, theirs 0; who=1's 495 | 104 
 a Civic epoch, or an age under tribe bonus 0xd, whether the table moves or not; ours fixed only on a moved table.
 *Diff-backed* (`row_128_s_russian_age_fixes_the_borders_on_run1828_s_ranges`). `SCORES_SEVENTH[6].moved`: 11 → 12
 lines whole, 12,001 of 12,001 on every line (`docs/journal/2026-11-25-item-4635.md`).
+
+**Item 4637, the Aztec slayer's mark, and row 148 is whole.** run1836: on 10879 units range 28, record 1 (the
+Citizen `0/1`, TI 50, land), `unit_masks` ours 12, theirs 16396 (`0x4000`). `take_damage@00652020`'s `0x6529da` marks
+the victim's captain on every hit by an Aztec unit trained at a Barracks, Stable or Dock (who=2's Pikemen `2/49`);
+`process_healing` clears it, `Object::disband` pays it. *Diff-backed*
+(`row_148_s_aztec_slayer_marks_its_victim_on_run1836_s_ranges`); the disband's pay rests on the reading alone.
+`SCORES_SEVENTH[7].moved`: 11 → 12 lines whole, 12,001 of 12,001 (`docs/journal/2026-11-25-item-4637.md`).

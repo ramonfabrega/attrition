@@ -2356,6 +2356,93 @@ fn an_aztec_kill_from_a_barracks_line_trainer_pays_its_age() {
     );
 }
 
+/// **The Aztec slayer's mark** (item 4637, `docs/RECGAME.md` §14.6):
+/// `Object::take_damage@00652020` at `0x652947`..`0x6529da` sets the
+/// victim captain's `unit_masks |= 0x4000` on a hit by an Aztec unit whose
+/// trainer is by equality a Barracks, Stable or Dock, ahead of the kill
+/// test; `process_healing`'s on-map arms clear it on a whole captain, the
+/// garrison heal always; `Object::disband@006455c0` pays a marked captain's
+/// last striker, an Aztec leader seated and alive, the slay arm's pay.
+/// run1836's 10879: the Pikemen `2/49` marks the Citizen `0/1`.
+#[test]
+fn an_aztec_slayer_marks_its_victim_and_a_disband_pays_it() {
+    use crate::tech::{TechTree, TypeDef};
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = TechTree::new();
+    let stable_t = tree.add(TypeDef::building("Stable"));
+    let village_t = tree.add(TypeDef::building("Village"));
+    let mut rider = TypeDef::unit("Rider", crate::tech::UnitTraits::default());
+    rider.where_ = Some(stable_t);
+    let rider_t = tree.add(rider);
+    let mut peasant = TypeDef::unit("Peasant", crate::tech::UnitTraits::default());
+    peasant.where_ = Some(village_t);
+    let peasant_t = tree.add(peasant);
+    sim.set_tech_tree(tree);
+    let stable = sim.add_build_type(sim.tables.build_types[t.barracks].clone());
+    sim.tables.build_types[stable].ident = Ident::Stable;
+    sim.tables.build_types[stable].tree = Some(stable_t);
+    sim.tables.build_types[t.village].tree = Some(village_t);
+    let foot = |tree| crate::UnitType {
+        hits: 40,
+        tree,
+        price: crate::economy::cost::Price {
+            pop: 1,
+            ..crate::economy::cost::Price::default()
+        },
+        ..crate::UnitType::default()
+    };
+    let (horse, citizen) = (
+        sim.add_unit_type(foot(Some(rider_t))),
+        sim.add_unit_type(foot(Some(peasant_t))),
+    );
+    let victim = sim.init_unit(0, citizen, tile_pos(40, 40));
+    let killer = sim.init_unit(1, horse, tile_pos(41, 40));
+    let peasant_killer = sim.init_unit(1, citizen, tile_pos(41, 41));
+    sim.mark_slain_by_aztec(victim, killer);
+    assert!(!sim.units[victim].slay_marked, "not an Aztec");
+    sim.cities.nation[1].aztecs = true;
+    sim.mark_slain_by_aztec(victim, peasant_killer);
+    assert!(!sim.units[victim].slay_marked, "a Village's unit");
+    sim.mark_slain_by_aztec(victim, killer);
+    assert!(sim.units[victim].slay_marked, "a Stable's unit marks");
+
+    // The heal's clear: a hurt captain keeps it, a whole one drops it.
+    sim.units[victim].health -= 1;
+    sim.heal_clears_slay_mark(victim);
+    assert!(sim.units[victim].slay_marked, "still hurt");
+    sim.units[victim].health += 1;
+    sim.heal_clears_slay_mark(victim);
+    assert!(!sim.units[victim].slay_marked, "whole: cleared");
+
+    // The disband's plunder: the slay arm's pay to `damage_who`.
+    sim.economy.holdings[1].available = [true, true, true, true, true, false];
+    sim.economy.ledgers[1].bucket = [20000, 12714, 20000, 0, 20000, 0];
+    let start = sim.economy.ledgers[1].bucket;
+    sim.tech[1].ages = 2;
+    sim.units[victim].combat.damage_o = i32::from(sim.units[killer].index);
+    sim.units[victim].combat.damage_who = 1;
+    sim.disband_slay_plunder(victim);
+    assert_eq!(sim.economy.ledgers[1].bucket, start, "unmarked: no pay");
+    sim.units[victim].slay_marked = true;
+    sim.cities.nation[1].aztecs = false;
+    sim.disband_slay_plunder(victim);
+    assert_eq!(
+        sim.economy.ledgers[1].bucket, start,
+        "the striker's leader is not Aztec"
+    );
+    sim.cities.nation[1].aztecs = true;
+    sim.leaders.defeated[1] = true;
+    sim.disband_slay_plunder(victim);
+    assert_eq!(sim.economy.ledgers[1].bucket, start, "a defeated leader");
+    sim.leaders.defeated[1] = false;
+    sim.disband_slay_plunder(victim);
+    assert_eq!(
+        sim.economy.ledgers[1].bucket[1], 12759,
+        "(2 + 1) × AZTEC_SLAY_BONUS 15 into the least stocked"
+    );
+}
+
 /// **An Iroquois leader's first Senate is free and instant** (item 3231,
 /// `docs/AI.md` §254): `TypeData::get_cost@00664090`'s building arm returns
 /// 0 (`006656f5`..`0066576b`) and `BuildData::construct_time@0062d5c0`'s
