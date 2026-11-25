@@ -252,22 +252,9 @@ impl Sim {
         };
         let track = guy.follow.map_or((0, 0), |f| f.track);
         let (last, last_facing) = guy.last.unwrap_or((body.pos, facing));
-        let z = self.guy_z(u, g, body.pos, false);
-        // **A unit inside something walks no figure** (item 4411,
-        // `docs/CHECKSUM.md` §23.9): `Unit::process@00610bc0:554`'s arm for
-        // `inside_up >= 0` calls no `Guy::process`, and copies every
-        // figure's `z` into `last_z` (`:582`, `0x0061158d`), so `last`
-        // stays where the last walk left it and `last_z` is the figure's
-        // own `z`.
-        // **The arm is chosen at the unit's own `process`**, not here (item
-        // 4467): a unit that went inside after it walked this frame keeps
-        // the ground under `last` (run1725's `1/0` boarding on 4026).
-        let last_z =
-            if (unit.inside.is_some() || unit.inside_unit.is_some()) && !unit.processed_outside {
-                z
-            } else {
-                self.guy_z(u, g, last, true)
-            };
+        // The stored heights, the inside arm's `last_z = z` among them
+        // (items 4411, 4467, 4660; [`Sim::guy_stored_z`]).
+        let (z, last_z) = self.guy_stored_z(u, g);
         let aim = guy.aim.map(|o| match o {
             crate::combat::Obj::Unit(v) => (self.units[v].index, self.units[v].owner as i8),
             crate::combat::Obj::Building(b) => {

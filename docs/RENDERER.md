@@ -6163,6 +6163,35 @@ frame gave 29, on the HDR target 32, and its complement 37. Tile (19, 159):
 theirs (235, 182, 65) Y 184.7, ours (217, 185, 69) Y 181.7, where the grass
 read (177, 178, 74).
 
+**The card's draw** (item 4661, 2026-11-25, Opus 5.5;
+`docs/journal/2026-11-25-item-4661.md`; run1833, `docs/RUNS.md`). A card
+take on run1814b's line keeps the plates' draw: draw 81 of the pass after
+3279, `early_road_pieces.tga` at stage 0 and `autumn_Middle_Road.tga` at
+stage 1, 842 vertices at stride 52 (position, normal, UV0, UV1, tangent; no
+colour) and 1,920 indices. The window presents that pass: the photograph
+equals its `flip` readback on every pixel.
+- *The coverage.* Draw 81 rasterised from its own stream and matrices on the
+  file's alpha (point, level 0) lays **the photograph's bands**, and nothing
+  else: the alpha is the file's, uncomplemented, as read.
+- *The colour.* On the 20,337 pixels where that alpha is over 0.99, the
+  original's HDR buffer (the 3279 pass's `do_run` readback) is `5 ·
+  tex2^1.9` of the untinted page within a median 1.06, 1.07, 0.95: the
+  diffuse is 1. `gTLAlpha` is 1.0.
+- *The depth.* The state's `enables` is 0x3c004, `ALPHAENABLE |
+  SPECMAPENABLE | GLOSSMAPENABLE | TL_FAKE_LIGHT` by `rise.pdb`'s
+  `RenderEnables`: no `ZENABLE`. The land's is 0x1c207, with `ZENABLE |
+  ZWRITE`. The client's plates now draw with the depth test off.
+- *What thinned ours* (4658a). `PLATE_ALPHA` was 913, which is
+  `BORDER_ALPHA_INDEX`; `Gpu::alpha_texture` caches by that key, so the
+  plates sampled the borders' alpha ramp. Every row number before this item
+  was read on that ramp. Now 921, and `every_alpha_key_is_its_own` guards
+  it.
+- *The row on the file's own alpha*: drawn **24**, theirs **22** (from 37 and
+  43, a named fall). Our plates lay sand in tile-sized squares where draw 81
+  lays bands (4661a).
+- `TileSet::get_road_texture` is dead in the image: `RoadsOut::render`
+  reads `road_textures[bucket]` inline. It is `blind::RESIDUE`.
+
 **Diff-backed**: the farms' corners and sizes, the wheat boxes whole
 (positions, colours, texcoords, heights, wind), the underlay's corners and
 texcoords; the plates' quads and tile-page texcoords, and their
@@ -6170,7 +6199,8 @@ texcoords; the plates' quads and tile-page texcoords, and their
 packet holds the `RenderState`, not the card's pixels); the plates' alpha
 uncomplemented (item 4658: the load, the bind, the state's arguments and
 d3dgl's table, one reading, no score resting on it). **On the row alone**:
-the client's complemented alpha, which that reading refutes (4658a).
+the client's complemented alpha, which that reading refutes (4658a);
+dropped by item 4661, whose card take backs the file's alpha by a diff.
 
 **Not established.**
 - The wind's motion over a game (`Scene::wind_vec` is the view's; the
@@ -6189,8 +6219,11 @@ the client's complemented alpha, which that reading refutes (4658a).
 - ~~Where the plates' alpha is complemented (4653a).~~ Read by item 4658
   ("The alpha, read"): nowhere; the original lays the file's alpha. The
   client still complements it, on the row alone, until 4658a is read.
-- What thins the plates to blotches where the photograph's bands are opaque
-  (4658a), and the four element-1 plates our walk does not lay (4653b).
+- ~~What thins the plates to blotches where the photograph's bands are opaque
+  (4658a).~~ Item 4661: the borders' alpha, on a shared cache key ("The
+  card's draw"). The four element-1 plates our walk does not lay (4653b).
+- Why our plates lay tile-sized squares where draw 81 lays bands (4661a).
+  The stream is on disk; our mesh's vertices against it are the next diff.
 - The trees past sight stay lit (4621a). Not touched here.
 
 ## 7. What is not established, and what needs Ramon's word

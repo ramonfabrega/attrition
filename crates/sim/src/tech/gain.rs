@@ -480,6 +480,7 @@ impl Sim {
             for g in &mut self.units[u].guys {
                 let at = g.follow.map_or(m.body.pos, |f| f.body.pos);
                 g.last = Some((at, angle));
+                g.seat_heights();
             }
         }
     }

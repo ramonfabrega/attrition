@@ -196,12 +196,12 @@ fn fs_snowcap(i: VOut) -> @location(0) vec4<f32> {
 // `TL_FAKE_LIGHT` with no lighting and no vertex colour (the diffuse is 1,
 // and the maps are sampled only under `ENABLE_LIGHTING`). SRCALPHA over
 // INVSRCALPHA. Here `uv` is UV1 and `auv` UV0. The piece's coverage is the
-// complement of the file's alpha (`1 − A`): the assumption the photograph's
-// row backs (43 of 46 on the packet's own pieces against 30), whose place in
-// the engine is not read (parked 4653a).
+// file's own alpha (item 4658's reading; item 4661's card take, run1833: draw
+// 81 of the 3279 pass rasterised from its own stream on that alpha lays the
+// photograph's bands). No `ZENABLE` in 0x3c004: the depth is not tested.
 @fragment
 fn fs_plate(i: VOut) -> @location(0) vec4<f32> {
-    let a = 1.0 - textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
+    let a = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
     let t = textureSample(tex, samp, i.uv);
     return vec4<f32>(land_fake(t.rgb), a * t.a);
 }
@@ -210,7 +210,7 @@ fn fs_plate(i: VOut) -> @location(0) vec4<f32> {
 // where the card blends it: `5 · c^1.9` at the piece's alpha times the page's.
 @fragment
 fn fs_plate_hdr(i: VOut) -> @location(0) vec4<f32> {
-    let a = 1.0 - textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
+    let a = textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
     let t = textureSample(tex, samp, i.uv);
     return vec4<f32>(land_fake_hdr(t.rgb), a * t.a);
 }
