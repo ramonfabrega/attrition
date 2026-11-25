@@ -337,6 +337,18 @@ pub struct World {
     /// The footprints laid among the patches, at the frame and the switches
     /// they were laid at.
     weather_laid: (i64, bool, (i32, i32), Vec<crate::weathering::Footprint>),
+    /// The farms' underlays (item 4650, §6.1), where the tileset names
+    /// both; the quads laid at the frame they were laid at; and the land's
+    /// N·L per tile corner (its stride and values) the drawn terrain was
+    /// last built with, which they take as the snowcap does.
+    farm_underlays: Option<crate::farms::UnderlayArt>,
+    farm_laid: (i64, (Vec<crate::oil::Quad>, Vec<crate::oil::Quad>), bool),
+    land_nl: (usize, Vec<f32>),
+    /// The wheat boxes' art (item 4650, §6.1), where it reads.
+    wheat_art: Option<crate::farms::WheatArt>,
+    /// Draw the farms' underlays, then the wheat boxes (item 4650). Both
+    /// on by default; the row's count as drawn before turns them off.
+    pub farms: (bool, bool),
     /// The land oil's patches as `create_doobers` built them, once (item
     /// 4319), and whether the oil class was laid at the last build: the
     /// console's `type_avail(OIL)` moving lays the terrain again.
@@ -622,6 +634,19 @@ pub const LAND_OIL_ALPHA: usize = 918;
 /// Whether a patch is one of the land oil's underlays.
 pub fn is_land_oil(piece: i32) -> bool {
     piece == LAND_ROUGH_PIECE || piece == LAND_OIL_PIECE
+}
+
+/// **The farms' underlays** (item 4650, §6.1; `crate::farms`): the
+/// `pigfarm` class's and the `wheatfarm` class's textures, each its own
+/// alpha as the snowcap's is.
+pub const FARM_PIG_PIECE: i32 = -200_602;
+pub const FARM_PIG_ALPHA: usize = 915;
+pub const FARM_WHEAT_PIECE: i32 = -200_603;
+pub const FARM_WHEAT_ALPHA: usize = 919;
+
+/// Whether a patch is one of the farms' underlays.
+pub fn is_farm_underlay(piece: i32) -> bool {
+    piece == FARM_PIG_PIECE || piece == FARM_WHEAT_PIECE
 }
 pub const EDGE_PIECE: i32 = -200_400;
 pub const EDGE_OUTER_PIECE: i32 = -200_401;
@@ -1105,6 +1130,13 @@ impl World {
                 land_oil: crate::oil::OilArt::load(&install, t, tint),
             })
         });
+        // Item 4650 (§6.1): the farms' underlays and the wheat boxes' art.
+        let farm_underlays = tileset
+            .as_deref()
+            .and_then(|t| crate::farms::UnderlayArt::load(&install, t, tint));
+        let wheat_art = tileset
+            .as_deref()
+            .and_then(|t| crate::farms::WheatArt::load(&install, t));
         let tree_art = tileset
             .and_then(|t| rondata::artdata::tree_art(&install, &t).ok())
             .map(|art| {
@@ -1303,6 +1335,11 @@ impl World {
             dust_given: None,
             weather_mips,
             weather_laid: (-1, false, (0, 0), Vec::new()),
+            farm_underlays,
+            farm_laid: (-1, (Vec::new(), Vec::new()), true),
+            land_nl: (0, Vec::new()),
+            wheat_art,
+            farms: (true, true),
             land_oil: (None, false),
             roads: true,
             roads_shift: (0, 0),
@@ -1965,6 +2002,15 @@ impl World {
                     }
                 }
             }
+            // Item 4650: the land's N·L the farms' underlays take.
+            self.land_nl = (
+                stride,
+                normals
+                    .iter()
+                    .map(|n| render::terrain::land_n_dot_l(*n))
+                    .collect(),
+            );
+            self.farm_laid = (-1, (Vec::new(), Vec::new()), true);
             self.drawn = (version, rest, meshes, patches);
             self.screen_layers = layers;
             self.laid_ramp = None;
@@ -1995,18 +2041,45 @@ impl World {
                 self.drawn.3.retain(|m| m.piece != WEATHER_PIECE);
                 if let Some(m) = self.weather_mesh(&want) {
                     // Item 4319: before the land oil's underlays too, which
-                    // `render_weathering(0, 3)` draws after it.
+                    // `render_weathering(0, 3)` draws after it; item 4650:
+                    // and before the farms'.
                     let at = self
                         .drawn
                         .3
                         .iter()
-                        .position(|p| p.mountain || is_land_oil(p.piece))
+                        .position(|p| {
+                            p.mountain || is_land_oil(p.piece) || is_farm_underlay(p.piece)
+                        })
                         .unwrap_or(self.drawn.3.len());
                     self.drawn.3.insert(at, m);
                 }
                 self.patch_version = self.patch_version.wrapping_add(1);
             }
             self.weather_laid = (key.0, key.1, key.2, want);
+        }
+        // Item 4650 (§6.1): the farms' underlays, `render_weathering(0, 3)`'s
+        // classes 0 and 1, after the footprint weathering and before the
+        // land oil's classes 2 and 3, laid again when the frame moves.
+        if (self.farm_laid.0, self.farm_laid.2) != (frame, self.farms.0) {
+            let want = match (&self.farm_underlays, self.farms.0) {
+                (Some(_), true) => crate::farms::underlay_quads(&self.runner.scene(None).buildings),
+                _ => (Vec::new(), Vec::new()),
+            };
+            if want != self.farm_laid.1 {
+                self.drawn.3.retain(|m| !is_farm_underlay(m.piece));
+                let meshes = self.farm_meshes(&want);
+                let at = self
+                    .drawn
+                    .3
+                    .iter()
+                    .position(|p| p.mountain || is_land_oil(p.piece))
+                    .unwrap_or(self.drawn.3.len());
+                for (k, m) in meshes.into_iter().enumerate() {
+                    self.drawn.3.insert(at + k, m);
+                }
+                self.patch_version = self.patch_version.wrapping_add(1);
+            }
+            self.farm_laid = (frame, want, self.farms.0);
         }
         // Item 4199 (§3.19): the roads, after the weathering and before the
         // first mountain layer, laid again when the frame or a switch moves.
@@ -2487,6 +2560,63 @@ impl World {
             }
         }
         (!m.positions.is_empty()).then_some(m)
+    }
+
+    /// **The farms' underlays as patches** (item 4650, §6.1): the `pigfarm`
+    /// quads then the `wheatfarm` ones through [`crate::oil::mesh`], on the
+    /// ground's own corners with the land's N·L the drawn terrain was built
+    /// with.
+    fn farm_meshes(
+        &self,
+        (pig, wheat): &(Vec<crate::oil::Quad>, Vec<crate::oil::Quad>),
+    ) -> Vec<PatchMesh> {
+        use render::terrain::TILES_PER_CELL;
+        let Some(art) = self.farm_underlays.as_ref() else {
+            return Vec::new();
+        };
+        let t = self.runner.terrain();
+        let tiles = (t.width * TILES_PER_CELL, t.height * TILES_PER_CELL);
+        let (stride, nl) = (&self.land_nl.0, &self.land_nl.1);
+        let nl_land = |p: &[f32; 3]| -> f32 {
+            let per = render::terrain::UNITS_PER_TILE as f32;
+            let (cx, cy) = ((p[0] / per).round(), (p[1] / per).round());
+            if cx < 0.0 || cy < 0.0 {
+                return LIGHT_FLAT;
+            }
+            nl.get(cy as usize * stride + cx as usize)
+                .copied()
+                .unwrap_or(LIGHT_FLAT)
+        };
+        let positions = &self.terrain.1.positions;
+        [
+            (FARM_PIG_PIECE, FARM_PIG_ALPHA, &art.pig, pig),
+            (FARM_WHEAT_PIECE, FARM_WHEAT_ALPHA, &art.wheat, wheat),
+        ]
+        .into_iter()
+        .filter_map(|(piece, alpha, mips, quads)| {
+            crate::oil::mesh(piece, alpha, mips, quads, positions, tiles, &nl_land)
+        })
+        .collect()
+    }
+
+    /// The wheat boxes' art, a test's (item 4650).
+    #[cfg(test)]
+    pub fn wheat_art(&self) -> Option<&crate::farms::WheatArt> {
+        self.wheat_art.as_ref()
+    }
+
+    /// **The frame's wheat boxes** (item 4650, §6.1; [`crate::farms::wheat`]),
+    /// on the runner's frame; `None` with no art, none to draw, or the
+    /// switch off.
+    pub fn wheat_mesh(
+        &self,
+    ) -> Option<(
+        crate::farms::WheatMesh,
+        std::sync::Arc<render::silhouette::Mips>,
+    )> {
+        let art = self.wheat_art.as_ref().filter(|_| self.farms.1)?;
+        let m = crate::farms::wheat(&self.runner.scene(None).buildings, art, self.runner.frame());
+        (!m.positions.is_empty()).then(|| (m, art.mips.clone()))
     }
 
     /// `WorldData::find_slope_normal@006b5130` at `(x, y)` on our terrain
@@ -3409,6 +3539,8 @@ mod tests {
             super::OIL_ALPHA,
             super::LAND_ROUGH_ALPHA,
             super::LAND_OIL_ALPHA,
+            super::FARM_PIG_ALPHA,
+            super::FARM_WHEAT_ALPHA,
         ];
         for (i, k) in ones.iter().enumerate() {
             assert!(

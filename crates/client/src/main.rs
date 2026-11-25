@@ -352,6 +352,8 @@ struct Built {
     underlay: Vec<gpu::ScreenLayer>,
     /// The cities' plates (item 4410), the screen pass's layers.
     screen: Vec<gpu::ScreenLayer>,
+    /// The wheat boxes and their texture (item 4650, §6.1).
+    wheat: Option<(farms::WheatMesh, std::sync::Arc<render::silhouette::Mips>)>,
 }
 
 fn build(
@@ -377,6 +379,7 @@ fn build(
     );
     let (mut figures, textured) = world.figure_meshes(&figures, &buildings, &list);
     let trees = world.tree_textured(&mut figures);
+    let wheat = world.wheat_mesh();
     let lines = overlay::Lines {
         frame: world.runner.frame(),
         frame_ms,
@@ -452,6 +455,7 @@ fn build(
         overlay,
         underlay,
         screen,
+        wheat,
     }
 }
 
@@ -506,6 +510,7 @@ fn draw(
         particles: &b.particles,
         minimap: None,
         fog: fog.as_ref().map(|(m, v)| (&**m, *v)),
+        wheat: b.wheat.as_ref().map(|(m, t)| (m, t)),
     };
     session.phase("gpu", || match target {
         Some(view) => {
@@ -628,6 +633,7 @@ pub(crate) fn still_minimap(
         particles: &b.particles,
         minimap: None,
         fog: fog.as_ref().map(|(m, v)| (&**m, *v)),
+        wheat: b.wheat.as_ref().map(|(m, t)| (m, t)),
     };
     let rgba = gpu.still(size, camera, &frame);
     assert_eq!(
@@ -673,6 +679,7 @@ fn draw_page(
         particles: &[],
         minimap: None,
         fog: None,
+        wheat: None,
     };
     let camera = pinned_camera();
     match target {

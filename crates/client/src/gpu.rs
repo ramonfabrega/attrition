@@ -399,6 +399,13 @@ pub struct Frame<'a> {
     /// kept on the GPU while the version stands. Its keep is composed into
     /// the frame after every ground run and before the objects.
     pub fog: Option<(&'a crate::world::TexturedMesh, u32)>,
+    /// **The wheat boxes** (item 4650; `docs/RENDERER.md` §6.1):
+    /// `FarmsOut::draw`'s one draw and `TileSetData::wheat_texture`, after
+    /// the objects.
+    pub wheat: Option<(
+        &'a crate::farms::WheatMesh,
+        &'a std::sync::Arc<render::silhouette::Mips>,
+    )>,
 }
 
 /// **The ocean gradient** (item 4584; `docs/RENDERER.md` §3.32): the
@@ -551,6 +558,8 @@ fn patch_kind(piece: i32, alpha: usize) -> PatchKind {
         // Item 4319: `render_weathering` draws classes 2 and 3 as it draws
         // class 4.
         p if crate::world::is_land_oil(p) => PatchKind::Snowcap,
+        // Item 4650: classes 0 and 1, the farms', the same.
+        p if crate::world::is_farm_underlay(p) => PatchKind::Snowcap,
         crate::world::OIL_PIECE => PatchKind::Billboard,
         p if crate::world::is_edge(p) => PatchKind::Edge,
         p if crate::world::is_border(p) => PatchKind::Border,
@@ -660,6 +669,12 @@ pub struct Gpu {
     tree: wgpu::RenderPipeline,
     tree_sampler: wgpu::Sampler,
     tree_textures: std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
+    /// The wheat boxes' pass (item 4650, §6.1): the farms' `RenderState`,
+    /// enables 0x20087 as the trees' — LessEqual, depth written, source
+    /// alpha over — and the wheat texture under the trees' sampler,
+    /// uploaded once.
+    wheat: wgpu::RenderPipeline,
+    wheat_texture: std::sync::OnceLock<wgpu::BindGroup>,
     /// The shadows' pass (item 4182) and each decal texture on the GPU,
     /// uploaded once under the trees' linear, clamped sampler.
     decal: wgpu::RenderPipeline,
@@ -1121,6 +1136,48 @@ impl Gpu {
             Some(wgpu::BlendState::ALPHA_BLENDING),
             Default::default(),
         );
+        // Item 4650 (§6.1): the wheat boxes, the tree module's `vs_wheat`
+        // with a corner's RGBA colour in the third attribute.
+        let wheat_attributes =
+            wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32x4];
+        let wheat = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("wheat"),
+            layout: Some(&sprite_pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: &tree_module,
+                entry_point: Some("vs_wheat"),
+                compilation_options: Default::default(),
+                buffers: &[Some(wgpu::VertexBufferLayout {
+                    array_stride: 36,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &wheat_attributes,
+                })],
+            },
+            primitive: wgpu::PrimitiveState {
+                cull_mode: None,
+                ..Default::default()
+            },
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: DEPTH_FORMAT,
+                depth_write_enabled: Some(true),
+                depth_compare: Some(wgpu::CompareFunction::LessEqual),
+                stencil: Default::default(),
+                bias: Default::default(),
+            }),
+            multisample: Default::default(),
+            fragment: Some(wgpu::FragmentState {
+                module: &tree_module,
+                entry_point: Some("fs_wheat"),
+                compilation_options: Default::default(),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format,
+                    blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+            }),
+            multiview_mask: None,
+            cache: None,
+        });
         let textured = figure_pass(
             "textured",
             "fs_textured",
@@ -1581,6 +1638,8 @@ impl Gpu {
             tree,
             tree_sampler,
             tree_textures: std::sync::Mutex::new(Default::default()),
+            wheat,
+            wheat_texture: std::sync::OnceLock::new(),
             ground,
             ground_meshes: std::sync::Mutex::new(None),
             patch,
@@ -1979,6 +2038,34 @@ impl Gpu {
         self.flat_meshes(meshes, &self.tree_textures, [0.0; 3])
     }
 
+    /// **The wheat boxes on the GPU** (item 4650): each corner's position,
+    /// texcoord and colour, and the wheat texture's level 0 under the
+    /// trees' sampler, uploaded once.
+    fn wheat_upload(
+        &self,
+        m: &crate::farms::WheatMesh,
+        mips: &render::silhouette::Mips,
+    ) -> (wgpu::Buffer, u32, wgpu::BindGroup) {
+        let mut bytes = Vec::with_capacity(m.positions.len() * 36);
+        for ((p, uv), c) in m.positions.iter().zip(&m.uvs).zip(&m.colours) {
+            for f in p.iter().chain(uv).chain(c) {
+                bytes.extend_from_slice(&f.to_le_bytes());
+            }
+        }
+        let buf = self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("wheat"),
+            size: bytes.len() as u64,
+            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+        self.queue.write_buffer(&buf, 0, &bytes);
+        let t = self
+            .wheat_texture
+            .get_or_init(|| self.upload_mips(&mips.levels[..1], &self.tree_sampler))
+            .clone();
+        (buf, m.positions.len() as u32, t)
+    }
+
     /// Each shadow mesh (item 4182) as [`Gpu::tree_meshes`] uploads a
     /// tree's, the vertex alpha 1 (`BLACK`'s 255) in the third attribute.
     fn decal_meshes(&self, meshes: &[crate::world::TexturedMesh]) -> Vec<Uploaded> {
@@ -2109,6 +2196,7 @@ impl Gpu {
         let quads = self.sprite_quads(frame.sprites);
         let textured = self.textured_meshes(frame.textured);
         let trees = self.tree_meshes(frame.trees);
+        let wheat = frame.wheat.map(|(m, mips)| self.wheat_upload(m, mips));
         let shadows = self.decal_meshes(frame.shadows);
         let particles = self.particle_meshes(frame.particles);
         let mut fow_mesh = self.fow_mesh.lock().unwrap();
@@ -2457,6 +2545,14 @@ impl Gpu {
                         pass.draw(0..*n, 0..1);
                     }
                 }
+            }
+            // Item 4650 (§6.1): `Scene::render` draws the farms after the
+            // objects and the ammo.
+            if let Some((b, n, t)) = &wheat {
+                pass.set_pipeline(&self.wheat);
+                pass.set_bind_group(1, t, &[]);
+                pass.set_vertex_buffer(0, b.slice(..));
+                pass.draw(0..*n, 0..1);
             }
         }
         // Item 4344: the water and the surf over the objects.
