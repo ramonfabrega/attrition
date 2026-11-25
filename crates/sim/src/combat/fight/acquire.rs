@@ -1175,6 +1175,22 @@ impl Sim {
                         // `jle` (`64987d`): a score of 0 — a candidate
                         // `compare_target` answered 0 for — is never the
                         // winner, even the first (item 2001).
+                        if std::env::var("RON_PROBE_4652").is_ok()
+                            && self.frame == 2964
+                            && let Obj::Unit(a) = attacker
+                            && self.units[a].owner == 2
+                            && self.units[a].index == 51
+                        {
+                            let (co, cw) = match o {
+                                Obj::Unit(c) => (self.units[c].index as i64, self.units[c].owner as i64),
+                                Obj::Building(b) => (self.buildings[b].index as i64 + 100000, self.buildings[b].owner as i64),
+                            };
+                            let p = self.pos_of(o);
+                            eprintln!(
+                                "PROBE4652 cand r {r} cell ({},{}) {cw}/{co} at ({},{}) dist {dist} targeted {targeted} value {value} in_range {in_range} score {score} best {:?}",
+                                cell.x, cell.y, p.x, p.y, best.map(|(b, _)| b)
+                            );
+                        }
                         if score > best.map_or(0, |(b, _)| b) {
                             best = Some((score, o));
                         }
