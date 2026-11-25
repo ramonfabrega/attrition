@@ -1112,17 +1112,6 @@ impl Sim {
                         };
                         dist += (targeted + 8) * 0x30;
                         let value = self.compare_target(attacker, o, in_range, ai);
-                        if std::env::var("RON_PROBE_4657").is_ok()
-                            && self.frame == 2964
-                            && let Obj::Unit(a) = attacker
-                            && (self.units[a].owner, self.units[a].index) == (2, 51)
-                        {
-                            let (w, i) = match o {
-                                Obj::Unit(u) => (self.units[u].owner, i32::from(self.units[u].index)),
-                                Obj::Building(b) => (self.buildings[b].owner, i32::from(self.buildings[b].index)),
-                            };
-                            eprintln!("PROBE4657 compare_target(2/51, {w}/{i}) {value} in_range {in_range} ai {ai}");
-                        }
                         let mut score = value / (dist / 0xc0 + 1);
                         // **The `flags` preferences** (`00649766`–
                         // `006497b2`): `0x10` halves what is not a unit,
