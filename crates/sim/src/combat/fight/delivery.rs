@@ -1389,6 +1389,13 @@ impl Sim {
             // `domain` (`+0x218`) is 2 sets the skip, and so does
             // attrition (`param_5`, `00652341`).
             let air = by.is_some_and(|o| matches!(self.profile(o).domain, Domain::Air));
+            if std::env::var("RON_PROBE_4688").is_ok() {
+                let who = by.map(|o| match o {
+                    Obj::Unit(i) => format!("unit {}/{} ti={} alive={} hp={}", self.units[i].owner, self.units[i].index, self.units[i].type_index, self.units[i].alive(), self.units[i].health),
+                    Obj::Building(i) => format!("bldg {}/{} alive={}", self.buildings[i].owner, self.buildings[i].index, self.buildings[i].alive),
+                });
+                eprintln!("PROBE4688 f{} site {}/{} hit {:?} lost {} by {:?} air {} attr {} jc {}", self.frame, self.buildings[b].owner, self.buildings[b].index, hit, lost, who, air, attrition, self.buildings[b].job_counter);
+            }
             if !attrition && !air {
                 let bd = &mut self.buildings[b];
                 bd.job_counter = (bd.job_counter - combat_progress_lost(lost)).max(0);
