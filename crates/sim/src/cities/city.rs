@@ -3424,6 +3424,7 @@ impl Sim {
         let oldc = self.cities.cities[old].clone();
         let friendly = o == a || self.is_ally(a, o);
         let assimilate_now = friendly || self.cities.nation[a as usize].global_government;
+        self.capture_carry_flags(newcity, old, a);
         let nc = &mut self.cities.cities[newcity];
         nc.owner = a;
         nc.building = n;
@@ -3436,9 +3437,6 @@ impl Sim {
         nc.was_capital = oldc.was_capital;
         nc.pop = oldc.pop;
         nc.unassimilated = !friendly;
-        nc.no_heal = oldc.no_heal;
-        nc.attacking = oldc.attacking;
-        nc.ever_attacked = oldc.ever_attacked;
         // `City::capture@00736c40:77`–`84`: the eight `traded_with` words
         // come across (item 4463: run1724's Inca capital, taken on 3887,
         // `traded_with[4]` 2 in the original's new record and 0 here).

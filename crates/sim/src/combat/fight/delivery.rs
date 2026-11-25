@@ -1387,8 +1387,15 @@ impl Sim {
             // sixteenths carried. **An aircraft's blow costs nothing**
             // (`0065234e`–`0065237c`): an attacker in use whose type's
             // `domain` (`+0x218`) is 2 sets the skip, and so does
-            // attrition (`param_5`, `00652341`).
-            let air = by.is_some_and(|o| matches!(self.profile(o).domain, Domain::Air));
+            // attrition (`param_5`, `00652341`). **The attacker must be in
+            // use** (item 4688): `testb $0x1, 0x8(%eax)` at `00652367`
+            // steps past the domain test when the attacker's slot has
+            // `flags & 1` clear, so a dead aircraft's blow — a missile
+            // that closed on its own impact — costs the site its
+            // progress. Row 93's Nuclear Missile `2/106` on 3268.
+            let air = by.is_some_and(|o| {
+                self.obj_alive(o) && matches!(self.profile(o).domain, Domain::Air)
+            });
             if !attrition && !air {
                 let bd = &mut self.buildings[b];
                 bd.job_counter = (bd.job_counter - combat_progress_lost(lost)).max(0);

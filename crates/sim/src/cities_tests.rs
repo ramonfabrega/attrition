@@ -4178,6 +4178,44 @@ fn a_captured_city_takes_city_init_s_record_and_its_building_s_ever_seen() {
     );
 }
 
+/// **A captured city keeps the old record's flags under `0xf13f`** (item
+/// 4686): `City::capture@00736c40:86` writes the new record's
+/// `city_flags` as the old one's masked, so the border pass's near mark
+/// (`0x1000`, held on the owner's half of the record here), the army's
+/// no-muster mark (`0x2000`) and "once the founding capital" (`0x8000`)
+/// come across to the taker. Row 133's who=1 takes city 12 on 3619 at
+/// 0x110f in the original. The record hand-over alone: a whole capture
+/// re-marks the new city through its own border pass and capital arm.
+#[test]
+fn a_captured_city_keeps_the_old_record_s_border_muster_and_founding_marks() {
+    for marked in [true, false] {
+        let mut sim = world_sim();
+        let t = install_types(&mut sim);
+        let (_, old) = city_at(&mut sim, &t, 1, 32, 32);
+        let (n, nc) = city_at(&mut sim, &t, 0, 8, 8);
+        sim.ai.ai[1].city_ai[old].near_border = marked;
+        sim.cities.cities[old].no_muster = marked;
+        sim.cities.cities[old].was_founding_capital = marked;
+        // Not a capital now, so the capital arm adds no `0x8000` of its own.
+        sim.cities.cities[old].capital = false;
+        sim.cities.cities[old].founding_capital = false;
+        sim.ai.ai[0].city_ai[nc].near_border = false;
+        sim.cities.cities[nc].no_muster = false;
+        sim.cities.cities[nc].was_founding_capital = false;
+        sim.city_capture_record(nc, old, 0, n);
+        let city = &sim.cities.cities[nc];
+        assert_eq!(
+            (
+                sim.ai.ai[0].city_ai[nc].near_border,
+                city.no_muster,
+                city.was_founding_capital
+            ),
+            (marked, marked, marked),
+            "0x1000, 0x2000 and 0x8000 under the mask (old marked: {marked})"
+        );
+    }
+}
+
 /// **A founded city's AI record is `City::init`'s too** (item 2106): a
 /// reused slot does not keep the dead city's picture, and a new one reads
 /// `land` 9 and `filled` 1 before its owner's sweep — Great Lakes' `1/2007`
