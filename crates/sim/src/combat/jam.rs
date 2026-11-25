@@ -110,6 +110,23 @@ impl Sim {
         }
     }
 
+    /// **`Unit::process@00610bc0`'s anti-air arm** (item 4666,
+    /// `611629`..`61167a`), in the sixteen-frame on-map block after the
+    /// 32-frame attrition refresh: a unit whose type `has_objmask(0x80000000)`
+    /// ([`mask::ANTI_AIR`]) asks `is_jammed` (vslot `+0xe0`, the leader as
+    /// out-parameter), and the jammer it finds takes `unit_masks2 |= 8`,
+    /// as [`Sim::building_jam`]'s does. Nothing else: no sound, no bit on
+    /// the unit itself, no shot held. Row 133's AA unit `1/75` (TI 284)
+    /// marks who=2's Special Forces `2/22` on run1797's 2565.
+    pub(crate) fn unit_jam(&mut self, u: usize) {
+        if !self.profile(Obj::Unit(u)).has(mask::ANTI_AIR) {
+            return;
+        }
+        if let Some(k) = self.is_jammed(Obj::Unit(u)) {
+            self.units[k].unit_masks2 |= umask2::JAMMER;
+        }
+    }
+
     /// **`Unit::process@00610bc0`'s caster arm, the jam shown**
     /// (`610ddc`..`610e58`), reached by every caster (`unit_flags2 & 2`)
     /// that is no decoy (`unit_masks & 1`), past a hero's or a special's
