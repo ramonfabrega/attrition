@@ -576,7 +576,7 @@ impl Sim {
     }
 
     /// The object's own number, `o`: a unit's index, a building's.
-    pub(super) fn obj_number(&self, o: Obj) -> i16 {
+    pub(crate) fn obj_number(&self, o: Obj) -> i16 {
         match o {
             Obj::Unit(v) => self.units[v].index,
             Obj::Building(b) => self.buildings[b].index,

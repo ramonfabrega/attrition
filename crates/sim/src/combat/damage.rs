@@ -572,7 +572,7 @@ impl DamageFacts for Reduced<'_> {
         self.tt.decoy
     }
     fn attack_stat(&mut self) -> i32 {
-        self.attack
+        self.at.object_attack.unwrap_or(self.attack)
     }
     fn target_is_building(&mut self) -> bool {
         self.tt.building

@@ -1786,7 +1786,7 @@ Open: five lines part on 3713. 4660 moved 3358 → 3713: the stored heights (`do
 
 ### 13.3 Row 93
 
-2686 → 2965 by 4590 (run1803; `docs/COMBAT.md` §68.1), 4606 (`docs/CHECKSUM.md` §18). Open: units on 2965: `2/51` takes the decoy `1/38`, theirs `1/39` (4652). 4608 (COMBAT §55.3), 4652 moved no parting. 4654 (run1830b): step 17's decoy attack is `ObjectData::attack`, theirs 240, ours 260; not built.
+2686 → 2965 by 4590 (run1803; `docs/COMBAT.md` §68.1), 4606 (`docs/CHECKSUM.md` §18). 2965 → 3058 by 4657 (run1830b: step 17's decoy attack is `ObjectData::attack`, 240; its journal). Open: units on 3058.
 
 ### 13.4 Row 113
 
@@ -1959,13 +1959,9 @@ owing the larger damage fraction of `myhits` less the squad's `total_damage@0060
 Built in `Sim::same_damage` (`docs/TRANSPORT.md` §6.4), held by
 `ai::transport::tests::a_boat_s_damage_comes_ashore_on_its_squad_s_tail`.
 
-The score, `SCORES_SEVENTH[4].moved` (12,001 states). 4614: deaths and world 2,741 → 2,862, groups → 2,883, guys →
-2,851. 4622: units → 2,807, leaders → 2,879; first 2741 → 2791. 4625: units → 2,902, ammo → 3,056, deaths → 2,922,
-groups → 2,928, guys → 2,907, leaders → 2,883, items → 7,829, world → 2,909; first 2791 → 2883. 4631: leaders 2,883 →
-2,926. 4633: units → 2,985, builds → 3,015, ammo → 3,170, guys → 2,985, leaders → 3,011, goods → 3,543; first 2902 →
-2985. 4662: units → 3,033, builds → 3,144, ammo → 3,391, deaths → 3,463, guys → 3,069, leaders → 3,134, world → 3,086;
-first 2985 → 3028. 4664: ammo → 3,392; first 3028 → 3033. 4668: units → 3,069; first 3033 → 3069. 4674: units →
-3,112, guys → 3,149; first 3069 → 3095.
+The score, `SCORES_SEVENTH[4].moved` (12,001 states; each landing's columns are in its comment). The first parting:
+2741 → 2791 (4622) → 2883 (4625) → 2902 (4631) → 2985 (4633) → 3028 (4662) → 3033 (4664) → 3069 (4668) → 3095 (4674)
+→ 3112 (4676; groups → 3,490, builds → 3,513, guys → 3,442, leaders → 3,446).
 
 **Item 4662: a stale attack is cleared, not retargeted.** On 2984 who=1's Trebuchet `1/61` (TI 266) ends its
 attack-ground; the Attack under it names `2/63` at uid 93, a number another barge holds. `Unit::work@0060d180:300`–`:340`
@@ -1979,7 +1975,9 @@ marks the object at `(whom, ox)` in danger and, on the uid mismatch, writes `ox`
 **Item 4668: `check_hit` takes the last of a tie** (`docs/COMBAT.md` §9.4): on 3033 `1/83`'s `damage` ours 3 → 7 as theirs.
 
 **Item 4674: `set_all_pivots` bears on `objects[whom][ox]`**: on 3069 `1/46`'s `cavarch_o` ours −1 → 61 as theirs.
-Next: 3095, groups.
+
+**Item 4676: `Army::normalize`'s `remove_group@006f8b50` writes only `army` −1**, and the emptied record stays on its
+index (`docs/ARMY.md` §3.3): on 3095 slot 130's `army` ours 0 → −1, `stamp` 741 → 1523, as theirs. Next: 3112, units.
 
 **Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is not built: no capture has been shown
 to reach it. A building shooter always splashes from the landing (`Build` and `Wall` fill vslot `+0x18` with a
