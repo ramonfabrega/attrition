@@ -3101,6 +3101,87 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 53's standing Phalanxes keep the height they stood at under a
+    /// terraform** (item 4660, `docs/RECGAME.md` §13.2): run1812, the
+    /// ranges take of row 53's file. Smelter `2/2040` is placed in tick
+    /// 3357, and `Wall::init@0063e9b0`'s `update_z` walk refreshes only the
+    /// land units on the chains of the cells round it (`0063eb70`..
+    /// `0063ec43`). who=2's Phalanx `2/76` (TI 133, land) stands on cell
+    /// (49, 25) and on no cell's chain (run1832's packet, item 4609), so its
+    /// `z` stays 22 and its figure's 21 where the ground now reads 29 and
+    /// 24. Every units and guys range on 3357 to 3359, ours against theirs,
+    /// byte for byte: red on the tree before the fix at units range 4116,
+    /// record 76, `z` ours 29, theirs 22 on 3358.
+    #[test]
+    fn row_53_s_unchained_phalanx_keeps_its_height_under_the_smelter_on_run1812_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 2) else {
+            eprintln!("skipping: row 53's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1812/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1812's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 53's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3357..=3359 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (li, name) in [(0u8, "units"), (6, "guys")] {
+                let ours = lines[usize::from(li)].as_ref().expect(name);
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == li).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{name} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+        }
+        // The Phalanx by name, on 3359: who=2's record 76, `z` 22 where the
+        // ground under it reads 29.
+        let u = built.sim.unit_by_o(2, 76).expect("2/76");
+        assert_eq!(built.sim.units[u].type_index, 133, "2/76 is a Phalanx");
+        let tile = built.sim.units[u].pos.tile();
+        assert_eq!(built.sim.world.object_z(tile), 29, "the new ground");
+        let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+        let units = lines[0].as_ref().expect("units");
+        let k = units
+            .ranges
+            .iter()
+            .position(|r| r.record == 76 && r.field == "who..y_internal" && r.bytes[0] == 2)
+            .expect("2/76's range");
+        let f = crate::checksum::fields::range_fields(
+            "units",
+            "who..y_internal",
+            &units.ranges[k].bytes,
+        )
+        .expect("its fields");
+        assert!(
+            f.iter().any(|(n, v)| n == "z" && *v == 22),
+            "2/76's stored z: {f:?}"
+        );
+    }
+
     /// **Row 83's Airbase keeps its Biplane in when an enemy wonder out of
     /// reach outscores the city** (item 4562, `docs/RECGAME.md` §12.3):
     /// run1784, the ranges take of row 83's file. who=2's computer sortie
@@ -3922,7 +4003,9 @@ pub(crate) mod tests {
         }
         let inst = crate::testenv::install().expect("install");
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(&SIXTH, 2) else { panic!("row 53") };
+        let (Some(rcx), _) = paths(&SIXTH, 2) else {
+            panic!("row 53")
+        };
         let map = home.join("ron-golden/run1812/map-18");
         let ranges = crate::testenv::experiment(&map, "rontrace.ranges").expect("ranges");
         let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 53's file");
@@ -3933,11 +4016,36 @@ pub(crate) mod tests {
         let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
         let mut stream = crate::input::Stream::pump(&rec);
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
-        let lo: i64 = std::env::var("P_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(3340);
-        let want: u32 = std::env::var("P_REC").ok().and_then(|v| v.parse().ok()).unwrap_or(76);
+        let lo: i64 = std::env::var("P_LO")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(3340);
+        let want: u32 = std::env::var("P_REC")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(76);
         for state in lo..=3358 {
-            let before: Vec<(u8, i16)> = built.sim.buildings.iter().map(|b| (b.owner, b.index)).collect();
-            let zs: Vec<(u8, i16, i32, i32, i32)> = built.sim.units.iter().filter(|u| u.alive()).map(|u| (u.owner, u.index, u.pos.x, u.pos.y, built.sim.world.object_z(u.pos.tile()))).collect();
+            let before: Vec<(u8, i16)> = built
+                .sim
+                .buildings
+                .iter()
+                .map(|b| (b.owner, b.index))
+                .collect();
+            let zs: Vec<(u8, i16, i32, i32, i32)> = built
+                .sim
+                .units
+                .iter()
+                .filter(|u| u.alive())
+                .map(|u| {
+                    (
+                        u.owner,
+                        u.index,
+                        u.pos.x,
+                        u.pos.y,
+                        built.sim.world.object_z(u.pos.tile()),
+                    )
+                })
+                .collect();
             while built.sim.frame < state {
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
@@ -3945,14 +4053,53 @@ pub(crate) mod tests {
             for u in built.sim.units.iter().filter(|u| u.alive()) {
                 if let Some(z0) = zs.iter().find(|z| z.0 == u.owner && z.1 == u.index) {
                     let z1 = built.sim.world.object_z(u.pos.tile());
-                    if z0.4 != z1 || (state == 3358 && (u.pos.x / 768 - 49).abs() <= 4 && (u.pos.y / 768 - 24).abs() <= 4) {
-                        eprintln!("s{state} Z {}/{} at ({}, {})->({}, {}) tile ({}, {}) cell ({}, {}) z {} -> {} dom {:?}", u.owner, u.index, z0.2, z0.3, u.pos.x, u.pos.y, u.pos.x / 192, u.pos.y / 192, u.pos.x / 768, u.pos.y / 768, z0.4, z1, u.kind.domain);
+                    if z0.4 != z1
+                        || (state == 3358
+                            && (u.pos.x / 768 - 49).abs() <= 4
+                            && (u.pos.y / 768 - 24).abs() <= 4)
+                    {
+                        eprintln!(
+                            "s{state} Z {}/{} at ({}, {})->({}, {}) tile ({}, {}) cell ({}, {}) z {} -> {} dom {:?}",
+                            u.owner,
+                            u.index,
+                            z0.2,
+                            z0.3,
+                            u.pos.x,
+                            u.pos.y,
+                            u.pos.x / 192,
+                            u.pos.y / 192,
+                            u.pos.x / 768,
+                            u.pos.y / 768,
+                            z0.4,
+                            z1,
+                            u.kind.domain
+                        );
                     }
                 }
             }
-            for b in built.sim.buildings.iter().filter(|b| !before.contains(&(b.owner, b.index))) {
-                let ty = b.ty.map(|t| (built.sim.tables.build_types[t].ident, built.sim.tables.build_types[t].x_size));
-                eprintln!("s{state} NEW building {}/{} ty {:?} pos ({}, {}) cell ({}, {}) z {}", b.owner, b.index, ty, b.pos.x, b.pos.y, b.pos.x / 768, b.pos.y / 768, b.z);
+            for b in built
+                .sim
+                .buildings
+                .iter()
+                .filter(|b| !before.contains(&(b.owner, b.index)))
+            {
+                let ty = b.ty.map(|t| {
+                    (
+                        built.sim.tables.build_types[t].ident,
+                        built.sim.tables.build_types[t].x_size,
+                    )
+                });
+                eprintln!(
+                    "s{state} NEW building {}/{} ty {:?} pos ({}, {}) cell ({}, {}) z {}",
+                    b.owner,
+                    b.index,
+                    ty,
+                    b.pos.x,
+                    b.pos.y,
+                    b.pos.x / 768,
+                    b.pos.y / 768,
+                    b.z
+                );
             }
             let set = record.first_of(state - 1).expect("the state's set").clone();
             let all = record.ranges(&set).expect("the set's ranges");
@@ -3965,33 +4112,72 @@ pub(crate) mod tests {
                         if a.bytes != b.bytes || a.field == "who..y_internal" || a.field == "guy" {
                             eprintln!(
                                 "s{state} line {li} range {k} rec {} {} same={} ours {:?} theirs {:?}",
-                                a.record, a.field, a.bytes == b.bytes,
-                                crate::checksum::fields::range_fields(if li == 0 { "units" } else { "guys" }, a.field, &a.bytes),
-                                crate::checksum::fields::range_fields(if li == 0 { "units" } else { "guys" }, a.field, &b.bytes)
+                                a.record,
+                                a.field,
+                                a.bytes == b.bytes,
+                                crate::checksum::fields::range_fields(
+                                    if li == 0 { "units" } else { "guys" },
+                                    a.field,
+                                    &a.bytes
+                                ),
+                                crate::checksum::fields::range_fields(
+                                    if li == 0 { "units" } else { "guys" },
+                                    a.field,
+                                    &b.bytes
+                                )
                             );
                         }
                     }
                 }
                 if ours.ranges.len() != theirs.len() {
-                    eprintln!("s{state} line {li} lens ours {} theirs {}", ours.ranges.len(), theirs.len());
+                    eprintln!(
+                        "s{state} line {li} lens ours {} theirs {}",
+                        ours.ranges.len(),
+                        theirs.len()
+                    );
                 }
             }
-            for u in built.sim.units.iter().filter(|u| u.alive() && i64::from(u.index) == i64::from(want)) {
+            for u in built
+                .sim
+                .units
+                .iter()
+                .filter(|u| u.alive() && i64::from(u.index) == i64::from(want))
+            {
                 let ty = u.ty.map(|t| built.sim.tables.unit_types[t].type_index);
-                eprintln!("s{state} unit {}/{} TI {:?} domain {:?}", u.owner, u.index, ty, u.kind.domain);
+                eprintln!(
+                    "s{state} unit {}/{} TI {:?} domain {:?}",
+                    u.owner, u.index, ty, u.kind.domain
+                );
                 crate::diff::harness::debug_unit(&built, u, state);
             }
             if std::env::var("P_CHAIN").is_ok() {
                 let sim = &built.sim;
                 let w = sim.world.width() as usize;
-                for (i, u) in sim.units.iter().enumerate().filter(|(_, u)| u.alive() && u.owner == 2 && [76i16, 91, 130, 34].contains(&u.index)) {
+                for (i, u) in sim.units.iter().enumerate().filter(|(_, u)| {
+                    u.alive() && u.owner == 2 && [76i16, 91, 130, 34].contains(&u.index)
+                }) {
                     let c = u.pos.cell();
                     let s = (c.y as usize) * w + c.x as usize;
                     let mut on = false;
                     let mut next = sim.terrain.chain_heads[s];
                     let mut walk = vec![];
-                    while let Some(v) = next { if v == i { on = true; } walk.push((sim.units[v].owner, sim.units[v].index)); next = sim.units[v].down; }
-                    eprintln!("s{state} CHAIN 2/{} cell ({}, {}) on={on} up {:?} down {:?} cell chain {:?} chainw {:?}", u.index, c.x, c.y, u.up.map(|v| sim.units[v].index), u.down.map(|v| sim.units[v].index), walk, u.chain);
+                    while let Some(v) = next {
+                        if v == i {
+                            on = true;
+                        }
+                        walk.push((sim.units[v].owner, sim.units[v].index));
+                        next = sim.units[v].down;
+                    }
+                    eprintln!(
+                        "s{state} CHAIN 2/{} cell ({}, {}) on={on} up {:?} down {:?} cell chain {:?} chainw {:?}",
+                        u.index,
+                        c.x,
+                        c.y,
+                        u.up.map(|v| sim.units[v].index),
+                        u.down.map(|v| sim.units[v].index),
+                        walk,
+                        u.chain
+                    );
                 }
             }
         }
@@ -11822,18 +12008,26 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 3,810, groups 3,716 -> 3,726, leaders 3,707 -> 3,715, cities 3,825 -> 3,951, items 9,154
         // -> 8,940, goods 3,923 -> 3,865, world 3,707 -> 3,721; all past the row's first parting
         // 3358, which stands.
+        // Then item 4660 (the stored heights: `Wall::init`'s `update_z`
+        // walk refreshes only the chained land units round the building,
+        // `crate::units::stored_z`): on 3358 who=2's Phalanx `2/76` (TI 133,
+        // land, on no cell's chain) keeps `z` 22 under Smelter `2/2040`'s
+        // terraform as theirs, where ours read the ground's 29, and its
+        // figure 21 for 24. The row's first parting moves: units 3,358 ->
+        // 3,713 and guys 3,358 -> 3,713; ammo 3,880 -> 4,137, deaths 3,810
+        // -> 3,939; items 8,940 -> 8,907, a named fall past the parting.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                3358, 3732, 12001, 3880, 3810, 3726, 3358, 3715, 3951, 8940, 3865, 3721,
+                3713, 3732, 12001, 4137, 3939, 3726, 3713, 3715, 3951, 8907, 3865, 3721,
             ],
             first: &[
-                ("units", (3358, Some(992329593), 1194311501)),
+                ("units", (3713, Some(104111882), 435150367)),
                 ("builds", (3732, Some(2175428037), 986670026)),
                 ("ammo", (3807, Some(1), 2355366420)),
                 ("deaths", (3713, Some(3855424552), 2127964779)),
                 ("groups", (3714, Some(1263612184), 908409090)),
-                ("guys", (3358, Some(479939638), 3928181788)),
+                ("guys", (3713, Some(21387406), 3289861510)),
                 ("leaders", (3713, Some(2512362065), 969579214)),
                 ("cities", (3951, Some(4088156871), 4088615623)),
                 ("items", (4596, Some(3298888854), 3301772440)),

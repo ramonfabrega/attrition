@@ -1738,6 +1738,7 @@ impl Sim {
         for g in &mut self.units[r].guys {
             let at = g.follow.map_or(m.body.pos, |f| f.body.pos);
             g.last = Some((at, m.heading));
+            g.seat_heights();
         }
         self.come_out_join_army(r);
     }

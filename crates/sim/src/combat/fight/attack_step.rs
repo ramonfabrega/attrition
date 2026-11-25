@@ -831,7 +831,12 @@ impl Sim {
     /// Jet Fighter `1/14` at 0, where the ground read 533 and 529.
     pub(super) fn aim_z(&mut self, target: Obj, rolling: bool) -> i32 {
         let at = self.pos_of(target);
-        let mut z = self.world.object_z(at.tile()) + if rolling { 0x4b } else { 0 };
+        // A unit's `+0xc` is stored (item 4660, `crate::units::stored_z`).
+        let ground = match target {
+            Obj::Unit(u) => self.unit_stored_z(u),
+            Obj::Building(_) => self.world.object_z(at.tile()),
+        };
+        let mut z = ground + if rolling { 0x4b } else { 0 };
         if let Obj::Unit(u) = target
             && matches!(self.profile(target).domain, Domain::Air)
         {

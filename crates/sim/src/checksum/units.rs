@@ -281,7 +281,8 @@ impl Sim {
             put("must_walk", vec![1]);
             let mut sub = vec![unit.owner];
             sub.extend_from_slice(&record.to_le_bytes());
-            sub.extend_from_slice(&super::coord(self.world.object_z(unit.pos.tile())));
+            // The stored `z` (item 4660, `crate::units::stored_z`).
+            sub.extend_from_slice(&super::coord(self.unit_stored_z(u)));
             sub.extend_from_slice(&super::coord(unit.pos.x));
             sub.extend_from_slice(&super::coord(unit.pos.y));
             put("who..y_internal", sub);
