@@ -12135,6 +12135,49 @@ fn a_city_s_own_race_takes_the_recapture_bonus_on_it() {
     assert_eq!(blow(&sim, centre), 22, "a city of another race");
 }
 
+/// **A Redoubt's kill is `dtype` 3** (item 4659, `docs/RECGAME.md` §13.5):
+/// `get_damage@00644130`'s building arm writes 3 when
+/// `BuildData::get_shot@0062dd90` answers 4, which it does for the
+/// `REDOUBT` (`0x1be`) alone, and 2 for any other building. `Unit::close`
+/// then rolls `2 × dtype + 0xd + roll % 2`: 17 or 18 for a Tower's kill, 19
+/// or 20 for a Redoubt's (run1797's `2/0` on 2456, `cur_anim` 19).
+#[test]
+fn a_redoubt_s_kill_rolls_the_explosive_death() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    city_at(&mut sim, &t, 0, 32, 32);
+    let tower = sim.place_building(0, t.tower, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, tower);
+    sim.buildings[tower].combat = Some(combat::Profile {
+        attack: 220,
+        ammo_per_att: 1,
+        ..combat::Profile::default()
+    });
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    let kill = |sim: &Sim| {
+        let mut s = sim.clone();
+        let u = spawn(&mut s, 1, citizen, tile_pos(42, 42));
+        s.units[u].health = 1;
+        s.do_damage(
+            Obj::Building(tower),
+            Obj::Unit(u),
+            crate::movement::Angle(0),
+            true,
+            0x100,
+            false,
+            true,
+            2456,
+        );
+        assert!(!s.units[u].alive(), "the blow kills");
+        s.combat.deaths.last().map(|d| d.cur_anim)
+    };
+    let anim = kill(&sim);
+    assert!(matches!(anim, Some(17 | 18)), "a Tower's: {anim:?}");
+    sim.tables.build_types[t.tower].tree = Some(combat::REDOUBT);
+    let anim = kill(&sim);
+    assert!(matches!(anim, Some(19 | 20)), "a Redoubt's: {anim:?}");
+}
+
 /// **`BuildData::get_base_garrison_arrows@0062e340`** (item 3970): a Mayan
 /// building adds `MAYA_GARRISON_ARROWS` to its type's `BASE_ARROWS`, so an
 /// ungarrisoned Tower of `BASE_ARROWS 0` shoots — chapter 126's City

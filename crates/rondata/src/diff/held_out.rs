@@ -2085,6 +2085,69 @@ pub(crate) mod tests {
         );
     }
 
+    /// **Row 133's Redoubt kills with `dtype` 3** (item 4659,
+    /// `docs/RECGAME.md` §13.5): run1797's ranges, the row's deaths parting
+    /// on 2457 (death slot 7, who=2's Elite Special Forces `2/0`, TI 27,
+    /// land). who=1's Redoubt `1/2025` lands an 18 on it on 2456 and kills
+    /// it. `get_shot` is 4 for a Redoubt, so `get_damage`'s building arm
+    /// writes `dtype` 3, not 2: `cur_anim` ours 17, theirs 19 (the same
+    /// even roll), and `take_damage`'s turn of a foot casualty toward the
+    /// blow, `place.angle` ours `0xbd69188d`, theirs `0xe9b90000`, impact
+    /// angle ours 100.0, theirs 38.0. Every deaths range on 2456 to 2458,
+    /// ours against theirs, byte for byte, and the record's `cur_anim`.
+    #[test]
+    fn row_133_s_redoubt_kills_with_the_explosive_death_on_run1797_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 2456..=2458 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[4].as_ref().expect("the deaths line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 4).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "deaths' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "deaths range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+        let d = built
+            .sim
+            .combat
+            .deaths
+            .iter()
+            .find(|d| (d.who, d.o, d.first_frame) == (2, 0, 2456))
+            .expect("2/0's death on 2456");
+        assert_eq!(d.cur_anim, 19, "dtype 3: 2 × 3 + 0xd, an even roll");
+    }
+
     /// **Row 28's two Bazookas drop their chase of a Citizen on one tick**
     /// (item 4613, `docs/RECGAME.md` §14.2): run1813's ranges, the
     /// seventh's first leaf. who=1's Bazookas `1/35` and `1/52` (TI 139,
