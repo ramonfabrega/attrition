@@ -2333,6 +2333,213 @@ pub(crate) mod tests {
         assert_eq!(launches, vec![(17414, 2248)], "its node-0 rocket");
     }
 
+    /// Probe (item 4679): row 133's units ranges, both sides.
+    #[test]
+    fn probe_4679_units() {
+        if std::env::var("RON_PROBE_4679").is_err() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            return;
+        };
+        let ranges =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+                .expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let lo: i64 = std::env::var("RON_PROBE_LO")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(2676);
+        let hi: i64 = std::env::var("RON_PROBE_HI")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(2677);
+        let line: usize = std::env::var("RON_PROBE_LINE")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(0);
+        let name = crate::checksum::CHECKSUM_LINES[line].0;
+        let trace = crate::trace::Trace::read(
+            &crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.log")
+                .expect("log"),
+        )
+        .expect("reads")
+        .expect("parses");
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                let f = built.sim.frame;
+                crate::diff::harness::debug_watch(&built, f);
+                stream.apply(f as i32, &mut built);
+                if std::env::var("RON_PROBE_WORDS").is_ok() {
+                    let t = trace.frame_draws(f);
+                    if let Some(d) = t.first()
+                        && d.seed != built.sim.rng.seed
+                    {
+                        eprintln!(
+                            "WORD parts entering {f}: ours {:#x} theirs {:#x} (theirs' draws {})",
+                            built.sim.rng.seed,
+                            d.seed,
+                            t.len()
+                        );
+                    }
+                }
+                let watch = std::env::var("RON_PROBE_DRAWS").is_ok() && f == state - 1;
+                if watch {
+                    built.sim.trace.trace_phases = true;
+                    built.sim.trace.phase_marks.clear();
+                }
+                let w0 = built.sim.rng.seed;
+                if let Ok(fr) = std::env::var("RON_PROBE_FARMS")
+                    && fr.split(',').any(|x| x.parse::<i64>().ok() == Some(f))
+                {
+                    for (b, bd) in built.sim.buildings.iter().enumerate() {
+                        if bd.owner as i32 == 2 && (2002..=2006).contains(&bd.index) {
+                            eprintln!(
+                                "SLOT f{f} b{b} who 2 idx {} ty {:?} alive {} active {} started {} activated {} hits {} at ({},{})",
+                                bd.index, bd.ty, bd.alive, bd.active, bd.started, bd.activated, bd.hits, bd.pos.x, bd.pos.y
+                            );
+                        }
+                    }
+                    for &b in &built.sim.cities.farm_order {
+                        let bd = &built.sim.buildings[b];
+                        eprintln!(
+                            "FARM f{f} b{b} who {:?} idx {} ty {:?} alive {} active {} started {} activated {} hits {} ft {} at ({},{}) state {:?} adds {:?}",
+                            bd.owner, bd.index, bd.ty, bd.alive, bd.active, bd.started, bd.activated, bd.hits,
+                            bd.farm.farm_type, bd.pos.x, bd.pos.y, bd.farm.state, bd.farm.adds
+                        );
+                    }
+                }
+                built.sim.command().tick();
+                if watch {
+                    built.sim.trace.trace_phases = false;
+                    let td = trace.frame_draws(f);
+                    eprintln!(
+                        "## frame {f}: word ours {w0:#x} theirs {:?}; ours {} draws, theirs {}",
+                        td.first().map(|d| format!("{:#x}", d.seed)),
+                        crate::diff::report::draws_between(w0, built.sim.rng.seed).unwrap_or(9999),
+                        td.len()
+                    );
+                    let mut ours: Vec<(String, i32)> = Vec::new();
+                    let marks = &built.sim.trace.phase_marks;
+                    for (i, (label, from)) in marks.iter().enumerate() {
+                        let to = marks.get(i + 1).map_or(built.sim.rng.seed, |m| m.1);
+                        let mut r = sim::combat::Rng::new(*from);
+                        while r.seed != to {
+                            let v = r.roll();
+                            ours.push((label.clone(), v));
+                        }
+                    }
+                    for k in 0..ours.len().max(td.len()) {
+                        let a = ours.get(k);
+                        let b = td.get(k);
+                        let bl = b.map(|d| trace.label(d));
+                        let mark = match (a, b) {
+                            (Some(a), Some(b)) if Some(&a.0) == bl.as_ref() && Some(a.1) == b.value() => " ",
+                            _ => "*",
+                        };
+                        eprintln!(
+                            "  {mark}{k:3} ours {:?} | theirs {:?} {:?} up {:x?}",
+                            a,
+                            bl,
+                            b.and_then(|d| d.value()),
+                            b.map(|d| d.up)
+                        );
+                    }
+                }
+            }
+            crate::diff::harness::debug_watch(&built, built.sim.frame);
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+            let ours = lines[line]
+                .as_ref()
+                .map(|l| l.ranges.clone())
+                .unwrap_or_default();
+            eprintln!(
+                "== state {state}: {name} ours {} theirs {}",
+                ours.len(),
+                theirs.len()
+            );
+            if let Ok(w) = std::env::var("RON_PROBE_UNITS") {
+                let mut cur = String::new();
+                for (k, r) in ours.iter().enumerate() {
+                    if r.field == "who..y_internal"
+                        && let Some(f) = crate::checksum::fields::range_fields(name, r.field, &r.bytes)
+                    {
+                        cur = format!("{}/{}", f[0].1, f[1].1);
+                    }
+                    if w.split(',').any(|x| x == cur) {
+                        let t = theirs.get(k).map(|t| {
+                            crate::checksum::fields::range_fields(name, r.field, &t.bytes)
+                        });
+                        eprintln!(
+                            "  U {cur} {} ours {:?}\n      theirs {:?}",
+                            r.field,
+                            crate::checksum::fields::range_fields(name, r.field, &r.bytes),
+                            t
+                        );
+                    }
+                }
+            }
+            let mut head = String::new();
+            let mut shown = 0;
+            for k in 0..ours.len().max(theirs.len()) {
+                let a = ours.get(k);
+                let b = theirs.get(k);
+                if let Some(a) = a
+                    && a.field == "who..y_internal"
+                {
+                    head = format!(
+                        "{:?}",
+                        crate::checksum::fields::range_fields(name, a.field, &a.bytes)
+                    );
+                }
+                let same = matches!((a, b), (Some(a), Some(b)) if a.bytes == b.bytes);
+                if same {
+                    continue;
+                }
+                shown += 1;
+                if shown > 40 {
+                    break;
+                }
+                match (a, b) {
+                    (Some(a), Some(b)) => {
+                        let d = crate::checksum::fields::differing_fields(
+                            name, a.field, &a.bytes, &b.bytes,
+                        );
+                        eprintln!(
+                            "  {k} rec {} {} (len {}|{}) under {head}: {d:?}",
+                            a.record,
+                            a.field,
+                            a.bytes.len(),
+                            b.bytes.len()
+                        );
+                        if d.is_empty() {
+                            eprintln!("     ours  {:02x?}\n     their {:02x?}", a.bytes, b.bytes);
+                        }
+                    }
+                    (Some(a), None) => eprintln!("  {k} ours only rec {} {}", a.record, a.field),
+                    (None, Some(b)) => {
+                        eprintln!("  {k} theirs only len {} {:02x?}", b.bytes.len(), b.bytes)
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
+
     /// **Row 133's SAM rocket strikes its own capital with the recapture
     /// bonus** (item 4655, `docs/RECGAME.md` §13.5): run1797's ranges, the
     /// row's builds parting on 2451 (range 2180, record 2000, `damage` ours
