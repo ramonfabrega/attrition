@@ -6011,26 +6011,6 @@ grass under both. **Both are read off the packet, and neither needs a take.**
   2004, `farm_type` 0, 0 and 4. In each, 3 to 5 plots are at `percent` 0
   and `status` 0. These are the photograph's bare patches.
 
-**The plates are the roads at age 0**, not the weathering:
-- `Terrain::add_weathering@00850120` refuses an age below 6. On the
-  listing, `0x85014a` is `cmp edx, 6; jl` on the sixth argument, so the
-  `size + 1` arm of §3.17 lays nothing in the Ancient Age.
-- `tools/render/road_records.py` on run1814b's packet prints **142 road
-  tiles, every one at `prev_age` 0**. Sixty-one ring slot 0's city
-  (x 7 to 19, y 151 to 163).
-- `RoadsOut::render@008943d0` draws each page and age bucket through its own
-  helper, at index `page · 3 + bucket`. On a page whose tile-page bit is set
-  (`+0x9c`), it binds the page's pieces at stage 0 and the tileset's
-  `road_textures[bucket]` at stage 1. A card with a third stage also gets
-  `road_mtrl_textures[bucket]` at stage 2. The state is `+0x2f0`, where the
-  modern page takes `+0x188` and stage 0 alone.
-- `Data/roads.xml`'s age-0 texture is `early_road_pieces.tga`, an alpha
-  ("the real texture to show through" is the tile page). The tilesets'
-  `<ROADTEX>` first entry is the colour: `*_Middle_Road.tga`, which is
-  `autumn_Middle_Road.tga` on the autumn tilesets.
-- `World::road_pieces` kept bucket 2 alone (`ROAD_BUCKET`), so the client
-  laid none of the 61. Item 4653 lays them: "The plates, drawn" below.
-
 **The row.** `RUN1814B_3294_FARM`, minted red: each tile of slot 0's farms'
 footprints (48) with at least `HUE.min_pixels` ground pixels. It compares
 the photograph's mean and the still's on `HUE` and on `LUMA_READER`, as
@@ -6083,6 +6063,49 @@ step (`the_underlay_is_the_packet_s_slot_1`; parked 4650a).
 (from 2 and 29). Tile (8, 165), 908 pixels: theirs (197, 147, 45) Y 150.6,
 ours (194, 143, 45) Y 147.7. The underlay alone reads 9 and 40, the boxes
 alone 48 and 48; both off is the mint's 2 and 29.
+
+**Diff-backed**: the farms' corners and sizes, the wheat boxes whole
+(positions, colours, texcoords, heights, wind), the underlay's corners and
+texcoords. **Read alone**: the draw state's arithmetic in our pass (the
+packet holds the `RenderState`, not the card's pixels). The plates are
+§6.2.
+
+**Not established.**
+- The wind's motion over a game (`Scene::wind_vec` is the view's; the
+  packet's is pinned). The sway is about one world unit.
+- The blend runs on the tone-mapped target here, where the original
+  blends in HDR (§3.23); the wheat's own alpha is under 1 only on plots
+  below a quarter.
+- The cull: our pass draws both windings (the original culls mode 2). The
+  box is open, so no face is drawn twice.
+- The low-scalability arm (no wind, `section_render +0xc` clear), and a
+  farm building with no record (`draw_weathering` gives it `wheatfarm`).
+- The underlay's light on 23 corners of the capital's farm ground (4650a).
+
+## 6.2 The buildings' plates on run1814b (items 4653 to 4665)
+
+*2026-11-25, split from §6.1 by item 4665, whose section had passed the
+ceiling. The photograph and the row's tiles are §6.1's.*
+
+**The plates are the roads at age 0**, not the weathering:
+- `Terrain::add_weathering@00850120` refuses an age below 6. On the
+  listing, `0x85014a` is `cmp edx, 6; jl` on the sixth argument, so the
+  `size + 1` arm of §3.17 lays nothing in the Ancient Age.
+- `tools/render/road_records.py` on run1814b's packet prints **142 road
+  tiles, every one at `prev_age` 0**. Sixty-one ring slot 0's city
+  (x 7 to 19, y 151 to 163).
+- `RoadsOut::render@008943d0` draws each page and age bucket through its own
+  helper, at index `page · 3 + bucket`. On a page whose tile-page bit is set
+  (`+0x9c`), it binds the page's pieces at stage 0 and the tileset's
+  `road_textures[bucket]` at stage 1. A card with a third stage also gets
+  `road_mtrl_textures[bucket]` at stage 2. The state is `+0x2f0`, where the
+  modern page takes `+0x188` and stage 0 alone.
+- `Data/roads.xml`'s age-0 texture is `early_road_pieces.tga`, an alpha
+  ("the real texture to show through" is the tile page). The tilesets'
+  `<ROADTEX>` first entry is the colour: `*_Middle_Road.tga`, which is
+  `autumn_Middle_Road.tga` on the autumn tilesets.
+- `World::road_pieces` kept bucket 2 alone (`ROAD_BUCKET`), so the client
+  laid none of the 61. Item 4653 lays them: "The plates, drawn" below.
 
 **The plates, drawn** (item 4653, 2026-11-25, Opus 5.5;
 `docs/journal/2026-11-25-item-4653.md`). `World::road_pieces` lays page 0's
@@ -6192,27 +6215,46 @@ equals its `flip` readback on every pixel.
 - `TileSet::get_road_texture` is dead in the image: `RoadsOut::render`
   reads `road_textures[bucket]` inline. It is `blind::RESIDUE`.
 
-**Diff-backed**: the farms' corners and sizes, the wheat boxes whole
-(positions, colours, texcoords, heights, wind), the underlay's corners and
-texcoords; the plates' quads and tile-page texcoords, and their
-`RenderState`. **Read alone**: the draw state's arithmetic in our pass (the
-packet holds the `RenderState`, not the card's pixels); the plates' alpha
+**The mesh, against draw 81** (item 4665, 2026-11-25, Opus 5.5;
+`docs/journal/2026-11-25-item-4665.md`). The vertex diff on run1833's
+stream, no take (`roads::tests::the_plates_mesh_is_draw_81_s`; the reader
+is `rondata::trace::card`'s `Drawn`, records 14 to 17):
+- *The cells.* Draw 81 draws 640 triangles on 320 cells. Ours lays 304 of
+  them at the same corners, with the same diagonal. The 16 apart are
+  element 1's four plates our walk does not lay (4653b).
+- *The texcoords.* The tile page's (UV1) is equal on 912 of 912 corners.
+  The piece's (UV0) is equal on 558 on our walk: the rest are the tiles
+  whose element or orientation the fractal picks apart (4199a). The height
+  is within a unit on 912. With the packet's own picks, 318 of the 320
+  cells are ours (the two apart are (12, 156), the piece the buffer holds
+  no box of), and the piece's texcoord is equal on 948 of 954 corners.
+- *Twice.* The stream's 842 vertices are 421 pairs. Each piece's grid is
+  repeated at once, every field equal, and the 1,920 indices draw both
+  copies. So the file's alpha is blended over itself and covers
+  `1 − (1 − a)²`. `PLATE_LAYS` lays each plate twice.
+  `tools/render/road_records.py` already dropped the repeats on the
+  packet ("the buffer can hold a piece twice").
+- *The squares were the cache key again* (4661a). The mesh rasterised in
+  Python through draw 81's own matrices on the file's alpha lays the
+  bands, as draw 81's does. `PLATE_ALPHA` 921 is `SURF_ALPHA + 1`, inside
+  the surf's 64 keys: the plates sampled the surf's mask 1. That is item
+  4279's snowcap trap. Now 902, and both key guards check the surf's range.
+- *The row*: drawn **41**, theirs **44** of 46 on hue (from 24 and 22), luma 42
+  and 42. Laid once instead of twice, it is 41 and 44 on hue too (luma 43 and 42). On
+  draw 81's own coverage (51,574 pixels), the mean absolute error against
+  the photograph is 23.15 before the plates, 15.61 with each plate laid
+  once and 15.27 laid twice. Twice is the closer of the two on every
+  coverage band.
+
+**Diff-backed**: the plates' quads and tile-page texcoords, and their
+`RenderState`; the plates' cells, texcoords and heights against draw 81's
+stream, and each laid twice (item 4665). **Read alone**: the plates' alpha
 uncomplemented (item 4658: the load, the bind, the state's arguments and
 d3dgl's table, one reading, no score resting on it). **On the row alone**:
 the client's complemented alpha, which that reading refutes (4658a);
 dropped by item 4661, whose card take backs the file's alpha by a diff.
 
 **Not established.**
-- The wind's motion over a game (`Scene::wind_vec` is the view's; the
-  packet's is pinned). The sway is about one world unit.
-- The blend runs on the tone-mapped target here, where the original
-  blends in HDR (§3.23); the wheat's own alpha is under 1 only on plots
-  below a quarter.
-- The cull: our pass draws both windings (the original culls mode 2). The
-  box is open, so no face is drawn twice.
-- The low-scalability arm (no wind, `section_render +0xc` clear), and a
-  farm building with no record (`draw_weathering` gives it `wheatfarm`).
-- The underlay's light on 23 corners of the capital's farm ground (4650a).
 - ~~The road state `+0x2f0`'s blend and stage ops, and whether the tile page's
   texcoords are the tile's or the piece's.~~ Read off the packet by item 4653
   ("The plates, drawn"): the tile's, over 4.
@@ -6222,8 +6264,13 @@ dropped by item 4661, whose card take backs the file's alpha by a diff.
 - ~~What thins the plates to blotches where the photograph's bands are opaque
   (4658a).~~ Item 4661: the borders' alpha, on a shared cache key ("The
   card's draw"). The four element-1 plates our walk does not lay (4653b).
-- Why our plates lay tile-sized squares where draw 81 lays bands (4661a).
-  The stream is on disk; our mesh's vertices against it are the next diff.
+- ~~Why our plates lay tile-sized squares where draw 81 lays bands
+  (4661a).~~ Item 4665 ("The mesh, against draw 81"): the mesh is draw
+  81's, and the plates were sampling the surf's mask 1 on key 921.
+- Why `build_render_data` adds each plate twice (4665a). The card's draw and the
+  packet's helper hold every piece twice on this frame. Whether every
+  frame does, and whether the modern bucket's helper does too, has not
+  been read.
 - The trees past sight stay lit (4621a). Not touched here.
 
 ## 7. What is not established, and what needs Ramon's word

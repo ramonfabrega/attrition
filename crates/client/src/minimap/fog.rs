@@ -297,9 +297,11 @@ pub(crate) mod tests {
     /// from theirs. Item 4653's plates: → 787 and 1306 (toward) and 1600
     /// (away): the HDR round trip re-tones the frame (§6.1).
     /// Item 4661's plates on their own alpha: → 788 and 1307 (away by a
-    /// tenth) and 1593 (toward 1564).
+    /// tenth) and 1593 (toward 1564). Item 4665, the plates on their own
+    /// alpha at last, laid twice: 1307 → 1306 (toward) and 1593 → 1603
+    /// (away from 1564, a named fall).
     pub const RUN1814B_3294_FOG: [[i64; 3]; 3] =
-        [[80, 750, 788], [93, 1252, 1307], [209, 1564, 1593]];
+        [[80, 750, 788], [93, 1252, 1306], [209, 1564, 1603]];
     /// The same cells on the client's still with no fog drawn, the row as
     /// it stood before item 4624. Each row: the main view's cells at that
     /// fog level, the photograph's median luma, ours (×10). Item 4650's
@@ -307,12 +309,14 @@ pub(crate) mod tests {
     /// 125.2) and 1417 → 1423 (toward 156.4). Item 4653's plates: 1432 →
     /// 1430, 1438 → 1436 and 1423 → 1431, all toward theirs (their run takes
     /// the land pass's HDR round trip, which re-tones the frame;
-    /// `docs/RENDERER.md` §6.1). Item 4661's plates on their own alpha:
+    /// `docs/RENDERER.md` §6.2). Item 4661's plates on their own alpha:
     /// 1430 → 1431 and 1436 → 1437 (away, a tenth each) and 1431 → 1424
     /// (away from 156.4): a named fall, the plates' sand where the borders'
-    /// ramp laid it before.
+    /// ramp laid it before. Item 4665, the plates on their own alpha at
+    /// last (921 was the surf's mask 1), laid twice: 1431 → 1430 and 1437 →
+    /// 1436 (toward, a tenth each) and 1424 → 1434 (toward 156.4).
     pub const RUN1814B_3294_UNFOGGED: [[i64; 3]; 3] =
-        [[80, 750, 1431], [93, 1252, 1437], [209, 1564, 1424]];
+        [[80, 750, 1430], [93, 1252, 1436], [209, 1564, 1434]];
     /// **`RUN1814B_3294_FOG_MINIMAP`**: the minimap's fog cells, each at its
     /// centre's pixel through [`super::super::to_screen`], by level 0 to 3:
     /// `[cells, the photograph's median luma, ours]`, ×10 and rounded.

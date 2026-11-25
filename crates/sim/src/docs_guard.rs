@@ -1446,7 +1446,7 @@ fn a_function_a_booking_names_is_in_the_export() {
 /// that item's journal alone as the getter nothing calls (no document under
 /// `docs/*.md` cites it, so `DEAD_CITED` takes no row).
 /// **155** with item 4661's `TileSet::get_road_texture@008780e0`, inlined into
-/// `RoadsOut::render`; `docs/RENDERER.md` §6.1 names it without an address, so
+/// `RoadsOut::render`; `docs/RENDERER.md` §6.2 names it without an address, so
 /// `DEAD_CITED` takes no row.
 const UNREFERENCED: usize = 148 + 1 + 1 + 1 + 1 + 1 + 1 + 1;
 
