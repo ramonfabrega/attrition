@@ -13014,15 +13014,21 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // 8,590 (first 3126 -> 4135), goods 3,543 -> 3,500 (first 3114 ->
         // 3116), world 2,988 -> 3,086. The first parting moves 2985 -> 3028,
         // on ammo.
+        // Moved by item 4664 (run1834's ranges): `Object::fire_ammo@0064c8b0`'s
+        // unit arm launches from the figure's own `z` + 100. On 3027 who=1's
+        // Heavy Fire Raft `1/94` (TI 335, sea) fires on `2/83`; ammo range 43,
+        // record 15 `sz` ours -173 -> 100, theirs 100 (ours read the seabed,
+        // -273). Ammo 3,391 -> 3,392 (first 3028 -> 3383). The first parting
+        // moves 3028 -> 3033, on units.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                3033, 3144, 12001, 3391, 3463, 3095, 3069, 3134, 3313, 8590, 3500, 3086,
+                3033, 3144, 12001, 3392, 3463, 3095, 3069, 3134, 3313, 8590, 3500, 3086,
             ],
             first: &[
                 ("units", (3033, Some(3546334183), 3496526911)),
                 ("builds", (3144, Some(3531851268), 1209124357)),
-                ("ammo", (3028, Some(2577858340), 392952667)),
+                ("ammo", (3383, Some(1), 2980055740)),
                 ("deaths", (3463, Some(4004785731), 1478238545)),
                 ("groups", (3095, Some(3354359777), 3950803518)),
                 ("guys", (3069, Some(2438684783), 234578274)),

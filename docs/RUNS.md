@@ -41898,6 +41898,29 @@ who=2's barge `2/61`. Theirs leaves (16866, 11729) at `sz` 35, ours left the fig
 the Carrack's piece 292 had no release row (`docs/RECGAME.md` §14.4). Read by `score_recording` on the item's tree,
 which agrees on all twelve lines through 2792 after the fix; no test reads the ranges.
 
+## run1834 — parity held out, seventh battery, row 88's file to 3,040 with the checksum and ranges hooks, every line but walls kept (2026-11-25, item 4664, `att-4664`)
+
+`docs/RECGAME.md` §14.4. **What the disk could not answer**: row 88 parts on 3028 on ammo, past run1815's ranges (to
+2991) and run1818's (to 2792). The take is run1815's line with `score_recording`'s mask for the lines that part:
+`TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1834
+--recording ~/ron-golden/recordings/item4600-row088-12000.rcx --end-frame 3040 --allow-early-end --cover cover=1
+--log-window 3022 3034 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def
+RON_RANGES --tracer-def RNG_MASK=0xffbu`, waited on with `waitrun.sh` in the background. Both lanes were free at launch
+(`ron_lane_state`); `df -g ~` read 89 GB free before it and 88 after filing.
+- **The run**: pool lane 1, launched 05:59:51 −05:00, exited 06:04:27: **276.2 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 3,041 frames, `last_frame` 3040, not ended early, seed 12345, map 18. The recording's
+  SHA-256 is run1808's (`02dced92…`). Players: tribe 4 (who 0, flags 7), tribe 17 (who 1), tribe 11 (who 2).
+- **The record**: `~/ron-golden/run1834/map-18/rontrace.ranges`, 2,901,475,280 bytes, SHA-256
+  `23310b033f477dcc03aa9cecadec6c3158df0d4d12435737bd762641f2ecc5b2`, split in three by `filerun.py` and compressed
+  in place (2.70 GiB on disk before, 0.25 after). `gamelog_p.txt`, 2,880 bytes, SHA-256
+  `2c7630a3e5ca49e090ba21de07d5277edddc3ea537c84fda047ac9068407ccf1`; `rontrace.log`, 101,593,184 bytes, SHA-256
+  `7b2dc45fededa10e85285ec905c363f627b11a6ba26e659998d71e4bf630c2ab`.
+- Filed with `filerun.py run1834 heldout7-row088-ammo3028-ranges`.
+
+**What it named**: ammo range 43, record 15 on 3028 is the round who=1's Heavy Fire Raft `1/94` (TI 335, sea) fired on
+3027 at `2/83`: `sz` ours −173, theirs 100, and `v1z` after it (`docs/RECGAME.md` §14.4). After the fix nothing parts to
+3032; units part on 3033. Read by item 4664's range printer (a probe, reverted); no test reads the ranges.
+
 ## run1816 — parity held out, seventh battery, row 28's file to 3,960, a packet at logger frame 3955 (2026-11-23, item 4619, `att-4619`)
 
 `docs/RECGAME.md` §14.2. **What the disk could not answer**: run1813's ranges print both Bazookas' records on 3955 and
