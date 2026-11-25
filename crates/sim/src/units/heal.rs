@@ -479,9 +479,9 @@ impl Sim {
     /// `damage` 39 — 120 / 3, less the heal's one point — inside behind
     /// `0/10`, and `group` −1 on all three.
     ///
-    /// SEAM: the outside arm's spot search and its move order are not
-    /// called — the figure stays on the tail's point; the console's selection and the
-    /// hotkey groups, which this crate does not carry; and a chain with
+    /// An outdoor figure receives a move order from its own nearby-spot
+    /// search (item 4645). SEAM: updates to the console's selection and
+    /// hotkey groups, and a chain with
     /// no dead tail (`o_down < 0`, the listing's error report), where the
     /// original numbers a fresh object — none is regrown here.
     pub(crate) fn regrow_figure(&mut self, tail: usize, down: Option<usize>, left: i32) {
@@ -528,7 +528,6 @@ impl Sim {
         self.units[n].stance = self.units[tail].stance;
         self.units[n].combat.stance = self.units[tail].combat.stance;
         self.copy_unit_masks(tail, n);
-        crate::seam!("regrow_outside", inside.or(boat).is_none());
         if let Some(b) = inside.or(boat) {
             // `Object::insert_inside@00647e90`: off the world, onto the
             // host's chain; a follower counts in no garrison tally.
@@ -544,6 +543,18 @@ impl Sim {
                 u.boarded = boarded;
             }
             u.on_map = false;
+        } else {
+            let here = self.units[n].pos;
+            let to = self
+                .find_nearby_spot_type_for(ty, n, here, 0, -1, crate::movement::Angle(0x5555_5555))
+                .unwrap_or(here);
+            self.add_move_order(
+                n,
+                to,
+                crate::orders::MoveKind::MoveTo,
+                crate::orders::QueuePos::New,
+                false,
+            );
         }
         if self.units[tail].group_ptr.is_some()
             && let Some(seat) = self.seat_of(tail)

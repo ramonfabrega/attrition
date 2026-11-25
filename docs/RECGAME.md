@@ -614,6 +614,12 @@ recorded line before the package, after it, and through state 9240.
 Units next differ on 9506, groups on 9671. Draws first differ on 9507.
 [Unit hot-key comparison](journal/2026-11-24-item-4644.md)
 
+**Outdoor squad repair on 9505 (item 4645).** The regrown figure receives a
+move to its own position. Its desired angle, order and next animation now match
+the original. Units, guys, world and the draw stream next part on 9602,
+when factory 3/2045 finishes unit 3/34 with an object as its rally point.
+[Outdoor repair comparison](journal/2026-11-24-item-4645.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte

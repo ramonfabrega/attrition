@@ -19593,8 +19593,14 @@ whole hits included. No dump on disk shrinks a squad.
 **Killers** (`tools/mutate.py`): see the journal's table — the regrow switched off, `has_damage` blind to the dead,
 the group pair off, and the reload counted outside only.
 
-**What is not established**: the outside arm (`find_nearby_spot` and the move order — the figure stays on the
-tail's point here); the console's selection and the hotkey groups, which this crate does not carry; a chain with no
+**Outdoor regrowth (item 4645).** Run1824's figure 2/54 rejoins its squad on 9506. It has one move order
+to (7752,33768), the same point where it regrew. This sets its desired angle to −2147483648 and it starts
+the recorded walk animation on 9507. All eleven recorded lines match at birth and through 9511. A separate
+blocked-tile test requires a free destination away from the birth tile. Reading only: the sweep identifies
+the new figure itself, begins at radius zero with the default outer radius, and preserves the search centre
+on exhaustion. The recording exercises a successful sweep. [Regrowth comparison](journal/2026-11-24-item-4645.md)
+
+**What is not established**: the console selection and hot-key updates on regrowth; a chain with no
 dead tail (`o_down < 0`, the listing's error report, where the original numbers a fresh object); and whether the
 regrown figure counts in the leader's `num_units` (`Unit::init`'s `set_type` runs before the links are restored,
 and run1545's `LEADERS=2` prints no count).

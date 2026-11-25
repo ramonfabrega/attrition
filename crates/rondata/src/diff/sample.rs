@@ -504,7 +504,8 @@ pub(in crate::diff) mod tests {
     /// Item 4641: the hidden Merchant at the rally point is passed over, 7613 -> 7949.
     /// Item 4642: the stored under-attack latch moves the count and sequence to 8534.
     /// Item 4643: the spell package moves the count and sequence to 9507.
-    const SAMPLE_WALKED: (i64, i64) = (9507, 21044);
+    /// Item 4645: the new figure takes its recorded move, then its walk animation.
+    const SAMPLE_WALKED: (i64, i64) = (9602, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -831,19 +832,20 @@ pub(in crate::diff) mod tests {
     /// Item 4642 moves every open line forward. Units, groups, guys, leaders and world meet on 8523.
     /// Item 4643: the recorded Forced March clears group 198's formation.
     /// Item 4644: hot-key group 55 moves units to 9506 and groups to 9671.
+    /// Item 4645: the outdoor regrowth order moves the common prefix to 9602.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 9506),
-        ("builds", 9521),
+        ("units", 9602),
+        ("builds", 9611),
         ("walls", 21044),
         ("ammo", 9732),
-        ("deaths", 9873),
+        ("deaths", 9626),
         ("groups", 9671),
-        ("guys", 9507),
-        ("leaders", 9551),
-        ("cities", 9601),
-        ("items", 12663),
-        ("goods", 10436),
-        ("world", 9518),
+        ("guys", 9602),
+        ("leaders", 9609),
+        ("cities", 9726),
+        ("items", 11722),
+        ("goods", 9810),
+        ("world", 9602),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -1505,6 +1507,11 @@ pub(in crate::diff) mod tests {
     }
 
     #[test]
+    fn the_sample_s_regrown_figure_matches_its_recorded_move() {
+        assert_sample_window(run1824(), 9503, 9511, None);
+    }
+
+    #[test]
     fn the_sample_s_scout_order_and_city_marks_match_both_recorded_lines() {
         let (Some(inst), Some(rcx), Some(mut ranges)) = (install(), sample(), run1786()) else {
             return;
@@ -2082,19 +2089,19 @@ pub(in crate::diff) mod tests {
     const SAMPLE_RANGES_1824: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
-            9506,
-            7290,
-            7286,
-            3222,
-            "3844 54 collide_frame..play: dest_angle 1431655765|-2147483648",
+            9602,
+            7373,
+            7369,
+            1918,
+            "5325 34 who..y_internal: z 578|486, x 11544|10872, y 21624|20760",
         ),
         (
             "builds",
-            9521,
-            5602,
-            5602,
+            9611,
+            5630,
+            5630,
             1,
-            "3313 2003 myhits..launch_frames: up 7|-1",
+            "1483 2033 who..y_internal: z 619|613, x 21408|21216",
         ),
         (
             "ammo",
@@ -2102,15 +2109,15 @@ pub(in crate::diff) mod tests {
             3,
             3,
             1,
-            "1 0 rolling..start_roll_angle: +0x13 of 99|99: 6c270000|48270000",
+            "1 0 rolling..start_roll_angle: +0x13 of 99|99: 21270000|48270000",
         ),
         (
             "deaths",
-            9873,
+            9626,
             4,
-            2,
-            2,
-            "2 -1 00936bff: +0x0 of 0|4: |01000000",
+            4,
+            1,
+            "1 0 first_frame..unit_crew: +0x4 of 71|71: 11000000|12000000",
         ),
         (
             "groups",
@@ -2122,28 +2129,43 @@ pub(in crate::diff) mod tests {
         ),
         (
             "guys",
-            9507,
-            2252,
-            2252,
-            1,
-            "1200 54 guy: angle 1431655765|-2147483648, des_angle 1431655765|-2147483648, end_time 30|15, cur_anim 0|7, stopped 1|0",
+            9602,
+            2277,
+            2277,
+            3,
+            "1648 34 guy: x 11544|10872, y 21624|20760, z 580|489, angle 1431655765|-1151205376, last_angle 1431655765|-1151205376, des_x 11544|10872, des_y 21624|20760, des_angle 1431655765|-1151205376, last_x 11544|10872, last_y 21624|20760, last_z 580|489",
         ),
         (
             "leaders",
-            9551,
+            9609,
             675,
             675,
-            5,
-            "271 2 who..ally_mask: +0x7d8 of 26914|26914: 16020000|0a020000",
+            4,
+            "41 0 make_list[k]: +0x0 of 40|40: d5000000|ffffffff",
         ),
-        ("cities", 9601, 84, 84, 1, "1 1 city..ter: peasant_dist 2|1"),
+        (
+            "cities",
+            9726,
+            84,
+            84,
+            1,
+            "68 10 city..ter: peasant_dist 1|0",
+        ),
+        (
+            "goods",
+            9810,
+            265,
+            265,
+            1,
+            "240 48 ever_seen: +0x0 of 1|1: 0b|03",
+        ),
         (
             "world",
-            9518,
-            7911,
-            7911,
-            3,
-            "4304 583 block.body: +0x19 of 96|96: 1c001c00|00000000",
+            9602,
+            7869,
+            7869,
+            37,
+            "1658 1634 cell: +0x8 of 21|21: ffff0000|22000300",
         ),
     ];
 }

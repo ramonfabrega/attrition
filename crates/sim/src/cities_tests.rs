@@ -3459,6 +3459,40 @@ fn a_squad_short_a_figure_regrows_it_under_the_garrison_heal() {
     assert!(sim.units[cap].healing > 0);
 }
 
+/// The recorded regrowth's centre was open. Block the tail's tile so a
+/// move to the birth point alone cannot satisfy the outdoor repair.
+#[test]
+fn an_outdoor_regrown_figure_orders_a_move_off_a_blocked_birth_tile() {
+    use crate::orders::{Body, MoveKind};
+
+    let mut sim = world_sim();
+    let mut ty = hoplite_type(0);
+    ty.combat.uber_size = 3;
+    ty.combat.big_radius = 96;
+    let ty = sim.add_unit_type(ty);
+    let cap = sim.init_unit(0, ty, tile_pos(32, 32));
+    let members = sim.squad_members(cap);
+    let dead = members[1];
+    let tail = members[2];
+    sim.units[dead].health = 0;
+    sim.relink_squad(dead);
+    let tile = sim.units[tail].pos.tile();
+    sim.world
+        .set_tile_mask(tile, sim.world.tile_mask(tile) | tile::BLOCKED);
+
+    let new = sim.units.len();
+    sim.repair_unit_damage(cap, 1);
+    let figure = &sim.units[new];
+    assert_eq!(figure.index, sim.units[dead].index);
+    assert_eq!(figure.pos.tile(), tile);
+    let Body::Move(order) = figure.orders[0].body else {
+        panic!("an outdoor regrowth receives a move");
+    };
+    assert_eq!(order.kind, MoveKind::MoveTo);
+    assert_ne!(order.dest.tile(), tile);
+    assert_eq!(sim.world.tile_mask(order.dest.tile()) & tile::BLOCKED, 0);
+}
+
 /// **A unit garrisoned inside its reload counts it down inside** (item
 /// 3993, `docs/GOLDEN.md` §186): `Unit::process@00610bc0`'s head takes a
 /// frame off `recharging` (`UnitData +0xae`) for every unit, before the
