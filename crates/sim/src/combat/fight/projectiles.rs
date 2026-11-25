@@ -932,32 +932,23 @@ impl Sim {
         // own target skips that test.
         let sp = self.profile(p.shooter);
         let own_passed = matches!(sp.domain, Domain::Air) && !sp.has(mask::MISSILE);
-        let mut best: Option<(i32, usize)> = None;
-        for (i, u) in self.units.iter().enumerate() {
+        // `check_hit` is a `find_unit` (`678e2c`), whose leader loop stops at
+        // eight: an arrow never lands on gaia (`world::PLAYER_SLOTS`). Its
+        // walk keeps the last of a tie (item 4668): run1834's 1/72 round on
+        // 3032, its Pikeman gone, comes down 144 from both Light Cavalry
+        // `1/66` and `1/83` in one cell, and theirs strikes `1/83`, the later
+        // on the chain, where the first by index took `1/66`.
+        let found = self.find_unit_walk(p.landing, 0x180, |i| {
+            let u = &self.units[i];
             if !(u.alive() && u.on_map) || Obj::Unit(i) == p.shooter {
-                continue;
+                return false;
             }
             if own_passed && u.owner == p.owner {
-                continue;
+                return false;
             }
-            // `check_hit` is a `find_unit`, whose leader loop stops at eight:
-            // an arrow never lands on gaia (`world::PLAYER_SLOTS`).
-            if u.is_gaia() {
-                continue;
-            }
-            let up = self.profile(Obj::Unit(i));
-            if matches!(up.domain, Domain::Air) != p.air {
-                continue;
-            }
-            let d = vector_dist(u.pos.x - p.landing.x, u.pos.y - p.landing.y);
-            if d > 0x180 {
-                continue;
-            }
-            if best.is_none_or(|(b, _)| d < b) {
-                best = Some((d, i));
-            }
-        }
-        if let Some((d, i)) = best {
+            matches!(self.profile(Obj::Unit(i)).domain, Domain::Air) == p.air
+        });
+        if let Some((d, i)) = found {
             if self.profile(Obj::Unit(i)).target_size < d {
                 // Found, but too small to be where it landed.
             } else {
