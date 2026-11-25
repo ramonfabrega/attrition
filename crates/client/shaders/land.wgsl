@@ -176,8 +176,13 @@ fn land_vertex(nl: f32) -> vec3<f32> {
 // draw): the saturated stage colour to the fake light's power times the HDR
 // multiplier, then the tone map at the clamp, `render::silhouette::fake_light`.
 fn land_fake(c: vec3<f32>) -> vec3<f32> {
-    let l = pow(clamp(c, vec3<f32>(0.0), vec3<f32>(1.0)), vec3<f32>({FAKE_LIGHT_POWER})) * land_hdr();
+    let l = land_fake_hdr(c);
     return vec3<f32>(land_out(l.x), land_out(l.y), land_out(l.z));
+}
+
+// Item 4653: the same before the curve, for a draw blended on the HDR target.
+fn land_fake_hdr(c: vec3<f32>) -> vec3<f32> {
+    return pow(clamp(c, vec3<f32>(0.0), vec3<f32>(1.0)), vec3<f32>({FAKE_LIGHT_POWER})) * land_hdr();
 }
 
 fn land_filmic(x: f32) -> f32 {

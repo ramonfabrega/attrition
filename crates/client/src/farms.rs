@@ -349,7 +349,7 @@ pub fn fields(buildings: &[BuildingScene]) -> Vec<(i32, (i32, i32), FieldScene)>
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use std::collections::BTreeSet;
     use std::path::PathBuf;
 
@@ -377,11 +377,14 @@ mod tests {
 
     /// **The row as drawn before** (item 4636's mint): both switches off,
     /// the grass on the plots. It is the made-to-fail: the same row, red.
-    const RUN1814B_3294_FARM_BEFORE: [(usize, usize); 2] = [(2, 48), (29, 48)];
+    /// Item 4653: luma 29 → 30, the capital's plates drawn beside the plots.
+    const RUN1814B_3294_FARM_BEFORE: [(usize, usize); 2] = [(2, 48), (30, 48)];
 
     /// **The row by half** (item 4650): the `wheatfarm` underlay alone, and
     /// the wheat boxes alone over the grass.
-    const RUN1814B_3294_FARM_UNDERLAY: [(usize, usize); 2] = [(9, 48), (40, 48)];
+    /// Item 4653: the underlay alone, luma 40 → 39, a named fall, the plates
+    /// drawn (their HDR round trip re-tones the frame, §6.1).
+    const RUN1814B_3294_FARM_UNDERLAY: [(usize, usize); 2] = [(9, 48), (39, 48)];
     const RUN1814B_3294_FARM_BOXES: [(usize, usize); 2] = [(48, 48), (48, 48)];
 
     /// **The frame `FarmsOut::draw` last built run1814b's mesh on**: the
@@ -426,7 +429,7 @@ mod tests {
     /// run1814b's frame drawn as the fog's and the ring's rows draw it: the
     /// harness's lobby at 3294, blended last at 3295, slot 0's fog, the
     /// pinned camera at the packet's `loc`.
-    fn probe() -> Option<Probe> {
+    pub(crate) fn probe() -> Option<Probe> {
         let path = photo_path();
         let Ok(bytes) = std::fs::read(&path) else {
             println!("skipping: no photograph at {}", path.display());

@@ -359,13 +359,21 @@ pub struct World {
     /// The roads' made-to-fail (item 4199): every piece moved by this many
     /// tiles.
     pub roads_shift: (i32, i32),
+    /// Lay the early age bucket, the plates (item 4653, §6.1). On by
+    /// default; the plates' row as drawn before turns it off, which is the
+    /// roads as item 4199 left them, bucket 2 alone.
+    pub early_roads: bool,
+    /// The by-half of the plates' row (item 4653): each tile's element and
+    /// orientation taken from the packet's record instead of our walk.
+    #[cfg(test)]
+    pub(crate) road_pick: Option<std::collections::BTreeMap<(i32, i32), (usize, u8)>>,
     /// The pieces, the modern page's texture and the texture fractal's
     /// seed; `None` where `roads.xml`, the texture or the seed does not
     /// read, and no road is laid.
     road_art: Option<RoadArt>,
     /// The pieces laid among the patches, at the frame and the switches
     /// they were laid at.
-    roads_laid: (i64, bool, (i32, i32), Vec<crate::roads::Laid>),
+    roads_laid: RoadsLaid,
     /// Draw the national borders (item 4306, §3.29). On by default; the
     /// row's count as drawn before turns it off.
     pub borders: bool,
@@ -524,6 +532,32 @@ fn surf_mesh(k: usize, l: &crate::surf::mesh::FinalList, art: &SurfSlot) -> Opti
     })
 }
 
+/// The roads as last laid (items 4199, 4653): the frame, the switches
+/// (`roads`, `roads_shift`, `early_roads`) and each piece beside its bucket.
+type RoadsLaid = (i64, bool, (i32, i32), bool, Vec<(i32, crate::roads::Laid)>);
+
+/// Each tile's element and orientation, as the by-half lays them.
+#[cfg(test)]
+type RoadPick = std::collections::BTreeMap<(i32, i32), (usize, u8)>;
+
+/// The by-half's piece on a tile (item 4653): [`World::road_pick`]'s
+/// element and orientation laid there, or ours.
+#[cfg(test)]
+fn picked(
+    pick: &Option<RoadPick>,
+    p: &crate::roads::Pieces,
+    l: crate::roads::Laid,
+) -> crate::roads::Laid {
+    match pick.as_ref().and_then(|m| m.get(&l.tile)) {
+        Some(&(e, r)) => crate::roads::lay(&p.pieces[e], e, l.tile, r),
+        None => l,
+    }
+}
+#[cfg(not(test))]
+fn picked(_: &(), _: &crate::roads::Pieces, l: crate::roads::Laid) -> crate::roads::Laid {
+    l
+}
+
 /// What the roads' draw takes (item 4199, §3.19).
 struct RoadArt {
     pieces: crate::roads::Pieces,
@@ -533,6 +567,17 @@ struct RoadArt {
     /// `World.seed`, the texture fractal's, which `find_map` asks.
     seed: u32,
     fractal: Option<sim::mapgen::Fractal>,
+    /// The plates' two textures (item 4653): page 0's `age="0"`
+    /// `<TEXTURE>`, `early_road_pieces.tga`, untinted (stage 0's alpha),
+    /// and the tileset's `<ROADTEX>` entry 0 (stage 1), tinted at load.
+    /// `None` where either does not read, and no plate is laid.
+    plates: Option<PlateArt>,
+}
+
+/// `RoadsOut::render`'s tile page for [`PLATE_BUCKET`] (item 4653).
+struct PlateArt {
+    alpha: std::sync::Arc<render::silhouette::Mips>,
+    page: std::sync::Arc<render::silhouette::Mips>,
 }
 
 /// The ground's textures, as the draw takes them.
@@ -683,6 +728,15 @@ pub const ROAD_ALPHA: usize = 911;
 /// road pieces (item 4199, §3.19).
 pub const ROAD_PAGE: u8 = 0;
 pub const ROAD_BUCKET: i32 = 2;
+/// **The plates** (item 4653, §6.1): page 0's early age bucket, a tile
+/// page — `early_road_pieces.tga`'s alpha at the piece's texcoords over the
+/// tileset's first `<ROADTEX>` at the tile's own, `x / 4` and `y / 4` in
+/// tiles (842 of 842 of run1814b's helper-0 vertices).
+pub const PLATE_BUCKET: i32 = 0;
+pub const PLATE_PIECE: i32 = -200_022;
+pub const PLATE_ALPHA: usize = 913;
+/// The tile page's texcoords a tile (`RenderHelper::tex1` on the packet).
+pub const PLATE_PAGE_TILES: f32 = 4.0;
 
 /// The age bucket `Terrain::add_weathering` takes for every age past its
 /// gate (`4 < age` → 2), `WEATHERELEM age="2"`, Modern (item 4190).
@@ -1138,7 +1192,8 @@ impl World {
             .as_deref()
             .and_then(|t| crate::farms::WheatArt::load(&install, t));
         let tree_art = tileset
-            .and_then(|t| rondata::artdata::tree_art(&install, &t).ok())
+            .as_deref()
+            .and_then(|t| rondata::artdata::tree_art(&install, t).ok())
             .map(|art| {
                 let root = install.root().to_path_buf();
                 let textures: Vec<Option<render::tga::Image>> = art
@@ -1235,11 +1290,35 @@ impl World {
             // Item 4212 (§3.21): `roads.xml`'s pages are not the tileset's
             // `<ROADTEX>`, and their loader sets no tint.
             let img = render::tga::decode(&bytes).ok()?;
+            // Item 4653 (§6.1): the plates' page. `TileSet::init` tints the
+            // `<ROADTEX>` entries; `roads.xml`'s alpha is not.
+            let plates = (|| {
+                let (_, file) = art
+                    .pages
+                    .get(usize::from(ROAD_PAGE))?
+                    .iter()
+                    .find(|t| t.0 == PLATE_BUCKET)?;
+                let alpha =
+                    render::tga::decode(&std::fs::read(resolve_art(install.root(), file)?).ok()?)
+                        .ok()?;
+                let list = rondata::artdata::road_textures(&install, tileset.as_deref()?).ok()?;
+                let page_file = list.get(PLATE_BUCKET as usize)?;
+                let mut page = render::tga::decode(
+                    &std::fs::read(resolve_art(install.root(), page_file)?).ok()?,
+                )
+                .ok()?;
+                page.tint(tint);
+                Some(PlateArt {
+                    alpha: std::sync::Arc::new(render::silhouette::Mips::new(alpha)),
+                    page: std::sync::Arc::new(render::silhouette::Mips::new(page)),
+                })
+            })();
             Some(RoadArt {
                 pieces: crate::roads::Pieces::new(&art),
                 mips: std::sync::Arc::new(render::silhouette::Mips::new(img)),
                 seed,
                 fractal: None,
+                plates,
             })
         });
         // Item 4239 (§3.27): the surf's class, its models and its textures.
@@ -1343,8 +1422,11 @@ impl World {
             land_oil: (None, false),
             roads: true,
             roads_shift: (0, 0),
+            early_roads: true,
+            #[cfg(test)]
+            road_pick: None,
             road_art,
-            roads_laid: (-1, false, (0, 0), Vec::new()),
+            roads_laid: (-1, false, (0, 0), false, Vec::new()),
             borders: true,
             borders_shift: (0, 0),
             borders_laid: (Vec::new(), false, (0, 0), false),
@@ -2015,7 +2097,7 @@ impl World {
             self.screen_layers = layers;
             self.laid_ramp = None;
             self.weather_laid = (-1, false, (0, 0), Vec::new());
-            self.roads_laid = (-1, false, (0, 0), Vec::new());
+            self.roads_laid = (-1, false, (0, 0), false, Vec::new());
             self.borders_laid = (Vec::new(), false, (0, 0), false);
             self.edge_laid = None;
             self.surf_laid = (-1, false);
@@ -2083,27 +2165,48 @@ impl World {
         }
         // Item 4199 (§3.19): the roads, after the weathering and before the
         // first mountain layer, laid again when the frame or a switch moves.
-        let key = (frame, self.roads, self.roads_shift);
-        if (self.roads_laid.0, self.roads_laid.1, self.roads_laid.2) != key {
+        // Item 4653 (§6.1): the plates first, as `RoadsOut::render` walks
+        // its helpers by `page · 3 + bucket`.
+        let key = (frame, self.roads, self.roads_shift, self.early_roads);
+        let laid_key = (
+            self.roads_laid.0,
+            self.roads_laid.1,
+            self.roads_laid.2,
+            self.roads_laid.3,
+        );
+        if laid_key != key {
             let want = if self.roads && self.road_art.is_some() {
                 self.road_pieces()
             } else {
                 Vec::new()
             };
-            if want != self.roads_laid.3 {
-                self.drawn.3.retain(|m| m.piece != ROAD_PIECE);
-                if let Some(m) = self.road_mesh(&want) {
-                    let at = self
-                        .drawn
-                        .3
-                        .iter()
-                        .position(|p| p.mountain)
-                        .unwrap_or(self.drawn.3.len());
-                    self.drawn.3.insert(at, m);
+            if want != self.roads_laid.4 {
+                self.drawn
+                    .3
+                    .retain(|m| m.piece != ROAD_PIECE && m.piece != PLATE_PIECE);
+                let at = self
+                    .drawn
+                    .3
+                    .iter()
+                    .position(|p| p.mountain)
+                    .unwrap_or(self.drawn.3.len());
+                let meshes: Vec<PatchMesh> = [PLATE_BUCKET, ROAD_BUCKET]
+                    .into_iter()
+                    .filter_map(|b| {
+                        let of: Vec<crate::roads::Laid> = want
+                            .iter()
+                            .filter(|(k, _)| *k == b)
+                            .map(|(_, l)| *l)
+                            .collect();
+                        self.road_mesh(&of, b == PLATE_BUCKET)
+                    })
+                    .collect();
+                for (k, m) in meshes.into_iter().enumerate() {
+                    self.drawn.3.insert(at + k, m);
                 }
                 self.patch_version = self.patch_version.wrapping_add(1);
             }
-            self.roads_laid = (key.0, key.1, key.2, want);
+            self.roads_laid = (key.0, key.1, key.2, key.3, want);
         }
         // Item 4306 (§3.29): the national borders, after the roads and
         // before the first mountain layer — `Borders::process_all` draws
@@ -2245,12 +2348,22 @@ impl World {
             .collect()
     }
 
+    /// Lay the roads again at the next frame (item 4653's by-half: the
+    /// laid key does not carry [`World::road_pick`]).
+    #[cfg(test)]
+    pub(crate) fn relay_roads(&mut self) {
+        self.roads_laid.0 = -1;
+    }
+
     /// **The frame's road pieces** (item 4199, §3.19): every record
     /// [`crate::roads::laid`] lays whose owner's age bucket is
     /// [`ROAD_BUCKET`] and whose piece is on [`ROAD_PAGE`], moved by
-    /// [`World::roads_shift`] tiles. A cell nobody holds takes the record's
-    /// `prev_age`, which the door does not carry; it lays nothing here.
-    pub fn road_pieces(&mut self) -> Vec<crate::roads::Laid> {
+    /// [`World::roads_shift`] tiles, each beside its bucket. Item 4653
+    /// (§6.1): and [`PLATE_BUCKET`]'s, the plates, while
+    /// [`World::early_roads`] is set and their art reads. A cell nobody
+    /// holds takes the record's `prev_age`, which the door does not carry;
+    /// it lays nothing here.
+    pub fn road_pieces(&mut self) -> Vec<(i32, crate::roads::Laid)> {
         if self.road_art.is_none() {
             return Vec::new();
         }
@@ -2260,7 +2373,12 @@ impl World {
         let territory = self.runner.territory();
         let leaders = self.runner.scene(None).leaders;
         let (dx, dy) = (self.roads_shift.0 as f32, self.roads_shift.1 as f32);
+        #[cfg(test)]
+        let pick = self.road_pick.clone();
+        #[cfg(not(test))]
+        let pick = ();
         let art = self.road_art.as_mut().expect("checked above");
+        let plates = self.early_roads && art.plates.is_some();
         let seed = art.seed;
         let frac = art
             .fractal
@@ -2276,18 +2394,20 @@ impl World {
             frac.get_height(x.rem_euclid(w), y.rem_euclid(h))
         })
         .into_iter()
-        .filter(|l| {
-            art.pieces.pieces[l.elem].page == ROAD_PAGE
-                && bucket(l.tile.0, l.tile.1) == Some(ROAD_BUCKET)
+        .map(|l| picked(&pick, &art.pieces, l))
+        .filter(|l| art.pieces.pieces[l.elem].page == ROAD_PAGE)
+        .filter_map(|l| {
+            let b = bucket(l.tile.0, l.tile.1)?;
+            (b == ROAD_BUCKET || (plates && b == PLATE_BUCKET)).then_some((b, l))
         })
-        .map(|mut l| {
+        .map(|(b, mut l)| {
             l.rect = [
                 l.rect[0] + dx,
                 l.rect[1] + dy,
                 l.rect[2] + dx,
                 l.rect[3] + dy,
             ];
-            l
+            (b, l)
         })
         .collect()
     }
@@ -2296,9 +2416,17 @@ impl World {
     /// cut at the tile lines inside it, as the packet's vertices stand, each
     /// corner on the ground's own triangle (`TerrainMesh::build`'s `[a, b,
     /// d]`, `[b, c, d]`) and its texcoord the box's bilinear; the texture is
-    /// its own alpha.
-    fn road_mesh(&mut self, laid: &[crate::roads::Laid]) -> Option<PatchMesh> {
-        let mips = self.road_art.as_ref()?.mips.clone();
+    /// its own alpha. Item 4653 (§6.1): a `plate`'s texture is the tile
+    /// page at [`PLATE_PAGE_TILES`] a tile, its alpha `early_road_pieces`
+    /// at the piece's texcoords.
+    fn road_mesh(&mut self, laid: &[crate::roads::Laid], plate: bool) -> Option<PatchMesh> {
+        let art = self.road_art.as_ref()?;
+        let (piece, mips, alpha, alpha_mips) = if plate {
+            let p = art.plates.as_ref()?;
+            (PLATE_PIECE, p.page.clone(), PLATE_ALPHA, p.alpha.clone())
+        } else {
+            (ROAD_PIECE, art.mips.clone(), ROAD_ALPHA, art.mips.clone())
+        };
         let t = self.runner.terrain();
         let field = Heightfield {
             width: t.width,
@@ -2322,14 +2450,14 @@ impl World {
         };
         let unit = render::terrain::UNITS_PER_TILE as f32;
         let mut m = PatchMesh {
-            piece: ROAD_PIECE,
+            piece,
             maps: None,
             positions: Vec::new(),
             uvs: Vec::new(),
             alpha_uvs: Vec::new(),
-            mips: mips.clone(),
-            alpha: ROAD_ALPHA,
-            alpha_mips: mips,
+            mips,
+            alpha,
+            alpha_mips,
             mountain: false,
             light: Vec::new(),
         };
@@ -2362,8 +2490,14 @@ impl World {
                     let (pa, pb, pc, pd) = (p(ax, ay), p(cx, ay), p(cx, cy), p(ax, cy));
                     let (ua, ub, uc, ud) = (uv(ax, ay), uv(cx, ay), uv(cx, cy), uv(ax, cy));
                     m.positions.extend_from_slice(&[pa, pb, pd, pb, pc, pd]);
-                    m.uvs.extend_from_slice(&[ua, ub, ud, ub, uc, ud]);
                     m.alpha_uvs.extend_from_slice(&[ua, ub, ud, ub, uc, ud]);
+                    if plate {
+                        let t = |x: f32, y: f32| [x / PLATE_PAGE_TILES, y / PLATE_PAGE_TILES];
+                        let (ta, tb, tc, td) = (t(ax, ay), t(cx, ay), t(cx, cy), t(ax, cy));
+                        m.uvs.extend_from_slice(&[ta, tb, td, tb, tc, td]);
+                    } else {
+                        m.uvs.extend_from_slice(&[ua, ub, ud, ub, uc, ud]);
+                    }
                 }
             }
         }

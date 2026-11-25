@@ -2015,6 +2015,76 @@ pub(crate) mod tests {
         );
     }
 
+    /// **Row 133's SAM rocket strikes its own capital with the recapture
+    /// bonus** (item 4655, `docs/RECGAME.md` §13.5): run1797's ranges, the
+    /// row's builds parting on 2451 (range 2180, record 2000, `damage` ours
+    /// 5,963, theirs 5,985). On 2450 two rounds land, as the ammo line on
+    /// both sides says: aircraft `1/70`'s (dead before 2446) for 46, and
+    /// the SAM `2/2027`'s rocket, its target `1/70` gone, which comes down
+    /// at (6277, 29986) on who=2's own capital `2/2000`. Step 20 makes it
+    /// 22 (attack 290, armour 7, pct 100), and `get_damage`'s last step
+    /// doubles it: the capital's city's race is the attacker's player
+    /// (`RECAPTURE_CITY_MODIFIER` 512). Every builds range on 2450 to 2452,
+    /// ours against theirs, byte for byte, and the capital's `damage`.
+    #[test]
+    fn row_133_s_sam_rocket_strikes_its_own_capital_with_the_recapture_bonus_on_run1797_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let mut damage = Vec::new();
+        for state in 2450..=2452 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for line in [1usize, 3] {
+                let ours = lines[line].as_ref().expect("the line");
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == line as u8).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {line}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "line {line} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+            let cap = built.sim.building_by_o(2, 2000).expect("2/2000");
+            damage.push(built.sim.buildings[cap].damage);
+        }
+        assert_eq!(
+            damage,
+            vec![5895, 5985, 6031],
+            "46 + 44 on 2451, 46 on 2452"
+        );
+    }
+
     /// **Row 28's two Bazookas drop their chase of a Citizen on one tick**
     /// (item 4613, `docs/RECGAME.md` §14.2): run1813's ranges, the
     /// seventh's first leaf. who=1's Bazookas `1/35` and `1/52` (TI 139,
@@ -10983,14 +11053,18 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // none).
         // Item 4642: muster uses the building's current alert. The original
         // group destination now agrees on 3833; builds first part on 3899.
+        // Then item 4655 (`get_damage`'s recapture step reads the target
+        // city's race, whoever owns the building): builds 4,201 -> 4,353
+        // (first 3899 -> 4350); the row's first parting is groups alone on
+        // 3995.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                4341, 4201, 6001, 4356, 4416, 4239, 4341, 4341, 4351, 5173, 4413, 4341,
+                4341, 4353, 6001, 4356, 4416, 4239, 4341, 4341, 4351, 5173, 4413, 4341,
             ],
             first: &[
                 ("units", (4341, Some(630316088), 571078055)),
-                ("builds", (3899, Some(2786105460), 2620233851)),
+                ("builds", (4350, Some(4014773854), 1772852329)),
                 ("ammo", (4356, Some(1671400503), 4115106818)),
                 ("deaths", (4416, Some(1680720123), 2417413765)),
                 ("groups", (3995, Some(866943998), 1455327226)),
@@ -11167,23 +11241,32 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // order's figures on the order's point, aimed or not): items 4,129 -> 4,069 (first 4129 ->
         // 4053) and goods 4,087 -> 4,117 (first 4087 -> 4117), past the row's first parting 3662,
         // which stands.
+        // Then item 4655 (`get_damage`'s recapture step reads the target
+        // city's race, whoever owns the building): units 3,662 -> 3,706,
+        // builds 3,695 -> 3,730 (first 3662 -> 3718), ammo 3,711 -> 3,747
+        // (first 3665 -> 3706), deaths 3,672 -> 3,715, groups 3,662 ->
+        // 3,746 (first -> 3733), guys 3,663 -> 3,706, leaders 3,674 ->
+        // 3,746 (first -> 3714), cities 3,693 -> 3,751, items 4,069 ->
+        // 4,893, goods 4,117 -> 4,166 (first -> 4155), world 3,668 ->
+        // 3,706; the row's first parting is units, ammo, guys and world on
+        // 3706.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3662, 3695, 6001, 3711, 3672, 3662, 3663, 3674, 3693, 4069, 4117, 3668,
+                3706, 3730, 6001, 3747, 3715, 3746, 3706, 3746, 3751, 4893, 4166, 3706,
             ],
             first: &[
-                ("units", (3662, Some(2263308614), 3663092386)),
-                ("builds", (3662, Some(2125117544), 3277305961)),
-                ("ammo", (3665, Some(2841584632), 2939692204)),
-                ("deaths", (3672, Some(1706167525), 1719209194)),
-                ("groups", (3662, Some(700922587), 4145494656)),
-                ("guys", (3663, Some(2600191005), 3603350278)),
-                ("leaders", (3674, Some(1864656474), 2352703069)),
-                ("cities", (3693, Some(1156464184), 3186376370)),
-                ("items", (4053, Some(912470408), 898052486)),
-                ("goods", (4117, Some(3194787109), 3189019939)),
-                ("world", (3666, Some(282235351), 271225303)),
+                ("units", (3706, Some(1442083163), 2455439998)),
+                ("builds", (3718, Some(3072307388), 431271696)),
+                ("ammo", (3706, Some(1338324735), 459028267)),
+                ("deaths", (3715, Some(2424789091), 2467256425)),
+                ("groups", (3733, Some(716527825), 2283821262)),
+                ("guys", (3706, Some(4002952463), 3588110382)),
+                ("leaders", (3714, Some(2035969356), 3149425998)),
+                ("cities", (3751, Some(3595451697), 3592174896)),
+                ("items", (4893, Some(947073420), 912470408)),
+                ("goods", (4155, Some(3194787109), 3189019939)),
+                ("world", (3706, Some(2648689735), 889900131)),
             ],
             over: None,
         }),
@@ -12028,25 +12111,34 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // order's figures on the order's point, aimed or not): units 2,543 -> 2,643 (first 2543 ->
         // 2566) and guys 2,543 -> 2,677 (first 2543 -> 2677), past the row's first parting 2451
         // (builds), which stands.
+        // Then item 4655 (`get_damage`'s recapture step reads the target
+        // city's race, `:477`-`:494`, whoever owns the building: on 2450 the
+        // SAM `2/2027`'s rocket, its target `1/70` dead, strikes who=2's own
+        // capital `2/2000` for 44, not 22; builds range 2180, record 2000,
+        // `damage` ours 5,963, theirs 5,985 on 2451, both 5,985 now): builds
+        // 2,451 -> 2,768 (first 2451 -> 2689), ammo 3,143 -> 3,144, leaders
+        // 2,749 -> 2,751 (first 2608 -> 2751), goods 3,983 -> 3,961 (a fall
+        // past the parting), ours' end none -> 6040; the first parting is
+        // deaths alone on 2457.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                2643, 2451, 6085, 3143, 2563, 2685, 2677, 2749, 2978, 3148, 3983, 2680,
+                2643, 2768, 6085, 3144, 2563, 2685, 2677, 2751, 2978, 3148, 3961, 2680,
             ],
             first: &[
                 ("units", (2566, Some(1723402503), 567609615)),
-                ("builds", (2451, Some(2666296210), 3002692520)),
+                ("builds", (2689, Some(2754752570), 3680907824)),
                 ("ammo", (2547, Some(3276077082), 122615738)),
                 ("deaths", (2457, Some(2931452735), 2458741352)),
                 ("groups", (2685, Some(293453109), 2102443375)),
                 ("guys", (2677, Some(1670959914), 1725420330)),
-                ("leaders", (2608, Some(4049621251), 4085010693)),
+                ("leaders", (2751, Some(2269206203), 3698742979)),
                 ("cities", (2978, Some(1121539707), 1131566715)),
                 ("items", (3007, Some(3525321571), 3415154359)),
                 ("goods", (3322, Some(569473142), 586774648)),
                 ("world", (2680, Some(3147089146), 4135110218)),
             ],
-            over: None,
+            over: Some(6040),
         }),
     }),
     // run1795
