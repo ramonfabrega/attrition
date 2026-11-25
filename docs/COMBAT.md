@@ -954,7 +954,16 @@ passed on).
    1094..1099), and so does its enemy-land hit (block 683). Removing the
    aircraft skip moves the chapter's word 1450 → 1360; removing the
    attrition skip moves its widening. The carry is on run551 too: the
-   fourth blow, on 983, takes 450.
+   fourth blow, on 983, takes 450. **"An aircraft" is one whose slot is
+   in use** (item 4688): `testb $0x1, 0x8(%eax)` at `00652367` steps past
+   the domain test when the attacker's `flags & 1` is clear, so a missile
+   that closed on its own impact (the Nuke's building ring, `nuke_ring_strike`) costs the site its progress. Diff-backed
+   on run1799 (row 93): who=2's Nuclear Missile `2/106` (TI 315, air) lands 6311 on who=1's
+   Statue of Liberty site `1/2031` on 3268, and theirs' `job_counter`
+   305,196 → 0, `construct_hits` 6051 on 3269
+   (`row_93_s_dead_missile_s_blow_costs_the_site_its_progress_on_run1799_s_ranges`).
+   Not established: an attacker whose slot `find_free` has handed to a new
+   object by the blow, whose domain the original reads off the newcomer.
 6. T **not** Build-proper (a unit, a wall): the AI's peasant-alarm (a
    citizen hit inside a city with a finished city building: push an alarm
    group). No change to the numbers.
