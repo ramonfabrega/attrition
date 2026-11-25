@@ -296,9 +296,12 @@ pub(crate) mod tests {
     pub const RUN1814B_3294_FOG: [[i64; 3]; 3] =
         [[80, 750, 786], [93, 1252, 1305], [209, 1564, 1583]];
     /// The same cells on the client's still with no fog drawn, the row as
-    /// it stood before item 4624.
+    /// it stood before item 4624. Item 4653: ours 1429 → 1430, 1435 → 1436
+    /// and 1417 → 1431, the capital's plates drawn (their run takes the land
+    /// pass's HDR round trip, `land_hdr_pass`, which re-tones the frame;
+    /// `docs/RENDERER.md` §6.1).
     pub const RUN1814B_3294_UNFOGGED: [[i64; 3]; 3] =
-        [[80, 750, 1429], [93, 1252, 1435], [209, 1564, 1417]];
+        [[80, 750, 1430], [93, 1252, 1436], [209, 1564, 1431]];
     /// **`RUN1814B_3294_FOG_MINIMAP`**: the minimap's fog cells, each at its
     /// centre's pixel through [`super::super::to_screen`], by level 0 to 3:
     /// `[cells, the photograph's median luma, ours]`, ×10 and rounded.
