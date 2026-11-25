@@ -169,5 +169,20 @@ small dark one left of the farms.
 
 ## The gate
 
-Whole, by `tools/gate_run.sh`, once, on the pass's commit; the commit
-after it quotes the verdict here.
+Whole, by `tools/gate_run.sh`, twice.
+
+- **`gate-pass-1125.log`: `gate exit 1`** on `258f01d41`, the pass's
+  commit, 3 of 9 steps, a minute in: clippy refused one line of the
+  pass's own test (`zero_repeat_side_effects`, an empty array compared
+  by `[String::new(); 0]`). The pass had run the reflex before gating
+  and not clippy.
+- **`gate-pass-1125b.log`: `gate exit 0`** on `af234e14c`, the fix, 9 of
+  9 steps: offline 1.0, clippy 0.1, guard 1.1, merge pins 1.1, release
+  23.3, clock 0.2. `Clock: green beside load`. Admission 9.8 s over
+  1,619 leases; load 5.1 at its start and 9.5 at its end. `Fixture audit: 208835 requests, 0 missing fixtures`.
+  `Rows: one driver row at most: steer b4ff787a (working)`; `Driver: 0
+  landings since the last pass (backstop 20) · context 346 k`; `Trunk:
+  origin/main is origin/worktree-replan-pdb`. `Builders: 0 reaped`; 131
+  GB free by its count, 122 by `df -g ~`.
+- The commit that quotes this is documents only and ran no whole gate;
+  the reflex, `tools/guard.sh`, was green on it.
