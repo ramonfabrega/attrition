@@ -694,6 +694,11 @@ impl Sim {
         // a unit hit by anything but attrition (`param_5 == 0`) marks its
         // whole squad in danger. Attrition never comes through here.
         if let Obj::Unit(i) = target {
+            if std::env::var("RON_PROBE_4633_BLOW").ok().and_then(|v| v.parse::<i64>().ok()) == Some(self.frame) {
+                let u = &self.units[i];
+                eprintln!("B4633 f{} victim {} slot {i} hit {:?} by {:?} dtype {dtype} splash {splash} src {} pos ({}, {}) on_map {} inside {:?}", self.frame, u.owner, hit, _by, source.is_some(), u.pos.x, u.pos.y, u.on_map, u.inside_unit);
+                eprintln!("B4633 bt {}", std::backtrace::Backtrace::force_capture());
+            }
             self.set_in_danger(i);
         }
         match target {
