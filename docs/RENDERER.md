@@ -6041,7 +6041,7 @@ blocks). **Read alone**: everything else above. The packet's vertex counts
 and road ages back the reading's arithmetic but not the draws' pixels.
 
 **Not established.**
-- The wheat boxes' texture (`TileSet::get_wheat_texture@00878190`), their
+- The wheat boxes' texture (the tileset's wheat texture, not read), their
   colour (`get_global_color`, the farm's tint between `farms +0x40` and
   `+0x48`), the full height (`farms +0x4c`, `+0x50`), and the wind.
 - The door's `FieldScene` carries no `percent` or `status`. The plots'
