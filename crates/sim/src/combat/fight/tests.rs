@@ -5695,13 +5695,54 @@ fn a_captain_killed_by_damage_is_succeeded() {
         sim.relink_squad(f);
     }
     sim.units[a].health = 0;
-    let before = sim.units.iter().map(|u| u.captain).collect::<Vec<_>>();
+    let alive = |s: &Sim| {
+        s.units
+            .iter()
+            .filter(|u| u.alive())
+            .map(|u| u.captain)
+            .collect::<Vec<_>>()
+    };
+    let before = alive(&sim);
     sim.relink_squad(a);
-    let after = sim.units.iter().map(|u| u.captain).collect::<Vec<_>>();
     assert_eq!(
-        before, after,
+        before,
+        alive(&sim),
         "nobody alive below the head, nobody promoted"
     );
+}
+
+/// **The squad's last death leaves every slot its own captain**
+/// (`Unit::close@0060ee50:292`-`316` clears both links of the dead tail
+/// and then its own; `UnitData::get_captain@00610ab0` answers `o`
+/// (`+0xa`) for `o_up < 0`). Item 4681, `docs/RECGAME.md` §13.3: row 93's
+/// Volksgrenadiers `1/39`, `1/40` and `1/41` (TI 109, land) die on 3055's
+/// tick, heads first, and the round `1/39` loosed on 3054 lands on the
+/// Howitzer `2/77` on 3057. run1799 prints `2/77`'s `damage_o` 39, the
+/// dead shooter's own number; this crate's cache still held 41, the last
+/// head the chain was handed to, and the units line parted there.
+#[test]
+fn a_squad_s_last_death_leaves_each_dead_figure_its_own_captain() {
+    let (mut sim, ty) = at_war();
+    let [a, b, c] = chain3(&mut sim, ty);
+    for f in [a, b] {
+        sim.units[f].health = 0;
+        sim.relink_squad(f);
+    }
+    let ci = i32::from(sim.units[c].index);
+    assert_eq!(sim.units[a].combat.captain, ci, "two heads handed down");
+    sim.units[c].health = 0;
+    sim.relink_squad(c);
+    for f in [a, b, c] {
+        let own = i32::from(sim.units[f].index);
+        assert_eq!(links(&sim, f), (None, None), "unlinked");
+        assert!(sim.units[f].captain, "o_up < 0 is a captain");
+        assert_eq!(sim.units[f].combat.captain, own, "get_captain is o");
+        assert_eq!(
+            sim.attacker_side(Obj::Unit(f)).captain,
+            own,
+            "the round of a dead figure strikes under its own number"
+        );
+    }
 }
 
 /// **A dead tail of a live squad holds its number; the squad's last

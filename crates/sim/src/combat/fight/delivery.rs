@@ -1562,15 +1562,28 @@ impl Sim {
             // dead number a captain (`o_up < 0`) to `Objects::find_free`'s
             // reuse test; a dead tail of a live squad stays linked and its
             // number is held (`docs/AI.md` §324.2).
+            //
+            // With `o_up` cleared, `UnitData::get_captain@00610ab0` answers
+            // each slot's own `o` (`+0xa`), so both caches follow the links
+            // (item 4681, `docs/RECGAME.md` §13.3): row 93's Volksgrenadiers
+            // `1/39`, `1/40` and `1/41` (captain 39) all die on 3055's tick,
+            // and the round `1/39` loosed on 3054 lands on the Howitzer
+            // `2/77` on 3057. Theirs' overkill record reads the dead shooter's
+            // captain as 39; this crate's cache still held 41, the last
+            // head the chain had been handed to.
             let mut at = down;
             for _ in 0..self.units.len() {
                 let Some(n) = at else { break };
                 at = self.units[n].o_down;
                 self.units[n].o_down = None;
                 self.units[n].o_up = None;
+                self.units[n].captain = true;
+                self.units[n].combat.captain = i32::from(self.units[n].index);
             }
             self.units[i].o_down = None;
             self.units[i].o_up = None;
+            self.units[i].captain = true;
+            self.units[i].combat.captain = i32::from(self.units[i].index);
             return;
         }
         let mut tail = i;
