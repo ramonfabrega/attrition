@@ -3424,6 +3424,7 @@ impl Sim {
         let oldc = self.cities.cities[old].clone();
         let friendly = o == a || self.is_ally(a, o);
         let assimilate_now = friendly || self.cities.nation[a as usize].global_government;
+        self.capture_carry_flags(newcity, old, a);
         let nc = &mut self.cities.cities[newcity];
         nc.owner = a;
         nc.building = n;
@@ -3436,17 +3437,6 @@ impl Sim {
         nc.was_capital = oldc.was_capital;
         nc.pop = oldc.pop;
         nc.unassimilated = !friendly;
-        nc.no_heal = oldc.no_heal;
-        nc.attacking = oldc.attacking;
-        nc.ever_attacked = oldc.ever_attacked;
-        // `City::capture@00736c40:86`–`:88`: the new record's flags are the
-        // old one's `& 0xf13f`, so `0x2000` (the army's no-muster mark) and
-        // `0x8000` (once the founding capital) come across with the attack
-        // bits, and so does `0x1000` below (item 4686: row 133's who=1 takes
-        // city 12 on 3619 at `city_flags` 0x110f in the original, 0x010f
-        // here).
-        nc.no_muster = oldc.no_muster;
-        nc.was_founding_capital = oldc.was_founding_capital;
         // `City::capture@00736c40:77`–`84`: the eight `traded_with` words
         // come across (item 4463: run1724's Inca capital, taken on 3887,
         // `traded_with[4]` 2 in the original's new record and 0 here).
@@ -3470,21 +3460,6 @@ impl Sim {
         }
         if nc.race == Some(a) {
             nc.unassimilated = false;
-        }
-        // `0x1000`, the border pass's near mark, sits in this crate on the
-        // owner's half of the record ([`crate::ai::CityAi::near_border`]);
-        // the mask carries it to the new owner's.
-        let near = self
-            .ai
-            .ai
-            .get(o as usize)
-            .and_then(|l| l.city_ai.get(old))
-            .is_some_and(|r| r.near_border);
-        if near && let Some(l) = self.ai.ai.get_mut(a as usize) {
-            if l.city_ai.len() <= newcity {
-                l.city_ai.resize(newcity + 1, crate::ai::CityAi::default());
-            }
-            l.city_ai[newcity].near_border = true;
         }
     }
 
