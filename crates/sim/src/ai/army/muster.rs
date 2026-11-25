@@ -344,6 +344,10 @@ pub fn find_muster_spot_steps<V: MusterView>(v: &mut V) -> bool {
     local_c
 }
 
+/// The siege muster's building search radius, `0x1200`
+/// (`Army::find_muster_spot@006f5cc0`'s third search, `docs/ARMY.md` §27).
+pub(crate) const SIEGE_BUILDING_RADIUS: i32 = 0x1200;
+
 /// What one handle of the chain is, as the crate holds it.
 struct Elem {
     /// The building, for a building target's chain.
@@ -544,10 +548,18 @@ impl MusterView for SimMuster<'_> {
             None => -1,
         }
     }
-    fn find_building(&mut self, _i: i32) -> i32 {
-        // SEAM: the siege army's enemy-building search is not modelled.
-        crate::seam!("siege_find_building");
-        -1
+    fn find_building(&mut self, i: i32) -> i32 {
+        let p = self.elems[i as usize].pos;
+        match self
+            .sim
+            .find_enemy_combat_building(self.who, p, SIEGE_BUILDING_RADIUS)
+        {
+            Some(b) => {
+                let c = self.sim.buildings[b].pos.cell();
+                self.found_at(c)
+            }
+            None => -1,
+        }
     }
     fn siege(&mut self) -> i32 {
         self.sim.army_count_siege(self.who, self.slot)
@@ -626,6 +638,82 @@ impl MusterView for SimMuster<'_> {
 /// The muster's enemy search (item 4159's sixth residue moved it here from
 /// `ai/army.rs`, beside its domain-filtered caller in [`SimMuster`]).
 impl Sim {
+    /// **`ObjectsData::find_building@0065d260(point, SEARCH_ENEMY, who,
+    /// radius, 0x200, FILTER_COMBAT, 0, 0)`**, as the siege muster asks it
+    /// (item 4672, `docs/ARMY.md` §27): the enemy combat building nearest
+    /// `at`, or `None`.
+    ///
+    /// - **The circle arm.** `(radius + 0x2ff) / 0x300` is 6 for `0x1200`
+    ///   (`<= 9`), so the walk is the cells
+    ///   `circle_x/y[..circle_radius[6]]` round `at`'s cell, in bounds,
+    ///   each cell's building chain; a building lies in its centre's cell
+    ///   (the arm `Sim::find_dock_near`'s sea search already walks).
+    /// - **`0x200`, the region flag**: a cell whose `WData` region (`+4`)
+    ///   is not `at`'s cell's is skipped whole.
+    /// - **The gates**: a leader below eight that `valid_search` admits as
+    ///   `who`'s enemy; vslots `+0xc` (`SubObjectData::is_active`, alive)
+    ///   and `+0x4c` (`WallData::is_active`, finished); and
+    ///   `valid_filter`'s arm 8 (`FILTER_COMBAT`, `0067de47`, read off the
+    ///   listing): on a building (vslot `+0x1c`, `0041e0e0`, `mov eax, 1`)
+    ///   **not a city** (`+8 & 0x20` set refuses, `67de77`), finished
+    ///   again, its type's attack (`+0x1e8`) non-zero, and `hits_left`
+    ///   (vslot `+0x114`) non-zero.
+    /// - **The distance is `vector_dist` in tiles** (listing
+    ///   `0065d471`–`0065d4b5`: `sar 6` through `div_3_table` on both
+    ///   points), the winner test `<=` against the best and the bound, so
+    ///   a tie goes to the last in walk order. The bound, in tiles, never
+    ///   binds inside six cells.
+    pub(crate) fn find_enemy_combat_building(
+        &self,
+        who: Player,
+        at: Pos,
+        radius: i32,
+    ) -> Option<usize> {
+        let types = &self.tables.build_types;
+        let cands: Vec<usize> = (0..self.buildings.len())
+            .filter(|&b| {
+                let bd = &self.buildings[b];
+                bd.alive
+                    && bd.active
+                    && bd.owner < crate::world::PLAYER_SLOTS
+                    && self.is_enemy(who, bd.owner)
+                    && !self.building_is_city(b)
+                    && bd.ty.is_some_and(|t| types[t].attack != 0)
+                    && bd.health > 0
+            })
+            .collect();
+        if cands.is_empty() {
+            return None;
+        }
+        let circ = crate::ai::ai_place::circle();
+        let home = at.cell();
+        let region = self.world.region_of(home);
+        let (w, h) = (self.world.width(), self.world.height());
+        let a = at.tile();
+        let mut best: Option<(i32, usize)> = None;
+        for k in 0..circ.radius[((radius + 0x2ff) / 0x300) as usize] {
+            let cell = Cell::new(home.x + circ.x[k], home.y + circ.y[k]);
+            if cell.x < 0 || cell.y < 0 || cell.x >= w || cell.y >= h {
+                continue;
+            }
+            if self.world.region_of(cell) != region {
+                continue;
+            }
+            for &b in &cands {
+                let bd = &self.buildings[b];
+                if bd.pos.cell() != cell {
+                    continue;
+                }
+                let p = bd.pos.tile();
+                let d = vector_dist((p.x - a.x).abs(), (p.y - a.y).abs());
+                if d <= radius && best.is_none_or(|(e, _)| d <= e) {
+                    best = Some((d, b));
+                }
+            }
+        }
+        best.map(|(_, b)| b)
+    }
+
     /// `find_unit(SEARCH_ENEMY, FILTER_COMBAT)`: the nearest enemy unit of
     /// `who` with an attack within `range` of `p`.
     ///

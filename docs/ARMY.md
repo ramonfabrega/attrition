@@ -1924,6 +1924,10 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
 
 ## 18. What is not established
 
+- **The siege muster's building search, its found branch** (item 4672, §27): built from the reading and a
+  killer test; no held-out walk reaches it, and a cell's chain order on a tie is taken as the building index.
+- **§8 step 3's `0x300` building search lacks `FILTER_COMBAT`'s city refusal and `hits_left`** (4672a, item 4672's
+  journal): `enemy_combat_building_near` tests the attack alone; no walk is known to reach the difference.
 - ~~**Which city Great Lakes 8442 picks, and where the army musters on
   it**~~ — **settled by item 352 (§16.9)**, and without an `ARMYDATA`
   record: the order's `orig` reconstructs the muster cell uniquely through
@@ -2829,3 +2833,52 @@ lobby whose ally has a manned army: a later frame, or a difficulty above 0.
 
 **Coverage.** The taunt write (`last_taunt`, `taunt_frame`) is dump-backed by run1077. The army arm, and a ping with no
 taunt moving nothing, are reading-only.
+
+## 27. The siege muster's enemy-building search (item 4672, 2026-11-25)
+
+**What it is.** `Army::find_muster_spot@006f5cc0`'s chase (§13) walks the target city's buildings from the target on.
+At a damaged building under attack it asks three searches in turn, and the first that answers names the muster cell
+and sets `hurry`. The first two are `find_unit`s: an enemy land combat unit within `0x900`, then an enemy land unit
+targeting the building within `0x1200`. When both miss and the army holds siege (`count(COUNT_SIEGE) != 0`), the third
+is `ObjectsData::find_building@0065d260(point, SEARCH_ENEMY, who, 0x1200, 0x200, FILTER_COMBAT, 0, 0)`. Until this
+item the crate answered it −1, the `SEAM` `siege_find_building`. It is now
+`Sim::find_enemy_combat_building` (`crates/sim/src/ai/army/muster.rs`):
+
+1. **The circle arm.** `(0x1200 + 0x2ff) / 0x300` is 6, at most 9, so the walk covers the cells
+   `circle_x/y[..circle_radius[6]]` around the point's cell that lie in bounds. On each cell it takes the cell's object
+   chain. This is the same arm `find_dock_near` walks at radius `0x1800` (`docs/AI.md` §57).
+2. **`0x200`, the region flag.** A cell whose `WData` region (`+4`) differs from the start cell's is skipped whole.
+3. **The gates.** The candidate's leader is below eight and `valid_search` admits it as `who`'s enemy. Vslot `+0xc`
+   (`SubObjectData::is_active`) and vslot `+0x4c` (`WallData::is_active`) both answer true. Then `valid_filter`'s arm
+   8, `FILTER_COMBAT` at `0067de47`, read off the listing. Vslot `+0x1c` is `0041e0e0` on `Build::vftable`, which is
+   `mov eax, 1; ret`, so the building branch is taken. In that branch:
+   - a set `+8 & 0x20` refuses: **a city centre is no combat building**, however armed (`67de77`);
+   - vslot `+0x4c` again;
+   - the type's attack (`+0x18 → +0x1e8`) is non-zero (`67de9b`);
+   - `ObjectData::hits_left` (vslot `+0x114`) is non-zero.
+
+   A unit's branch (`67debf`) reads the type's `+0x1e8` and `+0x2c8 >> 16 & 1`. The building search never reaches it.
+4. **The distance is `vector_dist` in tiles** (`0065d471`–`0065d4b5`, `sar 6` through `div_3_table` on both points).
+   The winner test is `<=` against the running best (`+0x1fc`) and against the bound, so a tie goes to the last
+   candidate in walk order. A bound of `0x1200` tiles never binds inside six cells.
+
+The answer's cell, `div_3_table[pos >> 8]` of `objects[find_who][f]`, becomes the muster. The angle is taken from the
+target's cell to it, and `hurry` is 1.
+
+**How it was established.** The export's `find_building` and `find_muster_spot`, and the listing for the filter arm,
+the distance block and the folded vslot. The crate's other `+8 & 0x20` readers model the flag as the `VILLAGE` lineage
+(`Sim::building_is_city`), and so does this one. `hits_left` is the crate's building `health > 0`.
+
+**What a diff backs.** Nothing positive: **no held-out walk reaches the found branch.** A seam hook on that branch,
+probed and reverted whole, fired on none of the 56 walks (`held_seams`, item 4672's journal). On every entry the search
+answers −1 in this crate too, which is the old seam's answer. No score moved: the seven batteries pass on their exact
+pins. Each row that enters (133 from 2301, 93 from 2740, 83 from 3041, 53 from 5382, 88 from 7105) agrees on every line
+for 225 to 665 states after its first entry. A hurry the original took and the crate did not would change the groups'
+orders within a few frames, so those agreeing states are indirect evidence that theirs also found nothing there.
+`a_siege_army_musters_at_the_enemy_combat_building_beside_its_damaged_city` pins the predicate (city, attack, finished,
+hits, region, six cells, no siege). Mutations of the city refusal and the region flag fail it.
+
+**What is not established.** The chain order within one cell. The crate walks a cell's buildings by index, and the
+original walks `WData +8`'s chain through `+0x2c`/`+0x2e`. Two candidates at the same tile distance in one cell could
+resolve differently. The found branch has never been run against the original; a staging with an enemy tower inside
+six cells of a computer's damaged, attacked city, while the computer's army holds siege, would run it.
