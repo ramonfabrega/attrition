@@ -1775,6 +1775,11 @@ branches as inputs. See `combat::compare_target`. **The raid arm is built
 computer's land raider takes `+900,000` for a peasant or a caravan and
 `+10,000` for a combat unit; the `+9,000,000` is a human raider's.
 
+**Not established: the detected decoy** (item 4652, parked 4652a). At `0064ed3c`..`0064ed5c` a unit
+target with `unit_masks & 1` that `UnitData::is_detected@0060a630` answers for the searcher's owner
+takes `v / 4`, signed, and jumps to `0064efff`, past the raid and role weights. This crate takes the
+weights. No capture on disk reaches the arm (run1799's 2964: `seen3` 0 under both decoys).
+
 ## 12.4 Switching and opportunity
 
 - **Idle**: `Unit::think` runs when `(o + frame) & 0xf == 0` once the unit has
