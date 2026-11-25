@@ -42323,8 +42323,10 @@ Lanes 1 to 3 read `free` at launch; no minutes waited on another lane.
   `collide_frame..play`, byte 33: ours 0x00, theirs 0x40; `unit_masks` ours 12, theirs 16396** — the Citizen `0/1`
   (TI 50, land), struck on 10878 by who=2's Pikemen `2/49` (TI 134). On the item's tree: 11,130 of 11,130 on all
   twelve.
-- Files: `gamelog_p.txt`, 2,875 bytes, SHA-256 `5df4c79222379457ae3b881e2f5ca9ec1a4c045ac2678ab1d6b45061292a3401`;
-  `rontrace.log`, 122,614,048 bytes, SHA-256 `472614c39a95fcc96889f530bb5ed5c84d1b480589d7c232ce4616be2285c32f`.
+- Filed by `filerun.py run1836 heldout7-row148-ranges11129` (linked): `gamelog_p.txt` →
+  `Logs/gamelog-run1836-heldout7-row148-ranges11129.txt`, 2,875 bytes, SHA-256
+  `5df4c79222379457ae3b881e2f5ca9ec1a4c045ac2678ab1d6b45061292a3401`; `rontrace.log` → `Logs/rontrace-run1836.log`,
+  122,614,048 bytes, SHA-256 `472614c39a95fcc96889f530bb5ed5c84d1b480589d7c232ce4616be2285c32f`.
 
 **What it holds**: the Aztec slayer's mark (`take_damage@00652020`, `0x6529da`), read by
 `rondata::diff::held_out::tests::row_148_s_aztec_slayer_marks_its_victim_on_run1836_s_ranges`.
