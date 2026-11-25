@@ -700,6 +700,11 @@ impl Sim {
         // whole squad in danger. Attrition never comes through here.
         if let Obj::Unit(i) = target {
             self.set_in_danger(i);
+            // `:330`–`:343`, after the share's division and before the
+            // kill test: the Aztec slayer's mark on the victim's captain.
+            if let Obj::Unit(k) = _by {
+                self.mark_slain_by_aztec(i, k);
+            }
         }
         match target {
             Obj::Unit(i) => {
@@ -910,6 +915,37 @@ impl Sim {
     /// refund whole. `Unit::plunder@00605b00` makes the same redirect for
     /// its hero, supply and caravan tests; the Despot search keeps the
     /// transport's own position. See [`Sim::plunder_victim`].
+    /// The slayer test `take_damage@00652020` makes twice, at `0x652947`
+    /// (the mark) and `:553` (the slay arm): the unit `k`'s leader has tribe
+    /// bonus 0 (the Aztecs) and its type's trainer (`+0x40`) is **by
+    /// equality** the Barracks (`0x1ab`), the Stable (`0x1ac`) or the Dock
+    /// (`0x1b0`).
+    pub(crate) fn aztec_slayer(&self, k: usize) -> bool {
+        let who = self.units[k].owner;
+        self.cities.nation[who as usize].aztecs
+            && self.units[k]
+                .ty
+                .and_then(|t| self.trainer_ident(t))
+                .is_some_and(|i| {
+                    use crate::cities::build::Ident;
+                    matches!(i, Ident::Barracks | Ident::Stable | Ident::Dock)
+                })
+    }
+
+    /// **`take_damage@00652020`'s slay mark** (`0x652947`..`0x6529da`, item
+    /// 4637, `docs/RECGAME.md` §14.6): on every hit to the unit `i` by a
+    /// unit `k` that [`Self::aztec_slayer`] passes, the victim's captain
+    /// takes `unit_masks |= 0x4000` ([`crate::Unit::slay_marked`]), ahead of
+    /// the kill test and whatever the hit does. No ally test: the mark is
+    /// the attacker's alone.
+    pub(crate) fn mark_slain_by_aztec(&mut self, i: usize, k: usize) {
+        if !self.aztec_slayer(k) {
+            return;
+        }
+        let c = self.captain_of(i);
+        self.units[c].slay_marked = true;
+    }
+
     pub(crate) fn unit_plunder(&mut self, v: usize, k: usize) {
         use crate::ai::ai_load::uflags2;
         const DESPOT: i32 = 0x160;
@@ -928,15 +964,7 @@ impl Sim {
         if who == vw || self.is_ally(vw, who) {
             return;
         }
-        let slay = self.cities.nation[who as usize].aztecs
-            && self.units[k]
-                .ty
-                .and_then(|t| self.trainer_ident(t))
-                .is_some_and(|i| {
-                    use crate::cities::build::Ident;
-                    matches!(i, Ident::Barracks | Ident::Stable | Ident::Dock)
-                });
-        if slay {
+        if self.aztec_slayer(k) {
             crate::combat::plunder::plunder_steps(
                 &mut crate::combat::plunder::SimPlunder { sim: self, v, r },
                 k as i32,
