@@ -42137,3 +42137,23 @@ adding `--tracer-def RON_RANGES --tracer-def RNG_MASK=0xffbu`.
   `run1826 sample2017-factory-object-rally`, gamelog 69,622,449 bytes,
   trace 189,638,976 bytes. The checks, receipt and command file are in
   `~/ron-data/lab-experiments/2026-11-24-codex-merchant.ch6hlc/unit9602/`.
+
+## run1827 — 2017 sample, field ranges through 11500 and the Senator's exit (2026-11-24, item 4647)
+
+- Run1826's recording and snapshot plan, map 7, end 11500, log window 10203–10210,
+  `@dumpall` and `RON_STATE_FRAME=10206`, detail `end:MISC`, `cover=0`,
+  `RON_CHECKSUMS`, `RON_RANGES`, `RNG_MASK=0xffb`. Receipt
+  `/tmp/ron-runs/viadriver-20261124-200820-61557.log` records all 11,501 states,
+  zero relaunches and page faults, five files restored, 835.50 s total.
+- All 12,089 sets agree with run1662 on every ordinal and all sixteen words.
+  The 10,518 overlapping sets match run1824. Re-folding the eleven recorded
+  field lines covers 231,735,939 ranges and 7,896,437,565 bytes.
+  The snapshot checked its root anchors across the logger return.
+  Payload 1,001,795,584 bytes in 205 ranges. Packet SHA-256
+  `2c340cad55b2c4798ec2faa95e649fdf27cebe44696b5e61a357dbb617480e30`.
+- Filed as `run1827 sample2017-playback-ranges-11500`. Gamelog 69,863,779 bytes,
+  trace 245,118,272 bytes. The range record has 11,605,391,392 bytes in eleven
+  pieces, 1.12 GiB allocated after compression, SHA-256
+  `d47af736534e2f05792ec3d36050860d761d484b93f96ede014bc678bb882be2`.
+  `~/ron-data/lab-experiments/2026-11-24-codex-merchant.ch6hlc/farm10207/`
+  holds the command file, checks, logs and original predicate controls.

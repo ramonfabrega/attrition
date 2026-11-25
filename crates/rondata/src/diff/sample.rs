@@ -506,7 +506,7 @@ pub(in crate::diff) mod tests {
     /// Item 4643: the spell package moves the count and sequence to 9507.
     /// Item 4645: the new figure takes its recorded move, then its walk animation.
     /// Item 4646: the factory exit and rally order match through 10206.
-    const SAMPLE_WALKED: (i64, i64) = (10207, 21044);
+    const SAMPLE_WALKED: (i64, i64) = (11488, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -836,18 +836,18 @@ pub(in crate::diff) mod tests {
     /// Item 4645: the outdoor regrowth order moves the common prefix to 9602.
     /// Item 4646: the factory follows its object rally and every open line advances.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 10207),
-        ("builds", 10207),
+        ("units", 10653),
+        ("builds", 10261),
         ("walls", 21044),
-        ("ammo", 10242),
-        ("deaths", 10248),
-        ("groups", 10213),
-        ("guys", 10207),
-        ("leaders", 10227),
-        ("cities", 10401),
-        ("items", 11754),
-        ("goods", 10436),
-        ("world", 10207),
+        ("ammo", 11492),
+        ("deaths", 11497),
+        ("groups", 11503),
+        ("guys", 11487),
+        ("leaders", 11487),
+        ("cities", 11503),
+        ("items", 12663),
+        ("goods", 12348),
+        ("world", 11487),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -1183,6 +1183,10 @@ pub(in crate::diff) mod tests {
         ranges_record("RON_SAMPLE_RANGES_1824", "run1824")
     }
 
+    fn run1827() -> Option<crate::trace::ranges::Record> {
+        ranges_record("RON_SAMPLE_RANGES_1827", "run1827")
+    }
+
     fn ranges_record(var: &str, run: &str) -> Option<crate::trace::ranges::Record> {
         let path = match std::env::var(var) {
             Ok(p) => std::path::PathBuf::from(p),
@@ -1192,16 +1196,12 @@ pub(in crate::diff) mod tests {
                 crate::testenv::experiment(&dir, "rontrace.ranges")?
             }
         };
-        match crate::trace::ranges::Record::open(&path) {
-            Ok(r) => Some(r),
-            Err(e) => {
-                eprintln!(
-                    "skipping: no sample ranges record at {} ({e})",
-                    path.display()
-                );
-                None
-            }
-        }
+        // Discovery handles an absent optional corpus. An explicitly
+        // supplied or discovered recording must be readable.
+        Some(
+            crate::trace::ranges::Record::open(&path)
+                .unwrap_or_else(|e| panic!("cannot read sample ranges {}: {e}", path.display())),
+        )
     }
 
     /// **The sample's lines by range, from the start** (item 4384,
@@ -1519,6 +1519,11 @@ pub(in crate::diff) mod tests {
     }
 
     #[test]
+    fn the_sample_s_senator_and_crew_match_the_recorded_city_exit() {
+        assert_sample_window(run1827(), 10204, 10210, None);
+    }
+
+    #[test]
     fn the_sample_s_scout_order_and_city_marks_match_both_recorded_lines() {
         let (Some(inst), Some(rcx), Some(mut ranges)) = (install(), sample(), run1786()) else {
             return;
@@ -1597,18 +1602,34 @@ pub(in crate::diff) mod tests {
     /// recorded lines through state 10000. Compare the entire extension.
     #[test]
     fn the_sample_s_ranges_from_8001_to_10000_name_each_first_parting() {
-        let Some(rec) = run1824() else { return };
+        assert_range_extension(run1824(), 8001..=10000, SAMPLE_RANGES_1824);
+    }
+
+    #[test]
+    fn the_sample_s_ranges_from_10001_to_11500_name_each_first_parting() {
+        assert_range_extension(run1827(), 10001..=11500, SAMPLE_RANGES_1827);
+    }
+
+    type PinnedRange = (&'static str, i64, usize, usize, usize, &'static str);
+
+    fn assert_range_extension(
+        record: Option<crate::trace::ranges::Record>,
+        window: std::ops::RangeInclusive<i64>,
+        expected: &[PinnedRange],
+    ) {
+        let Some(rec) = record else { return };
         assert_eq!(rec.mask, 0xffb);
         assert!(!rec.truncated);
-        let Some((frames, got)) = walk_kept_ranges(rec, 8001..=10000, 0xffb) else {
+        let count = (window.end() - window.start() + 1) as usize;
+        let Some((frames, got)) = walk_kept_ranges(rec, window, 0xffb) else {
             return;
         };
-        assert_eq!(frames, 2000);
-        let pinned: Vec<SampleRange> = SAMPLE_RANGES_1824
+        assert_eq!(frames, count);
+        let pinned: Vec<SampleRange> = expected
             .iter()
             .map(|&(l, f, t, o, p, x)| (l, f, t, o, p, x.to_string()))
             .collect();
-        assert_eq!(got, pinned, "SAMPLE_RANGES_1824");
+        assert_eq!(got, pinned, "the extension's first differences");
     }
 
     /// The walk the ranges tests share: our sample from state 0 to
@@ -2093,5 +2114,56 @@ pub(in crate::diff) mod tests {
     /// Items 4641 and 4642: the rally and muster corrections carry all eleven kept lines through 8000.
     const SAMPLE_RANGES_1786: &[(&str, i64, usize, usize, usize, &str)] = &[];
 
-    const SAMPLE_RANGES_1824: &[(&str, i64, usize, usize, usize, &str)] = &[];
+    const SAMPLE_RANGES_1824: &[PinnedRange] = &[];
+    const SAMPLE_RANGES_1827: &[PinnedRange] = &[
+        (
+            "units",
+            10653,
+            7453,
+            7453,
+            1,
+            "4930 16 collide_frame..play: unit_masks2 0|256, cavarch_uid 38|58, cavarch_who -1|0",
+        ),
+        (
+            "builds",
+            10261,
+            6017,
+            6017,
+            1,
+            "2528 2017 gather_from.size: gather_from.size 160|320",
+        ),
+        ("ammo", 11492, 15, 18, 3, "15 5 flags: +0x0 of 1|0: 02|"),
+        (
+            "deaths",
+            11497,
+            20,
+            18,
+            2,
+            "18 -1 00936bff: +0x0 of 0|4: |01000000",
+        ),
+        (
+            "guys",
+            11487,
+            2475,
+            2475,
+            1,
+            "2143 98 guy: x 19416|19436, y 23640|23687, z 582|591, angle 2132082688|2108221760, last_angle 2132082688|2108221760, des_x 19416|19436, des_y 23640|23687, des_angle 2132082688|1822949376, last_x 19416|19434, last_z 582|581, cur_time 5|6, last_speed 0|47, avg_speed 33|44, stopped 1|0",
+        ),
+        (
+            "leaders",
+            11487,
+            675,
+            675,
+            1,
+            "408 3 who..ally_mask: +0x9ec of 26914|26914: 01000000|00000000",
+        ),
+        (
+            "world",
+            11487,
+            7931,
+            7931,
+            1,
+            "5704 1825 block.body: +0x7 of 96|96: 38003800|70007000",
+        ),
+    ];
 }

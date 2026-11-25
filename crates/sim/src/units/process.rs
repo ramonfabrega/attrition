@@ -134,6 +134,20 @@ impl Sim {
             }
         }
         if !self.units[i].on_map {
+            // A computer player's garrison checks its city centre once per
+            // 32 frames, phased by player. Run1827's Senator leaves Village
+            // 2/2022 on tick 10206 and still finishes the indoor arm.
+            let who = self.units[i].owner;
+            if (frame + i64::from(who)) % 32 == 0
+                && self.unit_ai_bit(who)
+                && let Some(host) = self.units[i].inside
+                && self.building_is_city(host)
+                && let Some(c) = self.buildings[host].city
+                && !self.cities.cities[c].no_heal
+                && !self.cities.cities[c].alarm
+            {
+                self.come_out(i);
+            }
             // **The inside arm's figure write** — `Unit::process@00610bc0`'s
             // `else`, `guy+0x70 = guy+0x14` for every figure: `last_z` is
             // put onto `z`. This crate carries a figure's altitude for a

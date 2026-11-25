@@ -1333,10 +1333,14 @@ no `AirOrder` to walk one with (`docs/SYNC.md` §3.9).
 
 ---
 
+Run1827 closes 4253a. On the exit from Village 2/2022 the Senator's two tracked figures
+have different previous angles. Both take the same new facing as the captain. A watch on
+each figure's previous angle names `Guy::set_angle` as the writer. The tile and both angles
+are compared with the original in the sample replay.
+[Recorded exit](journal/2026-11-24-item-4647.md)
+
 ## Open questions
 
-- **A snapped `set_angle`'s crew `last_angle`** (parked 4253a): `Guy::set_angle(crew, des_angle, 1)` writes a
-  tracked crew figure's `last_angle`; `Sim::crew_des`'s snap writes its facing only. No walk parts on it yet.
 - **A turn at a waypoint, near a shore** (parked 4314a): recon4300-2 at DIFFICULTY 4 parts on 4202 because the
   French Assault Infantry `1/52` embarks in theirs. Ours steps it diagonally past the ocean tile's corner
   ((14400, 31854) → (14395, 31896) on 4203–4204), at least 6 units east of where theirs has to be on 4201. Our

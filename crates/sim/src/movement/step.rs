@@ -253,8 +253,8 @@ impl Sim {
             self.world.width() * world::UNITS_PER_CELL,
             self.world.height() * world::UNITS_PER_CELL,
         );
-        for g in 0..self.units[u].guys.len() {
-            let Some(f) = &mut self.units[u].guys[g].follow else {
+        for guy in &mut self.units[u].guys {
+            let Some(f) = &mut guy.follow else {
                 continue;
             };
             let track = f.track;
@@ -263,6 +263,9 @@ impl Sim {
             if snap {
                 f.facing = angle;
                 f.body.pos = f.des;
+                // Guy::set_angle snaps last_angle too. Run1827's Senator
+                // has two crew with different incoming angles on 10206.
+                guy.last = guy.last.map(|(point, _)| (point, angle));
             }
         }
     }
@@ -273,8 +276,8 @@ impl Sim {
     /// off that point. `Unit::set_new_location@005f8d20` hands its own
     /// `param_3` to each squad figure (`:162`, `:234`) and guy 0's crew
     /// loop hands `1` to each crew figure, so the copy reaches them all.
-    /// No angle is written: `last_angle` is `param_4`'s
-    /// ([`Sim::guy_set_angle`]) and the crew's snap leaves it (item 4253).
+    /// This copy keeps the angle written by [`Sim::guy_set_angle`] or a
+    /// tracked figure's [`Sim::crew_des`] snap.
     /// Item 4449: a computer's captain re-seated from its trainer's exit to
     /// its gather point's spot (`Unit::come_out@00617c10:1069`) kept
     /// `last` on the exit, run1724's Citizen `3/6` on 107.

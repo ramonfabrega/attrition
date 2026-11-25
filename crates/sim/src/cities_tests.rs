@@ -2889,6 +2889,39 @@ fn a_leader_s_pop_is_one_three_five_by_city_level() {
 // Garrisons
 // ----------------------------------------------------------------------
 
+/// Run1827's Senator exits on its owner's phase. Each city flag, the
+/// player's AI bit, the host's city bit and the preceding tick were also
+/// checked independently on the original unit's frame-10206 packet.
+#[test]
+fn city_occupants_check_the_all_clear_on_the_players_phase() {
+    let mut base = world_sim();
+    let t = install_types(&mut base);
+    let (host, city) = city_at(&mut base, &t, 1, 32, 32);
+    let ty = base.add_unit_type(citizen_type(t.village));
+    let u = spawn(&mut base, 1, ty, tile_pos(32, 32));
+    base.go_inside(u, host);
+    for (frame, human, alarm, attacked, village, exits) in [
+        (31, false, false, false, true, true),
+        (30, false, false, false, true, false),
+        (31, true, false, false, true, false),
+        (31, false, true, false, true, false),
+        (31, false, false, true, true, false),
+        (31, false, false, false, false, false),
+    ] {
+        let mut sim = base.clone();
+        sim.frame = frame;
+        sim.cities.nation[1].human = human;
+        sim.cities.cities[city].alarm = alarm;
+        sim.cities.cities[city].no_heal = attacked;
+        if !village {
+            sim.buildings[host].ty = Some(t.barracks);
+        }
+        sim.process_unit(u, frame, &mut Vec::new());
+        assert_eq!(sim.units[u].inside.is_none(), exits);
+        assert_eq!(sim.buildings[host].garrison.is_empty(), exits);
+    }
+}
+
 /// `LeaderData::peasants_garr` (`+0xa28`, item 3964, `docs/AI.md` §408):
 /// `Object::insert_inside@00647e90` adds one for a citizen captain going
 /// into a building and `remove_from_inside` takes it off — and both skip a

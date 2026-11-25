@@ -627,6 +627,15 @@ agrees on its eleven field lines. Both the first state difference and the
 first unequal draw advance from 9602 to 10207.
 [Factory rally comparison](journal/2026-11-24-item-4646.md)
 
+**Leaving a city on the player's phase (item 4647).** Run1827's Senator
+2/78 leaves Village 2/2022 on tick 10206. Once per 32 frames, phased by
+owner, a computer-controlled occupant checks the city centre's alarm
+and under-attack flags. When both are clear it takes the usual exit.
+The two companions snap their previous facing to the captain's angle.
+All eleven recorded lines agree over the exit. Buildings next differ on
+10261 and the draw sequence on 11488.
+[City exit, original predicate controls and tile-list boundary](journal/2026-11-24-item-4647.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte
