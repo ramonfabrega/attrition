@@ -4970,9 +4970,10 @@ not `seen`/`seen2`. Then the main view's per-vertex `u`, `1 − α(u)` off
 ~~Not built~~: built (§3.32.2).
 
 **Not established.**
-- What darkens the trees past sight. They are drawn after `render_fow`
+- ~~What darkens the trees past sight. They are drawn after `render_fow`
   and so are not under it, and `Scene::render` clears `RTreeData` on
-  `fog_changed` (4621a).
+  `fog_changed` (4621a).~~ Item 4670 (§6.3): `adjust_tree_colors`, the
+  trees' own vertex diffuse.
 - The water's and the cliffs' own fog arithmetic: only the binding is
   read.
 - The transition's rate (`Scene +0x8c`).
@@ -5025,7 +5026,8 @@ and `artdata::tests::the_fog_ramp_is_the_tileset_s`.*
 - Levels 1 and 2 read 3.6 and 5.3 brighter than theirs, the minimap's
   3.9 at level 2. Whether the original's ground under the fog differs or
   its compose does is not read.
-- The water's and cliffs' own fog (4621b), the trees' (4621a).
+- The water's and cliffs' own fog (4621b). ~~The trees' (4621a).~~
+  Built, §6.3.
 
 ## 3.32.3 The blips under the fog, built (item 4627)
 
@@ -6271,7 +6273,72 @@ dropped by item 4661, whose card take backs the file's alpha by a diff.
   packet's helper hold every piece twice on this frame. Whether every
   frame does, and whether the modern bucket's helper does too, has not
   been read.
-- The trees past sight stay lit (4621a). Not touched here.
+- ~~The trees past sight stay lit (4621a).~~ Item 4670 (§6.3): each
+  tree's vertex diffuse, `DARK_GREY` past sight.
+
+## 6.3 The trees past sight on run1814b (item 4670)
+
+*2026-11-25, Opus 5.5. The ledger: `docs/journal/2026-11-25-item-4670.md`.
+`client::world::World::tree_diffuse`, the tree pass's per-corner diffuse
+(`client::gpu::tree_third`, `fs_tree`); checked by
+`trees::tests::the_trees_diffuse_is_the_packet_s` (the diff) and
+`the_trees_past_sight_on_run1814b` (the row).*
+
+**What darkens them (4621a).** Not the fog pass and not the cache's
+clearing: the trees' own vertex colour. `ObjectsOut::sort_trees@00656c70`
+calls `RTreeData::adjust_tree_colors@009236f0` every time it runs. With no
+highlight list, that gives every cached tree's vertices `GREY`, or
+`DARK_GREY` when `WorldData::is_seen@006b55c0` is false for the console's
+`who` at the tree's fog cell. `TreeTransformMethod::execute@00921790` lays
+the same grey when a tree enters the cache. The fog cell is the tree's
+`TCoord` halved: `div_3_table[(int)x >> 6]`, the place over 192, then
+`>> 1`, so `x / 384` (`UNITS_PER_FOG`). The test is skipped, every tree
+`GREY`, under `semaphore & 0x42` (the reveal) or once the console's player
+is out, as the fog pass is (§3.32.1). In the client that is `World::fog`
+`None`.
+- *The colours*, read off `.data`: `GREY` (`0003:553496`) is the
+  `D3DCOLOR` `0xff808080`, and `DARK_GREY` (`0003:553340`) is
+  `0xff404040`.
+- *What it does to the pixel.* Stage 0 is `ADDSIGNED(TEXTURE, CURRENT)`
+  (§3.7, item 4173): `t + d − 0.5`. `GREY` adds nothing, and `DARK_GREY`
+  takes 64/255 off every channel before `TL_FAKE_LIGHT`'s power and the
+  tone map. A gold leaf goes red-brown.
+- *The highlight list* (`sort_trees`' gather tcoords under a drop, and the
+  selected units' targets) lays `GREY` plus `high_light_green` on green,
+  and subtracts `0x3f` a channel past sight. That is not built.
+
+**Built.** `World::tree_diffuse` gives each tree of `tree_list` `GREY`
+(`render::silhouette::TREE_DIFFUSE`) or `DARK_GREY` (`TREE_DIFFUSE_UNSEEN`),
+by fog level 3 at `at / UNITS_PER_FOG`. `World::tree_textured` carries it
+per corner (`TexturedMesh::diffuse`), the tree upload puts it in the third
+attribute's `x`, and `fs_tree` adds it in place of the `0x80` constant.
+`World::tree_fog` (on) is the row's switch.
+
+**The diff.** run1814b's packet holds 12 `tree_cache` entries, one a forest
+cell (`tools/render/tree_points.py`'s `vdiff`). Each entry's vertices by
+diffuse, against ours under slot 0's fog, are equal cell for cell: 1,642
+vertices `DARK_GREY` and 2,342 `GREY`. Four cells are split within the cell,
+because a cell's five trees can stand on two fog cells.
+
+**The row**, `RUN1814B_3294_TREES_PAST_SIGHT`: the pixels above the bar that
+the switch moves by an RGB distance of 10 or more. The tone map moves the
+whole frame by less than that, because the frame's mean falls with the
+trees. 81,370 pixels: theirs (65.6, 39.4, 4.4) Y 43.2; ours before (134.6,
+101.6, 12.9) Y 101.4; now **(64.1, 38.8, 4.3) Y 42.4**, with 78,380 of them
+nearer the photograph. 910 of the map's 945 trees are past sight. The fog row
+moves toward theirs on every level, 76.7 / 125.8 / 158.1 against 75.0 /
+125.2 / 156.4 (from 78.8 / 130.6 / 160.3).
+
+**Diff-backed**: which trees are dark, by the cache's vertices. **Read
+alone**: the colour's arithmetic through `ADDSIGNED`, held to the
+photograph by the row.
+
+**Not established.**
+- The highlight list's green and its `0x3f` past sight.
+- The flat-green stand-in for a face whose leaf does not decode is not
+  darkened.
+- `tree_sprite_data` (the low-detail trees, `section_render[10]` clear)
+  takes the same call and is not drawn by the client.
 
 ## 7. What is not established, and what needs Ramon's word
 

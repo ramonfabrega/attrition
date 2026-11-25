@@ -1971,6 +1971,96 @@ fn an_enemy_ship_beside_a_damaged_building_is_never_the_muster_point() {
     assert_eq!(sim.ai.armies[1].list[slot].hurry, 0);
 }
 
+/// **The siege muster's third search** (item 4672, `docs/ARMY.md` §27):
+/// with no enemy unit beside a damaged, attacked building of the target's
+/// city and none targeting it, an army that holds siege musters at the
+/// nearest enemy combat building within six cells
+/// (`ObjectsData::find_building(.., SEARCH_ENEMY, who, 0x1200, 0x200,
+/// FILTER_COMBAT)@0065d260`) and hurries. `FILTER_COMBAT`'s building arm
+/// (`0067de47`) refuses a city and a type with no attack; the `0x200` flag
+/// a cell of another region; the circle arm a building past six cells; and
+/// an army with no siege never asks.
+#[test]
+fn a_siege_army_musters_at_the_enemy_combat_building_beside_its_damaged_city() {
+    use crate::cities::build::{BuildType, Ident};
+    let (mut sim, c) = sim_with_city();
+    let b = sim.cities.cities[c].building;
+    sim.buildings[b].hits = 100;
+    sim.buildings[b].damage = 50;
+    sim.buildings[b].sync_health();
+    sim.buildings[b].under_attack = 2;
+    let slot = sim.init_army(1, Some(c));
+    sim.leaders.at_war[1][0] = true;
+    sim.leaders.at_war[0][1] = true;
+    let tower_ty = sim.tables.build_types.len();
+    sim.tables.build_types.push(BuildType {
+        attack: 8,
+        ..BuildType::default()
+    });
+    let at = Pos::new(0x3000 + 4 * UNITS_PER_CELL, 0x3000);
+    let tower = sim.add_building(0, at, 1);
+    sim.buildings[tower].ty = Some(tower_ty);
+    sim.buildings[tower].hits = 100;
+    sim.buildings[tower].sync_health();
+    let tower_cell = at.cell();
+    // No siege: the third search is never asked.
+    sim.find_muster_spot(1, slot, Obj::Building(b), false);
+    assert_eq!(sim.ai.armies[1].list[slot].hurry, 0, "no siege, no search");
+    let st = soldier_type(&mut sim);
+    sim.tables.unit_types[st].combat.siege = true;
+    let u = put(&mut sim, 1, st, Pos::new(0x3000, 0x3060));
+    sim.army_add_unit(1, slot, u);
+    assert!(sim.army_count_siege(1, slot) > 0);
+    assert!(sim.find_muster_spot(1, slot, Obj::Building(b), false));
+    assert_eq!(sim.ai.armies[1].list[slot].hurry, 1);
+    assert_eq!(sim.ai.armies[1].list[slot].muster, tower_cell);
+    // A type with no attack is no combat building.
+    sim.tables.build_types[tower_ty].attack = 0;
+    sim.find_muster_spot(1, slot, Obj::Building(b), false);
+    assert_eq!(sim.ai.armies[1].list[slot].hurry, 0, "attack 0");
+    sim.tables.build_types[tower_ty].attack = 8;
+    // A city (`+8 & 0x20`) is refused, however armed.
+    sim.tables.build_types[tower_ty].ident = Ident::Village;
+    sim.find_muster_spot(1, slot, Obj::Building(b), false);
+    assert_eq!(sim.ai.armies[1].list[slot].hurry, 0, "a city");
+    sim.tables.build_types[tower_ty].ident = BuildType::default().ident;
+    // An unfinished site is not a candidate.
+    sim.buildings[tower].active = false;
+    sim.find_muster_spot(1, slot, Obj::Building(b), false);
+    assert_eq!(sim.ai.armies[1].list[slot].hurry, 0, "unfinished");
+    sim.buildings[tower].active = true;
+    // No hits left (`ObjectData::hits_left`, vslot `+0x114`).
+    sim.buildings[tower].damage = 100;
+    sim.buildings[tower].sync_health();
+    sim.find_muster_spot(1, slot, Obj::Building(b), false);
+    assert_eq!(sim.ai.armies[1].list[slot].hurry, 0, "no hits left");
+    sim.buildings[tower].damage = 0;
+    sim.buildings[tower].sync_health();
+    // The region flag: the tower's cell in another region than the
+    // damaged building's.
+    let land = sim.world.add_region(Terrain::Land);
+    let other = sim.world.add_region(Terrain::Land);
+    sim.world.set_region(sim.buildings[b].pos.cell(), land);
+    sim.world.set_region(tower_cell, other);
+    sim.find_muster_spot(1, slot, Obj::Building(b), false);
+    assert_eq!(sim.ai.armies[1].list[slot].hurry, 0, "another region");
+    sim.world.set_region(tower_cell, land);
+    assert!(sim.find_muster_spot(1, slot, Obj::Building(b), false));
+    assert_eq!(sim.ai.armies[1].list[slot].muster, tower_cell);
+    // Seven cells out is past `circle_radius[6]`; six is in.
+    sim.buildings[tower].pos.x = 0x3000 + 7 * UNITS_PER_CELL;
+    sim.world.set_region(sim.buildings[tower].pos.cell(), land);
+    sim.find_muster_spot(1, slot, Obj::Building(b), false);
+    assert_eq!(sim.ai.armies[1].list[slot].hurry, 0, "seven cells");
+    sim.buildings[tower].pos.x = 0x3000 + 6 * UNITS_PER_CELL;
+    sim.world.set_region(sim.buildings[tower].pos.cell(), land);
+    assert!(sim.find_muster_spot(1, slot, Obj::Building(b), false));
+    assert_eq!(
+        sim.ai.armies[1].list[slot].muster,
+        sim.buildings[tower].pos.cell()
+    );
+}
+
 // ---- the forts pass (§12, item 4341) ----
 
 /// [`sim_with_rival_city`] with two siege engines and a wagon in the army,

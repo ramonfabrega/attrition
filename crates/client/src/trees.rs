@@ -500,4 +500,233 @@ mod tests {
         assert_eq!(drawn.rgba, want.rgba, "the leaf's texels tinted at load");
         assert_ne!(drawn.rgba, raw.rgba, "made to fail: the file's own texels");
     }
+
+    /// **`RUN1814B_3294_TREES_PAST_SIGHT`** (item 4670; `docs/RENDERER.md`
+    /// §6.3): on run1814b's frame 3294 under slot 0's fog, the pixels above
+    /// the bar that the trees' fog moves — the still with
+    /// `World::tree_fog` on against the still with it off — as `[pixels,
+    /// the photograph's mean luma, ours before, ours now, pixels nearer
+    /// the photograph now]`, the lumas ×10 and rounded (0.299 R + 0.587 G +
+    /// 0.114 B), nearer by the RGB distance. Minted at item 4670's build:
+    /// 81,370 pixels, theirs Y 43.2, ours 101.4 → 42.4, 78,380 nearer.
+    /// Made to fail: `TREE_DIFFUSE_UNSEEN` at `GREY`'s 0x80 moves no
+    /// pixel.
+    const RUN1814B_3294_TREES_PAST_SIGHT: [i64; 5] = [81_370, 432, 1014, 424, 78_380];
+    /// The same pixels' mean colour: the photograph's, ours before, ours
+    /// now, each channel ×10 and rounded.
+    const RUN1814B_3294_TREES_PAST_SIGHT_RGB: [[i64; 3]; 3] =
+        [[656, 394, 44], [1346, 1016, 129], [641, 388, 43]];
+    /// How many of the map's trees stand on a fog cell slot 0 does not see
+    /// (`World::tree_diffuse` `DARK_GREY`), and how many in all.
+    const RUN1814B_3294_TREES_DARK: [usize; 2] = [910, 945];
+
+    /// A pixel the trees' fog moves by at least this much (the RGB
+    /// distance, 0–765) is a tree's: item 4670's histogram of the two
+    /// stills puts 1,589,030 pixels under 10, the tone map's shift, and
+    /// the trees' from 10 up, most at 150–170.
+    const MOVED: f64 = 10.0;
+
+    #[test]
+    fn the_trees_past_sight_on_run1814b() {
+        let path = std::env::var_os("RON_PHOTO_RUN1814B")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                let home = std::env::var_os("HOME").unwrap_or_default();
+                PathBuf::from(home)
+                    .join("ron-data/lab-experiments/2026-11-23-item-4624/run1814b-3294.tga")
+            });
+        let Ok(bytes) = std::fs::read(&path) else {
+            println!("skipping: no photograph at {}", path.display());
+            return;
+        };
+        let photo = render::tga::decode(&bytes).expect("the photograph decodes");
+        let root = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let mut world = match World::open_game(
+            &root,
+            &crate::world::gamelog_dir(),
+            crate::world::Game::Lobby,
+        ) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        world.run_to(3294);
+        world.blend = crate::world::Blend::Last;
+        world.run_to(3295);
+        world.fog = Some(0);
+        let trees = world.tree_list();
+        let greys = world.tree_diffuse(&trees);
+        let dark = greys
+            .iter()
+            .filter(|&&g| g == render::silhouette::TREE_DIFFUSE_UNSEEN)
+            .count();
+        println!("RUN1814B_3294_TREES_DARK: {:?}", [dark, greys.len()]);
+        let mut camera = crate::pinned_camera();
+        (camera.loc_x, camera.loc_y) = crate::minimap::fog::tests::RUN1814B_LOC;
+        let size = (photo.width as u32, photo.height as u32);
+        assert_eq!(size, (1920, 1080), "the photograph's frame");
+        let draw = |world: &mut World, on: bool| {
+            world.tree_fog = on;
+            let still = crate::still_minimap(
+                world,
+                &camera,
+                size,
+                crate::gpu::SilhouetteOrder::Before,
+                wgpu::TextureFormat::Rgba8Unorm,
+                &[],
+                &|_| None,
+                true,
+            );
+            if let Some(dir) = std::env::var_os("RON_STILL_DIR") {
+                let name = format!(
+                    "still-run1814b-3294-trees-fog-{}.bmp",
+                    if on { "on" } else { "off" }
+                );
+                let out = PathBuf::from(dir).join(name);
+                std::fs::write(&out, crate::gpu::bmp(&still, size)).expect("the still writes");
+            }
+            still
+        };
+        let before = draw(&mut world, false);
+        let now = draw(&mut world, true);
+        // Above the bar (its top is row 885 on the photograph).
+        let w = photo.width as usize;
+        let rgb = |img: &[u8], i: usize| -> [f64; 3] {
+            std::array::from_fn(|c| f64::from(img[i * 4 + c]))
+        };
+        let luma = |p: [f64; 3]| 0.299 * p[0] + 0.587 * p[1] + 0.114 * p[2];
+        let dist = |a: [f64; 3], b: [f64; 3]| (0..3).map(|c| (a[c] - b[c]).abs()).sum::<f64>();
+        let mut n = 0usize;
+        let mut nearer = 0usize;
+        let mut sum = [[0f64; 3]; 3];
+        for i in 0..w * 870 {
+            // The tone map's white moves the whole frame by under 10 (the
+            // frame's mean falls with the trees); a tree's own pixel moves
+            // by more.
+            if dist(rgb(&before, i), rgb(&now, i)) < MOVED {
+                continue;
+            }
+            n += 1;
+            let sides = [rgb(&photo.rgba, i), rgb(&before, i), rgb(&now, i)];
+            for (k, p) in sides.iter().enumerate() {
+                for c in 0..3 {
+                    sum[k][c] += p[c];
+                }
+            }
+            if dist(sides[2], sides[0]) < dist(sides[1], sides[0]) {
+                nearer += 1;
+            }
+        }
+        let mean: [[f64; 3]; 3] = sum.map(|s| s.map(|v| v / n.max(1) as f64));
+        let tenths = |v: f64| (v * 10.0).round() as i64;
+        let row = [
+            n as i64,
+            tenths(luma(mean[0])),
+            tenths(luma(mean[1])),
+            tenths(luma(mean[2])),
+            nearer as i64,
+        ];
+        let colours = mean.map(|m| m.map(tenths));
+        println!("RUN1814B_3294_TREES_PAST_SIGHT: {row:?}");
+        println!("RUN1814B_3294_TREES_PAST_SIGHT_RGB: {colours:?}");
+        assert_eq!([dark, greys.len()], RUN1814B_3294_TREES_DARK);
+        assert_eq!(row, RUN1814B_3294_TREES_PAST_SIGHT);
+        assert_eq!(colours, RUN1814B_3294_TREES_PAST_SIGHT_RGB);
+    }
+
+    /// **The trees' diffuse is the packet's** (item 4670; `docs/RENDERER.md`
+    /// §6.3): run1814b's packet holds 12 `RTreeData::tree_cache` entries,
+    /// one a forest cell, and `tools/render/tree_points.py`'s `vdiff` row
+    /// counts each entry's vertices by their diffuse. Ours: each of the
+    /// cell's five trees' vertices (its model's slots), under
+    /// `World::tree_diffuse` with slot 0's fog. Cell for cell, every count
+    /// equal: 1,642 vertices `DARK_GREY`, 2,342 `GREY`. Made to fail: the
+    /// fog off, every tree `GREY`.
+    #[test]
+    fn the_trees_diffuse_is_the_packet_s() {
+        let path = std::env::var_os("RON_TREE_POINTS_RUN1814B")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                let home = std::env::var_os("HOME").unwrap_or_default();
+                PathBuf::from(home)
+                    .join("ron-data/lab-experiments/2026-11-25-item-4670/tree-points-run1814b.txt")
+            });
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            println!("skipping: no tree points at {}", path.display());
+            return;
+        };
+        // (cx, cy) -> (DARK_GREY's vertices, GREY's).
+        let mut theirs = std::collections::BTreeMap::new();
+        for l in text.lines().filter(|l| l.starts_with("vdiff ")) {
+            let f: Vec<&str> = l.split_whitespace().collect();
+            let cell: (i32, i32) = (f[1].parse().unwrap(), f[2].parse().unwrap());
+            let mut n = [0usize; 2];
+            for kv in &f[3..] {
+                let (k, v) = kv.split_once(':').expect("colour:count");
+                let k = ["ff404040", "ff808080"]
+                    .iter()
+                    .position(|c| *c == k)
+                    .unwrap_or_else(|| panic!("a diffuse neither grey: {k}"));
+                n[k] += v.parse::<usize>().unwrap();
+            }
+            theirs.insert(cell, n);
+        }
+        assert_eq!(theirs.len(), 12, "the packet's cached cells");
+        let root = std::env::var_os("RON_INSTALL")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("../../game"));
+        let mut world = match World::open_game(
+            &root,
+            &crate::world::gamelog_dir(),
+            crate::world::Game::Lobby,
+        ) {
+            Ok(w) => w,
+            Err(e) => {
+                println!("skipping: {e}");
+                return;
+            }
+        };
+        world.run_to(3294);
+        // Each model's vertices, its slots' runs summed.
+        let counts: Vec<usize> = world
+            .tree_meshes()
+            .expect("the lobby's trees read")
+            .slots
+            .iter()
+            .map(|s| s.iter().flatten().flatten().map(|s| s.num as usize).sum())
+            .collect();
+        let verts = |model: usize| counts[model];
+        let ours = |world: &World| {
+            let trees = world.tree_list();
+            let greys = world.tree_diffuse(&trees);
+            let mut out = std::collections::BTreeMap::new();
+            for (t, g) in trees.iter().zip(greys) {
+                if !theirs.contains_key(&t.cell) {
+                    continue;
+                }
+                let n: &mut [usize; 2] = out.entry(t.cell).or_default();
+                let k = usize::from(g != render::silhouette::TREE_DIFFUSE_UNSEEN);
+                n[k] += verts(t.model);
+            }
+            out
+        };
+        world.fog = Some(0);
+        let got = ours(&world);
+        let total = |m: &std::collections::BTreeMap<(i32, i32), [usize; 2]>| {
+            m.values().fold([0, 0], |a, n| [a[0] + n[0], a[1] + n[1]])
+        };
+        println!("theirs {:?} ours {:?}", total(&theirs), total(&got));
+        assert_eq!(got, theirs, "cell for cell");
+        assert_eq!(total(&theirs), [1642, 2342]);
+        world.fog = None;
+        assert_ne!(
+            ours(&world),
+            theirs,
+            "made to fail: no fog, every tree GREY"
+        );
+    }
 }
