@@ -192,6 +192,16 @@ impl Sim {
         if let Some(tick) = self.process_attrition(i, frame) {
             events.push(tick);
         }
+        // **The anti-air unit's jam mark** (item 4666, `docs/COMBAT.md`
+        // §8.6): the same sixteen-frame on-map block, after the 32-frame
+        // attrition refresh and its `unit_masks2` decay
+        // (`611629`..`61167a`). It asks nothing of the unit's life.
+        if self.units[i].phase(frame) % TARGETED_DECAY_FRAMES == 0
+            && self.units[i].inside.is_none()
+            && self.units[i].inside_unit.is_none()
+        {
+            self.unit_jam(i);
+        }
         if !self.units[i].alive() {
             return;
         }
