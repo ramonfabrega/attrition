@@ -2231,44 +2231,6 @@ pub(crate) mod tests {
         }
     }
 
-    /// Probe (item 4684): row 133's Citizen 2/3 over 3610..3614.
-    #[test]
-    fn probe_4684() {
-        if std::env::var("RON_PROBE_4684").is_err() {
-            return;
-        }
-        let Some(inst) = crate::testenv::install() else {
-            return;
-        };
-        let (Some(rcx), _) = paths(&SIXTH, 6) else {
-            return;
-        };
-        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
-        let loaded = crate::load::load(&inst).expect("the install loads");
-        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
-        let mut stream = crate::input::Stream::pump(&rec);
-        while built.sim.frame < 3614 {
-            stream.apply(built.sim.frame as i32, &mut built);
-            built.sim.command().tick();
-            if built.sim.frame >= 3600 {
-                let u = built.sim.unit_by_o(2, 3).expect("2/3");
-                let un = &built.sim.units[u];
-                eprintln!(
-                    "P4684 state {} 2/3 ti {} pos ({},{}) inside {:?} on_map {} z_held {:?} ground {} guys {:?}",
-                    built.sim.frame,
-                    un.type_index,
-                    un.pos.x,
-                    un.pos.y,
-                    un.inside.map(|b| (built.sim.buildings[b].index, built.sim.buildings[b].ty)),
-                    un.on_map,
-                    un.z_held,
-                    built.sim.world.object_z(un.pos.tile()),
-                    un.guys.iter().map(|g| (g.z_held, g.last_z_held)).collect::<Vec<_>>(),
-                );
-            }
-        }
-    }
-
     /// **Row 133's dead farm rolls under its number's next building** (item
     /// 4669, `docs/SYNC.md` §3.3): run1797's ranges and trace, the row's
     /// units and guys parting on 2677 (units range 4225, record 18, guy
