@@ -1786,7 +1786,7 @@ theirs 22, under Smelter `2/2040`'s terraform. The rest: `docs/journal/2026-11-2
 
 ### 13.3 Row 93
 
-2686 → 2965 by 4590 (run1803; `docs/COMBAT.md` §68.1), 4606 (`docs/CHECKSUM.md` §18). Open: units on 2965: `2/51` takes the decoy `1/38`, theirs `1/39` (4652). 4608 (COMBAT §55.3), 4652 moved no parting.
+2686 → 2965 by 4590 (run1803; `docs/COMBAT.md` §68.1), 4606 (`docs/CHECKSUM.md` §18). Open: units on 2965: `2/51` takes the decoy `1/38`, theirs `1/39` (4652). 4608 (COMBAT §55.3), 4652 moved no parting. **The term (4654, run1830b's packet at 2964):** `compare_target` for `1/38` is theirs 20,000, ours 594,950, and eight other candidates agree to the unit; `get_damage` is theirs 24,132, ours 26,143. Step 17 (decoy) calls `ObjectData::attack@006469f0` directly (`644a04`): `2/51`'s 240. Ours passes `attack_of`, 260 with `UnitData::attack`'s Citizen arm (+20). The height step agrees (z 36 over 25). Not built.
 
 ### 13.4 Row 113
 
