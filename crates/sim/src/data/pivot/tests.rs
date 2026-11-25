@@ -3059,3 +3059,51 @@ fn the_original_s_release_agrees_on_every_cell_for_item_4618() {
     assert_eq!(rows, 3 * 256 * 361, "{dir}");
     assert!(off.is_empty(), "{} cells disagree", off.len());
 }
+
+/// **Item 4651's pivot copies agree with the original on every cell**
+/// (`docs/COMBAT.md` §55): `$RON_RELEASE_TABLE_4651` is the directory
+/// holding `pivot-<piece>-n<node>-a<anim>-t<time>.txt` (`deg i t x y z`),
+/// outside git (`~/ron-data/lab-experiments/2026-11-25-item-4651/pivot-cells/`),
+/// written by `get_position.py --init 4,… --init 0,… pivot <piece> 0 <anim>
+/// <time> 1`: the Arab Flak Gun (584, piece 232's rows by `SAME_AS`) on
+/// run1579's packet and, for its `CHAR_ATTACKWALK`, run1816's; the Arab
+/// Avenger (586, 234's) on run1579's.
+#[test]
+fn the_original_s_release_agrees_on_every_cell_for_item_4651() {
+    let Ok(dir) = std::env::var("RON_RELEASE_TABLE_4651") else {
+        eprintln!("skipping: set RON_RELEASE_TABLE_4651 (item 4651's oracle)");
+        return;
+    };
+    let mut names: Vec<_> = std::fs::read_dir(&dir)
+        .expect("RON_RELEASE_TABLE_4651")
+        .map(|e| e.expect("entry").file_name().into_string().expect("utf-8"))
+        .filter(|n| n.starts_with("pivot-") && n.ends_with(".txt"))
+        .collect();
+    names.sort();
+    let (mut files, mut rows, mut off) = (0, 0, 0);
+    for name in names {
+        let f: Vec<&str> = name[..name.len() - ".txt".len()].split('-').collect();
+        let piece: i32 = f[1].parse().expect("piece");
+        let node: i8 = f[2][1..].parse().expect("node");
+        let anim: i8 = f[3][1..].parse().expect("anim");
+        let time: u32 = f[4][1..].parse().expect("time");
+        let r =
+            release_node(piece, anim, time, node).unwrap_or_else(|| panic!("no row for {name}"));
+        let table = std::fs::read_to_string(format!("{dir}/{name}")).expect("table");
+        for line in table.lines() {
+            let c: Vec<i32> = line
+                .split_whitespace()
+                .take(6)
+                .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                .collect();
+            if release_offset_at(&r, c[0], c[2]) != (c[3], c[4], c[5]) {
+                off += 1;
+            }
+            rows += 1;
+        }
+        files += 1;
+    }
+    assert_eq!(files, 6, "{dir}");
+    assert_eq!(rows, 6 * 256 * 361, "{dir}");
+    assert_eq!(off, 0, "cells disagree");
+}

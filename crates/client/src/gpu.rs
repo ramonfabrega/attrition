@@ -542,6 +542,10 @@ enum PatchKind {
     /// `Borders::process_all`, so the ground between two of the strip's
     /// samples never covers it.
     Border,
+    /// The plates (item 4653, §6.1): `roads_rs_alpha`'s two stages, the
+    /// tile page's colour through `TL_FAKE_LIGHT` at the piece's alpha
+    /// times the page's.
+    Plate,
 }
 
 /// **The land pass's HDR target** (item 4327; `docs/RENDERER.md` §3.27,
@@ -561,6 +565,7 @@ fn patch_kind(piece: i32, alpha: usize) -> PatchKind {
         // Item 4650: classes 0 and 1, the farms', the same.
         p if crate::world::is_farm_underlay(p) => PatchKind::Snowcap,
         crate::world::OIL_PIECE => PatchKind::Billboard,
+        crate::world::PLATE_PIECE => PatchKind::Plate,
         p if crate::world::is_edge(p) => PatchKind::Edge,
         p if crate::world::is_border(p) => PatchKind::Border,
         FLOOR_PIECE => PatchKind::Floor,
@@ -609,6 +614,8 @@ pub struct Gpu {
     /// the coral on the land pass's HDR target ([`LAND_HDR_FORMAT`]), and the
     /// two full-screen passes that take the frame there and back.
     hdr_lit: wgpu::RenderPipeline,
+    /// The plates on the land pass's HDR target (item 4653, §6.1).
+    hdr_plate: wgpu::RenderPipeline,
     hdr_faded: wgpu::RenderPipeline,
     hdr_floor: wgpu::RenderPipeline,
     /// Item 4338: the surf on the HDR target (`fs_surf_hdr`).
@@ -637,6 +644,8 @@ pub struct Gpu {
     mtrl_layout: wgpu::BindGroupLayout,
     /// The snowcap underlay's pass (item 4275, §3.10).
     snowcap: wgpu::RenderPipeline,
+    /// The plates (item 4653): [`PatchKind::Plate`].
+    plate: wgpu::RenderPipeline,
     billboard: wgpu::RenderPipeline,
     /// The map's edge border's pass (item 4311, §3.15).
     edge: wgpu::RenderPipeline,
@@ -1402,6 +1411,16 @@ impl Gpu {
             LAND_HDR_FORMAT,
             wgpu::CompareFunction::LessEqual,
         );
+        // Item 4653 (§6.1): the plates blended before the curve, as the
+        // card blends `roads_rs_alpha`'s `TL_FAKE_LIGHT` on its HDR target.
+        let hdr_plate = patch_pass_to(
+            "hdr_plate",
+            "fs_plate_hdr",
+            &patch_layout,
+            false,
+            LAND_HDR_FORMAT,
+            wgpu::CompareFunction::LessEqual,
+        );
         let hdr_faded = patch_pass_to(
             "hdr_faded",
             "fs_faded_hdr",
@@ -1565,6 +1584,7 @@ impl Gpu {
         let faded = blended("faded", "fs_faded");
         let mountain = blended("mountain", "fs_mountain");
         let snowcap = blended("snowcap", "fs_snowcap");
+        let plate = blended("plate", "fs_plate");
         let billboard = blended("billboard", "fs_billboard");
         // Item 4311: opaque, so its alpha of 1 replaces; its depth written.
         let edge = patch_pass("edge", "fs_edge", &patch_layout, true);
@@ -1646,6 +1666,7 @@ impl Gpu {
             patch_lit,
             faded,
             hdr_lit,
+            hdr_plate,
             hdr_faded,
             hdr_floor,
             hdr_surf,
@@ -1662,6 +1683,7 @@ impl Gpu {
             mountain_mapped,
             mtrl_layout,
             snowcap,
+            plate,
             billboard,
             edge,
             border,
@@ -2435,9 +2457,24 @@ impl Gpu {
                 pass.set_bind_group(0, bind, &[]);
                 pass.draw(0..3, 0..1);
             }
-            for run in frame_runs.into_iter().filter(|r| !r.is_empty()) {
-                self.draw_ground(&mut pass, None, None, run, None);
-            }
+        }
+        // Item 4653 (§6.1): the runs through `draw_split`, whose plate arm
+        // blends a run of plates on the HDR target; the rest draw as in the
+        // frame pass (the border arm off, as here before).
+        let extent = wgpu::Extent3d {
+            width: size.0,
+            height: size.1,
+            depth_or_array_layers: 1,
+        };
+        for run in frame_runs.into_iter().filter(|r| !r.is_empty()) {
+            let draws = (
+                &exposed.scene,
+                &scene_view,
+                &depth_view,
+                extent,
+                (false, true),
+            );
+            self.draw_split(&mut enc, draws, run, None);
         }
         // Item 4624 (§3.32.1): `render_fow` after every ground run (the
         // mountains and their layers too) and before the objects, its keep
@@ -2894,9 +2931,12 @@ impl Gpu {
         };
         // Item 4379: the borders' runs leave the frame pass for the HDR
         // target, so the first pass stops at the first of them.
+        // Item 4653: and the plates' runs, which `draw_split` blends on the
+        // HDR target whatever `land_hdr` says (that switch is the land's
+        // own layers', held off by 4327a).
         let k = first
             .iter()
-            .position(|p| border_hdr && p.5 == PatchKind::Border)
+            .position(|p| (border_hdr && p.5 == PatchKind::Border) || p.5 == PatchKind::Plate)
             .unwrap_or(first.len());
         {
             let mut pass = begin(enc, &view, depth_view, true);
@@ -2910,7 +2950,7 @@ impl Gpu {
             }
             self.draw_ground(&mut pass, terrain, Some(meshes), &first[..k], None);
         }
-        let draws = (target, &view, depth_view, extent, border_hdr);
+        let draws = (target, &view, depth_view, extent, (border_hdr, true));
         self.draw_split(enc, draws, &first[k..], None);
         if !run.is_empty() {
             self.land_hdr_pass(enc, target, &view, depth_view, extent, run);
@@ -2928,26 +2968,35 @@ impl Gpu {
     fn draw_split(
         &self,
         enc: &mut wgpu::CommandEncoder,
-        (target, view, depth_view, extent, border_hdr): (
+        (target, view, depth_view, extent, (border_hdr, plate_hdr)): (
             &wgpu::Texture,
             &wgpu::TextureView,
             &wgpu::TextureView,
             wgpu::Extent3d,
-            bool,
+            (bool, bool),
         ),
         patches: &[UploadedPatch],
         lake: Option<&wgpu::BindGroup>,
     ) {
         let is_border = |p: &UploadedPatch| border_hdr && p.5 == PatchKind::Border;
+        // Item 4653 (§6.1): a run of plates on the land pass's HDR target,
+        // where their overlaps blend as the card's do.
+        let is_plate = |p: &UploadedPatch| plate_hdr && p.5 == PatchKind::Plate;
         let mut i = 0;
         while i < patches.len() {
             let j = patches[i..]
                 .iter()
-                .position(is_border)
+                .position(|p| is_border(p) || is_plate(p))
                 .map_or(patches.len(), |k| i + k);
             if j > i {
                 let mut pass = begin(enc, view, depth_view, false);
                 self.draw_ground(&mut pass, None, None, &patches[i..j], lake);
+            }
+            let q = j + patches[j..].iter().take_while(|p| is_plate(p)).count();
+            if q > j {
+                self.land_hdr_pass(enc, target, view, depth_view, extent, &patches[j..q]);
+                i = q;
+                continue;
             }
             let e = j + patches[j..].iter().take_while(|p| is_border(p)).count();
             if e > j {
@@ -3044,7 +3093,7 @@ impl Gpu {
                 .position(|p| p.5 == PatchKind::Surf)
                 .map_or(rest.len(), |k| i + k);
             if j > i {
-                let draws = (target, &view, depth_view, extent, border_hdr);
+                let draws = (target, &view, depth_view, extent, (border_hdr, true));
                 self.draw_split(enc, draws, &rest[i..j], Some(&bind));
             }
             if j < rest.len() && surf_hdr {
@@ -3175,6 +3224,7 @@ impl Gpu {
                     PatchKind::Faded => &self.hdr_faded,
                     PatchKind::Floor => &self.hdr_floor,
                     PatchKind::Surf => &self.hdr_surf,
+                    PatchKind::Plate => &self.hdr_plate,
                     _ => &self.hdr_lit,
                 });
                 pass.set_bind_group(1, t, &[]);
@@ -3220,6 +3270,7 @@ impl Gpu {
                 (_, PatchKind::Faded) => &self.faded,
                 (_, PatchKind::Floor) => &self.floor,
                 (_, PatchKind::Snowcap) => &self.snowcap,
+                (_, PatchKind::Plate) => &self.plate,
                 (_, PatchKind::Billboard) => &self.billboard,
                 (_, PatchKind::Edge) => &self.edge,
                 (_, PatchKind::Border) => &self.border,

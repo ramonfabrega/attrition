@@ -4743,3 +4743,87 @@ fn the_carrack_s_release_agrees_at_every_heading_but_one() {
     assert_eq!(rows, 9 * 361, "{dir}");
     assert_eq!(off, ["sweep-292-2-12-24.txt deg 283"]);
 }
+
+/// **A piece that reads another's bays holds none of its own** (item 4651):
+/// every [`SAME_AS`] piece has no [`BAYS`] or [`GUNS`] row, and its source is
+/// a piece that does, so a lookup never lands on a second alias.
+#[test]
+fn a_piece_that_reads_another_s_bays_holds_none() {
+    let held = bay_pieces();
+    for &(p, q) in SAME_AS {
+        assert!(!held.contains(&p), "{p} holds rows and reads {q}'s");
+        assert!(held.contains(&q), "{p} reads {q}, which holds no row");
+    }
+    // The Arab Flak Gun's node-1 walk round leaves from the default set's
+    // bay, and the India Heavy Machine Gun's from the Machine Gun's.
+    assert_eq!(
+        bay(584, crate::units::anim::ATTACKWALK, 14, 1),
+        bay(232, crate::units::anim::ATTACKWALK, 14, 1)
+    );
+    assert!(bay(584, crate::units::anim::ATTACKWALK, 14, 1).is_some());
+    assert_eq!(
+        bay(1835, crate::units::anim::ATTACK3, 27, 0),
+        bay(73, crate::units::anim::ATTACK3, 27, 0)
+    );
+}
+
+/// **Item 4651's keys agree with the original at every heading**
+/// (`docs/COMBAT.md` §55): `$RON_BAY_SWEEPS_4651` is the directory holding
+/// `sweep-<piece>-<node>-<anim>-<time>.txt` (`deg ret x y z …` at every
+/// whole degree 0..=360), outside git
+/// (`~/ron-data/lab-experiments/2026-11-25-item-4651/sweeps/`): 659 keys the
+/// bays' lister named, written by `tools/recomp/sweep_keys.py`
+/// (`init_position`, then `get_position`) on run1579's packet, and
+/// `sweep-584-1-10-14.txt` on run1816's (run1579 lacks the walk). Each key
+/// is looked up as [`launch_point`] looks it up: 561 through [`SAME_AS`],
+/// 66 by their own [`BAYS`] rows and 32 by four [`GUNS`] rows.
+#[test]
+fn the_original_s_release_agrees_at_every_heading_for_item_4651() {
+    let Ok(dir) = std::env::var("RON_BAY_SWEEPS_4651") else {
+        eprintln!("skipping: set RON_BAY_SWEEPS_4651 (item 4651's oracle, run1579 and run1816)");
+        return;
+    };
+    let mut names: Vec<_> = std::fs::read_dir(&dir)
+        .expect("RON_BAY_SWEEPS_4651")
+        .map(|e| e.expect("entry").file_name().into_string().expect("utf-8"))
+        .filter(|n| n.starts_with("sweep-") && n.ends_with(".txt"))
+        .collect();
+    names.sort();
+    let (mut files, mut rows, mut off) = (0, 0, Vec::new());
+    for name in names {
+        let f: Vec<&str> = name[..name.len() - ".txt".len()].split('-').collect();
+        let (piece, node, anim, time): (i32, i8, i8, u32) = (
+            f[1].parse().expect("piece"),
+            f[2].parse().expect("node"),
+            f[3].parse().expect("anim"),
+            f[4].parse().expect("time"),
+        );
+        let b = bay(piece, anim, time, node).unwrap_or_else(|| panic!("no bay for {name}"));
+        let table = std::fs::read_to_string(format!("{dir}/{name}")).expect("sweep");
+        for line in table.lines() {
+            let c: Vec<i64> = line
+                .split_whitespace()
+                .take(5)
+                .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                .collect();
+            assert_eq!(c[1], 0, "{name}: get_position answered {}", c[1]);
+            let (x, y) = b.offset((c[0] + 180) % 360);
+            if (x, y, i64::from(b.dz)) != (c[2], c[3], c[4]) {
+                off.push(format!(
+                    "{name} deg {}: {x},{y},{} against {},{},{}",
+                    c[0], b.dz, c[2], c[3], c[4]
+                ));
+            }
+            rows += 1;
+        }
+        files += 1;
+    }
+    assert_eq!(files, 659, "{dir}");
+    assert_eq!(rows, 659 * 361, "{dir}");
+    assert!(
+        off.is_empty(),
+        "{} headings disagree: {:?}",
+        off.len(),
+        &off[..off.len().min(20)]
+    );
+}

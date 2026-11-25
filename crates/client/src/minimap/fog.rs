@@ -293,12 +293,21 @@ pub(crate) mod tests {
     /// 78.6 / 130.5 / 158.3 against theirs 75.0 / 125.2 / 156.4. Level 3
     /// rises with no fog on it: the frame's mean falls, and the tone map's
     /// white with it (§3.21), as theirs does.
+    /// Item 4650's plots: 786 → 789, 1305 → 1308, 1583 → 1592, all away
+    /// from theirs. Item 4653's plates: → 787 and 1306 (toward) and 1600
+    /// (away): the HDR round trip re-tones the frame (§6.1).
     pub const RUN1814B_3294_FOG: [[i64; 3]; 3] =
-        [[80, 750, 786], [93, 1252, 1305], [209, 1564, 1583]];
+        [[80, 750, 787], [93, 1252, 1306], [209, 1564, 1600]];
     /// The same cells on the client's still with no fog drawn, the row as
-    /// it stood before item 4624.
+    /// it stood before item 4624. Each row: the main view's cells at that
+    /// fog level, the photograph's median luma, ours (×10). Item 4650's
+    /// plots: ours 1429 → 1432 and 1435 → 1438 (away from theirs, 75.0 and
+    /// 125.2) and 1417 → 1423 (toward 156.4). Item 4653's plates: 1432 →
+    /// 1430, 1438 → 1436 and 1423 → 1431, all toward theirs (their run takes
+    /// the land pass's HDR round trip, which re-tones the frame;
+    /// `docs/RENDERER.md` §6.1).
     pub const RUN1814B_3294_UNFOGGED: [[i64; 3]; 3] =
-        [[80, 750, 1429], [93, 1252, 1435], [209, 1564, 1417]];
+        [[80, 750, 1430], [93, 1252, 1436], [209, 1564, 1431]];
     /// **`RUN1814B_3294_FOG_MINIMAP`**: the minimap's fog cells, each at its
     /// centre's pixel through [`super::super::to_screen`], by level 0 to 3:
     /// `[cells, the photograph's median luma, ours]`, ×10 and rounded.
@@ -306,19 +315,24 @@ pub(crate) mod tests {
     /// 0 / 48.2 / 78.1 / 146.3 against theirs 0 / 47.1 / 74.2 / 144.1.
     /// Item 4627 culls the blips by the console's sight: level 1 48.2 →
     /// 48.0, the oil and the far blips off its cells.
+    /// Item 4650's plots: level 3 1463 → 1438 (toward theirs, 1441).
+    /// Item 4653's plates: 1438 → 1435, away by 3 (§6.1).
     pub const RUN1814B_3294_FOG_MINIMAP: [[i64; 3]; 4] = [
         [13_336, 0, 0],
         [727, 471, 480],
         [127, 742, 781],
-        [210, 1441, 1463],
+        [210, 1441, 1435],
     ];
     /// The same with no fog drawn. Item 4627: levels 0 and 1 148.9 →
     /// 148.7 and 152.8 → 152.6, the oils' blips gone (`type_avail`).
+    /// Item 4650's plots: level 3 146.3 → 143.8, toward theirs (144.1).
+    /// Item 4653's plates: level 0 148.7 → 148.6 (theirs 0), level 3 143.8
+    /// → 143.5, away by 0.3: the HDR round trip re-tones the frame (§6.1).
     pub const RUN1814B_3294_FOG_MINIMAP_UNFOGGED: [[i64; 3]; 4] = [
-        [13_336, 0, 1487],
+        [13_336, 0, 1486],
         [727, 471, 1526],
         [127, 742, 1549],
-        [210, 1441, 1463],
+        [210, 1441, 1435],
     ];
 
     fn luma(rgba: &[u8], w: usize, x: i32, y: i32) -> f64 {

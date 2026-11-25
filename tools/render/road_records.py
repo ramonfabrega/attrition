@@ -93,15 +93,17 @@ def pieces(snap, roads, u32, i32):
     """`RoadsData::current_roads` (`RoadsOut +0x5c0`, an `ObjectArray<RenderHelper>`,
     count `+0x5c4`, the objects inline at `+0x5d0`, 0x13c each): helper
     `pagenum · 3 + age bucket`, as `build_render_data` picks it. Each pass's
-    `verts` (`+0x54`), `tex0` (`+0xc4`) and `faces` (`+0x38`, `u16`
+    `verts` (`+0x54`), `tex0` (`+0xc4`), `tex1` (`+0xe0`) and `faces` (`+0x38`, `u16`
     indices, three a triangle) are `PtrArray`s of arrays (count `+4`, data
     `+0x10`). A piece is a set of vertices its faces join; it prints as its
     box in tiles (192 units a tile) and the texcoord at each corner, NW, NE,
     SW, SE, the vertex standing on it:
 
-        piece <helper> <x0> <y0> <x1> <y1> verts <n> uv <u,v> <u,v> <u,v> <u,v>
+        piece <helper> <x0> <y0> <x1> <y1> verts <n> uv <u,v> <u,v> <u,v> <u,v> [page <u,v> × 4]
 
-    The buffer can hold a piece twice; repeats are dropped."""
+    `page` is `tex1` at the same corners, where the pass holds one a vertex:
+    a tile page's (item 4653), which the modern page has not. The buffer
+    can hold a piece twice; repeats are dropped."""
     n, lst = i32(roads + 0x5C4), u32(roads + 0x5D0)
     out = set()
     for h in range(n):
@@ -116,11 +118,13 @@ def pieces(snap, roads, u32, i32):
 
             nv, va = arr(0x54)
             nt, ta = arr(0xC4)
+            n1, t1 = arr(0xE0)
             nf, fa = arr(0x38)
             if nv == 0 or nt < nv:
                 continue
             V = [struct.unpack("<fff", snap.read(va + 12 * k, 12)) for k in range(nv)]
             T = [struct.unpack("<ff", snap.read(ta + 8 * k, 8)) for k in range(nv)]
+            P = [struct.unpack("<ff", snap.read(t1 + 8 * k, 8)) for k in range(nv)] if n1 >= nv else None
             idx = struct.unpack(f"<{nf}H", snap.read(fa, 2 * nf))
             up = list(range(nv))
 
@@ -144,14 +148,16 @@ def pieces(snap, roads, u32, i32):
                 ys = [V[k][1] / 192 for k in g]
                 x0, y0, x1, y1 = min(xs), min(ys), max(xs), max(ys)
 
-                def at(x, y):
+                def at(x, y, A=T):
                     for k in g:
                         if V[k][0] / 192 == x and V[k][1] / 192 == y:
-                            return f"{T[k][0]!r},{T[k][1]!r}"
+                            return f"{A[k][0]!r},{A[k][1]!r}"
                     return "-"
 
-                uv = " ".join(at(x, y) for x, y in ((x0, y0), (x1, y0), (x0, y1), (x1, y1)))
-                out.add(f"piece {h} {x0!r} {y0!r} {x1!r} {y1!r} verts {len(g)} uv {uv}")
+                corners = ((x0, y0), (x1, y0), (x0, y1), (x1, y1))
+                uv = " ".join(at(x, y) for x, y in corners)
+                page = " page " + " ".join(at(x, y, P) for x, y in corners) if P else ""
+                out.add(f"piece {h} {x0!r} {y0!r} {x1!r} {y1!r} verts {len(g)} uv {uv}{page}")
     for row in sorted(out):
         print(row)
     print(f"pieces {len(out)}", file=sys.stderr)

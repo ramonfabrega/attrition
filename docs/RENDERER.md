@@ -6028,8 +6028,8 @@ grass under both. **Both are read off the packet, and neither needs a take.**
   ("the real texture to show through" is the tile page). The tilesets'
   `<ROADTEX>` first entry is the colour: `*_Middle_Road.tga`, which is
   `autumn_Middle_Road.tga` on the autumn tilesets.
-- `World::road_pieces` keeps bucket 2 alone (`ROAD_BUCKET`), so the client
-  lays none of the 61.
+- `World::road_pieces` kept bucket 2 alone (`ROAD_BUCKET`), so the client
+  laid none of the 61. Item 4653 lays them: "The plates, drawn" below.
 
 **The row.** `RUN1814B_3294_FARM`, minted red: each tile of slot 0's farms'
 footprints (48) with at least `HUE.min_pixels` ground pixels. It compares
@@ -6084,12 +6084,43 @@ step (`the_underlay_is_the_packet_s_slot_1`; parked 4650a).
 ours (194, 143, 45) Y 147.7. The underlay alone reads 9 and 40, the boxes
 alone 48 and 48; both off is the mint's 2 and 29.
 
+**The plates, drawn** (item 4653, 2026-11-25, Opus 5.5;
+`docs/journal/2026-11-25-item-4653.md`). `World::road_pieces` lays page 0's
+age bucket 0 beside bucket 2, each piece with its bucket. A plate's mesh is
+the modern piece's quad cut at the tile lines, as before. Its alpha is
+`early_road_pieces.tga` (untinted) at the piece's texcoords. Its texture is
+the tileset's `<ROADTEX>` entry 0 (`rondata::artdata::road_textures`),
+tinted at load as `TileSet::init` tints it, at the tile's own texcoord,
+`x / 4` and `y / 4` in tiles. That is `tex1` on 842 of 842 of the packet's
+helper-0 vertices (`tools/render/road_records.py`'s `page`).
+`roads_rs_alpha` on the packet: enables 0x3c004 (`TL_FAKE_LIGHT`, the maps
+unsampled without `ENABLE_LIGHTING`); stage 0 the diffuse's colour and the
+piece's alpha; stage 1 `MODULATE(TEXTURE, CURRENT)` on both; both wrapped;
+source alpha over. `client::gpu` blends a run of plates on the land pass's
+HDR target (`fs_plate_hdr` in `land_hdr_pass`), where the overlaps of
+neighbouring pieces build as the card's do. The frame pass's runs now go
+through `draw_split` for it. **The coverage is the complement of the file's
+alpha**, an assumption the row backs and no reading yet does (4653a).
+
+The diff: helper 0's 54 pieces are `lay`'s boxes and texcoords from the
+records' own elements and orientations on 53 of 54, and their page corners
+the box over 4 on 54 of 54 (`roads::tests::the_plates_quads_are_the_packet_s`).
+Our walk lays 50 of the 54, 29 on the packet's element and orientation
+(`the_plates_against_the_packet_s`; 4653b, 4199a).
+
+**The row.** `RUN1814B_3294_PLATES`, minted red on the door's 54 road tiles
+in x 7–19, y 151–163 (46 scored): hue **12 → 37 of 46**, luma 43 → 43. With
+the packet's own pieces, 43 and 42. On the way, the file's alpha on the
+frame gave 29, on the HDR target 32, and its complement 37. Tile (19, 159):
+theirs (235, 182, 65) Y 184.7, ours (217, 185, 69) Y 181.7, where the grass
+read (177, 178, 74).
+
 **Diff-backed**: the farms' corners and sizes, the wheat boxes whole
 (positions, colours, texcoords, heights, wind), the underlay's corners and
-texcoords. **Read alone**: the draw state's arithmetic in our pass (the
-packet holds the `RenderState`, not the card's pixels), the plates below.
-The packet's road ages back the reading's arithmetic but not the draws'
-pixels.
+texcoords; the plates' quads and tile-page texcoords, and their
+`RenderState`. **Read alone**: the draw state's arithmetic in our pass (the
+packet holds the `RenderState`, not the card's pixels). **On the row
+alone**: the plates' complemented alpha (4653a).
 
 **Not established.**
 - The wind's motion over a game (`Scene::wind_vec` is the view's; the
@@ -6102,8 +6133,11 @@ pixels.
 - The low-scalability arm (no wind, `section_render +0xc` clear), and a
   farm building with no record (`draw_weathering` gives it `wheatfarm`).
 - The underlay's light on 23 corners of the capital's farm ground (4650a).
-- The road state `+0x2f0`'s blend and stage ops, and whether the tile page's
-  texcoords are the tile's or the piece's.
+- ~~The road state `+0x2f0`'s blend and stage ops, and whether the tile page's
+  texcoords are the tile's or the piece's.~~ Read off the packet by item 4653
+  ("The plates, drawn"): the tile's, over 4.
+- Where the plates' alpha is complemented (4653a), and the four element-1
+  plates our walk does not lay (4653b).
 - The trees past sight stay lit (4621a). Not touched here.
 
 ## 7. What is not established, and what needs Ramon's word
