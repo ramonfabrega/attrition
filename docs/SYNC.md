@@ -195,7 +195,24 @@ Landed: the birds' sampling, the bird itself (§3.9) and the herd walk,
 Every frame, every farm whose **`farm_type` is not 1** (`FarmStruct+0xbd`,
 named by the type record — §3.6; that farm is a *pasture* and grows nothing)
 and whose building is complete (`Build flags & 4`; a site is skipped). Each
-of its 16 cells holds a state byte and a `float percent`:
+of its 16 cells holds a state byte and a `float percent`.
+
+**"Whose building" is whatever object stands at the record's `(who, o)`
+now** (item 4669, diff-backed on run1797's frame 2675). The walk never reads
+the record's `valid` byte (`+0xbc`), which is all `Farms::remove@008d8e50`
+clears. It looks up `objects[who][o]` and asks it `flags & 4` (the `Build`
+vtable inline; vslot `+0x4c` otherwise). A record whose `who` or `o` is
+negative skips the test and is walked. A demolished farm's own object
+answers 0, because `Build::close` zeroes the flags, so its record rests.
+When a later building takes the number and is finished, the dead farm's
+cells advance and roll again. On run1797 who=2's Farm 2003 was dead and
+the type-106 building that took 2003 activated in frame 2675's objects
+phase. The original spent a third crop draw that frame on the dead farm's
+five empty cells; this crate skipped the record on the farm's own `alive`
+until this item. The builds line hashes a farm's slot (`+0x78`) but not its
+cells, so the cells part silently and only the draw shows it. **Not
+established**: the negative-`who`/`o` arm. No record this crate builds
+carries one.
 
 ```
 for each cell:                       # `4·dx + dy`, dx inner, dy outer — a row at a time
@@ -2237,6 +2254,9 @@ run12/run13 (the frame-0 word `0x3bd39ae9`, the counts 120/54/6/6 and
 23/28/7/6/8/18/21/6/6 reproduced). The items below that it settles are
 struck through and point there.
 
+- **A list keyed by building rather than object number** (item 4669, parked 4669a): `Farms::inc_time` gates a
+  record on whatever object holds its `(who, o)` now (§3.3). Whether the dock, fort and oil lists that share
+  `+0x78` have the same reused-number gap is not read.
 - ~~**The 4 draws at 116–119 of frame 0.**~~ **Settled by the trace: they
   are at 110–113, not 116–119, and they are phase-7 wraps** —
   `Guy::set_anim+0x97a` < `Guy::inc_time+0x271` < `Unit::inc_time+0x3e`,

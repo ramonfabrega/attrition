@@ -4628,6 +4628,50 @@ fn an_arrow_never_lands_on_gaia() {
     assert_eq!(sim.check_hit(&ammo), Some(Obj::Unit(foe)));
     assert!(sim.units[sheep].is_gaia());
 }
+
+/// **A round with no target that comes down between two units takes the
+/// last of the tie** (item 4668, `docs/RECGAME.md` §14.4):
+/// `Ammo::check_hit@00678d90`'s `ObjectsData::find_unit@0065ca80` keeps a
+/// candidate on `<=` against the running best (`65cf44`, `65cd2f`). run1834's
+/// 3032: who=1's Elite Javelineers `1/72`'s round, its Pikeman gone, lands
+/// 144 from both Light Cavalry `1/66` and `1/83`, one cell, and theirs
+/// strikes `1/83`, the later on the cell's chain. Under nine units the walk
+/// is the lists in `o` order, so the later index; at nine or more it is the
+/// cell's chain from its head, newest first, so the one chained first.
+#[test]
+fn a_round_between_two_units_strikes_the_last_of_the_tie_in_find_unit_s_walk() {
+    let (mut sim, _) = at_war();
+    let ty = sim.add_unit_type(crate::UnitType {
+        hits: 100,
+        combat: Profile {
+            target_size: 200,
+            ..Profile::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let me = put(&mut sim, 0, ty, Pos::new(0x200, 0x200));
+    let landing = Pos::new(768 * 5 + 384, 768 * 5 + 384);
+    let first = put(&mut sim, 1, ty, Pos::new(landing.x - 144, landing.y));
+    let later = put(&mut sim, 1, ty, Pos::new(landing.x + 144, landing.y));
+    let ammo = round(&sim, me, None, landing, 0);
+    assert!(sim.total_units() < crate::ai::ai_place::circle().radius[1]);
+    assert_eq!(
+        sim.check_hit(&ammo),
+        Some(Obj::Unit(later)),
+        "the list walk: the later by `o`"
+    );
+    // Six more far off: nine units, and the walk is the cells'.
+    for k in 0..6 {
+        put(&mut sim, 0, ty, Pos::new(0x200 + 768 * k, 768 * 40));
+    }
+    assert!(sim.total_units() >= crate::ai::ai_place::circle().radius[1]);
+    assert_eq!(sim.cell_chain(landing.cell()), vec![later, first]);
+    assert_eq!(
+        sim.check_hit(&ammo),
+        Some(Obj::Unit(first)),
+        "the circle walk: the last on the cell's chain"
+    );
+}
 /// **A round with no target that comes down on a building strikes it
 /// as its own target** (item 1077, `docs/COMBAT.md` §73). run371's
 /// V2: `whom −1`, landing at (13834, 14969) on who=1's Barracks

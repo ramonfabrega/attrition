@@ -41898,6 +41898,30 @@ who=2's barge `2/61`. Theirs leaves (16866, 11729) at `sz` 35, ours left the fig
 the Carrack's piece 292 had no release row (`docs/RECGAME.md` §14.4). Read by `score_recording` on the item's tree,
 which agrees on all twelve lines through 2792 after the fix; no test reads the ranges.
 
+## run1838 — parity held out, seventh battery, row 88's file to 3,075 with the checksum and ranges hooks, every line but walls kept (2026-11-25, item 4674, `att-4674`)
+
+`docs/RECGAME.md` §14.4. **What the disk could not answer**: row 88 parts on 3069 on units and guys, past run1834's
+ranges (to 3040). The take is run1834's line to 3,075 with `--log-window 3063 3071` and the same mask:
+`TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1838
+--recording ~/ron-golden/recordings/item4600-row088-12000.rcx --end-frame 3075 --allow-early-end --cover cover=1
+--log-window 3063 3071 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def
+RON_RANGES --tracer-def RNG_MASK=0xffbu`, waited on with `waitrun.sh` in the background. The lane was free at launch
+(`ron_lane_state`); `df -g ~` read 90 GB free before it and 96 after filing.
+- **The run**: pool lane 1, launched 11:11:34 −05:00, exited 11:15:46: **251.9 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 3,076 frames, `last_frame` 3075, not ended early, seed 12345, map 18. The recording's
+  SHA-256 is run1808's (`02dced92…`).
+- **The record**: `~/ron-golden/run1838/map-18/rontrace.ranges`, 2,943,042,520 bytes, SHA-256
+  `7622a78091734048d1b8839bcf35e634cac26e87aa15a6e324697da9d7694782`, split in three by `filerun.py` and compressed
+  in place (2.75 GiB on disk before, 0.25 after). `gamelog_p.txt`, 2,879 bytes, SHA-256
+  `79a84d3800e816dba5e41172a5807dfbbcbc3134ba9c8444bcd200507814a1cc`; `rontrace.log`, 103,983,136 bytes, SHA-256
+  `7c0dc224232fa8bba410c1d5b8a80f63d76d327696e747c3a88d641be75f955b`.
+- Filed with `filerun.py run1838 heldout7-row088-units3069-ranges`.
+
+**What it named**: units range 2404, record 46 on 3069 is who=1's Steppe Nomad `1/46` (TI 200, land): `cavarch_o`
+ours −1, theirs 61, and its guy's `des_turret_angles[0]` ours 0, theirs −701431808. Its held target `2/61` (uid 91)
+is dead and its number is a Transport Barge's now. `Guy::set_all_pivots` bears on the slot (`docs/RECGAME.md` §14.4).
+After the fix nothing parts to 3075. Read by item 4674's range printer (a probe, reverted); no test reads the ranges.
+
 ## run1834 — parity held out, seventh battery, row 88's file to 3,040 with the checksum and ranges hooks, every line but walls kept (2026-11-25, item 4664, `att-4664`)
 
 `docs/RECGAME.md` §14.4. **What the disk could not answer**: row 88 parts on 3028 on ammo, past run1815's ranges (to
@@ -41919,7 +41943,9 @@ RON_RANGES --tracer-def RNG_MASK=0xffbu`, waited on with `waitrun.sh` in the bac
 
 **What it named**: ammo range 43, record 15 on 3028 is the round who=1's Heavy Fire Raft `1/94` (TI 335, sea) fired on
 3027 at `2/83`: `sz` ours −173, theirs 100, and `v1z` after it (`docs/RECGAME.md` §14.4). After the fix nothing parts to
-3032; units part on 3033. Read by item 4664's range printer (a probe, reverted); no test reads the ranges.
+3032; units part on 3033. Read by item 4664's range printer (a probe, reverted); no test reads the ranges. **Item 4668**
+read it again: on 3033 `1/83`'s `damage` ours 3, theirs 7, the round of `1/72` that `check_hit`'s tie put on `1/66` in
+ours; after the fix nothing parts to 3040 (`docs/RECGAME.md` §14.4).
 
 ## run1816 — parity held out, seventh battery, row 28's file to 3,960, a packet at logger frame 3955 (2026-11-23, item 4619, `att-4619`)
 
