@@ -1583,7 +1583,10 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// (two ranges and one before): a terraform rewrites only the heights
 /// `Wall::init@0063e9b0`'s `update_z` walk refreshes, the chained land
 /// units round the building (`docs/COLLISION.md` §3.3).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 955, 1053);
+/// Item 4637: 955 -> 959, units whole on run1441, run1559b and run1564
+/// (one range each before) and run1266c (two): the Aztec slayer's mark,
+/// `unit_masks & 0x4000` (`take_damage@00652020`, `0x6529da`).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 959, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -2903,11 +2906,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4443, the units line folds `cavarch_o` -2 (`cavarch_fight`'s `0xfffe`): units (11161, 11161, 49) -> (11161, 11161, 42).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9704, 9704, 1) -> (9704, 9704, 0).
     // Item 4511, a unit host's chain is the order of entry: units (11161, 11161, 42) -> (11161, 11161, 2).
+    // Item 4637, the Aztec slayer's mark (`unit_masks & 0x4000`): units (11161, 11161, 2) -> (11161, 11161, 0).
     (
         "run1266c",
         8700,
         [
-            (11161, 11161, 2),
+            (11161, 11161, 0),
             (3796, 3796, 0),
             (0, 0, 0),
             (6, 6, 0),
@@ -4497,11 +4501,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (1890, 1887, 478) -> (1890, 1890, 0), world (8276, 8276, 8) -> (8276, 8276, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (4274, 4240, 900) -> (4274, 4268, 853).
     // Item 4491, the strafe's ranges walked: units (4274, 4268, 853) -> (4274, 4274, 1).
+    // Item 4637, the Aztec slayer's mark (`unit_masks & 0x4000`): units (4274, 4274, 1) -> (4274, 4274, 0).
     (
         "run1441",
         3294,
         [
-            (4274, 4274, 1),
+            (4274, 4274, 0),
             (1890, 1890, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4871,11 +4876,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (1890, 1887, 478) -> (1890, 1890, 0), world (8276, 8276, 8) -> (8276, 8276, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (4274, 4240, 900) -> (4274, 4268, 853).
     // Item 4491, the strafe's ranges walked: units (4274, 4268, 853) -> (4274, 4274, 1).
+    // Item 4637, the Aztec slayer's mark (`unit_masks & 0x4000`): units (4274, 4274, 1) -> (4274, 4274, 0).
     (
         "run1559b",
         3294,
         [
-            (4274, 4274, 1),
+            (4274, 4274, 0),
             (1890, 1890, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -4932,11 +4938,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (1890, 1887, 478) -> (1890, 1890, 0), world (8276, 8276, 8) -> (8276, 8276, 0).
     // Item 4474, the units line walks AirPatrolOrder's own ranges; an airbase exit turns through Unit::set_angle; every units count nearer the stream's: units (4274, 4240, 900) -> (4274, 4268, 853).
     // Item 4491, the strafe's ranges walked: units (4274, 4268, 853) -> (4274, 4274, 1).
+    // Item 4637, the Aztec slayer's mark (`unit_masks & 0x4000`): units (4274, 4274, 1) -> (4274, 4274, 0).
     (
         "run1564",
         3294,
         [
-            (4274, 4274, 1),
+            (4274, 4274, 0),
             (1890, 1890, 0),
             (0, 0, 0),
             (0, 0, 0),
