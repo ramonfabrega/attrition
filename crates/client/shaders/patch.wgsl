@@ -188,6 +188,33 @@ fn fs_snowcap(i: VOut) -> @location(0) vec4<f32> {
     return vec4<f32>(land_fake(t * land_vertex(i.nl)), a);
 }
 
+// Item 4653 (`docs/RENDERER.md` §6.1): the plates, `RoadsOut`'s tile page
+// under `roads_rs_alpha` (`RoadsOut +0x2f0` on run1814b's packet): stage 0
+// `SELECTARG2(DIFFUSE)` on colour and `SELECTARG1(TEXTURE)` on alpha, the
+// piece's alpha at UV0; stage 1 `MODULATE(TEXTURE, CURRENT)` on both, the
+// tileset's `<ROADTEX>` at UV1; both wrapped; enables 0x3c004, so
+// `TL_FAKE_LIGHT` with no lighting and no vertex colour (the diffuse is 1,
+// and the maps are sampled only under `ENABLE_LIGHTING`). SRCALPHA over
+// INVSRCALPHA. Here `uv` is UV1 and `auv` UV0. The piece's coverage is the
+// complement of the file's alpha (`1 − A`): the assumption the photograph's
+// row backs (43 of 46 on the packet's own pieces against 30), whose place in
+// the engine is not read (parked 4653a).
+@fragment
+fn fs_plate(i: VOut) -> @location(0) vec4<f32> {
+    let a = 1.0 - textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
+    let t = textureSample(tex, samp, i.uv);
+    return vec4<f32>(land_fake(t.rgb), a * t.a);
+}
+
+// Item 4653: `fs_plate` before the curve, on the land pass's HDR target,
+// where the card blends it: `5 · c^1.9` at the piece's alpha times the page's.
+@fragment
+fn fs_plate_hdr(i: VOut) -> @location(0) vec4<f32> {
+    let a = 1.0 - textureSampleLevel(alpha, alpha_samp, i.auv, 0.0).a;
+    let t = textureSample(tex, samp, i.uv);
+    return vec4<f32>(land_fake_hdr(t.rgb), a * t.a);
+}
+
 // Item 4312 (`docs/RENDERER.md` §3.24): a good's billboard,
 // `ZSpriteAccumMethod`'s quad on `rmaps[0xd]`: `TL_FAKE_LIGHT` under the
 // good's white vertex, blended source alpha over at the texel's alpha.

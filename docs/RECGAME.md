@@ -1570,9 +1570,9 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 |---|---|---|---|---|---|---|
 | 3 | run1773 | Great Sahara, difficulty 3 | human + added | 6,001 | **12** | ~~3857, 4777, world 4990~~ whole (MAPGEN §35) |
 | 23 | run1774 | Atlantic Sea Power | the computers | 6,001 | 10 | **leaders 0**, units 5695 |
-| 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~3192, 3223, 3299, 3442, 3833~~ 3899 |
+| 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~3192, 3223, 3299, 3442, 3833, 3899~~ 3995 |
 | 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, to 4222 | **12** | ~~1582, 1789, 3683, 3986~~ whole |
-| 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | ~~1956, 2811, 3041, 3359, 3645, 3656~~ units 3662 |
+| 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | ~~1956, 2811, 3041, 3359, 3645, 3656, 3662~~ units 3706 |
 | 103 | run1778 | East Indies, Modern | the computers | 3,295, to 3294 | **12** | ~~1750, 1757, 1790, 2557 (GROUPS §3.4), ammo 2860, world 2983~~ whole (COLLISION §2) |
 | 123 | run1779 | Great Lakes, Gunpowder | human + added | 6,001 | 3 | ~~builds, groups 2977~~ whole (below) |
 | 143 | run1780 | Great Sahara, difficulty 1 | the computers | 6,001 | **12** | whole |
@@ -1782,11 +1782,11 @@ Open: units, builds, groups and guys part on 7675. run1788 holds sums (item 4579
 ### 13.2 Row 53
 
 Open: units and guys part on 3358 (item 4578, run1812): who=2's standing Phalanx `2/76` (TI 133, land), `z` ours 29,
-theirs 22, under Smelter `2/2040`'s terraform. The rest: `docs/journal/2026-11-23-item-4578.md`.
+theirs 22, under Smelter `2/2040`'s terraform. 4609 (run1832): the two stand on no world cell's chain. Journals 4578, 4609.
 
 ### 13.3 Row 93
 
-2686 → 2965 by 4590 (run1803; `docs/COMBAT.md` §68.1), 4606 (`docs/CHECKSUM.md` §18). Open: units on 2965: `2/51` takes the decoy `1/38`, theirs `1/39` (4652). 4608 (COMBAT §55.3), 4652 moved no parting.
+2686 → 2965 by 4590 (run1803; `docs/COMBAT.md` §68.1), 4606 (`docs/CHECKSUM.md` §18). Open: units on 2965: `2/51` takes the decoy `1/38`, theirs `1/39` (4652). 4608 (COMBAT §55.3), 4652 moved no parting. 4654 (run1830b): step 17's decoy attack is `ObjectData::attack`, theirs 240, ours 260; not built.
 
 ### 13.4 Row 113
 
@@ -1805,7 +1805,7 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: builds parts first on 2451. run1797's ranges hold each item's frames, each *diff-backed*.
+Open: deaths parts first on 2457. run1797's ranges hold each item's frames, each *diff-backed*.
 
 **Items 4597 to 4620**: units → 2376, builds → 2432, ammo → 2408, leaders → 2413, cities → 2448 (`docs/GROUPS.md`,
 `docs/COMBAT.md` §84, a Temple's close, two walks by object number; their journals).

@@ -1154,6 +1154,28 @@ pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[
          Small City 2/2027 (1613); no word walks it",
     ),
     (
+        "run1830",
+        2963,
+        "the sixth battery's row 93 with a packet at 2963 (item 4654): Unit::process stepped \
+         on it for who=2's Infantry 2/51 with game->frame poked to 2964, a tick early; \
+         ObjectData::attack 240 read off get_damage's decoy step; no word walks it",
+    ),
+    (
+        "run1830b",
+        2964,
+        "the sixth battery's row 93 with a packet at 2964 (item 4654): Unit::process stepped \
+         on it for who=2's Infantry 2/51, compare_target's nine candidates, 1/38 20,000 on a \
+         blow of 24,132 (ObjectData::attack 240 at the decoy step); no word walks it",
+    ),
+    (
+        "run1832",
+        3357,
+        "the sixth battery's row 53 with a packet at 3357 (item 4609): read, not stepped; \
+         who=2's standing Phalanxes 2/76 and 2/91 stand on no world cell's chain, where cell \
+         (49, 25) holds 2/130 and 2/34, so Wall::init's update_z loop cannot reach them; \
+         no word walks it",
+    ),
+    (
         "run1814",
         3294,
         "the harness's lobby with the reveal off (item 4612): its photograph was lost, \
@@ -1243,7 +1265,9 @@ pub(super) const TAKES_HELD: &[(&str, i64, &str, i64)] = &[
 // Item 4619: run1816's packet at 3955 named, not held, (127, …, 17).
 // Item 4628: run1819's packet at 2375 named, not held, (128, …, 18).
 // Items 4641–4648: five sample packets named, (133, …, 23).
-const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (133, 87, 7, 12, 1, 3, 23);
+// Item 4654: run1830's at 2963 and run1830b's at 2964 named, not held, (135, …, 25).
+// Item 4609: run1832's at 3357 named, not held, (136, …, 26).
+const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (136, 87, 7, 12, 1, 3, 26);
 
 /// Every held packet's `(run, logger frame, game, the length its walk is
 /// whole to)`: a word's, a chapter's and the minted one.

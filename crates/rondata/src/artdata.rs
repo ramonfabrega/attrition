@@ -2585,6 +2585,38 @@ pub fn underlay_textures(
     Ok((snowcaps, list))
 }
 
+/// **The tileset's road pages** (item 4653; `docs/RENDERER.md` §6.1):
+/// `<ROADTEX>`' `TEXTURE` `name=` under `tileset`, in file order.
+/// `TileSet::init@0087b370` loads each into `TileSetData::road_textures`,
+/// tinted by the tileset's tint (`ImageIO::set_tint`), and
+/// `RoadsOut::render@008943d0` binds entry `bucket` at stage 1 of a tile
+/// page's draw, for age buckets 0 and 1 (`TileSet::get_road_texture
+/// @008780e0` answers nothing past 1). An absent list reads empty.
+pub fn road_textures(install: &Install, tileset: &str) -> Result<Vec<String>, ArtFailure> {
+    let unnamed = |what: &str| ArtFailure::Unnamed(what.to_string());
+    let tpath = install.data("tilesets.xml");
+    let ttext = crate::read(&tpath).map_err(|_| unnamed("tilesets.xml"))?;
+    let tdoc = crate::parse(&tpath, &ttext).map_err(|_| unnamed("tilesets.xml"))?;
+    let set = tdoc
+        .descendants()
+        .find(|n| {
+            n.has_tag_name("TILESET")
+                && n.attribute("name")
+                    .is_some_and(|v| v.trim().eq_ignore_ascii_case(tileset))
+        })
+        .ok_or_else(|| unnamed(tileset))?;
+    Ok(set
+        .children()
+        .find(|n| n.has_tag_name("ROADTEX"))
+        .map(|r| {
+            r.children()
+                .filter(|n| n.has_tag_name("TEXTURE"))
+                .filter_map(|t| Some(t.attribute("name")?.trim().to_string()))
+                .collect()
+        })
+        .unwrap_or_default())
+}
+
 /// **The tileset's edge border textures** (item 4311; `docs/RENDERER.md`
 /// §3.15, "Item 4307: the map's edge border draws it"): `<BORDERTEX>`'s
 /// `TEXTURE` `file=` and `outerfile=` under `tileset`. `TileSet::init

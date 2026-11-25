@@ -42181,3 +42181,54 @@ read 130 GB free before it and 122 after.
   `c61e44d07cb33f8fcef9db32d03da600ac36d84f2cd5e3bf9fcc34f98e9da48a`; `rontrace.log` → `Logs/rontrace-run1828.log`,
   192,602,464 bytes, SHA-256 `dd90b0aedac57028372cf1f77ccbf0c61fd73aebfe8c79a5bd8d3b8b07cdad52`, both linked; the
   record stays in place.
+## run1830 — parity held out, sixth battery, row 93's file to 2,970, a packet at logger frame 2963 (2026-11-25, item 4654, `att-4654`)
+
+`docs/RECGAME.md` §13.3. **What the disk could not answer**: run1799's ranges print `2/51`'s pick on 2965, never
+`compare_target`'s value or `get_damage`'s blow for a candidate. The take: run1803's line with `--end-frame 2970
+--log-window 2958 2968 --tracer-def RON_STATE_FRAME=2963` (`P` exported). Pool lane 1, launched 01:47:06 −05:00, exit
+0, `success`, 252.8 s, `last_frame` 2970, seed 12345, map 14; `df -g ~` read 90 GB free before it.
+- **The packet**: `frame_snapshot.py` verified frame 2963, the logger return and the receipt; `frame-snapshot.bin`,
+  900,211,328 bytes, SHA-256 `416e171905f1cc25067180c7f31c2ff4776ed99b5aff3e88d20f4fc440b4751e`. `2/51` at
+  `0x15c64574` (x 11848, y 26809, z 38), `1/38` at `0x150e4bb4`, `1/39` at `0x150e4d24`.
+- **One frame short.** It is ours' state at `sim.frame` 2963; `2/51`'s search is in the 2964 tick, `(51 + frame) % 15`
+  (`Unit::do_attack_to@005f2320:28`). A `--poke e38410=940b0000` (`game->frame`, `Game +0x550`) ran it a move early (z
+  38, a tenth candidate `1/49`); its `ObjectData::attack` 240 stands, its height does not. Superseded by run1830b.
+- Filed: `gamelog-run1830-heldout6-row093-packet2963.txt`, 2,891 bytes; `rontrace-run1830.log`, 92,414,912 bytes.
+
+## run1830b — parity held out, sixth battery, row 93's file to 2,970, a packet at logger frame 2964 (2026-11-25, item 4654, `att-4654`)
+
+run1830's line with `RON_STATE_FRAME=2964`. Pool lane, launched 02:14:06 −05:00, exit 0, `success`, 270.2 s,
+`last_frame` 2970; 104 GB free before it.
+- **The packet**: verified frame 2964; 900 MB, SHA-256 `ad23629c71432512d7f4bb362c66b9f377aae4bc8c190b593e52a5fc8b431a10`.
+  `2/51` at `0x1515646c` (x 11867, y 26784: ours' state 2964), `1/38` at `0x1502d88c`, `1/39` at `0x1502d9fc`.
+- **`step4.py <exe> <packet> --entry 610bc0 --this 1515646c`** (`Unit::process`, no poke), hooked at
+  `compare_target`'s call and return (`649710`, `649715`), `get_damage`'s (`64ec10`, `64ec15`), the decoy step
+  (`644a11`), the net blow (`644b94`) and the height step (`644d64`): `find_melee_target` enters
+  `find_nearby_target(0x1200, 0, 1, 0, 0x20010)`, nine candidates, ours' nine; eight values ours' to the unit, **`1/38`
+  20,000 against ours' 594,950**. `1/38`'s blow: `max(ObjectData::attack 240, 224) × 1000`, net 24,000, height z 36 over
+  25, **24,132**; ours 26,143 (attack 260). `set_new_location` writes z 36 at (11907, 26733).
+  Scratch: `~/ron-data/lab-experiments/2026-11-25-item-4654/`.
+- Filed: `gamelog-run1830b-heldout6-row093-packet2964.txt`, 2,891 bytes; `rontrace-run1830b.log`, 91,773,952 bytes.
+
+**What it holds**: the term behind row 93's 2965 (`docs/journal/2026-11-25-item-4654.md`). No test reads it yet.
+
+## run1832 — parity held out, sixth battery, row 53's file to 3,363, a packet at logger frame 3357 (2026-11-25, item 4609, `att-4609`)
+
+`docs/RECGAME.md` §13.2. **What the disk could not answer**: run1812's ranges print `2/76`'s `z`, never the world's
+cell chains that `Wall::init`'s update_z loop walks. The take: run1812's line with `--end-frame 3363 --log-window 3351
+3361 --timeout 1800 --tracer-def RON_CHECKSUMS --tracer-def RON_STATE_FRAME=3357 --tracer-def
+"RON_STATE_PLAN=\"$P/plan.h\""` (`P` exported, run1803's plan). **3357, not the brief's 3356**: Smelter `2/2040` first
+stands on block 3358 on both sides (ours' walk; the builds line agrees to 3731), so its placement is tick 3357
+(`docs/EMULATOR.md` §8; item 4654's correction). Pool lane 1, launched 03:17:03 −05:00, exit 0, `success`, 288.5 s,
+`last_frame` 3363, seed 12345, map 18; the recording's SHA-256 is run1790's (`e4b6a2d6…`); 77 GB free before it, 75
+after filing.
+- **The packet**: `frame_snapshot.py` verified frame 3357; 863,706,572 bytes, SHA-256
+  `1817160458055428561e4c5bc67b5d0aa8e72de0fb42a29fa2dfb54830095ba1`. `2/76` at `0x14878b1c`, `2/91` at
+  `0x1487a0ac`, `2/130` at `0x1487d8d4`.
+- **Read, not stepped**: world `*0xc06188` (60 × 60 cells, `+0x134`), objects `*0xc0618c`. `2/76`: vtable `0xb417d0`,
+  slot `+8` `0x46cda0`, flags 0x11, `z` 22, type domain 0. **No cell's chain (`WData +0x8/+0xa`, `ObjectData
+  +0x2c/+0x2e`) holds `2/76` or `2/91`**; cell (49, 25) holds `2/130 → 2/34`. Scratch:
+  `$CLAUDE_JOB_DIR`-local readers, re-derivable from the journal.
+- Filed: `gamelog-run1832-heldout6-row053-packet3357.txt`, 2,890 bytes; `rontrace-run1832.log`, 123,870,016 bytes.
+
+**What it holds**: why row 53's 3358 parts (`docs/journal/2026-11-25-item-4609.md`). No test reads it yet.
