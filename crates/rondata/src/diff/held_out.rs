@@ -1204,8 +1204,14 @@ pub(crate) mod tests {
                             .collect();
                         eprintln!(
                             "W4689 f{f0} raft pos ({}, {}) body ({}, {}) guys {:?} coll_at {:?} on_map {} hp {}",
-                            un.pos.x, un.pos.y, un.movement.body.pos.x, un.movement.body.pos.y, gp,
-                            un.coll_at, un.on_map, un.health
+                            un.pos.x,
+                            un.pos.y,
+                            un.movement.body.pos.x,
+                            un.movement.body.pos.y,
+                            gp,
+                            un.coll_at,
+                            un.on_map,
+                            un.health
                         );
                         let w = &built.sim.world;
                         for cy in 19..=22 {
@@ -1303,12 +1309,42 @@ pub(crate) mod tests {
                         }
                         let acc = i16::from_le_bytes([b[1], b[2]]);
                         let w: Vec<i32> = (0..24)
-                            .map(|k| i32::from_le_bytes(b[3 + 4 * k..7 + 4 * k].try_into().unwrap()))
+                            .map(|k| {
+                                i32::from_le_bytes(b[3 + 4 * k..7 + 4 * k].try_into().unwrap())
+                            })
                             .collect();
-                        format!("roll {} acc {acc} gp {} launch ({},{},{}) land ({},{},{}) t {}/{} angle {} splash {} slot {} graph {} owner {} o {} guys {} whom {} ox {} traj {} rest {:?}", b[0], w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8], w[9], w[10], w[11], w[12], w[13], w[14], w[15], w[16], w[17], w[18], &w[19..])
+                        format!(
+                            "roll {} acc {acc} gp {} launch ({},{},{}) land ({},{},{}) t {}/{} angle {} splash {} slot {} graph {} owner {} o {} guys {} whom {} ox {} traj {} rest {:?}",
+                            b[0],
+                            w[0],
+                            w[1],
+                            w[2],
+                            w[3],
+                            w[4],
+                            w[5],
+                            w[6],
+                            w[7],
+                            w[8],
+                            w[9],
+                            w[10],
+                            w[11],
+                            w[12],
+                            w[13],
+                            w[14],
+                            w[15],
+                            w[16],
+                            w[17],
+                            w[18],
+                            &w[19..]
+                        )
                     };
                     for r in &ours.ranges {
-                        eprintln!("A4683 {state} ours rec {} {} {}", r.record, r.field, dec(&r.bytes));
+                        eprintln!(
+                            "A4683 {state} ours rec {} {} {}",
+                            r.record,
+                            r.field,
+                            dec(&r.bytes)
+                        );
                     }
                     for r in &theirs {
                         eprintln!("A4683 {state} theirs {}", dec(&r.bytes));
@@ -1401,7 +1437,12 @@ pub(crate) mod tests {
                         let (a, b) = (&ours.ranges[i], theirs[j]);
                         if a.field == "block.body" && [1227, 1228, 1287, 1288].contains(&a.record) {
                             let c = |v: &[u8]| v.iter().map(|x| x.count_ones()).sum::<u32>();
-                            eprintln!("C4689 {state} rec {} ours {} theirs {}", a.record, c(&a.bytes), c(&b.bytes));
+                            eprintln!(
+                                "C4689 {state} rec {} ours {} theirs {}",
+                                a.record,
+                                c(&a.bytes),
+                                c(&b.bytes)
+                            );
                         }
                     }
                 }
@@ -1447,14 +1488,26 @@ pub(crate) mod tests {
                                         cx * n + i / n,
                                         cy * n + i % n
                                     );
-                                    for (k, un) in built.sim.units.iter().enumerate().filter(|_| std::env::var("RON_NEAR").is_ok()) {
+                                    for (k, un) in built
+                                        .sim
+                                        .units
+                                        .iter()
+                                        .enumerate()
+                                        .filter(|_| std::env::var("RON_NEAR").is_ok())
+                                    {
                                         let c = sim::movement::collide::ucell(un.pos);
                                         if (c.x - (cx * n + i / n)).abs() <= 2
                                             && (c.y - (cy * n + i % n)).abs() <= 2
                                         {
                                             eprintln!(
                                                 "B4689   near slot {k} {:?}/{} TI {} pos ({}, {}) on_map {} hp {}",
-                                                un.owner, un.index, un.type_index, un.pos.x, un.pos.y, un.on_map, un.health
+                                                un.owner,
+                                                un.index,
+                                                un.type_index,
+                                                un.pos.x,
+                                                un.pos.y,
+                                                un.on_map,
+                                                un.health
                                             );
                                         }
                                     }
@@ -14311,23 +14364,39 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // cities 3,576 -> 3,751, items 8,480 -> 8,804, goods 4,002 -> 4,054
         // (first 3728 -> 3872), world 3,443 -> 3,574. The first parting moves
         // 3441 -> 3574, on world.
+        // Moved by item 4689 (run1843's ranges): `Unit::process@00610bc0`
+        // runs `Guy::process` over the guy array after the `+0x188` think
+        // with no test between, so a unit killed on the map in its own work
+        // takes its sixty-fourth-frame repaint after `Unit::close` cleared
+        // its disc. On tick 3573 who=1's Heavy Fire Raft `1/139` (TI 335,
+        // sea), standing since 3562, fires and sinks in its `fight`; 3573 +
+        // 139 is 58 x 64. World on 3574, `block.body` records 1227, 1228,
+        // 1287 and 1288: the 81 bits of unit cells (446..454, 330..338)
+        // ours 0 -> 1, as theirs (record 1228's count ours 25 -> 67, theirs
+        // 67). Units 3,582 -> 4,327 (first 4027), builds 3,586 -> 4,383
+        // (first 3717), ammo 3,604 -> 4,187 (first 4166), deaths 3,675 ->
+        // 4,443, groups 3,585 -> 4,368 (first 4363), guys 3,583 -> 4,384,
+        // leaders 3,585 -> 4,199, cities 3,751 -> 4,488 (first 4486), items
+        // 8,804 -> 9,597 (first 4135 -> 5885), goods 4,054 -> 4,679 (first
+        // 4625), world 3,574 -> 4,394. The first parting moves 3574 -> 3717,
+        // on builds.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                3582, 3586, 12001, 3604, 3675, 3585, 3583, 3585, 3751, 8804, 4054, 3574,
+                4327, 4383, 12001, 4187, 4443, 4368, 4384, 4199, 4488, 9597, 4679, 4394,
             ],
             first: &[
-                ("units", (3582, Some(96578577), 2013759880)),
-                ("builds", (3586, Some(111187840), 3176568745)),
-                ("ammo", (3599, Some(939402172), 609690385)),
-                ("deaths", (3675, Some(2727518681), 4027887385)),
-                ("groups", (3585, Some(1864425716), 2587942655)),
-                ("guys", (3583, Some(176317156), 249587974)),
-                ("leaders", (3585, Some(2961689531), 241617861)),
-                ("cities", (3751, Some(1956137991), 1891060740)),
-                ("items", (4135, Some(308941102), 314708274)),
-                ("goods", (3872, Some(606990886), 361886241)),
-                ("world", (3574, Some(3203944514), 4203960669)),
+                ("units", (4027, Some(4187914694), 1875804615)),
+                ("builds", (3717, Some(4119222040), 1630950939)),
+                ("ammo", (4166, Some(2844747041), 735145102)),
+                ("deaths", (4443, Some(1493940272), 2950874289)),
+                ("groups", (4363, Some(1430150107), 2640665236)),
+                ("guys", (4384, Some(2966912178), 3125639190)),
+                ("leaders", (4199, Some(626313703), 2804271541)),
+                ("cities", (4486, Some(471488175), 2265470475)),
+                ("items", (5885, Some(3509651581), 3503884409)),
+                ("goods", (4625, Some(2004087359), 1940648509)),
+                ("world", (4394, Some(593842110), 2211663771)),
             ],
             over: None,
         }),
