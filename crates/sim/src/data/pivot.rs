@@ -675,6 +675,17 @@ const NODES: &[(i32, i32, Node)] = &[
             py: 42_749_992,
         },
     ),
+    // **Piece 10, the Armed Caravan** (`ARMEDCARAVAN-DEFAULT-AGE0`, type 60;
+    // item 4618): its `(4, 0, 0)` entry, `(−0.06, 1.02, 32.63)`, stored on
+    // run1819's and run1816's packets.
+    (
+        10,
+        4,
+        Node {
+            px: -59_999,
+            py: 1_019_999,
+        },
+    ),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -1487,6 +1498,10 @@ const FLOAT_LANDS_300_A12_N2: &[(i32, i32, i32, i32)] = &[];
 const FLOAT_LANDS_300_A12_N3: &[(i32, i32, i32, i32)] = &[];
 const FLOAT_LANDS_300_A12_N8: &[(i32, i32, i32, i32)] = &[];
 const FLOAT_LANDS_300_A12_N9: &[(i32, i32, i32, i32)] = &[];
+/// Piece 10's [`Release::float_lands`] (item 4618, run1819's packet); its
+/// `CHAR_ATTACK1` and `CHAR_ATTACK2` rows are one entry pair.
+const FLOAT_LANDS_10_A10: &[(i32, i32, i32, i32)] = &[(324, 13, 21, 79)];
+const FLOAT_LANDS_10_A11: &[(i32, i32, i32, i32)] = &[(321, 250, 25, -71)];
 const RELEASES: &[(i32, i8, u32, Release)] = &[
     // **The Light Tank, piece 189** (unit type 239; item 3529, `docs/AI.md`
     // §303): run1169's packet holds the piece's seven entries — the turret
@@ -5170,6 +5185,48 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             pivot: [0, 27_570_000, 28_619_999],
             at: [19_485_369, -16_093_754, 27_733_791],
             float_lands: &[],
+        },
+    ),
+    // **Piece 10, the Armed Caravan** (item 4618, row 48): one
+    // `<RESTRICTION>` (node 4, ±150°), so its node-0 arrow takes the pivot
+    // arm. run1819's packet stores its seven entries, `RData +0x88` 1.0: the
+    // pivot node 4 and the release node 0 at frame 22 of `CHAR_ATTACKWALK`,
+    // `CHAR_ATTACK1` and `CHAR_ATTACK2` (the last two alike), with the
+    // `(4, 0, 0)`. `get_position.py … pivot 10 0 <anim> 22 1` swept every cell.
+    (
+        10,
+        crate::units::anim::ATTACKWALK,
+        22,
+        Release {
+            piece: 10,
+            node: 0,
+            pivot: [-102_937, 663_333, 32_787_601],
+            at: [-1_970_323, -17_582_939, 14_947_959],
+            float_lands: FLOAT_LANDS_10_A10,
+        },
+    ),
+    (
+        10,
+        crate::units::anim::ATTACK1,
+        22,
+        Release {
+            piece: 10,
+            node: 0,
+            pivot: [-59_999, 1_019_999, 32_630_001],
+            at: [1_997_005, -15_175_800, 16_513_511],
+            float_lands: FLOAT_LANDS_10_A11,
+        },
+    ),
+    (
+        10,
+        crate::units::anim::ATTACK2,
+        22,
+        Release {
+            piece: 10,
+            node: 0,
+            pivot: [-59_999, 1_019_999, 32_630_001],
+            at: [1_997_005, -15_175_800, 16_513_511],
+            float_lands: FLOAT_LANDS_10_A11,
         },
     ),
 ];

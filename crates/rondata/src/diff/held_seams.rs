@@ -172,14 +172,18 @@ fn fallback_rows(walks: &[Walk]) -> Vec<(usize, u64)> {
 /// (the settlement of 2026-11-24, Astra's items 4641 to 4648): no first
 /// parting moved but row 43's, and every count is past its row's: the
 /// fifth's row 83 fires for the first time, 50 rounds from state 5714.
+/// **None on item 4618's tree**: its 56 `BAYS` rows, the Albatross's two
+/// `GUNS` and the Armed Caravan's pivot rows give every one of the 2,169
+/// rounds a row; row 48's `pivot::offset_at_unpinned` (850 from 6555)
+/// goes with the caravan's `NODES` row, and row 133 keeps 664 of its 673.
 const FALLBACK: [(&str, &[(usize, u64)]); 7] = [
     ("first", &[]),
     ("second", &[]),
     ("third", &[]),
     ("fourth", &[]),
-    ("fifth", &[(83, 50)]),
-    ("sixth", &[(133, 563)]),
-    ("seventh", &[(48, 21), (88, 1392), (148, 143)]),
+    ("fifth", &[]),
+    ("sixth", &[]),
+    ("seventh", &[]),
 ];
 
 fn fallback_as_pinned(file: &str, walks: &[Walk]) {
