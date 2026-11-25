@@ -1321,7 +1321,7 @@ impl Sim {
     /// steps 1–4 of [`Sim::disembark`], step 4 on `carry` (`param_3`) alone.
     pub(crate) fn eject_riders(&mut self, boat: usize, carry: bool) {
         let bearing = self.units[boat].movement.heading;
-        let riders: Vec<usize> = (0..self.units.len())
+        let mut riders: Vec<usize> = (0..self.units.len())
             .filter(|&i| self.units[i].inside_unit == Some(boat))
             .collect();
         // **The loop reads the boat's `inside_down` again after every
@@ -1330,6 +1330,16 @@ impl Sim {
         // with it: so a squad is one pass, on the chain's head, and its
         // members are never the loop's own (item 1291). run496's block
         // 1902 has one `GroupMoveOrder` on each of `0/7`..`0/9`.
+        //
+        // **The head is the chain's, never the lowest slot** (item 4633,
+        // `docs/RECGAME.md` §14.4): the riders in the order they entered
+        // ([`Unit::boarded`], [`Sim::cargo_chain`]'s order). Step 3's
+        // `same_damage` lands on the loop's own passenger, so the order
+        // names who carries the boat's damage ashore. run1815's 2902:
+        // who=2's barge `2/65` (44 of 50) unloads the Elite Javelineers
+        // `2/29`..`2/31` and theirs' 12 is on `2/31`, the chain's head;
+        // the slot order gave it to `2/29`.
+        riders.sort_by_key(|&i| self.units[i].boarded);
         for r in riders {
             if self.units[r].inside_unit != Some(boat) {
                 continue;
