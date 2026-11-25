@@ -2240,6 +2240,37 @@ pub(crate) mod tests {
     /// store the ground at the spot's tile. Every units range on 3613 and
     /// 3614.
     #[test]
+    fn probe_4686_city_12() {
+        if std::env::var_os("RON_PROBE_4686").is_none() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        while built.sim.frame < 3622 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            if built.sim.frame >= 3560 {
+                let c = &built.sim.cities.cities[12];
+                let ai = built.sim.ai.ai.get(c.owner as usize).and_then(|a| a.city_ai.get(12));
+                eprintln!(
+                    "probe4686 state {} city12 owner {} alive {} pos ({}, {}) cell ({}, {}) bordering {:?} near {:?} pass {:?}",
+                    built.sim.frame, c.owner, c.alive, c.pos.x, c.pos.y, c.pos.cell().x, c.pos.cell().y,
+                    ai.map(|a| a.bordering), ai.map(|a| a.near_border),
+                    built.sim.territory.border_pass.as_ref().map(|p| p.index.clone())
+                );
+            }
+        }
+    }
+
+    #[test]
     fn row_133_s_citizen_comes_out_at_the_ground_under_its_spot_on_run1797() {
         let Some(inst) = crate::testenv::install() else {
             return;

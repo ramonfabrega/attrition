@@ -108,6 +108,12 @@ impl Sim {
         let bits = (1i32 << (p & 31)) | (1i32 << (q & 31));
         let at = self.cities.cities[c].pos.cell();
         let near = (cell.x - at.x).abs() + (cell.y - at.y).abs() < 5;
+        if std::env::var_os("RON_PROBE_4686").is_some() && c == 12 {
+            eprintln!(
+                "probe4686 frame {} mark c {c} p {p} q {q} cell ({}, {}) at ({}, {}) near {near}",
+                self.frame, cell.x, cell.y, at.x, at.y
+            );
+        }
         if let Some(a) = self.ai.ai.get_mut(owner) {
             // A human's leader never sweeps, so its table starts short.
             if a.city_ai.len() <= c {
