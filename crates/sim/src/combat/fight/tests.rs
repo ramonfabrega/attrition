@@ -5346,6 +5346,70 @@ fn the_death_pool_evicts_the_oldest_record_that_does_not_block() {
     );
 }
 
+/// **A decoy's wreck leaves the chain at its death** (item 4685,
+/// `docs/COLLISION.md` §3.2). `Unit::close@0060ee50` zeroes `param_1`
+/// (`:592`) whenever its death-animation arm does not run, and a decoy
+/// (`unit_masks & 1`) never runs it; `Object::close@00647160` then takes
+/// `remove_from_world` whatever the type's `blocks_while_dead` says. Row
+/// 93's decoy Tiger Tank `1/38` (TI 258), killed on 3089's tick over the
+/// Bazooka `1/35`, leaves `1/35` heading cell (16, 29) with `up` −1 on
+/// run1799's ranges. A twin that is no decoy stays on the chain, a wreck,
+/// with its death record.
+///
+/// Made to fail by dropping `close_draws`'s decoy clause from
+/// `keeps_disc` (the decoy stays above `1/35`'s stand-in, with no record
+/// to clear it), or by taking `keep` after `clear_decoy_at_close`.
+#[test]
+fn a_decoy_s_wreck_leaves_the_chain_at_its_death() {
+    let spot = Pos::new(0x1018, 0x1018);
+    let dies = |decoy: bool| {
+        let (mut sim, ty) = at_war();
+        sim.tables.unit_types[ty].cols.unit_flags |= crate::ai::ai_load::uflags::BLOCKS_WHILE_DEAD;
+        let below = put(&mut sim, 1, ty, spot);
+        let top = put(&mut sim, 1, ty, Pos::new(spot.x + 4, spot.y + 4));
+        assert_eq!(
+            sim.object_chain(spot.cell()),
+            vec![Obj::Unit(top), Obj::Unit(below)],
+            "the newer unit heads the cell"
+        );
+        sim.units[top].decoy = decoy;
+        sim.units[top].health = 0;
+        sim.die_with(top, 2);
+        (sim, below, top)
+    };
+    let (sim, below, top) = dies(true);
+    assert_eq!(
+        sim.object_chain(spot.cell()),
+        vec![Obj::Unit(below)],
+        "the decoy is off the whole chain"
+    );
+    assert_eq!(
+        sim.units[below].chain.up, -1,
+        "the unit below heads the cell"
+    );
+    assert_eq!(
+        sim.object_head_words(spot.cell()).0,
+        sim.units[below].index,
+        "WData::down names the unit below"
+    );
+    assert_eq!(
+        (sim.units[top].chain.up, sim.units[top].chain.down),
+        (-1, -1)
+    );
+    assert!(
+        sim.combat.deaths.is_empty(),
+        "a decoy draws no death record"
+    );
+    let (sim, below, top) = dies(false);
+    assert_eq!(
+        sim.object_chain(spot.cell()),
+        vec![Obj::Unit(top), Obj::Unit(below)],
+        "a wreck that is no decoy stays until its record's cull"
+    );
+    assert_eq!(sim.units[below].chain.up, sim.units[top].index);
+    assert_eq!(sim.combat.deaths.len(), 1, "with its record");
+}
+
 /// **Only an unpacked Merchant dies without a death draw** (item 4488,
 /// `Unit::close@0060ee50:170`–`:194`). `local_1c`, the flag that skips
 /// the death animation's `Random::get` and its `DEATH_OBJS` records, is

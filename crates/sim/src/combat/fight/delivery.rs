@@ -796,12 +796,12 @@ impl Sim {
                     let pose = source.map(|(hit, angle)| CasualtyPose::Hit(hit, angle));
                     self.close_count(i);
                     self.relink_squad(i);
+                    let keep = self.keeps_disc(i, dtype);
                     self.close_unit(i, dtype, _frame, pose);
                     self.kill_contents(i);
                     self.kremlin_spy_closed(i);
                     self.close_dead_orders(i);
                     self.hold_dead_slot(i);
-                    let keep = self.keeps_disc(i, dtype);
                     self.close_supply_in(i, keep);
                     self.forget(Obj::Unit(i));
                     self.clear_decoy_at_close(i);
@@ -1130,12 +1130,12 @@ impl Sim {
         self.units[v].health = 0;
         self.close_count(v);
         self.relink_squad(v);
+        let keep = self.keeps_disc(v, dtype);
         self.close_unit(v, dtype, frame, Some(CasualtyPose::Unarmed));
         self.kill_contents(v);
         self.kremlin_spy_closed(v);
         self.close_dead_orders(v);
         self.hold_dead_slot(v);
-        let keep = self.keeps_disc(v, dtype);
         self.close_supply_in(v, keep);
         self.forget(Obj::Unit(v));
         self.clear_decoy_at_close(v);
@@ -1158,12 +1158,12 @@ impl Sim {
         }
         self.close_count(i);
         self.relink_squad(i);
+        let keep = self.keeps_disc(i, ATTRITION_DTYPE);
         self.close_unit(i, ATTRITION_DTYPE, frame, Some(CasualtyPose::Unarmed));
         self.kill_contents(i);
         self.kremlin_spy_closed(i);
         self.close_dead_orders(i);
         self.hold_dead_slot(i);
-        let keep = self.keeps_disc(i, ATTRITION_DTYPE);
         self.close_supply_in(i, keep);
         self.forget(Obj::Unit(i));
         self.clear_decoy_at_close(i);
@@ -1174,9 +1174,18 @@ impl Sim {
     /// occupancy disc standing until the death object's cull — a combat
     /// death or a Sabotage's boom alike (item 3228, `docs/GOLDEN.md` §130);
     /// attrition (`dtype` 1, `Unit::suffer_attrition`) keeps it like any other (item 3252, `docs/GOLDEN.md` §135).
+    ///
+    /// **`param_1` is the draw arm's, not the caller's** (item 4685,
+    /// `docs/COLLISION.md` §3.2): `Unit::close@0060ee50` zeroes it
+    /// (`:592`) whenever its death-animation arm does not run — a decoy
+    /// (`unit_masks & 1`), a unit off the map, the unpacked merchant's
+    /// arm — and passes what is left to `Object::close` (`:602`). So the
+    /// gate is [`Sim::close_draws`], read where `close_unit` reads it:
+    /// each caller takes this before [`Sim::close_unit`]. A decoy's wreck
+    /// leaves the chain and its disc at its death, and holds no death
+    /// record for a cull to clear it by.
     pub(super) fn keeps_disc(&self, i: usize, dtype: i32) -> bool {
-        dtype != 0
-            && self.units[i].on_map
+        self.close_draws(i, dtype)
             && self.units[i].ty.is_some_and(|t| {
                 self.tables.unit_types[t].cols.unit_flags
                     & crate::ai::ai_load::uflags::BLOCKS_WHILE_DEAD
@@ -1637,6 +1646,20 @@ impl Sim {
         }
     }
 
+    /// **Whether `Unit::close@0060ee50`'s death-animation arm runs**: the
+    /// gate [`Sim::close_unit`] documents below, and what is left of
+    /// `param_1` when `Unit::close` hands it to `Object::close` (`:592`,
+    /// `:602`), which [`Sim::keeps_disc`] reads (item 4685).
+    pub(super) fn close_draws(&self, i: usize, dtype: i32) -> bool {
+        let u = &self.units[i];
+        dtype != 0
+            && u.on_map
+            && !u.decoy
+            && !(self.profile(Obj::Unit(i)).is(combat::role::IS_MERCHANT)
+                && !u.combat.packed
+                && !self.is_packing(i))
+    }
+
     /// **`Unit::close@0060ee50`'s death-animation arm** (`docs/COMBAT.md`
     /// §42.1) — one `Random::get(0, 0xffff)` per death, and the
     /// `DEATH_OBJS` record the dump then prints.
@@ -1669,17 +1692,7 @@ impl Sim {
         frame: i64,
         pose: Option<CasualtyPose<'_>>,
     ) {
-        if dtype == 0 {
-            return;
-        }
-        let u = &self.units[i];
-        if !u.on_map || u.decoy {
-            return;
-        }
-        if self.profile(Obj::Unit(i)).is(combat::role::IS_MERCHANT)
-            && !u.combat.packed
-            && !self.is_packing(i)
-        {
+        if !self.close_draws(i, dtype) {
             return;
         }
         self.mark(SITE_DEATH_ANIM);
