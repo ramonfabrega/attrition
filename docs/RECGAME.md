@@ -1978,3 +1978,5 @@ Open: units, builds, groups and guys part on 7421. run1809 holds sums.
 
 Taken by item 4611, found on `6fa43acc3`'s tree; with item 4630's row 28 the line is `(2, 8)`. Open: row 128's leaders on 3338, row 148's
 units on 10879. Both hold sums.
+
+**Item 4618** (piece 37's bays): row 148 has 11 lines whole, every one but units, which still part on 10879.

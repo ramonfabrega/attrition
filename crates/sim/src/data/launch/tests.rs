@@ -4394,6 +4394,102 @@ fn every_key_the_sixth_held_out_games_fired_from_the_figure_s_square_has_its_row
     assert_eq!(missing, unread, "{} keys fall back", missing.len());
 }
 
+/// **Every key the settlement's bay probe fired from the figure's square has
+/// its row** (item 4618, `docs/COMBAT.md` §55; `docs/DECISIONS.md` entry 156
+/// §2): the probe on [`launch_point`]'s fallback over the fifth's, sixth's and
+/// seventh's walks on `05ba34976` listed 2,169 rounds on five rows from eight
+/// pieces and these 67 keys `(piece, anim, starttime, node)`
+/// (`~/ron-data/lab-experiments/2026-11-24-settlement/bay-probe-{fifth,sixth,
+/// seventh}.out`, outside git): the Albatross (238, row 83); the Main Battle
+/// Tank's node-1 tracers (206), the Asian and Native American Advanced Machine
+/// Guns (1133, 1485) and the Native American TOW (1499, row 133); the Armed
+/// Caravan (10, row 48); the Xopilli Atlatl (37, row 148); and the Elite
+/// Longbowman (128, row 88). The Armed Caravan's node 0 is under its one
+/// `<RESTRICTION>`, so its round takes [`crate::data::pivot::release_node`]'s
+/// row; every other key a [`bay`]. Red on the tree before the rows: 67 keys
+/// fell back.
+#[test]
+fn every_key_the_settlement_s_bay_probe_fired_from_the_figure_s_square_has_its_row() {
+    let keys: [(i32, i8, u32, i8); 67] = [
+        (10, 10, 22, 0),
+        (37, 11, 12, 0),
+        (37, 12, 11, 0),
+        (37, 13, 12, 0),
+        (128, 11, 6, 0),
+        (128, 11, 22, 0),
+        (128, 12, 4, 0),
+        (128, 12, 22, 0),
+        (128, 13, 10, 0),
+        (128, 13, 24, 0),
+        (206, 13, 1, 1),
+        (206, 13, 7, 1),
+        (238, 12, 1, 0),
+        (238, 12, 1, 1),
+        (238, 12, 3, 0),
+        (238, 12, 3, 1),
+        (238, 12, 7, 0),
+        (238, 12, 7, 1),
+        (238, 12, 11, 0),
+        (238, 12, 11, 1),
+        (238, 12, 14, 0),
+        (238, 12, 14, 1),
+        (238, 12, 18, 0),
+        (238, 12, 18, 1),
+        (1133, 11, 9, 0),
+        (1133, 11, 12, 0),
+        (1133, 11, 17, 0),
+        (1133, 11, 20, 0),
+        (1133, 11, 24, 0),
+        (1133, 11, 29, 0),
+        (1133, 11, 32, 0),
+        (1133, 11, 37, 0),
+        (1133, 11, 39, 0),
+        (1133, 11, 46, 0),
+        (1133, 11, 47, 0),
+        (1133, 12, 1, 0),
+        (1133, 12, 2, 0),
+        (1133, 12, 3, 0),
+        (1133, 12, 5, 0),
+        (1133, 12, 8, 0),
+        (1133, 12, 9, 0),
+        (1133, 12, 10, 0),
+        (1133, 12, 12, 0),
+        (1133, 13, 3, 0),
+        (1133, 13, 4, 0),
+        (1133, 13, 12, 0),
+        (1133, 13, 19, 0),
+        (1133, 13, 20, 0),
+        (1133, 13, 27, 0),
+        (1133, 13, 29, 0),
+        (1133, 13, 34, 0),
+        (1133, 13, 37, 0),
+        (1133, 13, 42, 0),
+        (1133, 13, 46, 0),
+        (1485, 11, 3, 0),
+        (1485, 11, 9, 0),
+        (1485, 11, 12, 0),
+        (1485, 11, 17, 0),
+        (1485, 11, 20, 0),
+        (1485, 11, 24, 0),
+        (1485, 11, 29, 0),
+        (1485, 11, 32, 0),
+        (1485, 11, 37, 0),
+        (1485, 11, 39, 0),
+        (1499, 11, 17, 0),
+        (1499, 12, 7, 0),
+        (1499, 13, 13, 0),
+    ];
+    let missing: Vec<_> = keys
+        .iter()
+        .filter(|&&(p, a, t, n)| {
+            bay(p, a, t, n).is_none() && crate::data::pivot::release_node(p, a, t, n).is_none()
+        })
+        .copied()
+        .collect();
+    let unread: [(i32, i8, u32, i8); 0] = [];
+    assert_eq!(missing, unread, "{} keys fall back", missing.len());
+}
+
 /// **Item 4559's plain rows agree with the original at every heading**
 /// (`docs/RECGAME.md` §12.3): `$RON_BAY_SWEEPS_4559` is the directory
 /// holding `sweep-<piece>-0-<anim>-<time>.txt` (`deg i x y z` at every whole
@@ -4445,6 +4541,69 @@ fn the_original_s_release_agrees_at_every_heading_for_item_4559() {
     }
     assert_eq!(files, 35, "{dir}");
     assert_eq!(rows, 35 * 361, "{dir}");
+    assert!(
+        off.is_empty(),
+        "{} headings disagree: {:?}",
+        off.len(),
+        &off[..off.len().min(20)]
+    );
+}
+
+/// **Item 4618's rows agree with the original at every heading**
+/// (`docs/COMBAT.md` §55): `$RON_BAY_SWEEPS_4618` is the directory holding
+/// `sweep-<piece>-<node>-<anim>-<time>.txt` (`deg i x y z` at every whole
+/// degree 0..=360), outside git
+/// (`~/ron-data/lab-experiments/2026-11-24-item-4618/sweeps/`): 75 keys,
+/// written by `init_position` and then `get_position` on run1579's packet for
+/// the Elite Longbowman (128, six), the Xopilli Atlatl (37, three), the Main
+/// Battle Tank's node-1 tracers (206, four, two of them 4574's rows) and the
+/// Albatross (238, sixteen, two [`GUNS`] rows), and on run1819's for the Asian
+/// and Native American Advanced Machine Guns (1133 after `init_position`, 31;
+/// 1485's stored rows, twelve) and the Native American TOW (1499, three).
+/// Every file is read and each key looked up as [`launch_point`] looks it up.
+#[test]
+fn the_original_s_release_agrees_at_every_heading_for_item_4618() {
+    let Ok(dir) = std::env::var("RON_BAY_SWEEPS_4618") else {
+        eprintln!("skipping: set RON_BAY_SWEEPS_4618 (item 4618's oracle, run1579 and run1819)");
+        return;
+    };
+    let mut names: Vec<_> = std::fs::read_dir(&dir)
+        .expect("RON_BAY_SWEEPS_4618")
+        .map(|e| e.expect("entry").file_name().into_string().expect("utf-8"))
+        .filter(|n| n.starts_with("sweep-") && n.ends_with(".txt"))
+        .collect();
+    names.sort();
+    let (mut files, mut rows, mut off) = (0, 0, Vec::new());
+    for name in names {
+        // `sweep-<piece>-<node>-<anim>-<time>.txt`
+        let f: Vec<&str> = name[..name.len() - ".txt".len()].split('-').collect();
+        let (piece, node, anim, time): (i32, i8, i8, u32) = (
+            f[1].parse().expect("piece"),
+            f[2].parse().expect("node"),
+            f[3].parse().expect("anim"),
+            f[4].parse().expect("time"),
+        );
+        let b = bay(piece, anim, time, node).unwrap_or_else(|| panic!("no bay for {name}"));
+        let table = std::fs::read_to_string(format!("{dir}/{name}")).expect("sweep");
+        for line in table.lines() {
+            let c: Vec<i64> = line
+                .split_whitespace()
+                .take(5)
+                .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                .collect();
+            let (x, y) = b.offset((c[0] + 180) % 360);
+            if (x, y, i64::from(b.dz)) != (c[2], c[3], c[4]) {
+                off.push(format!(
+                    "{name} deg {}: {x},{y},{} against {},{},{}",
+                    c[0], b.dz, c[2], c[3], c[4]
+                ));
+            }
+            rows += 1;
+        }
+        files += 1;
+    }
+    assert_eq!(files, 75, "{dir}");
+    assert_eq!(rows, 75 * 361, "{dir}");
     assert!(
         off.is_empty(),
         "{} headings disagree: {:?}",
