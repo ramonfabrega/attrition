@@ -1246,7 +1246,9 @@ AA unit `1/75` (TI 284) stands 2,054 from who=2's Special Forces `2/22` (TI
 either generator (read as the renderer's, not checked by a capture); the
 anti-air animation roll's jammed arm (§81) is wired to the same
 `is_jammed` and no capture has entered it; the `Wall::inc_time` reader is
-built from the reading alone, run1742's Tower being no wall-cycle building.
+built from the reading alone, run1742's Tower being no wall-cycle building;
+an anti-air unit the same block's attrition kills still asks (the listing
+has no life test between them; no capture has one).
 
 `get_garrison_arrows`: `a = (attack() + 5) / 10`; zero → zero. `base =
 base_arrows (+ maya_garrison_arrows for a Mayan, except an unassimilated
