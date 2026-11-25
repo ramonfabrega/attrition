@@ -1130,6 +1130,13 @@ pub struct Side {
     pub captain: i32,
     pub damage_frame: i64,
     pub damage_o: i32,
+    /// The attacker's own `ObjectData::attack@006469f0`, which `get_damage`
+    /// step 17 (the decoy) calls **directly** at `644a04` rather than
+    /// through the `attack()` slot the caller passes, so none of
+    /// `UnitData::attack`'s overrides (the Citizen's, the Monarch's, …)
+    /// enter it (item 4657). `None`, as a test that states no attacker
+    /// writes it, takes the `attack` argument.
+    pub object_attack: Option<i32>,
 }
 
 /// One call of `ObjectData::get_damage`, with the two objects reduced to what
