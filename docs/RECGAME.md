@@ -1968,7 +1968,7 @@ The score, `SCORES_SEVENTH[4].moved` (12,001 states). 4614: deaths and world 2,7
 groups → 2,928, guys → 2,907, leaders → 2,883, items → 7,829, world → 2,909; first 2791 → 2883. 4631: leaders 2,883 →
 2,926. 4633: units → 2,985, builds → 3,015, ammo → 3,170, guys → 2,985, leaders → 3,011, goods → 3,543; first 2902 →
 2985. 4662: units → 3,033, builds → 3,144, ammo → 3,391, deaths → 3,463, guys → 3,069, leaders → 3,134, world → 3,086;
-first 2985 → 3028.
+first 2985 → 3028. 4664: ammo → 3,392; first 3028 → 3033.
 
 **Item 4662: a stale attack is cleared, not retargeted.** On 2984 who=1's Trebuchet `1/61` (TI 266) ends its
 attack-ground; the Attack under it names `2/63` at uid 93, a number another barge holds. `Unit::work@0060d180:300`–`:340`
@@ -1976,7 +1976,13 @@ marks the object at `(whom, ox)` in danger and, on the uid mismatch, writes `ox`
 2985. On 2985 `order.target` ours (64, 2, 94) → (−1, −1, 93), theirs (−1, −1, 93). Held by
 `orders::reused_target_tests::an_attack_on_a_reused_number_is_cleared_and_searches_a_frame_later`.
 
-**The next word, 3028: ammo**, past every range on disk (run1815 to 2991, run1818 to 2792): a take is owed.
+**Item 4664: a ship's round leaves 100 above the water.** `Object::fire_ammo@0064c8b0:166`'s unit arm launches from the
+figure's `z` + 100, and a ship's figure stands at 0. On 3027 (run1834) who=1's Heavy Fire Raft `1/94` (TI 335, sea) fires
+on `2/83`: ammo `sz` ours −173 (the seabed, −273) → 100, theirs 100. Built in `Sim::unit_launch_z`, held by
+`combat::fight::tests::a_ship_s_round_leaves_above_the_water_not_the_seabed`.
+
+**The next word, 3033: units**, on run1834's ranges: who=1's Light Cavalry `1/83` (TI 210) `damage` ours 3, theirs 7,
+`damage_frame` 2988 against 3032.
 
 **Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is not built: no capture has been shown
 to reach it. A building shooter always splashes from the landing (`Build` and `Wall` fill vslot `+0x18` with a
