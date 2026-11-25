@@ -741,7 +741,9 @@ tmask  = T.type.obj_masks
 16. **River**: T is a unit and T's `z < 0`: `base = (base * river_modifier) >>
     8`.
 17. **Decoy**: T is a unit with `unit_masks & 1`: `armor = 0`; `base =
-    max(A.attack(), base) * 1000`. Anything kills a decoy. ~~This crate's
+    max(ObjectData::attack(A), base) * 1000`, the direct call at `644a04`,
+    no `attack()` override (~~`A.attack()`~~, item 4657: run1830b's
+    Citizen arm). Anything kills a decoy. ~~This crate's
     target side carried the bit false for every unit~~ (item 3385,
     `docs/AI.md` §293): run1011e's packet struck a General's decoy Light
     Horse for 19688 where this crate dealt 6. **Diff-backed** by the Inca
@@ -7395,6 +7397,11 @@ initial `max`, `inc_time`'s bump, and `DeathObj::inc_time`'s — are on a
 **dead** object, and the field's whole job is to keep a dead archer's
 slot alive until its last arrow lands. It has nothing to say about a
 target.
+
+**The slot's `flags & 1` alone, not `is_on_map`** (item 4680,
+`docs/RECGAME.md` §14.4; `67d3c4` `testb $0x1, 0x8(%eax)`): a live
+shooter that boards a boat with its round in the air is not bumped. The
+crate asked `is_on_map` too until item 4680, which run1840 parted on 3112.
 
 That is now a row rather than a reading. `hold_frames` is printed in the
 `OBJECT` block at every detail level and `coverage`'s pin had carried it

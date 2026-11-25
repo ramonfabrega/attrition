@@ -137,6 +137,23 @@ impl Sim {
             + family
     }
 
+    /// **`ObjectData::attack@006469f0` itself**, the base [`Sim::attack_of`]
+    /// starts from, plus the player's flat modifier (which the original
+    /// keeps on the owner's type record, `+0x1e8`): what `get_damage`'s
+    /// step 17 reads of the attacker, because `644a04` is `calll
+    /// 0x6469f0` with `ecx` the attacker, not the `attack()` slot (item
+    /// 4657, `docs/RECGAME.md` §13.3). run1830b's packet at 2964: row 93's
+    /// Infantry `2/51` on the decoy `1/38` reads 240 there, where
+    /// `attack_of`'s Citizen arm makes 260, so the ranking's blow was
+    /// 26,143 where the original's is 24,132.
+    pub(super) fn object_attack(&self, o: Obj) -> i32 {
+        crate::combat::object_attack_view::object_attack_steps(&mut SimObjectAttack {
+            sim: self,
+            o,
+        })
+        .wrapping_add(self.mods_of(self.owner_of(o) as usize).attack)
+    }
+
     /// **`UnitData::attack@006103c0`'s Monarch arm** (item 3688, `docs/AI.md`
     /// §349), the override's last term (`610800`–`61083c`): a unit whose
     /// type's trainer is the Stable (`type +0x40 == 0x1ac`, by equality —
@@ -621,6 +638,7 @@ impl Sim {
                 unit: true,
                 captain: self.units[i].combat.captain,
                 z: self.world.object_z(self.units[i].pos.tile()),
+                object_attack: Some(self.object_attack(o)),
                 ..Side::default()
             },
             // `ObjectData::get_captain@00472400` is the object's own `o`,
@@ -632,6 +650,7 @@ impl Sim {
                 build_proper: true,
                 captain: crate::core::flag_reads::object_get_captain(self.buildings[b].index),
                 z: self.world.object_z(self.buildings[b].pos.tile()),
+                object_attack: Some(self.object_attack(o)),
                 ..Side::default()
             },
         }

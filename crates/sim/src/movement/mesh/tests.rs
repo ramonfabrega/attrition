@@ -500,3 +500,27 @@ fn a_straight_keeps_the_intersections_it_was_laid_with() {
     };
     assert_eq!([10, 11, 12, 13, 14].map(inter), [0, 0x11, 0x10, 0x10, 0]);
 }
+
+/// **A tile laid into a gap takes its bits as it is laid** (item 4678,
+/// `docs/RENDERER.md` §6.6): `add_roads`' second pass runs the marks on
+/// the tile it lays. Three tiles west to east, one standing alone at 14,
+/// then 13 between them: 13 is joined both ways the moment it is laid,
+/// and its east neighbour is the run's end, so it takes `E`. The redo
+/// pass then redoes 12 and 14 and never 13. Without the second pass's
+/// marks, 13 holds nothing.
+#[test]
+fn a_tile_laid_into_a_gap_marks_itself() {
+    let mut sim = bare();
+    lay(
+        &mut sim,
+        &[(10, 10), (11, 10), (12, 10), (14, 10), (13, 10)],
+    );
+    let inter = |x| {
+        sim.movement
+            .mesh
+            .elem(&sim.world, Pos::new(x, 10))
+            .unwrap()
+            .inter
+    };
+    assert_eq!(inter(13), 0x10);
+}

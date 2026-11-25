@@ -290,6 +290,68 @@ fn a_decoy_target_dies_to_any_round() {
     }
 }
 
+/// **Step 17 reads the attacker's own `ObjectData::attack`** (item 4657,
+/// `docs/RECGAME.md` §13.3): `get_damage@00644130` calls
+/// `ObjectData::attack@006469f0` directly at `644a04`, so a Citizen
+/// (`0x164`) in the attacker's reach, whose `THECITIZEN_ATTACK_BONUS`
+/// is `UnitData::attack`'s override, does not enter the decoy's
+/// `max(attack, base) × 1000`. run1830b's packet: row 93's Infantry
+/// `2/51` on the decoy `1/38` at 2964 took 240 there where this crate
+/// passed `attack_of`'s 260, and ranked it 594,950 where the original
+/// ranks 20,000. Made to fail with the attacker's `object_attack`
+/// dropped from its side.
+#[test]
+fn a_decoy_s_blow_takes_the_object_attack_not_the_citizen_s() {
+    use crate::ai::ai_load::uflags2;
+    let (mut sim, ty) = at_war();
+    sim.tables.unit_types[ty].combat.attack = 240;
+    sim.combat.table.set(ty, ty, 86);
+    let mut citizen = crate::UnitType {
+        type_index: 0x164,
+        hits: 100,
+        ..crate::UnitType::default()
+    };
+    citizen.cols.unit_flags2 = uflags2::FLAG2_GENERAL;
+    let citizen = sim.add_unit_type(citizen);
+    let me = put(&mut sim, 1, ty, Pos::new(9000, 9000));
+    let them = put(&mut sim, 0, ty, Pos::new(9600, 9000));
+    sim.units[them].decoy = true;
+    let (a, t) = (Obj::Unit(me), Obj::Unit(them));
+    let blow = |s: &Sim| {
+        combat::get_damage_checked(
+            &s.tables.tuning,
+            &s.profile(a),
+            s.attacker_side(a),
+            &s.profile(t),
+            s.target_side(t, a),
+            s.attack_of(a),
+            s.armor_of(t),
+            s.table_pct(a, t),
+            Angle(0),
+            false,
+            false,
+            s.frame,
+            &s.mods_of(1),
+        )
+    };
+    let alone = (
+        sim.attack_of(a),
+        blow(&sim),
+        sim.compare_target(a, t, true, false),
+    );
+    let c = put(&mut sim, 1, citizen, Pos::new(9000, 9000));
+    sim.units[c].type_index = 0x164;
+    assert_eq!(sim.attack_of(a), 260, "the Citizen's arm is in attack()");
+    assert_eq!(alone.0, 240);
+    // 240 × 86 / 100 is 206 alone and 260 × 86 / 100 is 223 beside the
+    // Citizen, both under the object's 240: step 17's `max` is 240 either
+    // way, and the blow past it (24,000 net, doubled by the later steps
+    // at this bearing) does not move.
+    assert_eq!(alone.1, 48_000);
+    assert_eq!(blow(&sim), alone.1, "step 17 takes 240, not 260");
+    assert_eq!(sim.compare_target(a, t, true, false), alone.2);
+}
+
 /// **Infantry on rocky ground takes `get_damage`'s step 22** (item 4628,
 /// `docs/RECGAME.md` §13.5): a target whose type mask carries an
 /// infantry bit (`& 0x10108`), standing on a cell whose `WData.flags`
@@ -5171,6 +5233,41 @@ fn a_puncturing_round_into_the_ground_stays_two_hundred_frames() {
     assert_eq!(sim.combat.projectiles[0].cur_time, SPENT_LIFE - 1);
     sim.process_projectiles(i64::from(SPENT_LIFE));
     assert!(sim.combat.projectiles.is_empty(), "closed at 200");
+}
+
+/// **A shooter that boards with its round in the air is not held**
+/// (item 4680, `docs/RECGAME.md` §14.4): `Ammo::inc_time@0067d380`'s
+/// first statement bumps the shooter's `hold_frames` when its slot's
+/// `flags & 1` is clear (`67d3c4`), and asks nothing about the map. On
+/// run1840's 3112 who=1's Elite Javelineers `1/72` and `1/73` board
+/// `1/112` with rounds in flight and theirs holds `hold_frames` 0, where
+/// ours, asking `is_on_map` too, counted 1 and 2. Off the map and alive:
+/// no bump; dead: one.
+#[test]
+fn a_shooter_that_boards_with_its_round_in_the_air_is_not_held() {
+    let (mut sim, ty) = at_war();
+    let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+    let mut p = shot(
+        me,
+        Pos::new(0x1000, 0x1000),
+        Pos::new(0x1000, 0x1400),
+        1,
+        0,
+        0,
+    );
+    p.rolling = false;
+    sim.add_ammo(p);
+    assert_eq!(sim.combat.projectiles.len(), 1, "the round is in the air");
+    sim.units[me].on_map = false;
+    let held = sim.units[me].hold_frames;
+    sim.hold_frames_tick();
+    assert_eq!(
+        sim.units[me].hold_frames, held,
+        "aboard and alive: the slot is open, no bump"
+    );
+    sim.units[me].health = 0;
+    sim.hold_frames_tick();
+    assert_eq!(sim.units[me].hold_frames, held + 1, "dead: held");
 }
 
 /// **The death pool holds 100 records and evicts the oldest that does

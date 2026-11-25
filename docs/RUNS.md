@@ -41898,6 +41898,31 @@ who=2's barge `2/61`. Theirs leaves (16866, 11729) at `sz` 35, ours left the fig
 the Carrack's piece 292 had no release row (`docs/RECGAME.md` §14.4). Read by `score_recording` on the item's tree,
 which agrees on all twelve lines through 2792 after the fix; no test reads the ranges.
 
+## run1839 — parity held out, seventh battery, row 88's file to 3,100 with the checksum and ranges hooks, every line but walls kept (2026-11-25, item 4676, `att-4676`)
+
+`docs/RECGAME.md` §14.4. **What the disk could not answer**: row 88 parts on 3095 on groups, past run1838's ranges (to
+3075). The take is run1838's line to 3,100 with `--log-window 3089 3097` and the same mask:
+`TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1839
+--recording ~/ron-golden/recordings/item4600-row088-12000.rcx --end-frame 3100 --allow-early-end --cover cover=1
+--log-window 3089 3097 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def
+RON_RANGES --tracer-def RNG_MASK=0xffbu`, waited on with `waitrun.sh` in the background. Both lanes were free at launch
+(`ron_lane_state`); `df -g ~` read 90 GB free before it and 95 after filing.
+- **The run**: pool lane 1, launched 12:19:46 −05:00, exited 12:23:52: **245.7 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 3,101 frames, `last_frame` 3100, not ended early, seed 12345, map 18. The recording's
+  SHA-256 is run1808's (`02dced92…`). Players: tribe 4 (who 0, flags 7), tribe 17 (who 1), tribe 11 (who 2).
+- **The record**: `~/ron-golden/run1839/map-18/rontrace.ranges`, 2,974,307,928 bytes, SHA-256
+  `cd7d25255699ee1a7527a842f9cc9a33aab97910b2e030524c8cd1ecf91e4b78`, split in three by `filerun.py` and compressed
+  in place (2.77 GiB on disk before, 0.25 after). `gamelog_p.txt`, 2,879 bytes, SHA-256
+  `e727113e5efcb76109e2c2f21ed198d3248150f1428dd30c0d13ddec503dbd6a`; `rontrace.log`, 105,591,040 bytes, SHA-256
+  `19d1378b7fa8122446e37de3d134dac231d04d423d6e32eaaf67b55b004b25c1`.
+- Filed with `filerun.py run1839 heldout7-row088-groups3095-ranges`.
+
+**What it named**: groups record 130 (who=2's pool slot 2) on 3095. who=2's army 0 lost its last member `2/34` (dead)
+on tick 3094; theirs keeps the army's record with `army` −1 (`stamp` 1523, `order_num` 4), ours printed the empty
+entry of 741 the slot held before the army took it. `Army::normalize`'s `remove_group` (`docs/RECGAME.md` §14.4,
+`docs/ARMY.md` §3.3). After the fix nothing parts to 3100. Read by item 4676's range printer (a probe, reverted); no
+test reads the ranges.
+
 ## run1838 — parity held out, seventh battery, row 88's file to 3,075 with the checksum and ranges hooks, every line but walls kept (2026-11-25, item 4674, `att-4674`)
 
 `docs/RECGAME.md` §14.4. **What the disk could not answer**: row 88 parts on 3069 on units and guys, past run1834's
@@ -42356,3 +42381,29 @@ Lanes 1 to 3 read `free` at launch; no minutes waited on another lane.
 
 **What it holds**: the Aztec slayer's mark (`take_damage@00652020`, `0x6529da`), read by
 `rondata::diff::held_out::tests::row_148_s_aztec_slayer_marks_its_victim_on_run1836_s_ranges`.
+
+## run1840 — parity held out, seventh battery, row 88's file to 3,118 with the checksum and ranges hooks, every line but walls kept (2026-11-25, item 4680, `att-4680`)
+
+`docs/RECGAME.md` §14.4. **What the disk could not answer**: row 88 parts on 3112 on units, past run1839's ranges (to
+3100). The take is run1839's line to 3,118 with `--log-window 3106 3113` and the same mask, `0xffb`, which is what
+`score_recording` on run1808's sums names (every line but walls parts):
+`TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1840
+--recording ~/ron-golden/recordings/item4600-row088-12000.rcx --end-frame 3118 --allow-early-end --cover cover=1
+--log-window 3106 3113 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def
+RON_RANGES --tracer-def RNG_MASK=0xffbu`, waited on with `waitrun.sh` in the background. The lane was free at launch
+(`ron_lane_state`); `df -g ~` read 79 GB free before it and 90 after filing.
+- **The run**: pool lane 1, launched 14:04:22 −05:00, exited 14:08:39: **257.2 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 3,119 frames, `last_frame` 3118, not ended early, seed 12345, map 18. The recording's
+  SHA-256 is run1808's (`02dced92…`). Players: tribe 4 (who 0, flags 7), tribe 17 (who 1), tribe 11 (who 2).
+- **The record**: `~/ron-golden/run1840/map-18/rontrace.ranges`, 2,996,720,712 bytes, SHA-256
+  `bb71a052dd8d1bedc160628e391d61defe6d57844231b2188ff21072d0c2844e`, split in three by `filerun.py` and compressed
+  in place (2.79 GiB on disk before, 0.26 after). `gamelog_p.txt`, 2,879 bytes, SHA-256
+  `664fde0a2845c7270e68550d0b3ab48f15e39100e9d526bce5d73cb624bb6d01`; `rontrace.log`, 105,599,424 bytes, SHA-256
+  `97222eab6115942ca275ee3b13d7067b96ea2d7a3802691f7742663372957c22`.
+- Filed with `filerun.py run1840 heldout7-row088-units3112-ranges`.
+
+**What it named**: units ranges 3089 and 3107 on 3112, who=1's Elite Javelineers `1/72` and `1/73` (TI 84), which
+board `1/112` that tick with a round each in the air: `hold_frames` ours 1, theirs 0 (2 and 0 on 3113).
+`Ammo::inc_time@0067d380` tests the shooter's slot `flags & 1` alone (`67d3c4`); ours asked `is_on_map` too
+(`docs/COMBAT.md` §42.3). After the fix nothing parts to 3118. Read by item 4680's range printer (a probe, reverted);
+no test reads the ranges.
