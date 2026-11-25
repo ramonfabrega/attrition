@@ -1958,6 +1958,30 @@ pub(crate) mod tests {
     /// for byte: two swings of three rockets, from nodes 0, 1 and 2, and
     /// their re-plans.
     #[test]
+    fn probe_4655_rounds() {
+        if std::env::var_os("RON_PROBE_4655").is_none() {
+            return;
+        }
+        let inst = crate::testenv::install().expect("install");
+        let (Some(rcx), _) = paths(&SIXTH, 6) else { panic!("rcx") };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        for state in 2440..=2452 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let cap = built.sim.building_by_o(2, 2000).expect("cap");
+            eprintln!("STATE {state} cap damage {} frac {}", built.sim.buildings[cap].damage, built.sim.buildings[cap].damage_frac);
+            for (i, p) in built.sim.combat.projectiles.iter().enumerate() {
+                eprintln!("  [{i}] {:?}", p);
+            }
+        }
+    }
+
+    #[test]
     fn row_133_s_sam_flies_its_rockets_on_their_splines_on_run1797_s_ranges() {
         let Some(inst) = crate::testenv::install() else {
             return;
