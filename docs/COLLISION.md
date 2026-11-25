@@ -1118,7 +1118,22 @@ In order, with the first that fires winning:
    the animal's position **unchanged** across the frame the order dies.
 
 1. **Attack it.** If the type has `+0x2b4 & 0x2000` and the other unit is a
-   valid target: `set_attack`, `fire_ammo`, done.
+   valid target: `set_attack`, `fire_ammo`, done. **And the attacker dies**
+   (`005f9d30:79`–`:94`; built by item 4667, `Sim::ram`): `0x2000` is
+   `unit_flags`' `n`, the fire rafts and fire ships, and after the round
+   vslot `+0x158` is `Object::die(this, 3, −1, 0)`, before
+   `update_action`. The round leaves as `fight`'s ranged arm sends it
+   (§46.1 of `docs/COMBAT.md`: the unit's own square, 100 above the
+   ground); there is no swing, no turn and no reload. Every collider this
+   crate records is a unit. **Diff-backed**: row 53's 3712 (run1835),
+   who=1's Fire Raft `1/49` (TI 334, sea) blocked by who=2's `2/108`:
+   theirs' draws 31 to 33 are `Ammo::init` twice and `Object::die <
+   resolve_unit_collision+0xc6`, its deaths line on 3713 holds the raft at
+   (17794, 13388), and every units, deaths, guys and leaders range on 3712
+   to 3714 agrees with ours
+   (`rondata::diff::held_out::tests::row_53_s_fire_raft_rams_and_sinks_on_run1835_s_ranges`).
+   Not established: a collider that is a building (none is recorded here),
+   and a `+0x158` override that is not `die`.
 2. **I am standing in my own *flat* gather target.** Only when the other
    unit is the same player's. If the current action is a `GATHER` whose
    target is an active build whose type answers vfunc `+0x94` —
@@ -1321,8 +1336,8 @@ Archers of run76 crowd each other on the frames after the group order and
 pay for it exactly there — Great Lakes 6848 → 6862.
 
 Not modelled, each listed in §9: ~~`detect_boat_collision` (no ships)~~
-its sea half is modelled (§13); step 1
-(`+0x2b4 & 0x2000`) and step 3 (the enemy ladder); the
+its sea half is modelled (§13); ~~step 1
+(`+0x2b4 & 0x2000`)~~ (built, item 4667) and step 3 (the enemy ladder); the
 ~~`TRADE_ROUTE`,~~ ~~`0xc`~~ and group arms of §4.3 (the caravan pair built in §19, the escort by item 696); §5.2's own group arm and its
 general `find_unit_with_radius` path;
 `do_move`'s own collision arm — the every-other-frame re-probe of

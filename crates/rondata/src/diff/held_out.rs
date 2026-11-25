@@ -3308,12 +3308,18 @@ pub(crate) mod tests {
         );
     }
 
-    /// **Row 53 on 3713** (item 4667, `docs/RECGAME.md` §13.2): run1835,
-    /// the ranges take of row 53's file to 3720 (units, deaths, guys,
-    /// leaders and world kept). Every kept line's ranges on 3712 to 3714,
-    /// ours against theirs, byte for byte.
+    /// **Row 53's Fire Raft rams and sinks** (item 4667, `docs/RECGAME.md`
+    /// §13.2, `docs/COLLISION.md` §6 step 1): run1835, the ranges take of
+    /// row 53's file to 3720 (units, deaths, guys, leaders and world kept).
+    /// On 3712's tick who=1's Fire Raft `1/49` (TI 334, sea), blocked by
+    /// who=2's `2/108`, fires at it and dies in
+    /// `Unit::resolve_unit_collision@005f9d30:79`–`:94`; theirs' deaths line
+    /// on 3713 holds it at (17794, 13388). Every units, deaths, guys and
+    /// leaders range on 3712 to 3714, ours against theirs, byte for byte:
+    /// red on the tree before the fix at units range 1496 on 3713, record
+    /// 49 `flags`, ours 0x11 (the raft, alive), theirs 0x01 (`1/50`).
     #[test]
-    fn row_53_on_3713_against_run1835_s_ranges() {
+    fn row_53_s_fire_raft_rams_and_sinks_on_run1835_s_ranges() {
         let Some(inst) = crate::testenv::install() else {
             return;
         };
@@ -3359,6 +3365,10 @@ pub(crate) mod tests {
                 assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
             }
         }
+        assert!(
+            built.sim.unit_by_o(1, 49).is_none(),
+            "the Fire Raft 1/49 sank"
+        );
     }
 
     /// **Row 83's Airbase keeps its Biplane in when an enemy wonder out of
@@ -12008,23 +12018,32 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // figure 21 for 24. The row's first parting moves: units 3,358 ->
         // 3,713 and guys 3,358 -> 3,713; ammo 3,880 -> 4,137, deaths 3,810
         // -> 3,939; items 8,940 -> 8,907, a named fall past the parting.
+        // Then item 4667 (`Unit::resolve_unit_collision`'s step 1: a
+        // self-destructing unit rams what it collides with, `Sim::ram`): on
+        // 3712's tick who=1's Fire Raft `1/49` (TI 334, sea), bumping who=2's
+        // `2/108`, fires and sinks as theirs (run1835), where ours turned to
+        // an attack order. The row's first parting moves 3713 -> 3716,
+        // leaders alone: units 3,713 -> 3,916, builds 3,732 -> 3,958, ammo
+        // 4,137 -> 5,111, deaths 3,939 -> 4,579, groups 3,726 -> 3,991, guys
+        // 3,713 -> 3,935, leaders 3,715 -> 3,716, cities 3,951 -> 4,017,
+        // items 8,907 -> 9,274, goods 3,865 -> 4,177, world 3,721 -> 3,935.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                3713, 3732, 12001, 4137, 3939, 3726, 3713, 3715, 3951, 8907, 3865, 3721,
+                3916, 3958, 12001, 5111, 4579, 3991, 3935, 3716, 4017, 9274, 4177, 3935,
             ],
             first: &[
-                ("units", (3713, Some(104111882), 435150367)),
-                ("builds", (3732, Some(2175428037), 986670026)),
-                ("ammo", (3807, Some(1), 2355366420)),
-                ("deaths", (3713, Some(3855424552), 2127964779)),
-                ("groups", (3714, Some(1263612184), 908409090)),
-                ("guys", (3713, Some(21387406), 3289861510)),
-                ("leaders", (3713, Some(2512362065), 969579214)),
-                ("cities", (3951, Some(4088156871), 4088615623)),
+                ("units", (3877, Some(1832010173), 161694163)),
+                ("builds", (3958, Some(3595767448), 3970174217)),
+                ("ammo", (3936, Some(694955675), 2819435824)),
+                ("deaths", (3953, Some(1), 1283722710)),
+                ("groups", (3962, Some(1442251662), 3395814287)),
+                ("guys", (3935, Some(1591783644), 3960515968)),
+                ("leaders", (3716, Some(1926929378), 1962646398)),
+                ("cities", (4003, Some(3962131591), 2788447350)),
                 ("items", (4596, Some(3298888854), 3301772440)),
-                ("goods", (3832, Some(2135290454), 2227565146)),
-                ("world", (3713, Some(2100724504), 1088191604)),
+                ("goods", (4064, Some(3259888248), 3254121078)),
+                ("world", (3935, Some(959296882), 1010808178)),
             ],
             over: None,
         }),
