@@ -820,6 +820,8 @@ impl Sim {
                     put_raw(&mut target, 0, 4, i64::from(object));
                     put_raw(&mut target, 4, 4, i64::from(owner));
                     put_raw(&mut target, 8, 2, i64::from(uid));
+                } else if let Some(uid) = a.cleared_uid {
+                    put_raw(&mut target, 8, 2, i64::from(uid));
                 }
                 put("order.target", target);
                 let def = a.def.unwrap_or(crate::Pos::new(-1, -1));

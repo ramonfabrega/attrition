@@ -1452,6 +1452,7 @@ fn a_unit_struck_while_moving_in_contact_takes_the_blow_doubled() {
                     in_range: true,
                     ever_in_range: true,
                     new_ord: false,
+                    cleared_uid: None,
                 }),
             });
             sim.units[me].combat.target = Some(Obj::Unit(foe));
@@ -6834,6 +6835,7 @@ fn a_building_weighs_a_target_by_its_damage_and_its_head_order() {
             in_range: false,
             ever_in_range: false,
             new_ord: true,
+            cleared_uid: None,
         }),
     });
     sim.units[t].movement.dest = Some(Pos::new(3000, 3000));

@@ -318,6 +318,29 @@ impl Sim {
             .position(|u| u.owner == who && u.index == o && u.alive())
     }
 
+    /// `objects[who][o]`: the object the original's table holds at that
+    /// number, alive or not — the newest unit or building given it (a
+    /// reused number sits at the end of `self.units` and
+    /// `self.buildings`), since a closed object keeps its slot and `uid`
+    /// until `Objects::find_free` hands the number on.
+    pub(crate) fn object_holding(&self, who: Player, o: i16) -> Option<crate::combat::Obj> {
+        if let Some(u) = self.units.iter().rposition(|x| x.owner == who && x.index == o) {
+            return Some(crate::combat::Obj::Unit(u));
+        }
+        self.buildings
+            .iter()
+            .rposition(|b| b.owner == who && b.index == o)
+            .map(crate::combat::Obj::Building)
+    }
+
+    /// The object's `uid` (`Object +0x30`).
+    pub(crate) fn object_uid(&self, t: crate::combat::Obj) -> u16 {
+        match t {
+            crate::combat::Obj::Unit(u) => self.units[u].uid,
+            crate::combat::Obj::Building(b) => self.buildings[b].uid,
+        }
+    }
+
     /// `who`'s unit slots in the original's list order — `units[who][o]`
     /// walked from 0, which is object number, not this crate's slot order
     /// (a reused number sits at the end of `self.units`). Dead units are

@@ -141,8 +141,21 @@ impl Sim {
         } else {
             self.update_action(u)
         };
+        //
+        // The target marked is **the object now holding the order's
+        // `(whom, ox)`** (`:300`–`:311`, `objects[whom][ox]`), not the one
+        // the order was given against: on a reused number it is the
+        // newcomer (item 4662).
+        let held = action.and_then(|a| match self.units[u].orders[a].body {
+            Body::Attack(AttackOrder {
+                target: Some((ox, whom, uid)),
+                ..
+            }) => Some((ox, whom, uid)),
+            _ => None,
+        });
+        let holder = held.and_then(|(ox, whom, _)| self.object_holding(whom, ox));
         if action.is_some_and(|a| self.units[u].orders[a].index() == index::ATTACK)
-            && let Some(t) = self.units[u].combat.target
+            && let Some(t) = holder.or(self.units[u].combat.target)
         {
             self.set_in_danger(u);
             if let Obj::Unit(v) = t {
@@ -162,6 +175,31 @@ impl Sim {
             && !action.is_some_and(|a| is_cast(&self.units[u].orders[a]))
         {
             self.units[u].spell_time = 0;
+        }
+        // **The attack's `uid` test** (`Unit::work@0060d180:314`–`:340`,
+        // item 4662, `docs/ORDERS.md` §22): the action's target `uid`
+        // (`update_target_order()+0x10`) against the `+0x30` of the object
+        // now holding its `(whom, ox)`. On a mismatch an order that
+        // `is_attack` (vslot `+0x18`) and is the current order has `ox` and
+        // `whom` written −1, its `uid` kept, and `work` **returns** — no
+        // `do_job` this frame, nor anything after it. Under transit legs it
+        // falls through. Row 88's Trebuchet `1/61` on 2984: its attack-ground
+        // ends, the Attack under it names `2/63` at uid 93, and the barge now
+        // numbered 63 is another; theirs prints `(−1, −1, 93)` on 2985 where
+        // ours retargeted `2/64`. SEAM: the `STRAFE` arm (`0x10`, vslot
+        // `+0x88`) and the trade route's (`0xf`) after it are not built here;
+        // the build and gather orders' reuse test sits at the head of this
+        // function.
+        if let (Some(a), Some((_, _, uid)), Some(t)) = (action, held, holder)
+            && self.object_uid(t) != uid
+            && a == 0
+        {
+            if let Body::Attack(o) = &mut self.units[u].orders[0].body {
+                o.target = None;
+                o.cleared_uid = Some(uid);
+            }
+            self.units[u].combat.target = None;
+            return;
         }
         // `Unit::work@0060d180`, the last block before `do_job` (`docs/
         // COLLISION.md` §24, item 1452): a unit that takes the boat arm

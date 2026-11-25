@@ -543,20 +543,36 @@ impl Sim {
                 }
             }
         }
-        let Some(target) = self.units[u].combat.target else {
-            self.kill_current_order(u);
-            return false;
+        // **A target `Unit::work`'s uid test cleared** (item 4662) is the
+        // order's `(−1, −1)`, and `Object::valid_target@00648ba0` refuses
+        // it at its first vslot (`+0x138`): `fight` takes the refused arm
+        // and searches, as row 88's Trebuchet `1/61` does on 2985 (its
+        // `unit_masks2` 16 on 2986, the new order on `2/64`). Any other
+        // empty target is killed here, as before. SEAM: the capture and
+        // mandatory arms below read the refused object, and a cleared one
+        // has none; a mandatory order with a cleared target is not built.
+        let cleared = a.target.is_none() && a.cleared_uid.is_some();
+        let target = match self.units[u].combat.target {
+            Some(t) => Some(t),
+            None if cleared => None,
+            None => {
+                self.kill_current_order(u);
+                return false;
+            }
         };
         let mut capturable = 0;
-        if !self.valid_target_out(me, target, Some(&mut capturable)) {
+        if target.is_none_or(|t| !self.valid_target_out(me, t, Some(&mut capturable))) {
             // **The capture approach** (item 3528, `docs/ORDERS.md` §7.2):
             // `Unit::fight@005fd4d0`, `005fd8d1`–`005fda9b`, the first arm
             // under the refused target, ahead of `find_new_target`.
-            if capturable != 0 && self.capture_approach(u, target, state.mandatory) {
-                return false;
-            }
-            if let Some(done) = self.mandatory_substitute(u, target, state.mandatory, frame) {
-                return done;
+            if let Some(target) = target {
+                if capturable != 0 && self.capture_approach(u, target, state.mandatory) {
+                    return false;
+                }
+                if let Some(done) = self.mandatory_substitute(u, target, state.mandatory, frame)
+                {
+                    return done;
+                }
             }
             // **The search budget** (item 3598, `docs/AI.md` §318.3):
             // `LAB_005fdb9e`'s first arm. While the unit's `waiting`
@@ -636,6 +652,9 @@ impl Sim {
             }
             return false;
         }
+        let Some(target) = target else {
+            return false;
+        };
         // **A guard's attack is leashed to its post** (`docs/COMBAT.md`
         // §63). `Unit::fight@005fd4d0`, `005fdc91`–`005fdd4f`, straight
         // after `valid_target` passes and ahead of both captain arms below:
