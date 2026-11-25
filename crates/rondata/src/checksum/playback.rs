@@ -189,17 +189,6 @@ fn score(
             sim::core::seam::at(frame + 1);
             stream.apply(frame, &mut built);
             built.sim.command().tick();
-            #[cfg(test)]
-            if std::env::var_os("RON_PROBE_4609").is_some() && (3354..=3360).contains(&(frame + 1)) {
-                let f = frame + 1;
-                for u in built.sim.units.iter().filter(|u| u.alive() && u.owner == 2 && [76, 91, 130].contains(&u.index)) {
-                    let t = u.pos.tile();
-                    eprintln!("P4609 f{f} unit 2/{} pos ({}, {}) tile ({}, {}) object_z {}", u.index, u.pos.x, u.pos.y, t.x, t.y, built.sim.world.object_z(t));
-                }
-                for b in built.sim.buildings.iter().filter(|b| b.alive && b.owner == 2 && b.index >= 2035) {
-                    eprintln!("P4609 f{f} build 2/{} pos ({}, {}) z {} ty {:?}", b.index, b.pos.x, b.pos.y, b.z, b.orig_ty);
-                }
-            }
         }
     }
     Ok(Score {
