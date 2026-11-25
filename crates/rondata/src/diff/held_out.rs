@@ -13284,10 +13284,18 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // on 3613 at (19320, 29496); units range 6687, record 3, `z` ours
         // 661, theirs 770, both 770 now): units 3,617 -> 3,620 (first 3613
         // -> 3620); the first parting is cities on 3619.
+        // Then item 4686 (`City::capture@00736c40:86` writes the new
+        // record's flags as the old's `& 0xf13f`, which keeps the border
+        // pass's `0x1000`: who=1 takes city 12 on 3619; cities range 59,
+        // record 12, `city_flags` ours 0x010f, theirs 0x110f, both 0x110f
+        // now): cities 3,619 -> 3,659 (first 3619 -> 3659), ammo 3,635 ->
+        // 3,625 (a fall past the parting, first 3623 stands), goods 5,233 ->
+        // 5,300, ours' end none -> 6058; the first parting is units, guys
+        // and world on 3620.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                3620, 3638, 6085, 3635, 3638, 3631, 3620, 3628, 3619, 4349, 5233, 3620,
+                3620, 3638, 6085, 3625, 3638, 3631, 3620, 3628, 3659, 4349, 5300, 3620,
             ],
             first: &[
                 ("units", (3620, Some(1149618426), 3102179925)),
@@ -13297,12 +13305,12 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
                 ("groups", (3631, Some(4049642139), 2114518873)),
                 ("guys", (3620, Some(1210952132), 2242359453)),
                 ("leaders", (3628, Some(4025832092), 4018492060)),
-                ("cities", (3619, Some(2699322066), 3335807714)),
+                ("cities", (3659, Some(3270928094), 2729731718)),
                 ("items", (4349, Some(1284182481), 1281298895)),
                 ("goods", (4476, Some(586774648), 601192570)),
                 ("world", (3620, Some(901823717), 1172813965)),
             ],
-            over: None,
+            over: Some(6058),
         }),
     }),
     // run1795

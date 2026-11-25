@@ -185,6 +185,12 @@ A building has three states: *placed* (`0x1`), *started* (`0x3`), *active*
 
 `City::capture` copies the old flags `& 0xf13f` (the per-building bits are
 re-derived by the `find_buildings` that follows) and then drops `0x10|0x4000`.
+`crates/sim` carries every bit of the mask it holds (`city_capture_record`):
+the attack bits, `0x2000`, `0x8000`, and `0x1000`, which it keeps on the
+owner's half of the record and so moves to the taker's (item 4686). The
+`0x1000` carry is diff-backed by run1797's cities on 3619 and 3620, where
+who=1's captured city 12 reads `0x110f` on both sides. The `0x2000` and
+`0x8000` carries rest on the reading and a unit test.
 
 ### 1.5 The type: `BuildType::init`, `build_flags`, lineage
 
