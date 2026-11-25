@@ -2844,17 +2844,19 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4435, a transport's birth `form` 0 (`transport_boat`, `Unit::init`'s): units (6468, 6468, 88) -> (6468, 6468, 72).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9330, 9330, 1) -> (9330, 9330, 0).
     // Item 4511, a unit host's chain is the order of entry: units (6468, 6468, 72) -> (6468, 6468, 2).
+    // Item 4660, the stored heights (`Wall::init`'s `update_z` walk on the chained units alone):
+    // units (6468, 6468, 2) -> (6468, 6468, 0); guys (1895, 1895, 1) -> (1895, 1895, 0).
     (
         "run1264b",
         4919,
         [
-            (6468, 6468, 2),
+            (6468, 6468, 0),
             (1770, 1770, 0),
             (0, 0, 0),
             (3, 3, 0),
             (2, 2, 0),
             (586, 586, 0),
-            (1895, 1895, 1),
+            (1895, 1895, 0),
             (271, 271, 0),
             (43, 43, 0),
             (15, 15, 0),
@@ -3232,17 +3234,19 @@ pub(super) const PINNED: &[Pinned] = &[
     // (`build_masks` `0x2000`): builds (2140, 2140, 3) -> (2140, 2140, 2).
     // Item 4480, a `DETECT` building lights `seen3` over its disc: world (9476, 9476, 1) -> (9476, 9476, 0).
     // Item 4511, a unit host's chain is the order of entry: units (8490, 8490, 42) -> (8490, 8490, 2).
+    // Item 4660, the stored heights (`Wall::init`'s `update_z` walk on the chained units alone):
+    // units (8490, 8490, 2) -> (8490, 8490, 0); guys (2197, 2197, 1) -> (2197, 2197, 0).
     (
         "run1320b",
         5066,
         [
-            (8490, 8490, 2),
+            (8490, 8490, 0),
             (2140, 2140, 2),
             (0, 0, 0),
             (9, 9, 0),
             (2, 2, 0),
             (652, 652, 0),
-            (2197, 2197, 1),
+            (2197, 2197, 0),
             (271, 271, 1),
             (39, 39, 0),
             (5, 5, 0),
