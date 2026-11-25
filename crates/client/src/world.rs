@@ -734,7 +734,9 @@ pub const ROAD_BUCKET: i32 = 2;
 /// tiles (842 of 842 of run1814b's helper-0 vertices).
 pub const PLATE_BUCKET: i32 = 0;
 pub const PLATE_PIECE: i32 = -200_022;
-pub const PLATE_ALPHA: usize = 913;
+/// `Gpu::alpha_texture`'s cache key: 921, not 913, which is
+/// [`BORDER_ALPHA_INDEX`]'s, whose ramp the plates sampled until item 4661.
+pub const PLATE_ALPHA: usize = 921;
 /// The tile page's texcoords a tile (`RenderHelper::tex1` on the packet).
 pub const PLATE_PAGE_TILES: f32 = 4.0;
 

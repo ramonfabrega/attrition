@@ -3295,6 +3295,14 @@ pub const RESIDUE: &[(u32, &str)] = &[
          ret at 0x86195f, so no fall-through)",
     ),
     (
+        0x0087_80e0,
+        "TileSet::get_road_texture: the tileset's road texture by age bucket, \
+         inlined at its one use; no reference in the executable (item 4661's \
+         scan; the byte before is padding). The live copy is RoadsOut::render \
+         @008943d0's stage-1 bind, which reads road_textures[bucket] for a bucket \
+         under 2 itself (docs/RENDERER.md §6.1)",
+    ),
+    (
         0x0087_a770,
         "TileSet::get_supertile_texture: the ground's supertile getter, which \
          nothing calls; no reference in the executable (item 4127's byte scan of \

@@ -509,10 +509,17 @@ const RUN1814B_PLATE_BOX: [i32; 4] = [7, 151, 19, 163];
 /// 74), drawn (217, 185, 69) Y 181.7. On the way: the file's alpha as it
 /// stands, on the frame, 29 (theirs 27); blended on the HDR target, 32
 /// (30); its complement, 37 (43).
+/// **Item 4661, a named fall: drawn 37 → 24 and luma 43 → 42, theirs 43 →
+/// 22 and luma 42 → 43.** Every number above was read on the national
+/// borders' alpha ramp: `PLATE_ALPHA` shared `BORDER_ALPHA_INDEX`'s cache
+/// key, 913, so the plates never sampled `early_road_pieces.tga`. On its
+/// own alpha, uncomplemented, and untested in depth (run1833's draw 81),
+/// they lay sand in tile-sized squares where the photograph has bands
+/// (4661a). Tile (19, 159): theirs (235, 182, 65), drawn (208, 184, 68).
 const RUN1814B_3294_PLATES: [[(usize, usize); 2]; 3] = [
     [(12, 46), (43, 46)],
-    [(37, 46), (43, 46)],
-    [(43, 46), (42, 46)],
+    [(24, 46), (42, 46)],
+    [(22, 46), (43, 46)],
 ];
 
 /// **The plates' row** (item 4653, §6.1): our door holds the packet's 54
@@ -723,4 +730,35 @@ fn the_plates_against_the_packet_s() {
     let row = [theirs, plates, same];
     println!("run1814b plates: {row:?}");
     assert_eq!(row, RUN1814B_PLATE_PIECES);
+}
+
+/// **Every alpha key is its own** (item 4661): `Gpu::alpha_texture` caches
+/// an alpha by its index, so two layers on one key share the first one's
+/// texture. The plates sat on the borders' 913 from item 4653 to 4661 and
+/// sampled the borders' ramp. Made to fail: `PLATE_ALPHA` back at 913.
+#[test]
+fn every_alpha_key_is_its_own() {
+    use crate::world::*;
+    let keys = [
+        ("WATER_ALPHA", WATER_ALPHA),
+        ("LAND_FADE_ALPHA", LAND_FADE_ALPHA),
+        ("WEATHER_ALPHA", WEATHER_ALPHA),
+        ("ROAD_ALPHA", ROAD_ALPHA),
+        ("SNOWCAP_ALPHA", SNOWCAP_ALPHA),
+        ("BORDER_ALPHA_INDEX", BORDER_ALPHA_INDEX),
+        ("EDGE_ALPHA", EDGE_ALPHA),
+        ("FARM_PIG_ALPHA", FARM_PIG_ALPHA),
+        ("OIL_ALPHA", OIL_ALPHA),
+        ("LAND_ROUGH_ALPHA", LAND_ROUGH_ALPHA),
+        ("LAND_OIL_ALPHA", LAND_OIL_ALPHA),
+        ("FARM_WHEAT_ALPHA", FARM_WHEAT_ALPHA),
+        ("SURF_ALPHA", SURF_ALPHA),
+        ("PLATE_ALPHA", PLATE_ALPHA),
+        ("MOUNTAIN_ALPHA", MOUNTAIN_ALPHA),
+    ];
+    for (i, (a, ka)) in keys.iter().enumerate() {
+        for (b, kb) in &keys[i + 1..] {
+            assert_ne!(ka, kb, "{a} and {b} share alpha key {ka}");
+        }
+    }
 }

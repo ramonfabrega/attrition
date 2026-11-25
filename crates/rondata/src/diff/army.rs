@@ -399,6 +399,7 @@ mod tests {
                         in_range: od.in_range == Some(1),
                         ever_in_range: od.ever_in_range == Some(1),
                         new_ord: od.new_ord == Some(1),
+                        cleared_uid: None,
                     }),
                 });
             }
