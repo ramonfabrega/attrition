@@ -2254,6 +2254,9 @@ run12/run13 (the frame-0 word `0x3bd39ae9`, the counts 120/54/6/6 and
 23/28/7/6/8/18/21/6/6 reproduced). The items below that it settles are
 struck through and point there.
 
+- **A list keyed by building rather than object number** (item 4669, parked 4669a): `Farms::inc_time` gates a
+  record on whatever object holds its `(who, o)` now (§3.3). Whether the dock, fort and oil lists that share
+  `+0x78` have the same reused-number gap is not read.
 - ~~**The 4 draws at 116–119 of frame 0.**~~ **Settled by the trace: they
   are at 110–113, not 116–119, and they are phase-7 wraps** —
   `Guy::set_anim+0x97a` < `Guy::inc_time+0x271` < `Unit::inc_time+0x3e`,
