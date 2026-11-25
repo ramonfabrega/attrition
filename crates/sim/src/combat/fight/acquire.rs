@@ -1560,6 +1560,12 @@ impl Sim {
             && (self.units[t].index == 38 || self.units[t].index == 39 || self.units[t].index == 51)
         {
             let tu = &self.units[t];
+            let fog = crate::vision::UNITS_PER_FOG;
+            eprintln!(
+                "PROBE4652 detect 1/{} decoy {} seen3 {:#x} at fog ({},{}) stored_mask(2) {:#x} seen_mask(2) {:#x} detected {}",
+                tu.index, tu.decoy, self.world.seen3(tu.pos.x / fog, tu.pos.y / fog), tu.pos.x / fog, tu.pos.y / fog,
+                self.stored_ally_mask(2), self.seen_ally_mask(2), self.unit_is_detected(t, 2)
+            );
             eprintln!(
                 "PROBE4652 terms 1/{} TI {} cost {} t_attack {} left {} health {} max {} dmg {} ai {} combat_role {} full {} v_before_dmg {} armor {} at {:?} side {:?} pct {}",
                 tu.index,
