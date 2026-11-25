@@ -67,6 +67,7 @@ impl Sim {
                 Some(f) => (f.body.pos, f.facing),
                 None => (m.body.pos, m.facing),
             });
+            guy.move_head_heights();
         }
         // `Guy::move:55`'s `des_angle == angle` — the heading against the
         // facing, read before this frame's turn. It decides both the
@@ -143,6 +144,7 @@ impl Sim {
         // The trackless crew's heads, after guy 0's turn (above).
         for g in late {
             unit.guys[g].last = Some((m.body.pos, follow.facing));
+            unit.guys[g].move_head_heights();
         }
         // **`guy_flags & 2` is cleared here, after `Guy::move`**
         // (`Guy::process@005e0230:28`), not at the head of the unit's
@@ -289,6 +291,7 @@ impl Sim {
                 .map_or((m.body.pos, m.facing), |f| (f.body.pos, f.facing));
             let angle = g.last.map_or(facing, |(_, a)| a);
             g.last = Some((at, angle));
+            g.seat_heights();
         }
     }
 

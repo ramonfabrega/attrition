@@ -552,8 +552,9 @@ impl Sim {
                     trench_facing: u.combat.trench_angle,
                     // The object's own `z` (`+0xc`), which `Unit::update_z`
                     // writes as `find_tcoord_z` at its tile, clamped at zero
-                    // (§46.2, item 1131).
-                    z: self.world.object_z(u.pos.tile()),
+                    // (§46.2, item 1131); stored, as a terraform leaves it
+                    // (item 4660).
+                    z: self.unit_stored_z(i),
                     damage_frame: u.combat.damage_frame,
                     damage_o: u.combat.damage_o,
                     captain: u.combat.captain,
