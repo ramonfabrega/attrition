@@ -1113,15 +1113,6 @@ impl Sim {
     /// unit that boards in a capture so far is a single figure at full
     /// health, where the walk and this line agree on zero.
     pub(crate) fn same_damage(&mut self, boat: usize, u: usize) {
-        if std::env::var("RON_PROBE_4633_BLOW").ok().and_then(|v| v.parse::<i64>().ok()).is_some_and(|f| (f - 1..=f + 1).contains(&self.frame)) {
-            eprintln!("D4633 f{} same_damage(to {boat}, from {u}) to.hp {}/{} from.hp {}/{}", self.frame, self.units[boat].health, self.units[boat].max_health, self.units[u].health, self.units[u].max_health);
-            for (i, x) in self.units.iter().enumerate() {
-                if x.inside_unit == Some(boat) || x.inside_unit == Some(u) || i == boat || i == u {
-                    eprintln!("D4633   slot {i} owner {} inside {:?} boarded {} up {:?} down {:?} alive {} hp {}", x.owner, x.inside_unit, x.boarded, x.o_up, x.o_down, x.alive(), x.health);
-                }
-            }
-            eprintln!("D4633 bt {}", std::backtrace::Backtrace::force_capture());
-        }
         let hits = self.units[u].max_health.max(1);
         let frac = ((hits - self.units[u].health).max(0) << 8) / hits;
         let boat_hits = self.units[boat].max_health;
