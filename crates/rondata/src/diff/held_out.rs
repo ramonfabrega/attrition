@@ -1278,6 +1278,17 @@ pub(crate) mod tests {
                         j += 1;
                     }
                 }
+                if let Some((wl, wr)) = std::env::var("RON_PROBE_REC").ok().as_deref().and_then(|w| w.split_once(':')).map(|(a, b)| (a.to_string(), b.parse::<i16>().unwrap())) {
+                    if wl == *name {
+                        for &(i, j) in &pairs {
+                            let (a, b) = (&ours.ranges[i], theirs[j]);
+                            if a.record == wr {
+                                eprintln!("R4676 {state} {name} {} {} ours {:?}", a.record, a.field, crate::checksum::fields::range_fields(name, a.field, &a.bytes));
+                                eprintln!("R4676 {state} {name} {} {} theirs {:?}", a.record, a.field, crate::checksum::fields::range_fields(name, a.field, &b.bytes));
+                            }
+                        }
+                    }
+                }
                 for (k, (a, b)) in pairs
                     .iter()
                     .map(|&(i, j)| (&ours.ranges[i], theirs[j]))
