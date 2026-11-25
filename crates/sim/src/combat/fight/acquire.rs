@@ -1196,6 +1196,20 @@ impl Sim {
         // three-figure squad three times and never let the count fall.
         // `docs/COMBAT.md` §33.
         if let Some((_, o)) = best {
+            if std::env::var("RON_PROBE_4652").is_ok()
+                && let Obj::Unit(t) = o
+                && self.units[t].owner == 1
+                && self.units[t].index == 38
+            {
+                let (ao, aw) = match attacker {
+                    Obj::Unit(a) => (self.units[a].index as i64, self.units[a].owner as i64),
+                    Obj::Building(b) => (self.buildings[b].index as i64 + 100000, self.buildings[b].owner as i64),
+                };
+                eprintln!(
+                    "PROBE4652 bump frame {} by {}/{} targeted {} -> +1 max_dist {}",
+                    self.frame, aw, ao, self.units[t].combat.targeted, max_dist
+                );
+            }
             self.bump_targeted(o, 1);
         }
         // `006498de`: the pair survives only if the nearest candidate the
