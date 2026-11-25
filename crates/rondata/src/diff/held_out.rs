@@ -11909,23 +11909,35 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // 4,893, goods 4,117 -> 4,166 (first -> 4155), world 3,668 ->
         // 3,706; the row's first parting is units, ammo, guys and world on
         // 3706.
+        // Then item 4657 (`get_damage`'s step 17 takes the attacker's own
+        // `ObjectData::attack`, no `attack()` override): on 3705's tick
+        // decoys are struck and ranked under an object attack of 220, 200
+        // or 190 where ours took 240, 220 or 210 (a probe, reverted whole).
+        // The row's first parting moves 3706 -> 3715, deaths alone, whose
+        // sum parts as before (ours 2424789091 -> 2495174764, theirs
+        // 2467256425): units 3,706 -> 3,716, builds 3,730 -> 3,744 (first
+        // 3718 -> 3744), ammo 3,747 -> 3,754 (first 3706 -> 3718), guys
+        // 3,706 -> 3,716, world 3,706 -> 3,723, goods 4,166 -> 4,690 (first
+        // 4155 -> 4690); leaders 3,746 -> 3,745 (first 3714 -> 3742) and
+        // items 4,893 -> 4,164 (first 4893 -> 3986), named falls past the
+        // parting.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3706, 3730, 6001, 3747, 3715, 3746, 3706, 3746, 3751, 4893, 4166, 3706,
+                3716, 3744, 6001, 3754, 3715, 3746, 3716, 3745, 3751, 4164, 4690, 3723,
             ],
             first: &[
-                ("units", (3706, Some(1442083163), 2455439998)),
-                ("builds", (3718, Some(3072307388), 431271696)),
-                ("ammo", (3706, Some(1338324735), 459028267)),
-                ("deaths", (3715, Some(2424789091), 2467256425)),
+                ("units", (3716, Some(510734992), 4255724178)),
+                ("builds", (3744, Some(889368479), 4063342494)),
+                ("ammo", (3718, Some(2536770229), 2487159505)),
+                ("deaths", (3715, Some(2495174764), 2467256425)),
                 ("groups", (3733, Some(716527825), 2283821262)),
-                ("guys", (3706, Some(4002952463), 3588110382)),
-                ("leaders", (3714, Some(2035969356), 3149425998)),
+                ("guys", (3716, Some(752224755), 3990227445)),
+                ("leaders", (3742, Some(536833669), 3717361283)),
                 ("cities", (3751, Some(3595451697), 3592174896)),
-                ("items", (4893, Some(947073420), 912470408)),
-                ("goods", (4155, Some(3194787109), 3189019939)),
-                ("world", (3706, Some(2648689735), 889900131)),
+                ("items", (3986, Some(1289238888), 2096903490)),
+                ("goods", (4690, Some(3285620014), 3223622949)),
+                ("world", (3723, Some(104781893), 10999633)),
             ],
             over: None,
         }),
