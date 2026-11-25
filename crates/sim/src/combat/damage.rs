@@ -524,7 +524,8 @@ impl DamageFacts for Reduced<'_> {
         self.at.building
     }
     fn attacker_shot_redoubt(&mut self) -> bool {
-        // SEAM: `BuildData::get_shot` is not modelled; no caller reads the death class.
+        // SEAM: no caller reads this death class; `do_damage`'s own `dtype`
+        // asks `building_shot` (item 4659).
         crate::seam!("attacker_shot_redoubt");
         false
     }
