@@ -2231,6 +2231,82 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 133's Citizen comes out at the ground under its spot** (item
+    /// 4684, `docs/RECGAME.md` §13.5): run1797's ranges, the row's units
+    /// parting on 3613 (units range 6687, record 3, `z` ours 661, theirs
+    /// 770). who=2's Citizen `2/3` (TI 50) stands in `2/2018` through 3612
+    /// with a height a terraform held at 661, and comes out on 3613 at
+    /// (19320, 29496): `Unit::come_out@00617c10` and its `set_new_location`
+    /// store the ground at the spot's tile. Every units range on 3613 and
+    /// 3614.
+    #[test]
+    fn row_133_s_citizen_comes_out_at_the_ground_under_its_spot_on_run1797() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 3612 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let citizen = built.sim.unit_by_o(2, 3).expect("2/3");
+        assert_eq!(built.sim.units[citizen].type_index, 50, "2/3 is a Citizen");
+        assert!(
+            built.sim.units[citizen].inside.is_some(),
+            "2/3 inside on 3612"
+        );
+        assert_eq!(
+            built.sim.units[citizen].z_held,
+            Some(661),
+            "2/3's held height"
+        );
+        for state in [3613, 3614] {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            assert_eq!(built.sim.frame, state);
+            let u = &built.sim.units[citizen];
+            assert!(u.on_map, "2/3 out on {state}");
+            assert_eq!((u.pos.x, u.pos.y), (19320, 29496), "2/3's spot on {state}");
+            assert_eq!(u.z_held, None, "2/3's height is the ground's on {state}");
+            assert_eq!(
+                built.sim.world.object_z(u.pos.tile()),
+                770,
+                "the ground at the spot"
+            );
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[0].as_ref().expect("the units line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+    }
+
     /// **Row 133's dead farm rolls under its number's next building** (item
     /// 4669, `docs/SYNC.md` §3.3): run1797's ranges and trace, the row's
     /// units and guys parting on 2677 (units range 4225, record 18, guy

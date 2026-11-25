@@ -1714,6 +1714,10 @@ impl Sim {
     fn land_passenger(&mut self, r: usize, at: crate::Pos) {
         self.units[r].inside_unit = None;
         self.units[r].pos = at;
+        // `set_new_location`'s `find_tcoord_z` at the new tile (`LAB_005f9033`)
+        // and `come_out`'s own store before it: no held height comes ashore
+        // (item 4684; [`crate::units::garrison`]'s `come_out_place`).
+        self.units[r].z_held = None;
         // **A CEO coming out enters its city** (item 4519): `Unit::come_out
         // @00617c10:519`–`524`, after `set_new_location`, is
         // `update_ceo_position(-1, the spot's tile)` for the CEO bit.
