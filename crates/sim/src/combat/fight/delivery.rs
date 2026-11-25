@@ -200,6 +200,14 @@ impl Sim {
             frame,
             &self.mods_of(owner),
         );
+        if std::env::var("RON_PROBE_4634").is_ok() && matches!(target, Obj::Building(_)) {
+            eprintln!(
+                "D4634 f{frame} {:?} -> {:?} dmg {dmg} count {count} ammo {ammo} splash {splash} attack {:?} armor {:?} pct {pct} apa {} uber {} alive {} unit_alive {:?}",
+                attacker, target, self.attack_of(attacker), self.armor_of(target), ap.ammo_per_att, ap.uber_size,
+                self.obj_alive(attacker),
+                match attacker { Obj::Unit(u) => Some((self.units[u].owner, self.units[u].index, self.units[u].type_index, self.units[u].hits)), _ => None },
+            );
+        }
         // Step 2: the target's captain reacts, and the overkill record.
         if let Obj::Unit(t) = target
             && !quiet
