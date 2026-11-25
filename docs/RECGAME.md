@@ -1592,8 +1592,6 @@ first. The lap resets now (`ai_host::lap`, `find_unit`'s too; AI §11): twelve l
 **Bays (4547, 4559).** 736 takes 1440's; 4559: eight (`launch::BAYS`, `pivot::RELEASES`; 1224 is 169's). 4561:
 an unbuilt Village's close fixes borders. 4565: COMBAT §12.3; 4564: §43.2.
 
-**Row 83** (item 4672): the siege muster's building search, built (`docs/ARMY.md` §27), answers −1 at its one entry (3041); the parting on 3706 stands.
-
 ### 12.4 Row 95: a CEO going in leaves its city (item 4519)
 
 **How it was established.** run1770 is run1764's file again, with the ranges of units, guys and leaders kept to 6000
@@ -1783,14 +1781,10 @@ Open: units, builds, groups and guys part on 7675. run1788 holds sums (item 4579
 
 ### 13.2 Row 53
 
-4672 built the siege muster's building search (`docs/ARMY.md` §27): it answers −1 at every entry on this row, so the parting stands.
-
 Open: five lines part on 3713. 4660 moved 3358 → 3713: the stored heights (`docs/COLLISION.md` §3.3). Journals
 4578, 4609, 4660.
 
 ### 13.3 Row 93
-
-4672 built the siege muster's building search (`docs/ARMY.md` §27): it answers −1 at every entry on this row, so the parting stands.
 
 2686 → 2965 by 4590 (run1803; `docs/COMBAT.md` §68.1), 4606 (`docs/CHECKSUM.md` §18). Open: units on 2965: `2/51` takes the decoy `1/38`, theirs `1/39` (4652). 4608 (COMBAT §55.3), 4652 moved no parting. 4654 (run1830b): step 17's decoy attack is `ObjectData::attack`, theirs 240, ours 260; not built.
 
@@ -1810,8 +1804,6 @@ stamp, which also closes run1325c's packet (cities 2 ranges → 0). Held by
 leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
-
-4672 built the siege muster's building search (`docs/ARMY.md` §27): it answers −1 at every entry on this row, so the parting stands.
 
 Open: ammo parts on 2547 (4659: deaths → 3206, Redoubt `dtype` 3). run1797's ranges hold the items' frames, *diff-backed*.
 
@@ -1923,8 +1915,6 @@ On 4167 ammo range 1, record 0 is who=2's `2/50`, an Infantry (TI 102, land) on 
 Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
 
 ### 14.4 Row 88
-
-4672 built the siege muster's building search (`docs/ARMY.md` §27): it answers −1 at every entry on this row, so the parting stands.
 
 Open: ammo parts on 3028 (item 4662). run1808 holds sums, run1815 the ranges to 2991 (units, deaths, guys,
 leaders and world), run1818 the ammo ranges to 2792. The stories are the items' journals.
