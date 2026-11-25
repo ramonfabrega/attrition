@@ -4699,7 +4699,17 @@ pub(crate) mod tests {
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
             }
-            for u in built.sim.units.iter().filter(|u| u.alive() && watch.contains(&u.index)) {
+            let t77: Vec<usize> = built.sim.units.iter().enumerate().filter(|(_, u)| u.alive() && u.owner == 2 && u.index == 77).map(|(i, _)| i).collect();
+            for (k, p) in built.sim.combat.projectiles.iter().enumerate() {
+                if p.target.is_some_and(|t| matches!(t, sim::combat::Obj::Unit(i) if t77.contains(&i))) || p.owner == 1 {
+                    let sh = match p.shooter { sim::combat::Obj::Unit(i) => format!("unit {}/{} alive {} captain {}", built.sim.units[i].owner, built.sim.units[i].index, built.sim.units[i].alive(), built.sim.units[i].combat.captain), o => format!("{o:?}") };
+                    eprintln!("P4681 state {state} ammo {k} shooter {sh} owner {} target {:?} left {:?} cur {} total {} landing {:?}", p.owner, p.target, p.left, p.cur_time, p.total_time, p.landing);
+                }
+            }
+            for u in built.sim.units.iter().filter(|u| u.alive() && u.owner == 1 && u.combat.target.is_some_and(|t| matches!(t, sim::combat::Obj::Unit(i) if t77.contains(&i)))) {
+                eprintln!("P4681 state {state} striker {}/{} ty {:?} captain {} recharging {}", u.owner, u.index, u.ty.map(|t| loaded.unit_names[t].clone()), u.combat.captain, u.combat.recharging);
+            }
+            for u in built.sim.units.iter().filter(|u| u.alive() && (watch.contains(&u.index) || (u.owner == 1 && watch.contains(&(u.combat.captain as i16))))) {
                 let ty = u.ty.map(|t| (loaded.unit_names[t].clone(), built.sim.tables.unit_types[t].type_index));
                 eprintln!(
                     "P4681 state {state} unit {}/{} {:?} hp? combat {:?}",
