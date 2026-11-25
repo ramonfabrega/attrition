@@ -3956,6 +3956,21 @@ pub(crate) mod tests {
         let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
         let mut stream = crate::input::Stream::pump(&rec);
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        if std::env::var("RON_PROBE_4654").is_ok() {
+            while built.sim.frame < 2965 {
+                if built.sim.frame >= 2963 {
+                    let u = built.sim.unit_by_o(2, 51).unwrap();
+                    let p = built.sim.units[u].pos;
+                    eprintln!("PROBE4654 state {} 2/51 pos {:?} z {}", built.sim.frame, p, built.sim.world.object_z(p.tile()));
+                }
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let u = built.sim.unit_by_o(2, 51).unwrap();
+            let p = built.sim.units[u].pos;
+            eprintln!("PROBE4654 state {} 2/51 pos {:?} z {}", built.sim.frame, p, built.sim.world.object_z(p.tile()));
+            return;
+        }
         for state in 2962i64..=2964 {
             while built.sim.frame < state {
                 stream.apply(built.sim.frame as i32, &mut built);
