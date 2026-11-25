@@ -202,7 +202,7 @@ impl Sim {
         );
         if std::env::var("RON_PROBE_4634").is_ok() && matches!(target, Obj::Building(_)) {
             eprintln!(
-                "D4634 f{frame} {:?} -> {:?} dmg {dmg} count {count} ammo {ammo} splash {splash} attack {:?} armor {:?} pct {pct} apa {} uber {} alive {} unit_alive {:?}",
+                "D4634 f{frame} {:?} -> {:?} dmg {dmg} count {count} ammo {ammo} splash {splash} attack {:?} armor {:?} pct {pct} apa {} uber {} alive {:?} unit_alive {:?}",
                 attacker, target, self.attack_of(attacker), self.armor_of(target), ap.ammo_per_att, ap.uber_size,
                 (self.obj_alive(attacker), at.z, tt.z, self.tables.tuning.height_bonus, self.tables.tuning.height_increment, self.pos_of(attacker), self.pos_of(target)),
                 match attacker { Obj::Unit(u) => Some((self.units[u].owner, self.units[u].index, self.units[u].type_index, self.units[u].health)), _ => None },
