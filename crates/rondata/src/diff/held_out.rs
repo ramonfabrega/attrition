@@ -4940,8 +4940,8 @@ pub(crate) mod tests {
                     let c = u.pos.cell();
                     let w = built.sim.unit_chain_words(i);
                     let line = format!(
-                        "slot {i} {}/{} TI {ty:?} {name:?} alive {} inside {:?}/{:?} cell ({}, {}) pos ({}, {}) words {w:?} hp {} decoy {} coll_at {:?}",
-                        u.owner, u.index, u.alive(), u.inside, u.inside_unit, c.x, c.y, u.pos.x, u.pos.y, u.health, u.decoy, u.coll_at
+                        "slot {i} {}/{} TI {ty:?} {name:?} alive {} inside {:?}/{:?} cell ({}, {}) pos ({}, {}) words {w:?} hp {}",
+                        u.owner, u.index, u.alive(), u.inside, u.inside_unit, c.x, c.y, u.pos.x, u.pos.y, u.health
                     );
                     if last.get(&i) != Some(&line) {
                         eprintln!("P4685 f{} {line}", built.sim.frame);
