@@ -22770,3 +22770,28 @@ photograph shows around the capital and ours does not: the Farm's
 wheat, and the paving under the buildings. The pass moved no score
 and took no capture.
 **DECISIONS 156.** `docs/audit/2026-11-23-fable-pass-bays.md`.
+
+## 2026-11-24 — the settlement: Astra's sample run is taken whole (Fable 5.2, steering)
+
+No lane ran after the third pass of the 23rd. Ramon gave the day to
+Astra instead, on a direct branch off the pass's tip, and it worked
+the one game the lanes had left for last: the 2017 sample. Eleven
+items in sequence, each starting where the one before stopped. The
+sample's first parting went from 7502 to 10653 of 21,044 states and
+its draws from 7613 to 11488. The fixes were small rules a late game
+exercises: Diamonds on the commerce cap, a Scout's toggle, a rally
+that must not see through fog, a Senator leaving a quiet city on his
+player's thirty-second frame. Each was checked on the sample's own
+takes and seen red under a mutation.
+
+The settlement took the branch whole and gated it green. Then it ran
+the one check no gate builds, the seam counter, and found three pins
+stale: the rows that part walk on as their own games, so every fix
+upstream moves what they enter later. The fallback now fires on five
+rows and an eighth piece has no bay. The two items that open on an
+instrument's table carry the new figures.
+
+The first seam run died because its log sat in a tree the compressor
+was rewriting. The disk went from 73 to 134 GB free.
+
+`docs/audit/2026-11-24-astra-settlement.md`.

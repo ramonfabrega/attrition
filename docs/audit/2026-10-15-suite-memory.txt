@@ -1,4 +1,4 @@
-# Every rondata release test's peak resident set alone, 2026-11-23, tools/suite_timings.py (tree 86a8d3da).
+# Every rondata release test's peak resident set alone, 2026-11-24, tools/suite_timings.py (tree 05ba3497).
 # /usr/bin/time -l, one test per process, --test-threads 1; MiB then the test; -1 when unread.
 5304	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 3662	diff::start::tests::every_lobby_s_start_built_from_its_choices
@@ -1882,6 +1882,7 @@
 227	diff::minted::what_the_stance_does_on_our_walk
 225	diff::minted::the_garrisoned_minted_script_s_effects_on_our_walk
 222	diff::minted::the_city_gathered_script_against_the_marketed_playback_parts
+221	diff::minted::the_sample_s_factory_trainee_inherits_the_rally_targets_hotkey
 221	diff::minted::the_boxed_script_against_the_attacked_playback_parts
 219	diff::minted::the_unqueued_script_against_the_city_gathered_playback_parts
 219	diff::minted::the_chatted_script_against_the_gathered_playback_is_whole
@@ -1903,6 +1904,7 @@
 213	diff::minted::the_original_s_playback_of_the_main_view_clicked_file_walks_in_lockstep
 211	diff::minted::the_original_s_playback_of_the_repair_file_walks_in_lockstep
 211	diff::minted::the_renamed_minted_script_s_effects_on_our_walk
+211	diff::minted::the_sample_s_unit_hotkey_slot_matches_run1825
 208	diff::third::tests::run382_s_word_frame_is_widened_whole
 204	diff::checksum_lines::packets::inca_enlightenment_pair_packets
 197	diff::checksum_lines::world::the_collision_blocks_are_the_original_s_on_the_next_frame
@@ -1977,6 +1979,7 @@
 135	diff::sample::tests::the_sample_s_header_is_the_playback_s_gameinfo
 134	diff::checksum_frames::record::the_ranges_record_is_each_packet_s_stream
 133	diff::coverage::every_key_the_dump_prints_is_read_or_pinned
+132	diff::sample::tests::the_sample_s_ranges_from_10001_to_11500_name_each_first_parting
 131	diff::minted::the_boxed_minted_packages_round_trip
 130	diff::world::tests::run9_s_world_dump_puts_the_ai_s_farm_on_the_original_s_tile
 127	checksum::playback::combat::the_combat_window_b_matches_every_line_through_closing
@@ -1984,6 +1987,7 @@
 125	diff::minted::the_garrisoned_minted_packages_round_trip
 123	census::tests::the_census_s_simulation_share_is_pinned
 123	diff::diplomacy_take::run1645_s_taunt_parts_from_the_old_seat
+123	diff::sample::tests::the_sample_s_ranges_from_8001_to_10000_name_each_first_parting
 122	diff::start_walk::recording::the_demand_s_game_to_its_end_on_run1691
 122	checksum::playback::combat::the_combat_window_a_matches_every_line_through_closing
 122	diff::minted::the_right_pressed_minted_packages_round_trip
@@ -1991,18 +1995,22 @@
 120	diff::minted::the_attacked_minted_packages_round_trip
 120	diff::minted::the_city_gathered_minted_packages_round_trip
 119	diff::roman_medieval_pair::roman_medieval_pair_is_no_other_lobby
+118	diff::sample::tests::the_sample_s_shortened_gather_list_keeps_its_recorded_allocation
 118	checksum::tests::run1100_s_records_are_read_whole
+118	diff::sample::tests::the_sample_s_senator_and_crew_match_the_recorded_city_exit
 117	lobby::tests::the_page_s_harness_lobby_builds_the_built_start
 117	diff::minted::the_followed_minted_packages_round_trip
 117	diff::diplomacy_take::run1645_s_word_is_pinned_as_found
 116	diff::start_walk::recording::the_demand_s_game_ends_on_the_tick_the_original_stops_on
 116	diff::minted::the_repeated_minted_packages_round_trip
+116	diff::sample::tests::the_sample_s_factory_rally_matches_the_new_units_exit_and_order
 115	diff::lakota_medieval_pair::lakota_medieval_pair_is_no_other_lobby
 114	diff::setup::tests::run11_s_checksum_trace_pins_the_setup_stream
 114	diff::minted::the_picked_minted_packages_round_trip
 114	diff::minted::the_arms_minted_packages_round_trip
 114	diff::minted::the_transport_minted_packages_round_trip
 114	diff::minted::the_repair_minted_packages_round_trip
+113	diff::sample::tests::the_sample_s_unit_hotkey_matches_before_and_after_the_package
 113	diff::minted::the_auto_explored_minted_packages_round_trip
 113	diff::minted::the_disbanded_minted_packages_round_trip
 113	diff::minted::the_toggled_minted_packages_round_trip
@@ -2017,13 +2025,19 @@
 113	diff::minted::the_came_out_minted_packages_round_trip
 113	diff::minted::the_renamed_minted_packages_round_trip
 113	diff::minted::the_hotkeyed_minted_packages_round_trip
+112	diff::sample::tests::the_sample_s_regrown_figure_matches_its_recorded_move
 111	checksum::playback::tests::the_long_window_game_agrees_through_its_closing_state
 111	diff::start_walk::recording::the_lobby_s_recording_is_written_and_reads_back
 108	diff::setup::tests::the_style_s_limits_give_the_start_dump_s_owners
 107	diff::roman_classical_pair::roman_classical_pair_is_no_other_lobby
+106	diff::sample::tests::the_sample_s_forced_march_matches_before_and_after_the_package
+104	diff::sample::tests::the_sample_s_group_orders_and_first_steps_match_the_recorded_muster
+104	diff::sample::tests::the_sample_s_scout_order_and_city_marks_match_both_recorded_lines
 102	diff::harness::tests::run53_s_8186_is_find_target_s_probe_and_its_ring_walks
 102	diff::unit::tests::the_frozen_frame_s_figures_do_not_step_their_clocks
 101	diff::chinese_medieval_pair::chinese_medieval_pair_is_no_other_lobby
+101	diff::sample::tests::the_sample_s_merchant_rally_matches_the_recorded_birth_and_first_steps
+100	diff::sample::tests::diamonds_raise_the_sample_s_commerce_caps_on_acquisition
 96	diff::checksum_lines::packets::run1645_take_packet
 96	diff::sample::tests::the_sample_s_ranges_to_6400_name_each_first_parting
 94	diff::sample::tests::the_sample_s_ranges_to_8000_name_each_first_parting
@@ -2048,6 +2062,7 @@
 71	diff::held_out::tests::row_63_s_fort_pick_walks_the_fort_records_on_run1782
 71	diff::held_out::tests::row_28_s_round_at_the_capital_on_run1820_s_ranges
 70	diff::sample::tests::the_sample_s_ranges_to_3100_name_each_first_parting
+68	diff::held_out::tests::row_43_s_muster_and_first_steps_match_run1787
 68	diff::held_out::tests::row_83_s_barracks_re_homes_when_its_city_is_taken_on_run1784_s_ranges
 68	diff::held_out::tests::row_93_s_siege_order_walks_its_point_on_run1799_s_ranges
 68	diff::held_out::tests::row_28_s_round_on_run1821_s_ranges
@@ -2293,6 +2308,8 @@
 8	gamelog::tests::indexed_fields_keep_file_order_and_record_only_requested_names
 8	diff::held_out::tests::the_sixth_s_files_carry_the_declared_seats_team_and_orders
 8	diff::held_out::tests::the_seventh_s_files_carry_the_declared_seats_team_and_orders
+8	gamelog::tests::figure_angles_keep_the_first_valid_tag_and_require_all_four_slots
+8	gamelog::tests::scalar_reads_keep_first_values_and_record_the_requested_names
 7	diff::held_out::tests::the_fifth_s_files_carry_the_declared_seats_and_team
 7	artdata::tests::every_surf_section_model_the_install_ships_decodes
 7	artdata::tests::the_surf_s_sections_and_timings_are_the_packet_s

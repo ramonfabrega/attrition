@@ -168,14 +168,18 @@ fn fallback_rows(walks: &[Walk]) -> Vec<(usize, u64)> {
 /// 2026-11-23, third): row 28 is whole (items 4626, 4630), row 88 keeps
 /// 991 from state 2925 after item 4625's Carrack, row 148 is taken (item
 /// 4611) and fires 143 from 10888, nine states past its first parting.
+/// **(83, 50), 563 and (48, 21), (88, 1392), (148, 143) on `05ba34976`**
+/// (the settlement of 2026-11-24, Astra's items 4641 to 4648): no first
+/// parting moved but row 43's, and every count is past its row's: the
+/// fifth's row 83 fires for the first time, 50 rounds from state 5714.
 const FALLBACK: [(&str, &[(usize, u64)]); 7] = [
     ("first", &[]),
     ("second", &[]),
     ("third", &[]),
     ("fourth", &[]),
-    ("fifth", &[]),
-    ("sixth", &[(133, 642)]),
-    ("seventh", &[(48, 20), (88, 991), (148, 143)]),
+    ("fifth", &[(83, 50)]),
+    ("sixth", &[(133, 563)]),
+    ("seventh", &[(48, 21), (88, 1392), (148, 143)]),
 ];
 
 fn fallback_as_pinned(file: &str, walks: &[Walk]) {
