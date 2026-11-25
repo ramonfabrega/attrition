@@ -12748,3 +12748,65 @@ fn an_empty_city_at_its_ceiling_ejects_until_its_next_process() {
         "the next process finds the chain empty and clears it"
     );
 }
+
+/// **A terraform rewrites only the heights `Wall::init` refreshes** (item
+/// 4660, `crate::units::stored_z`; run1832's Phalanxes `2/76` and `2/91`
+/// under Smelter `2/2040`). A Barracks flattens a slope under two standing
+/// land units beside it: the one on its cell's chain is refreshed
+/// (`Unit::update_z`, the unit's `z` and its figure's) and reads the new
+/// ground; the one on no chain keeps the heights it stood at, figure and
+/// `last_z` too, until `Unit::set_new_location` writes them again.
+#[test]
+fn a_terraform_leaves_an_unchained_unit_s_height_where_it_stood() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let hop = sim.add_unit_type(hoplite_type(t.barracks));
+    let side = (16 * world::TILES_PER_CELL + 1) as i64;
+    // A slope rising east, 9 a corner.
+    let grid = (0..side * side).map(|i| (i % side) * 9_000_000).collect();
+    assert!(sim.world.set_corner_grid(grid));
+    // Player 0's territory: a city, before the units stand.
+    city_at(&mut sim, &t, 0, 32, 32);
+    let at = tile_pos(41, 33);
+    let corner = sim.tile_corner(t.barracks, at);
+    // Both on the box's west border, a row apart: one tile west of the
+    // footprint's corner, where the blend moves the ground.
+    let chained = spawn(&mut sim, 0, hop, tile_pos(corner.x - 1, corner.y + 1));
+    let loose = spawn(&mut sim, 0, hop, tile_pos(corner.x - 1, corner.y + 2));
+    sim.chain_remove(loose);
+    for u in [chained, loose] {
+        sim.units[u].guys = vec![crate::units::anim::Guy::fresh(0)];
+    }
+    let ground = |sim: &Sim, u: usize| sim.world.object_z(sim.units[u].pos.tile());
+    let (was_c, was_l) = (ground(&sim, chained), ground(&sim, loose));
+    let was_guy = sim.guy_stored_z(loose, 0);
+    assert_eq!(sim.unit_stored_z(loose), was_l, "the ground, before");
+    sim.place_building(0, t.barracks, at).expect("placed");
+    assert_ne!(ground(&sim, loose), was_l, "the terraform moved the ground");
+    assert_ne!(ground(&sim, chained), was_c, "and under the chained one");
+    assert_eq!(
+        sim.unit_stored_z(chained),
+        ground(&sim, chained),
+        "refreshed"
+    );
+    assert_eq!(sim.unit_stored_z(loose), was_l, "kept");
+    assert_eq!(
+        sim.guy_stored_z(loose, 0),
+        was_guy,
+        "its figure's z and last_z kept"
+    );
+    let (gz, glast) = sim.guy_stored_z(chained, 0);
+    assert_ne!(gz, glast, "a refreshed figure's last_z is not update_z's");
+    // `Unit::set_new_location` writes `z` on every call, moved or not.
+    let pos = sim.units[loose].pos;
+    sim.set_new_location(loose, pos, false);
+    assert_eq!(
+        sim.unit_stored_z(loose),
+        ground(&sim, loose),
+        "written again"
+    );
+    // `Guy::set_new_location(…, 1)` writes the figure's.
+    sim.set_new_location(loose, pos, true);
+    let (z, last) = sim.guy_stored_z(loose, 0);
+    assert_eq!((z, last), (sim.guy_z(loose, 0, pos, false), z), "seated");
+}

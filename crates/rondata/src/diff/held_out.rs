@@ -2015,6 +2015,130 @@ pub(crate) mod tests {
         );
     }
 
+    /// **Row 133's AA unit marks the Special Forces jamming it** (item
+    /// 4666, `docs/COMBAT.md` §8.6): run1797's ranges, the row's units
+    /// parting on 2566 (range 4407, record 22, `unit_masks2` ours `0x4080`,
+    /// theirs `0x4088`). who=1's AA unit `1/75` (TI 284, land, `ANTI_AIR`)
+    /// stands 2,054 from who=2's Special Forces `2/22` (TI 77, specials
+    /// slot 2), inside the reach of 2,304; its sixteen-frame phase falls on
+    /// 2565, and `Unit::process`'s anti-air arm marks the jammer. Every
+    /// units range on 2565 to 2567, ours against theirs, byte for byte, and
+    /// the mark.
+    #[test]
+    fn row_133_s_aa_unit_marks_the_special_forces_jamming_it_on_run1797_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 2565..=2567 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[0].as_ref().expect("the units line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            if state == 2566 {
+                let sf = built.sim.unit_by_o(2, 22).expect("2/22");
+                assert_eq!(
+                    built.sim.units[sf].unit_masks2, 0x4088,
+                    "2/22's unit_masks2 on 2566"
+                );
+            }
+        }
+    }
+
+    /// **Row 133's Attack Helicopter fires from its pod at 319°** (item
+    /// 4663, `docs/COMBAT.md` §55.6): run1797's ranges, the row's ammo
+    /// parting on 2547 (range 7, record 2, `launch.x` ours 17415, theirs
+    /// 17414). who=1's `1/14` (TI 311, piece 261) at (17496, 2232) faces
+    /// 319° on 2546 and fires node 0's rocket on who=2's `2/22`; the pod's
+    /// row was item 3804's, fitted at heading 0 alone. Every ammo range on
+    /// 2546 to 2548, ours against theirs, byte for byte, and the round's
+    /// launch.
+    #[test]
+    fn row_133_s_attack_helicopter_fires_from_its_pod_on_run1797_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 2546..=2548 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[3].as_ref().expect("the ammo line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 3).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "ammo's ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "ammo range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+        let heli = built.sim.unit_by_o(1, 14).expect("1/14");
+        let launches: Vec<_> = built
+            .sim
+            .combat
+            .projectiles
+            .iter()
+            .filter(|p| p.shooter == sim::combat::Obj::Unit(heli))
+            .map(|p| (p.launch.x, p.launch.y))
+            .collect();
+        assert_eq!(launches, vec![(17414, 2248)], "its node-0 rocket");
+    }
+
     /// **Row 133's SAM rocket strikes its own capital with the recapture
     /// bonus** (item 4655, `docs/RECGAME.md` §13.5): run1797's ranges, the
     /// row's builds parting on 2451 (range 2180, record 2000, `damage` ours
@@ -3162,6 +3286,87 @@ pub(crate) mod tests {
             let u = built.sim.unit_by_o(1, 15).expect("1/15");
             assert_eq!(built.sim.units[u].type_index, 356, "1/15 is a Citizen");
         }
+    }
+
+    /// **Row 53's standing Phalanxes keep the height they stood at under a
+    /// terraform** (item 4660, `docs/RECGAME.md` §13.2): run1812, the
+    /// ranges take of row 53's file. Smelter `2/2040` is placed in tick
+    /// 3357, and `Wall::init@0063e9b0`'s `update_z` walk refreshes only the
+    /// land units on the chains of the cells round it (`0063eb70`..
+    /// `0063ec43`). who=2's Phalanx `2/76` (TI 133, land) stands on cell
+    /// (49, 25) and on no cell's chain (run1832's packet, item 4609), so its
+    /// `z` stays 22 and its figure's 21 where the ground now reads 29 and
+    /// 24. Every units and guys range on 3357 to 3359, ours against theirs,
+    /// byte for byte: red on the tree before the fix at units range 4116,
+    /// record 76, `z` ours 29, theirs 22 on 3358.
+    #[test]
+    fn row_53_s_unchained_phalanx_keeps_its_height_under_the_smelter_on_run1812_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 2) else {
+            eprintln!("skipping: row 53's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1812/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1812's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 53's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3357..=3359 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (li, name) in [(0u8, "units"), (6, "guys")] {
+                let ours = lines[usize::from(li)].as_ref().expect(name);
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == li).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{name} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+        }
+        // The Phalanx by name, on 3359: who=2's record 76, `z` 22 where the
+        // ground under it reads 29.
+        let u = built.sim.unit_by_o(2, 76).expect("2/76");
+        assert_eq!(built.sim.units[u].type_index, 133, "2/76 is a Phalanx");
+        let tile = built.sim.units[u].pos.tile();
+        assert_eq!(built.sim.world.object_z(tile), 29, "the new ground");
+        let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+        let units = lines[0].as_ref().expect("units");
+        let k = units
+            .ranges
+            .iter()
+            .position(|r| r.record == 76 && r.field == "who..y_internal" && r.bytes[0] == 2)
+            .expect("2/76's range");
+        let f = crate::checksum::fields::range_fields(
+            "units",
+            "who..y_internal",
+            &units.ranges[k].bytes,
+        )
+        .expect("its fields");
+        assert!(
+            f.iter().any(|(n, v)| n == "z" && *v == 22),
+            "2/76's stored z: {f:?}"
+        );
     }
 
     /// **Row 83's Airbase keeps its Biplane in when an enemy wonder out of
@@ -11803,18 +12008,26 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 3,810, groups 3,716 -> 3,726, leaders 3,707 -> 3,715, cities 3,825 -> 3,951, items 9,154
         // -> 8,940, goods 3,923 -> 3,865, world 3,707 -> 3,721; all past the row's first parting
         // 3358, which stands.
+        // Then item 4660 (the stored heights: `Wall::init`'s `update_z`
+        // walk refreshes only the chained land units round the building,
+        // `crate::units::stored_z`): on 3358 who=2's Phalanx `2/76` (TI 133,
+        // land, on no cell's chain) keeps `z` 22 under Smelter `2/2040`'s
+        // terraform as theirs, where ours read the ground's 29, and its
+        // figure 21 for 24. The row's first parting moves: units 3,358 ->
+        // 3,713 and guys 3,358 -> 3,713; ammo 3,880 -> 4,137, deaths 3,810
+        // -> 3,939; items 8,940 -> 8,907, a named fall past the parting.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                3358, 3732, 12001, 3880, 3810, 3726, 3358, 3715, 3951, 8940, 3865, 3721,
+                3713, 3732, 12001, 4137, 3939, 3726, 3713, 3715, 3951, 8907, 3865, 3721,
             ],
             first: &[
-                ("units", (3358, Some(992329593), 1194311501)),
+                ("units", (3713, Some(104111882), 435150367)),
                 ("builds", (3732, Some(2175428037), 986670026)),
                 ("ammo", (3807, Some(1), 2355366420)),
                 ("deaths", (3713, Some(3855424552), 2127964779)),
                 ("groups", (3714, Some(1263612184), 908409090)),
-                ("guys", (3358, Some(479939638), 3928181788)),
+                ("guys", (3713, Some(21387406), 3289861510)),
                 ("leaders", (3713, Some(2512362065), 969579214)),
                 ("cities", (3951, Some(4088156871), 4088615623)),
                 ("items", (4596, Some(3298888854), 3301772440)),
@@ -12190,15 +12403,28 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 0xbd69188d, theirs 0xe9b90000, impact angle ours 100.0, theirs
         // 38.0, all agree now): deaths 2,563 -> 3,206 (first 2457 -> 3206);
         // the first parting is ammo alone on 2547.
+        // Then item 4663 (the Attack Helicopter's pod rows fitted at every
+        // heading, `launch::GUNS` piece 261: who=1's `1/14` faces 319° on
+        // 2546 and fires node 0's rocket on `2/22`; ammo range 7, record 2,
+        // `launch.x` ours 17415, theirs 17414 on 2547, both 17414 now):
+        // ammo 3,144 -> 3,187 (first 2547 -> 3160), ours' end 6040 ->
+        // 6039; the first parting is units alone on 2566.
+        // Then item 4666 (`Unit::process`'s anti-air arm, `611629`..
+        // `61167a`: an `ANTI_AIR` unit on its sixteen-frame phase marks the
+        // Special Forces `is_jammed` finds; who=1's AA unit `1/75`, TI 284,
+        // on 2565 marks who=2's `2/22`, TI 77; units range 4407, record 22,
+        // `unit_masks2` ours 0x4080, theirs 0x4088 on 2566, both 0x4088
+        // now): units 2,643 -> 2,677 (first 2566 -> 2677); no other line
+        // moved, and the first parting is units and guys on 2677.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                2643, 2768, 6085, 3144, 3206, 2685, 2677, 2751, 2978, 3148, 3961, 2680,
+                2677, 2768, 6085, 3187, 3206, 2685, 2677, 2751, 2978, 3148, 3961, 2680,
             ],
             first: &[
-                ("units", (2566, Some(1723402503), 567609615)),
+                ("units", (2677, Some(3575508614), 3858951814)),
                 ("builds", (2689, Some(2754752570), 3680907824)),
-                ("ammo", (2547, Some(3276077082), 122615738)),
+                ("ammo", (3160, Some(191219135), 1023199108)),
                 ("deaths", (3206, Some(1000348558), 2108296578)),
                 ("groups", (2685, Some(293453109), 2102443375)),
                 ("guys", (2677, Some(1670959914), 1725420330)),
@@ -12208,7 +12434,7 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
                 ("goods", (3322, Some(569473142), 586774648)),
                 ("world", (2680, Some(3147089146), 4135110218)),
             ],
-            over: Some(6040),
+            over: Some(6039),
         }),
     }),
     // run1795
@@ -12784,15 +13010,21 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // 8,590 (first 3126 -> 4135), goods 3,543 -> 3,500 (first 3114 ->
         // 3116), world 2,988 -> 3,086. The first parting moves 2985 -> 3028,
         // on ammo.
+        // Moved by item 4664 (run1834's ranges): `Object::fire_ammo@0064c8b0`'s
+        // unit arm launches from the figure's own `z` + 100. On 3027 who=1's
+        // Heavy Fire Raft `1/94` (TI 335, sea) fires on `2/83`; ammo range 43,
+        // record 15 `sz` ours -173 -> 100, theirs 100 (ours read the seabed,
+        // -273). Ammo 3,391 -> 3,392 (first 3028 -> 3383). The first parting
+        // moves 3028 -> 3033, on units.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                3033, 3144, 12001, 3391, 3463, 3095, 3069, 3134, 3313, 8590, 3500, 3086,
+                3033, 3144, 12001, 3392, 3463, 3095, 3069, 3134, 3313, 8590, 3500, 3086,
             ],
             first: &[
                 ("units", (3033, Some(3546334183), 3496526911)),
                 ("builds", (3144, Some(3531851268), 1209124357)),
-                ("ammo", (3028, Some(2577858340), 392952667)),
+                ("ammo", (3383, Some(1), 2980055740)),
                 ("deaths", (3463, Some(4004785731), 1478238545)),
                 ("groups", (3095, Some(3354359777), 3950803518)),
                 ("guys", (3069, Some(2438684783), 234578274)),

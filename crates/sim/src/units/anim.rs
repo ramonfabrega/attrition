@@ -485,6 +485,13 @@ pub struct Guy {
     /// (`Guy::set_new_location(…, 1)`, `005d86f0:66`) writes `last` equal
     /// to the point.
     pub last: Option<(Pos, Angle)>,
+    /// `z` (`+0x14`) where a terraform left it behind the ground, with the
+    /// point the figure stood on: read only while it stands there
+    /// ([`crate::units::stored_z`], item 4660). `None`: the ground.
+    pub z_held: Option<(Pos, i32)>,
+    /// `last_z` (`+0x70`) where a terraform left it behind the ground, until
+    /// the next `Guy::move` head copies `z` into it (item 4660).
+    pub last_z_held: Option<i32>,
 }
 
 /// **A pivot figure's turret** — `GuyData +0x20 turret_angles[4]`, `+0x30
@@ -595,6 +602,22 @@ pub const UNKNOWN: u32 = u32::MAX;
 pub const MISSING: u32 = 3;
 
 impl Guy {
+    /// `Guy::set_new_location(…, 1)`: `z` from the ground at the new point
+    /// and `last_z = z` (`005d86f0:58`–`:62`), so neither is held (item 4660).
+    pub fn seat_heights(&mut self) {
+        self.z_held = None;
+        self.last_z_held = None;
+    }
+
+    /// `Guy::move@005d9240:47`'s head, `last_z = z`, called once
+    /// [`Guy::last`] holds the point the figure stands on: a `z` held on that
+    /// point is the `last_z` now, and otherwise the ground under it is
+    /// (item 4660).
+    pub fn move_head_heights(&mut self) {
+        let at = self.last.map(|(p, _)| p);
+        self.last_z_held = self.z_held.filter(|(p, _)| Some(*p) == at).map(|(_, v)| v);
+    }
+
     /// `Guy::init_real@005db6b0`'s clock, before its draw: nothing played,
     /// so the first `inc_time` overflows at once.
     pub const fn fresh(gpiece: i32) -> Guy {
@@ -612,6 +635,8 @@ impl Guy {
             follow: None,
             turret: Turret::ZERO,
             last: None,
+            z_held: None,
+            last_z_held: None,
         }
     }
 }

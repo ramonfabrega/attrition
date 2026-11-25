@@ -541,6 +541,11 @@ pub struct Unit {
     /// [`Unit::down`]/[`Unit::up`] are the units of it every reader walks
     /// (`docs/COLLISION.md` §3.2, item 4098).
     pub chain: crate::movement::collide::ObjectChain,
+    /// `z` (`ObjectData +0xc`) where a terraform left it behind the ground
+    /// under the unit, until `Unit::set_new_location` or `Unit::update_z`
+    /// writes it again ([`crate::units::stored_z`], item 4660). `None`: the
+    /// ground at its tile.
+    pub z_held: Option<i32>,
     /// `UnitData::rare` (`+0x54`, the union with `air_alt` and
     /// `former_type`): the `TypeIndex` of the good `UnitData::calc_gather`
     /// last found for this unit, `-1` when it looked and found none.
@@ -1112,6 +1117,7 @@ impl Unit {
             down: None,
             up: None,
             chain: crate::movement::collide::ObjectChain::default(),
+            z_held: None,
             // `Unit::init@00612100` lines 90 and 281: `rare` is **0** and
             // `good_obj` is `-1`, and the two starts are not the same
             // sentinel.

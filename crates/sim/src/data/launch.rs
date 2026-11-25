@@ -9565,16 +9565,24 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     // a `SmallRocket` on node 0 at 0 ms and on node 1 at 500. run1469's
     // `2/15` (`TI` 311) at (13560, 16056), angle 0, `z` 330, releases its
     // node 0 round from (13488, 16015, 371) on 627 and its node 1 round
-    // from (13638, 16029, 371) on 633. **One heading only**: each row is
-    // the centre of the unit square that heading truncates to, so the
-    // vector's turn at any other heading is not measured.
+    // from (13638, 16029, 371) on 633.
+    //
+    // **Both rows are fitted at every heading** (item 4663, `docs/COMBAT.md`
+    // §55.6): item 3804's rows were the centres of the unit squares that
+    // one heading truncates to, (−72,500, 41,500) and (78,500, 27,500),
+    // and reproduced 201 and 197 of the original's 361. run1797's
+    // `1/66` (row 133) faces 319° on 2546 and fired node 0's round from
+    // x 17415 where theirs left from 17414. `tools/recomp/sweep_keys.py`
+    // on run1579's packet (`init_position`, then `get_position` at every
+    // whole degree) and `fit_bay.py`'s centroids: regions of 360 and 914
+    // points, each row 361 of 361.
     (
         261,
         crate::units::anim::ATTACK2,
         0,
         Bay {
-            right: -72_500,
-            fwd: 41_500,
+            right: -72_559,
+            fwd: 41_859,
             dz: 41,
         },
     ),
@@ -9583,8 +9591,8 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
         crate::units::anim::ATTACK2,
         1,
         Bay {
-            right: 78_500,
-            fwd: 27_500,
+            right: 78_169,
+            fwd: 27_468,
             dz: 41,
         },
     ),

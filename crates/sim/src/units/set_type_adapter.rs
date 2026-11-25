@@ -235,11 +235,13 @@ impl UnitSetTypeView for SimSetType<'_> {
         if let Some(g) = unit.guys.get_mut(i) {
             let angle = g.last.map_or(facing, |(_, a)| a);
             g.last = Some((pos, angle));
+            g.seat_heights();
         }
         if i == 0 {
             for g in unit.guys.iter_mut().skip(SQUAD_SIZE) {
                 let at = g.follow.map_or(pos, |f| f.body.pos);
                 g.last = Some((at, facing));
+                g.seat_heights();
             }
         }
     }

@@ -27,6 +27,31 @@ fn run1469_s_attack_helicopter_rockets_leave_from_its_pods() {
     }
 }
 
+/// **The Attack Helicopter's pods turn with the figure** (item 4663,
+/// `docs/COMBAT.md` §55.6): the original's `get_position` on run1579's
+/// packet (`tools/recomp/sweep_keys.py`, `init_position` then every whole
+/// degree), at headings item 3804's one-heading rows missed. The first is
+/// row 133's: run1797's `1/14` faces 319° on 2546 and its node-0 rocket
+/// leaves 82 west of the figure, where the old row gave 81. Made to fail
+/// with the old rows, (−72,500, 41,500) and (78,500, 27,500): 201 and
+/// 197 of the 361 headings.
+#[test]
+fn the_attack_helicopter_s_pods_agree_with_the_original_at_every_heading() {
+    // `(node, the sweep's degree, x, y)`: the figure's whole degree is
+    // the sweep's plus 180, as `Bay::point` turns it.
+    for (node, deg, want) in [
+        (0, 139, (-82, 16)),
+        (0, 1, (71, 43)),
+        (0, 200, (-53, -64)),
+        (1, 4, (-79, 21)),
+        (1, 139, (40, -72)),
+        (1, 250, (52, 64)),
+    ] {
+        let b = bay(261, crate::units::anim::ATTACK2, 0, node).expect("piece 261's row");
+        assert_eq!(b.offset((deg + 180) % 360), want, "node {node} at {deg}");
+    }
+}
+
 /// **The Advanced Machine Gun's pair leaves from its muzzle** (item
 /// 3813, `docs/GOLDEN.md` §152.7): run1473's `2/25` at (20520, 18360),
 /// angle −449,576,960, looses frames 3 and 4 of `CHAR_ATTACK3` on 712

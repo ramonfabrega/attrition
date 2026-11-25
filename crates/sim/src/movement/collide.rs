@@ -2242,6 +2242,9 @@ impl Sim {
             }
             self.ceo_tile_step(u, on_map, from, to);
         }
+        // `LAB_005f9033`: `find_tcoord_z` at the new tile into `z`, on every
+        // call that reaches it, moved or not (item 4660).
+        self.units[u].z_held = None;
         if turn {
             self.guy_set_angle(u, self.units[u].movement.heading, guys);
         }

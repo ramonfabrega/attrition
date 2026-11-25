@@ -150,6 +150,9 @@ pub(crate) fn guy_of(g: &crate::gamelog::Guy) -> Option<sim::units::anim::Guy> {
         // with a wrapped row starts at zero here.
         turret: sim::units::anim::Turret::ZERO,
         last: None,
+        // The heights are the ground's: a stand-up holds none (item 4660).
+        z_held: None,
+        last_z_held: None,
     })
 }
 

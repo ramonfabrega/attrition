@@ -218,7 +218,7 @@ impl Sim {
             // the unit's own square, which is what §22's table returns for
             // every piece it has not measured — and `Object::fire_ammo`'s
             // unit arm starts it 100 above the figure (§46.1).
-            let sz = self.ground_z(from) + 100;
+            let sz = self.unit_launch_z(i, from);
             self.fire_ammo(me, target, direct, frame, from, sz);
             // **A self-destructing attacker dies with its shot** (item
             // 4614, `docs/RECGAME.md` §14.4): `fight@005fd4d0:900`–`906`,
@@ -803,6 +803,22 @@ impl Sim {
         self.combat.projectiles.insert(at, p);
     }
 
+    /// **`Object::fire_ammo@0064c8b0`'s unit arm launches from the
+    /// figure's own `z`** (`fire_ammo:166`, `guys[k] +0x14 + 100`; item
+    /// 4664, `docs/RECGAME.md` §14.4): the ground under a land figure
+    /// ([`Self::ground_z`], counted), and [`Sim::guy_z`]'s height for a
+    /// ship (0, the water) or an aircraft. run1834's 3027: who=1's Heavy
+    /// Fire Raft `1/94` (TI 335, sea) at (16357, 11190) fires on `2/83`,
+    /// and theirs' round leaves at `sz` 100 where ours read the seabed,
+    /// −273, and left at −173.
+    pub(crate) fn unit_launch_z(&mut self, i: usize, from: Pos) -> i32 {
+        let z = match self.units[i].kind.domain {
+            Domain::Land => self.ground_z(from),
+            _ => self.guy_z(i, 0, from, false),
+        };
+        z + 100
+    }
+
     /// `TerrainOut::find_data_z(x, y, 0)` — [`crate::World::data_z`] — with
     /// the read counted in [`Sim::ground_inexact`] when it touched a
     /// corner this crate cannot pin to the original's single.
@@ -831,7 +847,12 @@ impl Sim {
     /// Jet Fighter `1/14` at 0, where the ground read 533 and 529.
     pub(super) fn aim_z(&mut self, target: Obj, rolling: bool) -> i32 {
         let at = self.pos_of(target);
-        let mut z = self.world.object_z(at.tile()) + if rolling { 0x4b } else { 0 };
+        // A unit's `+0xc` is stored (item 4660, `crate::units::stored_z`).
+        let ground = match target {
+            Obj::Unit(u) => self.unit_stored_z(u),
+            Obj::Building(_) => self.world.object_z(at.tile()),
+        };
+        let mut z = ground + if rolling { 0x4b } else { 0 };
         if let Obj::Unit(u) = target
             && matches!(self.profile(target).domain, Domain::Air)
         {
