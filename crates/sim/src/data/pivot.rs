@@ -753,6 +753,11 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     // run785's, a [`SAME_AS`] piece of 207's). The Carabineer's 140 is 1.0.
     (233, (4, 5)),
     (206, (3, 4)),
+    // Item 4651: `RData +0x88` 0.8 for the Arab Flak Gun (584, `0x3f4ccccd`)
+    // and 0.7 for the Arab Avenger (586, `0x3f333333`), [`SAME_AS`] pieces of
+    // 232's and 234's, on run1579's packet: their sources' own scales.
+    (584, (4, 5)),
+    (586, (7, 10)),
 ];
 
 /// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
