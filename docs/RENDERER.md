@@ -3051,7 +3051,8 @@ channel, (133, 123, 100) against (148, 138, 112), so luma does not move (~~4199b
 
 **The records.** Our walk on 3279 against the packet's 3294, 599 records with a reference: 599 ours, connections 599,
 white lines 576, intersections 320; of the 485 pieces we lay, 286 are the packet's element and orientation. The
-white partings are junctions; the intersections are set and never cleared as a ring is laid tile by tile beside a
+white partings are junctions (~~22 of 23~~: the rings round a joined corner, item 4673, §6.4: white 598, pieces 304 of
+490; the one left is the T at (19, 163)); the intersections are set and never cleared as a ring is laid tile by tile beside a
 half-built one, so a once-only evaluation misses 279 (4199a), and an extra intersection widens the candidates so the
 fractal picks another straight.
 
@@ -4970,9 +4971,10 @@ not `seen`/`seen2`. Then the main view's per-vertex `u`, `1 − α(u)` off
 ~~Not built~~: built (§3.32.2).
 
 **Not established.**
-- What darkens the trees past sight. They are drawn after `render_fow`
+- ~~What darkens the trees past sight. They are drawn after `render_fow`
   and so are not under it, and `Scene::render` clears `RTreeData` on
-  `fog_changed` (4621a).
+  `fog_changed` (4621a).~~ Item 4670 (§6.3): `adjust_tree_colors`, the
+  trees' own vertex diffuse.
 - The water's and the cliffs' own fog arithmetic: only the binding is
   read.
 - The transition's rate (`Scene +0x8c`).
@@ -5025,7 +5027,8 @@ and `artdata::tests::the_fog_ramp_is_the_tileset_s`.*
 - Levels 1 and 2 read 3.6 and 5.3 brighter than theirs, the minimap's
   3.9 at level 2. Whether the original's ground under the fog differs or
   its compose does is not read.
-- The water's and cliffs' own fog (4621b), the trees' (4621a).
+- The water's and cliffs' own fog (4621b). ~~The trees' (4621a).~~
+  Built, §6.3.
 
 ## 3.32.3 The blips under the fog, built (item 4627)
 
@@ -6177,7 +6180,7 @@ The diff: helper 0's 54 pieces are `lay`'s boxes and texcoords from the
 records' own elements and orientations on 53 of 54, and their page corners
 the box over 4 on 54 of 54 (`roads::tests::the_plates_quads_are_the_packet_s`).
 Our walk lays 50 of the 54, 29 on the packet's element and orientation
-(`the_plates_against_the_packet_s`; 4653b, 4199a).
+(`the_plates_against_the_packet_s`; ~~4653b~~ §6.4: 54 of 54, 37; 4199a).
 
 **The row.** `RUN1814B_3294_PLATES`, minted red on the door's 54 road tiles
 in x 7–19, y 151–163 (46 scored): hue **12 → 37 of 46**, luma 43 → 43. With
@@ -6263,7 +6266,8 @@ dropped by item 4661, whose card take backs the file's alpha by a diff.
   client still complements it, on the row alone, until 4658a is read.
 - ~~What thins the plates to blotches where the photograph's bands are opaque
   (4658a).~~ Item 4661: the borders' alpha, on a shared cache key ("The
-  card's draw"). The four element-1 plates our walk does not lay (4653b).
+  card's draw"). ~~The four element-1 plates our walk does not lay
+  (4653b).~~ Item 4673 (§6.4): the rings round the joined corners.
 - ~~Why our plates lay tile-sized squares where draw 81 lays bands
   (4661a).~~ Item 4665 ("The mesh, against draw 81"): the mesh is draw
   81's, and the plates were sampling the surf's mask 1 on key 921.
@@ -6271,7 +6275,156 @@ dropped by item 4661, whose card take backs the file's alpha by a diff.
   packet's helper hold every piece twice on this frame. Whether every
   frame does, and whether the modern bucket's helper does too, has not
   been read.
-- The trees past sight stay lit (4621a). Not touched here.
+- ~~The trees past sight stay lit (4621a).~~ Item 4670 (§6.3): each
+  tree's vertex diffuse, `DARK_GREY` past sight.
+
+## 6.3 The trees past sight on run1814b (item 4670)
+
+*2026-11-25, Opus 5.5. The ledger: `docs/journal/2026-11-25-item-4670.md`.
+`client::world::World::tree_diffuse`, the tree pass's per-corner diffuse
+(`client::gpu::tree_third`, `fs_tree`); checked by
+`trees::tests::the_trees_diffuse_is_the_packet_s` (the diff) and
+`the_trees_past_sight_on_run1814b` (the row).*
+
+**What darkens them (4621a).** Not the fog pass and not the cache's
+clearing: the trees' own vertex colour. `ObjectsOut::sort_trees@00656c70`
+calls `RTreeData::adjust_tree_colors@009236f0` every time it runs. With no
+highlight list, that gives every cached tree's vertices `GREY`, or
+`DARK_GREY` when `WorldData::is_seen@006b55c0` is false for the console's
+`who` at the tree's fog cell. `TreeTransformMethod::execute@00921790` lays
+the same grey when a tree enters the cache. The fog cell is the tree's
+`TCoord` halved: `div_3_table[(int)x >> 6]`, the place over 192, then
+`>> 1`, so `x / 384` (`UNITS_PER_FOG`). The test is skipped, every tree
+`GREY`, under `semaphore & 0x42` (the reveal) or once the console's player
+is out, as the fog pass is (§3.32.1). In the client that is `World::fog`
+`None`.
+- *The colours*, read off `.data`: `GREY` (`0003:553496`) is the
+  `D3DCOLOR` `0xff808080`, and `DARK_GREY` (`0003:553340`) is
+  `0xff404040`.
+- *What it does to the pixel.* Stage 0 is `ADDSIGNED(TEXTURE, CURRENT)`
+  (§3.7, item 4173): `t + d − 0.5`. `GREY` adds nothing, and `DARK_GREY`
+  takes 64/255 off every channel before `TL_FAKE_LIGHT`'s power and the
+  tone map. A gold leaf goes red-brown.
+- *The highlight list* (`sort_trees`' gather tcoords under a drop, and the
+  selected units' targets) lays `GREY` plus `high_light_green` on green,
+  and subtracts `0x3f` a channel past sight. That is not built.
+
+**Built.** `World::tree_diffuse` gives each tree of `tree_list` `GREY`
+(`render::silhouette::TREE_DIFFUSE`) or `DARK_GREY` (`TREE_DIFFUSE_UNSEEN`),
+by fog level 3 at `at / UNITS_PER_FOG`. `World::tree_textured` carries it
+per corner (`TexturedMesh::diffuse`), the tree upload puts it in the third
+attribute's `x`, and `fs_tree` adds it in place of the `0x80` constant.
+`World::tree_fog` (on) is the row's switch.
+
+**The diff.** run1814b's packet holds 12 `tree_cache` entries, one a forest
+cell (`tools/render/tree_points.py`'s `vdiff`). Each entry's vertices by
+diffuse, against ours under slot 0's fog, are equal cell for cell: 1,642
+vertices `DARK_GREY` and 2,342 `GREY`. Four cells are split within the cell,
+because a cell's five trees can stand on two fog cells.
+
+**The row**, `RUN1814B_3294_TREES_PAST_SIGHT`: the pixels above the bar that
+the switch moves by an RGB distance of 10 or more. The tone map moves the
+whole frame by less than that, because the frame's mean falls with the
+trees. 81,370 pixels: theirs (65.6, 39.4, 4.4) Y 43.2; ours before (134.6,
+101.6, 12.9) Y 101.4; now **(64.1, 38.8, 4.3) Y 42.4**, with 78,380 of them
+nearer the photograph. 910 of the map's 945 trees are past sight. The fog row
+moves toward theirs on every level, 76.7 / 125.8 / 158.1 against 75.0 /
+125.2 / 156.4 (from 78.8 / 130.6 / 160.3).
+
+**Diff-backed**: which trees are dark, by the cache's vertices. **Read
+alone**: the colour's arithmetic through `ADDSIGNED`, held to the
+photograph by the row.
+
+**Not established.**
+- The highlight list's green and its `0x3f` past sight.
+- The flat-green stand-in for a face whose leaf does not decode is not
+  darkened.
+- `tree_sprite_data` (the low-detail trees, `section_render[10]` clear)
+  takes the same call and is not drawn by the client.
+
+## 6.4 Element 1's plates on run1814b (item 4673)
+
+*2026-11-25, Opus 5.5. The ledger: `docs/journal/2026-11-25-item-4673.md`.
+`client::roads::corner_loops`; the tests `a_joined_corner_holds_its_ring`
+and `the_plates_candidates_are_the_packet_s`.*
+
+**Where the four went** (4653b). South of the market the capital's roads
+make a block two tiles high and four wide, x 12–15 and y 155–156. The
+packet lays element 1 (`5100f300`, a T with its white lines whole) on all
+eight tiles. Our walk's connections were the packet's on all eight, but our
+white bytes were a subset of theirs on every one (the table below). So the
+four end tiles matched
+no piece's orientation, and the four inside matched element 14, the same T
+with fewer lines.
+
+**The missing halves ring the block's three inner corners.** Round the
+corner between (13, 155), (14, 155), (14, 156) and (13, 156), theirs holds
+`SE | E`, `SW | S`, `NW | W` and `NE | N`. `RoadsOut::mark_white_lines@00892c10`
+cannot mark them, because each of the four has a road on every side it would
+mark (`fill_cache@00893b30`'s `road_cache`, read again: the arms are ours).
+They are a fixed point of two passes we do not run:
+- `RoadsOut::fixup_lines@00891210` continues a half into the next one
+  round the tile's corner where the tile is joined that way: `SE` joined
+  east sets `E`, `SW` joined south sets `S`, `NW` joined west sets `W`,
+  `NE` joined north sets `N`. Each set also puts the half's twin on the
+  neighbour across the edge.
+- `RoadsOut::leech_codes@00890da0` takes a road neighbour's twin back onto
+  the tile.
+
+Twins pair as `mark_white_lines`' puts do: the tile's `E` is the east
+tile's `SW`, its `S` the south tile's `NW`, its `W` the west tile's `NE`,
+its `N` the north tile's `SE`. So once one half of a ring stands, the ring
+holds whatever is re-marked. `Roads::redo_changed_roads@0088e670` zeroes
+only the changed tiles' flags before it leeches. In the original a half
+stands from a time when one of the four was laid before its neighbour. The
+door carries no such history.
+
+**The build.** `corner_loops` marks every ring round a corner where four
+records meet, each joined to the next round it. Before it, the fixed point
+of `fixup_lines`' eight arms and `leech_codes` was run alone on the current
+state, and it moved nothing on either packet: no half of a ring is ever
+marked fresh. That closure is not kept.
+
+**The value diff** (the packet's `road_records.py` flags against
+`candidates`):
+
+| tile | theirs | ours before | ours now |
+|---|---|---|---|
+| (12, 155) | `15003f00` | `15002700` | `15003f00` |
+| (13, 155) | `15003f00` | `15002100` | `15003f00` |
+| (14, 155) | `15003f10` | `15002110` | `15003f10` |
+| (15, 155) | `4500cf04` | `4500c904` | `4500cf04` |
+| (12, 156) | `5400fc40` | `54009c40` | `5400fc40` |
+| (13, 156) | `5100f301` | `51001201` | `5100f301` |
+| (14, 156) | `5100f300` | `51001200` | `5100f300` |
+| (15, 156) | `5100f300` | `51007200` | `5100f300` |
+
+- *In the plates' box* (`RUN1814B_PLATE_CANDIDATES`): white 46 → 54 of 54.
+  The intersections are 33 of 54; the 21 apart are each a bit the packet
+  holds and we do not (4199a).
+- *Laid* (`RUN1814B_PLATE_PIECES`): 50 → 54 of 54, the packet's element
+  and orientation 29 → 37. All eight of the block are element 1 at the
+  packet's orientation.
+- *Draw 81* (`RUN1833_DRAW_81`): our walk's cells 304 → 318 of 320, the
+  same as the packet's own picks. The two apart are (12, 156), whose
+  piece the buffer holds no box of. The piece's texcoord is 558 → 642 of
+  954 corners.
+- *run1559b* (`RUN1559B_RECORDS`): white 576 → 598 of 599. The
+  crossroads' 22 were rings too, and the T at (19, 163) is left. Pieces
+  laid 485 → 490, the packet's 286 → 304.
+- *The row* (`RUN1814B_3294_PLATES`): drawn hue **41 → 44 of 46**, the
+  by-half's 44; luma 42 and 42.
+
+**Diff-backed**: the block's eight candidates and the box's white lines
+(54 of 54), run1559b's 598. **Read alone**: `fixup_lines`' and
+`leech_codes`' arms, and the pairs. No score rests on them: the ring is
+built from the packets' bytes, and the reading says why it holds.
+
+**Not established.**
+- Whether every joined corner holds its ring. On both packets every one
+  does. A block laid whole in one `add_roads` call, with no half of a
+  ring standing, would not, and the door cannot tell the two apart.
+- The intersections' history (4199a).
 
 ## 7. What is not established, and what needs Ramon's word
 

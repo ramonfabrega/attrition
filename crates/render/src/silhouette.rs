@@ -662,6 +662,12 @@ pub const LIT_POWER: f32 = 1.45;
 /// fourth dword, the one stage 0's `ADDSIGNED(TEXTURE, CURRENT)` adds.
 pub const TREE_DIFFUSE: u8 = 0x80;
 
+/// **A tree's diffuse past sight** (item 4670; `docs/RENDERER.md` §6.3):
+/// `DARK_GREY` (`.data` `0003:553340`, the `D3DCOLOR` `0xff404040`), which
+/// `RTreeData::adjust_tree_colors@009236f0` writes for a tree whose fog
+/// cell is not `is_seen`; [`TREE_DIFFUSE`] is `GREY` (`0003:553496`).
+pub const TREE_DIFFUSE_UNSEEN: u8 = 0x40;
+
 /// `TL_FAKE_LIGHT`'s power on the stage colour (item 4173): the unlit
 /// branch of the install's `shaders/ps_global.hlsl`, read, not copied.
 pub const FAKE_LIGHT_POWER: f32 = 1.9;

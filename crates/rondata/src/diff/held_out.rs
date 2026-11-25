@@ -2076,6 +2076,113 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 133's dead farm rolls under its number's next building** (item
+    /// 4669, `docs/SYNC.md` §3.3): run1797's ranges and trace, the row's
+    /// units and guys parting on 2677 (units range 4225, record 18, guy
+    /// `cur_anim` ours 0, theirs 1; range 4469, record 21, ours 1, theirs 0
+    /// — who=2's two TI 220 idle rolls, one draw apart). The stream parted
+    /// on frame 2675, by one `Farms::inc_time+0x1ae` draw: who=2's Farm
+    /// 2003 is dead, its record still listed, and the type-106 building that
+    /// took the number 2003 is finished in that frame's objects phase, so
+    /// the original walks the dead farm's five empty cells. Frame 2675's
+    /// draws site by site, and every units and guys range on 2676 to 2678.
+    #[test]
+    fn row_133_s_dead_farm_rolls_under_its_number_s_next_building_on_run1797() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let dir = home.join("ron-golden/run1797/map-7");
+        let (Some(ranges), Some(log)) = (
+            crate::testenv::experiment(&dir, "rontrace.ranges"),
+            crate::testenv::experiment(&dir, "rontrace.log"),
+        ) else {
+            eprintln!("skipping: run1797's ranges or trace is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let trace = crate::trace::Trace::read(&log)
+            .expect("the trace reads")
+            .expect("the trace parses");
+        while built.sim.frame < 2675 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        assert_eq!(
+            trace.frame_draws(2675).first().map(|d| d.seed),
+            Some(built.sim.rng.seed),
+            "the word entering 2675"
+        );
+        let dead = built
+            .sim
+            .cities
+            .farm_order
+            .iter()
+            .copied()
+            .find(|&b| built.sim.buildings[b].owner == 2 && built.sim.buildings[b].index == 2003)
+            .expect("who=2's Farm 2003 is listed");
+        assert!(!built.sim.buildings[dead].alive, "and dead");
+        let next = built
+            .sim
+            .building_by_o(2, 2003)
+            .expect("2003's next building");
+        assert_eq!(built.sim.buildings[next].ty, Some(106), "its type");
+        assert!(!built.sim.buildings[next].active, "a site entering 2675");
+        stream.apply(2675, &mut built);
+        built.sim.trace.trace_phases = true;
+        built.sim.trace.phase_marks.clear();
+        built.sim.command().tick();
+        built.sim.trace.trace_phases = false;
+        assert!(built.sim.buildings[next].active, "finished in 2675");
+        let ours =
+            crate::diff::report::mark_sites(&built.sim.trace.phase_marks, built.sim.rng.seed)
+                .expect("ours' sites");
+        let theirs = trace.labels(2675);
+        let farms = |v: &[String]| {
+            v.iter()
+                .filter(|s| s.as_str() == sim::cities::farms::SITE_CHANCE)
+                .count()
+        };
+        assert_eq!((farms(&ours), farms(&theirs)), (3, 3), "2675's crop draws");
+        assert_eq!(ours, theirs, "2675's draws, site by site");
+        for state in 2676..=2678 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for line in [0usize, 6] {
+                let ours = lines[line].as_ref().expect("the line");
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {line}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "line {line} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 133's Attack Helicopter fires from its pod at 319°** (item
     /// 4663, `docs/COMBAT.md` §55.6): run1797's ranges, the row's ammo
     /// parting on 2547 (range 7, record 2, `launch.x` ours 17415, theirs
@@ -12709,25 +12816,39 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // `unit_masks2` ours 0x4080, theirs 0x4088 on 2566, both 0x4088
         // now): units 2,643 -> 2,677 (first 2566 -> 2677); no other line
         // moved, and the first parting is units and guys on 2677.
+        // Then item 4669 (`Farms::inc_time`'s gate is the object at the
+        // record's number: who=2's dead Farm 2003 rolls once the type-106
+        // building that took 2003 is finished on 2675, one crop draw ours
+        // lacked; on 2677 units range 4225, record 18, guy `cur_anim` ours
+        // 0, theirs 1, and range 4469, record 21, ours 1, theirs 0, all
+        // agree now): units 2,677 -> 3,479 (first 2677 -> 3479), builds
+        // 2,768 -> 3,511 (first 2689 -> 3497), ammo 3,187 -> 3,492 (first
+        // 3160 -> 3492), deaths 3,206 -> 3,638 (first 3206 -> 3638),
+        // groups 2,685 -> 3,546 (first 2685 -> 3546), guys 2,677 -> 3,479
+        // (first 2677 -> 3479), leaders 2,751 -> 3,546 (first 2751 ->
+        // 3530), cities 2,978 -> 3,619 (first 2978 -> 3619), items 3,148
+        // -> 6,017 (first 3007 -> 5741), goods 3,961 -> 4,518 (first 3322
+        // -> 4476), world 2,680 -> 3,479 (first 2680 -> 3479), ours' end
+        // 6039 -> 5971; the first parting is units, guys and world on 3479.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                2677, 2768, 6085, 3187, 3206, 2685, 2677, 2751, 2978, 3148, 3961, 2680,
+                3479, 3511, 6085, 3492, 3638, 3546, 3479, 3546, 3619, 6017, 4518, 3479,
             ],
             first: &[
-                ("units", (2677, Some(3575508614), 3858951814)),
-                ("builds", (2689, Some(2754752570), 3680907824)),
-                ("ammo", (3160, Some(191219135), 1023199108)),
-                ("deaths", (3206, Some(1000348558), 2108296578)),
-                ("groups", (2685, Some(293453109), 2102443375)),
-                ("guys", (2677, Some(1670959914), 1725420330)),
-                ("leaders", (2751, Some(2269206203), 3698742979)),
-                ("cities", (2978, Some(1121539707), 1131566715)),
-                ("items", (3007, Some(3525321571), 3415154359)),
-                ("goods", (3322, Some(569473142), 586774648)),
-                ("world", (2680, Some(3147089146), 4135110218)),
+                ("units", (3479, Some(3437246542), 4143926784)),
+                ("builds", (3497, Some(4033525531), 2861217555)),
+                ("ammo", (3492, Some(440669490), 353178848)),
+                ("deaths", (3638, Some(1036052492), 755033978)),
+                ("groups", (3546, Some(2933749744), 3049224205)),
+                ("guys", (3479, Some(3682128868), 1481691662)),
+                ("leaders", (3530, Some(1795710407), 2424790650)),
+                ("cities", (3619, Some(2699322066), 3335807714)),
+                ("items", (5741, Some(1281298895), 1298600403)),
+                ("goods", (4476, Some(586774648), 601192570)),
+                ("world", (3479, Some(609171987), 2216376853)),
             ],
-            over: Some(6039),
+            over: Some(5971),
         }),
     }),
     // run1795
@@ -13309,23 +13430,44 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // record 15 `sz` ours -173 -> 100, theirs 100 (ours read the seabed,
         // -273). Ammo 3,391 -> 3,392 (first 3028 -> 3383). The first parting
         // moves 3028 -> 3033, on units.
+        // Moved by item 4668 (run1834's ranges): `Ammo::check_hit@00678d90`'s
+        // `find_unit` keeps the last of a tie. On 3032 who=1's Elite
+        // Javelineers `1/72`'s round, its Pikeman `2/25` gone, lands 144 from
+        // both Light Cavalry `1/66` and `1/83` (TI 210) in one cell; theirs
+        // strikes `1/83`. Units range 2733, record 83 `damage` ours 3 -> 7,
+        // theirs 7 (`damage_frac` 10 -> 4); range 2205, record 66 `damage`
+        // ours 39 -> 38, theirs 38. Units 3,033 -> 3,069 (first 3033 -> 3069),
+        // items 8,398 -> 8,405; ammo 3,392 -> 3,394 and items 8,590 -> 8,398
+        // stood on the base (the mutation's score). The first parting moves
+        // 3033 -> 3069, on units and guys.
+        // Moved by item 4674 (run1838's ranges): `Guy::set_all_pivots
+        // @005d8bc0` bears on the slot `objects[whom][ox]`, no uid. On tick
+        // 3068 who=1's Steppe Nomad `1/46` (TI 200) holds `2/61` (uid 91),
+        // dead, its number now a Transport Barge's. Units range 2404, record
+        // 46 `cavarch_o` ours -1 -> 61, theirs 61; its guy's
+        // `des_turret_angles[0]` ours 0 -> -701431808, theirs -701431808.
+        // Units 3,069 -> 3,112, builds 3,144 -> 3,158, ammo 3,394 -> 3,400,
+        // deaths 3,463 -> 3,474, guys 3,069 -> 3,149, leaders 3,134 -> 3,158,
+        // items 8,405 -> 8,719 (first 4135 -> 4053), goods 3,500 -> 3,562,
+        // world 3,086 -> 3,149. The first parting moves 3069 -> 3095, on
+        // groups, which stood.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                3033, 3144, 12001, 3392, 3463, 3095, 3069, 3134, 3313, 8590, 3500, 3086,
+                3112, 3158, 12001, 3400, 3474, 3095, 3149, 3158, 3313, 8719, 3562, 3149,
             ],
             first: &[
-                ("units", (3033, Some(3546334183), 3496526911)),
-                ("builds", (3144, Some(3531851268), 1209124357)),
+                ("units", (3112, Some(2802773391), 493219213)),
+                ("builds", (3158, Some(3521179818), 3712217865)),
                 ("ammo", (3383, Some(1), 2980055740)),
-                ("deaths", (3463, Some(4004785731), 1478238545)),
+                ("deaths", (3474, Some(3326357348), 2286428706)),
                 ("groups", (3095, Some(3354359777), 3950803518)),
-                ("guys", (3069, Some(2438684783), 234578274)),
-                ("leaders", (3075, Some(2998777053), 2372580574)),
+                ("guys", (3149, Some(3836241446), 1600546288)),
+                ("leaders", (3158, Some(2939005412), 1730390507)),
                 ("cities", (3313, Some(4151394957), 891306669)),
-                ("items", (4135, Some(308941102), 314708274)),
-                ("goods", (3116, Some(2794516976), 3169382901)),
-                ("world", (3086, Some(183371053), 233702701)),
+                ("items", (4053, Some(314708274), 308941102)),
+                ("goods", (3562, Some(4321815), 41808409)),
+                ("world", (3149, Some(3792573037), 100471405)),
             ],
             over: None,
         }),

@@ -89,27 +89,31 @@ const TREE_SHADER: &str = include_str!("../shaders/tree.wgsl");
 
 /// The names [`TREE_SHADER`] leaves a hole for, each filled once.
 #[cfg(test)]
-const TREE_HOLES: [&str; 5] = [
-    "current",
-    "FAKE_LIGHT_POWER",
-    "HDR_SCALE",
-    "EXPOSURE",
-    "white",
-];
+const TREE_HOLES: [&str; 4] = ["FAKE_LIGHT_POWER", "HDR_SCALE", "EXPOSURE", "white"];
 
 /// [`TREE_SHADER`] with its holes filled.
 fn tree_shader() -> String {
     use render::silhouette::{
-        EXPOSURE, FAKE_LIGHT_POWER, HDR_SCALE, MIN_LUMINANCE, TREE_DIFFUSE, WHITE_POINT, filmic,
+        EXPOSURE, FAKE_LIGHT_POWER, HDR_SCALE, MIN_LUMINANCE, WHITE_POINT, filmic,
     };
     let white = 1.0 / filmic(MIN_LUMINANCE * WHITE_POINT);
-    let current = f32::from(TREE_DIFFUSE) / 255.0;
     TREE_SHADER
-        .replace("{current}", &format!("{current:?}"))
         .replace("{FAKE_LIGHT_POWER}", &format!("{FAKE_LIGHT_POWER:?}"))
         .replace("{HDR_SCALE}", &format!("{HDR_SCALE:?}"))
         .replace("{EXPOSURE}", &format!("{EXPOSURE:?}"))
         .replace("{white}", &format!("{white:?}"))
+}
+
+/// **A tree corner's third attribute** (item 4670; `docs/RENDERER.md`
+/// §6.3): its diffuse over 255 in `x`, the stage's `CURRENT` —
+/// [`render::silhouette::TREE_DIFFUSE`] where the mesh carries none.
+fn tree_third(m: &crate::world::TexturedMesh, k: usize) -> [f32; 3] {
+    let d = m
+        .diffuse
+        .get(k)
+        .copied()
+        .unwrap_or(render::silhouette::TREE_DIFFUSE);
+    [f32::from(d) / 255.0, 0.0, 0.0]
 }
 
 /// **The transition patch's pass** (item 4139; `docs/RENDERER.md` §3.9),
@@ -2067,8 +2071,10 @@ impl Gpu {
 
     /// The trees' meshes on the GPU (item 4173), each beside its
     /// texture's bind group under the clamped sampler, uploaded once.
+    /// Item 4670: each corner's diffuse over 255 rides in the third
+    /// attribute's `x` ([`tree_third`]), which `fs_tree` adds.
     fn tree_meshes(&self, meshes: &[crate::world::TexturedMesh]) -> Vec<Uploaded> {
-        self.flat_meshes(meshes, &self.tree_textures, [0.0; 3])
+        self.meshes_with(meshes, &self.tree_textures, tree_third)
     }
 
     /// **The wheat boxes on the GPU** (item 4650): each corner's position,
@@ -2114,13 +2120,24 @@ impl Gpu {
         textures: &std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
         third: [f32; 3],
     ) -> Vec<Uploaded> {
+        self.meshes_with(meshes, textures, |_, _| third)
+    }
+
+    /// [`Gpu::flat_meshes`] with the third attribute a corner's own:
+    /// `third(mesh, k)` for the `k`th corner.
+    fn meshes_with(
+        &self,
+        meshes: &[crate::world::TexturedMesh],
+        textures: &std::sync::Mutex<std::collections::BTreeMap<i32, wgpu::BindGroup>>,
+        third: impl Fn(&crate::world::TexturedMesh, usize) -> [f32; 3],
+    ) -> Vec<Uploaded> {
         meshes
             .iter()
             .filter(|m| !m.positions.is_empty())
             .map(|m| {
                 let mut bytes = Vec::with_capacity(m.positions.len() * 32);
-                for (p, uv) in m.positions.iter().zip(&m.uvs) {
-                    for f in p.iter().chain(uv).chain(&third) {
+                for (k, (p, uv)) in m.positions.iter().zip(&m.uvs).enumerate() {
+                    for f in p.iter().chain(uv).chain(&third(m, k)) {
                         bytes.extend_from_slice(&f.to_le_bytes());
                     }
                 }
@@ -3545,7 +3562,9 @@ mod tests {
     #[test]
     fn the_tree_pass_is_the_painter_s() {
         let t = tree_shader();
-        assert!(t.contains("let stage = clamp(t.rgb + vec3<f32>(0.5019608 - 0.5)"));
+        // Item 4670: `CURRENT` is the corner's diffuse, `GREY` or
+        // `DARK_GREY` ([`tree_third`]).
+        assert!(t.contains("let stage = clamp(t.rgb + vec3<f32>(i.owner.x - 0.5)"));
         assert!(t.contains("pow(stage, vec3<f32>(1.9)) * 5.0"));
         // Item 4221: blended by the texel's alpha (§3.23).
         assert!(t.contains("return vec4<f32>(toned, t.a);"));
