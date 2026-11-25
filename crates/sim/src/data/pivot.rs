@@ -930,6 +930,17 @@ const SAME_AS: &[(i32, i32)] = &[
     // (`tests::the_original_s_release_agrees_on_every_cell_for_item_4574`),
     // once 139's walking row carries its four landing cells. Rows 33 and 113.
     (140, 139),
+    // **Pieces 584 and 586, the Arab set's Flak Gun and Avenger**
+    // (`FLAKGUN-ARAB-AGE0`, `AVENGER-ARAB-AGE0`; item 4651, the bays'
+    // lister): `unit_graphics.xml` gives each the default set's block line
+    // for line but the texture (`_desert`), and `init_position` and the
+    // pivot arm of `get_position` on run1579's packet answer every one of
+    // the 92,416 cells of each node-0 key as 232's and 234's do
+    // (`CHAR_ATTACK1` to `3`; 584's `CHAR_ATTACKWALK` on run1816's).
+    // 586's `CHAR_ATTACKWALK` is 234's by the art alone: no packet on disk
+    // holds 234's walk. Their node-1 keys are `launch::SAME_AS`'s.
+    (584, 232),
+    (586, 234),
 ];
 
 /// The piece whose rows `piece` reads: [`SAME_AS`]'s, or its own.
