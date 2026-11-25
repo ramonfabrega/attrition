@@ -510,8 +510,10 @@ mod tests {
     /// 0.114 B), nearer by the RGB distance. Minted at item 4670's build:
     /// 81,370 pixels, theirs Y 43.2, ours 101.4 → 42.4, 78,380 nearer.
     /// Made to fail: `TREE_DIFFUSE_UNSEEN` at `GREY`'s 0x80 moves no
-    /// pixel.
-    const RUN1814B_3294_TREES_PAST_SIGHT: [i64; 5] = [81_370, 432, 1014, 424, 78_380];
+    /// pixel. Item 4673, element 1's four plates laid: the mask 81,370 →
+    /// 81,369 pixels and nearer 78,380 → 78,378, the tone map's white
+    /// moving one pixel over the bar; the lumas hold.
+    const RUN1814B_3294_TREES_PAST_SIGHT: [i64; 5] = [81_369, 432, 1014, 424, 78_378];
     /// The same pixels' mean colour: the photograph's, ours before, ours
     /// now, each channel ×10 and rounded.
     const RUN1814B_3294_TREES_PAST_SIGHT_RGB: [[i64; 3]; 3] =

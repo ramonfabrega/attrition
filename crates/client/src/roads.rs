@@ -138,7 +138,9 @@ impl Pieces {
 /// - an inside corner, joined on both of its sides with a footprint on the
 ///   diagonal between: both halves, and the far half on each neighbour.
 ///
-/// A neighbour is written only where it holds a record. The intersections
+/// A neighbour is written only where it holds a record. Item 4673: the
+/// rings round a joined corner, which the original holds from its history
+/// ([`corner_loops`]). The intersections
 /// are `mark_intersections`': a tile joined east and west takes `E` where its
 /// east neighbour is not also joined both ways, and `W` likewise; north and
 /// south the same.
@@ -232,6 +234,7 @@ pub fn candidates(scene: &RoadsScene) -> BTreeMap<(i32, i32), u32> {
         }
         *white.get_mut(&at).expect("its own record") |= own;
     }
+    corner_loops(&rec, &mut white);
     let joined = |t: (i32, i32), both: u8| rec.get(&t).map(|r| r.dirs & both == both);
     rec.iter()
         .map(|(&at, r)| {
@@ -254,6 +257,44 @@ pub fn candidates(scene: &RoadsScene) -> BTreeMap<(i32, i32), u32> {
             (at, word)
         })
         .collect()
+}
+
+/// **The loops round a joined corner** (item 4673, `docs/RENDERER.md`
+/// §6.4): where four records meet at a corner and each is joined to the
+/// next round it, the white halves that ring the corner, two on each tile:
+/// the NW tile's `SE` and `E`, the NE tile's `SW` and `S`, the SE tile's
+/// `NW` and `W`, the SW tile's `NE` and `N`.
+///
+/// `mark_white_lines` never marks them on such a block, since each tile
+/// has a road on every side it would mark. They are a fixed point of
+/// `RoadsOut::fixup_lines@00891210` and `RoadsOut::leech_codes@00890da0`:
+/// each half continues into the next round the corner on its own tile
+/// (`SE` joined east sets `E`, `SW` joined south sets `S`, `NW` joined
+/// west sets `W`, `NE` joined north sets `N`), and its twin across the
+/// edge on the neighbour (`E` is the east tile's `SW`, `S` the south
+/// tile's `NW`, `W` the west tile's `NE`, `N` the north tile's `SE`). So
+/// once one half stands, the ring holds whatever is re-marked. In the
+/// original a half stands from the time one of the four was laid before
+/// its neighbour, which the door does not carry. On both packets every
+/// such corner holds its ring: this marks them all.
+fn corner_loops(rec: &BTreeMap<(i32, i32), &RoadTile>, white: &mut BTreeMap<(i32, i32), u8>) {
+    let ring = [
+        ((0, 0), bit::E, bit::SE | bit::E),
+        ((1, 0), bit::S, bit::SW | bit::S),
+        ((1, 1), bit::W, bit::NW | bit::W),
+        ((0, 1), bit::N, bit::NE | bit::N),
+    ];
+    for &(x, y) in rec.keys() {
+        let joined = ring
+            .iter()
+            .all(|&((dx, dy), to, _)| rec.get(&(x + dx, y + dy)).is_some_and(|r| r.dirs & to != 0));
+        if !joined {
+            continue;
+        }
+        for ((dx, dy), _, halves) in ring {
+            *white.get_mut(&(x + dx, y + dy)).expect("a record") |= halves;
+        }
+    }
 }
 
 /// **`RoadsPieces::find_map@00897840`**: every piece's every orientation
