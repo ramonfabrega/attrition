@@ -1916,8 +1916,8 @@ Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
 
 ### 14.4 Row 88
 
-Open: ammo parts on 3441 (item 4680). run1808 holds sums, run1815 the ranges to 2991 (units, deaths, guys,
-leaders and world), run1818 the ammo ranges to 2792, run1840 every line but walls to 3118. The stories are the items' journals.
+Open: world parts on 3574 (item 4683). run1808 holds sums, run1815 the ranges to 2991 (units, deaths, guys,
+leaders and world), run1818 the ammo ranges to 2792, run1840 and run1842 every line but walls to 3118 and 3447. The stories are the items' journals.
 
 **Item 4614: a rider comes out before its carrier dies, and a fire raft dies with its shot.** Both are diff-backed by
 run1815's ranges.
@@ -1961,7 +1961,7 @@ Built in `Sim::same_damage` (`docs/TRANSPORT.md` §6.4), held by
 
 The score, `SCORES_SEVENTH[4].moved` (12,001 states; each landing's columns are in its comment). The first parting:
 2741 → 2791 (4622) → 2883 (4625) → 2902 (4631) → 2985 (4633) → 3028 (4662) → 3033 (4664) → 3069 (4668) → 3095 (4674)
-→ 3112 (4676; groups → 3,490, builds → 3,513, guys → 3,442, leaders → 3,446) → 3441 (4680; units → 3,442).
+→ 3112 (4676; groups → 3,490, builds → 3,513, guys → 3,442, leaders → 3,446) → 3441 (4680; units → 3,442) → 3574 (4683).
 
 **Item 4662: a stale attack is cleared, not retargeted.** On 2984 who=1's Trebuchet `1/61` (TI 266) ends its
 attack-ground; the Attack under it names `2/63` at uid 93, a number another barge holds. `Unit::work@0060d180:300`–`:340`
@@ -1980,7 +1980,9 @@ marks the object at `(whom, ox)` in danger and, on the uid mismatch, writes `ox`
 index (`docs/ARMY.md` §3.3): on 3095 slot 130's `army` ours 0 → −1, `stamp` 741 → 1523, as theirs.
 
 **Item 4680: `Ammo::inc_time` holds a shooter on `flags & 1` alone** (`67d3c4`), not `is_on_map`: on 3112 `1/72`'s
-`hold_frames`, boarded with a round in the air, ours 1 → 0 as theirs. Next: 3441, ammo.
+`hold_frames`, boarded with a round in the air, ours 1 → 0 as theirs.
+
+**Item 4683: a unit off the map is fired at** (`Ammo::init:178`): on 3441 `2/111`'s round at the boarding `1/0`, ours none, theirs slot 4.
 
 **Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is not built: no capture has been shown
 to reach it. A building shooter always splashes from the landing (`Build` and `Wall` fill vslot `+0x18` with a

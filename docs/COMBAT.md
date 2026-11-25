@@ -3706,8 +3706,9 @@ are `2/37`'s four alone. Ours, refusing the release before
 range 7, record 4, `rolling..start_roll_angle` byte 51 (the low byte of
 `graph_index`), ours 240, theirs 241. Built as
 [`sim::Sim::add_ammo_refused`]; row 73's ammo 3,280 → 3,438 of 3,438.
-**Not established**: a target alive and not struck (off the map, or a
-building with no combat record) is still refused whole here, where the
+**Not established**: ~~a target alive and not struck (off the map, or~~
+**a unit off the map is fired at**, its slot live (item 4683, run1842,
+`docs/RECGAME.md` §14.4); a building alive with no combat record is still refused whole here, where the
 original's non-`CHAR_ATTACK2` figure reaches `Ammo::init` past `:181`
 (a SEAM in `guy_release_events`); `local_10` (the order's vslot `+0x54`)
 on a plain attack, which would take a `CHAR_ATTACK2` figure past the
