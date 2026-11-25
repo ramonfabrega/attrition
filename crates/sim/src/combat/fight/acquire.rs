@@ -1175,22 +1175,6 @@ impl Sim {
                         // `jle` (`64987d`): a score of 0 — a candidate
                         // `compare_target` answered 0 for — is never the
                         // winner, even the first (item 2001).
-                        if std::env::var("RON_PROBE_4652").is_ok()
-                            && self.frame == 2964
-                            && let Obj::Unit(a) = attacker
-                            && self.units[a].owner == 2
-                            && self.units[a].index == 51
-                        {
-                            let (co, cw) = match o {
-                                Obj::Unit(c) => (self.units[c].index as i64, self.units[c].owner as i64),
-                                Obj::Building(b) => (self.buildings[b].index as i64 + 100000, self.buildings[b].owner as i64),
-                            };
-                            let p = self.pos_of(o);
-                            eprintln!(
-                                "PROBE4652 cand r {r} cell ({},{}) {cw}/{co} at ({},{}) dist {dist} targeted {targeted} value {value} in_range {in_range} score {score} best {:?}",
-                                cell.x, cell.y, p.x, p.y, best.map(|(b, _)| b)
-                            );
-                        }
                         if score > best.map_or(0, |(b, _)| b) {
                             best = Some((score, o));
                         }
@@ -1212,20 +1196,6 @@ impl Sim {
         // three-figure squad three times and never let the count fall.
         // `docs/COMBAT.md` §33.
         if let Some((_, o)) = best {
-            if std::env::var("RON_PROBE_4652").is_ok()
-                && let Obj::Unit(t) = o
-                && self.units[t].owner == 1
-                && self.units[t].index == 38
-            {
-                let (ao, aw) = match attacker {
-                    Obj::Unit(a) => (self.units[a].index as i64, self.units[a].owner as i64),
-                    Obj::Building(b) => (self.buildings[b].index as i64 + 100000, self.buildings[b].owner as i64),
-                };
-                eprintln!(
-                    "PROBE4652 bump frame {} by {}/{} targeted {} -> +1 max_dist {}",
-                    self.frame, aw, ao, self.units[t].combat.targeted, max_dist
-                );
-            }
             self.bump_targeted(o, 1);
         }
         // `006498de`: the pair survives only if the nearest candidate the
@@ -1551,38 +1521,6 @@ impl Sim {
                 &self.mods_of(self.owner_of(attacker) as usize),
             )
         };
-        if std::env::var("RON_PROBE_4652").is_ok()
-            && self.frame == 2964
-            && let Obj::Unit(a) = attacker
-            && self.units[a].owner == 2
-            && self.units[a].index == 51
-            && let Obj::Unit(t) = target
-            && (self.units[t].index == 38 || self.units[t].index == 39 || self.units[t].index == 51)
-        {
-            let tu = &self.units[t];
-            let apos = self.pos_of(attacker);
-            let centre = Pos::new(apos.x.div_euclid(48) * 48 + 0x18, apos.y.div_euclid(48) * 48 + 0x18);
-            eprintln!(
-                "PROBE4652 range 1/{} attacker at ({},{}) forest {} dist_centre {} dist_raw {} max_range {} reach {} in_range {}",
-                tu.index, apos.x, apos.y,
-                self.world.tile_mask(apos.tile()) & crate::world::tile::SURFACE == crate::world::tile::SURFACE_FOREST,
-                self.attack_dist_from(attacker, centre, target), self.attack_dist(attacker, target),
-                self.max_range_of(attacker), self.max_range_of(attacker) * 0xc0 + 6, self.is_in_range(attacker, target)
-            );
-            let fog = crate::vision::UNITS_PER_FOG;
-            eprintln!(
-                "PROBE4652 detect 1/{} decoy {} seen3 {:#x} at fog ({},{}) stored_mask(2) {:#x} seen_mask(2) {:#x} detected {}",
-                tu.index, tu.decoy, self.world.seen3(tu.pos.x / fog, tu.pos.y / fog), tu.pos.x / fog, tu.pos.y / fog,
-                self.stored_ally_mask(2), self.seen_ally_mask(2), self.unit_is_detected(t, 2)
-            );
-            eprintln!(
-                "PROBE4652 terms 1/{} TI {} cost {} t_attack {} left {} health {} max {} dmg {} ai {} combat_role {} full {} v_before_dmg {} armor {} at {:?} side {:?} pct {}",
-                tu.index,
-                tu.ty.map_or(-1, |x| self.tables.unit_types[x].type_index as i64),
-                tp.cost, t_attack, left, tu.health, tu.max_health, dmg, ai, tp.combat_role, tu.full, v,
-                self.armor_of(target), self.pos_of(target), self.target_side(target, attacker), self.table_pct(attacker, target)
-            );
-        }
         // **`0064ef4b`, both arms.** A human multiplies; a computer
         // leader on the lobby's own difficulty divides, and a candidate it
         // cannot hurt at all scores zero rather than dividing by nothing.
@@ -1692,21 +1630,7 @@ impl Sim {
             // took the nearer.
             let peasant = matches!(target, Obj::Unit(u) if self.is_peasant(u));
             let sea_raider = raiding && ai_raider && matches!(ap.domain, Domain::Sea);
-            // **A decoy the searcher has detected is worth a quarter, and
-            // no weight** (`0064ed2d`–`0064ed5c`, item 4652,
-            // `docs/COMBAT.md` §12.3): a target with `unit_masks & 1` for
-            // which `UnitData::is_detected@0060a630` answers the
-            // searcher's owner (`this +9`) takes `v / 4`, signed toward
-            // zero, and jumps to `0064efff`, past every raid and role
-            // weight below and onto the siege divide. Row 93's Infantry
-            // `2/51` (TI 102, land) took who=1's decoy `1/39` over the
-            // decoy `1/38` on run1799's 2964, where the `+1,000,000`
-            // made `1/38` the winner.
-            let detected_decoy = matches!(target, Obj::Unit(u)
-                if self.units[u].decoy && self.unit_is_detected(u, self.owner_of(attacker)));
-            if detected_decoy {
-                v /= 4;
-            } else if sea_raider {
+            if sea_raider {
                 let line = |o: Obj, t: crate::tech::TypeId| matches!(o, Obj::Unit(u) if self.unit_line_is(u, t));
                 let flags_of = |o: Obj| match o {
                     Obj::Unit(u) => self.units[u]
