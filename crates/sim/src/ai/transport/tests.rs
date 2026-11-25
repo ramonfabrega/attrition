@@ -2266,3 +2266,67 @@ fn a_boat_s_chain_is_the_order_its_riders_boarded() {
         vec![riders[2], riders[1], riders[0]]
     );
 }
+
+/// **A boat's damage comes ashore on its squad's tail** (item 4633,
+/// `docs/RECGAME.md` §14.4): `Unit::same_damage@005f9400` gives the
+/// receiver its host's fraction of `myhits`, less what the squad already
+/// carries, and lays it on from the last live figure up. run1815's 2902:
+/// barge `2/65`, 44 of 50, unloads Elite Javelineers `2/29`..`2/31`, and
+/// theirs' 12 is on the tail `2/31`, not the captain `2/29`.
+///
+/// The second case is a boat too hurt for one figure's share: two
+/// members die, each taking a share (`110 / 3` = 36), and the captain
+/// takes the rest. The third is the boarding way round: the boat takes
+/// the squad's whole damage, not only its captain's.
+///
+/// Made to fail by taking `to` itself as the receiver: the captain holds
+/// the 12.
+#[test]
+fn a_boat_s_damage_comes_ashore_on_its_squad_s_tail() {
+    let mut f = fix();
+    let mut t = UnitType {
+        hits: 110,
+        ..UnitType::default()
+    };
+    t.combat.uber_size = 3;
+    let jav = f.sim.add_unit_type(t);
+    let b = barge(&mut f.sim);
+    let squad_of = |f: &mut Fix| -> Vec<usize> {
+        let s: Vec<usize> = (0..3)
+            .map(|k| unit(&mut f.sim, 1, jav, tile_pos(28, 13 + k)))
+            .collect();
+        for w in s.windows(2) {
+            f.sim.units[w[0]].o_down = Some(w[1]);
+            f.sim.units[w[1]].o_up = Some(w[0]);
+            f.sim.units[w[1]].captain = false;
+        }
+        s
+    };
+    let hp = |f: &Fix, s: &[usize]| s.iter().map(|&x| f.sim.units[x].health).collect::<Vec<_>>();
+
+    // 6 of 50 lost is 30/256; 110 * 30 >> 8 = 12, on the tail.
+    let s = squad_of(&mut f);
+    let boat = unit(&mut f.sim, 1, b, tile_pos(32, 14));
+    f.sim.units[boat].health = 44;
+    f.sim.same_damage(s[0], boat);
+    assert_eq!(hp(&f, &s), vec![110, 110, 98]);
+    assert_eq!(f.sim.total_damage(s[0]), 12);
+
+    // 45 of 50 is 230/256, 98 owed: the tail and the middle die for 36
+    // each, and the captain takes 26 of the 36 its squad has left.
+    let s = squad_of(&mut f);
+    let boat = unit(&mut f.sim, 1, b, tile_pos(32, 15));
+    f.sim.units[boat].health = 5;
+    f.sim.same_damage(s[0], boat);
+    assert!(f.sim.units[s[0]].alive());
+    assert!(!f.sim.units[s[1]].alive() && !f.sim.units[s[2]].alive());
+    assert_eq!(f.sim.units[s[0]].health, 110 - 26);
+
+    // Boarding: the squad's 12, on its tail, is 27/256 of 110; the boat
+    // takes 50 * 27 >> 8 = 5.
+    let s = squad_of(&mut f);
+    f.sim.units[s[2]].health = 98;
+    let boat = unit(&mut f.sim, 1, b, tile_pos(32, 16));
+    f.sim.same_damage(boat, s[0]);
+    assert_eq!(f.sim.units[boat].health, 45);
+}

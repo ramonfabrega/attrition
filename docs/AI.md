@@ -17810,7 +17810,7 @@ block lists.
 **What else it moved.** Nothing: the whole suite on the build's tree was red only on run711's two pins. The hold's 30
 reaches every ranged unit that dies with a round in flight, and no other floor, widening or word saw it.
 
-**What is not established.** The arm's `same_damage` is this crate's whole-unit form (its own SEAM); the passenger's
+**What is not established.** ~~The arm's `same_damage` is this crate's whole-unit form (its own SEAM)~~ (the squad walk is built by item 4633, `docs/TRANSPORT.md` §6.4); the passenger's
 squad below the head is spliced as the chain's, and no capture carries a squad to a platform. `insert_inside`'s and
 `remove_from_inside`'s leader counters (`+0xa28`..`+0xa34`, the Lakota and American bonuses) are not carried. The `max_range`
 gate on the hold is read as met by every shooter with a round in flight.
