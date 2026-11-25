@@ -607,6 +607,13 @@ and through 8535. Units and groups next differ at 9234, following the
 assignment of hot key 55. The first unequal draw is on 9507.
 [Forced March comparison](journal/2026-11-24-item-4643.md)
 
+**Hot key 55 on frame 9233 (item 4644).** Five selected objects expand to
+seven squad members. Copying their new pool slot restores all seven
+members' group pointers. The original and the simulation agree on every
+recorded line before the package, after it, and through state 9240.
+Units next differ on 9506, groups on 9671. Draws first differ on 9507.
+[Unit hot-key comparison](journal/2026-11-24-item-4644.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte

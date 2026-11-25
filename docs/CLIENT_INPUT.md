@@ -2113,9 +2113,11 @@ carry. The hot-keyed script mints 24 of 24 and the recorded hot keys 8 of 8. The
   (`Command::process_hotkey`), copies the pool slot the player pushed last (`Groups::last_group`) into
   `OrdersState::hotkeys` at the command's index, as `copy_group` does, with `stamp` the frame and `valid` 0; `clear` 1
   empties it. `Sim::hotkey_slot` reads it. **This touches `crates/sim`.**
-- **The walk** (`crates/rondata/src/input.rs`): `Hotkey` pushes the package's group of buildings
-  (`push_command_buildings`, as `process_group` does) and runs `process_hotkey`. A selection of units is skipped,
-  named. It was "not mapped" before.
+- **The walk** (`crates/rondata/src/input.rs`) pushes the package's live selection, then copies
+  its pool slot. A unit captain brings its squad. The first accepted member determines whether the group
+  holds units or buildings. A repeated selection checks the saved object IDs before adding members.
+  Run1824 records all seven units naming pool slot 199 after the five-object package on frame 9233.
+  [Item 4644](journal/2026-11-24-item-4644.md)
 - **The layer** (`crates/client/src/input.rs`): `Event::Hotkey(key)`. With a selection and no entry line open, it
   sends the selection's `group` and `hotkey(who × HOTKEY_SLOTS + key, 0, 0, HOTKEY_NO_CAMERA, HOTKEY_NO_CAMERA, 0)`.
   `HOTKEY_SLOTS` is `0x12`; `HOTKEY_NO_CAMERA` is −1.0f's bits, a constant, so no float is computed. `hotkey` is added

@@ -1443,6 +1443,37 @@ impl Applied {
     }
 }
 
+/// Rebuild the group that a hot key copies from the selected live objects.
+/// The first member fixes the kind. A repeated selection must still name
+/// the same object instance even if its original number has been reused.
+fn push_hotkey_group(built: &mut Built, player: sim::Player, received: &[(i16, u16)]) -> bool {
+    let mut units = sim::groups::group::Group::stack(player);
+    let mut buildings = Vec::new();
+    for &(o, uid) in received {
+        if o >= sim::units::unit::BUILD_BASE {
+            if units.list.is_empty()
+                && let Some(b) = built.sim.building_by_o(player, o)
+                && built.sim.buildings[b].uid == uid
+            {
+                buildings.push(b);
+            }
+        } else if buildings.is_empty()
+            && let Some(u) = built.sim.unit_by_o(player, o)
+            && built.sim.units[u].uid == uid
+        {
+            built.sim.group_add(&mut units, u);
+        }
+    }
+    if buildings.is_empty() {
+        return !units.list.is_empty() && built.sim.command().push_group(&mut units, true);
+    }
+    built
+        .sim
+        .command()
+        .push_command_buildings(player, &buildings);
+    true
+}
+
 /// The stream, with the selection state the commands assume.
 ///
 /// A `group` command sets the issuing player's selection and the
@@ -1728,8 +1759,7 @@ impl Stream {
             // **A hot key** (item 4270, `docs/CLIENT_INPUT.md` §22):
             // `process_group`'s push of the package's group, then
             // `process_hotkey@009474d0`'s copy of that pool slot into the
-            // hot-key group the command names. The walk pushes a group of
-            // buildings alone; a selection of units is not wired.
+            // hot-key group the command names.
             Command::Hotkey {
                 group,
                 clear,
@@ -1738,19 +1768,15 @@ impl Stream {
                 y,
                 zoom,
             } => {
-                let slot = it.who as usize;
-                let objects = self.selection.get(slot).cloned().unwrap_or_default();
                 let player = it.who as sim::Player;
-                if *clear == 0 {
-                    let list: Vec<usize> = objects
-                        .iter()
-                        .filter_map(|&o| built.sim.building_by_o(player, o))
-                        .collect();
-                    if list.is_empty() || list.len() != objects.len() {
-                        done.skip(&it.cmd, "a hot key on units is not wired");
-                        return;
-                    }
-                    built.sim.command().push_command_buildings(player, &list);
+                if *clear == 0
+                    && !self
+                        .received
+                        .get(it.who as usize)
+                        .is_some_and(|list| push_hotkey_group(built, player, list))
+                {
+                    done.skip(&it.cmd, "no selected object is in the simulation");
+                    return;
                 }
                 let k = sim::groups::hotkey::HotKey {
                     group: *group,

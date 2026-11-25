@@ -4479,20 +4479,22 @@ fn hotkey_effects_ours(orders: &[Order], at: &[i64]) -> Vec<HotKeyEffect> {
 /// The original's, off the take's whole dumps in the `FRAME` blocks
 /// `blocks` (the first `HOTKEYGROUPS` of each), each on our count
 /// ([`DUMPALL_LAGS`]): the `HOTKEYGROUPDATA` whose `GROUPDATA` has `id`
-/// [`crate::script::HOTKEY_KEY`] (slot 0's group of that key), every field
+/// `key`, every field
 /// in order, a member's `name[scan]` numbered by its place. The nested
 /// `GROUPDATA` has no `END` of its own, so the parser hands it the
 /// wrapper's `loc_x`, `loc_y` and `valid` and the wrapper's `END` line;
 /// the reader keeps the three once and drops the `END`.
-fn hotkey_effects_theirs(take: &str, blocks: &[i64]) -> Option<Vec<HotKeyEffect>> {
-    let text = std::fs::read_to_string(dump(take)?).unwrap();
-    let log = crate::gamelog::Log::parse(&text);
-    let key = i64::from(crate::script::HOTKEY_KEY);
+fn hotkey_effects_theirs(take: &str, blocks: &[i64], key: i64) -> Option<Vec<HotKeyEffect>> {
+    let mut source = crate::capture::indexed::IndexedCapture::open(&dump(take)?).unwrap();
     let mut theirs = Vec::new();
-    for (n, frame) in log.frames() {
+    for index in 0..source.frames().len() {
+        let n = source.frames()[index].number;
         if !blocks.contains(&n) {
             continue;
         }
+        let text = source.read_frame(index).unwrap();
+        let log = crate::gamelog::Log::parse(&text);
+        let (_, frame) = log.frames().into_iter().next().expect("indexed frame");
         let Some(hk) = frame.find("HOTKEYGROUPS") else {
             continue;
         };
@@ -4621,9 +4623,10 @@ fn the_original_s_playback_of_the_hotkeyed_file_walks_in_lockstep() {
     }
     // run1611's whole dump in block 6739, the frame before the package, then
     // run1610's in blocks 6740 and 6741.
-    let mut theirs = hotkey_effects_theirs(HOTKEYED_BEFORE, &[6739]).expect("run1611");
+    let key = i64::from(crate::script::HOTKEY_KEY);
+    let mut theirs = hotkey_effects_theirs(HOTKEYED_BEFORE, &[6739], key).expect("run1611");
     theirs.extend(
-        hotkey_effects_theirs(HOTKEYED_WALKED[0].0, &[6740, 6741]).expect("the take's dumps"),
+        hotkey_effects_theirs(HOTKEYED_WALKED[0].0, &[6740, 6741], key).expect("the take's dumps"),
     );
     for t in &theirs {
         eprintln!("HOTKEY EFFECT theirs {t:?}");
@@ -4633,6 +4636,44 @@ fn the_original_s_playback_of_the_hotkeyed_file_walks_in_lockstep() {
         theirs,
         hotkeyed_effects_ours(),
         "the original's slot is ours"
+    );
+}
+
+/// Hot-key group 55 lives outside the checksum pool. Run1825 dumps the
+/// separate hot-key table on both sides of the recorded assignment.
+#[test]
+fn the_sample_s_unit_hotkey_slot_matches_run1825() {
+    const TAKE: &str = "gamelog-run1825-sample2017-unit-hotkey-9233.txt";
+    let (Some(inst), Some(rcx), Some(theirs)) = (
+        install(),
+        super::sample::tests::sample(),
+        // Consecutive @dumpall requests print two tables in block 9233,
+        // one on each side of the package. The adjacent blocks each have one.
+        hotkey_effects_theirs(TAKE, &[9232, 9234], 55),
+    ) else {
+        return;
+    };
+    let rec = crate::recgame::read(&rcx).unwrap();
+    let loaded = crate::load::load(&inst).unwrap();
+    let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+    let mut stream = crate::input::Stream::pump(&rec);
+    let mut ours = Vec::new();
+    for frame in [9233, 9235] {
+        tick_to(&mut built, Some(&mut stream), frame);
+        let slot = built.sim.hotkey_slot(55);
+        if frame == 9235 {
+            let slot = slot.expect("player 3 assigned hot key 55");
+            assert_eq!(slot.stamp, 9233);
+            assert_eq!(slot.list, [66, 67, 68, 16, 69, 74, 27]);
+        }
+        ours.push(HotKeyEffect {
+            frame,
+            fields: hotkey_record(55, slot),
+        });
+    }
+    assert_eq!(
+        ours, theirs,
+        "the separate hot-key slot before and after assignment"
     );
 }
 

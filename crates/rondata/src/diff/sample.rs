@@ -130,7 +130,7 @@ pub(in crate::diff) mod tests {
 
     /// The sample, under the install's `external-recgames/` (the one `.rcx`
     /// there, `recgame::tests::sample`'s).
-    fn sample() -> Option<String> {
+    pub(in crate::diff) fn sample() -> Option<String> {
         let root = crate::testenv::install_root()?;
         let dir = std::path::Path::new(&root).join("external-recgames");
         std::fs::read_dir(dir).ok()?.find_map(|e| {
@@ -830,13 +830,14 @@ pub(in crate::diff) mod tests {
     /// Item 4641 moves the first shared difference to 7935. Goods parts four frames earlier downstream.
     /// Item 4642 moves every open line forward. Units, groups, guys, leaders and world meet on 8523.
     /// Item 4643: the recorded Forced March clears group 198's formation.
+    /// Item 4644: hot-key group 55 moves units to 9506 and groups to 9671.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 9234),
+        ("units", 9506),
         ("builds", 9521),
         ("walls", 21044),
         ("ammo", 9732),
         ("deaths", 9873),
-        ("groups", 9234),
+        ("groups", 9671),
         ("guys", 9507),
         ("leaders", 9551),
         ("cities", 9601),
@@ -1499,6 +1500,11 @@ pub(in crate::diff) mod tests {
     }
 
     #[test]
+    fn the_sample_s_unit_hotkey_matches_before_and_after_the_package() {
+        assert_sample_window(run1824(), 9230, 9240, Some((9233, 2)));
+    }
+
+    #[test]
     fn the_sample_s_scout_order_and_city_marks_match_both_recorded_lines() {
         let (Some(inst), Some(rcx), Some(mut ranges)) = (install(), sample(), run1786()) else {
             return;
@@ -2076,11 +2082,11 @@ pub(in crate::diff) mod tests {
     const SAMPLE_RANGES_1824: &[(&str, i64, usize, usize, usize, &str)] = &[
         (
             "units",
-            9234,
-            7457,
-            7457,
-            7,
-            "5057 16 collide_frame..play: group 196|199",
+            9506,
+            7290,
+            7286,
+            3222,
+            "3844 54 collide_frame..play: dest_angle 1431655765|-2147483648",
         ),
         (
             "builds",
@@ -2108,11 +2114,11 @@ pub(in crate::diff) mod tests {
         ),
         (
             "groups",
-            9234,
-            628,
-            634,
-            369,
-            "262 196 id..march: num 6|0, form 0|-1, stamp 8871|9233, ox 8976|0, oy 19636|0, o_angle -458883072|0, order_num 7|0, role 331023|0, think_frame 9179|0, new_speed 25|0, speed 25|0, form_num 6|0, who 3|0",
+            9671,
+            640,
+            640,
+            1,
+            "241 193 id..march: o_angle -1288110080|-2121596928, facing 1|0",
         ),
         (
             "guys",

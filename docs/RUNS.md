@@ -42098,3 +42098,21 @@ adding `--tracer-def RON_RANGES --tracer-def RNG_MASK=0xffbu`.
   disk allocation 9.06 GiB → 0.91 GiB. `verify.rs`, `verify.log`,
   `packet-check.json` and `filed.log` are in
   `~/ron-data/lab-experiments/2026-11-24-codex-merchant.ch6hlc/sample8523/`.
+
+## run1825 — 2017 sample, hot-key 55 before and after assignment (2026-11-24, item 4644)
+
+- Same recording and observed seed 340513920 as run1824. The original played
+  through 9510, with `--log-window 9230 9236 --detail end:MISC --cover cover=1`,
+  checksums enabled and `@dumpall` on 9232 and 9233. Exit 0 in 696.39 s,
+  9,511 frames, no relaunch or page fault, settings restored. The optional
+  packet request on 9506 produced no packet. The field comparison there
+  uses run1824's ranges.
+- Four full hot-key tables printed across blocks 9232, 9233 (twice) and 9234.
+  Slot 55 has 0, 0, 7 and 7 objects respectively. The first and last tables
+  compare to simulated states 9233 and 9235, including all per-member fields.
+  Original and replay both stamp the assignment 9233. Run1824 independently
+  compares the units and groups immediately after the package on 9233/2.
+- Filed as `run1825 sample2017-unit-hotkey-9233`, 137,683,046 bytes of
+  gamelog and 191,990,784 bytes of trace. Receipt in `~/ron-golden/run1825/map-7/`.
+  Command file, launch, filed paths and regression output are in
+  `~/ron-data/lab-experiments/2026-11-24-codex-merchant.ch6hlc/hotkey9233/`.
