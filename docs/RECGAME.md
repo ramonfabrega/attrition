@@ -1916,7 +1916,7 @@ Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
 
 ### 14.4 Row 88
 
-Open: units and guys part on 3069 (item 4668). run1808 holds sums, run1834 the ranges to 3040, run1815 the ranges to 2991 (units, deaths, guys,
+Open: units and guys part on 3069 (item 4668). run1808 holds sums, run1815 the ranges to 2991 (units, deaths, guys,
 leaders and world), run1818 the ammo ranges to 2792. The stories are the items' journals.
 
 **Item 4614: a rider comes out before its carrier dies, and a fire raft dies with its shot.** Both are diff-backed by
@@ -1947,14 +1947,12 @@ and `the_carrack_s_release_agrees_at_every_heading_but_one`. run1818 agrees on a
 
 **Item 4631: a transport's kill plunders as its cargo.** On 2883 who=1's `encrypt` reads `bucket[1]` (timber) ours
 15,500, theirs 15,485, and `bucket[2]` (wealth) ours 17,667, theirs 17,767. On 2882 the Carrack's round sinks `2/61`
-carrying who=2's Despot `2/24` (TI 0x160), with who=1's Despot `1/14` 2,115 away (reach 2,304). Both sides draw four
-times in `Unit::plunder@00605b00` (theirs at `+0x4e5`). **Ours acted**: it asked the barge whether it was a hero, and
+carrying who=2's Despot `2/24` (TI 0x160), with who=1's Despot `1/14` 2,115 away (reach 2,304). **Ours acted**: it asked the barge whether it was a hero, and
 paid the Despot's 15 in the least-stocked good. `Object::take_damage@00652020` at `653090` tests the victim type's
 `+0x2b4 & 0x10` and at `6530a5`..`6530a9` takes `inside_down_who` and `inside_down`, so the ally test and the
 GENERAL/CARA/SUPPLYWAGON `is` tests read the cargo's head. An empty transport (`js 0x6533b2` at `6530ba`) skips the
 plunder and the Inca refund. `plunder` redirects the same way, so `GENERAL_PLUNDER` 100 beats the 15 and is paid in
-wealth. Built as `Sim::plunder_victim` (which `score_victim` reads) in `unit_plunder` and `inca_refund`. Held by
-`cities_tests::a_transport_s_kill_plunders_as_its_cargo`; the mutation with the redirect dropped fails it.
+wealth. Built as `Sim::plunder_victim`, held by `cities_tests::a_transport_s_kill_plunders_as_its_cargo`.
 
 **Item 4633: a boat's damage comes ashore on its squad's tail.** On 2902 units range 3709 reads `damage` ours 12, theirs 0,
 on who=2's Elite Javelineers captain `2/29` (TI 84), and theirs' 12 is on the tail `2/31`. On 2901 the barge `2/65` (TI
@@ -1980,9 +1978,8 @@ marks the object at `(whom, ox)` in danger and, on the uid mismatch, writes `ox`
 `1/94`'s round `sz` ours −173 → 100, theirs 100;
 `combat::fight::tests::a_ship_s_round_leaves_above_the_water_not_the_seabed`.
 
-**Item 4668: a round with no target takes the last of a tie** (`find_unit@0065ca80`, `<=`): on 3033 `1/83`'s `damage`
-ours 3 → 7, theirs 7; `combat::fight::tests::a_round_between_two_units_strikes_the_last_of_the_tie_in_find_unit_s_walk`.
-Next: 3069, units and guys, past run1834.
+**Item 4668: `check_hit` takes the last of a tie** (`docs/COMBAT.md` §9.4): on 3033 `1/83`'s `damage` ours 3 → 7,
+theirs 7. Next: 3069, units and guys.
 
 **Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is not built: no capture has been shown
 to reach it. A building shooter always splashes from the landing (`Build` and `Wall` fill vslot `+0x18` with a
