@@ -1192,11 +1192,12 @@ mod tests {
     /// 728 → 95). Item 4438: unselected `[52, 9]` → `[100, 35]`, selected
     /// `[1395, 1300]` → `[1443, 1326]`: the buildings' trim, drawn in the
     /// owner's colour (`docs/RENDERER.md` §5.3), where the footprint
-    /// crosses the city's sprite.
+    /// crosses the city's sprite. Item 4677: selected `[1443, 1326]` →
+    /// `[1441, 1325]`, a named fall of one: the plates' and the asphalt's pieces on the packet's element on more tiles (item 4677, `docs/RENDERER.md` §6.5) move the frame's mean, so its white.
     pub const RUN1559B_3279_SELECTED: ([[usize; 2]; 3], [usize; 2], [usize; 2]) = (
         [[4551, 1477], [4157, 721], [5398, 312]],
         [100, 35],
-        [1443, 1326],
+        [1441, 1325],
     );
 
     /// **The band's texture is one tent** (item 4421): the install's first

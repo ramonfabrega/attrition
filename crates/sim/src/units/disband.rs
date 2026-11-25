@@ -469,11 +469,17 @@ impl Sim {
     /// ([`Sim::die_with`]) — whose `Unit::close` spends the death
     /// animation's draw after this one.
     ///
-    /// SEAM: the captain's plunder (`+0x68 & 0x4000`, the killer at
-    /// `+0xa9`), which a living unit disbanded by its owner never carries
-    /// in any capture; and a unit off the map, which takes `die(1, …)`
-    /// with no draw.
+    /// **The slay mark's plunder** comes first, on or off the map
+    /// (`006455c0:144`–`:152`, item 4637): a captain carrying `unit_masks &
+    /// 0x4000` ([`crate::Unit::slay_marked`]) whose last striker's leader
+    /// (`+0xa9`, `damage_who`) is below 8, seated and not defeated
+    /// (`leader_flags & 3 == 3`) and Aztec (tribe bonus 0) pays it
+    /// `Unit::plunder(this, damage_o, damage_who, 1, 0)`, the slay arm's
+    /// pay. No capture disbands a marked unit; the unit test holds it.
+    ///
+    /// SEAM: a unit off the map, which takes `die(1, …)` with no draw.
     pub(crate) fn disband_unit(&mut self, u: usize) {
+        self.disband_slay_plunder(u);
         if !self.units[u].on_map {
             self.die_with(u, 1);
             return;
@@ -489,6 +495,34 @@ impl Sim {
         self.mark(SITE_DISBAND_DIE);
         let r = self.rng.roll();
         self.die_with(u, r % 3 + 1);
+    }
+
+    /// `Object::disband@006455c0:144`–`:152`: the slay mark's plunder
+    /// ([`Self::disband_unit`]).
+    pub(crate) fn disband_slay_plunder(&mut self, u: usize) {
+        let un = &self.units[u];
+        if !un.captain || !un.slay_marked {
+            return;
+        }
+        let (k, who) = (un.combat.damage_o, un.combat.damage_who);
+        let Ok(w) = usize::try_from(who) else {
+            return;
+        };
+        if w >= 8
+            || w >= self.leaders.defeated.len()
+            || self.leaders.defeated[w]
+            || !self.cities.nation.get(w).is_some_and(|n| n.aztecs)
+        {
+            return;
+        }
+        let r = self.plunder_victim(u).unwrap_or(u);
+        crate::combat::plunder::plunder_steps(
+            &mut crate::combat::plunder::SimPlunder { sim: self, v: u, r },
+            k,
+            who,
+            1,
+            0,
+        );
     }
 }
 

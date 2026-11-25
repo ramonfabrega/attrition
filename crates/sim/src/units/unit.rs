@@ -362,6 +362,24 @@ pub struct Unit {
     /// that carries [`crate::combat::umask2::JAMMER`] takes this bit and
     /// drops that one; one that carries neither drops this.
     pub jam_shown: bool,
+    /// **`unit_masks & 0x4000`: struck by an Aztec slayer** (item 4637,
+    /// `docs/RECGAME.md` §14.6). Its one setter is `Object::take_damage
+    /// @00652020` at `0x652947`..`0x6529da`, on every hit to a unit, ahead
+    /// of the kill test: an attacker `objects[p8][p7]` (`p7`, `p8` ≥ 0)
+    /// that is a unit, whose leader has tribe bonus 0 (the Aztecs) and
+    /// whose type's trainer (`+0x40`) is **by equality** the Barracks
+    /// (`0x1ab`), the Stable (`0x1ac`) or the Dock (`0x1b0`), marks the
+    /// victim's **captain** ([`crate::Sim::mark_slain_by_aztec`]).
+    /// `Unit::process_healing@005e0670` clears it after a heal: on the map
+    /// once the captain's `damage` is 0 (the Antipater, Iroquois,
+    /// Senator, President, CEO and supply heals, not the ship, hero or
+    /// civilian ones), and inside unconditionally (`LAB_005e08c5`).
+    /// `repair_damage` copies it onto a regrown figure with the rest of
+    /// the word. `Object::disband@006455c0` reads it: a marked captain
+    /// whose last striker's leader (`+0xa9`) is seated, alive and Aztec
+    /// pays that leader `Unit::plunder(this, damage_o, damage_who, 1, 0)`
+    /// ([`crate::Sim::disband_unit`]).
+    pub slay_marked: bool,
     /// `ObjectData::mylos` (`+0x3c`): the line of sight in tiles **as
     /// `Unit::update_los` last wrote it** — a cache, not a derivation. The
     /// fog sweep and the follower's spacing read it; [`Sim::update_los`]
@@ -1086,6 +1104,7 @@ impl Unit {
             auto_explore: false,
             explore_queued: false,
             jam_shown: false,
+            slay_marked: false,
             mylos: 0,
             unit_masks2: 0,
             avoid: None,

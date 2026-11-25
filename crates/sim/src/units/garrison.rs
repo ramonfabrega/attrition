@@ -879,6 +879,9 @@ impl Sim {
         // `repair_damage(1, 1, 1)` (`005e08c5`): one point, down the chain
         // from the captain.
         self.repair_unit_damage(i, 1);
+        // `LAB_005e08c5`: the garrison heal clears the slay mark whatever
+        // the damage (item 4637, [`crate::Unit::slay_marked`]).
+        self.units[i].slay_marked = false;
         self.mark_healed(i, period);
     }
 

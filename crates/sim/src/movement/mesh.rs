@@ -125,6 +125,14 @@ pub struct Elem {
     /// the texture passes that re-piece a road tile are not modelled, so a
     /// tile that is road reads as re-pieced ([`RedoView::finish_pieces`]).
     pub c4: bool,
+    /// `+0x4`'s low byte, the **intersections** (item 4677,
+    /// `docs/RENDERER.md` §6.5): `RoadsOut::mark_intersections@00892390`
+    /// sets them, `mark_splits@00891d40` clears a joined neighbour's, and
+    /// the redo pass's `flags = 0` clears the tile's own. Texture only:
+    /// nothing in this crate reads it, and the door carries it to the
+    /// client, which keeps it apart from [`Elem::flags`] so no reader of
+    /// the connections can see it.
+    pub inter: u8,
 }
 
 /// `Roads`' own state: the element store, the modification queue, and the two
@@ -405,6 +413,106 @@ impl RoadMesh {
                 }
                 Some(_) => {}
             }
+        }
+    }
+
+    /// **The intersections, as the texture marks leave them** (item 4677,
+    /// `docs/RENDERER.md` §6.5): `RoadsOut::mark_splits@00891d40`'s clears of
+    /// a neighbour's intersection byte, then
+    /// `RoadsOut::mark_intersections@00892390`, on the tile at the cursor
+    /// with the cache refilled. `mark_intersections` only ever sets a bit,
+    /// and the redo pass clears a tile's flags only when the tile is on its
+    /// list, so a bit set while a run was being laid outlives the run's end.
+    ///
+    /// `mark_splits` also joins the tile to a further road neighbour where
+    /// it claims a corner pair (`docs/ROADS.md` §9.4). Those connections are
+    /// not written: this pass changes nothing but [`Elem::inter`]. The tile's
+    /// own joins are taken into a local copy, because the original's later
+    /// arms and `mark_intersections` read them back. A neighbour with no
+    /// element ends either function where the original returns.
+    fn mark_intersections(&mut self, world: &World) {
+        let at = self.at;
+        let mut g = self.flags_at(world, at);
+        let road = self.road;
+        let mut clear = |dx: i32, dy: i32| -> bool {
+            let i = index_of(world, Pos::new(at.x + dx, at.y + dy));
+            match self.elems.get_mut(&i) {
+                Some(e) => {
+                    e.inter = 0;
+                    true
+                }
+                None => false,
+            }
+        };
+        // mark_splits: each arm joins (here, locally) and clears the joined
+        // neighbour's intersections; `false` is the original's return.
+        let mut splits = || {
+            use dir::{E, N, S, W};
+            if g & (N | W) == N | W || g & (N | E) == N | E {
+                let west = g & (N | E) == N | E && g & (N | W) != N | W;
+                if road[6] {
+                    g |= S;
+                    if !clear(0, 1) {
+                        return;
+                    }
+                }
+                let (k, side, dx) = if west { (8, W, -1) } else { (4, E, 1) };
+                if road[k] {
+                    g |= side;
+                    clear(dx, 0);
+                }
+                return;
+            }
+            if g & S != 0 && g & W != 0 {
+                if road[2] {
+                    g |= N;
+                    if !clear(0, -1) {
+                        return;
+                    }
+                }
+                if road[4] {
+                    g |= E;
+                    if !clear(1, 0) {
+                        return;
+                    }
+                }
+            }
+            if g & S == 0 || g & E == 0 {
+                return;
+            }
+            if road[2] {
+                g |= N;
+                if !clear(0, -1) {
+                    return;
+                }
+            }
+            if road[8] {
+                g |= W;
+                clear(-1, 0);
+            }
+        };
+        splits();
+        let both = |t: Pos, pair: u32| -> Option<bool> {
+            self.elem(world, t).map(|n| n.flags & pair == pair)
+        };
+        let mut inter = 0u8;
+        'marks: for (pair, (fwd, fb), (back, bb)) in [
+            (dir::E | dir::W, ((1, 0), 0x10u8), ((-1, 0), 0x01u8)),
+            (dir::N | dir::S, ((0, -1), 0x40), ((0, 1), 0x04)),
+        ] {
+            if g & pair != pair {
+                continue;
+            }
+            for ((dx, dy), b) in [(fwd, fb), (back, bb)] {
+                match both(Pos::new(at.x + dx, at.y + dy), pair) {
+                    None => break 'marks,
+                    Some(false) => inter |= b,
+                    Some(true) => {}
+                }
+            }
+        }
+        if let Some(e) = self.elems.get_mut(&index_of(world, at)) {
+            e.inter |= inter;
         }
     }
 
@@ -1022,6 +1130,15 @@ impl RedoView for SimRedo<'_> {
     fn clear_flags(&mut self) {
         let at = self.sim.movement.mesh.at;
         self.sim.movement.mesh.set_flags(&self.sim.world, at, 0);
+        if let Some(e) = self
+            .sim
+            .movement
+            .mesh
+            .elems
+            .get_mut(&index_of(&self.sim.world, at))
+        {
+            e.inter = 0;
+        }
     }
     fn fill_cache(&mut self) {
         let at = self.sim.movement.mesh.at;
@@ -1039,8 +1156,15 @@ impl RedoView for SimRedo<'_> {
     fn set_diags(&mut self, list: i32, param: i32) -> i32 {
         self.sim.set_diags(list, param)
     }
-    fn refill_for_marks(&mut self) {}
-    fn texture_marks(&mut self, _list: i32) {}
+    fn refill_for_marks(&mut self) {
+        let at = self.sim.movement.mesh.at;
+        self.sim.movement.mesh.fill_cache(&self.sim.world, at);
+    }
+    fn texture_marks(&mut self, _list: i32) {
+        // Item 4677: the intersections alone (`RoadMesh::mark_intersections`);
+        // the white and yellow lines are the client's (`client::roads`).
+        self.sim.movement.mesh.mark_intersections(&self.sim.world);
+    }
     fn finish_pieces(&mut self, _list: i32) {
         // `find_piece` picks the road tile's own piece, so the C4 a corner
         // left on it goes (§12; the pick itself is not modelled).

@@ -2872,6 +2872,76 @@ pub(crate) mod tests {
         );
     }
 
+    /// **Row 148's Aztec slayer marks its victim** (item 4637,
+    /// `docs/RECGAME.md` §14.6): run1836's ranges. On frame 10878 who=2's
+    /// (the Aztecs') Pikemen `2/49` (TI 134, a Barracks type) strikes
+    /// who=0's Citizen `0/1` (TI 50, land), and `take_damage@00652020`'s
+    /// `0x6529da` sets the captain's `unit_masks |= 0x4000`: on 10879 units
+    /// range 28, record 1, `collide_frame..play` byte 33 reads theirs
+    /// `0x40`, `unit_masks` 16396 (`0x400c`) where ours read 12. The units
+    /// line on states 10877 to 10881, byte for byte.
+    #[test]
+    fn row_148_s_aztec_slayer_marks_its_victim_on_run1836_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SEVENTH, 7) else {
+            eprintln!("skipping: row 148's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1836/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1836's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 148's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 10877 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let citizen = |b: &crate::diff::setup::Built| {
+            b.sim
+                .units
+                .iter()
+                .find(|u| u.owner == 0 && u.index == 1)
+                .expect("who=0's 0/1")
+                .slay_marked
+        };
+        assert!(!citizen(&built), "0/1 unmarked before the blow");
+        loop {
+            let state = built.sim.frame;
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_units();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "units range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            if state == 10879 {
+                let r = &ours.ranges[28];
+                assert_eq!((r.record, r.field), (1, "collide_frame..play"));
+                assert_eq!(theirs[28].bytes[33], 0x40, "theirs' 0x4000, one frame in");
+                assert!(citizen(&built), "ours marks 0/1");
+            }
+            if state == 10881 {
+                break;
+            }
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+    }
+
     /// **Row 133's Temple site's close fixes the borders** (item 4607,
     /// `docs/RECGAME.md` §13.5): run1797's ranges. who=1 razes who=2's
     /// unfinished Temple `2/2009` on frame 2295 (state 2296).
@@ -13592,12 +13662,15 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         },
         // Item 4618 (piece 37's three bays, the Xopilli Atlatl's 143 rounds
         // from 10888): 1 -> 11 lines whole; units part first on 10879 still.
+        // Item 4637 (the Aztec slayer's mark, `unit_masks & 0x4000` on the
+        // Citizen `0/1` struck by the Pikemen `2/49` on 10878): units
+        // 10,879 -> 12,001; 11 -> 12 lines whole.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                10879, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001,
+                12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001, 12001,
             ],
-            first: &[("units", (10879, Some(3473404783), 2285826991))],
+            first: &[],
             over: None,
         }),
     }),
@@ -13608,9 +13681,10 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
 /// Item 4630 made row 28 whole to the original's end 4,247 (piece 1812's
 /// bays): 1 -> 2. Item 4611 took rows 128 and 148 (run1810, run1811):
 /// six taken -> eight. Item 4635 made row 128 whole to 12,000 (the
-/// Russian age's border fix): 2 -> 3.
+/// Russian age's border fix): 2 -> 3. Item 4637 made row 148 whole to
+/// 12,000 (the Aztec slayer's mark): 3 -> 4.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SEVENTH_LINE: (usize, usize) = (3, 8);
+pub(crate) const HELD_OUT_SEVENTH_LINE: (usize, usize) = (4, 8);
 
 /// The seventh battery (item 4600): the sixth's recipe, the human ordering
 /// every 600 frames to 11,400.

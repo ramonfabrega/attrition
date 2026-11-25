@@ -42328,3 +42328,31 @@ RNG_MASK=0x8d1u`, waited on with `waitrun.sh` in the background. `df -g ~` read 
 
 **What it holds**: the Fire Raft's ram (`docs/COLLISION.md` §6 step 1), read by
 `rondata::diff::held_out::tests::row_53_s_fire_raft_rams_and_sinks_on_run1835_s_ranges`.
+
+## run1836 — parity held out, seventh battery, row 148's file to 11,129 with the checksum and ranges hooks, the units line kept (2026-11-25, item 4637, `att-4637`)
+
+`docs/RECGAME.md` §14.6. **What the disk could not answer**: run1811 holds sums only, so row 148's one parted line
+(units 10879) named no leaf. The take is run1811's line cut to 11129 with the units mask: `TMPDIR=<fresh> zsh
+tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1836 --recording
+~/ron-golden/recordings/item4600-row148-12000.rcx --end-frame 11129 --allow-early-end --cover cover=1 --log-window 0 31
+--detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def
+RNG_MASK=0x1u`, waited on with `waitrun.sh` in the background. `df -g ~` read 121 GB free before it and 111 after.
+Lanes 1 to 3 read `free` at launch; no minutes waited on another lane.
+- **The run**: pool lane 1, launched 10:10:43 −05:00, exited 10:24:03: **800.6 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 11,130 frames, `last_frame` 11129, not ended early, seed 12345, map 7. The recording's
+  SHA-256 is run1811's (`e6539554…`). Players: tribe 4 (who 0, flags 7), tribe 3 (who 1), tribe 0 (who 2). DLL
+  `ab3f88bf…`, defines `-DRON_AUTOSTART -DRON_REPLAY -DRON_CHECKSUMS -DRON_RANGES -DRNG_MASK=0x1u`.
+- **The record**: `~/ron-golden/run1836/map-7/rontrace.ranges`, 912,471,712 bytes, SHA-256
+  `c2b1a3e2ee0fef1981ce4413cf19a5588fe86441d276bf69878722077d5c0c08`.
+- **Scored** (`score_recording … ~/ron-golden/run1836/map-7`, on `99c66271e`): units 10,879 of 11,130, first 10879,
+  ours 3473404783, theirs 2285826991; the other eleven 11,130 of 11,130. **Units range 28, record 1,
+  `collide_frame..play`, byte 33: ours 0x00, theirs 0x40; `unit_masks` ours 12, theirs 16396** — the Citizen `0/1`
+  (TI 50, land), struck on 10878 by who=2's Pikemen `2/49` (TI 134). On the item's tree: 11,130 of 11,130 on all
+  twelve.
+- Filed by `filerun.py run1836 heldout7-row148-ranges11129` (linked): `gamelog_p.txt` →
+  `Logs/gamelog-run1836-heldout7-row148-ranges11129.txt`, 2,875 bytes, SHA-256
+  `5df4c79222379457ae3b881e2f5ca9ec1a4c045ac2678ab1d6b45061292a3401`; `rontrace.log` → `Logs/rontrace-run1836.log`,
+  122,614,048 bytes, SHA-256 `472614c39a95fcc96889f530bb5ed5c84d1b480589d7c232ce4616be2285c32f`.
+
+**What it holds**: the Aztec slayer's mark (`take_damage@00652020`, `0x6529da`), read by
+`rondata::diff::held_out::tests::row_148_s_aztec_slayer_marks_its_victim_on_run1836_s_ranges`.

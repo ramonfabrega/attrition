@@ -510,8 +510,11 @@ mod tests {
     /// 0.114 B), nearer by the RGB distance. Minted at item 4670's build:
     /// 81,370 pixels, theirs Y 43.2, ours 101.4 → 42.4, 78,380 nearer.
     /// Made to fail: `TREE_DIFFUSE_UNSEEN` at `GREY`'s 0x80 moves no
-    /// pixel.
-    const RUN1814B_3294_TREES_PAST_SIGHT: [i64; 5] = [81_370, 432, 1014, 424, 78_380];
+    /// pixel. Item 4673, element 1's four plates laid: the mask 81,370 →
+    /// 81,369 pixels and nearer 78,380 → 78,378, the tone map's white
+    /// moving one pixel over the bar; the lumas hold. Item 4677: the mask
+    /// 81,369 → 81,367 and nearer 78,378 → 78,376, the lumas held: the plates' and the asphalt's pieces on the packet's element on more tiles (item 4677, `docs/RENDERER.md` §6.5) move the frame's mean, so its white.
+    const RUN1814B_3294_TREES_PAST_SIGHT: [i64; 5] = [81_367, 432, 1014, 424, 78_376];
     /// The same pixels' mean colour: the photograph's, ours before, ours
     /// now, each channel ×10 and rounded.
     const RUN1814B_3294_TREES_PAST_SIGHT_RGB: [[i64; 3]; 3] =
