@@ -6500,16 +6500,94 @@ from one reading of the decompile. No score separates them from the
 marks.
 
 **Not established.**
-- The 38 of run1559b's 599 and the 3 of run1814b's 54 still apart. One
+- ~~The 38 of run1559b's 599 and the 3 of run1814b's 54 still apart. One
   candidate is `mark_splits`' joins, which are not written. Another is
   `fixup_lines` or `delete_straglers` in the fourth pass. Those two were
-  read only for writes to the low byte, and a pattern search found none.
+  read only for writes to the low byte, and a pattern search found none.~~
+  Item 4678 (§6.6): neither. `add_roads`' own marks took 12, the start's
+  seeded roads hold 27, and the line passes' pushes hold the rest.
 - The white and yellow lines are still the client's evaluation plus
   `corner_loops`, not the mesh's history (4677a).
 - (16, 156)'s pick, on the same candidate as the packet's: the fractal
   height, or `find_map`'s order.
 - A map's own roads (`RoadMesh::seed`) carry no history; neither
   photograph's ring is one.
+
+## 6.6 The intersections a tile takes as it is laid (item 4678)
+
+*2026-11-25, Opus 5.5. The ledger: `docs/journal/2026-11-25-item-4678.md`.
+`sim::movement::mesh`'s `SimRoads::mark_intersections`; the test
+`a_tile_laid_into_a_gap_marks_itself` (sim) and the re-pinned rows of
+`roads::tests`. This item touches `crates/sim`.*
+
+**Where the marks were missing.** `Roads::add_roads@0088f4b0` runs the
+texture marks twice. §6.5 built the second run, inside
+`redo_changed_roads`. The first run is `add_roads`' own second pass,
+over the tiles the call lays: where `set_diags` answers zero it runs
+`mark_splits(1)`, `mark_white_lines(1)`, `mark_yellow_lines(1)`,
+`mark_intersections` and `fixup_lines(1)` (`add_roads:334`–`338`). The
+sim's `RoadsView` left that pass empty. A tile laid joined both ways,
+into a gap between two runs, takes its bits there and is never redone,
+because the redo lists hold its neighbours and not the tile itself.
+`SimRoads::mark_intersections` now runs `RoadMesh::mark_intersections`
+there: `mark_splits`' clears, then the marks.
+
+**The value diff** (the packet's `road_records.py` flags against
+`candidates`):
+
+| tile | theirs | before | now | piece theirs | before | now |
+|---|---|---|---|---|---|---|
+| run1814b (11, 154) | `4400cc04` | `4400cc00` | `4400cc04` | 15 / 7 | 16 / 3 | 15 / 7 |
+| run1814b (11, 160) | `11003310` | `11003300` | `11003310` | — | — | — |
+| run1814b (15, 155) | `4500cf04` | `4500cf00` | `4500cf00` | the packet's | | |
+
+- *run1814b's box* (`RUN1814B_PLATE_CANDIDATES`): intersections **51 →
+  53 of 54**. Laid on the packet's piece (`RUN1814B_PLATE_PIECES`) **52 →
+  53**; (16, 156) is left, the fractal's pick.
+- *Draw 81* (`RUN1833_DRAW_81`): the piece's texcoord on our walk **912 →
+  930 of 954**.
+- *run1559b* (`RUN1559B_RECORDS`): intersections **561 → 571 of 599**, the
+  packet's piece **453 → 459 of 490**.
+- *The rows*: `RUN1814B_3294_FARM_UNDERLAY`, the underlay alone, luma
+  32 → 31, a named fall. Tile (14, 168) reads Y 171.4 against theirs
+  142.8 both before and after, and the frame's white moved it over the
+  reader's edge. The drawn farm row holds 48 of 48.
+
+**What is still apart, by a trace of each tile's history** (a temporary
+trace on the mesh, not kept):
+- *run1559b, 27 of 28*: the start's own roads. That walk opens on the
+  original's dump, so `RoadMesh::seed` builds those elements with flags
+  cleared and no marks. In the original they were laid one tile at a
+  time. No history the door carries reaches them, short of the start's
+  laying order. The 28th, (215, 82), was laid on frame 1688; it was not
+  traced further.
+- *run1814b, (15, 155)*: laid on its `add_roads` call and marked `S`. In
+  the same call's redo, (14, 155), an `E|S|W`, runs `mark_splits`: its
+  `S|W` arm joins east and zeroes (15, 155)'s low byte. Nothing redoes
+  (15, 155) afterwards. In the original something must. (15, 155)
+  already holds `W`, so `mark_splits`' `set_neighbor` makes no fresh
+  join and does not push it. The candidates are the line passes:
+  `mark_white_lines` (16 `add_unique` sites), `mark_yellow_lines` (12),
+  `fixup_lines` (16) and `delete_straglers` (4) each push a neighbour
+  whose line bits they freshly set or drop onto the ping-pong's other
+  list. That list is redone and re-marked. Modelling that means the
+  lines live in the mesh (4677a).
+
+**Diff-backed**: run1814b's 53 and run1559b's 571, and the pieces they
+pick. **Read alone**: that `add_roads`' second pass runs the marks on the
+tile it lays (`add_roads:334`–`338`), and that the line passes push onto
+the lists, from one reading.
+
+**Not established.**
+- Which line pass redoes (15, 155) in the original, and whether the
+  lists' extra redos are sim-idempotent. A redo runs
+  `mark_and_trim_directions`, `leech_codes` and `set_diags` again, and
+  `set_diags` can lay a road. Settled by the lines in the mesh (4677a),
+  under the corpus.
+- (16, 156)'s pick on the packet's own candidate (`11003300`): theirs
+  element 15 at 4, ours 16 at 0. Either the fractal's height or
+  `find_map`'s order.
+- The start's roads on a dump-opened walk: the original's laying order.
 
 ## 7. What is not established, and what needs Ramon's word
 

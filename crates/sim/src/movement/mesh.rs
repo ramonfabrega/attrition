@@ -1247,7 +1247,13 @@ impl RoadsView for SimRoads<'_> {
     fn mark_splits(&mut self) {}
     fn mark_white_lines(&mut self) {}
     fn mark_yellow_lines(&mut self) {}
-    fn mark_intersections(&mut self) {}
+    /// Item 4678 (`docs/RENDERER.md` §6.6): `mark_splits`' clears and the
+    /// marks on the tile being laid, as the redo pass runs them
+    /// ([`RoadMesh::mark_intersections`]). A tile laid joined both ways
+    /// between two runs takes its bits here, and nothing redoes it after.
+    fn mark_intersections(&mut self) {
+        self.sim.movement.mesh.mark_intersections(&self.sim.world);
+    }
     fn fixup_lines(&mut self, _arg: i32) {}
     fn elem_flags(&self) -> u32 {
         self.sim
