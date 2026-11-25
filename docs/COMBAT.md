@@ -1205,19 +1205,24 @@ unit held), `SpecialsData::find_special@00740070(x, y, L)`: the first slot
 below the leader's specials mark (`+0x43c`) whose record is in use (`+0x28 &
 1`), whose unit is on the map (`+0x82`'s sign), within `GENERAL_RADIUS ×
 0x180` of the object by `vector_dist(|dx|, |dy|)` (`740108`..`74014d`), and
-`is(0x4b, 0)`. The answer is that record's `+0x26`, the unit's `o`. Its only
-other caller is `Unit::fight`'s anti-air animation roll (§81), with no
-out-parameter and no write.
+`is(0x4b, 0)`. The answer is that record's `+0x26`, the unit's `o`. Its
+other callers are `Unit::fight`'s anti-air animation roll (§81), with no
+out-parameter and no write, and `Unit::process`'s anti-air arm (item 4666):
+in the sixteen-frame on-map block, after the 32-frame attrition refresh
+(`611629`..`61167a`), a unit whose type `has_objmask(0x80000000)` asks
+`is_jammed(&who)` and the jammer takes `units[who][o].unit_masks2 |= 8`;
+no sound, no bit on the asker, no shot held.
 
-The unit's `8` has one other writer, `Unit::process@00610bc0`'s caster arm
+The unit's `8` has one clearer, `Unit::process@00610bc0`'s caster arm
 (`610ddc`..`610e58`), reached by every caster (`unit_flags2 & 2`) that is
 no decoy (`unit_masks & 1`), after a hero's or a special's
 `Caster::process_spells`: on `(frame + o) & 0x1f == 0`, a unit carrying
 `unit_masks & 0x80000000` or `unit_masks2 & 8` that `is(0x4b, 0)` (`push 0;
 push 0x4b`) takes `unit_masks |= 0x80000000` and drops the `8` (and a
 shockwave, the renderer's) when it carries the `8`, and drops `0x80000000`
-when it does not. Nothing else writes either bit (`0x6c` and `0x68` grepped
-in every spelling). The building's bit has one reader besides the
+when it does not. ~~Nothing else writes either bit~~ (the anti-air arm
+above sets the `8`: the vslot call's `orl $0x8, 0x6c(%eax)` at `61167a`,
+missed by the grep's spellings; item 4666). The building's bit has one reader besides the
 checksum: `Wall::inc_time@0063fb60:204` takes an anti-air building's
 wind-down on `near_o < 0 || build_masks & 0x8000`.
 
@@ -1231,6 +1236,11 @@ unit's `unit_masks2` 8 and the Tower's `build_masks` `0x9000`, ours 0 and
 `0x1000` before the build. On 5600, the unit's phase, state 5601 prints
 `unit_masks` with `0x80000000` and the 8 gone. Every units and builds range
 on 5575..=5610 agrees (`held_out::tests::row_110_s_special_forces_jam_the_tower_on_run1742_s_ranges`).
+The anti-air arm is `Sim::unit_jam`, diff-backed on run1797 (row 133): who=1's
+AA unit `1/75` (TI 284) stands 2,054 from who=2's Special Forces `2/22` (TI
+77) on 2565, its phase; state 2566 prints `unit_masks2` `0x4088`, ours
+`0x4080` before the build. Every units range on 2565..=2567 agrees
+(`row_133_s_aa_unit_marks_the_special_forces_jamming_it_on_run1797_s_ranges`).
 
 **Not established**: the `S_MISSFIRE_FROM_JAMMING` sound draws nothing from
 either generator (read as the renderer's, not checked by a capture); the

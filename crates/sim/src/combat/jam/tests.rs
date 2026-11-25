@@ -164,3 +164,42 @@ fn the_caster_arm_trades_the_jammer_mark_for_the_shown_bit_on_its_phase() {
     );
     assert!(!s.units[other].jam_shown);
 }
+
+/// **`Unit::process`'s anti-air arm** (item 4666, `611629`..`61167a`): an
+/// anti-air unit of who=1's within reach of who=2's special forces unit
+/// marks it, as the Tower's `do_attack` does, and holds nothing of its own;
+/// a unit without `ANTI_AIR`, and an anti-air one out of reach, mark
+/// nothing. Row 133's AA unit `1/75` (TI 284) on run1797's 2565.
+#[test]
+fn an_anti_air_unit_marks_the_special_forces_jamming_it() {
+    let mut s = sim();
+    let sf = special(&mut s, 2, 22, Pos::new(17545, 1272), 0x4b);
+    s.leaders.jam_threat[1] = true;
+    s.leaders.special_forces[2] = true;
+    let aa = s.add_unit_type(UnitType {
+        hits: 100,
+        combat: combat::Profile {
+            obj_masks: mask::ANTI_AIR,
+            ..combat::Profile::default()
+        },
+        ..UnitType::default()
+    });
+    let mut u = Unit::new(1, 75, Pos::new(17545 - 2054, 1272), 100);
+    u.ty = Some(aa);
+    u.on_map = true;
+    let gun = s.add_unit(u);
+
+    s.unit_jam(gun);
+    assert_eq!(s.units[sf].unit_masks2 & umask2::JAMMER, umask2::JAMMER);
+    assert_eq!(s.units[gun].unit_masks2 & umask2::JAMMER, 0, "not its own");
+
+    s.units[sf].unit_masks2 &= !umask2::JAMMER;
+    s.tables.unit_types[aa].combat.obj_masks = 0;
+    s.unit_jam(gun);
+    assert_eq!(s.units[sf].unit_masks2 & umask2::JAMMER, 0, "not ANTI_AIR");
+
+    s.tables.unit_types[aa].combat.obj_masks = mask::ANTI_AIR;
+    s.units[gun].pos.x = 17545 - REACH - 1;
+    s.unit_jam(gun);
+    assert_eq!(s.units[sf].unit_masks2 & umask2::JAMMER, 0, "out of reach");
+}
