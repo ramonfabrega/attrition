@@ -1413,13 +1413,17 @@ impl Gpu {
         );
         // Item 4653 (§6.1): the plates blended before the curve, as the
         // card blends `roads_rs_alpha`'s `TL_FAKE_LIGHT` on its HDR target.
+        // Item 4661: `roads_rs_alpha`'s enables 0x3c004 carry no `ZENABLE`
+        // (`rise.pdb`'s `RenderEnables`; run1833's card, draw 81), so the
+        // plates are not depth tested: our heightfield's split under a
+        // plate's cut quad otherwise hides part of every tile.
         let hdr_plate = patch_pass_to(
             "hdr_plate",
             "fs_plate_hdr",
             &patch_layout,
             false,
             LAND_HDR_FORMAT,
-            wgpu::CompareFunction::LessEqual,
+            wgpu::CompareFunction::Always,
         );
         let hdr_faded = patch_pass_to(
             "hdr_faded",
@@ -1584,7 +1588,14 @@ impl Gpu {
         let faded = blended("faded", "fs_faded");
         let mountain = blended("mountain", "fs_mountain");
         let snowcap = blended("snowcap", "fs_snowcap");
-        let plate = blended("plate", "fs_plate");
+        let plate = patch_pass_to(
+            "plate",
+            "fs_plate",
+            &patch_layout,
+            false,
+            format,
+            wgpu::CompareFunction::Always,
+        );
         let billboard = blended("billboard", "fs_billboard");
         // Item 4311: opaque, so its alpha of 1 replaces; its depth written.
         let edge = patch_pass("edge", "fs_edge", &patch_layout, true);
