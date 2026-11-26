@@ -16712,19 +16712,15 @@ recurrence is not decided: an Action on a push to `main`, or a
 permission rule and a step of the reap.
 
 **§11. Ramon's play (2026-11-25, 19:45 −05:00).** He played the gated
-tip for some minutes and saved a recording
-(`~/ron-data/lab-experiments/2026-11-25-pass-second/spin-1125.rcx`,
-59,833 bytes). Four notes, ranked as §10 says. He could not build: no
-Farm and no Barracks, by the panel or by F or B (item 4695, the
-client's seat now). The game read as fast-forwarded: the window steps
-the sim once a presented frame, 60 a second, where the original's
-Normal is 15.1 by run1814b's photograph (item 4696). Escape ended his
-game, where the original's cancels (item 4696). And the HUD does not
-read as the game's (item 4694, behind item 4690). The pass read the
-step's pacing and the two key tables in the client's source, and then
-decoded his recording: 85 commands over frames 0 to 7444, four build
-orders among them, and 40 of 42 group records with no object. Ramon
-then said his citizens walked on a right click, so an empty group
-repeats the selection and the orders had their units. The keys armed
-and the builds were minted; whether a site then stood, and why he saw
-neither a ghost nor a site, is item 4695's first act.
+tip and saved a recording (`spin-1125.rcx`, beside the pass's files).
+Four notes, ranked as §10 says. He could not build, by the panel or by
+F or B (item 4695, the client's seat now). The game read as
+fast-forwarded: the window steps the sim once a presented frame, 60 a
+second, where the original's Normal is 15.1 by run1814b's photograph
+(item 4696). Escape ended his game, where the original's cancels (item
+4696). And the HUD does not read as the game's (item 4694). The pass
+decoded the recording: 85 commands over frames 0 to 7444, four build
+orders among them, and 40 of 42 group records with no object. His
+citizens walked on a right click, so an empty group repeats the
+selection. The keys armed and the builds were minted; why he saw
+neither a ghost nor a site is item 4695's first act.
