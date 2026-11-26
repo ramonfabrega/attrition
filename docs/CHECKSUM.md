@@ -1446,7 +1446,14 @@ parted on 45 ranges and summed to 2626631255.
   (`:66–70`), and `Unit::come_out@00617c10:518` places with `(1, 1)`
   (`Sim::guys_last_on_point`). The sample's Inca Citizen `4/4`, out of
   its building on 3878, parted `last` 10152, 10104, 332 against 10488,
-  10968, 304 before it.
+  10968, 304 before it. **A plane's step snaps `last_angle` with its
+  `angle`** (item 4725, diff-backed on run1799):
+  `Unit::do_air_physics@005e86d0:219` calls `Guy::set_angle(guy 0,
+  heading, 1)` on every step, so a launch, whose first step is taken in
+  the base's `come_out` after the figures ran, ends its frame with both
+  on the new angle. Before it, ours wrote the angle alone: who=2's Fighter
+  `2/141` (TI 293), out of its Airbase on 4219, parted `last_angle` 0
+  against 0x01830000.
 - **`z` and `last_z`** — `Guy::set_new_location` writes `z` by the type's
   domain: an aircraft's climb, a ship's 0, and the ground under the point
   otherwise (`TerrainOut::find_data_z(x, y, 0)`, `World::data_z`). The 36

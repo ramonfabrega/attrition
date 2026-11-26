@@ -51,9 +51,13 @@ pub(crate) const RUN1814B_3294_MINIMAP_FRAME: [usize; 7] =
 /// ours within two levels of the photograph's with no frame drawn, ours
 /// with it, the photograph's mean luma, ours with no frame, ours with it]`,
 /// the lumas as [`RUN1814B_3294_MINIMAP_FRAME`]'s.
-/// The photograph parts from the composition on the clock's box and on
-/// the five slots that hold a button's picture (4724a, 4724b).
-pub(crate) const RUN1814B_3294_LEFT_WINDOW: [usize; 7] = [61_614, 45_964, 0, 45_964, 516, 820, 459];
+/// The photograph parts from the composition on the five slots that hold
+/// a button's picture (4724b), 11,850, and in the clock's box on 217 of
+/// 3,800 (item 4727, §6.12): the last digit, ours `9` on 3295's clock and
+/// theirs `8`, and the glyphs' faint edges.
+/// Item 4727: 45,964 → 49,547, the box and the clock's line; luma ×10 459
+/// → 418.
+pub(crate) const RUN1814B_3294_LEFT_WINDOW: [usize; 7] = [61_614, 49_547, 0, 49_547, 516, 820, 418];
 
 /// The rectangles as interface.xml writes them, each form once.
 #[test]
@@ -96,6 +100,8 @@ fn the_left_window_lays_out() {
     <IFACETEX name="left_tile" texture="TEX_CIV" left="1" top="51" width="3" height="93"/>
     <IFACETEX name="left_tile_only" texture="TEX_CIV" left="51" top="0" width="103" height="3"/>
     <IFACETEX name="bar" texture="TEX_CIV" left="390" top="131" width="122" height="34"/>
+    <IFACETEX name="time_back" texture="TEX_CIV" left="261" top="108" width="124" height="19"/>
+    <IFACERECT name="timer_area2" left="32" top="10" width="200" height="19"/>
     <BUTTON name="pause" left="4" top="10" width="24" height="19">
       <IFACETEX name="tex" texture="TEX_CIV" left="313" top="0" width="24" height="19"/>
     </BUTTON>
@@ -122,12 +128,14 @@ fn the_left_window_lays_out() {
     let l = left::LeftLayout::parse(xml).expect("the window parses");
     assert_eq!(l.size, (316, 198));
     assert_eq!(l.mid_window, (316, 1));
+    assert_eq!(l.clock, (32, 10, 232, 29));
     let p = |crop, span, fill| Piece { crop, span, fill };
     let blank = (211, 20, 60, 38);
     assert_eq!(
         l.pieces,
         vec![
             p((390, 131, 122, 34), (0, 0, 316, 34), Tile),
+            p((261, 108, 124, 19), (32, 10, 232, 29), Stretch),
             p((1, 51, 3, 93), (0, 34, 3, 198), Tile),
             p((51, 0, 103, 3), (2, 195, 313, 198), Tile),
             p((313, 0, 24, 19), (4, 10, 28, 29), Stretch),
@@ -262,9 +270,14 @@ fn the_minimap_frame_on_run1814b() {
     // Item 4724: the bar's left window, on the same stills.
     let b = frame.bar_origin(size);
     assert_eq!(b, (0, 883), "the bar's origin");
+    // Item 4727: the window with the clock's line of the still's frame.
+    let line = super::clock_line(&world).expect("the clock's line");
+    assert_eq!(line, "Normal: 00:03:39", "the clock's line on 3295");
+    let win = frame.left_with(Some(&line));
+    let left_texel = |x: i32, y: i32| super::texel_of(&win, b, x, y);
     let left_mask: Vec<(i32, i32)> = (b.1..size.1)
         .flat_map(|y| (b.0..b.0 + frame.left.w as i32).map(move |x| (x, y)))
-        .filter(|&(x, y)| frame.left_texel(b, x, y).is_some_and(|t| t[3] == 255))
+        .filter(|&(x, y)| left_texel(x, y).is_some_and(|t| t[3] == 255))
         .collect();
     let on = |m: &[(i32, i32)], img: &[u8], other: &[u8]| {
         m.iter()
@@ -284,7 +297,7 @@ fn the_minimap_frame_on_run1814b() {
     let composed = left_mask
         .iter()
         .filter(|&&(x, y)| {
-            let t = frame.left_texel(b, x, y).expect("on the window");
+            let t = left_texel(x, y).expect("on the window");
             near(px(&photo.rgba, (x, y)), [t[0], t[1], t[2]])
         })
         .count();

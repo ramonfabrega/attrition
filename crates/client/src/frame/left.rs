@@ -58,6 +58,9 @@ pub struct LeftLayout {
     pub size: (i32, i32),
     /// `mid_window`'s corner in the bar: where the minimap's window sits.
     pub mid_window: (i32, i32),
+    /// Item 4727: `timer_area2`, the clock's box, where
+    /// `IFaceMainBase::draw_button_row_area@0080f7b0` writes the clock.
+    pub clock: Span,
     /// In drawing order.
     pub pieces: Vec<Piece>,
 }
@@ -200,6 +203,14 @@ impl LeftLayout {
             span: (0, 0, width, bar.3 as i32),
             fill: Fill::Tile,
         });
+        // Item 4727: the clock's box, `time_back` stretched into
+        // `timer_area2` (`draw_button_row_area@0080f7b0`'s `add_smooth`).
+        let clock = named_rect(&base, "timer_area2", parent)?;
+        pieces.push(Piece {
+            crop: named_tex(&base, "time_back")?,
+            span: clock,
+            fill: Fill::Stretch,
+        });
         for name in ["left_tile", "left_tile_only"] {
             pieces.extend(pairs(&base, name, parent, (0, 0), Fill::Tile)?);
         }
@@ -248,6 +259,7 @@ impl LeftLayout {
         Ok(LeftLayout {
             size: (width, height),
             mid_window: (mx0, my0),
+            clock,
             pieces,
         })
     }
@@ -375,5 +387,57 @@ impl LeftLayout {
             }
         }
         Ok(Texels { w, h, rgba })
+    }
+}
+
+/// **The clock's line** (item 4727): `draw_button_row_area@0080f7b0`'s
+/// `msg`, the game speed's name, `: ` and `say_timer` of the clock's
+/// seconds ([`crate::hud::clock`]).
+pub fn clock_line(speed: &str, frame: i64) -> String {
+    format!("{speed}: {}", crate::hud::clock(frame))
+}
+
+/// The clock's face: `fonts`' lookup 27, `clock_size`, `Data\Fonts\arialbd.ttf`
+/// at 12, `mAscent` 11 and `mFontHeight` 14 on run1814b's packet.
+pub const CLOCK_FACE: (&str, i32, i32, i32) = ("arialbd.ttf", 12, 11, 14);
+
+/// **The clock written** into the window `win` (the composed left window,
+/// `w` wide): `Buffer::write_cent_l@0050f850` centres `line` in `rect`,
+/// its pen at `x0 + (w − text_width) / 2` and `y0 + (h − text_height) / 2`
+/// (both truncated), and each glyph's cell is laid at the pen and the pen
+/// moved by its advance. The shadow, black, goes down first, one pixel
+/// right and one down; then the text, white.
+pub fn write_clock(win: &mut Texels, face: &crate::selection::PlateFace, rect: Span, line: &str) {
+    let (x0, y0, x1, y1) = rect;
+    let Some(tw) = face.text_width(line) else {
+        return;
+    };
+    let px = x0 + (x1 - x0 - tw) / 2;
+    let py = y0 + (y1 - y0 - face.height()) / 2;
+    let cells: Vec<(i32, crate::selection::GlyphCell)> = line
+        .chars()
+        .scan(px, |x, c| {
+            let at = *x;
+            *x += face.advance(c).unwrap_or(0);
+            Some(face.cell(c).map(|cell| (at, cell)))
+        })
+        .flatten()
+        .collect();
+    let h = face.height();
+    for (ink, (dx, dy)) in [([0u8, 0, 0], (1, 1)), ([255u8, 255, 255], (0, 0))] {
+        for (at, cell) in &cells {
+            for v in 0..h {
+                for u in 0..cell.w as i32 {
+                    let a = cell.cover[(v * cell.w as i32 + u) as usize];
+                    let (x, y) = (at + u + dx, py + v + dy);
+                    if a == 0 || !(0..win.w as i32).contains(&x) || !(0..win.h as i32).contains(&y)
+                    {
+                        continue;
+                    }
+                    let i = (y as usize * win.w + x as usize) * 4;
+                    over(&mut win.rgba[i..i + 4], [ink[0], ink[1], ink[2], a]);
+                }
+            }
+        }
     }
 }
