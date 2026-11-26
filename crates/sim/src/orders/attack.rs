@@ -1120,13 +1120,7 @@ impl Sim {
             return None;
         }
         if let Obj::Unit(t) = target {
-            let mut c = t;
-            for _ in 0..self.units.len() {
-                match self.units[c].o_up {
-                    Some(up) if up != c => c = up,
-                    _ => break,
-                }
-            }
+            let c = self.attack_target_captain(t);
             let me = Obj::Unit(u);
             if c != t && self.valid_target(me, Obj::Unit(c)) {
                 self.set_attack_target(u, Some(Obj::Unit(c)));
@@ -1154,6 +1148,17 @@ impl Sim {
         }
         self.kill_current_order(u);
         Some(false)
+    }
+
+    /// Follow the target's squad links even when the original figure has died.
+    pub(crate) fn attack_target_captain(&self, mut u: usize) -> usize {
+        for _ in 0..self.units.len() {
+            match self.units[u].o_up {
+                Some(up) if up != u => u = up,
+                _ => break,
+            }
+        }
+        u
     }
 
     /// **The chase runs in the frame it is ordered** — `Unit::fight@

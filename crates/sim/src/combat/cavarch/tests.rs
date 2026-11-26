@@ -101,7 +101,7 @@ fn a_unit_that_fires_on_the_move_finds_shoots_and_walks_on() {
 /// holds: run657's and run661's counts stand.
 #[test]
 fn a_captain_firing_on_the_move_retargets_before_it_shoots() {
-    for captain in [true, false] {
+    for (captain, ordered) in [(true, false), (false, false), (true, true)] {
         let (mut sim, ty) = field(true);
         let mut cheap = sim.tables.unit_types[ty].clone();
         cheap.combat.combat_role = false;
@@ -124,8 +124,11 @@ fn a_captain_firing_on_the_move_retargets_before_it_shoots() {
         }
         sim.units[me].cast_target = Some(Obj::Unit(held));
         sim.units[me].cavarch_who = 0;
+        if ordered {
+            sim.units[me].unit_masks2 |= crate::combat::umask2::ORDERED_CAVARCH_TARGET;
+        }
         sim.cavarch_fight_body(me, 100);
-        if captain {
+        if captain && !ordered {
             assert_eq!(
                 sim.units[me].cast_target,
                 Some(Obj::Unit(dear)),
@@ -137,6 +140,48 @@ fn a_captain_firing_on_the_move_retargets_before_it_shoots() {
             assert_eq!(sim.units[me].combat.recharging, 30, "shot");
         }
     }
+}
+
+#[test]
+fn an_ordered_moving_target_can_pass_to_its_captain() {
+    use crate::combat::umask2::ORDERED_CAVARCH_TARGET;
+    for has_captain in [true, false] {
+        let (mut sim, ty) = field(true);
+        let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
+        let member = put(&mut sim, 0, ty, Pos::new(3000, 3900));
+        let captain = put(&mut sim, 0, ty, Pos::new(3200, 3900));
+        sim.units[member].health = 0;
+        sim.units[member].o_up = has_captain.then_some(captain);
+        sim.units[me].cast_target = Some(Obj::Unit(member));
+        sim.units[me].cavarch_who = 0;
+        sim.units[me].unit_masks2 |= ORDERED_CAVARCH_TARGET;
+        sim.cavarch_fight(me, 100);
+        assert_eq!(sim.units[me].cast_target, Some(Obj::Unit(captain)));
+        assert_eq!(
+            sim.units[me].unit_masks2 & ORDERED_CAVARCH_TARGET != 0,
+            has_captain
+        );
+        assert_eq!(sim.combat.retargets[1], i32::from(!has_captain));
+    }
+}
+
+#[test]
+fn an_ordered_moving_target_uses_the_current_occupant_of_its_number() {
+    use crate::combat::umask2::ORDERED_CAVARCH_TARGET;
+    let (mut sim, ty) = field(true);
+    let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
+    let old = put(&mut sim, 0, ty, Pos::new(3000, 3900));
+    sim.units[old].health = 0;
+    let new = put(&mut sim, 0, ty, Pos::new(3000, 3900));
+    sim.units[new].index = sim.units[old].index;
+    sim.units[me].cast_target = Some(Obj::Unit(old));
+    sim.units[me].cavarch_who = 0;
+    sim.units[me].unit_masks2 |= ORDERED_CAVARCH_TARGET;
+    sim.cavarch_fight(me, 100);
+    assert_eq!(sim.units[me].cast_target, Some(Obj::Unit(new)));
+    assert_eq!(sim.units[me].cavarch_uid, sim.units[new].uid);
+    assert_ne!(sim.units[me].unit_masks2 & ORDERED_CAVARCH_TARGET, 0);
+    assert_eq!(sim.combat.retargets[1], 0);
 }
 
 /// **A city at its ceiling is still borne on** (item 3635, `docs/AI.md`

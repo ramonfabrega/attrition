@@ -112,7 +112,7 @@ pub trait DoAttackView {
     /// The type record's `unit_flags` (`+0x2b4`).
     fn unit_flags(&mut self) -> u32;
     /// Gun tracking for a mandatory order: `this+0xa2` / `+0xa8` take the
-    /// target, and `unit_masks |= 0x100` with `+0xa6` the target's `+0x30`
+    /// target, and `unit_masks2 |= 0x100` with `+0xa6` the target's `+0x30`
     /// when it is a live object, else the bit cleared.
     fn track_target(&mut self);
     /// vtable `+0xf4` (`get_combat_stance`).

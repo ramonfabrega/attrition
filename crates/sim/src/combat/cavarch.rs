@@ -162,21 +162,42 @@ impl crate::Sim {
     /// throttle — an answer of nothing after an answer of nothing (the old
     /// `cavarch_o` read as unsigned past `0x7fff`) is written −2.
     ///
-    /// SEAM: `unit_masks2 & 0x100`, `fight`'s third argument and the bit
-    /// `cavarch_fight` clears when the target changes. `Unit::do_attack@
-    /// 005f1b80:226-240` sets it, with the pair, under a **mandatory**
-    /// attack of a `v` type; this crate carries neither, so the third
-    /// argument is 0 and the squad arm it opens (`fight:206-215`) is not
-    /// reached.
+    /// An ordered target keeps its mark when the fight retains it or switches
+    /// to its own squad captain. A replacement outside that squad clears it.
     pub(crate) fn cavarch_fight(&mut self, u: usize, frame: i64) {
-        let was_empty = self.units[u].cast_target.is_none();
+        let old_who = self.units[u].cavarch_who;
+        let ordered =
+            self.units[u].unit_masks2 & crate::combat::umask2::ORDERED_CAVARCH_TARGET != 0;
+        if let Some(t) = self.units[u].cast_target
+            && ordered
+            && old_who >= 0
+            && !self.slot_live(t)
+        {
+            // The pair names a player slot, which can now hold a younger object.
+            self.units[u].cast_target = self.object_holding(old_who as u8, self.obj_number(t));
+        }
+        let old = self.units[u].cast_target;
         // **A melee-and-ranged type fights here at its second range**
         // (`cavarch_fight@005ff4b0`'s bracket, item 3383): the Gun Mahout
         // (`GUNMAHOUT`, `mjvyk`) melees by `max_range` 0 and keeps its 9
         // in `second_max_range`, which this call alone reads — without it
         // the search's must-reach gate refuses everything past melee.
         self.with_second_range(u, |s| s.cavarch_fight_body(u, frame));
-        if was_empty && self.units[u].cast_target.is_none() {
+        let new = self.units[u].cast_target;
+        if let Some(previous) = old
+            && ordered
+            && old_who >= 0
+            && (old_who != self.units[u].cavarch_who || new != old)
+        {
+            let captain = match previous {
+                Obj::Unit(t) => Obj::Unit(self.attack_target_captain(t)),
+                Obj::Building(_) => previous,
+            };
+            if old_who != self.units[u].cavarch_who || new != Some(captain) {
+                self.units[u].unit_masks2 &= !crate::combat::umask2::ORDERED_CAVARCH_TARGET;
+            }
+        }
+        if old.is_none() && new.is_none() {
             self.units[u].cavarch_idle = true;
         }
     }
@@ -201,7 +222,7 @@ impl crate::Sim {
         }
     }
 
-    /// **`Unit::fight(o, who, 0, 0, 1)`** — `fight@005fd4d0` along its
+    /// **`Unit::fight(o, who, ordered, 0, 1)`** — `fight@005fd4d0` along its
     /// `param_5` path, which never touches the order list:
     ///
     /// - `:102-104`: a recharging unit returns at once (no snap, no idle).
@@ -234,11 +255,18 @@ impl crate::Sim {
             return;
         }
         let who = usize::from(self.units[u].owner);
-        let Some(target) = self.units[u]
-            .cast_target
-            .filter(|&t| self.valid_target(me, t))
-        else {
+        let held = self.units[u].cast_target;
+        let ordered =
+            self.units[u].unit_masks2 & crate::combat::umask2::ORDERED_CAVARCH_TARGET != 0;
+        let Some(target) = held.filter(|&t| self.valid_target(me, t)) else {
             self.cavarch_clear(u);
+            if ordered && let Some(Obj::Unit(t)) = held {
+                let c = self.attack_target_captain(t);
+                if c != t && self.valid_target(me, Obj::Unit(c)) {
+                    self.cavarch_take(u, Some(Obj::Unit(c)));
+                    return;
+                }
+            }
             if self.units[u].waiting < 5 && self.combat.retargets[who] > 10 {
                 self.units[u].waiting += 2;
                 return;
@@ -248,7 +276,7 @@ impl crate::Sim {
             self.combat.retargets[who] += 1;
             return;
         };
-        if self.units[u].combat.captain == i32::from(self.units[u].index) {
+        if !ordered && self.units[u].combat.captain == i32::from(self.units[u].index) {
             let research = match target {
                 Obj::Building(_) => true,
                 Obj::Unit(t) => {

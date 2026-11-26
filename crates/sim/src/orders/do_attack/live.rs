@@ -6,8 +6,7 @@
 //! has no home to name (a strafe's home is a building here);
 //! `find_attack_pos`'s `strict` flag is not modelled, so the barge's first
 //! ask is the crate's and its second answers nothing; `get_tregion` is the
-//! crate's, without the original's coastal refinement; gun tracking and the
-//! cavalry archer's range override write fields this crate does not carry.
+//! crate's, without the original's coastal refinement.
 
 use super::{DoAttackView, do_attack_steps};
 use crate::combat::Obj;
@@ -209,7 +208,30 @@ impl DoAttackView for SimDoAttack<'_> {
             .ty
             .map_or(0, |t| self.s.tables.unit_types[t].cols.unit_flags)
     }
-    fn track_target(&mut self) {}
+    fn track_target(&mut self) {
+        let Some(crate::orders::Body::Attack(order)) =
+            self.s.current_order(self.u).map(|o| &o.body)
+        else {
+            return;
+        };
+        let target = order
+            .target
+            .and_then(|(o, who, _)| self.s.object_holding(who, o));
+        let owner = order.target.map_or(-1, |(_, who, _)| who as i8);
+        let uid = target
+            .filter(|&t| self.s.slot_live(t))
+            .map(|t| self.s.obj_uid(t));
+        let unit = &mut self.s.units[self.u];
+        unit.cast_target = target;
+        unit.cavarch_idle = false;
+        unit.cavarch_who = owner;
+        if let Some(uid) = uid {
+            unit.cavarch_uid = uid;
+            unit.unit_masks2 |= crate::combat::umask2::ORDERED_CAVARCH_TARGET;
+        } else {
+            unit.unit_masks2 &= !crate::combat::umask2::ORDERED_CAVARCH_TARGET;
+        }
+    }
     fn stance(&mut self) -> i32 {
         if self.s.units[self.u].combat.stance == crate::combat::Stance::StandGround {
             2

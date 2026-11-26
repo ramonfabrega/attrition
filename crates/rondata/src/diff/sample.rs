@@ -840,8 +840,9 @@ pub(in crate::diff) mod tests {
     /// 12348 -> 12319, a named fall. Ammo agrees to 11492 on both trees, so
     /// no round the original lacks is made before then; past it the arm is
     /// reached on 11753..12017, after units' 10653 and the five lines' 11487.
+    /// Item 4649: the Horse Archer's ordered target moves units to the other lines on 11487.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 10653),
+        ("units", 11487),
         ("builds", 11487),
         ("walls", 21044),
         ("ammo", 11492),
@@ -1534,6 +1535,11 @@ pub(in crate::diff) mod tests {
     }
 
     #[test]
+    fn the_sample_s_ordered_target_changes_on_the_tick_after_the_package() {
+        assert_sample_window(run1827(), 10651, 10655, Some((10652, 2)));
+    }
+
+    #[test]
     fn the_sample_s_scout_order_and_city_marks_match_both_recorded_lines() {
         let (Some(inst), Some(rcx), Some(mut ranges)) = (install(), sample(), run1786()) else {
             return;
@@ -2128,11 +2134,11 @@ pub(in crate::diff) mod tests {
     const SAMPLE_RANGES_1827: &[PinnedRange] = &[
         (
             "units",
-            10653,
-            7453,
-            7453,
-            1,
-            "4930 16 collide_frame..play: unit_masks2 0|256, cavarch_uid 38|58, cavarch_who -1|0",
+            11487,
+            8642,
+            8634,
+            1053,
+            "7517 98 who..y_internal: x 19416|19436, y 23640|23687",
         ),
         (
             "builds",

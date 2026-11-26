@@ -643,6 +643,14 @@ moves buildings to 11487. The first state difference is now unit 16 on
 10653. Draws hold to 11488.
 [Gathering list comparison](journal/2026-11-24-item-4648.md)
 
+**The Horse Archer's ordered target (item 4649).** Seven units get the same
+order on 10652. Only 3/16 can fire on the move. On the next tick it records
+owner 0, uid 58 and bit 256. The six peers retain their previous fields.
+The second target is unit 0/82, uid 114. All eleven captured lines agree
+through 11486. On 11487 Crossbowman 3/98 stops here while the original
+continues its move. Draws still agree through 11487.
+[Target comparison](journal/2026-11-25-item-4649.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte
