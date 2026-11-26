@@ -3015,6 +3015,10 @@ impl Sim {
         if holds_slot {
             self.roster.unit_stats_dirty[who as usize] = true;
         }
+        // `close:316`, the same arm: `Wonders::close_wonder` clears the
+        // entry and walks the owner's `wonder_mark` down now, not at the
+        // objects' pass end (item 4692).
+        self.close_wonder(who, b);
         self.forbidden_city_close(b);
         // `Build::close@00628980:326`–`328`: so does a Colossus closed, in
         // the same `wonder >= 0` arm; `0x20f` is inside the arm's type range,
