@@ -2407,6 +2407,10 @@ pub(crate) mod tests {
             stream.apply(built.sim.frame as i32, &mut built);
             built.sim.command().tick();
             crate::diff::harness::debug_watch(&built, built.sim.frame);
+            crate::diff::harness::debug_armies(&built, built.sim.frame);
+            for b in built.sim.buildings.iter().filter(|b| b.owner == 1 && b.index == 2067) {
+                eprintln!("P4691B f{} 1/2067 ty {} alive {} at ({},{}) city {:?}", built.sim.frame, b.type_index, b.alive, b.pos.x, b.pos.y, b.city);
+            }
             let set = record.first_of(state - 1).expect("the state's set").clone();
             let all = record.ranges(&set).expect("the set's ranges");
             let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
