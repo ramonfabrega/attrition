@@ -759,6 +759,23 @@ impl Sim {
         else {
             return;
         };
+        if std::env::var("RON_PROBE_4720").is_ok() && (4138..4158).contains(&frame) {
+            let bd = &self.buildings[b];
+            eprintln!(
+                "P4720J frame {frame} u {}/{} repairs {}/{} damage {} helpers {} under_attack {} flags {flags} constr_time {} clock {:?} president {} ct_of {}",
+                self.units[u].owner,
+                self.units[u].index,
+                bd.owner,
+                bd.index,
+                bd.damage,
+                bd.helpers,
+                bd.under_attack,
+                bd.constr_time,
+                bd.clock,
+                self.president_near_building(b),
+                self.construct_time_of(b)
+            );
+        }
         do_repair_steps(&mut SimDoRepair {
             s: self,
             u,
@@ -2013,6 +2030,24 @@ pub fn do_repair_steps<V: DoRepairView>(v: &mut V) {
             under_attack,
             fresh_hit,
         });
+        if std::env::var("RON_PROBE_4720").is_ok() && (4138..4158).contains(&v.frame()) {
+            eprintln!(
+                "P4720P frame {} period {period} amount {} target {:?}",
+                v.frame(),
+                frame_amount(v.frame(), period.max(1)),
+                crate::cities::build::RepairTarget {
+                    helpers,
+                    construct_time,
+                    hits,
+                    accel,
+                    city,
+                    captured,
+                    korean_repair,
+                    under_attack,
+                    fresh_hit
+                }
+            );
+        }
         v.bump_helpers();
         if period < 1 {
             v.site_damage()
