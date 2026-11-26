@@ -181,14 +181,22 @@ fn fallback_rows(walks: &[Walk]) -> Vec<(usize, u64)> {
 /// now fires nine rounds with no row from state 7769, 4,052 states past
 /// its first parting. The same walk enters `pivot::offset_at_unpinned`
 /// four times from 7754.
+/// **(93, 1), (133, 2) and none on the seventh on `a4327900f`** (the
+/// settlement of 2026-11-26, Astra's items 4649 to 4715 and 4573): no
+/// first parting moved on the sixth or the seventh, and the walks past
+/// them did. The sixth's row 93 fires one round with no row from state
+/// 9644 and its row 133 two from 5030, 6,120 and 1,410 states past their
+/// first partings; the seventh's row 88 fires none and no longer enters
+/// the pivot's hook. Row 133 enters `pivot::offset_at_unpinned` 235
+/// times from 3685, where it entered 385.
 const FALLBACK: [(&str, &[(usize, u64)]); 7] = [
     ("first", &[]),
     ("second", &[]),
     ("third", &[]),
     ("fourth", &[]),
     ("fifth", &[]),
-    ("sixth", &[]),
-    ("seventh", &[(88, 9)]),
+    ("sixth", &[(93, 1), (133, 2)]),
+    ("seventh", &[]),
 ];
 
 fn fallback_as_pinned(file: &str, walks: &[Walk]) {

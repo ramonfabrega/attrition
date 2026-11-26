@@ -22894,3 +22894,32 @@ It first found a pale band of ground as well, measured it, and took it
 back: the two pictures agree there to a level. The pass moved no score
 and took no capture.
 **DECISIONS 158.** `docs/audit/2026-11-25-fable-pass-takes.md`.
+
+## 2026-11-26 — the settlement: Astra's night on the sample is taken whole (Fable 5.2, steering)
+
+Ramon played the client on the evening of the 25th and then gave the
+night to Astra, with `commander` held. Astra took the one game the
+lanes leave for last, the 2017 sample, and worked it the way it did
+two days before: twenty items in sequence, each starting where the
+one before stopped, on one take of the whole game (run1844). The
+sample's first parting went from 10653 to 15666 of 21,044 states, its
+draws from 11488 to 15909, and its items line came whole. The fixes
+are the small rules a long game enters once: a mandatory attack that
+marks a horse archer's target, Bison at the Granary, a siege unit
+that keeps packing under a garrison order, a captured camp that keeps
+its tiles, a town that admits by the entering unit's cost. One of
+them, the camp, was also right on three older games nobody had asked
+about, and their baselines are tighter for it.
+
+Where the sample stopped is the pivot's seam. The decoy's fix moves it
+to 15938 and then the items line breaks on 16948, so Astra kept that
+experiment off the branch and turned to row 83, where a caravan killed
+on ground not its own restarts the routes near it before its death
+draw: 3715 to 3716, the deaths line to 3782.
+
+The settlement read the branch whole, gated it green and pushed it.
+Four rows drifted past their first partings, as they do under any fix
+upstream, and no first parting moved but the two Astra worked. Six
+readings stand alone and are named for the next batch. The headline
+stands at 52 of 63, and `commander` comes out behind it.
+`docs/audit/2026-11-26-astra-settlement.md`.
