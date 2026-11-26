@@ -2429,6 +2429,14 @@ pub(crate) mod tests {
                         }
                     }
                 }
+                if line == 0 {
+                    for (k, a) in ours.ranges.iter().enumerate().skip(1515).take(50) {
+                        eprintln!("P4691R s{state} ours k{k} rec {} {} {}", a.record, a.field, hex(&a.bytes));
+                    }
+                    for (k, b) in theirs.iter().enumerate().skip(1515).take(50) {
+                        eprintln!("P4691R s{state} theirs k{k} site {:08x} {}", b.site, hex(&b.bytes));
+                    }
+                }
                 eprintln!(
                     "P4691 s{state} {} counts ours {} theirs {} parted {n}",
                     ours.name,
