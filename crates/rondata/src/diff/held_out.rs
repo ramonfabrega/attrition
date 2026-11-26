@@ -2556,6 +2556,99 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 133's Flamethrower drops the helicopter its attack-move
+    /// found** (item 4723, `docs/COMBAT.md` §66.4): run1797's ranges, the
+    /// row's units parting on 3633 (record 73, `orders.count` ours 2,
+    /// theirs 1). who=2's Flamethrower `2/73` (TI 131, land, no
+    /// `ANTI_AIR`) walks an `ATTACK_TO` to (12792, 28536); its look on
+    /// 3632 (`(3632 + 73) % 15 == 0`) ranks who=1's Attack Helicopter
+    /// `1/36` (TI 311, air) first at `attack_dist` 4605, inside the
+    /// computer's 4608. `find_nearby_target`'s add refuses an aircraft to
+    /// an attack-mover without `ANTI_AIR` (`return -1`), so theirs holds
+    /// the `ATTACK_TO` alone, where this crate queued the `ATTACK` above
+    /// it. Every range of every line on 3633 and 3634.
+    #[test]
+    fn row_133_s_flamethrower_drops_the_helicopter_its_attack_move_found_on_run1797() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 3632 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        // Entering 3632: the Flamethrower on its attack-move, and the
+        // helicopter its look will rank first.
+        let me = built.sim.unit_by_o(2, 73).expect("the Flamethrower");
+        assert_eq!(built.sim.units[me].type_index, 131, "2/73 is a Flamethrower");
+        let kinds: Vec<_> = built.sim.units[me]
+            .orders
+            .iter()
+            .map(sim::orders::Order::index)
+            .collect();
+        assert_eq!(kinds, vec![sim::orders::index::ATTACK_TO], "2/73's orders");
+        assert_eq!(
+            built.sim.units[me].orders[0].move_dest(),
+            Some(sim::Pos::new(12792, 28536)),
+            "the attack-move's point"
+        );
+        let heli = built.sim.unit_by_o(1, 36).expect("the helicopter");
+        assert_eq!(built.sim.units[heli].type_index, 311, "1/36 is an Attack Helicopter");
+        assert!(built.sim.valid_target_const(sim::combat::Obj::Unit(me), sim::combat::Obj::Unit(heli)));
+        for state in [3633, 3634] {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            assert_eq!(built.sim.frame, state);
+            if state == 3633 {
+                let kinds: Vec<_> = built.sim.units[me]
+                    .orders
+                    .iter()
+                    .map(sim::orders::Order::index)
+                    .collect();
+                assert_eq!(
+                    kinds,
+                    vec![sim::orders::index::ATTACK_TO],
+                    "2/73 holds the attack-move alone on 3633"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (line, ours) in lines.iter().enumerate() {
+                let Some(ours) = ours.as_ref() else {
+                    continue;
+                };
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "line {line}'s ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "line {line} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 133's dead farm rolls under its number's next building** (item
     /// 4669, `docs/SYNC.md` §3.3): run1797's ranges and trace, the row's
     /// units and guys parting on 2677 (units range 4225, record 18, guy
