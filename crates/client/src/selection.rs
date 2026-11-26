@@ -735,7 +735,7 @@ pub struct Texels {
 }
 
 impl Texels {
-    fn crop(
+    pub(crate) fn crop(
         image: &render::tga::Image,
         (l, t, w, h): (usize, usize, usize, usize),
     ) -> Option<Texels> {
@@ -750,7 +750,7 @@ impl Texels {
         Some(Texels { w, h, rgba })
     }
 
-    fn at(&self, u: usize, v: usize) -> [u8; 4] {
+    pub(crate) fn at(&self, u: usize, v: usize) -> [u8; 4] {
         let i = ((v % self.h) * self.w + u % self.w) * 4;
         [
             self.rgba[i],
@@ -778,7 +778,7 @@ pub struct ScrollArt {
 }
 
 /// `name="value"` of one tag, the value trimmed.
-fn attr<'a>(tag: &'a str, name: &str) -> Option<&'a str> {
+pub(crate) fn attr<'a>(tag: &'a str, name: &str) -> Option<&'a str> {
     let at = tag.find(&format!("{name}=\""))? + name.len() + 2;
     let len = tag[at..].find('"')?;
     Some(tag[at..at + len].trim())
@@ -882,7 +882,7 @@ pub const PLATE_INK: [f32; 3] = [1.0, 1.0, 1.0];
 /// Texels as [`crate::gpu::ScreenLayer`]s, one an alpha, `place(x, y)`
 /// the texel of window pixel `(x, y)` or `None`; a row's run of one
 /// texel is one quad.
-fn layers_of(
+pub(crate) fn layers_of(
     size: (i32, i32),
     (x0, x1, y0, y1): (i32, i32, i32, i32),
     place: impl Fn(i32, i32) -> Option<[u8; 4]>,
@@ -1195,10 +1195,11 @@ mod tests {
     /// crosses the city's sprite. Item 4677: selected `[1443, 1326]` →
     /// `[1441, 1325]`, a named fall of one: the plates' and the asphalt's pieces on the packet's element on more tiles (item 4677, `docs/RENDERER.md` §6.5) move the frame's mean, so its white.
     /// Item 4687: selected `[1441, 1325]` → `[1442, 1326]`: the line passes in the mesh, their pushes redone for the texture alone, and `leech_codes`' line half (item 4687, `docs/RENDERER.md` §6.8) move the intersections some pieces are picked on, so the frame's mean and its white.
+    /// Item 4690: selected `[1442, 1326]` → `[1438, 1322]`, a named fall of four: the candidate picked on the mesh's own lines (item 4690, `docs/RENDERER.md` §6.9) lays eleven more of the packet's pieces at the crossroads and leaves the T at (17–19, 163) on the mesh's yellow (4690a), so the frame's mean and its white.
     pub const RUN1559B_3279_SELECTED: ([[usize; 2]; 3], [usize; 2], [usize; 2]) = (
         [[4551, 1477], [4157, 721], [5398, 312]],
         [100, 35],
-        [1442, 1326],
+        [1438, 1322],
     );
 
     /// **The band's texture is one tent** (item 4421): the install's first

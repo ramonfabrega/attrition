@@ -33,7 +33,7 @@ Held-out: 8 of 9 whole · shortest 6147
 Parity: 52 of 63 whole · held out 46 of 56 · the sample parts first on units 15666 of 21044 · draws 15909
 Parity held out, closed: first, second, third, fourth · 32 of 32 whole · lines 309 of 384 as found, 384 now · reach 66 % of states as found, 100 % now
 Parity held out, fifth: 6 of 8 whole · 8 taken · lines 30 of 96 as found, 74 now · first partings 3857 0 3192 1582 1956 1750 2977 whole as found, whole whole 4341 whole 3751 whole whole whole now · reach 48 % of states as found, 91 % now
-Parity held out, sixth: 4 of 8 whole · 8 taken · lines 20 of 96 as found, 53 now · first partings 7675 2411 3358 1563 2342 2259 956 whole as found, 7675 whole 3716 whole 4154 whole 3628 whole now · reach 49 % of states as found, 65 % now · reach in the first 6,001 states 59 % as found, 84 % now
+Parity held out, sixth: 4 of 8 whole · 8 taken · lines 20 of 96 as found, 53 now · first partings 7675 2411 3358 1563 2342 2259 956 whole as found, 7675 whole 3716 whole 4219 whole 3633 whole now · reach 49 % of states as found, 65 % now · reach in the first 6,001 states 59 % as found, 84 % now
 Parity held out, seventh: 4 of 8 whole · 8 taken · lines 32 of 96 as found, 54 now · first partings 9896 3956 5607 whole 2741 7421 3338 10879 as found, 9896 whole 5607 whole 3717 7421 whole whole now · reach 59 % of states as found, 73 % now · reach in the first 6,001 states 85 % as found, 93 % now
 Structure: flat 11 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 22 · largest 3774
 Renderer: K 59 of M 60 · frames 35 of 35 · pieces 1465 of 1478 · resolved 1,237,711 of 1,237,726 objects over 110 lobbies
@@ -44,7 +44,7 @@ Hud: buttons mint the clicked file byte for byte, 2 of 2 keyed orders · the tra
 Recording: 50 of 50 round-tripped · the original plays ours: GreatLakes 24,000 of 24,000 frames in lockstep (run1560) · with a person's orders (move_to, queue_up, build): 24,000 of 24,000 frames in lockstep, 299 records whole, each order's effect equal on both sides (run1561, run1561a) · right presses: 300 of 300 frames, each effect equal (run1568) · a box: 300 of 300 (run1569) · an attack: 6,900 of 6,900 frames, 210 records whole, the blow's hits equal (run1571) · a follow: 6,900 of 6,900 (run1573) · a gather point: 7,000 of 7,000 frames, 300 records whole (run1598) · a chat: 7,000 of 7,000 (run1599) · a pause: 7,000 of 7,000 draws, 300 of 300 records whole (run1601) · sell and buy: 7,000 of 7,000 draws, 300 of 300 records whole (run1604) · a city's gather: 7,000 of 7,000, 300 of 300 (run1605) · an unqueue: 7,000 of 7,000, 300 of 300, the capital's queue equal (run1606) · a repeated group: 7,000 of 7,000, 300 of 300 (run1607) · a city's rename: 7,000 of 7,000, 300 of 300 (run1609) · a hot key: 7,000 of 7,000, 300 of 300, slot 0's group 1 equal before and after (run1610, run1611) · a garrison: draws 7,000 of 7,000, the Citizen inside `0/2000` on 6767 on both sides, 300 of 300 records (run1613; 4277) · a buildmask: draws 7,000 of 7,000, the capital's mask and re-queue equal, 300 of 300 records (run1614; 4277) · a come_out: 7,000 of 7,000 frames, 300 of 300 records, the Citizen's exit equal on 6781 (run1616) · a stance: 7,000 of 7,000, 300 of 300 (run1617) · the console's ai off: 7,000 of 7,000, 300 of 300, slot 1's Citizens' retarget equal on 6982 (run1618) · a disband: draws 7,000 of 7,000, 300 of 300 records, the corpse equal (run1623) · an auto-explore: draws 7,500 of 7,500, 700 of 700 records whole, the Scout's path equal from 6819 (run1627) · the picks (follow, gather, attack): 7,500 of 7,500, 700 of 700, each effect equal (run1656) · the picks' other arms (the Move pick's ground order, the guard, the ground `ATTACK_TO`, `BUILD_AT` on a Farm site): 7,500 of 7,500, 700 of 700, 40 of 40 effects (run1663) · a minted `set_transport`: 7,500 of 7,500, 700 of 700, no effect at level 0 on both sides (run1668) · a repair after an attack: 8,500 of 8,500, each effect equal (run1679)
 Checksum: instrument 15 of 15 lines (run1562 f91) · state 9 of 12 lines, 425,499 of 425,499 bytes · packets 107 of 138 · lines 959 of 1,053
 
-**Opener: continue the tranche (`commander`, Opus 5.5), on Ramon's word of 2026-11-26** — check the last gate log under `~/Library/Caches/attrition/gates/` ends `gate exit 0` and HEAD = origin/worktree-replan-pdb; every `brief.py` call carries `ATTRITION_ASTRA_WAIVED` while `codex/row83-4573-research` and `codex/sample-14550-investigation` stand, not to be merged (the settlement's record); the four seats are out under "The queue": the chain's on 4720, parity seats on 4719 and 4721, the client's on 4690. The next mint is 4722.
+**Opener: continue the tranche (`commander`, Opus 5.5), on Ramon's word of 2026-11-26** — check the last gate log under `~/Library/Caches/attrition/gates/` ends `gate exit 0` and HEAD = origin/worktree-replan-pdb; every `brief.py` call carries `ATTRITION_ASTRA_WAIVED` while `codex/row83-4573-research` and `codex/sample-14550-investigation` stand, not to be merged (the settlement's record); the four seats are out under "The queue": the chain's on 4725, parity seats on 4723 and 4721, the client's on 4724. The next mint is 4726.
 
 ## The queue
 
@@ -52,24 +52,22 @@ In dependency order; **the roster is Ramon's** (DECISIONS 116, 128 §4). An item
 parenthesis: a `structure` item (`docs/STRUCTURE.md` §1), a `render` item (`docs/RENDERER.md` §6), a `start` item
 (`docs/START.md` §5), an `input` item (`docs/CLIENT_INPUT.md`) or a rules item, and **whole** or scoped, which is what its
 lane's gate reads (DECISIONS 133 §2). A residue or chapter item books only when another track's frame needs one.
-**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2, 151 §5, 152 §1 to §4, 153 §2 to §10, 154 §1 to §10, 155 §1 to §8, 156 §1 to §8, 157 §1 to §9, 158 §1 to §9): four seats, all out: the chain's 4720 (row 93, builds on 4154), a parity seat's 4719 (row 133, leaders and units on 3628), a parity seat's 4721 (the fifth's row 83, leaders on 3751) and the client's 4690 (the capital's ground; 157 §7), with 4694 behind it, broad before fine (158 §10). **The unseated stand below in the order a freed seat takes them, a game one line from whole first and then by first parting, and a guard holds the file to it** (`the_handoff_s_unseated_rows_stand_in_the_seats_order`; 157 §2): a booking that moves a row's first parting, or leaves it one line from whole, moves its paragraph. Item 4656 took the pivot's seam on row 133 to no entries (235 -> 0) and moved no column: every entry was piece 201 at node 4, whose offset the seam already held. A row's seat is refilled with the row's next word while its column moves. **A row's take runs to its last state and is taken once** (158 §2): an item books a take only for a row with no ranges record to its last state, by the scorer's own line, and no later word of that row books one; rows 93, 133, 83 and 43 hold theirs, row 53 holds 3720 and row 88 3590, and rows 48, 108, 13 and 8 hold sums. **The stop counts builds** (157 §3): a landing that ends at its first act under 134 §9 and names a term with both sides' values is not one of the two, the item after it builds before it reads, and three landings running with no build end the line. An item an instrument names later is minted ahead of the order when a row enters its hook before its first parting or within 100 states past it (157 §5). 4716 (the sample) stands by its first parting, 15666, and takes a seat before a hand-over when no row's item stands. Every take waits its turn, one game at a time; a script of several waits on each with `waitrun.sh` (153 §7). `docs/RECGAME.md` §12 stands at its ceiling: a fifth row's landing changes its row's cell there and writes its leaf in `docs/RUNS.md` and its journal; a sixth row's goes under its own row's heading in §13 (13.1 to 13.5) and touches nothing above them (154 §6). The driver's note names `seams.py --field` with the leaf's own field (153 §9). The sample's stop reads the `Parity:` line's first parting and its draw word, never the games' count (151 §1). The disk read 118 GB at the pass's start; a whole take reads about 14 until a pass compresses it, and every take still stops under 60.
+**The lanes** (DECISIONS 132 §9, 134 §2, §10, §11, 138 §1 to §4, 139 §1 to §3, 140 §1, §2, 141, 142 §3 to §7, 143 §3 to §6, 144 §2 to §5, 145 §3 to §5, 146 §3, 147 §3, 148 §3, 149 §2, 151 §5, 152 §1 to §4, 153 §2 to §10, 154 §1 to §10, 155 §1 to §8, 156 §1 to §8, 157 §1 to §9, 158 §1 to §9): four seats, all out: the chain's 4725 (row 93, units and guys on 4219), a parity seat's 4723 (row 133, units on 3633), a parity seat's 4721 (the fifth's row 83, leaders on 3751) and the client's 4724 (the bar's other windows, then the camp's hoist; 158 §11), with 4722 behind it, broad before fine (158 §10). **The unseated stand below in the order a freed seat takes them, a game one line from whole first and then by first parting, and a guard holds the file to it** (`the_handoff_s_unseated_rows_stand_in_the_seats_order`; 157 §2): a booking that moves a row's first parting, or leaves it one line from whole, moves its paragraph. Item 4656 took the pivot's seam on row 133 to no entries (235 -> 0) and moved no column: every entry was piece 201 at node 4, whose offset the seam already held. A row's seat is refilled with the row's next word while its column moves. **A row's take runs to its last state and is taken once** (158 §2): an item books a take only for a row with no ranges record to its last state, by the scorer's own line, and no later word of that row books one; rows 93, 133, 83 and 43 hold theirs, row 53 holds 3720 and row 88 3590, and rows 48, 108, 13 and 8 hold sums. **The stop counts builds** (157 §3): a landing that ends at its first act under 134 §9 and names a term with both sides' values is not one of the two, the item after it builds before it reads, and three landings running with no build end the line. An item an instrument names later is minted ahead of the order when a row enters its hook before its first parting or within 100 states past it (157 §5). 4716 (the sample) stands by its first parting, 15666, and takes a seat before a hand-over when no row's item stands. Every take waits its turn, one game at a time; a script of several waits on each with `waitrun.sh` (153 §7). `docs/RECGAME.md` §12 stands at its ceiling: a fifth row's landing changes its row's cell there and writes its leaf in `docs/RUNS.md` and its journal; a sixth row's goes under its own row's heading in §13 (13.1 to 13.5) and touches nothing above them (154 §6). The driver's note names `seams.py --field` with the leaf's own field (153 §9). The sample's stop reads the `Parity:` line's first parting and its draw word, never the games' count (151 §1). The disk read 118 GB at the pass's start; a whole take reads about 14 until a pass compresses it, and every take still stops under 60.
 
-4720. **Parity held out, sixth: row 93's builds from 4154** (a rules item, whole; the chain's; `docs/RECGAME.md` §13.3). Item 4718
-built `find_nearby_target`'s siege-city arm, which tests the object's `+0x8 & 0x20` (set by `SubObject::init` on the village lineage
-at placement), so a site counts before it is built where ours read the city record: who=1's Howitzer 1/41 finds who=2's unbuilt
-Small City 2/2027 on 4129; units range 1208, record 41, `order.attack` byte 8 ours 0 -> 1, as theirs, on 4130; units 4,130 -> 4,242,
-groups 4,167 -> 4,362, cities 4,221 -> 4,351, goods 4,797 -> 5,464, world 4,181 -> 4,288, items 6,510 -> 6,717; ammo 5,285 -> 4,787
-and deaths 4,398 -> 4,325, named falls past the parting; the first parting 4130 -> 4154 on builds (sums ours 1116497646, theirs
-4078790381). run1799's ranges reach it: no take. Re-pin `SCORES_SIXTH[4].moved`, never `found`. It stops when two landings running
+4725. **Parity held out, sixth: row 93's units and guys from 4219** (a rules item, whole; the chain's; `docs/RECGAME.md` §13.3).
+Item 4720 built `Unit::do_repair`'s period, which reads `construct_time(1)` and so skips the President's arm: who=1's Citizen 1/24
+mends Small City 1/2039 at period 418, not 314; builds range 1764, record 2039, `myhits..launch_frames` byte 4 (damage) on 4154 ours
+38 -> 37, as theirs; builds 4,198 -> 4,310, leaders 4,175 -> 4,317, the first parting 4154 -> 4219 on units and guys (units sums
+ours 3412282491, theirs 1117867263). run1799's ranges reach it: no take. Re-pin `SCORES_SIXTH[4].moved`, never `found`. It stops
+when two landings running move no column.
+
+4723. **Parity held out, sixth: row 133's units from 3633** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §13.5). Item
+4719 built `think_merchant`'s `FILTER_COMBAT`, which keeps the combat role: who=1's Merchant 1/156 takes good 25 on 3628 though
+who=2's Citizens 2/3, 2/40 and 2/83 stand inside its reach; on 3628 leaders range 189, record 1, `new_rares` and units range 4782,
+record 156, `order.move` ours (17208, 12600) -> (19512, 27192), as theirs; leaders 3628 -> 3648, the first parting 3628 -> 3633 on
+units. The leaf: record 73, ours queues `ATTACK` (10) ahead of `ATTACK_TO` (2) at (12792, 28536), theirs holds the `ATTACK_TO`
+alone. run1797 runs to the game's end: no take. Re-pin `SCORES_SIXTH[6].moved`, never `found`. It stops when two landings running
 move no column.
-
-4719. **Parity held out, sixth: row 133's leaders and units from 3628** (a rules item, whole; a parity seat's; `docs/RECGAME.md`
-§13.5). Item 4691 built `FILTER_COMBAT`'s combat role (`valid_filter`'s unit arm reads the attack and `role & 0x10000`): who=2's
-Citizens 2/3, 2/40 and 2/83 no longer hurry army 0's muster at the newly taken 1/2067, so its move on 3620 stables no wagon; units
-range 1530, record 54 (Supply Wagon 1/54), `x`, `y` ours 19944, 25627 -> 19964, 25632, as theirs; the first parting 3620 -> 3628 on
-leaders (ours 4025832092, theirs 4018492060) and units (ours 1580509797, theirs 2833230209); items 4,349 -> 4,345 and goods 5,300 ->
-4,476, named falls past the parting; 4691a parked. run1797 runs to the game's end: no take. Re-pin `SCORES_SIXTH[6].moved`, never
-`found`. It stops when two landings running move no column.
 
 4721. **Parity held out, fifth: row 83's leaders from 3751** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §12.3). Item
 4717 built `compare_target`'s detected-decoy arm (a decoy whose leader's `unit_masks & 1` is set and which the searcher's leader has
@@ -125,22 +123,21 @@ The experimental stored-mask correction advances to 15938 but loses the whole it
 place (item 4656: piece 1196's node, 0x052c0000 as run1844's); retain the whole item floor. See the [investigation](journal/2026-11-26-item-4715.md).
 Stop after two landings move neither word (DECISIONS 157 §3).
 
-4690. **The capital's ground: the client picks on the mesh's lines** (a render item, scoped; the client's; DECISIONS 157 §7,
-158 §8; `docs/RENDERER.md` §6.8). Item 4687 built the line passes in the mesh (`mark_white_lines`, `mark_yellow_lines`, `fixup_lines`)
-and their pushes, redone for the texture alone: `RUN1814B_PLATE_CANDIDATES` 53 -> 54 of 54, (15, 155) 4500cf00 -> 4500cf04 as theirs;
-run1559b's intersections 571 -> 580 of 599, pieces hold 471 of 490; `RUN1559B_3279_RING` luma 20 -> 21. 4687a parked (the original's
-redo of a pushed tile rewrites connections and can lay road; ours redoes the texture alone: a rules gap no row has parted on). First
-act: 4687b, the client still draws its own white and yellow; the door carries the mesh's lines, 597 and 596 of 599 on run1559b; pick
-on them, under run1559b's pieces 471 of 490. One landing; item 4694 follows it.
+4724. **The HUD's bar: the options grid and the other windows** (a render item, scoped; the client's; DECISIONS 158 §11;
+`docs/RENDERER.md` §6.10). Item 4694 drew the HUD's frame and the minimap's window in the nation's art (`TEX_CIV` by
+`IFaceMainBase::age_update`, SA0 for the Nubians): `RUN1814B_3294_MINIMAP_FRAME`, ours within two levels of the photograph 24 ->
+31,065 of 32,483 opaque pixels, every pixel where the photograph equals the atlas; `RUN1564_3279_MINIMAP` 3,219 -> 3,223,
+`BLIP_PIXELS_REVEALED` 2 -> 4. The name plate was already drawn by the client's own still (item 4410): no row. 4694a, b and d
+parked. First act, 4694c: the options grid at (0..316, 884..1080), the windows' origins from `IFaceMain::position_windows`, each
+window registered and drawn, with a row against run1814b's photograph. Then the Woodcutter's Camp's hoist, which carries a raised
+log in theirs and rests in ours. It stops when the bar's windows are drawn.
 
-4694. **The city's name plate on run1814b** (a render item, scoped; behind 4690; DECISIONS 158 §8, §11; `docs/RENDERER.md` §6). The
-pass set the still at its tip beside the photograph: the trees past sight, the plates, the selected city's outline and its bar are
-drawn, and the ground reads as theirs. The photograph has a plate under the selected capital that ours has not: a dark box with a gold
-rim, the capital's star and `Napata`, at about (916..1002, 579..607) of the 1,920-wide frame. Score: a new row,
-`RUN1814B_3294_NAME_PLATE`, the box by hue and luma against the photograph, nothing today. First act: the plate's draw in run1833's
-stream, its texture and quad. Then the Woodcutter's Camp at the right grove, whose hoist carries a raised log in theirs and rests in
-ours. Ramon's play: the HUD does not read as the game's, so the frame and its panels' art come before the plate. It stops when the
-stream holds no draw for it.
+4722. **The capital's ring: the mesh's yellow on the T at (17..19, 163)** (a render item, scoped, touching `crates/sim`'s mesh
+texture alone; behind 4724; `docs/RENDERER.md` §6.9). Item 4690 made the client pick on the mesh's lines: run1559b's packet piece
+471 -> 480 of 500 laid, the yellow column 596 of 599, white 598 -> 597, a named fall; `RUN1559B_3279_RING` hue 21 -> 20, a named
+fall. Its 4690a names the rest: on the T at (17..19, 163) on the capital's ring the mesh marks yellow 10, 12 and 06 where the packet
+holds none, and (17, 163) is left bare, a notch on the still. First act: `movement::mesh`'s yellow lines against the packet there.
+Score: pieces 480 -> 482, the ring's hue 20 -> 21. One landing.
 
 ## Direct branch handoff
 

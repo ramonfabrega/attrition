@@ -6379,7 +6379,8 @@ only the changed tiles' flags before it leeches. In the original a half
 stands from a time when one of the four was laid before its neighbour. The
 door carries no such history.
 
-**The build.** `corner_loops` marks every ring round a corner where four
+**The build** (retired by item 4690, §6.9: the client reads the mesh's
+lines, whose `leech_codes` half holds the rings). `corner_loops` marks every ring round a corner where four
 records meet, each joined to the next round it. Before it, the fixed point
 of `fixup_lines`' eight arms and `leech_codes` was run alone on the current
 state, and it moved nothing on either packet: no half of a ring is ever
@@ -6729,11 +6730,154 @@ connections would differ from the standing ones.
 **Not established.**
 - Whether the original's redos of pushed tiles ever change a connection
   (4687a).
-- The client still draws from its own white and yellow
-  (`candidates`, `corner_loops`), not from the mesh's lines (4687b).
+- ~~The client still draws from its own white and yellow
+  (`candidates`, `corner_loops`), not from the mesh's lines (4687b).~~
+  Item 4690 (§6.9): the candidate is the mesh's word.
 - `mark_splits`' joins on the neighbour it joins, and `mark_yellow_lines`'
   dropped claim, are not kept past the pass.
 - run1559b's 19 apart, as in §6.7.
+
+## 6.9 The client picks on the mesh's lines (item 4690)
+
+*2026-11-26, Opus 5.5. The ledger: `docs/journal/2026-11-26-item-4690.md`.
+`client::roads::candidates` and `word`; `corner_loops` and the client's own
+white marks are retired; the test `the_candidate_is_the_door_s_word` and the
+re-pinned rows below. No `crates/sim` change.*
+
+**The build.** The candidate `find_map` matches is now the record's dword
+as the simulation's mesh leaves it: `RoadTile::dirs` on top, the line bytes
+in place (`RoadTile::lines & 0x00ff_ff00`, §6.8), and `RoadTile::inter`
+(§6.5) below; `laid` still swaps in the intersections the piece was picked
+on (§6.7). Until now the client marked its own white once on the mesh as it
+stood, with every joined corner's ring added (§6.4), and no yellow at all.
+
+**Picking on the lines as they stood at the pick moves nothing.** A probe
+(not kept) recorded `Elem::lines` in `note_pick` beside `picked` and gave the
+client those instead. It laid the same 500 pieces, with the same 480 the
+packet's and the same 20 apart. So no `picked` is kept for the line bytes.
+
+**The value diff** (run1559b's packet through `road_records.py`, the item
+4199 dump; ours the door at the photograph's frame):
+
+| tile | theirs | ours before (own white) | ours now (mesh) | piece, theirs / before / now |
+|---|---|---|---|---|
+| (215, 81) | `5418e440` | `5400e440` | `5418e440` | 2·1 / not laid / 2·1 |
+| (216, 83) | `45814e00` | `45004e00` | `45814e00` | 2·3 / not laid / 2·3 |
+| (224, 83) | `55817e01` | `55007e01` | `55817e01` | 46·0 (off page 0) / 33·1 / not laid |
+| (17, 163) | `11003300` | `11003300` | `11103300` | 17·0 / 17·0 / not laid |
+| (18, 163) | `11003310` | `11003310` | `11122110` | 17·4 / 17·4 / 20·2 |
+| (19, 163) | `4500cf04` | `4500c904` | `4506c904` | 1·3 / not laid / 2·7 |
+
+- *run1559b* (`RUN1559B_RECORDS`): **the packet's piece 471 → 480, laid
+  490 → 500**; yellow joins the row at 596 of 599 (the client's own was
+  584); white 598 → 597 (a named fall: (18, 163)). The crossroads at
+  (215–216, 81–83) and (223–224, 81–83) carry yellow: their twelve now
+  match, eleven are laid as the packet's piece, and (224, 83)'s element 46
+  is off page 0 for both.
+- *The T at (17–19, 163)*, on the capital's ring: the mesh's yellow is
+  `10`, `12` and `06` where the packet holds none, and (18, 163)'s white is
+  `21` where theirs is `33` (4690a). (17, 163) matches no page-0
+  orientation and is left bare; the eye sees it as a notch in the ring's
+  south-west edge.
+- *The rows*: `RUN1559B_3279_RING` drawn hue 21 → 20 of 24 (the bare
+  tile, 767 pixels: the still's (163, 162, 61) against theirs
+  (148, 126, 103)); `RUN1559B_3279_GROUND_STILL` 1,106 → 1,105 and
+  `GROUND_STILL_SRGB` 1,020 → 1,019 and `LAND_LIGHT_ROWS`' ground row with
+  it; `RUN1559B_3279_SELECTED` selected `[1442, 1326]` → `[1438, 1322]`;
+  `RUN1559B_3279_PLUME` 10,765 → 10,764, `RUN1570_PLUME`'s past 1,933 →
+  1,932. All are named falls through the frame's mean and its white.
+- run1814b holds: `RUN1814B_PLATE_CANDIDATES` 54 of 54,
+  `RUN1814B_PLATE_PIECES` 54, `RUN1833_DRAW_81` 948.
+
+**Diff-backed**: every column of `RUN1559B_RECORDS` and run1814b's plate
+rows. **Read alone**: nothing new. The candidate is the door's bytes.
+
+**Not established.**
+- Why the mesh marks yellow on the T at (17–19, 163), where the packet
+  holds none (4690a). It names a score: two of the packet's pieces and the
+  ring's hue.
+- run1559b's 20 apart: 17 an intersection bit or a white the packet holds
+  and we do not (4199a), (211, 84) as §6.7, and the T.
+
+## 6.10 The HUD's frame: the minimap's window (item 4694)
+
+*2026-11-26, Opus 5.5. The ledger: `docs/journal/2026-11-26-item-4694.md`.
+`client::frame`; the row `RUN1814B_3294_MINIMAP_FRAME`. No `crates/sim`
+change.*
+
+**Why.** Ramon's play (DECISIONS 158 §11): the HUD does not read as the
+game's. The client's HUD is `docs/HUD.md`'s plain one, text and rectangles.
+This item is the first piece of the original's own interface art, drawn
+where the original draws it.
+
+**The name plate is already drawn.** Item 4694 was booked for the plate
+under the selected capital. `client --lobby --frame 3294 --look
+2639.94,30287.94 --select 2000 --still` draws `★ Napata` where the
+photograph does (item 4410's `selection::plates`). The pass's still came
+from `still_minimap` with no names (`&|_| None`), so it drew no plate.
+No row is booked for the plate.
+
+**The atlas.** `TEX_CIV` in `interface.xml` is `art\iface_AS0_assets.tga`.
+`IFaceMainBase::age_update@00810b10` replaces it with
+`art\iface_<code>_assets.tga`. It picks the code from the console's ages
+owned and its nation's `Tribe::build_continent` (`+0x64`; `types.txt`):
+
+| ages owned | 0, 1 | 2, 3 | 4, 5, 7, 8 | 6 |
+|---|---|---|---|---|
+| 0 to 2 | MD0 | AS0 | SA0 | IRO |
+
+Ages 3 and 4 run 0 to 8 as MD3, NE3, AS3, KO3, SA3, TR3, IR3, USA, EIN.
+Age 5 is IND, and 6 and up MOD. Any other `build_continent` takes the
+switch's default and appends no code (`client::frame::civ_code`). The codes
+are the string table's entries from `int_str_array +0x15720`, 20 bytes
+apart, in `internal_strings.xml`'s order. run1814b's Nubians in the Ancient
+age draw `SA0`.
+
+**The window.** `<IFACEMINIMAP name="main">` is 332 × 196. Its
+`IFACERECT name="map"` is at (10, 26), 317 × 159. Its `back` is `TEX_CIV`'s
+(173, 315), 339 × 197. It has four `BUTTON`s, each with its own `tex` crop.
+`IFaceMiniMap::on_redraw@008152e0` adds the back at its own width and
+height, in white. Ours draws the back 1:1 and the buttons over it, at the
+window's origin. That origin is the map rectangle backed off item 4581's
+`minimap::QUAD`: (326 − 10, 910 − 26) = (316, 884) on the 1,920 frame. Its
+197th row falls off the frame.
+
+**Registered before it was built.** The atlas crop against the photograph,
+buttons masked: at (316, 884), 27,550 opaque pixels, 99.9 % within two
+levels. At (316, 883) it is 4 %, and at (315, 883) and (317, 883) under 3 %.
+
+**The row** (`frame::tests::the_minimap_frame_on_run1814b`): the window's
+pixels whose texel and eight neighbours are opaque, on the photograph at
+frame 3294:
+
+| | pixels | within two levels of the photograph | mean luma ×10 |
+|---|---|---|---|
+| the photograph against the atlas | 32,483 | 31,065 | 944 |
+| ours, no frame (before) | | 24 | 1,022 |
+| **ours, the frame** | | **31,065** | 968 |
+
+The 1,418 the photograph parts on are all on the idle citizens' button
+(`cycle_peasant`): 1,552 of its 1,669 opaque pixels. Theirs is darker, and
+it is no crop of the atlas (4694a).
+
+The window's half-alpha texels on the diamond's edge move four minimap
+rows, each toward theirs. `RUN1564_3279_MINIMAP`'s cells within `NEAR`
+go 3,219 → 3,223. `RUN1814B_3294_BLIP_PIXELS_REVEALED` goes 2 → 4.
+`FOG_MINIMAP` levels 1 and 2 go 48.0 → 47.9 and 78.1 → 77.6, and its
+unfogged twin's levels 0 to 2 each fall 0.3.
+
+**Diff-backed**: the window's origin, its atlas and its crops, against the
+photograph's pixels. **Read alone**: the code table's arms other than SA0.
+
+**Not established.**
+- The draw order of the map, its overlays and the back. Ours draws the back
+  over all three, through the diamond's transparent texels.
+- Why theirs draws the idle citizens' button dark (4694a).
+  `IFaceMiniMap::update_visibility@008154c0` tests the leader's `& 0x80000`.
+- The window at a frame other than 1,920 × 1,080. Ours keeps the window at
+  `minimap::quad`'s distance from the left and bottom edges.
+- The bar's other windows: `IFACEOPTIONS`, `IFACESELECTED`, the stone strip
+  and the clock's bar (4694c).
 
 ## 7. What is not established, and what needs Ramon's word
 
