@@ -130,14 +130,15 @@ impl Sim {
         // gate below: a decoy with no post, whose attack on a building
         // `Group::target_opportunity` overrides, takes the new target
         // (run954's `1/77` on 12155, item 3306).
-        let yielded = if st.target.is_some() {
-            if !self.attack_action_yields(responder, attacker) {
+        let displaced = if st.target.is_some() {
+            let Some(attack) = self.take_yielding_attack(responder, attacker) else {
                 return;
-            }
-            true
+            };
+            Some(attack)
         } else {
-            false
+            None
         };
+        let yielded = displaced.is_some();
         if !yielded && self.counter_craft(responder, attacker, front) {
             return;
         }
@@ -196,7 +197,30 @@ impl Sim {
                 return;
             }
         }
-        self.retarget(me, Some(attacker), false);
+        // A defensive responder replaces its yielded attack and copies the
+        // old defensive post to the new order (COMBAT §63.4, run1844).
+        if st.stance == Stance::Defensive
+            && let Some(old) = displaced
+        {
+            self.add_attack_order(
+                responder,
+                attacker,
+                crate::orders::QueuePos::New,
+                false,
+                false,
+            );
+            if old.defensive
+                && let Some(post) = old.def
+                && let Some(crate::orders::Body::Attack(new)) = self.units[responder]
+                    .orders
+                    .front_mut()
+                    .map(|o| &mut o.body)
+            {
+                new.def = Some(post);
+            }
+        } else {
+            self.retarget(me, Some(attacker), false);
+        }
     }
 
     /// `Group::target_opportunity@007107d0` for a hit its member `asker`
@@ -285,19 +309,19 @@ impl Sim {
     /// 4619: it keeps a siege target from a non-siege unit attacker, and
     /// sends a shielded unit's held building through the range tests.
     ///
-    /// SEAM: a DEFENSIVE order's `find_def_pos` write.
-    pub(super) fn attack_action_yields(&mut self, u: usize, attacker: Obj) -> bool {
-        let Some(k) = self.action_of(u) else {
-            return false;
+    /// Returns the old attack so its defensive post survives the replacement.
+    pub(super) fn take_yielding_attack(
+        &mut self,
+        u: usize,
+        attacker: Obj,
+    ) -> Option<crate::orders::AttackOrder> {
+        let k = self.action_of(u)?;
+        let crate::orders::Body::Attack(attack) = self.units[u].orders[k].body else {
+            return None;
         };
-        let crate::orders::Body::Attack(_) = self.units[u].orders[k].body else {
-            return false;
-        };
-        let Some(held) = self.units[u].combat.target else {
-            return false;
-        };
+        let held = self.units[u].combat.target?;
         if held == attacker || self.units[u].combat.mandatory {
-            return false;
+            return None;
         }
         let me = Obj::Unit(u);
         // **The anti-siege shield** (`005fffc0:150`–`:166`, the listing's
@@ -320,16 +344,16 @@ impl Sim {
             && !matches!(attacker, Obj::Building(_))
             && self.profile(held).siege
         {
-            return false;
+            return None;
         }
         if matches!(held, Obj::Unit(_)) && self.profile(held).combat_role {
-            return false;
+            return None;
         }
         if matches!(attacker, Obj::Building(_)) {
-            return false;
+            return None;
         }
         if matches!(self.units[u].combat.stance, Stance::Raid | Stance::Raze) {
-            return false;
+            return None;
         }
         // **A held target that is not a unit yields at once**
         // (`target_opportunity@005fffc0:202`–`:209`, the listing's
@@ -348,11 +372,11 @@ impl Sim {
             && self.profile(attacker).attack != 0
             && (self.is_in_range(me, held) || !self.is_in_range(me, attacker))
         {
-            return false;
+            return None;
         }
         self.repath(u);
         self.kill_current_order(u);
-        true
+        Some(attack)
     }
 
     /// **`Unit::on_duty@005fff70`**: a combat-role type (`+0x2c8 &

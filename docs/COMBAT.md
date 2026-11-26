@@ -11405,6 +11405,14 @@ a hit. On 1091, `1/6`'s second hit, this crate's guard retaliated and
 dropped the attack a frame later on the leash, drawlessly. The original's
 never took it.
 
+A defensive attack that yields to an incoming hit carries its post to
+the new attack. On run1844 state 15526 unit 3/108 changes targets from
+building 0/2026 to unit 0/82. It stands at (20856,32136), and the old
+and new orders both name (20616,31704). A raw comparison covers every
+unit and all neighboring package boundaries. The original's order code
+saves the old post before discarding the order, then writes it on the
+replacement defensive attack. [Post comparison](journal/2026-11-26-item-4714.md)
+
 ### 63.5 The build, and what moved
 
 - `Sim::guard_activity`, `Sim::guard_leash` and `Sim::guard_check_target`

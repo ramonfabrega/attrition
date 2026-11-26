@@ -734,6 +734,10 @@ The units line moves 15317 → 15526 and the guys line 15317 → 15831.
 Draws hold at 15909. On 15526 the original carries unit 3/108's old
 defensive post to its next attack. [Allocation](journal/2026-11-26-item-4713.md)
 
+Unit 3/108 retains its defensive post when hit on 15525. Its replacement
+attack names the original target and post and the first unit difference
+moves to 15592. Draws hold at 15909. [Retaliation](journal/2026-11-26-item-4714.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte

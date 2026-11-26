@@ -7215,7 +7215,7 @@ fn the_anti_siege_shield_keeps_only_a_siege_target() {
         let foe = put(&mut sim, 0, foe_ty, Pos::new(0x4000, 0x4100));
         sim.add_attack_order(me, target, crate::orders::QueuePos::New, false, true);
         assert_eq!(sim.units[me].combat.target, Some(target), "the held attack");
-        sim.attack_action_yields(me, Obj::Unit(foe))
+        sim.take_yielding_attack(me, Obj::Unit(foe)).is_some()
     };
     let bombard = crate::combat::mask::BOMBARD;
     assert!(
