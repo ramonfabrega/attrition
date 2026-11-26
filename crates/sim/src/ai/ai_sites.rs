@@ -753,7 +753,9 @@ impl Sim {
         let k = {
             let mut k = 1i32;
             if city {
-                for c in self.cities.cities.iter().filter(|c| c.owner == who) {
+                // `for i < leader +0x408`: the list's length, which the
+                // close trims of its trailing dead slots (item 4721).
+                for c in self.city_list(who) {
                     if !c.alive || c.reg != Some(reg) {
                         return zero(sx, sy);
                     }
