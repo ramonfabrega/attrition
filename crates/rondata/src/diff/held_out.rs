@@ -2469,6 +2469,17 @@ pub(crate) mod tests {
                                     let f = v.iter().zip(t.iter()).position(|(x, y)| x.bytes != y.bytes)
                                         .map_or("len".to_string(), |i| v[i].field.to_string());
                                     eprintln!("P4691U s{state} {}/{} parts first on {f} (ranges {} vs {})", k.0, k.1, a.len(), b.len());
+                                    let ot: Vec<u32> = v.iter().filter(|r| r.field == "order.type")
+                                        .map(|r| u32::from_le_bytes([r.bytes[0], r.bytes[1], r.bytes[2], r.bytes[3]])).collect();
+                                    let tt: Vec<u32> = t.iter().filter(|r| r.site == 0x0073_03ac)
+                                        .map(|r| u32::from_le_bytes([r.bytes[0], r.bytes[1], r.bytes[2], r.bytes[3]])).collect();
+                                    let ty = |b: &[u8]| u32::from_le_bytes([b[0], b[1], b[2], b[3]]);
+                                    let pos = |b: &[u8]| (i32::from_le_bytes([b[4], b[5], b[6], b[7]]) ^ 0x63637, i32::from_le_bytes([b[8], b[9], b[10], b[11]]) ^ 0x63637);
+                                    eprintln!("    type ours {} theirs {} | orders ours {ot:?} theirs {tt:?} | at ours {:?} theirs {:?}",
+                                        ty(&v.iter().find(|r| r.field == "type").unwrap().bytes),
+                                        ty(&t.iter().find(|r| r.site == 0x0066_2287).unwrap().bytes),
+                                        pos(&v.iter().find(|r| r.field.starts_with("who")).unwrap().bytes[..]),
+                                        pos(&t.iter().find(|r| r.site == 0x0066_221c).unwrap().bytes[..]));
                                 }
                             }
                         }
