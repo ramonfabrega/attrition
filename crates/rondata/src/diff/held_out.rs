@@ -2497,6 +2497,34 @@ pub(crate) mod tests {
             built.sim.command().tick();
         }
         for state in lo..=hi {
+            if state == 3628 {
+                let sim = &built.sim;
+                for who in 1..3u8 {
+                    if let Some(u) = sim.unit_by_o(who, 156) {
+                        let x = &sim.units[u];
+                        eprintln!("P4719M {who}/156 TI {} at {:?} packed {}", x.type_index, x.pos, x.combat.packed);
+                    }
+                }
+                eprintln!("P4719M rares {:?}", sim.ai.ai[1].new_rares);
+                for &gi in &sim.ai.ai[1].new_rares {
+                    let Some(g) = sim.world.goods().get(gi).copied() else { continue };
+                    let c = g.pos.cell();
+                    let at = sim::Pos::new(c.x * 0x300 + 0x180, c.y * 0x300 + 0x180);
+                    for (i, x) in sim.units.iter().enumerate() {
+                        if !x.alive() || !x.on_map || x.is_gaia() || !sim.is_enemy(1, x.owner) {
+                            continue;
+                        }
+                        let d = sim::world::vector_dist(x.pos.x - at.x, x.pos.y - at.y);
+                        if d <= 0xc00 && sim.attack_of(sim::combat::Obj::Unit(i)) != 0 {
+                            eprintln!(
+                                "P4719M good {gi} at {:?}: {}/{} TI {} d {d} role {}",
+                                g.pos, x.owner, x.index, x.type_index,
+                                sim.profile(sim::combat::Obj::Unit(i)).combat_role
+                            );
+                        }
+                    }
+                }
+            }
             stream.apply(built.sim.frame as i32, &mut built);
             built.sim.command().tick();
             let set = record.first_of(state - 1).expect("the state's set").clone();
