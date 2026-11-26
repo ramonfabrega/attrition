@@ -748,9 +748,6 @@ impl Sim {
         true
     }
 
-    /// `Unit::do_repair` (§5.6): [`do_repair_steps`] over [`DoRepairView`]
-    /// (`SimDoRepair`); `crates/sim/tests/sweep/unit_do_repair.rs` runs the
-    /// steps against the original under the emulator (item 3346).
     /// `BuildData::construct_time(1)` for a building: what
     /// `Unit::do_repair@005ee420` reads (`push 1` at `0x5ee6f7`, vslot
     /// `+0x18c` at `0x5ee702`). **A non-zero argument returns before the
@@ -777,6 +774,9 @@ impl Sim {
         }
     }
 
+    /// `Unit::do_repair` (§5.6): [`do_repair_steps`] over [`DoRepairView`]
+    /// (`SimDoRepair`); `crates/sim/tests/sweep/unit_do_repair.rs` runs the
+    /// steps against the original under the emulator (item 3346).
     pub(super) fn do_repair(&mut self, u: usize, frame: i64) {
         let Some(Order {
             body: Body::Repair(b),
