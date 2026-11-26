@@ -41078,6 +41078,12 @@ minutes were spent waiting on another lane. `df -g ~` read 88 GB free before it 
   `1/2044` in the city of `1/2043`; theirs pushes `[1/2043]` (who=1's slot 3, `last_group` `0x43`) and its press sets
   `0x2000000`. Groups 3,754 → 3,808, leaders 3,754 → 3,782. The row's first parting is units and guys on 3775:
   range 9020, record 114, `x` ours 7967, theirs 7932, `y` ours 28348, theirs 28344.
+- **Re-scored by item 4732** (`Unit::check_target_path@005e22d0` reads the attack's target as `objects[whom][ox]`,
+  no `uid`): who=2's Rifleman `2/114` chases who=1's dead Light Tank `1/38`; who=1's Albatross takes number 38 on
+  3773, and on 3774's review theirs asks it and returns 0, the move standing in its collision wait. On 3775 record
+  114's `x` and `y` are theirs, `orders_x/y` (11928, 27000). Units 3,775 → 3,792, guys and world → 3,793, builds →
+  3,793, ammo → 3,821, groups → 3,814, leaders → 3,814, cities → 3,816, items → 4,617, goods → 4,418; deaths 3,811
+  unmoved. The row's first parting is units on 3792: range 8311, record 90, `orders.count` ours 1, theirs 0.
 - Filed by `filerun.py run1784 heldout5-row083-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1784-heldout5-row083-ranges.txt`, 2,869 bytes, SHA-256
   `a9b435ef5bd053ca7a1b9832b5ce70729ff25450cfd7d673a1485805af3a85f1`; `rontrace.log` → `Logs/rontrace-run1784.log`,

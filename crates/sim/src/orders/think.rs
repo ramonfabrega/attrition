@@ -872,11 +872,33 @@ impl Sim {
     ///
     /// Returns what the original returns: whether the review changed the
     /// order list (the only caller ignores it).
+    ///
+    /// **An attack's target is the object now holding the order's `(whom,
+    /// ox)`** (item 4732, `docs/RECGAME.md` §12.3): `005e22d0` reads
+    /// `objects[whom][ox]` off the `TargetOrder` (`param_1->ox`, `->whom`)
+    /// for every question it asks and compares no `uid`, so on a reused
+    /// number it reviews the newcomer — the same read item 4662 built for
+    /// `Unit::work`'s `set_in_danger`. Row 83's who=2 Rifleman `2/114`
+    /// (TI 100) chases who=1's dead Light Tank `1/38` (TI 239, `uid` 0x42);
+    /// who=1's Albatross (TI 288, `uid` 0xcc) takes number 38 on 3773, so on 3774's
+    /// review theirs asks the live newcomer at (29688, 5688) and returns 0,
+    /// the move standing in its collision wait, where the corpse took arm 8
+    /// and re-aimed. SEAM: an attack order whose target is cleared (`ox`
+    /// −1, the original's first return) still reviews the combat target.
     pub(super) fn check_target_path(&mut self, u: usize) -> bool {
         let Some(a) = self.action_of(u) else {
             return false;
         };
         let (ty, target, spell) = match self.units[u].orders[a].body {
+            Body::Attack(AttackOrder {
+                target: Some((ox, whom, _)),
+                ..
+            }) => (
+                10,
+                self.object_holding(whom, ox)
+                    .or(self.units[u].combat.target),
+                0,
+            ),
             Body::Attack(_) => (10, self.units[u].combat.target, 0),
             Body::Cast(c) => (0xe, c.target, c.spell),
             Body::Garrison { building, .. } => (0x1a, Some(Obj::Building(building)), 0),

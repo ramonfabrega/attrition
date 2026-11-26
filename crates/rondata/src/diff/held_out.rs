@@ -13550,23 +13550,35 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // Groups 3,754 -> 3,808 (first 3754 -> 3783), leaders 3,754 ->
         // 3,782 (first 3754 -> 3778). The row's first parting is units and
         // guys on 3775 (unmoved).
+        // Item 4732 (`Unit::check_target_path@005e22d0` reads the attack's
+        // target as `objects[whom][ox]`, no `uid`): who=2's Rifleman
+        // `2/114` chases who=1's dead Light Tank `1/38`; who=1's Albatross
+        // takes number 38 on 3773, and on 3774's review theirs asks it and
+        // returns 0, where ours took the corpse's arm 8 and re-aimed. On
+        // 3775 units record 114 (who=2) `x` ours 7967 -> 7932, `y` 28348
+        // -> 28344, `orders_x/y` (10008, 27192) -> (11928, 27000), path 3
+        // -> 8 nodes, as theirs. Units 3,775 -> 3,792, guys and world ->
+        // 3,793, builds 3,779 -> 3,793, ammo 3,795 -> 3,821, groups 3,808
+        // -> 3,814, leaders 3,782 -> 3,814, cities 3,796 -> 3,816, items
+        // 4,129 -> 4,617, goods 4,399 -> 4,418; deaths 3,811 unmoved. The
+        // row's first parting is units on 3792.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3775, 3779, 6001, 3795, 3811, 3808, 3775, 3782, 3796, 4129, 4399, 3776,
+                3792, 3793, 6001, 3821, 3811, 3814, 3793, 3814, 3816, 4617, 4418, 3793,
             ],
             first: &[
-                ("units", (3775, Some(325779366), 1791368010)),
-                ("builds", (3779, Some(310360152), 3484334167)),
-                ("ammo", (3776, Some(2781157854), 3425114656)),
-                ("deaths", (3811, Some(1997634331), 4170353836)),
-                ("groups", (3783, Some(3580170157), 1201606574)),
-                ("guys", (3775, Some(1024508013), 4215129001)),
-                ("leaders", (3778, Some(3080618048), 1327988799)),
-                ("cities", (3793, Some(1981498418), 2439726149)),
+                ("units", (3792, Some(974095072), 3709493656)),
+                ("builds", (3793, Some(2702992445), 1167418825)),
+                ("ammo", (3795, Some(1434000004), 1576016640)),
+                ("deaths", (3811, Some(4168191147), 4170353836)),
+                ("groups", (3814, Some(4026471806), 1382159731)),
+                ("guys", (3793, Some(2035382939), 428900193)),
+                ("leaders", (3809, Some(3922814424), 742286810)),
+                ("cities", (3809, Some(1264469187), 2912437542)),
                 ("items", (4129, Some(898052486), 912470408)),
-                ("goods", (4331, Some(3229390119), 3223622949)),
-                ("world", (3776, Some(2369309709), 2869480293)),
+                ("goods", (4350, Some(3266876711), 3223622949)),
+                ("world", (3793, Some(1198069569), 3843954627)),
             ],
             over: None,
         }),
