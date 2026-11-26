@@ -2371,6 +2371,74 @@ pub(crate) mod tests {
         }
     }
 
+    /// Probe of item 4691, reverted whole.
+    #[test]
+    fn probe_4691() {
+        let Ok(win) = std::env::var("RON_PROBE_4691") else {
+            return;
+        };
+        let (lo, hi) = win.split_once('-').map_or((3619, 3620), |(a, b)| {
+            (a.parse::<i64>().unwrap(), b.parse::<i64>().unwrap())
+        });
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            panic!("no rcx");
+        };
+        let ranges =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+                .expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < lo - 1 {
+            crate::diff::harness::debug_watch(&built, built.sim.frame);
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let hex = |b: &[u8]| b.iter().map(|x| format!("{x:02x}")).collect::<Vec<_>>().join(" ");
+        for state in lo..=hi {
+            crate::diff::harness::debug_watch(&built, built.sim.frame);
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            crate::diff::harness::debug_watch(&built, built.sim.frame);
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for line in 0..12usize {
+                let Some(ours) = lines[line].as_ref() else { continue };
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                let mut n = 0;
+                let mut who = String::new();
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    if a.field.starts_with("who") {
+                        who = hex(&a.bytes[..a.bytes.len().min(4)]);
+                    }
+                    if a.bytes != b.bytes {
+                        n += 1;
+                        if n <= 30 {
+                            eprintln!(
+                                "P4691 s{state} {} k{k} rec {} {} [{who}] site {:08x}\n   ours   {}\n   theirs {}",
+                                ours.name, a.record, a.field, b.site, hex(&a.bytes), hex(&b.bytes)
+                            );
+                        }
+                    }
+                }
+                eprintln!(
+                    "P4691 s{state} {} counts ours {} theirs {} parted {n}",
+                    ours.name,
+                    ours.ranges.len(),
+                    theirs.len()
+                );
+            }
+        }
+    }
+
     /// **Row 133's dead farm rolls under its number's next building** (item
     /// 4669, `docs/SYNC.md` §3.3): run1797's ranges and trace, the row's
     /// units and guys parting on 2677 (units range 4225, record 18, guy
