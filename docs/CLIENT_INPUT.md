@@ -5197,3 +5197,80 @@ Before, no ghost was drawn. Now, at (4224, 30144) on the row's walk, `Ghost { ty
 - **Not established**: whether the 1637 Farm site was drawn on his screen. `WallOut::draw` draws an unfinished Farm's
   piece (`PlacedBuilding::drawn`), and where his camera stood is not recorded.
 - **Not played**: no capture. The arm and the ghost mint nothing the original has not played (`build`, run1561).
+
+## 40. The play clock, and Escape (item 4696)
+
+Ramon's play read as fast-forwarded, and his game ended on Escape (DECISIONS 158 §11). The window stepped the sim
+once a presented frame: 60 a second on a 60 Hz display. Escape quit the window.
+
+### 40.1 The original's rate
+
+**What paces a solo game.** `TurnControl::check_new_frame_solo@00956320` answers whether the frame loop steps.
+With no pause bit and no fast-forward, it reads `timeGetTime` (plus the `time_sync` offset) in milliseconds and
+compares it with `frame_counter × target_frame_time + frame_base_time`:
+
+- short of it (while rendering): 0, no frame;
+- more than `target_frame_time + 2000` past it: rebase, so `frame_counter` is 1 and `frame_base_time` is the time.
+  A stall is not made up;
+- otherwise: `frame_counter` steps, and the frame is due.
+
+`target_frame_time` is `TurnControl::timings[speed]` (`TurnControl::init@00957e20`).
+`speed` is the lobby's `GAME_SPEED`, an index into `rules.xml`'s `gamespeeds`: Very Slow, Slow, Normal, Fast,
+Hyper Fast. **`timings` is `int[5]` at VA `0xafc4a4`** (`S_GDATA32 TurnControl::timings`, `0002:226468`), and it
+holds **200, 125, 67, 50 and 1 ms**. Normal is index 2, `PlayerProfile::default_profile`'s `gs_game_speed`, and the
+harness lobby's `GAME_SPEED`. So **Normal steps a frame every 67 ms, 14.93 a second.**
+
+**The photographs agree.** The bar's clock is `Game::tick`, `frame / 15` (item 4203, `docs/HUD.md` §6). The
+photographs read `00:03:38` on 3279 (run1559b, run1564) and `00:03:41` on 3327 (run1570); 3279 / 218 and
+3327 / 221 are each 15.0 frames to the bar's second. At 67 ms, fifteen frames last 1,005 ms, so the bar's second is
+the wall's within 0.5 %. The queue's "15.1 a second" divided the packet's frame (3294) by the photograph's
+seconds. The photograph's frame is 3279.
+
+### 40.2 What the window does now
+
+- **The clock** (`pace::PlayClock`, new module): `check_new_frame_solo`'s three fields and its two rules, the
+  milliseconds passed in. Before each present the window steps the frames `steps(now)` answers due, `now` being
+  milliseconds since the window opened. The speed is `pace::speed_of` the choices the world was opened from, and
+  Normal when it was opened from none. A resume (Space, the pause lifted, the page closed) rebases the clock.
+- **Escape** (`Input::event`'s `Escape`): `Console::on_key_down@007cc210` looks Escape up as
+  `KEYMAP_OPTION_CANCEL` (107). With the selection empty, and the fresh profile's `esc_key_goes_to_menu` set, it
+  becomes `KEYMAP_OPTION_MENU` (86). Both reach `Options::exec` through `KeyMap::keymap_options` (VA `0xae7770`,
+  `short[2]`): 107 is option 67, `OPTION_CANCEL`, and 86 is option 89. `Options::exec@007188c0` clears
+  `selecting_spot` and `drop_type` before any option, so a placement, a craft, the garrison and a pick all go.
+  Then `OPTION_CANCEL` (case 0x43) works by panel mode:
+  - in `BUILD_OPTIONS`, or in `STANDARD_OPTIONS` with an arm standing: `set_mode(STANDARD_OPTIONS)`. The page
+    closes and the selection stays;
+  - in `STANDARD_OPTIONS` with no arm: `SelectGroup::clear`, so the selection goes.
+
+  No order is minted. An open entry line still closes first (item 4250).
+- **The menu** (`Input::menu`): Escape with nothing selected opens it, and the HUD draws a notice
+  (`hud::MENU_TEXT`). Escape closes it. **Q quits**, open or not.
+
+**The row** (`pace::tests::a_minute_at_normal_steps_the_original_s_frames`, `PLAY_CLOCK` (895, 60000)): a 60 Hz
+window presenting at whole milliseconds for 60 s steps 895 frames at Normal (`60000 / 67`). A 144 Hz window steps
+the same 895, and no present steps two. **The value diff**: before, every present stepped one, 3,600 over the span,
+4.02 times Normal. Seen red with `steps` answering 1 (`left: 3600, right: 895`).
+`the_timings_are_the_executable_s` reads `TIMINGS` and the two keymap entries off `riseofnations.exe` (red with
+Normal at 66). `input::tests::input_escape_cancels` covers the five arms, the page, the selection, the menu and the
+line (red with the arm's Escape clearing the selection).
+
+### 40.3 Ours, not the original's
+
+- At most `STEPS_PER_PRESENT` (4) frames before one present. The original's loop steps one frame a pass. The cap
+  binds only at Hyper Fast or behind a slow step, and past 2 s the clock rebases as the original's does.
+- The rebase on a resume. The original's pause path (`toggle_pause@00957ab0`) is not read.
+- The menu is a notice. The original opens its menu window (option 89, not read), and whether that pauses a solo
+  game is not read. Q quits at once, which the original's Q does not.
+- `--headless` still steps once a drawn frame. It is a measurement of the frame, not a game.
+
+### 40.4 Confidence, and what is not established
+
+- **Backed by the executable's bytes**: `timings` and the two keymap entries, read by a test. **Backed by the
+  photographs**: fifteen frames to the bar's second (item 4203's pins).
+- **One reading**: `check_new_frame_solo`'s rules, and `OPTION_CANCEL`'s arm. No score rests on either beyond the
+  row, which pins our clock to its own rule.
+- **Not established**: the `render_phase == 0` arm, in which `check_new_frame_solo` answers 1 without the time test.
+  How the frame loop calls it between renders is not read.
+- **Not established**: the speed keys (`issue_speed_up`, `issue_speed_down`). Ours has none, and `+` and `-` zoom.
+- **Not played**: no capture. Escape mints nothing, and the clock changes when frames are stepped, not what they
+  hold.
