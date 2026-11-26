@@ -939,7 +939,10 @@ run240's world pin.
 - **Two `seen3` readers still recompute the ally byte** (parked 4552a):
   `Sim::decoy_detected` and `Sim::unit_stealth_hides` mask `seen3` with
   `seen_ally_mask`, not the stored `+0x6929`; the original's reads there
-  are not checked against the listing.
+  are not checked against the listing. `UnitData::is_detected@0060a630`,
+  the stealth arm's callee, reads `leaders.list[who] +0x6929` itself, which
+  is the stored byte; `Sim::unit_detected` (item 4717) is that read, and
+  `unit_stealth_hides` does not call it yet.
 
 ## 8. What the simulation carries, and what checks it
 

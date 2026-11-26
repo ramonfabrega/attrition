@@ -110,6 +110,14 @@ Six things worth saying about that:
   standing at the good is caught by the first search and a sibling walking
   at it — from anywhere on the map — by the second; a sibling gathering
   somewhere else is caught by neither.
+- **`FILTER_COMBAT` is an attack and the combat role** (item 4719).
+  `Search::valid_filter@0067dbb0`'s arm 8 takes the unit branch at
+  `0067debf`: the type's `+0x1e8` non-zero, then `+0x2c8 >> 16 & 1`
+  (item 4691's reading, `docs/ARMY.md` §13). A Citizen (TI 50, attack 40)
+  does not keep a Merchant off a good. Diff-backed by run1797's 3628:
+  who=1's Merchant `1/156` (TI 61) takes good 25 with who=2's Citizens
+  `2/3`, `2/40` and `2/83` inside `0xc00` of its cell
+  (`diff::held_out::tests::row_133_s_merchant_is_not_kept_off_a_good_by_citizens_on_run1797`).
 - **The floor is 1, and it is only reachable through danger.** With
   `base ≥ 200 − 10·(list length)` and the bonus non-negative, the `max(·,
   1)` matters exactly where the danger map is large — which is the war

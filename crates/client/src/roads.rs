@@ -5,10 +5,11 @@
 //!
 //! Three steps, each a function here:
 //!
-//! 1. **The candidate's flags** ([`candidates`]): the record's four bytes,
-//!    the connections the simulation keeps on top, then the yellow lines,
-//!    the white lines and the intersections the texture passes mark
-//!    (`RoadsOut::mark_white_lines@00892c10`, `mark_intersections@00892390`).
+//! 1. **The candidate's flags** ([`candidates`]): the record's four bytes
+//!    as the simulation's mesh leaves them, the connections on top, then
+//!    the yellow lines, the white lines and the intersections the texture
+//!    passes mark (`RoadsOut::mark_white_lines@00892c10`,
+//!    `mark_intersections@00892390`; item 4690, `docs/RENDERER.md` §6.9).
 //! 2. **The piece** ([`find_map`]): `RoadsPieces::find_map@00897840` over
 //!    every piece's eight orientations ([`rotations`], `RoadsPieces::
 //!    rotate_flags@00895b20`), the texture fractal choosing among the
@@ -20,40 +21,6 @@
 use rondata::artdata::{RoadArt, RoadPiece};
 use sim::observe::{RoadTile, RoadsScene};
 use std::collections::BTreeMap;
-
-/// The compass's bits in a flag byte, clockwise from NW at bit 7.
-pub mod bit {
-    pub const NW: u8 = 0x80;
-    pub const N: u8 = 0x40;
-    pub const NE: u8 = 0x20;
-    pub const E: u8 = 0x10;
-    pub const SE: u8 = 0x08;
-    pub const S: u8 = 0x04;
-    pub const SW: u8 = 0x02;
-    pub const W: u8 = 0x01;
-}
-
-/// The road tile's compass in `MOVE_X`/`MOVE_Y` order, as the door's
-/// [`RoadTile::road`] and [`RoadTile::footprint`] index it.
-const NW: usize = 1;
-const N: usize = 2;
-const NE: usize = 3;
-const E: usize = 4;
-const SE: usize = 5;
-const S: usize = 6;
-const SW: usize = 7;
-const W: usize = 8;
-const STEP: [(i32, i32); 9] = [
-    (0, 0),
-    (-1, -1),
-    (0, -1),
-    (1, -1),
-    (1, 0),
-    (1, 1),
-    (0, 1),
-    (-1, 1),
-    (-1, 0),
-];
 
 /// A byte turned `k` places clockwise, two places a quarter turn
 /// (`rotate_flags`' `(b << 8 | b) >> 2k`).
@@ -121,166 +88,27 @@ impl Pieces {
     }
 }
 
-/// **The candidate's flags on every road tile** (§3.19): the connections
-/// the door carries, and the white lines and intersections the texture
-/// passes mark, evaluated once on the mesh as it stands. Yellow lines are
-/// never marked here (`mark_yellow_lines` is not read; 13 of run1559b's
-/// 592 drawn records carry one).
+/// **The candidate's flags on every road tile** (§3.19, §6.9): the
+/// record's dword as the simulation's mesh leaves it. The connections the
+/// door carries on top ([`RoadTile::dirs`]); then the yellow and white
+/// lines the line passes mark, history and all ([`RoadTile::lines`]:
+/// `RoadsOut::mark_white_lines@00892c10`, `mark_yellow_lines@00892550`,
+/// `fixup_lines@00891210`, `delete_straglers@008910b0` and
+/// `leech_codes@00890da0`'s line half; item 4687, §6.8); and the
+/// intersections ([`RoadTile::inter`], item 4677, §6.5).
 ///
-/// The white lines, `mark_white_lines`' arms, each a half-segment of an
-/// edge line where no road stands beside the tile:
-/// - a tile joined north or south: with no road east, `N`'s bit toward a
-///   road north (and `SE` on that neighbour), `SE` toward one south (`N`
-///   on it); with no road west, `NW` and `S` the same way;
-/// - a tile joined east or west: with no road north, `NE` toward a road east
-///   (`W` on it) and `W` toward one west (`NE` on it); with no road south,
-///   `E` and `SW`;
-/// - an inside corner, joined on both of its sides with a footprint on the
-///   diagonal between: both halves, and the far half on each neighbour.
-///
-/// A neighbour is written only where it holds a record. Item 4673: the
-/// rings round a joined corner, which the original holds from its history
-/// ([`corner_loops`]). The intersections are the door's
-/// ([`RoadTile::inter`], item 4677): `mark_intersections`' bits as the
-/// simulation's mesh leaves them, run by run (§6.5). A tile joined east and
-/// west takes `E` where its east neighbour was not also joined both ways
-/// when the tile was last redone, and the bit stays until it is redone
-/// again; north and south the same.
+/// Item 4690: until then the client marked its own white lines once on the
+/// mesh as it stood, with the rings round a joined corner added, and no
+/// yellow. The mesh's own bytes carry the yellow the crossroads' pieces
+/// name, and the rings from the history that holds them.
 pub fn candidates(scene: &RoadsScene) -> BTreeMap<(i32, i32), u32> {
-    let rec: BTreeMap<(i32, i32), &RoadTile> =
-        scene.roads.iter().map(|r| ((r.x, r.y), r)).collect();
-    let mut white: BTreeMap<(i32, i32), u8> = rec.keys().map(|&k| (k, 0)).collect();
-    let put = |at: (i32, i32), k: usize, b: u8, white: &mut BTreeMap<(i32, i32), u8>| {
-        let t = (at.0 + STEP[k].0, at.1 + STEP[k].1);
-        if let Some(w) = white.get_mut(&t) {
-            *w |= b;
-        }
-    };
-    for r in &scene.roads {
-        let at = (r.x, r.y);
-        let road = |k: usize| r.road >> k & 1 != 0;
-        let foot = |k: usize| r.footprint >> k & 1 != 0;
-        let d = r.dirs;
-        let mut own = 0u8;
-        if d & (bit::N | bit::S) != 0 {
-            for (side, upper, lower) in [(E, bit::N, bit::SE), (W, bit::NW, bit::S)] {
-                if road(side) {
-                    continue;
-                }
-                if road(N) {
-                    own |= upper;
-                    put(at, N, lower, &mut white);
-                }
-                if road(S) {
-                    own |= lower;
-                    put(at, S, upper, &mut white);
-                }
-            }
-        }
-        if d & (bit::E | bit::W) != 0 {
-            for (side, east, west) in [(N, bit::NE, bit::W), (S, bit::E, bit::SW)] {
-                if road(side) {
-                    continue;
-                }
-                if road(E) {
-                    own |= east;
-                    put(at, E, west, &mut white);
-                }
-                if road(W) {
-                    own |= west;
-                    put(at, W, east, &mut white);
-                }
-            }
-        }
-        // The inside corners: the two dirs, the footprint's diagonal, the
-        // tile's two halves and each neighbour's far half.
-        for (a, b, diag, mine, (na, ba), (nb, bb)) in [
-            (
-                bit::N,
-                bit::W,
-                NW,
-                bit::NW | bit::W,
-                (N, bit::S),
-                (W, bit::NE),
-            ),
-            (
-                bit::N,
-                bit::E,
-                NE,
-                bit::N | bit::NE,
-                (N, bit::SE),
-                (E, bit::W),
-            ),
-            (
-                bit::S,
-                bit::W,
-                SW,
-                bit::S | bit::SW,
-                (S, bit::NW),
-                (W, bit::E),
-            ),
-            (
-                bit::S,
-                bit::E,
-                SE,
-                bit::E | bit::SE,
-                (S, bit::N),
-                (E, bit::SW),
-            ),
-        ] {
-            if d & a != 0 && d & b != 0 && foot(diag) {
-                own |= mine;
-                put(at, na, ba, &mut white);
-                put(at, nb, bb, &mut white);
-            }
-        }
-        *white.get_mut(&at).expect("its own record") |= own;
-    }
-    corner_loops(&rec, &mut white);
-    rec.iter()
-        .map(|(&at, r)| {
-            let word = u32::from_be_bytes([r.dirs, 0, white[&at], r.inter]);
-            (at, word)
-        })
-        .collect()
+    scene.roads.iter().map(|r| ((r.x, r.y), word(r))).collect()
 }
 
-/// **The loops round a joined corner** (item 4673, `docs/RENDERER.md`
-/// §6.4): where four records meet at a corner and each is joined to the
-/// next round it, the white halves that ring the corner, two on each tile:
-/// the NW tile's `SE` and `E`, the NE tile's `SW` and `S`, the SE tile's
-/// `NW` and `W`, the SW tile's `NE` and `N`.
-///
-/// `mark_white_lines` never marks them on such a block, since each tile
-/// has a road on every side it would mark. They are a fixed point of
-/// `RoadsOut::fixup_lines@00891210` and `RoadsOut::leech_codes@00890da0`:
-/// each half continues into the next round the corner on its own tile
-/// (`SE` joined east sets `E`, `SW` joined south sets `S`, `NW` joined
-/// west sets `W`, `NE` joined north sets `N`), and its twin across the
-/// edge on the neighbour (`E` is the east tile's `SW`, `S` the south
-/// tile's `NW`, `W` the west tile's `NE`, `N` the north tile's `SE`). So
-/// once one half stands, the ring holds whatever is re-marked. In the
-/// original a half stands from the time one of the four was laid before
-/// its neighbour, which the door does not carry. On both packets every
-/// such corner holds its ring: this marks them all.
-fn corner_loops(rec: &BTreeMap<(i32, i32), &RoadTile>, white: &mut BTreeMap<(i32, i32), u8>) {
-    let ring = [
-        ((0, 0), bit::E, bit::SE | bit::E),
-        ((1, 0), bit::S, bit::SW | bit::S),
-        ((1, 1), bit::W, bit::NW | bit::W),
-        ((0, 1), bit::N, bit::NE | bit::N),
-    ];
-    for &(x, y) in rec.keys() {
-        let joined = ring
-            .iter()
-            .all(|&((dx, dy), to, _)| rec.get(&(x + dx, y + dy)).is_some_and(|r| r.dirs & to != 0));
-        if !joined {
-            continue;
-        }
-        for ((dx, dy), _, halves) in ring {
-            *white.get_mut(&(x + dx, y + dy)).expect("a record") |= halves;
-        }
-    }
+/// One record's candidate: [`RoadTile::dirs`] in the top byte, the line
+/// bytes in place (`0x00ff_ff00`), [`RoadTile::inter`] in the low byte.
+pub fn word(r: &RoadTile) -> u32 {
+    u32::from(r.dirs) << 24 | r.lines & 0x00ff_ff00 | u32::from(r.inter)
 }
 
 /// **`RoadsPieces::find_map@00897840`**: every piece's every orientation
