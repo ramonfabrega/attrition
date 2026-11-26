@@ -352,6 +352,38 @@ fn a_decoy_s_blow_takes_the_object_attack_not_the_citizen_s() {
     assert_eq!(sim.compare_target(a, t, true, false), alone.2);
 }
 
+/// **A detected decoy is worth 1** (item 4717, `docs/RECGAME.md` §12.3):
+/// `compare_target@0064e5c0`'s tail (`64f2c1`..`64f2f9`) answers 1 for a
+/// unit target with `unit_masks & 1` that `UnitData::is_detected@0060a630`
+/// answers for the searcher's leader: `seen3` at its fog cell under the
+/// searcher's ally mask. run1845's packet scored row 83's decoy `1/38` at
+/// 1 for `2/125`, where this crate scored 376,354 and took it over the
+/// real `1/24`. The same bit on a real unit, or the decoy's own side's
+/// bit, leaves the value standing.
+#[test]
+fn a_detected_decoy_scores_one() {
+    let (mut sim, ty) = at_war();
+    sim.tables.unit_types[ty].combat.attack = 240;
+    sim.combat.table.set(ty, ty, 86);
+    let me = put(&mut sim, 1, ty, Pos::new(9000, 9000));
+    let them = put(&mut sim, 0, ty, Pos::new(9600, 9000));
+    let (a, t) = (Obj::Unit(me), Obj::Unit(them));
+    let (w, h) = (sim.world.width(), sim.world.height());
+    assert!(sim.world.set_fog(vec![0; (w * h * 4) as usize]));
+    let fog = crate::vision::UNITS_PER_FOG;
+    let (fx, fy) = (sim.units[them].pos.x / fog, sim.units[them].pos.y / fog);
+    let real = sim.compare_target(a, t, true, false);
+    sim.units[them].decoy = true;
+    let hidden = sim.compare_target(a, t, true, false);
+    assert!(hidden > 1, "an undetected decoy keeps its value ({hidden})");
+    sim.world.set_seen3(fx, fy, 1 << 0);
+    assert_eq!(sim.compare_target(a, t, true, false), hidden, "its own side's bit detects nothing for 1");
+    sim.world.set_seen3(fx, fy, 1 << 1);
+    assert_eq!(sim.compare_target(a, t, true, false), 1, "detected by the searcher's side");
+    sim.units[them].decoy = false;
+    assert_eq!(sim.compare_target(a, t, true, false), real, "a real unit under the same bit stands");
+}
+
 /// **Infantry on rocky ground takes `get_damage`'s step 22** (item 4628,
 /// `docs/RECGAME.md` §13.5): a target whose type mask carries an
 /// infantry bit (`& 0x10108`), standing on a cell whose `WData.flags`
