@@ -377,11 +377,23 @@ fn a_detected_decoy_scores_one() {
     let hidden = sim.compare_target(a, t, true, false);
     assert!(hidden > 1, "an undetected decoy keeps its value ({hidden})");
     sim.world.set_seen3(fx, fy, 1 << 0);
-    assert_eq!(sim.compare_target(a, t, true, false), hidden, "its own side's bit detects nothing for 1");
+    assert_eq!(
+        sim.compare_target(a, t, true, false),
+        hidden,
+        "its own side's bit detects nothing for 1"
+    );
     sim.world.set_seen3(fx, fy, 1 << 1);
-    assert_eq!(sim.compare_target(a, t, true, false), 1, "detected by the searcher's side");
+    assert_eq!(
+        sim.compare_target(a, t, true, false),
+        1,
+        "detected by the searcher's side"
+    );
     sim.units[them].decoy = false;
-    assert_eq!(sim.compare_target(a, t, true, false), real, "a real unit under the same bit stands");
+    assert_eq!(
+        sim.compare_target(a, t, true, false),
+        real,
+        "a real unit under the same bit stands"
+    );
 }
 
 /// **Infantry on rocky ground takes `get_damage`'s step 22** (item 4628,
