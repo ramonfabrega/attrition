@@ -41354,8 +41354,8 @@ It is the tail of the `orw $0xe` arm, on a blow from another player on a buildin
 (`BuildData +0x72 >= 0`), with the same three leader gates. It fires when the type's vslot `+0x90` answers,
 or the struck object's own `flags & 0x20` is set (the city's building), and the city's `0x40` is clear.
 This crate set the three city flags and rang nothing. Built as `Sim::city_struck_alarm`
-(`crates/sim/src/combat/fight/delivery.rs`); vslot `+0x90` is answered no, as `alarm_view`'s
-`data_type_slot90` is. It is the 2017 sample's 2887: the person's units strike computer 4's capital, its
+(`crates/sim/src/combat/fight/delivery.rs`); ~~vslot `+0x90` answered no~~ it is `Type::is_gather_type`
+(item 4726, `docs/RECGAME.md` §12.3). It is the 2017 sample's 2887: the person's units strike computer 4's capital, its
 Citizens walk to garrison, and the walk's word moves 2888 → 2908 (`docs/RECGAME.md` §7). The cities line
 there is run1662's hook's; without the arm it parts on 2888.
 
