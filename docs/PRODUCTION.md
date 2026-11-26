@@ -1305,6 +1305,12 @@ and `do_air_patrol`; five tests in `air::launch_tests`.
 - the Terracotta Army and the Kremlin beside the Senate (wonders with no
   ident here), and `find_building`'s own metric (the nearest here).
 
+On a successful training exit the trainee's queued-exploration flag
+clears after its rally orders are built. The single scout 3/136 on
+run1844 retains the explore order and starts it normally. This is a
+write at the end of training. The scout's ordinary shift-queued moves
+still set the flag. [Training exit](journal/2026-11-26-item-4715.md)
+
 ## The launch commands (item 976)
 
 `docs/GOLDEN.md` §42 is the chapter and run358 its capture. A selection

@@ -738,6 +738,11 @@ Unit 3/108 retains its defensive post when hit on 15525. Its replacement
 attack names the original target and post and the first unit difference
 moves to 15592. Draws hold at 15909. [Retaliation](journal/2026-11-26-item-4714.md)
 
+The new scout keeps its rally order on 15592 and completes training
+with its queued-exploration flag clear. Units reach 15666, where
+player 2's decoy 110 starts taking damage in the original and its
+owner receives the first attrition stamp. [Scout](journal/2026-11-26-item-4715.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte

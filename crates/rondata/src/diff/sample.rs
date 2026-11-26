@@ -848,7 +848,7 @@ pub(in crate::diff) mod tests {
     /// Item 4698: the two siege units take their recorded orders on 11687.
     /// Item 4699: player 2's research list now matches on 12354.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 15592),
+        ("units", 15666),
         ("builds", 15926),
         ("walls", 21044),
         ("ammo", 15912),
@@ -1645,6 +1645,11 @@ pub(in crate::diff) mod tests {
     }
 
     #[test]
+    fn the_sample_s_new_scout_keeps_the_rally_order_with_the_queue_flag_clear() {
+        assert_sample_window(run1844(), 15589, 15597, None);
+    }
+
+    #[test]
     fn the_sample_s_scout_order_and_city_marks_match_both_recorded_lines() {
         let (Some(inst), Some(rcx), Some(mut ranges)) = (install(), sample(), run1786()) else {
             return;
@@ -2270,11 +2275,11 @@ pub(in crate::diff) mod tests {
     const SAMPLE_RANGES_1844: &[PinnedRange] = &[
         (
             "units",
-            15592,
-            9040,
-            9040,
+            15666,
+            8879,
+            8879,
             1,
-            "8414 136 collide_frame..play: unit_masks 67108864|0",
+            "4634 110 myhits..launch_frames: damage 0|1",
         ),
         (
             "builds",

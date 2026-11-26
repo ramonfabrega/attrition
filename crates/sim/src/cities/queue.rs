@@ -1886,7 +1886,11 @@ impl Sim {
         {
             // The SEAM's arm: `come_out` refused, on which the original's
             // unit dies and this one stays inside.
-            if !self.come_out(unit) {
+            if self.come_out(unit) {
+                // Build::train clears the trainee's queued-exploration bit
+                // after the rally route has created its orders (run1844).
+                self.units[unit].explore_queued = false;
+            } else {
                 crate::seam!("come_out_refused");
             }
         }
