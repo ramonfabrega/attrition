@@ -164,6 +164,9 @@ pub struct World {
     /// The cities' plates' art (item 4410, `docs/HUD.md` §3), `None`
     /// where the install's interface files do not give it.
     pub(crate) scroll_art: Option<crate::selection::ScrollArt>,
+    /// The HUD's frame (item 4694, `docs/RENDERER.md` §6.10), `None`
+    /// where interface.xml does not lay the minimap's window.
+    pub(crate) frame_art: Option<crate::frame::FrameArt>,
     /// The minimap's blips' atlas (item 4601, `docs/RENDERER.md` §3.33),
     /// `None` where `effects_graphics.xml` names no `<BLIPMAP>`.
     pub(crate) blip_atlas: Option<crate::minimap::blips::Atlas>,
@@ -1367,6 +1370,7 @@ impl World {
             unit_textures,
             shadow_art,
             scroll_art: crate::selection::ScrollArt::load(install.root()).ok(),
+            frame_art: crate::frame::FrameArt::load(install.root()).ok(),
             blip_atlas: crate::minimap::blips::Atlas::load(install.root()),
             ping_set: crate::minimap::pings::Set::load(install.root()),
             pings: Default::default(),

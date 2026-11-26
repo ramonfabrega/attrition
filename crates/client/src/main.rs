@@ -55,6 +55,7 @@ mod edge;
 mod expose;
 mod farms;
 mod fire;
+mod frame;
 mod goods;
 mod gpu;
 mod ground;
@@ -453,6 +454,12 @@ fn build(
     let mut screen = selection::plates(world, camera, (size.0 as i32, size.1 as i32), &|c| {
         world.runner.sim().city_name(c).map(String::from)
     });
+    // Item 4694: the minimap's window, the nation's art, over the map.
+    let framed = hud.and_then(|input| frame::console_frame(world, input.player));
+    let mut minimap = minimap;
+    if let Some(f) = &framed {
+        minimap.extend(f.layers((size.0 as i32, size.1 as i32)));
+    }
     screen.splice(0..0, minimap);
     if let Some(input) = hud {
         screen.extend(selection::bars(
@@ -617,6 +624,10 @@ pub(crate) fn still_minimap(
         screen.push(minimap::layer(back, (size.0 as i32, size.1 as i32)));
         // The still is the photograph's phase (item 4601).
         screen.extend(minimap::overlays(world, camera, size, selection, true));
+        // Item 4694: the minimap's window over it.
+        if let Some(f) = frame::console_frame(world, world::CONSOLE) {
+            screen.extend(f.layers((size.0 as i32, size.1 as i32)));
+        }
     }
     let version = world.runner.terrain().version;
     world.set_screen(camera, size);
