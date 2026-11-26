@@ -282,11 +282,8 @@ pub fn get_damage_steps<F: DamageFacts>(
     if f.target_is_unit() && f.target_unit_z() < 0 {
         base = shr8(f.rule(Rule::RiverModifier).wrapping_mul(base));
     }
-    let pr = PROBE4717.load(std::sync::atomic::Ordering::Relaxed);
-    if pr { eprintln!("P4717 dmg base16 {base} armor {armor}"); }
     // 17. Decoy.
     if f.target_is_unit() && f.target_decoy() {
-        if pr { eprintln!("P4717 dmg attack_stat {}", f.attack_stat()); }
         armor = 0;
         base = f.attack_stat().max(base).wrapping_mul(1000);
     }
@@ -308,7 +305,6 @@ pub fn get_damage_steps<F: DamageFacts>(
         && tmask & mask::NAVAL == 0
     {
         let level = f.flank_level(angle);
-        if pr { eprintln!("P4717 dmg flank level {level} angle {angle:#x}"); }
         if level != 0 {
             // The reduction is keyed on the target's mask (item 601, `docs/COMBAT.md` 53).
             let mut fb = f.rule(Rule::FlankBonus);
@@ -322,7 +318,6 @@ pub fn get_damage_steps<F: DamageFacts>(
     }
     // 20. Net damage.
     let mut dmg = (base.wrapping_add(5) / 10).wrapping_sub(armor);
-    if pr { eprintln!("P4717 dmg base19 {base} net20 {dmg}"); }
     // 21. Overkill.
     if check_overkill && f.attacker_is_ranged() && f.attacker_is_unit() && f.target_is_unit() {
         let df = f.target_damage_frame();
@@ -343,7 +338,6 @@ pub fn get_damage_steps<F: DamageFacts>(
     // 23. Height.
     let az = f.attacker_z();
     let tz = f.target_z();
-    if pr { eprintln!("P4717 dmg az {az} tz {tz} pre23 {dmg}"); }
     if f.target_domain() != 2 && f.attacker_domain() != 2 && !f.attacker_obj_type_siege() && tz < az
     {
         let num = az
@@ -653,5 +647,3 @@ impl DamageFacts for Reduced<'_> {
         self.tt.recapturable_city
     }
 }
-
-pub static PROBE4717: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);

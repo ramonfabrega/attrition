@@ -1368,9 +1368,6 @@ impl Sim {
     /// `ai`'s other arms, the building-class multipliers (`0064e79b`–
     /// `0064e9e2`), are [`Sim::building_class_weight`]'s (item 3615).
     pub fn compare_target(&self, attacker: Obj, target: Obj, in_range: bool, ai: bool) -> i32 {
-        let probe = self.frame == 3715 && std::env::var_os("RON_PROBE4717").is_some() && matches!(attacker, Obj::Unit(u) if self.units[u].owner == 2 && self.units[u].index == 125);
-        let tk = match target { Obj::Unit(u) => (self.units[u].owner, self.units[u].index), Obj::Building(b) => (self.buildings[b].owner, self.buildings[b].index) };
-        macro_rules! pr { ($l:expr, $v:expr) => { if probe { eprintln!("P4717 {:?} {} {}", tk, $l, $v); } } }
         let ap = self.profile(attacker);
         let tp = self.profile(target);
         let is_build = matches!(target, Obj::Building(_));
@@ -1447,7 +1444,6 @@ impl Sim {
         }
         let t_attack = self.attack_of(target);
         let left = self.hits_left(target);
-        pr!("cost4", v); pr!("t_attack", t_attack); pr!("left", left); pr!("aa", aa);
         if t_attack != 0 && left != 0 && !aa {
             // A raider looks at an active building's worth, not its threat:
             // `iVar5 == 0 || !bVar17 || iVar4 == 0` takes the formula, and
@@ -1530,8 +1526,6 @@ impl Sim {
             // `get_damage` step 19 reads is the attacker's own, and two
             // otherwise equal candidates at different bearings rank apart.
             let (from, to) = (self.pos_of(attacker), self.pos_of(target));
-            crate::combat::damage::PROBE4717.store(probe, std::sync::atomic::Ordering::Relaxed);
-            if probe { eprintln!("P4717 {:?} from {:?} to {:?} heading {:#x}", tk, from, to, match target { Obj::Unit(u) => self.units[u].movement.heading.0, _ => 0 }); }
             // `splash` and `check_overkill` both 0 (`0064ebce`–`0064ebdf`):
             // the ranking never discounts a target another shooter has
             // just hit (item 601, `docs/COMBAT.md` §53).
@@ -1551,11 +1545,9 @@ impl Sim {
                 &self.mods_of(self.owner_of(attacker) as usize),
             )
         };
-        crate::combat::damage::PROBE4717.store(false, std::sync::atomic::Ordering::Relaxed);
         // **`0064ef4b`, both arms.** A human multiplies; a computer
         // leader on the lobby's own difficulty divides, and a candidate it
         // cannot hurt at all scores zero rather than dividing by nothing.
-        pr!("v_pre_dmg", v); pr!("dmg", dmg); pr!("ai", ai);
         if ai {
             if dmg == 0 {
                 return 0;
@@ -1740,13 +1732,10 @@ impl Sim {
             // **The target's `full + 1`** (`0064f107`–`0064f11b`, item
             // 3385): every unit target's score, Bark or not, is divided
             // by its [`crate::Unit::full`] plus one, `idiv` toward zero.
-            pr!("v_pre_full", v);
             if let Obj::Unit(u) = target {
-                pr!("full", self.units[u].full);
                 v /= i32::from(self.units[u].full) + 1;
             }
         }
-        pr!("v_post_full", v);
         if v < 0 {
             v = 9_999_999;
         }
@@ -1760,7 +1749,6 @@ impl Sim {
         if in_range && !raiding && !self.is_in_range(attacker, target) {
             v /= 5;
         }
-        pr!("v_pre_100", v); pr!("in_range_arg", in_range); pr!("is_in_range", self.is_in_range(attacker, target));
         v = v.wrapping_add(99) / 100;
         if v > 100_000 {
             v = 100_000 + (v - 99_996) / 5;
