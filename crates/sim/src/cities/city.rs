@@ -1763,10 +1763,8 @@ impl Sim {
         // its sixth argument, and this arm is not. A captured camp runs the
         // walk again and finds every candidate cell already carrying
         // `0x1000` — its own former tiles — so it costs no draw and lands an
-        // empty list, as the original's does. ~~and keeps it~~ — the old
-        // half's `Build::close` then gives those tiles back and flags the
-        // region, and the copy re-walks them on the next region pass
-        // (`crate::economy::gather::Sim::gather_region_building`, `docs/ECONOMY.md` §17).
+        // empty list. The ownership transfer then appends the old camp's
+        // ordered list before the old building closes (CITIES §7.5).
         let t = &self.tables.build_types[ty];
         if t.has(build::flags::GATHERER)
             && !t.has(build::flags::FLAT)
@@ -3469,9 +3467,7 @@ impl Sim {
     /// is the caller's to close.
     pub fn swap_team(&mut self, b: usize, a: Player) -> Option<usize> {
         let ty = self.buildings[b].ty?;
-        if !self.buildings[b].garrison.is_empty() {
-            self.eject_contents(b, true);
-        }
+        self.eject_contents(b, true);
         if !self.buildings[b].is_library {
             let who = self.buildings[b].owner;
             let mut ledger = std::mem::take(&mut self.economy.ledgers[who as usize]);

@@ -822,7 +822,11 @@ impl Sim {
     /// `Object::eject_contents` on a building: deferred — one squad a frame
     /// from the head, through [`Sim::process_ejection`].
     pub fn eject_contents(&mut self, b: usize, _kill_if_stuck: bool) {
-        if !self.buildings[b].garrison.is_empty() {
+        let site = &self.buildings[b];
+        let deferred = site.alive
+            && site.index < crate::WALL_BASE
+            && site.ty.is_some_and(|ty| !self.is_hangar(ty));
+        if deferred || !site.garrison.is_empty() {
             self.buildings[b].eject_pending = true;
         }
     }

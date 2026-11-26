@@ -1928,6 +1928,12 @@ dies in `do_trade` and ends the route in the kill
 `build_masks` short (`+0x60`) the copy also takes, which the crate's derived
 bits do not carry; the copy's `+0x48..+0x54` words.
 
+Run1844 measures the ejection bit on all five buildings transferred
+on 13669. Both owners' resource records show the same ordered 142 tiles
+at the camp. Closing its old record leaves those tiles claimed.
+The new records have the ejection bit on 13670 and clear it on 13671.
+[Transfer and list-only control](journal/2026-11-25-item-4706.md)
+
 ---
 
 ## 8. Assimilation, the city heal, plunder, loss

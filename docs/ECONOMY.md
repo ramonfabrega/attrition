@@ -2887,10 +2887,12 @@ and run1819 measures the village’s empty list in memory.
 - **`verify_gather_tiles`** has run in no capture either. It needs a camp
   closed inside `Objects::process_all` beside a camp whose tiles stand
   on another player's ground.
-- **The transfer's order**: the copy walks at `Build::init`, then the
-  old half's close frees the tiles, and the copy takes them back on the
-  next region pass. ~~No capture holds a captured camp.~~ The 2017 sample's Inca camp `3/2011`, taken on 3887,
-  is one. Ours re-walks it on 3889 with nothing to take. Theirs re-walks
+- **The transfer's order.** The new camp surveys at initialization, then
+  receives the old camp's ordered mining list before closure. Run1844
+  shows all 142 tiles of camp 0/2029 on its new owner's 3/2059 at
+  state 13670. [Original list and mask](journal/2026-11-25-item-4706.md)
+  A later region pass can add newly available ground, as it does for
+  the Inca camp `3/2011` taken on 3887. Ours re-walks it on 3889 with nothing to take. Theirs re-walks
   it again on state 3904, takes 61 tiles, and sets `gather_max` 5 (run1724;
   244 draws at `find_gather_tiles` < `Build::process+0x661`). ~~Ours has no
   flag that frame. Nothing establishes what set the region's `0x20` in

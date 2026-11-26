@@ -994,7 +994,15 @@ impl Sim {
         // `check_idle` and `think`, and takes it back after them.
         let land_cloak = self.units[u].unit_masks2 & combat::umask2::LAND_CLOAK;
         self.units[u].unit_masks2 &= !land_cloak;
-        self.set_default_anim(u);
+        // The hero keeps its current attack-category animation after a
+        // cast. Its normal animation clock handles the end of the clip.
+        let hero_animation =
+            self.units[u].guys.first().is_some_and(|g| {
+                crate::units::anim::category(g.anim) == crate::units::anim::ATTACK2
+            }) && self.is_hero_unit(u);
+        if !hero_animation {
+            self.set_default_anim(u);
+        }
         // `Unit::do_idle`'s own `collide = 0` (`docs/COLLISION.md` §6).
         self.units[u].collide = 0;
         self.check_idle(u, frame);

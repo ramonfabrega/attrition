@@ -202,6 +202,32 @@ fn animal(s: &mut Sim, who: Player, o: i16, piece: i32, anim: i8, cur: u32, end:
     s.add_unit(u)
 }
 
+#[test]
+fn an_idle_hero_holds_the_lead_figures_attack_animation() {
+    for (hero, anim, held) in [
+        (true, ATTACK1, true),
+        (true, ATTACK2, true),
+        (true, ATTACK3, true),
+        (true, ATTACKSPECIAL, true),
+        (false, ATTACK2, false),
+        (true, BUILD, false),
+    ] {
+        let mut s = sim_at(1);
+        let ty = s.add_unit_type(UnitType::default());
+        if hero {
+            s.tables.unit_types[ty].cols.unit_flags2 |= crate::ai::ai_load::uflags2::FLAG2_GENERAL;
+        }
+        let u = animal(&mut s, 0, 0, 2, anim, 1, 50);
+        s.units[u].ty = Some(ty);
+        s.do_idle(u, 0);
+        assert_eq!(
+            s.units[u].guys[0].anim == anim,
+            held,
+            "hero={hero}, slot={anim}"
+        );
+    }
+}
+
 /// **A pushed unit's trackless crew arrives where its guy 0 does not**
 /// (`docs/COLLISION.md` §16). A push rewrites guy 0's destination
 /// (`Unit::set_new_location`) and leaves the crew's, which is guy 0's

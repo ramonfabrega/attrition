@@ -558,6 +558,12 @@ end of that frame already carries the first step (§4.8).
 hero mid-attack-animation; `collide = 0`; **`check_idle()`; `think()`**. So
 `think` runs every frame the list is empty; its own cadence is inside.
 
+Run1844 shows the hero exception on tick 13634. General 3/27 has
+finished Forced March and its order list is empty. The three figures
+keep animation 12 and advance to its second frame. The idle call still
+updates the unit's idle counter and runs its normal decision logic.
+[Recorded figures and animation controls](journal/2026-11-25-item-4705.md)
+
 **The idle counter** — `UnitData::idle` (`+0xb0`, a byte) — `Unit::check_idle@
 006032c0`: `0xff → 1`; if `idle > 1` and `(o + frame) & 15 != 0` leave it;
 else `idle += 1`. `work` zeroes it whenever an order exists. So from the frame

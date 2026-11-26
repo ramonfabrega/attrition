@@ -1144,7 +1144,12 @@ impl Sim {
     /// off the leader's own heading; it is written here from the same
     /// heading so the record has a value the moment the move is issued,
     /// which is what run29's window compares against.
-    pub(super) fn record_form(&mut self, g: &Group, f: &crate::groups::form::Form, to: Pos) {
+    pub(super) fn record_form(
+        &mut self,
+        g: &Group,
+        f: &crate::groups::form::Form,
+        leader_offset: (Angle, i32),
+    ) {
         if self.gstate(g).is_none() {
             return;
         }
@@ -1183,7 +1188,7 @@ impl Sim {
             .collect();
         let theta = f.o.map_or(Angle(0), |u| self.units[u].movement.heading);
         let curr = Sim::form_update_positions(&off, theta);
-        let (o_angle, o_dist) = Sim::form_leader_offset(f, to);
+        let (o_angle, o_dist) = leader_offset;
         let num = g.num();
         let angles = f.angles.clone();
         let Some(st) = self.gstate_mut(g) else { return };

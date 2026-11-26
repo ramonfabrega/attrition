@@ -1552,6 +1552,15 @@ So `engagement` does not point ten units at one soldier: each takes
 whatever is nearest to it within the respond range, and the army's target
 is the seed.
 
+
+Run1844 supplies the live capture case on 13609. City 0/2022 has zero
+health and still accepts the order. The 33 selected figures take a move
+centred at (21600,25440). Group 201 records the leader's initial
+formation displacement of 179 before the individual destinations are
+adjusted around the building. Measuring after that adjustment gives
+696. Both checks hold for the entire recorded package.
+[City order and formation measurements](journal/2026-11-25-item-4704.md)
+
 ## 11. The captures
 
 **Every function this document cites by address has executed in a traced

@@ -538,6 +538,28 @@ fn a_closed_camp_gives_its_ground_back_to_the_next_one() {
     assert_eq!(again, was, "the same ground, listed again");
 }
 
+#[test]
+fn a_transferred_camp_keeps_its_tiles_in_order_when_the_old_site_closes() {
+    let mut s = sim();
+    let ty = camp(&mut s);
+    woods(&mut s);
+    let old = s.init_build(1, ty, tile_pos(5, 5), false);
+    let tiles = s.buildings[old].gather_from.clone();
+    assert_eq!(tiles.len(), 32);
+    let new = s.swap_team(old, 0).unwrap();
+    assert_eq!(s.buildings[new].gather_from, tiles);
+    assert!(s.buildings[old].gather_from.is_empty());
+    assert!(s.buildings[new].eject_pending);
+    s.close_building(old, false);
+    assert!(
+        tiles
+            .iter()
+            .all(|&t| s.world.tile_mask(t) & GATHERED_FROM != 0)
+    );
+    s.process_ejection(new);
+    assert!(!s.buildings[new].eject_pending);
+}
+
 /// A building that walks no ground — a farm is flat — flags nothing.
 #[test]
 fn a_flat_building_s_close_flags_no_region() {

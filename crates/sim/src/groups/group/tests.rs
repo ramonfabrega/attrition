@@ -4291,6 +4291,38 @@ fn a_group_sent_at_a_build_takes_it_without_a_search() {
     );
 }
 
+#[test]
+fn a_city_at_zero_health_still_accepts_a_group_order_until_it_closes() {
+    let mut s = sim();
+    let ty = fighter(&mut s);
+    let a = spawn(&mut s, 1, ty, Pos::new(0x1000, 0x1000));
+    let b = spawn(&mut s, 1, ty, Pos::new(0x1200, 0x1000));
+    let mut g = group_of(1, &[a, b]);
+    assert!(s.push_group(&mut g, true));
+    let site = Pos::new(0x3000, 0x3000);
+    let city = s.add_building(0, site, 0);
+    let ty = s.add_build_type(crate::cities::build::BuildType {
+        ident: crate::cities::build::Ident::Village,
+        ..Default::default()
+    });
+    let building = &mut s.buildings[city];
+    building.ty = Some(ty);
+    building.active = true;
+    building.combat = Some(combat::Profile::default());
+    building.hits = 800;
+    building.damage = 800;
+    building.sync_health();
+    assert!(s.capture_eligible(city));
+
+    s.buildings[city].alive = false;
+    s.group_action_attack(&g, Obj::Building(city), true, QueuePos::New, 0);
+    assert_eq!(s.gstate(&g).unwrap().order_num, 0);
+    s.buildings[city].alive = true;
+    s.group_action_attack(&g, Obj::Building(city), true, QueuePos::New, 0);
+    let state = s.gstate(&g).unwrap();
+    assert_eq!((state.o, state.order_num), (site, 1));
+}
+
 /// **A raider wants the economy** (item 1028, `docs/COMBAT.md` §68.1):
 /// `Object::compare_target`'s RAID arm. For a computer's raider a
 /// peasant is worth `+900,000` and anything neither a peasant, a

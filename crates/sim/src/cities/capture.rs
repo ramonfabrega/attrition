@@ -702,6 +702,7 @@ impl Sim {
         bd.active = old.active;
         bd.activated = old.activated;
         bd.under_attack = old.under_attack;
+        bd.eject_pending = old.eject_pending;
         bd.job_counter = old.job_counter;
         bd.job_counter_2 = old.job_counter_2;
         bd.constr_time = old.constr_time;
@@ -733,6 +734,18 @@ impl Sim {
         // is the larger of its own (its new owner's ages, `Build::init`)
         // and the old building's (item 4463).
         self.buildings[n].max_age_floor = self.build_max_age(b) as u8;
+        // A non-flat gather building transfers its mining list in order.
+        // Closing the old site must leave these tiles claimed by the copy.
+        if self.walks_gather_tiles(b) {
+            let tiles = std::mem::take(&mut self.buildings[b].gather_from);
+            let mtn = std::mem::replace(&mut self.buildings[b].mtn, -1);
+            let cliff = std::mem::replace(&mut self.buildings[b].cliff, -1);
+            let new = &mut self.buildings[n];
+            new.gather_from.extend(tiles);
+            new.update_gather_capacity();
+            new.mtn = mtn;
+            new.cliff = cliff;
+        }
         // `swap_team:75`–`81`, a farm (`TypeIndex` 0x1a1): the new building
         // takes the old one's `+0x78`, the `Farms` record is re-pointed at
         // it, and the old one's is −1, so its close frees nothing. The

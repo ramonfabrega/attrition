@@ -644,6 +644,10 @@ impl Sim {
             }
         }
 
+        // The layout records its leader's slot before the member walk
+        // replaces any destination that would be inside an obstacle.
+        let leader_offset = Self::form_leader_offset(&slots, to);
+
         // `action_move_near`'s `local_3c` and `local_18` across the member
         // walk (§6.6 step 4's same-region arm): the index of the last
         // captain the walk passed, and whether that captain was re-placed,
@@ -886,7 +890,7 @@ impl Sim {
         // So the record's `o_angle` is the formation's bearing and its
         // `o_dist` is the leader's offset within the block, which is how
         // run31 measures §6.4's displacement.
-        self.record_form(g, &slots, to);
+        self.record_form(g, &slots, leader_offset);
         self.record_move(g, to, angle, queue);
     }
 
@@ -1920,7 +1924,9 @@ impl Sim {
         queue: QueuePos,
         ignore: i32,
     ) {
-        if !self.active(target) {
+        // A city at zero health is still on the map. This order can
+        // enter the capture arm and send the group to its centre.
+        if !self.struck(target) {
             return;
         }
         let (whom, wwho) = crate::groups::attack_view::obj_key(self, target);

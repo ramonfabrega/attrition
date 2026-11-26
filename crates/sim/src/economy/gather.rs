@@ -629,7 +629,7 @@ impl Sim {
     /// `+0x90`) and not its `is_flat` (`+0x94`). `Build::init` adds a third
     /// test, not the university, that the other two do not; the
     /// university's list is always empty, so nothing it walks differs.
-    fn walks_gather_tiles(&self, b: usize) -> bool {
+    pub(crate) fn walks_gather_tiles(&self, b: usize) -> bool {
         self.buildings[b].ty.is_some_and(|ty| {
             let t = &self.tables.build_types[ty];
             t.has(flags::GATHERER) && !t.has(flags::FLAT)

@@ -699,6 +699,15 @@ recovers all eleven incomplete state prefixes. The earliest differences
 move to state 13610 and draw frame 13608.
 [Groups before and after the command](journal/2026-11-25-item-4703.md)
 
+**The city transfer (items 4704–4706).** The city at zero health accepts
+the 33-figure group order on 13609. The General then finishes his
+Forced March animation while idle. When the city changes hands, its camp
+keeps all 142 resource tiles in order. All five transferred buildings
+carry the ejection flag until their next processing pass. The first
+state difference is now the leader and city trade recount on 13672.
+Draws agree to 13910. [Group and city](journal/2026-11-25-item-4704.md)
+· [General](journal/2026-11-25-item-4705.md) · [Camp](journal/2026-11-25-item-4706.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte
