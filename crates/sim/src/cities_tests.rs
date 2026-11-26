@@ -12104,12 +12104,35 @@ fn a_script_s_second_ask_for_a_tech_in_research_is_refused() {
 /// to the city. Every other find, and the same find by a human's unit, a
 /// non-siege type or a unit in no group, adds it with `mandatory` 0 and
 /// leaves the army alone. East Indies' MLRS `1/99` on 5887 (run1423b).
+///
+/// **An unbuilt city's site is a city to the arm** (item 4718): the
+/// predicate is `ObjectData +0x8 & 0x20`, which `SubObject::init@00662300`
+/// sets on the `VILLAGE` lineage at placement, before any city record.
+/// Row 93's who=1 Howitzer `1/41` finds who=2's unbuilt Small City
+/// `2/2027` on 4130 (run1799): theirs' `mandatory` 1, where this crate
+/// asked for the city record and added 0.
 #[test]
 fn a_computer_siege_unit_s_find_of_a_city_is_mandatory_and_moves_its_muster() {
-    for case in ["city", "human", "not siege", "no army", "a unit"] {
+    for case in [
+        "city",
+        "unbuilt site",
+        "human",
+        "not siege",
+        "no army",
+        "a unit",
+    ] {
         let mut sim = world_sim();
         let t = install_types(&mut sim);
-        let (city, _) = city_at(&mut sim, &t, 0, 32, 32);
+        let city = if case == "unbuilt site" {
+            let b = sim
+                .place_building(0, t.village, tile_pos(32, 32))
+                .expect("the site places");
+            assert!(!sim.buildings[b].active, "{case}: unbuilt");
+            assert_eq!(sim.buildings[b].city, None, "{case}: no city record");
+            b
+        } else {
+            city_at(&mut sim, &t, 0, 32, 32).0
+        };
         while sim.cities.nation.len() < 2 {
             sim.cities.nation.push(Default::default());
         }
@@ -12155,7 +12178,7 @@ fn a_computer_siege_unit_s_find_of_a_city_is_mandatory_and_moves_its_muster() {
             ),
             "{case}: the find is added"
         );
-        let taken = case == "city";
+        let taken = matches!(case, "city" | "unbuilt site");
         assert_eq!(sim.units[me].combat.mandatory, taken, "{case}");
         if let Some(a) = army {
             let a = &sim.ai.armies[1].list[a];
