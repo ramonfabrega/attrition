@@ -509,7 +509,7 @@ pub(in crate::diff) mod tests {
     /// Item 4697: the ordered chase places the same four path nodes on 11487.
     /// Item 4698: a new garrison order keeps the catapult packing.
     /// Item 4699: Agriculture gets its Bison discount.
-    const SAMPLE_WALKED: (i64, i64) = (13910, 21044);
+    const SAMPLE_WALKED: (i64, i64) = (15245, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -848,18 +848,18 @@ pub(in crate::diff) mod tests {
     /// Item 4698: the two siege units take their recorded orders on 11687.
     /// Item 4699: player 2's research list now matches on 12354.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 13910),
-        ("builds", 13910),
+        ("units", 15217),
+        ("builds", 15265),
         ("walls", 21044),
-        ("ammo", 13918),
-        ("deaths", 13925),
-        ("groups", 13763),
-        ("guys", 13910),
-        ("leaders", 13672),
-        ("cities", 13672),
-        ("items", 15746),
-        ("goods", 14207),
-        ("world", 13910),
+        ("ammo", 15246),
+        ("deaths", 15273),
+        ("groups", 15268),
+        ("guys", 15217),
+        ("leaders", 15255),
+        ("cities", 15361),
+        ("items", 16960),
+        ("goods", 15869),
+        ("world", 15218),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -1600,6 +1600,36 @@ pub(in crate::diff) mod tests {
     }
 
     #[test]
+    fn the_sample_s_new_caravan_routes_earn_income_only_after_delivering() {
+        assert_sample_window(run1844(), 13669, 13674, None);
+    }
+
+    #[test]
+    fn the_sample_s_empty_group_keeps_its_current_record() {
+        assert_sample_window(run1844(), 13760, 13766, None);
+    }
+
+    #[test]
+    fn the_sample_s_reused_group_keeps_the_new_copy_stamp() {
+        assert_sample_window(run1844(), 13792, 13804, None);
+    }
+
+    #[test]
+    fn the_sample_s_city_returns_to_its_founder_with_its_workers() {
+        assert_sample_window(run1844(), 13907, 13913, Some((13911, 1)));
+    }
+
+    #[test]
+    fn the_sample_s_patriot_can_enter_a_full_town() {
+        assert_sample_window(run1844(), 14052, 14057, None);
+    }
+
+    #[test]
+    fn the_sample_s_horse_archer_drops_its_chase_on_contact_with_the_animal() {
+        assert_sample_window(run1844(), 14547, 14555, None);
+    }
+
+    #[test]
     fn the_sample_s_scout_order_and_city_marks_match_both_recorded_lines() {
         let (Some(inst), Some(rcx), Some(mut ranges)) = (install(), sample(), run1786()) else {
             return;
@@ -2225,91 +2255,91 @@ pub(in crate::diff) mod tests {
     const SAMPLE_RANGES_1844: &[PinnedRange] = &[
         (
             "units",
-            13910,
-            8197,
-            8214,
-            5911,
-            "1687 66 who..y_internal: x 20201|20182, y 26592|26616",
+            15217,
+            8337,
+            8331,
+            256,
+            "8028 1 who..y_internal: x 15498|15490, y 7686|7709",
         ),
         (
             "builds",
-            13910,
-            6727,
-            6727,
-            5490,
-            "936 2023 flags: flags 7|55",
+            15265,
+            6882,
+            6882,
+            1,
+            "3679 2007 myhits..launch_frames: up 29|-1",
         ),
         (
             "ammo",
-            13918,
+            15246,
+            18,
+            18,
             3,
-            3,
-            1,
-            "1 0 rolling..start_roll_angle: +0x13 of 99|99: 334c0000|2e4c0000",
+            "1 0 rolling..start_roll_angle: +0x7 of 99|99: 12470000|83470000",
         ),
         (
             "deaths",
-            13925,
-            84,
-            84,
-            2,
-            "53 26 first_frame..unit_crew: +0x4 of 71|71: 11000000|12000000",
+            15273,
+            58,
+            60,
+            26,
+            "11 5 first_frame..unit_crew: +0x0 of 71|71: a83b0000|d2390000",
         ),
         (
             "groups",
-            13763,
-            628,
-            628,
+            15268,
+            622,
+            622,
             1,
-            "166 130 id..march: stamp 13561|13586, o_angle -1269628928|0, think_frame 0|13751",
+            "16 4 id..march: ox 41952|38880, oy 42720|45792, o_angle 1605566464|1659371520",
         ),
         (
             "guys",
-            13910,
-            2400,
-            2400,
-            2,
-            "436 66 guy: x 20201|20182, y 26592|26616, z 529|526, des_x 20201|20182, des_y 26592|26616, last_speed 31|0, avg_speed 28|21, stopped 0|1",
+            15217,
+            2548,
+            2548,
+            1,
+            "2449 1 guy: x 15498|15490, y 7686|7709, z 290|286, angle 786759680|-1930756096, last_angle 786759680|-1930756096, des_x 15498|15490, des_y 7686|7709, des_angle 786759680|-1930756096, end_time 30|12, last_speed 0|24, avg_speed 0|6, cur_anim 0|7, stopped 1|0",
         ),
         (
             "leaders",
-            13672,
+            15255,
             675,
             675,
-            1,
-            "270 2 flags: +0x3 of 8|8: 02000000|00000000",
+            2,
+            "1 0 who..ally_mask: +0xa54 of 26914|26914: 01000000|02000100",
         ),
         (
             "cities",
-            13672,
-            85,
-            85,
-            3,
-            "9 7 city..ter: trade_val 1248|304",
+            15361,
+            96,
+            96,
+            1,
+            "51 18 city..ter: free 0|1, filled 19|18, space[0] 77|78, space[1] 77|78, space[2] 70|71",
         ),
         (
             "items",
-            15746,
-            10,
-            10,
+            16960,
+            5,
+            5,
             1,
-            "5 21 ever_seen: +0x0 of 1|1: 00|04",
+            "0 16 ever_seen: +0x0 of 1|1: 08|0c",
         ),
         (
             "goods",
-            14207,
+            15869,
             265,
             265,
             1,
-            "250 50 ever_seen: +0x0 of 1|1: 05|0d",
+            "255 51 ever_seen: +0x0 of 1|1: 09|01",
         ),
         (
             "world",
-            13910,
-            7955,
-            7955,
-            207,
-            "1549 1525 cell: +0xc of 21|21: 04330003|02330003",
+            15218,
+            7915,
+            7915,
+            2,
+            "4255 560 block.body: +0x3 of 96|96: f000f000|70007000",
         ),
     ];
 }

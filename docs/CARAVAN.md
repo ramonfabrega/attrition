@@ -513,6 +513,12 @@ building count — which nothing else refreshes between round trips: Great
 Sahara at Toughest's city 2 goes 176 → 184 on 6587 so (`docs/AI.md`
 §99.10). This crate has the first and the third; the second is parked.
 
+Ending the old route also clears its delivered bit. After city 13
+changes hands in the 2017 sample, two previously paying caravans take
+new routes on 13671. The destination links appear immediately. The
+three cities retain their existing income until deliveries are made
+on those new routes. [Recorded trade values](journal/2026-11-25-item-4707.md)
+
 ### 7.3 `City::new_caravan@00739750` — the one-off
 
 `traded_with[who]` (`CityData +0x2c`, `int[8]`) is a bit per partner city,

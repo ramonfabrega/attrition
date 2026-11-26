@@ -11665,9 +11665,10 @@ margin and the captain retarget). The unit test is
   built** (item 1177, §65.8). ~~The unit arm's (`5f7f11`) is still not
   modelled.~~ **The unit arm's is built** (item 3342, §65.8's last
   paragraph).
-- **`valid_target@00648ba0`** (`5f7f71`), the building arm's third
-  conjunct, is not modelled. It refuses only a capturable building the
-  attacker cannot capture, which no capture on disk has shown.
+- Run1844 reaches the building arm's third conjunct on 13909. The
+  range check sees a city still on the map at zero health. The target
+  check returns the city to player 0 during unit 65's move, before the
+  collision check. [Item 4709](journal/2026-11-25-item-4709.md)
 - **A wall target** takes the building arm by the vslot. This crate's
   walls are buildings, so it does too, and no capture shows one.
 

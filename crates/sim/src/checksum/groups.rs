@@ -139,9 +139,18 @@ impl Sim {
             .pushed
             .iter()
             .find(|p| p.who == who && p.state.pool == Some(s));
-        // The record: an army's while it has members, else the pushed
-        // entry's, else an army's empty one.
+        // A linked army can lose its last member between group and army
+        // processing. The empty record then still belongs to that army
+        // if the other empty copy predates it (run1844, slot 130).
         let (st, units, builds): (&GroupState, &[usize], &[usize]) = match (army, pushed) {
+            (Some(a), Some(p))
+                if !a.group.unlinked
+                    && p.list.is_empty()
+                    && p.builds.is_empty()
+                    && a.group.stamp > p.state.stamp =>
+            {
+                (&a.group, &a.units, &[])
+            }
             (Some(a), _) if !a.units.is_empty() || pushed.is_none() => (&a.group, &a.units, &[]),
             (_, Some(p)) => (&p.state, &p.list, &p.builds),
             (Some(a), None) => (&a.group, &a.units, &[]),

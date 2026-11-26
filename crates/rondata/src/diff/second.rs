@@ -2845,7 +2845,13 @@ mod tests {
         // on `1/2005`, `1/2020`, `1/2044` (ours 1 each) — the human's defeat asks `Game::check_victory`, whose conquest victory cleans every one of who=1's queues with no refund (`Leader::victory`, `docs/LEADERS.md` §10.2).
         // Item 4340: −1, no `leader:defense` row is left (the human's tally moves, its writers ungated; ch125 and ch131 name that key, here it is inferred).
         // Item 4435: 40 -> 27, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-        pin_eq!(w.firsts.len(), 27, "run594 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 2677: −1 (parked 2680).
+        // Item 4706: the transferred camp retains all 73 gather tiles on 18141.
+        pin!(
+            !w.firsts
+                .contains_key(&(1, 2057, "gather:length[-1]".into())),
+            "the camp's recorded gather count agrees throughout the window"
+        );
+        pin_eq!(w.firsts.len(), 26, "run594 record baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 2677: −1 (parked 2680).
         pin_eq!(
             w.firsts
                 .get(&(1, 181, "g.cur_anim[0]".into()))

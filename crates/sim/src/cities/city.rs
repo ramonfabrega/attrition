@@ -3456,9 +3456,6 @@ impl Sim {
             }
             nc.race = Some(a);
         }
-        if nc.race == Some(a) {
-            nc.unassimilated = false;
-        }
     }
 
     /// `Build::swap_team(B, A)` → `Wall::swap_team`: the garrison out, the

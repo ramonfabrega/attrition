@@ -3294,6 +3294,18 @@ This crate now takes the arm for a **sea** unit: `Sim::takes_boat_arm`,
 
 ## 14. The enemy ladder's arm C: a captain bumped by another enemy strikes what it can reach — golden chapter eight 659 → 900, closed (item 668, 2026-09-23)
 
+Run1844 supplies the case of an attacking unit blocked by a neutral animal
+(item 4711). At 14549 horse archer 3/16 hits 8/8 while chasing 0/92.
+The original's collision fields name 8/8 on 14550. The unit stays at
+(22436,28984), clears both orders and keeps that position on 14551,
+when it acquires an attack again. The captain's search from its current
+position reproduces the entire recorded window. The owner test reaches
+Gaia through the reverse diplomacy entry. In the sample's state-11687
+snapshot Gaia's diplomacy words for all eight players are zero, even
+though player 3's treaty with slot 0 is 3. Run1830, run1830b and run1562
+also have eight zeros. See [the comparisons](journal/2026-11-25-item-4711.md).
+
+
 Chapter eight's word was **659**, 9 draws against 10 at draw 2, the
 original's `Unit::fight+0x9b0`. The value diff was a frame earlier.
 who=1's hoplite `1/6` chases the General `0/9` and is blocked by who=0's

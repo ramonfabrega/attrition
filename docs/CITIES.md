@@ -1357,6 +1357,12 @@ strafe order; other aircraft never through this path.
    nearest sibling on the chain with room that `can_garrison` — and re-order
    there; else "building full".
 
+Run1844 shows why the two costs are separate (item 4710). On state
+14054, thirteen citizens and one two-slot unit fill town 0/2008's
+fifteen slots. Patriot 0/74 has zero control cost and enters on the
+next state. Once seated, a government patriot counts one. An ordinary
+decoy costs zero both at admission and in the occupant count.
+
 `Group::action_garrison` (the UI/AI group action) applies the same gates
 before issuing the order, refuses an `is_unassimilated` target, and `Group::
 action_alarm` (the town bell) garrisons every citizen into its city and sets
@@ -1888,6 +1894,13 @@ f &= ~(0x10 | 0x4000)
 was_capital_flags & (1 << A): f |= 0x10; clear the bit; (f & 0x8000 and A == founder → (f & 0x3fff) | 0x4010: the original capital restored whole); race = A
 new.city_flags = f;  building.damage = hits(0) − 10
 ```
+
+On run1844 the city at (21600,25440) returns from player 3 to its
+founder, player 0, on state 13910 (item 4709). Its race is already 0.
+The hostile transfer still sets city flag `0x100`. Four linked buildings
+regain their road flags on the same transfer. The city-radius lookup
+admits both negative territory values, including a contested cell;
+a nonallied player's territory still fails the lookup.
 
 **The recapture modifier** (`docs/COMBAT.md` §6 step 28): `ObjectData::
 get_damage` compares **`cities[T.who][T.city].race == A.who`** — the nation

@@ -142,28 +142,11 @@ impl Sim {
         }
     }
 
-    /// The garrison slots one squad takes — `num_inside(0)`'s per-captain
-    /// term: a government patriot 1, anything else its control cost.
-    fn slot_cost(&self, unit: usize) -> i32 {
-        match self.units[unit].ty {
-            Some(t) => {
-                let ut = &self.tables.unit_types[t];
-                if ut.garrison.gov_hero {
-                    1
-                } else {
-                    ut.price.pop
-                }
-            }
-            None => 1,
-        }
-    }
-
     /// `ObjectData::num_inside(0)`: the slots occupied.
     ///
     /// The port's garrison list holds captains only, every one a unit, and
     /// a building with a garrison is on the map, so the three questions
-    /// `inside_count` asks first answer yes here. A decoy is not asked:
-    /// the port answers its control cost (`slot_cost`).
+    /// `inside_count` asks first answer yes here.
     pub fn num_inside(&self, b: usize) -> i32 {
         inside_count(
             || true,
@@ -171,13 +154,13 @@ impl Sim {
             self.buildings[b].garrison.iter().copied(),
             |_| true,
             |_| true,
-            // `slot_cost`'s two arms: a squad with no type counts 1.
+            // A squad with no type counts 1.
             |&u| {
                 self.units[u]
                     .ty
                     .is_none_or(|t| self.tables.unit_types[t].garrison.gov_hero)
             },
-            |_| false,
+            |&u| self.units[u].decoy,
             |&u| {
                 self.units[u]
                     .ty
@@ -277,7 +260,13 @@ impl Sim {
                 return Err(GarrisonRefused::CityTooHurt);
             }
         }
-        let cost = self.slot_cost(unit);
+        // Admission uses the incoming type's control cost. Once seated,
+        // a government patriot counts as one in `num_inside(0)`.
+        let cost = if u.decoy {
+            0
+        } else {
+            self.tables.unit_types[uty].price.pop
+        };
         if self.num_inside(b) + cost > limit {
             return Err(GarrisonRefused::Full);
         }

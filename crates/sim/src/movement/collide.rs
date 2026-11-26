@@ -3249,7 +3249,10 @@ impl Sim {
         let Ok(them) = u8::try_from(self.units[u].collide_who) else {
             return false;
         };
-        if !self.is_enemy(who, them) {
+        // Run1844, 14549: the horse archer's step hits animal 8/8.
+        // The collision uses the same gaia owner test as the wait arm.
+        let animal = self.collider_of(u).is_some_and(|c| self.units[c].is_gaia());
+        if !animal && !self.is_enemy(who, them) {
             return false;
         }
         if !self.units[u].captain {
@@ -3510,13 +3513,9 @@ impl Sim {
                     })
                     .is_some_and(|v| v.waiting_on);
             //
-            // **A gaia collider is always "an enemy"** (`005fa5f0`'s
-            // `LeaderData::is_enemy@006ebaa0` on the collider's owner):
-            // `diplos` is `int[8]`, so a gaia owner 8 reads `treaties[0]` of
-            // *my* leader — 0 for the AI toward the human, as every capture
-            // prints — and the gaia leader's own `diplos[who]` is never
-            // written. A walker blocked by a walking animal repaths rather
-            // than waits (item 1561, Great Sahara's 1247).
+            // Gaia's reverse diplomacy word is zero, including in run1844
+            // where the asking leader's forward word is nonzero (item 4711).
+            // A walker blocked by a moving animal repaths here (item 1561).
             let enemy_owner = self.units[o].is_gaia() || self.at_war_with(who, self.units[o].owner);
             if i32::from(self.units[o].collide) < cap
                 && i32::from(self.units[u].collide) < cap

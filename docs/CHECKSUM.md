@@ -2192,7 +2192,10 @@ record's `who` 0, `disband` and `priority` constant by their writers, and
   record while the army has members. ~~Once the army empties~~ **answered for
   a prune** by item 4676 (`docs/ARMY.md` §3.3): `Army::normalize`'s
   `remove_group` moves the record onto the index's own entry, replacing the
-  stale one. An army emptied by `Group::kill` still falls to a stale entry.
+  stale one. Run1844 also covers the earlier interval between losing the
+  last member and the recount. Slot 130 keeps army 1's stamp, angle
+  and last-think value through that interval, then receives the new
+  copy's stamp when the slot is reused. [Item 4708](journal/2026-11-25-item-4708.md)
 - A frame where `get_open_slot`'s fallbacks fire.
 
 ## 20. The leaders line, held out on the long range (items 4121, 4124)

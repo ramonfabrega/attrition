@@ -49,9 +49,8 @@ pub type Player = u8;
 ///
 /// So gaia's units cannot be found by a search, cannot be a valid target, and
 /// cannot be hit by ammunition (`Ammo::check_hit@00678d90` is a `find_unit`).
-/// The second bound is also why the original never asks a diplomacy question
-/// about them: `LeaderData::diplos` is `int[8]`, so `is_enemy(8)` would read
-/// `treaties[0]` — the original has no answer there either.
+/// Collision handling also sees Gaia's owner. Its enemy test there reads
+/// the reverse diplomacy word from Gaia's own leader record (item 4711).
 pub const PLAYER_SLOTS: Player = 8;
 
 /// Position units per tile and per world cell, and tiles per world cell

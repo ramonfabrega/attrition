@@ -1219,6 +1219,7 @@ impl Sim {
         let van = &mut self.economy.caravans[who as usize].slots[v];
         van.road.clear();
         van.linked = false;
+        van.delivered = false;
         van.city_a = None;
         van.city_b = None;
         van.reset_road = false;

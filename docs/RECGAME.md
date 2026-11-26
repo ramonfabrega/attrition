@@ -708,6 +708,20 @@ state difference is now the leader and city trade recount on 13672.
 Draws agree to 13910. [Group and city](journal/2026-11-25-item-4704.md)
 · [General](journal/2026-11-25-item-4705.md) · [Camp](journal/2026-11-25-item-4706.md)
 
+**The second city transfer and the blocked horse archer (4707–4711).**
+Caravans stop counting previous deliveries when they get a new route.
+Group 130 carries its live army record through emptying and reuse.
+City 0/2022 returns to its founder with all four dependent buildings.
+Town 0/2008 then admits its zero-cost patriot. On tick 14549 horse
+archer 3/16 runs into animal 8/8. It drops the chase and searches from
+its current position. These changes move the first state difference
+13672 → 15217 and draws 13910 → 15245. The first item difference
+moves 15746 → 16960. At 15217 animal 8/1 takes the first step of a
+two-node route to (14568,7416) in the original.
+[Trade](journal/2026-11-25-item-4707.md) · [Group](journal/2026-11-25-item-4708.md)
+· [City](journal/2026-11-25-item-4709.md) · [Garrison](journal/2026-11-25-item-4710.md)
+· [Collision](journal/2026-11-25-item-4711.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte

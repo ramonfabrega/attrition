@@ -3049,6 +3049,33 @@ fn a_decoy_moves_no_garrison_count_in_or_out() {
 }
 
 #[test]
+fn a_full_town_admits_a_decoy_and_a_zero_cost_patriot() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let pos = tile_pos(32, 32);
+    let (town, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    let mut patriot = citizen_type(t.village);
+    patriot.price.pop = 0;
+    patriot.garrison.gov_hero = true;
+    let patriot = sim.add_unit_type(patriot);
+    let limit = sim.garrison_limit(town);
+    assert!(limit > 0);
+    for _ in 0..limit {
+        let u = spawn(&mut sim, 0, citizen, pos);
+        assert_eq!(sim.garrison(u, town), Ok(()));
+    }
+    let decoy = spawn(&mut sim, 0, citizen, pos);
+    assert_eq!(sim.garrison(decoy, town), Err(GarrisonRefused::Full));
+    sim.units[decoy].decoy = true;
+    assert_eq!(sim.garrison(decoy, town), Ok(()));
+    assert_eq!(sim.num_inside(town), limit);
+    let hero = spawn(&mut sim, 0, patriot, pos);
+    assert_eq!(sim.garrison(hero, town), Ok(()));
+    assert_eq!(sim.num_inside(town), limit + 1);
+}
+
+#[test]
 fn hoplites_fill_a_barracks_to_its_limit_and_leave_one_squad_a_frame() {
     let mut sim = world_sim();
     let t = install_types(&mut sim);

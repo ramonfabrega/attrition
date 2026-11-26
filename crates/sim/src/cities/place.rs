@@ -788,10 +788,10 @@ impl Sim {
         if self.world.tile_mask(t) & tile::CITY_RADIUS == 0 {
             return None;
         }
-        match self.world.owner_at(pos) {
-            Owner::None => {}
-            Owner::Player(p) if self.is_ally(who, p) => {}
-            _ => return None,
+        if let Owner::Player(p) = self.world.owner_at(pos)
+            && !self.is_ally(who, p)
+        {
+            return None;
         }
         let mut best: Option<(i32, usize)> = None;
         for (ci, c) in self.cities.cities.iter().enumerate() {

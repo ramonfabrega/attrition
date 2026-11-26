@@ -343,5 +343,11 @@ fn korean_ancient_pair_run1200_s_closing_frame_is_widened_whole() {
     // `1/2048`, `1/2054` (1 each) — the human's defeat asks `Game::check_victory`, whose conquest victory cleans every one of who=1's queues with no refund (`Leader::victory`, `docs/LEADERS.md` §10.2). The queues 3578c names.
     // Item 4340: −1, no `leader:defense` row is left (the human's tally moves, its writers ungated; ch125 and ch131 name that key, here it is inferred).
     // Item 4435: 153 -> 139, a transport's birth `form` 0, `Unit::init`'s (`transport_boat`).
-    pin_eq!(w.firsts.len(), 139, "the closing walk's baseline");
+    // Item 4706: camp 1/2061 retains its 73 recorded gather tiles on 5640.
+    pin_eq!(
+        w.firsts.get(&(1, 2061, "gather:length[-1]".into())),
+        None,
+        "the transferred camp retains its recorded tile count"
+    );
+    pin_eq!(w.firsts.len(), 138, "the closing walk's baseline");
 }

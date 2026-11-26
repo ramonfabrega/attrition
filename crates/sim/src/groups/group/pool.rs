@@ -293,6 +293,11 @@ impl Sim {
             a.valid && a.num_units != 0 && a.group.pool == Some(pool) && a.units.is_empty()
         }) {
             a.units = g.list.clone();
+            // A copy writes the record but leaves its army link alone.
+            a.group = GroupState {
+                unlinked: a.group.unlinked,
+                ..self.orders.pushed[slot].state.clone()
+            };
         }
         pool
     }

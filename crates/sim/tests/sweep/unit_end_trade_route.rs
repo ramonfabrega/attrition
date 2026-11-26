@@ -56,7 +56,7 @@ fn the_emulated_original_agrees_on_every_row() {
         return;
     };
     let mut n = 0;
-    let (mut parted_city_a, mut parted_city_b, mut parted_reset, mut parted_delivered) =
+    let (mut parted_city_a, mut parted_city_b, mut parted_reset, mut cleared_delivered) =
         (0, 0, 0, 0);
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (lhs, rhs) = line
@@ -105,6 +105,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     r[0xc] = (r[0xc] & !2) | (u8::from(after.linked) << 1);
                 }
                 if after.delivered != before.delivered {
+                    cleared_delivered += usize::from(before.delivered && !after.delivered);
                     r[0xc] = (r[0xc] & !4) | (u8::from(after.delivered) << 2);
                 }
                 if after.city_a != before.city_a {
@@ -148,23 +149,14 @@ fn the_emulated_original_agrees_on_every_row() {
             if w == &want[2 + i] {
                 continue;
             }
-            // The port parts from the original here (parked, item 3238): the original leaves
-            // `+0..+7` and `+0x24` alone and clears `caravan_flags & 4`, the port forgets the
-            // pair, clears `reset_road` and keeps `delivered`.
+            // The retained differences from item 3238 are the two city
+            // slots and reset_road. The entire flags byte must agree.
             let diffs: Vec<usize> = (0..w.len()).filter(|&o| w[o] != want[2 + i][o]).collect();
             for &o in &diffs {
                 match o {
                     0 | 1 => parted_city_a += 1,
                     4 | 5 => parted_city_b += 1,
                     0x24..=0x27 => parted_reset += 1,
-                    0xc => {
-                        assert_eq!(
-                            w[o] ^ want[2 + i][o],
-                            4,
-                            "only `delivered` parts, row `{line}`"
-                        );
-                        parted_delivered += 1;
-                    }
                     _ => panic!("end_trade_route — window p[{i}] byte {o:#x}, row `{line}`"),
                 }
             }
@@ -173,9 +165,9 @@ fn the_emulated_original_agrees_on_every_row() {
     }
     assert!(n >= 1000, "only {n} rows");
     // Each cause must be in the rows, so the row set still reaches it.
-    assert!(parted_city_a > 0 && parted_city_b > 0 && parted_reset > 0 && parted_delivered > 0);
+    assert!(parted_city_a > 0 && parted_city_b > 0 && parted_reset > 0 && cleared_delivered > 0);
     eprintln!(
-        "parts: city {parted_city_a}/{parted_city_b} reset {parted_reset} delivered {parted_delivered}"
+        "parts: city {parted_city_a}/{parted_city_b} reset {parted_reset} delivered cleared {cleared_delivered}"
     );
     eprintln!("Unit::end_trade_route@005e3bd0: {n} rows agree");
 }

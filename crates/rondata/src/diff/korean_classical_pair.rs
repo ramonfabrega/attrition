@@ -325,5 +325,11 @@ fn korean_classical_pair_run1250_s_closing_frame_is_widened_whole() {
     // Item 4340: −1, no `leader:defense` row is left (the human's tally moves, its writers ungated; ch125 and ch131 name that key, here it is inferred).
     // Item 4448: 154 -> 153, a bumped guard's `update_action` (`detect_unit_collision`'s `0xc` arm).
     // Item 4533: 153 -> 152, who=1's `bucket[3:knowledge]` on 8778 ours 1437 -> 937, theirs 937: the first capital's plunder skips Knowledge (`capture_city@00733380` lines 898-910), closing parked 3609a.
-    pin_eq!(w.firsts.len(), 152, "the closing walk's baseline");
+    // Item 4706: camp 1/2090 retains its 45 recorded gather tiles on 8778.
+    pin_eq!(
+        w.firsts.get(&(1, 2090, "gather:length[-1]".into())),
+        None,
+        "the transferred camp retains its recorded tile count"
+    );
+    pin_eq!(w.firsts.len(), 151, "the closing walk's baseline");
 }

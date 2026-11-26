@@ -986,9 +986,9 @@ impl Sim {
                     // reach of the human's city at 2284 with its mate
                     // `1/30` two unit cells off, and walks one more step.
                     //
-                    // SEAM: `valid_target@00648ba0` (`5f7f71`), between
-                    // the two, is not modelled; it refuses only a
-                    // capturable building.
+                    // Target validation runs before the collision test.
+                    // Reaching a zero-health city can change its owner
+                    // here even when the move continues (run1844).
                     if self.profile(me).max_range != 0
                         && let crate::combat::Obj::Building(_) = t
                     {
@@ -998,7 +998,8 @@ impl Sim {
                                 .flag(crate::ai::ai_load::uflags::FLAG_SIEGE)
                         });
                         if !(siege && self.ai_driven(self.units[u].owner))
-                            && self.is_in_range(me, t)
+                            && self.is_in_range_struck(me, t)
+                            && self.valid_target(me, t)
                             && !self.find_collision_forced(u, self.units[u].pos)
                         {
                             self.kill_current_order(u);
