@@ -6876,8 +6876,138 @@ photograph's pixels. **Read alone**: the code table's arms other than SA0.
   `IFaceMiniMap::update_visibility@008154c0` tests the leader's `& 0x80000`.
 - The window at a frame other than 1,920 × 1,080. Ours keeps the window at
   `minimap::quad`'s distance from the left and bottom edges.
-- The bar's other windows: `IFACEOPTIONS`, `IFACESELECTED`, the stone strip
-  and the clock's bar (4694c).
+- ~~The bar's other windows: `IFACEOPTIONS`, `IFACESELECTED`, the stone strip
+  and the clock's bar (4694c).~~ The options grid, the stone strip, the
+  bar's edges and the pause button: §6.11 (item 4724). `IFACESELECTED`, the
+  clock's box and the top's windows remain.
+
+## 6.11 The HUD's bar: the left window and the options grid (item 4724)
+
+*2026-11-26, Opus 5.5. The ledger: `docs/journal/2026-11-26-item-4724.md`.
+`client::frame::left`; the row `RUN1814B_3294_LEFT_WINDOW`. No
+`crates/sim` change.*
+
+**Where the windows are.** `IFaceMain::position_windows@00809250` places
+only the selected panel and the garrisons. The rest is interface.xml's.
+`<IFACEMAINBASE>` is the bar, 198 tall. Its `left_window` is (0, 34),
+316 × 163, and its `mid_window` (316, 1). `<IFACEOPTIONS name="main">`
+sits in the left window at its own (3, 0), 313 × 161. Its twenty buttons
+are its `POSITIONING`'s: x 0, y −1, rows 41 apart, buttons 63 apart, each
+61 × 39.
+
+**The bar's origin** is the minimap window's less `mid_window`'s corner:
+(316 − 316, 884 − 1) = (0, 883) on the 1,920 frame. The bar's 198th row
+falls off the frame, as the minimap's 197th does. `top_inverse="198"`
+alone would put it at 882. The pause button, registered alone, puts it
+at 883: `TEX_CIV` (313, 0) at (4, 893) is 456 of 456 within two levels,
+and 34 % one pixel either side.
+
+**The pieces, registered on run1814b's photograph** at frame 3294,
+`Iface_SA0_assets.tga`, in the order ours draws them:
+
+| piece | crop | where, in the bar | how | within two levels |
+|---|---|---|---|---|
+| `bar` | (390, 131) 122 × 34 | (0, 0), 316 wide | tiled from x 0 | 5,543 of 5,856 off the clock; its last row lies under the grid |
+| `left_tile` | (1, 51) 3 × 93 | (0, 34)..(3, 198) | tiled | all |
+| `left_tile_only` | (51, 0) 103 × 3 | (2, 195)..(313, 198) | tiled | all |
+| pause | (313, 0) 24 × 19 | (4, 10) | 1:1 | 456 of 456 |
+| `misc_tile` ×8 | (155, 0) 28 × 3, (155, 8) 3 × 30 | the grid's rows and columns | tiled from the rectangle's corner | all |
+| `misc` ×15 | 6 × 7 and 7 × 6 | the dividers' ends | at the rectangle's size | all |
+| `blank_button` ×20 | (211, 20) 60 × 38 | each button, 61 × 39 | stretched, bilinear, unclamped | 35,685 of 35,685 on the fifteen empty slots |
+
+The n-th `IFACERECT` of a name is paired with the n-th `IFACETEX` of that
+name. `IFaceOptions::on_redraw@00815a50` and
+`IFaceMainBase::on_redraw@00811600` step the two lists together.
+
+**The stretch reads past the crop.** The blank slot is 60 × 38 and the
+button 61 × 39. Sampled at the button's texel centres, `l + (x + ½)·60/61
+− ½`, and read from the atlas past the crop's edge, the fifteen empty
+slots are 35,685 of 35,685. Clamped to the crop they are 33,825, and
+every slot's top and bottom rows part. At an offset of 0 or 1 instead of
+½ they are near half. Ours is exact in integers, rounded half up
+(`frame::left::stretched`).
+
+**The parent first.** The `misc` feet at the grid's bottom lie over the
+bar's `left_tile_only`. Drawn the other way, 59 pixels part on rows 1078
+and 1079.
+
+**The row** (`frame::tests::the_minimap_frame_on_run1814b`, its second
+assertion): the left window's opaque pixels on the frame,
+
+| | pixels | within two levels of the photograph | mean luma ×10 |
+|---|---|---|---|
+| the photograph against the composition | 61,614 | 45,964 | 516 |
+| ours, no frame (before) | | 0 | 820 |
+| **ours, the frame** | | **45,964** | 459 |
+
+The 15,650 the photograph parts on are the clock's box, 3,800 (all of
+`timer_area2`, 200 × 19, 4724a), and the five slots that hold a picture,
+11,850 (the citizen, the sign, the bell, the town and the flag, 4724b).
+
+**Diff-backed**: the bar's origin, each piece's crop, place and fill, the
+pairing and the order, against the photograph's pixels. **Read alone**:
+that `position_windows` places none of these windows.
+
+**Not established.**
+- Why the bar's origin is 883 where `top_inverse="198"` gives 882.
+- `tile_random`'s randomness. Every tile here starts at the rectangle's
+  corner, and agrees.
+- ~~The clock's box (`time_back`, `draw_game_timer@0080a3c0`) and its text
+  (4724a).~~ Drawn by item 4727, §6.12. `draw_game_timer` is the victory
+  timers'; the clock is `draw_button_row_area@0080f7b0`'s.
+- The slots' pictures, which are the selected object's orders off
+  `TEX_ORDERS_0` and the units' icons (4724b).
+- `IFACESELECTED`, the top's resources box, banner and population box, and
+  the right side of the bar.
+- The bar at a width other than 1,920. Ours draws the left window only.
+
+## 6.12 The HUD's bar: the clock (item 4727)
+
+*2026-11-26, Opus 5.5. The ledger: `docs/journal/2026-11-26-item-4727.md`.
+`client::frame::left` (`clock_line`, `write_clock`, `CLOCK_FACE`),
+`client::frame::clock_line`; the row `RUN1814B_3294_LEFT_WINDOW`. No
+`crates/sim` change.*
+
+**Who draws it.** `IFaceMainBase::draw_button_row_area@0080f7b0`, from
+`on_redraw@00811600`. It builds `msg`: the speed's name
+(`game_speeds[TurnControl::speed]`, `rules.xml`'s `gamespeeds`), `: `, then
+`say_timer` of `Game::tick` (`client::hud::clock`). It `add_smooth`s a
+texture into a rectangle at the rectangle's size. Then it
+`write_cent_l`s `msg` into the same rectangle.
+
+**The box** is `time_back` (`TEX_CIV` (261, 108), 124 × 19) stretched into
+`timer_area2` (32, 10), 200 × 19. It is the same unclamped bilinear stretch
+as the slots (§6.11). On the photograph at (32, 893), with the text still on
+it, the box alone takes 3,064 of 3,800 pixels. Drawn 1:1 instead, it takes
+1,084 of 2,356 at its best offset. Interface.xml has three `timer_area2`s;
+only `<IFACEMAINBASE>`'s is 200 wide.
+
+**The text.** `write_cent_l@0050f850` puts the pen at
+`x0 + (w − text_width) / 2` and `y0 + (h − text_height) / 2`, both
+truncated. The font is `fonts`' lookup 27, `clock_size`: `arialbd.ttf` at
+12, with `mAscent` 11 and `mFontHeight` 14. The probe read run1814b's packet
+font table; Arial Bold's own metrics round to the same 11 and 14. The glyphs
+come from the plate's pipeline (§6, `PlateFace::load_face`): hinted cells,
+each advance rounded. The shadow is black, one pixel right and one down. It
+goes down first, then the text in white.
+
+**The row.** Ours 45,964 → **49,547** of 61,614; luma ×10 459 → 418
+(theirs 516). In the box, 3,583 of 3,800 agree. The 217 that do not:
+- 71 are the last digit. Ours writes `00:03:39` for frame 3295 (3295 / 15 =
+  219, and the packet's `Game::tick` on 3294 is 219). The photograph reads
+  `00:03:38`. Written `00:03:38`, the box is 3,617.
+- The rest are glyph edges, each under 20 levels.
+
+**Diff-backed**: the box's texture, rectangle and stretch, and the line's
+place, face and shadow, against the photograph's pixels. **Read alone**:
+the rectangle `draw_button_row_area` resolves (its strings are table
+offsets); the pixels pick `timer_area2`.
+
+**Not established.**
+- Why run1814b's bar shows tick 218 where the packet holds 219 (4727a).
+- The glyph edges' 146.
+- The ranked game's short timer and the paused and cannon branches of the
+  line.
 
 ## 7. What is not established, and what needs Ramon's word
 

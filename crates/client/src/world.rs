@@ -167,6 +167,9 @@ pub struct World {
     /// The HUD's frame (item 4694, `docs/RENDERER.md` §6.10), `None`
     /// where interface.xml does not lay the minimap's window.
     pub(crate) frame_art: Option<crate::frame::FrameArt>,
+    /// The game's speed, an index into `rules.xml`'s `gamespeeds`
+    /// ([`crate::pace::speed_of`]); the bar's clock names it (item 4727).
+    pub(crate) speed: u8,
     /// The minimap's blips' atlas (item 4601, `docs/RENDERER.md` §3.33),
     /// `None` where `effects_graphics.xml` names no `<BLIPMAP>`.
     pub(crate) blip_atlas: Option<crate::minimap::blips::Atlas>,
@@ -1371,6 +1374,7 @@ impl World {
             shadow_art,
             scroll_art: crate::selection::ScrollArt::load(install.root()).ok(),
             frame_art: crate::frame::FrameArt::load(install.root()).ok(),
+            speed: crate::pace::NORMAL,
             blip_atlas: crate::minimap::blips::Atlas::load(install.root()),
             ping_set: crate::minimap::pings::Set::load(install.root()),
             pings: Default::default(),

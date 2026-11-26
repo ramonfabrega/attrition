@@ -6392,6 +6392,76 @@ fn the_attack_move_looks_around_one_frame_in_fifteen() {
     }
 }
 
+/// **An attack-move drops an aircraft it cannot bring down** (item
+/// 4723, `Object::find_nearby_target@00648da0`'s add, lines 552–557):
+/// a searcher not guarding, under an `ATTACK_TO`, whose winner is of
+/// the air domain and who lacks `ANTI_AIR` returns −1 with no order,
+/// after the winner's `targeted` bump. A helicopter is a valid target
+/// to any ranged searcher that is not siege, a tank, a missile or a
+/// bomber (`006474ee`), so the search does find it. Row 133's
+/// Flamethrower `2/73` and the Attack Helicopter `1/36` on run1797's
+/// 3632. With `ANTI_AIR` the same find is taken above the march.
+#[test]
+fn an_attack_move_drops_an_aircraft_it_cannot_bring_down() {
+    for anti_air in [false, true] {
+        let (mut sim, land) = at_war();
+        let mut gun = sim.tables.unit_types[land].clone();
+        gun.combat.max_range = 6;
+        if anti_air {
+            gun.combat.obj_masks |= crate::combat::mask::ANTI_AIR;
+        }
+        let gun = sim.add_unit_type(gun);
+        let mut heli = sim.tables.unit_types[land].clone();
+        heli.combat.domain = Domain::Air;
+        heli.cols.unit_flags = crate::ai::ai_load::uflags::FLAG_HELICOPTER;
+        let heli = sim.add_unit_type(heli);
+        let me = put(&mut sim, 0, gun, Pos::new(0x1200, 0x1200));
+        let foe = put(&mut sim, 1, heli, Pos::new(0x1300, 0x1200));
+        sim.units[me].index = 0;
+        sim.add_move_order(
+            me,
+            Pos::new(0x4000, 0x1200),
+            crate::orders::MoveKind::AttackTo,
+            crate::orders::QueuePos::New,
+            true,
+        );
+        let dest = sim.units[me].orders[0]
+            .move_dest()
+            .expect("the attack-move");
+        assert!(sim.valid_target_const(Obj::Unit(me), Obj::Unit(foe)));
+        assert_eq!(
+            sim.nearby_add_refuses_air(me, Obj::Unit(foe)),
+            !anti_air,
+            "anti_air {anti_air}: the refusal"
+        );
+        let targeted = sim.units[foe].combat.targeted;
+        sim.do_attack_to_tail(me, 15, dest);
+        assert_eq!(
+            sim.units[foe].combat.targeted,
+            targeted + 1,
+            "anti_air {anti_air}: the winner is bumped either way"
+        );
+        let kinds: Vec<_> = sim.units[me]
+            .orders
+            .iter()
+            .map(crate::orders::Order::index)
+            .collect();
+        if anti_air {
+            assert_eq!(
+                kinds,
+                vec![
+                    crate::orders::index::ATTACK,
+                    crate::orders::index::ATTACK_TO
+                ]
+            );
+            assert_eq!(sim.units[me].combat.target, Some(Obj::Unit(foe)));
+        } else {
+            assert_eq!(kinds, vec![crate::orders::index::ATTACK_TO]);
+            assert_eq!(sim.units[me].combat.target, None);
+        }
+    }
+}
+
 #[test]
 fn a_strike_reseats_tracked_crew_before_requesting_their_attack() {
     let (mut sim, ty) = at_war();

@@ -1672,7 +1672,7 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 | 23 | run1774 | Atlantic Sea Power | the computers | 6,001 | 10 | **leaders 0**, units 5695 |
 | 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~3192, 3223, 3299, 3442, 3833, 3899~~ 3995 |
 | 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, to 4222 | **12** | ~~1582, 1789, 3683, 3986~~ whole |
-| 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | [leaders 3751 after a decoy](journal/2026-11-26-item-4717.md) |
+| 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | [groups, leaders 3754](journal/2026-11-26-item-4721.md) |
 | 103 | run1778 | East Indies, Modern | the computers | 3,295, to 3294 | **12** | ~~1750, 1757, 1790, 2557 (GROUPS §3.4), ammo 2860, world 2983~~ whole (COLLISION §2) |
 | 123 | run1779 | Great Lakes, Gunpowder | human + added | 6,001 | 3 | ~~builds, groups 2977~~ whole (below) |
 | 143 | run1780 | Great Sahara, difficulty 1 | the computers | 6,001 | **12** | whole |
@@ -1905,7 +1905,7 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: ammo parts on 2547 (4659: deaths → 3206, Redoubt `dtype` 3). run1797's ranges hold the items' frames, *diff-backed*.
+Open: units on 3690 (4659: deaths → 3206, Redoubt `dtype` 3). run1797, *diff-backed*.
 
 **Items 4597 to 4620**: units → 2376, builds → 2432, ammo → 2408, leaders → 2413, cities → 2448 (`docs/GROUPS.md`,
 `docs/COMBAT.md` §84, a Temple's close, two walks by object number; their journals).
@@ -1915,7 +1915,8 @@ Open: ammo parts on 2547 (4659: deaths → 3206, Redoubt `dtype` 3). run1797's r
 **Item 4632**: units → 2543. On 2439 the Flamethrower `1/115` (`recharging` 30, its attack's `flags` 16) turns at
 its target in theirs and swings in ours: `Unit::fight`'s emplaced latch (`:92`–`100`) takes the head order's `0x10`.
 
-**Items 4691, 4719**: units → 3628 → 3633: `FILTER_COMBAT` keeps the combat role (`docs/ARMY.md` §13, `docs/MERCHANT.md` §2.2).
+**Items 4691, 4719, 4723**: units → 3628 → 3633 → 3690 (`FILTER_COMBAT`, `docs/ARMY.md` §13, `docs/MERCHANT.md`
+§2.2; the air refusal, `docs/COMBAT.md` §66.8).
 
 ## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
 

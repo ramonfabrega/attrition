@@ -522,6 +522,68 @@ fn a_city_in_another_region_scores_the_site_zero() {
     assert_eq!(st.dist, 0);
 }
 
+/// **The loop walks the list's length, `+0x408`, not every slot** (item
+/// 4721, `docs/RECGAME.md` §12.3): a taken city's dead slot at the tail of
+/// its old owner's list is trimmed off by the capture
+/// (`Cities::capture_city@00733380:1157`–`:1166`), so the site scores as
+/// if the slot were not there; a dead slot ahead of a live one is inside
+/// the length and ends the score at zero. Row 83's who=2 lost its third
+/// city on 3644, and ours scored all ten sites 0 on its 3751 sweep where
+/// the original's kept (26, 43) at 8,457,390.
+#[test]
+fn a_trailing_dead_city_slot_is_off_the_list_and_a_middle_one_is_not() {
+    let (mut sim, kit) = kit(32, 32, 2);
+    let mut cities = Vec::new();
+    for (x, y) in [(4, 4), (28, 4), (4, 28)] {
+        let b = sim.init_build(
+            1,
+            kit.village,
+            Pos::new(x * UNITS_PER_CELL, y * UNITS_PER_CELL),
+            false,
+        );
+        sim.activate(b, false, true);
+        cities.push(sim.buildings[b].city.expect("a city record"));
+    }
+    assert_eq!(sim.city_list(1).count(), 3);
+    let site = Cell::new(16, 16);
+    for x in 12..=20 {
+        for y in 12..=20 {
+            sim.world
+                .set_owner(Cell::new(x, y), Owner::Player(1), Owner::Player(1));
+        }
+    }
+    let mut d = sim.world.cell_data(site);
+    d.val = 200;
+    sim.world.set_cell_data(site, d);
+    let score = |sim: &Sim| sim.compute_site_stats(1, 16, 16, true, true, 0, false);
+    let live = score(&sim);
+    assert!(
+        live.val > 0,
+        "three live cities in the region score the site"
+    );
+
+    // The third city falls: its slot is the list's last, and is cut.
+    let last = cities[2];
+    sim.cities.cities[last].alive = false;
+    assert_eq!(sim.city_list(1).count(), 2, "the trailing dead slot is cut");
+    let trailing = score(&sim);
+    assert!(
+        trailing.val > 0,
+        "a trailing dead slot does not end the walk"
+    );
+    // As if the slot were nobody's.
+    sim.cities.cities[last].owner = 0;
+    assert_eq!(score(&sim), trailing);
+    sim.cities.cities[last].owner = 1;
+
+    // The first falls instead: a dead slot ahead of a live one is walked.
+    sim.cities.cities[last].alive = true;
+    sim.cities.cities[cities[0]].alive = false;
+    assert_eq!(sim.city_list(1).count(), 3, "a middle dead slot stays");
+    let middle = score(&sim);
+    assert_eq!((middle.val, middle.dist), (0, 0), "the loop returns on it");
+}
+
 /// With no reference object at all the distance term is the constant
 /// `k = 3`, `dist = 9` — the loop is skipped.
 #[test]

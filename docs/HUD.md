@@ -15,7 +15,8 @@ Ramon's to reopen; the photographs show them, and no row here scores
 against a photograph's pixels. Since his play (DECISIONS 158 §11) the
 original's own frame art is drawn behind it, a window at a time, and
 scored against the photograph's pixels in `docs/RENDERER.md` §6.10
-(item 4694); the parts below keep their places over it.
+(item 4694) and §6.11 (item 4724); the parts below keep their places
+over it.
 
 Why it is booked: set beside three photographs, the client's still lacks
 the interface before it lacks anything else, and two of the orders the

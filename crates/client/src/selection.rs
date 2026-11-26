@@ -552,6 +552,11 @@ pub struct PlateFace {
     font: std::sync::Arc<ab_glyph::FontVec>,
     bytes: std::sync::Arc<Vec<u8>>,
     hinter: std::sync::Arc<skrifa::outline::HintingInstance>,
+    /// Pixels an em (`mPointSize`), the cell's baseline row (`mAscent`)
+    /// and its height (`mFontHeight`).
+    ppem: i32,
+    ascent: i32,
+    height: i32,
 }
 
 /// One glyph's outline in pixels, y up, as the hinter leaves it.
@@ -619,42 +624,62 @@ impl std::fmt::Debug for PlateFace {
 
 impl PlateFace {
     pub fn load(root: &std::path::Path) -> Result<PlateFace, String> {
+        PlateFace::load_face(
+            root,
+            PLATE_FACE_FILE,
+            PLATE_PPEM,
+            PLATE_ASCENT,
+            PLATE_FONT_HEIGHT,
+        )
+    }
+
+    /// **A face of `Data/Fonts`** at `ppem` pixels an em, held to the
+    /// packet's `mAscent` and `mFontHeight` (item 4727 reads the bar's
+    /// clock in `arialbd.ttf` at 12 this way).
+    pub fn load_face(
+        root: &std::path::Path,
+        file: &str,
+        ppem: i32,
+        want_ascent: i32,
+        height: i32,
+    ) -> Result<PlateFace, String> {
         use ab_glyph::Font;
-        let path = root.join("Data").join("Fonts").join(PLATE_FACE_FILE);
-        let bytes = std::fs::read(&path).map_err(|e| format!("{PLATE_FACE_FILE}: {e}"))?;
-        let font = ab_glyph::FontVec::try_from_vec(bytes)
-            .map_err(|e| format!("{PLATE_FACE_FILE}: {e}"))?;
+        let path = root.join("Data").join("Fonts").join(file);
+        let bytes = std::fs::read(&path).map_err(|e| format!("{file}: {e}"))?;
+        let font = ab_glyph::FontVec::try_from_vec(bytes).map_err(|e| format!("{file}: {e}"))?;
         let hinter = {
             use skrifa::MetadataProvider;
-            let f = skrifa::FontRef::new(font.as_slice())
-                .map_err(|e| format!("{PLATE_FACE_FILE}: {e}"))?;
+            let f = skrifa::FontRef::new(font.as_slice()).map_err(|e| format!("{file}: {e}"))?;
             skrifa::outline::HintingInstance::new(
                 &f.outline_glyphs(),
-                skrifa::instance::Size::new(PLATE_PPEM as f32),
+                skrifa::instance::Size::new(ppem as f32),
                 skrifa::instance::LocationRef::default(),
                 skrifa::outline::HintingOptions {
                     engine: skrifa::outline::Engine::Interpreter,
                     target: skrifa::outline::SmoothMode::Normal.into(),
                 },
             )
-            .map_err(|e| format!("{PLATE_FACE_FILE}: the hinter: {e}"))?
+            .map_err(|e| format!("{file}: the hinter: {e}"))?
         };
         let face = PlateFace {
             bytes: std::sync::Arc::new(font.as_slice().to_vec()),
             font: std::sync::Arc::new(font),
             hinter: std::sync::Arc::new(hinter),
+            ppem,
+            ascent: want_ascent,
+            height,
         };
         let upm = face.font.units_per_em().ok_or("the face has no em")?;
         // Rounded, as the packet's `mAscent` 13 and `mDescent` −3 are
         // (12.84 and 3.07 pixels: a ceiling would make the font 17 high).
-        let px = |u: f32| (u * PLATE_PPEM as f32 / upm).round() as i32;
+        let px = |u: f32| (u * ppem as f32 / upm).round() as i32;
         let (ascent, descent) = (
             px(face.font.ascent_unscaled()),
             px(-face.font.descent_unscaled()),
         );
-        if (ascent, ascent + descent) != (PLATE_ASCENT, PLATE_FONT_HEIGHT) {
+        if (ascent, ascent + descent) != (want_ascent, height) {
             return Err(format!(
-                "{PLATE_FACE_FILE}: ascent {ascent}, height {}, the packet's {PLATE_ASCENT} and {PLATE_FONT_HEIGHT}",
+                "{file}: ascent {ascent}, height {}, the packet's {want_ascent} and {height}",
                 ascent + descent
             ));
         }
@@ -667,13 +692,18 @@ impl PlateFace {
         (id.0 != 0).then_some(id)
     }
 
-    /// One character's advance: its linear advance at [`PLATE_PPEM`],
+    /// The cell's height, `mFontHeight`: `Buffer::text_height`.
+    pub fn height(&self) -> i32 {
+        self.height
+    }
+
+    /// One character's advance: its linear advance at the face's size,
     /// rounded, or `None` when the face has no glyph for it.
     pub fn advance(&self, c: char) -> Option<i32> {
         use ab_glyph::Font;
         let id = self.glyph(c)?;
         let upm = self.font.units_per_em()?;
-        Some((self.font.h_advance_unscaled(id) * PLATE_PPEM as f32 / upm).round() as i32)
+        Some((self.font.h_advance_unscaled(id) * self.ppem as f32 / upm).round() as i32)
     }
 
     /// The name's `text_width`, or `None` when the face lacks a glyph.
@@ -708,9 +738,10 @@ impl PlateFace {
         };
         let left = x0.floor();
         let w = (x1.ceil() - left) as usize;
-        let h = PLATE_FONT_HEIGHT as usize;
+        let h = self.height as usize;
         let mut raster = ab_glyph_rasterizer::Rasterizer::new(w, h);
-        let pt = |(x, y): (f32, f32)| ab_glyph_rasterizer::point(x - left, PLATE_ASCENT as f32 - y);
+        let ascent = self.ascent as f32;
+        let pt = |(x, y): (f32, f32)| ab_glyph_rasterizer::point(x - left, ascent - y);
         for seg in &path.segs {
             match *seg {
                 Seg::Line([a, b]) => raster.draw_line(pt(a), pt(b)),
