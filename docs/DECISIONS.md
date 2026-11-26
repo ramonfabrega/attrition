@@ -16723,5 +16723,8 @@ game, where the original's cancels (item 4696). And the HUD does not
 read as the game's (item 4694, behind item 4690). The pass read the
 step's pacing and the two key tables in the client's source, and then
 decoded his recording: 85 commands over frames 0 to 7444, four build
-orders among them, and 40 of 42 group records with no object. The keys
-armed; what the orders were sent to is item 4695's first act.
+orders among them, and 40 of 42 group records with no object. Ramon
+then said his citizens walked on a right click, so an empty group
+repeats the selection and the orders had their units. The keys armed
+and the builds were minted; whether a site then stood, and why he saw
+neither a ghost nor a site, is item 4695's first act.

@@ -80,10 +80,10 @@ pin. One landing: its seat then goes to the first unseated row.
 `docs/CLIENT_INPUT.md`). Ramon played the gated tip on 2026-11-25 and could not place a Farm or a Barracks by the panel or by F or B.
 His recording, `~/ron-data/lab-experiments/2026-11-25-pass-second/spin-1125.rcx` (decoded beside it), holds 85 commands over frames 0
 to 7444: 32 moves, 5 queue-ups and four build orders, the Farm on 1637 and 2714 and the Barracks on 2180 and 6790. So the keys armed
-and the orders were minted. But 40 of its 42 group records carry no object: every move and every build went out with an empty
-selection, and only the capital, 2002, is ever named. First act: whether an empty group is no selection or a repeated one; if none, a
-click or a box that selects a citizen in the live window is the gap, and the ghost after it. Score: a new row, a citizen selected, the
-placement drawn and the build minted on it in one live session. It stops when it has landed.
+and the orders were minted. 40 of its 42 group records carry no object, and his citizens walked on a right click (his word), so an
+empty group repeats the selection. The gap is after the order: he saw no ghost while placing and no site after. First act: walk his
+recording and read whether a site of type 417 or 427 stands after each build order. Score: a new row, the placement drawn and the site
+standing after a build minted in one live session. It stops when it has landed.
 
 4573. **Parity held out, fifth: row 83's deaths from 3715** (a rules item, whole; unseated, first; DECISIONS 154 §3; `docs/RECGAME.md`
 §12.3). Item 4657's step 17 (a decoy under object attack 220/200/190 where ours took 240/220/210, entering on 3705's tick) moved the
