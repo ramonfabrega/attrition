@@ -802,10 +802,16 @@ impl Sim {
     /// 5. `spell_time += 1`, and on the job time `SpellType::cast`, then
     ///    `kill_current_order`.
     ///
+    /// In range on an enemy, the caster takes `flags |= 0x80`
+    /// ([`crate::Unit::attacking`], `5ec5a6`) ahead of its `visible`,
+    /// and a Bribe takes `unit_masks2 |= 0x60` on every frame ahead of the
+    /// clock ([`crate::combat::umask2::BRIBE_MARK`], `5ec945`; item 4728,
+    /// `docs/COMBAT.md` §66.9).
+    ///
     /// SEAM: the captain and inside re-reads of the target; Bribe's
-    /// territory refusal; `flags |= 0x80`; `update_local_seen` when the
+    /// territory refusal; `update_local_seen` when the
     /// caster stands in the target owner's fog; (the cloak write is [`Sim::cast_blow`]) for a
-    /// craft without `l`; Bribe's `unit_masks2 |= 0x60`; a non-spy
+    /// craft without `l`; a non-spy
     /// caster's animations; the messages and sounds.
     pub(crate) fn do_cast_targeted(&mut self, u: usize, order: CastOrder) {
         let s = order.spell;
@@ -875,6 +881,7 @@ impl Sim {
                 self.kill_current_order(u);
                 return;
             }
+            self.units[u].attacking = true;
             self.units[u].visible |= Self::who_bit(whom);
             let there = self.pos_of(t);
             let angle = crate::movement::find_angle(there.x - here.x, there.y - here.y);
@@ -920,6 +927,9 @@ impl Sim {
         self.set_anim(u, anim, false, p3);
         self.units[u].casting = true;
         self.cast_blow(u, s, true);
+        if s == spell::BRIBE {
+            self.units[u].unit_masks2 |= crate::combat::umask2::BRIBE_MARK;
+        }
         self.units[u].spell_time += 1;
         if self.units[u].spell_time < self.cast_job_time(u, s) {
             return;

@@ -106,14 +106,24 @@ impl Sim {
             // frame by `o` and gated again to every 512th: a unit with
             // `unit_masks & 0x10000` drops that bit, one without drops
             // `0x1000` — so a fight's `0x11000` takes two passes to go
-            // (item 2785, `docs/GOLDEN.md` §103). SEAM: the pass's other
-            // writes (`unit_masks2 & 0x60`, the Spy cloak particles, the
-            // `0x800` tribe and hero arms) have no reader here.
+            // (item 2785, `docs/GOLDEN.md` §103). The same pass peels the
+            // Bribe mark (item 4728, `docs/COMBAT.md` §66.9): a fought
+            // unit loses `0x40`; else `0x40` when it is set, `0x20` when
+            // it is not. SEAM: the pass's other writes (the Spy cloak
+            // particles, the `0x800` tribe and hero arms) have no reader
+            // here.
             if (frame + i64::from(self.units[i].index)).rem_euclid(512) == 0 {
+                let m2 = self.units[i].unit_masks2;
                 if self.units[i].fought {
                     self.units[i].fought = false;
+                    self.units[i].unit_masks2 = m2 & !combat::umask2::BRIBE_HIGH;
                 } else {
                     self.units[i].blown = false;
+                    self.units[i].unit_masks2 = if m2 & combat::umask2::BRIBE_HIGH != 0 {
+                        m2 & !combat::umask2::BRIBE_HIGH
+                    } else {
+                        m2 & !combat::umask2::BRIBE_LOW
+                    };
                 }
             }
         } else {
