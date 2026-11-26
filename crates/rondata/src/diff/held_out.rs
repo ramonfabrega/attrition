@@ -13782,19 +13782,29 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // firsts 4190 -> 4289 and 4197 -> 4325); items' first 6187 -> 6009,
         // past 4154; leaders stands; ours' `game_over` 10873 -> none, both
         // play to 12,000.
+        // Then item 4720 (`Unit::do_repair@005ee420` reads
+        // `construct_time(1)`, `push 1` at `0x5ee6f7`, which returns the
+        // walked `constr_time` before the President's arm): who=1's Citizen
+        // `1/24` (TI 50, land) mends who=1's Small City `1/2039`, its
+        // President near, at period 418 (54000), not 314 (40601), as theirs
+        // (run1799's builds range 1764, record 2039, `myhits..launch_frames`
+        // byte 4, `damage`'s low byte: ours 38, theirs 37, on 4154). The
+        // row's first parting 4154 -> 4219 (units and guys, which stand):
+        // builds 4,198 -> 4,310 (first 4310), leaders 4,175 -> 4,317 (first
+        // 4166 -> 4312).
         moved: Some(Score {
             states: 12001,
             agreed: [
-                4242, 4198, 12001, 4787, 4325, 4362, 4242, 4175, 4351, 6717, 5464, 4288,
+                4242, 4310, 12001, 4787, 4325, 4362, 4242, 4317, 4351, 6717, 5464, 4288,
             ],
             first: &[
                 ("units", (4219, Some(3412282491), 1117867263)),
-                ("builds", (4154, Some(1116497646), 4078790381)),
+                ("builds", (4310, Some(1827527676), 298966417)),
                 ("ammo", (4289, Some(1796672337), 2990607315)),
                 ("deaths", (4325, Some(3973575844), 4044551333)),
                 ("groups", (4334, Some(470667955), 2973162772)),
                 ("guys", (4219, Some(3243759351), 826464123)),
-                ("leaders", (4166, Some(2640249252), 1154351528)),
+                ("leaders", (4312, Some(429387115), 3607031145)),
                 ("cities", (4351, Some(2145664821), 2143174452)),
                 ("items", (6009, Some(1373777447), 1365126693)),
                 ("goods", (4720, Some(3351549222), 3368850730)),
