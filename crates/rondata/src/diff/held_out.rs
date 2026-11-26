@@ -621,7 +621,7 @@ pub(crate) mod tests {
                 );
                 let mut n = 0;
                 for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
-                    if a.bytes == b.bytes {
+                    if a.bytes == b.bytes && a.record == b.record {
                         continue;
                     }
                     n += 1;
@@ -638,9 +638,9 @@ pub(crate) mod tests {
                         .take(24)
                         .collect();
                     eprintln!(
-                        "P4725 state {state} line {line} range {k} record {} site {:x} field {} len {}/{} diffs {:?}",
+                        "P4725 state {state} line {line} range {k} record {}/{} field {} len {}/{} diffs {:?}",
                         a.record,
-                        b.site,
+                        b.record,
                         a.field,
                         a.bytes.len(),
                         b.bytes.len(),
