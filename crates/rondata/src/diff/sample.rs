@@ -509,7 +509,7 @@ pub(in crate::diff) mod tests {
     /// Item 4697: the ordered chase places the same four path nodes on 11487.
     /// Item 4698: a new garrison order keeps the catapult packing.
     /// Item 4699: Agriculture gets its Bison discount.
-    const SAMPLE_WALKED: (i64, i64) = (15245, 21044);
+    const SAMPLE_WALKED: (i64, i64) = (15909, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -848,18 +848,18 @@ pub(in crate::diff) mod tests {
     /// Item 4698: the two siege units take their recorded orders on 11687.
     /// Item 4699: player 2's research list now matches on 12354.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 15217),
-        ("builds", 15265),
+        ("units", 15317),
+        ("builds", 15926),
         ("walls", 21044),
-        ("ammo", 15246),
-        ("deaths", 15273),
-        ("groups", 15268),
-        ("guys", 15217),
-        ("leaders", 15255),
-        ("cities", 15361),
-        ("items", 16960),
-        ("goods", 15869),
-        ("world", 15218),
+        ("ammo", 15912),
+        ("deaths", 15932),
+        ("groups", 15842),
+        ("guys", 15317),
+        ("leaders", 15666),
+        ("cities", 15948),
+        ("items", 21044),
+        ("goods", 16841),
+        ("world", 15831),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -1630,6 +1630,11 @@ pub(in crate::diff) mod tests {
     }
 
     #[test]
+    fn the_sample_s_herd_animal_prices_other_players_land_on_its_path() {
+        assert_sample_window(run1844(), 15214, 15225, None);
+    }
+
+    #[test]
     fn the_sample_s_scout_order_and_city_marks_match_both_recorded_lines() {
         let (Some(inst), Some(rcx), Some(mut ranges)) = (install(), sample(), run1786()) else {
             return;
@@ -2255,91 +2260,76 @@ pub(in crate::diff) mod tests {
     const SAMPLE_RANGES_1844: &[PinnedRange] = &[
         (
             "units",
-            15217,
-            8337,
-            8331,
-            256,
-            "8028 1 who..y_internal: x 15498|15490, y 7686|7709",
+            15317,
+            8220,
+            8220,
+            2,
+            "1682 81 guys.size: guys.size 2|3",
         ),
         (
             "builds",
-            15265,
-            6882,
-            6882,
+            15926,
+            6935,
+            6935,
             1,
-            "3679 2007 myhits..launch_frames: up 29|-1",
+            "265 2008 myhits..launch_frames: damage 4186|4199, damage_frac 11|15",
         ),
         (
             "ammo",
-            15246,
-            18,
-            18,
-            3,
-            "1 0 rolling..start_roll_angle: +0x7 of 99|99: 12470000|83470000",
+            15912,
+            9,
+            9,
+            1,
+            "1 0 rolling..start_roll_angle: +0x13 of 99|99: 9f4e0000|b94e0000",
         ),
         (
             "deaths",
-            15273,
-            58,
-            60,
+            15932,
+            30,
             26,
-            "11 5 first_frame..unit_crew: +0x0 of 71|71: a83b0000|d2390000",
+            17,
+            "1 1 first_frame..unit_crew: +0x0 of 71|71: 223c0000|3b3e0000",
         ),
-        (
-            "groups",
-            15268,
-            622,
-            622,
-            1,
-            "16 4 id..march: ox 41952|38880, oy 42720|45792, o_angle 1605566464|1659371520",
-        ),
+        ("groups", 15842, 622, 622, 7, "152 128 id..march: num 39|38"),
         (
             "guys",
-            15217,
-            2548,
-            2548,
-            1,
-            "2449 1 guy: x 15498|15490, y 7686|7709, z 290|286, angle 786759680|-1930756096, last_angle 786759680|-1930756096, des_x 15498|15490, des_y 7686|7709, des_angle 786759680|-1930756096, end_time 30|12, last_speed 0|24, avg_speed 0|6, cur_anim 0|7, stopped 1|0",
+            15317,
+            2568,
+            2568,
+            2,
+            "475 81 guys.size: guys.size 2|3",
         ),
         (
             "leaders",
-            15255,
+            15666,
             675,
             675,
-            2,
-            "1 0 who..ally_mask: +0xa54 of 26914|26914: 01000000|02000100",
+            1,
+            "271 2 who..ally_mask: +0x1f0 of 26914|26914: 00000000|313d0000",
         ),
         (
             "cities",
-            15361,
+            15948,
             96,
             96,
             1,
-            "51 18 city..ter: free 0|1, filled 19|18, space[0] 77|78, space[1] 77|78, space[2] 70|71",
-        ),
-        (
-            "items",
-            16960,
-            5,
-            5,
-            1,
-            "0 16 ever_seen: +0x0 of 1|1: 08|0c",
+            "9 7 city..ter: reduce_stamp 15947|0",
         ),
         (
             "goods",
-            15869,
+            16841,
             265,
             265,
             1,
-            "255 51 ever_seen: +0x0 of 1|1: 09|01",
+            "245 49 ever_seen: +0x0 of 1|1: 05|0d",
         ),
         (
             "world",
-            15218,
-            7915,
-            7915,
+            15831,
+            7921,
+            7921,
             2,
-            "4255 560 block.body: +0x3 of 96|96: f000f000|70007000",
+            "1414 1390 cell: +0x8 of 21|21: 6e000200|34000200",
         ),
     ];
 }

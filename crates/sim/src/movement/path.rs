@@ -638,6 +638,9 @@ impl Sim {
         avoid_sea: i32,
     ) -> (i32, bool) {
         let who = self.units[u].owner;
+        // Gaia's diplomacy row has zero (war) for each seated player.
+        // Both land grids ask is_enemy when pricing another owner's cell.
+        let enemy_owner = |p| who >= crate::world::PLAYER_SLOTS || self.is_enemy(who, p);
         let mut base = 0x100;
         let mut extra = 0;
         let mut embarks = false;
@@ -686,7 +689,7 @@ impl Sim {
                 }
                 match self.world.owner(to_cell) {
                     Owner::Player(p) if p == who => e -= 4,
-                    Owner::Player(p) if self.at_war_with(who, p) => e += 4,
+                    Owner::Player(p) if enemy_owner(p) => e += 4,
                     _ => {}
                 }
                 extra = e.max(0);
@@ -713,7 +716,7 @@ impl Sim {
                 } else {
                     match self.world.owner(to_cell) {
                         Owner::Player(p) if p == who => e -= 4,
-                        Owner::Player(p) if self.at_war_with(who, p) => e += 4,
+                        Owner::Player(p) if enemy_owner(p) => e += 4,
                         _ => {}
                     }
                     if avoid_land != 0 {

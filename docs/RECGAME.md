@@ -722,6 +722,13 @@ two-node route to (14568,7416) in the original.
 · [City](journal/2026-11-25-item-4709.md) · [Garrison](journal/2026-11-25-item-4710.md)
 · [Collision](journal/2026-11-25-item-4711.md)
 
+Animal 8/1 prices player 3's territory as enemy land. It follows
+the original two-node route on 15217. The first differing state moves
+to 15317, draws to 15909, and items agree through all 21044 states.
+The new chariot 0/81 has two figures on both sides. Its recorded
+allocation has three slots and the simulation has two.
+[Animal route](journal/2026-11-25-item-4712.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte

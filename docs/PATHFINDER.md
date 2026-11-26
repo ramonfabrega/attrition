@@ -427,6 +427,14 @@ test: `flags & 0x100` clear *and* `land` 1 or 2. It is not "the cell's
 region is a sea region", and a `HALFLAND` cell is where the two part
 (§16).
 
+On run1844, Gaia's animal 8/1 pays the enemy territory surcharge on
+player 3's land. With the surcharge its next world-grid waypoint is
+(15336,8184), the second entry of the recorded path at 15217. Gaia's
+own eight diplomacy words are zero in four original packets. The tile
+branch uses the same relation in the original listing. The world-grid
+route is replay-backed and the tile generalization owes independent
+review. [Animal route](journal/2026-11-25-item-4712.md)
+
 The fog branch and the terrain row below are **one term, not two**, and
 2026-08-26 is where that stopped being a guess. Both had been seams; each
 was landed alone against run20's own scout and each made the chain
