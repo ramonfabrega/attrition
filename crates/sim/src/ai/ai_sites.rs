@@ -377,6 +377,35 @@ impl Sim {
         ) == Blocked::Clear
     } // twin of BuildTypeData::blocked_town
 
+    /// **`who`'s city list as the original walks it** (item 4721,
+    /// `docs/RECGAME.md` §12.3): its slots in order, a dead one kept, cut
+    /// after the last live one. That cut is `LeaderData +0x408`, the
+    /// list's length: `Cities::init_city@007352c0` grows it to one past the
+    /// slot it fills, and both callers of `City::close@00737550` —
+    /// `Cities::close_city@00733310` and `Cities::capture_city@00733380:1157`
+    /// to `:1166` — pop the trailing slots whose `flags & 1` is clear. A
+    /// dead slot ahead of a live one stays inside the length. A dead record
+    /// keeps its owner here, so `who`'s slots are the records it owns.
+    pub(crate) fn city_list(
+        &self,
+        who: Player,
+    ) -> impl Iterator<Item = &crate::cities::city::City> {
+        let len = self
+            .cities
+            .cities
+            .iter()
+            .filter(|c| c.owner == who)
+            .enumerate()
+            .filter(|(_, c)| c.alive)
+            .last()
+            .map_or(0, |(i, _)| i + 1);
+        self.cities
+            .cities
+            .iter()
+            .filter(move |c| c.owner == who)
+            .take(len)
+    }
+
     /// The reference objects `compute_sites` hands `compute_site_stats`:
     /// with cities of mine in the region, the nearest friendly city (and
     /// its centre object); with none, the nearest friendly citizen. Only
@@ -753,7 +782,9 @@ impl Sim {
         let k = {
             let mut k = 1i32;
             if city {
-                for c in self.cities.cities.iter().filter(|c| c.owner == who) {
+                // `for i < leader +0x408`: the list's length, which the
+                // close trims of its trailing dead slots (item 4721).
+                for c in self.city_list(who) {
                     if !c.alive || c.reg != Some(reg) {
                         return zero(sx, sy);
                     }

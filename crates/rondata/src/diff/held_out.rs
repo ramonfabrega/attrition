@@ -13143,23 +13143,35 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // theirs. Units 3,746 -> 3,753 (first 3716 -> 3753); the row's
         // first parting is leaders on 3751 (range 292, record 2,
         // `sites[k]` byte 20, ours 0x0a, theirs 0x02).
+        // Item 4721 (`compute_site_stats`' distance loop walks the leader's
+        // list to `+0x408`, which `Cities::capture_city@00733380:1157`–
+        // `:1166` cuts of its trailing dead slots): who=2's city at (16, 34),
+        // taken on 3644, kept its dead record at the list's tail, and ours
+        // walked it on the 3751 sweep and scored all ten sites 0, so every
+        // `rank` read 10; theirs (26, 43) 8,457,390, dist 4,050, rank 10, and
+        // slot 0's rank 2. Leaders 3,751 -> 3,754, units 3,753 -> 3,775,
+        // builds -> 3,779, guys -> 3,775, cities -> 3,796, deaths 3,782 ->
+        // 3,811, world -> 3,776, items 4,069 -> 4,129, goods 4,078 -> 4,399;
+        // ammo 3,796 -> 3,795 (first 3763 -> 3776), a named fall past the
+        // parting. The row's first parting is groups (unmoved) and leaders
+        // on 3754.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3753, 3753, 6001, 3796, 3782, 3754, 3753, 3751, 3753, 4069, 4078, 3753,
+                3775, 3779, 6001, 3795, 3811, 3754, 3775, 3754, 3796, 4129, 4399, 3776,
             ],
             first: &[
-                ("units", (3753, Some(3033753739), 1352412094)),
-                ("builds", (3753, Some(3619391689), 3659641308)),
-                ("ammo", (3763, Some(3601468407), 1)),
-                ("deaths", (3782, Some(1712482989), 2133228083)),
+                ("units", (3775, Some(325779366), 1791368010)),
+                ("builds", (3779, Some(310360152), 3484334167)),
+                ("ammo", (3776, Some(2781157854), 3425114656)),
+                ("deaths", (3811, Some(1997634331), 4170353836)),
                 ("groups", (3754, Some(29320637), 815486526)),
-                ("guys", (3753, Some(3981674621), 3664611539)),
-                ("leaders", (3751, Some(2004574370), 1609657705)),
-                ("cities", (3753, Some(3452189994), 4271062569)),
-                ("items", (4053, Some(912470408), 898052486)),
-                ("goods", (4010, Some(3194787109), 3189019939)),
-                ("world", (3753, Some(2756222352), 3812275455)),
+                ("guys", (3775, Some(1024508013), 4215129001)),
+                ("leaders", (3754, Some(762221262), 4138963664)),
+                ("cities", (3793, Some(1981498418), 2439726149)),
+                ("items", (4129, Some(898052486), 912470408)),
+                ("goods", (4331, Some(3229390119), 3223622949)),
+                ("world", (3776, Some(2369309709), 2869480293)),
             ],
             over: None,
         }),
