@@ -6955,8 +6955,8 @@ that `position_windows` places none of these windows.
 - ~~The clock's box (`time_back`, `draw_game_timer@0080a3c0`) and its text
   (4724a).~~ Drawn by item 4727, §6.12. `draw_game_timer` is the victory
   timers'; the clock is `draw_button_row_area@0080f7b0`'s.
-- The slots' pictures, which are the selected object's orders off
-  `TEX_ORDERS_0` and the units' icons (4724b).
+- The slots' pictures (4724b): registered 2,379 of 2,379 each, and named
+  by the packet's options list, by item 4729's journal; not yet drawn.
 - `IFACESELECTED`, the top's resources box, banner and population box, and
   the right side of the bar.
 - The bar at a width other than 1,920. Ours draws the left window only.
