@@ -2557,7 +2557,7 @@ pub(crate) mod tests {
     }
 
     /// **Row 133's Spy marks itself as it bribes** (item 4728,
-    /// `docs/COMBAT.md` §66.9): run1797's ranges, the row's units parting
+    /// `docs/COMBAT.md` §90): run1797's ranges, the row's units parting
     /// on 3690 (record 84, `flags` ours `0x01`, theirs `0x81`;
     /// `unit_masks2` ours 0, theirs `0x60`). who=2's Spy `2/84` (TI 58,
     /// land) stands in range of who=1's Assault Infantry `1/86` (TI 104)

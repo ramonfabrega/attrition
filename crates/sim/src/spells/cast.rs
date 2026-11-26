@@ -806,7 +806,7 @@ impl Sim {
     /// ([`crate::Unit::attacking`], `5ec5a6`) ahead of its `visible`,
     /// and a Bribe takes `unit_masks2 |= 0x60` on every frame ahead of the
     /// clock ([`crate::combat::umask2::BRIBE_MARK`], `5ec945`; item 4728,
-    /// `docs/COMBAT.md` §66.9).
+    /// `docs/COMBAT.md` §90).
     ///
     /// SEAM: the captain and inside re-reads of the target; Bribe's
     /// territory refusal; `update_local_seen` when the

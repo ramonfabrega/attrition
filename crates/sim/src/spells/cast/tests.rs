@@ -662,7 +662,7 @@ fn a_french_general_recovers_craft_twice_as_fast() {
 }
 
 /// **A Spy in range of its Bribe marks itself** (item 4728,
-/// `docs/COMBAT.md` §66.9; `Unit::do_cast@005ebfe0` at `5ec5a6` and
+/// `docs/COMBAT.md` §90; `Unit::do_cast@005ebfe0` at `5ec5a6` and
 /// `5ec945`): on each in-range step of a targeted craft on another
 /// player's object the caster takes `flags |= 0x80`
 /// ([`crate::Unit::attacking`]), and a Bribe also takes `unit_masks2 |=

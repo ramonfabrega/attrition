@@ -71,7 +71,7 @@ impl Rng {
 pub mod umask2 {
     /// A mandatory attack supplied the fire-on-the-move target.
     pub const ORDERED_CAVARCH_TARGET: u32 = 0x100;
-    /// **`0x60` — a Spy bribing** (item 4728, `docs/COMBAT.md` §66.9):
+    /// **`0x60` — a Spy bribing** (item 4728, `docs/COMBAT.md` §90):
     /// `Unit::do_cast@005ebfe0` (`5ec945`) ORs both bits on every in-range frame
     /// of a Bribe (`0x275`), and `Unit::process_cloak@005e1c20`'s
     /// 512-frame pass takes them off one at a time — [`BRIBE_HIGH`]
