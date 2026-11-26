@@ -6952,13 +6952,62 @@ that `position_windows` places none of these windows.
 - Why the bar's origin is 883 where `top_inverse="198"` gives 882.
 - `tile_random`'s randomness. Every tile here starts at the rectangle's
   corner, and agrees.
-- The clock's box (`time_back`, `draw_game_timer@0080a3c0`) and its text
-  (4724a).
+- ~~The clock's box (`time_back`, `draw_game_timer@0080a3c0`) and its text
+  (4724a).~~ Drawn by item 4727, §6.12. `draw_game_timer` is the victory
+  timers'; the clock is `draw_button_row_area@0080f7b0`'s.
 - The slots' pictures, which are the selected object's orders off
   `TEX_ORDERS_0` and the units' icons (4724b).
 - `IFACESELECTED`, the top's resources box, banner and population box, and
   the right side of the bar.
 - The bar at a width other than 1,920. Ours draws the left window only.
+
+## 6.12 The HUD's bar: the clock (item 4727)
+
+*2026-11-26, Opus 5.5. The ledger: `docs/journal/2026-11-26-item-4727.md`.
+`client::frame::left` (`clock_line`, `write_clock`, `CLOCK_FACE`),
+`client::frame::clock_line`; the row `RUN1814B_3294_LEFT_WINDOW`. No
+`crates/sim` change.*
+
+**Who draws it.** `IFaceMainBase::draw_button_row_area@0080f7b0`, from
+`on_redraw@00811600`. It builds `msg`: the speed's name
+(`game_speeds[TurnControl::speed]`, `rules.xml`'s `gamespeeds`), `: `, then
+`say_timer` of `Game::tick` (`client::hud::clock`). It `add_smooth`s a
+texture into a rectangle at the rectangle's size. Then it
+`write_cent_l`s `msg` into the same rectangle.
+
+**The box** is `time_back` (`TEX_CIV` (261, 108), 124 × 19) stretched into
+`timer_area2` (32, 10), 200 × 19. It is the same unclamped bilinear stretch
+as the slots (§6.11). On the photograph at (32, 893), with the text still on
+it, the box alone takes 3,064 of 3,800 pixels. Drawn 1:1 instead, it takes
+1,084 of 2,356 at its best offset. Interface.xml has three `timer_area2`s;
+only `<IFACEMAINBASE>`'s is 200 wide.
+
+**The text.** `write_cent_l@0050f850` puts the pen at
+`x0 + (w − text_width) / 2` and `y0 + (h − text_height) / 2`, both
+truncated. The font is `fonts`' lookup 27, `clock_size`: `arialbd.ttf` at
+12, with `mAscent` 11 and `mFontHeight` 14. The probe read run1814b's packet
+font table; Arial Bold's own metrics round to the same 11 and 14. The glyphs
+come from the plate's pipeline (§6, `PlateFace::load_face`): hinted cells,
+each advance rounded. The shadow is black, one pixel right and one down. It
+goes down first, then the text in white.
+
+**The row.** Ours 45,964 → **49,547** of 61,614; luma ×10 459 → 418
+(theirs 516). In the box, 3,583 of 3,800 agree. The 217 that do not:
+- 71 are the last digit. Ours writes `00:03:39` for frame 3295 (3295 / 15 =
+  219, and the packet's `Game::tick` on 3294 is 219). The photograph reads
+  `00:03:38`. Written `00:03:38`, the box is 3,617.
+- The rest are glyph edges, each under 20 levels.
+
+**Diff-backed**: the box's texture, rectangle and stretch, and the line's
+place, face and shadow, against the photograph's pixels. **Read alone**:
+the rectangle `draw_button_row_area` resolves (its strings are table
+offsets); the pixels pick `timer_area2`.
+
+**Not established.**
+- Why run1814b's bar shows tick 218 where the packet holds 219 (4727a).
+- The glyph edges' 146.
+- The ranked game's short timer and the paused and cannon branches of the
+  line.
 
 ## 7. What is not established, and what needs Ramon's word
 
