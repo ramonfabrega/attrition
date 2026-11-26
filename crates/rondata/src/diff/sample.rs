@@ -507,7 +507,8 @@ pub(in crate::diff) mod tests {
     /// Item 4645: the new figure takes its recorded move, then its walk animation.
     /// Item 4646: the factory exit and rally order match through 10206.
     /// Item 4697: the ordered chase places the same four path nodes on 11487.
-    const SAMPLE_WALKED: (i64, i64) = (11728, 21044);
+    /// Item 4698: a new garrison order keeps the catapult packing.
+    const SAMPLE_WALKED: (i64, i64) = (12357, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -843,19 +844,20 @@ pub(in crate::diff) mod tests {
     /// reached on 11753..12017, after units' 10653 and the five lines' 11487.
     /// Item 4649: the Horse Archer's ordered target moves units to the other lines on 11487.
     /// Item 4697: the Crossbowman rebuilds its chase on 11486; units agree through 11687.
+    /// Item 4698: the two siege units take their recorded orders on 11687.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 11688),
-        ("builds", 11761),
+        ("units", 12359),
+        ("builds", 12380),
         ("walls", 21044),
-        ("ammo", 11738),
-        ("deaths", 11737),
-        ("groups", 11760),
-        ("guys", 11689),
-        ("leaders", 11751),
-        ("cities", 11772),
-        ("items", 12309),
-        ("goods", 12348),
-        ("world", 11700),
+        ("ammo", 12361),
+        ("deaths", 12400),
+        ("groups", 12439),
+        ("guys", 12359),
+        ("leaders", 12354),
+        ("cities", 12712),
+        ("items", 12663),
+        ("goods", 12584),
+        ("world", 12362),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -1193,6 +1195,10 @@ pub(in crate::diff) mod tests {
 
     fn run1827() -> Option<crate::trace::ranges::Record> {
         ranges_record("RON_SAMPLE_RANGES_1827", "run1827")
+    }
+
+    fn run1844() -> Option<crate::trace::ranges::Record> {
+        ranges_record("RON_SAMPLE_RANGES_1844", "run1844")
     }
 
     fn ranges_record(var: &str, run: &str) -> Option<crate::trace::ranges::Record> {
@@ -1547,6 +1553,11 @@ pub(in crate::diff) mod tests {
     }
 
     #[test]
+    fn the_sample_s_garrison_order_keeps_the_active_siege_packing_cast() {
+        assert_sample_window(run1844(), 11686, 11690, Some((11687, 1)));
+    }
+
+    #[test]
     fn the_sample_s_scout_order_and_city_marks_match_both_recorded_lines() {
         let (Some(inst), Some(rcx), Some(mut ranges)) = (install(), sample(), run1786()) else {
             return;
@@ -1633,6 +1644,12 @@ pub(in crate::diff) mod tests {
         assert_range_extension(run1827(), 10001..=11500, SAMPLE_RANGES_1827);
     }
 
+    #[test]
+    fn the_sample_s_ranges_from_11501_to_19001_name_each_first_parting() {
+        // The original played to 21044. Its 20 GiB field record ends here.
+        assert_range_extension(run1844(), 11501..=19001, SAMPLE_RANGES_1844);
+    }
+
     type PinnedRange = (&'static str, i64, usize, usize, usize, &'static str);
 
     fn assert_range_extension(
@@ -1643,11 +1660,35 @@ pub(in crate::diff) mod tests {
         let Some(rec) = record else { return };
         assert_eq!(rec.mask, 0xffb);
         assert!(!rec.truncated);
-        let count = (window.end() - window.start() + 1) as usize;
-        let Some((frames, got)) = walk_kept_ranges(rec, window, 0xffb) else {
+        // Check that the entire recorded extension is present, including
+        // its final state and each intervening package boundary's payload.
+        let sets = rec.sets.iter().filter(|s| window.contains(&(s.frame + 1)));
+        assert!(sets.clone().all(|s| s.flags == 0));
+        assert!(
+            sets.filter(|s| s.ordinal == 0)
+                .map(|s| s.frame + 1)
+                .eq(window.clone())
+        );
+
+        // Once every kept line has a first difference, later states cannot
+        // change that result. A whole line or a request to print the tail
+        // still needs the longer replay.
+        let mut last = *window.end();
+        if expected.len() == rec.mask.count_ones() as usize
+            && std::env::var_os("RON_SAMPLE_RANGES_ALL").is_none()
+        {
+            let last_pin = expected.iter().map(|p| p.1).max().unwrap();
+            let detail = std::env::var("RON_SAMPLE_RANGES_DETAIL")
+                .ok()
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(last_pin);
+            last = last_pin.max(detail).min(last);
+        }
+        let first = *window.start();
+        let Some((frames, got)) = walk_kept_ranges(rec, first..=last, 0xffb) else {
             return;
         };
-        assert_eq!(frames, count);
+        assert_eq!(frames, (last - first + 1) as usize);
         let pinned: Vec<SampleRange> = expected
             .iter()
             .map(|&(l, f, t, o, p, x)| (l, f, t, o, p, x.to_string()))
@@ -2139,4 +2180,73 @@ pub(in crate::diff) mod tests {
 
     const SAMPLE_RANGES_1824: &[PinnedRange] = &[];
     const SAMPLE_RANGES_1827: &[PinnedRange] = &[];
+    const SAMPLE_RANGES_1844: &[PinnedRange] = &[
+        ("units", 12359, 7945, 7945, 1, "902 37 guy: cur_anim 13|12"),
+        (
+            "builds",
+            12380,
+            6491,
+            6491,
+            1,
+            "4171 2021 myhits..launch_frames: up 18|-1",
+        ),
+        ("ammo", 12361, 15, 12, 7, "3 2 flags: +0x0 of 1|1: 01|06"),
+        (
+            "deaths",
+            12400,
+            66,
+            60,
+            6,
+            "60 -1 00936bff: +0x0 of 0|4: |01000000",
+        ),
+        (
+            "groups",
+            12439,
+            622,
+            622,
+            1,
+            "247 193 id..march: ox 31200|1248, oy 3552|13536, o_angle 846397440|-1239220224",
+        ),
+        ("guys", 12359, 2375, 2375, 1, "275 37 guy: cur_anim 13|12"),
+        (
+            "leaders",
+            12354,
+            675,
+            675,
+            1,
+            "314 2 make_list[k]: +0x0 of 40|40: 61020000|64020000",
+        ),
+        (
+            "cities",
+            12712,
+            86,
+            86,
+            1,
+            "84 12 city..ter: raid_stamp 12711|11968",
+        ),
+        (
+            "items",
+            12663,
+            20,
+            20,
+            1,
+            "5 19 ever_seen: +0x0 of 1|1: 00|08",
+        ),
+        (
+            "goods",
+            12584,
+            265,
+            265,
+            1,
+            "200 40 ever_seen: +0x0 of 1|1: 0c|0d",
+        ),
+        (
+            "world",
+            12362,
+            7947,
+            7947,
+            1,
+            "6314 2271 block.body: +0x12 of 96|96: e000e000|c001c001",
+        ),
+    ];
 }

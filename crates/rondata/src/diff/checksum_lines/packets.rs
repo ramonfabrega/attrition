@@ -1226,6 +1226,11 @@ pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[
         10206,
         "2017 sample, Senator and city predicate controls (item 4647); the sample walk compares the accompanying field ranges",
     ),
+    (
+        "run1844",
+        11687,
+        "2017 sample, siege garrison package (item 4698); the sample walk holds the accompanying ranges",
+    ),
 ];
 
 /// **The takes' packets** (item 4159, step VII-b2): held by a take's walk
@@ -1267,7 +1272,7 @@ pub(super) const TAKES_HELD: &[(&str, i64, &str, i64)] = &[
 // Items 4641–4648: five sample packets named, (133, …, 23).
 // Item 4654: run1830's at 2963 and run1830b's at 2964 named, not held, (135, …, 25).
 // Item 4609: run1832's at 3357 named, not held, (136, …, 26).
-const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (136, 87, 7, 12, 1, 3, 26);
+const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (137, 87, 7, 12, 1, 3, 27);
 
 /// Every held packet's `(run, logger frame, game, the length its walk is
 /// whole to)`: a word's, a chapter's and the minted one.

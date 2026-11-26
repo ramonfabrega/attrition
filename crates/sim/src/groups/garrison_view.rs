@@ -32,6 +32,7 @@ pub trait GarrisonHead {
 /// What `Group::action_garrison` asks of the group, the world and the
 /// objects.
 pub trait GarrisonView: GarrisonHead {
+    type SavedOrder;
     /// `Group::set_up_insert(&list)`: the `QUEUE_FIRST` re-entry's start.
     fn set_up_insert(&mut self);
     /// `Group::action_halt(0)`.
@@ -113,13 +114,13 @@ pub trait GarrisonView: GarrisonHead {
     /// The list's `tail()`.
     fn list_tail(&mut self, p: i32, u: i32);
     /// The list's current data, the word at `+0xcc`.
-    fn list_current(&self, p: i32, u: i32) -> i32;
+    fn list_current(&self, p: i32, u: i32) -> Self::SavedOrder;
     /// The list's `remove_current()`.
     fn list_remove_current(&mut self, p: i32, u: i32);
     /// `Unit::clear_orders`.
     fn clear_orders(&mut self, p: i32, u: i32);
     /// The list's `add(data)`.
-    fn list_add(&mut self, p: i32, u: i32, data: i32);
+    fn list_add(&mut self, p: i32, u: i32, data: Self::SavedOrder);
     /// `Unit::update_gpiece`.
     fn update_gpiece(&mut self, p: i32, u: i32);
     /// `Unit::add_garrison_order(target, who, search, queue, 1)`, queue in
@@ -307,7 +308,7 @@ fn garrison_member<V: GarrisonView>(
 ///   the finish and the list's clear are nothing.
 /// - SEAM: the editor's instant garrison (the game's semaphore bit) is not modelled
 ///   and neither is the busy test (a unit entering or leaving a building);
-///   a unit type that packs takes the plain arm.
+///   the packing branch retains the active cast while clearing the later orders.
 pub struct SimGarrison<'a> {
     pub sim: &'a mut crate::Sim,
     pub g: &'a crate::groups::group::Group,
@@ -339,6 +340,7 @@ impl GarrisonHead for SimGarrison<'_> {
 }
 
 impl GarrisonView for SimGarrison<'_> {
+    type SavedOrder = crate::orders::Order;
     fn set_up_insert(&mut self) {}
     fn action_halt(&mut self) {}
     fn finish_insert(&mut self) {}
@@ -454,35 +456,35 @@ impl GarrisonView for SimGarrison<'_> {
     fn unit_is_worker(&mut self, _p: i32, u: i32) -> bool {
         self.sim.is_worker(u as usize)
     }
-    fn unit_packs(&self, _p: i32, _u: i32) -> bool {
-        false
+    fn unit_packs(&self, _p: i32, u: i32) -> bool {
+        self.sim.profile(crate::combat::Obj::Unit(u as usize)).packs
     }
-    fn unit_is_packing(&mut self, _p: i32, _u: i32) -> bool {
-        unreachable!("a packing unit type takes the plain arm here")
+    fn unit_is_packing(&mut self, _p: i32, u: i32) -> bool {
+        self.sim.is_packing(u as usize)
     }
-    fn unit_is_unpacking(&mut self, _p: i32, _u: i32) -> bool {
-        unreachable!("a packing unit type takes the plain arm here")
+    fn unit_is_unpacking(&mut self, _p: i32, u: i32) -> bool {
+        self.sim.is_unpacking(u as usize)
     }
-    fn list_len(&self, _p: i32, _u: i32) -> i32 {
-        unreachable!("a packing unit type takes the plain arm here")
+    fn list_len(&self, _p: i32, u: i32) -> i32 {
+        self.sim.units[u as usize].orders.len() as i32
     }
     fn list_tail(&mut self, _p: i32, _u: i32) {
-        unreachable!("a packing unit type takes the plain arm here")
+        // The original's tail is the front of the native execution queue.
     }
-    fn list_current(&self, _p: i32, _u: i32) -> i32 {
-        unreachable!("a packing unit type takes the plain arm here")
+    fn list_current(&self, _p: i32, u: i32) -> Self::SavedOrder {
+        self.sim.units[u as usize].orders[0]
     }
-    fn list_remove_current(&mut self, _p: i32, _u: i32) {
-        unreachable!("a packing unit type takes the plain arm here")
+    fn list_remove_current(&mut self, _p: i32, u: i32) {
+        self.sim.units[u as usize].orders.pop_front();
     }
-    fn clear_orders(&mut self, _p: i32, _u: i32) {
-        unreachable!("a packing unit type takes the plain arm here")
+    fn clear_orders(&mut self, _p: i32, u: i32) {
+        self.sim.clear_orders(u as usize);
     }
-    fn list_add(&mut self, _p: i32, _u: i32, _data: i32) {
-        unreachable!("a packing unit type takes the plain arm here")
+    fn list_add(&mut self, _p: i32, u: i32, order: Self::SavedOrder) {
+        self.sim.units[u as usize].orders.push_front(order);
     }
-    fn update_gpiece(&mut self, _p: i32, _u: i32) {
-        unreachable!("a packing unit type takes the plain arm here")
+    fn update_gpiece(&mut self, _p: i32, u: i32) {
+        self.sim.update_gpiece(u as usize);
     }
     fn add_garrison_order(
         &mut self,

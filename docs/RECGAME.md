@@ -659,6 +659,14 @@ and all eleven recorded lines through 11500 agree. The next unit
 difference is on 11688 and the next unequal draw is on 11728.
 [Chase comparison and radius control](journal/2026-11-25-item-4697.md)
 
+**Garrison while packing (item 4698).** Player 3 sends siege units 92 and
+110 into building 2047 on 11687. Unit 92 keeps its packing cast and
+replaces its subsequent move with garrison. Unit 110 replaces its move
+with garrison immediately. Both order lists agree after the package
+and on the following ticks. The next unequal state is 12354 on leaders,
+when player 2 puts Agriculture in its fourth research slot. Draws agree
+through 12356. [Order and peer comparison](journal/2026-11-25-item-4698.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte

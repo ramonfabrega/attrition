@@ -167,6 +167,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     }
                 }
                 impl GarrisonView for V<'_> {
+                    type SavedOrder = i32;
                     fn set_up_insert(&mut self) {
                         self.rec(8, "m+0x0", &[]);
                         let t = self.log.last_mut().expect("just pushed");

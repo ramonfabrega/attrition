@@ -42462,3 +42462,41 @@ launch (`ron_lane_state`); `df -g ~` read 77 GB free before it and 94 after fili
 `Unit::close+0xcb6 < Object::die+0x29 < Unit::fight+0x1e27`; 19 draws on both sides). `Unit::process@00610bc0` runs
 `Guy::process` on the dead figure, and 3573 + 139 is 58 × 64: the repaint re-marks the disc the close cleared. After
 the fix nothing parts to 3590. Read by item 4689's range printer (a probe, reverted); no test reads the ranges.
+
+## run1844 — the 2017 sample through 21044, field ranges through 19001 and the siege garrison packet (2026-11-25, item 4698)
+
+Item 4697 passed the end of run1827 (11500). The one take printed by
+`score_recording` on run1662 was `--end-frame 21044 --tracer-def RON_CHECKSUMS
+--tracer-def RON_RANGES --tracer-def RNG_MASK=0xffbu`. The recording was
+`game/external-recgames/seifer008 - Toughest AI 4 v 1.rcx`. The existing
+`viadriver.sh` / `golden_capture.sh` flow used `cover=0`, a log window of
+11685–11690, `end:MISC`, a single `11687 @dumpall` and the item 597 snapshot
+plan at 11687. The timeout was 5400 s and the stall timeout 180 s. The
+launch log is `/tmp/ron-runs/viadriver-20261125-205159-59214.log`.
+
+- Lane 1 played 21045 states, 0–21044, with zero page faults and no
+  relaunch. Launch to exit took 1513.18 s. The receipt records success
+  and all five settings files restored. All 22077 checksum sets agree
+  with run1662 on every word through the last state.
+- The recorder's default 20480 MiB ceiling stopped the field data after
+  state 19001. The 19928 complete sets cover 19002 states, including the
+  pre-input and post-package ordinals. Refolding 450463835 ranges and
+  14264993695 payload bytes reproduced every kept line. Every one of the
+  12089 overlapping sets agrees with run1827. States 19002–21044 have
+  checksums only.
+- The frame 11687 snapshot contains 212 ranges and 1013719040 payload
+  bytes. All eight root anchors survived the logger return. SHA-256
+  `204d7a53f35de781b929c63ddd040469a49afcead316f7a86e03f58423c572e3`.
+  The dump SHA-256 is `440f54ad5dc4c76fbcd105480f1e88b014328b40d8d7b7545bf25cd53be6ba0e`
+  and the trace SHA-256 is `d19f9b73fd5f2c811e6da7d074216fa1abf0d04ca39123fcf99814488afd897b`.
+
+The ranges name a garrison command replacing a move while preserving a
+packing cast. The post-package state and four neighbouring states are
+compared on every kept line. The receipt is in `~/ron-golden/run1844`.
+The verifier source, byte counts, SHA-256s and snapshot report are in
+`~/ron-data/lab-experiments/2026-11-25-codex-sample-tracking.s5aZMk/`.
+
+Filed with `filerun.py run1844 sample2017-playback-ranges-21044`.
+The dump and trace are hard-linked. The 21474358120-byte field record
+is split in 20 verified pieces, 2.26 GiB on disk, SHA-256
+`90e2a95b7d038567ac39d9125fc51a0ee81bc58eea12fc759ec657e5c8c125c0`.
