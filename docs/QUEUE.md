@@ -62,13 +62,22 @@ ours 3412282491, theirs 1117867263). run1799's ranges reach it: no take. Re-pin 
 when two landings running move no column.
 
 4728. **Parity held out, sixth: row 133's units from 3690** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §13.5). Item
-4723 built `find_nearby_target`'s air refusal (`Sim::nearby_add_refuses_air`, COMBAT §66.8: the add returns -1 for an air target
+4723 built `find_nearby_target`'s air refusal (COMBAT §66.8: the add returns -1 for an air target
 when the searcher is not guarding, holds `ATTACK_TO` or `GROUP_ATTACK_TO` and lacks `ANTI_AIR`): on 3632 who=2's Flamethrower 2/73
 ranked the Attack Helicopter 1/36 first; on 3633 units record 73 `orders.count` ours 2 -> 1 and the head `order.type` 10 -> 2, as
 theirs; every column moved (builds 3678 -> 3864, ammo 3646 -> 3806, deaths 3638 -> 3802, groups 3652 -> 3834, guys 3634 -> 3790,
 leaders 3648 -> 3803, cities 3662 -> 3876, world 3635 -> 3802), the first parting 3633 -> 3690 on units; builds part next on 3850.
 The record and field are not read. run1797 runs to the game's end: no take. Re-pin `SCORES_SIXTH[6].moved`, never `found`. It stops
 when two landings running move no column.
+
+4726. **Parity held out, fifth: row 83's groups and leaders from 3754** (a rules item, whole; a parity seat's; `docs/RECGAME.md`
+§12.3). Item 4721 cut a leader's city list of its trailing dead slots in `capture_city` and `close_city`, as theirs does:
+`compute_site_stats`' distance loop walked who=2's dead record of the city at (16, 34), taken on 3644, and scored all ten sites 0 on
+3751 (rank 10 against theirs 2; (26, 43) ours 0, theirs 8,457,390); leaders 3,751 -> 3,754, units -> 3,775, builds -> 3,779, cities
+-> 3,796, deaths -> 3,811, world -> 3,776; ammo 3,796 -> 3,795, a named fall; `close_city` cited and never entered (blind never 337
+-> 338); 4721a parked. The leaves on 3754: groups range 85, record 67, `num` ours 0, theirs 1 (`stamp` 3736 against 3753,
+`buildings` 0 against 1); leaders range 128, record 1, `flags` byte 3, ours 0x00, theirs 0x02. run1784 is the row's full recording:
+no take. Re-pin `SCORES_FIFTH[4].moved`, never `found`. It stops when two landings running move no column.
 
 4671. **Parity held out, sixth: row 53's leaders from 3716** (a rules item, whole; unseated, first; `docs/RECGAME.md` §13.2). Item 4667's
 take (run1835, to 3720) named and built the ram, `resolve_unit_collision`'s first step: who=1's Fire Raft 1/49, blocked by 2/108,
