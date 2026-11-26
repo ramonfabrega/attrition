@@ -16710,3 +16710,16 @@ refused (entry 129 §9); GitHub's own setting deletes a head branch
 only on a merged pull request and would not hold this. What stops the
 recurrence is not decided: an Action on a push to `main`, or a
 permission rule and a step of the reap.
+
+**§11. Ramon's play (2026-11-25, 19:45 −05:00).** He played the gated
+tip for some minutes and saved a recording
+(`~/ron-data/lab-experiments/2026-11-25-pass-second/spin-1125.rcx`,
+59,833 bytes). Four notes, ranked as §10 says. He could not build: no
+Farm and no Barracks, by the panel or by F or B (item 4695, the
+client's seat now). The game read as fast-forwarded: the window steps
+the sim once a presented frame, 60 a second, where the original's
+Normal is 15.1 by run1814b's photograph (item 4696). Escape ended his
+game, where the original's cancels (item 4696). And the HUD does not
+read as the game's (item 4694, behind item 4690). The pass read the
+step's pacing and the two key tables in the client's source; it did
+not decode his recording, which is item 4695's first act.
