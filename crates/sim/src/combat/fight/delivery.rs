@@ -1363,6 +1363,9 @@ impl Sim {
                 cd.no_heal = true;
                 cd.attacking = true;
                 cd.ever_attacked = true;
+                if std::env::var("RON_PROBE_4726").is_ok() && (3745..=3755).contains(&frame) {
+                    println!("P4726 struck f{frame} b {b} index {} owner {} ty {:?} city {c} is_city {} gather {} alarm {} by {:?}", self.buildings[b].index, self.buildings[b].owner, self.buildings[b].ty, self.building_is_city(b), self.is_gather_type(b), self.cities.cities[c].alarm, by);
+                }
                 self.city_struck_alarm(b, c);
             }
         }

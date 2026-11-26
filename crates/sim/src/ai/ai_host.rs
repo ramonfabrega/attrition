@@ -202,6 +202,9 @@ impl Host for ScriptHost<'_> {
     fn call(&mut self, name: &str, args: &[Value]) -> Result<Value, String> {
         let a = |i: usize| args.get(i).map_or(0, Value::as_int);
         let s = |i: usize| args.get(i).map_or_else(String::new, Value::as_str);
+        if std::env::var("RON_PROBE_4726").is_ok() && (3600..=3760).contains(&self.sim.frame) {
+            println!("P4726 script f{} {name} {:?}", self.sim.frame, args.iter().map(|v| format!("{v:?}")).collect::<Vec<_>>());
+        }
         Ok(match name.to_ascii_lowercase().as_str() {
             // ---- queries ----
             "age" => self
@@ -1109,6 +1112,9 @@ impl ScriptHost<'_> {
                 b
             }
         };
+        if std::env::var("RON_PROBE_4726").is_ok() && (3600..=3760).contains(&self.sim.frame) {
+            println!("P4726 train f{} who {w} b {b} index {}", self.sim.frame, self.sim.buildings[b].index);
+        }
         self.action_queue_up(w, b, QueueType::Unit(rec, t), num);
         int(i32::from(self.sim.buildings[b].index))
     }
