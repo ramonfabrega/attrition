@@ -142,6 +142,11 @@ pub struct MinimapFrame {
     pub left: Texels,
     /// `mid_window`'s corner in the bar: the minimap window's place.
     pub mid_window: (i32, i32),
+    /// Item 4727: `timer_area2`, the clock's box, in the bar.
+    pub clock: left::Span,
+    /// The clock's face ([`left::CLOCK_FACE`]), `None` where the install
+    /// has none.
+    pub face: Option<crate::selection::PlateFace>,
 }
 
 /// **The frame's art**: interface.xml's layout, and each nation's atlas as
@@ -152,6 +157,10 @@ pub struct FrameArt {
     left: left::LeftLayout,
     /// interface.xml's own `TEX_CIV` file, the fallback.
     default_civ: String,
+    /// Item 4727: the clock's face, and `rules.xml`'s `gamespeeds`, the
+    /// names `TurnControl::speed` indexes (`game_speeds`).
+    face: Option<crate::selection::PlateFace>,
+    pub speeds: Vec<String>,
     cache: std::sync::Mutex<
         std::collections::BTreeMap<Option<&'static str>, Option<std::sync::Arc<MinimapFrame>>>,
     >,
@@ -170,11 +179,32 @@ impl FrameArt {
             .and_then(|t| attr(t, "file"))
             .ok_or("interface.xml: no TEX_CIV")?
             .to_string();
+        let (file, ppem, ascent, height) = left::CLOCK_FACE;
+        let face = crate::selection::PlateFace::load_face(root, file, ppem, ascent, height).ok();
+        let speeds = std::fs::read_to_string(root.join("Data").join("rules.xml"))
+            .ok()
+            .and_then(|x| {
+                let b = x
+                    .split("<CATEGORIES id=\"gamespeeds\"")
+                    .nth(1)?
+                    .split("</CATEGORIES>")
+                    .next()?
+                    .to_string();
+                Some(
+                    b.split('<')
+                        .filter(|t| t.starts_with("CATEGORY "))
+                        .filter_map(|t| attr(t, "name").map(String::from))
+                        .collect(),
+                )
+            })
+            .unwrap_or_default();
         Ok(FrameArt {
             root: root.to_path_buf(),
             layout,
             left,
             default_civ,
+            face,
+            speeds,
             cache: Default::default(),
         })
     }
@@ -217,6 +247,8 @@ impl FrameArt {
             buttons,
             left: self.left.compose(&atlas)?,
             mid_window: self.left.mid_window,
+            clock: self.left.clock,
+            face: self.face.clone(),
         })
     }
 }
@@ -236,11 +268,15 @@ impl MinimapFrame {
         (o.0 - self.mid_window.0, o.1 - self.mid_window.1)
     }
 
-    /// The left window's texel at screen `(x, y)`, or `None` off it.
-    pub fn left_texel(&self, (ox, oy): (i32, i32), x: i32, y: i32) -> Option<[u8; 4]> {
-        let (u, v) = (x - ox, y - oy);
-        let (w, h) = (self.left.w as i32, self.left.h as i32);
-        ((0..w).contains(&u) && (0..h).contains(&v)).then(|| self.left.at(u as usize, v as usize))
+    /// **The left window with the clock written** (item 4727): `line`
+    /// centred in the clock's box ([`left::write_clock`]); the window alone
+    /// with no line or no face.
+    pub fn left_with(&self, line: Option<&str>) -> Texels {
+        let mut win = self.left.clone();
+        if let (Some(line), Some(face)) = (line, &self.face) {
+            left::write_clock(&mut win, face, self.clock, line);
+        }
+        win
     }
 
     /// The window's texel at screen `(x, y)`, the buttons over the back, or
@@ -260,8 +296,9 @@ impl MinimapFrame {
         ((0..w).contains(&u) && (0..h).contains(&v)).then(|| self.back.at(u as usize, v as usize))
     }
 
-    /// The window as layers for the screen pass.
-    pub fn layers(&self, size: (i32, i32)) -> Vec<crate::gpu::ScreenLayer> {
+    /// The window as layers for the screen pass, the clock's `line` in
+    /// the bar's box.
+    pub fn layers(&self, size: (i32, i32), line: Option<&str>) -> Vec<crate::gpu::ScreenLayer> {
         let o = self.origin(size);
         let (x1, y1) = (
             (o.0 + self.back.w as i32).min(size.0),
@@ -270,17 +307,33 @@ impl MinimapFrame {
         let mut v = layers_of(size, (o.0.max(0), x1, o.1.max(0), y1), |x, y| {
             self.texel(o, x, y)
         });
-        // Item 4724: the bar's left window.
+        // Item 4724: the bar's left window; item 4727, its clock.
         let b = self.bar_origin(size);
+        let win = self.left_with(line);
         let (x1, y1) = (
-            (b.0 + self.left.w as i32).min(size.0),
-            (b.1 + self.left.h as i32).min(size.1),
+            (b.0 + win.w as i32).min(size.0),
+            (b.1 + win.h as i32).min(size.1),
         );
         v.extend(layers_of(size, (b.0.max(0), x1, b.1.max(0), y1), |x, y| {
-            self.left_texel(b, x, y)
+            texel_of(&win, b, x, y)
         }));
         v
     }
+}
+
+fn texel_of(t: &Texels, (ox, oy): (i32, i32), x: i32, y: i32) -> Option<[u8; 4]> {
+    let (u, v) = (x - ox, y - oy);
+    let (w, h) = (t.w as i32, t.h as i32);
+    ((0..w).contains(&u) && (0..h).contains(&v)).then(|| t.at(u as usize, v as usize))
+}
+
+/// **The bar's clock line in `world`** (item 4727): the speed's name off
+/// `rules.xml`'s `gamespeeds`, at the world's speed, and the clock of its
+/// frame ([`left::clock_line`]). `None` without the frame's art or a name.
+pub fn clock_line(world: &crate::world::World) -> Option<String> {
+    let art = world.frame_art.as_ref()?;
+    let speed = art.speeds.get(usize::from(world.speed))?;
+    Some(left::clock_line(speed, world.runner.frame()))
 }
 
 /// **The console's frame** in `world`: the atlas its nation and age pick.
