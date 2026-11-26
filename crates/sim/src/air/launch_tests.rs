@@ -1240,3 +1240,45 @@ fn a_plane_whose_home_is_razed_flies_to_the_nearest_base_or_dies() {
     s.plane_air_physics(u, None, 1202);
     assert!(!s.obj_alive(Obj::Unit(u)), "no base: it dies");
 }
+
+/// **A plane's step snaps its figure's `last_angle` with its `angle`**
+/// (item 4725, `docs/RECGAME.md` §13.3): `Unit::do_air_physics@005e86d0:219`
+/// calls `Guy::set_angle(guy 0, heading, 1)`, which writes `+0x18` and
+/// `+0x1c` both (`005d9010:13`–`16`). Launched, the Fighter stands on the
+/// exit's angle 0 with `last_angle` 0; its steps bank it toward the
+/// patrol's point and its `last_angle` follows, with no `Guy::move` head
+/// between them (run1799's Fighter `2/141` out of its Airbase on 4219: ours 0,
+/// theirs 0x01830000). Made to fail with the snap writing the angle alone.
+#[test]
+fn a_plane_s_step_snaps_its_figure_s_last_angle_with_its_angle() {
+    let mut s = sim();
+    let (base, _) = base_and_target(&mut s);
+    let u = fighter_inside(&mut s, base, 400);
+    let goal = Pos::new(21120, 16512);
+    s.add_air_patrol_order(u, goal, Some(base), true);
+    s.units[u].mana_burn = 0;
+    s.do_launch(base);
+    assert_eq!(s.units[u].inside, None, "launched");
+    assert_eq!(s.units[u].movement.facing, Angle(0), "the exit's angle");
+    assert_eq!(
+        s.units[u].guys[0].last.map(|l| l.1),
+        Some(Angle(0)),
+        "the exit's last_angle"
+    );
+    // Steps alone, no `Guy::move` between them, until the bank turns it.
+    for _ in 0..32 {
+        let frame = s.frame;
+        s.plane_air_physics(u, Some(goal), frame);
+        s.frame += 1;
+        if s.units[u].movement.facing != Angle(0) {
+            break;
+        }
+    }
+    let facing = s.units[u].movement.facing;
+    assert_ne!(facing, Angle(0), "the steps banked it");
+    assert_eq!(
+        s.units[u].guys[0].last.map(|l| l.1),
+        Some(facing),
+        "last_angle snapped with the angle"
+    );
+}
