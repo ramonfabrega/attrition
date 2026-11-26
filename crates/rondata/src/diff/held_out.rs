@@ -2556,6 +2556,103 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 133's Spy marks itself as it bribes** (item 4728,
+    /// `docs/COMBAT.md` §90): run1797's ranges, the row's units parting
+    /// on 3690 (record 84, `flags` ours `0x01`, theirs `0x81`;
+    /// `unit_masks2` ours 0, theirs `0x60`). who=2's Spy `2/84` (TI 58,
+    /// land) stands in range of who=1's Assault Infantry `1/86` (TI 104)
+    /// with a Bribe (`0x275`) at its head, and on 3690 makes its first
+    /// in-range step (`spell_time` 0 -> 1). `Unit::do_cast@005ebfe0`
+    /// raises `flags |= 0x80` for a targeted spell on another player's
+    /// object and `unit_masks2 |= 0x60` for a Bribe; this crate wrote
+    /// neither. Every range of every line on 3690 and 3691.
+    #[test]
+    fn row_133_s_spy_marks_itself_as_it_bribes_on_run1797() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 3689 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        // Entering 3690: the Spy with its Bribe on the infantryman at its
+        // head, unmarked, and not yet counting.
+        let spy = built.sim.unit_by_o(2, 84).expect("the Spy");
+        assert_eq!(built.sim.units[spy].type_index, 58, "2/84 is a Spy");
+        let victim = built.sim.unit_by_o(1, 86).expect("the infantryman");
+        assert_eq!(
+            built.sim.units[victim].type_index, 104,
+            "1/86 is an Assault Infantry"
+        );
+        match built.sim.units[spy].orders.front().map(|o| &o.body) {
+            Some(sim::orders::Body::Cast(c)) => {
+                assert_eq!(c.spell, sim::ids::spell::BRIBE, "2/84's head cast");
+                assert_eq!(c.target, Some(sim::combat::Obj::Unit(victim)), "its target");
+            }
+            other => panic!("2/84's head order is a cast, got {other:?}"),
+        }
+        assert_eq!(built.sim.units[spy].spell_time, 0, "2/84 has not begun");
+        assert!(
+            !built.sim.units[spy].attacking,
+            "2/84 unmarked entering 3690"
+        );
+        assert_eq!(built.sim.units[spy].unit_masks2 & 0x60, 0);
+        for state in [3690, 3691] {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            assert_eq!(built.sim.frame, state);
+            if state == 3690 {
+                assert_eq!(built.sim.units[spy].spell_time, 1, "the first step");
+                assert!(built.sim.units[spy].attacking, "2/84 flags 0x80 on 3690");
+                assert_eq!(
+                    built.sim.units[spy].unit_masks2 & 0x60,
+                    0x60,
+                    "2/84 unit_masks2 0x60 on 3690"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (line, ours) in lines.iter().enumerate() {
+                let Some(ours) = ours.as_ref() else {
+                    continue;
+                };
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {line}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "line {line} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 133's Flamethrower drops the helicopter its attack-move
     /// found** (item 4723, `docs/COMBAT.md` §66.4): run1797's ranges, the
     /// row's units parting on 3633 (record 73, `orders.count` ours 2,
@@ -5781,6 +5878,101 @@ pub(crate) mod tests {
                     Some(0x0183_0000),
                     "last_angle on 4219, theirs"
                 );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(sim, &look, &tribes);
+            for (line, name) in [(0usize, "units"), (6, "guys")] {
+                let ours = lines[line].as_ref().expect(name);
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                    assert_eq!(
+                        at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                        None,
+                        "{name} range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                        a.record,
+                        a.field
+                    );
+                }
+            }
+        }
+    }
+
+    /// **Row 93's units and guys on 4235: a plane born on a reused number
+    /// takes its dead occupant's stored `z`** (item 4730, `docs/RECGAME.md`
+    /// §13.3), on run1799's whole-length ranges of run1792's file. who=2's
+    /// Citizen `2/112` (TI 50, land) died with its figure held at 528, the
+    /// height a terraform left it at, over ground that reads 539. The
+    /// Fighter `2/112` (TI 293, air) born on its number inside its Airbase
+    /// on 4235 holds that `z` and `last_z` (`Unit::init@00612100:549`'s
+    /// `set_new_location` writes no fixed-wing `z`). Red on the base at units
+    /// range 6888 and guys range 1365 on 4235, record 112 `guy` bytes 12 and
+    /// 104 (`z` and `last_z`, low bytes): ours 27 and 27, theirs 16 and 16.
+    /// Every units and guys range on 4234 to 4236, byte for byte.
+    #[test]
+    fn row_93_s_fighter_on_a_reused_number_inherits_its_held_z_on_run1799_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            eprintln!("skipping: row 93's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1799/map-14");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1799's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 4234i64..=4236 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let sim = &built.sim;
+            let named = |alive: bool| {
+                sim.units
+                    .iter()
+                    .rev()
+                    .find(|un| un.owner == 2 && un.index == 112 && un.alive() == alive)
+                    .map(|un| {
+                        let ty = un.ty.expect("a type");
+                        (
+                            un,
+                            sim.tables.unit_types[ty].type_index,
+                            loaded.unit_names[ty].as_str(),
+                        )
+                    })
+            };
+            let (citizen, ti, name) = named(false).expect("the dead 2/112");
+            assert_eq!((ti, name), (50, "Citizen"), "the number's dead occupant");
+            assert_eq!(citizen.kind.domain, sim::territory::attrition::Domain::Land);
+            assert_eq!(
+                citizen.guys[0].z_held.map(|(_, z)| z),
+                Some(528),
+                "its figure held at 528"
+            );
+            if state >= 4235 {
+                let (fighter, ti, name) = named(true).expect("the Fighter 2/112");
+                assert_eq!((ti, name), (293, "Fighter"), "the newborn on 112");
+                assert_eq!(fighter.kind.domain, sim::territory::attrition::Domain::Air);
+                assert!(fighter.inside.is_some(), "born inside its base");
+                assert_eq!(
+                    (fighter.airframe.z, fighter.airframe.last_z),
+                    (528, 528),
+                    "z and last_z on {state}, theirs"
+                );
+            } else {
+                assert!(named(true).is_none(), "no 2/112 alive on 4234");
             }
             let set = record.first_of(state - 1).expect("the state's set").clone();
             let all = record.ranges(&set).expect("the set's ranges");
@@ -14125,22 +14317,33 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // bytes 22..23, `last_angle`'s high half: ours 0x0000, theirs
         // 0x0183, on 4219). The row's first parting 4219 -> 4235 (units and
         // guys): units 4,242 -> 4,243, guys 4,242 -> 4,243.
+        // Then item 4730 (`Unit::init@00612100:549` leaves a fixed-wing
+        // figure's `z` as its number's dead occupant stored it): who=2's
+        // Fighter `2/112` (TI 293, air), born inside its Airbase on 4235,
+        // holds the 528 its dead Citizen `2/112` (TI 50) was held at by a
+        // terraform, not the 539 the ground there reads (run1799's units
+        // range 6888 and guys range 1365, record 112 `guy` bytes 12 and 104,
+        // `z` and `last_z`: ours 539, theirs 528, on 4235). The row's first
+        // parting 4235 -> 4288 (units, guys and world): units 4,243 ->
+        // 4,288, guys 4,243 -> 4,288; past it ammo 4,787 -> 4,763, items
+        // 6,717 -> 6,187 (first 6009 -> 6187), goods 5,464 -> 5,608 (first
+        // 4720 -> 4459).
         moved: Some(Score {
             states: 12001,
             agreed: [
-                4243, 4310, 12001, 4787, 4325, 4362, 4243, 4317, 4351, 6717, 5464, 4288,
+                4288, 4310, 12001, 4763, 4325, 4362, 4288, 4317, 4351, 6187, 5608, 4288,
             ],
             first: &[
-                ("units", (4235, Some(3939744510), 1351334632)),
+                ("units", (4288, Some(3288549406), 1585793752)),
                 ("builds", (4310, Some(1827527676), 298966417)),
                 ("ammo", (4289, Some(1796672337), 2990607315)),
                 ("deaths", (4325, Some(3973575844), 4044551333)),
                 ("groups", (4334, Some(470667955), 2973162772)),
-                ("guys", (4235, Some(1888552282), 2090599748)),
+                ("guys", (4288, Some(4283650541), 1582715391)),
                 ("leaders", (4312, Some(429387115), 3607031145)),
                 ("cities", (4351, Some(2145664821), 2143174452)),
-                ("items", (6009, Some(1373777447), 1365126693)),
-                ("goods", (4720, Some(3351549222), 3368850730)),
+                ("items", (6187, Some(1365126693), 1373777447)),
+                ("goods", (4459, Some(3368850730), 3351549222)),
                 ("world", (4288, Some(2994040454), 587558473)),
             ],
             over: None,
@@ -14454,13 +14657,21 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 4360 -> 4387), goods 4,476 -> 4,483 (first 4476 standing), world
         // 3,635 -> 3,802 (first 3634 -> 3802). The first parting is units
         // alone on 3690.
+        // Then item 4728 (`Unit::do_cast@005ebfe0`'s in-range step raises
+        // `flags |= 0x80` for a targeted craft on another player's object
+        // and `unit_masks2 |= 0x60` for a Bribe: who=2's Spy `2/84`, TI 58,
+        // bribing who=1's Assault Infantry `1/86`, TI 104; units range
+        // 10024, record 84, `flags` ours 0x01, theirs 0x81, and `unit_masks2`
+        // ours 0, theirs 0x60 on 3690, both theirs now): units 3,690 ->
+        // 3,739 (first 3690 -> 3739), every other line standing. The first
+        // parting is units alone on 3739.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                3690, 3864, 6085, 3806, 3802, 3834, 3790, 3803, 3876, 4387, 4483, 3802,
+                3739, 3864, 6085, 3806, 3802, 3834, 3790, 3803, 3876, 4387, 4483, 3802,
             ],
             first: &[
-                ("units", (3690, Some(2545220959), 2094071359)),
+                ("units", (3739, Some(1986913293), 3842434528)),
                 ("builds", (3850, Some(4293904204), 192464599)),
                 ("ammo", (3803, Some(1779153171), 2589129557)),
                 ("deaths", (3802, Some(3088599948), 1452759926)),

@@ -660,3 +660,74 @@ fn a_french_general_recovers_craft_twice_as_fast() {
     assert_eq!(s.unit_mana(general), 1200, "(20 + 100) × 1000 / 100");
     assert_eq!(s.unit_mana(filler), 1000, "only a General's pool");
 }
+
+/// **A Spy in range of its Bribe marks itself** (item 4728,
+/// `docs/COMBAT.md` §90; `Unit::do_cast@005ebfe0` at `5ec5a6` and
+/// `5ec945`): on each in-range step of a targeted craft on another
+/// player's object the caster takes `flags |= 0x80`
+/// ([`crate::Unit::attacking`]), and a Bribe also takes `unit_masks2 |=
+/// 0x60`. `Unit::process_cloak@005e1c20`'s 512-frame pass peels the mark
+/// a bit at a time: `0x40` first, `0x20` on the next pass, and a fought
+/// unit loses `0x40` only. Made to fail with each write dropped and
+/// with the pass's two arms swapped.
+#[test]
+fn a_bribing_spy_takes_the_attack_flag_and_the_bribe_mark_and_the_pass_peels_it() {
+    use crate::combat::Obj;
+    use crate::combat::umask2::{BRIBE_HIGH, BRIBE_LOW, BRIBE_MARK};
+    use crate::orders::{Body, CastOrder, Order, SpellType, spell};
+    let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
+    s.orders.spells =
+        vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+    let bribe = usize::try_from(spell::BRIBE - spell::FIRST).unwrap();
+    s.orders.spells[bribe].flags = 0x2 | 0x20 | 0x80;
+    s.orders.spells[bribe].job_time = 100;
+    let target = s.add_unit({
+        let mut u = Unit::new(0, 0, Pos::new(3 * 768, 3 * 768), 20);
+        u.ty = s.units[filler].ty;
+        u
+    });
+    s.units[target].owner = 0;
+    let ty = s.units[target].ty.unwrap();
+    s.tables.unit_types[ty].combat.attack = 5;
+    s.declare_war(0, 1);
+    s.units[spy].owner = 1;
+    assert!(s.spell_valid_target(spell::BRIBE, 1, Obj::Unit(target)));
+    let order = CastOrder {
+        spell: spell::BRIBE,
+        paid: false,
+        target: Some(Obj::Unit(target)),
+        at: s.units[target].pos,
+    };
+    s.units[spy].orders.push_back(Order {
+        flags: 0,
+        body: Body::Cast(order),
+    });
+    assert!(!s.units[spy].attacking);
+    s.do_cast_targeted(spy, order);
+    assert_eq!(s.units[spy].spell_time, 1, "an in-range step");
+    assert!(s.units[spy].attacking, "flags 0x80");
+    assert_eq!(s.units[spy].unit_masks2 & BRIBE_MARK, BRIBE_MARK, "0x60");
+
+    // The pass, on the unit's own 512th frame.
+    let o = i64::from(s.units[spy].index);
+    let pass = |s: &mut Sim, k: i64| {
+        s.units[spy].orders.clear();
+        let frame = 512 * k - o;
+        s.frame = frame;
+        s.process_unit(spy, frame, &mut Vec::new());
+        s.units[spy].unit_masks2 & BRIBE_MARK
+    };
+    s.units[spy].fought = false;
+    assert_eq!(pass(&mut s, 10), BRIBE_LOW, "the high bit first");
+    assert_eq!(pass(&mut s, 11), 0, "the low bit on the next pass");
+    s.units[spy].unit_masks2 |= BRIBE_MARK;
+    s.units[spy].fought = true;
+    assert_eq!(
+        pass(&mut s, 12),
+        BRIBE_LOW,
+        "a fought pass: the high bit only"
+    );
+    assert!(!s.units[spy].fought, "and the fought bit goes");
+    s.units[spy].unit_masks2 = (s.units[spy].unit_masks2 & !BRIBE_MARK) | BRIBE_HIGH;
+    assert_eq!(pass(&mut s, 13), 0, "the high bit alone");
+}

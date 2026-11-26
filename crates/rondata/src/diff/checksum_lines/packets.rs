@@ -1698,11 +1698,12 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4226, a bird walked on neither line: units (1116, 1296, 306) -> (1116, 1116, 126), guys (382, 445, 99) -> (382, 382, 36).
     // Item 4228, a path stack's `size` its high water: units (1116, 1116, 126) -> (1116, 1116, 125).
     // Item 4348, gaia's angles from the start dump: units (1116, 1116, 125) -> (1116, 1116, 89), guys (382, 382, 36) -> (382, 382, 0).
+    // Item 4728, a caster in range on an enemy holds `flags & 0x80`, which holds off the 32-frame `visible` clear: units (1116, 1116, 89) -> (1116, 1116, 88); range 163, record 7, `visible` (`myhits..launch_frames` byte 32) ours 0x00, theirs 0x02, as theirs now.
     (
         "ch94p",
         846,
         [
-            (1116, 1116, 89),
+            (1116, 1116, 88),
             (517, 517, 13),
             (0, 0, 0),
             (0, 0, 0),

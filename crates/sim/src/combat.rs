@@ -71,6 +71,17 @@ impl Rng {
 pub mod umask2 {
     /// A mandatory attack supplied the fire-on-the-move target.
     pub const ORDERED_CAVARCH_TARGET: u32 = 0x100;
+    /// **`0x60` — a Spy bribing** (item 4728, `docs/COMBAT.md` §90):
+    /// `Unit::do_cast@005ebfe0` (`5ec945`) ORs both bits on every in-range frame
+    /// of a Bribe (`0x275`), and `Unit::process_cloak@005e1c20`'s
+    /// 512-frame pass takes them off one at a time — [`BRIBE_HIGH`]
+    /// first, then [`BRIBE_LOW`]; a fought pass takes the high one only.
+    /// `GuyOut::draw` reads the low one; nothing in the sim does.
+    pub const BRIBE_MARK: u32 = 0x60;
+    /// The high half of [`BRIBE_MARK`], the first one the pass clears.
+    pub const BRIBE_HIGH: u32 = 0x40;
+    /// The low half of [`BRIBE_MARK`], cleared on the pass after.
+    pub const BRIBE_LOW: u32 = 0x20;
     /// **`4` — a unit of the Bark line** (`Unit::init@00612100:604-611`,
     /// `is(BARK)`, item 2165, `docs/GOLDEN.md` §79): set at birth on every
     /// such unit, whoever owns it, and cleared on every other. `Unit::fight`

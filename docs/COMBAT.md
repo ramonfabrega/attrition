@@ -14734,3 +14734,50 @@ is (29904,39006) versus (29881,39018), with collision owner/index -1/-1
 versus 1/185. Item 1441 books this blocked-step observation. No independent
 blind reading is claimed; the ordering is backed by the booked trace and
 value changes, not a claim that all strike branches have been exercised.
+
+## 90. A bribing Spy marks itself (item 4728, 2026-11-26)
+
+`Unit::do_cast@005ebfe0`'s targeted half makes two writes that this crate
+carried only as a `SEAM` on `Sim::do_cast_targeted`. Both happen on every
+in-range step, ahead of the clock (`spell_time += 1`):
+
+- **`flags |= 0x80`** (`5ec5a6`), the unit's attacking bit
+  (`crate::Unit::attacking`). The arm is the in-range test for a craft
+  whose `+0x1c8 & 0xe` is set, on a target owned by another player, with
+  a valid target index. If the target's vslot `+0x48` (`is_seen`) is
+  false, the order dies first. After the bit come the `visible` write and
+  `set_angle`. `Unit::work@0060d180` drops the bit at its head on any
+  frame whose order is not `ATTACK`, before the order runs, so a caster
+  stands marked at every frame's end while it casts. The bit's one reader
+  in the sim is the 32-frame `visible` clear, which it holds off, as in
+  theirs.
+- **`unit_masks2 |= 0x60`** (`5ec945`), for a Bribe (`0x275`) only. It
+  comes after the animation, the `0x20000` latch and the cloak's
+  `0x11000` test.
+
+`Unit::process_cloak@005e1c20`'s 512-frame pass (`(frame + o) & 0x1ff ==
+0`) peels the mark one bit at a time. A unit without `unit_masks & 0x10000`
+loses `0x40` when it is set and `0x20` when it is not. A fought unit loses
+`0x40` only, alongside its `0x10000`. So a Spy keeps the low bit for one
+to two passes after it stops bribing. In the original only
+`GuyOut::draw@005dc490` reads `0x20`; the sim does not.
+
+- **The frame** (run1797, row 133, units on 3690): who=2's Spy `2/84` (TI
+  58, land, `StandGround`) stands in range of who=1's Assault Infantry
+  `1/86` (TI 104), with a Bribe at its head, and takes its first step.
+  Units range 10024, record 84: `flags` ours `0x01`, theirs `0x81`, and
+  `unit_masks2` (byte `+0x6c` of `collide_frame..play`) ours 0, theirs
+  `0x60`. The draws agree through the frame.
+- **Built**: both writes in `do_cast_targeted`, and the pass's two arms
+  beside the blown and fought decay in `Sim::process_unit`
+  (`combat::umask2::BRIBE_MARK`, `BRIBE_HIGH`, `BRIBE_LOW`).
+- **Diff-backed**: run1797's 3690 and 3691, every range of every line
+  (`row_133_s_spy_marks_itself_as_it_bribes_on_run1797`). Dropping either
+  write turns that test red.
+- **Unit-backed**: `a_bribing_spy_takes_the_attack_flag_and_the_bribe_mark_and_the_pass_peels_it`
+  covers both writes and the pass's arms. Swapping the arms turns it red.
+- **Not established**: the pass's peel on a capture. No window on disk
+  reaches a Spy's 512th frame after a Bribe, so that arm rests on one
+  reading of `process_cloak`. Also unreached: the attacking bit for a
+  non-Spy caster's targeted craft (the Commando's Sabotage, the Sniper),
+  which the arm admits by the same test.

@@ -20,6 +20,7 @@
 use crate::selection::{Texels, attr, layers_of};
 
 pub mod left;
+pub mod slots;
 
 /// **The atlas's code** for a console of `ages` ages owned (0 the Ancient)
 /// whose nation's `BUILD_CONTINENT` is `build_continent`:
@@ -147,6 +148,9 @@ pub struct MinimapFrame {
     /// The clock's face ([`left::CLOCK_FACE`]), `None` where the install
     /// has none.
     pub face: Option<crate::selection::PlateFace>,
+    /// Item 4731: the grid's buttons in the bar, and the slots' art.
+    pub slot_spans: Vec<left::Span>,
+    pub slot_art: Option<std::sync::Arc<slots::SlotArt>>,
 }
 
 /// **The frame's art**: interface.xml's layout, and each nation's atlas as
@@ -161,6 +165,8 @@ pub struct FrameArt {
     /// names `TurnControl::speed` indexes (`game_speeds`).
     face: Option<crate::selection::PlateFace>,
     pub speeds: Vec<String>,
+    /// Item 4731: the slots' pictures, `None` where the install has none.
+    pub slot_art: Option<std::sync::Arc<slots::SlotArt>>,
     cache: std::sync::Mutex<
         std::collections::BTreeMap<Option<&'static str>, Option<std::sync::Arc<MinimapFrame>>>,
     >,
@@ -205,6 +211,7 @@ impl FrameArt {
             default_civ,
             face,
             speeds,
+            slot_art: slots::SlotArt::load(root).ok().map(std::sync::Arc::new),
             cache: Default::default(),
         })
     }
@@ -249,6 +256,8 @@ impl FrameArt {
             mid_window: self.left.mid_window,
             clock: self.left.clock,
             face: self.face.clone(),
+            slot_spans: self.left.slots.clone(),
+            slot_art: self.slot_art.clone(),
         })
     }
 }
@@ -270,9 +279,13 @@ impl MinimapFrame {
 
     /// **The left window with the clock written** (item 4727): `line`
     /// centred in the clock's box ([`left::write_clock`]); the window alone
-    /// with no line or no face.
-    pub fn left_with(&self, line: Option<&str>) -> Texels {
+    /// with no line or no face. Item 4731: `slots` drawn into the grid
+    /// ([`slots::draw`]).
+    pub fn left_with(&self, line: Option<&str>, slots: &[slots::Slot]) -> Texels {
         let mut win = self.left.clone();
+        if let Some(art) = &self.slot_art {
+            slots::draw(&mut win, &self.slot_spans, art.cells.0, art, slots);
+        }
         if let (Some(line), Some(face)) = (line, &self.face) {
             left::write_clock(&mut win, face, self.clock, line);
         }
@@ -298,7 +311,12 @@ impl MinimapFrame {
 
     /// The window as layers for the screen pass, the clock's `line` in
     /// the bar's box.
-    pub fn layers(&self, size: (i32, i32), line: Option<&str>) -> Vec<crate::gpu::ScreenLayer> {
+    pub fn layers(
+        &self,
+        size: (i32, i32),
+        line: Option<&str>,
+        slots: &[slots::Slot],
+    ) -> Vec<crate::gpu::ScreenLayer> {
         let o = self.origin(size);
         let (x1, y1) = (
             (o.0 + self.back.w as i32).min(size.0),
@@ -309,7 +327,7 @@ impl MinimapFrame {
         });
         // Item 4724: the bar's left window; item 4727, its clock.
         let b = self.bar_origin(size);
-        let win = self.left_with(line);
+        let win = self.left_with(line, slots);
         let (x1, y1) = (
             (b.0 + win.w as i32).min(size.0),
             (b.1 + win.h as i32).min(size.1),
@@ -334,6 +352,19 @@ pub fn clock_line(world: &crate::world::World) -> Option<String> {
     let art = world.frame_art.as_ref()?;
     let speed = art.speeds.get(usize::from(world.speed))?;
     Some(left::clock_line(speed, world.runner.frame()))
+}
+
+/// **The bar's slots in `world`** for `who`'s selection `sel` (item
+/// 4731, [`slots::selected`]); empty without the slots' art.
+pub fn bar_slots(
+    world: &crate::world::World,
+    who: sim::Player,
+    sel: &[sim::observe::ObjId],
+) -> Vec<slots::Slot> {
+    let Some(art) = world.frame_art.as_ref().and_then(|a| a.slot_art.clone()) else {
+        return Vec::new();
+    };
+    slots::selected(world.runner.sim(), &world.names.roster, &art, who, sel)
 }
 
 /// **The console's frame** in `world`: the atlas its nation and age pick.

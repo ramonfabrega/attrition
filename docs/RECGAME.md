@@ -1871,9 +1871,8 @@ moved. `row_33_s_musket_ball_leaves_from_the_original_s_socket_on_run1801_s_rang
 state. *Read, not diffed*: the `CHAR_ATTACK1` row's four headings the old fit missed; no capture has a round on one.
 
 **Where a row's landing writes** (DECISIONS 154 §6). Each open row has a heading below. A landing writes under its own
-row's heading and touches nothing above this paragraph: four updates conflicted on the one *Not established* paragraph
-above, and two merges backed out on it. The table above is the found column and is not edited again; `SCORES_SIXTH` and
-the queue's line hold what stands now.
+row's heading and touches nothing above this paragraph (four updates and two merges conflicted there). The table
+above is the found column and is not edited again; `SCORES_SIXTH` and the queue's line hold what stands now.
 
 ### 13.1 Row 13
 
@@ -1886,7 +1885,7 @@ Open: five lines part on 3713. 4660 moved 3358 → 3713: the stored heights (`do
 
 ### 13.3 Row 93
 
-2686 → 2965 by 4590 (COMBAT §68.1), 4606 → 3058 by 4657 → 3089 by 4681 (§47.2) → 3269 by 4685 (COLLISION §3.2) → 3524 by 4688 (COMBAT §7.2) → 4130 by 4692 (AI §75.4) → 4154 by 4718 (§368.1) → 4219 by 4720 (CITIES §9.3) → 4235 by 4725 (CHECKSUM §16), open.
+2686 → 2965 by 4590 (COMBAT §68.1), 4606 → 3058 by 4657 → 3089 by 4681 (§47.2) → 3269 by 4685 (COLLISION §3.2) → 3524 by 4688 (COMBAT §7.2) → 4130 by 4692 (AI §75.4) → 4154 by 4718 (§368.1) → 4219 by 4720 (CITIES §9.3) → 4235 by 4725 (CHECKSUM §16) → 4288 by 4730 (CHECKSUM §23.9), open.
 
 ### 13.4 Row 113
 
@@ -1905,7 +1904,7 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: units on 3690 (4659: deaths → 3206, Redoubt `dtype` 3). run1797, *diff-backed*.
+Open: units on 3739. run1797, *diff-backed*.
 
 **Items 4597 to 4620**: units → 2376, builds → 2432, ammo → 2408, leaders → 2413, cities → 2448 (`docs/GROUPS.md`,
 `docs/COMBAT.md` §84, a Temple's close, two walks by object number; their journals).
@@ -1915,8 +1914,8 @@ Open: units on 3690 (4659: deaths → 3206, Redoubt `dtype` 3). run1797, *diff-b
 **Item 4632**: units → 2543. On 2439 the Flamethrower `1/115` (`recharging` 30, its attack's `flags` 16) turns at
 its target in theirs and swings in ours: `Unit::fight`'s emplaced latch (`:92`–`100`) takes the head order's `0x10`.
 
-**Items 4691, 4719, 4723**: units → 3628 → 3633 → 3690 (`FILTER_COMBAT`, `docs/ARMY.md` §13, `docs/MERCHANT.md`
-§2.2; the air refusal, `docs/COMBAT.md` §66.8).
+**Items 4691, 4719, 4723, 4728**: units → 3628 → 3633 → 3690 → 3739 (`FILTER_COMBAT`, `docs/ARMY.md` §13,
+`docs/MERCHANT.md` §2.2; the air refusal, `docs/COMBAT.md` §66.8; the Bribe's marks, §90).
 
 ## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
 
