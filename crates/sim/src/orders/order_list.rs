@@ -746,6 +746,9 @@ impl Sim {
         // the winner it returns (`docs/COMBAT.md` §33). Bumping here
         // counted a squad's mirror copies as separate attackers.
         let id = self.attack_target_id(target);
+        if std::env::var("RON_PROBE_4718").is_ok() && self.units[u].owner == 1 && self.units[u].index == 41 && self.frame > 4120 && self.frame < 4132 {
+            eprintln!("P4718A frame {} add_attack_order 1/41 {:?} {:?} mandatory {} action {}\n{}", self.frame, target, pos, mandatory, action, std::backtrace::Backtrace::force_capture());
+        }
         let unit = &mut self.units[u];
         unit.combat.target = Some(target);
         unit.combat.mandatory = mandatory;
