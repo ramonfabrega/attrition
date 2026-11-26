@@ -190,7 +190,8 @@ passed on `09218aa02` (7129 tests). The [sample checkpoint](journal/2026-11-26-i
 15938 and lost whole item agreement on 16948. [Row 83](journal/2026-11-26-item-4573.md) advances deaths 3715 → 3782
 and the row 3715 → 3716. All 46 whole held-out games stand (52/63 overall). The journals name later partial changes on rows
 53, 83, 88, 93 and 133, including the simulated ending of 10873 on row 93. Next is 4717, row 83's two targeting counters.
-The final branch gate is pending. The integration owner fast-forwards the accepted branch and runs the shared gate.
+The final required-fixture gate passed on `1b821eb42` (7134 release tests, 2847 distinct fixtures, zero missing, clock green).
+The integration owner fast-forwards the accepted branch and runs the shared gate.
 
 ## How to maintain this file
 
