@@ -333,10 +333,12 @@ pub(crate) mod tests {
     /// Item 4650's plots: level 3 1463 → 1438 (toward theirs, 1441).
     /// Item 4653's plates: 1438 → 1435, away by 3 (§6.1).
     /// Item 4661's plates on their own alpha: 1435 → 1438, toward theirs.
+    /// Item 4694's minimap window over the diamond's edge cells: levels 1
+    /// and 2 48.0 → 47.9 and 78.1 → 77.6, toward theirs.
     pub const RUN1814B_3294_FOG_MINIMAP: [[i64; 3]; 4] = [
         [13_336, 0, 0],
-        [727, 471, 480],
-        [127, 742, 781],
+        [727, 471, 479],
+        [127, 742, 776],
         [210, 1441, 1438],
     ];
     /// The same with no fog drawn. Item 4627: levels 0 and 1 148.9 →
@@ -346,10 +348,13 @@ pub(crate) mod tests {
     /// → 143.5, away by 0.3: the HDR round trip re-tones the frame (§6.1).
     /// Item 4661's plates on their own alpha: level 0 148.6 → 148.7 (theirs
     /// 0), level 3 143.5 → 143.8, toward theirs (144.1).
+    /// Item 4694's minimap window over the diamond's edge cells: levels 0,
+    /// 1 and 2 148.7 → 148.4, 152.6 → 152.3 and 154.9 → 154.6, each
+    /// toward theirs.
     pub const RUN1814B_3294_FOG_MINIMAP_UNFOGGED: [[i64; 3]; 4] = [
-        [13_336, 0, 1487],
-        [727, 471, 1526],
-        [127, 742, 1549],
+        [13_336, 0, 1484],
+        [727, 471, 1523],
+        [127, 742, 1546],
         [210, 1441, 1438],
     ];
 

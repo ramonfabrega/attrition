@@ -641,9 +641,11 @@ pub(crate) mod tests {
     /// photograph's]`. Seen red under the reveal
     /// ([`RUN1814B_3294_BLIP_PIXELS_REVEALED`]). Minted at item 4627's
     /// build: before it 58 blips, 16 agreeing (the oils' black centres on
-    /// the black among them); now 2 of 2.
+    /// the black among them); now 2 of 2. Item 4694's minimap window: under
+    /// the reveal 2 → 4, the blips on the diamond's edge now on the frame
+    /// as theirs are.
     pub const RUN1814B_3294_BLIP_PIXELS: [usize; 2] = [2, 2];
-    pub const RUN1814B_3294_BLIP_PIXELS_REVEALED: [usize; 2] = [41, 2];
+    pub const RUN1814B_3294_BLIP_PIXELS_REVEALED: [usize; 2] = [41, 4];
 
     /// **The blips under the fog** (item 4627): run1814b's packet, quad
     /// for quad, and the still's pixels at every blip's centre against the

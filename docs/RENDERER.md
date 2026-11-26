@@ -6799,6 +6799,86 @@ rows. **Read alone**: nothing new. The candidate is the door's bytes.
 - run1559b's 20 apart: 17 an intersection bit or a white the packet holds
   and we do not (4199a), (211, 84) as §6.7, and the T.
 
+## 6.10 The HUD's frame: the minimap's window (item 4694)
+
+*2026-11-26, Opus 5.5. The ledger: `docs/journal/2026-11-26-item-4694.md`.
+`client::frame`; the row `RUN1814B_3294_MINIMAP_FRAME`. No `crates/sim`
+change.*
+
+**Why.** Ramon's play (DECISIONS 158 §11): the HUD does not read as the
+game's. The client's HUD is `docs/HUD.md`'s plain one, text and rectangles.
+This item is the first piece of the original's own interface art, drawn
+where the original draws it.
+
+**The name plate is already drawn.** Item 4694 was booked for the plate
+under the selected capital. `client --lobby --frame 3294 --look
+2639.94,30287.94 --select 2000 --still` draws `★ Napata` where the
+photograph does (item 4410's `selection::plates`). The pass's still came
+from `still_minimap` with no names (`&|_| None`), so it drew no plate.
+No row is booked for the plate.
+
+**The atlas.** `TEX_CIV` in `interface.xml` is `art\iface_AS0_assets.tga`.
+`IFaceMainBase::age_update@00810b10` replaces it with
+`art\iface_<code>_assets.tga`. It picks the code from the console's ages
+owned and its nation's `Tribe::build_continent` (`+0x64`; `types.txt`):
+
+| ages owned | 0, 1 | 2, 3 | 4, 5, 7, 8 | 6 |
+|---|---|---|---|---|
+| 0 to 2 | MD0 | AS0 | SA0 | IRO |
+
+Ages 3 and 4 run 0 to 8 as MD3, NE3, AS3, KO3, SA3, TR3, IR3, USA, EIN.
+Age 5 is IND, and 6 and up MOD. Any other `build_continent` takes the
+switch's default and appends no code (`client::frame::civ_code`). The codes
+are the string table's entries from `int_str_array +0x15720`, 20 bytes
+apart, in `internal_strings.xml`'s order. run1814b's Nubians in the Ancient
+age draw `SA0`.
+
+**The window.** `<IFACEMINIMAP name="main">` is 332 × 196. Its
+`IFACERECT name="map"` is at (10, 26), 317 × 159. Its `back` is `TEX_CIV`'s
+(173, 315), 339 × 197. It has four `BUTTON`s, each with its own `tex` crop.
+`IFaceMiniMap::on_redraw@008152e0` adds the back at its own width and
+height, in white. Ours draws the back 1:1 and the buttons over it, at the
+window's origin. That origin is the map rectangle backed off item 4581's
+`minimap::QUAD`: (326 − 10, 910 − 26) = (316, 884) on the 1,920 frame. Its
+197th row falls off the frame.
+
+**Registered before it was built.** The atlas crop against the photograph,
+buttons masked: at (316, 884), 27,550 opaque pixels, 99.9 % within two
+levels. At (316, 883) it is 4 %, and at (315, 883) and (317, 883) under 3 %.
+
+**The row** (`frame::tests::the_minimap_frame_on_run1814b`): the window's
+pixels whose texel and eight neighbours are opaque, on the photograph at
+frame 3294:
+
+| | pixels | within two levels of the photograph | mean luma ×10 |
+|---|---|---|---|
+| the photograph against the atlas | 32,483 | 31,065 | 944 |
+| ours, no frame (before) | | 24 | 1,022 |
+| **ours, the frame** | | **31,065** | 968 |
+
+The 1,418 the photograph parts on are all on the idle citizens' button
+(`cycle_peasant`): 1,552 of its 1,669 opaque pixels. Theirs is darker, and
+it is no crop of the atlas (4694a).
+
+The window's half-alpha texels on the diamond's edge move four minimap
+rows, each toward theirs. `RUN1564_3279_MINIMAP`'s cells within `NEAR`
+go 3,219 → 3,223. `RUN1814B_3294_BLIP_PIXELS_REVEALED` goes 2 → 4.
+`FOG_MINIMAP` levels 1 and 2 go 48.0 → 47.9 and 78.1 → 77.6, and its
+unfogged twin's levels 0 to 2 each fall 0.3.
+
+**Diff-backed**: the window's origin, its atlas and its crops, against the
+photograph's pixels. **Read alone**: the code table's arms other than SA0.
+
+**Not established.**
+- The draw order of the map, its overlays and the back. Ours draws the back
+  over all three, through the diamond's transparent texels.
+- Why theirs draws the idle citizens' button dark (4694a).
+  `IFaceMiniMap::update_visibility@008154c0` tests the leader's `& 0x80000`.
+- The window at a frame other than 1,920 × 1,080. Ours keeps the window at
+  `minimap::quad`'s distance from the left and bottom edges.
+- The bar's other windows: `IFACEOPTIONS`, `IFACESELECTED`, the stone strip
+  and the clock's bar (4694c).
+
 ## 7. What is not established, and what needs Ramon's word
 
 ### 7.1 Not established
