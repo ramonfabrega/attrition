@@ -804,7 +804,23 @@ impl Sim {
             // the original, `Unit::check_target_path@005e22d0`, whose arm is
             // picked by the action's type ([`check_target_path_steps`]).
             Body::Attack(_) | Body::Garrison { .. } | Body::Cast(_) => {
+                let on = std::env::var("RON_PROBE_4732").is_ok() && (3700..=3776).contains(&frame) && self.units[u].owner == 2 && (self.units[u].index == 114 || self.units[u].index == 130);
+                if on {
+                    let t = self.units[u].combat.target;
+                    let tp = t.map(|o| (self.obj_o_who(o), self.pos_of(o)));
+                    println!("P4732 REVIEW f{frame} 2/{} pos {:?} target {:?} {:?} orders {:?}", self.units[u].index, self.units[u].pos, t, tp, self.units[u].orders.iter().map(|o| o.index()).collect::<Vec<_>>());
+                    if let Some(tt) = t {
+                        let op = self.units[u].orders_pos;
+                        let irp = self.is_in_range(Obj::Unit(u), tt);
+                        let iro = self.is_in_range_at(Obj::Unit(u), op, tt);
+                        let (mv, hd) = match tt { Obj::Unit(x) => (self.is_moving(x), self.units[x].movement.heading.0), _ => (false, 0) };
+                        println!("P4732 SEEN alive {} world_sees {} visible {:#x} target_is_seen {} has_fog {}", self.obj_alive(tt), self.world_sees(self.pos_of(tt), 2), self.visible_of(tt), self.target_is_seen(Obj::Unit(u), tt), self.world.has_fog());
+                        println!("P4732 PRED orders_pos {:?} in_range_plain {irp} in_range_from_orders {iro} target_moving {mv} target_heading {hd:#x} max_range {} path {} front {:?}", op, self.profile(Obj::Unit(u)).max_range, self.units[u].path.len(), self.units[u].orders.front());
+                    }
+                    super::attack::PROBE_4732.store(true, std::sync::atomic::Ordering::Relaxed);
+                }
                 self.check_target_path(u);
+                super::attack::PROBE_4732.store(false, std::sync::atomic::Ordering::Relaxed);
             }
             _ => {}
         }

@@ -3661,6 +3661,134 @@ pub(crate) mod tests {
         assert_eq!(built.sim.caravan_limit(2), 3, "who=2's limit on 1956");
     }
 
+    #[test]
+    fn probe_4732() {
+        if std::env::var("RON_PROBE_4732").is_err() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+            return;
+        };
+        let ranges = crate::testenv::experiment(&home.join("ron-golden/run1784/map-14"), "rontrace.ranges")
+            .expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 83's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(3755);
+        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(3776);
+        let urec: i16 = std::env::var("RON_PROBE_UREC").ok().and_then(|v| v.parse().ok()).unwrap_or(114);
+        let uwho: u8 = std::env::var("RON_PROBE_UWHO").ok().and_then(|v| v.parse().ok()).unwrap_or(255);
+        for i in crate::input::input(&rec) {
+            if i64::from(i.frame) >= lo - 200 && i64::from(i.frame) <= hi {
+                println!("P4732 cmd frame {} play {} who {} {:?}", i.frame, i.play, i.who, i.cmd);
+            }
+        }
+        let mut prev: Vec<(Vec<u8>, Vec<u8>)> = Vec::new();
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                let f = built.sim.frame;
+                stream.apply(f as i32, &mut built);
+                let dr = std::env::var("RON_PROBE_DRAWS").ok().and_then(|v| v.parse::<i64>().ok()) == Some(f);
+                if dr {
+                    built.sim.trace.trace_phases = true;
+                    built.sim.trace.phase_marks.clear();
+                }
+                let seed0 = built.sim.rng.seed;
+                built.sim.command().tick();
+                if dr {
+                    built.sim.trace.trace_phases = false;
+                    let ours = crate::diff::report::mark_sites(&built.sim.trace.phase_marks, built.sim.rng.seed).unwrap_or_default();
+                    let trace = crate::trace::Trace::read(&home.join("ron-golden/run1784/map-14/rontrace.log")).expect("io").expect("trace");
+                    let theirs = trace.labels(f);
+                    println!("P4732 DRAWS tick {f} ours {} theirs {} seed {seed0:#x} end ours {:#x}", ours.len(), theirs.len(), built.sim.rng.seed);
+                    let fold = |v: &[String]| { let mut out: Vec<(String, usize, usize)> = Vec::new(); for (i, x) in v.iter().enumerate() { if let Some(l) = out.last_mut() && l.0 == *x { l.1 += 1; continue; } out.push((x.clone(), 1, i)); } out };
+                    for (x, n, i) in fold(&ours) { println!("P4732 DO {i:>5} x{n:<4} {x}"); }
+                    for (x, n, i) in fold(&theirs) { println!("P4732 DT {i:>5} x{n:<4} {x}"); }
+                    let pm = &built.sim.trace.phase_marks;
+                    let mut last_unit = String::new();
+                    for k in 0..pm.len() {
+                        if pm[k].0.starts_with("unit ") { last_unit = pm[k].0.clone(); }
+                        let to = pm.get(k + 1).map_or(built.sim.rng.seed, |m| m.1);
+                        let n = crate::diff::report::draws_between(pm[k].1, to).unwrap_or(0);
+                        if n > 0 { println!("P4732 MK {k} {} n {n} under {last_unit}", pm[k].0); }
+                    }
+                }
+            }
+            {
+                let cp = sim::world::Pos::new(10675, 24637);
+                let seen: Vec<bool> = (0..3).map(|w| built.sim.world_sees(cp, w)).collect();
+                println!("P4732 VIS state {state} corpse sees by who 0..2 {seen:?}");
+                for (i, x) in built.sim.units.iter().enumerate() {
+                    if x.owner == 1 && x.index == 38 {
+                        println!("P4732 SLOT state {state} unit#{i} 1/38 alive {} ti {} pos ({}, {}) uid {:#x}", x.alive(), x.type_index, x.pos.x, x.pos.y, x.uid);
+                    }
+                }
+                if std::env::var("RON_PROBE_VIS").is_ok() {
+                    for x in built.sim.units.iter() {
+                        if !x.alive() { continue; }
+                        let d = ((x.pos.x - cp.x) as i64).pow(2) + ((x.pos.y - cp.y) as i64).pow(2);
+                        let d = (d as f64).sqrt() as i64;
+                        if d < 8000 && x.owner < 8 {
+                            println!("P4732 VIS   {}/{} ti {} pos ({}, {}) dist {d} mylos {}", x.owner, x.index, x.type_index, x.pos.x, x.pos.y, x.mylos);
+                        }
+                    }
+                }
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            for (line, ours) in [(0u8, built.sim.checksum_units()), (6u8, built.sim.checksum_guys())] {
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == line).collect();
+                if ours.ranges.len() != theirs.len() {
+                    println!("P4732 state {state} line {line} nranges ours {} theirs {}", ours.ranges.len(), theirs.len());
+                }
+                let mut n = 0;
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    if a.bytes != b.bytes && n < 10 {
+                        n += 1;
+                        println!("P4732 state {state} line {line} k {k} rec {} field {} ours {:02x?} theirs {:02x?}", a.record, a.field, a.bytes, b.bytes);
+                    }
+                }
+                if line == 0 {
+                    // record urec's ranges, by position in ours (owner byte filter)
+                    let mut who_now = 255u8;
+                    let mut cur: Vec<(Vec<u8>, Vec<u8>)> = Vec::new();
+                    for (k, a) in ours.ranges.iter().enumerate() {
+                        if a.field == "who..y_internal" {
+                            who_now = a.bytes[0];
+                        }
+                        if a.record == urec && (uwho == 255 || who_now == uwho) {
+                            let t = theirs.get(k).map(|r| r.bytes.clone()).unwrap_or_default();
+                            cur.push((a.bytes.clone(), t));
+                        }
+                    }
+                    if cur != prev {
+                        println!("P4732 state {state} urec {urec} changed:");
+                        let fields: Vec<&str> = ours.ranges.iter().enumerate().filter(|(_, a)| a.record == urec).map(|(_, a)| a.field).collect();
+                        for (j, (o, t)) in cur.iter().enumerate() {
+                            let same = prev.get(j).map_or(false, |p| p == &(o.clone(), t.clone()));
+                            if !same {
+                                println!("P4732   {:>2} {:<24} ours {:02x?}{}", j, fields.get(j).copied().unwrap_or("?"), o, if o == t { String::new() } else { format!(" theirs {:02x?}", t) });
+                            }
+                        }
+                        prev = cur;
+                    }
+                }
+            }
+            for u in 0..built.sim.units.len() {
+                let x = &built.sim.units[u];
+                if x.alive() && x.index == urec && (uwho == 255 || x.owner == uwho) {
+                    println!("P4732 state {state} unit {}/{} ti {} pos {:?} orders {} front {:?} path {} guys {:?}", x.owner, x.index, x.type_index, x.pos, x.orders.len(), x.orders.back(), x.path.len(), x.guys.iter().map(|g| format!("{:?}", g)).collect::<Vec<_>>().join(" | ").chars().take(600).collect::<String>());
+                }
+            }
+        }
+    }
+
     /// **Row 83's Artillery carries the supply veto's mark** (item 4554,
     /// `docs/SUPPLY.md`, "Behavioural check (run16)"): run1784, the ranges
     /// take of row 83's file. who=1's Artillery `1/70` (TI 269, land)
