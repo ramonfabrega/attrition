@@ -255,7 +255,7 @@ fn the_records_against_the_packet_s() {
         .filter(|(b, _)| *b == crate::world::ROAD_BUCKET)
         .map(|(_, l)| (l.tile, l))
         .collect();
-    let mut n = [0usize; 6];
+    let mut n = [0usize; 7];
     for (&t, r) in pk.records.iter().filter(|(_, r)| r.refs != 0) {
         n[0] += 1;
         let Some(&c) = ours.get(&t) else {
@@ -264,16 +264,16 @@ fn the_records_against_the_packet_s() {
         };
         n[1] += 1;
         let byte = |w: u32, k: u32| (w >> (8 * k)) & 0xff;
-        let same = [3, 1, 0].map(|k| byte(c, k) == byte(r.flags, k));
+        let same = [3, 1, 2, 0].map(|k| byte(c, k) == byte(r.flags, k));
         for (i, s) in same.iter().enumerate() {
             n[2 + i] += usize::from(*s);
         }
-        if same != [true; 3] {
+        if same != [true; 4] {
             println!("tile {t:?}: theirs {:08x}, ours {c:08x}", r.flags);
         }
         if let Some(l) = laid.get(&t) {
             let hit = l.elem as i32 == r.elem && l.rot == r.rot;
-            n[5] += usize::from(hit);
+            n[6] += usize::from(hit);
             let held = repicked
                 .get(&t)
                 .map(|(p, i)| format!(" picked on {p:02x}, {i:02x} now"))
@@ -290,24 +290,25 @@ fn the_records_against_the_packet_s() {
         }
     }
     println!(
-        "records {} with a reference, {} ours; connections {}, white {}, intersections {}; drawn {} laid, {} of them the packet's piece",
+        "records {} with a reference, {} ours; connections {}, white {}, yellow {}, intersections {}; drawn {} laid, {} of them the packet's piece",
         n[0],
         n[1],
         n[2],
         n[3],
         n[4],
+        n[5],
         laid.len(),
-        n[5]
+        n[6]
     );
     assert_eq!(
-        (n[0], n[1], n[2], n[3], n[4], laid.len(), n[5]),
+        (n[0], n[1], n[2], n[3], n[4], n[5], laid.len(), n[6]),
         RUN1559B_RECORDS
     );
 }
 
 /// **`RUN1559B_RECORDS`** (item 4199): the packet's records with a
-/// reference, ours among them, then those whose connections, white lines
-/// and intersections agree; the pieces we lay (age bucket 2, page 0), and
+/// reference, ours among them, then those whose connections, white lines,
+/// yellow lines (item 4690) and intersections agree; the pieces we lay (age bucket 2, page 0), and
 /// those that are the packet's piece and orientation. The connections are
 /// the simulation's, whole. The 23 white partings are junctions (the T at
 /// (19, 163), whose south neighbour holds no record on the packet; two
@@ -336,8 +337,17 @@ fn the_records_against_the_packet_s() {
 /// **Item 4687: intersections 571 → 580**: the line passes in the mesh
 /// with their pushes (redone for the texture alone) and `leech_codes`'
 /// line half (`docs/RENDERER.md` §6.8). The packet's piece holds at 471.
-const RUN1559B_RECORDS: (usize, usize, usize, usize, usize, usize, usize) =
-    (599, 599, 599, 598, 580, 490, 471);
+/// **Item 4690: the candidate is the mesh's lines (`RoadTile::lines`,
+/// `docs/RENDERER.md` §6.9); laid 490 → 500, the packet's piece 471 →
+/// 480; the yellow column joins at 596 (the client's own was 584, none
+/// marked); white 598 → 597, a named fall.** The crossroads' twelve at
+/// (215–216, 81–83) and (223–224, 81–83) carry yellow; eleven now lay the
+/// packet's piece, and (224, 83)'s element 46 leaves page 0 as theirs
+/// does. The T at (17–19, 163) loses two: the mesh's yellow there is
+/// `10`, `12` and `06` where the packet's is none, and (18, 163)'s white
+/// `21` where theirs is `33` (4690a).
+const RUN1559B_RECORDS: (usize, usize, usize, usize, usize, usize, usize, usize) =
+    (599, 599, 599, 597, 596, 580, 500, 480);
 
 /// **The ring's tiles** (item 4199, §3.19; the rule committed before its
 /// count): for every building whose type is a city (`is(VILLAGE)`), the
@@ -442,9 +452,10 @@ const RING_MOVE: (i32, i32) = (12, 0);
 /// Item 4311: the luma before 11 → 15 and moved 11 → 13 of 24, drawn unchanged: the map's edge border drawn (item 4311, `docs/RENDERER.md` §3.15) moves the frame's mean, so its white.
 /// Item 4677: drawn luma 21 → 20 of 24, a named fall: tile (13, 156), a 70-pixel sliver, takes the packet's piece (element 18 at its orientation 0, where ours was 2), and its luma goes 50.7 → 48.6 against theirs 58.5, over the bar.
 /// Item 4687: drawn luma 20 → 21 of 24, a rise back to the count before item 4677's named fall: the line passes in the mesh, their pushes redone for the texture alone, and `leech_codes`' line half (item 4687, `docs/RENDERER.md` §6.8) move the intersections some pieces are picked on, so the frame's mean and its white.
+/// Item 4690: drawn hue 21 → 20 of 24, a named fall: tile (17, 163), 767 pixels, lays no piece on page 0 where theirs lays element 17, since the mesh's yellow there is `10` where the packet's is none and the candidate matches no page-0 orientation (4690a); the still's (163, 162, 61) against theirs (148, 126, 103).
 const RUN1559B_3279_RING: [[(usize, usize); 2]; 3] = [
     [(1, 24), (15, 24)],
-    [(21, 24), (21, 24)],
+    [(20, 24), (21, 24)],
     [(1, 24), (13, 24)],
 ];
 /// **`RUN1570_RING`** (item 4199), the same on run1570's photograph: hue
@@ -993,49 +1004,35 @@ fn the_plates_mesh_is_draw_81_s() {
     assert_eq!(rows, RUN1833_DRAW_81);
 }
 
-/// **A joined corner holds its ring** (item 4673, `docs/RENDERER.md`
-/// §6.4): a 2 × 2 block of road records, each joined to the next round
-/// their shared corner, takes the eight white halves that ring it, two on
-/// each tile; with one of the four joins cut, none.
+/// **The candidate is the door's word** (item 4690, `docs/RENDERER.md`
+/// §6.9): the connections on top, the mesh's line bytes in place and the
+/// intersections below, whatever the tile's neighbours; a bit outside the
+/// line bytes in [`RoadTile::lines`] is not read. Made to fail: with the
+/// lines not read, the yellow and white are zero.
 #[test]
-fn a_joined_corner_holds_its_ring() {
-    let tile = |x: i32, y: i32, dirs: u8| RoadTile {
-        x,
-        y,
-        dirs,
+fn the_candidate_is_the_door_s_word() {
+    let tile = |lines: u32| RoadTile {
+        x: 3,
+        y: 4,
+        // Joined north (0x40) and south (0x04), the intersection south.
+        dirs: 0x44,
         refs: 1,
         refs2: 0,
         made: false,
         c4: false,
-        inter: 0,
+        inter: 0x04,
         picked: 0,
-        lines: 0,
+        lines,
         road: 0x1ff,
         footprint: 0,
     };
-    let block = |cut: u8| RoadsScene {
-        tiles_wide: 2,
-        tiles_high: 2,
-        roads: vec![
-            tile(0, 0, bit::E | bit::S),
-            tile(1, 0, bit::W | bit::S),
-            tile(1, 1, bit::W | bit::N),
-            tile(0, 1, (bit::E | bit::N) & !cut),
-        ],
+    let scene = RoadsScene {
+        tiles_wide: 8,
+        tiles_high: 8,
+        roads: vec![tile(0xff12_33ff)],
     };
-    let white = |c: &BTreeMap<(i32, i32), u32>, t: (i32, i32)| (c[&t] >> 8 & 0xff) as u8;
-    let c = candidates(&block(0));
-    assert_eq!(
-        [(0, 0), (1, 0), (1, 1), (0, 1)].map(|t| white(&c, t)),
-        [
-            bit::SE | bit::E,
-            bit::SW | bit::S,
-            bit::NW | bit::W,
-            bit::NE | bit::N
-        ]
-    );
-    let cut = candidates(&block(bit::N));
-    assert_eq!(white(&cut, (1, 0)) & (bit::SW | bit::S), 0, "made to fail");
+    assert_eq!(candidates(&scene)[&(3, 4)], 0x4412_3304);
+    assert_ne!(word(&tile(0)), 0x4412_3304, "made to fail");
 }
 
 /// **`RUN1814B_PLATE_CANDIDATES`** (item 4673, §6.4): our candidates

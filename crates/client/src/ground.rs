@@ -1038,8 +1038,9 @@ pub const RUN1559B_3279_GROUND: (usize, usize) = (1097, 1109);
 /// **1,104 → 1,105**, the template alphas untinted (§3.22): tile (12,
 /// 141) under a mountain, theirs (104, 101, 82), comes into the reader.
 /// Item 4319: **1,105 → 1,106**: the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24); run1559b's map is GreatLakes too.
+/// Item 4690: **1,106 → 1,105**, a named fall of one (plain 982 of 986): the candidate picked on the mesh's own lines (item 4690, `docs/RENDERER.md` §6.9) lays eleven more of the packet's pieces at the crossroads and leaves the T at (17–19, 163) on the mesh's yellow (4690a), so the frame's mean and its white.
 #[cfg(test)]
-pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1106, 1109);
+pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1105, 1109);
 
 /// **`RUN1559B_3279_PAST_THE_EDGE`** (item 4247; `docs/RENDERER.md`
 /// §3.15): the corner past the map's edge on run1559b's still at frame
@@ -1429,7 +1430,8 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// Item 4348: run1564's 1,711 of 1,920 → 1,710 of 1,921 (a named fall of
 /// one): the herd turned to the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
 /// Item 4379: run1564's 1,710 → 1,700 (a named fall of ten on the made-to-fail side, which now trails the drawn row by 156): the national borders blended on the HDR target (item 4379, `docs/RENDERER.md` §3.29, "The band's colour").
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1020, 1109), (1700, 1921)];
+/// Item 4690: run1559b's 1,020 → 1,019 (a named fall of one on the made-to-fail side): the candidate picked on the mesh's own lines (item 4690, `docs/RENDERER.md` §6.9) moves the frame's mean, so its white.
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1019, 1109), (1700, 1921)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of

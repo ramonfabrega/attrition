@@ -488,8 +488,9 @@ mod tests {
     /// Item 4438: the drawn plume 10,773 → 10,765 of 20,165 → 19,963, past 2,238 → 2,263, dense 1,015 → 980 (a named fall of the reader's base); the packet's 11,726 → 11,707: the buildings' trim drawn in the owner's colour (item 4438, `docs/RENDERER.md` §5.3) reddens the fires-off scene each pixel is classed against.
     /// Item 4677: the drawn plume 10,765 → 10,762 of 19,963 → 19,958 (a named fall of three), past 2,263 → 2,264, dense 980 → 981; the packet's 11,707 → 11,700 (a named fall of seven): the plates' and the asphalt's pieces on the packet's element on more tiles (item 4677, `docs/RENDERER.md` §6.5) move the frame's mean, so its white.
     /// Item 4687: the drawn plume 10,762 → 10,765 of 19,958 → 19,959, past 2,264 → 2,263, dense 981 → 980; the packet's 11,700 → 11,707: the line passes in the mesh, their pushes redone for the texture alone, and `leech_codes`' line half (item 4687, `docs/RENDERER.md` §6.8) move the intersections some pieces are picked on, so the frame's mean and its white.
+    /// Item 4690: the drawn plume 10,765 → 10,764 (a named fall of one), the packet's 14,801 → 14,800 on the second reader (a named fall of one): the candidate picked on the mesh's own lines (item 4690, `docs/RENDERER.md` §6.9) lays eleven more of the packet's pieces at the crossroads and leaves the T at (17–19, 163) on the mesh's yellow (4690a), so the frame's mean and its white.
     const RUN1559B_3279_PLUME: PlumeRows = [
-        ((10765, 19959, 2263), (14801, 980)),
+        ((10764, 19959, 2263), (14800, 980)),
         ((0, 19959, 0), (0, 0)),
         ((19959, 19959, 0), (16891, 3068)),
         ((11707, 19959, 1866), (14030, 1834)),
@@ -522,8 +523,9 @@ mod tests {
     /// Item 4438: the drawn plume 10,827 → 10,829 of 19,324 → 19,071, past 1,916 → 1,933, dense 1,002 → 982; the packet's 12,015 → 12,003 (a named fall of twelve): the buildings' trim drawn in the owner's colour (item 4438, `docs/RENDERER.md` §5.3) reddens the fires-off scene each pixel is classed against.
     /// Item 4677: the drawn plume 10,829 → 10,834 of 19,071 → 19,065, past 1,933 → 1,934, dense 982 → 981; the packet's 12,003 → 12,004: the plates' and the asphalt's pieces on the packet's element on more tiles (item 4677, `docs/RENDERER.md` §6.5) move the frame's mean, so its white.
     /// Item 4687: the drawn plume 10,834 → 10,829 of 19,065 → 19,066 (a named fall of five), past 1,934 → 1,933, dense 981 → 982; the packet's 12,004 → 12,003 (a named fall of one): the line passes in the mesh, their pushes redone for the texture alone, and `leech_codes`' line half (item 4687, `docs/RENDERER.md` §6.8) move the intersections some pieces are picked on, so the frame's mean and its white.
+    /// Item 4690: past 1,933 → 1,932, the packet's 14,671 → 14,670 on the second reader (a named fall of one): the candidate picked on the mesh's own lines (item 4690, `docs/RENDERER.md` §6.9) lays eleven more of the packet's pieces at the crossroads and leaves the T at (17–19, 163) on the mesh's yellow (4690a), so the frame's mean and its white.
     const RUN1570_PLUME: PlumeRows = [
-        ((10829, 19066, 1933), (14671, 982)),
+        ((10829, 19066, 1932), (14670, 982)),
         ((0, 19066, 0), (0, 0)),
         ((19066, 19066, 0), (16026, 3040)),
         ((12003, 19066, 1488), (13382, 2240)),
