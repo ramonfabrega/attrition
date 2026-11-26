@@ -36163,7 +36163,12 @@ the add's `mandatory`, a reused slot). The add's `mandatory` is `0x8(%ebp)`: wri
    `nearby_normalize` already did — and it is an active member (`GroupData::member(o, who, 1)@0070f8f0`);
 3. its type is siege (vslot `+0x10c`, `is_siege`, `unit_flags & 0x20000`);
 4. it is computer-driven (`unit_masks & 0x40000`);
-5. the find is a building (vslot `+0x1c`) with `flags & 0x20`, a city centre.
+5. the find is a building (vslot `+0x1c`) with `flags & 0x20`, a city centre. **Built or not** (item 4718):
+   the bit is `ObjectData +0x8`, which `SubObject::init@00662300:19` sets from the type's vslot `+0x64` at
+   placement and nothing clears, so an unbuilt site with no city record answers it. Ours read the city
+   record (`city.building == b`) until row 93's Howitzer `1/41` found who=2's unbuilt Small City `2/2027` on
+   4129 (run1799's units range 1208 on 4130, `order.attack` byte 8: ours 0, theirs 1); it is
+   `Sim::building_is_city` now.
 
 The arm then **points the unit's army at the find** (`Object::get_army@00649d70`):
 - `+0x30/+0x34`, the target;

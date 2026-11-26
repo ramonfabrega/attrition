@@ -1119,6 +1119,22 @@ pub fn line_rect(text: &str, size: (i32, i32)) -> Rect {
 /// is not read; item 4252).
 pub const PAUSE_TEXT: &str = "PAUSED";
 
+/// The menu's notice (item 4696): ours, where the original opens its menu
+/// window.
+pub const MENU_TEXT: &str = "MENU  Q QUITS  ESC RETURNS";
+
+/// **Where the menu's notice stands**: centred, one line under the pause's.
+pub fn menu_rect(size: (i32, i32)) -> Rect {
+    let w = MENU_TEXT.chars().count() as i32 * overlay::advance(SCALE) + 4 * SCALE;
+    let h = overlay::line_height(SCALE) + 4 * SCALE;
+    Rect {
+        x: (size.0 - w) / 2,
+        y: MARGIN + h + SCALE,
+        w,
+        h,
+    }
+}
+
 /// **Where the pause notice stands** on a `size` window: centred, one
 /// margin below the top.
 pub fn pause_rect(size: (i32, i32)) -> Rect {
@@ -1202,6 +1218,17 @@ pub fn paint(
             r.x + 2 * SCALE,
             r.y + 2 * SCALE,
             PAUSE_TEXT,
+            SCALE,
+            overlay::INK,
+        );
+    }
+    if input.menu {
+        let r = menu_rect(size);
+        p.rect(r.x, r.y, r.w, r.h, overlay::PANEL);
+        p.text(
+            r.x + 2 * SCALE,
+            r.y + 2 * SCALE,
+            MENU_TEXT,
             SCALE,
             overlay::INK,
         );

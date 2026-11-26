@@ -5422,6 +5422,104 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 93's units on 4130: a siege unit's find of an unbuilt city is
+    /// mandatory** (item 4718, `docs/RECGAME.md` §13.3), on run1799's
+    /// whole-length ranges of run1792's file. On 4129 who=1's Howitzer
+    /// `1/41` (TI 272, land), on its attack-move, finds who=2's Small City
+    /// `2/2027`, a site not yet built and with no city record.
+    /// `find_nearby_target@00648da0`'s siege-city arm tests the find's
+    /// `ObjectData +0x8 & 0x20`, which `SubObject::init` sets on the
+    /// `VILLAGE` lineage at placement. Red on the base at units range 1208
+    /// on 4130, record 41 `order.attack` byte 8 (`mandatory`): ours 0,
+    /// theirs 1. Every units range on 4129 to 4131, byte for byte.
+    #[test]
+    fn row_93_s_howitzer_takes_the_unbuilt_city_mandatory_on_run1799_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            eprintln!("skipping: row 93's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1799/map-14");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1799's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 4129i64..=4131 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let sim = &built.sim;
+            let howitzer = sim
+                .units
+                .iter()
+                .rposition(|u| u.owner == 1 && u.index == 41)
+                .expect("1/41");
+            let ty = sim.units[howitzer].ty.expect("a type");
+            assert_eq!(sim.tables.unit_types[ty].type_index, 272, "1/41's TI");
+            assert_eq!(loaded.unit_names[ty], "Howitzer");
+            assert_eq!(
+                sim.units[howitzer].kind.domain,
+                sim::territory::attrition::Domain::Land
+            );
+            let site = sim
+                .buildings
+                .iter()
+                .rposition(|b| b.owner == 2 && b.index == 2027)
+                .expect("2/2027");
+            let bd = &sim.buildings[site];
+            assert_eq!(
+                loaded.build_type_names[bd.ty.expect("its type")],
+                "Small City"
+            );
+            assert!(bd.alive && !bd.active, "2/2027 is an unbuilt site");
+            assert_eq!(bd.city, None, "2/2027 has no city record");
+            let head = sim.units[howitzer]
+                .orders
+                .iter()
+                .find_map(|o| match o.body {
+                    sim::orders::Body::Attack(a) => Some(a),
+                    _ => None,
+                });
+            if state == 4129 {
+                assert_eq!(head, None, "1/41 has not found it on 4129");
+            } else {
+                let a = head.expect("1/41's attack");
+                assert_eq!(a.target.map(|t| (t.0, t.1)), Some((2027, 2)));
+                assert!(a.mandatory, "1/41's find of 2/2027 is mandatory on {state}");
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(sim, &look, &tribes);
+            let ours = lines[0].as_ref().expect("units");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                assert_eq!(
+                    at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                    None,
+                    "units range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                    a.record,
+                    a.field
+                );
+                if a.record == 41 && a.field == "order.attack" {
+                    assert_eq!(b.bytes[8], 1, "theirs' mandatory on {state}");
+                }
+            }
+        }
+    }
+
     #[test]
     fn row_93_s_decoy_tiger_tank_leaves_the_chain_at_its_death_on_run1799_s_ranges() {
         let Some(inst) = crate::testenv::install() else {
@@ -12946,13 +13044,21 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // nearby trade road before choosing its death animation. Deaths
         // 3715 -> 3782; the first difference is units on 3716. Later
         // partial item and goods counts fall; see the item journal.
+        // Item 4717 (`compare_target`'s detected-decoy arm, `64f2c1`..
+        // `64f2f9`; run1845's packet at 3715): the Anti-tank Rifle 2/125
+        // scores the decoy Light Tank 1/38 at 1, where the wrapped threat
+        // product made it 376,354, and takes 1/24 (104,679). On 3716 units
+        // record 1/24 `targeted` ours 0 -> 1, 1/38 ours 15 -> 14, as
+        // theirs. Units 3,746 -> 3,753 (first 3716 -> 3753); the row's
+        // first parting is leaders on 3751 (range 292, record 2,
+        // `sites[k]` byte 20, ours 0x0a, theirs 0x02).
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3746, 3753, 6001, 3796, 3782, 3754, 3753, 3751, 3753, 4069, 4078, 3753,
+                3753, 3753, 6001, 3796, 3782, 3754, 3753, 3751, 3753, 4069, 4078, 3753,
             ],
             first: &[
-                ("units", (3716, Some(3626644114), 4255724178)),
+                ("units", (3753, Some(3033753739), 1352412094)),
                 ("builds", (3753, Some(3619391689), 3659641308)),
                 ("ammo", (3763, Some(3601468407), 1)),
                 ("deaths", (3782, Some(1712482989), 2133228083)),
@@ -13669,25 +13775,39 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 4,174 -> 4,175 (first 3524 -> 4166), ammo 4,728 -> 5,285, deaths
         // 4,197 -> 4,398; items 6,513 -> 6,510, a named fall past its first,
         // 6187; ours' `game_over` none -> 10873, theirs plays to 12,000.
+        // Then item 4718 (`find_nearby_target@00648da0`'s siege-city arm
+        // tests the find's `ObjectData +0x8 & 0x20`, set on the `VILLAGE`
+        // lineage at placement): who=1's Howitzer `1/41` (TI 272, land), on
+        // its attack-move, finds who=2's unbuilt Small City `2/2027` on 4129
+        // and adds it mandatory, as theirs (run1799's units range 1208,
+        // record 41, `order.attack` byte 8, `mandatory`: ours 0, theirs 1,
+        // on 4130). The row's first parting 4130 -> 4154 (builds): units
+        // 4,130 -> 4,242 (first 4219), builds 4,136 -> 4,198, groups 4,167
+        // -> 4,362, guys 4,180 -> 4,242, cities 4,221 -> 4,351, items 6,510
+        // -> 6,717, goods 4,797 -> 5,464, world 4,181 -> 4,288; ammo 5,285
+        // -> 4,787 and deaths 4,398 -> 4,325, named falls past 4154 (their
+        // firsts 4190 -> 4289 and 4197 -> 4325); items' first 6187 -> 6009,
+        // past 4154; leaders stands; ours' `game_over` 10873 -> none, both
+        // play to 12,000.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                4130, 4136, 12001, 5285, 4398, 4167, 4180, 4175, 4221, 6510, 4797, 4181,
+                4242, 4198, 12001, 4787, 4325, 4362, 4242, 4175, 4351, 6717, 5464, 4288,
             ],
             first: &[
-                ("units", (4130, Some(1238553357), 396940046)),
-                ("builds", (4132, Some(3833615637), 3514979604)),
-                ("ammo", (4190, Some(4179374870), 2728667563)),
-                ("deaths", (4197, Some(4115287177), 4203236490)),
-                ("groups", (4131, Some(3248158095), 1415640466)),
-                ("guys", (4180, Some(1398272031), 1868298625)),
+                ("units", (4219, Some(3412282491), 1117867263)),
+                ("builds", (4154, Some(1116497646), 4078790381)),
+                ("ammo", (4289, Some(1796672337), 2990607315)),
+                ("deaths", (4325, Some(3973575844), 4044551333)),
+                ("groups", (4334, Some(470667955), 2973162772)),
+                ("guys", (4219, Some(3243759351), 826464123)),
                 ("leaders", (4166, Some(2640249252), 1154351528)),
-                ("cities", (4221, Some(140919747), 372917197)),
-                ("items", (6187, Some(1365126693), 1373777447)),
-                ("goods", (4452, Some(3368850730), 3351549222)),
-                ("world", (4181, Some(2240145056), 2958026358)),
+                ("cities", (4351, Some(2145664821), 2143174452)),
+                ("items", (6009, Some(1373777447), 1365126693)),
+                ("goods", (4720, Some(3351549222), 3368850730)),
+                ("world", (4288, Some(2994040454), 587558473)),
             ],
-            over: Some(10873),
+            over: None,
         }),
     }),
     // run1793

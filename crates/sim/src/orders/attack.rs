@@ -1637,7 +1637,8 @@ impl Sim {
     /// group (`+0x80 >= 0`, `GroupData::member(o, who, 1)@0070f8f0`), of
     /// a siege type (vslot `+0x10c`, `is_siege`), computer-driven
     /// (`unit_masks & 0x40000`, [`Sim::ai_driven`]'s stand-in), whose find
-    /// is a building (vslot `+0x1c`) with `flags & 0x20` — a city centre.
+    /// is a building (vslot `+0x1c`) with `flags & 0x20` — the `VILLAGE`
+    /// lineage from placement, **an unbuilt city's site too** (item 4718).
     /// The same arm then points the unit's army (`Object::get_army@00649d70`)
     /// at the find: `+0x30/+0x34` the target, `+0x48/+0x4c` the **unit's**
     /// cell (`div_3_table[x >> 8]`), and `+0x50`
@@ -1657,9 +1658,11 @@ impl Sim {
         let siege = self.units[u]
             .ty
             .is_some_and(|ty| self.tables.unit_types[ty].cols.flag(uflags::FLAG_SIEGE));
-        let city = self.buildings[b]
-            .city
-            .is_some_and(|c| self.cities.cities[c].building == b);
+        // `ObjectData +0x8 & 0x20`, which `SubObject::init@00662300:19`
+        // sets from the type's vslot `+0x64` at placement, built or not,
+        // and nothing clears: a city's unbuilt site answers it with no city
+        // record yet (item 4718, row 93's Small City `2/2027` on 4130).
+        let city = self.building_is_city(b);
         if !siege
             || !self.ai_driven(who)
             || !city
