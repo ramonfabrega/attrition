@@ -735,7 +735,7 @@ pub struct Texels {
 }
 
 impl Texels {
-    fn crop(
+    pub(crate) fn crop(
         image: &render::tga::Image,
         (l, t, w, h): (usize, usize, usize, usize),
     ) -> Option<Texels> {
@@ -750,7 +750,7 @@ impl Texels {
         Some(Texels { w, h, rgba })
     }
 
-    fn at(&self, u: usize, v: usize) -> [u8; 4] {
+    pub(crate) fn at(&self, u: usize, v: usize) -> [u8; 4] {
         let i = ((v % self.h) * self.w + u % self.w) * 4;
         [
             self.rgba[i],
@@ -778,7 +778,7 @@ pub struct ScrollArt {
 }
 
 /// `name="value"` of one tag, the value trimmed.
-fn attr<'a>(tag: &'a str, name: &str) -> Option<&'a str> {
+pub(crate) fn attr<'a>(tag: &'a str, name: &str) -> Option<&'a str> {
     let at = tag.find(&format!("{name}=\""))? + name.len() + 2;
     let len = tag[at..].find('"')?;
     Some(tag[at..at + len].trim())
@@ -882,7 +882,7 @@ pub const PLATE_INK: [f32; 3] = [1.0, 1.0, 1.0];
 /// Texels as [`crate::gpu::ScreenLayer`]s, one an alpha, `place(x, y)`
 /// the texel of window pixel `(x, y)` or `None`; a row's run of one
 /// texel is one quad.
-fn layers_of(
+pub(crate) fn layers_of(
     size: (i32, i32),
     (x0, x1, y0, y1): (i32, i32, i32, i32),
     place: impl Fn(i32, i32) -> Option<[u8; 4]>,

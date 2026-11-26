@@ -41066,6 +41066,13 @@ minutes were spent waiting on another lane. `df -g ~` read 88 GB free before it 
   on 3716 units record 1/24 `targeted` ours 0 → 1 and the decoy 1/38's ours 15 → 14, as theirs; the Anti-tank
   Rifle `2/125` (TI 137) takes 1/24 on 3715. Units 3,746 → 3,753 (first 3716 → 3753). The row's first parting is
   leaders on 3751: range 292, record 2, `sites[k]` byte 20, ours 0x0a, theirs 0x02.
+- **Re-scored by item 4721** (`compute_site_stats`' distance loop walks the leader's list to `+0x408`, which
+  `Cities::capture_city@00733380:1157`–`:1166` cuts of its trailing dead slots, `docs/AI.md` §2.13): who=2's city at
+  (16, 34), taken on 3644, left its dead record at the list's tail; on the 3751 sweep ours scored all ten sites 0
+  (every `rank` 10) where theirs kept (26, 43) at 8,457,390, dist 4,050. Leaders 3,751 → 3,754, units 3,753 → 3,775,
+  builds → 3,779, guys → 3,775, cities → 3,796, deaths → 3,811, world → 3,776; ammo 3,796 → 3,795 (a named fall).
+  The row's first parting is groups and leaders on 3754: groups range 85, record 67, `num` ours 0, theirs 1 (`stamp`
+  3736 against 3753, `buildings` 0 against 1); leaders range 128, record 1, `flags` byte 3, ours 0x00, theirs 0x02.
 - Filed by `filerun.py run1784 heldout5-row083-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1784-heldout5-row083-ranges.txt`, 2,869 bytes, SHA-256
   `a9b435ef5bd053ca7a1b9832b5ce70729ff25450cfd7d673a1485805af3a85f1`; `rontrace.log` → `Logs/rontrace-run1784.log`,
