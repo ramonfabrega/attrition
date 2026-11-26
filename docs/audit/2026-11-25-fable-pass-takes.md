@@ -36,12 +36,15 @@ no subagent and took no capture. The record before it is
   outside the HUD.** What is still missing is the city's name plate and
   a raised log on the Woodcutter's Camp. The pair:
   `https://cdn.ramonfabrega.com/attrition/pass-1125b/`.
-- **Yours to decide, as before:** the merged lane branches on origin;
-  438 branches stand there. Three are not in the trunk (`rescue-234`,
-  `worktree-att-1565-opus`, `worktree-att-4537`).
+- **You deleted the 411 merged lane branches on origin during the
+  pass.** Twenty-six branches stand there now; three are not in the
+  trunk (`rescue-234`, `worktree-att-1565-opus`, `worktree-att-4537`).
+  Nothing stops them piling up again yet (entry 158 §10).
+- **`commander` is held on your word.** You play the client first, then
+  Astra runs; whether `commander` is re-armed is decided after.
 - **The week** read 68 % at 18:58 −05:00 on its fifth day, under the
-  day's line of 70. Fable's week read 45 % before this pass and 46 % at
-  that reading.
+  day's line of 70. Fable's week read 45 % before this pass and 48 % at
+  19:34, at the gate's end.
 
 ## What was measured
 
@@ -62,7 +65,7 @@ no subagent and took no capture. The record before it is
 | the debug profile (`cargo clean --profile dev`) | 5.9 GiB; the disk read 112 GB by `df -g ~` before it, under the last pass's 119 |
 | the suite re-timed (`suite_timings.py --stale-only`) | 11 tests timed, the tranche's leaf tests: 2,728 tests, 6,834 s one at a time |
 | the rubric (`rubric.py --record`) | every figure the pass before's: ported 739, open 570, lockstep bytes 78.1 %, unit types seen 296 of 302 |
-| the week (`lore limits`) | 67 % at 18:22 −05:00 and 68 % at 18:58; Fable's week 45 % and 46 % |
+| the week (`lore limits`) | 67 % at 18:22 −05:00 and 68 % at 18:58; Fable's week 45 %, 46 % and, at 19:34, 48 % |
 | the rows and trees left | the old driver row reaped by `handover.py reap bc3c5d56`; no lane row stood; no builder tree; three branches on origin not in HEAD, as before |
 
 ## Rulings
@@ -179,5 +182,16 @@ difference map is empty there. It is not a finding.
 
 ## The gate
 
-Whole, by `tools/gate_run.sh`, to `gate-pass-1125c.log`; its verdict is
-quoted here by the commit after the pass's own.
+Whole, by `tools/gate_run.sh`, once.
+
+- **`gate-pass-1125c.log`: `gate exit 0`** on `e34358baa`, the pass's
+  commit, 9 of 9 steps: offline 1.0, fmt 0.1, guard 0.2, merge pins
+  1.1, release 22.5, clock 0.2. `Clock: green beside load`. Admission
+  10.1 s over 1,630 leases; load 2.4 at its start and 8.2 at its end.
+  `Fixture audit: 209730 requests, 0 missing fixtures`. `Rows: one
+  driver row at most: steer 7f70b931 (working)`; `Driver: 0 landings
+  since the last pass (backstop 20) · context 389 k`; `Trunk:
+  origin/main is origin/worktree-replan-pdb`. `Builders: 0 reaped`; 124
+  GB free by its count.
+- The commit that quotes this is documents only and ran no whole gate;
+  the reflex, `tools/guard.sh`, was green on it.

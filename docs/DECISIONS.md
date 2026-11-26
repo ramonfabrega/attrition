@@ -16691,3 +16691,22 @@ them row 88's (§2). The lane's wait is measured and not changed, as at
 the pass before: the week binds before the clock does. The week read
 67 % at 18:22 −05:00 on its fifth day, under the day's line of 70;
 Fable's read 45 %.
+
+**§10. Ramon, at the pass (2026-11-25, 19:20 to 19:40 −05:00, in this
+row).** Four things. **`commander` is held**: the pass banks and pushes
+and does not hand over; whether it is re-armed is decided later.
+**Ramon plays the client first, then Astra runs**: the play is on the
+gated tip with the machine quiet, with `--record`, and Astra starts
+from that tip after it, on the 2017 sample's item (4649), minting from
+4695; a driver that starts later settles Astra's branch first (entry
+142 §2). **The client's seat goes broad before fine**: what he reports
+from the play is ranked by what stops play, then what misleads, then
+the chrome a player leans on, then looks, and the first of those
+replaces item 4694's name plate as the seat's next word. **He deleted
+the 411 merged lane branches on origin himself.** They pile up because
+a lane pushes its branch, the merge is local with no pull request, the
+reap removes the local branch only, and a session's remote delete is
+refused (entry 129 §9); GitHub's own setting deletes a head branch
+only on a merged pull request and would not hold this. What stops the
+recurrence is not decided: an Action on a push to `main`, or a
+permission rule and a step of the reap.
