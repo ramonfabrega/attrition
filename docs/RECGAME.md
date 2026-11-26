@@ -1904,7 +1904,7 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: units on 3690 (4659: deaths → 3206, Redoubt `dtype` 3). run1797, *diff-backed*.
+Open: units on 3739. run1797, *diff-backed*.
 
 **Items 4597 to 4620**: units → 2376, builds → 2432, ammo → 2408, leaders → 2413, cities → 2448 (`docs/GROUPS.md`,
 `docs/COMBAT.md` §84, a Temple's close, two walks by object number; their journals).
@@ -1914,8 +1914,8 @@ Open: units on 3690 (4659: deaths → 3206, Redoubt `dtype` 3). run1797, *diff-b
 **Item 4632**: units → 2543. On 2439 the Flamethrower `1/115` (`recharging` 30, its attack's `flags` 16) turns at
 its target in theirs and swings in ours: `Unit::fight`'s emplaced latch (`:92`–`100`) takes the head order's `0x10`.
 
-**Items 4691, 4719, 4723**: units → 3628 → 3633 → 3690 (`FILTER_COMBAT`, `docs/ARMY.md` §13, `docs/MERCHANT.md`
-§2.2; the air refusal, `docs/COMBAT.md` §66.8).
+**Items 4691, 4719, 4723, 4728**: units → 3628 → 3633 → 3690 → 3739 (`FILTER_COMBAT`, `docs/ARMY.md` §13,
+`docs/MERCHANT.md` §2.2; the air refusal, `docs/COMBAT.md` §66.8; the Bribe's marks, §90).
 
 ## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
 

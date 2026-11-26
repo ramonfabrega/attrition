@@ -2556,6 +2556,103 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 133's Spy marks itself as it bribes** (item 4728,
+    /// `docs/COMBAT.md` §90): run1797's ranges, the row's units parting
+    /// on 3690 (record 84, `flags` ours `0x01`, theirs `0x81`;
+    /// `unit_masks2` ours 0, theirs `0x60`). who=2's Spy `2/84` (TI 58,
+    /// land) stands in range of who=1's Assault Infantry `1/86` (TI 104)
+    /// with a Bribe (`0x275`) at its head, and on 3690 makes its first
+    /// in-range step (`spell_time` 0 -> 1). `Unit::do_cast@005ebfe0`
+    /// raises `flags |= 0x80` for a targeted spell on another player's
+    /// object and `unit_masks2 |= 0x60` for a Bribe; this crate wrote
+    /// neither. Every range of every line on 3690 and 3691.
+    #[test]
+    fn row_133_s_spy_marks_itself_as_it_bribes_on_run1797() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 3689 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        // Entering 3690: the Spy with its Bribe on the infantryman at its
+        // head, unmarked, and not yet counting.
+        let spy = built.sim.unit_by_o(2, 84).expect("the Spy");
+        assert_eq!(built.sim.units[spy].type_index, 58, "2/84 is a Spy");
+        let victim = built.sim.unit_by_o(1, 86).expect("the infantryman");
+        assert_eq!(
+            built.sim.units[victim].type_index, 104,
+            "1/86 is an Assault Infantry"
+        );
+        match built.sim.units[spy].orders.front().map(|o| &o.body) {
+            Some(sim::orders::Body::Cast(c)) => {
+                assert_eq!(c.spell, sim::ids::spell::BRIBE, "2/84's head cast");
+                assert_eq!(c.target, Some(sim::combat::Obj::Unit(victim)), "its target");
+            }
+            other => panic!("2/84's head order is a cast, got {other:?}"),
+        }
+        assert_eq!(built.sim.units[spy].spell_time, 0, "2/84 has not begun");
+        assert!(
+            !built.sim.units[spy].attacking,
+            "2/84 unmarked entering 3690"
+        );
+        assert_eq!(built.sim.units[spy].unit_masks2 & 0x60, 0);
+        for state in [3690, 3691] {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            assert_eq!(built.sim.frame, state);
+            if state == 3690 {
+                assert_eq!(built.sim.units[spy].spell_time, 1, "the first step");
+                assert!(built.sim.units[spy].attacking, "2/84 flags 0x80 on 3690");
+                assert_eq!(
+                    built.sim.units[spy].unit_masks2 & 0x60,
+                    0x60,
+                    "2/84 unit_masks2 0x60 on 3690"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (line, ours) in lines.iter().enumerate() {
+                let Some(ours) = ours.as_ref() else {
+                    continue;
+                };
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {line}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "line {line} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 133's Flamethrower drops the helicopter its attack-move
     /// found** (item 4723, `docs/COMBAT.md` §66.4): run1797's ranges, the
     /// row's units parting on 3633 (record 73, `orders.count` ours 2,
@@ -14548,13 +14645,21 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 4360 -> 4387), goods 4,476 -> 4,483 (first 4476 standing), world
         // 3,635 -> 3,802 (first 3634 -> 3802). The first parting is units
         // alone on 3690.
+        // Then item 4728 (`Unit::do_cast@005ebfe0`'s in-range step raises
+        // `flags |= 0x80` for a targeted craft on another player's object
+        // and `unit_masks2 |= 0x60` for a Bribe: who=2's Spy `2/84`, TI 58,
+        // bribing who=1's Assault Infantry `1/86`, TI 104; units range
+        // 10024, record 84, `flags` ours 0x01, theirs 0x81, and `unit_masks2`
+        // ours 0, theirs 0x60 on 3690, both theirs now): units 3,690 ->
+        // 3,739 (first 3690 -> 3739), every other line standing. The first
+        // parting is units alone on 3739.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                3690, 3864, 6085, 3806, 3802, 3834, 3790, 3803, 3876, 4387, 4483, 3802,
+                3739, 3864, 6085, 3806, 3802, 3834, 3790, 3803, 3876, 4387, 4483, 3802,
             ],
             first: &[
-                ("units", (3690, Some(2545220959), 2094071359)),
+                ("units", (3739, Some(1986913293), 3842434528)),
                 ("builds", (3850, Some(4293904204), 192464599)),
                 ("ammo", (3803, Some(1779153171), 2589129557)),
                 ("deaths", (3802, Some(3088599948), 1452759926)),
