@@ -4033,6 +4033,78 @@ pub(crate) mod tests {
         assert_eq!((wb.damage / 1000 + 1000) * 10 / (d / 768 + 1), 217);
     }
 
+    /// Run1784 enters the caravan danger and restart functions for the first
+    /// time on tick 3714. The fatal hit on 2/78 rebuilds the road before its
+    /// animation is selected, so all three casualty figures use animation 17.
+    #[test]
+    fn row_83_rebuilds_the_trade_road_before_choosing_the_caravan_death_animation() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+            return;
+        };
+        let Some(path) =
+            crate::testenv::experiment(&home.join("ron-golden/run1784/map-14"), "rontrace.ranges")
+        else {
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 83");
+        let loaded = crate::load::load(&inst).expect("install");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&path).expect("run1784");
+        for state in 3713..=3717 {
+            while built.sim.frame < state {
+                let frame = built.sim.frame;
+                stream.apply(frame as i32, &mut built);
+                if frame == 3714 {
+                    // A unit's kill on its victim's home ground does not warn the routes.
+                    let mut home = built.sim.clone();
+                    let u = home.unit_by_o(2, 78).expect("the caravan");
+                    let pos = home.units[u].pos;
+                    assert_eq!(home.world.owner_at(pos), sim::Owner::Ambiguous);
+                    home.world
+                        .set_owner(pos.cell(), sim::Owner::Player(2), sim::Owner::None);
+                    home.command().tick();
+                    let death = home
+                        .combat
+                        .deaths
+                        .iter()
+                        .find(|d| d.who == 2 && d.o == 78)
+                        .expect("same casualty");
+                    assert_eq!(death.cur_anim, 18);
+                }
+                built.sim.trace.trace_phases = frame == 3714;
+                built.tick();
+                if frame == 3714 {
+                    let sites = &built.frame_sites.last().expect("fatal tick").1;
+                    assert_eq!(sites.len(), 3246);
+                    assert!(
+                        sites[43..3244]
+                            .iter()
+                            .all(|s| s == "PathFinder::calc_road_cost+0x46")
+                    );
+                    assert_eq!(sites[3244], "Unit::close+0xcb6");
+                    assert_eq!(built.sim.rng.seed, 0xef619cd8);
+                }
+            }
+            let set = record.first_of(state - 1).expect("state").clone();
+            let all = record.ranges(&set).expect("ranges");
+            let ours = built.sim.checksum_deaths().expect("death pool");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 4).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "pool width at {state}");
+            for (a, b) in ours.ranges.iter().zip(theirs) {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "death {} {} at {state}",
+                    a.record, a.field
+                );
+            }
+        }
+    }
+
     /// **Row 103's caravan road is laid on the frame after the budget**
     /// (item 4544, `docs/ROADS.md` §8.3): run1783, the ranges take of
     /// row 103's file. A caravan's road search costs 3,207, 3,202 and
@@ -12602,23 +12674,27 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // 4155 -> 4690); leaders 3,746 -> 3,745 (first 3714 -> 3742) and
         // items 4,893 -> 4,164 (first 4893 -> 3986), named falls past the
         // parting.
+        // Item 4573: the caravan killed on unfriendly ground restarts the
+        // nearby trade road before choosing its death animation. Deaths
+        // 3715 -> 3782; the first difference is units on 3716. Later
+        // partial item and goods counts fall; see the item journal.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3716, 3744, 6001, 3754, 3715, 3746, 3716, 3745, 3751, 4164, 4690, 3723,
+                3746, 3753, 6001, 3796, 3782, 3754, 3753, 3751, 3753, 4069, 4078, 3753,
             ],
             first: &[
-                ("units", (3716, Some(510734992), 4255724178)),
-                ("builds", (3744, Some(889368479), 4063342494)),
-                ("ammo", (3718, Some(2536770229), 2487159505)),
-                ("deaths", (3715, Some(2495174764), 2467256425)),
-                ("groups", (3733, Some(716527825), 2283821262)),
-                ("guys", (3716, Some(752224755), 3990227445)),
-                ("leaders", (3742, Some(536833669), 3717361283)),
-                ("cities", (3751, Some(3595451697), 3592174896)),
-                ("items", (3986, Some(1289238888), 2096903490)),
-                ("goods", (4690, Some(3285620014), 3223622949)),
-                ("world", (3723, Some(104781893), 10999633)),
+                ("units", (3716, Some(3626644114), 4255724178)),
+                ("builds", (3753, Some(3619391689), 3659641308)),
+                ("ammo", (3763, Some(3601468407), 1)),
+                ("deaths", (3782, Some(1712482989), 2133228083)),
+                ("groups", (3754, Some(29320637), 815486526)),
+                ("guys", (3753, Some(3981674621), 3664611539)),
+                ("leaders", (3751, Some(2004574370), 1609657705)),
+                ("cities", (3753, Some(3452189994), 4271062569)),
+                ("items", (4053, Some(912470408), 898052486)),
+                ("goods", (4010, Some(3194787109), 3189019939)),
+                ("world", (3753, Some(2756222352), 3812275455)),
             ],
             over: None,
         }),

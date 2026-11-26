@@ -32,7 +32,7 @@ Rubric: ported 739 · replaced by design 331 · open 570 of 3611 · lockstep byt
 Held-out: 8 of 9 whole · shortest 6147
 Parity: 52 of 63 whole · held out 46 of 56 · the sample parts first on units 15666 of 21044 · draws 15909
 Parity held out, closed: first, second, third, fourth · 32 of 32 whole · lines 309 of 384 as found, 384 now · reach 66 % of states as found, 100 % now
-Parity held out, fifth: 6 of 8 whole · 8 taken · lines 30 of 96 as found, 74 now · first partings 3857 0 3192 1582 1956 1750 2977 whole as found, whole whole 4341 whole 3715 whole whole whole now · reach 48 % of states as found, 90 % now
+Parity held out, fifth: 6 of 8 whole · 8 taken · lines 30 of 96 as found, 74 now · first partings 3857 0 3192 1582 1956 1750 2977 whole as found, whole whole 4341 whole 3716 whole whole whole now · reach 48 % of states as found, 90 % now
 Parity held out, sixth: 4 of 8 whole · 8 taken · lines 20 of 96 as found, 53 now · first partings 7675 2411 3358 1563 2342 2259 956 whole as found, 7675 whole 3716 whole 3524 whole 3620 whole now · reach 49 % of states as found, 64 % now · reach in the first 6,001 states 59 % as found, 82 % now
 Parity held out, seventh: 4 of 8 whole · 8 taken · lines 32 of 96 as found, 54 now · first partings 9896 3956 5607 whole 2741 7421 3338 10879 as found, 9896 whole 5607 whole 3717 7421 whole whole now · reach 59 % of states as found, 73 % now · reach in the first 6,001 states 85 % as found, 93 % now
 Structure: flat 11 · test-tails 0k · sweep-lines 17.3k · names 15 · fields 22 · largest 3774
@@ -85,11 +85,10 @@ empty group repeats the selection. The gap is after the order: he saw no ghost w
 recording and read whether a site of type 417 or 427 stands after each build order. Score: a new row, the placement drawn and the site
 standing after a build minted in one live session. It stops when it has landed.
 
-4573. **Parity held out, fifth: row 83's deaths from 3715** (a rules item, whole; unseated, first; DECISIONS 154 §3; `docs/RECGAME.md`
-§12.3). Item 4657's step 17 (a decoy under object attack 220/200/190 where ours took 240/220/210, entering on 3705's tick) moved the
-row 3706 -> 3715 on deaths alone; units and guys part on 3716. The leaf at the pass's tip, off run1784: deaths range 7, record 3,
-`first_frame..unit_crew`, byte 4, ours 0x12, theirs 0x11 (sums ours 2495174764, theirs 2467256425). No take: run1784 runs to the row's
-last state. Re-pin `SCORES_FIFTH[4].moved`, never `found`. It stops when two landings running move no column.
+4717. **Parity held out, fifth: row 83's units from 3716** (a rules item, whole; unseated, first; DECISIONS 154 §3; `docs/RECGAME.md`
+§12.3). Item 4573 advances deaths 3715 → 3782. Two units differ on 3716, each only in `targeted`: 1/24 is 0 here and 1 in run1784;
+1/38 is 15 here and 14 there. On tick 3715 the native search by 2/125 scores both. Reuse the full row recording, 6001 states.
+Re-pin `SCORES_FIFTH[4].moved`, never `found`. It stops when two landings running move no column.
 
 4671. **Parity held out, sixth: row 53's leaders from 3716** (a rules item, whole; unseated; `docs/RECGAME.md` §13.2). Item 4667's
 take (run1835, to 3720) named and built the ram, `resolve_unit_collision`'s first step: who=1's Fire Raft 1/49, blocked by 2/108,
@@ -134,6 +133,8 @@ RNG_MASK=0xdfbu`. Re-pin `SCORES_SEVENTH[0]`'s moved column. It stops when two l
 4716. **The 2017 sample from the detected decoy on 15666** (a rules item, whole; unseated; `docs/RECGAME.md` §7.1).
 At 15666 player 2's decoy 110 has one damage in the original, zero here.
 Player 2's original first attrition stamp is 15665, zero here. Check player 4's detector bit against both ally masks.
+The experimental stored-mask correction advances to 15938 but loses the whole item line at 16948. The new first field uses the
+reserved pivot seam (4656); retain the whole item floor. See the [investigation](journal/2026-11-26-item-4715.md).
 Stop after two landings move neither word (DECISIONS 157 §3).
 
 4696. **The play clock, and Escape** (an input item, scoped; the client's next word, behind 4695; DECISIONS 158 §11;
@@ -180,7 +181,16 @@ Parity held at 5 of 6 and packet lines at 661 of 1,053 on that tip. Whole branch
 
 `codex/sample-merchant` continues from `1a0b0478f`. [Item 4641](journal/2026-11-24-item-4641.md) advances sample parity to 7935 and draws to 7949. [Item 4642](journal/2026-11-24-item-4642.md) moves them to 8523 and 8534, and row 43 to 3899. [Item 4643](journal/2026-11-24-item-4643.md) moves the sample to 9234 and draws to 9507. [Item 4644](journal/2026-11-24-item-4644.md) moves the sample to 9506. [Item 4645](journal/2026-11-24-item-4645.md) moves both words to 9602. [Item 4646](journal/2026-11-24-item-4646.md) moves both to 10207. [Item 4647](journal/2026-11-24-item-4647.md) moves the first state to buildings on 10261 and draws to 11488. [Item 4648](journal/2026-11-24-item-4648.md) moves the first state to units on 10653. All nine required-fixture stages passed on `50e3b6d46` in 23.91 min, exit 0. Next sample item 4649.
 
-`codex/sample-target-tracking` starts at `9076fa204`. Seven sample items (4649, 4697–4702) advance the first state difference 10653 → 12872 and draws 11488 → 12928. All 56 held-out reports match the integration tip. The [whole gate receipt](journal/2026-11-25-item-4702.md) is green on `f2b5e6d37`, 7113 release tests and zero missing fixtures. Run1844 carries sums to state 21044 and field bytes to 19001. Items 4703–4706 advance the first state difference to leaders on 13672 and draws to 13910. All sample line floors hold at the combined checkpoint, including goods on 14207. The [second batch journal](journal/2026-11-25-item-4706.md) records the same camp correction in two older games. Items 4707–4711 advance the first state difference to units on 15217 and draws to 15245. The original’s item and goods prefixes reach 16960 and 15869 respectively. [The collision journal](journal/2026-11-25-item-4711.md) records the final comparisons. All 56 held-out first differences and whole lines hold, with later partial changes on rows 53, 88 and 93; the simulated ending on row 93 moves to 10873. All nine stages passed on `09218aa02`, 7129 release tests and zero missing fixtures. The [animal route](journal/2026-11-25-item-4712.md) advances the state to 15317 and draws to 15909. Items agree across 21044 states. The [chariot allocation](journal/2026-11-26-item-4713.md) advances units to 15526 and guys to 15831 with draws held. The [defensive post](journal/2026-11-26-item-4714.md) moves units to 15592. The [trained scout](journal/2026-11-26-item-4715.md) moves units to 15666. The full required-fixture gate passed on `b8c155c3a`, 7133 release tests and zero missing fixtures. The decoy experiment reaches the reserved pivot at 15938 and loses whole item agreement at 16948. The journal records the sight-radius control. The next direct item is row 83 (4573). This branch is awaiting integration.
+`codex/sample-target-tracking` started at `9076fa204`. The 2017 sample's first state difference moves 10653 → 15666,
+and its first random draw difference 11488 → 15909. Items agree across all 21044 states. Run1844 holds sums to 21044
+and field bytes to 19001. The [first gate](journal/2026-11-25-item-4702.md) passed on `f2b5e6d37` (7113 tests).
+The [camp fix](journal/2026-11-25-item-4706.md) improved older comparisons; the [next gate](journal/2026-11-25-item-4711.md)
+passed on `09218aa02` (7129 tests). The [sample checkpoint](journal/2026-11-26-item-4715.md) passed on `b8c155c3a`
+(7133 tests). All three required-fixture runs had zero missing fixtures. The decoy experiment reached the reserved pivot on
+15938 and lost whole item agreement on 16948. [Row 83](journal/2026-11-26-item-4573.md) advances deaths 3715 → 3782
+and the row 3715 → 3716. All 46 whole held-out games stand (52/63 overall). The journals name later partial changes on rows
+53, 83, 88, 93 and 133, including the simulated ending of 10873 on row 93. Next is 4717, row 83's two targeting counters.
+The final branch gate is pending. The integration owner fast-forwards the accepted branch and runs the shared gate.
 
 ## How to maintain this file
 

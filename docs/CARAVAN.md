@@ -859,8 +859,11 @@ waypoints have lost `0x20`. The word moves **7512 → 8519**.
   cities, 16 tiles from the capital and 13 from the Small City. So the
   first arm has the emulator only, on a patched tile. `new_danger`'s body
   past its call of `restart_trade_route` was not run: the probe stopped
-  there. The port has neither: `Unit::close`'s caravan arm only gives the
-  slot back. It is not modelled.
+  there. Item 4573 implements the warning before plunder and the death draw.
+  On run1784's tick 3714 the linked land caravan 2/78 dies on disputed ground. Its own road is in reach and the other standing
+  linked friendly roads are out of reach. The replan spends the original's 3201 road-price draws.
+  A reading of the listing supplies the widening to other allies, empty roads, and searches still in progress; independent
+  differential review of those arms remains due. See [the record and controls](journal/2026-11-26-item-4573.md).
 
 ## 11. A route across water: the region tests, the shore surcharge and the bearing (2026-09-28, item 1115)
 

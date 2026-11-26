@@ -50,7 +50,7 @@ pub struct Caravan {
     /// where the caravan unloads at the **home** city, and the bit
     /// `City::compute_trade` counts, so a route that has not returned once
     /// is worth nothing (§7). `Caravan::restart_trade_route@0073d070` is
-    /// its other writer and no traced game enters it.
+    /// its other writer (row 83, run1784).
     pub delivered: bool,
     /// `city2`/`whom` (+0x0, +0x2) — the **home** city, and the search's
     /// start.
@@ -1107,6 +1107,68 @@ impl Sim {
         }
         for p in self.units[u].path.iter_mut() {
             p.flags &= !path_flag::ROAD_LAID;
+        }
+    }
+
+    /// `Caravans::new_danger` and `Caravan::restart_trade_route`.
+    /// A killing blow on a linked land caravan warns friendly routes when
+    /// the ground is unfriendly or the dealer is a building (CARAVAN §10.4).
+    pub(crate) fn caravan_killed(&mut self, u: usize, by_building: bool) {
+        let unit = &self.units[u];
+        let Some(slot) = unit.caravan else { return };
+        let who = unit.owner;
+        let at = unit.pos;
+        let van = &self.economy.caravans[who as usize].slots[slot];
+        if !self.is_captain(u)
+            || !van.alive
+            || !van.linked
+            || !unit.ty.is_some_and(|ty| {
+                let ty = &self.tables.unit_types[ty];
+                ty.kind.domain == crate::territory::attrition::Domain::Land
+                    && ty.cols.flag2(crate::ai::ai_load::uflags2::FLAG2_CARAVAN)
+            })
+        {
+            return;
+        }
+        if !by_building
+            && self
+                .world
+                .owner_at(at)
+                .player()
+                .is_some_and(|owner| self.is_ally(who, owner))
+        {
+            return;
+        }
+        for owner in 0..self.territory.players.len() as Player {
+            if self.leaders.defeated[owner as usize] || !self.is_ally(owner, who) {
+                continue;
+            }
+            for slot in 0..self.economy.caravans[owner as usize].mark {
+                let van = &self.economy.caravans[owner as usize].slots[slot];
+                if !van.alive || !van.linked {
+                    continue;
+                }
+                if van.making_road
+                    || van.road.is_empty()
+                    || van
+                        .road
+                        .iter()
+                        .any(|p| crate::world::vector_dist(p.to.x - at.x, p.to.y - at.y) <= 0x600)
+                {
+                    let unit = van.unit;
+                    self.clear_temp_road(owner, slot);
+                    let van = &mut self.economy.caravans[owner as usize].slots[slot];
+                    van.road.clear();
+                    van.delivered = false;
+                    // The dying caravan is still allocated until Unit::close.
+                    if let Some(other) = unit
+                        && (other == u || self.units[other].alive())
+                    {
+                        self.repath(other);
+                        self.caravan_build_road(owner, slot);
+                    }
+                }
+            }
         }
     }
 

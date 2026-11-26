@@ -749,6 +749,7 @@ impl Sim {
                 if matches!(taken, Taken::Died { .. }) {
                     let u = &mut self.units[i];
                     u.health = u.health.min(0);
+                    self.caravan_killed(i, matches!(_by, Obj::Building(_)));
                     // **The kill and loss counters** (`docs/LEADERS.md`
                     // §2.2): on a countable death — the captain, alone,
                     // no decoy — `units_lost` for the victim, and
@@ -1152,6 +1153,7 @@ impl Sim {
     /// so a countable death counts with no killer.
     pub(crate) fn die_by_attrition(&mut self, i: usize, frame: i64) {
         const ATTRITION_DTYPE: i32 = 1;
+        self.caravan_killed(i, false);
         if self.countable_death(i) {
             self.note_unit_death(self.units[i].owner, None);
         }
