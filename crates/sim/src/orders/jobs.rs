@@ -2185,7 +2185,7 @@ impl DoRepairView for SimDoRepair<'_> {
         self.s.tables.tuning.accel_construct
     }
     fn construct_time(&mut self) -> i32 {
-        self.s.construct_time_of(self.b)
+        self.s.repair_construct_time(self.b)
     }
     fn helpers(&mut self) -> i32 {
         self.s.buildings[self.b].helpers
