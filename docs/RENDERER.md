@@ -6955,8 +6955,9 @@ that `position_windows` places none of these windows.
 - ~~The clock's box (`time_back`, `draw_game_timer@0080a3c0`) and its text
   (4724a).~~ Drawn by item 4727, §6.12. `draw_game_timer` is the victory
   timers'; the clock is `draw_button_row_area@0080f7b0`'s.
-- The slots' pictures (4724b): registered 2,379 of 2,379 each, and named
-  by the packet's options list, by item 4729's journal; not yet drawn.
+- ~~The slots' pictures (4724b): registered 2,379 of 2,379 each, and named
+  by the packet's options list, by item 4729's journal; not yet drawn.~~
+  Drawn by item 4731, §6.13.
 - `IFACESELECTED`, the top's resources box, banner and population box, and
   the right side of the bar.
 - The bar at a width other than 1,920. Ours draws the left window only.
@@ -7008,6 +7009,66 @@ offsets); the pixels pick `timer_area2`.
 - The glyph edges' 146.
 - The ranked game's short timer and the paused and cannon branches of the
   line.
+
+## 6.13 The HUD's bar: the slots (item 4731)
+
+*2026-11-26, Opus 5.5. The ledger: `docs/journal/2026-11-26-item-4731.md`;
+the reading, `docs/journal/2026-11-26-item-4729.md`. `client::frame::slots`
+(`selected`, `place`, `SlotArt`, `draw`), `client::frame::bar_slots`; the
+row `RUN1814B_3294_LEFT_WINDOW`. No `crates/sim` change.*
+
+**The list.** `BuildOut::make_options@00629ed0` adds a building's options
+with a grid cell each, and `setup_selected@008165b0` gives each add its
+cell unless an earlier one took it (`slots::place`). For a city centre
+selected alone, `slots::selected` builds the city arm in the add order:
+- `OPTION_RENAME_CITY` 279 at (3, 0), on the City line and not the
+  Forbidden City (line 159);
+- the roster's trains and research (`Roster::offered`, item 4334), each
+  at its type's `grid_x`/`grid_y` (`TypeData` `+0x5c`, `+0x5d`; the rules'
+  `GRID_X`/`GRID_Y`);
+- `OPTION_GATHER` 51, the rally point, at (3, 3) (line 898);
+- `OPTION_ALARM` 28 at (4, 0), or `OPTION_ALL_CLEAR` 29 while the city's
+  alarm is up, for the city's centre (line 982);
+- `OPTION_UPGRADE` 50 at (0, 3), `disable` 1, for each building type over
+  `0x19e..0x21f` the building may `queue_here`, not its own, not being
+  researched (line 1354). The first claims the cell: the Large City, 415.
+
+On run1814b's frame 3294 the selected capital's list is the packet's
+`MiscAccess::options`, all five, which the test asserts.
+
+**The pictures** (`IFaceButton::on_redraw@007fc730`).
+- A typeless slot's cell is `options.xml`'s entry for the option.
+  `OptionInfo::init@0072c530` reads the file positionally and checks the
+  count against `NUM_OPTIONS` (0x14b). The shipped file holds 330. Entries
+  28, 51 and 279 give (4, 2), (7, 4) and (7, 6) on `TEX_ORDERS_0`, as the
+  packet's `option_info` holds them (4729b).
+- A typed slot's cell is the type's `TEX_ID`, `TEX_COL`, `TEX_ROW`. For a
+  unit that is its `{GRAPH}-DEFAULT-AGE0` entry of `unit_graphics.xml`.
+- The crop is `IFACEBUTTONDATA`'s `tex`, 61 × 39, moved by (62 · col,
+  40 · row), and by (−1, −1) when disabled. It is drawn 1:1 at the
+  button's corner, at colour `0xff`, or `0x80` when disabled. Then the
+  overlay, `def_overlay_texs0` or `def_overlay_texs1`, goes on top at
+  `0x80` or `0x40`. Each channel is `round(c · k / 255)`.
+
+**The row.** `RUN1814B_3294_LEFT_WINDOW` goes from 49,547 to **61,397 of
+61,614**, and the mean luma ×10 from 418 to 516, the photograph's. The
+217 that still part are the clock's (§6.12).
+
+**Diff-backed**: the five slots' list, against the packet. Each picture's
+crop, the disabled shift, both colours and the overlay, against the
+photograph's pixels. **Read alone**: the predicates of the city arm that
+this state does not exercise.
+
+**Not established.**
+- The arm for any selection other than a lone city centre. Such a
+  selection draws twenty blank slots.
+- The rally point's branch reads the type's `+0x2c0`. That field is not
+  read; the City line is assumed to take it.
+- The upgrade loop's check of the ending technology's age is not built.
+- Which age a unit's picture takes. `-DEFAULT-AGE0` is assumed; the
+  Citizen's AGE3 and AGE5 entries name other cells.
+- The disabled flag is taken as `disable ≠ 0`. Only `disable` 1 is
+  registered.
 
 ## 7. What is not established, and what needs Ramon's word
 

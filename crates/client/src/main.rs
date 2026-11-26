@@ -459,7 +459,10 @@ fn build(
     let mut minimap = minimap;
     if let Some(f) = &framed {
         let line = frame::clock_line(world);
-        minimap.extend(f.layers((size.0 as i32, size.1 as i32), line.as_deref()));
+        let slots = hud.map_or_else(Vec::new, |input| {
+            frame::bar_slots(world, input.player, &input.selection)
+        });
+        minimap.extend(f.layers((size.0 as i32, size.1 as i32), line.as_deref(), &slots));
     }
     screen.splice(0..0, minimap);
     if let Some(input) = hud {
@@ -628,7 +631,8 @@ pub(crate) fn still_minimap(
         // Item 4694: the minimap's window over it.
         if let Some(f) = frame::console_frame(world, world::CONSOLE) {
             let line = frame::clock_line(world);
-            screen.extend(f.layers((size.0 as i32, size.1 as i32), line.as_deref()));
+            let slots = frame::bar_slots(world, world::CONSOLE, selection);
+            screen.extend(f.layers((size.0 as i32, size.1 as i32), line.as_deref(), &slots));
         }
     }
     let version = world.runner.terrain().version;
