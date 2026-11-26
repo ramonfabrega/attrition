@@ -2652,6 +2652,55 @@ fn a_repair_takes_twice_the_build_time_and_costs_the_price_again() {
     );
 }
 
+/// **A repair's period reads `construct_time(1)`, which the President does
+/// not shorten** (item 4720, `docs/RECGAME.md` §13.3):
+/// `Unit::do_repair@005ee420` pushes 1 to the site's vslot `+0x18c`
+/// (`0x5ee6f7`), and `construct_time@0062d5c0` returns the walked
+/// `constr_time` before its Hanging Gardens, President and Iroquois arms
+/// when its argument is non-zero. run1799's who=1 Small City `1/2039`, its
+/// President near, mended at period 418 (54000) where the shortened 40601
+/// gave 314, a point ahead of theirs on 4154.
+///
+/// Made to fail with the view's `construct_time` back at
+/// `construct_time_of` (the 31578 clock: 134 per 256 frames, 600 hits in
+/// about 315 frames).
+#[test]
+fn a_repair_beside_the_president_takes_the_unshortened_build_time() {
+    let mut sim = world_sim();
+    sim.tables.tuning.city_gather = [0; 6];
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, b);
+    let president = sim.add_unit_type(crate::UnitType {
+        hits: 100,
+        type_index: 0x163,
+        cols: crate::ai::ai_load::UnitCols {
+            unit_flags2: crate::ai::ai_load::uflags2::FLAG2_GENERAL,
+            ..crate::ai::ai_load::UnitCols::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let _ = sim.init_unit(0, president, tile_pos(41, 42));
+    let base = sim.buildings[b].constr_time;
+    assert!(sim.construct_time_of(b) < base, "the President is near");
+    assert_eq!(sim.repair_construct_time(b), base, "construct_time(1)");
+    sim.buildings[b].damage = 600;
+    sim.buildings[b].sync_health();
+    let u = spawn(&mut sim, 0, citizen, tile_pos(40, 40));
+    sim.order_repair(u, b);
+    let mut frames = 0;
+    while sim.buildings[b].damage > 0 {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 2000);
+    }
+    // (42000 << 9) / (1200 × 100) = 179 per 256 frames, as with no
+    // President at all: 600 hits in 420 frames.
+    assert!((418..=422).contains(&frames), "{frames}");
+}
+
 // ----------------------------------------------------------------------
 // Cities
 // ----------------------------------------------------------------------

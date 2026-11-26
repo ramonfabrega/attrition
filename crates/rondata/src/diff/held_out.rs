@@ -5520,6 +5520,97 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 93's builds on 4154: a repair's period is measured on the
+    /// unshortened clock** (item 4720, `docs/RECGAME.md` §13.3), on
+    /// run1799's whole-length ranges of run1792's file. who=1's Citizen
+    /// `1/24` (TI 50, land) mends who=1's Small City `1/2039` from 4153, its President
+    /// near. `Unit::do_repair@005ee420` reads `construct_time(1)` (`push 1`
+    /// at `0x5ee6f7`), which returns the walked `constr_time` 54000 before
+    /// the President's arm: period 418, where the shortened 40601 gave 314.
+    /// Red on the base at builds range 1764 on 4154, record 2039
+    /// `myhits..launch_frames` byte 4 (`damage`'s low byte): ours 38, theirs
+    /// 37. Every builds range on 4153 to 4156, byte for byte.
+    #[test]
+    fn row_93_s_city_repair_beside_its_president_takes_the_long_clock_on_run1799_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            eprintln!("skipping: row 93's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1799/map-14");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1799's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for (state, damage) in [(4153i64, 1318), (4154, 1317), (4155, 1316), (4156, 1316)] {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let sim = &built.sim;
+            let city = sim
+                .buildings
+                .iter()
+                .rposition(|b| b.owner == 1 && b.index == 2039)
+                .expect("1/2039");
+            let bd = &sim.buildings[city];
+            assert_eq!(
+                loaded.build_type_names[bd.ty.expect("its type")],
+                "Small City"
+            );
+            assert!(bd.alive && bd.active, "1/2039 is built");
+            assert_eq!(bd.constr_time, 54000, "1/2039's walked clock");
+            assert_eq!(sim.construct_time_of(city), 40601, "its President is near");
+            assert_eq!(sim.repair_construct_time(city), 54000, "construct_time(1)");
+            assert_eq!(bd.damage, damage, "1/2039's damage on {state}, theirs");
+            let repairer = sim
+                .units
+                .iter()
+                .rposition(|u| u.owner == 1 && u.index == 24)
+                .expect("1/24");
+            let ty = sim.units[repairer].ty.expect("a type");
+            assert_eq!(sim.tables.unit_types[ty].type_index, 50, "1/24's TI");
+            assert_eq!(loaded.unit_names[ty], "Citizen");
+            assert_eq!(
+                sim.units[repairer].kind.domain,
+                sim::territory::attrition::Domain::Land
+            );
+            assert!(
+                sim.units[repairer]
+                    .orders
+                    .iter()
+                    .any(|o| o.body == sim::orders::Body::Repair(city)),
+                "1/24 repairs 1/2039 on {state}"
+            );
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(sim, &look, &tribes);
+            let ours = lines[1].as_ref().expect("builds");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "builds' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                assert_eq!(
+                    at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                    None,
+                    "builds range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                    a.record,
+                    a.field
+                );
+            }
+        }
+    }
+
     #[test]
     fn row_93_s_decoy_tiger_tank_leaves_the_chain_at_its_death_on_run1799_s_ranges() {
         let Some(inst) = crate::testenv::install() else {
@@ -13789,19 +13880,29 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // firsts 4190 -> 4289 and 4197 -> 4325); items' first 6187 -> 6009,
         // past 4154; leaders stands; ours' `game_over` 10873 -> none, both
         // play to 12,000.
+        // Then item 4720 (`Unit::do_repair@005ee420` reads
+        // `construct_time(1)`, `push 1` at `0x5ee6f7`, which returns the
+        // walked `constr_time` before the President's arm): who=1's Citizen
+        // `1/24` (TI 50, land) mends who=1's Small City `1/2039`, its
+        // President near, at period 418 (54000), not 314 (40601), as theirs
+        // (run1799's builds range 1764, record 2039, `myhits..launch_frames`
+        // byte 4, `damage`'s low byte: ours 38, theirs 37, on 4154). The
+        // row's first parting 4154 -> 4219 (units and guys, which stand):
+        // builds 4,198 -> 4,310 (first 4310), leaders 4,175 -> 4,317 (first
+        // 4166 -> 4312).
         moved: Some(Score {
             states: 12001,
             agreed: [
-                4242, 4198, 12001, 4787, 4325, 4362, 4242, 4175, 4351, 6717, 5464, 4288,
+                4242, 4310, 12001, 4787, 4325, 4362, 4242, 4317, 4351, 6717, 5464, 4288,
             ],
             first: &[
                 ("units", (4219, Some(3412282491), 1117867263)),
-                ("builds", (4154, Some(1116497646), 4078790381)),
+                ("builds", (4310, Some(1827527676), 298966417)),
                 ("ammo", (4289, Some(1796672337), 2990607315)),
                 ("deaths", (4325, Some(3973575844), 4044551333)),
                 ("groups", (4334, Some(470667955), 2973162772)),
                 ("guys", (4219, Some(3243759351), 826464123)),
-                ("leaders", (4166, Some(2640249252), 1154351528)),
+                ("leaders", (4312, Some(429387115), 3607031145)),
                 ("cities", (4351, Some(2145664821), 2143174452)),
                 ("items", (6009, Some(1373777447), 1365126693)),
                 ("goods", (4720, Some(3351549222), 3368850730)),
