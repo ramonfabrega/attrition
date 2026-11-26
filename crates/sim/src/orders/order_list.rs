@@ -224,9 +224,6 @@ impl Sim {
     }
 
     pub(crate) fn enqueue(&mut self, u: usize, order: Order, pos: QueuePos) {
-        if std::env::var("RON_PROBE_4732").is_ok() && (3774..=3775).contains(&self.frame) && self.units[u].owner == 2 && self.units[u].index == 114 {
-            println!("P4732 HOOK {} f{} {:?}\n{}", "enqueue", self.frame, (pos, order), std::backtrace::Backtrace::force_capture());
-        }
         match pos {
             QueuePos::New => {
                 self.units[u].path.clear();
@@ -279,9 +276,6 @@ impl Sim {
     /// `Unit::kill_current_order(0)` (§3.2): the per-kind teardown, then the
     /// pop, the path segment, `update_action`.
     pub fn kill_current_order(&mut self, u: usize) {
-        if std::env::var("RON_PROBE_4732").is_ok() && (3774..=3775).contains(&self.frame) && self.units[u].owner == 2 && self.units[u].index == 114 {
-            println!("P4732 HOOK {} f{} {:?}\n{}", "kill", self.frame, self.units[u].orders.front(), std::backtrace::Backtrace::force_capture());
-        }
         self.kill_order(u, false);
     }
 

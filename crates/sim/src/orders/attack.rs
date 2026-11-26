@@ -1874,26 +1874,25 @@ pub trait CheckTargetView {
 ///
 /// The `ecx` the listing hands `is_in_range` and `add_move_order` as a
 /// stale register is not a value (the sweep masks it).
-pub static PROBE_4732: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 pub fn check_target_path_steps<V: CheckTargetView>(v: &mut V) -> bool {
     if !v.target_set() || !v.target_seen() {
-        { if PROBE_4732.load(std::sync::atomic::Ordering::Relaxed) { println!("P4732 FALSE 1"); } return false; }
+        return false;
     }
     let ty = v.action_type();
     if ty == 0xe {
         if !v.cast_target_valid() {
-            { if PROBE_4732.load(std::sync::atomic::Ordering::Relaxed) { println!("P4732 ARM 1"); } v.repath(); }
+            v.repath();
             v.kill_current_order();
             return true;
         }
         if v.target_is_unit() && v.target_moving() {
-            { if PROBE_4732.load(std::sync::atomic::Ordering::Relaxed) { println!("P4732 ARM 2"); } v.repath(); }
+            v.repath();
             return true;
         }
-        { if PROBE_4732.load(std::sync::atomic::Ordering::Relaxed) { println!("P4732 FALSE 2"); } return false; }
+        return false;
     }
     if ty == 8 || (ty == 0xd && v.target_is_building()) {
-        { if PROBE_4732.load(std::sync::atomic::Ordering::Relaxed) { println!("P4732 FALSE 3"); } return false; }
+        return false;
     }
     if v.target_is_unit() {
         let (dx, dy) = v.target_offset();
@@ -1906,40 +1905,40 @@ pub fn check_target_path_steps<V: CheckTargetView>(v: &mut V) -> bool {
         let fleeing = e >= 0x2aaa_aaaa && combat::flanking(e) != 0 && v.target_moving();
         if !fleeing {
             if !v.in_range_plain() {
-                { if PROBE_4732.load(std::sync::atomic::Ordering::Relaxed) { println!("P4732 FALSE 4"); } return false; }
+                return false;
             }
-            { if PROBE_4732.load(std::sync::atomic::Ordering::Relaxed) { println!("P4732 ARM 3"); } v.repath(); }
+            v.repath();
             return true;
         }
     }
     if !v.target_on_map() {
-        { if PROBE_4732.load(std::sync::atomic::Ordering::Relaxed) { println!("P4732 ARM 4"); } v.repath(); }
+        v.repath();
         return true;
     }
     if ty == 0x1a && v.adjacent() {
-        { if PROBE_4732.load(std::sync::atomic::Ordering::Relaxed) { println!("P4732 ARM 5"); } v.repath(); }
+        v.repath();
         return true;
     }
     if v.in_range_from_orders() {
-        { if PROBE_4732.load(std::sync::atomic::Ordering::Relaxed) { println!("P4732 FALSE 5"); } return false; }
+        return false;
     }
     if !v.order_is_attack() {
         if ty == 0xb && v.target_is_unit_class() {
             let (dx, dy) = v.pair_offsets();
             if vector_dist(dx.wrapping_abs(), dy.wrapping_abs()) > 0x900 {
-                { if PROBE_4732.load(std::sync::atomic::Ordering::Relaxed) { println!("P4732 ARM 6"); } v.repath(); }
+                v.repath();
                 return true;
             }
         }
-        { if PROBE_4732.load(std::sync::atomic::Ordering::Relaxed) { println!("P4732 FALSE 6"); } return false; }
+        return false;
     }
     if v.melee_lone_node() || v.target_is_building() {
-        { if PROBE_4732.load(std::sync::atomic::Ordering::Relaxed) { println!("P4732 FALSE 7"); } return false; }
+        return false;
     }
     v.update_order();
     if v.head_is_group_order() && v.group() >= 0 {
         if v.group_moving() {
-            { if PROBE_4732.load(std::sync::atomic::Ordering::Relaxed) { println!("P4732 ARM 7"); } v.repath(); }
+            v.repath();
             if v.order_is_attack() && v.site_mandatory() {
                 let (ox, whom) = v.site();
                 if v.map_unit(ox, whom) {
@@ -1961,7 +1960,7 @@ pub fn check_target_path_steps<V: CheckTargetView>(v: &mut V) -> bool {
         }
         return true;
     }
-    { if PROBE_4732.load(std::sync::atomic::Ordering::Relaxed) { println!("P4732 ARM 8"); } v.repath(); }
+    v.repath();
     let Some((x, y)) = v.find_attack_pos() else {
         return true;
     };
