@@ -596,6 +596,26 @@ class RunnerTest(unittest.TestCase):
         self.assertIn('2006',why)
         self.assertIn('RON_STATE_PLAN',why)
 
+    def test_a_ranges_take_is_refused_when_its_raw_record_would_leave_the_disk_low(self):
+        # DECISIONS 159: the record is written raw while the game plays,
+        # about 1.2 GB a thousand frames, and filing leaves a seventh of
+        # it. The floor is the peak above the disk tool's low mark, read
+        # before the lane is taken; no other take is asked anything.
+        ranges=['RON_CHECKSUMS','RON_RANGES','RNG_MASK=0xffbu']
+        self.assertIsNone(runner.refused_ranges_disk(None,12000,1))
+        self.assertIsNone(runner.refused_ranges_disk(['RON_CHECKSUMS'],12000,1))
+        self.assertEqual(runner.ranges_peak_gb(12000),15)
+        self.assertEqual(runner.ranges_peak_gb(6000),8)
+        self.assertEqual(runner.ranges_peak_gb(None),runner.ranges_peak_gb(runner.RANGES_FRAMES_UNBOUNDED))
+        self.assertIsNone(runner.refused_ranges_disk(ranges,12000,45))
+        self.assertIsNone(runner.refused_ranges_disk(ranges,6000,38))
+        why=runner.refused_ranges_disk(ranges,12000,44)
+        self.assertIn('44 GB free',why)
+        self.assertIn('45',why)
+        self.assertIn('15 GB',why)
+        self.assertIsNotNone(runner.refused_ranges_disk(ranges,None,55))
+        self.assertIsNone(runner.refused_ranges_disk(ranges,None,56))
+
     def test_a_take_that_exits_with_no_gamelog_is_retaken_once(self):
         # Parked 1987: run801's first take died on a Wine page fault before
         # frame 0, with no gamelog.txt, and the retake was by hand under

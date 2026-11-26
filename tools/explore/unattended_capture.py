@@ -14,6 +14,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import signal
 import subprocess
 import time
@@ -577,6 +578,48 @@ def refused_tracer_defs(defs):
         return ('RON_STATE_FRAME without RON_STATE_PLAN dies in the tracer build (parked 2006, Loop 2054); '
                 "add --tracer-def 'RON_STATE_PLAN=\"<plan.h>\"' (docs/EMULATOR.md §8), or drop the frame")
     return None
+
+
+# A ranges record's raw size while its game plays, by the takes on disk:
+# run1799 13.1 GB to 12,000, run1797 6.3 GB to 6,084, run1844 22 GB to
+# 19,001. Filing splits and compresses it to about a seventh.
+RANGES_TENTHS_GB_PER_1000_FRAMES = 12  # 1.2 GB a thousand frames
+# What a ranges take with no `--end-frame` is sized as: the longest game on disk.
+RANGES_FRAMES_UNBOUNDED = 21044
+# `tools/disk.py`'s `LOW_GB`: under it a gate's own run can fill the disk.
+DISK_LOW_GB = 30
+
+
+def ranges_peak_gb(end_frame):
+    """The whole gigabytes a ranges take's raw record reaches by `end_frame`."""
+    frames = end_frame or RANGES_FRAMES_UNBOUNDED
+    return -(-(frames * RANGES_TENTHS_GB_PER_1000_FRAMES) // 10000)
+
+
+def free_gb(path=None):
+    """Whole gigabytes free on the volume the archives live on."""
+    return shutil.disk_usage(path or Path.home()).free // (1 << 30)
+
+
+def refused_ranges_disk(defs, end_frame, free):
+    """Why a `RON_RANGES` take is refused before the lane is taken, or None
+    (DECISIONS 159). The record is written raw while the game plays and is
+    split and compressed only at filing, so what a take needs is its peak
+    above the disk tool's low mark, and nothing after it is filed. The rule
+    before this was a clause, "every take stops under 60", sized for a
+    record nothing compressed until a pass; with four lanes' trees out the
+    disk stood at 56 to 60 GB through a tranche and the clause refused
+    every row that still needs its one whole take."""
+    names = {d.split('=', 1)[0] for d in defs or ()}
+    if 'RON_RANGES' not in names:
+        return None
+    peak = ranges_peak_gb(end_frame)
+    need = DISK_LOW_GB + peak
+    if free >= need:
+        return None
+    return (f'{free} GB free and this ranges take wants {need}: its raw record reaches about {peak} GB by '
+            f'frame {end_frame or RANGES_FRAMES_UNBOUNDED} before filing compresses it, above a floor of '
+            f'{DISK_LOW_GB} (DECISIONS 159). Reap merged lane rows and run `python3 tools/disk.py`, then take it')
 
 
 def exit_verdict(report, stalled):
@@ -1505,6 +1548,7 @@ def main():
         except ValueError as exc:
             ap.error(f'{exc} — raise --end-frame past every staged line, or drop the line')
     why = (refused_detail(args.detail) or refused_tracer_defs(getattr(args, 'tracer_defs', None))
+           or refused_ranges_disk(getattr(args, 'tracer_defs', None), getattr(args, 'end_frame', None), free_gb())
            or refused_window(getattr(args, 'log_window', None), args.detail)
            or refused_full_start(getattr(args, 'dump_all_start', False), getattr(args, 'log_window', None)))
     if why:

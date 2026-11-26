@@ -54,6 +54,7 @@ SUITES = (
     'test_reap_agents',
     'test_memcap',
     'test_handover',  # the pass of 2026-11-13, DECISIONS 131 §8
+    'test_book',  # the pass of 2026-11-26, DECISIONS 159: a booking touches one item
     'test_isolated_tests',
     'test_runtime_policy',
     'test_lab_demo',
