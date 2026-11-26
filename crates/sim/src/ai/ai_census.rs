@@ -1391,6 +1391,29 @@ impl Sim {
 }
 
 impl Sim {
+    /// `Wonders::close_wonder@0073c7e0`, **inside the close**: `b`'s entry
+    /// in `who`'s wonder list clears and the mark walks down past the clear
+    /// entries at its top. `Build::close@00628980:315`–`316` calls it for a
+    /// wonder whose `BuildData::wonder` (`+0x76`) is `>= 0` — an entry in
+    /// the list, which [`Sim::note_wonders`] is the only maker of — so a
+    /// building with no entry is left alone. Item 4692 (`docs/RECGAME.md`
+    /// §13.3): run1799's who=2 Hanging Gardens `2/2028` dies on 3523 and
+    /// theirs' `wonder_mark` reads 0 on the block, where the pass-end walk
+    /// alone left ours 1 for a frame.
+    pub(crate) fn close_wonder(&mut self, who: Player, b: usize) {
+        let Some(a) = self.ai.ai.get_mut(who as usize) else {
+            return;
+        };
+        let cs = &mut a.census;
+        let Some(e) = cs.wonder_slots.iter().position(|&s| s == Some(b)) else {
+            return;
+        };
+        cs.wonder_slots[e] = None;
+        while cs.wonder_mark > 0 && cs.wonder_slots[cs.wonder_mark as usize - 1].is_none() {
+            cs.wonder_mark -= 1;
+        }
+    }
+
     /// `LeaderData::wonder_mark`'s writers, on every leader: the entry
     /// `Wonders::close_wonder@0073c7e0` clears when a wonder closes, and
     /// the one `Wonders::init_wonder@0073c860` writes when one activates

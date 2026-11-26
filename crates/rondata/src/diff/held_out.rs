@@ -5154,6 +5154,89 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 93's leaders on 3524: a wonder's close walks its owner's
+    /// `wonder_mark` down inside the close** (item 4692, `docs/RECGAME.md`
+    /// §13.3), on run1799's whole-length ranges of run1792's file. On 3523
+    /// who=2's Hanging Gardens `2/2028` is killed. `Build::close@00628980:316`
+    /// calls `Wonders::close_wonder`, which clears its entry and walks the
+    /// mark 1 -> 0 at once. Red on the base at leaders range 266 on 3524,
+    /// record 2 `who..ally_mask` byte 1052 (`wonder_mark`, `+0x424`): ours
+    /// 0x01, theirs 0x00, where the pass-end `note_wonders` caught it a frame
+    /// late. Every leaders range on 3523 to 3525, byte for byte.
+    #[test]
+    fn row_93_s_hanging_gardens_close_walks_the_wonder_mark_down_on_run1799_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            eprintln!("skipping: row 93's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1799/map-14");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1799's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3523i64..=3525 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[7].as_ref().expect("leaders");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "leaders' ranges on {state}"
+            );
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                assert_eq!(
+                    at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                    None,
+                    "leaders range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                    a.record,
+                    a.field
+                );
+            }
+            let k = 266;
+            assert_eq!(ours.ranges[k].record, 2);
+            assert_eq!(ours.ranges[k].field, "who..ally_mask");
+            let mark = |b: &[u8]| i32::from_le_bytes(b[1052..1056].try_into().unwrap());
+            let sim = &built.sim;
+            let gardens = sim
+                .buildings
+                .iter()
+                .rposition(|b| b.owner == 2 && b.index == 2028)
+                .expect("2/2028");
+            let bd = &sim.buildings[gardens];
+            assert_eq!(
+                loaded.build_type_names[bd.ty.expect("its type")],
+                "Hanging Gardens"
+            );
+            assert!(bd.active, "2/2028 is a finished wonder");
+            let want = if state == 3523 { 1 } else { 0 };
+            assert_eq!(bd.alive, state == 3523, "2/2028 is killed on 3523");
+            assert_eq!(
+                mark(&theirs[k].bytes),
+                want,
+                "theirs' wonder_mark on {state}"
+            );
+            assert_eq!(sim.ai.ai[2].census.wonder_mark, want, "ours on {state}");
+        }
+    }
+
     #[test]
     fn row_93_s_decoy_tiger_tank_leaves_the_chain_at_its_death_on_run1799_s_ranges() {
         let Some(inst) = crate::testenv::install() else {
@@ -13391,10 +13474,20 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // row's first parting 3269 -> 3524 (leaders, which stands): builds
         // 3,269 -> 4,136 (first 4132), ammo 4,639 -> 4,728; items 6,516 ->
         // 6,513, a named fall past its first, 6187.
+        // Then item 4692 (`Build::close@00628980:316` calls
+        // `Wonders::close_wonder` inside the close, not at the objects' pass
+        // end): who=2's Hanging Gardens `2/2028`, killed on 3523, clears its
+        // entry and walks who=2's `wonder_mark` 1 -> 0 on the block, as
+        // theirs (run1799's leaders range 266, record 2, `who..ally_mask`
+        // byte 1052, `wonder_mark` `+0x424`: ours 1, theirs 0, on 3524). The
+        // row's first parting 3524 -> 4130 (units, which stands): leaders
+        // 4,174 -> 4,175 (first 3524 -> 4166), ammo 4,728 -> 5,285, deaths
+        // 4,197 -> 4,398; items 6,513 -> 6,510, a named fall past its first,
+        // 6187; ours' `game_over` none -> 10873, theirs plays to 12,000.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                4130, 4136, 12001, 4728, 4197, 4167, 4180, 4174, 4221, 6513, 4797, 4181,
+                4130, 4136, 12001, 5285, 4398, 4167, 4180, 4175, 4221, 6510, 4797, 4181,
             ],
             first: &[
                 ("units", (4130, Some(1238553357), 396940046)),
@@ -13403,13 +13496,13 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
                 ("deaths", (4197, Some(4115287177), 4203236490)),
                 ("groups", (4131, Some(3248158095), 1415640466)),
                 ("guys", (4180, Some(1398272031), 1868298625)),
-                ("leaders", (3524, Some(18748832), 2462586271)),
+                ("leaders", (4166, Some(2640249252), 1154351528)),
                 ("cities", (4221, Some(140919747), 372917197)),
                 ("items", (6187, Some(1365126693), 1373777447)),
                 ("goods", (4452, Some(3368850730), 3351549222)),
                 ("world", (4181, Some(2240145056), 2958026358)),
             ],
-            over: None,
+            over: Some(10873),
         }),
     }),
     // run1793
