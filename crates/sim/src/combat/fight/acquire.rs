@@ -1209,6 +1209,14 @@ impl Sim {
                         if score == 0 && value != 0 {
                             score = 1;
                         }
+                        if std::env::var("RON_PROBE_4723").is_ok()
+                            && matches!(attacker, Obj::Unit(a) if self.units[a].owner == 2 && self.units[a].index == 73 && self.frame >= 3630)
+                        {
+                            eprintln!(
+                                "P4723V f{} cand {:?} who {} in_range {} value {} dist {} score {} max_dist {} best {:?} rings {}",
+                                self.frame, o, self.owner_of(o), in_range, value, dist, score, max_dist, best, rings
+                            );
+                        }
                         // `local_70`, seeded at 0 (`find_nearby_target@00648da0:232`) and taken past
                         // `jle` (`64987d`): a score of 0 — a candidate
                         // `compare_target` answered 0 for — is never the
