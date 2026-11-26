@@ -3032,8 +3032,9 @@ Albatross's a TI 216 on 426, the missile's a TI 140 on 32. The Mustang's is a nu
 second half: `Unit::come_out@00617c10`'s tail (`6186c1`..) runs `Guy::update_z` on an air type's figure 0 (`z` the
 ground at the spot), and a helicopter then stores `z + 500` in `z` and `last_z`. Ours put the missile out at 0, so
 it flew from 0 to 2; from the silo's ground 396 it reaches 398. In ours: `Sim::init_guys` copies the dead
-occupant's figure-0 `z` (`Sim::guy_z`) into an air type's `airframe.z` and `last_z`, ahead of the helicopter's
-birth climb; `Sim::come_out_place` writes the ground (a fixed-wing figure's `last_z` the `z` before,
+occupant's figure-0 stored `z` into an air type's `airframe.z` and `last_z`, ahead of the helicopter's birth climb:
+`Sim::guy_stored_z`, a terraform's held height included (item 4730: row 93's Fighter `2/112` on 4235 holds its dead
+Citizen's 528, not the 539 under it, ours 539 → 528 as theirs); `Sim::come_out_place` writes the ground (a fixed-wing figure's `last_z` the `z` before,
 `set_new_location`'s `param_3` copy). **5 guys lines turn, none grow** (`PACKETS_SCORE` 743 → 748): run1164,
 run1359, run1359b, run1359c, run1420; run1351's guys line parts on 2 → 1 and its units line, with 5 others, on one
 range fewer. Value diff, run1359 frame 5619 record 36 (`1/36`, Biplane, TI 287): `z` theirs 637, ours 0 → 637;

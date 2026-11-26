@@ -10382,6 +10382,46 @@ fn a_city_struck_rings_its_own_bell_and_only_a_computer_s_once() {
     );
 }
 
+/// **A city's gather building struck rings the city's bell** (item 4726,
+/// `docs/RECGAME.md` §12.3; `Object::take_damage@00652020:266`-`:282`): the
+/// arm asks the struck building's type vslot `+0x90`,
+/// `Type::is_gather_type`, before its own `flags & 0x20`, so a Farm of the
+/// city rings it, and the group seated is the city's building, not the
+/// Farm. The press sets the economy's dirty bit (`0070ed27`) first.
+/// run1784's 3753: `2/273` strikes `1/2044`, a gather building of who=1's
+/// city `1/2043`; theirs seats `[1/2043]` in who=1's slot 3.
+///
+/// Made to fail with the arm asking `building_is_city` alone.
+#[test]
+fn a_city_s_gather_building_struck_rings_the_city_s_bell() {
+    let (mut sim, t, citizen, militia) = alarm_sim();
+    sim.tables.unit_types[citizen].worker = crate::orders::Worker::Citizen;
+    let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
+    sim.cities.nation[0].human = false;
+    sim.ai.lobby.difficulty = 2;
+    let farm = sim.place_building(0, t.farm, tile_pos(44, 32)).unwrap();
+    finish(&mut sim, farm);
+    assert!(sim.is_gather_type(farm) && !sim.building_is_city(farm));
+    assert_eq!(sim.buildings[farm].city, Some(c), "the farm is the city's");
+    let near = sim.init_unit(0, citizen, tile_pos(38, 32));
+    let att = sim.init_unit(1, militia, tile_pos(40, 40));
+    sim.economy.ledgers[0].dirty = false;
+    let blow = combat::Sixteenths { whole: 5, frac: 0 };
+    sim.damage_building(farm, blow, Some(Obj::Unit(att)), 100, false);
+    assert!(sim.cities.cities[c].alarm, "the city's bell");
+    assert!(bell_group_seated(&sim, 0, b), "the city's building, alone");
+    assert!(!bell_group_seated(&sim, 0, farm), "not the farm");
+    assert!(sim.economy.ledgers[0].dirty, "the press's 0x2000000");
+    assert!(
+        sim.units[near]
+            .orders
+            .iter()
+            .any(|o| o.index() == crate::orders::index::GARRISON),
+        "{:?}",
+        sim.units[near].orders
+    );
+}
+
 /// **A peasant alarm sends each selected Citizen to the nearest building
 /// it can garrison, however far** (item 3916, `docs/GOLDEN.md` §163;
 /// `Group::action_alarm_peasant@006fd980`, run1510c): the search's range is
