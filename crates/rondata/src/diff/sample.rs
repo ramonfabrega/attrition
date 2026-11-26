@@ -848,14 +848,14 @@ pub(in crate::diff) mod tests {
     /// Item 4698: the two siege units take their recorded orders on 11687.
     /// Item 4699: player 2's research list now matches on 12354.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 12583),
+        ("units", 12663),
         ("builds", 12681),
         ("walls", 21044),
         ("ammo", 12670),
         ("deaths", 12709),
         ("groups", 12663),
-        ("guys", 12583),
-        ("leaders", 12583),
+        ("guys", 12664),
+        ("leaders", 12679),
         ("cities", 12927),
         ("items", 12721),
         ("goods", 12733),
@@ -1570,6 +1570,11 @@ pub(in crate::diff) mod tests {
     }
 
     #[test]
+    fn the_sample_s_builder_keeps_its_health_when_the_site_is_lost() {
+        assert_sample_window(run1844(), 12580, 12586, None);
+    }
+
+    #[test]
     fn the_sample_s_scout_order_and_city_marks_match_both_recorded_lines() {
         let (Some(inst), Some(rcx), Some(mut ranges)) = (install(), sample(), run1786()) else {
             return;
@@ -2195,11 +2200,11 @@ pub(in crate::diff) mod tests {
     const SAMPLE_RANGES_1844: &[PinnedRange] = &[
         (
             "units",
-            12583,
-            7980,
-            7980,
+            12663,
+            8024,
+            8024,
             3,
-            "36 1 myhits..launch_frames: damage 35|30",
+            "4896 0 collide_frame..play: dest_angle 1982005248|2138046464, orders_x 2040|1944, orders_y 16632|18840, group 194|198",
         ),
         (
             "builds",
@@ -2233,14 +2238,21 @@ pub(in crate::diff) mod tests {
             24,
             "254 194 id..march: num 1|0, form 0|-1, stamp 12549|12662, ox 2016|0, oy 16608|0, o_angle 1982005248|0, order_num 1|0, role 262416|0, new_speed 34|0, speed 34|0, form_num 1|0, facing 1|0, who 3|0",
         ),
-        ("guys", 12583, 2387, 2387, 1, "15 1 guy: guy_flags 48|16"),
+        (
+            "guys",
+            12664,
+            2380,
+            2380,
+            2,
+            "1380 0 guy: x 1913|1885, y 16545|16527, z 344|337, angle 1452343296|1493377564, last_angle 1452343296|1493377564, des_x 1913|1885, des_y 16545|16527, des_angle 1452343296|2138046464, last_speed 33|0, avg_speed 32|24",
+        ),
         (
             "leaders",
-            12583,
+            12679,
             675,
             675,
             2,
-            "1 0 who..ally_mask: +0xa56 of 26914|26914: 06000700|05000700",
+            "271 2 who..ally_mask: +0xa56 of 26914|26914: 02000300|03000300",
         ),
         (
             "cities",

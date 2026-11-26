@@ -680,6 +680,12 @@ links the building to 59, then 118, then 119. Emitting the two followers
 in squad order brings all 8035 ranges into agreement. Units first part
 again on 12583. [Garrison links and controls](journal/2026-11-25-item-4700.md)
 
+**A razed site and its builder (item 4701).** A shot from 3/110 destroys
+building 0/2035 on tick 12582. Unit 0/1, still ordered to build there,
+keeps its 20 remaining health. A surviving building can pass some damage
+to its builders. The first mismatch moves to the Scout's order on 12663.
+[Event log, earlier controls and held-out effects](journal/2026-11-25-item-4701.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte

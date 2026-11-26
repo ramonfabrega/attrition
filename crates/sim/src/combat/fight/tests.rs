@@ -2254,13 +2254,14 @@ fn an_idle_captain_off_phase_takes_its_cached_nearest() {
 #[test]
 fn a_building_s_hit_spills_onto_its_repairers_by_the_attacker_s_domain() {
     use crate::orders::{Body, Order};
-    for (domain, siege, repairing, share) in [
-        (Domain::Sea, false, true, Some(8)),
-        (Domain::Sea, true, true, None),
-        (Domain::Land, true, true, Some(4)),
-        (Domain::Land, false, true, Some(8)),
-        (Domain::Air, false, true, None),
-        (Domain::Land, false, false, None),
+    for (domain, siege, repairing, health, share) in [
+        (Domain::Sea, false, true, 1200, Some(8)),
+        (Domain::Sea, true, true, 1200, None),
+        (Domain::Land, true, true, 1200, Some(4)),
+        (Domain::Land, false, true, 1200, Some(8)),
+        (Domain::Air, false, true, 1200, None),
+        (Domain::Land, false, false, 1200, None),
+        (Domain::Land, true, true, 1, None),
     ] {
         let (mut sim, ty) = at_war();
         let mut at = sim.tables.unit_types[ty].clone();
@@ -2271,7 +2272,7 @@ fn a_building_s_hit_spills_onto_its_repairers_by_the_attacker_s_domain() {
         let b = sim.add_building(1, Pos::new(3000, 3000), 0);
         sim.buildings[b].started = true;
         sim.buildings[b].active = true;
-        sim.buildings[b].health = 1200;
+        sim.buildings[b].health = health;
         sim.buildings[b].combat = Some(Profile {
             x_size: 2,
             y_size: 2,
@@ -2296,6 +2297,7 @@ fn a_building_s_hit_spills_onto_its_repairers_by_the_attacker_s_domain() {
             false,
             700,
         );
+        assert_eq!(sim.combat.hits[0].killed, health == 1);
         let spilt: Vec<_> = sim
             .combat
             .hits

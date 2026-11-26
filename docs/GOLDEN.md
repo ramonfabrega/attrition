@@ -8945,9 +8945,9 @@ branch that reaches the call:
   the target (`add_air_patrol_order`, the action bit 0). Over a friend's
   city only a plane of the Biplane line goes.
 - **The spill** (`Object::do_damage@0064a480`, `64c10c`..`64c4e3`). It
-  follows `take_damage` on a building target, whether or not the hit
-  killed. It walks the cells of `circle_radius[1]` round the building's
-  cell, each chain in order. A candidate must be:
+  follows `take_damage` on a surviving building. A killing hit returns after
+  the raze accounting (run1844 on 12583, item 4701). The spill walks the
+  cells of `circle_radius[1]` round the building, each chain in order. A candidate must be:
   - an enemy of the attacker's, active and on the map;
   - with its front order (`UnitData::order_type`) `BUILD_AT` or `REPAIR`;
   - with its action order's target this building (`valid_filter` 9 and 10);

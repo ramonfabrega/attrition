@@ -366,7 +366,7 @@ impl Sim {
         if !killed && let Obj::Unit(t) = target {
             self.units[t].combat.entrenched = false;
         }
-        if let Obj::Building(b) = target {
+        if !killed && let Obj::Building(b) = target {
             self.spill_onto_builders(attacker, b, angle, source, count, frame);
         }
         Some(taken)
@@ -562,8 +562,7 @@ impl Sim {
     /// **A hit on a building spills onto the hands at work on it**
     /// (`Object::do_damage@0064a480`'s tail, `64c10c`..`64c4e3`, item
     /// 1182, `docs/GOLDEN.md` §50). Reached for a building target only
-    /// (`64bec5`, `is_build`), after `take_damage`, whether it killed or
-    /// not. For each cell of `circle_x/y[..circle_radius[1]]` round the
+    /// (`64bec5`, `is_build`) surviving `take_damage` (run1844, 12583). For each cell of `circle_x/y[..circle_radius[1]]` round the
     /// building's cell, its object chain, in chain order:
     ///
     /// ```text
