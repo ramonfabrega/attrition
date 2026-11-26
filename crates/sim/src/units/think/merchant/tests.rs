@@ -610,6 +610,7 @@ fn an_enemy_that_can_shoot_refuses_it_at_four_cells() {
         ..crate::UnitType::default()
     });
     s.tables.unit_types[soldier].combat.attack = 5;
+    s.tables.unit_types[soldier].combat.combat_role = true;
     // `SEARCH_ENEMY` is `LeaderData::is_enemy`, so a player merely not
     // allied is not searched at all.
     s.declare_war(0, 1);
@@ -618,6 +619,21 @@ fn an_enemy_that_can_shoot_refuses_it_at_four_cells() {
     let them = s.add_unit(e);
     assert!(s.think_merchant(u));
     assert_eq!(walking_to(&s, u), Some(other), "the good it can reach");
+    // **`FILTER_COMBAT` is the attack and the combat role** (item 4719,
+    // `0067debf`): the same unit without the role — a Citizen's shape,
+    // attack 40 and no `role & 0x10000` — keeps nobody off the good.
+    s.tables.unit_types[soldier].combat.combat_role = false;
+    rearm(&mut s, u);
+    assert!(s.think_merchant(u));
+    assert_eq!(
+        walking_to(&s, u),
+        Some(want),
+        "an attack without the combat role refuses nothing"
+    );
+    s.tables.unit_types[soldier].combat.combat_role = true;
+    rearm(&mut s, u);
+    assert!(s.think_merchant(u));
+    assert_eq!(walking_to(&s, u), Some(other), "the role refuses it again");
     s.units[them].pos = Pos::new(
         30 * UNITS_PER_CELL + UNITS_PER_CELL / 2 + ENEMY_RANGE + 1,
         30 * UNITS_PER_CELL + UNITS_PER_CELL / 2,

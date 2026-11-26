@@ -169,7 +169,14 @@ impl Sim {
     ///    going, not to where it stands** — `UnitData +0x70/+0x74`, which
     ///    is `orders_x`/`orders_y` (`docs/MERCHANT.md` §2.2.1).
     /// 3. `find_unit(SEARCH_ENEMY, who, 0xc00, FILTER_COMBAT)` — an enemy
-    ///    that can shoot is within four cells.
+    ///    that can shoot is within four cells. **`FILTER_COMBAT` is an
+    ///    attack and the combat role** (`Search::valid_filter@0067dbb0`'s
+    ///    unit arm at `0067debf`: `type +0x1e8 != 0`, then `type +0x2c8 >>
+    ///    16 & 1`; item 4691 read it, item 4719 found it here): a Citizen's
+    ///    attack of 40 does not keep a Merchant off a good. run1797's who=1
+    ///    Merchant `1/156`, TI 61, takes good 25 on 3628 with who=2's
+    ///    Citizens `2/3`, `2/40` and `2/83` inside the search, where this
+    ///    crate refused it and took good 19 (`docs/MERCHANT.md` §2.2).
     ///
     /// The type filter is the exact `TypeData.type`, not the lineage: a
     /// Fur Trapper does not keep a Merchant off a good.
@@ -215,6 +222,7 @@ impl Sim {
                 && !x.is_gaia()
                 && self.is_enemy(who, x.owner)
                 && self.attack_of(crate::combat::Obj::Unit(i)) != 0
+                && self.profile(crate::combat::Obj::Unit(i)).combat_role
                 && near(self, i, ENEMY_RANGE)
         })
     }
