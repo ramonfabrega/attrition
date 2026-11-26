@@ -1886,7 +1886,7 @@ Open: five lines part on 3713. 4660 moved 3358 → 3713: the stored heights (`do
 
 ### 13.3 Row 93
 
-2686 → 2965 by 4590 (`docs/COMBAT.md` §68.1), 4606; → 3058 by 4657; → 3089 by 4681 (COMBAT §47.2); → 3269 by 4685 (`docs/COLLISION.md` §3.2); → 3524 by 4688 (COMBAT §7.2). Open: leaders on 3524.
+2686 → 2965 by 4590 (`docs/COMBAT.md` §68.1), 4606; → 3058 by 4657; → 3089 by 4681 (COMBAT §47.2); → 3269 by 4685 (`docs/COLLISION.md` §3.2); → 3524 by 4688 (COMBAT §7.2); → 4130 by 4692 (`docs/AI.md` §75.4). Open: units on 4130.
 
 ### 13.4 Row 113
 
