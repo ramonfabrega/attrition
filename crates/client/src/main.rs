@@ -70,6 +70,8 @@ mod recording;
 mod roads;
 // Item 4398's first act: the outline's geometry, read by its row; the
 // draw that consumes it outside the tests is the item's second half.
+#[cfg(test)]
+mod placing;
 #[cfg_attr(not(test), allow(dead_code))]
 mod selection;
 mod shadows;
@@ -406,6 +408,20 @@ fn build(
             screen,
             &project,
         );
+        // The placement's ghost (item 4695), under the cursor while a
+        // build is armed.
+        let terrain = world.runner.terrain();
+        let view = input::View {
+            matrix: m,
+            screen: pinned_screen(),
+            size: Some(screen),
+            scene: &scene,
+            terrain: &terrain,
+            sim: Some(world.runner.sim()),
+        };
+        if let Some(g) = input.ghost(&view) {
+            hud::paint_ghost(&mut p, &g, input.player, &project);
+        }
         overlay.0.extend(p.pos);
         overlay.1.extend(p.col);
     }
@@ -1052,6 +1068,7 @@ impl ApplicationHandler for App {
             }
             WindowEvent::CursorMoved { position, .. } => {
                 self.cursor = (position.x as i32, position.y as i32);
+                self.input.hover = Some(self.cursor);
                 if self.minimap_held {
                     self.minimap_look(self.cursor);
                 }
