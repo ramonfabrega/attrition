@@ -1304,17 +1304,20 @@ impl Sim {
             af.z = z;
             af.last_z = z;
         }
-        // **The allocation outlives the occupant** (item 4451): the
-        // number's last dead occupant's `guys.size`, grown to this crew
-        // only when the crew is larger ([`Unit::guys_alloc`]).
-        let held = self
+        // A reused slot keeps its first figure. The new crew is appended
+        // at the old length before init writes the final count (CHECKSUM
+        // §23.10). The temporary length can grow the retained allocation.
+        let capacity = self
             .units
             .iter()
             .enumerate()
             .rev()
             .find(|(i, old)| *i != u && old.owner == who && old.index == o && !old.alive())
-            .map_or(0, |(_, old)| old.guys_alloc.max(old.guys.len() as i32));
-        self.units[u].guys_alloc = held.max(guys.len() as i32);
+            .map_or(0, |(_, old)| {
+                let peak_len = old.guys.len() + count.saturating_sub(SQUAD_SIZE);
+                old.guys_alloc.max(peak_len as i32)
+            });
+        self.units[u].guys_alloc = capacity.max(count as i32);
         self.units[u].guys = guys;
         // `Unit::init@00612100:548`-`549`, which follow the guy loop:
         // `update_gpiece`, then `set_new_location(x, y, 1, 1)`. The

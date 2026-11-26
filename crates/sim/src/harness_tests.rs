@@ -5224,4 +5224,19 @@ fn a_reused_number_walks_its_dead_occupants_figure_allocation() {
         [(o, 3), (sim.units[c].index, 1)],
         "a fresh number walks its own count"
     );
+    sim.units[b].health = 0;
+    let replacement = sim.init_unit(0, elephant, centre_of(Cell::new(6, 9)));
+    assert_eq!(sim.units[replacement].index, o);
+    assert_eq!(
+        sim.units[replacement].guys_alloc, 3,
+        "one old figure plus two new crew"
+    );
+    sim.units[replacement].health = 0;
+    let next = sim.init_unit(0, elephant, centre_of(Cell::new(7, 9)));
+    assert_eq!(sim.units[next].index, o);
+    assert_eq!(sim.units[next].guys.len(), 3);
+    assert_eq!(
+        sim.units[next].guys_alloc, 5,
+        "three old figures plus two new crew"
+    );
 }

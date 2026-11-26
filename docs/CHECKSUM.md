@@ -3105,6 +3105,18 @@ between 5101 and 5301, and no packet holds those frames, so the packets' diff is
 other than 1 (the shortfall arm against the block arm) is in no packet here. A unit a dump hands in reads its
 figure count, because no dump prints the allocation.
 
+**Appending crew before setting the length (item 4713).** On reuse the
+initialization loop retains the old first figure and appends the new crew
+at the old array length. It then sets the length to the new figure count.
+On run1844 the two-figure merchant in slot 0/81 leaves an allocation of
+two. Training a two-figure chariot grows it to three, although the
+chariot has only two live figures. The same game has three old figures
+followed by two at 2/78 (allocation four), and two followed by four at
+3/0 (allocation five). All 313 occupant changes between sampled records
+agree with the larger of the retained capacity, the new count, and the
+temporary append length. The procedure samples every 32 frames and
+also examines 15317. [Reused slot](journal/2026-11-26-item-4713.md)
+
 ## 23.11 The guys line's `guy_flags & 2` after a late push (item 4453)
 
 **A push by a unit processed after the pushed one leaves `guy_flags & 2` on the frame** (item 4453, diff-backed).

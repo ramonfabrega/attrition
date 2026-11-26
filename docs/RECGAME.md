@@ -729,6 +729,11 @@ The new chariot 0/81 has two figures on both sides. Its recorded
 allocation has three slots and the simulation has two.
 [Animal route](journal/2026-11-25-item-4712.md)
 
+Reusing the merchant's array accounts for the chariot's third slot.
+The units line moves 15317 → 15526 and the guys line 15317 → 15831.
+Draws hold at 15909. On 15526 the original carries unit 3/108's old
+defensive post to its next attack. [Allocation](journal/2026-11-26-item-4713.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte

@@ -433,7 +433,9 @@ pub struct Unit {
     /// `increment` is 1) and nothing in a running game shrinks it, so a
     /// reused object number keeps its last occupant's larger allocation
     /// (item 4451: run1327's Citizen `1/46` reads 3 on 10930, where a
-    /// three-figure Heavy Elephant held the number until 5101). 0 on a unit
+    /// three-figure Heavy Elephant held the number until 5101). On reuse,
+    /// appending crew before setting the final length can raise the allocation
+    /// again (item 4713, run1844's chariot). 0 on a unit
     /// a dump handed in, which the walk reads as its figure count.
     pub guys_alloc: i32,
     /// `UnitData::is_captain` — `o_up < 0`, a unit that heads its own

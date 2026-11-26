@@ -848,13 +848,13 @@ pub(in crate::diff) mod tests {
     /// Item 4698: the two siege units take their recorded orders on 11687.
     /// Item 4699: player 2's research list now matches on 12354.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 15317),
+        ("units", 15526),
         ("builds", 15926),
         ("walls", 21044),
         ("ammo", 15912),
         ("deaths", 15932),
         ("groups", 15842),
-        ("guys", 15317),
+        ("guys", 15831),
         ("leaders", 15666),
         ("cities", 15948),
         ("items", 21044),
@@ -1635,6 +1635,11 @@ pub(in crate::diff) mod tests {
     }
 
     #[test]
+    fn the_sample_s_chariot_reuses_the_merchants_figure_slots() {
+        assert_sample_window(run1844(), 15314, 15320, None);
+    }
+
+    #[test]
     fn the_sample_s_scout_order_and_city_marks_match_both_recorded_lines() {
         let (Some(inst), Some(rcx), Some(mut ranges)) = (install(), sample(), run1786()) else {
             return;
@@ -2260,11 +2265,11 @@ pub(in crate::diff) mod tests {
     const SAMPLE_RANGES_1844: &[PinnedRange] = &[
         (
             "units",
-            15317,
-            8220,
-            8220,
-            2,
-            "1682 81 guys.size: guys.size 2|3",
+            15526,
+            8922,
+            8922,
+            1,
+            "7852 108 order.attack: def_x 20856|20616, def_y 32136|31704",
         ),
         (
             "builds",
@@ -2293,11 +2298,11 @@ pub(in crate::diff) mod tests {
         ("groups", 15842, 622, 622, 7, "152 128 id..march: num 39|38"),
         (
             "guys",
-            15317,
-            2568,
-            2568,
-            2,
-            "475 81 guys.size: guys.size 2|3",
+            15831,
+            2644,
+            2651,
+            507,
+            "1419 110 guy: type 189|52, x 8232|4320, y 18372|30432, z 388|578, angle -36962304|0, last_angle -36962304|0, des_x 8232|4320, des_y 18372|30432, des_angle -36962304|0, last_x 8235|4320, last_y 18408|30432, last_z 389|578, end_time 11|80, last_speed 36|0, avg_speed 33|0, gpiece 139|9154, o 110|111, node_flags 15|0, guy_flags 272|144, cur_anim 8|31, stopped 0|1",
         ),
         (
             "leaders",
