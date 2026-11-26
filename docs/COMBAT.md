@@ -11907,7 +11907,8 @@ above is the wrong arm.
 
 - **The siege arm of the add** (`local_2c`: an AI siege unit on a building
   whose `+8 & 0x20` is set takes it `mandatory` and writes the army's
-  target) and the naval refusal. No capture reaches either.
+  target). No capture reaches it. ~~And the naval refusal~~: it is the
+  air refusal, and it is built (§66.8, item 4723).
 - **The squad head at the retarget** (§66.3, last row). ~~For the city~~:
   a `Build` target never searches (§68.2). It stands for a unit or a wall
   target, with no capture.
@@ -11932,6 +11933,43 @@ above is the wrong arm.
   `00712490:168–174, 456–470`.
 - **Unit-backed only**: `is_attacking_to`'s refusal. Answering it true
   does not move the walk.
+
+### 66.8 The add's air refusal (item 4723, 2026-11-26)
+
+`find_nearby_target@00648da0`'s add, lines 552–557, after the winner's
+`targeted` bump, the group's `normalize` and the siege-city arm: a searcher
+**not guarding** (`local_2c == 0`) whose `order_type` is `ATTACK_TO` or
+`GROUP_ATTACK_TO` returns −1, with no order, when its find's type is of
+the air domain (`+0x218 == 2`) and it lacks `ANTI_AIR` (vslot `+0x148`,
+`0x80000000`). The guard's arm has no such test. §66.6 called it the
+naval refusal. Domain 1 is the sea, as `valid_target_const@006472c0`
+reads it.
+
+The search does reach a helicopter. `valid_target_const`'s helicopter arm
+(`006474ee`) admits any ranged searcher that is not siege, a tank, a
+missile or of the Bomber line. `compare_target@0064e5c0`'s tail values an
+air target at 2 for a searcher without `ANTI_AIR`, and the scoring lifts
+the quotient's 0 to 1. So an attack-move whose only candidate is a
+helicopter wins it, and then drops it here.
+
+- **The frame** (run1797, row 133, units on 3633): who=2's Flamethrower
+  `2/73` (TI 131) looks on 3632 and ranks who=1's Attack Helicopter `1/36`
+  (TI 311) first, at `attack_dist` 4605 inside the computer's 4608. Units
+  range 9271, record 73: `orders.count` ours 2, theirs 1, and `order.type`
+  ours 10, theirs 2. The draws agree through the frame.
+- **Built**: `Sim::nearby_add_refuses_air`, read at every site of the add:
+  `attack_move_add` and `find_melee_target_added_in` (the look, a
+  group's member search and `find_new_target`), and `nearby_add`'s
+  callers (`think_attack`, the Dutch merchant's, `find_melee_target_headed`).
+  At each site a refused find is no find, as theirs returns −1.
+- **Diff-backed**: run1797's 3633 and 3634, every range of every line
+  (`row_133_s_flamethrower_drops_the_helicopter_its_attack_move_found_on_run1797`).
+  The mutation that answers false held, exit 101.
+- **Unit-backed**: `an_attack_move_drops_an_aircraft_it_cannot_bring_down`
+  covers the bump either way, and the find with and without `ANTI_AIR`.
+- **Not established**: the arm under a `GROUP_ATTACK_TO` and the
+  `think_attack` and `find_new_target` sites. No capture on disk reaches
+  any of them.
 
 ## 67. A fleeing target re-aims the chase (item 1023, 2026-09-28)
 
