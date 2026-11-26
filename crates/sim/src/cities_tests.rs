@@ -10679,6 +10679,26 @@ fn the_garrison_chain_s_words_name_the_order_of_entry() {
         "the tail, after"
     );
     assert_eq!(words(&sim, us[1]), (-1, -1), "out of the chain");
+
+    // A squad enters as a group between two single-figure garrisons.
+    // Keep the order of its links distinct from unit allocation order.
+    let squad: Vec<_> = (0..3)
+        .map(|k| sim.init_unit(0, militia, tile_pos(42, 30 + 2 * k)))
+        .collect();
+    let (captain, wing, tail) = (squad[2], squad[0], squad[1]);
+    let captain_number = i32::from(idx(&sim, captain));
+    sim.units[wing].combat.captain = captain_number;
+    sim.units[tail].combat.captain = captain_number;
+    sim.units[captain].o_down = Some(wing);
+    sim.units[wing].o_up = Some(captain);
+    sim.units[wing].o_down = Some(tail);
+    sim.units[tail].o_up = Some(wing);
+    sim.go_inside(captain, b);
+    let last = sim.init_unit(0, militia, tile_pos(46, 30));
+    sim.go_inside(last, b);
+    assert_eq!(words(&sim, wing), (idx(&sim, tail), idx(&sim, captain)));
+    assert_eq!(words(&sim, tail), (idx(&sim, last), idx(&sim, wing)));
+    assert_eq!(words(&sim, last), (-1, idx(&sim, tail)));
 }
 
 /// **A type with no block comes out past a unit standing on the ring**

@@ -848,7 +848,7 @@ pub(in crate::diff) mod tests {
     /// Item 4698: the two siege units take their recorded orders on 11687.
     /// Item 4699: player 2's research list now matches on 12354.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 12520),
+        ("units", 12583),
         ("builds", 12681),
         ("walls", 21044),
         ("ammo", 12670),
@@ -1565,6 +1565,11 @@ pub(in crate::diff) mod tests {
     }
 
     #[test]
+    fn the_sample_s_garrison_links_the_three_figures_in_squad_order() {
+        assert_sample_window(run1844(), 12517, 12523, Some((12519, 2)));
+    }
+
+    #[test]
     fn the_sample_s_scout_order_and_city_marks_match_both_recorded_lines() {
         let (Some(inst), Some(rcx), Some(mut ranges)) = (install(), sample(), run1786()) else {
             return;
@@ -2190,11 +2195,11 @@ pub(in crate::diff) mod tests {
     const SAMPLE_RANGES_1844: &[PinnedRange] = &[
         (
             "units",
-            12520,
-            8035,
-            8035,
-            4,
-            "6238 59 myhits..launch_frames: inside_down -1|118",
+            12583,
+            7980,
+            7980,
+            3,
+            "36 1 myhits..launch_frames: damage 35|30",
         ),
         (
             "builds",

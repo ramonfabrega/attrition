@@ -1278,15 +1278,14 @@ position it has; `come_out` sets the position first. `get_inside` returns the
 outermost container (a unit inside a transport inside nothing).
 `in_a_building` = the outermost is a Build.
 
-**Only the captain is linked**: `Unit::go_inside` climbs to the squad's
-captain before its one `insert_inside`, so the crate's `garrison` list of
-captains is the chain. **Diff-backed** (item 4257): run1597's record on
-8281 has the University `1/2018` holding two Scholars, `1/30` then `1/42`,
-and prints 2018 → 30 → 42 (`inside_down`) with `1/42`'s `inside_up` 30;
-the checksum's emitters had printed the newest as the head and each
-unit's own words off the chain (`the_garrison_chain_s_words_name_the_order_of_entry`).
-A squad follower's `inside_up` is not established: the crate prints the
-container, and no record has parted on one.
+The building keeps its occupants in admission order. With one figure
+per squad, run1597 on 8281 has University 1/2018 followed by Scholars
+1/30 and 1/42 (item 4257). A multi-figure squad contributes each seated
+figure, captain first along its squad links. On state 12520 of run1844
+building 3/2037 holds 59 → 118 → 119. The two followers link back to
+59 and 118. The sim keeps its gameplay list of squads and expands their
+occupants for the recorded links.
+[Three-figure entry](journal/2026-11-25-item-4700.md)
 
 ### 6.2 Counting — `num_inside`, `count_inside`
 

@@ -674,6 +674,12 @@ slot from Carpentry at 279600 exactly as in run1844. All eleven slots
 agree. Units next differ on 12520 and draws on 12668.
 [Price, affordability and production-list checks](journal/2026-11-25-item-4699.md)
 
+**Squad garrison (item 4700).** Player 3 orders unit 59 into building 2037
+on 12519. All unit ranges agree after the package. On 12520 the original
+links the building to 59, then 118, then 119. Emitting the two followers
+in squad order brings all 8035 ranges into agreement. Units first part
+again on 12583. [Garrison links and controls](journal/2026-11-25-item-4700.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte

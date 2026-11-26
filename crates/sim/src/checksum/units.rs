@@ -352,16 +352,9 @@ impl Sim {
             | if un.attacking { 0x80 } else { 0 }
     }
 
-    /// A garrisoned captain's two neighbours in its building's chain, as
-    /// `(index, owner)`: the object above it (the building for the head)
-    /// and the captain below it (`None` at the tail). `None` when `u` is
-    /// not a captain in any building's [`garrison`](crate::cities::building::Building::garrison),
-    /// whose order is the chain's: `Object::insert_inside@00647e90`
-    /// appends at the bottom and `Object::remove_from_inside@006480f0`
-    /// unlinks in place (`docs/CITIES.md` §6, item 4257). **A figure
-    /// riding a unit** is linked the same way along
-    /// [`Sim::cargo_chain`](crate::Sim::cargo_chain), the host above the
-    /// first figure aboard (item 4511: run1752's Freighter `1/135` on 3359).
+    /// Neighbours in the recorded container chain. Buildings retain
+    /// squads in admission order, with each squad's figures linked in
+    /// order. Unit hosts retain individual boarding order.
     pub(crate) fn garrison_links(&self, u: usize) -> Option<(ObjRef, Option<ObjRef>)> {
         let un = &self.units[u];
         let unit = |x: usize| (self.units[x].index, self.units[x].owner);
@@ -376,12 +369,20 @@ impl Sim {
         }
         let b = un.inside?;
         let bd = &self.buildings[b];
-        let k = bd.garrison.iter().position(|&c| c == u)?;
-        let above = match k {
-            0 => (bd.index, bd.owner),
-            _ => unit(bd.garrison[k - 1]),
-        };
-        Some((above, bd.garrison.get(k + 1).map(|&x| unit(x))))
+        let mut above = (bd.index, bd.owner);
+        let mut occupants = bd
+            .garrison
+            .iter()
+            .flat_map(|&captain| self.squad_members(captain))
+            .filter(|&member| self.units[member].alive() && self.units[member].inside == Some(b))
+            .peekable();
+        while let Some(member) = occupants.next() {
+            if member == u {
+                return Some((above, occupants.peek().map(|&next| unit(next))));
+            }
+            above = unit(member);
+        }
+        None
     }
 
     /// The unit's 34 `ObjectData` bytes ([`super::builds::OBJECT_FIELDS`]).
@@ -533,12 +534,8 @@ impl Sim {
             un.group_ptr
                 .map_or(-1, |g| i64::from(un.owner) * 64 + i64::from(g)),
         );
-        // `inside_up`/`inside_up_who`: the object above this one in its
-        // container's chain. `insert_inside` writes the bottom it appends
-        // under — the building for the first captain in, the captain
-        // before it for the rest (item 4257). A squad's followers are not
-        // linked (`Unit::go_inside@0061a2e0` climbs to the captain before
-        // its one `insert_inside`) and keep the container.
+        // The first occupant links up to the host. A squad follower
+        // links up to its preceding seated figure (run1844, state 12520).
         let inside = match self.garrison_links(u) {
             Some((above, _)) => Some((i64::from(above.0), above.1)),
             None => un
