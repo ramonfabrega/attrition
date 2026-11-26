@@ -9,7 +9,7 @@
 //! answers 0. When the time is more than `target_frame_time + 2000` past
 //! it, it rebases on the time, so a stall is never made up. Otherwise it
 //! counts the frame. `target_frame_time` is `TurnControl::timings[speed]`
-//! (`TurnControl::init@00957e20`, `speed_set@009567d0`), and `speed` is the
+//! (`TurnControl::init@00957e20`), and `speed` is the
 //! lobby's `GAME_SPEED`, an index into `rules.xml`'s `gamespeeds`.
 //!
 //! The milliseconds come in as an argument, so a test drives the clock

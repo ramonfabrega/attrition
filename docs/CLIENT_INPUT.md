@@ -5214,7 +5214,7 @@ compares it with `frame_counter × target_frame_time + frame_base_time`:
   A stall is not made up;
 - otherwise: `frame_counter` steps, and the frame is due.
 
-`target_frame_time` is `TurnControl::timings[speed]` (`TurnControl::init@00957e20`, `speed_set@009567d0`).
+`target_frame_time` is `TurnControl::timings[speed]` (`TurnControl::init@00957e20`).
 `speed` is the lobby's `GAME_SPEED`, an index into `rules.xml`'s `gamespeeds`: Very Slow, Slow, Normal, Fast,
 Hyper Fast. **`timings` is `int[5]` at VA `0xafc4a4`** (`S_GDATA32 TurnControl::timings`, `0002:226468`), and it
 holds **200, 125, 67, 50 and 1 ms**. Normal is index 2, `PlayerProfile::default_profile`'s `gs_game_speed`, and the
