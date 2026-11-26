@@ -13969,19 +13969,30 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 4,349 -> 4,345 and goods 5,300 -> 4,476, named falls past the
         // parting; ours' end 6058 -> none. The first parting is leaders and
         // units on 3628.
+        // Then item 4719 (`Unit::think_merchant@005f4740:90`'s enemy search
+        // is `FILTER_COMBAT` too, the attack and the combat role: who=1's
+        // Merchant `1/156`, TI 61, takes good 25 on 3628 with who=2's
+        // Citizens `2/3`, `2/40`, `2/83` inside `0xc00` of its cell; leaders
+        // range 189, record 1, `new_rares` ours [15, 25, 30, 20, 16, 23, 29,
+        // 32, 21, 24, 27, 31, 19], theirs [15, 30, 20, 16, 23, 29, 32, 21, 19,
+        // 24, 27, 31, 25]; units range 4782, record 156, `order.move` ours
+        // (17208, 12600), theirs (19512, 27192); both theirs now): units
+        // 3,628 -> 3,633, leaders 3,628 -> 3,648 (first 3628 -> 3642); ammo
+        // 3,645 -> 3,637 and goods 4,476 -> 5,037 past the parting, first
+        // 3634 and 4476 standing. The first parting is units alone on 3633.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                3628, 3678, 6085, 3645, 3638, 3652, 3634, 3628, 3662, 4345, 4476, 3635,
+                3633, 3678, 6085, 3637, 3638, 3652, 3634, 3648, 3662, 4345, 5037, 3635,
             ],
             first: &[
-                ("units", (3628, Some(1580509797), 2833230209)),
+                ("units", (3633, Some(2003426502), 1964561737)),
                 ("builds", (3665, Some(2780406984), 332833679)),
                 ("ammo", (3634, Some(1186135382), 1437532064)),
                 ("deaths", (3638, Some(759424891), 755033978)),
                 ("groups", (3644, Some(2744249686), 1130491243)),
                 ("guys", (3634, Some(1299095494), 1968611755)),
-                ("leaders", (3628, Some(4025832092), 4018492060)),
+                ("leaders", (3642, Some(2756136980), 3880865814)),
                 ("cities", (3660, Some(2669307520), 2729731718)),
                 ("items", (4345, Some(1284182481), 1281298895)),
                 ("goods", (4476, Some(586774648), 601192570)),
