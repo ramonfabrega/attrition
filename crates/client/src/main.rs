@@ -458,7 +458,8 @@ fn build(
     let framed = hud.and_then(|input| frame::console_frame(world, input.player));
     let mut minimap = minimap;
     if let Some(f) = &framed {
-        minimap.extend(f.layers((size.0 as i32, size.1 as i32)));
+        let line = frame::clock_line(world);
+        minimap.extend(f.layers((size.0 as i32, size.1 as i32), line.as_deref()));
     }
     screen.splice(0..0, minimap);
     if let Some(input) = hud {
@@ -626,7 +627,8 @@ pub(crate) fn still_minimap(
         screen.extend(minimap::overlays(world, camera, size, selection, true));
         // Item 4694: the minimap's window over it.
         if let Some(f) = frame::console_frame(world, world::CONSOLE) {
-            screen.extend(f.layers((size.0 as i32, size.1 as i32)));
+            let line = frame::clock_line(world);
+            screen.extend(f.layers((size.0 as i32, size.1 as i32), line.as_deref()));
         }
     }
     let version = world.runner.terrain().version;
@@ -852,7 +854,8 @@ impl App {
                 self.session
                     .phase("run to the frame", || self.world.run_to(frame));
                 println!("LOBBY start, at frame {}", self.world.runner.frame());
-                self.clock = pace::PlayClock::new(pace::speed_of(Some(&page.choices)), 0);
+                self.world.speed = pace::speed_of(Some(&page.choices));
+                self.clock = pace::PlayClock::new(self.world.speed, 0);
                 self.running = false;
                 self.page = None;
             }
@@ -1307,6 +1310,7 @@ fn main() {
     world.trees = args.trees;
     world.textured = args.textured;
     world.debug_ground = args.debug_ground;
+    world.speed = pace::speed_of(from_page.as_ref().or(off_screen.as_ref()));
     world.set_land_light(args.land_light);
     world.set_mountain_light(!args.mountain_flat);
     session.mark("frame zero");

@@ -2556,6 +2556,113 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 133's Flamethrower drops the helicopter its attack-move
+    /// found** (item 4723, `docs/COMBAT.md` §66.4): run1797's ranges, the
+    /// row's units parting on 3633 (record 73, `orders.count` ours 2,
+    /// theirs 1). who=2's Flamethrower `2/73` (TI 131, land, no
+    /// `ANTI_AIR`) walks an `ATTACK_TO` to (12792, 28536); its look on
+    /// 3632 (`(3632 + 73) % 15 == 0`) ranks who=1's Attack Helicopter
+    /// `1/36` (TI 311, air) first at `attack_dist` 4605, inside the
+    /// computer's 4608. `find_nearby_target`'s add refuses an aircraft to
+    /// an attack-mover without `ANTI_AIR` (`return -1`), so theirs holds
+    /// the `ATTACK_TO` alone, where this crate queued the `ATTACK` above
+    /// it. Every range of every line on 3633 and 3634.
+    #[test]
+    fn row_133_s_flamethrower_drops_the_helicopter_its_attack_move_found_on_run1797() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 3632 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        // Entering 3632: the Flamethrower on its attack-move, and the
+        // helicopter its look will rank first.
+        let me = built.sim.unit_by_o(2, 73).expect("the Flamethrower");
+        assert_eq!(
+            built.sim.units[me].type_index, 131,
+            "2/73 is a Flamethrower"
+        );
+        let kinds: Vec<_> = built.sim.units[me]
+            .orders
+            .iter()
+            .map(sim::orders::Order::index)
+            .collect();
+        assert_eq!(kinds, vec![sim::orders::index::ATTACK_TO], "2/73's orders");
+        assert_eq!(
+            built.sim.units[me].orders[0].move_dest(),
+            Some(sim::Pos::new(12792, 28536)),
+            "the attack-move's point"
+        );
+        let heli = built.sim.unit_by_o(1, 36).expect("the helicopter");
+        assert_eq!(
+            built.sim.units[heli].type_index, 311,
+            "1/36 is an Attack Helicopter"
+        );
+        assert!(
+            built
+                .sim
+                .valid_target_const(sim::combat::Obj::Unit(me), sim::combat::Obj::Unit(heli))
+        );
+        for state in [3633, 3634] {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            assert_eq!(built.sim.frame, state);
+            if state == 3633 {
+                let kinds: Vec<_> = built.sim.units[me]
+                    .orders
+                    .iter()
+                    .map(sim::orders::Order::index)
+                    .collect();
+                assert_eq!(
+                    kinds,
+                    vec![sim::orders::index::ATTACK_TO],
+                    "2/73 holds the attack-move alone on 3633"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (line, ours) in lines.iter().enumerate() {
+                let Some(ours) = ours.as_ref() else {
+                    continue;
+                };
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {line}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "line {line} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 133's dead farm rolls under its number's next building** (item
     /// 4669, `docs/SYNC.md` §3.3): run1797's ranges and trace, the row's
     /// units and guys parting on 2677 (units range 4225, record 18, guy
@@ -5607,6 +5714,91 @@ pub(crate) mod tests {
                     a.record,
                     a.field
                 );
+            }
+        }
+    }
+
+    /// **Row 93's units and guys on 4219: a launched plane's step snaps its
+    /// figure's `last_angle`** (item 4725, `docs/RECGAME.md` §13.3), on
+    /// run1799's whole-length ranges of run1792's file. who=2's Fighter
+    /// `2/141` (TI 293, air) comes out of its Airbase on 4219 on an
+    /// `AirPatrol`; the exit sets its angle 0 and its first step banks it to
+    /// 0x01830000 under `Unit::do_air_physics@005e86d0:219`'s
+    /// `Guy::set_angle(guy 0, heading, 1)`, which writes `last_angle`
+    /// (`+0x1c`) beside `angle` (`+0x18`). Red on the base at units range
+    /// 7874 and guys range 1532 on 4219, record 141 `guy` bytes 22 and 23
+    /// (`last_angle`'s high half): ours 0 and 0, theirs 0x83 and 0x01. Every
+    /// units and guys range on 4218 to 4220, byte for byte.
+    #[test]
+    fn row_93_s_launched_fighter_snaps_its_last_angle_on_run1799_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            eprintln!("skipping: row 93's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1799/map-14");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1799's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 4218i64..=4220 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let sim = &built.sim;
+            let fighter = sim.unit_by_o(2, 141).expect("2/141");
+            let un = &sim.units[fighter];
+            let ty = un.ty.expect("a type");
+            assert_eq!(sim.tables.unit_types[ty].type_index, 293, "2/141's TI");
+            assert_eq!(loaded.unit_names[ty], "Fighter");
+            assert_eq!(un.kind.domain, sim::territory::attrition::Domain::Air);
+            if state == 4218 {
+                assert!(un.inside.is_some(), "2/141 inside its base on 4218");
+            }
+            if state == 4219 {
+                assert_eq!(un.inside, None, "2/141 launched on 4219");
+                assert!(
+                    matches!(
+                        un.orders.front().map(|o| &o.body),
+                        Some(sim::orders::Body::AirPatrol(_))
+                    ),
+                    "2/141 on its patrol"
+                );
+                assert_eq!(un.movement.facing.0, 0x0183_0000, "its first step's angle");
+                assert_eq!(
+                    un.guys[0].last.map(|l| l.1.0),
+                    Some(0x0183_0000),
+                    "last_angle on 4219, theirs"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(sim, &look, &tribes);
+            for (line, name) in [(0usize, "units"), (6, "guys")] {
+                let ours = lines[line].as_ref().expect(name);
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                    assert_eq!(
+                        at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                        None,
+                        "{name} range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                        a.record,
+                        a.field
+                    );
+                }
             }
         }
     }
@@ -13913,18 +14105,26 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // row's first parting 4154 -> 4219 (units and guys, which stand):
         // builds 4,198 -> 4,310 (first 4310), leaders 4,175 -> 4,317 (first
         // 4166 -> 4312).
+        // Then item 4725 (`Unit::do_air_physics@005e86d0:219`'s
+        // `Guy::set_angle(guy 0, heading, 1)` writes `last_angle` beside
+        // `angle`): who=2's Fighter `2/141` (TI 293, air), launched from its
+        // Airbase on 4219, takes its first step's angle into `last_angle`
+        // (run1799's units range 7874 and guys range 1532, record 141 `guy`
+        // bytes 22..23, `last_angle`'s high half: ours 0x0000, theirs
+        // 0x0183, on 4219). The row's first parting 4219 -> 4235 (units and
+        // guys): units 4,242 -> 4,243, guys 4,242 -> 4,243.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                4242, 4310, 12001, 4787, 4325, 4362, 4242, 4317, 4351, 6717, 5464, 4288,
+                4243, 4310, 12001, 4787, 4325, 4362, 4243, 4317, 4351, 6717, 5464, 4288,
             ],
             first: &[
-                ("units", (4219, Some(3412282491), 1117867263)),
+                ("units", (4235, Some(3939744510), 1351334632)),
                 ("builds", (4310, Some(1827527676), 298966417)),
                 ("ammo", (4289, Some(1796672337), 2990607315)),
                 ("deaths", (4325, Some(3973575844), 4044551333)),
                 ("groups", (4334, Some(470667955), 2973162772)),
-                ("guys", (4219, Some(3243759351), 826464123)),
+                ("guys", (4235, Some(1888552282), 2090599748)),
                 ("leaders", (4312, Some(429387115), 3607031145)),
                 ("cities", (4351, Some(2145664821), 2143174452)),
                 ("items", (6009, Some(1373777447), 1365126693)),
@@ -14227,23 +14427,38 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // On the tree merged with the base at `f68503715`, past the parting:
         // ammo 3,637 -> 3,646, items 4,345 -> 4,360 (first 4345 -> 4360) and
         // goods 5,037 -> 4,476, the base's landings and not this item's.
+        // Then item 4723 (`Object::find_nearby_target@00648da0`'s add
+        // refuses an aircraft to a searcher not guarding, under an
+        // `ATTACK_TO`, without `ANTI_AIR`: who=2's Flamethrower `2/73`, TI
+        // 131, ranks who=1's Attack Helicopter `1/36`, TI 311, first on 3632
+        // at `attack_dist` 4605; units range 9271, record 73, `orders.count`
+        // ours 2, theirs 1, `order.type` ours 10, theirs 2 on 3633, both
+        // theirs now): units 3,633 -> 3,690 (first 3633 -> 3690), builds
+        // 3,678 -> 3,864 (first 3665 -> 3850), ammo 3,646 -> 3,806 (first
+        // 3634 -> 3803), deaths 3,638 -> 3,802 (first 3638 -> 3802), groups
+        // 3,652 -> 3,834 (first 3644 -> 3810), guys 3,634 -> 3,790 (first
+        // 3634 -> 3790), leaders 3,648 -> 3,803 (first 3642 -> 3803), cities
+        // 3,662 -> 3,876 (first 3660 -> 3867), items 4,360 -> 4,387 (first
+        // 4360 -> 4387), goods 4,476 -> 4,483 (first 4476 standing), world
+        // 3,635 -> 3,802 (first 3634 -> 3802). The first parting is units
+        // alone on 3690.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                3633, 3678, 6085, 3646, 3638, 3652, 3634, 3648, 3662, 4360, 4476, 3635,
+                3690, 3864, 6085, 3806, 3802, 3834, 3790, 3803, 3876, 4387, 4483, 3802,
             ],
             first: &[
-                ("units", (3633, Some(2003426502), 1964561737)),
-                ("builds", (3665, Some(2780406984), 332833679)),
-                ("ammo", (3634, Some(1186135382), 1437532064)),
-                ("deaths", (3638, Some(759424891), 755033978)),
-                ("groups", (3644, Some(2744249686), 1130491243)),
-                ("guys", (3634, Some(1299095494), 1968611755)),
-                ("leaders", (3642, Some(2756136980), 3880865814)),
-                ("cities", (3660, Some(2669307520), 2729731718)),
-                ("items", (4360, Some(1284182481), 1281298895)),
+                ("units", (3690, Some(2545220959), 2094071359)),
+                ("builds", (3850, Some(4293904204), 192464599)),
+                ("ammo", (3803, Some(1779153171), 2589129557)),
+                ("deaths", (3802, Some(3088599948), 1452759926)),
+                ("groups", (3810, Some(4109959385), 815136989)),
+                ("guys", (3790, Some(2319256367), 842991898)),
+                ("leaders", (3803, Some(2390515815), 1773625448)),
+                ("cities", (3867, Some(2807787253), 2521919215)),
+                ("items", (4387, Some(1284182481), 1281298895)),
                 ("goods", (4476, Some(586774648), 601192570)),
-                ("world", (3634, Some(1481239642), 1470229594)),
+                ("world", (3802, Some(2581643100), 3822436103)),
             ],
             over: None,
         }),
