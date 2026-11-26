@@ -573,6 +573,9 @@ fn soldier_type(sim: &mut Sim) -> usize {
         combat: crate::combat::Profile {
             attack: 15,
             uber_size: 1,
+            // `role & 0x10000`: `FILTER_COMBAT`'s unit arm (`0067debf`)
+            // keeps an attack and the combat role (item 4691).
+            combat_role: true,
             ..crate::combat::Profile::default()
         },
         ..crate::UnitType::default()
