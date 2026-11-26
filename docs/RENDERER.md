@@ -6379,7 +6379,8 @@ only the changed tiles' flags before it leeches. In the original a half
 stands from a time when one of the four was laid before its neighbour. The
 door carries no such history.
 
-**The build.** `corner_loops` marks every ring round a corner where four
+**The build** (retired by item 4690, §6.9: the client reads the mesh's
+lines, whose `leech_codes` half holds the rings). `corner_loops` marks every ring round a corner where four
 records meet, each joined to the next round it. Before it, the fixed point
 of `fixup_lines`' eight arms and `leech_codes` was run alone on the current
 state, and it moved nothing on either packet: no half of a ring is ever
@@ -6729,11 +6730,74 @@ connections would differ from the standing ones.
 **Not established.**
 - Whether the original's redos of pushed tiles ever change a connection
   (4687a).
-- The client still draws from its own white and yellow
-  (`candidates`, `corner_loops`), not from the mesh's lines (4687b).
+- ~~The client still draws from its own white and yellow
+  (`candidates`, `corner_loops`), not from the mesh's lines (4687b).~~
+  Item 4690 (§6.9): the candidate is the mesh's word.
 - `mark_splits`' joins on the neighbour it joins, and `mark_yellow_lines`'
   dropped claim, are not kept past the pass.
 - run1559b's 19 apart, as in §6.7.
+
+## 6.9 The client picks on the mesh's lines (item 4690)
+
+*2026-11-26, Opus 5.5. The ledger: `docs/journal/2026-11-26-item-4690.md`.
+`client::roads::candidates` and `word`; `corner_loops` and the client's own
+white marks are retired; the test `the_candidate_is_the_door_s_word` and the
+re-pinned rows below. No `crates/sim` change.*
+
+**The build.** The candidate `find_map` matches is now the record's dword
+as the simulation's mesh leaves it: `RoadTile::dirs` on top, the line bytes
+in place (`RoadTile::lines & 0x00ff_ff00`, §6.8), and `RoadTile::inter`
+(§6.5) below; `laid` still swaps in the intersections the piece was picked
+on (§6.7). Until now the client marked its own white once on the mesh as it
+stood, with every joined corner's ring added (§6.4), and no yellow at all.
+
+**Picking on the lines as they stood at the pick moves nothing.** A probe
+(not kept) recorded `Elem::lines` in `note_pick` beside `picked` and gave the
+client those instead. It laid the same 500 pieces, with the same 480 the
+packet's and the same 20 apart. So no `picked` is kept for the line bytes.
+
+**The value diff** (run1559b's packet through `road_records.py`, the item
+4199 dump; ours the door at the photograph's frame):
+
+| tile | theirs | ours before (own white) | ours now (mesh) | piece, theirs / before / now |
+|---|---|---|---|---|
+| (215, 81) | `5418e440` | `5400e440` | `5418e440` | 2·1 / not laid / 2·1 |
+| (216, 83) | `45814e00` | `45004e00` | `45814e00` | 2·3 / not laid / 2·3 |
+| (224, 83) | `55817e01` | `55007e01` | `55817e01` | 46·0 (off page 0) / 33·1 / not laid |
+| (17, 163) | `11003300` | `11003300` | `11103300` | 17·0 / 17·0 / not laid |
+| (18, 163) | `11003310` | `11003310` | `11122110` | 17·4 / 17·4 / 20·2 |
+| (19, 163) | `4500cf04` | `4500c904` | `4506c904` | 1·3 / not laid / 2·7 |
+
+- *run1559b* (`RUN1559B_RECORDS`): **the packet's piece 471 → 480, laid
+  490 → 500**; yellow joins the row at 596 of 599 (the client's own was
+  584); white 598 → 597 (a named fall: (18, 163)). The crossroads at
+  (215–216, 81–83) and (223–224, 81–83) carry yellow: their twelve now
+  match, eleven are laid as the packet's piece, and (224, 83)'s element 46
+  is off page 0 for both.
+- *The T at (17–19, 163)*, on the capital's ring: the mesh's yellow is
+  `10`, `12` and `06` where the packet holds none, and (18, 163)'s white is
+  `21` where theirs is `33` (4690a). (17, 163) matches no page-0
+  orientation and is left bare; the eye sees it as a notch in the ring's
+  south-west edge.
+- *The rows*: `RUN1559B_3279_RING` drawn hue 21 → 20 of 24 (the bare
+  tile, 767 pixels: the still's (163, 162, 61) against theirs
+  (148, 126, 103)); `RUN1559B_3279_GROUND_STILL` 1,106 → 1,105 and
+  `GROUND_STILL_SRGB` 1,020 → 1,019 and `LAND_LIGHT_ROWS`' ground row with
+  it; `RUN1559B_3279_SELECTED` selected `[1442, 1326]` → `[1438, 1322]`;
+  `RUN1559B_3279_PLUME` 10,765 → 10,764, `RUN1570_PLUME`'s past 1,933 →
+  1,932. All are named falls through the frame's mean and its white.
+- run1814b holds: `RUN1814B_PLATE_CANDIDATES` 54 of 54,
+  `RUN1814B_PLATE_PIECES` 54, `RUN1833_DRAW_81` 948.
+
+**Diff-backed**: every column of `RUN1559B_RECORDS` and run1814b's plate
+rows. **Read alone**: nothing new. The candidate is the door's bytes.
+
+**Not established.**
+- Why the mesh marks yellow on the T at (17–19, 163), where the packet
+  holds none (4690a). It names a score: two of the packet's pieces and the
+  ring's hue.
+- run1559b's 20 apart: 17 an intersection bit or a white the packet holds
+  and we do not (4199a), (211, 84) as §6.7, and the T.
 
 ## 7. What is not established, and what needs Ramon's word
 
