@@ -1530,6 +1530,8 @@ impl Sim {
             // `get_damage` step 19 reads is the attacker's own, and two
             // otherwise equal candidates at different bearings rank apart.
             let (from, to) = (self.pos_of(attacker), self.pos_of(target));
+            crate::combat::damage::PROBE4717.store(probe, std::sync::atomic::Ordering::Relaxed);
+            if probe { eprintln!("P4717 {:?} from {:?} to {:?} heading {:#x}", tk, from, to, match target { Obj::Unit(u) => self.units[u].movement.heading.0, _ => 0 }); }
             // `splash` and `check_overkill` both 0 (`0064ebce`–`0064ebdf`):
             // the ranking never discounts a target another shooter has
             // just hit (item 601, `docs/COMBAT.md` §53).
@@ -1549,6 +1551,7 @@ impl Sim {
                 &self.mods_of(self.owner_of(attacker) as usize),
             )
         };
+        crate::combat::damage::PROBE4717.store(false, std::sync::atomic::Ordering::Relaxed);
         // **`0064ef4b`, both arms.** A human multiplies; a computer
         // leader on the lobby's own difficulty divides, and a candidate it
         // cannot hurt at all scores zero rather than dividing by nothing.
