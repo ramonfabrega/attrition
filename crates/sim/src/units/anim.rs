@@ -1288,18 +1288,23 @@ impl Sim {
         // puts it in `last_z` too. run1359's Biplane `1/36` (TI 287) reads
         // 637 on 5619, the ground under its dead Citizen predecessor's last
         // point. A helicopter's climb ([`Sim::add_unit`]) starts from it.
+        // **It is the stored `z`, not the ground under it** (item 4730,
+        // `docs/RECGAME.md` §13.3): a figure a terraform left standing at
+        // the old height ([`Sim::guy_stored_z`]) hands that height on.
+        // Row 93's Citizen `2/112` died holding 528 where the ground reads
+        // 539, and its Fighter successor on 4235 reads 528 in run1799.
         let air = ty.is_some_and(|t| {
             self.tables.unit_types[t].combat.domain == crate::territory::attrition::Domain::Air
         });
         if air
-            && let Some((i, old)) = self
+            && let Some((i, _)) = self
                 .units
                 .iter()
                 .enumerate()
                 .rev()
                 .find(|(i, old)| *i != u && old.owner == who && old.index == o && !old.alive())
         {
-            let z = self.guy_z(i, 0, old.movement.body.pos, false);
+            let z = self.guy_stored_z(i, 0).0;
             let af = &mut self.units[u].airframe;
             af.z = z;
             af.last_z = z;
