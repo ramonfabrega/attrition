@@ -1660,10 +1660,6 @@ impl Sim {
         let city = self.buildings[b]
             .city
             .is_some_and(|c| self.cities.cities[c].building == b);
-        if std::env::var("RON_PROBE_4718").is_ok() && who == 1 && self.units[u].index == 41 && self.frame > 4120 && self.frame < 4132 {
-            let g = self.group_of(u).map(|g| (g.list.contains(&u), g.list.len()));
-            eprintln!("P4718S frame {} siege {} ai {} city {} b.city {:?} group {:?} army {:?}", self.frame, siege, self.ai_driven(who), city, self.buildings[b].city.map(|c| self.cities.cities[c].building), g, self.army_of(u));
-        }
         if !siege
             || !self.ai_driven(who)
             || !city
