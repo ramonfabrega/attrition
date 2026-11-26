@@ -651,6 +651,14 @@ through 11486. On 11487 Crossbowman 3/98 stops here while the original
 continues its move. Draws still agree through 11487.
 [Target comparison](journal/2026-11-25-item-4649.md)
 
+**The Crossbowman's second search (item 4697).** On 11486 unit 3/98
+rejects its first chase position. The mandatory attack still names unit
+0/82. Searching around that target's stored position with its unit-type
+radius yields (19656,27144). All four path nodes, the movement on 11487,
+and all eleven recorded lines through 11500 agree. The next unit
+difference is on 11688 and the next unequal draw is on 11728.
+[Chase comparison and radius control](journal/2026-11-25-item-4697.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte

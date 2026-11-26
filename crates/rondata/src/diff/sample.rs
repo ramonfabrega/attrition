@@ -506,7 +506,8 @@ pub(in crate::diff) mod tests {
     /// Item 4643: the spell package moves the count and sequence to 9507.
     /// Item 4645: the new figure takes its recorded move, then its walk animation.
     /// Item 4646: the factory exit and rally order match through 10206.
-    const SAMPLE_WALKED: (i64, i64) = (11488, 21044);
+    /// Item 4697: the ordered chase places the same four path nodes on 11487.
+    const SAMPLE_WALKED: (i64, i64) = (11728, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -841,19 +842,20 @@ pub(in crate::diff) mod tests {
     /// no round the original lacks is made before then; past it the arm is
     /// reached on 11753..12017, after units' 10653 and the five lines' 11487.
     /// Item 4649: the Horse Archer's ordered target moves units to the other lines on 11487.
+    /// Item 4697: the Crossbowman rebuilds its chase on 11486; units agree through 11687.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 11487),
-        ("builds", 11487),
+        ("units", 11688),
+        ("builds", 11761),
         ("walls", 21044),
-        ("ammo", 11492),
-        ("deaths", 11497),
-        ("groups", 11503),
-        ("guys", 11487),
-        ("leaders", 11487),
-        ("cities", 11503),
-        ("items", 12663),
-        ("goods", 12319),
-        ("world", 11487),
+        ("ammo", 11738),
+        ("deaths", 11737),
+        ("groups", 11760),
+        ("guys", 11689),
+        ("leaders", 11751),
+        ("cities", 11772),
+        ("items", 12309),
+        ("goods", 12348),
+        ("world", 11700),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -1540,6 +1542,11 @@ pub(in crate::diff) mod tests {
     }
 
     #[test]
+    fn the_sample_s_crossbowman_keeps_its_order_and_rebuilds_the_recorded_path() {
+        assert_sample_window(run1827(), 11485, 11489, None);
+    }
+
+    #[test]
     fn the_sample_s_scout_order_and_city_marks_match_both_recorded_lines() {
         let (Some(inst), Some(rcx), Some(mut ranges)) = (install(), sample(), run1786()) else {
             return;
@@ -2131,55 +2138,5 @@ pub(in crate::diff) mod tests {
     const SAMPLE_RANGES_1786: &[(&str, i64, usize, usize, usize, &str)] = &[];
 
     const SAMPLE_RANGES_1824: &[PinnedRange] = &[];
-    const SAMPLE_RANGES_1827: &[PinnedRange] = &[
-        (
-            "units",
-            11487,
-            8642,
-            8634,
-            1053,
-            "7517 98 who..y_internal: x 19416|19436, y 23640|23687",
-        ),
-        (
-            "builds",
-            11487,
-            6318,
-            6318,
-            1,
-            "941 2022 myhits..launch_frames: targeted 1|0",
-        ),
-        ("ammo", 11492, 15, 18, 3, "15 5 flags: +0x0 of 1|0: 02|"),
-        (
-            "deaths",
-            11497,
-            20,
-            18,
-            2,
-            "18 -1 00936bff: +0x0 of 0|4: |01000000",
-        ),
-        (
-            "guys",
-            11487,
-            2475,
-            2475,
-            1,
-            "2143 98 guy: x 19416|19436, y 23640|23687, z 582|591, angle 2132082688|2108221760, last_angle 2132082688|2108221760, des_x 19416|19436, des_y 23640|23687, des_angle 2132082688|1822949376, last_x 19416|19434, last_z 582|581, cur_time 5|6, last_speed 0|47, avg_speed 33|44, stopped 1|0",
-        ),
-        (
-            "leaders",
-            11487,
-            675,
-            675,
-            1,
-            "408 3 who..ally_mask: +0x9ec of 26914|26914: 01000000|00000000",
-        ),
-        (
-            "world",
-            11487,
-            7931,
-            7931,
-            1,
-            "5704 1825 block.body: +0x7 of 96|96: 38003800|70007000",
-        ),
-    ];
+    const SAMPLE_RANGES_1827: &[PinnedRange] = &[];
 }

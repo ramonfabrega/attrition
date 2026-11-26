@@ -8,16 +8,9 @@
 //! draws on the ranged arm and [`crate::combat::fight::ATTACK_POS_CAP_NEAR`] on
 //! the near one.
 //!
-//! **What is here and what is not.** The ring is entered when the target
-//! is a *building* — `is_build`, the target's vtable `+0x1c`. A **unit**
-//! target takes the other half of `00601280` entirely, a chase over the
-//! target's own heading that ends in `UnitType::find_nearby_spot`; that
-//! half is not modelled, and [`Sim::find_attack_pos`] answers `None` for
-//! it so its callers keep the straight-line approach they had. The same
-//! goes for `Unit::find_melee_pos@006010b0`, which only a melee asker
-//! with a **unit** target reaches, and for the `project`-away arm of a
-//! minimum-range asker standing inside its own dead zone. Each is named
-//! where it is skipped.
+//! Against a unit, the asker searches for a melee slot or a position
+//! from which it can reach the target. A mandatory land chase can make
+//! a second search around the target's last position (§32.2).
 
 use crate::movement::collide::{UCELLS_PER_CELL, UNITS_PER_UCELL};
 
@@ -209,7 +202,7 @@ impl crate::Sim {
             p.siege && self.unit_ai_bit(self.units[u].owner) && matches!(target, Obj::Building(_));
         // `local_38`: the head order's `mandatory` byte when the current
         // order is an ATTACK (`60142c`). It gates the `find_nearby_spot`
-        // fallback at the very end, which is not modelled here.
+        // fallback at the very end, carried for land units below.
         let range = self.max_range_of(me);
         // `local_2c`, set only by the far arm.
         let far: bool;
@@ -273,9 +266,11 @@ impl crate::Sim {
             far = true;
         }
 
-        let Obj::Building(_) = target else {
-            return self.chase_spot(u, target, from, stand, far);
-        };
+        if let Obj::Unit(t) = target {
+            return self
+                .chase_spot(u, target, from, stand, far)
+                .or_else(|| self.ordered_chase_fallback(u, t));
+        }
 
         // `local_34 == 0xc` (`6015ea`): an asker whose activity is a
         // GUARD order is not moved at all — [`Sim::attack_pos_refused`].
@@ -324,20 +319,27 @@ impl crate::Sim {
     /// `find_new_target`, which finds the building `0/2004`; this crate
     /// walked at the citizen's own point.
     ///
-    /// SEAM: the mandatory far arm (`602c24`–`602dc2`): `find_nearby_spot`
-    /// around the target and the domain gates after it (a sea asker, and a
-    /// land asker against a sea target, return 0). It keeps this crate's
-    /// walk at the target's point.
+    /// The recorded land chase also checks whether its last placement
+    /// actually found land. Other domains still use the distance gate.
     fn chase_tail_refused(&mut self, u: usize, t: usize) -> bool {
-        let mandatory = matches!(
-            self.current_order(u).map(|o| &o.body),
-            Some(crate::orders::Body::Attack(_))
-        ) && self.units[u].combat.mandatory;
-        let (me, tp) = (self.units[u].pos, self.units[t].pos);
-        let near =
-            vector_dist(tp.x - me.x, tp.y - me.y) < melee_far(self.max_range_of(Obj::Unit(u)));
-        crate::seam!("mandatory_far", mandatory && !near);
-        !mandatory || near
+        if self.units[u].kind.domain == Domain::Land && self.units[t].kind.domain == Domain::Land {
+            // The search ran with auto-transport held clear in find_attack_pos.
+            let held = std::mem::replace(&mut self.units[u].auto_transport, false);
+            let refused = self.ordered_chase_fallback(u, t).is_none();
+            self.units[u].auto_transport = held;
+            return refused;
+        }
+        let far = self.ordered_chase_is_far(u, t);
+        crate::seam!("mandatory_far", far);
+        !far
+    }
+
+    fn ordered_chase_is_far(&self, u: usize, t: usize) -> bool {
+        matches!(self.current_order(u).map(|o| &o.body), Some(crate::orders::Body::Attack(a)) if a.mandatory)
+            && vector_dist(
+                self.units[t].pos.x - self.units[u].pos.x,
+                self.units[t].pos.y - self.units[u].pos.y,
+            ) >= melee_far(self.max_range_of(Obj::Unit(u)))
     }
 
     /// **`find_attack_pos`'s melee `return 0`** (`601803`–`601938`, item
@@ -378,21 +380,41 @@ impl crate::Sim {
     /// `vector_dist(target − asker)` reaches [`melee_far`]; `None` (the
     /// `return 0`) otherwise and for an asker whose current order is not
     /// a mandatory `ATTACK`.
-    fn melee_far_spot(&mut self, u: usize, t: usize) -> Option<Pos> {
-        let mandatory = matches!(
-            self.current_order(u).map(|o| &o.body),
-            Some(crate::orders::Body::Attack(_))
-        ) && self.units[u].combat.mandatory;
-        if !mandatory {
+    fn melee_far_spot(&self, u: usize, t: usize) -> Option<Pos> {
+        self.ordered_chase_is_far(u, t)
+            .then(|| self.chase_target_cell(u, t))
+    }
+
+    fn chase_target_cell(&self, u: usize, t: usize) -> Pos {
+        let (me, target) = (self.units[u].pos, self.units[t].pos);
+        let cell = |v: i32, mine: i32| v.div_euclid(0x300) * 0x300 + mine % 0x300;
+        self.restrict(Pos::new(cell(target.x, me.x), cell(target.y, me.y)))
+    }
+
+    /// After the first placement fails, search around the target's stored
+    /// position. A unit type's width here is its circle radius (+0x234).
+    fn ordered_chase_fallback(&self, u: usize, t: usize) -> Option<Pos> {
+        if self.units[u].kind.domain != Domain::Land
+            || self.units[t].kind.domain != Domain::Land
+            || !self.ordered_chase_is_far(u, t)
+        {
             return None;
         }
-        let (me, tp) = (self.units[u].pos, self.units[t].pos);
-        if vector_dist(tp.x - me.x, tp.y - me.y) < melee_far(self.max_range_of(Obj::Unit(u))) {
-            return None;
+        let target = self.units[t].pos;
+        let width = self.profile(Obj::Unit(t)).circle_radius;
+        if let Some(spot) = self.find_nearby_spot(
+            u,
+            target,
+            width * 0xc0,
+            width * 0x300,
+            0,
+            crate::movement::Angle(0x5555_5555),
+            None,
+        ) {
+            return Some(spot);
         }
-        let cell =
-            |v: i32, mine: i32| (v >> 8).div_euclid(3) * 0x300 + 0x180 + mine % 0x300 - 0x180;
-        Some(self.restrict(Pos::new(cell(tp.x, me.x), cell(tp.y, me.y))))
+        let spot = self.chase_target_cell(u, t);
+        (!self.world.is_tocean(spot.tile())).then_some(spot)
     }
 
     /// **The unit half of `Unit::find_attack_pos@00601280`** — where a

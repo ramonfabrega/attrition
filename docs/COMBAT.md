@@ -4913,6 +4913,15 @@ and on ring **912**, at bearings `0`, `+1` and `−1` sixteenths from
 unit. The implementation then produced exactly those, with the positions
 to match.
 
+A mandatory land attack can make a second search when the first chase
+position fails. In the 2017 sample on tick 11486 the target's last
+position is (19512,27048) and its type's circle radius is 1. The search
+between 192 and 768 units from that point yields (19656,27144), the
+original move's destination. Its four path nodes and the movement of
+the other units agree on the next state. The minimum distance for this
+search and the last resort when every candidate fails are reading-only
+for this sample. [Item 4697](journal/2026-11-25-item-4697.md)
+
 ### 32.3 637's widening, and the residue in front of it
 
 `chapter_two_s_word_frame_is_widened_whole` now walks `[633, 641)` — the

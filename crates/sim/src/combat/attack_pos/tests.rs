@@ -534,4 +534,18 @@ fn a_unit_target_with_no_spot_is_refused_unless_the_attack_is_mandatory_and_far(
             "target {t}, mandatory {mandatory}"
         );
     }
+
+    // The last order is mandatory and far. Flood the target cell and
+    // every search ring around it. The retry must still search as a
+    // land unit even after find_attack_pos restores auto-transport.
+    let t = sim.units[far].pos.tile();
+    for y in t.y - 6..=t.y + 6 {
+        for x in t.x - 6..=t.x + 6 {
+            sim.world
+                .set_tile_field(Pos::new(x, y), tile::SURFACE, tile::SURFACE_OCEAN);
+        }
+    }
+    sim.units[me].auto_transport = true;
+    assert!(sim.attack_pos_refused(me, Obj::Unit(far)));
+    assert!(sim.units[me].auto_transport);
 }
