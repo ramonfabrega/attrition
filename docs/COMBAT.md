@@ -9884,11 +9884,24 @@ only rounds part there.
 
 ### 54.5 What is not established
 
-- **Every other restricted piece.** Only the Chariot's figure (piece 145,
-  node 4) is pinned. Any other piece bears from the unit's point, as this
-  crate did before. The rows are the original's once the piece's events
-  are built, and a packet from a game that fields the type reads them in
-  a minute (`get_position` on the packet).
+- **Every other restricted piece.** ~~Only the Chariot's figure (piece
+  145, node 4) is pinned.~~ `pivot::NODES` and `SAME_AS` now hold every
+  piece with a `RELEASES` row (item 4656,
+  `tests::every_pivot_release_has_its_first_turret_s_node`; the last was
+  the Main Battle Tank's 201, whose `(4, 0, 0)` on run1472 is `(0, 0)`,
+  so the seam's answer was its own). A restricted piece with neither
+  still bears from the unit's point (`offset_at_unpinned`). Its row is
+  the original's once the piece's events are built, and a packet from a
+  game that fields the type reads it in a minute (`get_position` on the
+  packet).
+- **Piece 1196's `(4, 0, 0)`, the Asian Carabineer** (item 4656). No
+  packet on disk reads it: of 160, only run1579 and run1608 hold its
+  `RData`, neither its rows, and neither serves `init_position` its
+  `CHAR_DEFAULT`. The row is 844's point, because the four Carabineer
+  sets play one skeleton (`init_position` writes 1196's pivot node at
+  the three attack keys as 844's, bit for bit). The bearing it gives on
+  the sample's 15938 is the original's (§54.6). Its four release keys
+  have no `RELEASES` row; its muzzle is not 844's (parked 4656a).
 - **Another nation's Chariot.** `get_unit_gpiece` built 145 for chapter
   three's Nubians. A different art set could name a different piece with
   a different node.
@@ -9903,6 +9916,10 @@ only rounds part there.
 - **Diff-backed**: `0/8` keeps its heading on 684–685 in run145; the
   node's vector at 120° is the dump's own `MISC=10` line; and the bearing
   from the node is the dump's `des_turret_angles[0]` on 684 and 685.
+- **Diff-backed (item 4656)**: the 2017 sample's `3/101` (piece 1196) on
+  15938, with item 4716's decoy correction: the bearing from 1196's node
+  is run1844's turret angle, `0x052c0000`; ours from the hull's square
+  was `0x05270000` (`tests::the_sample_s_asian_carabineer_bears_its_turret_from_its_saddle`).
 - **Oracle-backed** (the original's functions under unicorn on run147's
   packet; the native twin refuses both on packed SSE, `005d8dcb` and
   `0090b818`): the

@@ -30,7 +30,8 @@
 //! given (item 4527, the fifth battery's seats and team).
 //!
 //! `--still` draws one frame off-screen and writes it; otherwise a window
-//! opens (arrows pan, `+`/`-` zoom, space plays, `Q` or Escape quits), and
+//! opens (arrows pan, `+`/`-` zoom, space plays at the lobby's speed, Escape
+//! cancels or opens the menu, `Q` quits), and
 //! `--frames N` quits after N presented frames. `--headless` draws the
 //! `--frames N` frames off-screen with no window, each waited on, and is
 //! the session the clock's ceilings bound (`render::clock`, item 4161). `--silhouette` scores the
@@ -64,6 +65,7 @@ mod minimap;
 mod oil;
 mod opening;
 mod overlay;
+mod pace;
 mod particle;
 mod patch;
 mod recording;
@@ -720,6 +722,13 @@ struct App {
     presented: u64,
     last_ms: f64,
     playing: bool,
+    /// The play clock (item 4696, `pace`): the window steps the frames it
+    /// answers due, at the lobby's speed, against `epoch`'s milliseconds.
+    clock: pace::PlayClock,
+    epoch: Instant,
+    /// Whether the last present stepped under the clock: a resume rebases
+    /// it, so a pause or the page is never caught up.
+    running: bool,
     recording: Option<recording::Recording>,
     /// The person's input (`input`, item 4145): slot 0's, and the cursor's
     /// last pixel.
@@ -832,6 +841,8 @@ impl App {
                 self.session
                     .phase("run to the frame", || self.world.run_to(frame));
                 println!("LOBBY start, at frame {}", self.world.runner.frame());
+                self.clock = pace::PlayClock::new(pace::speed_of(Some(&page.choices)), 0);
+                self.running = false;
                 self.page = None;
             }
         }
@@ -887,7 +898,8 @@ impl App {
             // The pause key (item 4252, `docs/CLIENT_INPUT.md` §13): an
             // order, not the viewer's Space; ours, Pause and F3.
             Key::Named(NamedKey::Pause | NamedKey::F3) => self.input(input::Event::Pause),
-            Key::Named(NamedKey::Escape) => el.exit(),
+            // Escape cancels, or opens the menu (item 4696, §40); Q quits.
+            Key::Named(NamedKey::Escape) => self.input(input::Event::Escape),
             Key::Character(c) if c.as_str() == "q" => el.exit(),
             Key::Named(NamedKey::Space) => self.playing = !self.playing,
             // The view's own right and up, with `dir` 45: a screen axis is
@@ -1140,9 +1152,19 @@ impl ApplicationHandler for App {
             WindowEvent::RedrawRequested => {
                 let t = Instant::now();
                 // A standing pause steps no frame (`check_new_frame_solo`
-                // answers 0 while the bit is set); the orders go on.
-                if self.playing && !self.input.paused && self.page.is_none() {
-                    self.session.phase("step", || self.world.runner.step());
+                // answers 0 while the bit is set); the orders go on. A
+                // playing window steps the frames the clock answers due
+                // (item 4696), never one a present.
+                let now = u64::try_from(self.epoch.elapsed().as_millis()).unwrap_or(u64::MAX);
+                let running = self.playing && !self.input.paused && self.page.is_none();
+                if running && !self.running {
+                    self.clock.rebase(now);
+                }
+                self.running = running;
+                if running {
+                    for _ in 0..self.clock.steps(now) {
+                        self.session.phase("step", || self.world.runner.step());
+                    }
                 }
                 let Some((window, surface, gpu)) = self.window.take() else {
                     return;
@@ -1414,6 +1436,9 @@ fn main() {
             session: session.clone(),
             world,
             playing: args.play,
+            clock: pace::PlayClock::new(pace::speed_of(from_page.as_ref()), 0),
+            epoch: Instant::now(),
+            running: false,
             recording: None,
             args,
             camera,

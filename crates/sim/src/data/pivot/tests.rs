@@ -3107,3 +3107,59 @@ fn the_original_s_release_agrees_on_every_cell_for_item_4651() {
     assert_eq!(rows, 6 * 256 * 361, "{dir}");
     assert_eq!(off, 0, "cells disagree");
 }
+
+/// **Every pivot release has its first turret's node** (item 4656): a
+/// [`RELEASES`] row is a piece with a `<RESTRICTION>`, whose first is
+/// node 4, and `set_all_pivots` bears that turret from its node's point
+/// ([`offset`]). A piece with the one and not the other answered `(0, 0)`
+/// at `offset_at`'s seam: piece 201 alone, 235 times on the sixth's row
+/// 133 from state 3685, until its row. A release's own pivot entry
+/// `(node & 3) + 4` is not the test: 204's, 223's and 300's rows read
+/// entries past their restrictions, nodes no turret bears from. Made to
+/// fail with 201's row out of `NODES`.
+#[test]
+fn every_pivot_release_has_its_first_turret_s_node() {
+    let mut missing: Vec<i32> = RELEASES
+        .iter()
+        .map(|(_, _, _, r)| r.piece)
+        .filter(|&p| node(p, 4).is_none())
+        .collect();
+    missing.dedup();
+    assert_eq!(missing, [], "pieces with a release and no node 4");
+}
+
+/// **The Main Battle Tank bears its turret from its own square** (item
+/// 4656): piece 201's `(4, 0, 0)` on run1472's packet is `(0.0, 0.0,
+/// 27.11)`, so the row's vector is `(0, 0)` at every degree: the seam's
+/// answer, and no value moves with it.
+#[test]
+fn the_main_battle_tank_s_turret_stands_on_its_square() {
+    assert_eq!(node(201, 4), Some(Node { px: 0, py: 0 }));
+    for d in 0..=360 {
+        assert_eq!(offset_at(201, 4, d), (0, 0), "degree {d}");
+    }
+}
+
+/// **The sample's Asian Carabineer bears its turret from its saddle**
+/// (item 4656): on 15938 of the 2017 sample, with item 4716's decoy
+/// correction (`codex/sample-14550-investigation`, `acfd76f59`), who=3's
+/// `3/101` (piece 1196) at (22872, 34296), facing −1,812,594,688, bears on
+/// `0/13` at (21774, 35849). run1844's turret angle is 86,769,664
+/// (`0x052c0000`); ours with no row was 86,441,984 (`0x05270000`, item
+/// 4715's journal), the bearing from the hull's square. Through 844's
+/// point at 1196's own 1.02 the node is (−3, 6) and the bearing is the
+/// original's. Made to fail with 1196's row out of `NODES`.
+#[test]
+fn the_sample_s_asian_carabineer_bears_its_turret_from_its_saddle() {
+    let facing = Angle(-1_812_594_688);
+    let bear = |piece| {
+        let (vx, vy) = offset(piece, 4, facing);
+        let (dx, dy) = (21774 - 22872 - vx, 35849 - 34296 - vy);
+        crate::movement::find_angle(dx, dy).0.wrapping_sub(facing.0) as u32
+    };
+    assert_eq!(node(1196, 4), node(844, 4));
+    assert_eq!(scale(1196), scale(844));
+    assert_eq!(offset(1196, 4, facing), (-3, 6));
+    assert_eq!(bear(1196), 0x052c_0000, "run1844's angle on 15938");
+    assert_eq!(bear(-1), 0x0527_0000, "ours with no row");
+}

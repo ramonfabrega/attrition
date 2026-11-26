@@ -1331,6 +1331,10 @@ pub struct Input {
     /// Whether the open entry line is the console's (item 4283): its
     /// Return runs a console word instead of sending a chat.
     pub console: bool,
+    /// Whether the menu is open (item 4696, §40): Escape with nothing
+    /// selected opens it, as `KEYMAP_OPTION_MENU` does, and Escape again
+    /// closes it. Ours is a notice; Q quits, open or not.
+    pub menu: bool,
     /// The player's profile prefs the frame-0 `leader_options` is made of
     /// (item 4289, `docs/CLIENT_INPUT.md` §26.1): the fresh profile's, and
     /// no control changes them (DECISIONS 136 §4).
@@ -2757,9 +2761,45 @@ impl Input {
                 None
             }
             Event::Escape => {
-                self.line = None;
-                self.renaming = None;
-                self.console = false;
+                // An open line closes and sends nothing (item 4250).
+                if self.line.is_some() || self.renaming.is_some() || self.console {
+                    self.line = None;
+                    self.renaming = None;
+                    self.console = false;
+                    return None;
+                }
+                // Ours: the menu, open, closes.
+                if self.menu {
+                    self.menu = false;
+                    return None;
+                }
+                // `Console::on_key_down@007cc210`: Escape is
+                // `KEYMAP_OPTION_CANCEL` (107), and with nothing selected
+                // it is `KEYMAP_OPTION_MENU` (86) under the fresh
+                // profile's `esc_key_goes_to_menu` (item 4696, §40).
+                if self.selection.is_empty() {
+                    self.menu = true;
+                    return None;
+                }
+                // `Options::exec@007188c0` with `OPTION_CANCEL`: every
+                // option first clears `selecting_spot` and `drop_type`, so
+                // any arm goes; then a page or an arm returns the panel to
+                // `STANDARD_OPTIONS`, and with neither `SelectGroup::clear`
+                // drops the selection. No order is minted.
+                let armed = self.placing.is_some()
+                    || self.casting.is_some()
+                    || self.garrisoning
+                    || self.picking.is_some();
+                self.placing = None;
+                self.casting = None;
+                self.garrisoning = false;
+                self.picking = None;
+                if self.page.is_some() || armed {
+                    self.page = None;
+                } else {
+                    self.selection.clear();
+                    self.building = false;
+                }
                 None
             }
             Event::Rename => {
@@ -8692,6 +8732,87 @@ pub(crate) mod tests {
         }
         println!("TOGGLES {whole} of {all}");
         assert_eq!((whole, all), INPUT_TOGGLES);
+    }
+
+    /// **Escape cancels** (item 4696, §40), as `on_key_down` and
+    /// `Options::exec`'s `OPTION_CANCEL` do, and never mints an order: a
+    /// placement, a craft's, the garrison's or a pick's arm goes and the
+    /// selection stays; a build page closes; with neither the selection
+    /// goes; with nothing selected the menu opens, and Escape closes it.
+    /// Made to fail: the arm's Escape clearing the selection as well.
+    #[test]
+    fn input_escape_cancels() {
+        let terrain = TerrainScene::default();
+        let c = crate::pinned_camera();
+        let scene = Scene::default();
+        let v = view(&c, &scene, &terrain);
+        let picked = Input {
+            selection: vec![ObjId { who: 0, o: 3 }],
+            ..Input::new(0)
+        };
+        let arms = [
+            Input {
+                placing: Some(417),
+                page: Some(0),
+                ..picked.clone()
+            },
+            Input {
+                placing: Some(417),
+                ..picked.clone()
+            },
+            Input {
+                casting: Some(1),
+                ..picked.clone()
+            },
+            Input {
+                garrisoning: true,
+                ..picked.clone()
+            },
+            Input {
+                picking: Some(OPTION_CANCEL),
+                ..picked.clone()
+            },
+        ];
+        for mut input in arms {
+            assert_eq!(input.event(9, Event::Escape, &v), None);
+            assert_eq!(
+                (
+                    input.placing,
+                    input.casting,
+                    input.garrisoning,
+                    input.picking
+                ),
+                (None, None, false, None),
+                "the arm goes"
+            );
+            assert_eq!(input.page, None);
+            assert_eq!(input.selection, picked.selection, "the selection stays");
+            assert!(!input.menu);
+        }
+        let mut paged = Input {
+            page: Some(1),
+            ..picked.clone()
+        };
+        assert_eq!(paged.event(9, Event::Escape, &v), None);
+        assert_eq!(
+            (paged.page, paged.selection.len()),
+            (None, 1),
+            "the page closes"
+        );
+        // Then the selection, then the menu, and the menu closes.
+        assert_eq!(paged.event(9, Event::Escape, &v), None);
+        assert!(paged.selection.is_empty() && !paged.menu);
+        assert_eq!(paged.event(9, Event::Escape, &v), None);
+        assert!(paged.menu, "nothing selected: the menu");
+        assert_eq!(paged.event(9, Event::Escape, &v), None);
+        assert!(!paged.menu, "Escape closes it");
+        // An open line closes first, and the selection stays.
+        let mut chat = Input {
+            line: Some("hi".into()),
+            ..picked.clone()
+        };
+        assert_eq!(chat.event(9, Event::Escape, &v), None);
+        assert!(chat.line.is_none() && chat.selection.len() == 1);
     }
 
     /// **The console's edges** (item 4283): `ai` alone toggles either way;
