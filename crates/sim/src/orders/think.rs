@@ -338,8 +338,8 @@ impl Sim {
     /// The siege-on-a-city `mandatory` arm is [`Sim::nearby_siege_city`]
     /// (items 3744, 4718).
     ///
-    /// SEAM: `find_nearby_target`'s naval refusal (`+0x218 == 2`); neither
-    /// [`Sim::find_nearby_target`] nor this look refuses a naval find.
+    /// The add's **air refusal** (`+0x218 == 2`, AIR, not the sea) is
+    /// [`Sim::nearby_add_refuses_air`] (item 4723).
     pub(crate) fn do_attack_to_tail(&mut self, u: usize, frame: i64, dest: Pos) {
         if (frame + i64::from(self.units[u].index)).rem_euclid(15) != 0 {
             return;
@@ -413,7 +413,7 @@ impl Sim {
                     return;
                 }
                 if let Some(t) = self.find_melee_target(u, -1) {
-                    self.attack_move_add(u, t);
+                    let _ = self.attack_move_add(u, t);
                 }
             }
         }
@@ -467,6 +467,9 @@ impl Sim {
                 let t = self.find_melee_target(u, range)?;
                 self.nearby_normalize(u);
                 let mandatory = self.nearby_siege_city(u, t);
+                if self.nearby_add_refuses_air(u, t) {
+                    return None;
+                }
                 // A guard's attack-move leg goes under the find
                 // ([`Self::nearby_add`]'s `local_2c`); every other head
                 // keeps the `QUEUE_FIRST` this arm always had.
@@ -558,13 +561,21 @@ impl Sim {
     /// 4)`. Anything else takes it alone, `add_attack_order(…,
     /// QUEUE_FIRST, 0, 0)` (`LAB_00649ba0`).
     ///
+    /// Between the siege-city arm and the hand-off, **the air refusal**
+    /// ([`Sim::nearby_add_refuses_air`], item 4723): an aircraft found by a
+    /// searcher without `ANTI_AIR` adds nothing, and `false` is the
+    /// original's `return -1` — the find is not one.
+    ///
     /// SEAM: the siege arm (`local_2c`: an AI siege unit on a building
     /// whose `+8 & 0x20` is set takes it `mandatory` and writes the army's
-    /// target, and a plain `ATTACK_TO` is killed first), and the naval
-    /// refusal (`+0x218 == 2`). No capture reaches either.
-    pub(super) fn attack_move_add(&mut self, u: usize, t: Obj) {
+    /// target, and a plain `ATTACK_TO` is killed first). No capture reaches
+    /// it.
+    pub(super) fn attack_move_add(&mut self, u: usize, t: Obj) -> bool {
         self.nearby_normalize(u);
         let mandatory = self.nearby_siege_city(u, t);
+        if self.nearby_add_refuses_air(u, t) {
+            return false;
+        }
         // `local_2c` first: a guard's leg is killed under the attack, and
         // its group never takes the find (`:551`, [`Self::nearby_add`]).
         let group_move = self.guard_activity(u).is_none()
@@ -579,9 +590,10 @@ impl Sim {
             && self.group_is_attacking_to(&g)
         {
             self.group_action_attack(&g, t, false, QueuePos::First, 4);
-            return;
+            return true;
         }
         self.nearby_add_order(u, t, mandatory);
+        true
     }
 
     /// `Unit::do_attack_to_pause@005f22a0` (`docs/ORDERS.md` §24.9): an
@@ -1325,6 +1337,7 @@ impl Sim {
             if unit.combat.stance != combat::Stance::HoldFire
                 && unit.combat.target.is_none()
                 && let Some(t) = self.with_second_range(u, |s| s.find_melee_target(u, -1))
+                && self.nearby_add(u, t)
             {
                 // The search runs at a melee-and-ranged type's second range
                 // (`think_attack@005f5a80:167`–`174`, item 3383), the
@@ -1334,8 +1347,9 @@ impl Sim {
                 // `QUEUE_FIRST` under an attack-move, so the walk
                 // `add_to_army` just issued stays beneath the attack. A
                 // `QUEUE_NEW` here dropped run818's `1/9` walk on 701
-                // (item 2117, `docs/GOLDEN.md` §77).
-                self.nearby_add(u, t);
+                // (item 2117, `docs/GOLDEN.md` §77). The add is the
+                // condition's last term: a refused one is no find
+                // ([`Self::nearby_add_refuses_air`]).
                 // `think_attack`'s tail (`005f5da6`..): a **unit** find by
                 // a unit its group lists is handed to
                 // `Group::target_opportunity(…, param_4 = 1)`

@@ -1553,9 +1553,9 @@ impl Sim {
                 }
                 let t = self.find_melee_target(u, -1)?;
                 // A group's attack-move hands the target to
-                // `Group::action_attack` ([`Self::nearby_add`], item 3634).
-                self.nearby_add(u, t);
-                Some(t)
+                // `Group::action_attack` ([`Self::nearby_add`], item 3634);
+                // a refused add is no find (item 4723).
+                self.nearby_add(u, t).then_some(t)
             }
         }
     }
@@ -1593,7 +1593,9 @@ impl Sim {
     /// - otherwise `QUEUE_FIRST` only for a `DEFENSIVE` stance (vslot
     ///   `+0xf4 == 1`), and `QUEUE_NEW` for every other.
     ///
-    /// SEAM: the naval refusal (`+0x218 == 2`) under an attack-move.
+    /// Under an attack-move, the **air refusal** (`+0x218 == 2`, item
+    /// 4723): [`Self::nearby_add_refuses_air`]. `false` is the original's
+    /// `return -1`, so a caller that reads the find reads none.
     ///
     /// **The arm is one for every caller** (item 3634): `find_nearby_target`'s
     /// add (`00648da0:545`–`606`) is the attack-move look's
@@ -1605,8 +1607,34 @@ impl Sim {
     /// Hussar `1/94` hand the Citizen `0/11` to group 80 on tick 4632
     /// (`find_nearby_target+0xf73` → `Group::action_attack`, then
     /// `set_up_insert`), where this crate took it alone.
-    pub(crate) fn nearby_add(&mut self, u: usize, t: Obj) {
-        self.attack_move_add(u, t);
+    pub(crate) fn nearby_add(&mut self, u: usize, t: Obj) -> bool {
+        self.attack_move_add(u, t)
+    }
+
+    /// **`find_nearby_target`'s air refusal** (`00648da0`, the decompile's
+    /// lines 552–557; item 4723, `docs/COMBAT.md` §66.4): after the
+    /// winner's `targeted` bump, the group's `normalize` and the siege-city
+    /// arm, a searcher **not guarding** (`local_2c == 0`) whose
+    /// `order_type` is `ATTACK_TO` or `GROUP_ATTACK_TO` returns −1 when its
+    /// find's type is of the air domain (`+0x218 == 2`) and it lacks the
+    /// `ANTI_AIR` objmask (vslot `+0x148`, `0x80000000`): no order, and no
+    /// find. The guard's arm (`local_2c`) has no such test.
+    ///
+    /// `valid_target_const` admits a helicopter to any ranged searcher that
+    /// is not siege, a tank, a missile or a bomber, and `compare_target`
+    /// scores it 2 to one without `ANTI_AIR`, so an attack-move whose only
+    /// candidate is a helicopter wins it and drops it here. Row 133's
+    /// Flamethrower `2/73` (TI 131) on 3632: the Attack Helicopter `1/36`
+    /// (TI 311) at `attack_dist` 4605 inside the 4608 radius, where this
+    /// crate queued the `ATTACK` ahead of the `ATTACK_TO` (run1797).
+    pub(crate) fn nearby_add_refuses_air(&self, u: usize, t: Obj) -> bool {
+        self.guard_activity(u).is_none()
+            && matches!(
+                self.order_type(u),
+                index::ATTACK_TO | index::GROUP_ATTACK_TO
+            )
+            && matches!(self.profile(t).domain, crate::territory::attrition::Domain::Air)
+            && !self.profile(Obj::Unit(u)).has(combat::mask::ANTI_AIR)
     }
 
     /// **`Object::find_nearby_target`'s first act on a find it adds**

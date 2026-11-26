@@ -959,8 +959,8 @@ impl Sim {
         if unit.combat.stance != Stance::HoldFire
             && unit.combat.target.is_none()
             && let Some(t) = self.find_melee_target(u, -1)
+            && self.nearby_add(u, t)
         {
-            self.nearby_add(u, t);
             if matches!(t, Obj::Unit(_))
                 && let Some(seat) = self.seat_of(u)
                 && self.seat_list(seat).contains(&u)
