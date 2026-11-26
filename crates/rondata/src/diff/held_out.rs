@@ -13347,19 +13347,30 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // ammo 3,796 -> 3,795 (first 3763 -> 3776), a named fall past the
         // parting. The row's first parting is groups (unmoved) and leaders
         // on 3754.
+        // Item 4726 (`Object::take_damage@00652020`'s building arm asks the
+        // struck building's type vslot `+0x90`, `Type::is_gather_type`,
+        // before the city flag): on 3753 who=2's `2/273` strikes who=1's
+        // gather building `1/2044` in the city of `1/2043`, bell clear, and
+        // theirs pushes `[1/2043]` and rings it. On 3754 groups record 67
+        // (who=1's slot 3) `num` ours 0 -> 1, `stamp` 3736 -> 3753,
+        // `buildings` 0 -> 1, `last_group[1]` 0x46 -> 0x43; leaders record
+        // 1 `flags` byte 3 ours 0x00 -> 0x02 (`0x2000000`), as theirs.
+        // Groups 3,754 -> 3,808 (first 3754 -> 3783), leaders 3,754 ->
+        // 3,782 (first 3754 -> 3778). The row's first parting is units and
+        // guys on 3775 (unmoved).
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3775, 3779, 6001, 3795, 3811, 3754, 3775, 3754, 3796, 4129, 4399, 3776,
+                3775, 3779, 6001, 3795, 3811, 3808, 3775, 3782, 3796, 4129, 4399, 3776,
             ],
             first: &[
                 ("units", (3775, Some(325779366), 1791368010)),
                 ("builds", (3779, Some(310360152), 3484334167)),
                 ("ammo", (3776, Some(2781157854), 3425114656)),
                 ("deaths", (3811, Some(1997634331), 4170353836)),
-                ("groups", (3754, Some(29320637), 815486526)),
+                ("groups", (3783, Some(3580170157), 1201606574)),
                 ("guys", (3775, Some(1024508013), 4215129001)),
-                ("leaders", (3754, Some(762221262), 4138963664)),
+                ("leaders", (3778, Some(3080618048), 1327988799)),
                 ("cities", (3793, Some(1981498418), 2439726149)),
                 ("items", (4129, Some(898052486), 912470408)),
                 ("goods", (4331, Some(3229390119), 3223622949)),
