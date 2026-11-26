@@ -53,5 +53,9 @@ fn a_plane_on_a_reused_number_inherits_its_occupant_s_held_z() {
     let b = s.add_unit(f);
     s.init_guys(b, Some(t));
     let af = s.units[b].airframe;
-    assert_eq!((af.z, af.last_z), (528, 528), "the occupant's held z, not the ground");
+    assert_eq!(
+        (af.z, af.last_z),
+        (528, 528),
+        "the occupant's held z, not the ground"
+    );
 }
