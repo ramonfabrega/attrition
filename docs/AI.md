@@ -9648,6 +9648,12 @@ stands.
 - It runs **at the end of the buildings' pass**, where `Build::activate`
   runs. A wonder that activates on sim-frame N is on block N + 1, as the
   dump prints it, and the next frame's `create_buildings` reads it.
+- **The close half also runs inside the close** (item 4692,
+  `docs/RECGAME.md` §13.3): `Sim::close_wonder`, from
+  `close_building_for` at `Build::close:316`, so a wonder killed outside
+  the buildings' pass walks the mark down on its own block. Diff-backed:
+  run1799's who=2 Hanging Gardens `2/2028`, killed on 3523, reads 0 on
+  3524 where the pass-end walk alone read 1.
 - `wonder_value` reads the mark in place of its zero.
 - `build.rs` is not touched: the activation itself stays where it was.
 - `diff::leader` compares `wonder_mark` now. It left `UNMODELLED`, and
@@ -9733,7 +9739,9 @@ runway's 502.
   (§124): the hard French AI's Pyramids doubled its Tikal on 14784, and
   the type's own `WONDER_VAL` doubled it again.
 - ~~**A close.** No capture on file loses a wonder.~~ run1074 does
-  (§75.3), by console; the harness does not diff it (parked 3454a). A
+  (§75.3), by console; the harness does not diff it (parked 3454a).
+  run1799 loses one in combat, and item 4692's widening diffs it
+  (`row_93_s_hanging_gardens_close_walks_the_wonder_mark_down_on_run1799_s_ranges`). A
   captured wonder's entry is not read: `Build::swap_team`
   and `check_capture` do not touch the list.
 - **Two activations on one frame** take entries in building order here.

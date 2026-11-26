@@ -5121,3 +5121,79 @@ the press's.
   suit either. Both arms write the same form, and the layer mints it only on a drag.
 - **Not played**: no playback was owed. `build` is a kind the original has played from a minted file (run1561). Per
   the listing, the press's point reaches only `process_build`'s log line. Run1642 and run1643 are unused.
+
+## 39. A citizen's build in a live window: the arm and the ghost (item 4695)
+
+Ramon played the gated tip on 2026-11-25 (DECISIONS 158 §11) and could not place a Farm or a Barracks, by the panel
+or by F or B. He saw no ghost while placing and no site after. His recording, `spin-1125.rcx`, holds four build
+orders.
+
+### 39.1 The recording, walked
+
+`placing::the_recording_s_builds_walked` plays the recording on the harness lobby (seed 12345, Nubians against the
+British, his header's) through the turn pump. Every group in it is object 0 until frame 7193: `[0]` on 294, then 40
+empty groups repeating it. **Object 0 is the Scout** (TypeIndex 69). The citizens are objects 1 to 5. His right
+presses moved the Scout, which he took for his citizens.
+
+Each build, read on its own frame with the selection the Scout (`SPIN_1125_WALKED`):
+
+| frame | type | our walk |
+|---|---|---|
+| 1637 | Farm (417) | placed: site 2007 at (5376, 31488), building record 3, never started |
+| 2180 | Barracks (427) | `type_avail` 0, the site under a building |
+| 2714 | Farm | outside the city's radius |
+| 6790 | Barracks | `type_avail` 0, the site on forest |
+
+**The sim is faithful here.** `Group::action_build@00707510` places a site for any group with a live member:
+`GroupData::num_valid@0070d7e0` counts members whose object is valid, and `validate_build@00708620` asks the type
+and the ground, not the members. So the Scout's first Farm stands and nobody builds it. At 7460 it is the only
+unfinished building of slot 0. The Barracks waits on its `PREQ0`, Art of War, researched at the Library (the
+Barracks script's `ART_OF_WAR`, 572). He queued that on 7304, after his last Barracks.
+
+**The client was not.** The original offers a build only on a citizen's panel (`UnitOut::make_options@00615fc0`'s
+build pages, §32.6), greyed where `type_avail(t, 1)` is under 4. Our `BUILD_KEYS`, the HUD's menu buttons and
+`Event::Place` armed for any unit selection, and armed a greyed type. Nothing drew the armed placement.
+
+### 39.2 What the layer does now
+
+- **The arm** (`Input::may_place`): with the walk, a `BUILD_KEYS` key or a `Place` arms `ty` only when the selection
+  holds one of the slot's own live citizens (`Input::citizen`, the panel's own test since item 4337), and `ty` is on
+  `Roster::build_pages` with `disable` 0. Without the walk, as in the scripts' hand-built views, every unit selection
+  arms, as before. A roster read from no install has no pages, and the citizen alone is asked.
+- **The ghost** (`Input::ghost`, `hud::paint_ghost`): while a build is armed, the window draws the armed type's
+  footprint (`x_size` × `y_size` tiles) at the ground point under the cursor (`Input::hover`, the last
+  `CursorMoved`). The point is moved as `action_build` moves its site (`snap_center_placed`). The outline is in the
+  owner's unit colour where `blocked_site` clears the site, and red where it does not.
+
+**The row** (`placing::a_citizen_builds_in_one_live_session`, `PLACED_LIVE`) runs one session on the harness lobby:
+
+1. The Scout selected: F and the Farm's button arm nothing.
+2. Citizen 0/1 selected by its press: B (the greyed Barracks) arms nothing, and F arms the Farm.
+3. The ghost stands clear under the cursor at the site's pixel.
+4. The press mints the `group` and the `build`, and the walk takes them through `FreeRunner::issue`.
+5. The site stands at the ghost's point one frame later, and the citizen starts it on the 51st.
+
+Seen red with the gate removed (`a Scout arms no build`, `Some(417)`).
+
+**The value diff**: before, the Scout selected, F set `placing` to `Some(417)` and the press minted
+`[Group [0], Build 417]`, his recording's 1637 package. Now F leaves `placing` at `None` and the press selects.
+Before, no ghost was drawn. Now, at (4224, 30144) on the row's walk, `Ghost { ty: 417, clear: true }`.
+
+### 39.3 Ours, not the original's
+
+- The ghost is the footprint's outline. The original draws the type's model, translucent, at the point. Its colour
+  for a refused site is not read.
+- The menu's F and B buttons stand for any unit selection. A press on one for a selection with no citizen is refused
+  by the arm, not hidden.
+
+### 39.4 Confidence, and what is not established
+
+- **Backed by a walk**: §39.1's four verdicts and the Scout. Both are read off our sim on the recording's frames, and
+  they rest on the harness lobby being his start. His header's seed and nations are that lobby's.
+- **One reading**: `action_build` asking nothing of its members. No score rests on it. Our sim has carried it since
+  item 4059.
+- **Not established**: whether he pressed the Scout or the pick took it where he pressed a citizen. The file holds
+  orders, not events. At the start the Scout stands at (3480, 31896), about 800 world units from the nearest citizen (0/3 at (2712, 32136)).
+- **Not established**: whether the 1637 Farm site was drawn on his screen. `WallOut::draw` draws an unfinished Farm's
+  piece (`PlacedBuilding::drawn`), and where his camera stood is not recorded.
+- **Not played**: no capture. The arm and the ghost mint nothing the original has not played (`build`, run1561).

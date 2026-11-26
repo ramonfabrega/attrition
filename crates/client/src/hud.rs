@@ -1060,6 +1060,36 @@ pub fn rings(input: &Input, scene: &Scene, names: &Names) -> Vec<Ring> {
     out
 }
 
+/// **The placement's ghost drawn** (item 4695, `docs/CLIENT_INPUT.md`
+/// §39): its footprint's outline, two pixels wide, in the owner's unit
+/// colour where the site is clear and in [`REFUSED`] where it is not.
+/// Ours: the original draws the type's model at the point.
+pub fn paint_ghost(
+    p: &mut Painter,
+    ghost: &crate::input::Ghost,
+    owner: sim::Player,
+    project: &dyn Fn(i32, i32, i32) -> Option<(i32, i32)>,
+) {
+    let c = if ghost.clear {
+        render::silhouette::team_unit(owner).map(|v| f32::from(v) / 255.0)
+    } else {
+        REFUSED
+    };
+    let px: Vec<Option<(i32, i32)>> = ghost
+        .corners
+        .iter()
+        .map(|&(x, y, z)| project(x, y, z))
+        .collect();
+    for k in 0..px.len() {
+        if let (Some(a), Some(b)) = (px[k], px[(k + 1) % px.len()]) {
+            p.line(a, b, SCALE, c);
+        }
+    }
+}
+
+/// A refused placement's outline: red (ours).
+pub const REFUSED: [f32; 3] = [1.0, 0.0, 0.0];
+
 /// The console's line as drawn (item 4283): `>`, the prompt the original's
 /// console echoes a command with, what it holds, and a cursor.
 pub fn console_text(line: &str) -> String {

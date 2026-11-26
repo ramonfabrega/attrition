@@ -936,6 +936,30 @@ fn the_wonder_mark_is_one_past_the_highest_entry_in_use() {
     assert_eq!(sim.ai.ai[1].census.wonder_mark, 0, "a leader's own list");
 }
 
+/// **A wonder's close walks the mark down at once** (item 4692):
+/// `Build::close@00628980:316` calls `Wonders::close_wonder` inside the
+/// close, so the owner's `wonder_mark` is 0 before any pass end. Run1799's
+/// who=2 Hanging Gardens `2/2028`, closed on 3523, reads 0 on the block.
+#[test]
+fn a_wonder_s_close_clears_its_entry_without_waiting_for_the_pass() {
+    let (mut sim, t) = sim();
+    let _a = city(&mut sim, &t, 0, 40, 40);
+    let _b = city(&mut sim, &t, 0, 80, 40);
+    let one = sim
+        .place_building(0, t.wonder, tile_pos(48, 40))
+        .expect("a wonder places");
+    finish(&mut sim, one);
+    sim.note_wonders();
+    assert_eq!(sim.ai.ai[0].census.wonder_mark, 1);
+    sim.close_building_for(one, 0);
+    assert!(!sim.buildings[one].alive);
+    assert_eq!(sim.ai.ai[0].census.wonder_slots, [None]);
+    assert_eq!(
+        sim.ai.ai[0].census.wonder_mark, 0,
+        "the close's own walk, no note_wonders between"
+    );
+}
+
 /// `BuildData::wonder` (+0x76), the checksum's builds word: −1 until
 /// `Build::activate`'s wonder arm stores the entry `Wonders::init_wonder`
 /// took, so a wonder reads its slot in its owner's list and an unfinished

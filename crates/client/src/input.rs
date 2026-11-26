@@ -1269,6 +1269,17 @@ pub fn one_package(orders: impl IntoIterator<Item = Order>) -> Option<Order> {
     out
 }
 
+/// **The placement's ghost** ([`Input::ghost`], item 4695): the armed
+/// type, the site's centre as the build would place it, its footprint's
+/// four corners on the ground, and whether the site is clear there.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Ghost {
+    pub ty: i32,
+    pub at: Pos,
+    pub corners: [(i32, i32, i32); 4],
+    pub clear: bool,
+}
+
 /// The session's input state: who issues, and what is selected or chosen.
 #[derive(Clone, Debug, Default)]
 pub struct Input {
@@ -1280,6 +1291,9 @@ pub struct Input {
     pub building: bool,
     /// The building chosen to place, by `TypeIndex`.
     pub placing: Option<i32>,
+    /// The cursor's pixel, the window's last `CursorMoved`: where the
+    /// placement's ghost is drawn ([`Input::ghost`], item 4695).
+    pub hover: Option<(i32, i32)>,
     /// The citizen's panel (item 4339, §32.7): `None` is `STANDARD_OPTIONS`,
     /// the page buttons; `Some(k)` is `BUILD_OPTIONS` at `mode_data` `k`,
     /// page `k`'s buildings. A new selection returns it to `None`, as
@@ -2046,6 +2060,79 @@ impl Input {
         }
     }
 
+    /// The first of the slot's own live citizens in the selection, by its
+    /// index in the walk's units: the selection a citizen's panel is made
+    /// for (item 4337).
+    fn citizen(&self, sim: &sim::Sim) -> Option<usize> {
+        self.selection.iter().find_map(|id| {
+            if id.who != self.player {
+                return None;
+            }
+            sim.units.iter().position(|u| {
+                u.alive()
+                    && u.owner == self.player
+                    && u.index == id.o
+                    && u.ty.is_some_and(|t| {
+                        CITIZENS.contains(&(t as i32 + rondata::load::BASE_UNITTYPES))
+                    })
+            })
+        })
+    }
+
+    /// **The placement's ghost** (item 4695, `docs/CLIENT_INPUT.md` §39):
+    /// while a build is armed, the armed type's footprint at the ground
+    /// point under the cursor, moved as `Group::action_build` moves the
+    /// site it places ([`sim::Sim::snap_center_placed`]), and whether
+    /// [`sim::Sim::blocked_site`] clears it there. `None` with nothing
+    /// armed, no cursor, no walk, a pixel off the ground or a type that is
+    /// no building record.
+    pub fn ghost(&self, view: &View) -> Option<Ghost> {
+        let ty = self.placing?;
+        let sim = view.sim?;
+        let (x, y) = self.hover?;
+        let rec = usize::try_from(ty - rondata::load::BASE_BUILDTYPES).ok()?;
+        let bt = sim.tables.build_types.get(rec)?;
+        let at = ground_at(view, x, y)?;
+        let at = sim.snap_center_placed(rec, at, Some(self.player));
+        let clear = sim.blocked_site(Some(self.player), rec, at, None)
+            == sim::cities::place::Blocked::Clear;
+        let (hx, hy) = (bt.x_size * TILE / 2, bt.y_size * TILE / 2);
+        let z = view.ground_z(at.x, at.y);
+        Some(Ghost {
+            ty,
+            at,
+            corners: [
+                (at.x - hx, at.y - hy, z),
+                (at.x + hx, at.y - hy, z),
+                (at.x + hx, at.y + hy, z),
+                (at.x - hx, at.y + hy, z),
+            ],
+            clear,
+        })
+    }
+
+    /// **Whether a build of `ty` may be armed** (item 4695,
+    /// `docs/CLIENT_INPUT.md` §39): a [`BUILD_KEYS`] key or a
+    /// [`Event::Place`] is a press of a button on the citizen's build
+    /// pages, so with the walk it arms only what [`Input::panel`] offers —
+    /// a selection holding one of the slot's citizens, and `ty` on
+    /// [`Roster::build_pages`] with `disable` 0. Without the walk (the
+    /// scripts' views) every unit selection arms, as before.
+    fn may_place(&self, ty: i32, sim: Option<&sim::Sim>) -> bool {
+        let Some(sim) = sim else {
+            return true;
+        };
+        // A roster read from no install (the scripts' default) has no
+        // pages to ask: the citizen alone is asked.
+        self.citizen(sim).is_some()
+            && (self.roster.pages.is_empty()
+                || self
+                    .roster
+                    .build_pages(sim, usize::from(self.player))
+                    .iter()
+                    .any(|b| b.ty == ty && b.disable == 0))
+    }
+
     /// **The panel's buttons for the selection** (item 4290,
     /// `docs/CLIENT_INPUT.md` §32), each its event, its option and its
     /// `disable`: a [`Event::Train`] for a building selection and a
@@ -2077,20 +2164,7 @@ impl Input {
             };
             // With the walk (item 4337): the original's three pages, for a
             // selection holding one of the slot's own citizens.
-            let citizen = self.selection.iter().find_map(|id| {
-                if id.who != self.player {
-                    return None;
-                }
-                sim.units.iter().position(|u| {
-                    u.alive()
-                        && u.owner == self.player
-                        && u.index == id.o
-                        && u.ty.is_some_and(|t| {
-                            CITIZENS.contains(&(t as i32 + rondata::load::BASE_UNITTYPES))
-                        })
-                })
-            });
-            let Some(citizen) = citizen else {
+            let Some(citizen) = self.citizen(sim) else {
                 return Vec::new();
             };
             // One page at a time (item 4339): the standard arm's page
@@ -3198,7 +3272,7 @@ impl Input {
                 None
             }
             Event::Place(ty) => {
-                if !self.selection.is_empty() && !self.building {
+                if !self.selection.is_empty() && !self.building && self.may_place(ty, view.sim) {
                     self.garrisoning = false;
                     self.picking = None;
                     self.placing = Some(ty);
@@ -3215,6 +3289,9 @@ impl Input {
                     Some((frame, play, vec![self.group(view.scene), cmd]))
                 } else {
                     let &(_, ty) = BUILD_KEYS.iter().find(|(c, _)| *c == k)?;
+                    if !self.may_place(ty, view.sim) {
+                        return None;
+                    }
                     self.garrisoning = false;
                     self.picking = None;
                     self.placing = Some(ty);
