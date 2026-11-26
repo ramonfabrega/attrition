@@ -1672,7 +1672,7 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 | 23 | run1774 | Atlantic Sea Power | the computers | 6,001 | 10 | **leaders 0**, units 5695 |
 | 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~3192, 3223, 3299, 3442, 3833, 3899~~ 3995 |
 | 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, to 4222 | **12** | ~~1582, 1789, 3683, 3986~~ whole |
-| 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | [units 3716 after the caravan kill](journal/2026-11-26-item-4573.md) |
+| 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | [leaders 3751 after a decoy](journal/2026-11-26-item-4717.md) |
 | 103 | run1778 | East Indies, Modern | the computers | 3,295, to 3294 | **12** | ~~1750, 1757, 1790, 2557 (GROUPS §3.4), ammo 2860, world 2983~~ whole (COLLISION §2) |
 | 123 | run1779 | Great Lakes, Gunpowder | human + added | 6,001 | 3 | ~~builds, groups 2977~~ whole (below) |
 | 143 | run1780 | Great Sahara, difficulty 1 | the computers | 6,001 | **12** | whole |

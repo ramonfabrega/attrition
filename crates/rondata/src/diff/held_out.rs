@@ -12954,13 +12954,21 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // nearby trade road before choosing its death animation. Deaths
         // 3715 -> 3782; the first difference is units on 3716. Later
         // partial item and goods counts fall; see the item journal.
+        // Item 4717 (`compare_target`'s detected-decoy arm, `64f2c1`..
+        // `64f2f9`; run1845's packet at 3715): the Anti-tank Rifle 2/125
+        // scores the decoy Light Tank 1/38 at 1, where the wrapped threat
+        // product made it 376,354, and takes 1/24 (104,679). On 3716 units
+        // record 1/24 `targeted` ours 0 -> 1, 1/38 ours 15 -> 14, as
+        // theirs. Units 3,746 -> 3,753 (first 3716 -> 3753); the row's
+        // first parting is leaders on 3751 (range 292, record 2,
+        // `sites[k]` byte 20, ours 0x0a, theirs 0x02).
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3746, 3753, 6001, 3796, 3782, 3754, 3753, 3751, 3753, 4069, 4078, 3753,
+                3753, 3753, 6001, 3796, 3782, 3754, 3753, 3751, 3753, 4069, 4078, 3753,
             ],
             first: &[
-                ("units", (3716, Some(3626644114), 4255724178)),
+                ("units", (3753, Some(3033753739), 1352412094)),
                 ("builds", (3753, Some(3619391689), 3659641308)),
                 ("ammo", (3763, Some(3601468407), 1)),
                 ("deaths", (3782, Some(1712482989), 2133228083)),
