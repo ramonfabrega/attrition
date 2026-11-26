@@ -509,7 +509,7 @@ pub(in crate::diff) mod tests {
     /// Item 4697: the ordered chase places the same four path nodes on 11487.
     /// Item 4698: a new garrison order keeps the catapult packing.
     /// Item 4699: Agriculture gets its Bison discount.
-    const SAMPLE_WALKED: (i64, i64) = (12928, 21044);
+    const SAMPLE_WALKED: (i64, i64) = (13608, 21044);
 
     /// run1662: the sample played whole under the `RON_CHECKSUMS` hook
     /// (`docs/RUNS.md` run1662), the fifteen sums on every frame.
@@ -848,18 +848,18 @@ pub(in crate::diff) mod tests {
     /// Item 4698: the two siege units take their recorded orders on 11687.
     /// Item 4699: player 2's research list now matches on 12354.
     const SAMPLE_LINES: &[(&str, i64)] = &[
-        ("units", 12872),
-        ("builds", 12955),
+        ("units", 13610),
+        ("builds", 13613),
         ("walls", 21044),
-        ("ammo", 12939),
-        ("deaths", 12936),
-        ("groups", 12872),
-        ("guys", 12912),
-        ("leaders", 12936),
-        ("cities", 12975),
-        ("items", 13033),
-        ("goods", 13211),
-        ("world", 12913),
+        ("ammo", 13610),
+        ("deaths", 13633),
+        ("groups", 13610),
+        ("guys", 13610),
+        ("leaders", 13612),
+        ("cities", 13651),
+        ("items", 15545),
+        ("goods", 14185),
+        ("world", 13610),
     ];
 
     /// The headline's other games, each whole on the twelve lines over
@@ -1580,6 +1580,11 @@ pub(in crate::diff) mod tests {
     }
 
     #[test]
+    fn the_sample_s_mixed_selection_sends_the_field_group_and_its_building_separately() {
+        assert_sample_window(run1844(), 12869, 12874, Some((12871, 2)));
+    }
+
+    #[test]
     fn the_sample_s_scout_order_and_city_marks_match_both_recorded_lines() {
         let (Some(inst), Some(rcx), Some(mut ranges)) = (install(), sample(), run1786()) else {
             return;
@@ -2205,91 +2210,84 @@ pub(in crate::diff) mod tests {
     const SAMPLE_RANGES_1844: &[PinnedRange] = &[
         (
             "units",
-            12872,
-            8011,
-            8011,
-            20,
-            "5419 27 collide_frame..play: group 201|192",
+            13610,
+            8570,
+            8508,
+            3202,
+            "964 41 guy: end_time 30|80, cur_anim 29|31",
         ),
         (
             "builds",
-            12955,
-            6611,
-            6611,
+            13613,
+            6707,
+            6707,
             1,
-            "5795 2047 gather_down..infiltrate2: attack_ox 46|87",
+            "5126 2039 myhits..launch_frames: up 119|-1",
         ),
-        (
-            "ammo",
-            12939,
-            3,
-            3,
-            1,
-            "1 0 rolling..start_roll_angle: +0x7 of 99|99: e1420000|e7410000",
-        ),
+        ("ammo", 13610, 0, 6, 6, "0 0 flags: +0x0 of 1|0: 06|"),
         (
             "deaths",
-            12936,
-            52,
+            13633,
             54,
-            18,
-            "21 10 first_frame..unit_crew: +0x0 of 71|71: 87320000|ff2f0000",
+            54,
+            1,
+            "9 4 first_frame..unit_crew: +0x8 of 71|71: b8470000|294a0000",
         ),
         (
             "groups",
-            12872,
+            13610,
             616,
-            610,
-            378,
-            "234 192 id..march: num 0|17, form -1|0, ox 0|15040, oy 0|19530, o_dist 0|180, o_angle 0|-2147483648, order_num 0|1, role 0|1379599, new_speed 0|30, speed 0|30, form_num 0|17, facing 0|1, who 0|3",
+            616,
+            5,
+            "273 201 id..march: form -1|0, ox 0|21600, oy 0|25440, o_dist 0|179, o_angle 0|1186332672, order_num 0|1, role 0|1379599, new_speed 52|25, speed 0|25, form_num 0|33",
         ),
         (
             "guys",
-            12912,
-            2355,
-            2355,
-            7,
-            "1806 62 guy: des_angle 661979136|662503424",
+            13610,
+            2451,
+            2451,
+            37,
+            "303 41 guy: end_time 30|80, cur_anim 29|31",
         ),
         (
             "leaders",
-            12936,
+            13612,
             675,
             675,
-            3,
-            "271 2 who..ally_mask: +0x3c of 26914|26914: f7000000|dc000000",
+            2,
+            "271 2 who..ally_mask: +0xa56 of 26914|26914: 03000e00|01000e00",
         ),
         (
             "cities",
-            12975,
-            86,
-            86,
+            13651,
+            88,
+            88,
             1,
-            "84 12 city..ter: raid_stamp 12974|11968",
+            "18 13 city..ter: attack_stamp 13597|13650, raid_stamp 13597|13650",
         ),
         (
             "items",
-            13033,
-            15,
-            15,
+            15545,
+            10,
+            10,
             1,
-            "10 27 ever_seen: +0x0 of 1|1: 00|01",
+            "5 21 ever_seen: +0x0 of 1|1: 04|00",
         ),
         (
             "goods",
-            13211,
+            14185,
             265,
             265,
             1,
-            "230 46 ever_seen: +0x0 of 1|1: 09|08",
+            "250 50 ever_seen: +0x0 of 1|1: 0d|05",
         ),
         (
             "world",
-            12913,
-            7865,
-            7865,
-            2,
-            "5301 1458 block.body: +0x19 of 96|96: 0e00ce00|8e00ce00",
+            13610,
+            8015,
+            8015,
+            16,
+            "1967 1943 cell: +0x8 of 21|21: 49000300|4a000300",
         ),
     ];
 }

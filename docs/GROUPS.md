@@ -561,6 +561,16 @@ the parent, and `action_move_near` recurses on it; then the parent is
 cleared and the call returns. **An army's group never splits**: the test is
 `*(int *)&this->field_0x8 < 0` at `70497e`/`704c5e`.
 
+Run1844 shows the building case at the package on 12871. Of the twenty
+selected figures, seventeen are on the map and three are inside building
+3/2037. The seventeen take group 192 in selection order. The building
+occupies one entry in group 193. The temporary group 201 clears its list
+and state. Its three former occupants retain 201 in their individual
+group fields. All unit and group ranges agree across the package and the
+following ticks. The boat and army cases above have native controls. Their
+original behavior here is a reading-only claim.
+[Recorded groups and controls](journal/2026-11-25-item-4703.md)
+
 If the destination cell is **not water** (`terrain & 0x30 != 0x20`) the
 split is re-done with a different rule — a **sea transport** and a *carried*
 unit go to the first group, everything else to the second — and the same

@@ -4828,3 +4828,100 @@ fn a_plane_led_group_s_move_to_leaves_its_record_as_pushed() {
         "the footman's move writes the record"
     );
 }
+
+#[test]
+fn a_move_separates_a_garrisoned_squad_from_the_walkers() {
+    let mut sim = sim();
+    let ty = fighter(&mut sim);
+    let pos = Pos::new(6000, 6000);
+    let walker = spawn(&mut sim, 0, ty, pos);
+    let first = spawn(&mut sim, 0, ty, pos);
+    let second = spawn(&mut sim, 0, ty, pos);
+    let building = sim.add_building(0, pos, 3);
+    sim.go_inside(first, building);
+    sim.go_inside(second, building);
+    let mut g = Group::stack(0);
+    for u in [first, walker, second] {
+        sim.group_add(&mut g, u);
+    }
+    assert!(sim.push_group(&mut g, true));
+    let old = g.pushed.unwrap();
+    let old_pool = sim.orders.pushed[old].state.pool;
+    sim.frame = 17;
+    let to = Pos::new(7200, 7200);
+    sim.group_action_move_to(
+        &g,
+        to,
+        QueuePos::New,
+        false,
+        Angle(0),
+        MoveKind::MoveTo,
+        true,
+    );
+
+    assert!(sim.orders.pushed[old].list.is_empty());
+    assert_eq!(sim.orders.pushed[old].state.stamp, 17);
+    let field = sim.units[walker].group_ptr.unwrap();
+    assert_ne!(Some(field), old_pool);
+    assert_eq!(sim.pool_list(0, field), vec![sim.units[walker].index]);
+    let last = sim.orders.last_group[0];
+    assert_ne!(field, last);
+    let (_, hosts) = sim.pool_building_group(0, last).unwrap();
+    assert_eq!(hosts, vec![sim.buildings[building].index]);
+    for u in [first, second] {
+        assert_eq!(sim.units[u].inside, Some(building));
+        assert_eq!(sim.units[u].group_ptr, old_pool);
+    }
+}
+
+#[test]
+fn a_boat_represents_its_rider_in_a_mixed_move_but_an_army_keeps_its_group() {
+    let mut sim = sim();
+    let land = fighter(&mut sim);
+    let mut sea_type = sim.tables.unit_types[land].clone();
+    sea_type.combat.domain = Domain::Sea;
+    sea_type.kind.domain = Domain::Sea;
+    let sea = sim.add_unit_type(sea_type);
+    let pos = Pos::new(6000, 6000);
+    let walker = spawn(&mut sim, 0, land, pos);
+    let rider = spawn(&mut sim, 0, land, pos);
+    let boat = spawn(&mut sim, 0, sea, pos);
+    sim.board(rider, boat);
+    let mut army_sim = sim.clone();
+    let slot = army_sim.init_army(0, None);
+    army_sim.army_add_unit(0, slot, walker);
+    army_sim.army_add_unit(0, slot, boat);
+    let army = army_sim.army_group(0, slot);
+    let before = army_sim.units[walker].group_ptr;
+    army_sim.group_action_move_to(
+        &army,
+        Pos::new(7200, 7200),
+        QueuePos::New,
+        false,
+        Angle(0),
+        MoveKind::MoveTo,
+        true,
+    );
+    assert!(before.is_some());
+    assert_eq!(army_sim.units[walker].group_ptr, before);
+    assert_eq!(army_sim.units[boat].group_ptr, before);
+
+    let mut g = group_of(0, &[rider, walker, boat]);
+    assert!(sim.push_group(&mut g, true));
+    sim.group_action_move_to(
+        &g,
+        Pos::new(7200, 7200),
+        QueuePos::New,
+        false,
+        Angle(0),
+        MoveKind::MoveTo,
+        true,
+    );
+    let ship_slot = sim.units[boat].group_ptr.unwrap();
+    let foot_slot = sim.units[walker].group_ptr.unwrap();
+    assert_ne!(ship_slot, foot_slot);
+    assert_eq!(sim.pool_list(0, ship_slot), vec![sim.units[boat].index]);
+    assert_eq!(sim.pool_list(0, foot_slot), vec![sim.units[walker].index]);
+    assert_eq!(sim.units[rider].inside_unit, Some(boat));
+    assert_eq!(sim.orders.last_group[0], ship_slot);
+}

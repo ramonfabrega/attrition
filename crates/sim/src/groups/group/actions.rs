@@ -294,6 +294,55 @@ impl Sim {
             return;
         }
 
+        // A selection can contain a squad that has already gone inside.
+        // Its host takes a separate move group. Army groups keep their seat.
+        if let Some((walkers, carriers)) = self.split_move_group(g) {
+            let move_units = |sim: &mut Self, mut part: Group| {
+                sim.push_group(&mut part, true);
+                let facing = sim.gstate(g).is_some_and(|state| state.facing);
+                if let Some(state) = sim.gstate_mut(&part) {
+                    state.facing = facing;
+                }
+                sim.group_action_move_to(&part, to, queue, set_angle, angle, kind, action);
+            };
+            move_units(self, walkers);
+            match carriers[0] {
+                Obj::Building(first) => {
+                    let owner = self.buildings[first].owner;
+                    let mut hosts = Vec::new();
+                    for carrier in carriers {
+                        if let Obj::Building(b) = carrier
+                            && self.buildings[b].owner == owner
+                            && !hosts.contains(&b)
+                        {
+                            hosts.push(b);
+                        }
+                    }
+                    self.push_buildings_group(owner, &hosts);
+                    let last = self.orders.last_group[owner as usize];
+                    let facing = self.gstate(g).is_some_and(|state| state.facing);
+                    if let Some(seat) = self.pool_seat(owner, last) {
+                        self.seat_parts(seat).1.facing = facing;
+                    }
+                }
+                Obj::Unit(first) => {
+                    let mut boats = Group::stack(self.units[first].owner);
+                    for carrier in carriers {
+                        if let Obj::Unit(u) = carrier {
+                            self.group_add(&mut boats, u);
+                        }
+                    }
+                    move_units(self, boats);
+                }
+            }
+            if let Some(p) = g.pushed {
+                let parent = &mut self.orders.pushed[p];
+                parent.list.clear();
+                parent.state.clear(self.frame);
+            }
+            return;
+        }
+
         // §17 — **a group's `QUEUE_FIRST` is not a member's.** The arm at
         // `00704bfe` does not hand `QUEUE_FIRST` down to
         // `add_move_facing_order` at all: it copies the **leader's**
@@ -839,6 +888,47 @@ impl Sim {
         // run31 measures §6.4's displacement.
         self.record_form(g, &slots, to);
         self.record_move(g, to, angle, queue);
+    }
+
+    /// The first partition of `Group::action_move_near` (GROUPS §6.1).
+    /// A sea unit represents itself. A unit in a container represents its
+    /// outermost host. The other live figures take the move as a group.
+    fn split_move_group(&self, g: &Group) -> Option<(Group, Vec<Obj>)> {
+        if g.army.is_some() || g.list.len() < 2 {
+            return None;
+        }
+        let carrier_of = |u: usize| {
+            if self.group_domain(u) == Domain::Sea {
+                return Some(Obj::Unit(u));
+            }
+            let mut at = u;
+            for _ in 0..self.units.len() {
+                match self.units[at].inside_unit {
+                    Some(host) => at = host,
+                    None => {
+                        return self.units[at]
+                            .inside
+                            .map(Obj::Building)
+                            .or_else(|| (at != u).then_some(Obj::Unit(at)));
+                    }
+                }
+            }
+            None
+        };
+        let live = || g.list.iter().copied().filter(|&u| self.units[u].alive());
+        if !live().any(|u| carrier_of(u).is_some()) || !live().any(|u| carrier_of(u).is_none()) {
+            return None;
+        }
+        let mut walkers = Group::stack(g.who);
+        let mut carriers = Vec::new();
+        for u in live() {
+            if let Some(carrier) = carrier_of(u) {
+                carriers.push(carrier);
+            } else {
+                self.group_add(&mut walkers, u);
+            }
+        }
+        (!walkers.list.is_empty()).then_some((walkers, carriers))
     }
 
     /// The type `action_move_near`'s different-region arm sweeps for member

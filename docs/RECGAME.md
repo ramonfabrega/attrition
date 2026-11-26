@@ -692,6 +692,13 @@ and all its members match after replacing the earlier move. The first
 state mismatch moves to 12872, and draws to 12928.
 [Recorded fields and the two controls](journal/2026-11-25-item-4702.md)
 
+**The mixed selection (item 4703).** On 12871 player 3 moves seventeen
+figures on the map along with three figures still inside building 2037.
+The building gets a single group entry. Separating that selection
+recovers all eleven incomplete state prefixes. The earliest differences
+move to state 13610 and draw frame 13608.
+[Groups before and after the command](journal/2026-11-25-item-4703.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte
