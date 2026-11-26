@@ -836,7 +836,14 @@ Read whole (506 lines). `compute_site_stats(wx, wy, city, unit, reg, &val,
     (`006cd9e3`, `006cd9f1` jump to the epilogue at `006cdc68`, past the
     stores): they are **`return`s**. A dead city slot, or a city of mine
     outside the site's region, ends the whole function with
-    `val = 0, dist = 0`.
+    `val = 0, dist = 0`. **"Each of my cities" is the first
+    `LeaderData +0x408` slots of my list** (item 4721), not every record
+    I own: `Cities::capture_city@00733380:1157`–`:1166` and
+    `Cities::close_city@00733310` pop the trailing dead slots off that
+    length after `City::close`, so a lost city at the list's tail is never
+    walked, and a dead slot ahead of a live one is. Row 83's who=2 lost
+    its third city on 3644; ours walked the dead record and scored all ten
+    sites 0 on its 3751 sweep (`Sim::city_list`).
 13. Enemy proximity (not maps `0xc`/`0x11`, and `city_num == 1` or team
     style 2): over **every alive leader not allied with me** — either
     side's `diplos != 2`, *not* "at war" and *not* restricted to computer
@@ -1959,6 +1966,11 @@ folded back into §2's prose.
 - ~~**`TechType::ai[11]`** — derived at load, seamed to zero: `w = 1`.~~
   **Closed the same day**: `ai_load::compute_ai_values`, and all 85 × 11
   weights equal the program's.
+- **The other readers of a leader's city-list length** (`LeaderData +0x408`;
+  parked 4721a): `compute_site_stats` walks the trimmed length
+  (`Sim::city_list`, item 4721), but the views in `cities/location.rs`,
+  `cities/activate.rs` and `units/think/carry_mil.rs` count every record the
+  leader owns, a trailing dead slot included. No score names one yet.
 - **The market**: `use_market` computes its need and its gate and neither
   trades nor draws (the one draw sits in the sell branch, and which branch
   is taken is a price question), `market_speculation` clamps and tiers.
