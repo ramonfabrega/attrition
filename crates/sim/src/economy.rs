@@ -223,6 +223,9 @@ pub const WOOL: usize = 33;
 /// as `bit_values 081000` beside Amber's `080000`.
 pub const COTTON: usize = 22;
 
+/// Resource 23 discounts research at the Granary.
+pub const BISON: usize = 23;
+
 /// `TypeIndex::TOBACCO` — the rare `Wall::update_construct_time` reads.
 ///
 /// `0063d560:32` tests `LeaderData +0x6da5 & 0x20` **or** `+0x6dcd &

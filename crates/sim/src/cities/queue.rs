@@ -200,6 +200,10 @@ impl Sim {
         }
         let holdings = &self.economy.holdings[who as usize];
         let (rare_goods, gypsum) = self.rare_goods_discounts(who);
+        let tech = &self.tables.tech_tree.types[t];
+        let at_granary = tech.kind.is_plain_tech()
+            && tech.where_.is_some()
+            && tech.where_ == self.tables.tech_tree.roles.granary;
         let british_taxation = self.tables.tech_tree.roles.taxation_line.contains(&t)
             && self.tables.tech_tree.has_tribe_bonus(
                 &self.tables.setup,
@@ -208,7 +212,7 @@ impl Sim {
             );
         let price = crate::economy::cost::Price {
             kind: crate::economy::cost::Kind::Tech,
-            base: self.tables.tech_tree.types[t].cost,
+            base: tech.cost,
             ..crate::economy::cost::Price::free()
         };
         crate::economy::cost::charges(
@@ -218,6 +222,11 @@ impl Sim {
             &crate::economy::cost::Modifiers {
                 science_ahead: self.science_ahead(who, t),
                 ages_behind: self.ages_behind(who, t),
+                bison_granary: if at_granary && self.has_rare(who, economy::BISON) {
+                    self.tables.tuning.bison_granary_cost
+                } else {
+                    0
+                },
                 democracy: self.democracy_tech_discount(who, t),
                 industry: self.industry_tech_discount(who, t),
                 german_industry: self.german_industry_tech_discount(who, t),

@@ -667,6 +667,13 @@ and on the following ticks. The next unequal state is 12354 on leaders,
 when player 2 puts Agriculture in its fourth research slot. Draws agree
 through 12356. [Order and peer comparison](journal/2026-11-25-item-4698.md)
 
+**Bison and Granary research (item 4699).** On 12353 player 2 has 148
+timber. Agriculture's full price is 150 timber and 150 metal. With Bison
+it costs 100 of each. The offer rises to 447360, taking the fourth
+slot from Carpentry at 279600 exactly as in run1844. All eleven slots
+agree. Units next differ on 12520 and draws on 12668.
+[Price, affordability and production-list checks](journal/2026-11-25-item-4699.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte

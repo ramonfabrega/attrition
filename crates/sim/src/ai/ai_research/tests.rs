@@ -467,6 +467,31 @@ fn the_germans_pay_half_for_the_industry_lines() {
     assert_eq!(sim.tech_price(1, t.taxation), [88, 88, 0, 0, 0, 0]);
 }
 
+#[test]
+fn bison_discounts_granary_research_before_affordability() {
+    let (mut sim, t) = sim();
+    let tech = t.agriculture;
+    let granary = sim.tables.tech_tree.add(TypeDef::building("Granary"));
+    sim.tables.tech_tree.roles.granary = Some(granary);
+    sim.tables.tech_tree.types[tech].where_ = Some(granary);
+    sim.tables.tech_tree.types[tech].cost = [0, 15, 0, 0, 15, 0];
+    sim.tech[1].has_city = true;
+    sim.economy.holdings[1].available = [true, true, true, true, true, false];
+    let full = sim.tech_price(1, tech);
+    sim.economy.ledgers[1].bucket = full;
+    sim.economy.ledgers[1].bucket[1] -= 2;
+    let income = |sim: &Sim| sim.check_income(1, tech, 0x400, None, true, -1, 1, 0);
+    assert_eq!(income(&sim), 64);
+
+    sim.economy.ledgers[1].rare |= 1 << (crate::economy::BISON - crate::economy::BASE_RARE);
+    assert_eq!(sim.tech_price(1, tech), full.map(|v| v * 67 / 100));
+    assert_eq!(income(&sim), 256);
+
+    sim.tables.tech_tree.types[tech].where_ = None;
+    assert_eq!(sim.tech_price(1, tech), full);
+    assert_eq!(income(&sim), 64);
+}
+
 /// `get_cost:1048`–`1053`: a government costs an American leader
 /// nothing, and only a government, and only the Americans (item 3374:
 /// run999b's who=1 queues Republic on 10982 and pays only a Dock's

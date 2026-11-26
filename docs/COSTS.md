@@ -1522,3 +1522,14 @@ settled the two upgrade loops, `+0x260` as `special_upgrade`, the ignore-pop-cap
 flag `0x100000`, Salt's hard-coded nine tenths, Terra Cotta's missing wonder
 check with Angkor Wat's live 25% on land units, the tech science discount, and
 the exact `refund_cost` inversion.
+
+## Bison and research at the Granary
+
+The shipped Bison discount is 33 percent. A player who holds the rare
+resource pays 67 percent of each resource in a Granary technology's
+price, with integer truncation before the Democracy discount. On the
+2017 sample this brings Agriculture's two charges from 150 to 100.
+With 148 timber and 160 metal the Inca can afford one. The original's
+AI offer on 12354 confirms full affordability and all ten peer slots.
+The exact 100 is derived from the rules and the price calculation.
+[Research and price comparison](journal/2026-11-25-item-4699.md)

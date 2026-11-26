@@ -360,6 +360,8 @@ pub struct Modifiers {
     /// [`Modifiers::science_ahead`], before the final-tech ramp. Zero is
     /// the identity (item 4513, `docs/COSTS.md`).
     pub ages_behind: i32,
+    /// Bison discount on Granary research, rounded before Democracy.
+    pub bison_granary: i32,
     /// Non-library technology discount, after Science and before the
     /// British taxation term. Its own truncation (`docs/AI.md` §109).
     pub democracy: i32,
@@ -786,6 +788,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     }
     if m.greek_research != 0 && r != Resource::Knowledge {
         cost = (100 - m.greek_research) * cost / 100;
+    }
+    if m.bison_granary != 0 {
+        cost = cost.wrapping_mul(100 - m.bison_granary) / 100;
     }
     if m.democracy != 0 {
         cost = cost.wrapping_mul(100 - m.democracy) / 100;

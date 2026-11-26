@@ -472,6 +472,8 @@ pub struct Tuning {
     /// `(100 − x) × cost / 100`, after Versailles and before the
     /// library-line tail (`docs/COSTS.md`, "The discounts").
     pub silver_age_cost: i32,
+    /// Percent off research at a Granary while the player holds Bison.
+    pub bison_granary_cost: i32,
     /// `SUGAR_FOOD_COST`, `COAL_TIMBER_COST`, `GOLD_WEALTH_COST`,
     /// `IRON_METAL_COST` and `GYPSUM_COST` — `get_cost`'s shared tail
     /// (Sugar `+0x928`, Gold `+0x974`, Iron `+0x988`, Gypsum `+0x96c`;
@@ -1618,6 +1620,7 @@ impl Tuning {
         chinese_science_discount: 20,
         americans_science_discount: 0,
         silver_age_cost: 15,
+        bison_granary_cost: 33,
         sugar_food_cost: 10,
         coal_timber_cost: 25,
         gold_wealth_cost: 10,
@@ -2223,6 +2226,7 @@ impl Tuning {
                 Slot::Value(T.americans_science_discount),
             ),
             ("SILVER_AGE_COST", Slot::Value(T.silver_age_cost)),
+            ("BISON_GRANARY_COST", Slot::Value(T.bison_granary_cost)),
             ("SUGAR_FOOD_COST", Slot::Value(T.sugar_food_cost)),
             ("COAL_TIMBER_COST", Slot::Value(T.coal_timber_cost)),
             ("GOLD_WEALTH_COST", Slot::Value(T.gold_wealth_cost)),
