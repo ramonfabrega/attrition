@@ -41073,6 +41073,11 @@ minutes were spent waiting on another lane. `df -g ~` read 88 GB free before it 
   builds → 3,779, guys → 3,775, cities → 3,796, deaths → 3,811, world → 3,776; ammo 3,796 → 3,795 (a named fall).
   The row's first parting is groups and leaders on 3754: groups range 85, record 67, `num` ours 0, theirs 1 (`stamp`
   3736 against 3753, `buildings` 0 against 1); leaders range 128, record 1, `flags` byte 3, ours 0x00, theirs 0x02.
+- **Re-scored by item 4726** (`Object::take_damage@00652020`'s building bell asks the struck building's type vslot
+  `+0x90`, `Type::is_gather_type`, before the city flag): on 3753 who=2's `2/273` strikes who=1's gather building
+  `1/2044` in the city of `1/2043`; theirs pushes `[1/2043]` (who=1's slot 3, `last_group` `0x43`) and its press sets
+  `0x2000000`. Groups 3,754 → 3,808, leaders 3,754 → 3,782. The row's first parting is units and guys on 3775:
+  range 9020, record 114, `x` ours 7967, theirs 7932, `y` ours 28348, theirs 28344.
 - Filed by `filerun.py run1784 heldout5-row083-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1784-heldout5-row083-ranges.txt`, 2,869 bytes, SHA-256
   `a9b435ef5bd053ca7a1b9832b5ce70729ff25450cfd7d673a1485805af3a85f1`; `rontrace.log` → `Logs/rontrace-run1784.log`,
