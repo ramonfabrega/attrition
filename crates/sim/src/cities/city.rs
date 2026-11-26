@@ -1840,32 +1840,6 @@ impl Sim {
         })
     }
 
-    /// `BuildData::construct_time(1)` for a building: what
-    /// `Unit::do_repair@005ee420` reads (`push 1` at `0x5ee6f7`, vslot
-    /// `+0x18c` at `0x5ee702`). **A non-zero argument returns before the
-    /// Hanging Gardens, President and Iroquois arms**
-    /// (`construct_time@0062d5c0`, `if (param_1 != 0) goto LAB_0062d8e3`
-    /// after the free-wonder arm), so a repair's period is measured on the
-    /// walked `constr_time` (`+0x50`) alone (item 4720, `docs/RECGAME.md`
-    /// §13.3: run1799's who=1 Small City `1/2039`, its President near,
-    /// mends at period 418 where [`Sim::construct_time_of`]'s 40601 gave
-    /// 314).
-    pub fn repair_construct_time(&self, b: usize) -> i32 {
-        let bd = &self.buildings[b];
-        match bd.ty {
-            Some(t) => build::construct_time(
-                &self.tables.tuning,
-                &self.tables.build_types[t],
-                bd.constr_time,
-                &build::ClockMods {
-                    free_first_wonder: self.american_free_wonder(b, t),
-                    ..build::ClockMods::default()
-                },
-            ),
-            None => 1,
-        }
-    }
-
     /// `BuildData::construct_time(0)` for a building.
     pub fn construct_time_of(&self, b: usize) -> i32 {
         let bd = &self.buildings[b];
