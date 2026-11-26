@@ -1812,10 +1812,16 @@ branches as inputs. See `combat::compare_target`. **The raid arm is built
 computer's land raider takes `+900,000` for a peasant or a caravan and
 `+10,000` for a combat unit; the `+9,000,000` is a human raider's.
 
-**Not established: the detected decoy** (item 4652, parked 4652a). At `0064ed3c`..`0064ed5c` a unit
+~~**Not established: the detected decoy** (item 4652, parked 4652a). At `0064ed3c`..`0064ed5c` a unit
 target with `unit_masks & 1` that `UnitData::is_detected@0060a630` answers for the searcher's owner
 takes `v / 4`, signed, and jumps to `0064efff`, past the raid and role weights. This crate takes the
-weights. No capture on disk reaches the arm (run1799's 2964: `seen3` 0 under both decoys).
+weights. No capture on disk reaches the arm (run1799's 2964: `seen3` 0 under both decoys).~~
+**The detected decoy is worth 1** (item 4717, diff-backed by run1845's packet). The tail repeats the
+predicate after the floor (`64f2c1`..`64f2f9`: vslot `+0x18`, `unit_masks & 1`, `is_detected` on
+the searcher's `+0x9`) and sets the value to 1, ahead of the air arm's 2. Nothing between `0064efff`
+and the tail returns, so the middle arm's `v / 4` never reaches the caller and is not built. row 83's
+`2/125` scored the decoy `1/38` at 1 on 3715 where this crate's wrapped `× dmg` made it 376,354.
+`is_detected` is `Sim::unit_detected`, which reads the ally mask **as stored** (`+0x6929`).
 
 ## 12.4 Switching and opportunity
 

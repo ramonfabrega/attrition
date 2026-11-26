@@ -1756,6 +1756,21 @@ impl Sim {
         if v < 15 {
             v = 15;
         }
+        // **A detected decoy is worth 1** (`64f2c1`..`64f2f9`, item
+        // 4717, `docs/RECGAME.md` §12.3): after the floor, a unit target
+        // (vslot `+0x18`) with `unit_masks & 1` that
+        // `UnitData::is_detected@0060a630` answers for the searcher's own
+        // leader returns 1, ahead of the air arm below. run1845's packet
+        // (row 83, logger frame 3715): the Anti-tank Rifle `2/125` scores
+        // the decoy Light Tank `1/38` at 1, where this crate's wrapped
+        // threat product made it 376,354, and takes the real `1/24` at
+        // 104,679.
+        if let Obj::Unit(u) = target
+            && self.units[u].decoy
+            && self.unit_detected(u, self.owner_of(attacker))
+        {
+            v = 1;
+        }
         if matches!(tp.domain, Domain::Air) && !ap.has(mask::ANTI_AIR) {
             v = 2;
         }

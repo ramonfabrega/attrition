@@ -41062,6 +41062,10 @@ minutes were spent waiting on another lane. `df -g ~` read 88 GB free before it 
   from who=2 on 3644), `assimilation_timer` ours 3644, theirs 3641, then 3638, as who=1's Citizen `1/15` (TI 356)
   walks in. Cities 3,656 → 3,693, ammo 3,710 → 3,711, goods 4,155 → 4,148 (a named fall). The row's first
   parting is units, builds and groups on 3662.
+- **Re-scored by item 4717** (`compare_target` scores a detected decoy at 1, `64f2c1`..`64f2f9`, run1845's packet):
+  on 3716 units record 1/24 `targeted` ours 0 → 1 and the decoy 1/38's ours 15 → 14, as theirs; the Anti-tank
+  Rifle `2/125` (TI 137) takes 1/24 on 3715. Units 3,746 → 3,753 (first 3716 → 3753). The row's first parting is
+  leaders on 3751: range 292, record 2, `sites[k]` byte 20, ours 0x0a, theirs 0x02.
 - Filed by `filerun.py run1784 heldout5-row083-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1784-heldout5-row083-ranges.txt`, 2,869 bytes, SHA-256
   `a9b435ef5bd053ca7a1b9832b5ce70729ff25450cfd7d673a1485805af3a85f1`; `rontrace.log` → `Logs/rontrace-run1784.log`,
@@ -42500,3 +42504,33 @@ Filed with `filerun.py run1844 sample2017-playback-ranges-21044`.
 The dump and trace are hard-linked. The 21474358120-byte field record
 is split in 20 verified pieces, 2.26 GiB on disk, SHA-256
 `90e2a95b7d038567ac39d9125fc51a0ee81bc58eea12fc759ec657e5c8c125c0`.
+
+## run1845 — parity held out, fifth battery, row 83's file to 3,722, a packet at logger frame 3715 (2026-11-26, item 4717, `att-4717`)
+
+`docs/RECGAME.md` §12.3. **What the disk could not answer**: run1784's ranges print each unit's `targeted` on 3716,
+never `compare_target`'s value or `get_damage`'s blow for a candidate of the search that bumps it. The take:
+`TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1845
+--recording ~/ron-golden/recordings/item4527-row083-6000.rcx --end-frame 3722 --allow-early-end --cover cover=1
+--log-window 3710 3720 --detail end:MISC --timeout 1800 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def
+RON_STATE_FRAME=3715 --tracer-def "RON_STATE_PLAN=\"$P/plan.h\""` with `P=~/ron-data/lab-experiments/2026-09-23-item-597/plan`
+exported, waited on with `waitrun.sh` in the background. The lane was free; no minutes were spent waiting on another
+lane. `df -g ~` read 82 GB free before it.
+- **The run**: pool lane 1, launched 12:34:56 −05:00, exited 12:39:51: **294.6 s**, exit 0, `success`, no page fault,
+  no relaunch, `last_frame` 3722, seed 12345, map 14; the recording's SHA-256 is run1777's (`03bf17de…`).
+- **The packet**: `frame_snapshot.py ~/ron-golden/run1845/map-14 $P/plan.json` verified frame 3715 (trace frame 3714),
+  the logger return and the completion receipt. `map-14/frame-snapshot.bin`, 901,193,952 bytes, SHA-256
+  `c6017467730e5ff72031d36d74d35f96d065c38061348b6509b227460f22db50`. Off `unitaddr.py`: the Anti-tank Rifle `2/125`
+  at `0x16c189ec` (8728, 23540), the decoy Light Tank `1/38` at `0x16ff4b24` (10948, 24706), the Light Tank `1/24` at
+  `0x16dca5b4` (13272, 24888), ours' start-of-tick positions.
+- **`step4.py <exe> <packet> --entry 610bc0 --this 16c189ec`** (`Unit::process`, no poke), hooked at
+  `find_nearby_target` (`648da0`), `compare_target`'s call and return (`649710`, `649715`), `get_damage`'s (`64ec10`,
+  `64ec15`), the decoy step (`644a11`), the net blow (`644b94`) and the height step (`644d64`): two candidates.
+  **`1/38`: blow 52,100 (`max(ObjectData::attack 220, 521) × 1000`, net `/10`), ours' exactly; `compare_target` 1**,
+  ours 376,354 on the same state. `1/24`: blow 48, `compare_target` 104,679, ours'. The 1 is the tail's detected-decoy
+  arm (`64f2c1`..`64f2f9`: `unit_masks & 1` and `UnitData::is_detected@0060a630` for the searcher's leader).
+  Scratch: `~/ron-data/lab-experiments/2026-11-26-item-4717/`.
+- Filed by `filerun.py run1845 heldout5-row083-packet3715`: `Logs/gamelog-run1845-heldout5-row083-packet3715.txt`,
+  2,869 bytes; `Logs/rontrace-run1845.log`, 190,169,632 bytes, both linked.
+
+**What it holds**: the arm behind row 83's 3716 (`docs/journal/2026-11-26-item-4717.md`); named in
+`checksum_lines::packets`, no word walks it.
