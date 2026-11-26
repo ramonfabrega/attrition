@@ -1633,7 +1633,10 @@ impl Sim {
                 self.order_type(u),
                 index::ATTACK_TO | index::GROUP_ATTACK_TO
             )
-            && matches!(self.profile(t).domain, crate::territory::attrition::Domain::Air)
+            && matches!(
+                self.profile(t).domain,
+                crate::territory::attrition::Domain::Air
+            )
             && !self.profile(Obj::Unit(u)).has(combat::mask::ANTI_AIR)
     }
 

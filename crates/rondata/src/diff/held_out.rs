@@ -2598,7 +2598,10 @@ pub(crate) mod tests {
         // Entering 3632: the Flamethrower on its attack-move, and the
         // helicopter its look will rank first.
         let me = built.sim.unit_by_o(2, 73).expect("the Flamethrower");
-        assert_eq!(built.sim.units[me].type_index, 131, "2/73 is a Flamethrower");
+        assert_eq!(
+            built.sim.units[me].type_index, 131,
+            "2/73 is a Flamethrower"
+        );
         let kinds: Vec<_> = built.sim.units[me]
             .orders
             .iter()
@@ -2611,8 +2614,15 @@ pub(crate) mod tests {
             "the attack-move's point"
         );
         let heli = built.sim.unit_by_o(1, 36).expect("the helicopter");
-        assert_eq!(built.sim.units[heli].type_index, 311, "1/36 is an Attack Helicopter");
-        assert!(built.sim.valid_target_const(sim::combat::Obj::Unit(me), sim::combat::Obj::Unit(heli)));
+        assert_eq!(
+            built.sim.units[heli].type_index, 311,
+            "1/36 is an Attack Helicopter"
+        );
+        assert!(
+            built
+                .sim
+                .valid_target_const(sim::combat::Obj::Unit(me), sim::combat::Obj::Unit(heli))
+        );
         for state in [3633, 3634] {
             stream.apply(built.sim.frame as i32, &mut built);
             built.sim.command().tick();
@@ -2637,7 +2647,11 @@ pub(crate) mod tests {
                     continue;
                 };
                 let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
-                assert_eq!(ours.ranges.len(), theirs.len(), "line {line}'s ranges on {state}");
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {line}'s ranges on {state}"
+                );
                 for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
                     assert_eq!(
                         a.bytes, b.bytes,
@@ -14196,23 +14210,38 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // On the tree merged with the base at `f68503715`, past the parting:
         // ammo 3,637 -> 3,646, items 4,345 -> 4,360 (first 4345 -> 4360) and
         // goods 5,037 -> 4,476, the base's landings and not this item's.
+        // Then item 4723 (`Object::find_nearby_target@00648da0`'s add
+        // refuses an aircraft to a searcher not guarding, under an
+        // `ATTACK_TO`, without `ANTI_AIR`: who=2's Flamethrower `2/73`, TI
+        // 131, ranks who=1's Attack Helicopter `1/36`, TI 311, first on 3632
+        // at `attack_dist` 4605; units range 9271, record 73, `orders.count`
+        // ours 2, theirs 1, `order.type` ours 10, theirs 2 on 3633, both
+        // theirs now): units 3,633 -> 3,690 (first 3633 -> 3690), builds
+        // 3,678 -> 3,864 (first 3665 -> 3850), ammo 3,646 -> 3,806 (first
+        // 3634 -> 3803), deaths 3,638 -> 3,802 (first 3638 -> 3802), groups
+        // 3,652 -> 3,834 (first 3644 -> 3810), guys 3,634 -> 3,790 (first
+        // 3634 -> 3790), leaders 3,648 -> 3,803 (first 3642 -> 3803), cities
+        // 3,662 -> 3,876 (first 3660 -> 3867), items 4,360 -> 4,387 (first
+        // 4360 -> 4387), goods 4,476 -> 4,483 (first 4476 standing), world
+        // 3,635 -> 3,802 (first 3634 -> 3802). The first parting is units
+        // alone on 3690.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                3633, 3678, 6085, 3646, 3638, 3652, 3634, 3648, 3662, 4360, 4476, 3635,
+                3690, 3864, 6085, 3806, 3802, 3834, 3790, 3803, 3876, 4387, 4483, 3802,
             ],
             first: &[
-                ("units", (3633, Some(2003426502), 1964561737)),
-                ("builds", (3665, Some(2780406984), 332833679)),
-                ("ammo", (3634, Some(1186135382), 1437532064)),
-                ("deaths", (3638, Some(759424891), 755033978)),
-                ("groups", (3644, Some(2744249686), 1130491243)),
-                ("guys", (3634, Some(1299095494), 1968611755)),
-                ("leaders", (3642, Some(2756136980), 3880865814)),
-                ("cities", (3660, Some(2669307520), 2729731718)),
-                ("items", (4360, Some(1284182481), 1281298895)),
+                ("units", (3690, Some(2545220959), 2094071359)),
+                ("builds", (3850, Some(4293904204), 192464599)),
+                ("ammo", (3803, Some(1779153171), 2589129557)),
+                ("deaths", (3802, Some(3088599948), 1452759926)),
+                ("groups", (3810, Some(4109959385), 815136989)),
+                ("guys", (3790, Some(2319256367), 842991898)),
+                ("leaders", (3803, Some(2390515815), 1773625448)),
+                ("cities", (3867, Some(2807787253), 2521919215)),
+                ("items", (4387, Some(1284182481), 1281298895)),
                 ("goods", (4476, Some(586774648), 601192570)),
-                ("world", (3634, Some(1481239642), 1470229594)),
+                ("world", (3802, Some(2581643100), 3822436103)),
             ],
             over: None,
         }),

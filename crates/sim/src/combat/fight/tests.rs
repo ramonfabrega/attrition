@@ -6449,7 +6449,10 @@ fn an_attack_move_drops_an_aircraft_it_cannot_bring_down() {
         if anti_air {
             assert_eq!(
                 kinds,
-                vec![crate::orders::index::ATTACK, crate::orders::index::ATTACK_TO]
+                vec![
+                    crate::orders::index::ATTACK,
+                    crate::orders::index::ATTACK_TO
+                ]
             );
             assert_eq!(sim.units[me].combat.target, Some(Obj::Unit(foe)));
         } else {
