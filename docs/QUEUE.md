@@ -77,12 +77,13 @@ score the hook's entries on `held_seams` and row 133's column. Re-pin `SCORES_SI
 pin. One landing: its seat then goes to the first unseated row.
 
 4695. **A citizen builds from the panel and by key in a live window** (an input item, scoped; the client's; DECISIONS 158 §11;
-`docs/CLIENT_INPUT.md`). Ramon played the gated tip on 2026-11-25 and could not place a Farm or a Barracks: neither the panel's button
-nor F or B did anything he could see. The layer binds f and b as its own build keys (`BUILD_KEYS`) and the tests mint the order, so
-the gap is in the live window or in what it shows. His recording is `~/ron-data/lab-experiments/2026-11-25-pass-second/spin-1125.rcx`,
-59,833 bytes. First act: read its orders. A build order there means the key armed and nothing was drawn, no ghost and no cursor; none
-means the press never reached the layer. Score: a new row, the placement drawn and the order minted from a key and from a click in one
-live session. It stops when it has landed.
+`docs/CLIENT_INPUT.md`). Ramon played the gated tip on 2026-11-25 and could not place a Farm or a Barracks by the panel or by F or B.
+His recording, `~/ron-data/lab-experiments/2026-11-25-pass-second/spin-1125.rcx` (decoded beside it), holds 85 commands over frames 0
+to 7444: 32 moves, 5 queue-ups and four build orders, the Farm on 1637 and 2714 and the Barracks on 2180 and 6790. So the keys armed
+and the orders were minted. But 40 of its 42 group records carry no object: every move and every build went out with an empty
+selection, and only the capital, 2002, is ever named. First act: whether an empty group is no selection or a repeated one; if none, a
+click or a box that selects a citizen in the live window is the gap, and the ghost after it. Score: a new row, a citizen selected, the
+placement drawn and the build minted on it in one live session. It stops when it has landed.
 
 4573. **Parity held out, fifth: row 83's deaths from 3715** (a rules item, whole; unseated, first; DECISIONS 154 §3; `docs/RECGAME.md`
 §12.3). Item 4657's step 17 (a decoy under object attack 220/200/190 where ours took 240/220/210, entering on 3705's tick) moved the
