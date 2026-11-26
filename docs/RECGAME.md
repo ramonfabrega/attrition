@@ -1916,7 +1916,8 @@ Open: ammo parts on 2547 (4659: deaths → 3206, Redoubt `dtype` 3). run1797's r
 its target in theirs and swings in ours: `Unit::fight`'s emplaced latch (`:92`–`100`) takes the head order's `0x10`.
 
 **Item 4691**: units → 3628. `FILTER_COMBAT` keeps the combat role, so Citizens hurry no muster (`docs/ARMY.md` §13).
-**Item 4719**: leaders and units → past 3628. The merchant's `FILTER_COMBAT` keeps the combat role too, so Citizens keep no Merchant off a good (`docs/MERCHANT.md` §2.2).
+
+**Item 4719**: leaders and units → 3633. The merchant's `FILTER_COMBAT` keeps the combat role too (`docs/MERCHANT.md` §2.2).
 
 ## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
 
