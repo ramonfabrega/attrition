@@ -2371,6 +2371,101 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 133's army is not hurried by Citizens** (item 4691,
+    /// `docs/ARMY.md` §13): run1797's ranges, the row's units, guys and
+    /// world parting on 3620 (units range 1530, record 54, the Supply Wagon
+    /// `1/54`, TI 63, `x`, `y` ours 19944, 25627, theirs 19964, 25632).
+    /// who=1 takes city 12 on 3619, and army 0's target follows it to the
+    /// new centre `1/2067`, hurried. On 3620 the army's `find_muster_spot`
+    /// walks the damaged centre, under attack, for a `FILTER_COMBAT` enemy
+    /// within `0x900`: three of who=2's Citizens stand there, with an
+    /// attack and no combat role (`0067debf`), so the original finds none
+    /// and leaves `hurry` 0, and the army's move stables no wagon, siege or
+    /// general in the city (`docs/GROUPS.md` §6.5). Every units, guys and
+    /// world range on 3620 and 3621.
+    #[test]
+    fn row_133_s_army_is_not_hurried_by_citizens_on_run1797() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 3619 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        // State 3619: the army hurried at the new centre, and who=2's three
+        // Citizens inside `0x900` of it, each with an attack.
+        let centre = built.sim.cities.cities[12].building;
+        assert_eq!(built.sim.buildings[centre].owner, 1, "who=1's city 12");
+        assert_eq!(built.sim.buildings[centre].index, 2067, "the centre 1/2067");
+        let army = &built.sim.ai.armies[1].list[0];
+        assert_eq!(
+            army.target,
+            Some(sim::combat::Obj::Building(centre)),
+            "army 0 follows the city"
+        );
+        assert_ne!(army.status & 0x80, 0, "hurried by the capture");
+        let at = built.sim.buildings[centre].pos;
+        for o in [3, 40, 83] {
+            let u = built.sim.unit_by_o(2, o).expect("who=2's Citizen");
+            let unit = &built.sim.units[u];
+            assert_eq!(unit.type_index, 50, "2/{o} is a Citizen");
+            let d = sim::world::vector_dist((unit.pos.x - at.x).abs(), (unit.pos.y - at.y).abs());
+            assert!(d <= 0x900, "2/{o} is inside the search");
+            assert_ne!(built.sim.attack_of(sim::combat::Obj::Unit(u)), 0);
+        }
+        for state in [3620, 3621] {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            assert_eq!(built.sim.frame, state);
+            assert_eq!(
+                built.sim.ai.armies[1].list[0].hurry, 0,
+                "no hurry on {state}"
+            );
+            let wagon = built.sim.unit_by_o(1, 54).expect("the Supply Wagon");
+            assert!(
+                !built.sim.units[wagon]
+                    .orders
+                    .iter()
+                    .any(|o| matches!(o.body, sim::orders::Body::Garrison { .. })),
+                "1/54 is not stabled on {state}"
+            );
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (line, name) in [(0, "units"), (6, "guys"), (11, "world")] {
+                let ours = lines[line].as_ref().expect("the line");
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{name} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 133's dead farm rolls under its number's next building** (item
     /// 4669, `docs/SYNC.md` §3.3): run1797's ranges and trace, the row's
     /// units and guys parting on 2677 (units range 4225, record 18, guy
@@ -13677,25 +13772,39 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 3,625 (a fall past the parting, first 3623 stands), goods 5,233 ->
         // 5,300, ours' end none -> 6058; the first parting is units, guys
         // and world on 3620.
+        // Then item 4691 (`Search::valid_filter@0067dbb0`'s `FILTER_COMBAT`
+        // unit arm, `0067debf`, keeps the combat role, `role & 0x10000`:
+        // who=2's Citizens `2/3`, `2/40`, `2/83`, TI 50, beside who=1's
+        // newly taken city `1/2067` no longer hurry army 0's muster, so its
+        // move on 3620 stables no wagon, siege or general in the city; units
+        // range 1530, record 54, the Supply Wagon `1/54`, TI 63, `x`, `y`
+        // ours 19944, 25627, theirs 19964, 25632, both theirs now): units
+        // 3,620 -> 3,628, builds 3,638 -> 3,678 (first 3633 -> 3665), ammo
+        // 3,625 -> 3,645 (first 3623 -> 3634), groups 3,631 -> 3,652 (first
+        // 3631 -> 3644), guys 3,620 -> 3,634, cities 3,659 -> 3,662 (first
+        // 3659 -> 3660), world 3,620 -> 3,635 (first 3620 -> 3634); items
+        // 4,349 -> 4,345 and goods 5,300 -> 4,476, named falls past the
+        // parting; ours' end 6058 -> none. The first parting is leaders and
+        // units on 3628.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                3620, 3638, 6085, 3625, 3638, 3631, 3620, 3628, 3659, 4349, 5300, 3620,
+                3628, 3678, 6085, 3645, 3638, 3652, 3634, 3628, 3662, 4345, 4476, 3635,
             ],
             first: &[
-                ("units", (3620, Some(1149618426), 3102179925)),
-                ("builds", (3633, Some(1817557812), 568507539)),
-                ("ammo", (3623, Some(3273187188), 1994117052)),
-                ("deaths", (3638, Some(750708600), 755033978)),
-                ("groups", (3631, Some(4049642139), 2114518873)),
-                ("guys", (3620, Some(1210952132), 2242359453)),
+                ("units", (3628, Some(1580509797), 2833230209)),
+                ("builds", (3665, Some(2780406984), 332833679)),
+                ("ammo", (3634, Some(1186135382), 1437532064)),
+                ("deaths", (3638, Some(759424891), 755033978)),
+                ("groups", (3644, Some(2744249686), 1130491243)),
+                ("guys", (3634, Some(1299095494), 1968611755)),
                 ("leaders", (3628, Some(4025832092), 4018492060)),
-                ("cities", (3659, Some(3270928094), 2729731718)),
-                ("items", (4349, Some(1284182481), 1281298895)),
+                ("cities", (3660, Some(2669307520), 2729731718)),
+                ("items", (4345, Some(1284182481), 1281298895)),
                 ("goods", (4476, Some(586774648), 601192570)),
-                ("world", (3620, Some(901823717), 1172813965)),
+                ("world", (3634, Some(1481239642), 1470229594)),
             ],
-            over: Some(6058),
+            over: None,
         }),
     }),
     // run1795
