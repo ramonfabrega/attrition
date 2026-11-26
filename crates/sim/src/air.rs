@@ -998,7 +998,21 @@ impl Sim {
         }
         self.pitch_plane(u, dx, dy, aim_z, &mut speed, air.returning);
         let heading = self.units[u].movement.heading;
+        // **`Guy::set_angle(guy 0, heading, 1)`** (`005e86d0:219`, whole
+        // and unconditional): the snap writes the figure's `angle` (`+0x18`)
+        // and its `last_angle` (`+0x1c`) both (`005d9010:13`–`16`). A plane
+        // in flight never shows the second, because its `Guy::move` head
+        // copies `last_angle` from the snapped `angle` later in the frame;
+        // a launch does, its first step taken in the base's
+        // `come_out` after the figures ran (item 4725, `docs/RECGAME.md`
+        // §13.3: run1799's Fighter `2/141` out of its Airbase on 4219,
+        // `last_angle` ours 0, theirs 0x01830000, its new `angle`).
         self.units[u].movement.facing = heading;
+        if let Some(g) = self.units[u].guys.first_mut()
+            && g.follow.is_none()
+        {
+            g.last = g.last.map(|(at, _)| (at, heading));
+        }
         // **A helicopter hovers at its point** (`+0x56a`..`+0x5a0`): inside
         // `0x30` of a flight home (`0xc0` of a point) it takes no step; an
         // order behind this one is reached by killing it.
