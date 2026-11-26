@@ -593,7 +593,7 @@ impl Sim {
                 .as_ref()
                 .is_some_and(|c| c.obj_masks & crate::combat::mask::DETECT != 0)
         });
-        self.write_sweep(&sw, who, detect)
+        self.write_sweep(&sw, who, detect, -1)
     }
 
     /// `ObjectData::is_visible_wonder@00471130`: a wonder without the city
@@ -651,12 +651,18 @@ impl Sim {
         if detect && sw.ring && sw.radius >= RING_LAST {
             return 0;
         }
-        self.write_sweep(&sw, who, detect)
+        self.write_sweep(&sw, who, detect, i32::from(self.units[u].index))
     }
 
     /// §5's loop, shared by the unit's disc and the building's. `detect`
     /// is `World::set_seen`'s `param_4` for the whole range.
-    fn write_sweep(&mut self, sw: &Sweep, who: crate::Player, detect: bool) -> usize {
+    fn write_sweep(
+        &mut self,
+        sw: &Sweep,
+        who: crate::Player,
+        detect: bool,
+        revealer: i32,
+    ) -> usize {
         let mask = 1u8 << who;
         let (cx, cy) = sw.centre;
         let (fw, fh) = (self.world.fog_xs(), self.world.fog_ys());
@@ -688,7 +694,7 @@ impl Sim {
                 // original calls `reveal_fog` on exactly the cells this
                 // answered true for, which is how a good is offered to a
                 // leader once and only once ([`Sim::reveal_fog`]).
-                self.reveal_fog(x, y, who);
+                self.reveal_fog(x, y, who, revealer);
             }
         }
         revealed

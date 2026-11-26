@@ -60,6 +60,25 @@ fn aimed_at(s: &crate::Sim, u: usize) -> Option<Cell> {
     }
 }
 
+#[test]
+fn revealing_a_box_orders_only_the_auto_exploring_revealer() {
+    let (mut sim, scout) = sweeper();
+    let cell = Cell::new(3, 2);
+    let number = i32::from(sim.units[scout].index);
+    let other = sim.add_unit(Unit::new(1, 7, sim.units[scout].pos, 20));
+    sim.units[other].auto_explore = true;
+    sim.reveal_fog(6, 4, 1, number);
+    assert_eq!(aimed_at(&sim, scout), None);
+    assert_eq!(aimed_at(&sim, other), None);
+
+    sim.units[scout].auto_explore = true;
+    sim.reveal_fog(6, 4, 1, -1);
+    assert_eq!(aimed_at(&sim, scout), None);
+    sim.reveal_fog(6, 4, 1, number);
+    assert_eq!(aimed_at(&sim, scout), Some(cell));
+    assert_eq!(aimed_at(&sim, other), None);
+}
+
 /// The base case: a box two cells away, in range of the 49-cell sweep,
 /// and the walk the sweep issues aims at its **cell centre** —
 /// `c × 0x300 + 0x180`, which is not the `4c + 2` tile centre

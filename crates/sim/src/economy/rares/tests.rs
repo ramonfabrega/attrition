@@ -198,7 +198,7 @@ fn reveal_fog_marks_the_rare_it_meets_seen() {
     let g = good_under(&mut s, u, 26);
     assert!(!s.good_seen_bit(g, 1));
     let (fx, fy) = fog_of_unit(&s, u);
-    s.reveal_fog(fx, fy, 1);
+    s.reveal_fog(fx, fy, 1, -1);
     assert_eq!(s.ai.ai[1].new_rares, vec![g]);
     assert!(s.good_seen_bit(g, 1), "seen by its revealer");
     assert!(!s.good_seen_bit(g, 0), "and by nobody else");
@@ -214,7 +214,7 @@ fn an_oil_patch_is_not_in_the_chain_to_be_seen() {
     assert_eq!(good_under(&mut s, u, crate::world::OIL_GOOD), 0);
     let (fx, fy) = fog_of_unit(&s, u);
     assert_eq!(Cell::new(fx >> 1, fy >> 1), s.units[u].pos.cell());
-    s.reveal_fog(fx, fy, 1);
+    s.reveal_fog(fx, fy, 1, -1);
     assert!(
         s.ai.ai[1].new_rares.is_empty(),
         "an oil patch is not a rare"
@@ -229,7 +229,7 @@ fn reveal_fog_looks_only_where_the_ground_is_marked() {
     let (mut s, u) = sea_sim();
     assert_eq!(good_under(&mut s, u, 26), 0);
     let (fx, fy) = fog_of_unit(&s, u);
-    s.reveal_fog(fx, fy, 1);
+    s.reveal_fog(fx, fy, 1, -1);
     assert_eq!(s.ai.ai[1].new_rares, vec![0]);
 
     let (mut s, u) = sea_sim();
@@ -237,7 +237,7 @@ fn reveal_fog_looks_only_where_the_ground_is_marked() {
     let mark = Pos::new(2 * fx + 1, 2 * fy + 1);
     let was = s.world.tile_mask(mark);
     s.world.set_tile_mask(mark, was & !tile::AS_BUILDING);
-    s.reveal_fog(fx, fy, 1);
+    s.reveal_fog(fx, fy, 1, -1);
     assert!(s.ai.ai[1].new_rares.is_empty(), "no mark, no look");
 }
 
@@ -1298,7 +1298,7 @@ fn setup_s_pass_claims_oil_after_the_reveals() {
             crate::world::Owner::None,
         );
     }
-    s.reveal_fog(2 * late.x, 2 * late.y, 1);
+    s.reveal_fog(2 * late.x, 2 * late.y, 1, -1);
     assert_eq!(s.ai.ai[1].oil_patches, vec![b], "the reveal lists its own");
     assert!(!s.in_play);
     s.settle_borders();

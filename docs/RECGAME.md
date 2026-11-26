@@ -686,6 +686,12 @@ keeps its 20 remaining health. A surviving building can pass some damage
 to its builders. The first mismatch moves to the Scout's order on 12663.
 [Event log, earlier controls and held-out effects](journal/2026-11-25-item-4701.md)
 
+**The revealing Scout (item 4702).** On 12662 a Scout with auto-explore
+set crosses into a new fog cell and reveals goody 19. Group 198's order
+and all its members match after replacing the earlier move. The first
+state mismatch moves to 12872, and draws to 12928.
+[Recorded fields and the two controls](journal/2026-11-25-item-4702.md)
+
 ## 8. The writer, our own file, and the original playing it (item 4058, 2026-11-10)
 
 ### 8.1 The round trip: every recording on disk, byte for byte

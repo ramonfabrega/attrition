@@ -580,13 +580,13 @@ fn a_reveal_and_a_claim_each_add_the_patch_once() {
     let (mut sim, gis) = oil_world(&[(5, 5), (8, 8)]);
     sim.ai.ai[1].oil_patches.clear();
     // No `0x800` on the cell: the reveal adds nothing.
-    sim.reveal_fog(10, 10, 1);
+    sim.reveal_fog(10, 10, 1, -1);
     assert!(sim.ai.ai[1].oil_patches.is_empty());
     let mut d = sim.world.cell_data(Cell::new(5, 5));
     d.flags |= crate::world::cell::OIL;
     sim.world.set_cell_data(Cell::new(5, 5), d);
-    sim.reveal_fog(10, 10, 1);
-    sim.reveal_fog(11, 10, 1);
+    sim.reveal_fog(10, 10, 1, -1);
+    sim.reveal_fog(11, 10, 1, -1);
     assert_eq!(
         sim.ai.ai[1].oil_patches,
         [gis[0]],

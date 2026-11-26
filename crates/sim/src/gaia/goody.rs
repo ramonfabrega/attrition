@@ -25,8 +25,7 @@
 //! §7 is the whole of it.
 //!
 //! `World::reveal_fog@006b3d30` reaches `get_goody_box` directly for a unit
-//! carrying `unit_masks & 0x100`; nothing here sets that bit, so that third
-//! caller is still a seam.
+//! carrying the auto-explore bit `unit_masks & 0x100` (run1844, state 12663).
 
 use crate::economy::RESOURCES;
 use crate::orders::{MoveKind, QueuePos};
@@ -451,7 +450,7 @@ impl Sim {
     /// different things (`docs/GROUPS.md` §17): the group halts its
     /// members and re-issues the move as `QUEUE_NEW`, so the walk the unit
     /// was on is dropped rather than stacked behind.
-    fn get_goody_box(&mut self, u: usize, c: Cell) {
+    pub(crate) fn get_goody_box(&mut self, u: usize, c: Cell) {
         let who = self.units[u].owner;
         let o = goody_box_order(c);
         let mut g = crate::groups::group::Group::stack(who);

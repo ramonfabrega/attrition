@@ -2580,7 +2580,13 @@ impl Sim {
             // `Unit::set_new_location`'s half-cell test and the reveal
             // behind it (`docs/VISION.md` §6). `move_step` is the caller
             // that passes `param_3 = 0`, so this is the **ring** pass.
+            let head = self.units[u].head_serial.0;
             self.moved_to(u, from, true);
+            // A newly revealed goody can replace this move. The new order
+            // owns its waypoint and path (run1844, state 12663).
+            if self.units[u].head_serial.0 != head {
+                return Did::Something;
+            }
             if step.arrived && target == step.pos {
                 arrived = true;
                 snapped_in = step.snapped;

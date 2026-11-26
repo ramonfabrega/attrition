@@ -24,8 +24,8 @@ scout re-aims on frame 825 and arrives on 879, which is what took the word
 879 → 1256.
 
 `World::reveal_fog@006b3d30` reaches `get_goody_box` by a third path, for a
-unit carrying `unit_masks & 0x100`. Nothing here sets that bit, and it is
-still a seam.
+unit carrying the auto-explore bit. Run1844's Scout takes this path on
+12662 as it reveals goody 19 (§7.1).
 
 ---
 
@@ -282,8 +282,13 @@ is `UnitData::is_captain@0046ceb0`, `o_up < 0` — a figure marching inside
 someone else's formation does not go off on its own.
 
 A third caller, `World::reveal_fog@006b3d30`, reaches `get_goody_box`
-directly for a unit carrying `unit_masks & 0x100`; that bit is set nowhere
-here and it is a seam.
+directly for the revealing unit when it carries the auto-explore bit
+(`unit_masks & 0x100`). In run1844, Scout 3/0 crosses y=16512 on
+12662. Fog cells (4,48) and (5,48) each gain bit 3. Goody 19 gains
+the same bit. The Scout leaves group 194 for 198 and gets one new move.
+Its path ends at (1920,18816), the box's cell centre. The new order
+survives the rest of the movement step. [The scout's whole recorded
+order and group](journal/2026-11-25-item-4702.md)
 
 ### 7.2 The sweep, and its two gates
 
@@ -428,4 +433,4 @@ target, over four legs, and it agrees too.
 | `find_goody_at`'s chain walk | read, **not modelled** — §7.2's seam |
 | `ever_seen` is the item's own byte, written by `reveal_fog`'s goody arm alone | diff — run970's scout `1/0` sweeps the box at (45, 49) on 180 with the fog read and walks on with the item's (`docs/AI.md` §271) |
 | `is_seen`'s fall-through to `WorldData::is_seen`, its territory arm | diff — the coverage pair's scout re-aims on 1200 (run678 block 1201) only with it; run682's packet (`docs/AI.md` §153) |
-| `reveal_fog`'s third call site | read, **not modelled** — nothing sets `unit_masks & 0x100` |
+| `reveal_fog`'s third call site | diff — run1844 on 12663, Scout 3/0 targets goody 19 off the fifteen-frame phase (4702) |

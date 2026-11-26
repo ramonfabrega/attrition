@@ -491,10 +491,7 @@ impl Sim {
     /// front, for the first live good standing on the cell — whatever its
     /// type — and adds it to the revealing leader's `oil_patches` unless
     /// it is already there.
-    pub(crate) fn reveal_fog(&mut self, fx: i32, fy: i32, who: Player) {
-        // This crate has no unit index to hand (`param_4`, the revealing
-        // unit's slot): the goody-box arm is the seam `goody.rs` names. The
-        // goody arm is the item's own `ever_seen` (item 3335).
+    pub(crate) fn reveal_fog(&mut self, fx: i32, fy: i32, who: Player, revealer: i32) {
         reveal_fog_steps(
             &mut SimRevealFog {
                 sim: self,
@@ -503,7 +500,7 @@ impl Sim {
             fx,
             fy,
             i32::from(who),
-            -1,
+            revealer,
         );
     }
 
@@ -979,12 +976,9 @@ pub fn reveal_fog_steps<V: RevealFogView>(v: &mut V, fx: i32, fy: i32, who: i32,
     }
 }
 
-/// [`RevealFogView`] over a [`Sim`]. What this crate does not carry answers
-/// "nothing there": no message window (`found_rare_message`) and no unit
-/// slots (`unit_is_unit`: nothing sets `unit_masks & 0x100`, `goody.rs`).
-/// **The console answers `-1`**, so the message gate fails before it asks
-/// anything else. The items chain is the goody boxes'
-/// ([`Sim::goody_items`], item 3335) when `goody` is set; the harness's
+/// [`RevealFogView`] over a [`Sim`]. A live revealing unit is resolved
+/// in its owner's object table. The console answers -1, so the message
+/// gate fails. The goody arm uses the live items list. The harness's
 /// `seen2` replay clears it and the goody arm finds nothing.
 struct SimRevealFog<'a> {
     sim: &'a mut Sim,
@@ -1086,13 +1080,19 @@ impl RevealFogView for SimRevealFog<'_> {
             self.sim.gaia.goody_items[gi as usize].ever_seen |= 1 << who;
         }
     }
-    fn unit_is_unit(&mut self, _who: i32, _unit: i32) -> bool {
-        false
+    fn unit_is_unit(&mut self, who: i32, unit: i32) -> bool {
+        self.sim.unit_by_o(who as Player, unit as i16).is_some()
     }
-    fn unit_masks(&mut self, _who: i32, _unit: i32) -> u32 {
-        0
+    fn unit_masks(&mut self, who: i32, unit: i32) -> u32 {
+        self.sim
+            .unit_by_o(who as Player, unit as i16)
+            .map_or(0, |u| u32::from(self.sim.units[u].auto_explore) << 8)
     }
-    fn get_goody_box(&mut self, _who: i32, _unit: i32, _cx: i32, _cy: i32) {}
+    fn get_goody_box(&mut self, who: i32, unit: i32, cx: i32, cy: i32) {
+        if let Some(u) = self.sim.unit_by_o(who as Player, unit as i16) {
+            self.sim.get_goody_box(u, crate::Cell::new(cx, cy));
+        }
+    }
 }
 
 #[cfg(test)]
