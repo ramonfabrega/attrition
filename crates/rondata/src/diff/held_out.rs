@@ -2402,6 +2402,24 @@ pub(crate) mod tests {
             built.sim.command().tick();
         }
         let hex = |b: &[u8]| b.iter().map(|x| format!("{x:02x}")).collect::<Vec<_>>().join(" ");
+        if std::env::var("RON_PROBE_4691_CHAIN").is_ok() {
+            let s = &built.sim;
+            let chain = s.city_chain(12);
+            for &b in &chain {
+                let bd = &s.buildings[b];
+                let reg = s.world.region_of(bd.pos.cell());
+                eprintln!("P4691C f{} elem {}/{} ty {:?} at ({},{}) cell {:?} reg {:?} damage {} under {} ", s.frame, bd.owner, bd.index, bd.ty, bd.pos.x, bd.pos.y, bd.pos.cell(), reg, bd.damage, bd.is_under_attack());
+                for (i, u) in s.units.iter().enumerate() {
+                    if !u.alive() || !u.on_map || u.is_gaia() || !s.is_enemy(1, u.owner) {
+                        continue;
+                    }
+                    let d = sim::world::vector_dist((u.pos.x - bd.pos.x).abs(), (u.pos.y - bd.pos.y).abs());
+                    if d <= 0x1200 {
+                        eprintln!("P4691C    enemy {}/{} TI {:?} at ({},{}) d {d} dom {:?} reg {:?} attack {}", u.owner, u.index, u.type_index, u.pos.x, u.pos.y, u.kind.domain, s.world.region_of(u.pos.cell()), s.attack_of(sim::combat::Obj::Unit(i)));
+                    }
+                }
+            }
+        }
         for state in lo..=hi {
             crate::diff::harness::debug_watch(&built, built.sim.frame);
             stream.apply(built.sim.frame as i32, &mut built);
