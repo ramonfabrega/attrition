@@ -577,6 +577,52 @@ fn columns(lines: &[String]) -> (String, Vec<String>, u64) {
 pub(crate) mod tests {
     use super::*;
 
+    #[test]
+    fn probe_4692() {
+        if std::env::var("RON_PROBE_4692").is_err() {
+            return;
+        }
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else { panic!("rcx") };
+        let ranges = crate::testenv::experiment(&home.join("ron-golden/run1799/map-14"), "rontrace.ranges").expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).unwrap();
+        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(3518);
+        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(3526);
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("set").clone();
+            let all = record.ranges(&set).expect("ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[7].as_ref().expect("leaders");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                if a.field != "who..ally_mask" { continue; }
+                let w = |x: &[u8]| i32::from_le_bytes(x[1052..1056].try_into().unwrap());
+                let diffs: Vec<usize> = a.bytes.iter().zip(&b.bytes).enumerate().filter(|(_, (x, y))| x != y).map(|(i, _)| i).take(12).collect();
+                eprintln!("P4692 state {state} range {k} who={} wonder_mark ours {} theirs {} diffs {:?}", a.record, w(&a.bytes), w(&b.bytes), diffs);
+            }
+            let sim = &built.sim;
+            for (i, a) in sim.ai.ai.iter().enumerate() {
+                eprintln!("P4692 state {state} who={i} mark {} slots {:?}", a.census.wonder_mark, a.census.wonder_slots);
+            }
+            for (b, bd) in sim.buildings.iter().enumerate() {
+                if bd.ty.is_some_and(|t| sim.tables.build_types[t].wonder) {
+                    eprintln!("P4692 state {state} bld {b} {}/{} {} alive {} active {} hits {} damage {}", bd.owner, bd.index, loaded.build_type_names[bd.ty.unwrap()], bd.alive, bd.active, bd.hits, bd.damage);
+                }
+            }
+        }
+    }
+
     /// **The declaration** (item 4413's first act): the eight lobbies, named
     /// and written out before any take, against what `lobbies_on_disk`
     /// yields today, so the set cannot drift silently. `RON_HELD_OUT_PRINT=1`
