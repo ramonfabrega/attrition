@@ -988,6 +988,10 @@ pub fn offset(piece: i32, node_index: i32, facing: Angle) -> (i32, i32) {
 pub fn offset_at(piece: i32, node_index: i32, d: i32) -> (i32, i32) {
     let Some(n) = node(piece, node_index) else {
         crate::seam!("offset_at_unpinned");
+        #[cfg(feature = "seam-count")]
+        if std::env::var_os("RON_SEAM_KEYS").is_some() {
+            eprintln!("SEAMKEY {piece} {node_index}");
+        }
         return (0, 0);
     };
     // Toward zero, as `cvttss2si` truncates; in `i128`: a millionth's product with the 2³⁰ sine and the scale
