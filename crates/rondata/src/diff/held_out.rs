@@ -606,18 +606,6 @@ pub(crate) mod tests {
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
             }
-            for (i, un) in built.sim.units.iter().enumerate() {
-                if un.owner == 2 && un.index == 112 {
-                    let ty = un.ty.map(|t| (built.sim.tables.unit_types[t].type_index, loaded.unit_names[t].clone()));
-                    let g = un.guys.first().copied();
-                    eprintln!(
-                        "P4730D state {state} slot {i} alive {} {:?} {:?} pos {:?} body {:?} follow {:?} last {:?} zh {:?} lzh {:?} uzh {:?} af {:?}/{:?}",
-                        un.alive(), ty, un.kind.domain, un.pos, un.movement.body.pos,
-                        g.and_then(|g| g.follow.map(|f| f.body.pos)), g.and_then(|g| g.last.map(|l| l.0)),
-                        g.map(|g| g.z_held), g.map(|g| g.last_z_held), un.z_held, un.airframe.z, un.airframe.last_z
-                    );
-                }
-            }
             let set = record.first_of(state - 1).expect("set").clone();
             let all = record.ranges(&set).expect("ranges");
             let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
