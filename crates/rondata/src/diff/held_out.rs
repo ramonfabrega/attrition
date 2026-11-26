@@ -3464,6 +3464,72 @@ pub(crate) mod tests {
         assert_eq!(built.sim.caravan_limit(2), 3, "who=2's limit on 1956");
     }
 
+    #[test]
+    fn probe_4721_sites() {
+        if std::env::var("RON_PROBE_4721").is_err() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+            return;
+        };
+        let ranges = crate::testenv::experiment(&home.join("ron-golden/run1784/map-14"), "rontrace.ranges")
+            .expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 83's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(3700);
+        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(3752);
+        let words = |b: &[u8]| -> Vec<i32> {
+            b.chunks(4).filter(|c| c.len() == 4).map(|c| i32::from_le_bytes(c.try_into().unwrap())).collect::<Vec<_>>()
+        };
+        let mut prev_sites: Vec<i32> = Vec::new();
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let ours = built.sim.checksum_leaders();
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
+            let mut first = None;
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                if a.bytes != b.bytes && first.is_none() {
+                    first = Some(k);
+                }
+            }
+            let mut diff_sites = false;
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                if a.record == 2 && a.field == "sites[k]" && a.bytes != b.bytes {
+                    diff_sites = true;
+                }
+                let _ = k;
+            }
+            println!("P4721 state {state} first {:?} nranges {} {} sites_differ {diff_sites}", first.map(|k| (k, ours.ranges[k].record, ours.ranges[k].field)), ours.ranges.len(), theirs.len());
+            let now: Vec<i32> = built.sim.ai.ai[2].sites.iter().map(|x| x.val).collect();
+            if now != prev_sites || state == lo {
+                prev_sites = now.clone();
+                println!("P4721 sweep-change {state} vals {now:?} reg_cities {:?}", built.sim.ai.ai[2].census.reg_cities.iter().take(6).collect::<Vec<_>>());
+                for (i, c) in built.sim.cities.cities.iter().enumerate() {
+                    println!("P4721   city {i} owner {} alive {} reg {:?} cell {:?}", c.owner, c.alive, c.reg, c.pos.cell());
+                }
+            }
+            if diff_sites || state == hi || state == lo {
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    if a.record == 2 && a.field == "sites[k]" {
+                        println!("P4721   {k} ours {:?} theirs {:?}", words(&a.bytes), words(&b.bytes));
+                    }
+                }
+            }
+        }
+    }
+
     /// **Row 83's Artillery carries the supply veto's mark** (item 4554,
     /// `docs/SUPPLY.md`, "Behavioural check (run16)"): run1784, the ranges
     /// take of row 83's file. who=1's Artillery `1/70` (TI 269, land)
