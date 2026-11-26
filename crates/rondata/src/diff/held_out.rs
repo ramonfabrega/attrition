@@ -2430,6 +2430,56 @@ pub(crate) mod tests {
                     }
                 }
                 if line == 0 {
+                    // Record-aligned: theirs cut at 0x006621fe, named at 0x0066221c.
+                    let mut th: Vec<((u8, i16), Vec<&crate::trace::ranges::Range>)> = Vec::new();
+                    for r in theirs.iter() {
+                        if r.site == 0x0066_21fe {
+                            th.push(((255, -1), Vec::new()));
+                        }
+                        if let Some(l) = th.last_mut() {
+                            if r.site == 0x0066_221c && l.0 .0 == 255 {
+                                l.0 = (r.bytes[0], i16::from_le_bytes([r.bytes[1], r.bytes[2]]));
+                            }
+                            l.1.push(r);
+                        }
+                    }
+                    let mut us: Vec<((u8, i16), Vec<&sim::checksum::Range>)> = Vec::new();
+                    let mut last = i16::MIN;
+                    for a in &ours.ranges {
+                        if a.field == "flags" || a.record != last {
+                            us.push(((255, a.record), Vec::new()));
+                            last = a.record;
+                        }
+                        let l = us.last_mut().unwrap();
+                        if a.field.starts_with("who") {
+                            l.0 = (a.bytes[0], i16::from_le_bytes([a.bytes[1], a.bytes[2]]));
+                        }
+                        l.1.push(a);
+                    }
+                    eprintln!("P4691U s{state} records ours {} theirs {}", us.len(), th.len());
+                    let tm: std::collections::BTreeMap<_, _> = th.iter().map(|(k, v)| (*k, v)).collect();
+                    let um: std::collections::BTreeMap<_, _> = us.iter().map(|(k, v)| (*k, v)).collect();
+                    for (k, v) in &um {
+                        match tm.get(k) {
+                            None => eprintln!("P4691U s{state} {}/{} only ours", k.0, k.1),
+                            Some(t) => {
+                                let a: Vec<&Vec<u8>> = v.iter().map(|r| &r.bytes).collect();
+                                let b: Vec<&Vec<u8>> = t.iter().map(|r| &r.bytes).collect();
+                                if a != b {
+                                    let f = v.iter().zip(t.iter()).position(|(x, y)| x.bytes != y.bytes)
+                                        .map_or("len".to_string(), |i| v[i].field.to_string());
+                                    eprintln!("P4691U s{state} {}/{} parts first on {f} (ranges {} vs {})", k.0, k.1, a.len(), b.len());
+                                }
+                            }
+                        }
+                    }
+                    for k in tm.keys() {
+                        if !um.contains_key(k) {
+                            eprintln!("P4691U s{state} {}/{} only theirs", k.0, k.1);
+                        }
+                    }
+                }
+                if line == 0 && std::env::var("RON_PROBE_4691_RAW").is_ok() {
                     for (k, a) in ours.ranges.iter().enumerate().skip(1515).take(50) {
                         eprintln!("P4691R s{state} ours k{k} rec {} {} {}", a.record, a.field, hex(&a.bytes));
                     }
