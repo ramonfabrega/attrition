@@ -5237,6 +5237,104 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 93's units on 4130: a siege unit's find of an unbuilt city is
+    /// mandatory** (item 4718, `docs/RECGAME.md` §13.3), on run1799's
+    /// whole-length ranges of run1792's file. On 4129 who=1's Howitzer
+    /// `1/41` (TI 272, land), on its attack-move, finds who=2's Small City
+    /// `2/2027`, a site not yet built and with no city record.
+    /// `find_nearby_target@00648da0`'s siege-city arm tests the find's
+    /// `ObjectData +0x8 & 0x20`, which `SubObject::init` sets on the
+    /// `VILLAGE` lineage at placement. Red on the base at units range 1208
+    /// on 4130, record 41 `order.attack` byte 8 (`mandatory`): ours 0,
+    /// theirs 1. Every units range on 4129 to 4131, byte for byte.
+    #[test]
+    fn row_93_s_howitzer_takes_the_unbuilt_city_mandatory_on_run1799_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            eprintln!("skipping: row 93's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1799/map-14");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1799's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 4129i64..=4131 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let sim = &built.sim;
+            let howitzer = sim
+                .units
+                .iter()
+                .rposition(|u| u.owner == 1 && u.index == 41)
+                .expect("1/41");
+            let ty = sim.units[howitzer].ty.expect("a type");
+            assert_eq!(sim.tables.unit_types[ty].type_index, 272, "1/41's TI");
+            assert_eq!(loaded.unit_names[ty], "Howitzer");
+            assert_eq!(
+                sim.units[howitzer].kind.domain,
+                sim::territory::attrition::Domain::Land
+            );
+            let site = sim
+                .buildings
+                .iter()
+                .rposition(|b| b.owner == 2 && b.index == 2027)
+                .expect("2/2027");
+            let bd = &sim.buildings[site];
+            assert_eq!(
+                loaded.build_type_names[bd.ty.expect("its type")],
+                "Small City"
+            );
+            assert!(bd.alive && !bd.active, "2/2027 is an unbuilt site");
+            assert_eq!(bd.city, None, "2/2027 has no city record");
+            let head = sim.units[howitzer]
+                .orders
+                .iter()
+                .find_map(|o| match o.body {
+                    sim::orders::Body::Attack(a) => Some(a),
+                    _ => None,
+                });
+            if state == 4129 {
+                assert_eq!(head, None, "1/41 has not found it on 4129");
+            } else {
+                let a = head.expect("1/41's attack");
+                assert_eq!(a.target.map(|t| (t.0, t.1)), Some((2027, 2)));
+                assert!(a.mandatory, "1/41's find of 2/2027 is mandatory on {state}");
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(sim, &look, &tribes);
+            let ours = lines[0].as_ref().expect("units");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "units' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                assert_eq!(
+                    at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                    None,
+                    "units range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                    a.record,
+                    a.field
+                );
+                if a.record == 41 && a.field == "order.attack" {
+                    assert_eq!(b.bytes[8], 1, "theirs' mandatory on {state}");
+                }
+            }
+        }
+    }
+
     #[test]
     fn row_93_s_decoy_tiger_tank_leaves_the_chain_at_its_death_on_run1799_s_ranges() {
         let Some(inst) = crate::testenv::install() else {
