@@ -1061,6 +1061,26 @@ impl Sim {
         self.crew_des(u, from, angle, snap);
     }
 
+    /// **A plane's step: `Guy::set_angle(guy 0, heading, 1)`**
+    /// (`Unit::do_air_physics@005e86d0:219`, whole and unconditional). The
+    /// snap writes the figure's `angle` (`+0x18`) and its `last_angle`
+    /// (`+0x1c`) both (`005d9010:13`–`16`). A plane in flight never shows
+    /// the second, because its `Guy::move` head copies `last_angle` from the
+    /// snapped `angle` later in the frame; a launch does, its first step
+    /// taken in the base's `come_out` after the figures ran (item 4725,
+    /// `docs/CHECKSUM.md` §16: run1799's Fighter `2/141` out of its Airbase
+    /// on 4219, `last_angle` ours 0, theirs 0x01830000, its new `angle`).
+    /// Not [`Sim::guy_set_angle`], which writes `frame_facing` and runs the
+    /// crew loop; no plane here carries crew.
+    pub(crate) fn plane_snap_angle(&mut self, u: usize, heading: Angle) {
+        self.units[u].movement.facing = heading;
+        if let Some(g) = self.units[u].guys.first_mut()
+            && g.follow.is_none()
+        {
+            g.last = g.last.map(|(at, _)| (at, heading));
+        }
+    }
+
     /// `Unit::set_angle@00605400`'s group arm on its own: a turn of 90° or
     /// more by the group's **leader** (`find_leader`, through the unit's
     /// `+0x80`) toggles `GroupData::facing`. Its two callers are

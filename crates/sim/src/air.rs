@@ -998,7 +998,7 @@ impl Sim {
         }
         self.pitch_plane(u, dx, dy, aim_z, &mut speed, air.returning);
         let heading = self.units[u].movement.heading;
-        self.units[u].movement.facing = heading;
+        self.plane_snap_angle(u, heading);
         // **A helicopter hovers at its point** (`+0x56a`..`+0x5a0`): inside
         // `0x30` of a flight home (`0xc0` of a point) it takes no step; an
         // order behind this one is reached by killing it.
