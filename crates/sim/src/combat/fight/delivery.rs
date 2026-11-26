@@ -1252,9 +1252,19 @@ impl Sim {
     /// its first wound, and the original enters `Group::action_alarm`,
     /// `Unit::do_garrison` and `find_garrison_build` for the first time
     /// that game (run1651's coverage); on 2888 a Citizen's walk to its
-    /// garrison spends `Unit::do_move+0xe84`. SEAMS: the type's vslot
-    /// `+0x90`, a city's building that is not the city itself, answered
-    /// no (as `alarm_view`'s `data_type_slot90`). The group is pushed on
+    /// garrison spends `Unit::do_move+0xe84`.
+    ///
+    /// **The type's vslot `+0x90` is `Type::is_gather_type`** (item 4726,
+    /// `docs/RECGAME.md` §12.3; the PDB's `TypeOut` field list names
+    /// offset 144, and `BuildTypeData::is_gather_type@00472bb0` is
+    /// `build_flags & 0x40`, [`Sim::is_gather_type`]), asked of the struck
+    /// building before the city flag: a gather building of the city rings
+    /// the city's bell too, and the group is the city's building, not the
+    /// one struck. run1784's 3753: who=2's `2/273` strikes who=1's
+    /// gather building `1/2044` in the city of `1/2043`, bell clear; theirs
+    /// seats `[1/2043]` in who=1's slot 3 (`last_group` `0x43`, `stamp`
+    /// 3753, `buildings` 1) and the press's `0x2000000`, and finds no
+    /// Citizen to garrison, so the bell stays clear. The group is pushed on
     /// the player's pool (`Groups::push_group(who, g, 1)`, `:279`) before
     /// the bell, as [`Sim::peasant_alarm`]'s (item 4440): the sample's 2887
     /// seats `[4/2000]` in slot 256, player 4's slot 0, a building group,
@@ -1263,7 +1273,7 @@ impl Sim {
         let who = self.buildings[b].owner;
         if self.cities.nation[who as usize].human
             || self.ai_difficulty() < 2
-            || !self.building_is_city(b)
+            || !(self.is_gather_type(b) || self.building_is_city(b))
             || self.cities.cities[c].alarm
         {
             return;
