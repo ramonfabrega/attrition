@@ -63,6 +63,9 @@ pub struct LeftLayout {
     pub clock: Span,
     /// In drawing order.
     pub pieces: Vec<Piece>,
+    /// Item 4731: the grid's buttons in the bar, row-major, the slots
+    /// [`super::slots::draw`] fills.
+    pub slots: Vec<Span>,
 }
 
 fn num(tag: &str, name: &str) -> Option<i32> {
@@ -249,18 +252,21 @@ impl LeftLayout {
         pieces.extend(pairs(&opts, "misc_tile", gsize, grid, Fill::Tile)?);
         pieces.extend(pairs(&opts, "misc", gsize, grid, Fill::Stretch)?);
         let blank = named_tex(&opts, "blank_button")?;
-        for (x0, y0, x1, y1) in buttons(&opts)? {
-            pieces.push(Piece {
-                crop: blank,
-                span: (x0 + grid.0, y0 + grid.1, x1 + grid.0, y1 + grid.1),
-                fill: Fill::Stretch,
-            });
-        }
+        let slots: Vec<Span> = buttons(&opts)?
+            .into_iter()
+            .map(|(x0, y0, x1, y1)| (x0 + grid.0, y0 + grid.1, x1 + grid.0, y1 + grid.1))
+            .collect();
+        pieces.extend(slots.iter().map(|&span| Piece {
+            crop: blank,
+            span,
+            fill: Fill::Stretch,
+        }));
         Ok(LeftLayout {
             size: (width, height),
             mid_window: (mx0, my0),
             clock,
             pieces,
+            slots,
         })
     }
 }
@@ -338,7 +344,7 @@ pub fn stretched(
 }
 
 /// `src` over `dst`, straight alpha.
-fn over(dst: &mut [u8], src: [u8; 4]) {
+pub(super) fn over(dst: &mut [u8], src: [u8; 4]) {
     let a = u32::from(src[3]);
     if a == 0 {
         return;
