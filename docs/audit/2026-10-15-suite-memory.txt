@@ -1,4 +1,4 @@
-# Every rondata release test's peak resident set alone, 2026-11-25, tools/suite_timings.py (tree 2a2faa6c).
+# Every rondata release test's peak resident set alone, 2026-11-25, tools/suite_timings.py (tree f4941765).
 # /usr/bin/time -l, one test per process, --test-threads 1; MiB then the test; -1 when unread.
 5304	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 3662	diff::start::tests::every_lobby_s_start_built_from_its_choices
@@ -187,6 +187,7 @@
 912	diff::german_alltech_pair::run1145c_s_closing_frame_is_widened_whole
 911	diff::audit::british_classical_pair_corrections_change_nothing
 910	diff::third_pair::run600_s_closing_frame_is_widened_whole
+909	diff::held_out::tests::row_133_s_dead_farm_rolls_under_its_number_s_next_building_on_run1797
 894	diff::coverage_pair::run754_s_word_frame_is_widened_whole
 893	diff::roman_medieval_pair::roman_medieval_pair_run1295_s_word_frame_is_widened_whole
 892	diff::persian_gunpowder_pair::persian_gunpowder_pair_run1383b_s_word_frame_is_widened_whole
@@ -2061,9 +2062,12 @@
 71	diff::held_out::tests::row_28_s_bazookas_drop_their_chase_of_a_citizen_on_run1813_s_ranges
 71	diff::held_out::tests::row_63_s_fort_pick_walks_the_fort_records_on_run1782
 71	diff::held_out::tests::row_28_s_round_at_the_capital_on_run1820_s_ranges
+71	diff::held_out::tests::row_133_s_general_bleeds_on_hostile_ground_on_run1797
 70	diff::sample::tests::the_sample_s_ranges_to_3100_name_each_first_parting
 69	diff::held_out::tests::row_53_s_fire_raft_rams_and_sinks_on_run1835_s_ranges
 69	diff::held_out::tests::row_133_s_sam_rocket_strikes_its_own_capital_with_the_recapture_bonus_on_run1797_s_ranges
+69	diff::held_out::tests::row_133_s_captured_city_keeps_the_near_border_mark_on_run1797
+69	diff::held_out::tests::row_88_s_fire_raft_sunk_in_its_own_work_repaints_its_disc_on_run1843_s_ranges
 68	diff::held_out::tests::row_43_s_muster_and_first_steps_match_run1787
 68	diff::held_out::tests::row_83_s_barracks_re_homes_when_its_city_is_taken_on_run1784_s_ranges
 68	diff::held_out::tests::row_93_s_siege_order_walks_its_point_on_run1799_s_ranges
@@ -2073,6 +2077,9 @@
 67	diff::held_out::tests::row_110_s_space_program_sees_every_enemy_building_in_the_danger_map_on_run1742_s_ranges
 67	diff::held_out::tests::row_133_s_sam_flies_its_rockets_on_their_splines_on_run1797_s_ranges
 67	diff::held_out::tests::row_133_s_repair_recruit_walks_under_a_move_order_on_run1797_s_ranges
+67	diff::held_out::tests::row_93_s_decoy_tiger_tank_leaves_the_chain_at_its_death_on_run1799_s_ranges
+67	diff::held_out::tests::row_133_s_spy_bribes_an_enemy_infantryman_from_its_army_s_turn_on_run1797
+66	diff::held_out::tests::row_133_s_citizen_comes_out_at_the_ground_under_its_spot_on_run1797
 66	diff::held_out::tests::row_133_s_new_city_sweeps_its_buildings_by_object_number_on_run1797_s_ranges
 66	diff::held_out::tests::row_133_s_sam_winds_and_turns_at_its_sighting_on_run1797_s_ranges
 66	diff::held_out::tests::row_83_s_taken_city_assimilates_faster_by_its_owner_s_citizen_on_run1784_s_ranges
@@ -2082,6 +2089,8 @@
 66	diff::held_out::tests::row_100_s_jet_fighter_turns_through_set_angle_at_its_airbase_on_run1721_s_ranges
 66	diff::held_out::tests::row_95_s_ceo_dirties_its_economy_as_it_boards_its_freighter_on_run1770_s_ranges
 66	diff::held_out::tests::row_83_s_airbase_keeps_its_biplane_when_a_wonder_outscores_the_city_on_run1784_s_ranges
+66	diff::held_out::tests::row_93_s_dead_squad_s_round_strikes_under_its_own_number_on_run1799_s_ranges
+65	diff::held_out::tests::row_93_s_dead_missile_s_blow_costs_the_site_its_progress_on_run1799_s_ranges
 65	diff::held_out::tests::row_53_s_unchained_phalanx_keeps_its_height_under_the_smelter_on_run1812_s_ranges
 65	diff::held_out::tests::row_133_s_redoubt_kills_with_the_explosive_death_on_run1797_s_ranges
 65	diff::held_out::tests::row_93_s_volksgrenadiers_heal_beside_their_president_on_run1799_s_ranges
@@ -2155,6 +2164,7 @@
 62	diff::held_out::tests::row_110_s_citizen_takes_the_civilian_heal_on_a_whole_unit_on_run1742_s_ranges
 62	diff::held_out::tests::row_23_s_fishermen_takes_copper_s_hit_points_on_run1781_s_ranges
 62	diff::held_out::tests::row_133_s_computer_offers_no_nuke_at_an_enemy_researching_the_shield_on_run1797_s_ranges
+61	diff::held_out::tests::row_148_s_aztec_slayer_marks_its_victim_on_run1836_s_ranges
 61	diff::held_out::tests::row_83_s_computer_lists_a_caravan_by_its_ally_s_city_on_run1784_s_ranges
 61	diff::held_out::tests::row_30_s_decoy_member_lights_its_disc_on_run1755_s_ranges
 61	diff::held_out::tests::row_100_s_jet_fighter_walks_its_strafe_order_on_run1721_s_ranges
@@ -2193,6 +2203,7 @@
 51	load::tests::the_shipped_tables_load_without_a_warning
 51	load::tests::every_building_has_a_page
 51	artdata::tests::every_release_of_a_bay_piece_s_family_has_its_row
+50	load::tests::the_general_is_the_attrition_block_s_hero_and_is_not_exempt
 50	load::tests::the_russian_and_chinese_free_tech_blocks_are_loaded
 50	load::tests::the_combat_table_is_not_uniform_and_a_known_pair_holds
 50	load::tests::the_tree_files_ages_epochs_and_governments

@@ -8,9 +8,13 @@ mended (DECISIONS 156 §6; the pass of 2026-11-23, third: four trace logs).
 (d) linked pairs compressed a tree at a time come out whole.
 
 (b) to (d) make the state for real and need `afsctool`; without it they skip.
+
+(e) a run whose own output is a file under a tree it would compress is
+refused before anything is compressed (the pass of 2026-11-25, second).
 """
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -36,6 +40,44 @@ class OneTreeAtATime(unittest.TestCase):
         self.assertEqual([c[-1] for c in calls], ['/x/ron-data', '/x/ron-golden'])
         for c in calls:
             self.assertEqual(sum(a.startswith('/x/') for a in c), 1, 'one tree a run')
+
+
+class ItsOwnOutput(unittest.TestCase):
+    # The pass of 2026-11-25, second, sent this tool's output and its
+    # acts' log to its directory under `~/ron-data`. The compressor took
+    # both files while they were open, every later write to them failed,
+    # and the two scripts ended with exit 120 and exit 1 and no line saying
+    # why.
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory()
+        self.tmp = Path(self.dir.name).resolve()
+        (self.tmp / 'tree').mkdir()
+        (self.tmp / 'out').mkdir()
+
+    def tearDown(self):
+        self.dir.cleanup()
+
+    def test_a_file_under_a_tree_is_named_and_one_outside_is_not(self):
+        with open(self.tmp / 'tree/run.log', 'w') as inside, open(self.tmp / 'out/run.log', 'w') as outside:
+            self.assertEqual(ac.output_under([self.tmp / 'tree'], fds=(outside.fileno(), inside.fileno())),
+                             self.tmp / 'tree/run.log')
+            self.assertIsNone(ac.output_under([self.tmp / 'tree'], fds=(outside.fileno(),)))
+        read, write = os.pipe()
+        try:
+            self.assertIsNone(ac.output_under([self.tmp / 'tree'], fds=(write,)))
+        finally:
+            os.close(read)
+            os.close(write)
+
+    def test_a_run_writing_into_its_own_tree_is_refused_before_it_compresses(self):
+        tool = ROOT / 'tools/archive_compress.py'
+        with open(self.tmp / 'tree/run.log', 'w') as log:
+            done = subprocess.run([sys.executable, str(tool), str(self.tmp / 'tree')],
+                                  stdout=log, stderr=subprocess.PIPE, text=True, timeout=60)
+        self.assertEqual(done.returncode, 2)
+        self.assertIn('refused', done.stderr)
+        self.assertIn('tree/run.log', done.stderr)
+        self.assertEqual((self.tmp / 'tree/run.log').read_text(), '')
 
 
 @unittest.skipUnless(HAVE, 'no afsctool')

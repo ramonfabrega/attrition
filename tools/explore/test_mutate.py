@@ -316,6 +316,25 @@ class Mutate(unittest.TestCase):
         self.assertEqual(mutate.dirty(d), [])
         self.assertIn('restored', proc.stderr.read())
 
+    def test_a_tree_another_cargo_is_building_is_refused_before_anything_is_written(self):
+        # Item 4674: a mutation run while a backgrounded `cargo test` of the
+        # same tree was still compiling was compiled into that test, which
+        # then reported the mutant's numbers as its own. Cargo holds an
+        # exclusive lock on its build directory's `.cargo-lock` for as long
+        # as it compiles; the fixture holds the same lock.
+        import fcntl
+        lock = Path(self.d) / 'target/release/.cargo-lock'
+        lock.parent.mkdir(parents=True)
+        lock.write_text('')
+        with open(lock) as held:
+            fcntl.flock(held, fcntl.LOCK_EX)
+            with self.assertRaises(mutate.Refused) as refused:
+                mutate.run(self.d, self.edit(), WALK, out=self.out)
+            self.assertIn('target/release/.cargo-lock', str(refused.exception))
+            self.assertIn('let x = 1;', (Path(self.d) / 'src.rs').read_text())
+        # The build over, the same mutation is scored.
+        self.assertEqual(mutate.run(self.d, self.edit(), WALK, out=self.out), 1)
+
     def test_a_dirty_tree_is_refused_before_anything_is_written(self):
         (Path(self.d) / 'src.rs').write_text('fn f() {}\n')
         with self.assertRaises(mutate.Refused) as cm:

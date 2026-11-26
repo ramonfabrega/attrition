@@ -101,6 +101,17 @@ while :; do
       exit 0
     fi
   fi
+  # Whether the log shows a start is read before the process is asked
+  # for, never after (gate-4685-4683, 2026-11-25): asked the other way
+  # round, a runner that started and printed its first line between the
+  # two reads was a log with a start and no process, and was called dead
+  # while it played. Read first, a start the log shows and a process that
+  # is gone are a runner that has ended; a receipt it printed on its way
+  # out is read below, after the process check.
+  started=0
+  if [ -r "$log" ] && grep -qvE -- "$header" "$log"; then
+    started=1
+  fi
   if ! pgrep -f -- "$runner_pattern" >/dev/null 2>&1; then
     # No runner. The click-free lane's receipts are its verdict, read only
     # once the runner is gone: it prints one per map and may still be on
@@ -121,7 +132,7 @@ while :; do
     # the same second, and a chained script put the next take on the
     # second pool lane beside a game still playing). A log that never
     # appears, or never shows a start, is called when the grace has run.
-    if { [ -r "$log" ] && grep -qvE -- "$header" "$log"; } || [ "$waited" -ge "$grace" ]; then
+    if [ "$started" -eq 1 ] || [ "$waited" -ge "$grace" ]; then
       echo "waitrun: no '$runner_pattern' process is alive and $log holds no verdict" >&2
       [ -r "$log" ] && tail -n 20 "$log" >&2
       exit 2

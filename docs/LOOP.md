@@ -540,7 +540,12 @@ row's heading in `docs/RECGAME.md` §13 and touches nothing above
 them** (DECISIONS 154 §6). **A row's ranges take
 keeps the lines its score parts on**, by the arguments `score_recording`
 prints, never all twelve: the disk is the limit, and a whole take reads
-9 GB while it runs (DECISIONS 148 §4). **A held-out game's found column is never re-pinned** (DECISIONS 144
+9 GB while it runs (DECISIONS 148 §4). **It runs to the row's last state
+and is taken once** (DECISIONS 158 §2): an item books a take only for a
+row with no ranges record to its last state, and a window is a packet's
+or a log's. Row 88 took six window takes for six words, 1,558 s of game
+and 18.8 GB, where row 93's one take to 12,000 ran 989 s and keeps 1.6
+GiB compressed, and rows 93 and 133 landed nine words on one take each. **A held-out game's found column is never re-pinned** (DECISIONS 144
 §2, 145 §2): a worker moves `SCORES[k].moved`, the driver writes the
 `Parity held out:` line, and the second battery (rows 10 to 150) is taken
 when the first reads 4 of 8 now, or on Ramon's word; the third (rows 5 to
@@ -614,7 +619,11 @@ read are in `docs/audit/2026-11-09-loop-retired-clauses.md`, "Retired
    records stood raw, 48.8 GiB, until they were split; 156 §6: a filed
    take is a hard link, two of the compressor's workers took one inode
    by its two names, and four trace logs read zero bytes until
-   `--repair` set their flag back).
+   `--repair` set their flag back). **Nothing of the pass writes under
+   either tree until it exits**, its own output included (DECISIONS 158
+   §5: the compressor takes a file that is open, every later write to it
+   fails, and the pass's acts and the tool's own log ended with nothing
+   said; the tool refuses a run whose output is a file under its trees).
 2. **The suite's re-timing beside it** — `python3 tools/suite_timings.py
    <install> --stale-only`, committed (DECISIONS 132 §6: on 2026-11-13
    the file was four days old and 189 tests were untimed, so every lane

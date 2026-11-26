@@ -15,6 +15,9 @@ What it refuses, each before anything is written:
 
   * a tree with a tracked modification (`git status --porcelain -uno`
     non-empty) — commit first, so the restore has something to restore to;
+  * a tree another cargo is building (its build directory's `.cargo-lock`
+    is held) — a source mutated under a compile is compiled into that
+    build, which then reports the mutant's numbers as its own (item 4674);
   * a mutation that took nothing (`git diff --stat` empty after it);
   * a tree that changed under the command — anything tracked that differs
     from the restore, or the mutated files differing again after the
@@ -44,6 +47,7 @@ does for a red walk, and a lane read one as a catch (Loop 3300). A signal
 under the run (`TaskStop`, SIGTERM, SIGHUP, ^C) restores the tree first.
 """
 import argparse
+import fcntl
 import os
 import signal
 import subprocess
@@ -196,6 +200,26 @@ def dirty(root):
     return [l[3:] for l in git(root, 'status', '--porcelain', '-uno').splitlines() if l]
 
 
+def building(root):
+    """The build directories of this tree a cargo is compiling into, as
+    their lock files' paths. Cargo holds an exclusive `flock` on
+    `<target>/<profile>/.cargo-lock` while it compiles and lets it go
+    before a test binary runs, so a held lock is a compile in flight and a
+    test that is only running holds none."""
+    target = Path(os.environ.get('CARGO_TARGET_DIR') or Path(root) / 'target')
+    held = []
+    for lock in sorted({*target.glob('*/.cargo-lock'), *target.glob('*/*/.cargo-lock')}):
+        try:
+            with open(lock) as f:
+                fcntl.flock(f, fcntl.LOCK_SH | fcntl.LOCK_NB)
+                fcntl.flock(f, fcntl.LOCK_UN)
+        except BlockingIOError:
+            held.append(str(lock))
+        except OSError:
+            continue
+    return held
+
+
 def apply_edit(root, path, old, new, nth=None):
     """Replace one occurrence of `old`: the only one, or the `nth` (from one,
     Loop 2784 — an ambiguous match cost a lane three refusals and a rerun)."""
@@ -237,6 +261,10 @@ def run(root, mutate, command, out=sys.stdout, timeout=None):
     before = dirty(root)
     if before:
         raise Refused('the tree is dirty; commit first: ' + ', '.join(before))
+    held = building(root)
+    if held:
+        raise Refused('another cargo is compiling this tree (' + ', '.join(held) + ' is held); a source '
+                      'mutated under it is compiled into that build. Wait for its build line, then mutate')
     paths = mutate(root)
     try:
         stat = git(root, 'diff', '--stat').strip()

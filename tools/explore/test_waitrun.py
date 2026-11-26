@@ -126,6 +126,46 @@ class Waitrun(unittest.TestCase):
         self.assertEqual(waiter.returncode, 0)
         self.assertIn('"map_requested": 7', out)
 
+    def test_a_runner_that_starts_between_the_process_check_and_the_log_check_is_not_dead(self):
+        # gate-4685-4683 (2026-11-25, load 17 on 16 cores): the test above
+        # went red, exit 2, because the script asked `pgrep` for a runner,
+        # found none, and then read the log for a start, and the log had
+        # gained its first line between the two. In a capture that is a
+        # runner alive and called dead, run1794's failure through a
+        # narrower window. A `pgrep` on the PATH stands in for the process
+        # table: its first answer is "no runner", and the runner's first
+        # line lands in the log as it answers; every later answer is "a
+        # runner is alive".
+        shims = Path(self.tmp.name) / 'bin'
+        shims.mkdir()
+        looked = Path(self.tmp.name) / 'looked'
+        pgrep = shims / 'pgrep'
+        pgrep.write_text('#!/bin/sh\n'
+                         f'if [ ! -e "{looked}" ]; then\n'
+                         f'  : > "{looked}"\n'
+                         f'  printf "Staged: /x/map-7\\n" >> "{self.log}"\n'
+                         '  exit 1\n'
+                         'fi\n'
+                         'exit 0\n')
+        pgrep.chmod(0o755)
+        self.log.write_text(HEADER)
+        env = dict(os.environ, PATH=f'{shims}{os.pathsep}{os.environ["PATH"]}', WAITRUN_GRACE='15')
+        waiter = subprocess.Popen(['zsh', str(SCRIPT), str(self.log), '1'], env=env,
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        try:
+            time.sleep(3)
+            self.assertTrue(looked.exists(), 'the script never asked for a runner')
+            self.assertIsNone(waiter.poll(), 'a runner that started after the process check was called dead')
+            with self.log.open('a') as log:
+                log.write(RECEIPT_OK)
+            out, _ = waiter.communicate(timeout=20)
+        finally:
+            if waiter.poll() is None:
+                waiter.kill()
+                waiter.wait()
+        self.assertEqual(waiter.returncode, 0)
+        self.assertIn('"map_requested": 7', out)
+
     def test_a_launch_that_never_starts_is_called_after_the_grace(self):
         self.log.write_text(HEADER)
         env = dict(os.environ, WAITRUN_RUNNER=f'no-such-runner-{os.getpid()}',

@@ -176,6 +176,11 @@ fn fallback_rows(walks: &[Walk]) -> Vec<(usize, u64)> {
 /// `GUNS` and the Armed Caravan's pivot rows give every one of the 2,169
 /// rounds a row; row 48's `pivot::offset_at_unpinned` (850 from 6555)
 /// goes with the caravan's `NODES` row, and row 133 keeps 664 of its 673.
+/// **(88, 9) on `f49417655`** (the pass of 2026-11-25, second): six
+/// landings walked the seventh's row 88 from 3033 to 3717, and its walk
+/// now fires nine rounds with no row from state 7769, 4,052 states past
+/// its first parting. The same walk enters `pivot::offset_at_unpinned`
+/// four times from 7754.
 const FALLBACK: [(&str, &[(usize, u64)]); 7] = [
     ("first", &[]),
     ("second", &[]),
@@ -183,7 +188,7 @@ const FALLBACK: [(&str, &[(usize, u64)]); 7] = [
     ("fourth", &[]),
     ("fifth", &[]),
     ("sixth", &[]),
-    ("seventh", &[]),
+    ("seventh", &[(88, 9)]),
 ];
 
 fn fallback_as_pinned(file: &str, walks: &[Walk]) {

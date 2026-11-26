@@ -19,10 +19,18 @@ and reads the file back to the length the header declares.
     python3 tools/archive_compress.py --check    # scan only
     python3 tools/archive_compress.py --repair   # scan, and mend what it finds
 
+The compressor also takes a file that is open for writing: the writer's
+next write fails, and a script whose log it was ends with nothing said. The
+pass of 2026-11-25, second, lost this tool's own output and its acts' log
+that way, both under `~/ron-data`. So a run that would compress refuses,
+exit 2, while its own stdout or stderr is a file under one of its trees,
+and nothing else of a pass writes under them until it exits.
+
 Exit 0 when the scan finds nothing (or mended everything), 1 when a file
-stands damaged.
+stands damaged, 2 when the run is refused.
 """
 import argparse
+import fcntl
 import os
 import shutil
 import stat
@@ -97,6 +105,24 @@ def repair(path):
     return got
 
 
+def output_under(trees, fds=(1, 2)):
+    """The first of `fds` that is a regular file under one of `trees`, as
+    its path; `None` when none is. A pipe, a terminal and a file elsewhere
+    are none of the compressor's."""
+    roots = [Path(t).resolve() for t in trees]
+    for fd in fds:
+        try:
+            if not stat.S_ISREG(os.fstat(fd).st_mode):
+                continue
+            raw = fcntl.fcntl(fd, fcntl.F_GETPATH, b'\0' * 1024)
+        except (OSError, AttributeError, ValueError):
+            continue
+        path = Path(os.fsdecode(raw.split(b'\0', 1)[0])).resolve()
+        if any(path.is_relative_to(root) for root in roots):
+            return path
+    return None
+
+
 def compress(trees, run=subprocess.run, quiet=False):
     """One compressor run a tree, in turn. `False` with no `afsctool` here."""
     exe = next((e for e in AFSCTOOL if shutil.which(e)), None)
@@ -116,6 +142,12 @@ def main(argv=None):
     args = ap.parse_args(argv)
     trees = args.trees or [t for t in TREES if t.is_dir()]
     if not (args.check or args.repair):
+        inside = output_under(trees)
+        if inside is not None:
+            print(f'refused: this run writes to {inside}, a file under a tree it would compress; the '
+                  'compressor takes an open file and every later write to it fails. Send the output '
+                  'outside the trees.', file=sys.stderr)
+            return 2
         if not args.trees:
             subprocess.run([sys.executable, str(ROOT / 'trace/split.py'), '--archive'], check=False)
         if not compress(trees):

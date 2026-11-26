@@ -73,14 +73,6 @@ finish line's own counter, parity on the declared set (entry 143 §2).
 | **save and replay** | a game saved as seed plus orders, replayable here and written back into the original's recorded-game container | a saved game replays to the same hash; the original replays one of ours | the diff suite; the original on the capture lane | **step 3 stands** (`Recording:`): every recording on disk round-trips, and the original plays our order-free file for 24,000 of 24,000 frames (4058, run1560) |
 | **census** | the territory count tells the truth about the original's 3,611 simulation functions | ported · replaced by design · open, the readers' marks landed row by row (`docs/audit/2026-11-06-territory-*.md`; lore's scoring of the `replaced` groups) | `tools/census.py`'s pins | `Rubric:` 574 open of 3,611, 569 of them carrying a reader's ruling (entry 132); filler for an idle lane |
 
-**At the pass of 2026-11-20** (entry 146): **checksum** — parity 6 of 7; parity held out 3 of 8 now, 78 of 96 lines (0 of 8 and 64 as
-found); the pass scored the rows with ranges on disk by leaf, and rows 80 and 100 part builds on one bit, row 80 on nothing else (item
-4455); row 140 is three states from whole and takes its ranges (item 4457); the sample's lowest first parting 3878 of 21,044 (item
-4456); the packets' lines 817 of 1,053 (items 4461, 4431); the second battery is booked, its declaration first (item 4462); whether the
-eight fold into the headline is Ramon's, recommended, 9 of 15 folded; **orders** — whole by its counters; **renderer** — the client opens
-on slot 0's capital on 161 of 161 lobbies and the buildings carry the team's colour; theirs fades a wreck under dust and ours draws it
-solid (item 4458).
-
 **At the pass of 2026-11-20, second** (entry 147): **checksum** — parity 6 of 7, parsed on the scoreboard as `Parity:` with the
 sample's lowest first parting, 3921 of 21,044 (item 4479); parity held out 5 of 8 now, 89 of 96 lines, and row 60 is one line and 91
 states from whole (item 4480); the second battery read 1 of 8 and 65 of 96 as found, 2 of 8 now, and by reach, the states an unseen
@@ -156,6 +148,14 @@ the seats' order; the stop counts builds, and row 93's item is one (item 4657); 
 before their first partings and by no whole row, is an item (4672); a lane lands on a verdict its gate printed; the packets' lines
 955 of 1,053; **orders** — whole by its counters; **renderer** — the Farm's plots and the buildings' plates drawn on run1814b
 (items 4636 to 4665); the client's seat takes the trees past sight (item 4670).
+
+**At the pass of 2026-11-25, second** (entry 158): **checksum** — parity 52 of 63 (the seventh's row 148 whole, item 4637); the sample
+parts first on units 10653, draws 11488; parity held out 8, 8, 8, 8, 6, 4 and 4 of 8 now; sixteen row landings bought 3,308 states, each a
+build that moved its row (rows 133, 88 and 93 to 3620, 3717 and 3524), and the eleven open games stand 59,253 states short of their ends;
+a row's take runs to its last state and is taken once (row 88 took six windows for six words); the pivot's seam, 65 states past row 133's
+parting, takes a seat (item 4656) beside rows 93 and 133 (items 4692, 4691); the packets' lines 959 of 1,053; **orders** — whole by its
+counters; **renderer** — the trees past sight, the plates and the road pieces under them drawn on run1814b (items 4670 to 4687), and the
+still reads as the photograph outside the HUD; the client's seat takes run1559b's picks (item 4690), then the city's name plate (item 4694).
 
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it

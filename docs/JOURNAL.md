@@ -22843,3 +22843,54 @@ building, which ours answers with nothing, entered by three open games
 before they part and by no whole game. It is an item with a seat. The
 pass moved no score and took no capture.
 **DECISIONS 157.** `docs/audit/2026-11-25-fable-pass-seats.md`.
+
+## 2026-11-25 — the pass, second: one take a row, and the pass loses its own logs to its first act (Fable 5.2, steering)
+
+The commander ran twenty-three landings through the day, passed the
+backstop and handed over with nothing out. The headline read 52 of 63:
+the game that had stood one line from whole in the morning was whole by
+half past noon, on one take and one rule.
+
+The pass counted what the seats had bought. Sixteen landings sat on a
+held-out game, and every one of them built a rule and moved its game:
+3,308 agreeing states, 207 a landing, where seven landings of the
+tranche before had moved nothing. The morning's two changes did that. The stop had begun to
+count builds, and each item had carried its leaf.
+
+The count also showed something no one had asked about. Two of the
+three games walked all day without a capture, because each has one
+record of the original's state to its last frame, taken days ago, and
+the scorer reads the next leaf straight off it. The third had windows.
+Its six landings opened on six captures, each a few states longer than
+the one before, and together they held more of the game and more of
+the disk than a whole record does. The windows dated from a day the disk had
+67 GB free; it has 118 now. The scorer has printed the whole line
+all along. A row's take now runs to its last state and is taken once.
+
+The pass then broke its own instruments. Its first act compresses the
+two archives, and it had sent that act's output, and the log of
+everything else it runs, to a folder inside one of them. The
+compressor took both files while they were open. Every write after
+that failed, and two scripts ended with an exit code and no sentence.
+Nothing was damaged and the acts ran again. The tool refuses a run
+whose output sits under its own trees now, which is the half a tool
+can hold; the other half is a clause.
+
+One gate had gone red in the tranche on a test of the capture waiter,
+and passed when run again. The handoff called it the load. It was a
+race in the waiter itself: it asked whether a runner was alive, and
+then whether the log showed one had started, and a runner that started
+between the two questions was pronounced dead while it played. The
+order is the other way round now, and a test stands a false process
+table in front of the script to make the window as wide as it likes.
+
+The seam counter moved one name inside the mark. A game had walked 943
+states toward a fallback that was 988 ahead of it in the morning; it is
+65 ahead now, and its item has a seat. The pass also drew the client's
+picture at the tip, which the three passes before it had not. The
+trees at the edge of sight are dark where the original's are, and
+outside the HUD's frame the eye finds a name plate and a raised log.
+It first found a pale band of ground as well, measured it, and took it
+back: the two pictures agree there to a level. The pass moved no score
+and took no capture.
+**DECISIONS 158.** `docs/audit/2026-11-25-fable-pass-takes.md`.

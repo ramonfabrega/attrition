@@ -171,7 +171,8 @@ is append-only and amended in place, as it always was.
 - 154 extended by 155 — The pass of 2026-11-23: the seats by first parting bought 621 states a landing against 197 (twelve landings, row 3 and the sixth's rows 33 and 73 whole); the seam counter, run at the tip, named row 133's first parting (a hook entered once on state 1906) and its one pin had rotted unrun, so it is the pass's tenth act and item 4599 hooks the P notes; rows 93 and 83 take one seat; a lane's clock runs after its release step and its red is left to the booking gate; the held-out pins fail only on whole lines and first partings (item 4598); a sixth row writes under its own heading; the seventh's human keeps ordering through the game (item 4600).
 - 155 extended by 156 — The pass of 2026-11-23, second: eight row landings bought 163 states each against 621, on late-age rows that part again within a few hundred states, and the one game whole stood a line from it; the seventh is ratified as found (1 of 8 whole on six rows taken, 87 % inside its first 6,001 states) and folds at its first leaf, an eighth named; a row within 600 states of its last state ranks with the near-whole (the seventh's row 28); rows 133 and 43 name one shape; the client's seat takes the fog, which no capture on file shows; a capture is filed as a hard link (1,785 stood twice, 19.2 GiB), a gate keeps two days of reports and the viewer's test removes its export; the seam counter with the seventh added names row 88's first parting and row 93's next, and a hook entered first on a row's first parting is pasted whatever the whole rows enter; the seventh fires five pieces with no bay (item 4618).
 - 156 extended by 157 — The pass of 2026-11-23, third: thirteen row landings bought 43 states each against 163, and three of them rebuilt launch points the pass before had listed under an unseated item (313 of 553 states), so an item whose first act an instrument has already named, a probe's table or a seam no whole row enters, is seated before a row's next word (items 4608, 4618); the near-end rank of 155 §4 goes on its own bet, row 28 whole on its fourth landing; a trace with no receipt on an unpinned row is a take in flight and is not scored; the pass's compression, run over both archives at once, zeroed four hard-linked trace logs, all mended, and `tools/archive_compress.py` takes one tree at a time and scans; the client's seat takes the capital's ground (item 4636); a battery folds on its declared rows.
-- 157 standing — The pass of 2026-11-25: seventeen row landings bought 9,518 states, 8,663 of them on the one game that stood a line from whole (row 128) and 855 on the other sixteen; item 4618 left row 148 a line from whole and the handoff listed it last, so the queue's unseated row items stand in the seats' order under a guard (item 4637 takes the chain's seat); the stop counts builds, a first act landed alone that names a term with both sides' values not being one of the two (row 93's item 4657, its 20,000 read at the tail); a lane lands on a verdict its gate printed (item 4650 landed on filters run by hand and a booking gate went red); a named fix is seated when a row enters its hook before its first parting or within 100 states past it (item 4672, the siege muster's building search; item 4656 waits)
+- 157 extended by 158 — The pass of 2026-11-25: seventeen row landings bought 9,518 states, 8,663 of them on the one game that stood a line from whole (row 128) and 855 on the other sixteen; item 4618 left row 148 a line from whole and the handoff listed it last, so the queue's unseated row items stand in the seats' order under a guard (item 4637 takes the chain's seat); the stop counts builds, a first act landed alone that names a term with both sides' values not being one of the two (row 93's item 4657, its 20,000 read at the tail); a lane lands on a verdict its gate printed (item 4650 landed on filters run by hand and a booking gate went red); a named fix is seated when a row enters its hook before its first parting or within 100 states past it (item 4672, the siege muster's building search; item 4656 waits)
+- 158 standing — The pass of 2026-11-25, second: sixteen row landings bought 3,308 states, every one a build that moved its row's first parting, and row 148 came whole (52 of 63); a row's take runs to its last state by the scorer's own line and is taken once, row 88 having taken six windows for six words where rows 93 and 133 landed nine on one take each; the pivot's seam is 65 states past row 133's parting and is seated (item 4656) beside rows 93 and 133; `waitrun.sh` reads the log for a start before it asks for the process (a red gate was a runner called dead through a narrow window); `archive_compress.py` refuses a run whose output is a file under its trees, the pass having lost its own logs to it; `mutate.py` refuses a tree another cargo is compiling (item 4674); the client's seat stays on item 4690 and the city's name plate is minted behind it (item 4694)
 
 ## 1. Fidelity before divergence
 
@@ -16468,3 +16469,225 @@ and 4665a name no capture that reaches them and stay. 4651a and 4663a
 are sweeps that name no score. 4666a, a write through a virtual call
 that a grep by spelling missed, is a reader's lesson and stays with the
 second readings' record.
+
+## 158. A row's take runs to its last state and is taken once, the pivot's seam is seated, the waiter reads the log before it asks for the process, and the compressor refuses its own output (2026-11-25, second)
+
+**What happened.** `commander` (Opus 5.5) ran twenty-three first-parent
+merges off the pass of 2026-11-25 (`99c66271e`), between 10:49 and 18:12
+−05:00, passed the backstop of twenty on the lanes then out and handed
+over at `f49417655`, gated whole (`gate-backstop-1125b.log`, exit 0),
+with no lane out. The headline went 51 → 52 of 63: the seventh's row 148
+came whole (item 4637). The pass ran on the `steer` row from 18:45
+−05:00. No subagent and no capture. Its tables are in
+`docs/audit/2026-11-25-fable-pass-takes.md`.
+
+**§1. What the seats bought.** Sixteen of the twenty-three landings sat
+on a held-out row, and every one of them built a rule and moved its
+row's first parting:
+
+| where | landings | states gained before a first parting | a landing | games whole |
+|---|---|---|---|---|
+| the tranche of 2026-11-23, second | 8 | 1,302 | 163 | 1 |
+| the tranche of 2026-11-23, third | 13 | 553 | 43 | 1 (row 28) |
+| the tranche of 2026-11-25 | 17 | 9,518 | 560 | 1 (row 128) |
+| this tranche | 16 | 3,308 | 207 | 1 (row 148) |
+| this tranche without row 148's landing | 15 | 2,186 | 146 | 0 |
+
+By row, in the order the landings came (the booking commits' own
+figures):
+
+| row | landings | first parting | states | each |
+|---|---|---|---|---|
+| the seventh's row 148 (4637) | 1 | 10879 → whole | 1,122 | one take, one rule |
+| the sixth's row 133 (4669, 4675, 4679, 4684, 4686) | 5 | 2677 → 3620 | 943 | 802, 83, 51, 6, 1 |
+| the seventh's row 88 (4668, 4674, 4676, 4680, 4683, 4689) | 6 | 3033 → 3717 | 684 | 36, 26, 17, 329, 133, 143 |
+| the sixth's row 93 (4657, 4681, 4685, 4688) | 4 | 2965 → 3524 | 559 | 93, 31, 180, 255 |
+
+Two rows with no seat moved on another row's rule: the fifth's row 43,
+3995 → 4341 on row 88's emptied group (4676), and the fifth's row 83,
+3706 → 3715 on row 93's step 17 (4657), 355 states between them. The
+eleven games not whole stand 59,253 states short of their ends, from
+62,916 over twelve. The sixteen row landings cost 103.69 USD at list
+(`tables-1125b-tranche.txt`), the seam's landing 4.77 and the client's
+six 31.61. No landing ended at a first act and none moved nothing but
+item 4672, which built the siege muster's search and found it answers
+−1 at every entry of the 56 walks. The tranche before had seven
+landings that moved no first parting. Entry 157 §3's count of builds
+and the leaves the pass pasted into the items both changed between the
+two, and their effects are not separated.
+
+**§2. A row's take runs to its last state and is taken once.** Rows 93
+and 133 each hold one ranges record to their last state (run1799, to
+12,000, 13.1 GB and 1.6 GiB compressed, 988.8 s of game; run1797, to
+the game's end on 6084, 6.3 GB and 0.8 GiB, 446.5 s), and between them
+they landed nine words in this tranche with no take: the scorer named
+each next leaf off the disk. Row 88 holds windows. Its
+six words took six takes (run1834, run1838, run1839, run1840, run1842
+and run1843, each ending 5 to 16 states past the parting it was taken
+for), 1,557.8 s of game and 18.8 GB, 1.8 GiB compressed: more game and
+more disk than row 93's whole record, and each one a landing's first
+act with its wait on the game lane, its section in `docs/RUNS.md` and
+its filing. Item 4681 was booked a take for the same reason, "no ranges
+on disk reach 3058", while run1799 stood on disk; the lane found it.
+Entry 148 §4 already says which lines a take keeps, the scorer's own
+line (`one take for every parted line`), and that line already ends on
+the recording's last state. The windows came from the disk as it stood
+on 2026-11-21, 67 GB. It read 118 GB at this pass after the compression
+and the debug profile's clean. **An item books a take only for a row
+with no ranges record to its last state, the take is the scorer's line
+unchanged, and no later word of that row books one. A window is for a
+packet or a log.** The items of rows 88, 48, 108, 13 and 8 are rewritten
+to it, with the scorer's masks at this tip (`0xffbu`, `0xffbu`,
+`0xfebu`, `0xfebu`, `0xdfbu`). Row 53's leaf on 3716 is on disk
+(run1835, to 3720); its next word is the one that takes. A whole take
+reads about 14 GB off the disk until a pass compresses it (run1799: 69
+GB before, 55 after), so two in a tranche are affordable at this
+reading and entry 148 §4's stop under 60 still holds every take. No
+guard holds this: the dumps are outside the repo, and the rule is a
+clause of `docs/LOOP.md` and the items' own words.
+
+**§3. The seats, and the pivot's seam comes inside the mark.**
+`held_seams` at the handoff's tip: 252 s, 56 walks, 46 whole and ten
+open (the sample is not a held-out walk). Six tests green and one red
+on the fallback's pin, which no gate builds: the seventh's row 88 now
+fires nine rounds with no row from state 7769, 4,052 past its first
+parting, and the pin is re-pinned `(88, 9)`. The hooks no whole row
+enters (`seam-table.txt` under
+`~/ron-data/lab-experiments/2026-11-25-pass-second/`):
+
+| hook | open rows that enter it, first state against first parting, entries |
+|---|---|
+| `pivot::offset_at_unpinned` | row 133, 3685 against 3620, 385; row 88, 7754 against 3717, 4 |
+| `acquire::attack_action_no_target` | row 88, 5807 against 3717, 30 |
+| `attack_step::merchant_fire_proj` | row 48, 8322 against 5607, 16 |
+| `launch::fallback` | row 88, 7769 against 3717, 9 |
+
+The siege muster's hook is off the table (item 4672 built it), and so
+are `delivery::site_abandon_disband` and
+`attack_pos::dead_zone_projection`, which no open walk enters at this
+tip. Row 133 walked 943 states in the tranche, and the pivot's hook,
+988 states past its parting a pass ago, is 65 past it now. Entry 157 §5
+seats a named fix inside 100. **The chain's seat: item 4692 (row 93,
+leaders on 3524). Parity seats: item 4691 (row 133, units, guys and
+world on 3620) and item 4656 (the pivot's seam). The client's: item
+4690.** Items 4691 and 4656 both stand on row 133 and both re-pin
+`SCORES_SIXTH[6].moved`; the one that lands second takes the update and
+re-pins, as any two lanes in one module do. Item 4656's seat goes to
+the first unseated row at its landing. The unseated, in the order the
+guard holds: 4573 (the fifth's row 83, deaths on 3715), 4671 (row 53,
+leaders on 3716), 4693 (row 88, builds on 3717), 4571 (the fifth's row
+43, 4341), 4615, 4616, 4579, 4617, then the sample's 4649 by its first
+parting, 10653. The handoff's opener named row 88's item third, by the
+seat it had held. Rows 83, 53 and 88 part within three states of each
+other, and the order the guard holds is the one a freed seat takes;
+rows 83 and 53 have their leaves on disk and row 88 opens on a take.
+No game stands one line from whole: each of the eight open rows scored
+to its last state parts on ten or eleven lines (`score-*.txt`). The scorer's leaves at this
+tip are pasted into the items of rows 93, 133, 83 and 43.
+
+**§4. The waiter reads the log before it asks for the process.** The
+tranche's one red gate, `gate-4685-4683.log`, stopped at its offline
+step after 1.4 minutes on
+`test_a_launch_whose_runner_has_not_started_is_waited_for`, exit 2
+where 0 was asked, with a take playing and the load at 10 to 15 on 16
+cores. It passed alone and on the re-run, and the handoff called it the
+load. It is a race in `tools/gamelog/waitrun.sh`, and the test met it
+honestly. The script asked `pgrep` for a runner, found none, and then
+read the log for a line past the launcher's header; a first line that
+landed between the two reads made a log with a start and no process,
+which the script calls a dead runner, exit 2. In a capture that is a
+runner alive and called dead: run1794's failure (entry 153 §7), which
+the grace was written for, through a window a few milliseconds wide
+that a loaded host widens. **The script now reads whether the log
+shows a start before it asks for the process.** A start the log shows
+and a process that is gone are then a runner that has ended, and a
+receipt it printed on its way out is still read after the process
+check. A test puts a `pgrep` on the path whose first answer is "no
+runner" as the runner's first line lands; seen red on the script as it
+stood (exit 2 at the three-second mark), green on the fix, eight of
+eight.
+
+**§5. The compressor refuses its own output, and the pass writes
+nothing under the archives while it runs.** This pass sent
+`archive_compress.py`'s output and its acts' log to its directory under
+`~/ron-data`, one of the two trees the compressor takes. `afsctool`
+compressed both files while they were open, every later write to them
+failed, and the two scripts ended on exit 120 and exit 1 with nothing
+said: the scores, the seam table and the rubric had not run. The scan
+afterwards read `0 damaged, 0 standing`, and the acts were run again
+once the compressor had exited. **A run that would compress now
+refuses, exit 2, while its stdout or stderr is a file under one of its
+trees** (`output_under`, by the descriptor's own path), and
+`docs/LOOP.md`'s first act says that nothing of a pass writes under
+either tree until the compressor exits. Two tests, seen red before the
+function existed. The refusal covers the tool's own output and not
+another script's: that half is the clause.
+
+**§6. A mutation is refused while another cargo compiles the tree.**
+Item 4674's lane ran `tools/mutate.py` while a backgrounded `cargo
+test` of the same worktree was still compiling. The mutant was compiled
+into that test, which reported the mutant's numbers as its own, and the
+lane read them as "the build moved nothing". Item 4655 met the mirror
+of it a tranche earlier, a re-score started while a mutant stood on the
+tree, and entry 157 §8 left that as one case. Cargo holds an exclusive
+lock on its build directory's `.cargo-lock` for as long as it compiles
+and lets it go before a test binary runs. **`mutate.py` refuses, before
+anything is written, while any build directory of the tree is locked.**
+One test, seen red, with the lock held by the fixture. The mirror case,
+a cargo started after the mutant is applied, is not covered: the tool
+cannot hold cargo's lock and run its own command under it.
+
+**§7. The tranche's parked findings and the lanes' notes.** Ten parked.
+Item 4677a is closed (item 4687 built the line passes in the mesh).
+Item 4687b is item 4690's first act. Item 4678a, the start's seeded
+roads on a walk opened on the original's dump, names run1559b's
+intersections and stays the word after it on that photograph. Item
+4687a is a rules gap: the original's redo of a tile a line pass pushed
+runs every pass, connections and diagonals included, and ours redoes
+the texture alone. No row has parted on a road tile's connections and
+the finding names no score, so it stays in its journal and in
+`docs/RENDERER.md` §6, and is minted when a leaf names a road tile.
+Items 4672a, 4670a, 4669a, 4673a, 4675a and 4676a name no score and
+stay. Of the lanes' notes, item 4681's is §2 and item 4674's is §6; the
+other six are readers' lessons and stay in their journals. No `FABLE:`
+marker and no second reading in the tranche.
+
+**§8. The client's seat, after a look.** The pass drew the still at
+this tip at run1814b's camera, twice: the ground alone
+(`the_plates_on_run1814b`) and with the selection and the minimap
+(`the_ring_round_the_capital_on_run1814b`), and set both beside the
+photograph. Six landings drew this ground in the tranche. The trees
+past sight are dark where theirs are: the left grove reads (89, 64, 19)
+in theirs and (88, 65, 20) in ours, from (142, 113, 24) at item 4665's
+still. The plates lie under the three blocks, the selected city's
+outline and the bar above its building are drawn, and the open grass
+and the fog read within three levels of theirs in the four regions
+measured; the ground under the left grove reads (141, 125, 56) in
+theirs and (144, 133, 62) in ours. Outside the HUD's frame, the pass found two
+things the photograph has and the still has not: the city's name
+plate, a dark box with the capital's star and `Napata` under the
+selected city, and the log the Woodcutter's Camp at the right grove
+carries raised on its hoist, where ours stands at rest. The pass's
+first reading was a third, a pale band of ground running right from
+the left grove; the block means do not hold it (176, 170, 76 against
+175, 170, 75), and it is not booked. **The seat stays on item 4690,
+which is one landing on run1559b's pieces, and item 4694 is minted
+behind it for the name plate**, with the camp's hoist as its second
+word. Neither has a row yet; item 4694 opens on whether run1833's
+stream holds the plate's draw. The pairs:
+`https://cdn.ramonfabrega.com/attrition/pass-1125b/`.
+
+**§9. The tranche, measured.** Twenty-three merges, 10:49 to 18:12
+−05:00. Twelve gate logs before the backstop's, 342.5 minutes, all
+scoped and widened: eleven green and one red (§4). Admission 28,335.5 s
+summed, the longest 1,224.8 s; three ended with the load past 16.
+Twenty-three lane sessions cost 140.07 USD, 6.09 a landing against
+7.44; a lane's clock read 74.2 minutes, 12.5 working and 61.7 waiting,
+36.9 on its own gate and 15.9 on a suite run, against 83.5, 16.3, 67.2
+and 39.5 the tranche before. Three went deep (4637 at 311 k, 4675 at
+333 k, 4689 at 310 k) and cost 10.16 to 11.62 USD each against 5.38
+for the other twenty. Six capture sections in `docs/RUNS.md`, five of
+them row 88's (§2). The lane's wait is measured and not changed, as at
+the pass before: the week binds before the clock does. The week read
+67 % at 18:22 −05:00 on its fifth day, under the day's line of 70;
+Fable's read 45 %.
