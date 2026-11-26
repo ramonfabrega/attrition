@@ -2142,7 +2142,7 @@ REPAIR order's step: target alive, same owner or mutual allies, a building,
 an enemy; adjacent; then
 
 ```
-period (×256) = (helpers + 1) × ((construct_time(0) << 9) / (hits(0) × ACCEL_CONSTRUCT))
+period (×256) = (helpers + 1) × ((construct_time(1) << 9) / (hits(0) × ACCEL_CONSTRUCT))
 a city: period ×= 2;  a captured city (race != who): ×4 instead
 Koreans with KOREAN_REPAIR: period = (100 − KOREAN_REPAIR) × period / 100
 not Koreans-under-fire: is_under_attack → period <<= 2;  build_masks & 0x10 → <<= 2 again
@@ -2155,6 +2155,16 @@ repair_damage(amount)
 A full repair at one repairer takes **twice the build time**, ×2 for a city,
 ×4 for a captured one; extra repairers are harmonic like builders (the shared
 `helpers`). No building regenerates on its own except a city (§8.2).
+
+**`construct_time(1)`, not `(0)`** (item 4720; `push 1` at `0x5ee6f7`, vslot
+`+0x18c` at `0x5ee702`): `construct_time@0062d5c0` returns before its Hanging
+Gardens, President and Iroquois arms when its argument is non-zero, so a
+repair's clock is the walked `constr_time` (`+0x50`), or 1 for an American's
+free first wonder. The President beside a site shortens its build, never its
+repair. Diff-backed: run1799's who=1 Small City `1/2039` (54000, its President
+near) mends at period 418 on 4153 to 4156, every builds range byte for byte
+(`diff::held_out`, row 93's city repair); the shortened 40601 gave 314 and a
+point ahead on 4154.
 
 ### 9.4 Cancelling a start — `kill_competing_buildings`
 
