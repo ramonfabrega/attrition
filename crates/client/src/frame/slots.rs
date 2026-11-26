@@ -40,6 +40,11 @@ pub const OPTION_GATHER: i32 = 51;
 /// `OPTION_RENAME_CITY` at (3, 0).
 pub const OPTION_RENAME_CITY: i32 = 279;
 
+/// `NUM_OPTIONS`, `option_info`'s length: `OptionInfo::init@0072c530`
+/// reports an `options.xml` of another count and reads on. The shipped
+/// file holds 330; one of more is refused here, its tail past the table.
+pub const NUM_OPTIONS: usize = 0x14b;
+
 /// `VILLAGE`, the head of the City line (`BASE_BUILDTYPES`).
 const VILLAGE: i32 = 0x19e;
 /// `FORBIDDENCITY`, a city the rename skips.
@@ -270,7 +275,7 @@ impl SlotArt {
                 .map(|b| String::from_utf8_lossy(&b).into_owned())
                 .map_err(|e| format!("{f}: {e}"))
         };
-        let options = records(&read("options.xml")?, "OPTION")
+        let options: Vec<Option<PageCell>> = records(&read("options.xml")?, "OPTION")
             .iter()
             .map(|r| {
                 let head = r.split('>').next().unwrap_or("");
@@ -281,6 +286,12 @@ impl SlotArt {
                 )
             })
             .collect();
+        if options.len() > NUM_OPTIONS {
+            return Err(format!(
+                "options.xml: {} entries, past NUM_OPTIONS {NUM_OPTIONS}",
+                options.len()
+            ));
+        }
         // `unit_graphics.xml`'s pictures by the entry's name.
         let graphics = read("unit_graphics.xml")?;
         let pictures: std::collections::BTreeMap<&str, PageCell> = graphics
