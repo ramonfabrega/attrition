@@ -1045,20 +1045,6 @@ impl Sim {
                         )
                         .collect();
                     for o in here {
-                        let p4723 = std::env::var("RON_PROBE_4723").is_ok()
-                            && matches!(attacker, Obj::Unit(a) if self.units[a].owner == 2 && self.units[a].index == 73);
-                        if p4723 {
-                            let (Obj::Unit(a), ty) = (attacker, self.units[match attacker { Obj::Unit(a) => a, _ => 0 }].ty) else { unreachable!() };
-                            let cols = ty.map(|t| self.tables.unit_types[t].cols);
-                            let heli = matches!(o, Obj::Unit(t) if self.is_helicopter(t));
-                            eprintln!(
-                                "P4723S f{} cand {:?} who {} vt {} admits {} heli {} siege {} tank {} bomber {} cols {:?} maxr {} dist {} tdomain {:?}",
-                                self.frame, o, self.owner_of(o), self.valid_target_const(attacker, o),
-                                self.search_admits(o, flags), heli, self.is_siege_unit(a),
-                                cols.is_some_and(|c| c.flag(crate::ai::ai_load::uflags::TANK)), self.is_bomber(a),
-                                cols, self.max_range_of(attacker), self.attack_dist(attacker, o), self.profile(o).domain
-                            );
-                        }
                         if !self.valid_target(attacker, o) {
                             continue;
                         }
@@ -1208,14 +1194,6 @@ impl Sim {
                         }
                         if score == 0 && value != 0 {
                             score = 1;
-                        }
-                        if std::env::var("RON_PROBE_4723").is_ok()
-                            && matches!(attacker, Obj::Unit(a) if self.units[a].owner == 2 && self.units[a].index == 73 && self.frame >= 3630)
-                        {
-                            eprintln!(
-                                "P4723V f{} cand {:?} who {} in_range {} value {} dist {} score {} max_dist {} best {:?} rings {}",
-                                self.frame, o, self.owner_of(o), in_range, value, dist, score, max_dist, best, rings
-                            );
                         }
                         // `local_70`, seeded at 0 (`find_nearby_target@00648da0:232`) and taken past
                         // `jle` (`64987d`): a score of 0 — a candidate
