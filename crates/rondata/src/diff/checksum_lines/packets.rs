@@ -174,11 +174,6 @@ pub(in crate::diff) fn compare(
         .zip(ours)
         .map(|(name, o)| {
             let t = theirs.get(*name).unwrap_or(&empty);
-            if std::env::var_os("RON_PROBE_4728").is_some() && *name == "units" {
-                for i in differing_ranges(o, t) {
-                    eprintln!("P4728 units {}", FirstDifference::at(o, t, i));
-                }
-            }
             let mut differences = differing_ranges(o, t);
             let first = differences.next().map(|i| FirstDifference::at(o, t, i));
             LineOutcome {
