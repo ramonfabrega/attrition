@@ -51,13 +51,16 @@ pub(crate) const RUN1814B_3294_MINIMAP_FRAME: [usize; 7] =
 /// ours within two levels of the photograph's with no frame drawn, ours
 /// with it, the photograph's mean luma, ours with no frame, ours with it]`,
 /// the lumas as [`RUN1814B_3294_MINIMAP_FRAME`]'s.
-/// The photograph parts from the composition on the five slots that hold
-/// a button's picture (4724b), 11,850, and in the clock's box on 217 of
+/// The photograph parted from the composition on the five slots that hold
+/// a button's picture (4724b), 11,850, until item 4731, and in the clock's box on 217 of
 /// 3,800 (item 4727, §6.12): the last digit, ours `9` on 3295's clock and
 /// theirs `8`, and the glyphs' faint edges.
 /// Item 4727: 45,964 → 49,547, the box and the clock's line; luma ×10 459
 /// → 418.
-pub(crate) const RUN1814B_3294_LEFT_WINDOW: [usize; 7] = [61_614, 49_547, 0, 49_547, 516, 820, 418];
+/// Item 4731: 49,547 → 61,397, the five slots' pictures and overlays
+/// ([`super::slots`]), 11,850 pixels; luma ×10 418 → 516, the
+/// photograph's. What parts is the clock's 217.
+pub(crate) const RUN1814B_3294_LEFT_WINDOW: [usize; 7] = [61_614, 61_397, 0, 61_397, 516, 820, 516];
 
 /// The rectangles as interface.xml writes them, each form once.
 #[test]
@@ -273,7 +276,30 @@ fn the_minimap_frame_on_run1814b() {
     // Item 4727: the window with the clock's line of the still's frame.
     let line = super::clock_line(&world).expect("the clock's line");
     assert_eq!(line, "Normal: 00:03:39", "the clock's line on 3295");
-    let win = frame.left_with(Some(&line));
+    // Item 4731: the slots of the selected capital, as run1814b's packet
+    // holds them (`MiscAccess::options`, item 4729): the rename at (3, 0),
+    // the Citizen's training at (0, 0), the rally point at (3, 3), the
+    // alarm at (4, 0) and the Large City's upgrade greyed at (0, 3).
+    use super::slots::{OPTION_ALARM, OPTION_GATHER, OPTION_RENAME_CITY, OPTION_UPGRADE, Slot};
+    let bar = super::bar_slots(&world, crate::world::CONSOLE, &sel);
+    let s = |option, ty, disable, grid| Slot {
+        option,
+        ty,
+        disable,
+        grid,
+    };
+    assert_eq!(
+        bar,
+        vec![
+            s(OPTION_RENAME_CITY, -1, 0, (3, 0)),
+            s(crate::input::OPTION_TRAIN, 0x32, 0, (0, 0)),
+            s(OPTION_GATHER, -1, 0, (3, 3)),
+            s(OPTION_ALARM, -1, 0, (4, 0)),
+            s(OPTION_UPGRADE, 415, 1, (0, 3)),
+        ],
+        "the capital's slots"
+    );
+    let win = frame.left_with(Some(&line), &bar);
     let left_texel = |x: i32, y: i32| super::texel_of(&win, b, x, y);
     let left_mask: Vec<(i32, i32)> = (b.1..size.1)
         .flat_map(|y| (b.0..b.0 + frame.left.w as i32).map(move |x| (x, y)))

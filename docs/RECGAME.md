@@ -1672,7 +1672,7 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 | 23 | run1774 | Atlantic Sea Power | the computers | 6,001 | 10 | **leaders 0**, units 5695 |
 | 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~3192, 3223, 3299, 3442, 3833, 3899~~ 3995 |
 | 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, to 4222 | **12** | ~~1582, 1789, 3683, 3986~~ whole |
-| 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | [groups, leaders 3754](journal/2026-11-26-item-4721.md) |
+| 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | [units, guys 3775](journal/2026-11-26-item-4726.md) |
 | 103 | run1778 | East Indies, Modern | the computers | 3,295, to 3294 | **12** | ~~1750, 1757, 1790, 2557 (GROUPS §3.4), ammo 2860, world 2983~~ whole (COLLISION §2) |
 | 123 | run1779 | Great Lakes, Gunpowder | human + added | 6,001 | 3 | ~~builds, groups 2977~~ whole (below) |
 | 143 | run1780 | Great Sahara, difficulty 1 | the computers | 6,001 | **12** | whole |
@@ -1871,9 +1871,8 @@ moved. `row_33_s_musket_ball_leaves_from_the_original_s_socket_on_run1801_s_rang
 state. *Read, not diffed*: the `CHAR_ATTACK1` row's four headings the old fit missed; no capture has a round on one.
 
 **Where a row's landing writes** (DECISIONS 154 §6). Each open row has a heading below. A landing writes under its own
-row's heading and touches nothing above this paragraph: four updates conflicted on the one *Not established* paragraph
-above, and two merges backed out on it. The table above is the found column and is not edited again; `SCORES_SIXTH` and
-the queue's line hold what stands now.
+row's heading and touches nothing above this paragraph (four updates and two merges conflicted there). The table
+above is the found column and is not edited again; `SCORES_SIXTH` and the queue's line hold what stands now.
 
 ### 13.1 Row 13
 
@@ -1886,7 +1885,7 @@ Open: five lines part on 3713. 4660 moved 3358 → 3713: the stored heights (`do
 
 ### 13.3 Row 93
 
-2686 → 2965 by 4590 (COMBAT §68.1), 4606 → 3058 by 4657 → 3089 by 4681 (§47.2) → 3269 by 4685 (COLLISION §3.2) → 3524 by 4688 (COMBAT §7.2) → 4130 by 4692 (AI §75.4) → 4154 by 4718 (§368.1) → 4219 by 4720 (CITIES §9.3) → 4235 by 4725 (CHECKSUM §16), open.
+2686 → 2965 by 4590 (COMBAT §68.1), 4606 → 3058 by 4657 → 3089 by 4681 (§47.2) → 3269 by 4685 (COLLISION §3.2) → 3524 by 4688 (COMBAT §7.2) → 4130 by 4692 (AI §75.4) → 4154 by 4718 (§368.1) → 4219 by 4720 (CITIES §9.3) → 4235 by 4725 (CHECKSUM §16) → 4288 by 4730 (CHECKSUM §23.9), open.
 
 ### 13.4 Row 113
 
