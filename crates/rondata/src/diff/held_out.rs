@@ -2602,6 +2602,17 @@ pub(crate) mod tests {
                 );
             }
             crate::diff::harness::debug_watch(&built, built.sim.frame);
+            if let Some(u) = built.sim.unit_by_o(2, 73) {
+                let slot = built.sim.army_of(u);
+                let a = slot.and_then(|k| built.sim.ai.armies[2].list.get(k));
+                eprintln!(
+                    "P4723A f{} 2/73 cell {:?} slot {:?} army {:?}",
+                    built.sim.frame,
+                    built.sim.units[u].pos.cell(),
+                    slot,
+                    a.map(|a| (a.hurry, a.muster, a.target))
+                );
+            }
             stream.apply(built.sim.frame as i32, &mut built);
             built.sim.command().tick();
             let set = record.first_of(state - 1).expect("the state's set").clone();
