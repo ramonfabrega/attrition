@@ -14100,10 +14100,13 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 3,628 -> 3,633, leaders 3,628 -> 3,648 (first 3628 -> 3642); ammo
         // 3,645 -> 3,637 and goods 4,476 -> 5,037 past the parting, first
         // 3634 and 4476 standing. The first parting is units alone on 3633.
+        // On the tree merged with the base at `f68503715`, past the parting:
+        // ammo 3,637 -> 3,646, items 4,345 -> 4,360 (first 4345 -> 4360) and
+        // goods 5,037 -> 4,476, the base's landings and not this item's.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                3633, 3678, 6085, 3637, 3638, 3652, 3634, 3648, 3662, 4345, 5037, 3635,
+                3633, 3678, 6085, 3646, 3638, 3652, 3634, 3648, 3662, 4360, 4476, 3635,
             ],
             first: &[
                 ("units", (3633, Some(2003426502), 1964561737)),
@@ -14114,7 +14117,7 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
                 ("guys", (3634, Some(1299095494), 1968611755)),
                 ("leaders", (3642, Some(2756136980), 3880865814)),
                 ("cities", (3660, Some(2669307520), 2729731718)),
-                ("items", (4345, Some(1284182481), 1281298895)),
+                ("items", (4360, Some(1284182481), 1281298895)),
                 ("goods", (4476, Some(586774648), 601192570)),
                 ("world", (3634, Some(1481239642), 1470229594)),
             ],
