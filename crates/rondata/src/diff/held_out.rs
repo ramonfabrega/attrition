@@ -620,14 +620,6 @@ pub(crate) mod tests {
                     theirs.len()
                 );
                 let mut n = 0;
-                for (a, b) in ours.ranges.iter().zip(&theirs) {
-                    if line == 6 && a.record == 112 && a.field == "guy" {
-                        let w = |v: &[u8], o: usize| i32::from_le_bytes(v[o - 8..o - 4 + 0].try_into().unwrap());
-                        let f = |v: &[u8]| (w(v, 0xc + 4), w(v, 0x10 + 4), w(v, 0x14 + 4), w(v, 0x70 + 4), w(v, 0x68 + 4), w(v, 0x6c + 4), v[0xa1 - 8], v[0x8c - 8]);
-                        eprintln!("P4730G state {state} ours   x y z last_z last_x last_y who o {:?}", f(&a.bytes));
-                        eprintln!("P4730G state {state} theirs x y z last_z last_x last_y who o {:?}", f(&b.bytes));
-                    }
-                }
                 for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
                     if a.bytes == b.bytes {
                         continue;
