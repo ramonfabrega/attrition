@@ -13582,25 +13582,39 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 4,174 -> 4,175 (first 3524 -> 4166), ammo 4,728 -> 5,285, deaths
         // 4,197 -> 4,398; items 6,513 -> 6,510, a named fall past its first,
         // 6187; ours' `game_over` none -> 10873, theirs plays to 12,000.
+        // Then item 4718 (`find_nearby_target@00648da0`'s siege-city arm
+        // tests the find's `ObjectData +0x8 & 0x20`, set on the `VILLAGE`
+        // lineage at placement): who=1's Howitzer `1/41` (TI 272, land), on
+        // its attack-move, finds who=2's unbuilt Small City `2/2027` on 4129
+        // and adds it mandatory, as theirs (run1799's units range 1208,
+        // record 41, `order.attack` byte 8, `mandatory`: ours 0, theirs 1,
+        // on 4130). The row's first parting 4130 -> 4154 (builds): units
+        // 4,130 -> 4,242 (first 4219), builds 4,136 -> 4,198, groups 4,167
+        // -> 4,362, guys 4,180 -> 4,242, cities 4,221 -> 4,351, items 6,510
+        // -> 6,717, goods 4,797 -> 5,464, world 4,181 -> 4,288; ammo 5,285
+        // -> 4,787 and deaths 4,398 -> 4,325, named falls past 4154 (their
+        // firsts 4190 -> 4289 and 4197 -> 4325); items' first 6187 -> 6009,
+        // past 4154; leaders stands; ours' `game_over` 10873 -> none, both
+        // play to 12,000.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                4130, 4136, 12001, 5285, 4398, 4167, 4180, 4175, 4221, 6510, 4797, 4181,
+                4242, 4198, 12001, 4787, 4325, 4362, 4242, 4175, 4351, 6717, 5464, 4288,
             ],
             first: &[
-                ("units", (4130, Some(1238553357), 396940046)),
-                ("builds", (4132, Some(3833615637), 3514979604)),
-                ("ammo", (4190, Some(4179374870), 2728667563)),
-                ("deaths", (4197, Some(4115287177), 4203236490)),
-                ("groups", (4131, Some(3248158095), 1415640466)),
-                ("guys", (4180, Some(1398272031), 1868298625)),
+                ("units", (4219, Some(3412282491), 1117867263)),
+                ("builds", (4154, Some(1116497646), 4078790381)),
+                ("ammo", (4289, Some(1796672337), 2990607315)),
+                ("deaths", (4325, Some(3973575844), 4044551333)),
+                ("groups", (4334, Some(470667955), 2973162772)),
+                ("guys", (4219, Some(3243759351), 826464123)),
                 ("leaders", (4166, Some(2640249252), 1154351528)),
-                ("cities", (4221, Some(140919747), 372917197)),
-                ("items", (6187, Some(1365126693), 1373777447)),
-                ("goods", (4452, Some(3368850730), 3351549222)),
-                ("world", (4181, Some(2240145056), 2958026358)),
+                ("cities", (4351, Some(2145664821), 2143174452)),
+                ("items", (6009, Some(1373777447), 1365126693)),
+                ("goods", (4720, Some(3351549222), 3368850730)),
+                ("world", (4288, Some(2994040454), 587558473)),
             ],
-            over: Some(10873),
+            over: None,
         }),
     }),
     // run1793
