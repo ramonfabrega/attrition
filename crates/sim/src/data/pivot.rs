@@ -686,6 +686,31 @@ const NODES: &[(i32, i32, Node)] = &[
             py: 1_019_999,
         },
     ),
+    // **Piece 201, the Main Battle Tank `HEAVYTANK`** (unit type 251; item
+    // 4656): run1472's packet stores its `(4, 0, 0)` entry as `(0.0, 0.0,
+    // 27.11)` (`0x41d8e147`), the turret's `(4, 11, 11)` and `(4, 12, 23)`
+    // too, as item 3810 read when it built the piece's three [`RELEASES`]
+    // rows and left the node out. Row 133 turned the turret 235 times on
+    // this seam from state 3685; the vector is `(0, 0)` either way, so the
+    // row moves no value.
+    (201, 4, Node { px: 0, py: 0 }),
+    // **Piece 1196, the Asian set's Carabineer** (`CARBINEER-ASIAN-AGE0`,
+    // unit type 190; item 4656): the 2017 sample's `3/101` bears on `0/13`
+    // through this node on 15938. `init_position` on run1579's packet
+    // writes its pivot node's `CHAR_ATTACK1`..`3` entries (frames 12, 13,
+    // 18) as piece 844's, bit for bit, and its muzzle's differently (its
+    // own `carabineer_asian.bh3`, so not [`SAME_AS`]). Its `(4, 0, 0)` is
+    // 844's `(0.0, −1.48, 31.05)`: the four Carabineer sets play one
+    // skeleton and one `Carabineer Default`, and 139's, 140's and 844's
+    // stored entries are one point.
+    (
+        1196,
+        4,
+        Node {
+            px: 0,
+            py: -1_480_000,
+        },
+    ),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -729,6 +754,8 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (173, (7, 10)),
     (232, (4, 5)),
     (844, (51, 50)),
+    // Item 4656: piece 1196's, `0x3f828f5c` on run1579's packet, as 844's.
+    (1196, (51, 50)),
     // Item 4430: a [`SAME_AS`] piece reads another's rows but keeps its own
     // `RData +0x88`, and [`scale`] looks the piece up as itself. The A7V's
     // 192 is 0.9 on run1351's packet and the Egyptian 195 is 0.9 on

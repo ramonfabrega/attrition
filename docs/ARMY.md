@@ -1275,6 +1275,18 @@ target's own cell; then `muster_y += 1`, or `−= 1` on the map's last row;
 chase left, and a best there overrides it. (The first implementation
 returned here, and every own-city search skipped the ring.)
 
+**`FILTER_COMBAT` on a unit is an attack and the combat role** (item
+4691): `Search::valid_filter@0067dbb0`'s arm 8 takes the unit branch at
+`0067debf`, the type's `+0x1e8` non-zero and then `+0x2c8 >> 16 & 1`.
+A Citizen (TI 50, attack 40) is no combat unit. On run1797's 3620 three
+of who=2's Citizens stood inside `0x900` of who=1's newly taken centre
+`1/2067`; the crate counted them, set `hurry`, and the army's move
+stabled its wagons, siege and generals in the city (`docs/GROUPS.md`
+§6.5) where the original marched them. *Diff-backed* by run1797's units,
+guys and world on 3620 and 3621. Not built: the search's `0x200` region
+test and its walk order (the crate takes the first nearest in object
+order; `find_unit` the last, by its list or circle walk).
+
 Run1823 isolates the two states of Farm 2/2006 on sample frame 7934.
 It has damage 9. With its recorded alert clear, the original returns
 (3,39), `hurry = 0`. Setting only the current alert returns (6,45),
@@ -1942,6 +1954,8 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
   killer test; no held-out walk reaches it, and a cell's chain order on a tie is taken as the building index.
 - **§8 step 3's `0x300` building search lacks `FILTER_COMBAT`'s city refusal and `hits_left`** (4672a, item 4672's
   journal): `enemy_combat_building_near` tests the attack alone; no walk is known to reach the difference.
+- **§13's chase search lacks `find_unit`'s `0x200` region test and its walk order** (4691a, item 4691's journal):
+  `nearest_enemy_attacker_in` keeps the first nearest by object number; no walk is known to reach either.
 - ~~**Which city Great Lakes 8442 picks, and where the army musters on
   it**~~ — **settled by item 352 (§16.9)**, and without an `ARMYDATA`
   record: the order's `orig` reconstructs the muster cell uniquely through

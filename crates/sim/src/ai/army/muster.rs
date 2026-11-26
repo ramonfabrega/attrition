@@ -717,6 +717,16 @@ impl Sim {
     /// `find_unit(SEARCH_ENEMY, FILTER_COMBAT)`: the nearest enemy unit of
     /// `who` with an attack within `range` of `p`.
     ///
+    /// **`FILTER_COMBAT` is an attack and the combat role** (item 4691):
+    /// `Search::valid_filter@0067dbb0`'s arm 8 takes the unit branch at
+    /// `0067debf`, which returns `type +0x1e8 != 0` and then `type +0x2c8
+    /// >> 16 & 1`, the type's `role & 0x10000`. A Citizen (TI 50) has an
+    /// attack of 40 and no combat role, so it is no combat unit. run1797's
+    /// three who=2 Citizens beside who=1's newly taken city `1/2067` on
+    /// 3619 hurried army 0's muster in this crate alone, and its move on
+    /// 3620 stabled the wagons, siege and generals in the city
+    /// (`docs/GROUPS.md` §6.5) where the original marched them.
+    ///
     /// The search's leader loop stops at eight (`world::PLAYER_SLOTS`), so
     /// gaia's animals are not in its space at all — and asking the diplomacy
     /// question about them is what panicked the first fuzzed seed.
@@ -743,7 +753,7 @@ impl Sim {
             if domain.is_some_and(|d| u.kind.domain != d) {
                 continue;
             }
-            if self.attack_of(Obj::Unit(i)) == 0 {
+            if self.attack_of(Obj::Unit(i)) == 0 || !self.profile(Obj::Unit(i)).combat_role {
                 continue;
             }
             let d = super::dist(u.pos, p);
