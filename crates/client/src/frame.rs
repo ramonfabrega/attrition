@@ -171,6 +171,9 @@ pub struct MinimapFrame {
     /// Item 4748: the selected panel's frame ([`selected`]), `None` where
     /// interface.xml has none.
     pub selected: Option<selected::SelectedLayout>,
+    /// Item 4752: the panel's faces ([`left::PANEL_FACES`]), `arialbd` and
+    /// `arial` at 10, `None` where the install has them not.
+    pub panel_faces: Option<[crate::selection::PlateFace; 2]>,
 }
 
 /// **The population box's art** (item 4739): its layout and `TEX_COMMON`.
@@ -215,6 +218,7 @@ pub struct FrameArt {
     /// Item 4727: the clock's face, and `rules.xml`'s `gamespeeds`, the
     /// names `TurnControl::speed` indexes (`game_speeds`).
     face: Option<crate::selection::PlateFace>,
+    panel_faces: Option<[crate::selection::PlateFace; 2]>,
     pub speeds: Vec<String>,
     /// Item 4731: the slots' pictures, `None` where the install has none.
     pub slot_art: Option<std::sync::Arc<slots::SlotArt>>,
@@ -242,6 +246,13 @@ impl FrameArt {
             .to_string();
         let (file, ppem, ascent, height) = left::CLOCK_FACE;
         let face = crate::selection::PlateFace::load_face(root, file, ppem, ascent, height).ok();
+        let panel_faces = left::PANEL_FACES
+            .map(|(file, ppem, ascent, height)| {
+                crate::selection::PlateFace::load_face(root, file, ppem, ascent, height).ok()
+            })
+            .into_iter()
+            .collect::<Option<Vec<_>>>()
+            .and_then(|v| <[_; 2]>::try_from(v).ok());
         let speeds = std::fs::read_to_string(root.join("Data").join("rules.xml"))
             .ok()
             .and_then(|x| {
@@ -268,6 +279,7 @@ impl FrameArt {
             selected,
             default_civ,
             face,
+            panel_faces,
             speeds,
             slot_art: slots::SlotArt::load(root).ok().map(std::sync::Arc::new),
             caps: CapArt::load(root, &xml).ok().map(std::sync::Arc::new),
@@ -323,6 +335,7 @@ impl FrameArt {
             civ: std::sync::Arc::new(atlas),
             right: self.right.clone(),
             selected: self.selected.clone(),
+            panel_faces: self.panel_faces.clone(),
         })
     }
 }
@@ -483,13 +496,25 @@ impl MinimapFrame {
             for (d, s) in dst.iter_mut().zip(over.rgba.as_chunks::<4>().0) {
                 left::over(d, *s);
             }
-            // Item 4750: each figure's line, `write_cent_l` over its back,
-            // in the clock's face (the window's own, lookup 10, is unread:
-            // 4750b).
+            let local = |(x0, y0, x1, y1): left::Span| (x0 - c.0, y0 - c.1, x1 - c.0, y1 - c.1);
+            let moved = |(x0, y0, x1, y1): left::Span| (x0 + at.0, y0 + at.1, x1 + at.0, y1 + at.1);
+            // Item 4752: `draw_build_name`'s line, `FontFamily::get(fonts,
+            // 12, 1)` (the clock's face), `write_cent_l` in `name`, white
+            // over a black shadow.
             if let Some(face) = &self.face {
-                for (_, _, (x0, y0, x1, y1), s) in l.stat_pieces(at, &p.stats) {
-                    let r = (x0 - c.0, y0 - c.1, x1 - c.0, y1 - c.1);
-                    left::write_clock(&mut t, face, r, &s.line);
+                left::write_clock(&mut t, face, local(moved(l.name)), &p.title);
+            }
+            if let Some([bold, plain]) = &self.panel_faces {
+                // Item 4750: each figure's line, `write_cent_l` over its
+                // back; item 4752: in the window's face, `FontFamily::get(
+                // fonts, 10, -1)`, size 10 in `def_style` 1, `arialbd`.
+                for (_, _, span, s) in l.stat_pieces(at, &p.stats) {
+                    left::write_clock(&mut t, bold, local(span), &s.line);
+                }
+                // `draw_hitpoints`: `FontFamily::get(fonts, 10, 0)`, `arial`,
+                // white, no shadow (`COLOR_NONE`), in `hitpoints`.
+                if let Some(h) = &p.hits {
+                    left::write_cent(&mut t, plain, local(moved(l.hitpoints)), h, false);
                 }
             }
         }
@@ -560,11 +585,44 @@ pub fn selected_panel(
                 .get(c.building)
                 .is_some_and(|b| b.index == o.o)
     });
+    let b = sim
+        .buildings
+        .iter()
+        .find(|b| b.owner == o.who && b.index == o.o && b.health > 0);
     Some(selected::Panel {
         team: render::silhouette::team_unit(o.who),
         capital,
         stats: building_stats(sim, o),
+        title: b
+            .map(|b| build_title(sim, &world.names.builds, b))
+            .unwrap_or_default(),
+        hits: b.map(|b| format!("{}/{}", b.health, b.hits)),
     })
+}
+
+/// **`draw_build_name@00820c30`'s line** for building `b` (item 4752):
+/// with no city, the type's name; a building of a city that is no city
+/// centre (`is(VILLAGE)` false), `$BUILDINGTYPE0 -- $CITYNAME1`
+/// (`loc_str_array +0xa2e4`); a city centre, `$CITYNAME1 --
+/// $BUILDINGTYPE0` (`+0xa30c`) over the city and the type, which writes the
+/// type first; the Forbidden City, `$CITYNAME0` (`+0xa2f8`). The type's
+/// name is `buildingrules.xml`'s `NAME`; the type's own vtable `+0x9c`,
+/// which may take a nation's `alternatenames.xml`, is unread (4752c).
+pub fn build_title(
+    sim: &sim::Sim,
+    names: &[String],
+    b: &sim::cities::building::Building,
+) -> String {
+    let ty = b.ty.and_then(|t| names.get(t)).cloned().unwrap_or_default();
+    let Some(c) = b.city else {
+        return ty;
+    };
+    let city = sim.city_name(c).unwrap_or_default();
+    if ty == "Forbidden City" {
+        city.to_string()
+    } else {
+        format!("{ty} -- {city}")
+    }
 }
 
 /// **`draw_stat@008214d0`'s figures for a building** (item 4750), in

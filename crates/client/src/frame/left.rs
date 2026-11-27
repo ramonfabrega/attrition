@@ -451,6 +451,27 @@ pub const CLOCK_FACE: (&str, i32, i32, i32) = ("arialbd.ttf", 12, 11, 14);
 /// moved by its advance. The shadow, black, goes down first, one pixel
 /// right and one down; then the text, white.
 pub fn write_clock(win: &mut Texels, face: &crate::selection::PlateFace, rect: Span, line: &str) {
+    write_cent(win, face, rect, line, true);
+}
+
+/// **The panel's faces** (item 4752), each `(file, ppem, mAscent,
+/// mFontHeight)` as [`CLOCK_FACE`]: `FontFamily::get@00522810` picks the
+/// font list's entry of the size asked in the style asked
+/// (`def_style` 1, bold, where it is −1), so `get(fonts, 10, -1)` is
+/// `arialbd.ttf` at 10 and `get(fonts, 10, 0)` `arial.ttf` at 10. Arial's
+/// ascent and descent round to 9 and 2 at 10 pixels an em.
+pub const PANEL_FACES: [(&str, i32, i32, i32); 2] =
+    [("arialbd.ttf", 10, 9, 11), ("arial.ttf", 10, 9, 11)];
+
+/// **`write_cent_l`** with or without its black shadow, one pixel right and
+/// one down ([`write_clock`]).
+pub fn write_cent(
+    win: &mut Texels,
+    face: &crate::selection::PlateFace,
+    rect: Span,
+    line: &str,
+    shadow: bool,
+) {
     let (x0, y0, x1, y1) = rect;
     let Some(tw) = face.text_width(line) else {
         return;
@@ -467,7 +488,12 @@ pub fn write_clock(win: &mut Texels, face: &crate::selection::PlateFace, rect: S
         .flatten()
         .collect();
     let h = face.height();
-    for (ink, (dx, dy)) in [([0u8, 0, 0], (1, 1)), ([255u8, 255, 255], (0, 0))] {
+    let inks: &[([u8; 3], (i32, i32))] = if shadow {
+        &[([0, 0, 0], (1, 1)), ([255, 255, 255], (0, 0))]
+    } else {
+        &[([255, 255, 255], (0, 0))]
+    };
+    for &(ink, (dx, dy)) in inks {
         for (at, cell) in &cells {
             for v in 0..h {
                 for u in 0..cell.w as i32 {

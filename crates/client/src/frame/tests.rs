@@ -114,9 +114,14 @@ pub(crate) const RUN1814B_3294_RESOURCES: [usize; 7] = [11_986, 11_827, 0, 11_67
 /// 0/2, 20, the sim's own), their backs, icons and lines, 233,080 →
 /// 238,258 on the still, the composition 232,857 → 238,035. The backs and
 /// icons agree; the lines' glyphs part on 547 pixels, the clock's face
-/// standing in for lookup 10's (4750b).
+/// standing in for lookup 10's (4750b). Item 4752: the figures in the
+/// window's own face (`FontFamily::get(fonts, 10, -1)`, `arialbd` at 10),
+/// `draw_build_name`'s `Small City -- Napata` in the clock's face and
+/// `draw_hitpoints`' `1200/1200` in `arial` at 10, 238,258 → 239,112 on
+/// the still, the composition 238,035 → 238,889. Still apart: the
+/// `object` button's picture (4752a).
 pub(crate) const RUN1814B_3294_SELECTED: [usize; 7] =
-    [242_115, 238_035, 0, 238_258, 556, 1_161, 548];
+    [242_115, 238_889, 0, 239_112, 556, 1_161, 550];
 
 /// The banner as interface.xml writes it, on a cut of its own text.
 #[test]
@@ -536,6 +541,7 @@ fn the_minimap_frame_on_run1814b() {
     // Item 4738: the bar's right side.
     // Item 4748: the selected panel's frame over it, the capital's.
     let panel = super::selected_panel(&world, &sel);
+    println!("the panel on 3295: {panel:?}");
     assert_eq!(
         panel,
         Some(super::selected::Panel {
@@ -554,6 +560,9 @@ fn the_minimap_frame_on_run1814b() {
                 line: line.to_string()
             })
             .to_vec(),
+            // Item 4752: `draw_build_name`'s line and `draw_hitpoints`'.
+            title: "Small City -- Napata".to_string(),
+            hits: Some("1200/1200".to_string()),
         }),
         "the capital's panel, in the photograph's red"
     );
