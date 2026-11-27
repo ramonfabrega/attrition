@@ -16527,15 +16527,22 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // -> 4,568, cities 4,488 -> 4,644, items 9,428 -> 9,478, goods 4,684
         // -> 5,497, world 4,394 -> 4,568. The first parting moves 4384 ->
         // 4387, on ammo, which stood.
+        // Then item 4755 (row 133's word: a building's round leaves from its
+        // stored `z`, `Object::fire_ammo@0064c8b0:147`): on 4387 ammo record
+        // 8, who=2's building `2/2014`'s shot at `1/75`, launch `z` ours
+        // 348, theirs 380 (item 4751's read), theirs now. Ammo 4,415 ->
+        // 4,590 (first 4387 -> 4569); no other line moves. The first
+        // parting moves 4387 -> 4568, on units, builds, guys, leaders and
+        // world.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                4568, 4568, 12001, 4415, 4574, 4581, 4568, 4568, 4644, 9478, 5497, 4568,
+                4568, 4568, 12001, 4590, 4574, 4581, 4568, 4568, 4644, 9478, 5497, 4568,
             ],
             first: &[
                 ("units", (4568, Some(516811716), 223209531)),
                 ("builds", (4568, Some(2215694334), 1272959446)),
-                ("ammo", (4387, Some(2766110081), 1430617522)),
+                ("ammo", (4569, Some(1709369836), 271706844)),
                 ("deaths", (4574, Some(301612922), 306003835)),
                 ("groups", (4581, Some(724062805), 4151857789)),
                 ("guys", (4568, Some(2105001469), 260490747)),
