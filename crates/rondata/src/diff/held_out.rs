@@ -7515,6 +7515,31 @@ pub(crate) mod tests {
     /// `path.length` 33 against 1. Every units, groups, guys and world
     /// range on 4805 to 4807, byte for byte.
     #[test]
+    fn probe_4771_walk() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        while built.sim.frame < 4813 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let sim = &built.sim;
+        for (who, o) in [(1u8, 16i16), (1, 2), (1, 66), (2, 88), (2, 101)] {
+            if let Some(u) = sim.units.iter().rposition(|un| un.owner == who && un.index == o) {
+                let un = &sim.units[u];
+                eprintln!("PROBE4771 end {who}/{o} ti {} pos ({},{}) orders {:?}", un.ty.map(|t| sim.tables.unit_types[t].type_index).unwrap_or(-1), un.pos.x, un.pos.y, un.orders.iter().map(|o| o.index()).collect::<Vec<_>>());
+            }
+        }
+    }
+
+    #[test]
     fn row_93_s_blocked_follower_hands_its_enemy_to_the_group_on_run1799_s_ranges() {
         let Some(inst) = crate::testenv::install() else {
             return;
