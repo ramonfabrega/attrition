@@ -1,7 +1,7 @@
-# Every rondata release test timed alone, 2026-11-26, tools/suite_timings.py (tree a4327900).
+# Every rondata release test timed alone, 2026-11-26, tools/suite_timings.py (tree b34caaca).
 # One test per process, --test-threads 1, sequential, RON_INSTALL set; seconds then the test.
-# Sum 6,977 s over 2751 tests; --stale-only merged. Top 10 = 1489 s, top 30 = 2295, top 100 = 2938; 1167 tests under 1 s.
-# By module: held_out 1145 s / 151 tests, mapgen 687 s / 133 tests, sample 503 s / 48 tests, golden 363 s / 346 tests, audit 321 s / 124 tests.
+# Sum 6,997 s over 2760 tests; --stale-only merged. Top 10 = 1489 s, top 30 = 2295, top 100 = 2938; 1167 tests under 1 s.
+# By module: held_out 1165 s / 160 tests, mapgen 687 s / 133 tests, sample 503 s / 48 tests, golden 363 s / 346 tests, audit 321 s / 124 tests.
 216.02	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 211.47	diff::held_out::tests::the_seventh_held_out_games_score_as_pinned
 199.71	diff::held_out::tests::the_held_out_games_score_as_pinned
@@ -265,6 +265,7 @@
 4.21	diff::harness::tests::run125_s_word_frame_is_widened_whole
 4.20	mapgen::tests::nile_delta_s_resources_are_7877_to_7927
 4.20	mapgen::tests::mediterranean_s_values_and_make_stream_are_the_trace_s
+4.20	diff::held_out::tests::row_93_s_city_repair_beside_its_president_takes_the_long_clock_on_run1799_s_ranges
 4.19	diff::roman_medieval_pair::roman_medieval_pair_run1293b_s_word_frame_is_widened_whole
 4.19	diff::audit::sahara_coverage_corrections_change_nothing
 4.19	diff::sample::tests::the_sample_s_empty_group_keeps_its_current_record
@@ -554,6 +555,7 @@
 2.78	diff::diplomacy_take::recon4300_2_walks_to_its_word_at_difficulty_4
 2.77	diff::held_out::tests::row_63_s_fort_pick_walks_the_fort_records_on_run1782
 2.77	diff::city::tests::run59_s_census_is_where_the_ai_s_timber_goes
+2.76	diff::held_out::tests::row_133_s_army_is_not_hurried_by_citizens_on_run1797
 2.76	diff::german_alltech_pair::german_alltech_pair_first_parting
 2.76	diff::harness::tests::run159_s_word_frame_is_widened_whole
 2.75	diff::audit::egyptian_industrial_pair_corrections_change_nothing
@@ -804,6 +806,8 @@
 2.13	diff::russian_medieval_pair::russian_medieval_pair_run1268b_s_word_frame_is_widened_whole
 2.13	diff::chinese_enlightenment_pair::chinese_enlightenment_pair_run1350b_s_word_frame_is_widened_whole
 2.13	diff::endpoint::tests::great_sahara_endpoint_is_pinned
+2.13	diff::held_out::tests::row_93_s_launched_fighter_snaps_its_last_angle_on_run1799_s_ranges
+2.12	diff::held_out::tests::row_93_s_fighter_on_a_reused_number_inherits_its_held_z_on_run1799_s_ranges
 2.12	diff::held_out::tests::row_10_s_helicopters_set_apart_keep_their_dest_angle_on_run1739_s_ranges
 2.12	diff::audit::iroquois_enlightenment_pair_corrections_change_nothing
 2.12	diff::dutch_sahara_word::run995c_s_word_frame_is_widened_whole
@@ -852,6 +856,7 @@
 2.04	diff::mongol_pair::run788_s_word_frame_is_widened_whole
 2.04	diff::bantu_ancient_pair::bantu_ancient_pair_run1238_walks_the_parting_back_from_5066
 2.04	diff::minted::the_original_s_playback_of_the_followed_file_walks_in_lockstep
+2.03	diff::held_out::tests::row_93_s_howitzer_takes_the_unbuilt_city_mandatory_on_run1799_s_ranges
 2.03	diff::french_classical_pair::french_classical_pair_first_parting
 2.03	diff::golden::chapter_one_s_word_frame_is_widened_whole
 2.03	diff::spanish_gunpowder_pair::spanish_gunpowder_pair_run1303_s_gap_is_widened_whole
@@ -963,6 +968,7 @@
 1.86	diff::greek_gunpowder_pair::greek_gunpowder_pair_run1285b_s_closing_frame_is_widened_whole
 1.86	diff::inca_classical_pair::inca_classical_pair_the_long_s_stride_walks_back_from_5357
 1.86	diff::sahara_toughest::tests::run653_s_word_frame_is_widened_whole
+1.86	diff::held_out::tests::row_133_s_spy_marks_itself_as_it_bribes_on_run1797
 1.85	diff::minted::what_the_picks_do_on_both_sides
 1.85	free::tests::the_draw_list_s_buildings_are_in_register
 1.85	diff::iroquois_word::run952b_s_gap_is_widened_whole
@@ -1003,6 +1009,7 @@
 1.81	diff::checksum_lines::packets::japanese_ancient_pair_packets
 1.81	diff::japanese_industrial_pair::run1153_japanese_industrial_pair_closing_state
 1.81	diff::held_out::tests::row_30_s_aa_gun_repaints_its_disc_as_it_boards_its_transport_on_run1755_s_ranges
+1.80	diff::held_out::tests::row_133_s_flamethrower_drops_the_helicopter_its_attack_move_found_on_run1797
 1.80	diff::held_out::tests::row_133_s_citizen_comes_out_at_the_ground_under_its_spot_on_run1797
 1.80	diff::held_out::tests::row_105_s_ceo_carries_the_ceo_bit_from_its_set_type_on_run1752_s_ranges
 1.80	diff::build::tests::run7_s_first_script_call_fills_the_queues_the_dump_shows
@@ -1022,6 +1029,7 @@
 1.79	diff::iroquois_sahara_word::iroquois_sahara_word_first_parting
 1.79	diff::checksum_lines::packets::german_modern_pair_packets
 1.79	diff::german_sahara_word::run1003_s_word_frame_is_widened_whole
+1.78	diff::held_out::tests::row_133_s_merchant_is_not_kept_off_a_good_by_citizens_on_run1797
 1.78	diff::setup::tests::init_stance_is_the_original_s_on_both_maps_first_blocks
 1.78	diff::golden::chapter_one_s_captain_picks_the_one_it_can_reach
 1.78	diff::korean_word::korean_word_first_parting
@@ -1185,6 +1193,7 @@
 1.56	diff::indian_word::run970c_s_word_frame_is_widened_whole
 1.56	diff::checksum_lines::packets::maya_word_packets
 1.56	diff::minted::the_original_s_playback_of_the_main_view_clicked_file_walks_in_lockstep
+1.56	diff::held_out::tests::row_93_s_hanging_gardens_close_walks_the_wonder_mark_down_on_run1799_s_ranges
 1.55	diff::golden::chapter_ninety_eight_s_window_is_widened_whole
 1.55	diff::golden::chapter_forty_five_s_word_frame_is_widened_whole
 1.55	diff::audit::egyptian_modern_pair_corrections_change_nothing

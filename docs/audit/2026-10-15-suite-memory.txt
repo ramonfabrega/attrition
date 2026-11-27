@@ -1,4 +1,4 @@
-# Every rondata release test's peak resident set alone, 2026-11-26, tools/suite_timings.py (tree a4327900).
+# Every rondata release test's peak resident set alone, 2026-11-26, tools/suite_timings.py (tree b34caaca).
 # /usr/bin/time -l, one test per process, --test-threads 1; MiB then the test; -1 when unread.
 5304	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 3662	diff::start::tests::every_lobby_s_start_built_from_its_choices
@@ -2085,15 +2085,19 @@
 71	diff::held_out::tests::row_63_s_fort_pick_walks_the_fort_records_on_run1782
 71	diff::held_out::tests::row_28_s_round_at_the_capital_on_run1820_s_ranges
 71	diff::held_out::tests::row_133_s_general_bleeds_on_hostile_ground_on_run1797
+70	diff::held_out::tests::row_133_s_army_is_not_hurried_by_citizens_on_run1797
 70	diff::sample::tests::the_sample_s_ranges_to_3100_name_each_first_parting
+70	diff::held_out::tests::row_93_s_city_repair_beside_its_president_takes_the_long_clock_on_run1799_s_ranges
 69	diff::held_out::tests::row_53_s_fire_raft_rams_and_sinks_on_run1835_s_ranges
 69	diff::held_out::tests::row_133_s_sam_rocket_strikes_its_own_capital_with_the_recapture_bonus_on_run1797_s_ranges
 69	diff::held_out::tests::row_133_s_captured_city_keeps_the_near_border_mark_on_run1797
 69	diff::held_out::tests::row_88_s_fire_raft_sunk_in_its_own_work_repaints_its_disc_on_run1843_s_ranges
+68	diff::held_out::tests::row_133_s_merchant_is_not_kept_off_a_good_by_citizens_on_run1797
 68	diff::held_out::tests::row_43_s_muster_and_first_steps_match_run1787
 68	diff::held_out::tests::row_83_s_barracks_re_homes_when_its_city_is_taken_on_run1784_s_ranges
 68	diff::held_out::tests::row_93_s_siege_order_walks_its_point_on_run1799_s_ranges
 68	diff::held_out::tests::row_28_s_round_on_run1821_s_ranges
+67	diff::held_out::tests::row_93_s_howitzer_takes_the_unbuilt_city_mandatory_on_run1799_s_ranges
 67	diff::held_out::tests::row_83_rebuilds_the_trade_road_before_choosing_the_caravan_death_animation
 67	diff::held_out::tests::row_133_s_attack_helicopter_fires_from_its_pod_on_run1797_s_ranges
 67	diff::checksum_lines::deaths::the_disbanded_scout_and_dog_match_the_whole_packet
@@ -2102,6 +2106,11 @@
 67	diff::held_out::tests::row_133_s_repair_recruit_walks_under_a_move_order_on_run1797_s_ranges
 67	diff::held_out::tests::row_93_s_decoy_tiger_tank_leaves_the_chain_at_its_death_on_run1799_s_ranges
 67	diff::held_out::tests::row_133_s_spy_bribes_an_enemy_infantryman_from_its_army_s_turn_on_run1797
+67	diff::held_out::tests::row_93_s_launched_fighter_snaps_its_last_angle_on_run1799_s_ranges
+67	diff::held_out::tests::row_93_s_fighter_on_a_reused_number_inherits_its_held_z_on_run1799_s_ranges
+67	diff::held_out::tests::row_133_s_flamethrower_drops_the_helicopter_its_attack_move_found_on_run1797
+67	diff::held_out::tests::row_133_s_spy_marks_itself_as_it_bribes_on_run1797
+67	diff::held_out::tests::row_93_s_hanging_gardens_close_walks_the_wonder_mark_down_on_run1799_s_ranges
 66	diff::held_out::tests::row_133_s_citizen_comes_out_at_the_ground_under_its_spot_on_run1797
 66	diff::held_out::tests::row_133_s_new_city_sweeps_its_buildings_by_object_number_on_run1797_s_ranges
 66	diff::held_out::tests::row_133_s_sam_winds_and_turns_at_its_sighting_on_run1797_s_ranges

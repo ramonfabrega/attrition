@@ -402,7 +402,12 @@ or the lane is told to push and the waiter's `LANDED` is waited for
 (Loop 3503: three lanes of the fifty-first tranche sent their done line
 with the tip on the local branch only, `ccc merge` read the local ref,
 and a reaped worktree would have held the only copy) — then `ccc merge <ref>
---no-ff`, the booking commit, **the spawn that refills the lane, cut off
+--no-ff`, the booking commit, **its queue edit made by `python3
+tools/book.py <item> --with <the next word's file> --line <old> <new>`**
+(DECISIONS 159 §3: the item leaves, its successor stands where it is told,
+a scoreboard line's words change, and a booking that would touch any other
+item is refused; a script of the driver's own deleted the item after the
+one it booked), **the spawn that refills the lane, cut off
 that commit** — `python3 tools/brief.py … > brief.md && [ -s brief.md ]
 && ccc spawn … - < brief.md`, because a brief the tool refused (exit 2,
 nothing on stdout) fed to `ccc spawn -` makes a promptless `draft` row
@@ -545,7 +550,13 @@ and is taken once** (DECISIONS 158 §2): an item books a take only for a
 row with no ranges record to its last state, and a window is a packet's
 or a log's. Row 88 took six window takes for six words, 1,558 s of game
 and 18.8 GB, where row 93's one take to 12,000 ran 989 s and keeps 1.6
-GiB compressed, and rows 93 and 133 landed nine words on one take each. **A held-out game's found column is never re-pinned** (DECISIONS 144
+GiB compressed, and rows 93 and 133 landed nine words on one take each.
+**The runner refuses a ranges take on its raw peak, not on a figure in a
+clause** (DECISIONS 159 §2): the record is written raw while the game
+plays, about 1.2 GB a thousand frames, and filing splits and compresses it
+to a seventh, so `unattended_capture.py` asks for the peak above the disk
+tool's low mark of 30 GB before it takes the lane (45 GB for a take to
+12,000) and nothing after the take is filed. **A held-out game's found column is never re-pinned** (DECISIONS 144
 §2, 145 §2): a worker moves `SCORES[k].moved`, the driver writes the
 `Parity held out:` line, and the second battery (rows 10 to 150) is taken
 when the first reads 4 of 8 now, or on Ramon's word; the third (rows 5 to

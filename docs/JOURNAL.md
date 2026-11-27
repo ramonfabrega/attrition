@@ -22923,3 +22923,43 @@ upstream, and no first parting moved but the two Astra worked. Six
 readings stand alone and are named for the next batch. The headline
 stands at 52 of 63, and `commander` comes out behind it.
 `docs/audit/2026-11-26-astra-settlement.md`.
+
+## 2026-11-26 — the pass: a figure of yesterday's was wrong, and it would have stopped six games (Fable 5.2, steering)
+
+The commander came out at half past eleven and ran twenty landings to
+the backstop by six, with two more out; the pass merged and booked
+those. The headline did not move. Thirteen landings sat on three games,
+each fixed a rule the original has and ours lacked, and together they
+bought 959 agreeing states where sixteen had bought 3,308 the day
+before. Nothing in how the lanes work had changed. The three games all
+stand where two armies first meet, and there the next gap is a few
+dozen states past the last: a spy's bribe, a plane's stored height, a
+bell that asks the building before the city. None of the thirteen
+shares a cause with another.
+
+What the pass found was in its own record of the day before. It had
+written that a full capture of a game costs fourteen gigabytes until a
+pass compresses it, and kept a rule that stops every capture under
+sixty free. Filing has compressed a capture for five days; the one
+Astra took last night, which no pass has touched, sits at a sixth of
+its size. The fourteen gigabytes are real only while the game plays.
+The disk stood at fifty-six with four lanes' trees on it, and six of
+the eleven open games have never been captured to their end, so the
+rule, obeyed, would have refused each of them at its first act. It was
+also only a sentence: nothing asked the disk. The capture tool asks
+now, for the peak above a floor, before it takes the lane.
+
+The driver had lost a queue item to one of its own scripts. Each
+booking was written fresh, and one found the end of its item by a
+sentence that the next item also carries. The ledger named the loss
+at the next gate. A booking is one command now, and it refuses any
+edit after which another item reads differently.
+
+Two games that had stood at the head of the order all day without a
+seat take seats, with the third. One open game's leaf turned out to be
+the fields of a leaf a landing had just closed on another game, and its
+item says the same bell has a second caller. The pass drew the client's
+picture with the HUD's new art: the bottom left reads as the
+original's, and the top of the screen, where a player reads food and
+timber, is empty. That goes ahead of the raised log.
+**DECISIONS 159.** `docs/audit/2026-11-26-fable-pass-floor.md`.

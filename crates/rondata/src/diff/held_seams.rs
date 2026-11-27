@@ -189,14 +189,19 @@ fn fallback_rows(walks: &[Walk]) -> Vec<(usize, u64)> {
 /// first partings; the seventh's row 88 fires none and no longer enters
 /// the pivot's hook. Row 133 enters `pivot::offset_at_unpinned` 235
 /// times from 3685, where it entered 385.
+/// **(133, 1) and (88, 2) on `b34caacad`** (the pass of 2026-11-26):
+/// fourteen landings walked rows 93, 133 and 83. Row 93 fires none, row
+/// 133 one round from state 5548, 1,809 past its first parting, and the
+/// seventh's row 88 two from 10553, 6,836 past its own. No open row
+/// enters `pivot::offset_at_unpinned` (item 4656).
 const FALLBACK: [(&str, &[(usize, u64)]); 7] = [
     ("first", &[]),
     ("second", &[]),
     ("third", &[]),
     ("fourth", &[]),
     ("fifth", &[]),
-    ("sixth", &[(93, 1), (133, 2)]),
-    ("seventh", &[]),
+    ("sixth", &[(133, 1)]),
+    ("seventh", &[(88, 2)]),
 ];
 
 fn fallback_as_pinned(file: &str, walks: &[Walk]) {
