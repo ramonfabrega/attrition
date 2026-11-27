@@ -211,6 +211,10 @@ pub struct SlotArt {
     /// `IFACEBUTTONDATA`'s `tex` rectangle (the cell (0, 0) of every page):
     /// left, top, width, height.
     base: Crop,
+    /// Item 4754: `IFACEBUTTON_BUILDING`'s own `tex` rectangle
+    /// (`TEX_BUILDINGS_0`), the cell (0, 0) a building's picture is moved
+    /// from.
+    building_base: Crop,
     /// `def_overlay_texs0` and `def_overlay_texs1` on `TEX_COMMON`.
     overlays: [Crop; 2],
     /// The grid's columns and rows (`num_x_slots`, `num_y_slots`).
@@ -349,6 +353,16 @@ impl SlotArt {
             tex_named("def_overlay_texs1", "TEX_COMMON")?,
         ];
         let base = tex_named("tex", "TEX_ORDERS_0")?;
+        let building_base = class
+            .split("<IFACEBUTTONDATA name=\"IFACEBUTTON_BUILDING\">")
+            .nth(1)
+            .and_then(|s| s.split("</IFACEBUTTONDATA>").next())
+            .and_then(|s| {
+                s.split('<')
+                    .find(|t| t.starts_with("IFACETEX ") && attr(t, "name") == Some("tex"))
+            })
+            .and_then(crop_attrs)
+            .ok_or("IFACEBUTTONCLASS: no IFACEBUTTON_BUILDING tex")?;
         let head = iface
             .split("<IFACEOPTIONS name=\"main\"")
             .nth(1)
@@ -365,6 +379,7 @@ impl SlotArt {
             builds,
             techs,
             base,
+            building_base,
             overlays,
             cells,
             pages: Default::default(),
@@ -438,6 +453,18 @@ impl SlotArt {
         let off = usize::from(s.disable != 0);
         let x = (l + (w + 1) * *col as usize).checked_sub(off)?;
         let y = (t + (h + 1) * *row as usize).checked_sub(off)?;
+        (x + w <= page.width && y + h <= page.height).then_some((page, (x, y, w, h)))
+    }
+
+    /// **A building record's picture** (item 4754): its page and its cell
+    /// on `IFACEBUTTON_BUILDING`'s `tex` grid, unmoved; `None` for a record
+    /// with no picture or a cell off its page.
+    pub fn building(&self, record: usize) -> Option<(&render::tga::Image, Crop)> {
+        let (id, col, row) = self.builds.get(record)?.as_ref()?;
+        let page = self.pages.get(id)?;
+        let (l, t, w, h) = self.building_base;
+        let x = l + (w + 1) * usize::try_from(*col).ok()?;
+        let y = t + (h + 1) * usize::try_from(*row).ok()?;
         (x + w <= page.width && y + h <= page.height).then_some((page, (x, y, w, h)))
     }
 

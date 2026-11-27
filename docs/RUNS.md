@@ -42609,6 +42609,8 @@ after filing.
 - **Scored** (`score_recording … ~/ron-golden/run1847/map-18`, on the base `19398b5c2`): first state 3935 (units,
   guys, world), as run1790's sums; ammo 3936. On item 4741's tree: first state 4092 (ammo), units and guys 4093.
   On item 4749's tree: first state 4742 (groups), units 5499.
+  On the base `d8a108fac` (item 4746's merge in): first state 4758 (ammo), groups 5513. On item 4753's tree:
+  first state 5039 (ammo), units 5499.
 - Filed with `filerun.py run1847 heldout6-row053-whole-ranges`: `Logs/gamelog-run1847-heldout6-row053-whole-ranges.txt`,
   2,892 bytes; `Logs/rontrace-run1847.log`, 1,053,913,248 bytes, both linked.
 

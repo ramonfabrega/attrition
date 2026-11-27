@@ -1599,7 +1599,9 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// Item 4637: 955 -> 959, units whole on run1441, run1559b and run1564
 /// (one range each before) and run1266c (two): the Aztec slayer's mark,
 /// `unit_masks & 0x4000` (`take_damage@00652020`, `0x6529da`).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 959, 1053);
+/// Item 4753: 959 -> 960, ammo whole on run1416 (one range before): a
+/// round leaves from its figure's own point (`docs/COMBAT.md` §22.7).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 960, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
@@ -4152,6 +4154,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2128, 2127, 607) -> (2128, 2128, 0), world (9554, 9554, 8) -> (9554, 9554, 0).
     // Item 4502, the CEO bit, unit_masks2 & 0x10000, at birth and in set_type: units (6953, 6953, 36) -> (6953, 6953, 35).
     // Item 4511, a unit host's chain is the order of entry: units (6953, 6953, 35) -> (6953, 6953, 0).
+    // Item 4753, a round leaves from its figure's own point: ammo (18, 18, 1) -> (18, 18, 0).
     (
         "run1416",
         4016,
@@ -4159,7 +4162,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (6953, 6953, 0),
             (2128, 2128, 0),
             (0, 0, 0),
-            (18, 18, 1),
+            (18, 18, 0),
             (0, 0, 0),
             (634, 634, 0),
             (1829, 1829, 0),
