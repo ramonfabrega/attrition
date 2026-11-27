@@ -235,7 +235,7 @@ pub struct OrdersState {
     /// them eleven times before the word (`docs/ORDERS.md` §16). Slots
     /// are recycled the way `Groups::get_open_slot` recycles them, so the
     /// pool stays as small as the live groups.
-    pub pushed: Vec<crate::groups::group::Pushed>,
+    pub(crate) pushed: Vec<crate::groups::group::Pushed>,
     /// `Groups::last_group[who]` — the pool slot each player pushed into
     /// last, which `push_group` compares against and `get_open_slot` will
     /// not hand out (`docs/GROUPS.md` §19). `Groups::clear` starts every
