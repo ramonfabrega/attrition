@@ -407,8 +407,11 @@ impl Sim {
         self.units[i].guys[g].turret.node_flags = 0;
         self.units[i].guys[g].turret.des_flags = 0;
         // `005d8c69`: the gone test is the target slot's `flags & 1`, never
-        // its hit points — a city at its ceiling is still borne on
-        // ([`Sim::struck`]; item 3635). **The slot is the figure's
+        // its hit points — a city at its ceiling is still borne on (item
+        // 3635) — **and never `is_on_map`** ([`Sim::slot_live`], item 4762):
+        // row 133's AA gun `2/56` holds `1/36`, whose number went on 4075 to
+        // a MIG parked off the map, and theirs bears on it on 4089 where
+        // ours dropped it. **The slot is the figure's
         // `objects[whom][ox]`** (`+0x9f`, `+0x8e`), read with no `uid`, and
         // the bearing is to whatever holds it now: on a reused number, the
         // newcomer (item 4674).
@@ -419,7 +422,7 @@ impl Sim {
             };
             self.object_holding(self.owner_of(t), o).unwrap_or(t)
         });
-        let to = match (ground, target.filter(|&t| self.struck(t))) {
+        let to = match (ground, target.filter(|&t| self.slot_live(t))) {
             (Some(at), _) => at,
             (None, Some(t)) => self.pos_of(t),
             (None, None) => return true,
