@@ -4914,6 +4914,116 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 83's Airbase does not count an enemy air-defense site as a
+    /// defense** (item 4736, `docs/RECGAME.md` §12.3): run1784, the ranges
+    /// take of row 83's file. who=1 places the AIRDEFENSE site `1/2046`
+    /// (`TypeIndex` 0x20b) on 3783, nine tiles from its wonder `1/2026`, and
+    /// on 3791 (`(3791 + 2033) % 32 == 0`) who=2's Airbase `2/2033` scores
+    /// the wonder anyway: `ObjectsData::find_building@0065d260` skips an
+    /// object whose vslot `0x4c` (`flags & 4`, the built bit) answers 0. The
+    /// wonder is past every plane's reach, so none goes; ours skipped the
+    /// wonder for the site, took who=1's city 8,040 off and sent all five.
+    /// Every units and builds range on 3790 to 3792, ours against theirs,
+    /// byte for byte: red on the tree before the fix at units range 8311,
+    /// record 90 (the Biplane `2/90`), `orders.count` ours 1, theirs 0 on 3792.
+    #[test]
+    fn row_83_s_airbase_does_not_count_an_air_defense_site_on_run1784_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+            eprintln!("skipping: row 83's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1784/map-14"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1784's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 83's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3790..=3792 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (li, name) in [(0u8, "units"), (1, "builds")] {
+                let ours = lines[usize::from(li)].as_ref().expect(name);
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == li).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{name} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+            // The site by name: who=1's builds record 2046, `flags` 0x41
+            // on theirs (alive, detect; not started, not built).
+            let builds = lines[1].as_ref().expect("builds");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+            let k = builds
+                .ranges
+                .iter()
+                .enumerate()
+                .filter(|(_, r)| r.record == 2046 && r.field == "who..y_internal")
+                .find(|(k, _)| theirs[*k].bytes[0] == 1)
+                .map(|(k, _)| k)
+                .expect("1/2046");
+            let f = (0..k)
+                .rev()
+                .find(|&j| builds.ranges[j].field == "flags")
+                .expect("1/2046's flags");
+            assert_eq!(theirs[f].bytes[..], [0x41], "1/2046's flags on {state}");
+            // The Biplane by name: who=2's unit record 90, no order.
+            let units = lines[0].as_ref().expect("units");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            let k = units
+                .ranges
+                .iter()
+                .enumerate()
+                .filter(|(_, r)| r.record == 90 && r.field == "who..y_internal")
+                .find(|(k, _)| theirs[*k].bytes[0] == 2)
+                .map(|(k, _)| k)
+                .expect("2/90");
+            let j = (k..units.ranges.len())
+                .find(|&j| units.ranges[j].field == "orders.count")
+                .expect("2/90's orders");
+            assert_eq!(
+                &theirs[j].bytes[..],
+                &[0, 0, 0, 0],
+                "2/90's orders on {state}"
+            );
+        }
+        let site = built.sim.building_by_o(1, 2046).expect("1/2046");
+        assert_eq!(
+            built.sim.building_ident(site),
+            sim::cities::build::Ident::AirDefense
+        );
+        assert!(
+            built.sim.buildings[site].alive && !built.sim.buildings[site].active,
+            "1/2046 is a site"
+        );
+        let u = built.sim.unit_by_o(2, 90).expect("2/90");
+        assert_eq!(
+            loaded.unit_type_names[built.sim.units[u].ty.expect("its type")],
+            "Biplane"
+        );
+        assert!(!built.sim.units[u].on_map, "2/90 is in its base");
+    }
+
     /// **Row 83's Airbase keeps its Biplane in when an enemy wonder out of
     /// reach outscores the city** (item 4562, `docs/RECGAME.md` §12.3):
     /// run1784, the ranges take of row 83's file. who=2's computer sortie
@@ -14639,23 +14749,35 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // -> 3,814, leaders 3,782 -> 3,814, cities 3,796 -> 3,816, items
         // 4,129 -> 4,617, goods 4,399 -> 4,418; deaths 3,811 unmoved. The
         // row's first parting is units on 3792.
+        // Item 4736 (`ObjectsData::find_building@0065d260` skips an object
+        // whose vslot `0x4c`, `flags & 4`, answers 0): who=1 places the
+        // AIRDEFENSE site `1/2046` on 3783, nine tiles from its wonder
+        // `1/2026`; on 3791 who=2's Airbase `2/2033` still scores the
+        // wonder, out of reach, where ours skipped it for the site and sent
+        // its five planes at who=1's city. On 3792 units record 90 (who=2's
+        // Biplane `2/90`) `orders.count` ours 1 -> 0, as theirs. Units 3,792
+        // -> 4,154, builds 3,793 -> 4,158, ammo 3,821 -> 4,122, deaths 3,811
+        // -> 4,193, groups 3,814 -> 4,183, guys and world 3,793 -> 4,155,
+        // leaders 3,814 -> 4,156, cities 3,816 -> 4,192, items 4,617 ->
+        // 5,222, goods 4,418 -> 4,756; none fell. The row's first parting is
+        // ammo on 4007.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                3792, 3793, 6001, 3821, 3811, 3814, 3793, 3814, 3816, 4617, 4418, 3793,
+                4154, 4158, 6001, 4122, 4193, 4183, 4155, 4156, 4192, 5222, 4756, 4155,
             ],
             first: &[
-                ("units", (3792, Some(974095072), 3709493656)),
-                ("builds", (3793, Some(2702992445), 1167418825)),
-                ("ammo", (3795, Some(1434000004), 1576016640)),
-                ("deaths", (3811, Some(4168191147), 4170353836)),
-                ("groups", (3814, Some(4026471806), 1382159731)),
-                ("guys", (3793, Some(2035382939), 428900193)),
-                ("leaders", (3809, Some(3922814424), 742286810)),
-                ("cities", (3809, Some(1264469187), 2912437542)),
-                ("items", (4129, Some(898052486), 912470408)),
-                ("goods", (4350, Some(3266876711), 3223622949)),
-                ("world", (3793, Some(1198069569), 3843954627)),
+                ("units", (4154, Some(3424190835), 3560644228)),
+                ("builds", (4158, Some(1545577596), 2201592996)),
+                ("ammo", (4007, Some(2120765936), 1804423648)),
+                ("deaths", (4193, Some(1301790463), 3564024212)),
+                ("groups", (4157, Some(4286022954), 4013458718)),
+                ("guys", (4155, Some(3736201161), 935782559)),
+                ("leaders", (4156, Some(2098551856), 2084592778)),
+                ("cities", (4166, Some(1779647704), 1537164494)),
+                ("items", (5222, Some(912470408), 921121162)),
+                ("goods", (4687, Some(3266876711), 3223622949)),
+                ("world", (4155, Some(393940711), 895946303)),
             ],
             over: None,
         }),

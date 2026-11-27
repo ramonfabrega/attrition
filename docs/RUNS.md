@@ -41084,6 +41084,12 @@ minutes were spent waiting on another lane. `df -g ~` read 88 GB free before it 
   114's `x` and `y` are theirs, `orders_x/y` (11928, 27000). Units 3,775 → 3,792, guys and world → 3,793, builds →
   3,793, ammo → 3,821, groups → 3,814, leaders → 3,814, cities → 3,816, items → 4,617, goods → 4,418; deaths 3,811
   unmoved. The row's first parting is units on 3792: range 8311, record 90, `orders.count` ours 1, theirs 0.
+- Item 4736 (`ObjectsData::find_building@0065d260` skips an object whose vslot `0x4c`, `flags & 4`, answers 0):
+  who=1 places the AIRDEFENSE site `1/2046` (TI 0x20b) on 3783, `flags` 0x41 on both sides through 3792, nine tiles
+  from its wonder `1/2026`; on 3791 who=2's Airbase `2/2033` still scores the wonder, out of every plane's reach, and
+  sends none. On 3792 record 90 (who=2's Biplane `2/90`) `orders.count` ours 1 → 0, as theirs. Units 3,792 → 4,154,
+  builds → 4,158, ammo → 4,122, deaths → 4,193, groups → 4,183, guys and world → 4,155, leaders → 4,156, cities →
+  4,192, items → 5,222, goods → 4,756; none fell. The row's first parting is ammo on 4007, its leaf not yet read.
 - Filed by `filerun.py run1784 heldout5-row083-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1784-heldout5-row083-ranges.txt`, 2,869 bytes, SHA-256
   `a9b435ef5bd053ca7a1b9832b5ce70729ff25450cfd7d673a1485805af3a85f1`; `rontrace.log` → `Logs/rontrace-run1784.log`,
