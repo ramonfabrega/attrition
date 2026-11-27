@@ -4230,53 +4230,6 @@ pub(crate) mod tests {
         );
     }
 
-    #[test]
-    fn probe_4671_leaders() {
-        if std::env::var("RON_PROBE_4671").is_err() {
-            return;
-        }
-        let inst = crate::testenv::install().expect("install");
-        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
-        let (Some(rcx), _) = paths(&SIXTH, 2) else { panic!("rcx") };
-        let ranges = crate::testenv::experiment(&home.join("ron-golden/run1835/map-18"), "rontrace.ranges").expect("ranges");
-        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 53's file");
-        let loaded = crate::load::load(&inst).expect("the install loads");
-        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
-        let rules = inst.rules().expect("rules");
-        let tribes = inst.tribe_defs(&rules).expect("tribes");
-        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
-        let mut stream = crate::input::Stream::pump(&rec);
-        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
-        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(3714);
-        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(3720);
-        for state in lo..=hi {
-            while built.sim.frame < state {
-                crate::diff::harness::debug_watch(&built, built.sim.frame);
-                stream.apply(built.sim.frame as i32, &mut built);
-                built.sim.command().tick();
-            }
-            let set = record.first_of(state - 1).expect("the state's set").clone();
-            let all = record.ranges(&set).expect("the set's ranges");
-            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
-            let ours = lines[7].as_ref().expect("leaders");
-            let theirs: Vec<_> = all.iter().filter(|r| r.line == 7).collect();
-            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
-                if a.bytes != b.bytes {
-                    eprintln!("PROBE {state} leaders {k} rec {} {} ours {:02x?} theirs {:02x?}", a.record, a.field, a.bytes, b.bytes);
-                }
-            }
-            if let Some(b) = built.sim.unit_by_o(2, 108) {
-                for (p, u) in built.sim.units.iter().enumerate() {
-                    if u.inside_unit == Some(b) {
-                        eprintln!("PROBE {state} inside 2/108: #{p} {}/{} alive {} ty {:?}", u.owner, u.index, u.alive(), u.ty);
-                    }
-                }
-            } else {
-                eprintln!("PROBE {state} 2/108 gone");
-            }
-        }
-    }
-
     /// **Row 53's Fire Raft rams and sinks** (item 4667, `docs/RECGAME.md`
     /// §13.2, `docs/COLLISION.md` §6 step 1): run1835, the ranges take of
     /// row 53's file to 3720 (units, deaths, guys, leaders and world kept).
