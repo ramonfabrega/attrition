@@ -577,6 +577,29 @@ fn columns(lines: &[String]) -> (String, Vec<String>, u64) {
 pub(crate) mod tests {
     use super::*;
 
+    /// PROBE 4767: row 93 to `RON_PROBE_TO`, the debug hooks on every frame.
+    #[test]
+    fn probe_4767_row_93_walk() {
+        let Ok(to) = std::env::var("RON_PROBE_TO") else {
+            return;
+        };
+        let to: i64 = to.parse().unwrap();
+        let inst = crate::testenv::install().expect("install");
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            panic!("no recording");
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        while built.sim.frame <= to {
+            crate::diff::harness::debug_watch(&built, built.sim.frame);
+            crate::diff::harness::debug_armies(&built, built.sim.frame);
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+    }
+
     /// **The declaration** (item 4413's first act): the eight lobbies, named
     /// and written out before any take, against what `lobbies_on_disk`
     /// yields today, so the set cannot drift silently. `RON_HELD_OUT_PRINT=1`
