@@ -5086,13 +5086,26 @@ fn a_round_on_its_own_shooter_punctures_the_ground_and_sticks() {
     };
     let p = round(b, 1);
     assert!(!sim.hit_target(&p), "the Archer is off the landing");
-    assert_eq!(sim.check_hit(&p), Some(Obj::Building(b)), "its own footprint");
+    assert_eq!(
+        sim.check_hit(&p),
+        Some(Obj::Building(b)),
+        "its own footprint"
+    );
     let mut stuck = sim.clone();
     stuck.trace.trace_phases = true;
     stuck.add_ammo(p);
     stuck.process_projectiles(4091);
-    let marks: Vec<_> = stuck.trace.phase_marks.iter().map(|(m, _)| m.clone()).collect();
-    assert_eq!(marks, [SITE_PUNCTURE_X, SITE_PUNCTURE_Y], "the puncture's two draws");
+    let marks: Vec<_> = stuck
+        .trace
+        .phase_marks
+        .iter()
+        .map(|(m, _)| m.clone())
+        .collect();
+    assert_eq!(
+        marks,
+        [SITE_PUNCTURE_X, SITE_PUNCTURE_Y],
+        "the puncture's two draws"
+    );
     let q = *stuck.combat.projectiles.first().expect("the spent round");
     assert!(q.spent && q.cur_time == 0, "flags 1, clock reset");
     assert_eq!(q.target, Some(Obj::Building(b)), "check_hit's pair stays");
@@ -5113,9 +5126,16 @@ fn a_round_on_its_own_shooter_punctures_the_ground_and_sticks() {
     sim.trace.trace_phases = true;
     sim.add_ammo(round(other, 0));
     sim.process_projectiles(4091);
-    let marks: Vec<_> = sim.trace.phase_marks.iter().map(|(m, _)| m.clone()).collect();
+    let marks: Vec<_> = sim
+        .trace
+        .phase_marks
+        .iter()
+        .map(|(m, _)| m.clone())
+        .collect();
     assert!(
-        !marks.iter().any(|m| m == SITE_PUNCTURE_X || m == SITE_PUNCTURE_Y),
+        !marks
+            .iter()
+            .any(|m| m == SITE_PUNCTURE_X || m == SITE_PUNCTURE_Y),
         "no puncture draw: {marks:?}"
     );
     assert!(sim.combat.projectiles.is_empty(), "closed");

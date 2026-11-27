@@ -4663,7 +4663,8 @@ pub(crate) mod tests {
         let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
         let mut stream = crate::input::Stream::pump(&rec);
         let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
-        let word = |b: &[u8], k: usize| i32::from_le_bytes(b[3 + 4 * k..7 + 4 * k].try_into().unwrap());
+        let word =
+            |b: &[u8], k: usize| i32::from_le_bytes(b[3 + 4 * k..7 + 4 * k].try_into().unwrap());
         for state in 4091..=4093 {
             while built.sim.frame < state {
                 stream.apply(built.sim.frame as i32, &mut built);
@@ -4680,12 +4681,21 @@ pub(crate) mod tests {
                 assert_eq!(theirs[0].bytes, [1], "theirs' slot 1 is spent");
                 let b = &theirs[1].bytes;
                 assert_eq!(
-                    (word(b, 7), word(b, 8), word(b, 11), word(b, 13), word(b, 14)),
+                    (
+                        word(b, 7),
+                        word(b, 8),
+                        word(b, 11),
+                        word(b, 13),
+                        word(b, 14)
+                    ),
                     (0, 10, 1, 1, 2013),
                     "theirs' cur_time, total_time, slot, who, o"
                 );
                 assert_eq!((word(b, 16), word(b, 17)), (1, 2013), "theirs' whom, ox");
-                let v = built.sim.building_by_o(1, 2013).expect("the Village 1/2013");
+                let v = built
+                    .sim
+                    .building_by_o(1, 2013)
+                    .expect("the Village 1/2013");
                 let ours = built
                     .sim
                     .combat
