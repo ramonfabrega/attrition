@@ -2295,7 +2295,10 @@ pub(in crate::diff) mod tests {
             9,
             9,
             1,
-            "1 0 rolling..start_roll_angle: +0x13 of 99|99: 9f4e0000|b94e0000",
+            // Named by `sim::checksum::AMMO_WORDS` since the pass of
+            // 2026-11-27 (DECISIONS 160 §3); as bytes, +0x13 of 99,
+            // 9f4e0000|b94e0000.
+            "1 0 rolling..start_roll_angle: land_x 20127|20153, land_y 34347|34365, dx 1135764054|1135817278",
         ),
         (
             "deaths",
