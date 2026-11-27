@@ -642,39 +642,6 @@ impl Sim {
         if !self.market_gate(who) {
             return;
         }
-        let probe = std::env::var("RON_PROBE_4773").is_ok() && (4570..=4583).contains(&self.frame);
-        if probe {
-            for g in 0..RESOURCES {
-                if let Some(v) = std::env::var(format!("P_NEED{g}")).ok().and_then(|v| v.parse().ok()) {
-                    need[g] = v;
-                }
-            }
-        }
-        if probe {
-            let l = &self.economy.ledgers[w];
-            eprintln!("P4773 f{} who{} need {:?} bucket {:?} income {:?} cap {:?} avail {:?} price {:?} flux {:?} esc {:?}", self.frame, who, need, l.bucket, l.income, l.cap, self.economy.holdings[w].available, self.economy.market.price, self.economy.market.flux, l.escrow);
-            let ml: Vec<_> = self.ai.ai[w].make_list.list.iter().take(6).map(|m| (m.t, m.val, m.num)).collect();
-            eprintln!("P4773   make {:?} commerce {} lobby tech_cost {}", ml, commerce, self.ai.lobby.tech_cost);
-            for t in 0..self.tables.tech_tree.types.len() {
-                if self.tables.tech_tree.kind(t) == crate::tech::Kind::Final {
-                    eprintln!("P4773   final {t} {:?} has {} researching {}", self.tables.tech_tree.types[t].name, self.tables.tech_tree.has_tech(&self.tables.setup, &self.tech[w], t), self.researching(who, t));
-                }
-            }
-            for slot in 0..6 {
-                let m = self.ai.ai[w].make_list.list[slot];
-                let name = usize::try_from(m.t).ok().and_then(|t| self.tables.tech_tree.types.get(t)).map(|d| format!("{:?}", d.name)).unwrap_or_default();
-                eprintln!("P4773   slot {slot} {m:?} {name} cost {:?}", self.make_cost(who, m.t));
-                if let Ok(t) = usize::try_from(m.t) {
-                    if let Some(r) = self.build_record(t) {
-                        let n = self.buildings.iter().filter(|b| b.alive && b.owner == who && b.ty == Some(r)).count();
-                        eprintln!("P4773     build rec {r} price {:?} n_of_type {n}", self.tables.build_types[r].price);
-                    } else if t < self.tables.tech_tree.types.len() {
-                        let d = &self.tables.tech_tree.types[t];
-                        eprintln!("P4773     tech cost {:?} age {} kind {:?} science_ahead {} epochs {:?}", d.cost, d.age, d.kind, self.science_ahead(who, t), self.tech[w].epoch);
-                    }
-                }
-            }
-        }
         let wealth = Resource::Wealth as usize;
         for g in 0..RESOURCES {
             if g == Resource::Knowledge as usize || !self.good_avail(who, g) {
@@ -683,7 +650,6 @@ impl Sim {
             if self.economy.ledgers[w].bucket[g] >= need[g] {
                 continue;
             }
-            let _ = probe;
             // The original's `do { if (uVar5 != 0) break; uVar5 = 1; …
             // } while (bucket[g] < need[g])`, once-flag and all.
             let mut once = false;
@@ -702,9 +668,6 @@ impl Sim {
                 if sell {
                     self.mark(SITE_MARKET_SELL);
                     let start = usize::try_from(self.rng.get(0, 0xffff) % 6).unwrap_or(0);
-                    if probe {
-                        eprintln!("P4773   g{g} sell pass start {start} bucket {:?}", self.economy.ledgers[w].bucket);
-                    }
                     for k in 0..RESOURCES {
                         let g2 = (k + start) % RESOURCES;
                         if !self.market_sellable(who, g2, g, &need) {
@@ -728,9 +691,6 @@ impl Sim {
                     break;
                 }
             }
-        }
-        if probe {
-            eprintln!("P4773   end bucket {:?}", self.economy.ledgers[w].bucket);
         }
     }
 
