@@ -7788,3 +7788,51 @@ fn a_ship_s_round_leaves_above_the_water_not_the_seabed() {
     assert_eq!(launch(&mut sim, ship, 0), 100, "the ship's round");
     assert_eq!(launch(&mut sim, land, 0x400), -173, "the land unit's round");
 }
+
+/// **A follower reads its captain's action order, not the unit's copy**
+/// (item 4771, `docs/RECGAME.md` §13.3): `Unit::find_melee_target@005ff9c0`'s
+/// squad head, `fight@005fd4d0`'s mirror and `think`'s captain arm take
+/// `get_action`'s `(ox, whom)` (vslot `+0xcc`). A group attack's
+/// `finish_insert` appends a second `ATTACK` behind the captain's head at
+/// `QUEUE_LAST`, and `add_attack_order` writes `combat.target` for that one
+/// too: row 93's captain `1/2` holds `ATTACK 2/101` with `ATTACK 2/88`
+/// behind it on 4812, and its followers take 101.
+#[test]
+fn a_follower_takes_its_captain_s_head_attack_not_the_one_queued_behind_it() {
+    let (mut sim, ty) = at_war();
+    let [a, b, c] = chain3(&mut sim, ty);
+    let head = put(&mut sim, 1, ty, Pos::new(0x1200, 0x1000));
+    let behind = put(&mut sim, 1, ty, Pos::new(0x1000, 0x1200));
+    sim.add_attack_order(
+        a,
+        Obj::Unit(head),
+        crate::orders::QueuePos::New,
+        false,
+        true,
+    );
+    sim.add_attack_order(
+        a,
+        Obj::Unit(behind),
+        crate::orders::QueuePos::Last,
+        false,
+        true,
+    );
+    assert_eq!(
+        sim.action_attack_target(a),
+        Some((Some(Obj::Unit(head)), false)),
+        "the captain's action is its head attack"
+    );
+    assert!(
+        matches!(
+            sim.melee_squad_head(b),
+            crate::orders::SquadHead::Captain(t, false) if t == Obj::Unit(head)
+        ),
+        "the squad head hands the follower the captain's head attack"
+    );
+    sim.captain_mirror(c);
+    assert_eq!(
+        sim.action_attack_target(c),
+        Some((Some(Obj::Unit(head)), false)),
+        "the idle mirror copies the head attack too"
+    );
+}

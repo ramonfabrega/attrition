@@ -48,14 +48,11 @@ impl Sim {
         g: &crate::orders::GuardOrder,
         target: Obj,
     ) -> Leash {
-        use crate::orders::Body;
         if !self.units[u].captain {
             let cap = self.squad_captain(u);
-            if let Some(a) = self.action_of(cap)
-                && matches!(self.units[cap].orders[a].body, Body::Attack(_))
-            {
+            if self.action_attack_target(cap).is_some() {
                 self.update_action(cap);
-                if self.units[cap].combat.target == Some(target) {
+                if self.action_attack_target(cap).and_then(|(t, _)| t) == Some(target) {
                     return Leash::Captain;
                 }
             }
