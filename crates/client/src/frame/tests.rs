@@ -96,6 +96,19 @@ pub(crate) const RUN1814B_3294_CAPS: [usize; 7] = [2_847, 2_840, 2, 2_840, 649, 
 /// last digits are not the photograph's (4742a).
 pub(crate) const RUN1814B_3294_RESOURCES: [usize; 7] = [11_986, 11_827, 0, 11_677, 642, 646, 649];
 
+/// **`RUN1814B_3294_SELECTED`** (item 4738; `docs/RENDERER.md` §6.17): on
+/// the same frame, the bar's right side's opaque pixels, x 648 to the
+/// frame's right edge, the fields as [`RUN1814B_3294_LEFT_WINDOW`]'s: the
+/// mirrored stone strip, the right window's dark back and the five
+/// buttons ([`super::right`]). The selected panel's own art over the back
+/// (`IFACESELECTED`: its borders, title, picture, star and figures) is not
+/// drawn yet, and is what parts, with the display button at the right edge
+/// (4738a, 4738b). Seen red at zero; ours 0 → 211,274 on the still, the
+/// composition 211,051 (the minimap's back, 339 wide, lies over x 648..655
+/// on the still and agrees there).
+pub(crate) const RUN1814B_3294_SELECTED: [usize; 7] =
+    [242_115, 211_051, 0, 211_274, 556, 1_161, 552];
+
 /// The banner as interface.xml writes it, on a cut of its own text.
 #[test]
 fn the_banner_lays_out() {
@@ -511,6 +524,31 @@ fn the_minimap_frame_on_run1814b() {
         lum(&res_mask, &framed),
     ];
     println!("RUN1814B_3294_RESOURCES: {res_row:?}");
+    // Item 4738: the bar's right side.
+    let (rt, rsc) = frame.right_side(size).expect("the right side composes");
+    assert_eq!(rsc, (648, 883), "the right side's corner");
+    let right_texel = |x: i32, y: i32| super::texel_of(&rt, rsc, x, y);
+    let right_mask: Vec<(i32, i32)> = (rsc.1..size.1)
+        .flat_map(|y| (rsc.0..size.0).map(move |x| (x, y)))
+        .filter(|&(x, y)| right_texel(x, y).is_some_and(|t| t[3] == 255))
+        .collect();
+    let right_composed = right_mask
+        .iter()
+        .filter(|&&(x, y)| {
+            let t = right_texel(x, y).expect("on the side");
+            near(px(&photo.rgba, (x, y)), [t[0], t[1], t[2]])
+        })
+        .count();
+    let right_row = [
+        right_mask.len(),
+        right_composed,
+        on(&right_mask, &bare, &photo.rgba),
+        on(&right_mask, &framed, &photo.rgba),
+        lum(&right_mask, &photo.rgba),
+        lum(&right_mask, &bare),
+        lum(&right_mask, &framed),
+    ];
+    println!("RUN1814B_3294_SELECTED: {right_row:?}");
     let row = [
         mask.len(),
         atlas_agrees,
@@ -526,4 +564,5 @@ fn the_minimap_frame_on_run1814b() {
     assert_eq!(banner_row, RUN1814B_3294_BANNER);
     assert_eq!(caps_row, RUN1814B_3294_CAPS);
     assert_eq!(res_row, RUN1814B_3294_RESOURCES);
+    assert_eq!(right_row, RUN1814B_3294_SELECTED);
 }
