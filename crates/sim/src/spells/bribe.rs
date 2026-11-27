@@ -21,12 +21,21 @@
 //!   the old squad closed, captain first, until a closed figure is a captain
 //! ```
 //!
+//! **The two words are copied whole** (item 4735, `docs/COMBAT.md` §91):
+//! `unit_masks` (`+0x68`) but the AI bit, and the `flags` byte (`+0x8`) but
+//! `0x40`, the detector bit, which stays the new type's. Every bit this
+//! crate keeps as its own field rides the copy, so the old squad's attrition
+//! mark (`0x80`, without its period), `blown` and `fought` (`0x11000`) and
+//! `cant_reach` (`flags & 0x10`) reach the new one. run1797's Iroquois
+//! Assault Infantry, bribed on 3738 from `1/86` to `2/122`..`124`, print
+//! `unit_masks` 0x15108c and `flags` 0x11 on 3739; the copy's `blown` is
+//! what keeps the Iroquois heal (`!(unit_masks & 0x1000)`) off its captain.
+//!
 //! SEAM: the `inside_down` chain (`+0x28`, units carried inside the target,
 //! each re-created and `go_inside`d), which a Land unit that Bribe admits
-//! does not hold; the `unit_masks` bits this crate keeps as separate
-//! fields are copied for `in_danger`, `line_ok`, `casting`, `marching`,
-//! the mirror (`& 2`) and the half step (`& 0x100000`, item 3985) and no
-//! others; the cast's messages and sounds (`S_SPY_OURS_DONE_BRIBE`).
+//! does not hold; `unit_masks & 0x2000`, whose field
+//! ([`crate::Unit::ambushing`]) carries a payload the word does not; the
+//! cast's messages and sounds (`S_SPY_OURS_DONE_BRIBE`).
 
 use crate::{Player, Sim};
 
@@ -110,12 +119,14 @@ impl Sim {
             old.form,
             old.combat.recharging,
         );
-        let (in_danger, line_ok, casting, marching) =
-            (old.in_danger, old.line_ok, old.casting, old.marching);
-        // `unit_masks & 2` (the figure's mirror) and `& 0x100000` (the
-        // half step) ride the same copy: run1543's bribed Hoplites read
+        // `unit_masks = new & 0x40000 | old & !0x40000`: every bit but the
+        // AI's, each a field here (item 4735). `& 2` (the figure's mirror)
+        // and `& 0x100000` (the half step) are run1543's bribed Hoplites,
         // 0x14000a old and 0x10000a new on 1294 (item 3985).
-        let (mirror, half_step) = (old.movement.mirror, old.half_step);
+        let masks = UnitMasks::of(old);
+        // `flags = new & 0x40 | old & 0xbf`: the detector bit is the type's,
+        // the rest the old figure's (item 4735).
+        let (idle_latch, cant_reach, attacking) = (old.idle_latch, old.cant_reach, old.attacking);
         let (on_map, at) = (old.on_map, old.pos);
         let guys: Vec<_> = old.guys.iter().map(|g| (g.stopped, g.turret)).collect();
         let n = &mut self.units[m];
@@ -129,12 +140,10 @@ impl Sim {
         n.movement.heading = heading;
         n.form = form;
         n.combat.recharging = recharging;
-        n.in_danger = in_danger;
-        n.line_ok = line_ok;
-        n.casting = casting;
-        n.marching = marching;
-        n.movement.mirror = mirror;
-        n.half_step = half_step;
+        masks.onto(n);
+        n.idle_latch = idle_latch;
+        n.cant_reach = cant_reach;
+        n.attacking = attacking;
         for (g, (stopped, turret)) in n.guys.iter_mut().zip(guys) {
             g.stopped = stopped;
             g.turret = turret;
@@ -150,5 +159,101 @@ impl Sim {
     /// `LeaderData::current_upgrade(a, type)` as a unit record.
     fn upgrade_record_of(&self, a: Player, ti: i32) -> Option<usize> {
         self.upgrade_record(a, ti)
+    }
+}
+
+/// `UnitData::unit_masks` (`+0x68`) as this crate holds it, bit by field,
+/// but the AI bit (`0x40000`, the owner's) and `0x2000` (see the module's
+/// `SEAM`): the word `Unit::swap_team@006118d0` copies (item 4735).
+struct UnitMasks {
+    carry: u32,
+    bits: [bool; 23],
+    marching: Option<i64>,
+}
+
+impl UnitMasks {
+    fn of(u: &crate::Unit) -> Self {
+        Self {
+            carry: u.carry,
+            bits: [
+                u.decoy,
+                u.movement.mirror,
+                u.in_danger,
+                u.line_ok,
+                u.contact,
+                u.gather_here,
+                u.waiting_on,
+                u.attrition_mark,
+                u.auto_explore,
+                u.trade_unloaded,
+                u.was_builder,
+                u.cloak,
+                u.blown,
+                u.slay_marked,
+                u.fought,
+                u.casting,
+                u.combat.packed,
+                u.half_step,
+                u.ignores_supply,
+                u.auto_transport,
+                u.combat.entrenched,
+                u.explore_queued,
+                u.jam_shown,
+            ],
+            marching: u.marching,
+        }
+    }
+
+    fn onto(&self, u: &mut crate::Unit) {
+        let [
+            decoy,
+            mirror,
+            in_danger,
+            line_ok,
+            contact,
+            gather_here,
+            waiting_on,
+            attrition_mark,
+            auto_explore,
+            trade_unloaded,
+            was_builder,
+            cloak,
+            blown,
+            slay_marked,
+            fought,
+            casting,
+            packed,
+            half_step,
+            ignores_supply,
+            auto_transport,
+            entrenched,
+            explore_queued,
+            jam_shown,
+        ] = self.bits;
+        u.carry = self.carry;
+        u.decoy = decoy;
+        u.movement.mirror = mirror;
+        u.in_danger = in_danger;
+        u.line_ok = line_ok;
+        u.contact = contact;
+        u.gather_here = gather_here;
+        u.waiting_on = waiting_on;
+        u.attrition_mark = attrition_mark;
+        u.auto_explore = auto_explore;
+        u.trade_unloaded = trade_unloaded;
+        u.was_builder = was_builder;
+        u.cloak = cloak;
+        u.blown = blown;
+        u.slay_marked = slay_marked;
+        u.fought = fought;
+        u.casting = casting;
+        u.combat.packed = packed;
+        u.half_step = half_step;
+        u.ignores_supply = ignores_supply;
+        u.auto_transport = auto_transport;
+        u.combat.entrenched = entrenched;
+        u.explore_queued = explore_queued;
+        u.jam_shown = jam_shown;
+        u.marching = self.marching;
     }
 }

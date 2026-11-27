@@ -545,6 +545,33 @@ fn bribe_swaps_a_unit_s_team_and_closes_the_old_one() {
     assert!(s.cast_bribe_unit(spy, n).is_none(), "its own: nothing");
 }
 
+/// **Bribe's copy takes the old unit's `unit_masks` and `flags` whole**
+/// (`Unit::swap_team@006118d0`, item 4735, `docs/COMBAT.md` §91):
+/// `unit_masks = new & 0x40000 | old & !0x40000` and `flags = new & 0x40 |
+/// old & 0xbf`. run1797's bribed Iroquois Assault Infantry print the
+/// attrition mark with no period, `blown`, `fought` and `cant_reach` on
+/// their birth frame. Made to fail with the mark carried as the period,
+/// with `blown` not copied and with the `flags` byte not copied.
+#[test]
+fn bribe_s_copy_takes_the_old_unit_s_masks_and_flags() {
+    let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
+    let target = s.add_unit({
+        let mut u = Unit::new(0, 0, Pos::new(3 * 768, 3 * 768), 20);
+        u.ty = s.units[filler].ty;
+        u
+    });
+    s.units[spy].owner = 1;
+    let t = &mut s.units[target];
+    (t.attrition, t.attrition_mark) = (48, true);
+    (t.blown, t.fought, t.cant_reach) = (true, true, true);
+    let n = s.cast_bribe_unit(spy, target).expect("a copy is born");
+    let c = &s.units[n];
+    assert!(c.attrition_mark, "unit_masks & 0x80 carried");
+    assert_eq!(c.attrition, 0, "and not the period (`+0x9e`)");
+    assert!(c.blown && c.fought, "unit_masks & 0x11000 carried");
+    assert!(c.cant_reach, "flags & 0x10 carried");
+}
+
 /// What one frame of each parity takes back from a `mana_burn` of 100.
 fn steps(s: &mut Sim, u: usize) -> [i16; 2] {
     [10, 11].map(|frame| {

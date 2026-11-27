@@ -446,7 +446,7 @@ impl Sim {
     /// scout `3/0` on 92). `0x80` and `0x400000` are the attrition
     /// period's: `Unit::process_attrition@005e11a0` clears both at each
     /// refresh, sets `0x80` with a period and `0x400000` on the peace and
-    /// assassin arms, which are [`crate::Unit::attrition`] and
+    /// assassin arms, which are [`crate::Unit::attrition_mark`] and
     /// [`crate::Unit::ignores_supply`] (item 4514, run1739's `1/6` on 3771;
     /// `docs/CHECKSUM.md` §18.3). `0x200000` (`Unit::init`'s
     /// `can_carry(AIR)`) is not held.
@@ -460,7 +460,7 @@ impl Sim {
             (0x10, un.contact),
             (0x20, un.gather_here),
             (0x40, un.waiting_on),
-            (0x80, un.attrition != 0),
+            (0x80, un.attrition_mark),
             (0x100, un.auto_explore),
             (0x200, un.trade_unloaded),
             (0x400, un.was_builder),

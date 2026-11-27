@@ -289,6 +289,7 @@ impl Sim {
             match outcome {
                 crate::territory::attrition::Outcome::Exempt(_) => {
                     unit.attrition = 0;
+                    unit.attrition_mark = false;
                     unit.ignores_supply = false;
                 }
                 crate::territory::attrition::Outcome::Period {
@@ -296,6 +297,7 @@ impl Sim {
                     ignores_supply,
                 } => {
                     unit.attrition = frames;
+                    unit.attrition_mark = frames != 0;
                     unit.ignores_supply = ignores_supply;
                 }
             }

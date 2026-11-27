@@ -73,6 +73,7 @@ fn sample(sim: &Sim) -> Sample {
         h.eat(i64::from(u.damage_frac));
         h.eat(i64::from(u.squad_size));
         h.eat(i64::from(u.attrition));
+        h.eat(i64::from(u.attrition_mark));
         h.eat_bool(u.on_map);
         h.eat_bool(u.sheltered());
         h.eat(i64::from(u.idle));
