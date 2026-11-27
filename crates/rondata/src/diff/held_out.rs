@@ -14885,18 +14885,23 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 4,099 -> 5,514, ammo 4,120 -> 5,362, deaths 4,170 -> 5,457, groups
         // 4,156 -> 5,404, guys 4,093 -> 5,501, leaders 4,117 -> 5,523,
         // cities 4,151 -> 5,629, items 9,536 -> 10,946, goods 4,242 ->
-        // 5,693, world 4,096 -> 5,501.
+        // 5,693, world 4,096 -> 5,501. Then item 4746's merge (row 88's
+        // `push_group_slot`: a push onto an emptied army's slot is one
+        // record, the army's) took row 53's groups word with it: groups
+        // 5,404 -> 5,513, first 4742 -> 5513, and the row's first parting
+        // moves 4742 -> 4758 (ammo). Re-pinned by item 4753; with that
+        // commit's `pool.rs` reversed, groups parts on 4742 at the old sums.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                5499, 5514, 12001, 5362, 5457, 5404, 5501, 5523, 5629, 10946, 5693, 5501,
+                5499, 5514, 12001, 5362, 5457, 5513, 5501, 5523, 5629, 10946, 5693, 5501,
             ],
             first: &[
                 ("units", (5499, Some(4053032274), 3307776702)),
                 ("builds", (5507, Some(140029691), 1669115254)),
                 ("ammo", (4758, Some(1410390863), 4039301842)),
                 ("deaths", (5275, Some(2141760897), 2623450497)),
-                ("groups", (4742, Some(2793926952), 3405771875)),
+                ("groups", (5513, Some(3842449435), 4008779876)),
                 ("guys", (5501, Some(3952932943), 788265010)),
                 ("leaders", (5511, Some(2652146910), 3271396573)),
                 ("cities", (5629, Some(2142530975), 3712314751)),
