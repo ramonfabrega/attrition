@@ -7115,7 +7115,84 @@ two are the same pixels.
   `write_cent_l`. Which face lookup 14 is has not been read.
 - The tab under the banner, about (910..1010, 26..36), with three
   chevrons (4737b).
-- The resources box and the population box (4737c, 4737d).
+- ~~The resources box and the population box (4737c, 4737d).~~ The population box: §6.15. The resources
+  box stands (4737d).
+
+## 6.15 The top of the screen: the population box (item 4739)
+
+*2026-11-26, Opus 5.5. The ledger: `docs/journal/2026-11-26-item-4739.md`.
+`client::frame::caps`; the row `RUN1814B_3294_CAPS`. No `crates/sim` change.*
+
+**Who draws it.** `IFaceMainBase::on_redraw@00811600` calls
+`draw_cap_area@00810370`, `draw_pop_cap@0080ff90` and `draw_city_cap@0080fbe0`
+in that order. Their rectangles are `<IFACEMAINBASE>`'s, written against the
+frame's right edge from the screen's top: on the 1,920 frame `cap_area`
+(1697..1870, 0..25), `pop_cap` (1701..1798, 4..21), `city_cap`
+(1799..1866, 4..21). In each cap rectangle:
+
+- **The back**: `IFaceResources::draw_back@0081a920`, the render manager's
+  `draw_expander@0051c450` over `item_back_tex`, which is
+  `<IFACERESOURCES>`'s `resource_item_tex0`, `1` and `2` off `TEX_COMMON`
+  (7, 67 and 7 wide, 19 high). The ends lie at their own widths, stretched to
+  the rectangle's 17 rows. Between them the middle is tiled from the left
+  end's edge (`tile_horiz@0051f1d0`), the last tile cut to the width that
+  remains, each stretched only in height. The colour is `0xff323232` (red
+  while the cap is reached and `graphic_tick & 8`), under
+  `IFACERENDERTYPE_HIGHLIGHT`: the texel times the colour, doubled. The
+  texture's middle row (113, 105, 107) reads (44, 41, 42) on the photograph.
+- **The picture**, the `IFACETEX` of the rectangle's name off `TEX_COMMON`
+  (29 × 19), `add_smooth`ed to the rectangle's height at its own aspect, the
+  width truncated: 29 · 17 / 19 = 25, at the rectangle's corner. Bilinear,
+  as the left window's stretch (§6.11).
+- **The figure**: `LeaderData +0x940` `/` `+0x7e4` (the muster's `control`
+  over its `cap`), or `get_total_cities` `/` `get_city_limit`, written by
+  `IFaceRenderManager::write@0051f660` in `numbers_texs[0]`. Those are
+  `interface.txt`'s `NUMBERS_TEX[0][0..9]`, `SLASH_TEX[0]`, `PLUS_TEX[0]`
+  and `MINUS_TEX[0]` (`IFaceRenderManager::setup_text@0051dd50`), each a
+  `TEX_COMMON` crop 15 high, drawn 1:1 and advanced by its own width
+  (`char_to_index@0051f4a0`). The line is centred between the picture's
+  right and the rectangle's right less one, and between the rectangle's top
+  and bottom by the digits' height, both halvings truncated.
+- **The divider**, after `draw_pop_cap`'s figure only (`draw_city_cap` draws
+  none): `draw_vert_divider@0051d0d0`, thin, at `pop_cap`'s right less one
+  for the rectangle's height. `THIN_VERT_BAR` (`TEX_CIV` (155, 8), 3 × 30)
+  is tiled down by `tile_random`; on the photograph it starts at its first
+  row. Then `thin_tee[0]` and `thin_tee[2]` (`+0x1058`, `+0x1078`; `THIN_TEE[0]`
+  and `[2]`, 7 × 5), centred on the bar, the top three rows above the bar's
+  top and the foot two rows above its end, as the photograph registers them.
+
+**Registered before it was built.** On run1814b's photograph at frame 3294
+the digits of `6/25` lie at (1748, 5) and those of `1/1` at (1835, 5), every
+fully opaque texel within two levels, where the centring puts them. The
+tees register at (1795, 1) and (1795, 19), 27 of 29 and 26 of 27.
+
+**The row** (`frame::tests::the_minimap_frame_on_run1814b`, its fourth
+assertion): the box's opaque pixels,
+
+| | pixels | within two levels of the photograph | mean luma ×10 |
+|---|---|---|---|
+| the photograph against the composition | 2,847 | 2,840 | 649 |
+| ours, no frame (before) | | 2 | 812 |
+| **ours, the box** | | **2,840** | 648 |
+
+The figures are ours, off the sim: 6/25 and 1/1 on 3295, asserted. The 7
+apart lie on the figures' top row, y 5, at x 1761 and 1838..1840 and
+1850..1852: olive (77..91, 75..86, 23..32) in theirs where ours is the back.
+The digits' top rows there are transparent.
+
+**Diff-backed**: every piece's place and size, the back's grey and its
+modulate, the digits' crops and advance, the divider's bar and tees, against
+the photograph's pixels. **Read alone**: the red back while the cap is
+reached; `tile_random`'s start row in general (one photograph, one start).
+
+**Not established.**
+- The olive runs on the figures' top row (4739a).
+- The stone border around `cap_area` (4739b): `draw_cap_area` draws the render
+  manager's `borders` entry 3 (`<IFACEBORDER name="border3">`, `TEX_CIV`)
+  around `cap_area` and around `pop_cap` ∪ `city_cap` grown by 4, which is
+  the same rectangle on this frame, then a divider at `city_cap`'s left less
+  one whose height reads negative.
+- The help and menu buttons at (1873..1916, 4..21) and their frames (4739c).
 
 ## 7. What is not established, and what needs Ramon's word
 

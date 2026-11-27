@@ -70,6 +70,17 @@ pub(crate) const RUN1814B_3294_LEFT_WINDOW: [usize; 7] = [61_614, 61_397, 0, 61_
 /// Item 4737: ours 0 → 8,749, the three crops; luma ×10 650 → 506.
 pub(crate) const RUN1814B_3294_BANNER: [usize; 7] = [9_610, 8_749, 0, 8_749, 615, 650, 506];
 
+/// **`RUN1814B_3294_CAPS`** (item 4739; `docs/RENDERER.md` §6.15): on the
+/// same frame, the population box's opaque pixels at the screen's top
+/// right, the fields as [`RUN1814B_3294_LEFT_WINDOW`]'s: the two backs,
+/// pictures and figures and the divider between them ([`super::caps`]).
+/// Seen red at zero: `[999, 999, 0, 999, 1224, 816, 1224]` with the
+/// pictures and figures alone, then `[2788, 2763, 2, 2763, 647, 812, 647]`
+/// with the backs. What parts is seven pixels on the figures' top row,
+/// y 5, olive in theirs where ours is the back (4739a). The border around
+/// the box is not drawn (4739b).
+pub(crate) const RUN1814B_3294_CAPS: [usize; 7] = [2_847, 2_840, 2, 2_840, 649, 812, 648];
+
 /// The banner as interface.xml writes it, on a cut of its own text.
 #[test]
 fn the_banner_lays_out() {
@@ -390,6 +401,44 @@ fn the_minimap_frame_on_run1814b() {
         lum(&banner_mask, &framed),
     ];
     println!("RUN1814B_3294_BANNER: {banner_row:?}");
+    // Item 4739: the population box, the figures the packet's leader
+    // record holds (`+0x940` / `+0x7e4`, 6/25; one city of one).
+    let figures = super::cap_figures(&world, crate::world::CONSOLE).expect("the figures");
+    assert_eq!(
+        figures,
+        super::caps::Figures {
+            pop: 6,
+            pop_cap: 25,
+            cities: 1,
+            city_limit: 1
+        },
+        "the console's figures on 3295"
+    );
+    let (caps, cc) = frame
+        .cap_box(size, Some(figures))
+        .expect("the box composes");
+    let caps_texel = |x: i32, y: i32| super::texel_of(&caps, cc, x, y);
+    let caps_mask: Vec<(i32, i32)> = (cc.1..cc.1 + caps.h as i32)
+        .flat_map(|y| (cc.0..cc.0 + caps.w as i32).map(move |x| (x, y)))
+        .filter(|&(x, y)| caps_texel(x, y).is_some_and(|t| t[3] == 255))
+        .collect();
+    let caps_composed = caps_mask
+        .iter()
+        .filter(|&&(x, y)| {
+            let t = caps_texel(x, y).expect("on the box");
+            near(px(&photo.rgba, (x, y)), [t[0], t[1], t[2]])
+        })
+        .count();
+    let caps_row = [
+        caps_mask.len(),
+        caps_composed,
+        on(&caps_mask, &bare, &photo.rgba),
+        on(&caps_mask, &framed, &photo.rgba),
+        lum(&caps_mask, &photo.rgba),
+        lum(&caps_mask, &bare),
+        lum(&caps_mask, &framed),
+    ];
+    println!("RUN1814B_3294_CAPS: {caps_row:?}");
     let row = [
         mask.len(),
         atlas_agrees,
@@ -403,4 +452,5 @@ fn the_minimap_frame_on_run1814b() {
     assert_eq!(row, RUN1814B_3294_MINIMAP_FRAME);
     assert_eq!(left_row, RUN1814B_3294_LEFT_WINDOW);
     assert_eq!(banner_row, RUN1814B_3294_BANNER);
+    assert_eq!(caps_row, RUN1814B_3294_CAPS);
 }
