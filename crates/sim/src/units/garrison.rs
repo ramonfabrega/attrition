@@ -655,10 +655,11 @@ impl Sim {
     /// The rest of `Unit::come_out` for one unit: out of the building, onto
     /// the spot, into both collision indices and the vision map.
     ///
-    /// `set_new_location` moves the unit and nothing else: **the unit
-    /// keeps the angles it went in with** (run208's chariot comes out on
-    /// 902 with the heading and facing of its last step on 698). A member
-    /// is given its captain's (`angle`).
+    /// `set_new_location` moves the unit and keeps its own `+0x50`: **the
+    /// unit keeps the heading it went in with** (run208's chariot comes out
+    /// on 902 with the heading of its last step on 698), and its figures
+    /// are snapped to it (item 4751). A member is given its captain's
+    /// (`angle`).
     ///
     /// `turn` is a member's `Unit::set_angle@00605400(host->angle)`,
     /// whose `reversing` test flips the figure's mirror on a turn past 90°
@@ -696,12 +697,21 @@ impl Sim {
         // Citizen `2/3`, held at 661 in `2/2018`, out on 3613 at (19320,
         // 29496), where the ground reads 770.
         u.z_held = None;
+        // **Every figure is snapped to the unit's angle** (item 4751,
+        // `docs/RECGAME.md` §14.4): `set_new_location(spot, 1, 1)`'s
+        // `param_4` reaches `Guy::set_angle(guy, +0x50, 1)@005d9010` on each
+        // squad figure (`005f8d20:156`, `:206`), which writes `angle`,
+        // `last_angle` and `des_angle` (`+0x18`, `+0x1c`, `+0x64`) all to the
+        // unit's heading. A unit that went in mid-turn comes out facing its
+        // heading: run1846's General `1/101` (TI 54), in `1/2011` on 4380
+        // facing 1757755093 with heading 2110717952, out on 4384 facing
+        // 2110717952 in the original.
         let (heading, facing, frame_facing, des_angle) = match angle {
             Some(a) => (a, a, a, u.movement.des_angle),
             None => (
                 u.movement.heading,
-                u.movement.facing,
-                u.movement.frame_facing,
+                u.movement.heading,
+                u.movement.heading,
                 u.movement.des_angle,
             ),
         };
@@ -800,11 +810,16 @@ impl Sim {
         // `last` ours (10152, 10104, 332), theirs (10488, 10968, 304),
         // run1724.
         self.guys_last_on_point(f);
+        // Guy 0's snap recurses into its crew (`Guy::set_angle@005d9010:33`,
+        // `set_angle(crew, a, 1)`), so a trackless crew figure's `last_angle`
+        // is the heading too; a tracked one's is [`Sim::crew_des`]'s snap.
+        // run1846's General `1/101` on 4384, its crew figure: ours
+        // 1757755093, theirs 2110717952 (item 4751).
         let facing = self.units[f].movement.facing;
-        if let Some(g) = self.units[f].guys.first_mut()
-            && g.follow.is_none()
-        {
-            g.last = g.last.map(|(at, _)| (at, facing));
+        for g in &mut self.units[f].guys {
+            if g.follow.is_none() {
+                g.last = g.last.map(|(at, _)| (at, facing));
+            }
         }
     }
 
