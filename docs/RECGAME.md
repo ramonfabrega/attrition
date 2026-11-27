@@ -2017,8 +2017,8 @@ Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
 
 ### 14.4 Row 88
 
-Open: groups parts on 4363 (item 4743). run1846 is the row's whole take, every line but walls to 12,000; run1808
-holds sums. The stories are the items' journals.
+Open: units and guys, 4384 (item 4746). run1846 is the row's whole take, every line but walls to 12,000; run1808
+holds sums. Stories: journals.
 
 **Item 4614**, diff-backed by run1815's ranges:
 
@@ -2041,7 +2041,7 @@ both arms' distances read. Barge `2/61`'s `myhits..` on 2741 read ours 12, their
 **Item 4625: the Carrack fires from its starboard battery.** Ammo record 0 on 2791 is who=1's Carrack `1/82` (TI 342,
 piece 292) firing `CHAR_ATTACK2`'s node 1 at `2/61` on 2790: `sx, sy, sz` ours (16824, 11640, 0), theirs (16866,
 11729, 35). **Ours acted**: `launch_point` had no row for piece 292. Its nine `RELEASEEVENT`s are swept on run1579's
-packet and fitted, built as nine `BAYS` rows, held by `data::launch::tests::the_carrack_s_round_leaves_its_starboard_battery`. run1818 agrees on all twelve lines to 2792.
+packet and fitted, built as nine `BAYS` rows, held by `data::launch::tests::the_carrack_s_round_leaves_its_starboard_battery`. run1818 agrees to 2792 on all twelve.
 
 **Item 4631: a transport's kill plunders as its cargo.** On 2883 who=1's `encrypt` reads `bucket[1]` (timber) ours
 15,500, theirs 15,485, and `bucket[2]` (wealth) ours 17,667, theirs 17,767. On 2882 the Carrack's round sinks `2/61`
@@ -2061,7 +2061,7 @@ Built in `Sim::same_damage` (`docs/TRANSPORT.md` §6.4), held by
 
 The score, `SCORES_SEVENTH[4].moved` (12,001 states; columns in each comment). The first parting:
 2741 → 2791 (4622) → 2883 (4625) → 2902 (4631) → 2985 (4633) → 3028 (4662) → 3033 (4664) → 3069 (4668) → 3095 (4674)
-→ 3112 (4676) → 3441 (4680) → 3574 (4683) → 3717 (4689) → 4166 (4693) → 4363 (4743).
+→ 3112 (4676) → 3441 (4680) → 3574 (4683) → 3717 (4689) → 4166 (4693) → 4363 (4743) → 4384 (4746).
 
 **Item 4662: a stale attack is cleared, not retargeted.** On 2984 who=1's Trebuchet `1/61` (TI 266) ends its
 attack-ground; the Attack under it names `2/63` at uid 93, a number another barge holds. `Unit::work@0060d180:300`–`:340`
@@ -2090,12 +2090,14 @@ round `sz` ours −173 → 100 as theirs.
 
 **Item 4743: `check_hit` writes a round's pair** (`:42`–`44`): on 4166 slot 15's `whom, ox` (2, 137) → (−1, −1).
 
+**Item 4746: a push onto an emptied army's slot is its record**: on 4363 record 139's `order_num` 6 → 7.
+
 **Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is not built: no capture has been shown
 to reach it. A building shooter always splashes from the landing (`Build` and `Wall` fill vslot `+0x18` with a
 `return 0`). The Carrack's node-2 `CHAR_ATTACK2` row (frame 24) is one unit off at heading 283; piece 128's six
-node-0 attack keys still fall back to the figure's square on row 88 after 2883. A transport's head rider is taken as
-the lowest live slot aboard, not read off `inside_down`'s ring order; no capture yet kills a mixed cargo. `eject_riders` walks riders in slot order too (4633a): the chain order moved nothing on run1815. `do_damage`'s puncture on a
-`check_hit` that finds the shooter is not built (4743a).
+node-0 attack keys still fall back to the figure's square on row 88 after 2883. A transport's head rider is its
+lowest live slot, not `inside_down`'s ring head (no capture kills a mixed cargo); so does `eject_riders` (4633a). `do_damage`'s puncture on a
+`check_hit` finding the shooter is unbuilt (4743a).
 
 ### 14.5 Row 108
 
