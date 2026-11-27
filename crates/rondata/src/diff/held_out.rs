@@ -1184,6 +1184,25 @@ pub(crate) mod tests {
             "units", "builds", "walls", "ammo", "deaths", "groups", "guys", "leaders", "cities",
             "items", "goods", "world",
         ];
+        let logs: Vec<(String, Vec<u8>)> = ["run1790", "run1847"]
+            .iter()
+            .map(|r| {
+                (
+                    r.to_string(),
+                    std::fs::read(home.join(format!("ron-golden/{r}/map-18/rontrace.log")))
+                        .unwrap_or_default(),
+                )
+            })
+            .collect();
+        let logsets: Vec<(String, Vec<crate::trace::checksums::Set>)> = logs
+            .iter()
+            .map(|(r, b)| {
+                (
+                    r.clone(),
+                    crate::trace::checksums::complete_sets(b, None).unwrap_or_default(),
+                )
+            })
+            .collect();
         for state in lo..=hi {
             while built.sim.frame < state {
                 stream.apply(built.sim.frame as i32, &mut built);
@@ -1255,6 +1274,21 @@ pub(crate) mod tests {
             let set = record.first_of(state - 1).expect("the state's set").clone();
             let all = record.ranges(&set).expect("the set's ranges");
             let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for li in 0..12usize {
+                let ours = lines[li].as_ref().map(|l| l.adler());
+                let rec_sum = set.lines[li];
+                let rec_adler = crate::trace::ranges::adler(&all, li as u8);
+                let logv: Vec<String> = logsets
+                    .iter()
+                    .map(|(r, sets)| {
+                        let pf = crate::trace::checksums::per_frame(sets);
+                        format!("{r} {:?}", pf.get(&(state - 1)).map(|s| s.lines[li]))
+                    })
+                    .collect();
+                eprintln!(
+                    "S4753 {state} line {li} ours {ours:?} rec_set {rec_sum} rec_adler {rec_adler} logs {logv:?}"
+                );
+            }
             for (li, name) in names.iter().enumerate() {
                 let Some(ours) = lines[li].as_ref() else {
                     continue;
