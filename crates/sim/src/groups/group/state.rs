@@ -430,9 +430,16 @@ impl GroupState {
     /// **quantised** offsets — the record's own numbers — and it runs over
     /// `form_num` entries, not `num`.
     pub fn reorigin(&mut self, i: usize) {
-        let Some(&(dx, dy)) = self.off.get(i) else {
+        let Some(&by) = self.off.get(i) else {
             return;
         };
+        self.reorigin_by(by);
+    }
+
+    /// [`Self::reorigin`] by the slot the caller read — `refresh_group_order`
+    /// reads it at the taker's own `form_id`, which need not be its place
+    /// in the list once `normalize` has shifted the arrays.
+    pub fn reorigin_by(&mut self, (dx, dy): (i32, i32)) {
         let n = (self.form_num.max(0) as usize).min(self.off.len());
         for slot in &mut self.off[..n] {
             slot.0 -= dx;
