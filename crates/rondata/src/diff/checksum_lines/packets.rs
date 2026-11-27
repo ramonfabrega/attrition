@@ -4152,6 +4152,7 @@ pub(super) const PINNED: &[Pinned] = &[
     // Item 4465, a hangar's launching walks its array; a nuke's strike writes the silo's visible and relights its fog: builds (2128, 2127, 607) -> (2128, 2128, 0), world (9554, 9554, 8) -> (9554, 9554, 0).
     // Item 4502, the CEO bit, unit_masks2 & 0x10000, at birth and in set_type: units (6953, 6953, 36) -> (6953, 6953, 35).
     // Item 4511, a unit host's chain is the order of entry: units (6953, 6953, 35) -> (6953, 6953, 0).
+    // Item 4753, a round leaves from its figure's own point: ammo (18, 18, 1) -> (18, 18, 0).
     (
         "run1416",
         4016,
@@ -4159,7 +4160,7 @@ pub(super) const PINNED: &[Pinned] = &[
             (6953, 6953, 0),
             (2128, 2128, 0),
             (0, 0, 0),
-            (18, 18, 1),
+            (18, 18, 0),
             (0, 0, 0),
             (634, 634, 0),
             (1829, 1829, 0),
