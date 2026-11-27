@@ -1903,17 +1903,17 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: units, guys on 4059. run1797, *diff-backed*.
+Open: units, guys on 4089. run1797, *diff-backed*.
 
 **Items 4597 to 4620**: units → 2376, builds → 2432, ammo → 2408, leaders → 2413, cities → 2448 (GROUPS, COMBAT
-§84, a Temple's close, two walks by object number).
+§84, a Temple's close, two walks by `o`).
 
 **Item 4628** (run1819's packet): units → 2440: `get_damage`'s rocky step reads the target's cell `flags & 8`.
 
 **Item 4632**: units → 2543. On 2439 the Flamethrower `1/115` turns in theirs, swings in ours:
 `Unit::fight`'s emplaced latch takes the head order's `0x10`.
 
-**Items 4691 to 4755**: units → 3628 → 3633 → 3690 → 3739 → 3790 → 4087, deaths → 4103, ammo → 4103
+**Items 4691 to 4758**: units → 3628 → 3633 → 3690 → 3739 → 3790 → 4087 → 4089, deaths → 4103, ammo → 4103
 (`FILTER_COMBAT`, ARMY §13, MERCHANT §2.2; air refusal, COMBAT §66.8; Bribe, §90, §91; `local_20`, ORDERS §34.6;
 scorch, COMBAT §42.1; building `z`, §46.1).
 

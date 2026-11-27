@@ -17,7 +17,8 @@
 //!     unit_masks = new & 0x40000 | old & ~0x40000   (the AI bit stays new's)
 //!     flags: active/on-map from old; off the map -> remove_from_world,
 //!            else set_new_location(old pos)
-//!     per guy: stopped, x, y, z, angle, turrets copied; update_gpiece
+//!     per guy: stopped, x, y, z, angle, turret angles copied (not
+//!              node_flags / des_node_flags); update_gpiece
 //!   the old squad closed, captain first, until a closed figure is a captain
 //! ```
 //!
@@ -144,9 +145,19 @@ impl Sim {
         n.idle_latch = idle_latch;
         n.cant_reach = cant_reach;
         n.attacking = attacking;
+        // **The turret's angles ride the copy, its node flags do not**
+        // (item 4758, `docs/RECGAME.md` §13.5): the per-guy loop
+        // (`006118d0:84`–`105`) copies `+0x20..+0x3c` (`turret_angles`,
+        // `des_turret_angles`) and `+0x40` (`turret_inc`), and never
+        // `+0x96`/`+0x98`, so the copy keeps the `node_flags` and
+        // `des_node_flags` its own `Unit::init` left it. run1797's BMP
+        // `2/50`, bribed on 4058, prints 0 and 0 on 4059 where the old
+        // figure held 15 and 1.
         for (g, (stopped, turret)) in n.guys.iter_mut().zip(guys) {
             g.stopped = stopped;
-            g.turret = turret;
+            g.turret.angles = turret.angles;
+            g.turret.des = turret.des;
+            g.turret.inc = turret.inc;
         }
         if on_map {
             self.set_new_location(m, at, true);
