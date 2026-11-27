@@ -1274,12 +1274,42 @@ pub(crate) mod tests {
                         }
                         let acc = i16::from_le_bytes([b[1], b[2]]);
                         let w: Vec<i32> = (0..24)
-                            .map(|k| i32::from_le_bytes(b[3 + 4 * k..7 + 4 * k].try_into().unwrap()))
+                            .map(|k| {
+                                i32::from_le_bytes(b[3 + 4 * k..7 + 4 * k].try_into().unwrap())
+                            })
                             .collect();
-                        format!("roll {} acc {acc} gp {} launch ({},{},{}) land ({},{},{}) t {}/{} angle {} splash {} slot {} graph {} owner {} o {} guys {} whom {} ox {} traj {} rest {:?}", b[0], w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8], w[9], w[10], w[11], w[12], w[13], w[14], w[15], w[16], w[17], w[18], &w[19..])
+                        format!(
+                            "roll {} acc {acc} gp {} launch ({},{},{}) land ({},{},{}) t {}/{} angle {} splash {} slot {} graph {} owner {} o {} guys {} whom {} ox {} traj {} rest {:?}",
+                            b[0],
+                            w[0],
+                            w[1],
+                            w[2],
+                            w[3],
+                            w[4],
+                            w[5],
+                            w[6],
+                            w[7],
+                            w[8],
+                            w[9],
+                            w[10],
+                            w[11],
+                            w[12],
+                            w[13],
+                            w[14],
+                            w[15],
+                            w[16],
+                            w[17],
+                            w[18],
+                            &w[19..]
+                        )
                     };
                     for r in &ours.ranges {
-                        eprintln!("A4683 {state} ours rec {} {} {}", r.record, r.field, dec(&r.bytes));
+                        eprintln!(
+                            "A4683 {state} ours rec {} {} {}",
+                            r.record,
+                            r.field,
+                            dec(&r.bytes)
+                        );
                     }
                     for r in &theirs {
                         eprintln!("A4683 {state} theirs {}", dec(&r.bytes));

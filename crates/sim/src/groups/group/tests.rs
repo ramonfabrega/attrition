@@ -1740,6 +1740,10 @@ fn a_push_onto_an_emptied_army_slot_is_one_record_the_army_s() {
     }
     s.ai.armies[1].list[slot].units.clear();
     assert_ne!(s.ai.armies[1].list[slot].num_units, 0, "not recounted");
+    // `get_open_slot` takes the first open slot that is not `last_group`:
+    // slot 0 is passed by, and the army's emptied slot is next.
+    s.orders.last_group[1] = 0;
+    assert_eq!(pool, 1, "the army's slot follows slot 0");
     let c = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
     let mut g = group_of(1, &[c]);
     assert!(s.push_group(&mut g, true));
