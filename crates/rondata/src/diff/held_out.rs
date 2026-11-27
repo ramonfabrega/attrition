@@ -4293,6 +4293,74 @@ pub(crate) mod tests {
         );
     }
 
+    /// **Row 53's rammed Fire Raft plunders nothing** (item 4671,
+    /// `docs/RECGAME.md` §13.2, `docs/AI.md` §259.1): run1835. On 3715's
+    /// tick who=1's Fire Raft `1/66` (TI 334, sea) rams who=2's Transport
+    /// Barge `2/108` (TI 320), closing itself before its round sinks the
+    /// barge and The Despot `2/19` aboard. `take_damage@00652020`'s kill arm
+    /// asks the killer's `ObjectData +0x8 & 1` first, so theirs pays no
+    /// `GENERAL_PLUNDER`. Every units, deaths, guys and leaders range on
+    /// 3715 to 3720, ours against theirs, byte for byte: red on the tree
+    /// before the fix at leaders range 221 on 3716, record 1 `encrypt`
+    /// (who=1's `bucket[2]`, wealth), ours 0x49f6, theirs 0x4992.
+    #[test]
+    fn row_53_s_rammed_fire_raft_plunders_nothing_on_run1835_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 2) else {
+            eprintln!("skipping: row 53's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1835/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1835's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 53's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3715..=3720 {
+            while built.sim.frame < state {
+                crate::diff::harness::debug_watch(&built, built.sim.frame);
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            if state == 3715 {
+                assert!(
+                    built.sim.unit_by_o(2, 108).is_some() && built.sim.unit_by_o(2, 19).is_some(),
+                    "the barge 2/108 and The Despot 2/19 aboard stand on 3715"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (li, name) in [(0u8, "units"), (4, "deaths"), (6, "guys"), (7, "leaders")] {
+                let ours = lines[usize::from(li)].as_ref().expect(name);
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == li).collect();
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{name} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+            }
+        }
+        assert!(
+            built.sim.unit_by_o(2, 108).is_none() && built.sim.unit_by_o(1, 66).is_none(),
+            "the barge and the raft are gone"
+        );
+    }
+
     /// **Row 83's Airbase keeps its Biplane in when an enemy wonder out of
     /// reach outscores the city** (item 4562, `docs/RECGAME.md` §12.3):
     /// run1784, the ranges take of row 83's file. who=2's computer sortie
@@ -14069,19 +14137,30 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 4,137 -> 5,111, deaths 3,939 -> 4,579, groups 3,726 -> 3,991, guys
         // 3,713 -> 3,935, leaders 3,715 -> 3,716, cities 3,951 -> 4,017,
         // items 8,907 -> 9,274, goods 3,865 -> 4,177, world 3,721 -> 3,935.
+        // Then item 4671 (`take_damage`'s kill arm plunders only for a live
+        // killer, its `ObjectData +0x8 & 1`): on 3715's tick who=1's Fire
+        // Raft `1/66` (TI 334, sea), closed by its own ram, sinks who=2's
+        // Transport Barge `2/108` (TI 320) carrying The Despot `2/19`, and
+        // theirs pays nothing where ours paid `GENERAL_PLUNDER` 100 in
+        // wealth (run1835: leaders range 221, who=1's `bucket[2]`, ours
+        // 0x49f6, theirs 0x4992 on 3716). The row's first parting moves 3716
+        // -> 3935 (units, guys, world): units 3,916 -> 3,935, leaders 3,716
+        // -> 3,951, goods 4,177 -> 4,450; ammo 5,111 -> 4,148 and deaths
+        // 4,579 -> 4,110, named falls past the parting (their first partings
+        // 3936 and 3953 stand).
         moved: Some(Score {
             states: 12001,
             agreed: [
-                3916, 3958, 12001, 5111, 4579, 3991, 3935, 3716, 4017, 9274, 4177, 3935,
+                3935, 3958, 12001, 4148, 4110, 3991, 3935, 3951, 4017, 9274, 4450, 3935,
             ],
             first: &[
-                ("units", (3877, Some(1832010173), 161694163)),
+                ("units", (3935, Some(2622448709), 3485469412)),
                 ("builds", (3958, Some(3595767448), 3970174217)),
                 ("ammo", (3936, Some(694955675), 2819435824)),
                 ("deaths", (3953, Some(1), 1283722710)),
                 ("groups", (3962, Some(1442251662), 3395814287)),
                 ("guys", (3935, Some(1591783644), 3960515968)),
-                ("leaders", (3716, Some(1926929378), 1962646398)),
+                ("leaders", (3951, Some(3688145869), 3344016348)),
                 ("cities", (4003, Some(3962131591), 2788447350)),
                 ("items", (4596, Some(3298888854), 3301772440)),
                 ("goods", (4064, Some(3259888248), 3254121078)),
