@@ -1910,12 +1910,12 @@ Open: units, guys on 4059. run1797, *diff-backed*.
 
 **Item 4628** (run1819's packet): units → 2440: `get_damage`'s rocky step reads the target's cell `flags & 8`.
 
-**Item 4632**: units → 2543. On 2439 the Flamethrower `1/115` (`recharging` 30, its attack's `flags` 16) turns at
-its target in theirs and swings in ours: `Unit::fight`'s emplaced latch (`:92`–`100`) takes the head order's `0x10`.
+**Item 4632**: units → 2543. On 2439 the Flamethrower `1/115` turns at its target in theirs and swings in ours:
+`Unit::fight`'s emplaced latch takes the head order's `0x10`.
 
-**Items 4691 to 4747**: units → 3628 → 3633 → 3690 → 3739 → 3790 → 4087, deaths → 4103 (`FILTER_COMBAT`, ARMY
-§13, MERCHANT §2.2; air refusal, COMBAT §66.8; Bribe, §90, §91; `local_20`, ORDERS §34.6; scorch, COMBAT §42.1).
-**Item 4755**: ammo → 4103, a building's round from its stored `z` (COMBAT §46.1).
+**Items 4691 to 4755**: units → 3628 → 3633 → 3690 → 3739 → 3790 → 4087, deaths → 4103, ammo → 4103
+(`FILTER_COMBAT`, ARMY §13, MERCHANT §2.2; air refusal, COMBAT §66.8; Bribe, §90, §91; `local_20`, ORDERS §34.6;
+scorch, COMBAT §42.1; a building's stored `z`, §46.1).
 
 ## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
 
