@@ -549,3 +549,110 @@ fn a_unit_target_with_no_spot_is_refused_unless_the_attack_is_mandatory_and_far(
     assert!(sim.attack_pos_refused(me, Obj::Unit(far)));
     assert!(sim.units[me].auto_transport);
 }
+
+/// **A land asker on an `ATTACK` sweeps only its own region against a
+/// sea target** (`Unit::find_attack_pos@00601280:123`–`:143`, `local_3c`;
+/// `find_nearby_spot@0061de70:125`–`:141`; item 4741, `docs/COMBAT.md`
+/// §17.5). Two regions meet at cell column 30 (x 23,040). An archer in
+/// the west one attacking a ship well inside the east one finds no spot
+/// at all — the ring lies wholly across the line — where the same ship
+/// asked for by a land target's attacker, or by an asker with no
+/// `ATTACK` at its head, is answered. A ship by the line is answered on
+/// the asker's own side. Row 53's Archers `2/68` on 3935 are the case
+/// (run1847: `diff::held_out`'s
+/// `row_53_s_archers_drop_the_dromon_off_their_shore_on_run1847_s_ranges`).
+#[test]
+fn a_land_asker_sweeps_only_its_own_region_for_a_sea_target() {
+    use crate::combat::Profile;
+    use crate::orders::{AttackOrder, Body, Order};
+    use crate::territory::attrition::Domain;
+    use crate::world::{Cell, Terrain, World};
+    let mut world = World::new(60, 60);
+    let west = world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(29, 59));
+    let east = world.fill_region(Terrain::Land, Cell::new(30, 0), Cell::new(59, 59));
+    let mut sim = crate::Sim::new(crate::core::tuning::Tuning::RON, world, 2);
+    sim.leaders.at_war[0][1] = true;
+    sim.leaders.at_war[1][0] = true;
+    let kind = |sim: &mut crate::Sim, domain: Domain| {
+        sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 10,
+                uber_size: 1,
+                block_radius: 48,
+                big_radius: 48,
+                combat_role: true,
+                domain,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        })
+    };
+    let archer = kind(&mut sim, Domain::Land);
+    let dromon = kind(&mut sim, Domain::Sea);
+    let put = |sim: &mut crate::Sim, who: crate::Player, ty: usize, p: Pos| {
+        let index = i16::try_from(sim.units.len()).unwrap();
+        let mut u = crate::Unit::new(who, index, p, 100);
+        u.ty = Some(ty);
+        u.on_map = true;
+        sim.add_unit(u)
+    };
+    let a = put(&mut sim, 0, archer, Pos::new(21_000, 20_000));
+    let far_ship = put(&mut sim, 1, dromon, Pos::new(25_000, 20_000));
+    let near_ship = put(&mut sim, 1, dromon, Pos::new(23_400, 20_000));
+    let far_soldier = put(&mut sim, 1, archer, Pos::new(25_000, 20_200));
+    let attack = |sim: &mut crate::Sim, t: usize| {
+        let target = (sim.units[t].index, sim.units[t].owner, 0);
+        sim.units[a].orders.clear();
+        sim.units[a].orders.push_back(Order {
+            flags: 0,
+            body: Body::Attack(AttackOrder {
+                target: Some(target),
+                mandatory: false,
+                defensive: false,
+                def: None,
+                in_range: false,
+                ever_in_range: false,
+                new_ord: true,
+                cleared_uid: None,
+            }),
+        });
+    };
+    let from = sim.units[a].pos;
+    let region_at = |sim: &crate::Sim, p: Pos| sim.world.tregion_alt(p.tile());
+    assert_eq!(region_at(&sim, from), Some(west));
+    // The ship deep in the east: the asker's region is handed down, and
+    // nothing on the ring is in it.
+    attack(&mut sim, far_ship);
+    assert_eq!(sim.attack_pos_region(a, Obj::Unit(far_ship)), Some(west));
+    assert_eq!(
+        sim.chase_spot(a, Obj::Unit(far_ship), from, 1000, true),
+        None,
+        "no spot across the line for a land asker's sea target"
+    );
+    // The ship by the line: the ring's west arc is the asker's.
+    attack(&mut sim, near_ship);
+    let p = sim
+        .chase_spot(a, Obj::Unit(near_ship), from, 1000, true)
+        .expect("a spot on the asker's side");
+    assert_eq!(
+        region_at(&sim, p),
+        Some(west),
+        "{p:?} is on the asker's side"
+    );
+    // A land target: no region, the east ring answers.
+    attack(&mut sim, far_soldier);
+    assert_eq!(sim.attack_pos_region(a, Obj::Unit(far_soldier)), None);
+    let p = sim
+        .chase_spot(a, Obj::Unit(far_soldier), from, 1000, true)
+        .expect("a land target's ring is open");
+    assert_eq!(region_at(&sim, p), Some(east));
+    // No `ATTACK` at the head: no region, the far ship's ring answers.
+    sim.units[a].orders.clear();
+    assert_eq!(sim.attack_pos_region(a, Obj::Unit(far_ship)), None);
+    assert!(
+        sim.chase_spot(a, Obj::Unit(far_ship), from, 1000, true)
+            .is_some(),
+        "an asker with no attack order sweeps every region"
+    );
+}
