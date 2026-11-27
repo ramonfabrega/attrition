@@ -782,7 +782,7 @@ impl AttackView for SimAttack<'_> {
                 crate::orders::SquadHead::Search => "search",
             };
             let f = found.map(|t| obj_key(self.sim, t));
-            let fi = match found { Some(crate::Obj::Unit(x)) => (self.sim.units[x].owner as i32, self.sim.units[x].index as i32), _ => (-1,-1) };
+            let fi = match found { Some(Obj::Unit(x)) => (self.sim.units[x].owner as i32, self.sim.units[x].index as i32), _ => (-1,-1) };
             eprintln!("PROBE4771 frame {} army {:?} {}/{} pos ({},{}) maxd {} target {:?} head {} found {:?} = {:?}", self.sim.frame, self.g.army, u.owner, u.index, u.pos.x, u.pos.y, maxd, self.target, head, f, fi);
         }
         match found {
