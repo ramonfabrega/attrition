@@ -10694,6 +10694,48 @@ fn a_scholar_is_seated_facing_north_on_its_frame() {
     );
 }
 
+/// **A unit comes out facing its heading** (item 4751, `docs/RECGAME.md`
+/// §14.4): `Unit::come_out@00617c10:518`'s `set_new_location(spot, 1, 1)`
+/// hands `param_4` to `Guy::set_angle(guy, +0x50, 1)@005d9010` on each
+/// figure, which writes `angle`, `last_angle` and `des_angle` to the unit's
+/// heading, and recurses into the crew. A unit that went in mid-turn
+/// comes out facing its heading, its trackless crew too: run1846's General
+/// `1/101` out of `1/2011` on 4384, ours facing 1757755093, theirs
+/// 2110717952.
+///
+/// Made to fail with `come_out_place`'s no-angle arm keeping `facing`, and
+/// with the tail's `last_angle` snap on guy 0 alone.
+#[test]
+fn a_unit_comes_out_of_its_host_facing_its_heading() {
+    use crate::movement::Angle;
+    let (mut sim, t, _, militia) = alarm_sim();
+    let (b, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let m = sim.init_unit(0, militia, tile_pos(36, 36));
+    let mut crew = sim.units[m].guys[0];
+    crew.follow = None;
+    sim.units[m].guys.push(crew);
+    sim.go_inside(m, b);
+    let (heading, facing) = (Angle(2_110_717_952), Angle(1_757_755_093));
+    let at = sim.units[m].pos;
+    let mv = &mut sim.units[m].movement;
+    mv.heading = heading;
+    mv.facing = facing;
+    mv.frame_facing = facing;
+    for g in &mut sim.units[m].guys {
+        g.last = Some((at, facing));
+    }
+    assert!(sim.come_out(m));
+    let mv = sim.units[m].movement;
+    assert_eq!(
+        (mv.heading, mv.facing, mv.frame_facing),
+        (heading, heading, heading),
+        "the unit keeps its heading and its figure faces it"
+    );
+    for (k, g) in sim.units[m].guys.iter().enumerate() {
+        assert_eq!(g.last.map(|(_, a)| a), Some(heading), "figure {k}'s last_angle");
+    }
+}
+
 /// **A scholar rises with its forced idle roll** (item 4500,
 /// `Unit::come_out@00617c10:548`, `6187a1`..`6187b9`): a `SCHOLARS` or
 /// `SCHOLARSKOREAN` unit leaving a building is given `set_anim(CHAR_DEFAULT,

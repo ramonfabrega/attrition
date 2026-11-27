@@ -7122,6 +7122,103 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 88's General comes out facing its heading** (item 4751,
+    /// `docs/RECGAME.md` §14.4): run1846, row 88's ranges take. who=1's
+    /// General `1/101` (TI 54, land) goes into `1/2011` on 4380 mid-turn,
+    /// its figures facing 1757755093 with its heading 2110717952, and comes
+    /// out on 4384 at (7848, 16152). `set_new_location(spot, 1, 1)` snaps
+    /// both figures through `Guy::set_angle(+0x50, 1)`: `angle`,
+    /// `last_angle` and `des_angle` all 2110717952 on both sides. Every
+    /// units and guys range on states 4383 to 4386, byte for byte.
+    #[test]
+    fn row_88_s_general_comes_out_facing_its_heading_on_run1846_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SEVENTH, 4) else {
+            eprintln!("skipping: row 88's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1846/map-18");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1846's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 88's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        const HEADING: i64 = 2_110_717_952;
+        for state in 4383i64..=4386 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            // The General, by name.
+            let u = built
+                .sim
+                .units
+                .iter()
+                .rposition(|u| u.owner == 1 && u.index == 101)
+                .expect("the General's slot");
+            let ty = built.sim.units[u].ty.expect("a type");
+            assert_eq!(built.sim.tables.unit_types[ty].type_index, 54, "1/101's TI");
+            assert_eq!(
+                built.sim.units[u].kind.domain,
+                sim::territory::attrition::Domain::Land
+            );
+            assert_eq!(built.sim.units[u].on_map, state >= 4384, "1/101 out on {state}");
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (li, name) in [(0usize, "units"), (6, "guys")] {
+                let ours = lines[li].as_ref().expect("the line");
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == li).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{name} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+            if state != 4384 {
+                continue;
+            }
+            // 1/101's two figures, read off both sides of the units line.
+            let ours = lines[0].as_ref().expect("the units line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            let mut who = 0u8;
+            let mut figures = 0;
+            for (a, b) in ours.ranges.iter().zip(&theirs) {
+                if a.field == "who..y_internal" {
+                    who = a.bytes[0];
+                }
+                if who != 1 || a.record != 101 || a.field != "guy" {
+                    continue;
+                }
+                figures += 1;
+                for (side, bytes) in [("ours", &a.bytes), ("theirs", &b.bytes)] {
+                    let f = crate::checksum::fields::range_fields("units", "guy", bytes)
+                        .expect("the fields");
+                    let v = |n: &str| f.iter().find(|(k, _)| k == n).expect("a field").1;
+                    assert_eq!(
+                        (v("angle"), v("last_angle"), v("des_angle")),
+                        (HEADING, HEADING, HEADING),
+                        "{side}' 1/101 figure {figures} on 4384"
+                    );
+                }
+            }
+            assert_eq!(figures, 2, "1/101's figures on 4384");
+        }
+    }
+
     /// **Row 43's Slinger stones leave from piece 736's sockets** (item
     /// 4547, `docs/RECGAME.md` §12.3): run1787, the ranges take of row 43's
     /// file. who=2's Slingers `2/30` and `2/29` (TI 82, land, piece 736,
