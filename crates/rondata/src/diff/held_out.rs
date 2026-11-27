@@ -18135,9 +18135,10 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
 /// bays): 1 -> 2. Item 4611 took rows 128 and 148 (run1810, run1811):
 /// six taken -> eight. Item 4635 made row 128 whole to 12,000 (the
 /// Russian age's border fix): 2 -> 3. Item 4637 made row 148 whole to
-/// 12,000 (the Aztec slayer's mark): 3 -> 4.
+/// 12,000 (the Aztec slayer's mark): 3 -> 4. Item 4770 made row 8 whole
+/// to 12,000 (a packer's re-search is `find_new_target` whole): 4 -> 5.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SEVENTH_LINE: (usize, usize) = (4, 8);
+pub(crate) const HELD_OUT_SEVENTH_LINE: (usize, usize) = (5, 8);
 
 /// The seventh battery (item 4600): the sixth's recipe, the human ordering
 /// every 600 frames to 11,400.
