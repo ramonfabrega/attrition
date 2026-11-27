@@ -2071,22 +2071,24 @@ marks the object at `(whom, ox)` in danger and, on the uid mismatch, writes `ox`
 2985. On 2985 `order.target` ours (64, 2, 94) → (−1, −1, 93), theirs (−1, −1, 93). Held by
 `orders::reused_target_tests::an_attack_on_a_reused_number_is_cleared_and_searches_a_frame_later`.
 
-**Item 4664: a ship fires from the water** (`Object::fire_ammo@0064c8b0:166`, figure `z` + 100): on 3028 raft
-`1/94`'s round `sz` ours −173 → 100, theirs 100.
+**Item 4664: a ship fires from the water** (`Object::fire_ammo@0064c8b0:166`, `z` + 100): on 3028 raft `1/94`'s
+round `sz` ours −173 → 100 as theirs.
 
 **Item 4668: `check_hit` takes the last of a tie** (`docs/COMBAT.md` §9.4): on 3033 `1/83`'s `damage` ours 3 → 7 as theirs.
 
 **Item 4674: `set_all_pivots` bears on `objects[whom][ox]`**: on 3069 `1/46`'s `cavarch_o` ours −1 → 61 as theirs.
 
-**Item 4676: `Army::normalize`'s `remove_group@006f8b50` writes only `army` −1**, and the emptied record stays on its
-index (`docs/ARMY.md` §3.3): on 3095 slot 130's `army` ours 0 → −1, `stamp` 741 → 1523, as theirs.
+**Item 4676: `remove_group@006f8b50` writes only `army` −1** (`docs/ARMY.md` §3.3): on 3095 slot 130's `army` ours
+0 → −1, `stamp` 741 → 1523, as theirs.
 
-**Item 4680: `Ammo::inc_time` holds a shooter on `flags & 1` alone** (`67d3c4`), not `is_on_map`: on 3112 `1/72`'s
-`hold_frames`, boarded with a round in the air, ours 1 → 0 as theirs.
+**Item 4680: `Ammo::inc_time` holds a shooter on `flags & 1` alone** (`67d3c4`): on 3112 the boarded `1/72`'s
+`hold_frames` ours 1 → 0 as theirs.
 
-**Item 4683: a unit off the map is fired at** (`Ammo::init:178`): on 3441 `2/111`'s round at the boarding `1/0`, ours none, theirs slot 4.
+**Item 4683: a unit off the map is fired at** (`Ammo::init:178`): on 3441 `2/111`'s round at `1/0`, ours none, theirs slot 4.
 
 **Item 4689: a raft sunk in its work repaints** (`Guy::process`, frame 64): on 3574 `1/139`'s 9×9 bits ours 0 → 1 as theirs.
+
+**Item 4693: a rider dying aboard heads its cell** (`remove_from_inside`): on 3717 Market `2/2041`'s `up_who` −1 → 2.
 
 **Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is not built: no capture has been shown
 to reach it. A building shooter always splashes from the landing (`Build` and `Wall` fill vslot `+0x18` with a
