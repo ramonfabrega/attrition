@@ -1475,11 +1475,12 @@ pub type TankHaze = ((u8, i16), (u32, u32), bool);
 /// 2,270 of 3,005, Y 76.3 → 115.5 against 119.2; the control 1/15 1,316
 /// → 1,318 of 2,826, Y 75.2 against 81.8 (its one particle is newborn,
 /// alpha 0). The dust off gives the minted row.
+/// Item 4768: 1/27 2,386 → 2,385 and 1/16 2,270 → 2,269 (named falls of one), the control 1,318 → 1,319: the buildings' `EXISTEVENT` addons drawn (item 4768, `docs/RENDERER.md` §6.27) move the frame's mean, so its white.
 pub const RUN1559B_3279_TANKS_HAZE: [TankHaze; 4] = [
     ((1, 40), (1329, 2167), true),
-    ((1, 27), (2386, 3363), true),
-    ((1, 16), (2270, 3005), true),
-    ((1, 15), (1318, 2826), true),
+    ((1, 27), (2385, 3363), true),
+    ((1, 16), (2269, 3005), true),
+    ((1, 15), (1319, 2826), true),
 ];
 /// The minted row, the draw before (`World::team_trim` off).
 pub const RUN1559B_3279_BUILDINGS_TEAM_BEFORE: [((u8, i16), (u32, u32)); 2] =
@@ -1516,11 +1517,12 @@ pub const RUN1559B_3279_WARMTH_STILL: (usize, usize) = (3, 33);
 /// Item 4241: before-plain colour 18 → 17, the bloom drawn and a plume's pixel clamped after the white (§3.25).
 /// Item 4286 (§3.28): before-plain colour 17 → 18 and traced 32 held (0/6 0.499 → 0.512 up, 0/2001 0.590 → 0.436 down: the warmed sprite now reads as its ring's colour on our side, parked 4286a); after-plain (33, 6) → (32, 7), after-sRGB traced 33 → 32, both 0/2001.
 /// Item 4311: before-plain colour 18 → 19: the map's edge border drawn (item 4311, `docs/RENDERER.md` §3.15) moves the frame's mean, so its white.
+/// Item 4768: before-sRGB and after-sRGB traced 32 → 33 of 33, every colour count held: the buildings' `EXISTEVENT` addons drawn (item 4768, `docs/RENDERER.md` §6.27) move the frame's mean, so its white.
 pub const RUN1559B_3279_STILL_READINGS: [((usize, usize), (usize, usize)); 4] = [
     ((32, 33), (19, 33)),
     ((32, 33), (7, 33)),
-    ((32, 33), (11, 33)),
-    ((32, 33), (2, 33)),
+    ((33, 33), (11, 33)),
+    ((33, 33), (2, 33)),
 ];
 
 /// **The colour row** (item 4099; `docs/RENDERER.md` §5.3, "The colour
