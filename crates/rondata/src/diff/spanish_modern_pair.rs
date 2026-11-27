@@ -291,8 +291,11 @@ fn spanish_modern_pair_run1395b_s_word_frame_is_widened_whole() {
     // after its move step in ours and before it in theirs (parked 3736a).
     // Item 3737: (654, 654), **3** parting — `1/71`'s round of 4013 alone
     // (`angle`, `sx`, `sy`, 3736a).
+    // Item 4753: 3 -> **0** — the round leaves the figure's own point, so
+    // `1/71`'s of 4013 leaves before its move step as theirs does
+    // (`docs/COMBAT.md` §22.7).
     pin_eq!(w.rounds_read, (654, 654), "the rounds read");
-    pin_eq!(w.rounds.len(), 3, "the rounds that part");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **run1415, the word 4021's window**: blocks 4015 through the closing
@@ -371,7 +374,9 @@ fn spanish_modern_pair_run1415_s_word_frame_is_widened_whole() {
     // Item 3737: (394, 394), **7** parting — `1/71`'s round of 4013 on 4015
     // (3736a), and `1/25`'s and `1/32`'s on 4022, whose target `0/13` died
     // on 4021: theirs keep `whom` 0, `ox` 13, ours −1 (parked 3714a).
-    pin_eq!(w.rounds.len(), 7, "the rounds that part");
+    // Item 4753: 7 -> **4** — `1/71`'s round of 4013 leaves the figure's
+    // own point (`docs/COMBAT.md` §22.7); `1/25`'s and `1/32`'s stand.
+    pin_eq!(w.rounds.len(), 4, "the rounds that part");
 }
 
 /// run1395c: the walk back from the stride's first unit row, blocks
