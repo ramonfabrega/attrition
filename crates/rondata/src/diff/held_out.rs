@@ -1153,6 +1153,26 @@ pub(crate) mod tests {
         (rcx, crate::testenv::experiment(&map, "rontrace.log"))
     }
 
+    /// Probe (item 4753): row 53's score alone, to `RON_PROBE_SCORE`.
+    #[test]
+    fn probe_4753_score() {
+        let Ok(until) = std::env::var("RON_PROBE_SCORE") else {
+            return;
+        };
+        let inst = crate::testenv::install().expect("install");
+        let (Some(rcx), Some(take)) = paths(&SIXTH, 2) else {
+            panic!("paths")
+        };
+        let s = crate::checksum::playback::compare_until(
+            inst.root(),
+            &rcx,
+            &take,
+            Some(until.parse().unwrap()),
+        )
+        .unwrap();
+        eprintln!("S4753 score agreed {:?} first {:?}", s.agreed, s.first);
+    }
+
     /// Probe (item 4674): every differing range on run1838's ranges over
     /// `RON_PROBE_4683`'s frames (`lo-hi`), with the unit behind a units range.
     #[test]
