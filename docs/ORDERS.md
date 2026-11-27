@@ -7928,8 +7928,12 @@ directions):
 - **Why the Informer's `COST` is not charged.** `TypeData::get_cost` tests
   `LeaderData::has_spell` first; the packet's answer is zero, and the
   reason is not read.
-- **The target's re-reads** (a squad member's captain, an object inside)
-  and the infiltrator's plane: `update_seen` lighting the target's line
+- **The target's re-reads** (~~a squad member's captain~~, an object inside)
+  and the infiltrator's plane. *The captain is built by item 4765*
+  (`docs/RECGAME.md` §12.3, diff-backed by run1784's 4154): at
+  `5ec151`..`5ec182` a dead target's `get_captain` takes the order's `o`
+  and `uid`, its liveness left to `is_valid_target`. The inside arm
+  (`is_on_map`, then `get_inside`, `5ec19f`..`5ec209`) is not built: `update_seen` lighting the target's line
   of sight for every player in `infiltrated` (`World::set_seen2`) is not
   carried, and no capture has read the fog after a cast.
 - **`flags & 0x80`**, which the caster takes on 756 and loses on 796, and
