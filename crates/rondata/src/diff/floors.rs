@@ -532,13 +532,15 @@ pub const MAPGEN: Mapgen = Mapgen {
 // Item 4605: `fields` 21 -> 22 (+1), a named rise: `Sim.alerts`, the write-only alert stream the
 // minimap's pings read (`observe/alerts.rs`); `largest` 3,756 -> 3,774 (+18), a named rise: `air.rs`'
 // nuke launch and circle alerts (`do_missile_launch:74`, `Ammo::init:652`).
+// Item 4740: `largest` 3,774 -> 3,760 (-14): `air.rs`' plane bank (`bank_plane`, `bank_plane_as`)
+// moves whole to `air/bank.rs` beside its new turn sign, `close_air_target` (`local_20`).
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 11),
     ("test-tails", 0),
     ("sweep-lines", 17_287),
     ("names", 15),
     ("fields", 22),
-    ("largest", 3_774),
+    ("largest", 3_760),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before
