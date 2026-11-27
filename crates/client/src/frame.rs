@@ -498,6 +498,18 @@ impl MinimapFrame {
             }
             let local = |(x0, y0, x1, y1): left::Span| (x0 - c.0, y0 - c.1, x1 - c.0, y1 - c.1);
             let moved = |(x0, y0, x1, y1): left::Span| (x0 + at.0, y0 + at.1, x1 + at.0, y1 + at.1);
+            // Item 4754: the `object` button, a child of the window, over
+            // its frame: the type's picture, the overlay and the bar.
+            if let Some(slot) = &self.slot_art {
+                selected::object_button(
+                    &mut t,
+                    c,
+                    moved(l.object),
+                    p.picture.and_then(|r| slot.building(r)),
+                    slot.overlay(false),
+                    p.health,
+                );
+            }
             // Item 4752: `draw_build_name`'s line, `FontFamily::get(fonts,
             // 12, 1)` (the clock's face), `write_cent_l` in `name`, white
             // over a black shadow.
@@ -596,7 +608,12 @@ pub fn selected_panel(
         title: b
             .map(|b| build_title(sim, &world.names.builds, b))
             .unwrap_or_default(),
-        hits: b.map(|b| format!("{}/{}", b.health, b.hits)),
+        hits: b
+            .filter(|_| selected::PROFILE_PREFS_2)
+            .map(|b| format!("{}/{}", b.health, b.hits)),
+        // Item 4754: the `object` button's picture and bar.
+        picture: b.and_then(|b| b.ty),
+        health: b.map(|b| (b.health, b.hits)),
     })
 }
 
