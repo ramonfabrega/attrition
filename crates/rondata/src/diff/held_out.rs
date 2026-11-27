@@ -3013,6 +3013,92 @@ pub(crate) mod tests {
         }
     }
 
+    /// **A rival's running wonder clock wants one more builder** (item
+    /// 4766, `docs/RECGAME.md` §13.5): run1797. who=1's `wonderwin_timer`
+    /// runs from 4376 (`wonderwin_stamp` 4376), and on 4387, the phase of
+    /// who=2's unbuilt wonder `2/2014` (4386 + 2014 = 200 × 32),
+    /// `Wall::process`'s recruiter counts that leader one without walking
+    /// its wonders: five builders against six wanted, so the nearest
+    /// not-busy Citizen, `2/40` on its walk to gather at `2/2015`, takes
+    /// `add_build_order(QUEUE_NEW)` — `unit_masks |= 0x400`, its gather
+    /// closed (`gather_down` −1). Every range of every line on 4387.
+    #[test]
+    fn row_133_s_wonder_site_counts_a_rival_s_running_clock_on_run1797() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 4386 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let clock = &built.sim.leaders.endgame[1];
+        assert_eq!(
+            (clock.wonderwin_stamp, clock.wonderwin_timer),
+            (4376, 1),
+            "who=1's wonder clock runs"
+        );
+        let site = built
+            .sim
+            .building_by_o(2, 2014)
+            .expect("the wonder site 2/2014");
+        assert!(
+            !built.sim.buildings[site].active,
+            "the wonder is unbuilt entering 4387"
+        );
+        let citizen = built.sim.unit_by_o(2, 40).expect("the Citizen 2/40");
+        assert_eq!(built.sim.units[citizen].type_index, 50, "a PEASANTS");
+        assert_eq!(
+            built.sim.units[citizen].orders.len(),
+            2,
+            "a move and a gather entering 4387"
+        );
+        assert!(!built.sim.units[citizen].was_builder);
+        stream.apply(built.sim.frame as i32, &mut built);
+        built.sim.command().tick();
+        assert_eq!(built.sim.frame, 4387);
+        assert!(built.sim.units[citizen].was_builder, "the recruit's 0x400");
+        let set = record.first_of(4386).expect("the state's set").clone();
+        let all = record.ranges(&set).expect("the set's ranges");
+        let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+        for (line, ours) in lines.iter().enumerate() {
+            let Some(ours) = ours.as_ref() else {
+                continue;
+            };
+            let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "line {line}'s ranges on 4387"
+            );
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "line {line} range {k} on 4387, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+    }
+
     /// **A bribed figure keeps its own node flags** (item 4758,
     /// `docs/RECGAME.md` §13.5): run1797. On 4058 who=2's spy bribes
     /// who=1's BMP (TI 223); `Unit::swap_team@006118d0`'s per-guy loop

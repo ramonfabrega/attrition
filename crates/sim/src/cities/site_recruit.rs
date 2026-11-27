@@ -192,35 +192,57 @@ impl Sim {
             .is_some_and(|t| self.tables.build_types[t].wonder)
     }
 
-    /// The wonder's extra builders: one for every unbuilt wonder of the
-    /// same type, held by a playing leader that is not this one's ally,
-    /// whose progress is ahead of this one's and either under twice it or
-    /// under `0.35`.
+    /// The wonder's extra builders, over the leaders that are seated
+    /// (`flags & 3 == 3`) and not this one's ally (`LeaderData::is_ally`,
+    /// which answers 1 for the owner's own slot): **a leader whose wonder
+    /// clock runs (`wonderwin_timer`, `+0x44c`, nonzero) counts one**, and
+    /// its wonders are not walked; any other counts one for every unbuilt
+    /// wonder of the same type whose progress is ahead of this one's and
+    /// either under twice it or under `0.35`.
+    ///
+    /// The timer arm (item 4766, `docs/RECGAME.md` §13.5): `Wall::process
+    /// @00640450`'s leader loop tests `+0x44c` before the walk of
+    /// `unbuilt_wonders.lists[leader]`, and on nonzero adds one instead.
+    /// run1797's who=1 starts its clock on 4376 (`wonderwin_stamp` 4376,
+    /// timer 1, in the leaders record), and on 4387 who=2's wonder site
+    /// `2/2014`, five builders strong, wants six and pulls its Citizen
+    /// `2/40` off its gather.
     ///
     /// Progress is `job_counter / construct_time(0)` in the original, two
     /// `float` quotients. Here each comparison is the exact rational one,
-    /// cross-multiplied in `i64`. SEAM: the two part only where a
-    /// quotient's rounding to `float` lands it on the other side of a
-    /// bound, and `construct_time(0)` (Build vslot `+0x18c`) is read as the
-    /// stored `constr_time`; no capture on file has two leaders building
-    /// the same wonder. SEAM: a leader whose `wonderwin_timer` (`+0x44c`)
-    /// is running counts **one** instead of its wonders; the timer is not
-    /// carried, so every rival is walked.
+    /// cross-multiplied in `i64`; a zero construct time compares false
+    /// everywhere, as the float's infinity or NaN does, and leaves the
+    /// timer arm's count. SEAM: the two part only where a quotient's
+    /// rounding to `float` lands it on the other side of a bound, and
+    /// `construct_time(0)` (Build vslot `+0x18c`) is read as the stored
+    /// `constr_time`; no capture on file has two leaders building the same
+    /// wonder.
     fn rival_wonders(&self, b: usize) -> i32 {
         let me = &self.buildings[b];
         let (j0, c0) = (i64::from(me.job_counter), i64::from(me.constr_time));
-        if c0 <= 0 {
-            return 0;
-        }
         let who = me.owner;
-        let mut extra = 0;
+        let rival = |w: usize| {
+            !self.leaders.defeated.get(w).copied().unwrap_or(true)
+                && !self.is_ally(w as crate::Player, who)
+        };
+        let clock = |w: usize| {
+            self.leaders
+                .endgame
+                .get(w)
+                .is_some_and(|e| e.wonderwin_timer != 0)
+        };
+        let mut extra = (0..self.leaders.endgame.len())
+            .filter(|&w| rival(w) && clock(w))
+            .count() as i32;
+        if c0 <= 0 {
+            return extra;
+        }
         for (o, bd) in self.buildings.iter().enumerate() {
             if o == b || !bd.alive || bd.active || bd.ty != me.ty || bd.owner == who {
                 continue;
             }
             let w = bd.owner as usize;
-            if self.leaders.defeated.get(w).copied().unwrap_or(true) || self.is_ally(bd.owner, who)
-            {
+            if !rival(w) || clock(w) {
                 continue;
             }
             let (j, c) = (i64::from(bd.job_counter), i64::from(bd.constr_time));
