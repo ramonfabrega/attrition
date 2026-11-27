@@ -1711,6 +1711,75 @@ fn a_pushed_group_takes_its_members_out_of_the_army() {
     );
 }
 
+/// **A push onto an emptied army's slot is one record, the army's** (item
+/// 4746, `docs/RECGAME.md` §14.4): `get_open_slot` hands out the slot of a
+/// valid army that has lost every member and not recounted, and
+/// `copy_group` writes that slot's one `Group`, whose `army` (`+0x8`)
+/// still names the army. So the pusher's next writes — `action_move_near`'s
+/// `order_num` and `(ox, oy)` — are the army's record and the record the
+/// groups line prints. Row 88's who=2 army 3 (slot 11, record 139) loses
+/// its two members on 4362 and the Despot `2/150`'s push and move land
+/// there: run1846 prints `order_num` 7 and `(ox, oy)` (38952, 25752) on
+/// 4363, where a second copy in a `Pushed` entry left the army's at 6 and
+/// (0, 0).
+#[test]
+fn a_push_onto_an_emptied_army_slot_is_one_record_the_army_s() {
+    let mut s = sim();
+    let t = fighter(&mut s);
+    let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+    let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+    let slot = s.init_army(1, None);
+    s.army_add_unit(1, slot, a);
+    s.army_add_unit(1, slot, b);
+    s.army_normalize(1, slot);
+    let pool = s.ai.armies[1].list[slot].group.pool.expect("seated");
+    s.ai.armies[1].list[slot].group.order_num = 6;
+    // Both members die; the army's list empties, its count stands.
+    for u in [a, b] {
+        s.units[u].health = 0;
+    }
+    s.ai.armies[1].list[slot].units.clear();
+    assert_ne!(s.ai.armies[1].list[slot].num_units, 0, "not recounted");
+    let c = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
+    let mut g = group_of(1, &[c]);
+    assert!(s.push_group(&mut g, true));
+    assert_eq!(s.units[c].group_ptr, Some(pool), "the army's slot");
+    assert_eq!(g.army, Some(slot), "the handle is the army's seat");
+    assert!(
+        !s.orders
+            .pushed
+            .iter()
+            .any(|x| x.who == 1 && x.state.pool == Some(pool)),
+        "no second record names the slot"
+    );
+    assert_eq!(s.ai.armies[1].list[slot].units, vec![c]);
+    // The pusher's move: `order_num` and the origin.
+    let to = Pos::new(38952, 25752);
+    s.bump_order_num(&g);
+    s.record_move(
+        &g,
+        to,
+        crate::movement::Angle(0x6e47_0000),
+        crate::orders::QueuePos::New,
+    );
+    let st = &s.ai.armies[1].list[slot].group;
+    assert_eq!((st.order_num, st.o), (7, to), "the army's record");
+    // And the groups line prints that record: `army`, `order_num`, `ox`, `oy`.
+    let line = s.checksum_groups();
+    let r = line
+        .ranges
+        .iter()
+        .find(|r| r.record == 64 + i16::from(pool) && r.field == "id..march")
+        .expect("the slot's record");
+    let word = |off: usize| i32::from_le_bytes(r.bytes[off - 4..off].try_into().unwrap());
+    let army = i32::from(s.ai.armies[1].list[slot].army);
+    assert_eq!(
+        (word(0x8), word(0x2c), word(0x18), word(0x1c)),
+        (army, 7, to.x, to.y),
+        "the printed record"
+    );
+}
+
 /// **A squad pushed out of an army leaves the army record's `role`**
 /// (item 4551, `docs/GROUPS.md` §3.4): `Group::kill@00714110` shifts the
 /// list, stamps and runs the speed tail, and calls no `find_role`, so the
