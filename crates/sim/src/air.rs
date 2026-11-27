@@ -448,10 +448,10 @@ impl Sim {
     /// - **`check_fuel`**, `land_plane` and the whole `0x193` landing
     ///   approach: all three are behind the same `is_animal` slot or behind
     ///   the order's landing flag, which is zero for a patrol.
-    /// - **the target-ahead flag**, the `local_20` that would let the bank
-    ///   turn at twice the rate: it needs the order to carry a target
-    ///   object, and `think_bird` clears the patrol order's on every frame
-    ///   the counter is not negative.
+    /// - **the target-ahead flag**, the `local_20` that hands the bank its
+    ///   turn sign ([`Sim::close_air_target`], item 4740): it needs the
+    ///   order to carry a target object, and `think_bird` clears the patrol
+    ///   order's on every frame the counter is not negative.
     /// - **`pitch_aircraft`'s speed cut**, which is behind `is_animal() == 0`.
     ///
     /// What is left is here, and the one draw in it is the edge coin.
@@ -864,8 +864,10 @@ impl Sim {
     /// alone (item 3990, `docs/GOLDEN.md` §183), and a home that is dead
     /// or will not carry the plane is re-homed or the plane dies
     /// (`rehome`, `out_of_fuel`). SEAMs: a helicopter's flight with a
-    /// point; a flying target's lead (`local_20`, the doubled bank); and a
-    /// carrier as the home.
+    /// point; and a carrier as the home. A flying target under the nose
+    /// hands the bank its turn sign ([`Sim::close_air_target`], item 4740).
+    /// The bank doubles its want on the order's own `returning`, and
+    /// `local_20` does not do that.
     pub(crate) fn plane_air_physics(&mut self, u: usize, goal: Option<Pos>, frame: i64) -> Flew {
         let Some(mut air) = self.current_air(u) else {
             return Flew::Done;
@@ -991,11 +993,17 @@ impl Sim {
         if turn != 0 {
             des = Angle(heading.0.wrapping_add(turn.wrapping_shl(30)));
         }
-        if heli {
-            self.bank_plane_as(u, des, &mut speed, air.returning, false, true);
-        } else {
-            self.bank_plane(u, des, &mut speed, air.returning);
-        }
+        let close = self.close_air_target(u, heli, air.returning);
+        let animal = self.units[u].is_gaia();
+        self.bank_plane_as(
+            u,
+            des,
+            &mut speed,
+            air.returning,
+            animal && !heli,
+            heli,
+            close,
+        );
         self.pitch_plane(u, dx, dy, aim_z, &mut speed, air.returning);
         let heading = self.units[u].movement.heading;
         self.plane_snap_angle(u, heading);
@@ -2378,7 +2386,48 @@ impl Sim {
     /// owner-under-eight's (`(byte)+0x9 > 7` goes straight to the clamp).
     pub(crate) fn bank_plane(&mut self, u: usize, des: Angle, speed: &mut i32, returning: bool) {
         let animal = self.units[u].is_gaia();
-        self.bank_plane_as(u, des, speed, returning, animal, false);
+        self.bank_plane_as(u, des, speed, returning, animal, false, 0);
+    }
+
+    /// **`do_air_physics`'s close-target arm** (`0x5e8a0c`–`0x5e8b6a`,
+    /// item 4740, `docs/ORDERS.md` §34.6): `local_20`, the turn sign
+    /// `bank_aircraft` is handed as its `param_3`. It is 1 for a flight
+    /// that is not returning (`AirOrder +0x18`), whose front order is a
+    /// strike (`is_attack`, vslot `+0x18`), flown by a type that is not a
+    /// helicopter, on a target whose type flies (`+0x218 == 2`, a
+    /// helicopter included), that `valid_target` takes, nearer than
+    /// `min_range · 0xc0` (`vector_dist(|dx|, |dy|)`, strict) and within
+    /// 90° of the nose (`fold(find_angle(dx, dy) − heading) < 0x4000_0000`).
+    /// Otherwise 0, and `bank_aircraft` takes the sign of `des − heading`.
+    /// So a plane on top of a flying target banks the `+` way whichever
+    /// side the target is on. run1797's Jet Fighter `2/116` on 3789, 106 off
+    /// the Attack Helicopter `1/34` under its nose, banks −10 and turns
+    /// right, away from it.
+    fn close_air_target(&mut self, u: usize, heli: bool, returning: bool) -> i32 {
+        if returning || heli {
+            return 0;
+        }
+        let Some(t) = self.current_strafe(u).and_then(|sf| sf.target) else {
+            return 0;
+        };
+        if !matches!(
+            self.profile(t).domain,
+            crate::territory::attrition::Domain::Air
+        ) {
+            return 0;
+        }
+        let me = crate::combat::Obj::Unit(u);
+        if !self.valid_target(me, t) {
+            return 0;
+        }
+        let (at, to) = (self.units[u].pos, self.pos_of(t));
+        let (dx, dy) = (to.x - at.x, to.y - at.y);
+        if vector_dist(dx.abs(), dy.abs()) >= self.profile(me).min_range * 0xc0 {
+            return 0;
+        }
+        let heading = self.units[u].movement.heading;
+        let off = fold((find_angle(dx, dy).0 as u32).wrapping_sub(heading.0 as u32));
+        i32::from(off < 0x4000_0000)
     }
 
     /// [`Sim::bank_plane`] with the two answers it reads off the unit made
@@ -2400,6 +2449,7 @@ impl Sim {
         returning: bool,
         animal: bool,
         heli: bool,
+        turn_sign: i32,
     ) {
         let stored = self.units[u].airframe.bank;
         let mut roll = stored.neg();
@@ -2413,7 +2463,16 @@ impl Sim {
         let heading = self.units[u].movement.heading;
         let d = (des.0 as u32).wrapping_sub(heading.0 as u32);
         let adelta = fold(d);
-        let sign_in = if d > 0x8000_0000 { -1i32 } else { 1 };
+        // `param_3`: the caller's sign when it hands one (`do_air_physics`'s
+        // close-target arm, [`Sim::close_air_target`]), else the way to
+        // `des` (`005e9573`).
+        let sign_in = if turn_sign != 0 {
+            turn_sign
+        } else if d > 0x8000_0000 {
+            -1i32
+        } else {
+            1
+        };
         let raw = ((self.units[u].movement.turning.type_turn_speed as u32) >> 8)
             .wrapping_mul(self.tables.tuning.unit_turn_speed as u32);
         let divisor = if raw < MIN_TURN && !heli {

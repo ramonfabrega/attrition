@@ -88,7 +88,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 && Single::from_bits(rd(&c[9], 0x44) as u32).is_zero()
                 && st >= 0
                 && sim.frame & 7 == 0;
-            sim.bank_plane_as(u, Angle(a[0]), &mut speed, returning, animal, heli);
+            sim.bank_plane_as(u, Angle(a[0]), &mut speed, returning, animal, heli, a[2]);
             // The writes: the heading, the bank pair, the speed, and the order list's cache in `this`
             // (the node's record, the record's order and its byte), none of which an early return reaches.
             wr(m, 0x50, sim.units[u].movement.heading.0);
