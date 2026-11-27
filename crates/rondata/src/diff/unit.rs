@@ -525,8 +525,11 @@ mod tests {
             // 1452 → 1451: item 4461 places a gender entry only on the
             // types whose tail it is, and `ASSAULTMARINES-DEFAULT-AGE0-FEMALE`
             // (piece 6408) names none (`docs/CHECKSUM.md` §23.13).
-            1451,
-            "every `<UNIT>` entry the unit path can name"
+            // 1451 → 1457: item 4747 adds the six `<SCORCH>` pieces
+            // (60127..60132), a burning death's record's (`docs/COMBAT.md`
+            // §42.1).
+            1457,
+            "every `<UNIT>` entry the unit path can name, and the scorches"
         );
         // **And an entry with no `<ANIM>` child is one of them.** All
         // sixty animation-less `<UNIT>`s in the shipped file are

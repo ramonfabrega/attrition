@@ -647,10 +647,16 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 .gpiece
                 .filter(|g| pieces.iter().any(|&p| i64::from(p) == *g))
                 .unwrap_or_else(|| i64::from(pieces.first().copied().unwrap_or(-1)));
+            // Each record's own animation (item 4747): a burning death's
+            // scorched figures carry theirs, the rest the death's.
+            let anim = d
+                .cur_anim
+                .filter(|a| (0..n).any(|k| i64::from(mine.anim_of(k)) == *a))
+                .unwrap_or_else(|| i64::from(mine.anim_of(0)));
             for (field, m, logged) in [
                 ("valid", 1, d.valid),
                 ("first_frame", mine.first_frame, d.first_frame),
-                ("cur_anim", i64::from(mine.cur_anim), d.cur_anim),
+                ("cur_anim", anim, d.cur_anim),
                 ("gpiece", piece, d.gpiece),
             ] {
                 let Some(theirs) = logged else { continue };

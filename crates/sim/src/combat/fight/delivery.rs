@@ -1726,15 +1726,17 @@ impl Sim {
         self.mark(SITE_DEATH_ANIM);
         let roll = self.rng.roll() % 2;
         let mut cur_anim = combat::death_anim(dtype, roll);
+        let mut scorched = None;
         if dtype == 4 {
-            // The second draw replaces the first animation. The third
-            // supplies a per-piece alternative (COMBAT §42.1). The impact
-            // angle is passed separately to the casualty sprite.
+            // The second draw replaces the first animation. The third is
+            // the scorched alternative, `0xe − roll % 4` (`60fb55`; item
+            // 4747, COMBAT §42.1), which only a figure whose piece has a
+            // scorched body takes ([`Self::death_figures`]).
             self.mark(SITE_DEATH_ANIM_ALT);
             let alt = self.rng.roll() % 2;
             cur_anim = combat::death_anim(4, alt);
             self.mark(SITE_DEATH_ANIM_FACING);
-            let _ = self.rng.roll();
+            scorched = Some(0xe - self.rng.roll() % 4);
         }
         // **An aircraft shot down falls, and leaves no death object**
         // (item 1102, `docs/COMBAT.md` §81): `Objects::kill_guy`'s arm for
@@ -1761,7 +1763,7 @@ impl Sim {
                 self.coll_kill_guy(i, k);
             }
         }
-        let mut figures = self.death_figures(i, cur_anim);
+        let mut figures = self.death_figures(i, cur_anim, scorched);
         let turn = dtype == 3
             && self
                 .profile(Obj::Unit(i))
@@ -1769,7 +1771,11 @@ impl Sim {
         let n = self.units[i].guys.len().min(usize::from(figures.n));
         let impact =
             pose.and_then(|pose| pose.apply(&mut figures.place[..n], turn, &self.roster.art));
-        let life = self.death_life(i, cur_anim);
+        let n_records = usize::from(figures.n);
+        let life = (!self.units[i].guys.is_empty()
+            && figures.life[..n_records].iter().all(|&l| l != i64::MAX))
+        .then(|| figures.life[..n_records].iter().copied().max())
+        .flatten();
         let u = &self.units[i];
         let (who, o) = (i32::from(u.owner), i32::from(u.index));
         self.combat.deaths.push(combat::Death {
@@ -1997,22 +2003,17 @@ impl Sim {
     /// [`Self::BODY_FADE_END`] when it has none, and nothing for a sea
     /// unit (`type +0x218 == 1`). `None` when the install does not name
     /// the piece's slot.
-    pub(super) fn death_life(&self, i: usize, cur_anim: i32) -> Option<i64> {
-        // One `DeathObj` per guy, each on its own `gpiece` (ch94's four-man
-        // crew prints four, `gpiece` 219, 12891, 25563, 38235): the unit's
-        // number is held by the last to end.
-        let mut life = None;
-        for k in 0..self.units[i].guys.len() {
-            life = life.max(Some(self.figure_life(i, k, cur_anim)?));
-        }
-        life
-    }
-
-    /// One guy's record's life, as [`Self::death_life`] reads it.
-    pub(super) fn figure_life(&self, i: usize, k: usize, cur_anim: i32) -> Option<i64> {
-        let anim = i8::try_from(cur_anim).ok()?;
+    ///
+    /// One `DeathObj` per guy, each on its own `gpiece` (ch94's four-man
+    /// crew prints four, `gpiece` 219, 12891, 25563, 38235): the unit's
+    /// number is held by the last to end, and it is `None` when any
+    /// record's piece is undescribed.
+    ///
+    /// One record's life: the frames of `anim` on `gpiece`, the record's
+    /// own piece and animation ([`combat::Figures`]).
+    pub(super) fn figure_life(&self, i: usize, gpiece: i32, anim: i32) -> Option<i64> {
+        let anim = i8::try_from(anim).ok()?;
         let sea = self.units[i].kind.domain == crate::territory::attrition::Domain::Sea;
-        let gpiece = self.units[i].guys[k].gpiece;
         if gpiece < 0 || !self.roster.art.piece_lengths.contains_key(&gpiece) {
             return None;
         }
@@ -2030,17 +2031,40 @@ impl Sim {
     /// **Every guy's record** (item 3784, `docs/GOLDEN.md` §149.10): the
     /// lives [`Self::hold_frames_tick`] counts, one bump a record a frame.
     /// A record whose piece the install does not describe lives for good.
-    pub(super) fn death_figures(&self, i: usize, cur_anim: i32) -> combat::Figures {
+    ///
+    /// **And each record's piece and animation** (item 4747, `docs/RECGAME.md`
+    /// §13.5): on a burning death `scorched` is the third draw's `0xe −
+    /// roll % 4`. `Unit::close@0060ee50`'s two figure loops hand it to a
+    /// guy whose piece's `RData::unit_data +0x24` is not negative, and
+    /// `Objects::kill_guy` passes it on (an animation in `0xb..0x15`);
+    /// `DeathObj::init@008d4c60` then finds it below `0xf`, adds 4 and
+    /// takes the scorched piece (`+0x24`) as the record's, whose own
+    /// skeleton (`+0x20`) is `+0x44`. run1797's 3801: who=2's Assault
+    /// Infantry `2/123` (TI 104) burns; third draw 53983, alternative 11,
+    /// record `cur_anim` 15 on piece 60127 (`BIPED`), skeleton 60117.
+    pub(super) fn death_figures(
+        &self,
+        i: usize,
+        cur_anim: i32,
+        scorched: Option<i32>,
+    ) -> combat::Figures {
         let mut f = combat::Figures::one(None);
         let n = self.units[i].guys.len().clamp(1, combat::Figures::MAX);
         f.n = n as u8;
         for k in 0..n {
+            let own = self.units[i].guys.get(k).map_or(-1, |g| g.gpiece);
+            let scorch = self.roster.art.piece_scorches.get(&own).copied();
+            let (gpiece, anim) = match (scorched, scorch) {
+                (Some(alt), Some(body)) if alt < 0xf => (body, alt + 4),
+                _ => (own, cur_anim),
+            };
             f.life[k] = if k < self.units[i].guys.len() {
-                self.figure_life(i, k, cur_anim).unwrap_or(i64::MAX)
+                self.figure_life(i, gpiece, anim).unwrap_or(i64::MAX)
             } else {
                 i64::MAX
             };
-            f.gpiece[k] = self.units[i].guys.get(k).map_or(-1, |g| g.gpiece);
+            f.gpiece[k] = gpiece;
+            f.anim[k] = anim;
             f.place[k] = self.death_lie(i, k);
         }
         f

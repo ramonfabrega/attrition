@@ -2842,6 +2842,97 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 133's burned Assault Infantry lies on its scorched body**
+    /// (item 4747, `docs/COMBAT.md` §42.1): run1797's ranges, the row's
+    /// deaths parting on 3802 (range 37, record 18). who=2's Assault
+    /// Infantry `2/123` (TI 104, land) dies on 3801 with `dtype` 4, the
+    /// three `Unit::close` draws in both traces. Its piece 1462 has a
+    /// scorched body (`scorch="Biped"`, piece 60127), so the third draw's
+    /// `0xe − 53983 % 4` = 11 is its figure's animation, and
+    /// `DeathObj::init` makes it 15 on piece 60127, skeleton 60117. Ours
+    /// printed `cur_anim` 17 on piece 1462, skeleton 60114. Every range of
+    /// every line on 3802 and 3803.
+    #[test]
+    fn row_133_s_burned_assault_infantry_lies_on_its_scorched_body_on_run1797() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        assert_eq!(
+            loaded.piece_scorches.get(&1462),
+            Some(&60127),
+            "the Assault Infantry's piece burns to BIPED"
+        );
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 3801 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let inf = built.sim.unit_by_o(2, 123).expect("the Assault Infantry");
+        assert_eq!(
+            built.sim.units[inf].type_index, 104,
+            "2/123 is an Assault Infantry"
+        );
+        for state in [3802, 3803] {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            assert_eq!(built.sim.frame, state);
+            if state == 3802 {
+                let d = built
+                    .sim
+                    .combat
+                    .deaths
+                    .iter()
+                    .find(|d| (d.who, d.o, d.first_frame) == (2, 123, 3801))
+                    .expect("2/123's death on 3801");
+                assert_eq!(d.cur_anim, 17, "the death's own: 0x11 + 22084 % 2");
+                assert_eq!(
+                    (d.anim_of(0), d.figures.gpiece[0]),
+                    (15, 60127),
+                    "the burned figure's record: 11 + 4 on its scorched body"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (line, ours) in lines.iter().enumerate() {
+                let Some(ours) = ours.as_ref() else {
+                    continue;
+                };
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {line}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "line {line} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 133's Flamethrower drops the helicopter its attack-move
     /// found** (item 4723, `docs/COMBAT.md` §66.4): run1797's ranges, the
     /// row's units parting on 3633 (record 73, `orders.count` ours 2,
@@ -15513,16 +15604,25 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 4,378 (first 5741 -> 4378) and goods 4,536 -> 4,476 (first 4476
         // stands) fall, both past the first parting, named. The first
         // parting is deaths alone on 3802.
+        // Item 4747 (a burning death's figure takes its piece's scorched
+        // body: `Unit::close`'s third draw `0xe - roll % 4` on a figure
+        // whose piece has `RData::unit_data +0x24`, `DeathObj::init`'s
+        // `+4` and piece swap; on 3801 who=2's Assault Infantry `2/123`,
+        // TI 104, burns, deaths range 37, record 18, `cur_anim` ours 17,
+        // theirs 15, `gpiece` ours 1462, theirs 60127, skeleton ours
+        // 60114, theirs 60117 on 3802, all theirs now): deaths 3,802 ->
+        // 4,103 (first 3802 -> 4103); no other line moves. The first
+        // parting is ammo on 4032.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                4087, 4146, 6085, 4086, 3802, 4121, 4087, 4114, 4158, 4378, 4476, 4098,
+                4087, 4146, 6085, 4086, 4103, 4121, 4087, 4114, 4158, 4378, 4476, 4098,
             ],
             first: &[
                 ("units", (4059, Some(2948754174), 1829464814)),
                 ("builds", (4138, Some(1999173051), 1171125996)),
                 ("ammo", (4032, Some(4219008740), 2611017338)),
-                ("deaths", (3802, Some(2642172519), 1452759926)),
+                ("deaths", (4103, Some(4160940736), 4023839423)),
                 ("groups", (4109, Some(1856517321), 3961861329)),
                 ("guys", (4059, Some(2882559999), 3448070127)),
                 ("leaders", (4093, Some(172771923), 1927891540)),

@@ -7335,11 +7335,16 @@ virtual at `+0x150`, `Unit::close` for a unit) and then the slot hold of
   60fb55  call Random::get         ;   per-piece alternate animation = 0xe - roll % 4
 ```
 
-The third draw's label was corrected in item 4370. A source reading of
-the two figure loops finds that a graphic condition selects this value
-as the animation argument to `Objects::kill_guy`. Both loops forward the
-impact angle independently. Which figures use the alternate animation
-still awaits a dedicated byte comparison and independent review.
+The third draw's label was corrected in item 4370. **Which figures take
+it** (item 4747, diff-backed by run1797's 3802): both figure loops hand
+`Objects::kill_guy` the alternative for a guy whose piece (`GuyData
++0x88`) has a scorched body, `RData::unit_data +0x24` (`UnitRDataStruct::
+scorch`, a `<UNIT scorch=>` naming a `<SCORCH>`) not negative, and
+`cur_anim` to the rest. `DeathObj::init@008d4c60` finds the alternative
+below `0xf`, adds 4 and moves the record onto the scorched piece, whose
+own skeleton is `+0x44`. run1797's Assault Infantry `2/123` burns on
+3801: third draw 53983, alternative 11, record `cur_anim` 15 on piece
+60127 (`BIPED`), where ours printed 17 on its own 1462.
 
 Above all of it, `dtype != 0` and the function's own `local_1c`, which is
 set only on the arm that unblocks four tiles for a **Merchant**, a Dutch
