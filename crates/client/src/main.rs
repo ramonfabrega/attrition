@@ -472,6 +472,7 @@ fn build(
             figures,
             panel,
             caption.as_deref(),
+            hud.is_some_and(|input| frame::idle_lit(world, input.player)),
         ));
         // Item 4761: the military tally above the bar's right end.
         if let Some(input) = hud {
@@ -657,6 +658,7 @@ pub(crate) fn still_minimap(
                 figures,
                 panel,
                 caption.as_deref(),
+                frame::idle_lit(world, world::CONSOLE),
             ));
             // Item 4761: the military tally.
             let lines = frame::tally_lines(world, world::CONSOLE);

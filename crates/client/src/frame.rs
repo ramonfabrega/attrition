@@ -72,6 +72,9 @@ pub struct MinimapLayout {
     pub back: (usize, usize, usize, usize),
     /// Each `BUTTON`'s rectangle in the window and its `tex`'s crop.
     pub buttons: Vec<(Rect, (usize, usize, usize, usize))>,
+    /// Item 4764: the index in [`Self::buttons`] of `cycle_peasant`, the
+    /// idle citizens' button, which [`idle_lit`] shows or hides.
+    pub peasant: Option<usize>,
 }
 
 fn num(tag: &str, name: &str) -> Option<i32> {
@@ -117,9 +120,13 @@ impl MinimapLayout {
             .and_then(|t| crop_of(t))
             .ok_or("IFACEMINIMAP: no back off TEX_CIV")?;
         let mut buttons = Vec::new();
+        let mut peasant = None;
         for (i, t) in tags.iter().enumerate() {
             if !t.starts_with("BUTTON ") {
                 continue;
+            }
+            if attr(t, "name") == Some("cycle_peasant") {
+                peasant = Some(buttons.len());
             }
             let r = rect(t).ok_or(format!("IFACEMINIMAP: a button with no rectangle: {t}"))?;
             let tex = tags[i + 1..]
@@ -135,6 +142,7 @@ impl MinimapLayout {
             map,
             back,
             buttons,
+            peasant,
         })
     }
 }
@@ -145,6 +153,8 @@ pub struct MinimapFrame {
     pub map: Rect,
     pub back: Texels,
     pub buttons: Vec<(Rect, Texels)>,
+    /// Item 4764: [`MinimapLayout::peasant`].
+    pub peasant: Option<usize>,
     /// Item 4724: the bar's left window, composed ([`left`]).
     pub left: Texels,
     /// `mid_window`'s corner in the bar: the minimap window's place.
@@ -340,6 +350,7 @@ impl FrameArt {
             map: l.map,
             back,
             buttons,
+            peasant: l.peasant,
             left: self.left.compose(&atlas)?,
             mid_window: self.left.mid_window,
             clock: self.left.clock,
@@ -389,10 +400,14 @@ impl MinimapFrame {
     }
 
     /// The window's texel at screen `(x, y)`, the buttons over the back, or
-    /// `None` off the window.
-    pub fn texel(&self, (ox, oy): (i32, i32), x: i32, y: i32) -> Option<[u8; 4]> {
+    /// `None` off the window. Item 4764: the idle citizens' button only
+    /// while `idle` ([`idle_lit`]); without it the back shows there.
+    pub fn texel(&self, (ox, oy): (i32, i32), x: i32, y: i32, idle: bool) -> Option<[u8; 4]> {
         let (u, v) = (x - ox, y - oy);
-        for ((bl, bt, bw, bh), t) in self.buttons.iter().rev() {
+        for (i, ((bl, bt, bw, bh), t)) in self.buttons.iter().enumerate().rev() {
+            if !idle && self.peasant == Some(i) {
+                continue;
+            }
             let (bu, bv) = (u - bl, v - bt);
             if (0..*bw).contains(&bu) && (0..*bh).contains(&bv) {
                 let c = t.at(bu as usize, bv as usize);
@@ -415,6 +430,7 @@ impl MinimapFrame {
         figures: Option<caps::Figures>,
         panel: Option<selected::Panel>,
         caption: Option<&str>,
+        idle: bool,
     ) -> Vec<crate::gpu::ScreenLayer> {
         let o = self.origin(size);
         let (x1, y1) = (
@@ -434,7 +450,7 @@ impl MinimapFrame {
             }));
         }
         v.extend(layers_of(size, (o.0.max(0), x1, o.1.max(0), y1), |x, y| {
-            self.texel(o, x, y)
+            self.texel(o, x, y, idle)
         }));
         // Item 4724: the bar's left window; item 4727, its clock.
         let b = self.bar_origin(size);
@@ -828,6 +844,22 @@ pub fn tally_lines(world: &crate::world::World, who: sim::Player) -> Vec<String>
         .count() as i32;
     let scene = world.runner.scene(None);
     tally::military_lines(&scene, &world.names.units, who, cities)
+}
+
+/// **Whether the idle citizens' button is lit** for `who` in `world` (item
+/// 4764; `docs/RENDERER.md` §6.25): `IFaceMiniMap::update_visibility@008154c0`,
+/// which `Game::loop_render` reaches on every rendered frame through
+/// `IFaceMainBase::update_visibility`, enables `cycle_peasant` while the
+/// leader's `leader_flags & 0x80000` is set and otherwise disables it and
+/// sets its `flags & 8`, on which `IFaceButton::on_redraw@007fc730` draws
+/// nothing. The bit is the sim's [`sim::leaders::LeadersState::citizen_thought`].
+pub fn idle_lit(world: &crate::world::World, who: sim::Player) -> bool {
+    let sim = world.runner.sim();
+    sim.leaders
+        .citizen_thought
+        .get(who as usize)
+        .copied()
+        .unwrap_or(false)
 }
 
 /// **The console's frame** in `world`: the atlas its nation and age pick.
