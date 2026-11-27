@@ -7485,7 +7485,7 @@ tests, and every case's arms on a unit.
 index `fonts.xml`'s lookups. It takes the font list's entry of that point
 size, the style matched exactly first and then by the looser masks, with
 `def_style` standing in for a style of −1. `System::init_graphics@00598ac0`
-and `change_resolution@0082dab0` set `def_style` to 1, which is bold. So
+and `change_resolution` set `def_style` to 1, which is bold. So
 `on_redraw`'s `get(fonts, 10, -1)`, the figures' face, is `arialbd.ttf`
 at 10: the font list's one size-10 entry with `B`, at both 1280 and 1024.
 Arial's ascent and descent round to 9 and 2, so `mAscent` is 9 and
