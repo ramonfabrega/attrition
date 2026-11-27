@@ -6858,7 +6858,9 @@ frame 3294:
 
 The 1,418 the photograph parts on are all on the idle citizens' button
 (`cycle_peasant`): 1,552 of its 1,669 opaque pixels. Theirs is darker, and
-it is no crop of the atlas (4694a).
+it is no crop of the atlas (4694a). ~~(4694a)~~ Item 4764 (§6.25): it
+is the back, the button not drawn. 1,380 of the 1,418 are on the button;
+38 are white pixels at x 366..400, y 954..975.
 
 The window's half-alpha texels on the diamond's edge move four minimap
 rows, each toward theirs. `RUN1564_3279_MINIMAP`'s cells within `NEAR`
@@ -6872,7 +6874,8 @@ photograph's pixels. **Read alone**: the code table's arms other than SA0.
 **Not established.**
 - The draw order of the map, its overlays and the back. Ours draws the back
   over all three, through the diamond's transparent texels.
-- Why theirs draws the idle citizens' button dark (4694a).
+- ~~Why theirs draws the idle citizens' button dark (4694a).~~ Answered by
+  item 4764 (§6.25): the button is disabled and not drawn.
   `IFaceMiniMap::update_visibility@008154c0` tests the leader's `& 0x80000`.
 - The window at a frame other than 1,920 × 1,080. Ours keeps the window at
   `minimap::quad`'s distance from the left and bottom edges.
@@ -7360,7 +7363,8 @@ general; `tile_random`'s pick on any other frame.
 - ~~The display button, `collapse_button_up0..2` (4738b).~~ Drawn by item
   4760 (§6.24).
 - The `advanced_options` button's picture (4738c).
-- The idle citizens' button's dark (4694a) was not reached.
+- ~~The idle citizens' button's dark (4694a) was not reached.~~ Item 4764,
+  §6.25.
 
 ## 6.18 The HUD's bar: the selected panel's frame (item 4748)
 
@@ -7765,6 +7769,49 @@ string table.
   3 × 93, x 1917..1919; (51, 0), 103 × 3, y 1078..1079). By eye theirs
   draws them and ours shows the terrain (4760a).
 - The arrow on a closed bar, and the `down` textures on a pressed button.
+
+## 6.25 The minimap's window: the idle citizens' button (item 4764)
+
+*2026-11-27, Opus 5.5. The ledger: `docs/journal/2026-11-27-item-4764.md`.
+`client::frame` (`idle_lit`, `MinimapLayout::peasant`,
+`MinimapFrame::texel`'s and `layers`' `idle`), `client::main`; the row
+`RUN1814B_3294_MINIMAP_FRAME`. No `crates/sim` change.*
+
+**Who decides it.** `Game::loop_render@005917e0` calls the main window's
+`update_visibility` on every rendered frame, which reaches
+`IFaceMiniMap::update_visibility@008154c0`. While the bar is opened, it finds
+the button `cycle_peasant` and tests the console leader's first dword,
+`leader_flags` (the listing at `0x8155b9`: the leaders' base `[0xc061e0]`,
+stride `0x6eec`, offset 0), against `0x80000`. Set, it enables the button
+and clears its `flags & 8`. Clear, it disables it and sets `flags & 8`.
+`IFaceButton::on_redraw@007fc730` returns on `flags & 8` before it draws
+anything, so the window's `back` shows where the button sits. The bit is
+the sim's `LeadersState::citizen_thought`. It is set when a citizen of the
+slot idles through `do_idle` in a frame, and cleared at the end of the
+slot's step (`docs/CHECKSUM.md` §25.4), so it is lit on a frame some
+citizen idled.
+
+**Registered before it was built**, by Python on the photograph: the
+47 × 47 button at (597, 1022) is the back's own texels, 2,209 of 2,209
+within two levels, and the button's `tex` composed over it 517.
+
+**Ours.** `frame::idle_lit` reads the console's bit. `MinimapFrame::texel`
+skips `cycle_peasant` while it is clear. On run1814b's 3295 it is clear, as
+the photograph's dark says.
+
+**The row**: the mask grows by 492, the pixels beside the button's
+part-transparent texels, now on the opaque back. Pixels 32,483 → **32,975**,
+the composition and ours 31,065 → **32,937**, luma ×10 ours 968 →
+**938** against the photograph's 940. What parts is 38 pixels at
+x 366..400, y 954..975, white in the photograph, off the button.
+
+**Diff-backed**: the button hidden while the bit is clear, on 3295.
+**Read alone**: the lit arm on a frame a citizen idled, since no held
+photograph has one; the bit read between sim frames as the last frame
+left it.
+
+**Not established.**
+- The 38 white pixels at x 366..400, y 954..975 (4764a).
 
 ## 7. What is not established, and what needs Ramon's word
 
