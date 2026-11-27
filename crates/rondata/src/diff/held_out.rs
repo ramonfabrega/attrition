@@ -6986,6 +6986,116 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 93's units, guys, groups and world on 4645: a refresh slides
+    /// by the taker's own `form_id`** (item 4763, `docs/RECGAME.md` §13.3,
+    /// `docs/GROUPS.md` §6.8), on run1799's whole-length ranges of
+    /// run1792's file. who=1's army 1 (group 66) loses `1/69` on 4645's
+    /// tick, and `1/17`, holding `form_id` 31 from before the prune, takes
+    /// the block over. `Group::refresh_group_order@00713a50` reads that
+    /// `form_id` (`713ac0`) into the table `normalize` has shifted, so the
+    /// block slides by `1/53`'s slot (18, 15), which now sits at 31. Red on
+    /// the base at groups range 92 on 4645, record 66: `off_x[0]` ours 0,
+    /// theirs −18, `off_y[0]` −30 against −6; and every member's
+    /// `order.move` destination after it. Every units, guys, groups and
+    /// world range on 4644 to 4646, byte for byte.
+    #[test]
+    fn row_93_s_army_slides_by_the_taker_s_form_id_on_run1799_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            eprintln!("skipping: row 93's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1799/map-14");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1799's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 4644i64..=4646 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let sim = &built.sim;
+            let named = |o: i16| {
+                let u = sim
+                    .units
+                    .iter()
+                    .rposition(|un| un.owner == 1 && un.index == o)
+                    .expect("the slot");
+                let ty = sim.units[u].ty.expect("a type");
+                (
+                    u,
+                    sim.tables.unit_types[ty].type_index,
+                    loaded.unit_names[ty].as_str(),
+                )
+            };
+            let (taker, ti, name) = named(17);
+            assert_eq!((ti, name), (355, "The President"), "1/17");
+            assert_eq!(
+                sim.units[taker].kind.domain,
+                sim::territory::attrition::Domain::Land
+            );
+            let (next, ti, name) = named(53);
+            assert_eq!((ti, name), (130, "MG42"), "1/53");
+            assert_eq!(
+                sim.units[next].kind.domain,
+                sim::territory::attrition::Domain::Land
+            );
+            let (gone, ti, name) = named(69);
+            assert_eq!((ti, name), (140, "Bazooka"), "1/69");
+            assert!(!sim.units[gone].alive(), "1/69 dead on {state}");
+            let army = sim.ai.armies[1]
+                .list
+                .iter()
+                .find(|a| a.valid && a.group.pool == Some(2))
+                .expect("group 66, who=1's army");
+            assert_eq!(army.army, 1, "army 1");
+            assert_eq!(
+                army.units.contains(&gone),
+                state == 4644,
+                "1/69 listed until 4645's prune"
+            );
+            if state == 4645 {
+                let at = |u: usize| army.units.iter().position(|&m| m == u);
+                assert_eq!(
+                    (at(taker), at(next)),
+                    (Some(30), Some(31)),
+                    "after the prune"
+                );
+                assert_eq!(army.group.off[31], (0, 0), "1/53 on the origin, theirs");
+                assert_eq!(army.group.off[30], (-18, 24), "1/17 off it, theirs");
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(sim, &look, &tribes);
+            for (line, name) in [(0usize, "units"), (5, "groups"), (6, "guys"), (11, "world")] {
+                let ours = lines[line].as_ref().expect(name);
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                    assert_eq!(
+                        at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                        None,
+                        "{name} range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                        a.record,
+                        a.field
+                    );
+                }
+            }
+        }
+    }
+
     #[test]
     fn row_93_s_decoy_tiger_tank_leaves_the_chain_at_its_death_on_run1799_s_ranges() {
         let Some(inst) = crate::testenv::install() else {
