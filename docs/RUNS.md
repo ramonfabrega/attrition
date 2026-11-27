@@ -42656,6 +42656,11 @@ it, and record 4's `sz` 588 against 585; nothing else parts on 5606 or 5607 (`pr
 row 83's leaf on 4007 (`launch_y` 27377 against 27376), and item 4759 carries both rows. Units part on 5940: range 10957,
 record 173, `unit_masks` ours 262280, theirs 262152, `attrition` 48 against 0; builds on 7183, record 2067, `city_down` −1
 against 2068. It is row 48's take for every later word.
+
+**Item 4759 on it**: the leaves were the Biplane's guns (piece 237, run1784) and piece 1089's Javelineer bays (here), each
+a fit or a copy where the original's `get_position` sweep (run1579's packet) gives the exact row. With the swept rows,
+`print_ranges` reads 0 ranges over 5605..5607 here and 4005..4007 on run1784; row 48's ammo goes 8,374 → 8,398, first
+5607 → 8300, and the row parts first on units 5940.
 ## run1849 — parity held out, seventh battery, row 108's whole file to 12,000 with the checksum and ranges hooks, every line but walls and deaths kept (2026-11-27, the pass, DECISIONS 160 §4)
 
 `docs/RECGAME.md` §14.5. **What the disk could not answer**: row 108 held sums alone (run1809), and item 4616's first
