@@ -4038,6 +4038,97 @@ pub(crate) mod tests {
         assert_eq!(built.sim.caravan_limit(2), 3, "who=2's limit on 1956");
     }
 
+    #[test]
+    fn probe_4736() {
+        if std::env::var("RON_PROBE_4736").is_err() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+            return;
+        };
+        let ranges = crate::testenv::experiment(&home.join("ron-golden/run1784/map-14"), "rontrace.ranges")
+            .expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 83's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let env = |k: &str, d: i64| std::env::var(k).ok().and_then(|v| v.parse::<i64>().ok()).unwrap_or(d);
+        let lo = env("RON_PROBE_LO", 3770);
+        let hi = env("RON_PROBE_HI", 3794);
+        let urec = env("RON_PROBE_UREC", 90) as i16;
+        let brec = env("RON_PROBE_BREC", 2033) as i16;
+        for i in crate::input::input(&rec) {
+            if i64::from(i.frame) >= lo - 100 && i64::from(i.frame) <= hi {
+                println!("P4736 cmd frame {} play {} who {} {:?}", i.frame, i.play, i.who, i.cmd);
+            }
+        }
+        let mut prev: std::collections::BTreeMap<(u8, u8), Vec<(Vec<u8>, Vec<u8>)>> = Default::default();
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                let f = built.sim.frame;
+                stream.apply(f as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (li, name, want) in [(0u8, "units", urec), (1, "builds", brec), (6, "guys", urec)] {
+                let Some(ours) = lines[usize::from(li)].as_ref() else { continue };
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == li).collect();
+                if ours.ranges.len() != theirs.len() {
+                    println!("P4736 state {state} {name} nranges ours {} theirs {}", ours.ranges.len(), theirs.len());
+                }
+                let mut n = 0;
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    if a.bytes != b.bytes && n < 12 {
+                        n += 1;
+                        println!("P4736 state {state} {name} k {k} rec {} field {} ours {:02x?} theirs {:02x?}", a.record, a.field, a.bytes, b.bytes);
+                    }
+                }
+                let mut who_now = 255u8;
+                let mut cur: std::collections::BTreeMap<u8, (Vec<&str>, Vec<(Vec<u8>, Vec<u8>)>)> = Default::default();
+                for (k, a) in ours.ranges.iter().enumerate() {
+                    if a.field == "who..y_internal" {
+                        who_now = a.bytes[0];
+                    }
+                    if a.record == want {
+                        let t = theirs.get(k).map(|r| r.bytes.clone()).unwrap_or_default();
+                        let e = cur.entry(who_now).or_default();
+                        e.0.push(a.field);
+                        e.1.push((a.bytes.clone(), t));
+                    }
+                }
+                for (who, (fields, v)) in cur {
+                    let p = prev.entry((li, who)).or_default();
+                    if *p != v {
+                        println!("P4736 state {state} {name} rec {want} who {who} changed:");
+                        for (j, (o, t)) in v.iter().enumerate() {
+                            if p.get(j) != Some(&(o.clone(), t.clone())) {
+                                println!("P4736   {:>2} {:<24} ours {:02x?}{}", j, fields[j], o, if o == t { String::new() } else { format!(" theirs {:02x?}", t) });
+                            }
+                        }
+                        *p = v;
+                    }
+                }
+            }
+            for u in 0..built.sim.units.len() {
+                let x = &built.sim.units[u];
+                if x.alive() && x.index == urec {
+                    println!("P4736 state {state} unit {}/{} ti {} {} pos {:?} orders {:?} path {} on_map {}", x.owner, x.index, x.type_index,
+                        x.ty.map(|t| loaded.unit_type_names[t].as_str()).unwrap_or("?"), x.pos, x.orders, x.path.len(), x.on_map);
+                }
+            }
+        }
+    }
+
     /// **Row 83's Artillery carries the supply veto's mark** (item 4554,
     /// `docs/SUPPLY.md`, "Behavioural check (run16)"): run1784, the ranges
     /// take of row 83's file. who=1's Artillery `1/70` (TI 269, land)
