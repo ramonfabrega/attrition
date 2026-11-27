@@ -5743,13 +5743,12 @@ pub(crate) mod tests {
                 if let Some(u) = built.sim.unit_by_o(1, 103) {
                     let x = &built.sim.units[u];
                     eprintln!(
-                        "P4770 f{frame} 1/103 ty {:?} name {:?} pos {:?} orders {:?} path {:?} group {:?}",
+                        "P4770 f{frame} 1/103 ty {:?} name {:?} pos {:?} orders {:?} path {:?}",
                         x.ty,
                         x.ty.and_then(|t| loaded.unit_type_names.get(t)),
                         x.pos,
                         x.orders,
                         x.path,
-                        x.group
                     );
                 }
             }
