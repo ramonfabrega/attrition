@@ -42578,3 +42578,8 @@ Longbowmen (TI 178) aboard, `2/88` retained on the Market's cell. After the fix 
 the first parting moves to 4166, on ammo. Read by
 `row_88_s_riders_closed_aboard_leave_their_owner_above_the_market_on_run1846_s_ranges`, and it is row 88's take for
 every later word.
+
+**Item 4743's word, off the same record**: ammo on 4166, slot 15 (who=1's Carrack `1/120`'s round at the dead
+Transport Barge `2/137`) `whom, ox` ours (2, 137), theirs (−1, −1). After the fix nothing on ammo parts to 4386; the
+first parting moves to 4363, on groups. Read by
+`row_88_s_carrack_round_forgets_its_dead_target_where_it_sticks_on_run1846_s_ranges`.

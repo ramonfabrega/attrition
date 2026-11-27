@@ -6468,6 +6468,115 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 88's Carrack round comes down where its dead target was and
+    /// forgets it** (item 4743, `docs/RECGAME.md` §14.4): run1846's ranges.
+    /// who=1's Carrack `1/120` (TI 342, sea) has a round in the air, ammo
+    /// slot 15, at who=2's Transport Barge `2/137` (TI 320, sea), dead by
+    /// 4160 and still on the round, as theirs keeps it. On tick 4165 the
+    /// round lands: `Ammo::do_damage@00678060`'s first test clears a dead
+    /// target's pair (`:76`–`81`), `Ammo::check_hit@00678d90` writes it
+    /// whatever it finds (`:42`–`44`, −1 at `:80`–`82`), and the puncture
+    /// arm keeps the round in its slot at `flags 1`. Every ammo range on
+    /// states 4165 to 4167, byte for byte; slot 15's `whom`/`ox` read off
+    /// both sides: (2, 137) on 4165, (−1, −1) after.
+    #[test]
+    fn row_88_s_carrack_round_forgets_its_dead_target_where_it_sticks_on_run1846_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SEVENTH, 4) else {
+            eprintln!("skipping: row 88's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1846/map-18");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1846's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 88's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 4165i64..=4167 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            // The shooter alive, its target dead, by name.
+            for (who, o, ti, name, domain, alive) in [
+                (
+                    1u8,
+                    120,
+                    342,
+                    "Carrack",
+                    sim::territory::attrition::Domain::Sea,
+                    true,
+                ),
+                (
+                    2,
+                    137,
+                    320,
+                    "Transport Barge",
+                    sim::territory::attrition::Domain::Sea,
+                    false,
+                ),
+            ] {
+                let u = built
+                    .sim
+                    .units
+                    .iter()
+                    .rposition(|u| u.owner == who && u.index == o)
+                    .expect("the slot");
+                let ty = built.sim.units[u].ty.expect("a type");
+                assert_eq!(
+                    built.sim.tables.unit_types[ty].type_index, ti,
+                    "{who}/{o}'s TI"
+                );
+                assert_eq!(loaded.unit_names[ty], name);
+                assert_eq!(built.sim.units[u].kind.domain, domain);
+                assert_eq!(built.sim.units[u].alive(), alive, "{who}/{o} on {state}");
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[3].as_ref().expect("the ammo line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 3).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "ammo's ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "ammo range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            // Slot 15's body: `whom` and `ox` are its seventeenth and
+            // eighteenth words after the roll byte and the accuracy.
+            let at = ours
+                .ranges
+                .iter()
+                .position(|r| r.record == 15 && r.field == "rolling..start_roll_angle")
+                .expect("slot 15's body");
+            let pair = |b: &[u8]| {
+                let w = |k: usize| i32::from_le_bytes(b[3 + 4 * k..7 + 4 * k].try_into().unwrap());
+                (w(13), w(14), w(16), w(17))
+            };
+            let want = if state <= 4165 { (2, 137) } else { (-1, -1) };
+            for (side, b) in [
+                ("ours", &ours.ranges[at].bytes),
+                ("theirs", &theirs[at].bytes),
+            ] {
+                let (who, o, whom, ox) = pair(b);
+                assert_eq!((who, o), (1, 120), "{side}' shooter on {state}");
+                assert_eq!((whom, ox), want, "{side}' whom, ox on {state}");
+            }
+        }
+    }
+
     /// **Row 43's Slinger stones leave from piece 736's sockets** (item
     /// 4547, `docs/RECGAME.md` §12.3): run1787, the ranges take of row 43's
     /// file. who=2's Slingers `2/30` and `2/29` (TI 82, land, piece 736,
@@ -15669,19 +15778,28 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // -> 9,428 (first 5885 -> 5716; past the first parting), goods
         // 4,679 -> 4,684. The first parting moves 3717 -> 4166, on ammo,
         // which stood.
+        // Moved by item 4743 (run1846's ranges): `Ammo::check_hit@00678d90`
+        // writes the round's pair whatever it finds (`:42`-`44`, -1 on a
+        // miss), and the puncture arm keeps the round with it. On tick 4165
+        // who=1's Carrack `1/120` (TI 342, sea) round, slot 15, at the
+        // Transport Barge `2/137` (TI 320, sea), dead and still on the round,
+        // comes down on nothing and sticks. Ammo on 4166, slot 15 `whom, ox`
+        // ours (2, 137) -> (-1, -1), as theirs. Ammo 4,187 -> 4,387 (first
+        // 4166 -> 4387), leaders 4,199 -> 4,402 (first 4199 -> 4397). The
+        // first parting moves 4166 -> 4363, on groups, which stood.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                4384, 4422, 12001, 4187, 4443, 4368, 4384, 4199, 4488, 9428, 4684, 4394,
+                4384, 4422, 12001, 4387, 4443, 4368, 4384, 4402, 4488, 9428, 4684, 4394,
             ],
             first: &[
                 ("units", (4384, Some(1930113341), 3084987553)),
                 ("builds", (4422, Some(2810936796), 290488154)),
-                ("ammo", (4166, Some(2844747041), 735145102)),
+                ("ammo", (4387, Some(1291091225), 1430617522)),
                 ("deaths", (4443, Some(1493940272), 2950874289)),
                 ("groups", (4363, Some(2153732131), 2640665236)),
                 ("guys", (4384, Some(2966912178), 3125639190)),
-                ("leaders", (4199, Some(626313703), 2804271541)),
+                ("leaders", (4397, Some(323720312), 1440060538)),
                 ("cities", (4486, Some(471488175), 2265470475)),
                 ("items", (5716, Some(785253319), 3503884409)),
                 ("goods", (4625, Some(2004087359), 1940648509)),
