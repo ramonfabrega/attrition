@@ -463,11 +463,13 @@ fn build(
             frame::bar_slots(world, input.player, &input.selection)
         });
         let figures = hud.and_then(|input| frame::cap_figures(world, input.player));
+        let panel = hud.and_then(|input| frame::selected_panel(world, &input.selection));
         minimap.extend(f.layers(
             (size.0 as i32, size.1 as i32),
             line.as_deref(),
             &slots,
             figures,
+            panel,
         ));
     }
     screen.splice(0..0, minimap);
@@ -639,11 +641,13 @@ pub(crate) fn still_minimap(
             let line = frame::clock_line(world);
             let slots = frame::bar_slots(world, world::CONSOLE, selection);
             let figures = frame::cap_figures(world, world::CONSOLE);
+            let panel = frame::selected_panel(world, selection);
             screen.extend(f.layers(
                 (size.0 as i32, size.1 as i32),
                 line.as_deref(),
                 &slots,
                 figures,
+                panel,
             ));
         }
     }

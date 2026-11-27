@@ -105,9 +105,14 @@ pub(crate) const RUN1814B_3294_RESOURCES: [usize; 7] = [11_986, 11_827, 0, 11_67
 /// drawn yet, and is what parts, with the display button at the right edge
 /// (4738a, 4738b). Seen red at zero; ours 0 → 211,274 on the still, the
 /// composition 211,051 (the minimap's back, 339 wide, lies over x 648..655
-/// on the still and agrees there).
+/// on the still and agrees there). Item 4748: the selected panel's frame
+/// over the back ([`super::selected`]: the two borders, the red name bar,
+/// the wings, the capital's star, the tiles and the corners), 211,274 →
+/// 233,080 on the still, the composition 211,051 → 232,857. Still apart:
+/// the name's text, the picture, its hit points and the six figures
+/// (4748a, 4748b).
 pub(crate) const RUN1814B_3294_SELECTED: [usize; 7] =
-    [242_115, 211_051, 0, 211_274, 556, 1_161, 552];
+    [242_115, 232_857, 0, 233_080, 556, 1_161, 545];
 
 /// The banner as interface.xml writes it, on a cut of its own text.
 #[test]
@@ -525,7 +530,19 @@ fn the_minimap_frame_on_run1814b() {
     ];
     println!("RUN1814B_3294_RESOURCES: {res_row:?}");
     // Item 4738: the bar's right side.
-    let (rt, rsc) = frame.right_side(size).expect("the right side composes");
+    // Item 4748: the selected panel's frame over it, the capital's.
+    let panel = super::selected_panel(&world, &sel);
+    assert_eq!(
+        panel,
+        Some(super::selected::Panel {
+            team: [255, 0, 0],
+            capital: true
+        }),
+        "the capital's panel, in the photograph's red"
+    );
+    let (rt, rsc) = frame
+        .right_side(size, panel)
+        .expect("the right side composes");
     assert_eq!(rsc, (648, 883), "the right side's corner");
     let right_texel = |x: i32, y: i32| super::texel_of(&rt, rsc, x, y);
     let right_mask: Vec<(i32, i32)> = (rsc.1..size.1)

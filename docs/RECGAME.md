@@ -1880,7 +1880,7 @@ Open: units, builds, groups and guys part on 7675. run1788 holds sums (item 4579
 
 ### 13.2 Row 53
 
-Open: three lines on 3935. → 3713 by 4660 (`docs/COLLISION.md` §3.3), 3716 by 4667, 3935 by 4671 (`docs/AI.md` §259.1).
+Open: ammo on 4092. → 3713 by 4660 (`docs/COLLISION.md` §3.3), 3716 by 4667, 3935 by 4671 (`docs/AI.md` §259.1), 4092 by 4741 (`docs/COMBAT.md` §17.8).
 
 ### 13.3 Row 93
 
