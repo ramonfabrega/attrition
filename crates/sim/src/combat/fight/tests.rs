@@ -1230,6 +1230,72 @@ fn a_unit_killed_on_the_map_takes_its_rider_with_it() {
     assert_eq!(sim.rng, once, "one death draw, the boat's");
 }
 
+/// **Only a live killer plunders** (item 4671, `docs/AI.md` §259.1):
+/// `Object::take_damage@00652020`'s kill arm asks the killer's vslot `+0x8`
+/// (`ObjectData +0x8 & 1`) before the splash and ally tests, and a closed
+/// killer skips `Unit::plunder` whole. run1835's 3715: who=1's Fire Raft
+/// `1/66`, closed by its own ram, sinks who=2's barge carrying The Despot
+/// `2/19`, and theirs' who=1 takes no `GENERAL_PLUNDER`.
+///
+/// Made to fail by dropping the `slot_live` test from the kill arm: the
+/// dead killer's player takes 100 wealth.
+#[test]
+fn a_closed_killer_plunders_nothing() {
+    let (mut sim, foot) = at_war();
+    let hero = sim.add_unit_type(crate::UnitType {
+        hits: 100,
+        type_index: 0x160,
+        combat: Profile {
+            uber_size: 1,
+            ..Profile::default()
+        },
+        cols: crate::ai::ai_load::UnitCols {
+            unit_flags2: crate::ai::ai_load::uflags2::FLAG2_GENERAL,
+            ..crate::ai::ai_load::UnitCols::default()
+        },
+        ..crate::UnitType::default()
+    });
+    sim.economy.holdings[1].available = [true, true, true, true, true, false];
+    sim.economy.ledgers[1].bucket = [500, 500, 500, 0, 44, 0];
+    let first = put(&mut sim, 0, hero, Pos::new(0x1000, 0x1000));
+    let second = put(&mut sim, 0, hero, Pos::new(0x1400, 0x1000));
+    let killer = put(&mut sim, 1, foot, Pos::new(0x1100, 0x1000));
+    sim.units[killer].health = 0;
+    sim.units[first].health = 1;
+    let taken = sim.take_damage_typed(
+        Obj::Unit(first),
+        Sixteenths { whole: 5, frac: 0 },
+        Obj::Unit(killer),
+        10,
+        0,
+        false,
+        None,
+    );
+    assert!(matches!(taken, Taken::Died { .. }), "the hero falls");
+    assert_eq!(
+        sim.economy.ledgers[1].bucket,
+        [500, 500, 500, 0, 44, 0],
+        "a closed killer's player takes nothing"
+    );
+    sim.units[killer].health = 100;
+    sim.units[second].health = 1;
+    let taken = sim.take_damage_typed(
+        Obj::Unit(second),
+        Sixteenths { whole: 5, frac: 0 },
+        Obj::Unit(killer),
+        10,
+        0,
+        false,
+        None,
+    );
+    assert!(matches!(taken, Taken::Died { .. }), "the second falls");
+    assert_eq!(
+        sim.economy.ledgers[1].bucket,
+        [500, 500, 600, 0, 44, 0],
+        "a live killer's takes GENERAL_PLUNDER 100 in wealth"
+    );
+}
+
 /// **A rider closed aboard its sunk boat leaves an empty block where it
 /// boarded** (item 4485, `docs/COLLISION.md` §3.2): the rider's
 /// `Object::close@00647160` takes the off-map arm, whose
