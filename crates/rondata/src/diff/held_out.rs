@@ -2924,6 +2924,88 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 133's building fires from its own height** (item 4755,
+    /// `docs/COMBAT.md` §46.1): run1797's ranges, the row's ammo parting
+    /// on 4032 (range 53, record 2, words `sz` and `v1z`). who=1's
+    /// building `1/2021` looses a round at who=2's `2/17` on 4031.
+    /// `Object::fire_ammo@0064c8b0:147` launches it from the building's
+    /// own `z` (`ObjectData +0xc`, frozen at placement) plus 250: 591 + 250
+    /// = 841, `v1z` 11.9375. Ours took the tile under its centre, now 584:
+    /// 834, `v1z` 12.6375. Every range of every line on 4032 and 4033.
+    #[test]
+    fn row_133_s_building_fires_from_its_own_height_on_run1797() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 4031 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let b = built.sim.building_by_o(1, 2021).expect("who=1's building 2021");
+        let bd = &built.sim.buildings[b];
+        assert_eq!(
+            (bd.z, built.sim.world.tile_z(bd.pos.tile())),
+            (591, 584),
+            "the building stands at its placement height over a tile since moved"
+        );
+        for state in [4032, 4033] {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            assert_eq!(built.sim.frame, state);
+            if state == 4032 {
+                let me = sim::combat::Obj::Building(b);
+                let p = built
+                    .sim
+                    .combat
+                    .projectiles
+                    .iter()
+                    .find(|p| p.shooter == me && p.cur_time == 1)
+                    .expect("1/2021's round of 4031");
+                assert_eq!(p.sz, 841, "591 + 0xfa, the stored z");
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (line, ours) in lines.iter().enumerate() {
+                let Some(ours) = ours.as_ref() else {
+                    continue;
+                };
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {line}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "line {line} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 133's burned Assault Infantry lies on its scorched body**
     /// (item 4747, `docs/COMBAT.md` §42.1): run1797's ranges, the row's
     /// deaths parting on 3802 (range 37, record 18). who=2's Assault

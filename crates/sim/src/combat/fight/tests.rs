@@ -1145,6 +1145,22 @@ fn an_air_target_is_aimed_at_its_figure_s_altitude() {
     );
 }
 
+/// **A building target is aimed at its stored height** (item 4755,
+/// `Ammo::init@0067bbf0`'s `ez`, `0x67c93a`..: the target's own
+/// `ObjectData +0xc`): a building's is [`crate::cities::building::Building::z`],
+/// fixed at placement, not the tile under it now. Made to fail on purpose
+/// with the tile read back.
+#[test]
+fn a_building_target_is_aimed_at_its_stored_height() {
+    let (mut sim, _) = at_war();
+    let at = Pos::new(0x1000, 0x1000);
+    let b = sim.add_building(0, at, 0);
+    let stored = sim.world.object_z(at.tile()) + 37;
+    sim.buildings[b].z = stored;
+    assert_eq!(sim.aim_z(Obj::Building(b), false), stored);
+    assert_eq!(sim.aim_z(Obj::Building(b), true), stored + 0x4b, "rolled");
+}
+
 #[test]
 fn a_fire_ship_or_a_submarine_takes_only_a_ship() {
     let (mut sim, land) = at_war();
