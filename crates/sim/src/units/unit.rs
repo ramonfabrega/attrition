@@ -93,6 +93,12 @@ pub struct Unit {
     /// Public because it is observable state, not a private counter — the
     /// original keeps it in `UnitData::attrition` and the interface shows it.
     pub attrition: i32,
+    /// `unit_masks & 0x80`, the **attrition mark**: `Unit::process_attrition@005e11a0`
+    /// clears it at each refresh and sets it beside the period, so it is
+    /// `attrition != 0` everywhere but on a Bribe's copy, which takes the
+    /// old squad's mark and not its period (`Unit::swap_team@006118d0`,
+    /// item 4735, `docs/COMBAT.md` §91). The CEO's heal reads it.
+    pub attrition_mark: bool,
     /// `UnitData::myarmor` (`+0x9c`): the armour `Unit::update_armor@006054c0`
     /// last cached, [`crate::Sim::update_armor`]. It is written at birth, on
     /// a new type, by the decoy cast and by the owner's `calc_unit_stats`,
@@ -1054,6 +1060,7 @@ impl Unit {
             special: None,
             doober: None,
             attrition: 0,
+            attrition_mark: false,
             myarmor: 0,
             num_queued: 0,
             queue_time: 0,

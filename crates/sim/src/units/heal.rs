@@ -98,7 +98,8 @@ impl Sim {
     /// heals its army abroad. `unit_masks & 0x80` is the period
     /// `Unit::process_attrition` assigns (it clears the bit on entry and
     /// sets it with the period), so it is read here as
-    /// [`crate::Unit::attrition`]. The sparkle arm (the second argument)
+    /// [`crate::Unit::attrition_mark`], which a Bribe's copy holds without
+    /// a period (item 4735). The sparkle arm (the second argument)
     /// draws `internal_random` only for the console's allies, which is no
     /// stream this crate keeps; the third is the Conquer-the-World bonus.
     /// `healing` (`+0x38`) is [`Sim::mark_healed`] (item 3961); the
@@ -127,7 +128,7 @@ impl Sim {
         {
             return;
         }
-        if u.attrition != 0 && u.unit_masks2 & 0x40000 == 0 {
+        if u.attrition_mark && u.unit_masks2 & 0x40000 == 0 {
             return;
         }
         if !self.has_general(i, THECEO) {
