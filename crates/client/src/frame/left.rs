@@ -68,7 +68,7 @@ pub struct LeftLayout {
     pub slots: Vec<Span>,
 }
 
-fn num(tag: &str, name: &str) -> Option<i32> {
+pub(super) fn num(tag: &str, name: &str) -> Option<i32> {
     attr(tag, name)?.parse().ok()
 }
 
@@ -373,9 +373,27 @@ pub(super) fn compose(
     pieces: &[Piece],
     atlas: &render::tga::Image,
 ) -> Result<Texels, String> {
+    let (w, h) = (size.0.max(0) as usize, size.1.max(0) as usize);
+    let mut out = Texels {
+        w,
+        h,
+        rgba: vec![0u8; w * h * 4],
+    };
+    paint(&mut out, pieces, atlas)?;
+    Ok(out)
+}
+
+/// **`pieces` painted over `out`** from `atlas`, in order (item 4739: the
+/// population box paints from two atlases into one image).
+pub(super) fn paint(
+    out: &mut Texels,
+    pieces: &[Piece],
+    atlas: &render::tga::Image,
+) -> Result<(), String> {
     {
-        let (w, h) = (size.0.max(0) as usize, size.1.max(0) as usize);
-        let mut rgba = vec![0u8; w * h * 4];
+        let size = (out.w as i32, out.h as i32);
+        let w = out.w;
+        let rgba = &mut out.rgba;
         for p in pieces {
             let (l, t, cw, ch) = p.crop;
             if l + cw > atlas.width || t + ch > atlas.height || cw == 0 || ch == 0 {
@@ -404,7 +422,7 @@ pub(super) fn compose(
                 }
             }
         }
-        Ok(Texels { w, h, rgba })
+        Ok(())
     }
 }
 
