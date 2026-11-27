@@ -4635,8 +4635,8 @@ pub(crate) mod tests {
         if std::env::var("RON_PROBE_4749").is_err() {
             return;
         }
-        let lo: i32 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(4090);
-        let hi: i32 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(4094);
+        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(4090);
+        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(4094);
         let inst = crate::testenv::install().expect("install");
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
         let (Some(rcx), _) = paths(&SIXTH, 2) else { panic!("rcx") };
