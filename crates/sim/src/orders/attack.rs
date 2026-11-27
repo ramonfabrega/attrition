@@ -516,11 +516,17 @@ impl Sim {
         // time its captain retargets.
         if !self.units[u].captain && self.units[u].collide_frame < frame - 1 {
             let cap = self.squad_captain(u);
+            // The captain's pair is its action order's (`get_action`'s
+            // `+0xcc`, [`Self::action_attack_target`]), and "not the one this unit
+            // names" is against `fight`'s own `(ox, whom)` arguments
+            // (`5fd5a0`: `local_14 != param_1 || local_18 != param_2`),
+            // the order's pair at entry (item 4771).
             if cap != u
-                && let Some(k) = self.action_of(cap)
-                && matches!(self.units[cap].orders[k].body, Body::Attack(_))
-                && let Some(t) = self.units[cap].combat.target
-                && Some(t) != self.units[u].combat.target
+                && let Some((Some(t), _)) = self.action_attack_target(cap)
+                && Some({
+                    let (ox, whom, _) = self.attack_target_id(t);
+                    (ox, whom)
+                }) != entry
                 && self.valid_target(me, t)
                 && (matches!(
                     state.stance,

@@ -3325,6 +3325,33 @@ observation either. And the mirror has never been seen to *fail* its
 `valid_target` test, so which of the five returns fires is only backed for
 the success path.
 
+### 21.7 The captain's target is its action order's (item 4771, 2026-11-27)
+
+Every reader of a captain's attack takes it from the captain's **action
+order**, never from a copy on the unit. Four sites read it this way.
+`find_melee_target`'s squad head (§21.3) and `fight@005fd4d0`'s mirror
+(`5fd5a0`) use `get_action`, vslot `+0xcc`, fields `+8`/`+0xc`.
+`think@005f6e40`'s captain arm reads the same way. `check_target@00649e00`'s
+guard arm uses `update_action`, vslot `+0xb4`. The mandatory byte is the
+order's `+0x1c`. `fight`'s "a different target" compares against its own
+`(ox, whom)` arguments, which are the member's order pair at entry. This
+crate's `combat.target` is not the same thing: `add_attack_order` writes it
+on a `QUEUE_LAST` append behind the head as well. All four sites now read
+through `Sim::action_attack_target`.
+
+**Diff-backed** (row 93, run1799, 4812). Group 66's `finish_insert` appends
+`ATTACK 2/88` behind captain `1/2`'s head `ATTACK 2/101`. The followers
+`1/16` and `1/26` (TI 109) take 101 in their second attack, as theirs do;
+ours took 88. Under captain `1/92`, `1/100`'s head stayed 101 where `fight`'s
+mirror had turned it to 88. The widening that holds this is
+`row_93_s_followers_take_their_captain_s_head_attack_on_run1799_s_ranges`,
+and the killer is
+`a_follower_takes_its_captain_s_head_attack_not_the_one_queued_behind_it`.
+**Read-only**: the guard arm and the mandatory byte, since no capture has a
+captain whose head and appended attacks differ in either. **Not
+established**: whether any other reader of `combat.target` should read the
+action order as well; only the captain reads were changed.
+
 ## 22. Where an arrow starts, measured (item 396, 2026-09-19)
 
 §20.3 left the launch offset open and bounded above, and named the capture

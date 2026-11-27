@@ -8894,11 +8894,15 @@ owed. The coverage driver reads run202 15382..15387.
 - **The circle walk's tie order within a cell** is this crate's
   `chain_heads` order, which is the original's object chain for units. A
   tie at equal `vector_dist` is the only place it matters.
-- **The rival-wonder count is dormant**: no capture on file has two leaders
+- **The rival-wonder walk is dormant**: no capture on file has two leaders
   building one wonder. It is reading-only, and so is the oil-platform arm
   (not built).
-- **`wonderwin_timer`** is not carried; a leader whose wonder window is open
-  would add one without its wonders being walked.
+- ~~**`wonderwin_timer`** is not carried; a leader whose wonder window is open
+  would add one without its wonders being walked.~~ **Built and diff-backed
+  by item 4766** (`docs/RECGAME.md` §13.5): run1797's who=1 starts its clock
+  on 4376, and on 4387 who=2's wonder `2/2014`, five builders, wants six and
+  takes its Citizen `2/40` off its gather (`Sim::rival_wonders`,
+  `row_133_s_wonder_site_counts_a_rival_s_running_clock_on_run1797`).
 - **Coverage**: the recruit on 15382 is diff-backed, by `1/70`'s order on
   block 15383 and every row of the widening to 15385. The gate's other arms
   — a fort, `helpers ≥ 4`, the rival count, a gatherer taken — rest on the

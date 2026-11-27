@@ -3013,6 +3013,92 @@ pub(crate) mod tests {
         }
     }
 
+    /// **A rival's running wonder clock wants one more builder** (item
+    /// 4766, `docs/RECGAME.md` §13.5): run1797. who=1's `wonderwin_timer`
+    /// runs from 4376 (`wonderwin_stamp` 4376), and on 4387, the phase of
+    /// who=2's unbuilt wonder `2/2014` (4386 + 2014 = 200 × 32),
+    /// `Wall::process`'s recruiter counts that leader one without walking
+    /// its wonders: five builders against six wanted, so the nearest
+    /// not-busy Citizen, `2/40` on its walk to gather at `2/2015`, takes
+    /// `add_build_order(QUEUE_NEW)` — `unit_masks |= 0x400`, its gather
+    /// closed (`gather_down` −1). Every range of every line on 4387.
+    #[test]
+    fn row_133_s_wonder_site_counts_a_rival_s_running_clock_on_run1797() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 4386 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let clock = &built.sim.leaders.endgame[1];
+        assert_eq!(
+            (clock.wonderwin_stamp, clock.wonderwin_timer),
+            (4376, 1),
+            "who=1's wonder clock runs"
+        );
+        let site = built
+            .sim
+            .building_by_o(2, 2014)
+            .expect("the wonder site 2/2014");
+        assert!(
+            !built.sim.buildings[site].active,
+            "the wonder is unbuilt entering 4387"
+        );
+        let citizen = built.sim.unit_by_o(2, 40).expect("the Citizen 2/40");
+        assert_eq!(built.sim.units[citizen].type_index, 50, "a PEASANTS");
+        assert_eq!(
+            built.sim.units[citizen].orders.len(),
+            2,
+            "a move and a gather entering 4387"
+        );
+        assert!(!built.sim.units[citizen].was_builder);
+        stream.apply(built.sim.frame as i32, &mut built);
+        built.sim.command().tick();
+        assert_eq!(built.sim.frame, 4387);
+        assert!(built.sim.units[citizen].was_builder, "the recruit's 0x400");
+        let set = record.first_of(4386).expect("the state's set").clone();
+        let all = record.ranges(&set).expect("the set's ranges");
+        let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+        for (line, ours) in lines.iter().enumerate() {
+            let Some(ours) = ours.as_ref() else {
+                continue;
+            };
+            let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "line {line}'s ranges on 4387"
+            );
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "line {line} range {k} on 4387, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+    }
+
     /// **A bribed figure keeps its own node flags** (item 4758,
     /// `docs/RECGAME.md` §13.5): run1797. On 4058 who=2's spy bribes
     /// who=1's BMP (TI 223); `Unit::swap_team@006118d0`'s per-guy loop
@@ -7572,6 +7658,209 @@ pub(crate) mod tests {
             let all = record.ranges(&set).expect("the set's ranges");
             let lines = crate::checksum::state::ranges(sim, &look, &tribes);
             for (line, name) in [(0usize, "units"), (5, "groups"), (6, "guys"), (11, "world")] {
+                let ours = lines[line].as_ref().expect(name);
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                    assert_eq!(
+                        at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                        None,
+                        "{name} range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                        a.record,
+                        a.field
+                    );
+                }
+            }
+        }
+    }
+
+    /// **Row 93's units on 4806: a follower blocked by an enemy hands it
+    /// to its group** (item 4767, `docs/RECGAME.md` §13.3, `docs/GROUPS.md`
+    /// §6.9), on run1799's whole-length ranges of run1792's file. who=1's
+    /// `1/87` (TI 63, land), a follower of group 66's `GROUP_ATTACK_TO`,
+    /// steps into who=2's Flamethrower `2/101` (TI 131, land) on 4806's
+    /// tick: `collide` 1, `collide_o` 101, `collide_who` 2 on both sides.
+    /// `do_group_move`'s follower tail (`5e8590`–`5e8611`) calls
+    /// `Group::action_attack(group, 101, 2, 0, QUEUE_FIRST, 0)`, so every
+    /// member takes an attack ahead of its attack-move. Red on the base at
+    /// units range 367 on 4806, record 2 (who=1's `1/2`): `orders_x`
+    /// ours 10968, theirs 26108, `orders_y` 5256 against 8005, and
+    /// `path.length` 33 against 1. Every units, groups, guys and world
+    /// range on 4805 to 4807, byte for byte.
+    #[test]
+    fn row_93_s_blocked_follower_hands_its_enemy_to_the_group_on_run1799_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            eprintln!("skipping: row 93's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1799/map-14");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1799's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 4805i64..=4807 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let sim = &built.sim;
+            let named = |who: u8, o: i16| {
+                let u = sim
+                    .units
+                    .iter()
+                    .rposition(|un| un.owner == who && un.index == o)
+                    .expect("the slot");
+                let ty = sim.units[u].ty.expect("a type");
+                assert_eq!(
+                    sim.units[u].kind.domain,
+                    sim::territory::attrition::Domain::Land,
+                    "{who}/{o} on land"
+                );
+                (
+                    u,
+                    sim.tables.unit_types[ty].type_index,
+                    loaded.unit_names[ty].as_str(),
+                )
+            };
+            let (follower, ti, name) = named(1, 87);
+            assert_eq!(ti, 63, "1/87 is {name}");
+            let (foe, ti, name) = named(2, 101);
+            assert_eq!((ti, name), (131, "Flamethrower"), "2/101");
+            if state == 4806 {
+                let f = &sim.units[follower];
+                assert_eq!(
+                    (f.collide, f.collide_o, f.collide_who),
+                    (1, sim.units[foe].index, 2),
+                    "1/87 blocked by 2/101"
+                );
+                assert_eq!(
+                    sim.units[follower].orders.front().map(|o| o.index()),
+                    Some(sim::orders::index::ATTACK),
+                    "1/87 attacks ahead of its attack-move"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(sim, &look, &tribes);
+            for (line, name) in [(0usize, "units"), (5, "groups"), (6, "guys"), (11, "world")] {
+                let ours = lines[line].as_ref().expect(name);
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                    assert_eq!(
+                        at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                        None,
+                        "{name} range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                        a.record,
+                        a.field
+                    );
+                }
+            }
+        }
+    }
+
+    /// **Row 93's followers take their captain's head attack** (item 4771,
+    /// `docs/RECGAME.md` §13.3): run1799, the ranges take of row 93's file.
+    /// On 4812 group 66's `finish_insert` appends `ATTACK 2/88` behind each
+    /// member's head; the captain `1/2` (TI 109) holds `2/101` (TI 131,
+    /// Flamethrower) at its head and `2/88` (TI 218) behind it, and its
+    /// followers `1/16` and `1/26` take 101 twice, as theirs (units range
+    /// 634, record 16: `order.target` `ox` 101, `uid` 139). So do
+    /// `1/100`, `1/110` and `1/116`..`1/119` under their captains. The
+    /// groups line agrees byte for byte on 4811..4813, and every line this
+    /// checks on 4811, the state before.
+    #[test]
+    fn row_93_s_followers_take_their_captain_s_head_attack_on_run1799_s_ranges() {
+        use sim::orders::Body;
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            eprintln!("skipping: row 93's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1799/map-14");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1799's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 4811i64..=4813 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let sim = &built.sim;
+            let named = |who: u8, o: i16, want: i32| {
+                let u = sim
+                    .units
+                    .iter()
+                    .rposition(|un| un.owner == who && un.index == o)
+                    .expect("the slot");
+                let ti = sim.tables.unit_types[sim.units[u].ty.expect("a type")].type_index;
+                assert_eq!(ti, want, "{who}/{o}'s TypeIndex");
+                assert_eq!(
+                    sim.units[u].kind.domain,
+                    sim::territory::attrition::Domain::Land,
+                    "{who}/{o} on land"
+                );
+                u
+            };
+            let attacks = |u: usize| -> Vec<i16> {
+                sim.units[u]
+                    .orders
+                    .iter()
+                    .filter_map(|o| match o.body {
+                        Body::Attack(a) => a.target.map(|(ox, _, _)| ox),
+                        _ => None,
+                    })
+                    .collect()
+            };
+            named(2, 101, 131);
+            named(2, 88, 218);
+            if state == 4812 {
+                assert_eq!(attacks(named(1, 2, 109)), vec![101, 88], "the captain 1/2");
+                for o in [16, 26] {
+                    assert_eq!(attacks(named(1, o, 109)), vec![101, 101], "1/{o}");
+                }
+                for o in [100, 110, 116, 117, 118, 119] {
+                    let u = named(1, o, 109);
+                    assert!(
+                        attacks(u).iter().all(|&t| t == 101),
+                        "1/{o} attacks 2/101 only: {:?}",
+                        attacks(u)
+                    );
+                }
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(sim, &look, &tribes);
+            let checked: &[(usize, &str)] = if state == 4811 {
+                &[(0, "units"), (5, "groups"), (6, "guys"), (11, "world")]
+            } else {
+                &[(5, "groups")]
+            };
+            for &(line, name) in checked {
                 let ours = lines[line].as_ref().expect(name);
                 let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
                 assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
@@ -16507,23 +16796,45 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // -> 5,829, deaths 4,704 -> 4,917, leaders 4,664 -> 4,815, cities
         // 4,961 -> 5,151, items 6,393 -> 6,555 (first 5857 -> 6187); past it
         // goods 5,946 -> 5,488 (first 4718 -> 5488), ours' end 10791 -> none.
+        // Item 4767 (a follower blocked by an enemy hands it to its group,
+        // `do_group_move`'s follower tail): who=1's `1/87` (TI 63, land)
+        // steps into who=2's Flamethrower `2/101` (TI 131) on 4806, and group
+        // 66 takes `Group::action_attack(…, QUEUE_FIRST, 0)` (run1799's units
+        // range 367, record 2, `1/2`'s `orders_x` ours 10968 -> 26108,
+        // `orders_y` 5256 -> 8005, `path.length` 33 -> 1, as theirs). The
+        // row's first parting 4806 -> 4812 (units, guys and ammo): units and
+        // guys 4,806 -> 4,812, groups 4,806 -> 4,841, world 4,806 -> 4,813,
+        // leaders 4,815 -> 4,823, builds 4,808 -> 4,836 (first 4808 -> 4821);
+        // past it ammo 5,829 -> 5,354, deaths 4,917 -> 4,814, cities 5,151 ->
+        // 4,961, items 6,555 -> 5,850, goods 5,488 -> 5,689 (first 5596).
+        // Item 4771 (every captain read takes its action order's target,
+        // `Sim::action_attack_target`): `finish_insert` appends `ATTACK 2/88`
+        // behind captain `1/2`'s head `ATTACK 2/101` on 4812, and its
+        // followers `1/16`, `1/26` (TI 109) take 101 as theirs (run1799's
+        // units range 634, record 16, `order.target` `ox` ours 88 -> 101,
+        // `uid` 126 -> 139; likewise `1/100`, `1/110`, `1/116`..`1/119`).
+        // The first parting stays 4812 (units: the approach moves of `1/90`,
+        // `1/92`, `1/100`, `1/116`); builds 4,836 -> 4,841, groups 4,841 ->
+        // 4,859 (first 4840 -> 4849), leaders 4,823 -> 4,825, cities 4,961
+        // -> 5,151, items 5,850 -> 6,187, goods 5,689 -> 5,950; past it ammo
+        // 5,354 -> 5,332.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                4806, 4808, 12001, 5829, 4917, 4806, 4806, 4815, 5151, 6555, 5488, 4806,
+                4812, 4841, 12001, 5332, 4814, 4859, 4812, 4825, 5151, 6187, 5950, 4813,
             ],
             first: &[
-                ("units", (4806, Some(155234975), 1152685658)),
-                ("builds", (4808, Some(440825801), 915371514)),
-                ("ammo", (4807, Some(510503216), 434022871)),
-                ("deaths", (4814, Some(2306803114), 769398112)),
-                ("groups", (4806, Some(3162705074), 3002411627)),
-                ("guys", (4806, Some(1195480316), 4196635172)),
-                ("leaders", (4806, Some(475601999), 2898861138)),
-                ("cities", (5151, Some(1770932995), 1957251849)),
+                ("units", (4812, Some(1724190443), 967517784)),
+                ("builds", (4821, Some(2516689233), 1349362419)),
+                ("ammo", (4812, Some(1941544880), 1414959816)),
+                ("deaths", (4814, Some(632296799), 769398112)),
+                ("groups", (4849, Some(2230706991), 4256949038)),
+                ("guys", (4812, Some(2469432760), 2960625289)),
+                ("leaders", (4813, Some(404430007), 2827689146)),
+                ("cities", (5151, Some(2066631437), 1957251849)),
                 ("items", (6187, Some(1365126693), 1373777447)),
-                ("goods", (5488, Some(3459683631), 3373176107)),
-                ("world", (4806, Some(1656799263), 2224537161)),
+                ("goods", (5596, Some(3459683631), 3373176107)),
+                ("world", (4813, Some(625128391), 1517663140)),
             ],
             over: None,
         }),
@@ -16911,23 +17222,38 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 4,388, leaders 4,114 -> 4,391, cities 4,158 -> 4,551, items 4,378
         // -> 5,534, goods 4,476 -> 4,558, world 4,098 -> 4,388. The first
         // parting is units, builds and leaders on 4387.
+        // Item 4766 (a rival leader whose wonder clock runs, `wonderwin_
+        // timer` `+0x44c`, counts one builder more at a computer's wonder
+        // site, `Wall::process@00640450`'s leader loop: who=1's clock runs
+        // from 4376, and on 4387 who=2's wonder `2/2014`, five builders,
+        // wants six and pulls its Citizen `2/40`, TI 50, off its gather;
+        // units range 8757, record 40, `unit_masks` ours 262152, theirs
+        // 263176, `orders_x` ours 4776, theirs 1824, builds range 3674,
+        // record 2015, `gather_down` ours 40, theirs -1, leaders range 265,
+        // record 2, `flags` byte 3 ours 0x00, theirs 0x02 on 4387, theirs
+        // now): units 4,387 -> 4,583 (first 4387 -> 4583), builds 4,387 ->
+        // 4,583, ammo 4,429 -> 4,588, deaths 4,465 -> 4,593, groups 4,516
+        // -> 4,612, guys 4,388 -> 4,583, leaders 4,391 -> 4,583, cities
+        // 4,551 -> 4,586, items 5,534 -> 5,803, goods 4,558 -> 5,485, world
+        // 4,388 -> 4,583. The first parting is ammo, builds, guys, leaders,
+        // units and world on 4583.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                4387, 4387, 6085, 4429, 4465, 4516, 4388, 4391, 4551, 5534, 4558, 4388,
+                4583, 4583, 6085, 4588, 4593, 4612, 4583, 4583, 4586, 5803, 5485, 4583,
             ],
             first: &[
-                ("units", (4387, Some(179043728), 690735335)),
-                ("builds", (4387, Some(4054243686), 4205632316)),
-                ("ammo", (4425, Some(714515477), 4139558037)),
-                ("deaths", (4465, Some(4002079221), 436527897)),
-                ("groups", (4504, Some(1158720774), 2306714889)),
-                ("guys", (4388, Some(1113043201), 3969102009)),
-                ("leaders", (4387, Some(3937291906), 3487649412)),
-                ("cities", (4551, Some(2629988898), 2873127555)),
-                ("items", (5534, Some(1298600403), 1281298895)),
-                ("goods", (4558, Some(443381871), 644446332)),
-                ("world", (4388, Some(667974385), 2149153437)),
+                ("units", (4583, Some(3818626992), 4179928937)),
+                ("builds", (4583, Some(3639415864), 2923566179)),
+                ("ammo", (4583, Some(316133788), 3333870174)),
+                ("deaths", (4593, Some(3990775910), 867133005)),
+                ("groups", (4612, Some(827436075), 1966582587)),
+                ("guys", (4583, Some(3880334789), 974993104)),
+                ("leaders", (4583, Some(2856017646), 1289639612)),
+                ("cities", (4586, Some(1449161469), 857109239)),
+                ("items", (5741, Some(1281298895), 1298600403)),
+                ("goods", (5361, Some(713652352), 497121394)),
+                ("world", (4583, Some(402306290), 4176131650)),
             ],
             over: None,
         }),

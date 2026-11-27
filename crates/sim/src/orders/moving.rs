@@ -2020,16 +2020,64 @@ impl Sim {
         //     it as "arrived", which is the one thing a 0 never means:
         //     arrival returns 1.
         //
-        //     SEAM: the attack-context hand-off above it —
-        //     `Group::action_attack` for a `GROUP_ATTACK_TO` whose
-        //     `collide_o` is a valid target, `kill_current_order`
-        //     otherwise — is the leader arm's own seam and is not
-        //     modelled; no capture reaches it, because every collider in
-        //     the captures on disk belongs to the colliding unit's own
-        //     player.
+        //     **Ahead of the degrade, the attack hand-off** (`5e8590`–
+        //     `5e8611`, item 4767, `docs/GROUPS.md` §6.9): a follower
+        //     blocked by something it may attack hands it to the whole
+        //     group — [`Sim::follower_attack_hand_off`].
         if self.unit_step(u, mo, v) == Did::Nothing && self.still_group_move(u, gm.id) {
+            if self.follower_attack_hand_off(u, g) {
+                return;
+            }
             self.ungroup_move_order(u, gm.id);
         }
+    }
+
+    /// **`do_group_move`'s follower tail, the attack hand-off** (`5e8590`–
+    /// `5e8611`, the listing; item 4767, `docs/GROUPS.md` §6.9). Reached
+    /// when the follower's `move_step` answered 0 and its group order still
+    /// heads the list. The unit's action (`UnitData::action_type`,
+    /// `60a850`) is an `ATTACK` (`0xa`) or a `GROUP_ATTACK` (`0x14`), or the
+    /// move's own type (its vslot `+0x10`) is `GROUP_ATTACK_TO` (`0x15`);
+    /// `collide` (`+0x88`) is set; and `Object::valid_target(collide_o,
+    /// collide_who, 0)` (`648ba0`) answers yes. Then a `GROUP_ATTACK_TO`
+    /// whose unit holds a seat (`+0x80 >= 0`) calls `Group::action_attack(
+    /// group, collide_o, collide_who, 0, QUEUE_FIRST, 0)` (`5e7b8b`, the
+    /// leader's own block), and anything else `kill_current_order(0)`.
+    /// `true` when the call ends here; `false` falls through to the
+    /// ungroup (`5e7c6c`).
+    ///
+    /// Not established: a collider that is a building (`collide_o` past
+    /// the unit range). This crate's collider is a unit
+    /// ([`Sim::collider_of`]).
+    pub(crate) fn follower_attack_hand_off(
+        &mut self,
+        u: usize,
+        g: &crate::groups::group::Group,
+    ) -> bool {
+        /// `OrderIndex::GROUP_ATTACK`.
+        const GROUP_ATTACK: u8 = 20;
+        let action = self
+            .action_of(u)
+            .map_or(index::NONE, |a| self.units[u].orders[a].index());
+        let group_attack_to = self.order_type(u) == index::GROUP_ATTACK_TO;
+        if !(action == index::ATTACK || action == GROUP_ATTACK || group_attack_to) {
+            return false;
+        }
+        if self.units[u].collide == 0 {
+            return false;
+        }
+        let Some(t) = self.collider_of(u) else {
+            return false;
+        };
+        if !self.valid_target(Obj::Unit(u), Obj::Unit(t)) {
+            return false;
+        }
+        if group_attack_to && self.units[u].group_ptr.is_some() {
+            self.group_action_attack(g, Obj::Unit(t), false, QueuePos::First, 0);
+        } else {
+            self.kill_current_order(u);
+        }
+        true
     }
 
     /// `ObjectData::get_captain` — the head of `u`'s own squad, up the

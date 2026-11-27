@@ -4684,6 +4684,91 @@ fn an_army_group_s_look_hands_its_find_to_the_group() {
     );
 }
 
+/// **A follower blocked by an enemy hands it to its group** (item 4767,
+/// `docs/GROUPS.md` §6.9): `do_group_move`'s follower tail (`5e8590`–
+/// `5e8611`), reached when `move_step` answered 0 under a
+/// `GROUP_ATTACK_TO`, calls `Group::action_attack(group, collide_o,
+/// collide_who, 0, QUEUE_FIRST, 0)` when the collider is a valid target:
+/// every member attacks, and the attack-move comes back under each. A
+/// friendly collider is no target, and the tail falls through to the
+/// ungroup (`false`), every order left as it was.
+///
+/// Made to fail by the hand-off answering `false` (the first assertion),
+/// and by `kill_current_order` in place of the group's attack (the
+/// members' assertions).
+#[test]
+fn a_blocked_follower_hands_its_enemy_collider_to_the_group() {
+    let mut s = sim();
+    let t = fighter(&mut s);
+    let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+    let b = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
+    let mut g = Group::stack(1);
+    s.group_add(&mut g, a);
+    s.group_add(&mut g, b);
+    assert!(s.push_group(&mut g, true));
+    let g = s.group_of(a).expect("seated");
+    s.group_action_move_to(
+        &g,
+        Pos::new(0x6000, 0x1000),
+        QueuePos::New,
+        true,
+        Angle(0),
+        MoveKind::AttackTo,
+        true,
+    );
+    let Some(Order {
+        body: Body::Move(m),
+        ..
+    }) = s.current_order(a).copied()
+    else {
+        panic!("a group move");
+    };
+    let leader = m.group.expect("a group order").leader;
+    let f = if leader == a { b } else { a };
+    assert_eq!(s.order_type(f), index::GROUP_ATTACK_TO);
+    let foe = spawn(&mut s, 0, t, Pos::new(0x1400, 0x1000));
+    let friend = spawn(&mut s, 1, t, Pos::new(0x1400, 0x1100));
+    let mut blocked_by_a_friend = s.clone();
+    s.units[f].collide = 1;
+    s.units[f].collide_o = s.units[foe].index;
+    s.units[f].collide_who = 0;
+    let g = s.group_of(f).expect("seated");
+    assert!(
+        s.follower_attack_hand_off(f, &g),
+        "the blocked follower did not hand its enemy collider on"
+    );
+    for u in [a, b] {
+        assert_eq!(s.order_type(u), index::ATTACK, "member {u} was not sent");
+        assert!(
+            s.units[u]
+                .orders
+                .iter()
+                .any(|o| o.index() == index::GROUP_ATTACK_TO),
+            "member {u}'s attack-move did not come back under its attack"
+        );
+    }
+    // A friendly collider is no target: the tail falls through.
+    let before: Vec<u8> = blocked_by_a_friend.units[f]
+        .orders
+        .iter()
+        .map(|o| o.index())
+        .collect();
+    blocked_by_a_friend.units[f].collide = 1;
+    blocked_by_a_friend.units[f].collide_o = blocked_by_a_friend.units[friend].index;
+    blocked_by_a_friend.units[f].collide_who = 1;
+    let g = blocked_by_a_friend.group_of(f).expect("seated");
+    assert!(!blocked_by_a_friend.follower_attack_hand_off(f, &g));
+    let after: Vec<u8> = blocked_by_a_friend.units[f]
+        .orders
+        .iter()
+        .map(|o| o.index())
+        .collect();
+    assert_eq!(
+        before, after,
+        "a friendly collider changed the follower's orders"
+    );
+}
+
 /// **A fresh pool slot is stamped with the frame it was pushed on**,
 /// and an equal group pushed again keeps its record's stamp:
 /// `Groups::copy_group@006fa690` writes `+0x14 = game->frame`, and

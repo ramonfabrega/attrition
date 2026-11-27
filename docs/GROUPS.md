@@ -1381,6 +1381,25 @@ reproduces all three from one computation.
 `do_group_move`'s follower arm fires it: `Sim::group_refresh_order`, then
 `group_rewrite_leader` for step 4.
 
+## 6.9 A blocked follower hands its enemy to the group (item 4767)
+
+`Unit::do_group_move@005e79a0`'s follower tail, from the listing (`5e856d`–`5e8611`). When `move_step` answers 0 and the
+group order still heads the list (`update_order == param`, `5e8587`), the hand-off is tried before the ungroup:
+
+- the action (`UnitData::action_type`, `60a850`) is `ATTACK` (`0xa`) or `GROUP_ATTACK` (`0x14`), or the move's own type
+  (vslot `+0x10`) is `GROUP_ATTACK_TO` (`0x15`);
+- `collide` (`+0x88`) is non-zero;
+- `Object::valid_target(collide_o, collide_who, 0)` (`648ba0`) answers yes.
+
+Then a `GROUP_ATTACK_TO` whose unit holds a seat (`+0x80 >= 0`) calls `Group::action_attack(group, collide_o,
+collide_who, 0, QUEUE_FIRST, 0)` at `5e7b8b`, the leader's own block. Anything else calls `kill_current_order(0)`. If a
+test fails, the follower ungroups (`5e7c6c`), as before. `ORDERS.md` §8.3 already read it this way.
+
+**Diff-backed** by run1799 on row 93's 4806. who=1's `1/87` (TI 63, land) steps into who=2's Flamethrower `2/101` (TI
+131, land), so group 66 takes the attack, `order_num` 21 → 23 and `form_num` 42 → 44 (§10's `QUEUE_FIRST` re-issue).
+`Sim::follower_attack_hand_off` builds it. **Not established**: a building collider (ours names units only), and the
+`kill_current_order` arm, which no capture enters.
+
 ## 7. `Group::action_halt(mask)@0070d0c0`
 
 The scenario filter, `action_begin`, and then — **only for a unit group** —

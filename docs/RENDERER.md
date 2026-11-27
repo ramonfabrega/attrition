@@ -6695,7 +6695,10 @@ those, and not on the matching simulation list, is redone by
 run on its connections as they stand. `set_diags` is not run; the marks run
 as its zero answer would let them. The cursor and the caches are restored
 afterwards. `add_roads`' ping-pong counts both lists, so a round with only
-texture tiles still runs.
+texture tiles still runs. *Amended by item 4772 (§6.9, "One list in push
+order"): `RoadMesh::tex` and `Sim::texture_redo` are retired; the pushes
+go onto one list per side in push order (`RoadMesh::order`), and a texture
+tile takes the same steps in its place among the rest (`SimRedo`).*
 
 **The value diff** (the packet's `road_records.py` flags; ours the door's
 `lines` and `inter`):
@@ -6793,11 +6796,96 @@ packet's and the same 20 apart. So no `picked` is kept for the line bytes.
 rows. **Read alone**: nothing new. The candidate is the door's bytes.
 
 **Not established.**
-- Why the mesh marks yellow on the T at (17–19, 163), where the packet
-  holds none (4690a). It names a score: two of the packet's pieces and the
-  ring's hue.
-- run1559b's 20 apart: 17 an intersection bit or a white the packet holds
-  and we do not (4199a), (211, 84) as §6.7, and the T.
+- ~~Why the mesh marks yellow on the T at (17–19, 163), where the packet
+  holds none (4690a).~~ Answered by item 4722
+  (`docs/journal/2026-11-27-item-4722.md`): the yellow is from row 164,
+  which stood earlier, kept after its clear by `leech_codes`' line half in
+  three loops whose tiles are never cleared in one redo batch.
+- ~~Whether merging the texture tiles into the redo list in push order
+  breaks the loops (4722a).~~ Answered by item 4772 (below): it breaks the
+  (19, 163) ↔ (19, 164) loop and the (18, 163) ↔ (19, 163) loop, but not
+  the (17, 163) ↔ (18, 163) one.
+- Why (17, 163) and (18, 163) never share a redo batch after row 164's
+  clear, in our walk, where the packet's lines say the original cleared
+  them together (4772a). Each tile's redo pushes the other onto the
+  opposite list (`fixup_lines`' turn), so the pair alternates for as long
+  as the redo runs. ~~The original's pushes in the clear of row 164 are the
+  reading that would settle it: `add_roads`' remove arm's marks, and
+  which list each push names.~~ Item 4774
+  (`docs/journal/2026-11-27-item-4774.md`) read the remove arm and killed
+  it. `Roads::road_cleared@008955d0` queues one removal and runs
+  `add_roads@0088f4b0` per tile. Its first pass calls
+  `clear_roads@0088fef0`, which pushes the tile's N, S, E and W road
+  neighbours onto `changed_roads` in that order, and so does ours. Row 164
+  goes one tile per call, (16, 164) to (20, 164) in ascending x. The clear
+  of (18, 164) puts (18, 163) alone on the list, beside (19, 164). Also
+  killed: `mark_splits@00891d40`'s `set_neighbor` pushes, which ours does
+  not make (below). Built, they left `RUN1559B_RECORDS` at 481. Still
+  open (4774a): the order the original clears row 164 in, and the
+  phase the 11-round cap stops the period-2 loop on.
+- `mark_splits@00891d40` pushes the neighbour it newly joins onto the
+  list named by its argument (`set_neighbor@00890c30`, then `add_unique`).
+  Ours makes neither the join on the neighbour nor the push (4774b).
+  Built, they moved no row, so they are not built.
+- run1559b's 19 apart: 17 an intersection bit or a white the packet holds
+  and we do not (4199a), (211, 84) as §6.7, and (18, 163).
+
+### One list in push order (item 4772)
+
+*2026-11-27, Opus 5.5. The ledger: `docs/journal/2026-11-27-item-4772.md`.
+`sim::movement::mesh`: `RoadMesh::order` replaces `RoadMesh::tex`, and
+`SimRedo` walks it; `Sim::texture_redo` is retired. A `crates/sim` change
+to the mesh's texture alone.*
+
+**The build.** In the original, the tiles a line pass pushes share
+`changed_roads` / `changed_roads2` with the tiles the simulation pushed, in
+push order, and `redo_changed_roads@0088e670` runs its four passes over
+the one list. Ours kept the line passes' pushes on two lists of their own
+and redid them after the simulation's passes (§6.8). Now every
+`add_unique` goes onto `RoadMesh::order`, each tile once where it was
+first pushed; `RoadMesh::redo` keeps only which of them are the
+simulation's. `redo_changed_roads_steps` walks `order`. A tile that is
+not the simulation's takes, in its place: no `clear_support`; in pass two
+its lines, intersections and joins cleared, with no trim; in pass three
+`leech_lines` and the marks on its own refilled cache, with `set_diags`
+taken as zero; in pass four `fixup_lines`, `delete_straglers` and the
+pick. Its cursor is `SimRedo::cur`, and each of its steps restores the
+mesh's cursor and caches after, so a simulation tile's steps read what
+they read before. Nothing the simulation reads is written: the sim
+crate's mesh tests pass unchanged.
+
+**The value diff** (run1559b's packet against our door at the
+photograph's frame):
+
+| tile | theirs | before | now | piece, theirs / before / now |
+|---|---|---|---|---|
+| (17, 163) | `11003300` | `11103300` | `11103300` | 17·0 / not laid / not laid |
+| (18, 163) | `11003310` | `11122110` | `11023110` | 17·4 / 20·2 / not laid |
+| (19, 163) | `4500cf04` | `4506c904` | `4500cf04` | 1·3 / 2·7 / 1·3 |
+
+- *run1559b* (`RUN1559B_RECORDS`): **the packet's piece 480 → 481**,
+  white 597 → 598, yellow 596 → 597; laid 500 → 499 (a named fall:
+  (18, 163)'s candidate matches no page-0 orientation).
+- *The rows*: `RUN1559B_3279_RING` drawn hue holds at 20, luma 21 → 20 of
+  24 (tile (18, 163), 81 pixels, bare: the still's (161, 162, 60) against
+  theirs (124, 119, 121)); `GROUND_LUMA_STILL` run1559b 1,109 → 1,108;
+  `LAND_LIGHT_ROWS` run1559b's luma 1,080 → 1,079 and 1,109 → 1,108;
+  `GRASS_HUE` untinted 964 → 965; `RUN1559B_3279_SELECTED` `[1438, 1322]`
+  → `[1437, 1321]`; `RUN1559B_3279_TANKS_HAZE`'s control 1,319 → 1,318;
+  `RUN1559B_3279_PLUME` and `RUN1570_PLUME` by one or two. All but the
+  ring's own move through the frame's mean and its white.
+
+**The kill.** The item was booked at 482 and ring hue 21, on the
+hypothesis that one list in push order clears (17, 163) and (18, 163) in
+one batch. It does not. A trace of every batch holding them (probe, not
+kept): after row 164's clear, each holds one of the two, and each redo
+pushes the other onto the opposite list. Push order cannot join tiles that
+are never on the same list (4772a).
+
+**Diff-backed**: every column of `RUN1559B_RECORDS`. **Read alone**:
+that the original's redo list holds the line passes' pushes in push order
+(`redo_changed_roads@0088e670`, `set_neighbor@00890c30`, as item 4722
+read them).
 
 ## 6.10 The HUD's frame: the minimap's window (item 4694)
 

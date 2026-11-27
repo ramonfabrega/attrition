@@ -1884,7 +1884,7 @@ Open: deaths on 5275. → 3713 by 4660, 3716 by 4667, 3935 by 4671, 4092 by 4741
 
 ### 13.3 Row 93
 
-2686 → 2965 by 4590, 4606 → 3058 by 4657 → 3089 by 4681 → 3269 by 4685 → 3524 by 4688 → 4130 by 4692 → 4154 by 4718 → 4219 by 4720 → 4235 by 4725 → 4288 by 4730 → 4645 by 4733 → 4806 by 4763, open (COMBAT §68.1, §47.2, §7.2; COLLISION §3.2, §4.3; AI §75.4, §368.1; CITIES §9.3; CHECKSUM §16, §23.9; GROUPS §6.8).
+2686 → 2965 by 4590, 4606 → 3058 by 4657 → 3089 by 4681 → 3269 by 4685 → 3524 by 4688 → 4130 by 4692 → 4154 by 4718 → 4219 by 4720 → 4235 by 4725 → 4288 by 4730 → 4645 by 4733 → 4806 by 4763 → 4812 by 4767, open (COMBAT §68.1, §47.2, §7.2; COLLISION §3.2, §4.3; AI §75.4, §368.1; CITIES §9.3; CHECKSUM §16, §23.9; GROUPS §6.8, §6.9).
 
 ### 13.4 Row 113
 
@@ -1903,18 +1903,18 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: units, builds, leaders on 4387. run1797, *diff-backed*.
+Open: six lines on 4583. run1797, *diff-backed*.
 
 **Items 4597 to 4620**: units → 2376, builds → 2432, ammo → 2408, leaders → 2413, cities → 2448 (GROUPS, COMBAT
 §84, a Temple's close, two walks by `o`).
 
-**Item 4628** (run1819's packet): units → 2440, `get_damage`'s rocky step (cell `flags & 8`).
+**Item 4628** (run1819's packet): units → 2440, `get_damage`'s rocky step.
 
 **Item 4632**: units → 2543, `Unit::fight`'s emplaced latch takes the head order's `0x10`.
 
-**Items 4691 to 4762**: units → 3628 → 3633 → 3690 → 3739 → 3790 → 4087 → 4089 → 4387, deaths → 4103, ammo → 4103
-(`FILTER_COMBAT`, ARMY §13, MERCHANT §2.2; air refusal, COMBAT §66.8; Bribe, §90, §91; `local_20`, ORDERS §34.6;
-scorch, COMBAT §42.1; building `z`, §46.1; pivots, §55.3).
+**Items 4691 to 4766**: units → 3628 → 3633 → 3690 → 3739 → 3790 → 4087 → 4089 → 4387 → 4583, deaths → 4103, ammo
+→ 4103 (`FILTER_COMBAT`, ARMY §13, MERCHANT §2.2; air refusal, COMBAT §66.8; Bribe, §90, §91; `local_20`, ORDERS
+§34.6; scorch, COMBAT §42.1; `z`, §46.1; pivots, §55.3; wonder clock, AI §69.7).
 
 ## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
 
