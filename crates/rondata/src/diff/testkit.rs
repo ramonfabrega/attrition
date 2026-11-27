@@ -7689,6 +7689,12 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 4766: a rival's running wonder clock counts one builder more at a
+    // computer's wonder site (`Sim::rival_wonders`); on recon4300-2 at
+    // difficulty 4 the recruit it adds walks over 24 inexact corners on the
+    // way to the word, which still holds (0 with the arm off, by
+    // `tools/mutate.py`).
+    ("recon4300_2_walks_to_its_word_at_difficulty_4", 24),
     // Item 3984: run1075 walked from the coverage pair's start with its
     // eleven staged Battleships, whose shells land on the corners the zero
     // stands over: 85 to the capture's last block 2820. Item 4159's fourth
