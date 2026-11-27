@@ -7420,6 +7420,57 @@ unit, a good, a group, an enemy's object).
   with the icon at its left, column 1's back at its left with the icon at
   its right; the line `write_cent_l` over the back's span.
 - The display button (4738b), `advanced_options`' picture (4738c).
+- ~~`draw_stat`'s six figures (4748b)~~: drawn by item 4750, §6.19.
+
+## 6.19 The selected panel's figures (item 4750)
+
+*2026-11-26, Opus 5.5. The ledger: `docs/journal/2026-11-26-item-4750.md`.
+`client::frame::selected` (`Stat`, `STAT_ORDER`, `STAT_ICONS`, `fill`,
+`stat_pieces`), `client::frame::building_stats`. No `crates/sim` change.*
+
+**The order and the fill.** `on_redraw` asks `draw_stat@008214d0` for the
+cases `{11, 1, 2, 0, 3, 15, 12, 13, 7, 8, 9, 10, 6, 4, 5, 14, 16..19}` in
+turn. A case that draws takes the first free `stat_short` slot, row by row,
+column 0 before column 1 (`local_78[row + col·4]`). Case 9 takes a
+`stat_long` row instead, and is not placed yet.
+
+**One figure.** `RectTemplate<short>` is (left, right, top, bottom). In
+column 0, `stat_left` goes at the slot's right less 47 and the icon at the
+slot's left. In column 1, `stat_right` goes at the slot's left and the icon
+at its right less 20. Both are `IFACERENDERTYPE_ALPHA`, white. The line is
+`write_cent_l` over the back's span. Case k's icon is the string table's
+entry at `int_str_array +0x16288 + 20k`: `stat_armor`, `stat_attack`,
+`stat_antiair`, `stat_range`, and so on in `internal_strings.xml`'s order
+to `stat_radius` at 19. `stat_right`, `stat_large` and `stat_left` follow
+at `+0x16418`, `+0x1642c` and `+0x16440`.
+
+**Registered before it was built**, by Python over item 4748's still. The
+icon per slot, best of twenty: attack 320, armor 339, range 316, garrison
+324, power 318, and radius 320 (tied with decoy, whose crop is the same).
+These are cases 1, 0, 3, 7, 8 and 19, in that order. Column 0 takes
+`stat_left`: 6,934 of 8,840 agree, against 5,734 the other way round.
+
+**The values** (`building_stats`), the sim's, for the capital at 3295:
+attack 8, armor 3, range 10, garrison `0/10`, arrows `0/2`, radius 20. The
+test asserts them, and they are the photograph's six by eye.
+
+**The row** (§6.17's mask): ours 233,080 → **238,258**, the composition
+232,857 → **238,035**, luma ×10 545 → 548. The backs and icons agree. The
+lines' glyphs part on 547 pixels. Shifting our text ±1 in x or y only adds
+to that (the best other shift gives 896), so the place is right and the
+face is wrong.
+
+**Diff-backed**: the backs, the icons, the slot order and the lines'
+places, against the photograph. **Read alone**: the other fourteen cases'
+tests, and every case's arms on a unit.
+
+**Not established.**
+- The window's face, `FontFamily::get(fonts, 10, -1)`. The clock's
+  `arialbd.ttf` at 12 stands in for it (4750b).
+- The `+` that separates a bonus (`loc_str_array +0xa258`), and the arrows'
+  squad sum (`garrison_attack_sum`, which is `pub(crate)`). Neither shows on
+  run1814b (4750b).
+- The name's text, the picture and its hit points (4750a).
 
 ## 7. What is not established, and what needs Ramon's word
 
