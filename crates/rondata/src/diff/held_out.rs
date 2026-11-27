@@ -2851,6 +2851,42 @@ pub(crate) mod tests {
     /// = 841, `v1z` 11.9375. Ours took the tile under its centre, now 584:
     /// 834, `v1z` 12.6375. Every range of every line on 4032 and 4033.
     #[test]
+    fn probe_4758() {
+        if std::env::var_os("RON_PROBE_4758").is_none() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        while built.sim.frame < 4059 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            if built.sim.frame >= 4050 {
+                if let Some(u) = built.sim.unit_by_o(2, 50) {
+                    let un = &built.sim.units[u];
+                    eprintln!(
+                        "PROBE4758 state {} slot {u} ti {} pos {:?} orders {:?} cast {:?} turret {:?} inside {:?}",
+                        built.sim.frame,
+                        un.type_index,
+                        (un.pos.x, un.pos.y),
+                        un.orders,
+                        un.cast_target,
+                        un.guys.first().map(|g| (g.turret.node_flags, g.turret.des_flags, g.turret.angles, g.turret.des)),
+                        un.inside
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
     fn row_133_s_building_fires_from_its_own_height_on_run1797() {
         let Some(inst) = crate::testenv::install() else {
             return;

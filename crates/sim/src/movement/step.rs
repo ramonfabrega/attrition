@@ -205,6 +205,9 @@ impl Sim {
             })
             .is_some_and(|n| !n.is_empty())
         {
+            if std::env::var_os("RON_PROBE_4758").is_some() && self.units[i].owner == 2 && self.units[i].index == 50 {
+                eprintln!("PROBE4758 step frame {} before {:?}", self.frame, self.units[i].guys.first().map(|g| (g.turret.node_flags, g.turret.des_flags, g.turret.angles, g.turret.des)));
+            }
             for g in &mut self.units[i].guys {
                 g.turret.step();
             }
