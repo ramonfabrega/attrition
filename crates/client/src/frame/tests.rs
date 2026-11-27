@@ -107,8 +107,8 @@ pub(crate) const RUN1814B_3294_RESOURCES: [usize; 7] = [11_986, 11_827, 0, 11_67
 /// buttons ([`super::right`]). The selected panel's own art over the back
 /// (`IFACESELECTED`: its borders, title, picture, star and figures) is not
 /// drawn yet, and is what parts, with the display button at the right edge
-/// (4738a, 4738b). Seen red at zero; ours 0 → 211,274 on the still, the
-/// composition 211,051 (the minimap's back, 339 wide, lies over x 648..655
+/// (4738a, 4738b; the second drawn by item 4760). Seen red at zero; ours
+/// 0 → 211,274 on the still, the composition 211,051 (the minimap's back, 339 wide, lies over x 648..655
 /// on the still and agrees there). Item 4748: the selected panel's frame
 /// over the back ([`super::selected`]: the two borders, the red name bar,
 /// the wings, the capital's star, the tiles and the corners), 211,274 →
@@ -130,8 +130,15 @@ pub(crate) const RUN1814B_3294_RESOURCES: [usize; 7] = [11_986, 11_827, 0, 11_67
 /// longer written, the profile's `prefs & 2` clear. 239,112 → 241,422 on
 /// the still, the composition 238,889 → 241,199, luma ×10 550 → 556.
 /// Still apart: the display button at x 1906..1917 (4738b).
+/// Item 4760: the display button (`collapse_button_up0..2` laid by
+/// `draw_vert_expander`, three `collapse_button_arrow_right` stacked and
+/// centred; [`super::right::display_pieces`]), 1,771 pixels the mask did not
+/// hold: pixels 242,115 → 243,886, the composition 241,199 → 242,970, ours
+/// 241,422 → 243,193 on the still, every one of the button's within two
+/// levels; luma ×10 556 → 559, the photograph's, the bare still's 1,161 →
+/// 1,159 on the larger mask. Seen red on the old code at this pin, exit 101.
 pub(crate) const RUN1814B_3294_SELECTED: [usize; 7] =
-    [242_115, 241_199, 0, 241_422, 556, 1_161, 556];
+    [243_886, 242_970, 0, 243_193, 559, 1_159, 559];
 
 /// **`RUN1814B_3294_TALLY`** (item 4761; `docs/RENDERER.md` §6.23): on
 /// the same frame, the band above the bar's right end where `StatWin`'s
@@ -251,6 +258,36 @@ fn the_left_window_lays_out() {
             p(blank, (3, 33, 64, 72), Stretch),
             p(blank, (66, 33, 127, 72), Stretch),
             p(blank, (3, 74, 64, 113), Stretch),
+        ]
+    );
+}
+
+/// Item 4760: the display button's rectangle off interface.xml on the
+/// 1,920 frame, and its pieces: the three textures and the arrows, three
+/// stacked and centred (§6.24).
+#[test]
+fn the_display_button_lays_out() {
+    use left::{Fill::Tile, Piece, resolve};
+    let tag =
+        r#"BUTTON name="display" right_inverse="3" bottom_inverse="3" width="-11" height="-161""#;
+    let span = resolve(tag, (1920, 198)).expect("the button resolves");
+    assert_eq!(span, (1906, 34, 1917, 195));
+    let p = |crop, span| Piece {
+        crop,
+        span,
+        fill: Tile,
+    };
+    let ends = [(187, 20, 11, 7), (187, 28, 11, 104), (187, 133, 11, 7)];
+    let arrow = (272, 20, 4, 7);
+    assert_eq!(
+        right::display_pieces(span, ends, arrow),
+        vec![
+            p(ends[0], (1906, 34, 1917, 41)),
+            p(ends[1], (1906, 41, 1917, 188)),
+            p(ends[2], (1906, 188, 1917, 195)),
+            p(arrow, (1909, 104, 1913, 111)),
+            p(arrow, (1909, 111, 1913, 118)),
+            p(arrow, (1909, 118, 1913, 125)),
         ]
     );
 }
