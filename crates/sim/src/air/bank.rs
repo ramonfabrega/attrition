@@ -80,6 +80,7 @@ impl Sim {
     /// floor on the divisor, never doubles the wanted bank on a return (it
     /// goes the ground-clearance way instead), and [`air_turn_speed_as`]
     /// reads its bank times five too.
+    #[allow(clippy::too_many_arguments)]
     pub fn bank_plane_as(
         &mut self,
         u: usize,
