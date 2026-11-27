@@ -225,6 +225,55 @@ fn a_fighter_s_first_frame_home_is_run223_s_642() {
     assert_eq!((af.z, af.last_z), (2, 0), "the climb's first step");
 }
 
+/// **A flying target under the nose hands the bank its sign** (item 4740,
+/// `do_air_physics@005e86d0`'s `local_20`, `docs/ORDERS.md` §34.6). The
+/// geometry is run1797's on 3789: a plane at altitude striking a
+/// helicopter 104 ahead and 20 to its left. Inside `min_range · 0xc0`,
+/// within 90° of the nose, the bank takes `+1` and turns right, away from
+/// the target (bank −10). With `min_range` 0 the arm is not entered, and the
+/// sign of `des − heading` turns it left (bank +10). It was made to fail by
+/// passing 0 for the sign: the first case then banks +10.
+#[test]
+fn a_plane_on_top_of_a_flying_target_banks_the_plus_way() {
+    for (min_range, bank) in [(1, 0xc120_0000u32), (0, 0x4120_0000)] {
+        let mut s = sim();
+        let (base, _) = airbase_and_target(&mut s);
+        let u = plane(&mut s, Pos::new(11640, 16248), Angle(0x3daa_0000), false);
+        let ty = s.units[u].ty.expect("the plane's type");
+        s.tables.unit_types[ty].combat.min_range = min_range;
+        // A range, without which no air target is valid (`valid_target_const`).
+        s.tables.unit_types[ty].combat.max_range = 4;
+        s.units[u].airframe.z = 2204;
+        let heli = flier(&mut s, true);
+        let h = spawn(&mut s, 1, heli, Pos::new(11744, 16228));
+        s.add_strafe_order(
+            u,
+            Some(Obj::Unit(h)),
+            Some(base),
+            false,
+            crate::orders::QueuePos::New,
+            true,
+        );
+        let to = s.units[h].pos;
+        assert!(
+            s.valid_target(Obj::Unit(u), Obj::Unit(h)),
+            "the plane may take it"
+        );
+        assert_eq!(s.plane_air_physics(u, Some(to), 641), crate::air::Flew::On);
+        assert_eq!(
+            s.units[u].airframe.bank.bits(),
+            bank,
+            "min_range {min_range}: the bank's sign"
+        );
+        let turned = s.units[u].movement.heading.0.wrapping_sub(0x3daa_0000);
+        assert_eq!(
+            turned > 0,
+            min_range == 1,
+            "min_range {min_range}: the way round"
+        );
+    }
+}
+
 /// **The redraw is a non-bomber's, every eighth frame phased by `o`**
 /// (`Unit::do_air_physics+0xba`): `(r % 7 + 13) · 100`, and a Bomber
 /// holds `0x640` and throws nothing. Made to fail by dropping the

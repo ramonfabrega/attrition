@@ -7567,6 +7567,24 @@ listing's `[ebp−0x18]` keeps the `0x240` handed to `project`, since only
 the returning arm overwrites it with the distance (`0x5e8fae`). run223's
 `0/7` on 666: bank 40 → 30, pitch 8 → 10, `z` 24 → 36.
 
+**A flying target under the nose hands the bank its sign** (item 4740,
+`do_air_physics@005e86d0` at `0x5e8a0c`–`0x5e8b6a`, pushed at `0x5e8c00`).
+`local_20` is 0 unless all of these hold: the flight is not returning
+(`AirOrder +0x18`), its front order is a strike (`is_attack`, vslot
+`+0x18`), the plane is no helicopter, and the target's type flies
+(`+0x218 == 2`, a helicopter included). `valid_target` must also take the
+target, `vector_dist(|dx|, |dy|) < min_range · 0xc0`, and
+`fold(find_angle(dx, dy) − heading) < 0x4000_0000`. When all hold it is 1.
+`bank_aircraft@005e9520` reads it as `param_3`, the turn's sign, and only a
+0 is replaced by the sign of `des − heading` (`005e9573`). So a plane on top
+of a flying target banks the `+` way whichever side the target is on. The
+doubled want is the order's own `returning`, which `bank_aircraft` reads
+itself through vslot `0xfc`. *Diff-backed* on run1797: on 3789 the Jet
+Fighter `2/116` (TI 295) sits 106 behind the Attack Helicopter `1/34` (TI 311),
+7.6° off its nose. Its bank goes −0.0 → −10.0 and its heading `0x3daa0000` →
+`0x3e0505b0`, the original's, where the sign of `des` gave +10.0 and
+`0x3d4efa50`.
+
 ### 34.7 What is not established
 
 - ~~**The bomb's round.** The release is an animation; the bomb is the
@@ -7584,8 +7602,9 @@ the returning arm overwrites it with the distance (`0x5e8fae`). run223's
   the arrival, the refused strike with an order behind it, ~~the escort's
   ally arm~~ (built, item 976: `docs/GOLDEN.md` §42, run358's four planes
   on `0/1` from 2307, their positions diff-backed to 2336; the escort's
-  search stays reading only), a flying target's lead and `local_20`'s
-  doubled bank.
+  search stays reading only), a flying target's lead and ~~`local_20`'s
+  doubled bank~~ (`local_20` is the bank's turn sign, not a doubling;
+  diff-backed on run1797 by item 4740, §34.6).
 - SEAMs: ~~a non-bomber's `find_new_air_target`~~ (built for the patrol by
   item 1182 and the tail by item 1200; the escort's stays) and the
   `semaphore & 2` fallback; the `FIGHTERBOMBER` and carrier-relative points;
