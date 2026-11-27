@@ -16127,18 +16127,26 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 841, `v1z` ours 12.6375, theirs 11.9375 on 4032, theirs now):
         // ammo 4,086 -> 4,103 (first 4032 -> 4103); no other line moves.
         // The first parting is units and guys on 4059.
+        // Item 4758 (a bribed figure keeps its own `node_flags` and
+        // `des_node_flags`: `Unit::swap_team@006118d0`'s per-guy loop
+        // copies `+0x20..+0x40`, never `+0x96`/`+0x98`; who=2 bribes
+        // who=1's BMP, TI 223, on 4058 into `2/50`, guys range 1905,
+        // record 50, `node_flags` ours 15, theirs 0, `des_node_flags` ours
+        // 1, theirs 0 on 4059, theirs now): units 4,087 -> 4,089 (first
+        // 4059 -> 4089), guys 4,087 -> 4,089 (first 4059 -> 4089); no
+        // other line moves. The first parting is units and guys on 4089.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                4087, 4146, 6085, 4103, 4103, 4121, 4087, 4114, 4158, 4378, 4476, 4098,
+                4089, 4146, 6085, 4103, 4103, 4121, 4089, 4114, 4158, 4378, 4476, 4098,
             ],
             first: &[
-                ("units", (4059, Some(2948754174), 1829464814)),
+                ("units", (4089, Some(2541892046), 2398957251)),
                 ("builds", (4138, Some(1999173051), 1171125996)),
                 ("ammo", (4103, Some(1106215815), 1924760686)),
                 ("deaths", (4103, Some(4160940736), 4023839423)),
                 ("groups", (4109, Some(1856517321), 3961861329)),
-                ("guys", (4059, Some(2882559999), 3448070127)),
+                ("guys", (4089, Some(2354539781), 1242852308)),
                 ("leaders", (4093, Some(172771923), 1927891540)),
                 ("cities", (4158, Some(2044815437), 113797456)),
                 ("items", (4378, Some(1284182481), 1281298895)),
