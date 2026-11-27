@@ -22,6 +22,7 @@ use crate::selection::{Texels, attr, layers_of};
 pub mod banner;
 pub mod caps;
 pub mod left;
+pub mod resources;
 pub mod slots;
 
 /// **The atlas's code** for a console of `ages` ages owned (0 the Ancient)
@@ -168,6 +169,8 @@ pub struct MinimapFrame {
 pub struct CapArt {
     pub layout: caps::CapLayout,
     pub common: render::tga::Image,
+    /// Item 4742: the resources box's layout ([`resources`]).
+    pub resources: resources::ResourceLayout,
 }
 
 impl CapArt {
@@ -184,6 +187,7 @@ impl CapArt {
         let bytes = std::fs::read(&path).map_err(|e| format!("{file}: {e}"))?;
         Ok(CapArt {
             layout: caps::CapLayout::parse(xml, &txt)?,
+            resources: resources::ResourceLayout::parse(xml, &txt)?,
             common: render::tga::decode(&bytes).map_err(|e| format!("{file}: {e:?}"))?,
         })
     }
@@ -400,7 +404,32 @@ impl MinimapFrame {
                 texel_of(&t, c, x, y).filter(|t| t[3] > 0)
             }));
         }
+        // Item 4742: the resources box.
+        if let Some((t, c)) = self.resource_box(figures) {
+            let (x1, y1) = (
+                (c.0 + t.w as i32).min(size.0),
+                (c.1 + t.h as i32).min(size.1),
+            );
+            v.extend(layers_of(size, (c.0.max(0), x1, c.1.max(0), y1), |x, y| {
+                texel_of(&t, c, x, y).filter(|t| t[3] > 0)
+            }));
+        }
         v
+    }
+
+    /// **The resources box composed** (item 4742, [`resources`]) with
+    /// `figures`' goods, the resource area open as on run1814b's
+    /// photograph, and its corner; `None` without its art or figures.
+    pub fn resource_box(&self, figures: Option<caps::Figures>) -> Option<(Texels, (i32, i32))> {
+        let art = self.caps.as_ref()?;
+        art.resources
+            .compose(
+                &figures?.goods,
+                resources::PHOTOGRAPH_FLAGS,
+                &art.common,
+                &self.civ,
+            )
+            .ok()
     }
 
     /// **The population box composed** (item 4739, [`caps`]) on a `size`
@@ -452,11 +481,23 @@ pub fn bar_slots(
 pub fn cap_figures(world: &crate::world::World, who: sim::Player) -> Option<caps::Figures> {
     let sim = world.runner.sim();
     let m = sim.roster.muster.get(who as usize)?;
+    let l = sim.economy.ledgers.get(who as usize)?;
+    // Item 4742: each good `type_avail` gives, its stockpile and income;
+    // `draw_cap`'s least `resource_cap` of them, from 15,984 (999 × 16).
+    let avail: [bool; 6] = std::array::from_fn(|g| sim.type_avail(who, g) != 0);
+    let goods = resources::Goods {
+        shown: std::array::from_fn(|g| avail[g].then(|| (l.bucket[g], l.income[g]))),
+        cap: (0..6)
+            .filter(|&g| avail[g])
+            .map(|g| l.cap[g])
+            .fold(15_984, i32::min),
+    };
     Some(caps::Figures {
         pop: m.control,
         pop_cap: m.cap,
         cities: sim.total_cities(who),
         city_limit: sim.city_limit(who),
+        goods,
     })
 }
 

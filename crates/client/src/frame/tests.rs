@@ -81,6 +81,21 @@ pub(crate) const RUN1814B_3294_BANNER: [usize; 7] = [9_610, 8_749, 0, 8_749, 615
 /// the box is not drawn (4739b).
 pub(crate) const RUN1814B_3294_CAPS: [usize; 7] = [2_847, 2_840, 2, 2_840, 649, 812, 648];
 
+/// **`RUN1814B_3294_RESOURCES`** (item 4742; `docs/RENDERER.md` §6.16):
+/// on the same frame, the resources box's opaque pixels at the screen's
+/// top left, the fields as [`RUN1814B_3294_LEFT_WINDOW`]'s: the three
+/// areas' borders, the fold button, the commerce cap, the dividers and a
+/// row per good ([`super::resources`]), with the goods of the record the
+/// photograph prints (ours on 3284; 4742a). Seen red at zero:
+/// `[11986, 11827, 0, 11677, 642, 646, 649]`, ours 0 before. What parts on
+/// the composition is 159 pixels: 90 in the closed areas' buttons, columns
+/// 6..9 and 136..139, where `tile_random` starts the chevrons on another
+/// row (4742b), and the pictures' top and bottom rows against the
+/// dividers and the dark runs over the figures (4742c). The still parts
+/// on 150 more: the live client writes 3295's record, 492/419/173, whose
+/// last digits are not the photograph's (4742a).
+pub(crate) const RUN1814B_3294_RESOURCES: [usize; 7] = [11_986, 11_827, 0, 11_677, 642, 646, 649];
+
 /// The banner as interface.xml writes it, on a cut of its own text.
 #[test]
 fn the_banner_lays_out() {
@@ -239,6 +254,13 @@ fn the_minimap_frame_on_run1814b() {
             return;
         }
     };
+    // Item 4742: the resources box prints the leader record of an earlier
+    // frame than its world: food 491, timber 418 and wealth 172 are ours
+    // on 3280 to 3284 alone (food 492 from 3291, wealth 173 from 3285).
+    // 3285 is a second's boundary (219 × 15); what redraws the box is not
+    // read (4742a). The row takes the record at 3284.
+    world.run_to(3284);
+    let goods_3284 = super::cap_figures(&world, crate::world::CONSOLE).map(|f| f.goods);
     world.run_to(3294);
     world.blend = crate::world::Blend::Last;
     world.run_to(3295);
@@ -405,13 +427,13 @@ fn the_minimap_frame_on_run1814b() {
     // record holds (`+0x940` / `+0x7e4`, 6/25; one city of one).
     let figures = super::cap_figures(&world, crate::world::CONSOLE).expect("the figures");
     assert_eq!(
-        figures,
-        super::caps::Figures {
-            pop: 6,
-            pop_cap: 25,
-            cities: 1,
-            city_limit: 1
-        },
+        (
+            figures.pop,
+            figures.pop_cap,
+            figures.cities,
+            figures.city_limit
+        ),
+        (6, 25, 1, 1),
         "the console's figures on 3295"
     );
     let (caps, cc) = frame
@@ -439,6 +461,56 @@ fn the_minimap_frame_on_run1814b() {
         lum(&caps_mask, &framed),
     ];
     println!("RUN1814B_3294_CAPS: {caps_row:?}");
+    // Item 4742: the resources box, the goods the leader record holds:
+    // food 491 at +40, timber 418 at +30, wealth 172 at +10, the rest not
+    // available; the least commerce cap +70.
+    println!("the goods on 3295: {:?}", figures.goods);
+    let goods = goods_3284.expect("the goods on 3284");
+    println!("the goods on 3284: {goods:?}");
+    let shown: Vec<(usize, i32, i32)> = (0..6)
+        .filter_map(|g| goods.shown[g].map(|(s, i)| (g, s, crate::hud::shown_rate(i))))
+        .collect();
+    assert_eq!(
+        shown,
+        vec![(0, 491, 40), (1, 418, 30), (2, 172, 10)],
+        "the console's goods on 3284"
+    );
+    assert_eq!(goods.cap_line(), "+70", "the commerce cap on 3284");
+    let (res, rc) = frame
+        .resource_box(Some(super::caps::Figures { goods, ..figures }))
+        .expect("the box composes");
+    assert_eq!((rc, res.w, res.h), ((0, 0), 147, 86), "the box's place");
+    let res_texel = |x: i32, y: i32| super::texel_of(&res, rc, x, y);
+    let res_mask: Vec<(i32, i32)> = (rc.1..rc.1 + res.h as i32)
+        .flat_map(|y| (rc.0..rc.0 + res.w as i32).map(move |x| (x, y)))
+        .filter(|&(x, y)| res_texel(x, y).is_some_and(|t| t[3] == 255))
+        .collect();
+    let res_composed = res_mask
+        .iter()
+        .filter(|&&(x, y)| {
+            let t = res_texel(x, y).expect("on the box");
+            near(px(&photo.rgba, (x, y)), [t[0], t[1], t[2]])
+        })
+        .count();
+    if std::env::var_os("RON_RES_APART").is_some() {
+        for &(x, y) in &res_mask {
+            let t = res_texel(x, y).expect("on the box");
+            let p = px(&photo.rgba, (x, y));
+            if !near(p, [t[0], t[1], t[2]]) {
+                println!("apart ({x}, {y}) ours {:?} theirs {p:?}", &t[..3]);
+            }
+        }
+    }
+    let res_row = [
+        res_mask.len(),
+        res_composed,
+        on(&res_mask, &bare, &photo.rgba),
+        on(&res_mask, &framed, &photo.rgba),
+        lum(&res_mask, &photo.rgba),
+        lum(&res_mask, &bare),
+        lum(&res_mask, &framed),
+    ];
+    println!("RUN1814B_3294_RESOURCES: {res_row:?}");
     let row = [
         mask.len(),
         atlas_agrees,
@@ -453,4 +525,5 @@ fn the_minimap_frame_on_run1814b() {
     assert_eq!(left_row, RUN1814B_3294_LEFT_WINDOW);
     assert_eq!(banner_row, RUN1814B_3294_BANNER);
     assert_eq!(caps_row, RUN1814B_3294_CAPS);
+    assert_eq!(res_row, RUN1814B_3294_RESOURCES);
 }
