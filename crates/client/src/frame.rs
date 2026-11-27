@@ -24,6 +24,7 @@ pub mod caps;
 pub mod left;
 pub mod resources;
 pub mod right;
+pub mod selected;
 pub mod slots;
 
 /// **The atlas's code** for a console of `ages` ages owned (0 the Ancient)
@@ -167,6 +168,9 @@ pub struct MinimapFrame {
     /// Item 4738: the bar's right side ([`right`]), composed on a frame's
     /// width as it is drawn.
     pub right: right::RightLayout,
+    /// Item 4748: the selected panel's frame ([`selected`]), `None` where
+    /// interface.xml has none.
+    pub selected: Option<selected::SelectedLayout>,
 }
 
 /// **The population box's art** (item 4739): its layout and `TEX_COMMON`.
@@ -205,6 +209,7 @@ pub struct FrameArt {
     left: left::LeftLayout,
     banner: banner::BannerLayout,
     right: right::RightLayout,
+    selected: Option<selected::SelectedLayout>,
     /// interface.xml's own `TEX_CIV` file, the fallback.
     default_civ: String,
     /// Item 4727: the clock's face, and `rules.xml`'s `gamespeeds`, the
@@ -227,6 +232,7 @@ impl FrameArt {
         let left = left::LeftLayout::parse(&xml)?;
         let banner = banner::BannerLayout::parse(&xml)?;
         let right = right::RightLayout::parse(&xml)?;
+        let selected = selected::SelectedLayout::parse(&xml).ok();
         let default_civ = xml
             .split('<')
             .filter(|t| t.starts_with("IFACETEXLOAD"))
@@ -259,6 +265,7 @@ impl FrameArt {
             left,
             banner,
             right,
+            selected,
             default_civ,
             face,
             speeds,
@@ -315,6 +322,7 @@ impl FrameArt {
             caps: self.caps.clone(),
             civ: std::sync::Arc::new(atlas),
             right: self.right.clone(),
+            selected: self.selected.clone(),
         })
     }
 }
@@ -374,6 +382,7 @@ impl MinimapFrame {
         line: Option<&str>,
         slots: &[slots::Slot],
         figures: Option<caps::Figures>,
+        panel: Option<selected::Panel>,
     ) -> Vec<crate::gpu::ScreenLayer> {
         let o = self.origin(size);
         let (x1, y1) = (
@@ -383,7 +392,7 @@ impl MinimapFrame {
         // Item 4738: the bar's right side, the parent's, under the
         // minimap's window, whose back runs to x 655.
         let mut v = Vec::new();
-        if let Some((t, c)) = self.right_side(size) {
+        if let Some((t, c)) = self.right_side(size, panel) {
             let (x1, y1) = (
                 (c.0 + t.w as i32).min(size.0),
                 (c.1 + t.h as i32).min(size.1),
@@ -453,11 +462,38 @@ impl MinimapFrame {
     }
 
     /// **The bar's right side composed** (item 4738, [`right`]) on a
-    /// `size` frame, and its corner on the screen.
-    pub fn right_side(&self, size: (i32, i32)) -> Option<(Texels, (i32, i32))> {
-        let (t, (x, y)) = self.right.compose(&self.civ, size.0).ok()?;
+    /// `size` frame, and its corner on the screen. Item 4748: `panel`'s
+    /// frame ([`selected`]) over it, at `right_window`'s corner.
+    pub fn right_side(
+        &self,
+        size: (i32, i32),
+        panel: Option<selected::Panel>,
+    ) -> Option<(Texels, (i32, i32))> {
+        let (mut t, (x, y)) = self.right.compose(&self.civ, size.0).ok()?;
         let b = self.bar_origin(size);
-        Some((t, (b.0 + x, b.1 + y)))
+        let c = (b.0 + x, b.1 + y);
+        if let (Some(p), Some(l), Some(art), Some(w)) =
+            (panel, &self.selected, &self.caps, self.right.window(size.0))
+        {
+            let at = (b.0 + w.0, b.1 + w.1);
+            let layers = l.layers(at, p.team, p.capital, &p.stats);
+            let span = (c.0, c.1, c.0 + t.w as i32, c.1 + t.h as i32);
+            let over = caps::paint_layers(span, &layers, &art.common, &self.civ).ok()?;
+            let dst = t.rgba.as_chunks_mut::<4>().0;
+            for (d, s) in dst.iter_mut().zip(over.rgba.as_chunks::<4>().0) {
+                left::over(d, *s);
+            }
+            // Item 4750: each figure's line, `write_cent_l` over its back,
+            // in the clock's face (the window's own, lookup 10, is unread:
+            // 4750b).
+            if let Some(face) = &self.face {
+                for (_, _, (x0, y0, x1, y1), s) in l.stat_pieces(at, &p.stats) {
+                    let r = (x0 - c.0, y0 - c.1, x1 - c.0, y1 - c.1);
+                    left::write_clock(&mut t, face, r, &s.line);
+                }
+            }
+        }
+        Some((t, c))
     }
 
     /// **The population box composed** (item 4739, [`caps`]) on a `size`
@@ -501,6 +537,113 @@ pub fn bar_slots(
         return Vec::new();
     };
     slots::selected(world.runner.sim(), &world.names.roster, &art, who, sel)
+}
+
+/// **The selected panel in `world`** for `who`'s selection `sel` (item
+/// 4748, [`selected`]): one object, its owner's `TeamColor::get_unit`, and
+/// whether it is a city's capital. `None` for none or a group, which
+/// `on_redraw` draws no frame for.
+pub fn selected_panel(
+    world: &crate::world::World,
+    sel: &[sim::observe::ObjId],
+) -> Option<selected::Panel> {
+    let [o] = sel else {
+        return None;
+    };
+    let sim = world.runner.sim();
+    let capital = sim.cities.cities.iter().any(|c| {
+        c.alive
+            && c.capital
+            && c.owner == o.who
+            && sim
+                .buildings
+                .get(c.building)
+                .is_some_and(|b| b.index == o.o)
+    });
+    Some(selected::Panel {
+        team: render::silhouette::team_unit(o.who),
+        capital,
+        stats: building_stats(sim, o),
+    })
+}
+
+/// **`draw_stat@008214d0`'s figures for a building** (item 4750), in
+/// [`selected::STAT_ORDER`]: the six cases run1814b's capital shows, each
+/// under the test its case makes, and no other (4750b).
+/// - 1, the attack: the type's (`+0x1e8`) over ten, and the bonus
+///   `(attack + 5 − type's) / 10` after a `+` where it is not zero;
+/// - 0, the armor: `armor()` under the type's (`+0x214`), else the type's
+///   and the difference after a `+` where there is one;
+/// - 3, the range: `max_range()` (`BuildData::max_range`);
+/// - 7, the garrison: `num_inside` `/` `get_garrison_limit`, finished;
+/// - 8, the arrows: `get_garrison_arrows` `/` `get_most_shots`, finished;
+/// - 19, the radius: a city centre's `CityData::get_radius`.
+///
+/// The `+` separator (`loc_str_array +0xa258`) is unread; the arrows take
+/// the building's own `garrison_attack` without the squads' sum, which no
+/// public door gives (4750b).
+pub fn building_stats(sim: &sim::Sim, o: &sim::observe::ObjId) -> Vec<selected::Stat> {
+    use sim::combat::Obj;
+    let Some((gi, b)) = sim
+        .buildings
+        .iter()
+        .enumerate()
+        .find(|(_, b)| b.owner == o.who && b.index == o.o && b.health > 0)
+    else {
+        return Vec::new();
+    };
+    let me = Obj::Building(gi);
+    let p = sim.profile(me);
+    let attack = sim.attack_of(me);
+    let with_bonus = |base: String, bonus: i32| {
+        if bonus == 0 {
+            base
+        } else {
+            format!("{base}+{bonus}")
+        }
+    };
+    let line = |case: usize| -> Option<String> {
+        match case {
+            1 => (p.attack != 0 && p.max_range != 0)
+                .then(|| with_bonus((p.attack / 10).to_string(), (5 - p.attack + attack) / 10)),
+            0 => {
+                let armor = sim.armor_of(me);
+                Some(if armor < p.armor {
+                    armor.to_string()
+                } else {
+                    with_bonus(p.armor.to_string(), armor - p.armor)
+                })
+            }
+            3 => (p.attack != 0 && p.max_range != 0).then(|| sim.max_range_of(me).to_string()),
+            7 => {
+                let limit = sim.garrison_limit(gi);
+                (b.active && limit != 0).then(|| format!("{}/{limit}", sim.num_inside(gi)))
+            }
+            8 => (b.active && p.attack != 0).then(|| {
+                let arrows = sim::combat::garrison_arrows(
+                    attack,
+                    p.base_arrows,
+                    p.most_shots,
+                    b.garrison_attack,
+                );
+                format!("{arrows}/{}", p.most_shots)
+            }),
+            19 => b
+                .city
+                .filter(|&c| sim.cities.cities[c].building == gi)
+                .map(|c| sim.radius_of(c).to_string()),
+            _ => None,
+        }
+    };
+    selected::STAT_ORDER
+        .iter()
+        .filter_map(|&case| {
+            Some(selected::Stat {
+                case,
+                line: line(case)?,
+            })
+        })
+        .collect()
 }
 
 /// **The population box's figures in `world`** for `who` (item 4739):

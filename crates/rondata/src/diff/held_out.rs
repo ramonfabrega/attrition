@@ -6847,6 +6847,114 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 88's Despot is pushed onto army 3's emptied slot, and its move
+    /// is that record's** (item 4746, `docs/RECGAME.md` §14.4): run1846's
+    /// ranges. who=2's army 3 holds pool slot 11 (record 139) with Pikemen
+    /// `2/80` and King's Longbowmen `2/106`; both are gone by 4362, the
+    /// army not recounted. On tick 4362 who=2's Despot `2/150` (TI 352,
+    /// land) is pushed: `get_open_slot` hands out slot 11, `copy_group`
+    /// writes its one `Group`, whose `army` still reads 3, and the move
+    /// that follows writes `order_num`, `form_num`, `(ox, oy)` and
+    /// `o_angle` there. Every groups range on states 4362 to 4364, byte for
+    /// byte; record 139's `army`, `num`, `order_num`, `form_num` and
+    /// `(ox, oy)` read off both sides: 3, 2, 6, 2, (15904, 15851) on 4362,
+    /// then 3, 1, 7, 1, (38952, 25752).
+    #[test]
+    fn row_88_s_despot_pushed_onto_army_3_s_emptied_slot_moves_that_record_on_run1846_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SEVENTH, 4) else {
+            eprintln!("skipping: row 88's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1846/map-18");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1846's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 88's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 4362i64..=4364 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            // The Despot, by name.
+            let u = built
+                .sim
+                .units
+                .iter()
+                .rposition(|u| u.owner == 2 && u.index == 150)
+                .expect("the Despot's slot");
+            let ty = built.sim.units[u].ty.expect("a type");
+            assert_eq!(
+                built.sim.tables.unit_types[ty].type_index, 352,
+                "2/150's TI"
+            );
+            assert_eq!(loaded.unit_names[ty], "The Despot");
+            assert_eq!(
+                built.sim.units[u].kind.domain,
+                sim::territory::attrition::Domain::Land
+            );
+            assert!(built.sim.units[u].alive(), "2/150 on {state}");
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            let ours = lines[5].as_ref().expect("the groups line");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 5).collect();
+            assert_eq!(ours.ranges.len(), theirs.len(), "groups' ranges on {state}");
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "groups range {k} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+            let at = ours
+                .ranges
+                .iter()
+                .position(|r| r.record == 139 && r.field == "id..march")
+                .expect("record 139");
+            let read = |b: &[u8]| {
+                let f = crate::checksum::fields::range_fields("groups", "id..march", b)
+                    .expect("the fields");
+                let v = |n: &str| f.iter().find(|(k, _)| k == n).expect("a field").1;
+                (
+                    v("army"),
+                    v("num"),
+                    v("order_num"),
+                    v("form_num"),
+                    v("ox"),
+                    v("oy"),
+                )
+            };
+            let want = if state == 4362 {
+                (3, 2, 6, 2, 15904, 15851)
+            } else {
+                (3, 1, 7, 1, 38952, 25752)
+            };
+            let want = if state == 4364 {
+                (want.0, 0, want.2, want.3, want.4, want.5)
+            } else {
+                want
+            };
+            for (side, b) in [
+                ("ours", &ours.ranges[at].bytes),
+                ("theirs", &theirs[at].bytes),
+            ] {
+                assert_eq!(read(b), want, "{side}' record 139 on {state}");
+            }
+        }
+    }
+
     /// **Row 43's Slinger stones leave from piece 736's sockets** (item
     /// 4547, `docs/RECGAME.md` §12.3): run1787, the ranges take of row 43's
     /// file. who=2's Slingers `2/30` and `2/29` (TI 82, land, piece 736,
@@ -16097,17 +16205,27 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // ours (2, 137) -> (-1, -1), as theirs. Ammo 4,187 -> 4,387 (first
         // 4166 -> 4387), leaders 4,199 -> 4,402 (first 4199 -> 4397). The
         // first parting moves 4166 -> 4363, on groups, which stood.
+        // Moved by item 4746 (run1846's ranges): a push onto an army's
+        // emptied, unrecounted slot is that slot's one record, whose `army`
+        // still names the army, so the pusher's move writes the army's.
+        // On tick 4362 who=2's army 3 (slot 11) has lost Pikemen `2/80`
+        // and King's Longbowmen `2/106`, and the Despot `2/150` (TI 352,
+        // land) is pushed onto it and moved. Groups on 4363, record 139
+        // `order_num` ours 6 -> 7, `form_num` 2 -> 1, `(ox, oy)` (0, 0) ->
+        // (38952, 25752), `o_angle` 0 -> 1850146816, as theirs. Groups
+        // 4,368 -> 4,425 (first 4363 -> 4412). The first parting moves
+        // 4363 -> 4384, on units and guys, which stood.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                4384, 4422, 12001, 4387, 4443, 4368, 4384, 4402, 4488, 9428, 4684, 4394,
+                4384, 4422, 12001, 4387, 4443, 4425, 4384, 4402, 4488, 9428, 4684, 4394,
             ],
             first: &[
                 ("units", (4384, Some(1930113341), 3084987553)),
                 ("builds", (4422, Some(2810936796), 290488154)),
                 ("ammo", (4387, Some(1291091225), 1430617522)),
                 ("deaths", (4443, Some(1493940272), 2950874289)),
-                ("groups", (4363, Some(2153732131), 2640665236)),
+                ("groups", (4412, Some(2342867161), 3538702822)),
                 ("guys", (4384, Some(2966912178), 3125639190)),
                 ("leaders", (4397, Some(323720312), 1440060538)),
                 ("cities", (4486, Some(471488175), 2265470475)),

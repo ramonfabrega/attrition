@@ -68,6 +68,12 @@ impl RightLayout {
         })
     }
 
+    /// Item 4748: `right_window` on a frame `width` wide, in the bar's
+    /// coordinates: the selected panel's window lies at its corner.
+    pub fn window(&self, width: i32) -> Option<Span> {
+        resolve(&self.right_window, (width, self.height))
+    }
+
     /// The pieces on a frame `width` wide, in the bar's coordinates.
     pub fn pieces(&self, width: i32) -> Vec<Piece> {
         let parent = (width, self.height);

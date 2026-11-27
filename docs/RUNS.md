@@ -42613,3 +42613,8 @@ theirs' squad `2/68`..`70` drops the Dromon `1/68` (TI 324, sea) and takes the M
 Transport Barge `2/137`) `whom, ox` ours (2, 137), theirs (−1, −1). After the fix nothing on ammo parts to 4386; the
 first parting moves to 4363, on groups. Read by
 `row_88_s_carrack_round_forgets_its_dead_target_where_it_sticks_on_run1846_s_ranges`.
+
+**Item 4746's word, off the same record**: groups on 4363, who=2's record 139 (army 3, slot 11) `order_num` ours 6,
+theirs 7, `form_num` 2 against 1, `(ox, oy)` (0, 0) against (38952, 25752): the Despot `2/150`'s push onto the army's
+emptied slot. After the fix nothing on groups parts to 4400; the first parting moves to 4384, on units and guys. Read
+by `row_88_s_despot_pushed_onto_army_3_s_emptied_slot_moves_that_record_on_run1846_s_ranges`.
