@@ -1880,7 +1880,7 @@ Open: units, builds, groups and guys part on 7675. run1788 holds sums (item 4579
 
 ### 13.2 Row 53
 
-Open: ammo on 5039. → 3713 by 4660 (COLLISION §3.3), 3716 by 4667, 3935 by 4671 (AI §259.1), 4092 by 4741, 4742 by 4749 (`docs/COMBAT.md` §17.8, §39.4), 4758 by 4746's merge (groups), 5039 by 4753 (§22.7: a round leaves from its figure's own point).
+Open: ammo on 5039. → 3713 by 4660, 3716 by 4667, 3935 by 4671, 4092 by 4741, 4742 by 4749, 4758 by 4746, 5039 by 4753 (COLLISION §3.3; AI §259.1; COMBAT §17.8, §39.4, §22.7).
 
 ### 13.3 Row 93
 
@@ -1888,14 +1888,14 @@ Open: ammo on 5039. → 3713 by 4660 (COLLISION §3.3), 3716 by 4667, 3935 by 46
 
 ### 13.4 Row 113
 
-**Whole: twelve lines of twelve, 4,573 of 4,573 states, to the original's end** (item 4592, run1802). Cities parted on
+**Whole: 12 of 12 lines, 4,573 of 4,573 states, to the original's end** (item 4592, run1802). Cities parted on
 3995 with the sums' low halves equal and high halves 8 apart: the same bytes in another order. run1802's cities range
 11, record 0, `vans[k]`, byte 4 (`who`) reads ours 1, theirs 2. who=1's city 0 holds `(3,2) (3,1)` on theirs, where
 ours walked `(3,1) (3,2)`: who=1's Caravan `1/34` (TI 59, land) links on 3995, after who=2's `2/131` (TI 59, land).
 
-**A city's `vans` stand in the order the links were made.** `ArrayBase<CaravanLink>::add@0046e550` appends, with
-`do_trade` as its one caller. `Array<CaravanLink>::remove@0046e4e0` keeps the rest in order, with `end_trade_route` as
-its one caller. Ours stamps a link when `do_trade` makes it (`Caravan::linked_at`), and `Sim::city_links` walks by the
+**A city's `vans` stand in the order the links were made.** `ArrayBase<CaravanLink>::add@0046e550` appends, its one caller
+`do_trade`. `Array<CaravanLink>::remove@0046e4e0` keeps the rest in order, its one caller
+`end_trade_route`. Ours stamps a link when `do_trade` makes it (`Caravan::linked_at`), and `Sim::city_links` walks by the
 stamp, which also closes run1325c's packet (cities 2 ranges → 0). Held by
 `row_113_s_city_walks_its_caravan_links_in_the_order_they_were_made_on_run1802_s_ranges` and
 `cities_tests::a_city_s_caravan_links_stand_in_the_order_they_were_made`. Not established: a link `end_trade_route`
