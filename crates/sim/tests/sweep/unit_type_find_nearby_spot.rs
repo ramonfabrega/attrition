@@ -75,6 +75,11 @@ fn the_emulated_original_agrees_on_every_row() {
                     }
                 }
                 impl SpotView for View<'_> {
+                    // The rows pin the region at -1 (above), so the ring
+                    // never asks.
+                    fn tregion(&self, _: crate::Pos) -> Option<u16> {
+                        None
+                    }
                     fn tile_in_bounds(&self, t: crate::Pos) -> bool {
                         t.x >= 0 && t.y >= 0 && t.x < self.wide && t.y < self.high
                     }
@@ -214,6 +219,7 @@ fn the_emulated_original_agrees_on_every_row() {
                             None,
                             coll,
                             uber,
+                            None,
                         );
                         // The want side, projected the same way.
                         let want: Vec<String> = want_log

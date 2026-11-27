@@ -42578,3 +42578,32 @@ Longbowmen (TI 178) aboard, `2/88` retained on the Market's cell. After the fix 
 the first parting moves to 4166, on ammo. Read by
 `row_88_s_riders_closed_aboard_leave_their_owner_above_the_market_on_run1846_s_ranges`, and it is row 88's take for
 every later word.
+## run1847 — parity held out, sixth battery, row 53's whole length to 12,000 with the checksum and ranges hooks, every line but walls kept (2026-11-26, item 4741, `att-4741`)
+
+`docs/RECGAME.md` §13.2. **What the disk could not answer**: row 53 parts on 3935 (units, guys, world), past run1835's
+ranges (to 3720), and no later word of the row books a take (DECISIONS 158 §2): this is the row's one whole take. The
+line is run1835's with `--end-frame 12000`, no `--log-window`, and the mask `score_recording` on run1790's sums names
+for one take of every parted line (`0xffb`): `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1847 --recording ~/ron-golden/recordings/item4566-row053-12000.rcx
+--end-frame 12000 --allow-early-end --cover cover=1 --detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def
+RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0xffbu`, waited on with `waitrun.sh` in the background.
+Launched after row 88's run1846 had filed; `ron_lane_state` read free; `df -g ~` read 78 GB free before it and 69
+after filing.
+- **The run**: pool lane 1, launched 20:36:43 −05:00, exited 20:51:35: **892.5 s** launch to exit, exit 0, `success`,
+  no page fault, no relaunch. 12,001 frames, `last_frame` 12000, not ended early, seed 12345, map 18. The recording's
+  SHA-256 is run1790's (`e4b6a2d6…`). Players: tribe 4 (who 0, flags 7), tribe 2 (who 1), tribe 13 (who 2). The
+  runner's staged default `log_window` was `[18, 36]`.
+- **The record**: `~/ron-golden/run1847/map-18/rontrace.ranges`, 16,337,848,880 bytes, SHA-256
+  `ce338dbc9ba3f6649a72c64dd257c316a67ef36b14b75ae7cc8c1c01ca8d9b36`, split in 16 pieces by `filerun.py` and
+  compressed in place (15.22 GiB on disk before, 1.82 after). `gamelog_p.txt`, 2,892 bytes, SHA-256
+  `2fc0cd5c0b9412d2676b4c266bc3413b844a875abc171727845e88774dd9b51e`; `rontrace.log`, 1,053,913,248 bytes, SHA-256
+  `e240b269f707118b24a382953ed795ce5d4093d1d555967123adbfdcedc518a1`.
+- **Scored** (`score_recording … ~/ron-golden/run1847/map-18`, on the base `19398b5c2`): first state 3935 (units,
+  guys, world), as run1790's sums; ammo 3936. On item 4741's tree: first state 4092 (ammo), units and guys 4093.
+- Filed with `filerun.py run1847 heldout6-row053-whole-ranges`: `Logs/gamelog-run1847-heldout6-row053-whole-ranges.txt`,
+  2,892 bytes; `Logs/rontrace-run1847.log`, 1,053,913,248 bytes, both linked.
+
+**What it named**: units range 4459 on 3935, who=2's Archers `2/68` (TI 171, land), `flags` ours 0x01, theirs 0x81:
+theirs' squad `2/68`..`70` drops the Dromon `1/68` (TI 324, sea) and takes the Merchant `1/25` (`near_o` 25,
+`targeted` on `1/25` 0 → 1, `unit_masks2` 16), where ours' `2/68` chased across the water.
+`Unit::find_attack_pos@00601280`'s `local_3c` region (`docs/journal/2026-11-26-item-4741.md`).
