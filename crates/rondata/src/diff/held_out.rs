@@ -5720,6 +5720,45 @@ pub(crate) mod tests {
         assert_eq!((wb.damage / 1000 + 1000) * 10 / (d / 768 + 1), 217);
     }
 
+    /// Probe for item 4770 (`RON_PROBE_4770`), reverted whole.
+    #[test]
+    fn probe_4770() {
+        if std::env::var("RON_PROBE_4770").is_err() {
+            return;
+        }
+        let inst = crate::testenv::install().expect("install");
+        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+            panic!("rcx");
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 83");
+        let loaded = crate::load::load(&inst).expect("install");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(4618);
+        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(4624);
+        while built.sim.frame < hi {
+            let frame = built.sim.frame;
+            crate::diff::harness::debug_watch(&built, frame);
+            if frame >= lo {
+                if let Some(u) = built.sim.unit_by_o(1, 103) {
+                    let x = &built.sim.units[u];
+                    eprintln!(
+                        "P4770 f{frame} 1/103 ty {:?} name {:?} pos {:?} orders {:?} path {:?} group {:?}",
+                        x.ty,
+                        x.ty.and_then(|t| loaded.unit_type_names.get(t)),
+                        x.pos,
+                        x.orders,
+                        x.path,
+                        x.group
+                    );
+                }
+            }
+            stream.apply(frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        crate::diff::harness::debug_watch(&built, built.sim.frame);
+    }
+
     /// Run1784 enters the caravan danger and restart functions for the first
     /// time on tick 3714. The fatal hit on 2/78 rebuilds the road before its
     /// animation is selected, so all three casualty figures use animation 17.
