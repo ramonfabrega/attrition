@@ -7387,7 +7387,7 @@ pub(crate) mod tests {
                     "1/87 blocked by 2/101"
                 );
                 assert_eq!(
-                    sim.units[follower].orders.first().map(|o| o.index()),
+                    sim.units[follower].orders.front().map(|o| o.index()),
                     Some(sim::orders::index::ATTACK),
                     "1/87 attacks ahead of its attack-move"
                 );
