@@ -264,6 +264,47 @@ impl Sim {
         // held, and the layout reads that group's `facing` (§28).
         let (slot, prev) = self.pool_record(g.who, pool);
         let state = GroupState::copied(prev, pool, self.frame, g.list.len());
+        // `copy_group` wrote the **army's own record** when the slot is one a valid
+        // army owns and has emptied but not recounted (`num_units` still set,
+        // list empty — `get_open_slot` hands such a slot out): the army's
+        // list now names the push, so the army's tick commands it. Golden
+        // chapter ninety-four's Scout `1/0` joins army 0 this way on 846
+        // and gets its `ATTACK_TO` to the muster on 1021 (`docs/GOLDEN.md`
+        // §120). Only the empty case: the equal arm above is parked row 9's.
+        //
+        // **It is one record, the army's** (item 4746, `docs/RECGAME.md`
+        // §14.4): the original has one `Group` on the slot, and its `army`
+        // (`+0x8`) still names the army, so whatever the pusher writes next
+        // — `action_move_near`'s `order_num`, `form_num`, `(ox, oy)` and
+        // `o_angle` — lands on the record the army ticks and the dump
+        // prints. Row 88's who=2 army 3 (slot 11, record 139) loses
+        // Pikemen `2/80` and King's Longbowmen `2/106` on 4362, and the
+        // Despot `2/150`'s push and move land there: run1846 prints
+        // `order_num` 7, `form_num` 1, `(ox, oy)` (38952, 25752) on 4363,
+        // where a second copy in a `Pushed` entry left the army's at 6, 2
+        // and (0, 0). So no entry names the slot, and the group's handle is
+        // the army's seat.
+        let w = g.who as usize;
+        if let Some(i) = self.ai.armies[w].list.iter().position(|a| {
+            a.valid && a.num_units != 0 && a.group.pool == Some(pool) && a.units.is_empty()
+        }) {
+            if let Some(e) = slot {
+                let x = &mut self.orders.pushed[e];
+                x.state.pool = None;
+                x.list.clear();
+                x.builds.clear();
+            }
+            let a = &mut self.ai.armies[w].list[i];
+            a.units = g.list.clone();
+            // A copy writes the record but leaves its army link alone.
+            a.group = GroupState {
+                unlinked: a.group.unlinked,
+                ..state
+            };
+            g.army = Some(i);
+            g.pushed = None;
+            return pool;
+        }
         let entry = crate::groups::group::Pushed {
             who: g.who,
             list: g.list.clone(),
@@ -282,23 +323,6 @@ impl Sim {
         };
         g.army = None;
         g.pushed = Some(slot);
-        // `copy_group` wrote the **army's own record** when the slot is one a valid
-        // army owns and has emptied but not recounted (`num_units` still set,
-        // list empty — `get_open_slot` hands such a slot out): the army's
-        // list now names the push, so the army's tick commands it. Golden
-        // chapter ninety-four's Scout `1/0` joins army 0 this way on 846
-        // and gets its `ATTACK_TO` to the muster on 1021 (`docs/GOLDEN.md`
-        // §120). Only the empty case: the equal arm above is parked row 9's.
-        if let Some(a) = self.ai.armies[g.who as usize].list.iter_mut().find(|a| {
-            a.valid && a.num_units != 0 && a.group.pool == Some(pool) && a.units.is_empty()
-        }) {
-            a.units = g.list.clone();
-            // A copy writes the record but leaves its army link alone.
-            a.group = GroupState {
-                unlinked: a.group.unlinked,
-                ..self.orders.pushed[slot].state.clone()
-            };
-        }
         pool
     }
 

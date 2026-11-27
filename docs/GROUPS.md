@@ -2362,6 +2362,10 @@ Closed by the second reading, struck here and answered where they belong:
   and `Army::normalize@006f9b50` OR each group's `role` into it, and the
   crate's `army_normalize` writes 0 and nothing ORs it. Nothing in the
   simulation reads it (parked 4242a). §3.4.
+- **An equal re-push onto an army's emptied slot** (parked 4746a): since
+  item 4746 that slot is the army's record alone, so `push_group_slot`'s
+  equal arm finds no `Pushed` entry and copies again, where the listing
+  keeps the record. No capture has been shown to reach it.
 
 ## 14. Second reading — landed, and applied
 

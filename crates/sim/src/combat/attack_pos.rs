@@ -476,8 +476,33 @@ impl crate::Sim {
             Lead::Ahead(c) => Some(c),
             Lead::None => None,
         };
-        let p = self.find_nearby_spot(u, centre.unwrap_or(t), min, max, step, angle, None)?;
+        let region = self.attack_pos_region(u, target);
+        let p =
+            self.find_nearby_spot_in_region(u, centre.unwrap_or(t), min, max, step, angle, region)?;
         (far || centre.is_some() || self.is_in_range_at(me, p, target)).then_some(p)
+    }
+
+    /// **`local_3c`, the asker's own region** (`Unit::find_attack_pos@
+    /// 00601280:74`, `:123`–`:143`; item 4741, `docs/COMBAT.md` §17.8):
+    /// `-1`, unless the asker has orders, its current one is an `ATTACK`
+    /// (the order's vslot `+0x10`, `10`), and its type's domain (`+0x218`)
+    /// is neither air (2) nor the target's — then `WorldData::get_tregion`
+    /// of the asker's own tile. It is the last argument of the sweep
+    /// (`:362`) and of the mandatory fallback (`:904`), so a land unit
+    /// chasing a ship takes a spot only on its own land. Row 53's Archers
+    /// `2/68` (TI 171, land) on 3935: the Dromon `1/68` (TI 324, sea) left
+    /// their range, and theirs' sweep found nothing on the archers' shore,
+    /// so `fight` searched and found the Merchant `1/25`; ours walked at a
+    /// spot across the water.
+    pub(crate) fn attack_pos_region(&self, u: usize, target: Obj) -> Option<u16> {
+        let mine = self.profile(Obj::Unit(u)).domain;
+        if self.order_type(u) != crate::ids::order::ATTACK
+            || matches!(mine, Domain::Air)
+            || mine == self.profile(target).domain
+        {
+            return None;
+        }
+        self.world.tregion_alt(self.units[u].pos.tile())
     }
 
     /// **The flanking branch of `Unit::find_attack_pos@00601280`**
