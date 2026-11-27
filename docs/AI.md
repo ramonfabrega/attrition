@@ -23461,7 +23461,7 @@ agrees once the four are spent.
 
 **The caller** (`Object::take_damage@00652020`, `:520`–`:609`). On a kill whose victim is its squad's captain
 (`is_captain`, vslot `+0xe8`), the last figure (`curr_uber_size(0) == 1`) and no decoy (`unit_masks & 1`), with a killer
-(`param_7 >= 0`) that is a unit (vslot `+0x8`), no splash (`param_9`, `do_damage`'s `param_7`) and not the victim's
+(`param_7 >= 0`) that is live (vslot `+0x8`; ~~"a unit"~~, §259.1), no splash (`param_9`, `do_damage`'s `param_7`) and not the victim's
 ally: an Aztec killer from a barracks-line trainer (`+0x40` in `0x1ab`, `0x1ac`, `0x1b0`) calls `plunder(v, k, who, 1,
 0)`; a victim that `is` GENERAL (`0x36`), CARA (`0x3b`) or SUPPLYWAGON (`0x3f`) calls `plunder(v, k, who, 0, 0)`; any
 other calls `plunder(v, k, who, 0, 1)` only when the killer's leader counts a THEDESPOT (`0x160`, by its per-type count) and
@@ -23506,6 +23506,29 @@ bonus (`AZTEC_SLAY_BONUS`, `AZTEC_SLAY_CAP`) and the pre-EE arm are not built. ~
 for a type with `+0x2b4 & 0x10`~~ (built by item 4631, `docs/RECGAME.md` §14.4), or the kill counters around the call (`+0x810`, `+0xa58`, the score `+0x29d8`). The
 victim classes are taken from `unit_flags2` (GENERAL, CARAVAN, SUPPLY_OR_HERO), not from `is`'s lineage. One kill is
 diffed: run943's 10852.
+
+### 259.1 Only a live killer plunders (2026-11-26, item 4671)
+
+**The predicate.** The kill arm's first test after the counters is the killer's vslot `+0x8`, called on
+`objects[param_8][param_7]`. §259 read it as "the killer is a unit". `Unit::vftable` (`0xb417d0`) holds `0x46cda0` at `+0x8`
+(the PE's `.rdata` word). That function, exported as `SubObjectData::is_active`, is `movzbl 0x8(%ecx), %eax; and $1, %eax;
+ret`: the killer's own `ObjectData +0x8 & 1`, the live bit `Ammo::init` tests (item 4595). A killer closed before its blow
+lands skips the whole block to `LAB_00653354`: no Aztec arm, no General/caravan/wagon constant, no Despot search. The Inca
+refund after it is not gated on the killer.
+
+**The case, diff-backed** (run1835, row 53 of the sixth, `docs/RECGAME.md` §13.2). On 3715's tick who=1's Fire Raft `1/66`
+(TI 334, sea) rams who=2's Transport Barge `2/108` (TI 320, sea, 9 of 50). `Sim::ram` fires and closes the raft (`docs/COLLISION.md`
+§6 step 1), and its round then sinks the barge with The Despot `2/19` (TI 352) aboard. Theirs' who=1 takes nothing. Ours
+paid `GENERAL_PLUNDER` in wealth: leaders range 221, record 1, `encrypt` (`bucket[2]`), ours 18,934, theirs 18,834 on
+3716, 100 apart through 3720.
+
+**Built.** `take_damage_typed` calls `unit_plunder` only when `slot_live(_by)`. The tests are
+`row_53_s_rammed_fire_raft_plunders_nothing_on_run1835_s_ranges` (rondata) and `a_closed_killer_plunders_nothing` (sim).
+With the gate dropped through `tools/mutate.py`, both fail (exit 101).
+
+**Not established.** Whether a building killer (`param_7` a building's number) plunders. Ours takes a unit killer only. A
+slot reused by a newcomer before the round lands: theirs reads `objects[who][o]` by number, and ours reads the slot the
+round holds (`hold_dead_slot` keeps it through the hold).
 
 ## 260. The Iroquois 10917: a re-typed figure's mark, the Peltasts' bays, and `set_diags`' corner tail (2026-10-18, item 3287)
 

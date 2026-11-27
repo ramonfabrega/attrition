@@ -14781,3 +14781,50 @@ to two passes after it stops bribing. In the original only
   reading of `process_cloak`. Also unreached: the attacking bit for a
   non-Spy caster's targeted craft (the Commando's Sabotage, the Sniper),
   which the arm admits by the same test.
+
+## 91. A bribed squad keeps the old one's masks (item 4735, 2026-11-26)
+
+`Unit::swap_team@006118d0` re-births a bribed squad figure by figure, and
+on each figure it copies two whole words that this crate copied in part:
+
+- **`unit_masks`** (`+0x68`): `new & 0x40000 | old & 0xfffbffff`
+  (`611a19`, `611a2e`–`611a36`). Every bit but the AI bit, which stays
+  the new owner's. This crate had carried `in_danger`, `line_ok`,
+  `casting`, `marching`, the mirror and the half step (items 2823, 3985).
+  It now carries every bit it holds as a field (`spells::bribe`'s
+  `UnitMasks`). `0x2000` is the one exception: its field,
+  `Unit::ambushing`, carries a payload the word does not.
+- **`flags`** (`+0x8`): `new & 0x40 | old & 0xbf` (`611a05`, `611a15`–
+  `611a22`). The detector bit belongs to the type. The rest are the old
+  figure's: `idle_latch` (`0x08`), `cant_reach` (`0x10`) and `attacking`
+  (`0x80`).
+
+**The attrition mark is copied without its period.** `unit_masks & 0x80`
+is what `Unit::process_attrition@005e11a0`'s refresh sets beside the
+period `attrition` (`+0x9e`), and `swap_team` copies the bit but not the
+field. This crate had read the bit as `attrition != 0`. It is now its own
+field, `Unit::attrition_mark`, and the refresh writes it alongside the
+period. The CEO's heal reads the mark. The bleed reads the period, so a
+bribed squad bleeds nothing until its next refresh.
+
+- **The frame** (run1797, row 133, units on 3739): who=2's Spy `2/84`
+  finishes its Bribe (§90) on 3738. who=1's Assault Infantry `1/86` (TI
+  104) is re-born as `2/122`..`124` under the Iroquois. The old squad
+  had fought and stood under an attrition period, so theirs prints
+  `unit_masks` `0x15108c` on `2/122` (ours `0x14000c`), `0x5108c` on the
+  figures (ours `0x4000c`), and `flags` `0x11` on `2/123` and `2/124`
+  (ours `0x01`). `attrition` is 0 on both sides.
+- **What the leaf showed**: the copied `blown` (`0x1000`) refuses the
+  Iroquois heal (`process_healing@005e0670`, `!(unit_masks & 0x1000)`),
+  which ours ran on the new captain the same frame at
+  `IROQUOIS_HEAL_RATE` 5. Units range 11916, record 122: `damage` ours 1,
+  theirs 2; `healing` ours 5, theirs 0; `damage_frac` ours 0, theirs 4.
+  The draws agree through the frame.
+- **Diff-backed**: run1797's 3739 and 3740, every range of every line
+  (`row_133_s_bribed_infantry_keep_the_old_squad_s_marks_on_run1797`).
+  The sixth's row 133 moves units 3,739 → 3,790.
+- **Unit-backed**: `bribe_s_copy_takes_the_old_unit_s_masks_and_flags`.
+- **Not established**: the copy of bits no capture has shown on a bribed
+  unit (the decoy, the trench, the jam), which rides the same word on one
+  reading of the listing; and `swap_team`'s `inside_down` arm, which
+  copies `unit_masks` without the mask (`:162`) and is still a `SEAM`.
