@@ -2011,6 +2011,67 @@ fn a_boat_carrying_a_soldier_sails_to_its_army_s_target() {
     assert!(!f.sim.units[boat].alive(), "the emptied boat dies");
 }
 
+/// **A rider closed aboard its sunk boat leaves its owner in `up_who` of
+/// what heads its boarding cell** (item 4693, `docs/RECGAME.md` §14.4):
+/// `Object::kill_contents@00645550`'s `come_out` refuses at sea, so the
+/// rider's `Object::close@00647160` takes the off-map arm, whose
+/// `remove_from_inside` ends in `add_to_world` — the rider heads
+/// its retained point's chain, the old head taking `up` and `up_who`
+/// naming it — and whose `remove_from_world` takes it off, `up` −1 and
+/// `up_who` left. run1846's 3716: who=2's King's Longbowmen `2/88` dies
+/// aboard its Transport Barge `2/24`, its point on the Market `2/2041`'s
+/// cell, whose `up_who` reads 2 on 3717.
+///
+/// Made to fail by dropping the `chain_add` from `die_rider`: the
+/// standing unit's `up_who` stays −1.
+#[test]
+fn a_rider_closed_aboard_at_sea_leaves_its_owner_above_what_heads_its_boarding_cell() {
+    let mut f = fix();
+    let soldier = f.sim.add_unit_type(crate::UnitType {
+        hits: 100,
+        combat: crate::combat::Profile {
+            attack: 10,
+            uber_size: 1,
+            // A radius: `come_out`'s ring refuses at sea.
+            block_radius: 48,
+            ..crate::combat::Profile::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let boat = unit(&mut f.sim, 1, f.ship, tile_pos(46, 12));
+    f.sim.units[boat].on_map = true;
+    // Who=0's citizen heads land cell (2, 2), where the rider boarded.
+    let standing = unit(&mut f.sim, 0, f.citizen, tile_pos(10, 10));
+    // Aboard from its birth: never threaded.
+    let index = f.sim.find_free(1, UNIT_BASE, BUILD_BASE).unwrap();
+    let mut u = Unit::new(1, index, tile_pos(10, 10), 100);
+    u.ty = Some(soldier);
+    u.kind.domain = f.sim.tables.unit_types[soldier].combat.domain;
+    u.captain = true;
+    u.inside_unit = Some(boat);
+    u.on_map = false;
+    let rider = f.sim.add_unit(u);
+    let cell = f.sim.units[standing].pos.cell();
+    assert_eq!(f.sim.units[rider].pos.cell(), cell);
+    let up = |sim: &Sim| {
+        let (up, _, _, up_who) = sim.unit_chain_words(standing);
+        (up, up_who)
+    };
+    assert_eq!(up(&f.sim), (-1, -1), "nothing above before");
+    assert_eq!(f.sim.cell_chain(cell), vec![standing]);
+    f.sim.kill_contents(boat);
+    assert!(!f.sim.units[rider].alive(), "the rider dies aboard");
+    assert_eq!(f.sim.units[rider].pos.cell(), cell, "it never came out");
+    assert_eq!(
+        up(&f.sim),
+        (-1, 1),
+        "the head keeps the rider's owner in up_who, and nothing above"
+    );
+    assert_eq!(f.sim.cell_chain(cell), vec![standing], "the rider is off");
+    let (r_up, r_down, _, _) = f.sim.unit_chain_words(rider);
+    assert_eq!((r_up, r_down), (-1, -1));
+}
+
 /// `think_carry_military`'s no-army arm (item 3995, `docs/GOLDEN.md`
 /// §188; run1553's barge `1/10`): out at sea `eject_contents` puts no
 /// one ashore, the boat lives, and it sails for its owner's **nearest**

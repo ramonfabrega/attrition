@@ -42552,3 +42552,29 @@ lane. `df -g ~` read 82 GB free before it.
 
 **What it holds**: the arm behind row 83's 3716 (`docs/journal/2026-11-26-item-4717.md`); named in
 `checksum_lines::packets`, no word walks it.
+
+## run1846 — parity held out, seventh battery, row 88's whole file to 12,000 with the checksum and ranges hooks, every line but walls kept (2026-11-26, item 4693, `att-4693`)
+
+`docs/RECGAME.md` §14.4. **What the disk could not answer**: row 88 parts on 3717 on builds, past run1843's ranges
+(to 3590). DECISIONS 158 §2: the row's one whole take, no `--log-window`; no later word of row 88 books one.
+`TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1846
+--recording ~/ron-golden/recordings/item4600-row088-12000.rcx --end-frame 12000 --allow-early-end --cover cover=1
+--detail end:MISC --timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def
+RNG_MASK=0xffbu`, waited on with `waitrun.sh` in the background. All three lanes read free at launch
+(`ron_lane_state`); `df -g ~` read 92 GB free before it, 65 after the take and 79 after filing.
+- **The run**: pool lane 1, launched 19:39:08 −05:00, exited 19:53:36: **867.5 s** launch to exit, exit 0,
+  `success`, no page fault, no relaunch. 12,001 frames, `last_frame` 12000, not ended early, seed 12345, map 18. The
+  recording's SHA-256 is run1808's (`02dced92…`). Players: tribe 4 (who 0, flags 7), tribe 17 (who 1), tribe 11 (who 2).
+- **The record**: `~/ron-golden/run1846/map-18/rontrace.ranges`, 16,643,707,780 bytes, SHA-256
+  `d10a78503d35d4383e288cdc2f6400ff4b62bd87c266ebf911957b7d5e0e5567`, split in sixteen by `filerun.py` and
+  compressed in place (15.52 GiB on disk before, 1.88 after). `gamelog_p.txt`, 2,882 bytes, SHA-256
+  `c1791dd9e1c4f29409f060a7bf6dd8a842003490f8ae1df952b89b74da37ef7e`; `rontrace.log`, 1,307,030,720 bytes, SHA-256
+  `b69ae23ebbe406d864b14337e64ad3d3344a2d177b8c2090a9b89d11c4703b56`.
+- Filed with `filerun.py run1846 heldout7-row088-whole-ranges`.
+
+**What it named**: builds on 3717, who=2's record 2041 (the Market, cell (47, 26)) `up_who` ours −1, theirs 2. Tick
+3716 draws 115 on both sides, site for site; who=2's Transport Barges `2/24` and `2/64` (TI 320) sink with King's
+Longbowmen (TI 178) aboard, `2/88` retained on the Market's cell. After the fix nothing parts on any kept line to 3800;
+the first parting moves to 4166, on ammo. Read by
+`row_88_s_riders_closed_aboard_leave_their_owner_above_the_market_on_run1846_s_ranges`, and it is row 88's take for
+every later word.
