@@ -2460,6 +2460,19 @@ impl Sim {
     /// immediately before, reads the **unit's** position, so the original
     /// genuinely mixes the two.
     fn guy_corner(&self, o: usize, cell: Pos) -> i32 {
+        // **A wreck is never a corner** (item 4733, `docs/COLLISION.md`
+        // §4.3): `UnitData::is_corner@0060a040` returns 0 before its figure
+        // loop when vslot `+0x8` (`0x46cda0`, `SubObjectData::is_active`,
+        // `flags & 1`) or `+0xbc` (`is_on_map`) answers 0. A death's
+        // `Object::close@00647160` zeroes `flags` whole, the
+        // `blocks_while_dead` arm that keeps the wreck in the world
+        // included, and the chain walk's own live test (`+0x18`, `0x41e0e0`)
+        // answers 1 for anything. So a wreck the walk reaches answers 0
+        // here, and the corner rule makes it hard. A live candidate is
+        // already alive and on the map at both callers.
+        if !self.units[o].alive() || !self.units[o].on_map {
+            return 0;
+        }
         let size = self.coll_size(o);
         // SEAM: a unit this crate has stood up **without figures** —
         // `Sim::add_unit` does not call `init_guys`, so a hand-built one
