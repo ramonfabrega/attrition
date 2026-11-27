@@ -163,5 +163,16 @@ lit. The white bird a pass ago is not in this still.
 
 ## The gate
 
-Whole, by `tools/gate_run.sh`, once, on the pass's commit; the commit
-after it quotes the verdict here.
+Whole, by `tools/gate_run.sh`, once.
+
+- **`gate-pass-1126b.log`: `gate exit 0`** on `7a50d26ba`, the pass's
+  commit, 9 of 9 steps: offline 1.1, clippy 0.1, fmt 0.1, survey 0.1,
+  guard 1.3, merge pins 1.1, release 23.6, clock 0.2. `Clock: green
+  beside load`. Admission 10.3 s over 1,662 leases; load 4.4 at its
+  start and 7.4 at its end. `Fixture audit: 210070 requests, 0 missing
+  fixtures`. `Rows: one driver row at most: steer 338e75c7 (working)`;
+  `Driver: 0 landings since the last pass (backstop 20) · context 322
+  k`; `Trunk: origin/main is origin/worktree-replan-pdb`. `Builders: 0
+  reaped`; 100 GB free by its count.
+- The commit that quotes this is documents only and ran no whole gate;
+  the reflex, `tools/guard.sh`, was green on it.
