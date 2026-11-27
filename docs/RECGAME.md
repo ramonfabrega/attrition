@@ -1880,8 +1880,7 @@ Open: units, builds, groups and guys part on 7675. run1788 holds sums (item 4579
 
 ### 13.2 Row 53
 
-Open: five lines part on 3713. 4660 moved 3358 → 3713: the stored heights (`docs/COLLISION.md` §3.3). Journals
-4578, 4609, 4660.
+Open: three lines on 3935. → 3713 by 4660 (`docs/COLLISION.md` §3.3), 3716 by 4667, 3935 by 4671 (`docs/AI.md` §259.1).
 
 ### 13.3 Row 93
 
@@ -1904,7 +1903,7 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: units on 3739. run1797, *diff-backed*.
+Open: guys, units on 3790. run1797, *diff-backed*.
 
 **Items 4597 to 4620**: units → 2376, builds → 2432, ammo → 2408, leaders → 2413, cities → 2448 (`docs/GROUPS.md`,
 `docs/COMBAT.md` §84, a Temple's close, two walks by object number; their journals).
@@ -1914,8 +1913,8 @@ Open: units on 3739. run1797, *diff-backed*.
 **Item 4632**: units → 2543. On 2439 the Flamethrower `1/115` (`recharging` 30, its attack's `flags` 16) turns at
 its target in theirs and swings in ours: `Unit::fight`'s emplaced latch (`:92`–`100`) takes the head order's `0x10`.
 
-**Items 4691, 4719, 4723, 4728**: units → 3628 → 3633 → 3690 → 3739 (`FILTER_COMBAT`, `docs/ARMY.md` §13,
-`docs/MERCHANT.md` §2.2; the air refusal, `docs/COMBAT.md` §66.8; the Bribe's marks, §90).
+**Items 4691 to 4735**: units → 3628 → 3633 → 3690 → 3739 → 3790 (`FILTER_COMBAT`, `docs/ARMY.md` §13,
+`docs/MERCHANT.md` §2.2; air refusal, `docs/COMBAT.md` §66.8; the Bribe, §90, §91).
 
 ## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
 

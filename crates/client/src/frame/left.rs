@@ -117,7 +117,7 @@ fn crop_of(tag: &str) -> Option<Crop> {
     Some((n("left")?, n("top")?, n("width")?, n("height")?))
 }
 
-fn block<'a>(xml: &'a str, open: &str, close: &str) -> Result<&'a str, String> {
+pub(super) fn block<'a>(xml: &'a str, open: &str, close: &str) -> Result<&'a str, String> {
     xml.split(open)
         .nth(1)
         .and_then(|s| s.split(close).next())
@@ -125,7 +125,7 @@ fn block<'a>(xml: &'a str, open: &str, close: &str) -> Result<&'a str, String> {
 }
 
 /// The tags of a block, the head first.
-fn tags(block: &str) -> Vec<&str> {
+pub(super) fn tags(block: &str) -> Vec<&str> {
     block.split('<').collect()
 }
 
@@ -180,7 +180,7 @@ fn named_rect(tags: &[&str], name: &str, parent: (i32, i32)) -> Result<Span, Str
         .ok_or(format!("interface.xml: no rectangle {name}"))
 }
 
-fn named_tex(tags: &[&str], name: &str) -> Result<Crop, String> {
+pub(super) fn named_tex(tags: &[&str], name: &str) -> Result<Crop, String> {
     tags.iter()
         .find(|t| t.starts_with("IFACETEX ") && attr(t, "name") == Some(name))
         .and_then(|t| crop_of(t))
@@ -362,17 +362,29 @@ pub(super) fn over(dst: &mut [u8], src: [u8; 4]) {
 impl LeftLayout {
     /// **The window composed** from `atlas`, the pieces in order.
     pub fn compose(&self, atlas: &render::tga::Image) -> Result<Texels, String> {
-        let (w, h) = (self.size.0.max(0) as usize, self.size.1.max(0) as usize);
+        compose(self.size, &self.pieces, atlas)
+    }
+}
+
+/// **`pieces` composed** from `atlas` into a `size` image, in order
+/// (item 4737: the banner's too).
+pub(super) fn compose(
+    size: (i32, i32),
+    pieces: &[Piece],
+    atlas: &render::tga::Image,
+) -> Result<Texels, String> {
+    {
+        let (w, h) = (size.0.max(0) as usize, size.1.max(0) as usize);
         let mut rgba = vec![0u8; w * h * 4];
-        for p in &self.pieces {
+        for p in pieces {
             let (l, t, cw, ch) = p.crop;
             if l + cw > atlas.width || t + ch > atlas.height || cw == 0 || ch == 0 {
                 return Err(format!("a crop off the atlas: {:?}", p.crop));
             }
             let (x0, y0, x1, y1) = p.span;
             let (sw, sh) = (i64::from(x1 - x0), i64::from(y1 - y0));
-            for y in y0.max(0)..y1.min(self.size.1) {
-                for x in x0.max(0)..x1.min(self.size.0) {
+            for y in y0.max(0)..y1.min(size.1) {
+                for x in x0.max(0)..x1.min(size.0) {
                     let (u, v) = (i64::from(x - x0), i64::from(y - y0));
                     let c = match p.fill {
                         Fill::Tile => {

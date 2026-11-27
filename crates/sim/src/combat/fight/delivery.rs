@@ -786,7 +786,17 @@ impl Sim {
                     }
                     // `take_damage@00652020:607`, before `die` (vslot
                     // `+0x158`): the kill's plunder (`docs/AI.md` §259).
-                    if !splash && let Obj::Unit(k) = _by {
+                    // **Only a live killer plunders** (item 4671,
+                    // `docs/AI.md` §259.1): the arm's first test is the
+                    // killer's vslot `+0x8` (`Unit::vftable` `0xb417d8` →
+                    // `0x46cda0`, `movzbl 0x8(%ecx)`, `and $1`), its own
+                    // `ObjectData +0x8 & 1`, ahead of `param_9` and the
+                    // ally test. A Fire Raft that rammed (`Sim::ram`) is
+                    // closed before its round lands, and plunders nothing.
+                    if !splash
+                        && let Obj::Unit(k) = _by
+                        && self.slot_live(_by)
+                    {
                         self.unit_plunder(i, k);
                     }
                     self.inca_refund(i, _by);

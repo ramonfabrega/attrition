@@ -241,6 +241,7 @@ fn a_ceo_heals_the_hurt_figure_of_a_squad_abroad_every_20_frames() {
         "the unhurt figure passes it on"
     );
     sim.units[c].attrition = 48;
+    sim.units[c].attrition_mark = true;
     sim.ceo_heal(c, due + 20, sim.has_damage(c));
     assert_eq!(state(&sim), (212, 0), "under an attrition period, nothing");
 }

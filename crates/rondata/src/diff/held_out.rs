@@ -2653,6 +2653,95 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 133's bribed infantry keep the old squad's marks** (item 4735,
+    /// `docs/COMBAT.md` §91): run1797's ranges, the row's units parting on
+    /// 3739. who=2's Spy `2/84` finishes its Bribe on 3738 and who=1's
+    /// Iroquois-held Assault Infantry `1/86` (TI 104) is re-born as `2/122`..
+    /// `124`. `Unit::swap_team@006118d0` copies `unit_masks` but the AI bit
+    /// and `flags` but `0x40`: the attrition mark without its period,
+    /// `blown` and `fought`, and `cant_reach` on the figures. The copied
+    /// `blown` keeps the Iroquois heal (`IROQUOIS_HEAL_RATE` 5) off the new
+    /// captain the same frame, where ours healed it: record 122 `damage`
+    /// ours 1, theirs 2, `healing` ours 5, theirs 0, `damage_frac` ours 0,
+    /// theirs 4; records 123 and 124 `flags` ours 0x01, theirs 0x11;
+    /// `unit_masks` ours 0x0c, theirs 0x108c above the bits shared. Every
+    /// range of every line on 3739 and 3740.
+    #[test]
+    fn row_133_s_bribed_infantry_keep_the_old_squad_s_marks_on_run1797() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 3738 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let victim = built.sim.unit_by_o(1, 86).expect("the infantryman");
+        assert_eq!(
+            built.sim.units[victim].type_index, 104,
+            "1/86 is an Assault Infantry"
+        );
+        assert!(built.sim.unit_by_o(2, 122).is_none(), "2/122 not yet born");
+        for state in [3739, 3740] {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            assert_eq!(built.sim.frame, state);
+            if state == 3739 {
+                let c = built.sim.unit_by_o(2, 122).expect("the bribed captain");
+                let u = &built.sim.units[c];
+                assert_eq!(u.type_index, 104, "2/122 is an Assault Infantry");
+                assert!(u.attrition_mark && u.attrition == 0, "the mark, no period");
+                assert!(u.blown && u.fought, "unit_masks 0x11000 copied");
+                assert_eq!(
+                    (u.max_health - u.health, u.damage_frac, u.healing),
+                    (2, 4, 0),
+                    "2/122 unhealed: damage 2, frac 4, healing 0"
+                );
+                let m = built.sim.unit_by_o(2, 123).expect("a bribed figure");
+                assert!(built.sim.units[m].cant_reach, "2/123 flags 0x10");
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (line, ours) in lines.iter().enumerate() {
+                let Some(ours) = ours.as_ref() else {
+                    continue;
+                };
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {line}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "line {line} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 133's Flamethrower drops the helicopter its attack-move
     /// found** (item 4723, `docs/COMBAT.md` §66.4): run1797's ranges, the
     /// row's units parting on 3633 (record 73, `orders.count` ours 2,
@@ -4290,6 +4379,74 @@ pub(crate) mod tests {
         assert!(
             built.sim.unit_by_o(1, 49).is_none(),
             "the Fire Raft 1/49 sank"
+        );
+    }
+
+    /// **Row 53's rammed Fire Raft plunders nothing** (item 4671,
+    /// `docs/RECGAME.md` §13.2, `docs/AI.md` §259.1): run1835. On 3715's
+    /// tick who=1's Fire Raft `1/66` (TI 334, sea) rams who=2's Transport
+    /// Barge `2/108` (TI 320), closing itself before its round sinks the
+    /// barge and The Despot `2/19` aboard. `take_damage@00652020`'s kill arm
+    /// asks the killer's `ObjectData +0x8 & 1` first, so theirs pays no
+    /// `GENERAL_PLUNDER`. Every units, deaths, guys and leaders range on
+    /// 3715 to 3720, ours against theirs, byte for byte: red on the tree
+    /// before the fix at leaders range 221 on 3716, record 1 `encrypt`
+    /// (who=1's `bucket[2]`, wealth), ours 0x49f6, theirs 0x4992.
+    #[test]
+    fn row_53_s_rammed_fire_raft_plunders_nothing_on_run1835_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 2) else {
+            eprintln!("skipping: row 53's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1835/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1835's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 53's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3715..=3720 {
+            while built.sim.frame < state {
+                crate::diff::harness::debug_watch(&built, built.sim.frame);
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            if state == 3715 {
+                assert!(
+                    built.sim.unit_by_o(2, 108).is_some() && built.sim.unit_by_o(2, 19).is_some(),
+                    "the barge 2/108 and The Despot 2/19 aboard stand on 3715"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (li, name) in [(0u8, "units"), (4, "deaths"), (6, "guys"), (7, "leaders")] {
+                let ours = lines[usize::from(li)].as_ref().expect(name);
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == li).collect();
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{name} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+            }
+        }
+        assert!(
+            built.sim.unit_by_o(2, 108).is_none() && built.sim.unit_by_o(1, 66).is_none(),
+            "the barge and the raft are gone"
         );
     }
 
@@ -14207,19 +14364,30 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 4,137 -> 5,111, deaths 3,939 -> 4,579, groups 3,726 -> 3,991, guys
         // 3,713 -> 3,935, leaders 3,715 -> 3,716, cities 3,951 -> 4,017,
         // items 8,907 -> 9,274, goods 3,865 -> 4,177, world 3,721 -> 3,935.
+        // Then item 4671 (`take_damage`'s kill arm plunders only for a live
+        // killer, its `ObjectData +0x8 & 1`): on 3715's tick who=1's Fire
+        // Raft `1/66` (TI 334, sea), closed by its own ram, sinks who=2's
+        // Transport Barge `2/108` (TI 320) carrying The Despot `2/19`, and
+        // theirs pays nothing where ours paid `GENERAL_PLUNDER` 100 in
+        // wealth (run1835: leaders range 221, who=1's `bucket[2]`, ours
+        // 0x49f6, theirs 0x4992 on 3716). The row's first parting moves 3716
+        // -> 3935 (units, guys, world): units 3,916 -> 3,935, leaders 3,716
+        // -> 3,951, goods 4,177 -> 4,450; ammo 5,111 -> 4,148 and deaths
+        // 4,579 -> 4,110, named falls past the parting (their first partings
+        // 3936 and 3953 stand).
         moved: Some(Score {
             states: 12001,
             agreed: [
-                3916, 3958, 12001, 5111, 4579, 3991, 3935, 3716, 4017, 9274, 4177, 3935,
+                3935, 3958, 12001, 4148, 4110, 3991, 3935, 3951, 4017, 9274, 4450, 3935,
             ],
             first: &[
-                ("units", (3877, Some(1832010173), 161694163)),
+                ("units", (3935, Some(2622448709), 3485469412)),
                 ("builds", (3958, Some(3595767448), 3970174217)),
                 ("ammo", (3936, Some(694955675), 2819435824)),
                 ("deaths", (3953, Some(1), 1283722710)),
                 ("groups", (3962, Some(1442251662), 3395814287)),
                 ("guys", (3935, Some(1591783644), 3960515968)),
-                ("leaders", (3716, Some(1926929378), 1962646398)),
+                ("leaders", (3951, Some(3688145869), 3344016348)),
                 ("cities", (4003, Some(3962131591), 2788447350)),
                 ("items", (4596, Some(3298888854), 3301772440)),
                 ("goods", (4064, Some(3259888248), 3254121078)),
@@ -14803,23 +14971,38 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // ours 0, theirs 0x60 on 3690, both theirs now): units 3,690 ->
         // 3,739 (first 3690 -> 3739), every other line standing. The first
         // parting is units alone on 3739.
+        // Then item 4735 (`Unit::swap_team@006118d0` copies `unit_masks`
+        // but the AI bit and `flags` but `0x40`: who=2's Spy `2/84` bribes
+        // who=1's Assault Infantry `1/86`, TI 104, on 3738, re-born as
+        // `2/122`..`124` with the attrition mark, `blown`, `fought` and
+        // `cant_reach`, and the copied `blown` keeps the Iroquois heal off
+        // the captain; units range 11916, record 122, `damage` ours 1,
+        // theirs 2, `healing` ours 5, theirs 0, `damage_frac` ours 0, theirs
+        // 4 on 3739, both theirs now): units 3,739 -> 3,790 (first 3739 ->
+        // 3790), builds 3,864 -> 3,971 (first 3850 -> 3948), ammo 3,806 ->
+        // 3,867 (first 3803 -> 3842), groups 3,834 -> 3,980 (first 3810 ->
+        // 3969), leaders 3,803 -> 3,950 (first 3803 -> 3943), cities 3,876
+        // -> 3,983 (first 3867 -> 3983), items 4,387 -> 5,741 (first 4387 ->
+        // 5741), goods 4,483 -> 4,536 (first 4476 stands), world 3,802 ->
+        // 3,948 (first 3802 -> 3810); deaths 3,802 stands with ours' word
+        // on it moved. The first parting is guys and units on 3790.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                3739, 3864, 6085, 3806, 3802, 3834, 3790, 3803, 3876, 4387, 4483, 3802,
+                3790, 3971, 6085, 3867, 3802, 3980, 3790, 3950, 3983, 5741, 4536, 3948,
             ],
             first: &[
-                ("units", (3739, Some(1986913293), 3842434528)),
-                ("builds", (3850, Some(4293904204), 192464599)),
-                ("ammo", (3803, Some(1779153171), 2589129557)),
-                ("deaths", (3802, Some(3088599948), 1452759926)),
-                ("groups", (3810, Some(4109959385), 815136989)),
+                ("units", (3790, Some(1503850358), 2745429123)),
+                ("builds", (3948, Some(3999418624), 3497937521)),
+                ("ammo", (3842, Some(3143630610), 2293137)),
+                ("deaths", (3802, Some(2642172519), 1452759926)),
+                ("groups", (3969, Some(374750564), 2222603628)),
                 ("guys", (3790, Some(2319256367), 842991898)),
-                ("leaders", (3803, Some(2390515815), 1773625448)),
-                ("cities", (3867, Some(2807787253), 2521919215)),
-                ("items", (4387, Some(1284182481), 1281298895)),
+                ("leaders", (3943, Some(3705297316), 2580830626)),
+                ("cities", (3983, Some(1990158189), 2336777843)),
+                ("items", (5741, Some(1281298895), 1298600403)),
                 ("goods", (4476, Some(586774648), 601192570)),
-                ("world", (3802, Some(2581643100), 3822436103)),
+                ("world", (3810, Some(881049451), 3192700779)),
             ],
             over: None,
         }),
