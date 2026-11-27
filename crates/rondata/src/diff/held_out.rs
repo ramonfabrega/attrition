@@ -4811,6 +4811,112 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 83's Airbase does not count an enemy air-defense site as a
+    /// defense** (item 4736, `docs/RECGAME.md` §12.3): run1784, the ranges
+    /// take of row 83's file. who=1 places the AIRDEFENSE site `1/2046`
+    /// (`TypeIndex` 0x20b) on 3783, nine tiles from its wonder `1/2026`, and
+    /// on 3791 (`(3791 + 2033) % 32 == 0`) who=2's Airbase `2/2033` scores
+    /// the wonder anyway: `ObjectsData::find_building@0065d260` skips an
+    /// object whose vslot `0x4c` (`flags & 4`, the built bit) answers 0. The
+    /// wonder is past every plane's reach, so none goes; ours skipped the
+    /// wonder for the site, took who=1's city 8,040 off and sent all five.
+    /// Every units and builds range on 3790 to 3792, ours against theirs,
+    /// byte for byte: red on the tree before the fix at units range 8311,
+    /// record 90 (the Biplane `2/90`), `orders.count` ours 1, theirs 0 on 3792.
+    #[test]
+    fn row_83_s_airbase_does_not_count_an_air_defense_site_on_run1784_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+            eprintln!("skipping: row 83's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1784/map-14"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1784's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 83's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3790..=3792 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (li, name) in [(0u8, "units"), (1, "builds")] {
+                let ours = lines[usize::from(li)].as_ref().expect(name);
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == li).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{name} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+            // The site by name: who=1's builds record 2046, `flags` 0x41
+            // on theirs (alive, detect; not started, not built).
+            let builds = lines[1].as_ref().expect("builds");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+            let k = builds
+                .ranges
+                .iter()
+                .enumerate()
+                .filter(|(_, r)| r.record == 2046 && r.field == "who..y_internal")
+                .find(|(k, _)| theirs[*k].bytes[0] == 1)
+                .map(|(k, _)| k)
+                .expect("1/2046");
+            let f = (0..k)
+                .rev()
+                .find(|&j| builds.ranges[j].field == "flags")
+                .expect("1/2046's flags");
+            assert_eq!(theirs[f].bytes[..], [0x41], "1/2046's flags on {state}");
+            // The Biplane by name: who=2's unit record 90, no order.
+            let units = lines[0].as_ref().expect("units");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+            let k = units
+                .ranges
+                .iter()
+                .enumerate()
+                .filter(|(_, r)| r.record == 90 && r.field == "who..y_internal")
+                .find(|(k, _)| theirs[*k].bytes[0] == 2)
+                .map(|(k, _)| k)
+                .expect("2/90");
+            let j = (k..units.ranges.len())
+                .find(|&j| units.ranges[j].field == "orders.count")
+                .expect("2/90's orders");
+            assert_eq!(&theirs[j].bytes[..], &[0, 0, 0, 0], "2/90's orders on {state}");
+        }
+        let site = built.sim.building_by_o(1, 2046).expect("1/2046");
+        assert_eq!(
+            built.sim.building_ident(site),
+            sim::cities::build::Ident::AirDefense
+        );
+        assert!(
+            built.sim.buildings[site].alive && !built.sim.buildings[site].active,
+            "1/2046 is a site"
+        );
+        let u = built.sim.unit_by_o(2, 90).expect("2/90");
+        assert_eq!(
+            loaded.unit_type_names[built.sim.units[u].ty.expect("its type")],
+            "Biplane"
+        );
+        assert!(!built.sim.units[u].on_map, "2/90 is in its base");
+    }
+
     /// **Row 83's Airbase keeps its Biplane in when an enemy wonder out of
     /// reach outscores the city** (item 4562, `docs/RECGAME.md` §12.3):
     /// run1784, the ranges take of row 83's file. who=2's computer sortie
