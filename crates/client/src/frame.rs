@@ -24,6 +24,7 @@ pub mod caps;
 pub mod left;
 pub mod resources;
 pub mod right;
+pub mod selected;
 pub mod slots;
 
 /// **The atlas's code** for a console of `ages` ages owned (0 the Ancient)
@@ -167,6 +168,9 @@ pub struct MinimapFrame {
     /// Item 4738: the bar's right side ([`right`]), composed on a frame's
     /// width as it is drawn.
     pub right: right::RightLayout,
+    /// Item 4748: the selected panel's frame ([`selected`]), `None` where
+    /// interface.xml has none.
+    pub selected: Option<selected::SelectedLayout>,
 }
 
 /// **The population box's art** (item 4739): its layout and `TEX_COMMON`.
@@ -205,6 +209,7 @@ pub struct FrameArt {
     left: left::LeftLayout,
     banner: banner::BannerLayout,
     right: right::RightLayout,
+    selected: Option<selected::SelectedLayout>,
     /// interface.xml's own `TEX_CIV` file, the fallback.
     default_civ: String,
     /// Item 4727: the clock's face, and `rules.xml`'s `gamespeeds`, the
@@ -227,6 +232,7 @@ impl FrameArt {
         let left = left::LeftLayout::parse(&xml)?;
         let banner = banner::BannerLayout::parse(&xml)?;
         let right = right::RightLayout::parse(&xml)?;
+        let selected = selected::SelectedLayout::parse(&xml).ok();
         let default_civ = xml
             .split('<')
             .filter(|t| t.starts_with("IFACETEXLOAD"))
@@ -259,6 +265,7 @@ impl FrameArt {
             left,
             banner,
             right,
+            selected,
             default_civ,
             face,
             speeds,
@@ -315,6 +322,7 @@ impl FrameArt {
             caps: self.caps.clone(),
             civ: std::sync::Arc::new(atlas),
             right: self.right.clone(),
+            selected: self.selected.clone(),
         })
     }
 }
@@ -374,6 +382,7 @@ impl MinimapFrame {
         line: Option<&str>,
         slots: &[slots::Slot],
         figures: Option<caps::Figures>,
+        panel: Option<selected::Panel>,
     ) -> Vec<crate::gpu::ScreenLayer> {
         let o = self.origin(size);
         let (x1, y1) = (
@@ -383,7 +392,7 @@ impl MinimapFrame {
         // Item 4738: the bar's right side, the parent's, under the
         // minimap's window, whose back runs to x 655.
         let mut v = Vec::new();
-        if let Some((t, c)) = self.right_side(size) {
+        if let Some((t, c)) = self.right_side(size, panel) {
             let (x1, y1) = (
                 (c.0 + t.w as i32).min(size.0),
                 (c.1 + t.h as i32).min(size.1),
@@ -453,11 +462,28 @@ impl MinimapFrame {
     }
 
     /// **The bar's right side composed** (item 4738, [`right`]) on a
-    /// `size` frame, and its corner on the screen.
-    pub fn right_side(&self, size: (i32, i32)) -> Option<(Texels, (i32, i32))> {
-        let (t, (x, y)) = self.right.compose(&self.civ, size.0).ok()?;
+    /// `size` frame, and its corner on the screen. Item 4748: `panel`'s
+    /// frame ([`selected`]) over it, at `right_window`'s corner.
+    pub fn right_side(
+        &self,
+        size: (i32, i32),
+        panel: Option<selected::Panel>,
+    ) -> Option<(Texels, (i32, i32))> {
+        let (mut t, (x, y)) = self.right.compose(&self.civ, size.0).ok()?;
         let b = self.bar_origin(size);
-        Some((t, (b.0 + x, b.1 + y)))
+        let c = (b.0 + x, b.1 + y);
+        if let (Some(p), Some(l), Some(art), Some(w)) =
+            (panel, &self.selected, &self.caps, self.right.window(size.0))
+        {
+            let layers = l.layers((b.0 + w.0, b.1 + w.1), p.team, p.capital);
+            let span = (c.0, c.1, c.0 + t.w as i32, c.1 + t.h as i32);
+            let over = caps::paint_layers(span, &layers, &art.common, &self.civ).ok()?;
+            let dst = t.rgba.as_chunks_mut::<4>().0;
+            for (d, s) in dst.iter_mut().zip(over.rgba.as_chunks::<4>().0) {
+                left::over(d, *s);
+            }
+        }
+        Some((t, c))
     }
 
     /// **The population box composed** (item 4739, [`caps`]) on a `size`
@@ -501,6 +527,33 @@ pub fn bar_slots(
         return Vec::new();
     };
     slots::selected(world.runner.sim(), &world.names.roster, &art, who, sel)
+}
+
+/// **The selected panel in `world`** for `who`'s selection `sel` (item
+/// 4748, [`selected`]): one object, its owner's `TeamColor::get_unit`, and
+/// whether it is a city's capital. `None` for none or a group, which
+/// `on_redraw` draws no frame for.
+pub fn selected_panel(
+    world: &crate::world::World,
+    sel: &[sim::observe::ObjId],
+) -> Option<selected::Panel> {
+    let [o] = sel else {
+        return None;
+    };
+    let sim = world.runner.sim();
+    let capital = sim.cities.cities.iter().any(|c| {
+        c.alive
+            && c.capital
+            && c.owner == o.who
+            && sim
+                .buildings
+                .get(c.building)
+                .is_some_and(|b| b.index == o.o)
+    });
+    Some(selected::Panel {
+        team: render::silhouette::team_unit(o.who as u8),
+        capital,
+    })
 }
 
 /// **The population box's figures in `world`** for `who` (item 4739):

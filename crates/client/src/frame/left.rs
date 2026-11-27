@@ -134,7 +134,7 @@ pub(super) fn tags(block: &str) -> Vec<&str> {
 
 /// The `IFACERECT`s and `IFACETEX`s named `name` among `tags`, paired in
 /// order, the rectangles resolved in `parent` and moved by `at`.
-fn pairs(
+pub(super) fn pairs(
     tags: &[&str],
     name: &str,
     parent: (i32, i32),
