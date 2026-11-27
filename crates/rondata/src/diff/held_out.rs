@@ -4628,6 +4628,88 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 53's Village keeps the round that came down on itself**
+    /// (item 4749, `docs/RECGAME.md` §13.2, `docs/COMBAT.md` §39.4):
+    /// run1847, the row's whole take. who=1's Village `1/2013`'s round at
+    /// who=2's `2/78`, fired on 4083, comes down on 4091's tick inside the
+    /// Village's own footprint; `check_hit` names the Village, and
+    /// `Ammo::do_damage@00678060:98`-`:100` takes the puncture arm for a
+    /// pair that is the shooter's, spends both draws and keeps the round in
+    /// slot 1 as spent. Every units, ammo, guys and world range on 4091 to
+    /// 4093, ours against theirs, byte for byte: red on the tree before the
+    /// fix at ammo on 4092, ours 6 ranges, theirs 9 (slot 1's `flags` 0x01
+    /// first), then units and guys on 4093.
+    #[test]
+    fn row_53_s_village_keeps_the_round_that_came_down_on_itself_on_run1847_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 2) else {
+            eprintln!("skipping: row 53's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1847/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1847's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 53's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let word = |b: &[u8], k: usize| i32::from_le_bytes(b[3 + 4 * k..7 + 4 * k].try_into().unwrap());
+        for state in 4091..=4093 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            if state == 4092 {
+                // Theirs' stuck round by value: ammo ranges 0 and 1, slot 1,
+                // the Village's, `flags` 1, `cur_time` 0 of 10, the pair on
+                // the Village itself.
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == 3).collect();
+                assert_eq!(theirs[0].bytes, [1], "theirs' slot 1 is spent");
+                let b = &theirs[1].bytes;
+                assert_eq!(
+                    (word(b, 7), word(b, 8), word(b, 11), word(b, 13), word(b, 14)),
+                    (0, 10, 1, 1, 2013),
+                    "theirs' cur_time, total_time, slot, who, o"
+                );
+                assert_eq!((word(b, 16), word(b, 17)), (1, 2013), "theirs' whom, ox");
+                let v = built.sim.building_by_o(1, 2013).expect("the Village 1/2013");
+                let ours = built
+                    .sim
+                    .combat
+                    .projectiles
+                    .iter()
+                    .find(|p| p.shooter == sim::combat::Obj::Building(v))
+                    .expect("ours keeps the Village's round");
+                assert!(ours.spent, "ours' is spent");
+            }
+            for (li, name) in [(0u8, "units"), (3, "ammo"), (6, "guys"), (11, "world")] {
+                let ours = lines[usize::from(li)].as_ref().expect(name);
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == li).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{name} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 83's Airbase keeps its Biplane in when an enemy wonder out of
     /// reach outscores the city** (item 4562, `docs/RECGAME.md` §12.3):
     /// run1784, the ranges take of row 83's file. who=2's computer sortie
