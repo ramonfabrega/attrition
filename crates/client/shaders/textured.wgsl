@@ -34,6 +34,15 @@ fn vs_textured(
 @fragment
 fn fs_textured(i: VOut) -> @location(0) vec4<f32> {
     let t = textureSample(tex, samp, i.uv);
+    // Item 4768 (§6.27): an addon's corner carries an owner of 2, out of
+    // a colour's range: its `Ammo Blend` texel's alpha is coverage, cut at
+    // a half, and no owner's colour shows through.
+    if (i.owner.y > 1.5) {
+        if (t.a < 0.5) {
+            discard;
+        }
+        return vec4<f32>(t.rgb, 1.0);
+    }
     return vec4<f32>(mix(i.owner, t.rgb, t.a), 1.0);
 }
 

@@ -209,6 +209,21 @@ pub struct World {
     /// the first foundation or scaffold drawn, so frame zero pays nothing.
     construction: Option<Vec<ConstructionArt>>,
     scaffolds: Option<Vec<ScaffoldArt>>,
+    /// Each building piece's `EXISTEVENT` addons, read once a piece
+    /// (item 4768, `docs/RENDERER.md` §6.27).
+    addon_art: BTreeMap<i32, Vec<AddonArt>>,
+    /// Each addon's ammo piece's model, texture and `.BHa` file.
+    addon_models: BTreeMap<i32, AddonArt>,
+    /// `ammo_pieces` and `ammo_elements`, read once.
+    ammo: Option<(BTreeMap<String, i32>, Vec<rondata::artdata::AmmoArt>)>,
+    /// Draw each building's `EXISTEVENT` addons (item 4768, §6.27): the
+    /// Woodcutter's Camp's hoist. On by default; the row's count as drawn
+    /// before turns it off.
+    pub addons: bool,
+    /// The milliseconds every addon is drawn at, before its own length
+    /// takes them, in place of the building's clock ([`addon_clock`]):
+    /// `None` but where a row pins the packet's own.
+    pub addon_ms: Option<u32>,
     terrain: (u32, TerrainMesh),
     /// Draw the map's trees (item 4080, `render::trees`). On by default;
     /// `--no-trees` turns it off.
@@ -1394,6 +1409,11 @@ impl World {
             sprite_tint: tint,
             construction: None,
             scaffolds: None,
+            addon_art: BTreeMap::new(),
+            addon_models: BTreeMap::new(),
+            ammo: None,
+            addons: true,
+            addon_ms: None,
             runner,
             terrain: (u32::MAX, TerrainMesh::default()),
             trees: true,
@@ -1770,6 +1790,7 @@ impl World {
                     mips: mips.clone(),
                     light: Vec::new(),
                     diffuse: Vec::new(),
+                    cut: false,
                 })
                 .collect();
             // Item 4178 (§3.12): the land pass draws no `OCEAN` tile;
@@ -3003,6 +3024,7 @@ impl World {
                     mips: art.leaf_mips.get(k)?.clone()?,
                     light: Vec::new(),
                     diffuse,
+                    cut: false,
                 })
             })
             .collect()
@@ -3096,6 +3118,7 @@ impl World {
                     mips: self.shadow_texture(piece)?.clone(),
                     light: Vec::new(),
                     diffuse: Vec::new(),
+                    cut: false,
                 })
             })
             .collect()
@@ -3179,6 +3202,9 @@ impl World {
         let (model, scale, files) = if let Some(e) = keyed(piece, SCAFFOLD_KEY) {
             let s = self.scaffold_art().get(e)?;
             (s.model.clone(), SCAFFOLD_SCALE, Vec::new())
+        } else if let Some(a) = self.addon_models.get(&piece) {
+            let files = a.anim.iter().map(|f| (0, f.clone())).collect();
+            (a.model.clone(), render::fire::BUILD_SCALE, files)
         } else if building {
             let set = std::iter::once(piece).collect();
             let art = build_art(&self.install, &set);
@@ -3220,7 +3246,11 @@ impl World {
         }
         let name = match keyed(piece, SCAFFOLD_KEY) {
             Some(e) => self.scaffold_art().get(e).map(|s| s.texture.clone()),
-            None => self.unit_textures.get(&piece).cloned(),
+            None => self.unit_textures.get(&piece).cloned().or_else(|| {
+                self.addon_models
+                    .get(&piece)
+                    .and_then(|a| a.texture.clone())
+            }),
         };
         let decoded = name
             .and_then(|t| resolve_art(&self.root, &t))
@@ -3586,6 +3616,129 @@ impl World {
         out
     }
 
+    /// A building piece's `EXISTEVENT` addons, read once (item 4768,
+    /// §6.27): each subject's ammo piece (`ammo_pieces`, the first name
+    /// matched without case), its `<AMMO>`'s model and texture, and the
+    /// event's `anim` file. Their meshes and textures are keyed by the
+    /// ammo piece ([`World::mesh`], [`World::figure_texture`]).
+    pub fn addon_art(&mut self, piece: i32) -> Vec<AddonArt> {
+        if let Some(a) = self.addon_art.get(&piece) {
+            return a.clone();
+        }
+        let install = &self.install;
+        let (pieces, elements) = self.ammo.get_or_insert_with(|| {
+            (
+                rondata::artdata::ammo_pieces(install),
+                rondata::artdata::ammo_elements(install),
+            )
+        });
+        let set = std::iter::once(piece).collect();
+        let art = build_art(install, &set);
+        let mut out = Vec::new();
+        for (subject, _, _, file) in art
+            .get(&piece)
+            .and_then(|a| a.as_ref().ok())
+            .map(|a| a.addons.as_slice())
+            .unwrap_or_default()
+        {
+            let Some(&ammo) = pieces.get(&subject.to_lowercase()) else {
+                continue;
+            };
+            let Some(e) = elements.get((ammo - sim::combat::FIRST_AMMO_PIECE) as usize) else {
+                continue;
+            };
+            let Some(model) = e.model.clone() else {
+                continue;
+            };
+            let a = AddonArt {
+                piece: ammo,
+                model,
+                texture: e.texture.clone(),
+                anim: file.clone(),
+            };
+            self.addon_models.entry(ammo).or_insert_with(|| a.clone());
+            if !out.contains(&a) {
+                out.push(a);
+            }
+        }
+        self.addon_art.insert(piece, out.clone());
+        out
+    }
+
+    /// **Each drawn building's addons, placed** (item 4768, §6.27):
+    /// `GraphicPieces::execute_graphic_events@00909a10` draws an
+    /// `EXISTEVENT`'s subject with the building's chad: its point, its
+    /// angle 270 and its `sx`, `sy`, `sz` (1, −1, 1) times `build_scale`,
+    /// which `draw_ammo@008e68b0` applies as `rotate_z`, the point and
+    /// the scale ([`guy_placement`] at 270 and [`render::fire::BUILD_SCALE`],
+    /// as the fire's frame). Posed at [`addon_clock`] modulo the addon's
+    /// own length, 0 where the building is not `WallData::is_active`.
+    /// Off with [`World::addons`].
+    pub fn addon_drawings(&mut self, buildings: &[PlacedBuilding], list: &[Drawn]) -> Vec<Drawing> {
+        if !self.addons {
+            return Vec::new();
+        }
+        let at_building: BTreeMap<(u8, i16), &PlacedBuilding> =
+            buildings.iter().map(|b| ((b.who, b.o), b)).collect();
+        let frame = {
+            let scene = self.runner.scene(None);
+            scene.frame - i64::from(self.blend == Blend::Last)
+        };
+        let mut out = Vec::new();
+        for d in list {
+            let Pose::Building { .. } = d.pose else {
+                continue;
+            };
+            let Some(b) = at_building.get(&(d.who, d.o)) else {
+                continue;
+            };
+            for a in self.addon_art(d.piece) {
+                if self.hidden.contains(&a.piece) {
+                    continue;
+                }
+                let Some(mesh) = self.mesh(a.piece, false) else {
+                    continue;
+                };
+                let (x, y, z) = b.anchor_point();
+                let m = guy_placement([x, y, z], ADDON_ANGLE, mesh.scale);
+                let ms = self.addon_ms.unwrap_or_else(|| addon_clock(frame));
+                let pose = mesh.anims.get(&0).map(|anim| {
+                    let len = anim
+                        .played()
+                        .first()
+                        .and_then(|n| n.times().last().copied())
+                        .map_or(0, u32::from);
+                    let t = if b.active && len > 0 { ms % len } else { 0 };
+                    posed(&mesh.model, anim, t)
+                });
+                let verts = pose.as_ref().unwrap_or(&mesh.rest);
+                let tris = mesh
+                    .faces
+                    .iter()
+                    .map(|f| f.map(|i| apply(&m, verts[i as usize])))
+                    .collect();
+                let uvs = if mesh.model.texcoords.len() == mesh.model.verts.len() {
+                    mesh.faces
+                        .iter()
+                        .map(|f| f.map(|i| mesh.model.texcoords[i as usize]))
+                        .collect()
+                } else {
+                    Vec::new()
+                };
+                out.push(Drawing {
+                    who: d.who,
+                    o: d.o,
+                    piece: a.piece,
+                    building: true,
+                    tris,
+                    uvs,
+                    normals: Vec::new(),
+                });
+            }
+        }
+        out
+    }
+
     /// Every drawn figure's and building's mesh, placed: the figures
     /// textured through their texcoords where [`World::textured`] is on and
     /// the piece's `texture=` decodes (item 4099), one mesh a drawing; the
@@ -3598,7 +3751,10 @@ impl World {
     ) -> (Soup, Vec<TexturedMesh>) {
         let mut soup = Soup::default();
         let mut textured = Vec::new();
-        for d in self.objects(figures, buildings, list) {
+        let mut drawings = self.objects(figures, buildings, list);
+        let first_addon = drawings.len();
+        drawings.extend(self.addon_drawings(buildings, list));
+        for (k, d) in drawings.into_iter().enumerate() {
             if self.hidden.contains(&d.piece) {
                 continue;
             }
@@ -3624,6 +3780,7 @@ impl World {
                     mips,
                     light,
                     diffuse: Vec::new(),
+                    cut: k >= first_addon,
                 });
                 continue;
             }
@@ -3638,6 +3795,30 @@ impl World {
         }
         (soup, textured)
     }
+}
+
+/// One `EXISTEVENT` addon of a building piece (item 4768, §6.27): the
+/// subject's ammo piece, its `<AMMO>`'s `model=` and `texture=`, and the
+/// event's `anim` file.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct AddonArt {
+    pub piece: i32,
+    pub model: String,
+    pub texture: Option<String>,
+    pub anim: Option<String>,
+}
+
+/// The angle `WallOut::draw@00641930` gives a building's chad, 270, which
+/// its addons take (`execute_graphic_events@00909a10`).
+pub const ADDON_ANGLE: i32 = 270;
+
+/// **A building's clock as the client keeps it** (item 4768, §6.27): the
+/// game's milliseconds, `frame · 200 / 3`, at the frame's start
+/// (`graphic_dt` 0). `WallOut::draw@00641930` gives this to every type
+/// but a gather type, whose clock is `(recharging + 1) · 200 / 3`
+/// (`BuildData +0x7a`), which the door does not carry (4734a).
+pub fn addon_clock(frame: i64) -> u32 {
+    (frame.max(0) as u64 * 200 / 3) as u32
 }
 
 /// **L = −`cur_dir`**, the figures' light (items 4106, 4114): the card's
@@ -3670,6 +3851,11 @@ pub struct TexturedMesh {
     /// writes, which stage 0's `ADDSIGNED` adds. Empty on every other mesh,
     /// and on a tree mesh read as [`render::silhouette::TREE_DIFFUSE`].
     pub diffuse: Vec<u8>,
+    /// **The texel's alpha is coverage, not the owner's colour** (item
+    /// 4768, §6.27): an addon's `Ammo Blend`, the hoist's hook a quad
+    /// whose alpha-0 surround is cut. Set on [`World::addon_drawings`]'
+    /// meshes alone.
+    pub cut: bool,
 }
 
 /// One drawn object, placed: a draw-list entry's owner, object and piece,
