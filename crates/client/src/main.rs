@@ -473,6 +473,11 @@ fn build(
             panel,
             caption.as_deref(),
         ));
+        // Item 4761: the military tally above the bar's right end.
+        if let Some(input) = hud {
+            let lines = frame::tally_lines(world, input.player);
+            minimap.extend(f.tally_layers((size.0 as i32, size.1 as i32), &lines));
+        }
     }
     screen.splice(0..0, minimap);
     if let Some(input) = hud {
@@ -653,6 +658,9 @@ pub(crate) fn still_minimap(
                 panel,
                 caption.as_deref(),
             ));
+            // Item 4761: the military tally.
+            let lines = frame::tally_lines(world, world::CONSOLE);
+            screen.extend(f.tally_layers((size.0 as i32, size.1 as i32), &lines));
         }
     }
     let version = world.runner.terrain().version;

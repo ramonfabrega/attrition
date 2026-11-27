@@ -19809,8 +19809,8 @@ parting (`values at None`). `WANT_CH127` 161 → the eleven standing `form` rows
 copied from its own, with `frame_facing` on the copy's `facing`. The golden walk takes `RON_DEBUG_UNIT`, so a one-draw
 idle parting reads its figures' clocks on our side.
 
-**Not established.** The rest of the copied figure range (`+0x20..+0x40`: turret, node, bank and pitch words) beyond
-the turret this crate carries; no staged figure parts on them (parked 3999a).
+**Not established.** The rest of the copied range (`+0x20..+0x40`) beyond the turret words. ~~node~~: `+0x96`/`+0x98`
+lie outside it, item 4758 (parked 3999a).
 
 **Coverage.** Diff-backed: the copy's two angles and its birth-frame turn, by run1554's `GUY` blocks and the word.
 
