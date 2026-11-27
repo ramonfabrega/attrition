@@ -6809,9 +6809,24 @@ rows. **Read alone**: nothing new. The candidate is the door's bytes.
   clear, in our walk, where the packet's lines say the original cleared
   them together (4772a). Each tile's redo pushes the other onto the
   opposite list (`fixup_lines`' turn), so the pair alternates for as long
-  as the redo runs. The original's pushes in the clear of row 164 are the
+  as the redo runs. ~~The original's pushes in the clear of row 164 are the
   reading that would settle it: `add_roads`' remove arm's marks, and
-  which list each push names.
+  which list each push names.~~ Item 4774
+  (`docs/journal/2026-11-27-item-4774.md`) read the remove arm and killed
+  it. `Roads::road_cleared@008955d0` queues one removal and runs
+  `add_roads@0088f4b0` per tile. Its first pass calls
+  `clear_roads@0088fef0`, which pushes the tile's N, S, E and W road
+  neighbours onto `changed_roads` in that order, and so does ours. Row 164
+  goes one tile per call, (16, 164) to (20, 164) in ascending x. The clear
+  of (18, 164) puts (18, 163) alone on the list, beside (19, 164). Also
+  killed: `mark_splits@00891d40`'s `set_neighbor` pushes, which ours does
+  not make (below). Built, they left `RUN1559B_RECORDS` at 481. Still
+  open (4774a): the order the original clears row 164 in, and the
+  phase the 11-round cap stops the period-2 loop on.
+- `mark_splits@00891d40` pushes the neighbour it newly joins onto the
+  list named by its argument (`set_neighbor@00890c30`, then `add_unique`).
+  Ours makes neither the join on the neighbour nor the push (4774b).
+  Built, they moved no row, so they are not built.
 - run1559b's 19 apart: 17 an intersection bit or a white the packet holds
   and we do not (4199a), (211, 84) as §6.7, and (18, 163).
 
