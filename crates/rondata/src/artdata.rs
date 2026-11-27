@@ -1491,6 +1491,39 @@ pub fn unit_art(install: &Install, graphs: &[String]) -> Vec<UnitArt> {
                 .map(|k| u.attribute(k).unwrap_or_default().trim().to_string()),
         });
     }
+    // A `<SCORCH>` is an entry too, on its own piece (item 4747): a burning
+    // death's record lies on it ([`piece_scorches`]), so the client draws it.
+    for (piece, n) in scorch_nodes(&udoc, first_scorch_piece(install, &udoc)) {
+        let (Some(name), Some(model)) = (n.attribute("name"), n.attribute("model")) else {
+            continue;
+        };
+        let anims = n
+            .children()
+            .filter(|a| a.has_tag_name("ANIM"))
+            .filter_map(|a| {
+                let anim = a.attribute("file")?.trim().to_string();
+                let &(_, slot) = SLOTS
+                    .iter()
+                    .find(|(s, _)| Some(*s) == a.attribute("name").map(str::trim))?;
+                let file = files.get(&anim_key(&anim)).map(|(f, _)| f.clone());
+                Some((slot, anim, file))
+            })
+            .collect();
+        out.push(UnitArt {
+            name: name.trim().to_string(),
+            model: model.trim().to_string(),
+            scale: n.attribute("scale").unwrap_or_default().trim().to_string(),
+            texture: n
+                .attribute("texture")
+                .unwrap_or_default()
+                .trim()
+                .to_string(),
+            anims,
+            pieces: vec![piece],
+            shadow: ["shadowtype", "shadowwidth", "shadowheight"]
+                .map(|k| n.attribute(k).unwrap_or_default().trim().to_string()),
+        });
+    }
     out.sort_by(|a, b| a.name.cmp(&b.name));
     out
 }
