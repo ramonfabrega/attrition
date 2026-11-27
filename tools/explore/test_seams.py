@@ -366,8 +366,11 @@ class TheLiveTree(unittest.TestCase):
     # tree; parked 4351a (its journal), the wiring's to close. 14 → 13:
     # item 4675 wired `think_spellcaster`'s Spy arm through
     # `spell_valid_target` and the searches, and the module's SEAMS
-    # paragraph that named them missing is gone.
-    DOORS = 13
+    # paragraph that named them missing is gone. 13 → 12: item 4767
+    # built `do_group_move`'s follower attack hand-off
+    # (`Sim::follower_attack_hand_off`), and the SEAM in
+    # `group_move_follower`'s step 10 that called it unmodelled is gone.
+    DOORS = 12
 
     def test_the_seams_a_door_outlived_are_the_pinned_count(self):
         self.assertEqual(len(seams.doors()), self.DOORS)
