@@ -1484,7 +1484,7 @@ a capture has one.
   consumed by anything read so far; the lobby is the likely reader and the
   lobby is cut from v1.
 - **The final-tech ramp is not modelled** (item 4773): `TypeData::get_cost@00664090:1162`–`:1181`, after the
-  age-behind arm and before the lobby's `tech_cost`, multiplies a final tech (`0x243..0x246`) by `(100 +
+  age-behind arm and before the lobby's `tech_cost`, multiplies a final tech (one of the four finals) by `(100 +
   RAMP_FINAL × n) / 100`, n the finals held or researching. run1797's who=1 holds the Missile Shield on 4582, so
   theirs prices Artificial Intelligence at 4950 timber where `Sim::tech_price` says 3300.
 
