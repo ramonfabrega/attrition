@@ -7598,6 +7598,112 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 93's followers take their captain's head attack** (item 4771,
+    /// `docs/RECGAME.md` §13.3): run1799, the ranges take of row 93's file.
+    /// On 4812 group 66's `finish_insert` appends `ATTACK 2/88` behind each
+    /// member's head; the captain `1/2` (TI 109) holds `2/101` (TI 131,
+    /// Flamethrower) at its head and `2/88` (TI 218) behind it, and its
+    /// followers `1/16` and `1/26` take 101 twice, as theirs (units range
+    /// 634, record 16: `order.target` `ox` 101, `uid` 139). So do
+    /// `1/100`, `1/110` and `1/116`..`1/119` under their captains. The
+    /// groups line agrees byte for byte on 4811..4813, and every line this
+    /// checks on 4811, the state before.
+    #[test]
+    fn row_93_s_followers_take_their_captain_s_head_attack_on_run1799_s_ranges() {
+        use sim::orders::Body;
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            eprintln!("skipping: row 93's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1799/map-14");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1799's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 4811i64..=4813 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let sim = &built.sim;
+            let named = |who: u8, o: i16, want: i32| {
+                let u = sim
+                    .units
+                    .iter()
+                    .rposition(|un| un.owner == who && un.index == o)
+                    .expect("the slot");
+                let ti = sim.tables.unit_types[sim.units[u].ty.expect("a type")].type_index;
+                assert_eq!(ti, want, "{who}/{o}'s TypeIndex");
+                assert_eq!(
+                    sim.units[u].kind.domain,
+                    sim::territory::attrition::Domain::Land,
+                    "{who}/{o} on land"
+                );
+                u
+            };
+            let attacks = |u: usize| -> Vec<i16> {
+                sim.units[u]
+                    .orders
+                    .iter()
+                    .filter_map(|o| match o.body {
+                        Body::Attack(a) => a.target.map(|(ox, _, _)| ox),
+                        _ => None,
+                    })
+                    .collect()
+            };
+            named(2, 101, 131);
+            named(2, 88, 218);
+            if state == 4812 {
+                assert_eq!(attacks(named(1, 2, 109)), vec![101, 88], "the captain 1/2");
+                for o in [16, 26] {
+                    assert_eq!(attacks(named(1, o, 109)), vec![101, 101], "1/{o}");
+                }
+                for o in [100, 110, 116, 117, 118, 119] {
+                    let u = named(1, o, 109);
+                    assert!(
+                        attacks(u).iter().all(|&t| t == 101),
+                        "1/{o} attacks 2/101 only: {:?}",
+                        attacks(u)
+                    );
+                }
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(sim, &look, &tribes);
+            let checked: &[(usize, &str)] = if state == 4811 {
+                &[(0, "units"), (5, "groups"), (6, "guys"), (11, "world")]
+            } else {
+                &[(5, "groups")]
+            };
+            for &(line, name) in checked {
+                let ours = lines[line].as_ref().expect(name);
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                    assert_eq!(
+                        at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                        None,
+                        "{name} range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                        a.record,
+                        a.field
+                    );
+                }
+            }
+        }
+    }
+
     #[test]
     fn row_93_s_decoy_tiger_tank_leaves_the_chain_at_its_death_on_run1799_s_ranges() {
         let Some(inst) = crate::testenv::install() else {
@@ -16515,23 +16621,34 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // leaders 4,815 -> 4,823, builds 4,808 -> 4,836 (first 4808 -> 4821);
         // past it ammo 5,829 -> 5,354, deaths 4,917 -> 4,814, cities 5,151 ->
         // 4,961, items 6,555 -> 5,850, goods 5,488 -> 5,689 (first 5596).
+        // Item 4771 (every captain read takes its action order's target,
+        // `Sim::action_attack_target`): `finish_insert` appends `ATTACK 2/88`
+        // behind captain `1/2`'s head `ATTACK 2/101` on 4812, and its
+        // followers `1/16`, `1/26` (TI 109) take 101 as theirs (run1799's
+        // units range 634, record 16, `order.target` `ox` ours 88 -> 101,
+        // `uid` 126 -> 139; likewise `1/100`, `1/110`, `1/116`..`1/119`).
+        // The first parting stays 4812 (units: the approach moves of `1/90`,
+        // `1/92`, `1/100`, `1/116`); builds 4,836 -> 4,841, groups 4,841 ->
+        // 4,859 (first 4840 -> 4849), leaders 4,823 -> 4,825, cities 4,961
+        // -> 5,151, items 5,850 -> 6,187, goods 5,689 -> 5,950; past it ammo
+        // 5,354 -> 5,332.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                4812, 4836, 12001, 5354, 4814, 4841, 4812, 4823, 4961, 5850, 5689, 4813,
+                4812, 4841, 12001, 5332, 4814, 4859, 4812, 4825, 5151, 6187, 5950, 4813,
             ],
             first: &[
-                ("units", (4812, Some(2918712582), 967517784)),
+                ("units", (4812, Some(1724190443), 967517784)),
                 ("builds", (4821, Some(2516689233), 1349362419)),
                 ("ammo", (4812, Some(1941544880), 1414959816)),
-                ("deaths", (4814, Some(617551199), 769398112)),
-                ("groups", (4840, Some(2679237961), 3000757556)),
+                ("deaths", (4814, Some(632296799), 769398112)),
+                ("groups", (4849, Some(2230706991), 4256949038)),
                 ("guys", (4812, Some(2469432760), 2960625289)),
                 ("leaders", (4813, Some(404430007), 2827689146)),
-                ("cities", (4961, Some(3356642640), 3426897235)),
-                ("items", (5850, Some(1399729705), 1365126693)),
+                ("cities", (5151, Some(2066631437), 1957251849)),
+                ("items", (6187, Some(1365126693), 1373777447)),
                 ("goods", (5596, Some(3459683631), 3373176107)),
-                ("world", (4813, Some(2622731417), 1517663140)),
+                ("world", (4813, Some(625128391), 1517663140)),
             ],
             over: None,
         }),
