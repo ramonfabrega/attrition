@@ -705,6 +705,12 @@ pub struct Art {
     /// [`Sim::CORPSE_FADE_END`] past its animation, and one without
     /// [`Sim::BODY_FADE_END`] (`docs/GOLDEN.md` §127).
     pub piece_skeletons: BTreeMap<i32, i32>,
+    /// **Each unit piece's scorched body** (item 4747, `docs/COMBAT.md`
+    /// §42.1): `RData::unit_data +0x24`, `UnitRDataStruct::scorch`. A
+    /// burning death (`dtype` 4) hands a figure whose piece has one the
+    /// alternate animation, and `DeathObj::init@008d4c60` moves its record
+    /// onto this piece, four slots on.
+    pub piece_scorches: BTreeMap<i32, i32>,
     /// `gpiece → (track_dx, track_dy)`: the offset a **crew** guy is held
     /// at behind and beside the guy it follows —
     /// `GuyData::track_dx / track_dy` (`+0x54` / `+0x58`), which

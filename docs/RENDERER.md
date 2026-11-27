@@ -7470,7 +7470,63 @@ tests, and every case's arms on a unit.
 - The `+` that separates a bonus (`loc_str_array +0xa258`), and the arrows'
   squad sum (`garrison_attack_sum`, which is `pub(crate)`). Neither shows on
   run1814b (4750b).
-- The name's text, the picture and its hit points (4750a).
+- ~~The window's face (4750b)~~ and ~~the name's text and its hit points
+  (4750a)~~: drawn by item 4752, §6.20; the picture is still apart.
+
+## 6.20 The selected panel's title, hit points and face (item 4752)
+
+*2026-11-27, Opus 5.5. The ledger: `docs/journal/2026-11-27-item-4752.md`.
+`client::frame::left` (`PANEL_FACES`, `write_cent`),
+`client::frame::selected` (`Panel::title`, `Panel::hits`,
+`SelectedLayout::hitpoints`), `client::frame::build_title`. No
+`crates/sim` change.*
+
+**The face.** `FontFamily::get@00522810(fonts, size, style)` does not
+index `fonts.xml`'s lookups. It takes the font list's entry of that point
+size, the style matched exactly first and then by the looser masks, with
+`def_style` standing in for a style of −1. `System::init_graphics@00598ac0`
+and `change_resolution` set `def_style` to 1, which is bold. So
+`on_redraw`'s `get(fonts, 10, -1)`, the figures' face, is `arialbd.ttf`
+at 10: the font list's one size-10 entry with `B`, at both 1280 and 1024.
+Arial's ascent and descent round to 9 and 2, so `mAscent` is 9 and
+`mFontHeight` 11.
+
+**The title.** `draw_name` calls `draw_build_name@00820c30` for a
+building. It takes `get(fonts, 12, 1)`, the clock's `arialbd` at 12, and
+`write_cent_l`s the line in `name`, white over a black shadow. The line is
+one of three `loc_str_array` formats (`translated_strings.xml` in
+order). A building that is not a city centre (`is(VILLAGE)` false) takes
+`+0xa2e4`, `$BUILDINGTYPE0 -- $CITYNAME1`, over (type, city). A city
+centre takes `+0xa30c`, `$CITYNAME1 -- $BUILDINGTYPE0`, over (city, type).
+The digit picks the argument, so this too writes the type first. The
+Forbidden City (`is(FORBIDDENCITY)`) takes `+0xa2f8`, `$CITYNAME0`. A
+building with no city writes its type's name alone. On run1814b the line
+is `Small City -- Napata`, as on the photograph.
+
+**The hit points.** `draw_hitpoints@00821150` runs only while the
+preference's bit 2 is set. It takes `get(fonts, 10, 0)`, which is
+`arial.ttf` at 10, and writes `hits/full` white with no shadow
+(`COLOR_NONE`), `write_cent_l` in `hitpoints` (30, 60, 62 × 13). A
+building's `hits` is vtable `+0x114` and its full figure `+0x11c(1)`.
+Ours are `Building::health` and `Building::hits`: `1200/1200` on
+run1814b. A wounded unit appends the out-of-supply mark (`+0xa2d0`) and a
+`+` (`+0xa258`); a building does not.
+
+**The row** (§6.17's mask): ours 238,258 → **239,112**, the composition
+238,035 → **238,889**, luma ×10 548 → 550.
+
+**Diff-backed**: the three lines' text, place and faces, which the row
+counts, and the title's text against the photograph. **Read alone**: the
+type's name, which we take from `buildingrules.xml`'s `NAME` where the
+original calls the type's vtable `+0x9c` (a nation's
+`alternatenames.xml` may change it); the hit points' preference bit; and
+the unit and non-capital arms.
+
+**Not established.**
+- The `object` button's picture (4752a): most of what is still apart in
+  the window.
+- How much of the +854 each of the three lines gives. The row was taken
+  once, with all three drawn.
 
 ## 7. What is not established, and what needs Ramon's word
 

@@ -187,6 +187,9 @@ pub struct Loaded {
     /// corpse fade (`crate::artdata::piece_skeletons`, `docs/GOLDEN.md`
     /// §127).
     pub piece_skeletons: std::collections::BTreeMap<i32, i32>,
+    /// Each unit piece's scorched body, `RData::unit_data +0x24`
+    /// (`crate::artdata::piece_scorches`, item 4747).
+    pub piece_scorches: std::collections::BTreeMap<i32, i32>,
     /// Graphic pieces retained in a casualty sprite, keyed by ammo piece number.
     pub casualty_attachments: std::collections::BTreeSet<i32>,
     /// Every unit graphic piece's follow offset, `gpiece → (track_dx,
@@ -628,6 +631,7 @@ fn read_install(install: &Install) -> Result<Loaded, crate::Error> {
     loaded.casualty_attachments = crate::artdata::casualty_attachments(install);
     loaded.piece_skeletons =
         crate::artdata::piece_skeletons(install, &graphs, &loaded.gender_packed);
+    loaded.piece_scorches = crate::artdata::piece_scorches(install, &graphs, &loaded.gender_packed);
     loaded.piece_tracks = crate::artdata::piece_tracks(install, &graphs, &loaded.gender_packed);
     loaded.piece_releases = crate::artdata::piece_releases(install, &graphs, &loaded.gender_packed);
     loaded.pivot_restrictions = crate::artdata::pivot_restrictions(install, &graphs);
@@ -2391,6 +2395,7 @@ pub fn load_tables(
         gaia_variants: Default::default(),
         piece_lengths: Default::default(),
         piece_skeletons: Default::default(),
+        piece_scorches: Default::default(),
         casualty_attachments: Default::default(),
         piece_tracks: Default::default(),
         piece_releases: Default::default(),
@@ -3170,6 +3175,7 @@ mod tests {
             piece_lengths: Default::default(),
             gender_packed: Default::default(),
             piece_skeletons: Default::default(),
+            piece_scorches: Default::default(),
             casualty_attachments: Default::default(),
             piece_tracks: Default::default(),
             piece_releases: Default::default(),

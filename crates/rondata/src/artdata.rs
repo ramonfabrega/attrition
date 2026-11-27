@@ -471,6 +471,26 @@ pub fn piece_lengths(install: &Install, graphs: &[String], packed: &BTreeSet<i32
             out.insert(piece, lengths.clone());
         }
     }
+    // A scorched body's slots (item 4747): the four `CHAR_DEATH_*` its
+    // death object plays, which `DeathObj::inc_time` times the cull by.
+    for (piece, n) in scorch_nodes(&udoc, first_scorch_piece(install, &udoc)) {
+        let mut lengths: BTreeMap<i8, u32> = BTreeMap::new();
+        for a in n.children().filter(|n| n.has_tag_name("ANIM")) {
+            let (Some(slot), Some(anim)) = (a.attribute("name"), a.attribute("file")) else {
+                continue;
+            };
+            let Some(&(_, slot)) = SLOTS.iter().find(|(s, _)| *s == slot.trim()) else {
+                continue;
+            };
+            let Some((file, looping)) = files.get(&anim_key(anim.trim())) else {
+                continue;
+            };
+            if let Some(n) = file_frames(install.root(), file, *looping) {
+                lengths.insert(slot, n);
+            }
+        }
+        out.insert(piece, lengths);
+    }
     out
 }
 
@@ -823,6 +843,95 @@ pub fn piece_skeletons(
         };
         for &piece in &pieces {
             out.insert(piece, *skeleton);
+        }
+    }
+    // The `<SCORCH>` pieces go through `init_unit_data` as well
+    // (`init_scorch_data@008f0a90`), so a scorched body's own `skeleton`
+    // (`ScorchedBiped`, …) is its death object's `+0x44` (item 4747).
+    for (piece, n) in scorch_nodes(&udoc, first + skeletons.len() as i32) {
+        if let Some(&skeleton) = n
+            .attribute("skeleton")
+            .and_then(|s| skeletons.get(&s.trim().to_ascii_lowercase()))
+        {
+            out.insert(piece, skeleton);
+        }
+    }
+    out
+}
+
+/// **`unit_graphics.xml`'s `<SCORCH>` entries and their pieces** (item
+/// 4747, `docs/RECGAME.md` §13.5): `GraphicPieces::init@008ffcc0` puts
+/// `first_scorch_piece` at `first_skeleton_piece + num_skeleton_pieces`,
+/// and `init_scorch_data@008f0a90` gives each `<SCORCH>` of `<SCORCHES>`
+/// the next piece, in the file's order. With the install's 20 shadows and
+/// 14 skeletons the first, `BIPED`, is 60127, the piece run1797's burned
+/// Assault Infantry prints on 3802.
+fn scorch_nodes<'a, 'i>(
+    udoc: &'a roxmltree::Document<'i>,
+    first_scorch: i32,
+) -> Vec<(i32, roxmltree::Node<'a, 'i>)> {
+    udoc.descendants()
+        .filter(|n| n.has_tag_name("SCORCHES"))
+        .flat_map(|s| s.children().filter(|n| n.has_tag_name("SCORCH")))
+        .enumerate()
+        .map(|(i, n)| (first_scorch + i as i32, n))
+        .collect()
+}
+
+/// `first_scorch_piece` for this install: `0xeabd`, the shadows of
+/// `effects_graphics.xml`, then every `<SKELETON>` ([`scorch_nodes`]).
+fn first_scorch_piece(install: &Install, udoc: &roxmltree::Document<'_>) -> i32 {
+    0xeabd
+        + shadow_files(install).len() as i32
+        + udoc
+            .descendants()
+            .filter(|n| n.has_tag_name("SKELETON"))
+            .count() as i32
+}
+
+/// **Every player unit piece's scorched body** — `UnitRDataStruct::scorch`
+/// (`RData::unit_data +0x24`), which `init_unit_data@008f4290:423`–`:434`
+/// sets to `first_scorch_piece + i` for the `<SCORCH>` whose `name` the
+/// `<UNIT>`'s `scorch` attribute equals without case
+/// (`String::operator==`), and `-1` (absent here) for none.
+/// `GraphicPieces::get_scorch_gpiece@00909310` reads it back.
+///
+/// It is gameplay data for one reason: `Unit::close@0060ee50` hands a
+/// burning death's alternate animation only to a figure whose piece has
+/// one, and `DeathObj::init@008d4c60` moves that figure's record onto the
+/// scorched piece, whose own animation lengths and skeleton then time the
+/// record's cull (item 4747).
+pub fn piece_scorches(
+    install: &Install,
+    graphs: &[String],
+    packed: &BTreeSet<i32>,
+) -> BTreeMap<i32, i32> {
+    let mut out = BTreeMap::new();
+    let upath = install.data("unit_graphics.xml");
+    let Ok(utext) = crate::read(&upath) else {
+        return out;
+    };
+    let Ok(udoc) = crate::parse(&upath, &utext) else {
+        return out;
+    };
+    let scorches: BTreeMap<String, i32> = scorch_nodes(&udoc, first_scorch_piece(install, &udoc))
+        .into_iter()
+        .filter_map(|(piece, n)| Some((n.attribute("name")?.trim().to_ascii_lowercase(), piece)))
+        .collect();
+    let by_graph = graph_types(graphs);
+    for u in udoc.descendants().filter(|n| n.has_tag_name("UNIT")) {
+        let (Some(name), Some(&scorch)) = (
+            u.attribute("name"),
+            u.attribute("scorch")
+                .and_then(|s| scorches.get(&s.trim().to_ascii_lowercase())),
+        ) else {
+            continue;
+        };
+        let Some(pieces) = entry_pieces(name.trim(), &by_graph, Some(packed)) else {
+            continue;
+        };
+        for &piece in &pieces {
+            out.insert(piece, scorch);
         }
     }
     out
@@ -1382,6 +1491,39 @@ pub fn unit_art(install: &Install, graphs: &[String]) -> Vec<UnitArt> {
                 .map(|k| u.attribute(k).unwrap_or_default().trim().to_string()),
         });
     }
+    // A `<SCORCH>` is an entry too, on its own piece (item 4747): a burning
+    // death's record lies on it ([`piece_scorches`]), so the client draws it.
+    for (piece, n) in scorch_nodes(&udoc, first_scorch_piece(install, &udoc)) {
+        let (Some(name), Some(model)) = (n.attribute("name"), n.attribute("model")) else {
+            continue;
+        };
+        let anims = n
+            .children()
+            .filter(|a| a.has_tag_name("ANIM"))
+            .filter_map(|a| {
+                let anim = a.attribute("file")?.trim().to_string();
+                let &(_, slot) = SLOTS
+                    .iter()
+                    .find(|(s, _)| Some(*s) == a.attribute("name").map(str::trim))?;
+                let file = files.get(&anim_key(&anim)).map(|(f, _)| f.clone());
+                Some((slot, anim, file))
+            })
+            .collect();
+        out.push(UnitArt {
+            name: name.trim().to_string(),
+            model: model.trim().to_string(),
+            scale: n.attribute("scale").unwrap_or_default().trim().to_string(),
+            texture: n
+                .attribute("texture")
+                .unwrap_or_default()
+                .trim()
+                .to_string(),
+            anims,
+            pieces: vec![piece],
+            shadow: ["shadowtype", "shadowwidth", "shadowheight"]
+                .map(|k| n.attribute(k).unwrap_or_default().trim().to_string()),
+        });
+    }
     out.sort_by(|a, b| a.name.cmp(&b.name));
     out
 }
@@ -1458,14 +1600,18 @@ impl PieceDecoding {
 /// delta. Item 4028: **(1465, 1478)**, +26 of +26 — the gaia entries
 /// (`{GRAPH}-TYPE{v}`, [`bird_pieces`]) are pieces now, 26 entries of one
 /// piece each (1,425 of the 1,435 entries), and every one decodes.
-pub const PIECES_DECODING: (usize, usize) = (1465, 1478);
+/// Item 4747: **(1471, 1484)**, +6 of +6 — the six `<SCORCH>` entries
+/// ([`scorch_nodes`]) are pieces now, a burning death's record's, and every
+/// one decodes.
+pub const PIECES_DECODING: (usize, usize) = (1471, 1484);
 
 /// Of [`PIECES_DECODING`]'s K, the pieces whose model's node tree and every
 /// played animation's tree have the same shape — beside K, never part of
 /// it; what the other 638 mean is the next render item's question
 /// (`docs/FORMATS.md` §3, "What is not established"). Item 4028: 823,
-/// +22 of the 26 gaia pieces.
-pub const SAME_SHAPE: usize = 823;
+/// +22 of the 26 gaia pieces. Item 4747: 829, +6 of the six `<SCORCH>`
+/// pieces.
+pub const SAME_SHAPE: usize = 829;
 
 /// Resolve every entry's files and decode each once: `K of N`, and every
 /// file that costs a piece named with its reason.
