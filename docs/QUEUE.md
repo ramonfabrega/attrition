@@ -72,7 +72,7 @@ final-tech ramp (who=1 holds the Missile Shield, so Artificial Intelligence cost
 4775. **Parity held out, sixth: row 93's units from 4812, the attack approach** (a rules item, whole; a parity seat's;
 `docs/RECGAME.md` §13.3). Item 4771 made every captain read take the captain's action order's target, not the copy a
 `QUEUE_LAST` append rewrites: on 4812 record 16's `order.target` `ox` 88 -> 101, as theirs; the first parting holds at 4812 (units,
-guys, ammo) and groups 4840 -> 4849, cities 4961 -> 5151, items 5850 -> 6187 moved. Its leaf (run1799): `1/90`'s attack-approach
+guys, ammo) and groups, cities and items moved later. Its leaf (run1799): `1/90`'s attack-approach
 `MOVE` (TI 63), `off_x` ours 600, theirs 168, `orders_x` 20568 against 19368. First act: `print_ranges` (`docs/RECGAME.md` §15)
 on run1799 over 4810..4812. No take. Re-pin `SCORES_SIXTH[4].moved` with `tools/repin_held.py`, never `found`. It stops when two
 landings running move no column.
