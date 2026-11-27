@@ -14894,3 +14894,23 @@ bribed squad bleeds nothing until its next refresh.
   unit (the decoy, the trench, the jam), which rides the same word on one
   reading of the listing; and `swap_team`'s `inside_down` arm, which
   copies `unit_masks` without the mask (`:162`) and is still a `SEAM`.
+
+**The copy's place is picked by the copied `flags & 1`** (item 4769, 2026-11-27;
+`docs/RECGAME.md` §12.3). `swap_team@006118d0:72` reads the bit just taken from the old
+figure (`:63`):
+
+- **Clear** (a dead figure still on the squad's links): `Object::remove_from_world@00647970`
+  and no `set_new_location`. Its disc walk is gated on `is_active`, the same bit, so only
+  its chain half runs. The copy is unthreaded and its unit point stays where `init_unit`
+  put it. The per-guy loop still copies the figure's point (`+0xc`..`+0x14`).
+- **Set**: `set_new_location(old x, old y, 1, 1)`. Its `param_4` turn snaps guy 0's
+  `angle` and `last_angle` to the unit's `angle`, which was copied from `+0x50` just before.
+  The per-guy loop then copies the old figure's `angle` (`+0x18`) back, but not
+  `last_angle` (`+0x1c`).
+- **Diff-backed**: run1784's 4469 to 4472, every units, builds, guys and world range
+  (`row_83_s_bribed_riflemen_drop_their_dead_figure_from_the_world_on_run1784_s_ranges`).
+  Row 83 moves units 4,470 → 4,624.
+- **Unit-backed**: `a_bribed_squad_s_dead_figure_leaves_the_world_and_a_live_one_turns`.
+- **Not established**: the arm for a live figure that is off the map. Ours still marks the
+  copy off the map, while the original's `set_new_location` runs for any figure whose
+  `flags & 1` is set. No capture has bribed a unit that is inside something.
