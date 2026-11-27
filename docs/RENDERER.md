@@ -7813,6 +7813,60 @@ left it.
 **Not established.**
 - The 38 white pixels at x 366..400, y 954..975 (4764a).
 
+## 6.26 The Woodcutter's Camp's hoist: the addon, read (item 4734)
+
+*2026-11-27, Opus 5.5. The ledger: `docs/journal/2026-11-27-item-4734.md`.
+The first act alone: no code, no row yet.*
+
+**What the hoist is.** Not the camp's sprite. `WOODCUTTER-DEFAULT-AGE0`'s
+`<BUILD>` names two `EXISTEVENT`s, `BUILD_DEFAULT` and `BUILD_BUILD`, each
+with the subject `Woodcutter_0_addon` and the anim `Woodcutter_0 Default`.
+The subject is an `<AMMO>` in `effects_graphics.xml`: the model
+`Woodcutter_0Addon.bh3`, its texture `woodcutter_0addon.tga`, the render
+state `Ammo Blend`. The anim is `woodcutter_0Addon.bha`. The subject is the
+225th `<AMMO>` (index 224), so its piece is 60373 (`first_ammo_piece`
+60149 plus 224). The client draws no addon (`artdata::BuildArt::addons`
+names them, and nothing reads them). So in ours the boom, the hoisted log
+and its rope are missing, not resting.
+
+**How the original draws it.** `GraphicPieces::execute_graphic_events
+@00909a10` walks the building's events for its `cur_anim`. On an
+`EXISTEVENT` it takes a slot in `add_ons` (`find_empty_addon@008e6140`;
+`expire_addons@00903f20` frees the ones not drawn this frame). It then
+draws the subject's piece at the building's point, angle and scale, with
+the building's `cur_time` modulo the addon's own animation length
+(`AnimationPacket::get_anim_time@00918c40`). It draws at time 0 when the
+object is not `WallData::is_active@00472350`, which is flag bit 2, a
+finished building.
+
+**The building's clock.** `WallOut::draw@00641930` gives a building's
+`cur_time` as the game's milliseconds, `frame · 200 / 3 + graphic_dt`,
+unless the type `BuildTypeData::is_gather_type@00472bb0`. For a gather
+type it is `(recharging + 1) · 200 / 3`, from `BuildData`'s `recharging`.
+When `build_masks` bit 10 is set it is `recharging · 200 / 3 +
+graphic_dt` instead. With no train and nothing queued, `cur_anim` is 0,
+`BUILD_DEFAULT`.
+
+**On run1814b's packet** (frame 3294, `graphic_dt` 6):
+
+| | value |
+|---|---|
+| the camp, `0/2001` | `flags` 7 (active), piece 50698, `build_masks` bit 10 clear, `recharging` 3293 |
+| player 1's camps | `1/2001`: `recharging` 3292; `1/2009`: `recharging` 511 |
+| piece 60373's `AnimationPacket` | action 0 → 1970, `cur_time` 18666, length 20000 ms |
+| the clock the reading predicts for `0/2001` | (3293 + 1) · 200 / 3 = 219600, so 19600 |
+
+The packet's 18666 is not 19600. It would be `recharging` 3279. No camp on
+the packet gives 18666. That is the first thing the next word settles.
+
+**Not established.**
+- Who writes a gather building's `recharging`, and whether the sim carries
+  it. The sim's `recharging` is a tower's. If the camp's clock needs it, the
+  door (`sim::observe`) widens (4734a).
+- The packet's 18666 against the reading's 19600 (4734a).
+- `Ammo Blend` and the addon's light. Its pixels against the photograph:
+  no row yet.
+
 ## 7. What is not established, and what needs Ramon's word
 
 ### 7.1 Not established
