@@ -2743,7 +2743,7 @@ pub(crate) mod tests {
     }
 
     /// **Row 133's Jet Fighter banks away from the helicopter under its
-    /// nose** (item 4740, `docs/ORDERS.md` §34.6): run1797's ranges, the
+    /// nose** (item 4747, `docs/ORDERS.md` §34.6): run1797's ranges, the
     /// row's guys and units parting on 3790 (units range 11401, record 116,
     /// the Jet Fighter's `y`; guys range 2409). who=2's Jet Fighter `2/116`
     /// (TI 295, air) strikes who=1's Attack Helicopter `1/34` (TI 311,
@@ -2944,6 +2944,100 @@ pub(crate) mod tests {
                         "line {line} range {k} on {state}, record {} {}",
                         a.record, a.field
                     );
+                }
+            }
+        }
+    }
+
+    /// Probe 4747: every parted range on row 133 around 3633, record 73's
+    /// whole record both sides, the units `RON_DEBUG_UNIT` names, and the
+    /// seed entering each frame against the trace's.
+    #[test]
+    fn probe_4747_row_133_partings() {
+        if std::env::var("RON_PROBE_4747").is_err() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            return;
+        };
+        let dir = home.join("ron-golden/run1797/map-7");
+        let ranges = crate::testenv::experiment(&dir, "rontrace.ranges").expect("ranges");
+        let trace = crate::testenv::experiment(&dir, "rontrace.log")
+            .and_then(|l| crate::trace::Trace::read(&l).ok().flatten());
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(3799);
+        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(3803);
+        let rec_no: i64 = std::env::var("RON_PROBE_REC").ok().and_then(|v| v.parse().ok()).unwrap_or(73);
+        while built.sim.frame < lo - 1 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        for state in lo..=hi {
+            if let Some(t) = &trace {
+                let d = t.frame_draws(built.sim.frame);
+                eprintln!(
+                    "P4747 frame {} seed ours {:08x} theirs {:08x?} draws theirs {}",
+                    built.sim.frame,
+                    built.sim.rng.seed,
+                    d.first().map(|d| d.seed),
+                    d.len()
+                );
+            }
+            crate::diff::harness::debug_watch(&built, built.sim.frame);
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for line in 0..12usize {
+                let Some(ours) = lines[line].as_ref() else { continue };
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                let mut n = 0;
+                if ours.ranges.len() != theirs.len() {
+                    eprintln!("P4747 {state} line {line} count ours {} theirs {}", ours.ranges.len(), theirs.len());
+                }
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    if a.bytes != b.bytes {
+                        n += 1;
+                        if n <= 30 {
+                            eprintln!(
+                                "P4747 {state} line {line} range {k} record {} {} ours {:02x?} theirs {:02x?} site {:08x}",
+                                a.record, a.field, a.bytes, b.bytes, b.site
+                            );
+                        }
+                    }
+                }
+                if n > 0 {
+                    eprintln!("P4747 {state} line {line} parted {n}");
+                }
+            }
+            if state >= hi - 1 {
+                let ours = lines[0].as_ref().expect("units");
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+                for (k, a) in ours.ranges.iter().enumerate() {
+                    if a.record as i64 == rec_no {
+                        eprintln!("P4747R {state} ours k{k} {} {:02x?}", a.field, a.bytes);
+                    }
+                }
+                let mut r = -1i64;
+                for (k, b) in theirs.iter().enumerate() {
+                    if b.site == 0x0066_21fe {
+                        r += 1;
+                    }
+                    if r == rec_no {
+                        eprintln!("P4747R {state} theirs k{k} site {:08x} {:02x?}", b.site, b.bytes);
+                    }
                 }
             }
         }
@@ -15143,7 +15237,7 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 4,349 -> 4,345 and goods 5,300 -> 4,476, named falls past the
         // parting; ours' end 6058 -> none. The first parting is leaders and
         // units on 3628.
-        // Then item 4719 (`Unit::think_merchant@005f4740:90`'s enemy search
+        // Then item 4719 (`Unit::think_merchant@005f4747:90`'s enemy search
         // is `FILTER_COMBAT` too, the attack and the combat role: who=1's
         // Merchant `1/156`, TI 61, takes good 25 on 3628 with who=2's
         // Citizens `2/3`, `2/40`, `2/83` inside `0xc00` of its cell; leaders
@@ -15195,7 +15289,7 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 5741), goods 4,483 -> 4,536 (first 4476 stands), world 3,802 ->
         // 3,948 (first 3802 -> 3810); deaths 3,802 stands with ours' word
         // on it moved. The first parting is guys and units on 3790.
-        // Then item 4740 (`do_air_physics@005e86d0`'s `local_20`, the turn
+        // Then item 4747 (`do_air_physics@005e86d0`'s `local_20`, the turn
         // sign `bank_aircraft@005e9520` takes as `param_3`, is 1 for a strike
         // on a flying target inside `min_range · 0xc0` and within 90° of the
         // nose: who=2's Jet Fighter `2/116`, TI 295, 106 off who=1's Attack
