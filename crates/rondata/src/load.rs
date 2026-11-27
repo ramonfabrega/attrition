@@ -631,8 +631,7 @@ fn read_install(install: &Install) -> Result<Loaded, crate::Error> {
     loaded.casualty_attachments = crate::artdata::casualty_attachments(install);
     loaded.piece_skeletons =
         crate::artdata::piece_skeletons(install, &graphs, &loaded.gender_packed);
-    loaded.piece_scorches =
-        crate::artdata::piece_scorches(install, &graphs, &loaded.gender_packed);
+    loaded.piece_scorches = crate::artdata::piece_scorches(install, &graphs, &loaded.gender_packed);
     loaded.piece_tracks = crate::artdata::piece_tracks(install, &graphs, &loaded.gender_packed);
     loaded.piece_releases = crate::artdata::piece_releases(install, &graphs, &loaded.gender_packed);
     loaded.pivot_restrictions = crate::artdata::pivot_restrictions(install, &graphs);

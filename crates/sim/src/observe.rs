@@ -793,7 +793,8 @@ impl Sim {
                     frames: (0..n)
                         .filter(|&k| age < d.figures.life[k])
                         .map(|k| {
-                            let (gp, anim) = (d.figures.gpiece[k], i8::try_from(d.anim_of(k)).ok()?);
+                            let (gp, anim) =
+                                (d.figures.gpiece[k], i8::try_from(d.anim_of(k)).ok()?);
                             match self.roster.art.piece_lengths.get(&gp) {
                                 Some(slots) => Some(
                                     slots
