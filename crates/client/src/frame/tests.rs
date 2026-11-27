@@ -62,6 +62,33 @@ pub(crate) const RUN1814B_3294_MINIMAP_FRAME: [usize; 7] =
 /// photograph's. What parts is the clock's 217.
 pub(crate) const RUN1814B_3294_LEFT_WINDOW: [usize; 7] = [61_614, 61_397, 0, 61_397, 516, 820, 516];
 
+/// **`RUN1814B_3294_BANNER`** (item 4737; `docs/RENDERER.md` §6.14): on
+/// the same frame, the banner's opaque pixels at the screen's top, the
+/// fields as [`RUN1814B_3294_LEFT_WINDOW`]'s. The photograph parts from
+/// the composition where the caption's text lies (4737a): 861 pixels, every
+/// one in x 881..1037, y 4..17, `Nubians: Ancient Age`.
+/// Item 4737: ours 0 → 8,749, the three crops; luma ×10 650 → 506.
+pub(crate) const RUN1814B_3294_BANNER: [usize; 7] = [9_610, 8_749, 0, 8_749, 615, 650, 506];
+
+/// The banner as interface.xml writes it, on a cut of its own text.
+#[test]
+fn the_banner_lays_out() {
+    let xml = r#"<IFACEMAINBASE name="ifacemainbase" left="0" top_inverse="198" height="198">
+ <IFACETEX name="caption_ends_left" texture="TEX_CIV" left="279" top="40" width="105" height="43"/>
+ <IFACETEX name="caption_ends_mid" texture="TEX_CIV" left="385" top="40" width="21" height="43"/>
+ <IFACETEX name="caption_ends_right" texture="TEX_CIV" left="407" top="40" width="105" height="43"/>
+ </IFACEMAINBASE>"#;
+    let b = banner::BannerLayout::parse(xml).expect("the banner parses");
+    assert_eq!(b.size, (420, 43));
+    let spans: Vec<_> = b.pieces.iter().map(|p| p.span).collect();
+    assert_eq!(
+        spans,
+        vec![(0, 0, 105, 43), (105, 0, 315, 43), (315, 0, 420, 43)]
+    );
+    assert_eq!(b.origin(1920), (750, 0));
+    assert_eq!(b.origin(1919), (749, 0));
+}
+
 /// The rectangles as interface.xml writes them, each form once.
 #[test]
 fn the_rectangles_resolve() {
@@ -337,6 +364,32 @@ fn the_minimap_frame_on_run1814b() {
         lum(&left_mask, &framed),
     ];
     println!("RUN1814B_3294_LEFT_WINDOW: {left_row:?}");
+    // Item 4737: the banner, at the place the photograph registers each
+    // crop.
+    let c = frame.banner_layout.origin(size.0);
+    assert_eq!(c, (750, 0), "the banner's corner");
+    let banner_texel = |x: i32, y: i32| super::texel_of(&frame.banner, c, x, y);
+    let banner_mask: Vec<(i32, i32)> = (c.1..c.1 + frame.banner.h as i32)
+        .flat_map(|y| (c.0..c.0 + frame.banner.w as i32).map(move |x| (x, y)))
+        .filter(|&(x, y)| banner_texel(x, y).is_some_and(|t| t[3] == 255))
+        .collect();
+    let banner_composed = banner_mask
+        .iter()
+        .filter(|&&(x, y)| {
+            let t = banner_texel(x, y).expect("on the banner");
+            near(px(&photo.rgba, (x, y)), [t[0], t[1], t[2]])
+        })
+        .count();
+    let banner_row = [
+        banner_mask.len(),
+        banner_composed,
+        on(&banner_mask, &bare, &photo.rgba),
+        on(&banner_mask, &framed, &photo.rgba),
+        lum(&banner_mask, &photo.rgba),
+        lum(&banner_mask, &bare),
+        lum(&banner_mask, &framed),
+    ];
+    println!("RUN1814B_3294_BANNER: {banner_row:?}");
     let row = [
         mask.len(),
         atlas_agrees,
@@ -349,4 +402,5 @@ fn the_minimap_frame_on_run1814b() {
     println!("RUN1814B_3294_MINIMAP_FRAME: {row:?}");
     assert_eq!(row, RUN1814B_3294_MINIMAP_FRAME);
     assert_eq!(left_row, RUN1814B_3294_LEFT_WINDOW);
+    assert_eq!(banner_row, RUN1814B_3294_BANNER);
 }
