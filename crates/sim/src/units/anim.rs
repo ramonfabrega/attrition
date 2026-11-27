@@ -2350,6 +2350,18 @@ impl Sim {
                     // `find_angle(T − launch)`, which is what run108's
                     // `ex, ey` reproduce. A node past the piece's restriction
                     // count is its own entry alone ([`crate::data::pivot::release_point`]).
+                    // **From the figure's own point, not the unit's**
+                    // (item 4753, `docs/COMBAT.md` §22.1):
+                    // `Guy::execute_events@005d99c0` fills the package's
+                    // `x, y` from the guy's `+0xc, +0x10` (`GuyData` `x`,
+                    // `y`, the body the guys line prints) and
+                    // `execute_game_events+0x40d` adds the node to them.
+                    // A figure still catching up with its unit's point —
+                    // row 53's drifting Dromon `2/28` on 4757 — releases
+                    // from where it stands.
+                    let at = guy
+                        .follow
+                        .map_or(self.units[u].movement.body.pos, |f| f.body.pos);
                     let (from, dz) = match pivot {
                         Some(r) => {
                             let (x, y, z) = crate::data::pivot::release_point(
@@ -2358,12 +2370,11 @@ impl Sim {
                                 &guy.turret.angles,
                                 pivots,
                             );
-                            let at = self.units[u].pos;
                             (Pos::new(at.x + x, at.y + y), z)
                         }
                         None => (
                             crate::data::launch::launch_point(
-                                self.units[u].pos,
+                                at,
                                 self.units[u].movement.facing,
                                 guy.gpiece,
                                 guy.anim,
