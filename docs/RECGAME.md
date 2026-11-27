@@ -1880,7 +1880,7 @@ Open: units, builds, groups and guys part on 7675. run1788 holds sums (item 4579
 
 ### 13.2 Row 53
 
-Open: ammo on 5039. → 3713 by 4660, 3716 by 4667, 3935 by 4671, 4092 by 4741, 4742 by 4749, 4758 by 4746, 5039 by 4753 (COLLISION §3.3; AI §259.1; COMBAT §17.8, §39.4, §22.7).
+Open: deaths on 5275. → 3713 by 4660, 3716 by 4667, 3935 by 4671, 4092 by 4741, 4742 by 4749, 4758 by 4746, 5039 by 4753, 5275 by 4755 (COLLISION §3.3; AI §259.1; COMBAT §17.8, §39.4, §22.7, §46.1).
 
 ### 13.3 Row 93
 
@@ -1903,18 +1903,19 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: ammo on 4032. run1797, *diff-backed*.
+Open: units, guys on 4059. run1797, *diff-backed*.
 
 **Items 4597 to 4620**: units → 2376, builds → 2432, ammo → 2408, leaders → 2413, cities → 2448 (GROUPS, COMBAT
 §84, a Temple's close, two walks by object number).
 
 **Item 4628** (run1819's packet): units → 2440: `get_damage`'s rocky step reads the target's cell `flags & 8`.
 
-**Item 4632**: units → 2543. On 2439 the Flamethrower `1/115` (`recharging` 30, its attack's `flags` 16) turns at
-its target in theirs and swings in ours: `Unit::fight`'s emplaced latch (`:92`–`100`) takes the head order's `0x10`.
+**Item 4632**: units → 2543. On 2439 the Flamethrower `1/115` turns in theirs, swings in ours:
+`Unit::fight`'s emplaced latch takes the head order's `0x10`.
 
-**Items 4691 to 4747**: units → 3628 → 3633 → 3690 → 3739 → 3790 → 4087, deaths → 4103 (`FILTER_COMBAT`, ARMY
-§13, MERCHANT §2.2; air refusal, COMBAT §66.8; Bribe, §90, §91; `local_20`, ORDERS §34.6; scorch, COMBAT §42.1).
+**Items 4691 to 4755**: units → 3628 → 3633 → 3690 → 3739 → 3790 → 4087, deaths → 4103, ammo → 4103
+(`FILTER_COMBAT`, ARMY §13, MERCHANT §2.2; air refusal, COMBAT §66.8; Bribe, §90, §91; `local_20`, ORDERS §34.6;
+scorch, COMBAT §42.1; building `z`, §46.1).
 
 ## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
 
@@ -2017,7 +2018,7 @@ Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
 
 ### 14.4 Row 88
 
-Open: ammo, 4387 (item 4751). run1846 is the row's whole take, every line but walls to 12,000; run1808
+Open: units, 4568 (item 4755). run1846 is the row's whole take, every line but walls to 12,000; run1808
 holds sums. Stories: journals.
 
 **Item 4614**, diff-backed by run1815's ranges:

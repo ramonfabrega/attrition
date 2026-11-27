@@ -2842,6 +2842,91 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 133's building fires from its own height** (item 4755,
+    /// `docs/COMBAT.md` §46.1): run1797's ranges, the row's ammo parting
+    /// on 4032 (range 53, record 2, words `sz` and `v1z`). who=1's
+    /// building `1/2021` looses a round at who=2's `2/17` on 4031.
+    /// `Object::fire_ammo@0064c8b0:147` launches it from the building's
+    /// own `z` (`ObjectData +0xc`, frozen at placement) plus 250: 591 + 250
+    /// = 841, `v1z` 11.9375. Ours took the tile under its centre, now 584:
+    /// 834, `v1z` 12.6375. Every range of every line on 4032 and 4033.
+    #[test]
+    fn row_133_s_building_fires_from_its_own_height_on_run1797() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 4031 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let b = built
+            .sim
+            .building_by_o(1, 2021)
+            .expect("who=1's building 2021");
+        let bd = &built.sim.buildings[b];
+        assert_eq!(
+            (bd.z, built.sim.world.tile_z(bd.pos.tile())),
+            (591, 584),
+            "the building stands at its placement height over a tile since moved"
+        );
+        for state in [4032, 4033] {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            assert_eq!(built.sim.frame, state);
+            if state == 4032 {
+                let me = sim::combat::Obj::Building(b);
+                let p = built
+                    .sim
+                    .combat
+                    .projectiles
+                    .iter()
+                    .find(|p| p.shooter == me && p.cur_time == 1)
+                    .expect("1/2021's round of 4031");
+                assert_eq!(p.sz, 841, "591 + 0xfa, the stored z");
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for (line, ours) in lines.iter().enumerate() {
+                let Some(ours) = ours.as_ref() else {
+                    continue;
+                };
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {line}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "line {line} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 133's burned Assault Infantry lies on its scorched body**
     /// (item 4747, `docs/COMBAT.md` §42.1): run1797's ranges, the row's
     /// deaths parting on 3802 (range 37, record 18). who=2's Assault
@@ -15313,15 +15398,20 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 29996) as theirs' (run1847: ammo slot 5 on 4758, launch `y` ours
         // 29997, theirs 29996). The row's first parting moves 4758 -> 5039
         // (ammo): ammo 5,362 -> 5,368.
+        // Then item 4755 (row 133's word: a building's round leaves from
+        // its stored `z`, and a target building is aimed at it), scored on
+        // the tree that carries both: ammo 5,368 -> 5,630 (first 5039 ->
+        // 5512; the record on 5039 is not read); no other line moves. The
+        // first parting moves 5039 -> 5275 (deaths).
         moved: Some(Score {
             states: 12001,
             agreed: [
-                5499, 5514, 12001, 5368, 5457, 5513, 5501, 5523, 5629, 10946, 5693, 5501,
+                5499, 5514, 12001, 5630, 5457, 5513, 5501, 5523, 5629, 10946, 5693, 5501,
             ],
             first: &[
                 ("units", (5499, Some(4053032274), 3307776702)),
                 ("builds", (5507, Some(140029691), 1669115254)),
-                ("ammo", (5039, Some(603721098), 3619490979)),
+                ("ammo", (5512, Some(2120340522), 450876583)),
                 ("deaths", (5275, Some(2141760897), 2623450497)),
                 ("groups", (5513, Some(3842449435), 4008779876)),
                 ("guys", (5501, Some(3952932943), 788265010)),
@@ -15949,15 +16039,22 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 60114, theirs 60117 on 3802, all theirs now): deaths 3,802 ->
         // 4,103 (first 3802 -> 4103); no other line moves. The first
         // parting is ammo on 4032.
+        // Item 4755 (a building's round leaves from its stored `z`,
+        // `Object::fire_ammo@0064c8b0:147`'s `ObjectData +0xc` + 250, not
+        // the tile under its centre: who=1's building `1/2021` fires at
+        // `2/17` on 4031, ammo range 53, record 2, `sz` ours 834, theirs
+        // 841, `v1z` ours 12.6375, theirs 11.9375 on 4032, theirs now):
+        // ammo 4,086 -> 4,103 (first 4032 -> 4103); no other line moves.
+        // The first parting is units and guys on 4059.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                4087, 4146, 6085, 4086, 4103, 4121, 4087, 4114, 4158, 4378, 4476, 4098,
+                4087, 4146, 6085, 4103, 4103, 4121, 4087, 4114, 4158, 4378, 4476, 4098,
             ],
             first: &[
                 ("units", (4059, Some(2948754174), 1829464814)),
                 ("builds", (4138, Some(1999173051), 1171125996)),
-                ("ammo", (4032, Some(4219008740), 2611017338)),
+                ("ammo", (4103, Some(1106215815), 1924760686)),
                 ("deaths", (4103, Some(4160940736), 4023839423)),
                 ("groups", (4109, Some(1856517321), 3961861329)),
                 ("guys", (4059, Some(2882559999), 3448070127)),
@@ -16661,15 +16758,22 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // -> 4,568, cities 4,488 -> 4,644, items 9,428 -> 9,478, goods 4,684
         // -> 5,497, world 4,394 -> 4,568. The first parting moves 4384 ->
         // 4387, on ammo, which stood.
+        // Then item 4755 (row 133's word: a building's round leaves from its
+        // stored `z`, `Object::fire_ammo@0064c8b0:147`): on 4387 ammo record
+        // 8, who=2's building `2/2014`'s shot at `1/75`, launch `z` ours
+        // 348, theirs 380 (item 4751's read), theirs now. Ammo 4,415 ->
+        // 4,590 (first 4387 -> 4569); no other line moves. The first
+        // parting moves 4387 -> 4568, on units, builds, guys, leaders and
+        // world.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                4568, 4568, 12001, 4415, 4574, 4581, 4568, 4568, 4644, 9478, 5497, 4568,
+                4568, 4568, 12001, 4590, 4574, 4581, 4568, 4568, 4644, 9478, 5497, 4568,
             ],
             first: &[
                 ("units", (4568, Some(516811716), 223209531)),
                 ("builds", (4568, Some(2215694334), 1272959446)),
-                ("ammo", (4387, Some(2766110081), 1430617522)),
+                ("ammo", (4569, Some(1709369836), 271706844)),
                 ("deaths", (4574, Some(301612922), 306003835)),
                 ("groups", (4581, Some(724062805), 4151857789)),
                 ("guys", (4568, Some(2105001469), 260490747)),

@@ -265,8 +265,13 @@ impl Sim {
             let total_time = combat::flight_time(dx * dx + dy * dy, d).max(1);
             let landing = self.lead_landing(Some(target), landing, total_time);
             // `Object::fire_ammo`'s building arm: 250 above the building's
-            // own `z` (§46.1).
-            let sz = self.world.tile_z(centre.tile()) + 0xfa;
+            // own `z` (§46.1). **The stored `z`, not the tile's** (item
+            // 4755, `Object::fire_ammo@0064c8b0:147`): the package's `z` is
+            // `ObjectData +0xc`, frozen at placement ([`Building::z`]), so
+            // a neighbour's later terraform under the centre does not lift
+            // the round: run1797's who=1 building `1/2021` fires on 4031
+            // from 591 + 250 = 841 over a tile now at 584.
+            let sz = self.buildings[b].z + 0xfa;
             let ez = self.aim_z(target, land_unit);
             // `Object::fire_ammo`'s building arm (item 4175).
             let gpiece = self.fire_proj(me);
@@ -558,7 +563,8 @@ impl Sim {
                     .map_or(unit.movement.body, |f| f.body);
                 self.guy_z(u, 0, body.pos, false)
             }
-            Obj::Building(_) => self.world.object_z(at.tile()),
+            // The building's stored `+0xc` (item 4755).
+            Obj::Building(b) => self.buildings[b].z,
         };
         let radius = match t {
             Obj::Unit(_) => self.profile(t).target_size,

@@ -883,11 +883,11 @@ impl Sim {
     /// Attack Helicopter `1/15` at `z` 60 is aimed at 60, and the parked
     /// Jet Fighter `1/14` at 0, where the ground read 533 and 529.
     pub(super) fn aim_z(&mut self, target: Obj, rolling: bool) -> i32 {
-        let at = self.pos_of(target);
-        // A unit's `+0xc` is stored (item 4660, `crate::units::stored_z`).
+        // A unit's `+0xc` is stored (item 4660, `crate::units::stored_z`),
+        // and a building's too ([`crate::cities::Building::z`], item 4755).
         let ground = match target {
             Obj::Unit(u) => self.unit_stored_z(u),
-            Obj::Building(_) => self.world.object_z(at.tile()),
+            Obj::Building(b) => self.buildings[b].z,
         };
         let mut z = ground + if rolling { 0x4b } else { 0 };
         if let Obj::Unit(u) = target
