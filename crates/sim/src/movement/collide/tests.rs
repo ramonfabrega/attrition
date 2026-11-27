@@ -1822,6 +1822,39 @@ fn a_dead_group_mate_is_a_nudge_and_a_dead_stranger_a_wall() {
     assert!(sim.units[x].half_step, "and the soft one-shot is raised");
 }
 
+/// **A wreck is never a corner** (item 4733, `docs/COLLISION.md` §4.3):
+/// `UnitData::is_corner@0060a040` answers 0 on an object whose `flags & 1`
+/// is clear, and a death's `Object::close@00647160` zeroes `flags`. So two
+/// blocks touching at opposite diagonals slip past while the blocker lives
+/// (`will_be_corner` 3 against its `is_corner` 7) and collide once it is a
+/// wreck. Row 93's Bazooka `2/80` steps onto the dead Tiger Tank `1/26`'s
+/// SW corner on 4287 with its own NE, and the original refuses it.
+#[test]
+fn a_wreck_touching_at_the_opposite_corner_is_hard() {
+    let at = |c: (i32, i32)| Pos::new(c.0 * 0x30 + 0x18, c.1 * 0x30 + 0x18);
+    // The mover on ucell (29, 31) proposes (30, 30); the hit cell (31, 29)
+    // is the proposal's NE corner and the blocker's (on (32, 28)) SW.
+    let (a, b, into) = (at((29, 31)), at((32, 28)), at((30, 30)));
+    let (mut sim, x, y) = pair(a, b);
+    assert_eq!(
+        sim.detect_unit_collision(x, into),
+        None,
+        "a live blocker on the opposite corner is slipped past"
+    );
+    let (mut sim, x, y2) = pair(a, b);
+    assert_eq!(y, y2);
+    let ty = sim.units[y].ty.expect("typed");
+    sim.tables.unit_types[ty].cols.unit_flags |= crate::ai::ai_load::uflags::BLOCKS_WHILE_DEAD;
+    sim.cast_sniper_unit(y, 2, 0);
+    assert!(!sim.units[y].alive(), "a wreck");
+    assert_eq!(
+        sim.detect_unit_collision(x, into),
+        Some(y),
+        "the same block as a wreck is hard: its is_corner is 0"
+    );
+    assert_eq!(sim.units[x].collide_o, sim.units[y].index, "and recorded");
+}
+
 /// §4.3's group arm again, from the **other seat**: two members of a
 /// **pushed** group pass through each other too
 /// (`docs/COLLISION.md` §11).
