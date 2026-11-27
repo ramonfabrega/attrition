@@ -1772,7 +1772,7 @@ impl Sim {
         let impact =
             pose.and_then(|pose| pose.apply(&mut figures.place[..n], turn, &self.roster.art));
         let n_records = usize::from(figures.n);
-        let life = (self.units[i].guys.len() > 0
+        let life = (!self.units[i].guys.is_empty()
             && figures.life[..n_records].iter().all(|&l| l != i64::MAX))
         .then(|| figures.life[..n_records].iter().copied().max())
         .flatten();
