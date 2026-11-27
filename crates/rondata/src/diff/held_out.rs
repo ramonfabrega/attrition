@@ -15064,10 +15064,14 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 5,404 -> 5,513, first 4742 -> 5513, and the row's first parting
         // moves 4742 -> 4758 (ammo). Re-pinned by item 4753; with that
         // commit's `pool.rs` reversed, groups parts on 4742 at the old sums.
+        // Then item 4755 (row 133's word: a building's round leaves from
+        // its stored `z`, and a target building is aimed at it): ammo
+        // agreeing 5,362 -> 5,624, past the parting (first 4758 stands); no
+        // other line moves.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                5499, 5514, 12001, 5362, 5457, 5513, 5501, 5523, 5629, 10946, 5693, 5501,
+                5499, 5514, 12001, 5624, 5457, 5513, 5501, 5523, 5629, 10946, 5693, 5501,
             ],
             first: &[
                 ("units", (5499, Some(4053032274), 3307776702)),
@@ -15700,15 +15704,22 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 60114, theirs 60117 on 3802, all theirs now): deaths 3,802 ->
         // 4,103 (first 3802 -> 4103); no other line moves. The first
         // parting is ammo on 4032.
+        // Item 4755 (a building's round leaves from its stored `z`,
+        // `Object::fire_ammo@0064c8b0:147`'s `ObjectData +0xc` + 250, not
+        // the tile under its centre: who=1's building `1/2021` fires at
+        // `2/17` on 4031, ammo range 53, record 2, `sz` ours 834, theirs
+        // 841, `v1z` ours 12.6375, theirs 11.9375 on 4032, theirs now):
+        // ammo 4,086 -> 4,103 (first 4032 -> 4103); no other line moves.
+        // The first parting is units and guys on 4059.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                4087, 4146, 6085, 4086, 4103, 4121, 4087, 4114, 4158, 4378, 4476, 4098,
+                4087, 4146, 6085, 4103, 4103, 4121, 4087, 4114, 4158, 4378, 4476, 4098,
             ],
             first: &[
                 ("units", (4059, Some(2948754174), 1829464814)),
                 ("builds", (4138, Some(1999173051), 1171125996)),
-                ("ammo", (4032, Some(4219008740), 2611017338)),
+                ("ammo", (4103, Some(1106215815), 1924760686)),
                 ("deaths", (4103, Some(4160940736), 4023839423)),
                 ("groups", (4109, Some(1856517321), 3961861329)),
                 ("guys", (4059, Some(2882559999), 3448070127)),
