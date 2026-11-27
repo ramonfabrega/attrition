@@ -11065,10 +11065,18 @@ before the tail, and it still stands.
 - `Sim::find_nearby_target`: `must_reach` is `local_24` for a unit, and for a building since item 4004 (`docs/GOLDEN.md` §192).
   Those units test `is_in_range` and skip a miss, and they score with
   `in_range = false`.
-- `Sim::do_attack`'s tail: a packer kills the attack and runs
+- `Sim::do_attack`'s tail: ~~a packer kills the attack and runs
   `find_melee_target(u, -1)`, then returns if it finds nothing. If it
   finds something, it adds the order (`QUEUE_FIRST` in DEFENSIVE, else
-  `QUEUE_NEW`, `find_nearby_target`'s own rule) and chases that target.
+  `QUEUE_NEW`, `find_nearby_target`'s own rule) and chases that target.~~
+  **A packer runs `find_new_target(u, false)` whole** (item 4770,
+  2026-11-27; `docs/RECGAME.md` §12.3): `repath`, the kill, and the headed
+  search, whose add is `find_nearby_target`'s one arm (`Sim::nearby_add`),
+  so an attack-move or `GROUP_ATTACK_TO` the kill bares stays under a
+  `QUEUE_FIRST` attack and the unit stays on duty for the chase. The
+  inlined add missed that arm and closed the group order with
+  `QUEUE_NEW`. Diff-backed: run1784's Artillery `1/103` (TI 269, land) on
+  4624, theirs `[MOVE_TO, ATTACK, GROUP_ATTACK_TO]` with a 7-step path.
 
 | | before | after |
 |---|---|---|

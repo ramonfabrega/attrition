@@ -855,24 +855,22 @@ impl Sim {
         // below, straight to `find_attack_pos` (`5fe17f`). run883b's
         // packet runs the peace pair's MLRS `1/124` on 6821: no
         // `find_new_target`, no kill, the ring from `fight+0xcb4`.
+        //
+        // **The re-search is `find_new_target` whole** (item 4770,
+        // `docs/RECGAME.md` §12.3): `repath`, the kill, and the headed
+        // search, whose add is `find_nearby_target`'s one arm for every
+        // caller ([`Self::nearby_add`]). So a packer on its group's
+        // attack-move takes the find `QUEUE_FIRST` over the
+        // `GROUP_ATTACK_TO` its kill bared, stays on duty, and chases.
+        // Row 83's Artillery `1/103` (TI 269, land) on 4624, run1784:
+        // theirs `[MOVE_TO, ATTACK 2/2022, GROUP_ATTACK_TO]`, path 7,
+        // where this crate's own `QUEUE_NEW` add closed the group order
+        // and the STAND_GROUND gate below stopped it.
         let target = if packs && !state.mandatory {
-            self.kill_current_order(u);
-            if let Some(t) = self.take_siege_army_target(u) {
-                t
-            } else {
-                let Some(t) = self.find_melee_target(u, -1) else {
-                    return false;
-                };
-                self.nearby_normalize(u);
-                let mandatory = self.nearby_siege_city(u, t);
-                let pos = if state.stance == combat::Stance::Defensive {
-                    QueuePos::First
-                } else {
-                    QueuePos::New
-                };
-                self.add_attack_order(u, t, pos, mandatory, false);
-                t
-            }
+            let Some(t) = self.find_new_target(u, false) else {
+                return false;
+            };
+            t
         } else {
             target
         };
