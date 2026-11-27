@@ -6976,23 +6976,17 @@ const WANT_CH135: &[&str] = &[
 /// the chapter's standing families — the Bombers' `accuracy` (§35.3's
 /// SEAM) and their rounds' target words once the Barracks falls on 1076 —
 /// and `0/12`'s one-unit roundings of its strafe (its rounds' `sx`/`angle`
-/// from 1043, its `y` on 1060), none of them an order or a position that
+/// from 1043, ~~its `y` on 1060~~), none of them an order or a position that
 /// parts for more than a few frames. who=1's Bomber `1/6` takes
 /// `ATTACKORDER mandatory=0` on the low Fighter on 969 in both (§194).
+/// Item 4740 (`do_air_physics`'s `local_20`, the bank's turn sign on a
+/// flying target under the nose, `docs/ORDERS.md` §34.6): 70 -> 39 rows,
+/// `0/12`'s bank, heading and position rows of 1060..1082 and its rounds'
+/// rows of 1108..1126 gone, nothing new.
 const WANT_CH134: &[&str] = &[
     // Item 4497: 15 `accuracy` rows left — a bomb's round carries its pool slot's last accuracy (`docs/CHECKSUM.md` §18.2).
     "1043 0/12 ammo[3].angle",
     "1043 0/12 ammo[3].sx",
-    "1060 0/12 g.angle[0]",
-    "1060 0/12 g.bank[0]",
-    "1060 0/12 g.des_angle[0]",
-    "1060 0/12 g.des_y[0]",
-    "1060 0/12 g.y[0]",
-    "1060 0/12 heading",
-    "1060 0/12 pos",
-    "1061 0/12 dest_angle",
-    "1061 0/12 g.last_bank[0]",
-    "1061 0/12 orders_y",
     "1076 0/8 ammo[1].ox",
     "1076 0/8 ammo[1].whom",
     "1076 0/8 ammo[2].ox",
@@ -7005,31 +6999,10 @@ const WANT_CH134: &[&str] = &[
     "1076 0/8 ammo[5].whom",
     "1076 0/8 ammo[6].ox",
     "1076 0/8 ammo[6].whom",
-    "1079 0/12 g.des_x[0]",
-    "1079 0/12 g.x[0]",
-    "1080 0/12 orders_x",
-    "1082 0/12 g.avg_speed[0]",
-    "1082 0/12 g.last_speed[0]",
-    "1108 0/12 ammo[0].accuracy",
     "1108 0/12 ammo[0].angle",
-    "1108 0/12 ammo[0].sx",
     "1108 0/12 ammo[0].sy",
-    "1108 0/12 ammo[1].accuracy",
-    "1108 0/12 ammo[1].angle",
-    "1108 0/12 ammo[1].sx",
-    "1108 0/12 ammo[1].sy",
-    "1110 0/12 ammo[2].angle",
-    "1110 0/12 ammo[2].sx",
-    "1110 0/12 ammo[2].sy",
-    "1110 0/12 ammo[3].sy",
-    "1114 0/12 ammo[4].angle",
-    "1114 0/12 ammo[4].sx",
-    "1114 0/12 ammo[4].sy",
     "1114 0/12 ammo[5].angle",
-    "1114 0/12 ammo[5].sx",
     "1114 0/12 ammo[5].sy",
-    "1126 0/12 angle:Facing",
-    "1126 0/12 angle:Heading",
     "1308 0/15 ammo[4].angle",
     "1308 0/15 ammo[4].sx",
     "1316 0/15 ammo[0].angle",
