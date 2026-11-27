@@ -1901,6 +1901,14 @@ impl Sim {
     /// run (no staging has put one beside a city).
     fn enemy_air_defense_near(&self, who: crate::Player, at: Pos) -> bool {
         let a = at.tile();
+        if std::env::var_os("RON_PROBE_4736").is_some() {
+            for (x, bd) in self.buildings.iter().enumerate() {
+                if bd.alive && self.building_ident(x) == crate::cities::build::Ident::AirDefense {
+                    let p = bd.pos.tile();
+                    println!("P4736 AA frame {} who {who} at {at:?} b#{x} {}/{} pos {:?} tile {:?} a {:?} dist {} active {} enemy {} type {:?}", self.frame, bd.owner, bd.index, bd.pos, p, a, vector_dist(p.x - a.x, p.y - a.y), bd.active, self.is_enemy(bd.owner, who), bd.ty);
+                }
+            }
+        }
         self.buildings.iter().enumerate().any(|(x, bd)| {
             bd.alive
                 && self.is_enemy(bd.owner, who)
