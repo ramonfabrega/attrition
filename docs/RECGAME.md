@@ -1672,7 +1672,7 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 | 23 | run1774 | Atlantic Sea Power | the computers | 6,001 | 10 | **leaders 0**, units 5695 |
 | 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~3192, 3223, 3299, 3442, 3833, 3899~~ 3995 |
 | 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, to 4222 | **12** | ~~1582, 1789, 3683, 3986~~ whole |
-| 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | ~~4007~~ [4154](journal/2026-11-27-item-4759.md) |
+| 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | ~~4007, 4154, 4470~~ [4624](journal/2026-11-27-item-4769.md) |
 | 103 | run1778 | East Indies, Modern | the computers | 3,295, to 3294 | **12** | ~~1750, 1757, 1790, 2557 (GROUPS §3.4), ammo 2860, world 2983~~ whole (COLLISION §2) |
 | 123 | run1779 | Great Lakes, Gunpowder | human + added | 6,001 | 3 | ~~builds, groups 2977~~ whole (below) |
 | 143 | run1780 | Great Sahara, difficulty 1 | the computers | 6,001 | **12** | whole |
@@ -1821,7 +1821,7 @@ acted**: the capital carries damage 5,949, past half its hits. On frame 1904 (`(
 `Build::process`'s repair recruit sends it the nearest not-busy citizen (`docs/AI.md` §167). The arm is built. The
 row's first parting moves one state, to units alone on 1906. Builds go to 2166 and leaders to 2212.
 
-*Diff-backed*: every number above (the hook's twelve sums on every state, ours against theirs), and row 133's leaf on
+*Diff-backed*: every number above (the hook's twelve sums on every state), and row 133's leaf on
 955 to 958 (every leaders range), and its third on 1904 and 1905 (every units, builds and leaders range). *Read, not diffed*:
 that `script_rule`'s choices are what a person would make; only their effect on the original is compared. *Not
 established*: no other row names a leaf, since each take holds sums only, but row 73. Item 4576 read it off run1798's
@@ -1884,7 +1884,7 @@ Open: deaths on 5275. → 3713 by 4660, 3716 by 4667, 3935 by 4671, 4092 by 4741
 
 ### 13.3 Row 93
 
-2686 → 2965 by 4590, 4606 → 3058 by 4657 → 3089 by 4681 → 3269 by 4685 → 3524 by 4688 → 4130 by 4692 → 4154 by 4718 → 4219 by 4720 → 4235 by 4725 → 4288 by 4730 → 4645 by 4733, open (COMBAT §68.1, §47.2, §7.2; COLLISION §3.2, §4.3; AI §75.4, §368.1; CITIES §9.3; CHECKSUM §16, §23.9).
+2686 → 2965 by 4590, 4606 → 3058 by 4657 → 3089 by 4681 → 3269 by 4685 → 3524 by 4688 → 4130 by 4692 → 4154 by 4718 → 4219 by 4720 → 4235 by 4725 → 4288 by 4730 → 4645 by 4733 → 4806 by 4763 → 4812 by 4767, open (COMBAT §68.1, §47.2, §7.2; COLLISION §3.2, §4.3; AI §75.4, §368.1; CITIES §9.3; CHECKSUM §16, §23.9; GROUPS §6.8, §6.9).
 
 ### 13.4 Row 113
 

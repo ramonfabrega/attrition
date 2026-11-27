@@ -572,6 +572,60 @@ fn bribe_s_copy_takes_the_old_unit_s_masks_and_flags() {
     assert!(c.cant_reach, "flags & 0x10 carried");
 }
 
+/// **A bribed squad's dead figure leaves the world, and a live one turns**
+/// (`Unit::swap_team@006118d0:72`, item 4769, `docs/RECGAME.md` §12.3).
+/// The copy's `flags & 1`, just taken from the old figure, picks the arm:
+/// clear, `Object::remove_from_world@00647970` unthreads the copy from
+/// its birth cell's chain and leaves its unit point where `init_unit`
+/// put it; set, `set_new_location(…, 1, 1)` moves it with the turn,
+/// whose snap writes guy 0's `last_angle` from the unit's `angle`, and
+/// the per-guy loop then puts the old figure's `angle` back. run1784's
+/// 4469: who=2 bribes a Riflemen squad whose third figure is dead.
+///
+/// Made to fail with the dead arm taking `set_new_location` (the copy
+/// stays its birth cell's head), and with the live arm's turn dropped.
+#[test]
+fn a_bribed_squad_s_dead_figure_leaves_the_world_and_a_live_one_turns() {
+    let (mut s, [_, spy, _, filler]) = casters(Tuning::RON);
+    let ty = s.units[filler].ty.expect("a type");
+    s.tables.unit_types[ty].combat.uber_size = 2;
+    s.tables.unit_types[ty].hits = 20;
+    let at = Pos::new(3 * 768 + 24, 3 * 768 + 24);
+    let captain = s.init_unit(0, ty, at);
+    let tail = s.units[captain].o_down.expect("the squad's second figure");
+    // The tail dies away from the captain, still on the squad's links.
+    let far = Pos::new(6 * 768 + 24, 6 * 768 + 24);
+    s.set_new_location(tail, far, true);
+    s.units[tail].health = 0;
+    s.units[spy].owner = 1;
+    let heading = crate::movement::Angle(0x1200_0000);
+    let facing = crate::movement::Angle(0x6600_0000);
+    s.units[captain].movement.heading = heading;
+    s.units[captain].movement.facing = facing;
+    let n = s.cast_bribe_unit(spy, captain).expect("a copy is born");
+    let m = s.units[n].o_down.expect("the copy's second figure");
+    assert!(
+        s.units[n].alive() && !s.units[m].alive(),
+        "the dead one copied dead"
+    );
+    // The dead copy: off the chain, its point `init_unit`'s.
+    let born = s.units[n].pos;
+    assert_eq!(s.units[m].pos, born, "the dead copy's unit point stays");
+    assert_ne!(s.units[m].pos.cell(), far.cell());
+    let (up, down, ..) = s.unit_chain_words(m);
+    assert_eq!((up, down), (-1, -1), "the dead copy is unthreaded");
+    let cell = s.object_chain(born.cell());
+    assert!(
+        !cell.contains(&crate::combat::Obj::Unit(m)),
+        "the dead copy is not on its birth cell's chain: {cell:?}"
+    );
+    assert_eq!(s.unit_chain_words(n).0, -1, "the live copy heads its cell");
+    // The live copy: the figure keeps the old angle, `last_angle` the turn's.
+    assert_eq!(s.units[n].movement.facing, facing, "`+0x18` copied back");
+    let last = s.units[n].guys.first().and_then(|g| g.last).map(|l| l.1);
+    assert_eq!(last, Some(heading), "`+0x1c` snapped to the unit's angle");
+}
+
 /// What one frame of each parity takes back from a `mana_burn` of 100.
 fn steps(s: &mut Sim, u: usize) -> [i16; 2] {
     [10, 11].map(|frame| {
@@ -757,4 +811,78 @@ fn a_bribing_spy_takes_the_attack_flag_and_the_bribe_mark_and_the_pass_peels_it(
     assert!(!s.units[spy].fought, "and the fought bit goes");
     s.units[spy].unit_masks2 = (s.units[spy].unit_masks2 & !BRIBE_MARK) | BRIBE_HIGH;
     assert_eq!(pass(&mut s, 13), 0, "the high bit alone");
+}
+
+/// **A dead target hands the cast to its squad's captain** (item 4765,
+/// `docs/RECGAME.md` §12.3; `Unit::do_cast@005ebfe0` at `5ec151`..
+/// `5ec182`): the target's `flags & 1` clear, `get_captain` (the `o_up`
+/// walk) names another `o`, and the order is rewritten to it, paid and
+/// kept. A dead head is its own captain and the order goes. Row 83's
+/// Commando `2/149` and the Riflemen `1/58` → `1/57` on 4154. Made to
+/// fail with the arm dropped (the order goes, its mana handed back).
+#[test]
+fn a_dead_target_hands_the_sniper_to_its_squad_s_captain() {
+    use crate::combat::Obj;
+    use crate::orders::{Body, CastOrder, Order, SpellType, spell};
+    let (mut s, [_, _, _, caster]) = casters(Tuning::RON);
+    s.orders.spells =
+        vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+    let sniper = usize::try_from(0x281 - spell::FIRST).unwrap();
+    s.orders.spells[sniper].flags = 0x2 | 0x20;
+    s.orders.spells[sniper].range = 192;
+    s.orders.spells[sniper].mana = 1000;
+    s.orders.spells[sniper].job_time = 150;
+    s.declare_war(0, 1);
+    let ty = s.units[caster].ty;
+    let soldier = |s: &mut Sim, x: i32| {
+        s.add_unit({
+            let mut u = Unit::new(0, 0, Pos::new(x, 3 * 768), 20);
+            u.ty = ty;
+            u
+        })
+    };
+    let head = soldier(&mut s, 3 * 768 + 1200);
+    let tail = soldier(&mut s, 3 * 768 + 1400);
+    s.tables.unit_types[ty.unwrap()].combat.attack = 5;
+    s.units[tail].o_up = Some(head);
+    s.units[head].o_down = Some(tail);
+    let cast_on = |s: &mut Sim, t: usize| {
+        let order = CastOrder {
+            spell: 0x281,
+            paid: true,
+            target: Some(Obj::Unit(t)),
+            at: s.units[caster].pos,
+        };
+        s.units[caster].orders.clear();
+        s.units[caster].orders.push_back(Order {
+            flags: 0,
+            body: Body::Cast(order),
+        });
+        s.units[caster].mana_burn = 1000;
+        s.do_cast_targeted(caster, order);
+    };
+    s.units[tail].health = 0;
+    cast_on(&mut s, tail);
+    let held: Vec<_> = s.units[caster]
+        .orders
+        .iter()
+        .filter_map(|o| match o.body {
+            Body::Cast(c) => Some((c.target, c.paid)),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(held, vec![(Some(Obj::Unit(head)), true)], "the captain's");
+    assert_eq!(s.units[caster].mana_burn, 1000, "paid, kept");
+    s.units[tail].health = 20;
+    s.units[head].health = 0;
+    s.units[tail].o_up = None;
+    s.units[head].o_down = None;
+    cast_on(&mut s, head);
+    assert!(
+        !s.units[caster]
+            .orders
+            .iter()
+            .any(|o| matches!(o.body, Body::Cast(_))),
+        "a dead head is its own captain: the order goes"
+    );
 }

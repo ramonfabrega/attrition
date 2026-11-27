@@ -41101,7 +41101,25 @@ minutes were spent waiting on another lane. `df -g ~` read 88 GB free before it 
 `row_83_s_airbase_keeps_its_biplane_when_a_wonder_outscores_the_city_on_run1784_s_ranges` (every units and builds
 range on 3358 to 3360), and `row_83_s_barracks_re_homes_when_its_city_is_taken_on_run1784_s_ranges` (every units,
 builds, guys and cities range on 3644 to 3646).
+
+**Item 4765 on it**: units part on 4154, record 149, who=2's Commando `2/149` (TI 73, land): its paid Sniper's target,
+the Riflemen `1/58`, died on 4153, and theirs hands the cast to `1/58`'s captain `1/57` (uid 89), a `MOVE_TO` in front
+(`do_cast` at `5ec151`..`5ec182`); ours dropped it. With the arm, `print_ranges` reads 0 ranges over 4152..4160 and
+`row_83_s_commando_keeps_its_sniper_on_the_dead_riflemen_s_captain_on_run1784_s_ranges` holds every units, builds, ammo,
+groups, guys and leaders range on 4153 to 4158. Units 4,154 → 4,470; the row parts first on units, guys and world on
+4470 (record 39, who=2's TI 100 at (10344, 24648), `up` ours 41, theirs −1).
+
+**Item 4769 on it**: on 4469 who=2 bribes a Riflemen squad (TI 100, land) whose third figure is dead. Theirs sends
+that copy, `2/41` (uid 227), through `remove_from_world` (`Unit::swap_team@006118d0:72`, the copied `flags & 1`
+clear) and moves the live ones with `set_new_location(…, 1, 1)`; ours left `2/41` heading its birth cell's chain and
+moved the live ones with no turn. On 4470: units record 39 (`2/39`) `up` ours 41 → −1, record 40 (`2/40`) guy
+`last_angle` 1431655765 → −1191444480, world record 1933's head byte 0x29 → 0x27, as theirs. `print_ranges` reads 0
+ranges over 4468..4480, and `row_83_s_bribed_riflemen_drop_their_dead_figure_from_the_world_on_run1784_s_ranges`
+holds every units, builds, guys and world range on 4469 to 4472. Units 4,470 → 4,624, guys 4,622 → 4,624, world
+4,488 → 4,624; the row parts first on ammo, deaths, guys, units and world on 4624 (units record 103, who=1's TI 269
+at (12120, 27720): theirs holds a 7-step path and 18 more units ranges, ours none).
 ## run1786 — the 2017 sample's playback to 8,000 with the checksum and ranges hooks, every line but walls kept (2026-11-22, item 4555, `att-4555`)
+
 
 `docs/RECGAME.md` §7; DECISIONS 148 §5. **What the disk could not answer**: run1772's record ends on 6399, and the
 sample's score stood on units 6669, groups 6928, builds, guys, leaders, cities and world 7021, ammo 7023, deaths

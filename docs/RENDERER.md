@@ -6793,9 +6793,15 @@ packet's and the same 20 apart. So no `picked` is kept for the line bytes.
 rows. **Read alone**: nothing new. The candidate is the door's bytes.
 
 **Not established.**
-- Why the mesh marks yellow on the T at (17–19, 163), where the packet
-  holds none (4690a). It names a score: two of the packet's pieces and the
-  ring's hue.
+- ~~Why the mesh marks yellow on the T at (17–19, 163), where the packet
+  holds none (4690a).~~ Answered by item 4722
+  (`docs/journal/2026-11-27-item-4722.md`): the yellow is from row 164,
+  which stood earlier, kept after its clear by `leech_codes`' line half in
+  three loops whose tiles are never cleared in one redo batch.
+- Whether merging the texture tiles into the redo list in push order
+  breaks the loops (4722a). A probe that clears them with pass 2 gives the
+  packet's piece 480 → 481, with (19, 163) whole; (17, 163) and (18, 163)
+  ping-pong between the lists.
 - run1559b's 20 apart: 17 an intersection bit or a white the packet holds
   and we do not (4199a), (211, 84) as §6.7, and the T.
 
@@ -7812,6 +7818,130 @@ left it.
 
 **Not established.**
 - The 38 white pixels at x 366..400, y 954..975 (4764a).
+
+## 6.26 The Woodcutter's Camp's hoist: the addon, read (item 4734)
+
+*2026-11-27, Opus 5.5. The ledger: `docs/journal/2026-11-27-item-4734.md`.
+The first act alone: no code, no row yet.*
+
+**What the hoist is.** Not the camp's sprite. `WOODCUTTER-DEFAULT-AGE0`'s
+`<BUILD>` names two `EXISTEVENT`s, `BUILD_DEFAULT` and `BUILD_BUILD`, each
+with the subject `Woodcutter_0_addon` and the anim `Woodcutter_0 Default`.
+The subject is an `<AMMO>` in `effects_graphics.xml`: the model
+`Woodcutter_0Addon.bh3`, its texture `woodcutter_0addon.tga`, the render
+state `Ammo Blend`. The anim is `woodcutter_0Addon.bha`. The subject is the
+225th `<AMMO>` (index 224), so its piece is 60373 (`first_ammo_piece`
+60149 plus 224). The client draws no addon (`artdata::BuildArt::addons`
+names them, and nothing reads them). So in ours the boom, the hoisted log
+and its rope are missing, not resting.
+
+**How the original draws it.** `GraphicPieces::execute_graphic_events
+@00909a10` walks the building's events for its `cur_anim`. On an
+`EXISTEVENT` it takes a slot in `add_ons` (`find_empty_addon@008e6140`;
+`expire_addons@00903f20` frees the ones not drawn this frame). It then
+draws the subject's piece at the building's point, angle and scale, with
+the building's `cur_time` modulo the addon's own animation length
+(`AnimationPacket::get_anim_time@00918c40`). It draws at time 0 when the
+object is not `WallData::is_active@00472350`, which is flag bit 2, a
+finished building.
+
+**The building's clock.** `WallOut::draw@00641930` gives a building's
+`cur_time` as the game's milliseconds, `frame · 200 / 3 + graphic_dt`,
+unless the type `BuildTypeData::is_gather_type@00472bb0`. For a gather
+type it is `(recharging + 1) · 200 / 3`, from `BuildData`'s `recharging`.
+When `build_masks` bit 10 is set it is `recharging · 200 / 3 +
+graphic_dt` instead. With no train and nothing queued, `cur_anim` is 0,
+`BUILD_DEFAULT`.
+
+**On run1814b's packet** (frame 3294, `graphic_dt` 6):
+
+| | value |
+|---|---|
+| the camp, `0/2001` | `flags` 7 (active), piece 50698, `build_masks` bit 10 clear, `recharging` 3293 |
+| player 1's camps | `1/2001`: `recharging` 3292; `1/2009`: `recharging` 511 |
+| piece 60373's `AnimationPacket` | action 0 → 1970, `cur_time` 18666, length 20000 ms |
+| the clock the reading predicts for `0/2001` | (3293 + 1) · 200 / 3 = 219600, so 19600 |
+
+The packet's 18666 is not 19600. It would be `recharging` 3279. No camp on
+the packet gives 18666. That is the first thing the next word settles.
+
+**Not established.**
+- Who writes a gather building's `recharging`, and whether the sim carries
+  it. The sim's `recharging` is a tower's. If the camp's clock needs it, the
+  door (`sim::observe`) widens (4734a).
+- The packet's 18666 against the reading's 19600 (4734a).
+- `Ammo Blend` and the addon's light. Its pixels against the photograph:
+  no row yet. (A row since item 4768, §6.27.)
+
+## 6.27 The Woodcutter's Camp's hoist: drawn (item 4768)
+
+*2026-11-27, Opus 5.5. The ledger: `docs/journal/2026-11-27-item-4768.md`.
+`World::addon_drawings`, `World::addon_art`, `addon_clock`; the row
+`RUN1814B_3294_HOIST`.*
+
+**How it is drawn.** For each building entry on the draw list, each of
+its piece's `EXISTEVENT` subjects (`artdata::BuildArt::addons`) is found
+among the `<AMMO>`s (`ammo_pieces`, the first name matched without case),
+and its `model=`, `texture=` and the event's `.BHa` are loaded under the
+ammo piece. `execute_graphic_events@00909a10` hands the addon the
+building's chad: its point (`PlacedBuilding::anchor_point`), its angle
+270 (`WallOut::draw@00641930`), its `sx`, `sy`, `sz`, the chad's
+default (1, −1, 1), times `build_scale` 3. `draw_ammo@008e68b0` applies
+them as `rotate_z`, the point and the scale: the fire's frame (§3.20),
+`guy_placement` at 270 and `BUILD_SCALE`. The building's own
+`build_anim_time` is 0 for the camp (`anim=""`), so its clock reaches the
+addon whole. The pose is the addon's `.BHa` at that clock modulo its
+length (20000 ms), 0 where the building is not active. The addon joins
+the figures' textured meshes (`World::figure_meshes`), not
+`World::objects`: the silhouette keys and the register do not see it,
+and the silhouette pass skips it.
+
+**`Ammo Blend` is coverage.** The texture's alpha is 255 on 3,936 texels
+and 0 on 160: a box around the hook block, a quad whose surround is cut.
+Read as the owner's colour, as a figure's is, that box drew red down the
+boom. The addon's corners carry an owner of 2, out of a colour's range,
+and `fs_textured` cuts its texels at an alpha of a half and lays no
+owner's colour. A cut at a half, not a blend: the render state's own
+blend is not read.
+
+**The clock.** The client has no `recharging` (the door does not carry a
+building's), so a camp's clock is the game's, `frame · 200 / 3`
+(`addon_clock`). On run1814b that is 19600, the reading's gather clock's
+value too, since `0/2001`'s `recharging` is 3293 on frame 3294. The
+packet's 18666 and our 19600 lie in one stretch of the 20-second cycle,
+the boom down to the log pile and the rope at the log: drawn at either,
+the stills part on 92 pixels over the whole screen and none in the
+hoist's box. The cycle elsewhere: at 4000 ms the log swings off the
+pile, at 8000 the boom stands in over the tower.
+
+**The row.** `RUN1814B_3294_HOIST`, in the run1814b frame test: around
+the camp, x 1420..1500 and y 340..440, the pixels the addon moves by more
+than 3 on a channel, on the test's still (slot 0's fog drawn). On them
+the photograph agrees within 48 a channel with the still with no addon on
+356 of 677, with it drawn on 545. The lumas ×10: theirs 1182, ours 1309 →
+1133. The made-to-fail is the hoist at 8000 ms over its own pixels: 193 →
+118 of 385.
+
+| | pixels | within 48, none | drawn | luma ×10, theirs | none | drawn |
+|---|---|---|---|---|---|---|
+| `RUN1814B_3294_HOIST` | 677 | 356 | 545 | 1182 | 1309 | 1133 |
+| `RUN1814B_3294_HOIST_WRONG`, 8000 ms | 385 | 193 | 118 | 1283 | 1170 | 916 |
+
+**What it moved besides.** The addon's pixels move the frame's mean, so
+the tone map's white: 28,836 pixels by 3 or less across the still. One other row moved: `RUN1814B_3294_TREES_PAST_SIGHT`'s mask
+81,367 → 81,368 pixels and nearer 78,376 → 78,378, its lumas held.
+
+**Not established.**
+- Why ours draws the boom darker than theirs, a grey-brown where theirs
+  is a light tan (on the client's still with no fog, luma 99.8 against
+  118.5 on the boom's pixels): the render state's stages and whether the
+  addon is lit (4768a).
+- Who writes a gather building's `recharging` (4734a, still open). It
+  moves no pixel on run1814b; a capture where a camp's `recharging` parts
+  from the frame would.
+- `Ammo Blend` as the card sets it: a blend, a test, its reference.
+- The other addons the install names (the metro's, the Age 3 and 5
+  camps'): drawn by the same path, no row reaches them.
 
 ## 7. What is not established, and what needs Ramon's word
 
