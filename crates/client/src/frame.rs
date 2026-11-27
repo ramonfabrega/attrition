@@ -422,6 +422,7 @@ impl MinimapFrame {
 
     /// The window as layers for the screen pass, the clock's `line` in
     /// the bar's box.
+    #[allow(clippy::too_many_arguments)]
     pub fn layers(
         &self,
         size: (i32, i32),
