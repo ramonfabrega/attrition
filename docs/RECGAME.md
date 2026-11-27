@@ -2017,18 +2017,17 @@ Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
 
 ### 14.4 Row 88
 
-Open: builds parts on 3717 (item 4689). run1808 holds sums, run1815 the ranges to 2991 (units, deaths, guys,
-leaders and world), run1818 the ammo ranges to 2792, run1840, 1842 and 1843 every line but walls to 3118, 3447 and 3590. The stories are the items' journals.
+Open: groups parts on 4363 (item 4743). run1846 is the row's whole take, every line but walls to 12,000; run1808
+holds sums. The stories are the items' journals.
 
-**Item 4614: a rider comes out before its carrier dies, and a fire raft dies with its shot.** Both are diff-backed by
-run1815's ranges.
+**Item 4614**, diff-backed by run1815's ranges:
 
 - **The seam's fix** (DECISIONS 155 §9). `Object::kill_contents@00645550` calls `Unit::come_out(p, 0)` and then
   `Unit::die_uber(p, 0)` on each head of `inside_down`; this crate let each rider die aboard. `kill_contents` now runs
   `Sim::rider_come_out` (the boat's ring for the captain, the captain's for each member) and kills the squad in
   `die_uber`'s order, the captain last; a rider whose `come_out` refuses dies aboard through `close_inside_disc`. On
   2740 who=2's Peltasts `2/38`..`2/40` (TI 84) come ashore off the sunk barge `2/71` (TI 320) and die there. Off,
-  world parts on 2741 (range 4934, record 1101, `block.present` ours 0, theirs 1); on, it agrees to 2861.
+  world parts on 2741 (`block.present` ours 0, theirs 1).
 - **A fire raft dies with its shot.** On 2741 theirs' deaths slot 0 is who=1's Heavy Fire Raft `1/87` (TI 335); ours
   kept it alive. `Unit::fight@005fd4d0:900`–`906`: after `fire_ammo`, a type whose `unit_flags` carries `0x2000`
   (`uflags::SELF_DESTRUCT`) takes `Object::die(this, 3, −1, 0)`. Built in `fight_as`'s ranged arm, held by
@@ -2062,7 +2061,7 @@ Built in `Sim::same_damage` (`docs/TRANSPORT.md` §6.4), held by
 
 The score, `SCORES_SEVENTH[4].moved` (12,001 states; columns in each comment). The first parting:
 2741 → 2791 (4622) → 2883 (4625) → 2902 (4631) → 2985 (4633) → 3028 (4662) → 3033 (4664) → 3069 (4668) → 3095 (4674)
-→ 3112 (4676) → 3441 (4680) → 3574 (4683) → 3717 (4689).
+→ 3112 (4676) → 3441 (4680) → 3574 (4683) → 3717 (4689) → 4166 (4693) → 4363 (4743).
 
 **Item 4662: a stale attack is cleared, not retargeted.** On 2984 who=1's Trebuchet `1/61` (TI 266) ends its
 attack-ground; the Attack under it names `2/63` at uid 93, a number another barge holds. `Unit::work@0060d180:300`–`:340`
@@ -2089,11 +2088,14 @@ round `sz` ours −173 → 100 as theirs.
 
 **Item 4693: a rider dying aboard heads its cell** (`remove_from_inside`): on 3717 Market `2/2041`'s `up_who` −1 → 2.
 
+**Item 4743: `check_hit` writes a round's pair** (`:42`–`44`): on 4166 slot 15's `whom, ox` (2, 137) → (−1, −1).
+
 **Not established.** `Unit::resolve_unit_collision@005f9d30:79`'s suicide arm is not built: no capture has been shown
 to reach it. A building shooter always splashes from the landing (`Build` and `Wall` fill vslot `+0x18` with a
 `return 0`). The Carrack's node-2 `CHAR_ATTACK2` row (frame 24) is one unit off at heading 283; piece 128's six
 node-0 attack keys still fall back to the figure's square on row 88 after 2883. A transport's head rider is taken as
-the lowest live slot aboard, not read off `inside_down`'s ring order; no capture yet kills a mixed cargo. `eject_riders` walks riders in slot order too (4633a): the chain order moved nothing on run1815.
+the lowest live slot aboard, not read off `inside_down`'s ring order; no capture yet kills a mixed cargo. `eject_riders` walks riders in slot order too (4633a): the chain order moved nothing on run1815. `do_damage`'s puncture on a
+`check_hit` that finds the shooter is not built (4743a).
 
 ### 14.5 Row 108
 
