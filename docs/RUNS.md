@@ -42656,3 +42656,90 @@ it, and record 4's `sz` 588 against 585; nothing else parts on 5606 or 5607 (`pr
 row 83's leaf on 4007 (`launch_y` 27377 against 27376), and item 4759 carries both rows. Units part on 5940: range 10957,
 record 173, `unit_masks` ours 262280, theirs 262152, `attrition` 48 against 0; builds on 7183, record 2067, `city_down` −1
 against 2068. It is row 48's take for every later word.
+## run1849 — parity held out, seventh battery, row 108's whole file to 12,000 with the checksum and ranges hooks, every line but walls and deaths kept (2026-11-27, the pass, DECISIONS 160 §4)
+
+`docs/RECGAME.md` §14.5. **What the disk could not answer**: row 108 held sums alone (run1809), and item 4616's first
+act was this take. DECISIONS 158 §2: the row's one whole take, no `--log-window`; no later word of row 108 books one.
+The pass took it, one of four in one script behind its compressor, each waited on with `waitrun.sh` and filed before
+the next launched (`~/ron-data/lab-experiments/2026-11-27-pass/takes.sh`, `takes2.sh`): `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh
+tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1849 --recording
+~/ron-golden/recordings/item4600-row108-12000.rcx --end-frame 12000 --allow-early-end --cover cover=1 --detail end:MISC
+--timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0xfebu`,
+the mask `score_recording` printed on run1809's sums at `aad846fa0`. No lane was out and no gate ran; `df -g ~` read
+83 GB free before it, 72 after the take and 79 after filing.
+- **The run**: pool lane 1, launched 04:05:53 −05:00, exited 04:20:07: **854.3 s** launch to exit, exit
+  0, `success`, 0 page faults, 0 relaunches. 12,001 frames, `last_frame` 12000, not ended early, seed
+  12345, map 7. The recording's SHA-256 is run1809's (`8a3c8295…`). Players: tribe 4 (who 0, flags 7), tribe 5 (who 1), tribe 7 (who 2).
+- **The record**: `~/ron-golden/run1849/map-7/rontrace.ranges`, 8,754,088,304 bytes, SHA-256
+  `39a697e0275dca15e24e419e65a15c795d8531f39bce4d7346946cca164fdceb`, split in 9 pieces by `filerun.py` and
+  compressed in place (8.16 GiB on disk before, 0.70 after). `gamelog_p.txt`, 2,875 bytes, SHA-256
+  `a20d25504e4d9feb094657f576073fab5c2bd4ae6034c8c6af6bbdbe16519d6b`; `rontrace.log`, 149,587,072 bytes, SHA-256
+  `1e1abcd4f3fd339444ee372ce279cb9b00bbe49f3dd08796f4f5920f86bba522`.
+- **Scored** (`score_recording … ~/ron-golden/run1849/map-7`, on `aad846fa0` with the pass's ammo decoder):
+  first differing state 7421 (units, builds, groups, guys), as run1809's sums.
+- Filed with `filerun.py run1849 heldout7-row108-whole-ranges`.
+
+**What it named**: on 7421, units range 881, record 16, collide_frame..play, byte 18: ours 0x26, original 0x36, dest_angle ours 455475200,
+original -1690959872, unit_masks ours 262152, original 262156, orders_x ours 22488, original 5496, orders_y ours 7896,
+original 29544; builds range 242, record 2007, job_counter..demolition, byte 26: ours 0x01, original 0x03, ever_seen ours
+1, original 3; groups range 83, record 65, id..march, byte 34: ours 0x26, original 0x33, o_angle ours 455475200, original
+456327168; guys range 297, record 16, guy, byte 146: ours 0x10, original 0x30, guy_flags ours 16, original 48. It is row
+108's take for every later word, and item 4616 opens on it.
+
+## run1850 — parity held out, sixth battery, row 13's whole file to 12,000 with the checksum and ranges hooks, every line but walls kept (2026-11-27, the pass, DECISIONS 160 §4)
+
+`docs/RECGAME.md` §13.1. **What the disk could not answer**: row 13 held sums alone (run1788), and item 4579's first
+act was this take. DECISIONS 158 §2: the row's one whole take, no `--log-window`; no later word of row 13 books one.
+The pass took it, one of four in one script behind its compressor, each waited on with `waitrun.sh` and filed before
+the next launched (`~/ron-data/lab-experiments/2026-11-27-pass/takes.sh`, `takes2.sh`): `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh
+tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1850 --recording
+~/ron-golden/recordings/item4566-row013-12000.rcx --end-frame 12000 --allow-early-end --cover cover=1 --detail end:MISC
+--timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0xffbu`,
+every line but walls, where `score_recording` on run1788's sums named `0xfebu`: a line whole today keeps its ranges for the
+rule that parts it later (DECISIONS 160 §4). No lane was out and no gate ran; `df -g ~` read
+79 GB free before it, 71 after the take and 78 after filing.
+- **The run**: pool lane 1, launched 04:21:06 −05:00, exited 04:35:02: **835.6 s** launch to exit, exit
+  0, `success`, 0 page faults, 0 relaunches. 12,001 frames, `last_frame` 12000, not ended early, seed
+  12345, map 8. The recording's SHA-256 is run1788's (`4c7e8e1a…`). Players: tribe 4 (who 0, flags 7), tribe 11 (who 1), tribe 9 (who 2).
+- **The record**: `~/ron-golden/run1850/map-8/rontrace.ranges`, 8,339,210,092 bytes, SHA-256
+  `37164aa72b78169730b9f701a2f0da24f7b14bc1aabbb69dd34d960cb4777667`, split in 8 pieces by `filerun.py` and
+  compressed in place (7.78 GiB on disk before, 0.69 after). `gamelog_p.txt`, 2,884 bytes, SHA-256
+  `1d1b0f53d0874554676c78b834904c18ca664adb2170c70f75abbe9b57eb3d18`; `rontrace.log`, 110,824,864 bytes, SHA-256
+  `5bb30f7f39edc59bd02ca106111a19265d8b915f3846b1cd7730aa5fe67ac402`.
+- **Scored** (`score_recording … ~/ron-golden/run1850/map-8`, on `aad846fa0` with the pass's ammo decoder):
+  first differing state 7675 (units, builds, groups, guys), as run1788's sums.
+- Filed with `filerun.py run1850 heldout6-row013-whole-ranges`.
+
+**What it named**: on 7675, units range 817, record 26, collide_frame..play, byte 18: ours 0x48, original 0x3e, dest_angle ours -414711808,
+original 1665007616, unit_masks ours 262152, original 262156, orders_x ours 21240, original 35928, orders_y ours 10200,
+original 32568; builds range 251, record 2007, job_counter..demolition, byte 26: ours 0x01, original 0x03, ever_seen ours
+1, original 3; groups range 90, record 66, id..march, byte 34: ours 0x48, original 0x4a, o_angle ours -414711808, original
+-414580736; guys range 249, record 26, guy, byte 146: ours 0x10, original 0x30, guy_flags ours 16, original 48. It is row
+13's take for every later word, and item 4579 opens on it.
+
+## run1851 — parity held out, seventh battery, row 8's whole file to 12,000 with the checksum and ranges hooks, every line but walls kept (2026-11-27, the pass, DECISIONS 160 §4)
+
+`docs/RECGAME.md` §14.1. **What the disk could not answer**: row 8 held sums alone (run1804), and item 4617's first
+act was this take. DECISIONS 158 §2: the row's one whole take, no `--log-window`; no later word of row 8 books one.
+The pass took it, one of four in one script behind its compressor, each waited on with `waitrun.sh` and filed before
+the next launched (`~/ron-data/lab-experiments/2026-11-27-pass/takes.sh`, `takes2.sh`): `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh
+tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1851 --recording
+~/ron-golden/recordings/item4600-row008-12000.rcx --end-frame 12000 --allow-early-end --cover cover=1 --detail end:MISC
+--timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0xffbu`,
+every line but walls, where `score_recording` on run1804's sums named `0xdfbu`: a line whole today keeps its ranges for the
+rule that parts it later (DECISIONS 160 §4). No lane was out and no gate ran; `df -g ~` read
+78 GB free before it, 70 after the take and 78 after filing.
+- **The run**: pool lane 1, launched 04:35:59 −05:00, exited 04:49:55: **835.7 s** launch to exit, exit
+  0, `success`, 0 page faults, 0 relaunches. 12,001 frames, `last_frame` 12000, not ended early, seed
+  12345, map 7. The recording's SHA-256 is run1804's (`c7862cfc…`). Players: tribe 4 (who 0, flags 7), tribe 8 (who 1), tribe 20 (who 2).
+- **The record**: `~/ron-golden/run1851/map-7/rontrace.ranges`, 8,468,090,972 bytes, SHA-256
+  `a08f81b3c3cb7fbd688e92edf89f95e8a6e26a780a23354445b9ccc75043d997`, split in 8 pieces by `filerun.py` and
+  compressed in place (7.89 GiB on disk before, 0.65 after). `gamelog_p.txt`, 2,884 bytes, SHA-256
+  `2cbb69b43c63101d9f17e929bb1194666562c79538d1014e3909301931f8104f`; `rontrace.log`, 87,607,104 bytes, SHA-256
+  `3b4f880bf2f65f3562c2cb0d2e1f6993997ec49cf9ffcaa3047991efe03ead1b`.
+- **Scored** (`score_recording … ~/ron-golden/run1851/map-7`, on `aad846fa0` with the pass's ammo decoder):
+  first differing state 9896 (units), as run1804's sums.
+- Filed with `filerun.py run1851 heldout7-row008-whole-ranges`.
+
+**What it named**: on 9896, units range 1744, record 50, collide_frame..play, byte 18: ours 0x70, original 0x00, dest_angle ours 1685061632,
+original -2147483648. It is row 8's take for every later word, and item 4617 opens on it.

@@ -41,6 +41,10 @@ it is `2026-11-26-fable-pass-floor.md`.*
 - **Yours to do, as before:** 46 merged lane branches stand on origin;
   Astra's two build trees; the two `codex/*` branches that must not be
   merged still make every brief carry a waiver.
+- **I ran out of my own context before my gate.** The pass's work is
+  committed and the reflex is green, but the whole gate runs on the
+  next row, first thing. I read my depth once and too late; the tools
+  were worth building, and I should have gated before the captures.
 - **The week** read 80 % at 02:17 −05:00, with the reset at 06:00 on
   the 28th. The tranche cost 155.08 USD at list, the driver's 16.86 of
   it, and took five points in eight hours. Fable's read 52 % before
@@ -173,7 +177,13 @@ it.
 
 ## The gate
 
-Whole, by `tools/gate_run.sh`, on the pass's commit
-(`gate-pass-1127.log`). Its verdict is the log's last line and the
-queue's opener asks for it; the commit after it carries the takes'
-last sections and ran the reflex alone.
+**Not run by the pass.** `tools/gate_run.sh` refused it: the row read
+454 k at its gate, past the 450 k ceiling (`gate-pass-1127.log`, `gate
+exit 94`). The pass had read its own depth once, at 441 k, an hour
+in, and went on building. The reflex, `tools/guard.sh`, is green on
+the pass's commits, with the offline tests of its tools and the tests
+it added; the release suite has not run on them. The tip goes to
+`commander` by `handover.py to commander --ungated`, and its whole
+gate is that row's first act after the reap (`docs/LOOP.md`, the
+driver's two lines). A red there is the pass's, on a tree no lane has
+left yet.

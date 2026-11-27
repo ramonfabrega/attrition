@@ -17130,4 +17130,10 @@ it: all thirteen scoped, twelve widened, one red (§2). Admission
 line, where the last read 276. The week read 80 % at 02:17 −05:00 on
 its sixth day, with the reset at 06:00 −05:00 on the 28th and the
 stop at 99; the tranche took five points in eight hours. Fable's week
-read 52 % before the pass.
+read 52 % before the pass. **The pass did not gate its own commit**:
+it read 454 k at its gate, past the ceiling of 450, where the passes
+before it ended near 320, and `gate_run.sh` refused the row (exit 94).
+The tip went to `commander` ungated, as entry 135 has a row past its
+ceiling do, with the reflex green; the tools of §3 and the takes of §4
+are what the depth bought, and a pass that builds reads
+`handover.py check` before each build, not once.
