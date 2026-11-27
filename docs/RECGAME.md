@@ -1672,7 +1672,7 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 | 23 | run1774 | Atlantic Sea Power | the computers | 6,001 | 10 | **leaders 0**, units 5695 |
 | 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~3192, 3223, 3299, 3442, 3833, 3899~~ 3995 |
 | 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, to 4222 | **12** | ~~1582, 1789, 3683, 3986~~ whole |
-| 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | [ammo 4007](journal/2026-11-27-item-4736.md) |
+| 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | ~~4007~~ [4154](journal/2026-11-27-item-4759.md) |
 | 103 | run1778 | East Indies, Modern | the computers | 3,295, to 3294 | **12** | ~~1750, 1757, 1790, 2557 (GROUPS §3.4), ammo 2860, world 2983~~ whole (COLLISION §2) |
 | 123 | run1779 | Great Lakes, Gunpowder | human + added | 6,001 | 3 | ~~builds, groups 2977~~ whole (below) |
 | 143 | run1780 | Great Sahara, difficulty 1 | the computers | 6,001 | **12** | whole |
@@ -1903,19 +1903,18 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: units, guys on 4089. run1797, *diff-backed*.
+Open: units, builds, leaders on 4387. run1797, *diff-backed*.
 
 **Items 4597 to 4620**: units → 2376, builds → 2432, ammo → 2408, leaders → 2413, cities → 2448 (GROUPS, COMBAT
 §84, a Temple's close, two walks by `o`).
 
-**Item 4628** (run1819's packet): units → 2440: `get_damage`'s rocky step reads the target's cell `flags & 8`.
+**Item 4628** (run1819's packet): units → 2440, `get_damage`'s rocky step (cell `flags & 8`).
 
-**Item 4632**: units → 2543. On 2439 the Flamethrower `1/115` turns in theirs, swings in ours:
-`Unit::fight`'s emplaced latch takes the head order's `0x10`.
+**Item 4632**: units → 2543, `Unit::fight`'s emplaced latch takes the head order's `0x10`.
 
-**Items 4691 to 4758**: units → 3628 → 3633 → 3690 → 3739 → 3790 → 4087 → 4089, deaths → 4103, ammo → 4103
+**Items 4691 to 4762**: units → 3628 → 3633 → 3690 → 3739 → 3790 → 4087 → 4089 → 4387, deaths → 4103, ammo → 4103
 (`FILTER_COMBAT`, ARMY §13, MERCHANT §2.2; air refusal, COMBAT §66.8; Bribe, §90, §91; `local_20`, ORDERS §34.6;
-scorch, COMBAT §42.1; building `z`, §46.1).
+scorch, COMBAT §42.1; building `z`, §46.1; pivots, §55.3).
 
 ## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
 
@@ -2014,7 +2013,7 @@ On 4167 ammo range 1, record 0 is who=2's `2/50`, an Infantry (TI 102, land) on 
 
 ### 14.3 Row 48
 
-Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
+Open: units part on 5940 (~~ammo 5607~~, 4759). run1806 holds sums.
 
 ### 14.4 Row 88
 

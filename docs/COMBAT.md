@@ -10122,7 +10122,7 @@ node_flags` (`anim::Turret`):
 
 - **`Guy::set_all_pivots@005d8bc0`** zeroes `node_flags` and
   `des_node_flags`. If the aim slot `objects[whom][ox]` (no uid)
-  is gone, the order not `ATTACK_GROUND`, it answers 1. Otherwise, for each node
+  is gone (`ObjectData +0x8 & 1` clear; on the map or not, item 4762), the order not `ATTACK_GROUND`, it answers 1. Otherwise, for each node
   whose range holds the bearing, it writes `des[k] = bearing − the
   figure's angle` and `des_node_flags` bit `k`, and `node_flags` bit `k`
   when `des[k]` is within 15° of `turret[k]` (`005d8ed7`–`005d8f02`: the
