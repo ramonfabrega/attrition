@@ -2760,6 +2760,100 @@ pub(crate) mod tests {
         }
     }
 
+    /// Probe 4735: every parted range on row 133 around 3633, record 73's
+    /// whole record both sides, the units `RON_DEBUG_UNIT` names, and the
+    /// seed entering each frame against the trace's.
+    #[test]
+    fn probe_4735_row_133_partings() {
+        if std::env::var("RON_PROBE_4735").is_err() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            return;
+        };
+        let dir = home.join("ron-golden/run1797/map-7");
+        let ranges = crate::testenv::experiment(&dir, "rontrace.ranges").expect("ranges");
+        let trace = crate::testenv::experiment(&dir, "rontrace.log")
+            .and_then(|l| crate::trace::Trace::read(&l).ok().flatten());
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(3687);
+        let hi: i64 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(3691);
+        let rec_no: i64 = std::env::var("RON_PROBE_REC").ok().and_then(|v| v.parse().ok()).unwrap_or(73);
+        while built.sim.frame < lo - 1 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        for state in lo..=hi {
+            if let Some(t) = &trace {
+                let d = t.frame_draws(built.sim.frame);
+                eprintln!(
+                    "P4735 frame {} seed ours {:08x} theirs {:08x?} draws theirs {}",
+                    built.sim.frame,
+                    built.sim.rng.seed,
+                    d.first().map(|d| d.seed),
+                    d.len()
+                );
+            }
+            crate::diff::harness::debug_watch(&built, built.sim.frame);
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for line in 0..12usize {
+                let Some(ours) = lines[line].as_ref() else { continue };
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                let mut n = 0;
+                if ours.ranges.len() != theirs.len() {
+                    eprintln!("P4735 {state} line {line} count ours {} theirs {}", ours.ranges.len(), theirs.len());
+                }
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    if a.bytes != b.bytes {
+                        n += 1;
+                        if n <= 30 {
+                            eprintln!(
+                                "P4735 {state} line {line} range {k} record {} {} ours {:02x?} theirs {:02x?} site {:08x}",
+                                a.record, a.field, a.bytes, b.bytes, b.site
+                            );
+                        }
+                    }
+                }
+                if n > 0 {
+                    eprintln!("P4735 {state} line {line} parted {n}");
+                }
+            }
+            if state >= hi - 1 {
+                let ours = lines[0].as_ref().expect("units");
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+                for (k, a) in ours.ranges.iter().enumerate() {
+                    if a.record as i64 == rec_no {
+                        eprintln!("P4735R {state} ours k{k} {} {:02x?}", a.field, a.bytes);
+                    }
+                }
+                let mut r = -1i64;
+                for (k, b) in theirs.iter().enumerate() {
+                    if b.site == 0x0066_21fe {
+                        r += 1;
+                    }
+                    if r == rec_no {
+                        eprintln!("P4735R {state} theirs k{k} site {:08x} {:02x?}", b.site, b.bytes);
+                    }
+                }
+            }
+        }
+    }
+
     /// **Row 133's dead farm rolls under its number's next building** (item
     /// 4669, `docs/SYNC.md` §3.3): run1797's ranges and trace, the row's
     /// units and guys parting on 2677 (units range 4225, record 18, guy
