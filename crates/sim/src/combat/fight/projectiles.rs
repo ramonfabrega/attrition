@@ -683,7 +683,8 @@ impl Sim {
     /// ocean (`mask & 0x30 != 0x20`; `is_valid` cannot refuse a restricted
     /// point), the round is left in its slot as `flags 1` with `cur_time`
     /// 0 — [`combat::Projectile::spent`] — rather than closed. The point
-    /// is the decal's; the record keeps its own `ex`/`ey` and its target.
+    /// is the decal's; the record keeps its own `ex`/`ey`, and the pair
+    /// `check_hit` wrote ([`Sim::land`]).
     pub(super) fn stick(&mut self, p: combat::Projectile, at: Pos) {
         if !p.punctures || p.crash.is_some() {
             return;
@@ -742,6 +743,20 @@ impl Sim {
         };
         if !self.hit_target(&p) {
             target = self.check_hit(&p);
+            // **`check_hit` writes the round's pair whatever it finds**
+            // (`Ammo::check_hit@00678d90:42`–`44`, −1 at `:49`–`50` and
+            // `:80`–`82` on a miss; item 4743, `docs/RECGAME.md` §14.4), so
+            // a round that misses its live target and punctures the ground
+            // reads `whom -1 ox -1` from the block it sticks: run1846's
+            // `1/120` arrow at `2/137`, slot 15 on 4166.
+            if let Some(q) = self
+                .combat
+                .projectiles
+                .iter_mut()
+                .find(|q| q.slot == p.slot)
+            {
+                q.target = target;
+            }
         }
         if p.splash_area == 0 {
             let Some(t) = target else {

@@ -40,6 +40,9 @@ pub enum Fill {
     Tile,
     /// The crop stretched to the rectangle, bilinear, unclamped.
     Stretch,
+    /// Item 4738: the crop repeated from the rectangle's corner, each tile
+    /// mirrored left to right (the bar's right side, [`super::right`]).
+    Mirror,
 }
 
 /// One piece of the window: a crop of `TEX_CIV`, where, and how.
@@ -405,9 +408,13 @@ pub(super) fn paint(
                 for x in x0.max(0)..x1.min(size.0) {
                     let (u, v) = (i64::from(x - x0), i64::from(y - y0));
                     let c = match p.fill {
-                        Fill::Tile => {
-                            let i =
-                                ((t + (v as usize) % ch) * atlas.width + l + (u as usize) % cw) * 4;
+                        Fill::Tile | Fill::Mirror => {
+                            let col = if p.fill == Fill::Mirror {
+                                cw - 1 - (u as usize) % cw
+                            } else {
+                                (u as usize) % cw
+                            };
+                            let i = ((t + (v as usize) % ch) * atlas.width + l + col) * 4;
                             [
                                 atlas.rgba[i],
                                 atlas.rgba[i + 1],

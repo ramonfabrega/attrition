@@ -42607,3 +42607,8 @@ after filing.
 theirs' squad `2/68`..`70` drops the Dromon `1/68` (TI 324, sea) and takes the Merchant `1/25` (`near_o` 25,
 `targeted` on `1/25` 0 → 1, `unit_masks2` 16), where ours' `2/68` chased across the water.
 `Unit::find_attack_pos@00601280`'s `local_3c` region (`docs/journal/2026-11-26-item-4741.md`).
+
+**Item 4743's word, off the same record**: ammo on 4166, slot 15 (who=1's Carrack `1/120`'s round at the dead
+Transport Barge `2/137`) `whom, ox` ours (2, 137), theirs (−1, −1). After the fix nothing on ammo parts to 4386; the
+first parting moves to 4363, on groups. Read by
+`row_88_s_carrack_round_forgets_its_dead_target_where_it_sticks_on_run1846_s_ranges`.

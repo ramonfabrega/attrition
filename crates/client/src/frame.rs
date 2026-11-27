@@ -23,6 +23,7 @@ pub mod banner;
 pub mod caps;
 pub mod left;
 pub mod resources;
+pub mod right;
 pub mod slots;
 
 /// **The atlas's code** for a console of `ages` ages owned (0 the Ancient)
@@ -163,6 +164,9 @@ pub struct MinimapFrame {
     pub caps: Option<std::sync::Arc<CapArt>>,
     /// The nation's `TEX_CIV`, which the box's divider is cut from.
     pub civ: std::sync::Arc<render::tga::Image>,
+    /// Item 4738: the bar's right side ([`right`]), composed on a frame's
+    /// width as it is drawn.
+    pub right: right::RightLayout,
 }
 
 /// **The population box's art** (item 4739): its layout and `TEX_COMMON`.
@@ -200,6 +204,7 @@ pub struct FrameArt {
     layout: MinimapLayout,
     left: left::LeftLayout,
     banner: banner::BannerLayout,
+    right: right::RightLayout,
     /// interface.xml's own `TEX_CIV` file, the fallback.
     default_civ: String,
     /// Item 4727: the clock's face, and `rules.xml`'s `gamespeeds`, the
@@ -221,6 +226,7 @@ impl FrameArt {
         let layout = MinimapLayout::parse(&xml)?;
         let left = left::LeftLayout::parse(&xml)?;
         let banner = banner::BannerLayout::parse(&xml)?;
+        let right = right::RightLayout::parse(&xml)?;
         let default_civ = xml
             .split('<')
             .filter(|t| t.starts_with("IFACETEXLOAD"))
@@ -252,6 +258,7 @@ impl FrameArt {
             layout,
             left,
             banner,
+            right,
             default_civ,
             face,
             speeds,
@@ -307,6 +314,7 @@ impl FrameArt {
             banner_layout: self.banner.clone(),
             caps: self.caps.clone(),
             civ: std::sync::Arc::new(atlas),
+            right: self.right.clone(),
         })
     }
 }
@@ -372,9 +380,21 @@ impl MinimapFrame {
             (o.0 + self.back.w as i32).min(size.0),
             (o.1 + self.back.h as i32).min(size.1),
         );
-        let mut v = layers_of(size, (o.0.max(0), x1, o.1.max(0), y1), |x, y| {
+        // Item 4738: the bar's right side, the parent's, under the
+        // minimap's window, whose back runs to x 655.
+        let mut v = Vec::new();
+        if let Some((t, c)) = self.right_side(size) {
+            let (x1, y1) = (
+                (c.0 + t.w as i32).min(size.0),
+                (c.1 + t.h as i32).min(size.1),
+            );
+            v.extend(layers_of(size, (c.0.max(0), x1, c.1.max(0), y1), |x, y| {
+                texel_of(&t, c, x, y).filter(|t| t[3] > 0)
+            }));
+        }
+        v.extend(layers_of(size, (o.0.max(0), x1, o.1.max(0), y1), |x, y| {
             self.texel(o, x, y)
-        });
+        }));
         // Item 4724: the bar's left window; item 4727, its clock.
         let b = self.bar_origin(size);
         let win = self.left_with(line, slots);
@@ -430,6 +450,14 @@ impl MinimapFrame {
                 &self.civ,
             )
             .ok()
+    }
+
+    /// **The bar's right side composed** (item 4738, [`right`]) on a
+    /// `size` frame, and its corner on the screen.
+    pub fn right_side(&self, size: (i32, i32)) -> Option<(Texels, (i32, i32))> {
+        let (t, (x, y)) = self.right.compose(&self.civ, size.0).ok()?;
+        let b = self.bar_origin(size);
+        Some((t, (b.0 + x, b.1 + y)))
     }
 
     /// **The population box composed** (item 4739, [`caps`]) on a `size`
