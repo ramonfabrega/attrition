@@ -16467,23 +16467,33 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // (38952, 25752), `o_angle` 0 -> 1850146816, as theirs. Groups
         // 4,368 -> 4,425 (first 4363 -> 4412). The first parting moves
         // 4363 -> 4384, on units and guys, which stood.
+        // Moved by item 4751 (run1846's ranges): `come_out`'s
+        // `set_new_location(spot, 1, 1)` snaps every figure to the unit's
+        // angle (`Guy::set_angle(+0x50, 1)`). who=1's General `1/101` (TI
+        // 54) out of `1/2011` on 4384: both figures' `angle`/`last_angle`
+        // ours 1757755093 -> 2110717952, as theirs. Units 4,384 -> 4,568,
+        // builds 4,422 -> 4,568, ammo 4,387 -> 4,415, deaths 4,443 ->
+        // 4,574, groups 4,425 -> 4,581, guys 4,384 -> 4,568, leaders 4,402
+        // -> 4,568, cities 4,488 -> 4,644, items 9,428 -> 9,478, goods 4,684
+        // -> 5,497, world 4,394 -> 4,568. The first parting moves 4384 ->
+        // 4387, on ammo, which stood.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                4384, 4422, 12001, 4387, 4443, 4425, 4384, 4402, 4488, 9428, 4684, 4394,
+                4568, 4568, 12001, 4415, 4574, 4581, 4568, 4568, 4644, 9478, 5497, 4568,
             ],
             first: &[
-                ("units", (4384, Some(1930113341), 3084987553)),
-                ("builds", (4422, Some(2810936796), 290488154)),
-                ("ammo", (4387, Some(1291091225), 1430617522)),
-                ("deaths", (4443, Some(1493940272), 2950874289)),
-                ("groups", (4412, Some(2342867161), 3538702822)),
-                ("guys", (4384, Some(2966912178), 3125639190)),
-                ("leaders", (4397, Some(323720312), 1440060538)),
-                ("cities", (4486, Some(471488175), 2265470475)),
-                ("items", (5716, Some(785253319), 3503884409)),
-                ("goods", (4625, Some(2004087359), 1940648509)),
-                ("world", (4394, Some(593842110), 2211663771)),
+                ("units", (4568, Some(516811716), 223209531)),
+                ("builds", (4568, Some(2215694334), 1272959446)),
+                ("ammo", (4387, Some(2766110081), 1430617522)),
+                ("deaths", (4574, Some(301612922), 306003835)),
+                ("groups", (4581, Some(724062805), 4151857789)),
+                ("guys", (4568, Some(2105001469), 260490747)),
+                ("leaders", (4568, Some(3514547515), 970833212)),
+                ("cities", (4587, Some(3215809956), 3582287292)),
+                ("items", (5691, Some(3509651581), 3503884409)),
+                ("goods", (4746, Some(2096362049), 2246308419)),
+                ("world", (4568, Some(2955641907), 1385858248)),
             ],
             over: None,
         }),
