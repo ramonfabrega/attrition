@@ -2395,21 +2395,26 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 164,
         },
     ),
-    // **The Mongol Javelineers' piece 1089** (unit type 83; item 3579): the
-    // Javelineers' piece 34's bays in plan. run1222's `1/49` threw its
-    // `CHAR_ATTACK2` javelin at `0/8` from (7227, 27933, 612) over a figure
-    // at (7272, 27912, 442), angle −1382547456 — piece 34's `(right, fwd)`
-    // exactly, and a height of 170 where piece 34's is 173, so the height is
-    // the dump's. Ours threw from the figure, 18 frames against 17. The two
-    // other rows are piece 34's, unmeasured here.
+    // **The Mongol Javelineers' piece 1089** (unit type 83; item 3579):
+    // run1222's `1/49` threw its `CHAR_ATTACK2` javelin at `0/8` from
+    // (7227, 27933, 612) over a figure at (7272, 27912, 442), angle
+    // −1382547456, 170 over the figure. **The rows are the sweep's** (item
+    // 4759, `docs/RECGAME.md` §14.3): `get_position.py … --init
+    // 0,<anim>,<time>,3 sweep 1089 0 <anim> <time>` on run1579's packet,
+    // each the centroid of the region `fit_bay.py` admits at all 361
+    // headings, `dz` the sweep's `z`. They had been piece 34's, which
+    // missed 361, 232 and 72 headings of the three, and anim 13's height
+    // was 159 against the sweep's 156: run1848's `1/47` on 5607 threw from
+    // `sz` 588 where theirs threw from 585, and `1/41`'s anim-12 javelin
+    // left x 15972 where theirs left 15971.
     (
         1089,
         11,
         12,
         Bay {
-            right: 39258,
-            fwd: 59130,
-            dz: 166,
+            right: 38_946,
+            fwd: 60_202,
+            dz: 163,
         },
     ),
     (
@@ -2417,8 +2422,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         12,
         6,
         Bay {
-            right: 1121,
-            fwd: 50544,
+            right: 1_685,
+            fwd: 50_747,
             dz: 170,
         },
     ),
@@ -2427,9 +2432,9 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         13,
         27,
         Bay {
-            right: 21620,
-            fwd: 35314,
-            dz: 159,
+            right: 21_762,
+            fwd: 35_444,
+            dz: 156,
         },
     ),
     // **The Fire Lances' piece 46** (`FIRELANCES`, unit type 96; item 3577,
@@ -9384,21 +9389,25 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     ),
     // **Piece 237, the Biplane's two guns** (item 1200, `docs/GOLDEN.md`
     // §50): run437 dumps 26 of its rounds, thirteen a node, at eleven
-    // whole-degree headings between 101 and 291 (blocks 965–1614). Each
-    // row is the centre of the region that reproduces every round of its
-    // node to the unit — `right` −13,120..−12,900 and `fwd`
-    // 101,150..101,390 for node 0, `right` 11,260..11,420 and `fwd`
-    // 101,180..101,280 for node 1 — and both leave 39 over the figure.
-    // Nose guns a tile's half ahead: from the figure's own point the
-    // second pass's pair on 966 flew six frames where the original's flew
-    // five.
+    // whole-degree headings between 101 and 291 (blocks 965–1614), and
+    // both leave 39 over the figure. Nose guns a tile's half ahead: from
+    // the figure's own point the second pass's pair on 966 flew six frames
+    // where the original's flew five. **The rows are the sweep's** (item
+    // 4759, `docs/RECGAME.md` §12.3): `get_position.py … --init
+    // <node>,12,<node>,3 sweep 237 <node> 12 <node>` on run1579's packet,
+    // and each is the centroid of the region `fit_bay.py` admits at all
+    // 361 headings — node 0 `right` −13,114..−13,096, `fwd`
+    // 101,248..101,258; node 1 `right` 11,277..11,299, `fwd`
+    // 101,244..101,262 — inside run437's regions. Run437's centres
+    // (−13,010, 101,270) and (11,340, 101,230) missed 44 and 28 headings:
+    // run1784's `2/117` at 82° left y 27377 where theirs left 27376.
     (
         237,
         crate::units::anim::ATTACK2,
         0,
         Bay {
-            right: -13_010,
-            fwd: 101_270,
+            right: -13_107,
+            fwd: 101_253,
             dz: 39,
         },
     ),
@@ -9407,8 +9416,8 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
         crate::units::anim::ATTACK2,
         1,
         Bay {
-            right: 11_340,
-            fwd: 101_230,
+            right: 11_290,
+            fwd: 101_252,
             dz: 39,
         },
     ),
@@ -9540,13 +9549,15 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
     // own `GUY` point plus the 237 rows' vector, node for node — the
     // figure at (37463, 16578), angle −590,544,896, its node 0 at
     // (37377, 16525) and node 1 at (37392, 16506), 39 over the figure.
+    // Item 4759's sweep of 589 on run1579's packet is 237's at every
+    // heading, and these rows reproduce it at all 361.
     (
         589,
         crate::units::anim::ATTACK2,
         0,
         Bay {
-            right: -13_010,
-            fwd: 101_270,
+            right: -13_107,
+            fwd: 101_253,
             dz: 39,
         },
     ),
@@ -9555,8 +9566,8 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
         crate::units::anim::ATTACK2,
         1,
         Bay {
-            right: 11_340,
-            fwd: 101_230,
+            right: 11_290,
+            fwd: 101_252,
             dz: 39,
         },
     ),
