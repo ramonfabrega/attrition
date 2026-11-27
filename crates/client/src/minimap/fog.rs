@@ -108,6 +108,7 @@ pub fn mesh(
         mips: ramp.clone(),
         light: Vec::new(),
         diffuse: Vec::new(),
+        cut: false,
     })
 }
 

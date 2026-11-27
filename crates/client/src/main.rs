@@ -164,6 +164,10 @@ struct Args {
     silhouette: Option<PathBuf>,
     /// Pose the figures (`world::World::pose`, item 4067).
     pose: bool,
+    /// Draw the buildings' addons (`world::World::addons`, item 4768);
+    /// `--no-addons` turns them off, `--addon-ms N` pins their clock.
+    addons: bool,
+    addon_ms: Option<u32>,
     /// Draw the buildings as their sprites (`world::World::sprites`, item
     /// 4076); `--zbuffer` draws the depth model instead.
     sprites: bool,
@@ -222,6 +226,8 @@ fn parse() -> Result<Args, String> {
         zoom: 1.0,
         silhouette: None,
         pose: true,
+        addons: true,
+        addon_ms: None,
         sprites: true,
         trees: true,
         textured: true,
@@ -258,6 +264,10 @@ fn parse() -> Result<Args, String> {
             "--frames" => a.frames = Some(v()?.parse().map_err(|e| format!("--frames: {e}"))?),
             "--play" => a.play = true,
             "--rest" => a.pose = false,
+            "--no-addons" => a.addons = false,
+            "--addon-ms" => {
+                a.addon_ms = Some(v()?.parse().map_err(|e| format!("--addon-ms: {e}"))?)
+            }
             "--zbuffer" => a.sprites = false,
             "--no-trees" => a.trees = false,
             "--tint" => a.textured = false,
@@ -1340,6 +1350,8 @@ fn main() {
         }
     };
     world.pose = args.pose;
+    world.addons = args.addons;
+    world.addon_ms = args.addon_ms;
     world.sprites = args.sprites;
     world.trees = args.trees;
     world.textured = args.textured;

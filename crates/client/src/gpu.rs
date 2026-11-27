@@ -2049,6 +2049,10 @@ impl Gpu {
                     let owner = if m.piece < 0 || !m.light.is_empty() {
                         let nl = m.light.get(i).copied().unwrap_or(crate::world::LIGHT_FLAT);
                         [nl, 0.0, 0.0]
+                    } else if m.cut {
+                        // Item 4768: `fs_textured`'s cut, an owner out of
+                        // a colour's range.
+                        [2.0; 3]
                     } else {
                         owner
                     };
@@ -2601,8 +2605,19 @@ impl Gpu {
                     .filter(|m| !m.positions.is_empty())
                     .map(|m| !m.light.is_empty())
                     .collect();
+                // Item 4768: an addon is the building's, no figure's
+                // silhouette.
+                let cut: Vec<bool> = frame
+                    .textured
+                    .iter()
+                    .filter(|m| !m.positions.is_empty())
+                    .map(|m| m.cut)
+                    .collect();
                 for pipeline in passes {
                     for (k, (b, n, t)) in textured.iter().enumerate() {
+                        if cut[k] && std::ptr::eq(pipeline, &self.silhouette) {
+                            continue;
+                        }
                         let own = std::ptr::eq(pipeline, &self.textured) && lit[k];
                         pass.set_pipeline(if own { &self.textured_lit } else { pipeline });
                         pass.set_bind_group(1, t, &[]);
