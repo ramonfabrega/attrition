@@ -4628,6 +4628,56 @@ pub(crate) mod tests {
         }
     }
 
+    /// Probe (item 4749, `RON_PROBE_4749`): every line's first parted ranges
+    /// on run1847 over `RON_PROBE_LO..=RON_PROBE_HI`.
+    #[test]
+    fn probe_4749_row_53_ranges() {
+        if std::env::var("RON_PROBE_4749").is_err() {
+            return;
+        }
+        let lo: i32 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(4090);
+        let hi: i32 = std::env::var("RON_PROBE_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(4094);
+        let inst = crate::testenv::install().expect("install");
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 2) else { panic!("rcx") };
+        let ranges = crate::testenv::experiment(&home.join("ron-golden/run1847/map-18"), "rontrace.ranges").expect("ranges");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 53's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in lo..=hi {
+            while built.sim.frame < state {
+                crate::diff::harness::debug_watch(&built, built.sim.frame);
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for li in 0u8..12 {
+                let name = crate::checksum::CHECKSUM_LINES[usize::from(li)].0;
+                let Some(ours) = lines[usize::from(li)].as_ref() else { continue };
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == li).collect();
+                let mut n = 0;
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    if a.bytes != b.bytes {
+                        if n < 12 {
+                            eprintln!("P4749 {state} {name} range {k} record {} {} ours {:02x?} theirs {:02x?}", a.record, a.field, a.bytes, b.bytes);
+                        }
+                        n += 1;
+                    }
+                }
+                if n > 0 || ours.ranges.len() != theirs.len() {
+                    eprintln!("P4749 {state} {name} parted {n} lens ours {} theirs {}", ours.ranges.len(), theirs.len());
+                }
+            }
+        }
+    }
+
     /// **Row 83's Airbase keeps its Biplane in when an enemy wonder out of
     /// reach outscores the city** (item 4562, `docs/RECGAME.md` §12.3):
     /// run1784, the ranges take of row 83's file. who=2's computer sortie
