@@ -1939,6 +1939,73 @@ fn a_member_taking_the_formation_over_turns_it_by_its_waypoint() {
     );
 }
 
+/// **A refresh slides by the taker's own `form_id`, read after the
+/// prune** (item 4763, `docs/GROUPS.md` §6.8): `refresh_group_order`
+/// reads the current group order's `+0x10` (`713ac0`) and indexes the
+/// table `normalize` has just shifted. `do_group_move` wrote that
+/// `form_id` from the list before the prune, so a member past a dead one
+/// reads its successor's slot; the last member reads the entry the
+/// fixed array still holds past the shortened list. Row 93's army 1 on
+/// 4645 (run1799): `1/69` leaves, `1/17` takes the block with `form_id`
+/// 31, and the table slides by `1/53`'s (18, 15), not `1/17`'s (0, 39).
+///
+/// **Made to fail on purpose**: with the slot searched in the pruned
+/// list, `b` sits at the origin and the slide is its own.
+#[test]
+fn a_refresh_slides_by_the_taker_s_form_id_after_the_prune() {
+    // After the prune the table is `[(0, 0), (9, 24), (18, 24)]`. `us[2]`
+    // (`form_id` 2) reads `us[3]`'s (18, 24) where its own slot is (9, 24);
+    // `us[3]` (`form_id` 3, past the list) reads the pre-prune entry the
+    // array still holds, the same (18, 24), where a bounds miss would
+    // leave the table unslid.
+    for (taker, want) in [
+        (2usize, vec![(-18, -24), (-9, 0), (0, 0)]),
+        (3, vec![(-18, -24), (-9, 0), (0, 0)]),
+    ] {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let us: Vec<usize> = (0..4)
+            .map(|k| spawn(&mut s, 1, t, Pos::new(0x1000 + 0x200 * k, 0x1000)))
+            .collect();
+        let slot = s.init_army(1, None);
+        for &u in &us {
+            s.army_add_unit(1, slot, u);
+        }
+        let g = s.army_group(1, slot);
+        s.group_action_move_to(
+            &g,
+            Pos::new(0x4000, 0x4000),
+            QueuePos::New,
+            true,
+            Angle(0),
+            MoveKind::MoveTo,
+            true,
+        );
+        let g = s.army_group(1, slot);
+        assert_eq!(g.list, us, "listed in the order they joined");
+        // The record's own small numbers, one entry a member, and each
+        // member's `form_id` its pre-prune place.
+        let st = &mut s.ai.armies[1].list[slot].group;
+        st.off = vec![(0, 0), (9, 9), (9, 24), (18, 24)];
+        st.form_num = 4;
+        for (k, &u) in us.iter().enumerate() {
+            for o in &mut s.units[u].orders {
+                if let Some(gm) = o.move_mut().and_then(|m| m.group.as_mut()) {
+                    gm.form_id = k;
+                }
+            }
+        }
+        // `us[1]` dies; `normalize` drops it and shifts the table.
+        s.units[us[1]].health = 0;
+        assert!(s.group_refresh_order(&g, us[taker]));
+        let st = &s.ai.armies[1].list[slot].group;
+        assert_eq!(
+            st.off, want,
+            "taker {taker}: slid by off[{taker}] of the shifted table, not by its own slot"
+        );
+    }
+}
+
 /// An army of two on land takes **`GroupMoveOrder`s** and a lone one
 /// does not (`docs/ORDERS.md` §8.2's gate), and a group with no army
 /// takes none at all — this crate's own line, since a player's

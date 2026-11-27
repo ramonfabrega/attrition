@@ -40,10 +40,18 @@ fn the_layout_reads_the_window() {
 /// the photograph's with no frame drawn, ours with it, the photograph's
 /// mean luma, ours with no frame, ours with it]`, the lumas ×10 and
 /// rounded (0.299 R + 0.587 G + 0.114 B).
-/// The photograph parts from the atlas on 1,418, every one on the idle
+/// The photograph parts from the atlas on 1,418, 1,380 of them on the idle
 /// citizens' button, which theirs draws dark (4694a).
+/// Item 4764: the button hidden while the console's `leader_flags &
+/// 0x80000` is clear ([`super::idle_lit`]), so the back shows there, as in
+/// the photograph. The mask grows by 492 (the button's part-transparent
+/// texels' neighbours, now on the opaque back): pixels 32,483 → 32,975, the
+/// composition and ours 31,065 → 32,937; luma ×10 944 → 940 the
+/// photograph's, ours 968 → 938. Seen red on the old code at a prediction
+/// of 32,483, exit 101. What parts is 38 pixels at x 366..400, y 954..975,
+/// white in the photograph, none on the button.
 pub(crate) const RUN1814B_3294_MINIMAP_FRAME: [usize; 7] =
-    [32_483, 31_065, 24, 31_065, 944, 1_022, 968];
+    [32_975, 32_937, 24, 32_937, 940, 1_020, 938];
 
 /// **`RUN1814B_3294_LEFT_WINDOW`** (item 4724; `docs/RENDERER.md`
 /// §6.11): on the same frame, the bar's left window's opaque pixels on the
@@ -359,7 +367,10 @@ fn the_minimap_frame_on_run1814b() {
     let o = frame.origin(size);
     assert_eq!(o, (316, 884), "the window's origin");
     // The mask: opaque, its eight neighbours opaque, on the frame.
-    let opaque = |x: i32, y: i32| frame.texel(o, x, y).is_some_and(|t| t[3] == 255);
+    // Item 4764: the console's `leader_flags & 0x80000` on 3295.
+    let idle = super::idle_lit(&world, crate::world::CONSOLE);
+    assert!(!idle, "no citizen of the console idled on 3295");
+    let opaque = |x: i32, y: i32| frame.texel(o, x, y, idle).is_some_and(|t| t[3] == 255);
     let mask: Vec<(i32, i32)> = (o.1..size.1)
         .flat_map(|y| (o.0..o.0 + frame.back.w as i32).map(move |x| (x, y)))
         .filter(|&(x, y)| {
@@ -384,7 +395,7 @@ fn the_minimap_frame_on_run1814b() {
     let atlas_agrees = mask
         .iter()
         .filter(|&&(x, y)| {
-            let t = frame.texel(o, x, y).expect("on the frame");
+            let t = frame.texel(o, x, y, idle).expect("on the frame");
             near(px(&photo.rgba, (x, y)), [t[0], t[1], t[2]])
         })
         .count();
