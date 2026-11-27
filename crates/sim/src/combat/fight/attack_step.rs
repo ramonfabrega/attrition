@@ -419,6 +419,24 @@ impl Sim {
             };
             self.object_holding(self.owner_of(t), o).unwrap_or(t)
         });
+        if std::env::var_os("RON_PROBE_4762").is_some()
+            && self.units[i].owner == 2
+            && self.units[i].index == 56
+            && (4085..=4090).contains(&self.frame)
+        {
+            let d = target.map(|t| match t {
+                Obj::Unit(x) => (
+                    self.units[x].index,
+                    self.units[x].uid,
+                    self.units[x].alive(),
+                    self.units[x].on_map,
+                    self.units[x].pos,
+                    self.units[x].type_index,
+                ),
+                Obj::Building(b) => (self.buildings[b].index, 0, self.buildings[b].alive, true, self.buildings[b].pos, -1),
+            });
+            eprintln!("PROBE4762 frame {} g {g} target {d:?} struck {:?}", self.frame, target.map(|t| self.struck(t)));
+        }
         let to = match (ground, target.filter(|&t| self.struck(t))) {
             (Some(at), _) => at,
             (None, Some(t)) => self.pos_of(t),
