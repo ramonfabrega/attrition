@@ -6716,6 +6716,70 @@ pub(crate) mod tests {
         }
     }
 
+    #[test]
+    fn probe_4733_row_93_s_collider_on_4287() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        for state in 4284i64..=4288 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let sim = &built.sim;
+            let me = sim.unit_by_o(2, 80).expect("2/80");
+            let un = &sim.units[me];
+            let ty = un.ty.expect("a type");
+            eprintln!(
+                "{state} 2/80 TI {} {} {:?} at {:?} collide {} {}/{} guy0 {:?}",
+                sim.tables.unit_types[ty].type_index,
+                loaded.unit_names[ty],
+                un.kind.domain,
+                un.pos,
+                un.collide,
+                un.collide_who,
+                un.collide_o,
+                un.guys.first().map(|g| (g.anim, g.stopped)),
+            );
+            if let Some(u) = sim.unit_by_o(1, 26) {
+                let v = &sim.units[u];
+                let vt = v.ty.expect("a type");
+                eprintln!(
+                    "   unit 1/26 TI {} {} {:?} at {:?} inside {:?}",
+                    sim.tables.unit_types[vt].type_index,
+                    loaded.unit_names[vt],
+                    v.kind.domain,
+                    v.pos,
+                    v.inside
+                );
+            }
+            if let Some(b) = sim.building_by_o(1, 26) {
+                eprintln!("   building 1/26 slot {b}");
+            }
+            for (k, v) in sim.units.iter().enumerate() {
+                if v.owner != 1 || v.index != 26 {
+                    continue;
+                }
+                let vt = v.ty.map(|t| (sim.tables.unit_types[t].type_index, loaded.unit_names[t].clone(),
+                    sim.tables.unit_types[t].cols.unit_flags & sim::ai::ai_load::uflags::BLOCKS_WHILE_DEAD));
+                eprintln!("   any 1/26 slot {k} alive {} on_map {} coll_at {:?} pos {:?} cell {:?} ty {:?}",
+                    v.alive(), v.on_map, v.coll_at, v.pos, v.pos.cell(), vt);
+            }
+            for (di, d) in sim.combat.deaths.iter().enumerate() {
+                if d.who == 1 && d.o == 26 {
+                    eprintln!("   death {di} {d:?}");
+                }
+            }
+        }
+    }
+
     /// **Row 93's units and guys on 4235: a plane born on a reused number
     /// takes its dead occupant's stored `z`** (item 4730, `docs/RECGAME.md`
     /// §13.3), on run1799's whole-length ranges of run1792's file. who=2's
