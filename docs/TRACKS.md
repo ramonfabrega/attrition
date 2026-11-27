@@ -73,22 +73,6 @@ finish line's own counter, parity on the declared set (entry 143 §2).
 | **save and replay** | a game saved as seed plus orders, replayable here and written back into the original's recorded-game container | a saved game replays to the same hash; the original replays one of ours | the diff suite; the original on the capture lane | **step 3 stands** (`Recording:`): every recording on disk round-trips, and the original plays our order-free file for 24,000 of 24,000 frames (4058, run1560) |
 | **census** | the territory count tells the truth about the original's 3,611 simulation functions | ported · replaced by design · open, the readers' marks landed row by row (`docs/audit/2026-11-06-territory-*.md`; lore's scoring of the `replaced` groups) | `tools/census.py`'s pins | `Rubric:` 574 open of 3,611, 569 of them carrying a reader's ruling (entry 132); filler for an idle lane |
 
-**At the pass of 2026-11-21, second** (entry 149): **checksum** — parity 6 of 7; the sample parts first on world 5401 of 21,044,
-draws 5460, and its next take runs to 6400 on the ten lines that part below it (item 4526); parity held out 8 of 8 now, the second
-battery 6 of 8, the third 8 of 8, and the fourth read 5 of 8 and 90 of 96 lines as found, 91 % by reach; rows 75, 30, 55, 95 and
-110 are scored and each needs a take (items 4517, 4509, 4518, 4519, 4485); the disk no longer holds the takes: the archive's
-compression skipped every file of 2^31 bytes, thirteen ranges records are kept in gigabyte pieces, and 56 GB free became 117 with
-nothing deleted; a fifth battery is named (item 4527); the packets' lines 948 of 1,053; the fold is Ramon's, recommended, 14 of 15
-folded; **orders** — whole by its counters; **renderer** — the tanks' dust is drawn from the packet, 4 of 4 (item 4506).
-
-**At the pass of 2026-11-22** (entry 151): **checksum** — parity 39 of 47, the five spent batteries folded (37 of 39 on the same
-pins before the fifth joined: it was spent at item 4534 and a guard now reads the spent list); the sample parts first on units 6108
-of 21,044, draws 6114, and its seat, stopped against its rule, reopens (item 4543); parity held out 8, 7, 8, 8 and 2 of 8 now; the
-fifth, three seats and a team a row, read 1 of 8 and 30 of 96 lines as found, 48 % by reach where the fourth read 91; rows 110, 63,
-103, 83, 123, 43 and 3 are scored (items 4541, 4542, 4544 to 4548), row 110 three leaves from whole and each fifth row one take;
-a sixth battery is named, taken when the fifth reads 4 of 8; the packets' lines 950 of 1,053; **orders** — whole by its counters;
-**renderer** — as it stood, no landing.
-
 **At the pass of 2026-11-22, second** (entry 152): **checksum** — parity 41 of 47 (rows 110 and 123 whole); the sample parts first on
 units 7055 of 21,044, draws 7105, 158 states a landing over six and slowing; parity held out 8, 8, 8, 8 and 3 of 8 now, the fifth's
 reach 81 %; five rows scored: row 63 is one field from whole (item 4563), the sample and row 43 name one pair of fields and take one
@@ -158,6 +142,15 @@ part on one word and take one seat (item 4759) beside rows 133 and 93 (items 475
 packets' lines 960 of 1,053; **orders** — whole by its counters; **renderer** — the top boxes and the selected panel drawn on run1814b
 (items 4737 to 4754), the still reading as the photograph across the HUD; the client's seat takes the military tally, then the two
 buttons (items 4761, 4760).
+
+**At the pass of 2026-11-27, second** (entry 161): **checksum** — parity 53 of 63, the seventh's row 8 whole on item 4770; the sample as
+it stood; parity held out 8, 8, 8, 8, 6, 4 and 5 of 8 now; twelve row landings bought 4,177 states (rows 83, 93 and 133 to 4698, 4812 and
+4583), 2,438 of them on a row other than the landing's own, and the ten open games stand 46,158 states short; a row a lane's rule moved
+is the lane's to pin and a refusal holds no seat; the leaves read against each other name two words, an ammo round's land point on rows
+83, 93 and 53 (item 4779, a parity seat's) and a first sight on rows 108 and 13 (item 4616); the launch fallback fires once, on row 93,
+3,934 states past its first parting; the packets' lines 960 of 1,053; **orders** — whole by its counters; **renderer** — the tally, the
+two buttons and the hoist drawn on run1814b (items 4761 to 4768), the capital's ring at 481 pieces (items 4722 to 4774); the client's
+seat takes the ring's clear order, then the start from the install alone (items 4776, 4780).
 
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it

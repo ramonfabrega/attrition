@@ -184,7 +184,13 @@ def references(text):
     booked, since `(N)` is itself a booking by the queue's convention.
     """
     refs = set()
-    for span in re.findall(r"\b(?:items?|takes)\s+(%s)\b" % N, text, re.I):
+    # A number an arrow follows is a count that moved, never an item:
+    # `items` is a checksum line as well, and "items 5850 -> 6187" in a
+    # booking read as item 5850, never booked (2026-11-27, a joint gate red
+    # at its first step).
+    for span in re.findall(
+        r"\b(?:items?|takes)\s+(%s)\b(?!\s*(?:->|→))" % N, text, re.I
+    ):
         refs.add(int(span))
     for span in re.findall(r"\b(%s)\s+closes\b" % N, text):
         refs.add(int(span))

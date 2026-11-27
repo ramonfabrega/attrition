@@ -51,6 +51,15 @@ class FourDigitItems(unittest.TestCase):
         refs = queueledger.references('takes 1061; item 1050 and items 1019; 1048 closes')
         self.assertEqual(refs, {1061, 1050, 1019, 1048})
 
+    def test_a_line_s_count_is_not_a_reference(self):
+        # The pass of 2026-11-27, second: `items` is a checksum line too, and
+        # a booking that wrote its count, "items 5850 -> 6187", read as item
+        # 5850, "referred to and never booked", and turned a joint gate red at
+        # its first step. A number an arrow follows is a count that moved.
+        refs = queueledger.references('groups, cities and items 5850 -> 6187; items 412 → 9; item 1050 -> done')
+        self.assertEqual(refs, set())
+        self.assertEqual(queueledger.references('items 1019; item 1050, then'), {1019, 1050})
+
     def test_the_journal_names_four_digits(self):
         named = queueledger.named_in('## 2026-09-28 — item 1052: the army\nitems 1040, 1034 and 997\n')
         self.assertEqual(named, {1052, 1040, 1034, 997})

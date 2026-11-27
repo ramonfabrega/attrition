@@ -23010,3 +23010,53 @@ The client's picture reads as the original's across the whole frame.
 What is left is three lines of white text at the right edge and two
 buttons.
 **DECISIONS 160.** `docs/audit/2026-11-27-fable-pass-printer.md`.
+
+## 2026-11-27 — the pass, second: a lane waited four hours to write down that its fix had worked (Fable 5.2, steering)
+
+The driver handed over at the backstop with nothing out: twenty
+landings in ten hours, and one more game whole, 53 of 63. The game
+that came whole was not the one its lane was working. A rule built for
+the fifth battery's row 83 moved that row 74 states and closed the
+seventh's row 8 outright, 2,105 states. More than half of what the
+tranche's twelve row landings bought came that way, on a game other
+than the landing's own; a tranche ago it was a seventh.
+
+That is also where the tranche lost its longest wait. The lane's gate
+went red on the other game's pin, as it should; the lane ran the tool
+that rewrites a pin; and the classifier refused, because the item said
+to re-pin its own row and named no other. The question went to the
+driver, then to Ramon, and 256 minutes later his answer let the same
+command through. The rules had always made a moved pin the worker's.
+Only the brief had not said so, and the brief is all a classifier
+reads. It says so now, in the space of two clauses a worker already
+inherits, since the frame stood seven characters under its ceiling.
+And a refusal no longer holds a seat: the lane lands on that one red
+and the driver re-pins on the merged tree.
+
+The driver had also worded round two paperwork guards. One read our
+own `Sim::` method as a misspelt name from the original's export. The
+other read "items 5850 -> 6187", a checksum line's count, as a
+reference to an item nobody had booked, and stopped a three-lane gate
+at its first step. Both guards now read what a driver actually writes,
+each with a test seen red first. The gate script took `HEAD` to mean
+its own tree's; it resolves the name where it is called.
+
+Since rules cross rows, the pass read every open game's stopping point
+against the others, which no lane does. Three games stop on a round
+that lands a few units from where the original's does, with the launch
+point, the accuracy and the target all equal; on one of them every
+unit and every figure agrees on that state, so the difference is in
+the aiming and nowhere upstream that two lines can see. Row 93 had
+spent two deep landings on its units at that same state and moved
+nothing. The land point takes its seat. And two late games, 250 states
+apart, stop on the same four fields with the same values: a unit of
+the second player has seen an enemy building in the original and not
+in ours. One item carries both.
+
+The client's picture at the usual camera reads as the original's. What
+the client cannot do is start without an oracle's log that exists on
+one machine. Ramon asked today what a release would take; that is the
+first answer, it is on the finish line as written, and it is the
+client seat's item after the capital's ring. The rest of a release is
+his to call for.
+**DECISIONS 161.** `docs/audit/2026-11-27-fable-pass-leaves.md`.

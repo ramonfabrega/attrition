@@ -1,4 +1,4 @@
-# Every rondata release test's peak resident set alone, 2026-11-27, tools/suite_timings.py (tree aad846fa).
+# Every rondata release test's peak resident set alone, 2026-11-27, tools/suite_timings.py (tree 3dd59d14).
 # /usr/bin/time -l, one test per process, --test-threads 1; MiB then the test; -1 when unread.
 5304	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 3662	diff::start::tests::every_lobby_s_start_built_from_its_choices
@@ -2087,6 +2087,8 @@
 71	diff::held_out::tests::row_63_s_fort_pick_walks_the_fort_records_on_run1782
 71	diff::held_out::tests::row_28_s_round_at_the_capital_on_run1820_s_ranges
 71	diff::held_out::tests::row_133_s_general_bleeds_on_hostile_ground_on_run1797
+70	diff::held_out::tests::row_133_s_wonder_site_counts_a_rival_s_running_clock_on_run1797
+70	diff::held_out::tests::row_93_s_followers_take_their_captain_s_head_attack_on_run1799_s_ranges
 70	diff::held_out::tests::row_53_s_archers_drop_the_dromon_off_their_shore_on_run1847_s_ranges
 70	diff::held_out::tests::row_88_s_general_comes_out_facing_its_heading_on_run1846_s_ranges
 70	diff::held_out::tests::row_133_s_army_is_not_hurried_by_citizens_on_run1797
@@ -2096,12 +2098,18 @@
 70	diff::held_out::tests::row_88_s_riders_closed_aboard_leave_their_owner_above_the_market_on_run1846_s_ranges
 70	diff::held_out::tests::row_133_s_bribed_infantry_keep_the_old_squad_s_marks_on_run1797
 70	diff::held_out::tests::row_53_s_rammed_fire_raft_plunders_nothing_on_run1835_s_ranges
+70	diff::held_out::tests::row_83_s_biplane_and_row_48_s_javelins_leave_where_theirs_do_on_their_ranges
+70	diff::held_out::tests::row_93_s_bazooka_collides_with_a_wreck_at_its_corner_on_run1799_s_ranges
+69	diff::held_out::tests::row_83_s_commando_keeps_its_sniper_on_the_dead_riflemen_s_captain_on_run1784_s_ranges
+69	diff::held_out::tests::row_83_s_bribed_riflemen_drop_their_dead_figure_from_the_world_on_run1784_s_ranges
+69	diff::held_out::tests::row_83_s_artillery_keeps_its_group_s_attack_move_under_a_re_search_on_run1784_s_ranges
 69	diff::held_out::tests::row_53_s_fire_raft_rams_and_sinks_on_run1835_s_ranges
 69	diff::held_out::tests::row_133_s_sam_rocket_strikes_its_own_capital_with_the_recapture_bonus_on_run1797_s_ranges
 69	diff::held_out::tests::row_133_s_captured_city_keeps_the_near_border_mark_on_run1797
 69	diff::held_out::tests::row_88_s_fire_raft_sunk_in_its_own_work_repaints_its_disc_on_run1843_s_ranges
 69	diff::held_out::tests::row_53_s_village_keeps_the_round_that_came_down_on_itself_on_run1847_s_ranges
 69	diff::held_out::tests::row_133_s_jet_fighter_banks_away_from_the_helicopter_under_its_nose_on_run1797
+69	diff::held_out::tests::row_133_s_aa_gun_bears_on_a_target_slot_off_the_map_on_run1797
 68	diff::held_out::tests::row_133_s_burned_assault_infantry_lies_on_its_scorched_body_on_run1797
 68	diff::held_out::tests::row_83_s_airbase_does_not_count_an_air_defense_site_on_run1784_s_ranges
 68	diff::held_out::tests::row_133_s_merchant_is_not_kept_off_a_good_by_citizens_on_run1797
@@ -2110,6 +2118,7 @@
 68	diff::held_out::tests::row_93_s_siege_order_walks_its_point_on_run1799_s_ranges
 68	diff::held_out::tests::row_28_s_round_on_run1821_s_ranges
 68	diff::held_out::tests::row_133_s_building_fires_from_its_own_height_on_run1797
+67	diff::held_out::tests::row_93_s_army_slides_by_the_taker_s_form_id_on_run1799_s_ranges
 67	diff::held_out::tests::row_93_s_howitzer_takes_the_unbuilt_city_mandatory_on_run1799_s_ranges
 67	diff::held_out::tests::row_83_rebuilds_the_trade_road_before_choosing_the_caravan_death_animation
 67	diff::held_out::tests::row_133_s_attack_helicopter_fires_from_its_pod_on_run1797_s_ranges
@@ -2124,6 +2133,8 @@
 67	diff::held_out::tests::row_133_s_flamethrower_drops_the_helicopter_its_attack_move_found_on_run1797
 67	diff::held_out::tests::row_133_s_spy_marks_itself_as_it_bribes_on_run1797
 67	diff::held_out::tests::row_93_s_hanging_gardens_close_walks_the_wonder_mark_down_on_run1799_s_ranges
+67	diff::held_out::tests::row_93_s_blocked_follower_hands_its_enemy_to_the_group_on_run1799_s_ranges
+66	diff::held_out::tests::row_133_s_bribed_bmp_keeps_its_own_node_flags_on_run1797
 66	diff::held_out::tests::row_133_s_citizen_comes_out_at_the_ground_under_its_spot_on_run1797
 66	diff::held_out::tests::row_133_s_new_city_sweeps_its_buildings_by_object_number_on_run1797_s_ranges
 66	diff::held_out::tests::row_133_s_sam_winds_and_turns_at_its_sighting_on_run1797_s_ranges

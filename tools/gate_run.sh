@@ -16,6 +16,11 @@
 export PATH=$HOME/.cargo/bin:$HOME/.bun/bin:/opt/homebrew/bin:$PATH
 if [ $# -lt 2 ]; then echo "usage: gate_run.sh <sha> <log> [gate flags…]" >&2; exit 64; fi
 sha="$1"; log="$2"; shift 2
+# The commit is named in the caller's tree and gated in the gate's: `HEAD`
+# passed through read as the gate tree's own HEAD, the commit of the gate
+# before (the tranche of 2026-11-27, second: a driver's `gate_run.sh HEAD`
+# gated the last landing again). Resolved here, before any `cd`.
+sha="$(git rev-parse --verify --quiet "$sha^{commit}")" || { echo "gate exit 96 (no commit $1 in $PWD)" > "$log"; exit 96; }
 case "$log" in /*) ;; *) log="$PWD/$log" ;; esac
 common="$(cd "$(dirname "$0")" && cd "$(git rev-parse --git-common-dir)" && pwd)" || exit 98
 root="$(dirname "$common")"

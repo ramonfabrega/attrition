@@ -288,7 +288,11 @@ printed** (DECISIONS 157 §4): a gate that stops at the guard has run none
 of the lane's pins, prints what to do instead, and `docs_guard` refuses a
 lane's journal that quotes no printed verdict; item 4650's lane landed on
 filters run by hand and the booking gate went red on two pins no gate had
-run. **A worker's story is its own file**,
+run. **A row a lane's rule moved is the lane's to pin** (DECISIONS 161
+§2): `tools/repin_held.py <log> --row N --write`; a lane refused that
+lands on that one red and names it, and the driver re-pins on the merged
+tree before the booking gate — item 4770's lane waited 256 minutes on a
+person for a pin its rule had made whole. **A worker's story is its own file**,
 `docs/journal/<date>-item-<N>.md`; it touches neither `docs/JOURNAL.md`
 nor `docs/QUEUE.md`, and the numbers it reports are the commander's to
 book and to write on the scoreboard line. **A number a worker reports is

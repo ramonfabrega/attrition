@@ -1337,6 +1337,11 @@ fn a_section_the_code_cites_is_one_the_document_holds() {
     );
 }
 
+/// This crate's own type, which a booking may name a method of
+/// (`Sim::follower_attack_hand_off`, item 4771's): the export has no class
+/// called `Sim`, so the name cannot be a misspelt row of its index.
+const OUR_TYPE: &str = "Sim";
+
 /// Every qualified function name in `text` — `Class::method`, with or
 /// without a `+0x..` site or an `@address` after it — that `known` does not
 /// hold. A name is qualified or it is not read: a bare `come_out` is as
@@ -1363,6 +1368,11 @@ fn unknown_functions(text: &str, known: &std::collections::BTreeSet<String>) -> 
             || !method.as_bytes()[0].is_ascii_lowercase()
             || (start > 0 && b[start - 1] == b':')
         {
+            continue;
+        }
+        // Ours, never the original's: the test below holds the export to
+        // having no class of the name.
+        if class == OUR_TYPE {
             continue;
         }
         let name = format!("{class}::{method}");
@@ -1395,6 +1405,13 @@ fn a_function_a_booking_names_is_in_the_export() {
         ),
         vec!["CommandManager::issue_launch_flight".to_string()]
     );
+    // The tranche of 2026-11-27, second: a booking named ours,
+    // `Sim::follower_attack_hand_off`, and a joint gate's guard read it as
+    // the original's. `Sim` is this crate's type and no class of the export.
+    assert_eq!(
+        unknown_functions("ours `Sim::follower_attack_hand_off`", &fixture),
+        Vec::<String>::new()
+    );
     let home = std::env::var("HOME").unwrap_or_default();
     let index_path = format!("{home}/ghidra-projects/decomp/INDEX.tsv");
     let Ok(index) = std::fs::read_to_string(&index_path) else {
@@ -1406,6 +1423,11 @@ fn a_function_a_booking_names_is_in_the_export() {
         .filter_map(|l| l.split('\t').nth(1))
         .map(|n| strip_templates(n).to_lowercase())
         .collect();
+    let ours = format!("{}::", OUR_TYPE.to_lowercase());
+    assert!(
+        !known.iter().any(|n| n.starts_with(&ours)),
+        "the export holds a class named `{OUR_TYPE}`: the exemption is no longer safe"
+    );
     let queue = read("QUEUE.md");
     let mut failures = Vec::new();
     for (n, text) in open_item_texts(&queue) {

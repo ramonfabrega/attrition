@@ -201,13 +201,17 @@ fn fallback_rows(walks: &[Walk]) -> Vec<(usize, u64)> {
 /// the seventh's row 48 from 8322 and `attack_action_no_target` on its row
 /// 88 from 10737, 2,715 and 6,169 states past their first partings
 /// (`tools/seam_table.py`).
+/// **(93, 1) on `3dd59d140`** (the pass of 2026-11-27, second): twelve
+/// landings walked rows 83, 93 and 133. The sixth's row 93 fires one round
+/// with no row from state 8746, 3,934 past its first parting on 4812; the
+/// two hooks stand, row 88's now from 6266, 1,698 past its own.
 const FALLBACK: [(&str, &[(usize, u64)]); 7] = [
     ("first", &[]),
     ("second", &[]),
     ("third", &[]),
     ("fourth", &[]),
     ("fifth", &[]),
-    ("sixth", &[]),
+    ("sixth", &[(93, 1)]),
     ("seventh", &[]),
 ];
 

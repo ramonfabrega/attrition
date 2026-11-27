@@ -563,9 +563,9 @@ lane gate carries every lobby's `first_parting`** (1910, 2000).
   3401, 3694); a re-pinned count is the merged tree's (1151). **`check.sh` exits as
   cargo does, never a pipe's** (3327); **paperwork guards run under
   `--lane`** (3373); **never delete under `~/ron-data`** (3375).
-- **Constants and widenings are yours to pin; the queue's lines mine**: say what books and parks, the next word by frame and delta.
+- **Constants and widenings are yours to pin, a row your rule moved too (`repin_held.py --row N --write`;
+  161 §2); the queue's lines mine**: what books and parks, the next word by frame and delta.
 - **Done and pushed: one line to me** (1412; 3503) —
   `SendMessage` to `commander`: your origin tip SHA,
   `git log <base>..<branch>`, `Lane verdict:` and `Gate
-  steps:` (1406); **then end the turn done, needing no input** (1671); at ninety minutes
-  unlanded: your step.
+  steps:` (1406); **then end the turn done** (1671).
