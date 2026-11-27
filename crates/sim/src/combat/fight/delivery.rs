@@ -1935,6 +1935,17 @@ impl Sim {
         if self.units[r].inside_unit == Some(boat) {
             self.close_inside_disc(r);
             self.units[r].inside_unit = None;
+            // **And it heads its retained cell's chain once more** (item
+            // 4693, `docs/RECGAME.md` §14.4): `remove_from_inside`'s
+            // `add_to_world` (`006480f0`, after the splice) threads it on
+            // the point it boarded from, and `Object::close`'s
+            // `remove_from_world` (`006471d6`) — [`Sim::close_supply_in`]'s
+            // `chain_remove`, below — takes it off. The object it lay on
+            // keeps `up_who` the rider's owner. run1846's 3716: who=2's
+            // King's Longbowmen `2/88` (TI 178) dies aboard its sunk
+            // Transport Barge `2/24`, its point on the Market `2/2041`'s
+            // cell (47, 26), whose `up_who` reads 2 on 3717.
+            self.chain_add(r);
         }
         self.die_quietly(r);
     }
