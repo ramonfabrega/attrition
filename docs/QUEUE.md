@@ -70,7 +70,7 @@ on run1797 over 4385..4387. No take. Re-pin `SCORES_SIXTH[6].moved` with `tools/
 landings running move no column.
 
 4771. **Parity held out, sixth: row 93's units from 4812** (a rules item, whole; a parity seat's; `docs/RECGAME.md` §13.3).
-Item 4767 built `do_group_move`'s follower attack hand-off (`Sim::follower_attack_hand_off`, a seam until then): the first parting
+Item 4767 built `do_group_move`'s follower attack hand-off (a seam until then): the first parting
 4806 -> 4812 on units, guys and ammo. Its leaf (run1799): `1/16` and `1/26`, `order.target` ours `ox` 88 (uid 126), theirs 101
 (uid 139). First act: `print_ranges` (`docs/RECGAME.md` §15) on run1799 over 4810..4812. No take. Re-pin `SCORES_SIXTH[4].moved`
 with `tools/repin_held.py`, never `found`. It stops when two landings running move no column.
