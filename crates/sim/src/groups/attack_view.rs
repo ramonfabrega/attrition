@@ -775,15 +775,11 @@ impl AttackView for SimAttack<'_> {
                 .or_else(|| self.sim.find_melee_target_with(h, maxd, word)),
         };
         if std::env::var("RON_PROBE_4771").is_ok() && self.sim.frame >= 4811 && self.sim.frame <= 4812 {
-            let u = &self.sim.units[h];
-            let head = match self.sim.melee_squad_head(h) {
-                crate::orders::SquadHead::Nothing => "nothing",
-                crate::orders::SquadHead::Captain(..) => "captain",
-                crate::orders::SquadHead::Search => "search",
-            };
+            let (uo, ui, ux, uy) = (self.sim.units[h].owner, self.sim.units[h].index, self.sim.units[h].pos.x, self.sim.units[h].pos.y);
+            let head = "-";
             let f = found.map(|t| obj_key(self.sim, t));
             let fi = match found { Some(Obj::Unit(x)) => (self.sim.units[x].owner as i32, self.sim.units[x].index as i32), _ => (-1,-1) };
-            eprintln!("PROBE4771 frame {} army {:?} {}/{} pos ({},{}) maxd {} target {:?} head {} found {:?} = {:?}", self.sim.frame, self.g.army, u.owner, u.index, u.pos.x, u.pos.y, maxd, self.target, head, f, fi);
+            eprintln!("PROBE4771 frame {} army {:?} {}/{} pos ({},{}) maxd {} target {:?} head {} found {:?} = {:?}", self.sim.frame, self.g.army, uo, ui, ux, uy, maxd, self.target, head, f, fi);
         }
         match found {
             Some(t) => obj_key(self.sim, t),
