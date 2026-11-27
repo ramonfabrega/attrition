@@ -4801,7 +4801,11 @@ pub(crate) mod tests {
                     .iter()
                     .find(|p| p.shooter == sim::combat::Obj::Unit(u))
                     .expect("ours' round from 2/28");
-                assert_eq!((ours.launch.x, ours.launch.y), (39780, 29996), "ours' launch");
+                assert_eq!(
+                    (ours.launch.x, ours.launch.y),
+                    (39780, 29996),
+                    "ours' launch"
+                );
                 assert_eq!(built.sim.units[u].pos.y, 29826, "the unit has drifted");
             }
             for (li, name) in [(0u8, "units"), (3, "ammo"), (6, "guys"), (11, "world")] {
