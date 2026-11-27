@@ -4898,7 +4898,11 @@ pub(crate) mod tests {
             let j = (k..units.ranges.len())
                 .find(|&j| units.ranges[j].field == "orders.count")
                 .expect("2/90's orders");
-            assert_eq!(&theirs[j].bytes[..], &[0, 0, 0, 0], "2/90's orders on {state}");
+            assert_eq!(
+                &theirs[j].bytes[..],
+                &[0, 0, 0, 0],
+                "2/90's orders on {state}"
+            );
         }
         let site = built.sim.building_by_o(1, 2046).expect("1/2046");
         assert_eq!(
