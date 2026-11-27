@@ -2597,6 +2597,36 @@ At `6014ef`–`601505`, on every path, a set `unit_masks & 0x800000`
 the search refuses water. Diff-backed on the ring (run882b's packet,
 `docs/AI.md` §237); the other exits' restores are listing-only.
 
+## 17.8 A land asker keeps to its own region against a ship (items 4741, 4744)
+
+`00601280:74` sets `local_3c = -1`; `:123`–`:143` replace it with
+`WorldData::get_tregion` of the asker's own tile when the asker has
+orders, its current order's type (vslot `+0x10`) is 10 (`ATTACK`), and
+its type's domain (`+0x218`) is neither 2 (air) nor the target's. It is
+the last argument of the unit sweep's `UnitType::find_nearby_spot`
+(`:362`) and of the mandatory fallback (`:904`). `find_nearby_spot@
+0061de70:125`–`:141` passes over a candidate whose tile's region (the
+cell's `region2` on an ocean tile of a `0x100` cell, else its region:
+`World::tregion_alt`) is not that argument, the first test after the
+bounds. So an archer chasing a ship takes no spot across the water: the
+sweep comes back empty, and `fight`'s out-of-range tail searches for a
+new target. `Sim::attack_pos_region` is `local_3c`; `spot_ring` takes it.
+
+**Diff-backed** on row 53 (run1847, `docs/RECGAME.md` §13.2): who=2's
+Archers `2/68`..`70` (TI 171, land) drop the Dromon `1/68` (TI 324, sea)
+on 3935 and take the Merchant `1/25`, every units, guys and world range
+on 3934..3940 byte for byte; red without the region at units range 4459,
+record 68, `flags` ours 0x01, theirs 0x81.
+
+Not established:
+
+- **The mandatory fallback's region (`:904`).** Ours'
+  `ordered_chase_fallback` is land-against-land only, where the region is
+  `-1`; a mandatory land chase of a ship is not built, so no region is
+  passed there (parked 4744a).
+- The `-1` when `get_tregion` itself answers none: ours then passes no
+  region, which is the original's only if its lookup answers `-1` there.
+
 ---
 
 ## 18. The engagement frame, read off the golden record (item 384, 2026-09-18)
