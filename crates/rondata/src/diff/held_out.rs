@@ -3013,6 +3013,92 @@ pub(crate) mod tests {
         }
     }
 
+    /// **A rival's running wonder clock wants one more builder** (item
+    /// 4766, `docs/RECGAME.md` §13.5): run1797. who=1's `wonderwin_timer`
+    /// runs from 4376 (`wonderwin_stamp` 4376), and on 4387, the phase of
+    /// who=2's unbuilt wonder `2/2014` (4386 + 2014 = 200 × 32),
+    /// `Wall::process`'s recruiter counts that leader one without walking
+    /// its wonders: five builders against six wanted, so the nearest
+    /// not-busy Citizen, `2/40` on its walk to gather at `2/2015`, takes
+    /// `add_build_order(QUEUE_NEW)` — `unit_masks |= 0x400`, its gather
+    /// closed (`gather_down` −1). Every range of every line on 4387.
+    #[test]
+    fn row_133_s_wonder_site_counts_a_rival_s_running_clock_on_run1797() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 4386 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let clock = &built.sim.leaders.endgame[1];
+        assert_eq!(
+            (clock.wonderwin_stamp, clock.wonderwin_timer),
+            (4376, 1),
+            "who=1's wonder clock runs"
+        );
+        let site = built
+            .sim
+            .building_by_o(2, 2014)
+            .expect("the wonder site 2/2014");
+        assert!(
+            !built.sim.buildings[site].active,
+            "the wonder is unbuilt entering 4387"
+        );
+        let citizen = built.sim.unit_by_o(2, 40).expect("the Citizen 2/40");
+        assert_eq!(built.sim.units[citizen].type_index, 50, "a PEASANTS");
+        assert_eq!(
+            built.sim.units[citizen].orders.len(),
+            2,
+            "a move and a gather entering 4387"
+        );
+        assert!(!built.sim.units[citizen].was_builder);
+        stream.apply(built.sim.frame as i32, &mut built);
+        built.sim.command().tick();
+        assert_eq!(built.sim.frame, 4387);
+        assert!(built.sim.units[citizen].was_builder, "the recruit's 0x400");
+        let set = record.first_of(4386).expect("the state's set").clone();
+        let all = record.ranges(&set).expect("the set's ranges");
+        let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+        for (line, ours) in lines.iter().enumerate() {
+            let Some(ours) = ours.as_ref() else {
+                continue;
+            };
+            let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "line {line}'s ranges on 4387"
+            );
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "line {line} range {k} on 4387, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+    }
+
     /// **A bribed figure keeps its own node flags** (item 4758,
     /// `docs/RECGAME.md` §13.5): run1797. On 4058 who=2's spy bribes
     /// who=1's BMP (TI 223); `Unit::swap_team@006118d0`'s per-guy loop
@@ -17036,23 +17122,38 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 4,388, leaders 4,114 -> 4,391, cities 4,158 -> 4,551, items 4,378
         // -> 5,534, goods 4,476 -> 4,558, world 4,098 -> 4,388. The first
         // parting is units, builds and leaders on 4387.
+        // Item 4766 (a rival leader whose wonder clock runs, `wonderwin_
+        // timer` `+0x44c`, counts one builder more at a computer's wonder
+        // site, `Wall::process@00640450`'s leader loop: who=1's clock runs
+        // from 4376, and on 4387 who=2's wonder `2/2014`, five builders,
+        // wants six and pulls its Citizen `2/40`, TI 50, off its gather;
+        // units range 8757, record 40, `unit_masks` ours 262152, theirs
+        // 263176, `orders_x` ours 4776, theirs 1824, builds range 3674,
+        // record 2015, `gather_down` ours 40, theirs -1, leaders range 265,
+        // record 2, `flags` byte 3 ours 0x00, theirs 0x02 on 4387, theirs
+        // now): units 4,387 -> 4,583 (first 4387 -> 4583), builds 4,387 ->
+        // 4,583, ammo 4,429 -> 4,588, deaths 4,465 -> 4,593, groups 4,516
+        // -> 4,612, guys 4,388 -> 4,583, leaders 4,391 -> 4,583, cities
+        // 4,551 -> 4,586, items 5,534 -> 5,803, goods 4,558 -> 5,485, world
+        // 4,388 -> 4,583. The first parting is ammo, builds, guys, leaders,
+        // units and world on 4583.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                4387, 4387, 6085, 4429, 4465, 4516, 4388, 4391, 4551, 5534, 4558, 4388,
+                4583, 4583, 6085, 4588, 4593, 4612, 4583, 4583, 4586, 5803, 5485, 4583,
             ],
             first: &[
-                ("units", (4387, Some(179043728), 690735335)),
-                ("builds", (4387, Some(4054243686), 4205632316)),
-                ("ammo", (4425, Some(714515477), 4139558037)),
-                ("deaths", (4465, Some(4002079221), 436527897)),
-                ("groups", (4504, Some(1158720774), 2306714889)),
-                ("guys", (4388, Some(1113043201), 3969102009)),
-                ("leaders", (4387, Some(3937291906), 3487649412)),
-                ("cities", (4551, Some(2629988898), 2873127555)),
-                ("items", (5534, Some(1298600403), 1281298895)),
-                ("goods", (4558, Some(443381871), 644446332)),
-                ("world", (4388, Some(667974385), 2149153437)),
+                ("units", (4583, Some(3818626992), 4179928937)),
+                ("builds", (4583, Some(3639415864), 2923566179)),
+                ("ammo", (4583, Some(316133788), 3333870174)),
+                ("deaths", (4593, Some(3990775910), 867133005)),
+                ("groups", (4612, Some(827436075), 1966582587)),
+                ("guys", (4583, Some(3880334789), 974993104)),
+                ("leaders", (4583, Some(2856017646), 1289639612)),
+                ("cities", (4586, Some(1449161469), 857109239)),
+                ("items", (5741, Some(1281298895), 1298600403)),
+                ("goods", (5361, Some(713652352), 497121394)),
+                ("world", (4583, Some(402306290), 4176131650)),
             ],
             over: None,
         }),

@@ -6793,9 +6793,15 @@ packet's and the same 20 apart. So no `picked` is kept for the line bytes.
 rows. **Read alone**: nothing new. The candidate is the door's bytes.
 
 **Not established.**
-- Why the mesh marks yellow on the T at (17–19, 163), where the packet
-  holds none (4690a). It names a score: two of the packet's pieces and the
-  ring's hue.
+- ~~Why the mesh marks yellow on the T at (17–19, 163), where the packet
+  holds none (4690a).~~ Answered by item 4722
+  (`docs/journal/2026-11-27-item-4722.md`): the yellow is from row 164,
+  which stood earlier, kept after its clear by `leech_codes`' line half in
+  three loops whose tiles are never cleared in one redo batch.
+- Whether merging the texture tiles into the redo list in push order
+  breaks the loops (4722a). A probe that clears them with pass 2 gives the
+  packet's piece 480 → 481, with (19, 163) whole; (17, 163) and (18, 163)
+  ping-pong between the lists.
 - run1559b's 20 apart: 17 an intersection bit or a white the packet holds
   and we do not (4199a), (211, 84) as §6.7, and the T.
 
