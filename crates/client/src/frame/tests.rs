@@ -110,9 +110,13 @@ pub(crate) const RUN1814B_3294_RESOURCES: [usize; 7] = [11_986, 11_827, 0, 11_67
 /// the wings, the capital's star, the tiles and the corners), 211,274 →
 /// 233,080 on the still, the composition 211,051 → 232,857. Still apart:
 /// the name's text, the picture, its hit points and the six figures
-/// (4748a, 4748b).
+/// (4748a, 4748b). Item 4750: `draw_stat`'s six figures (8, 3, 10, 0/10,
+/// 0/2, 20, the sim's own), their backs, icons and lines, 233,080 →
+/// 238,258 on the still, the composition 232,857 → 238,035. The backs and
+/// icons agree; the lines' glyphs part on 547 pixels, the clock's face
+/// standing in for lookup 10's (4750b).
 pub(crate) const RUN1814B_3294_SELECTED: [usize; 7] =
-    [242_115, 232_857, 0, 233_080, 556, 1_161, 545];
+    [242_115, 238_035, 0, 238_258, 556, 1_161, 548];
 
 /// The banner as interface.xml writes it, on a cut of its own text.
 #[test]
@@ -536,12 +540,25 @@ fn the_minimap_frame_on_run1814b() {
         panel,
         Some(super::selected::Panel {
             team: [255, 0, 0],
-            capital: true
+            capital: true,
+            stats: [
+                (1, "8"),
+                (0, "3"),
+                (3, "10"),
+                (7, "0/10"),
+                (8, "0/2"),
+                (19, "20")
+            ]
+            .map(|(case, line)| super::selected::Stat {
+                case,
+                line: line.to_string()
+            })
+            .to_vec(),
         }),
         "the capital's panel, in the photograph's red"
     );
     let (rt, rsc) = frame
-        .right_side(size, panel)
+        .right_side(size, panel.clone())
         .expect("the right side composes");
     assert_eq!(rsc, (648, 883), "the right side's corner");
     let right_texel = |x: i32, y: i32| super::texel_of(&rt, rsc, x, y);
