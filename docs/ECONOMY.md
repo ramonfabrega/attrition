@@ -1781,6 +1781,8 @@ far as anything read goes they are as dead as `calc_support`.
   `Leader::calc_pop_cap`. What remains open there is the *production* half:
   `Build::queue_up`, `JOB_TIME` and when in an item's life the price is
   actually charged.
+- **The market's `price` and `flux` sit in no checksum line** (item 4773a): a drift there is silent until a
+  `use_market` pass count parts, as run1797's who=1 does on 4582 (45 sell draws against 17).
 
 ---
 
