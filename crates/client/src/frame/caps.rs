@@ -33,6 +33,8 @@ pub struct Figures {
     pub pop_cap: i32,
     pub cities: i32,
     pub city_limit: i32,
+    /// Item 4742: the resources box's goods ([`super::resources`]).
+    pub goods: super::resources::Goods,
 }
 
 /// **The box's layout**: the rectangles' tags, resolved at a frame's
@@ -66,12 +68,23 @@ pub enum Atlas {
     Civ,
 }
 
-/// **One layer of the box**: pieces off one atlas, drawn in white or in
-/// the highlight's grey ([`highlight`]).
+/// **How a layer's texels are coloured.**
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Tint {
+    /// `WHITE`: the texel as it is.
+    White,
+    /// `IFACERENDERTYPE_HIGHLIGHT` under a grey ([`highlight`]).
+    Highlight(u8),
+    /// The texel times the colour, per channel ([`modulate`]): the
+    /// render manager's `write` in `GREY` or `GREEN` (item 4742).
+    Modulate([u8; 3]),
+}
+
+/// **One layer of the box**: pieces off one atlas, under one [`Tint`].
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Layer {
     pub atlas: Atlas,
-    pub grey: Option<u8>,
+    pub tint: Tint,
     pub pieces: Vec<Piece>,
 }
 
@@ -86,6 +99,11 @@ pub fn highlight(texel: u8, colour: u8) -> u8 {
     ((u32::from(texel) * u32::from(colour) * 2 + 127) / 255).min(255) as u8
 }
 
+/// **A plain modulate**: the texel times the colour, over 255, rounded.
+pub fn modulate(texel: u8, colour: u8) -> u8 {
+    ((u32::from(texel) * u32::from(colour) + 127) / 255) as u8
+}
+
 /// `IFaceRenderManager::char_to_index@0051f4a0`: a digit its value, `/`
 /// 10, `+` 11, `-` 12; anything else 0, where the original reports.
 pub fn char_to_index(c: char) -> usize {
@@ -98,7 +116,7 @@ pub fn char_to_index(c: char) -> usize {
     }
 }
 
-fn common_crop(tag: &str) -> Option<Crop> {
+pub(super) fn common_crop(tag: &str) -> Option<Crop> {
     (attr(tag, "texture") == Some("TEX_COMMON")).then_some(())?;
     let n = |k| num(tag, k).and_then(|v| usize::try_from(v).ok());
     Some((n("left")?, n("top")?, n("width")?, n("height")?))
@@ -106,7 +124,7 @@ fn common_crop(tag: &str) -> Option<Crop> {
 
 /// The crop of `interface.txt`'s line `key`, `<key>, <texture>, <l> xleft,
 /// <t> ytop, <w> xwidth, <h> yheight`.
-fn txt_crop(txt: &str, key: &str, texture: &str) -> Result<Crop, String> {
+pub(super) fn txt_crop(txt: &str, key: &str, texture: &str) -> Result<Crop, String> {
     let line = txt
         .lines()
         .find(|l| l.split(',').next().map(str::trim) == Some(key))
@@ -255,12 +273,12 @@ impl CapLayout {
         [
             Layer {
                 atlas: Atlas::Common,
-                grey: Some(BACK_GREY),
+                tint: Tint::Highlight(BACK_GREY),
                 pieces: self.back_pieces(rect),
             },
             Layer {
                 atlas: Atlas::Common,
-                grey: None,
+                tint: Tint::White,
                 pieces: v,
             },
         ]
@@ -284,7 +302,7 @@ impl CapLayout {
         };
         Layer {
             atlas: Atlas::Civ,
-            grey: None,
+            tint: Tint::White,
             pieces: vec![
                 Piece {
                     crop: bar,
@@ -339,39 +357,61 @@ impl CapLayout {
         civ: &render::tga::Image,
     ) -> Result<(Texels, (i32, i32)), String> {
         let (x0, y0, x1, y1) = self.span(size).ok_or("the box does not resolve")?;
-        let (w, h) = ((x1 - x0).max(0) as usize, (y1 - y0).max(0) as usize);
-        let blank = || Texels {
-            w,
-            h,
-            rgba: vec![0u8; w * h * 4],
+        let layers = self.layers(size, f).ok_or("the box does not resolve")?;
+        let out = paint_layers((x0, y0, x1, y1), &layers, common, civ)?;
+        Ok((out, (x0, y0)))
+    }
+}
+
+/// **`layers` painted over `span`** of the screen, from `common`,
+/// `TEX_COMMON`, and `civ`, the nation's `TEX_CIV`: each layer painted
+/// alone, tinted, and laid over the layers before it.
+pub(super) fn paint_layers(
+    (x0, y0, x1, y1): Span,
+    layers: &[Layer],
+    common: &render::tga::Image,
+    civ: &render::tga::Image,
+) -> Result<Texels, String> {
+    let (w, h) = ((x1 - x0).max(0) as usize, (y1 - y0).max(0) as usize);
+    let blank = || Texels {
+        w,
+        h,
+        rgba: vec![0u8; w * h * 4],
+    };
+    let mut out = blank();
+    for layer in layers {
+        let pieces: Vec<Piece> = layer
+            .pieces
+            .iter()
+            .map(|p| Piece {
+                span: (p.span.0 - x0, p.span.1 - y0, p.span.2 - x0, p.span.3 - y0),
+                ..*p
+            })
+            .collect();
+        let mut one = blank();
+        let atlas = match layer.atlas {
+            Atlas::Common => common,
+            Atlas::Civ => civ,
         };
-        let mut out = blank();
-        for layer in self.layers(size, f).ok_or("the box does not resolve")? {
-            let pieces: Vec<Piece> = layer
-                .pieces
-                .iter()
-                .map(|p| Piece {
-                    span: (p.span.0 - x0, p.span.1 - y0, p.span.2 - x0, p.span.3 - y0),
-                    ..*p
-                })
-                .collect();
-            let mut one = blank();
-            let atlas = match layer.atlas {
-                Atlas::Common => common,
-                Atlas::Civ => civ,
-            };
-            paint(&mut one, &pieces, atlas)?;
-            let src = one.rgba.as_chunks::<4>().0;
-            for (d, t) in out.rgba.as_chunks_mut::<4>().0.iter_mut().zip(src) {
-                let mut t = *t;
-                if let Some(g) = layer.grey {
+        paint(&mut one, &pieces, atlas)?;
+        let src = one.rgba.as_chunks::<4>().0;
+        for (d, t) in out.rgba.as_chunks_mut::<4>().0.iter_mut().zip(src) {
+            let mut t = *t;
+            match layer.tint {
+                Tint::White => {}
+                Tint::Highlight(g) => {
                     for c in &mut t[..3] {
                         *c = highlight(*c, g);
                     }
                 }
-                over(d, t);
+                Tint::Modulate(k) => {
+                    for (c, k) in t[..3].iter_mut().zip(k) {
+                        *c = modulate(*c, k);
+                    }
+                }
             }
+            over(d, t);
         }
-        Ok((out, (x0, y0)))
     }
+    Ok(out)
 }
