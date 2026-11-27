@@ -7501,6 +7501,103 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 93's units on 4806: a follower blocked by an enemy hands it
+    /// to its group** (item 4767, `docs/RECGAME.md` §13.3, `docs/GROUPS.md`
+    /// §6.9), on run1799's whole-length ranges of run1792's file. who=1's
+    /// `1/87` (TI 63, land), a follower of group 66's `GROUP_ATTACK_TO`,
+    /// steps into who=2's Flamethrower `2/101` (TI 131, land) on 4806's
+    /// tick: `collide` 1, `collide_o` 101, `collide_who` 2 on both sides.
+    /// `do_group_move`'s follower tail (`5e8590`–`5e8611`) calls
+    /// `Group::action_attack(group, 101, 2, 0, QUEUE_FIRST, 0)`, so every
+    /// member takes an attack ahead of its attack-move. Red on the base at
+    /// units range 367 on 4806, record 2 (who=1's `1/2`): `orders_x`
+    /// ours 10968, theirs 26108, `orders_y` 5256 against 8005, and
+    /// `path.length` 33 against 1. Every units, groups, guys and world
+    /// range on 4805 to 4807, byte for byte.
+    #[test]
+    fn row_93_s_blocked_follower_hands_its_enemy_to_the_group_on_run1799_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            eprintln!("skipping: row 93's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1799/map-14");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1799's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 93's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let tribes = inst.tribe_defs(&inst.rules().unwrap()).unwrap();
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 4805i64..=4807 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let sim = &built.sim;
+            let named = |who: u8, o: i16| {
+                let u = sim
+                    .units
+                    .iter()
+                    .rposition(|un| un.owner == who && un.index == o)
+                    .expect("the slot");
+                let ty = sim.units[u].ty.expect("a type");
+                assert_eq!(
+                    sim.units[u].kind.domain,
+                    sim::territory::attrition::Domain::Land,
+                    "{who}/{o} on land"
+                );
+                (
+                    u,
+                    sim.tables.unit_types[ty].type_index,
+                    loaded.unit_names[ty].as_str(),
+                )
+            };
+            let (follower, ti, name) = named(1, 87);
+            assert_eq!(ti, 63, "1/87 is {name}");
+            let (foe, ti, name) = named(2, 101);
+            assert_eq!((ti, name), (131, "Flamethrower"), "2/101");
+            if state == 4806 {
+                let f = &sim.units[follower];
+                assert_eq!(
+                    (f.collide, f.collide_o, f.collide_who),
+                    (1, sim.units[foe].index, 2),
+                    "1/87 blocked by 2/101"
+                );
+                assert_eq!(
+                    sim.units[follower].orders.front().map(|o| o.index()),
+                    Some(sim::orders::index::ATTACK),
+                    "1/87 attacks ahead of its attack-move"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(sim, &look, &tribes);
+            for (line, name) in [(0usize, "units"), (5, "groups"), (6, "guys"), (11, "world")] {
+                let ours = lines[line].as_ref().expect(name);
+                let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    let at = a.bytes.iter().zip(&b.bytes).position(|(x, y)| x != y);
+                    assert_eq!(
+                        at.map(|i| (i, a.bytes[i], b.bytes[i])),
+                        None,
+                        "{name} range {k} on {state}, record {} {}: (byte, ours, theirs)",
+                        a.record,
+                        a.field
+                    );
+                }
+            }
+        }
+    }
+
     #[test]
     fn row_93_s_decoy_tiger_tank_leaves_the_chain_at_its_death_on_run1799_s_ranges() {
         let Some(inst) = crate::testenv::install() else {
@@ -16407,23 +16504,34 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // -> 5,829, deaths 4,704 -> 4,917, leaders 4,664 -> 4,815, cities
         // 4,961 -> 5,151, items 6,393 -> 6,555 (first 5857 -> 6187); past it
         // goods 5,946 -> 5,488 (first 4718 -> 5488), ours' end 10791 -> none.
+        // Item 4767 (a follower blocked by an enemy hands it to its group,
+        // `do_group_move`'s follower tail): who=1's `1/87` (TI 63, land)
+        // steps into who=2's Flamethrower `2/101` (TI 131) on 4806, and group
+        // 66 takes `Group::action_attack(…, QUEUE_FIRST, 0)` (run1799's units
+        // range 367, record 2, `1/2`'s `orders_x` ours 10968 -> 26108,
+        // `orders_y` 5256 -> 8005, `path.length` 33 -> 1, as theirs). The
+        // row's first parting 4806 -> 4812 (units, guys and ammo): units and
+        // guys 4,806 -> 4,812, groups 4,806 -> 4,841, world 4,806 -> 4,813,
+        // leaders 4,815 -> 4,823, builds 4,808 -> 4,836 (first 4808 -> 4821);
+        // past it ammo 5,829 -> 5,354, deaths 4,917 -> 4,814, cities 5,151 ->
+        // 4,961, items 6,555 -> 5,850, goods 5,488 -> 5,689 (first 5596).
         moved: Some(Score {
             states: 12001,
             agreed: [
-                4806, 4808, 12001, 5829, 4917, 4806, 4806, 4815, 5151, 6555, 5488, 4806,
+                4812, 4836, 12001, 5354, 4814, 4841, 4812, 4823, 4961, 5850, 5689, 4813,
             ],
             first: &[
-                ("units", (4806, Some(155234975), 1152685658)),
-                ("builds", (4808, Some(440825801), 915371514)),
-                ("ammo", (4807, Some(510503216), 434022871)),
-                ("deaths", (4814, Some(2306803114), 769398112)),
-                ("groups", (4806, Some(3162705074), 3002411627)),
-                ("guys", (4806, Some(1195480316), 4196635172)),
-                ("leaders", (4806, Some(475601999), 2898861138)),
-                ("cities", (5151, Some(1770932995), 1957251849)),
-                ("items", (6187, Some(1365126693), 1373777447)),
-                ("goods", (5488, Some(3459683631), 3373176107)),
-                ("world", (4806, Some(1656799263), 2224537161)),
+                ("units", (4812, Some(2918712582), 967517784)),
+                ("builds", (4821, Some(2516689233), 1349362419)),
+                ("ammo", (4812, Some(1941544880), 1414959816)),
+                ("deaths", (4814, Some(617551199), 769398112)),
+                ("groups", (4840, Some(2679237961), 3000757556)),
+                ("guys", (4812, Some(2469432760), 2960625289)),
+                ("leaders", (4813, Some(404430007), 2827689146)),
+                ("cities", (4961, Some(3356642640), 3426897235)),
+                ("items", (5850, Some(1399729705), 1365126693)),
+                ("goods", (5596, Some(3459683631), 3373176107)),
+                ("world", (4813, Some(2622731417), 1517663140)),
             ],
             over: None,
         }),
