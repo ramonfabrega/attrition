@@ -1609,8 +1609,9 @@ pub const PIECES_DECODING: (usize, usize) = (1471, 1484);
 /// played animation's tree have the same shape — beside K, never part of
 /// it; what the other 638 mean is the next render item's question
 /// (`docs/FORMATS.md` §3, "What is not established"). Item 4028: 823,
-/// +22 of the 26 gaia pieces.
-pub const SAME_SHAPE: usize = 823;
+/// +22 of the 26 gaia pieces. Item 4747: 829, +6 of the six `<SCORCH>`
+/// pieces.
+pub const SAME_SHAPE: usize = 829;
 
 /// Resolve every entry's files and decode each once: `K of N`, and every
 /// file that costs a piece named with its reason.
