@@ -17313,6 +17313,11 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // (first 9932 -> 9946), leaders 9,908 -> 9,938, cities 10,091 ->
         // 10,108, goods 11,576 -> 11,432 (first 11576 -> 11227), a named fall
         // 1,331 states past the parting.
+        // Item 4770, row 83's rule (`Unit::fight@005fd4d0`'s packer arm is
+        // `find_new_target` whole): who=1's `TI` 266 at (23304, 17880)
+        // keeps its attack-move under a re-search on 9896, units record 50
+        // `orders.count` ours 1 -> 3 (run1851), as theirs. Every line 12,001
+        // of 12,001: the row is whole.
         moved: Some(Score {
             states: 12001,
             agreed: [12001; 12],
