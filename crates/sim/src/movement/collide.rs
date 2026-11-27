@@ -2162,23 +2162,6 @@ impl Sim {
     /// `Unit::set_new_location` with `param_4` as `turn` ([`Sim::set_new_location_turning`]).
     pub(crate) fn set_location_with(&mut self, u: usize, to: Pos, guys: bool, turn: bool) -> bool {
         let from = self.units[u].pos;
-        if std::env::var("RON_PROBE_4769").is_ok()
-            && self.units[u].owner == 2
-            && self.units[u].index == 41
-            && self.units[u].uid == 227
-        {
-            eprintln!(
-                "PROBE move f{} 2/41 hp {} on_map {} ({}, {}) -> ({}, {})\n{}",
-                self.frame,
-                self.units[u].health,
-                self.units[u].on_map,
-                from.x,
-                from.y,
-                to.x,
-                to.y,
-                std::backtrace::Backtrace::force_capture()
-            );
-        }
         // **A move onto the point the unit already stands on is not a
         // no-op**, and the early return that used to sit here made it
         // one. `005f8d20` has no such return: an unchanged point makes

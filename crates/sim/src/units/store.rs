@@ -101,21 +101,6 @@ impl Sim {
             unit.pos.x.div_euclid(48) * 48 + 24,
             unit.pos.y.div_euclid(48) * 48 + 24,
         );
-        if std::env::var("RON_PROBE_4769").is_ok()
-            && unit.owner == 2
-            && (39..=41).contains(&unit.index)
-        {
-            eprintln!(
-                "PROBE push f{} 2/{} slot {} hp {} pos ({}, {})\n{}",
-                self.frame,
-                unit.index,
-                self.units.len(),
-                unit.health,
-                unit.pos.x,
-                unit.pos.y,
-                std::backtrace::Backtrace::force_capture()
-            );
-        }
         self.units.push(unit);
         self.seat_lists_take_the_number(i);
         // `Unit::init@00612100` caches the new unit's armour through
