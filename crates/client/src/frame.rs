@@ -551,7 +551,7 @@ pub fn selected_panel(
                 .is_some_and(|b| b.index == o.o)
     });
     Some(selected::Panel {
-        team: render::silhouette::team_unit(o.who as u8),
+        team: render::silhouette::team_unit(o.who),
         capital,
     })
 }
