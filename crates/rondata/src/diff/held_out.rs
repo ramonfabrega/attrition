@@ -4652,6 +4652,20 @@ pub(crate) mod tests {
         for state in lo..=hi {
             while built.sim.frame < state {
                 crate::diff::harness::debug_watch(&built, built.sim.frame);
+                crate::diff::harness::debug_ammo(&built, built.sim.frame);
+                if let Ok(spec) = std::env::var("RON_PROBE_BLD") {
+                    let f = built.sim.frame;
+                    if f >= lo - 12 {
+                        for sp in spec.split(',') {
+                            let (w, o) = sp.split_once('/').unwrap();
+                            if let Some(b) = built.sim.building_by_o(w.parse().unwrap(), o.parse().unwrap()) {
+                                let x = &built.sim.buildings[b];
+                                let ty = x.ty.map(|t| format!("{:?}", built.sim.tables.build_types[t].ident));
+                                eprintln!("PB f{f} {sp} b{b} ty {ty:?} pos {:?} active {} garrison_attack {} recharging {} target {:?} near {:?} ordered {} targeted {} combat {:?}", x.pos, x.active, x.garrison_attack, x.recharging, x.target, x.near, x.ordered, x.targeted, x.combat.is_some());
+                            }
+                        }
+                    }
+                }
                 stream.apply(built.sim.frame as i32, &mut built);
                 built.sim.command().tick();
             }
