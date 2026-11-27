@@ -758,3 +758,77 @@ fn a_bribing_spy_takes_the_attack_flag_and_the_bribe_mark_and_the_pass_peels_it(
     s.units[spy].unit_masks2 = (s.units[spy].unit_masks2 & !BRIBE_MARK) | BRIBE_HIGH;
     assert_eq!(pass(&mut s, 13), 0, "the high bit alone");
 }
+
+/// **A dead target hands the cast to its squad's captain** (item 4765,
+/// `docs/RECGAME.md` §12.3; `Unit::do_cast@005ebfe0` at `5ec151`..
+/// `5ec182`): the target's `flags & 1` clear, `get_captain` (the `o_up`
+/// walk) names another `o`, and the order is rewritten to it, paid and
+/// kept. A dead head is its own captain and the order goes. Row 83's
+/// Commando `2/149` and the Riflemen `1/58` → `1/57` on 4154. Made to
+/// fail with the arm dropped (the order goes, its mana handed back).
+#[test]
+fn a_dead_target_hands_the_sniper_to_its_squad_s_captain() {
+    use crate::combat::Obj;
+    use crate::orders::{Body, CastOrder, Order, SpellType, spell};
+    let (mut s, [_, _, _, caster]) = casters(Tuning::RON);
+    s.orders.spells =
+        vec![SpellType::default(); usize::try_from(spell::LAST - spell::FIRST + 1).unwrap()];
+    let sniper = usize::try_from(0x281 - spell::FIRST).unwrap();
+    s.orders.spells[sniper].flags = 0x2 | 0x20;
+    s.orders.spells[sniper].range = 192;
+    s.orders.spells[sniper].mana = 1000;
+    s.orders.spells[sniper].job_time = 150;
+    s.declare_war(0, 1);
+    let ty = s.units[caster].ty;
+    let soldier = |s: &mut Sim, x: i32| {
+        s.add_unit({
+            let mut u = Unit::new(0, 0, Pos::new(x, 3 * 768), 20);
+            u.ty = ty;
+            u
+        })
+    };
+    let head = soldier(&mut s, 3 * 768 + 1200);
+    let tail = soldier(&mut s, 3 * 768 + 1400);
+    s.tables.unit_types[ty.unwrap()].combat.attack = 5;
+    s.units[tail].o_up = Some(head);
+    s.units[head].o_down = Some(tail);
+    let cast_on = |s: &mut Sim, t: usize| {
+        let order = CastOrder {
+            spell: 0x281,
+            paid: true,
+            target: Some(Obj::Unit(t)),
+            at: s.units[caster].pos,
+        };
+        s.units[caster].orders.clear();
+        s.units[caster].orders.push_back(Order {
+            flags: 0,
+            body: Body::Cast(order),
+        });
+        s.units[caster].mana_burn = 1000;
+        s.do_cast_targeted(caster, order);
+    };
+    s.units[tail].health = 0;
+    cast_on(&mut s, tail);
+    let held: Vec<_> = s.units[caster]
+        .orders
+        .iter()
+        .filter_map(|o| match o.body {
+            Body::Cast(c) => Some((c.target, c.paid)),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(held, vec![(Some(Obj::Unit(head)), true)], "the captain's");
+    assert_eq!(s.units[caster].mana_burn, 1000, "paid, kept");
+    s.units[tail].health = 20;
+    s.units[head].health = 0;
+    s.units[tail].o_up = None;
+    s.units[head].o_down = None;
+    cast_on(&mut s, head);
+    assert!(
+        !s.units[caster]
+            .orders
+            .iter()
+            .any(|o| matches!(o.body, Body::Cast(_))),
+        "a dead head is its own captain: the order goes"
+    );
+}
