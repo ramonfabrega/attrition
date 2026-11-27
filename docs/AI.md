@@ -35396,8 +35396,8 @@ so the citizen enters 4017 nearer death in theirs either way. The Bazookas `1/32
 - The closing state (run1395's block 4082): **151 → 153** units, counts **[56, 2, 2, 2, 24, 1, 10] → [13, 0, 0, 0,
   0, 0, 0]**, no extras, `Closing fields: none`. A floor.
 
-**Parked**: 3736a, the Battleship `1/71`'s round of 4013 off by exactly its own move step (ours after the step,
-theirs before); 3736b, the `graph_index` misreading.
+**Parked**: ~~3736a, the Battleship `1/71`'s round of 4013 off by exactly its own move step (ours after the step,
+theirs before)~~ (answered by item 4753, `docs/COMBAT.md` §22.7: the round leaves the figure's point, not the unit's); 3736b, the `graph_index` misreading.
 
 **Not established**:
 - ~~Piece 200's rows, and that 200 is the Tank's piece.~~ §365.2: run1416's packet loads piece 200 with the
@@ -35470,10 +35470,10 @@ both lines on the field. `get_position.py … entries`:
 
 **The windows.**
 - run1395b (3677..4021): 145 → **126** keys. `0/13` parts nowhere: block 3677's 101 standing rows, who=1's new
-  units' `form`, groups 76 and 84, and the Submarine `1/109` (3718a). Rounds (654, 654), **3** parting:
-  `1/71`'s of 4013 (3736a).
+  units' `form`, groups 76 and 84, and the Submarine `1/109` (3718a). Rounds (654, 654), ~~**3** parting:
+  `1/71`'s of 4013 (3736a)~~ **0** parting (item 4753).
 - run1415 (4015..4082): 389 → **117** keys: block 4015's 108 standing rows, groups 67 and 70, and `1/109`'s path,
-  heading and tolerance. Rounds (394, 394), **7** parting: `1/71`'s (3736a), and `1/25`'s and `1/32`'s on 4022,
+  heading and tolerance. Rounds (394, 394), ~~**7**~~ **4** parting (item 4753): ~~`1/71`'s (3736a), and~~ `1/25`'s and `1/32`'s on 4022,
   whose dead target theirs keeps as `whom` 0, `ox` 13 and ours as −1 (3714a, a second lobby).
 - **The closing state** (run1395's block 4082): 153 units, counts [13, 0, …] → **[1, 0, 0, 0, 0, 0, 0]**. The one
   off is the Submarine `1/109`, (−13, −43) from theirs, the Dock birth of 3119 (3718a). No torn, unlinked or
