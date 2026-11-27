@@ -5386,6 +5386,101 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 83's bribed Riflemen: the dead figure leaves the world, the
+    /// live ones turn** (item 4769, `docs/RECGAME.md` §12.3): run1784, the
+    /// ranges take of row 83's file. On 4469 who=2 bribes a Riflemen squad
+    /// of who=1's whose third figure is dead; `Unit::swap_team@006118d0:72`
+    /// sends that copy, `2/41` (uid 227), through `remove_from_world`, so
+    /// it heads no chain, and moves the live copies with `set_new_location
+    /// (…, 1, 1)`, whose turn snaps `last_angle`. Every units, builds, guys
+    /// and world range on 4469 to 4472, ours against theirs, byte for byte:
+    /// red on the tree before the fix at units range 6658, record 39
+    /// (`2/39`), `up` ours 41, theirs −1, on 4470.
+    #[test]
+    fn row_83_s_bribed_riflemen_drop_their_dead_figure_from_the_world_on_run1784_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+            eprintln!("skipping: row 83's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1784/map-14"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1784's ranges record is missing");
+            return;
+        };
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("the file");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let land = sim::territory::attrition::Domain::Land;
+        let line = |n: &str| {
+            crate::checksum::CHECKSUM_LINES
+                .iter()
+                .position(|l| l.0 == n)
+                .expect(n)
+        };
+        for state in 4469..=4472 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            if state >= 4470 {
+                let named = |o: i16| {
+                    let u = built.sim.unit_by_o(2, o).expect("the unit");
+                    let ty = built.sim.units[u].ty.expect("a type");
+                    (
+                        u,
+                        built.sim.tables.unit_types[ty].type_index,
+                        loaded.unit_names[ty].clone(),
+                        built.sim.units[u].kind.domain,
+                    )
+                };
+                let (captain, ti, name, domain) = named(39);
+                assert_eq!((ti, name.as_str(), domain), (100, "Riflemen", land), "2/39");
+                let (second, ti, name, domain) = named(40);
+                assert_eq!((ti, name.as_str(), domain), (100, "Riflemen", land), "2/40");
+                let dead = built
+                    .sim
+                    .units
+                    .iter()
+                    .position(|u| u.owner == 2 && u.index == 41 && u.uid == 227)
+                    .expect("the dead copy 2/41");
+                assert!(!built.sim.units[dead].alive(), "2/41 is born dead");
+                let (up, down, ..) = built.sim.unit_chain_words(dead);
+                assert_eq!((up, down), (-1, -1), "2/41 is off the world's chain");
+                assert_eq!(built.sim.unit_chain_words(captain).0, -1, "2/39's up");
+                if state == 4470 {
+                    let last = built.sim.units[second].guys[0].last.map(|l| l.1.0);
+                    assert_eq!(last, Some(-1191444480), "2/40's last_angle");
+                }
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for name in ["units", "builds", "guys", "world"] {
+                let li = line(name);
+                let ours = lines[li].as_ref().expect(name);
+                let theirs: Vec<_> = all.iter().filter(|r| usize::from(r.line) == li).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (j, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{name} range {j} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 83's Airbase does not count an enemy air-defense site as a
     /// defense** (item 4736, `docs/RECGAME.md` §12.3): run1784, the ranges
     /// take of row 83's file. who=1 places the AIRDEFENSE site `1/2046`
@@ -15458,23 +15553,32 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // cities 4,192 -> 4,716, items 5,222 -> 5,329, goods 4,756 -> 5,503,
         // world 4,155 -> 4,488; none fell. The row's first parting is units,
         // guys and world on 4470.
+        // Item 4769 (`Unit::swap_team@006118d0:72`: a bribed figure whose
+        // copied `flags & 1` is clear takes `remove_from_world`, a live one
+        // `set_new_location(…, 1, 1)`): who=2 bribes a Riflemen squad (`TI`
+        // 100, land) on 4469 whose third figure is dead. On 4470 units
+        // record 39 (`2/39`) `up` ours 41 -> -1, record 40 (`2/40`) guy
+        // `last_angle` 1431655765 -> -1191444480, world record 1933's head
+        // byte 0x29 -> 0x27, as theirs. Units 4,470 -> 4,624, guys 4,622 ->
+        // 4,624, world 4,488 -> 4,624; nothing else moved. The row's first
+        // parting is ammo, deaths, guys, units and world on 4624.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                4470, 4678, 6001, 4625, 4624, 4680, 4622, 4627, 4716, 5329, 5503, 4488,
+                4624, 4678, 6001, 4625, 4624, 4680, 4624, 4627, 4716, 5329, 5503, 4624,
             ],
             first: &[
-                ("units", (4470, Some(3014122812), 2209275761)),
+                ("units", (4624, Some(3008219399), 2549675819)),
                 ("builds", (4632, Some(2157206961), 2749193144)),
                 ("ammo", (4624, Some(518431281), 2836964113)),
                 ("deaths", (4624, Some(499365730), 503756643)),
                 ("groups", (4650, Some(2118093466), 1010862226)),
-                ("guys", (4470, Some(379161333), 2771946325)),
+                ("guys", (4624, Some(2780896660), 2605848233)),
                 ("leaders", (4627, Some(2225138911), 1347021919)),
                 ("cities", (4716, Some(2439729220), 1123962788)),
                 ("items", (5222, Some(912470408), 921121162)),
                 ("goods", (4706, Some(3229390119), 3223622949)),
-                ("world", (4470, Some(2928532709), 4257144035)),
+                ("world", (4624, Some(1570283004), 1774886396)),
             ],
             over: None,
         }),
