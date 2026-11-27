@@ -42578,6 +42578,8 @@ Longbowmen (TI 178) aboard, `2/88` retained on the Market's cell. After the fix 
 the first parting moves to 4166, on ammo. Read by
 `row_88_s_riders_closed_aboard_leave_their_owner_above_the_market_on_run1846_s_ranges`, and it is row 88's take for
 every later word.
+Item 4751 read 4384 off it: who=1's General `1/101` (TI 54) out of `1/2011`, both figures' `angle` ours 1757755093,
+theirs 2110717952; after the build the row parts on 4387, ammo.
 ## run1847 — parity held out, sixth battery, row 53's whole length to 12,000 with the checksum and ranges hooks, every line but walls kept (2026-11-26, item 4741, `att-4741`)
 
 `docs/RECGAME.md` §13.2. **What the disk could not answer**: row 53 parts on 3935 (units, guys, world), past run1835's
