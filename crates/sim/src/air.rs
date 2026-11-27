@@ -1675,6 +1675,7 @@ impl Sim {
             }
             // The wonders (`64fb6a`..`64fda4`); a thousandth (`0x10624dd3`,
             // `sar 6` at `64fc9e`) where the silo's is a hundredth.
+            if std::env::var_os("RON_PROBE_4736").is_some() { let ws: Vec<_> = self.wonders_of(l).into_iter().map(|w| (self.buildings[w].owner, self.buildings[w].index, self.building_is(w, crate::cities::build::Ident::ForbiddenCity), self.enemy_air_defense_near(owner, self.buildings[w].pos))).collect(); println!("P4736 SORTIE wonders of {l}: {ws:?} stealth {stealth}"); }
             for w in self.wonders_of(l) {
                 if self.building_is(w, crate::cities::build::Ident::ForbiddenCity) {
                     continue;
