@@ -2015,7 +2015,7 @@ fn a_boat_carrying_a_soldier_sails_to_its_army_s_target() {
 /// what heads its boarding cell** (item 4693, `docs/RECGAME.md` §14.4):
 /// `Object::kill_contents@00645550`'s `come_out` refuses at sea, so the
 /// rider's `Object::close@00647160` takes the off-map arm, whose
-/// `remove_from_inside@006480f0` ends in `add_to_world` — the rider heads
+/// `remove_from_inside` ends in `add_to_world` — the rider heads
 /// its retained point's chain, the old head taking `up` and `up_who`
 /// naming it — and whose `remove_from_world` takes it off, `up` −1 and
 /// `up_who` left. run1846's 3716: who=2's King's Longbowmen `2/88` dies
