@@ -1194,7 +1194,65 @@ pub(crate) mod tests {
                     == Some(f0);
                 built.sim.trace.trace_phases = sites;
                 let seed0 = built.sim.rng.seed;
+                let before: Vec<(usize, u8, i16)> = built
+                    .sim
+                    .units
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, u)| u.alive())
+                    .map(|(k, u)| (k, u.owner as u8, u.index))
+                    .collect();
                 built.sim.command().tick();
+                if let Ok(spec) = std::env::var("RON_PROBE_4693") {
+                    let (bw, bo) = spec.split_once('/').unwrap();
+                    let (bw, bo) = (bw.parse::<u8>().unwrap(), bo.parse::<i16>().unwrap());
+                    let f1 = built.sim.frame;
+                    for &(k, w, o) in &before {
+                        let u = &built.sim.units[k];
+                        if !u.alive() {
+                            let ty = u.ty.map(|t| built.sim.tables.unit_types[t].type_index);
+                            let name = u.ty.map(|t| loaded.unit_names[t].clone());
+                            eprintln!(
+                                "D4693 f{f1} died {w}/{o} slot {k} TI {:?} {:?} pos ({}, {}) cell ({}, {}) dom {:?} chain {:?}",
+                                ty, name, u.pos.x, u.pos.y, u.pos.cell().x, u.pos.cell().y,
+                                u.kind.domain, built.sim.unit_chain_words(k)
+                            );
+                        }
+                    }
+                    if let Some(b) = built
+                        .sim
+                        .buildings
+                        .iter()
+                        .position(|b| b.owner as u8 == bw && b.index == bo)
+                    {
+                        let bd = &built.sim.buildings[b];
+                        let c = bd.pos.cell();
+                        let chain: Vec<String> = built
+                            .sim
+                            .object_chain(c)
+                            .iter()
+                            .map(|o| match *o {
+                                sim::combat::Obj::Unit(k) => format!(
+                                    "u{}/{}",
+                                    built.sim.units[k].owner, built.sim.units[k].index
+                                ),
+                                sim::combat::Obj::Building(k) => format!(
+                                    "b{}/{}",
+                                    built.sim.buildings[k].owner, built.sim.buildings[k].index
+                                ),
+                            })
+                            .collect();
+                        eprintln!(
+                            "B4693 f{f1} {bw}/{bo} slot {b} alive {} ty {:?} name {:?} pos ({}, {}) cell ({}, {}) words up {} down {} down_who {} up_who {} cellchain {:?}",
+                            bd.alive,
+                            bd.ty,
+                            bd.ty.map(|t| loaded.build_names.get(t).cloned()),
+                            bd.pos.x, bd.pos.y, c.x, c.y,
+                            bd.chain.up, bd.chain.down, bd.chain.down_who, bd.chain.up_who,
+                            chain
+                        );
+                    }
+                }
                 if sites {
                     eprintln!("S4676 f{f0} seed {seed0:#010x}");
                     for (k, (label, who)) in crate::diff::harness::attributed_sites(&built)
