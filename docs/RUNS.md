@@ -41118,6 +41118,14 @@ ranges over 4468..4480, and `row_83_s_bribed_riflemen_drop_their_dead_figure_fro
 holds every units, builds, guys and world range on 4469 to 4472. Units 4,470 → 4,624, guys 4,622 → 4,624, world
 4,488 → 4,624; the row parts first on ammo, deaths, guys, units and world on 4624 (units record 103, who=1's TI 269
 at (12120, 27720): theirs holds a 7-step path and 18 more units ranges, ours none).
+
+**Item 4770 on it**: that unit is who=1's Artillery `1/103` (TI 269, land) on its group's `GROUP_ATTACK_TO`, with an
+attack on `2/2022` taken on 4623. On 4624 `Unit::fight@005fd4d0`'s packer arm runs `find_new_target`; theirs keeps the
+group order under the re-added attack and chases (`[MOVE_TO, ATTACK, GROUP_ATTACK_TO]`, path 7, `orders_x` 11832),
+where ours' inlined `QUEUE_NEW` add closed it and the STAND_GROUND gate stopped the unit. `print_ranges` reads 0
+ranges over 4622..4640, and `row_83_s_artillery_keeps_its_group_s_attack_move_under_a_re_search_on_run1784_s_ranges`
+holds every units, builds, guys and world range on 4623 to 4626. Units 4,624 → 4,815; the row parts first on world
+on 4698.
 ## run1786 — the 2017 sample's playback to 8,000 with the checksum and ranges hooks, every line but walls kept (2026-11-22, item 4555, `att-4555`)
 
 
