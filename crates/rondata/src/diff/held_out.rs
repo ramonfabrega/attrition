@@ -6913,7 +6913,11 @@ pub(crate) mod tests {
                 built.sim.units[u].kind.domain,
                 sim::territory::attrition::Domain::Land
             );
-            assert_eq!(built.sim.units[u].on_map, state >= 4384, "1/101 out on {state}");
+            assert_eq!(
+                built.sim.units[u].on_map,
+                state >= 4384,
+                "1/101 out on {state}"
+            );
             let set = record.first_of(state - 1).expect("the state's set").clone();
             let all = record.ranges(&set).expect("the set's ranges");
             let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);

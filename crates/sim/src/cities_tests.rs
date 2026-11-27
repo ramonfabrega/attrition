@@ -10732,7 +10732,11 @@ fn a_unit_comes_out_of_its_host_facing_its_heading() {
         "the unit keeps its heading and its figure faces it"
     );
     for (k, g) in sim.units[m].guys.iter().enumerate() {
-        assert_eq!(g.last.map(|(_, a)| a), Some(heading), "figure {k}'s last_angle");
+        assert_eq!(
+            g.last.map(|(_, a)| a),
+            Some(heading),
+            "figure {k}'s last_angle"
+        );
     }
 }
 
