@@ -1365,11 +1365,12 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// Item 4310: run1564 **1,855 → 1,868** (`SANDY` 726 → 738, `OCEAN` 418 → 419): the faded land blended over black in HDR (item 4310, `docs/RENDERER.md` §3.27, "The faded land in HDR"); run1559b unchanged.
 /// Item 4338: run1564 1,868 → 1,866 (`SANDY` 738 → 736, a named fall of two): the surf's lists blended on the HDR target (`docs/RENDERER.md` §3.30).
 /// Item 4348: run1564 1,866 of 1,920 → 1,866 of 1,921 (`OCEAN` 419 of 437 → 419 of 438): the herd turned to the dump's angle (`docs/RENDERER.md` §3.30, "Where the herd stands").
+/// Item 4772: run1559b 1,109 → 1,108 of 1,109 (`plain` 986 → 985, a named fall of one): the redo walks one list in push order (item 4772, `docs/RENDERER.md` §6.9): (19, 163) lays the packet's piece and (18, 163) is left bare, so the frame's mean and its white.
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
-        (1109, 1109),
+        (1108, 1109),
         [
-            [986, 986],
+            [985, 986],
             [106, 106],
             [17, 17],
             [0, 0],
