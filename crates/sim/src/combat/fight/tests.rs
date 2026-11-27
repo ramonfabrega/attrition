@@ -5347,6 +5347,51 @@ fn a_puncturing_round_into_the_ground_stays_two_hundred_frames() {
     assert!(sim.combat.projectiles.is_empty(), "closed at 200");
 }
 
+/// **A round that comes down on nothing and sticks reads `whom -1 ox
+/// -1`** (item 4743, `docs/RECGAME.md` §14.4): `Ammo::do_damage`'s
+/// `check_hit@00678d90`, asked when `hit_target` fails, writes the round's
+/// pair whatever it finds (`:42`–`44`, −1 at `:80`–`82` on a miss), and the
+/// puncture arm keeps the round in its slot with that pair. run1846's
+/// who=1 Carrack `1/120` round at the Transport Barge `2/137`, dead and
+/// still on the round, comes down on 4165 and theirs prints `whom -1 ox
+/// -1` beside `flags 1` from 4166, where ours kept `2/137`. Both arms: a
+/// live target off the landing, and a dead one the round still holds.
+#[test]
+fn a_round_that_comes_down_on_nothing_and_sticks_forgets_its_target() {
+    for dead in [false, true] {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let foe = put(&mut sim, 1, ty, Pos::new(0x2000, 0x2000));
+        let mut p = shot(
+            me,
+            Pos::new(0x1000, 0x1000),
+            Pos::new(0x1000, 0x1400),
+            1,
+            0,
+            0,
+        );
+        (p.rolling, p.punctures, p.target) = (false, true, Some(Obj::Unit(foe)));
+        sim.add_ammo(p);
+        if dead {
+            sim.units[foe].health = 0;
+        }
+        sim.process_projectiles(0);
+        assert_eq!(sim.units[foe].alive(), !dead, "the target as staged");
+        let q = *sim.combat.projectiles.first().expect("the spent arrow");
+        assert!(q.spent, "stuck, flags 1 (dead {dead})");
+        assert_eq!((q.target, q.left), (None, None), "check_hit's −1 pair");
+        let line = sim.checksum_ammo().expect("the ammo line");
+        let body = &line
+            .ranges
+            .iter()
+            .find(|r| r.field == "rolling..start_roll_angle")
+            .expect("the body")
+            .bytes;
+        let word = |k: usize| i32::from_le_bytes(body[3 + 4 * k..7 + 4 * k].try_into().unwrap());
+        assert_eq!((word(16), word(17)), (-1, -1), "whom, ox (dead {dead})");
+    }
+}
+
 /// **A shooter that boards with its round in the air is not held**
 /// (item 4680, `docs/RECGAME.md` §14.4): `Ammo::inc_time@0067d380`'s
 /// first statement bumps the shooter's `hold_frames` when its slot's
