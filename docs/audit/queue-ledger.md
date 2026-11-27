@@ -169,3 +169,8 @@ file; each one is a ten-minute read of the code the row names.
   was the sample's draw word from 5273, act two. Item 4501 took the first act and item 4521 moved
   the word 5273 → 5460 on computer 1's defeat, so the frame its next act names is behind the score.
   The word's next parting, 5460, is on the take item 4526 makes.
+- **4617** dropped at the merge of item 4770, 2026-11-27, unbuilt: its row came whole on another
+  item's rule. It was the seventh's row 8 from units 9896. Item 4770 made `Unit::fight`'s packer arm
+  `find_new_target` whole, for row 83's Artillery on 4624, and on 9896 run1851's units record 50 took
+  `orders.count` 1 -> 3 as theirs; row 8 agrees on all twelve lines for 12,001 of 12,001 states
+  (`~/ron-data/lane-4770/held-out-scores-7fcbdf279.log`, the merged tree), the headline 52 -> 53.
