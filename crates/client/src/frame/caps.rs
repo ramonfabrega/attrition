@@ -361,8 +361,9 @@ impl CapLayout {
                 Atlas::Civ => civ,
             };
             paint(&mut one, &pieces, atlas)?;
-            for (d, t) in out.rgba.chunks_exact_mut(4).zip(one.rgba.chunks_exact(4)) {
-                let mut t = [t[0], t[1], t[2], t[3]];
+            let src = one.rgba.as_chunks::<4>().0;
+            for (d, t) in out.rgba.as_chunks_mut::<4>().0.iter_mut().zip(src) {
+                let mut t = *t;
                 if let Some(g) = layer.grey {
                     for c in &mut t[..3] {
                         *c = highlight(*c, g);
