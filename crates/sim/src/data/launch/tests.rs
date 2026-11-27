@@ -4133,7 +4133,7 @@ fn run437_biplane_rounds_leave_from_its_nose_guns() {
 /// rows** (item 4759, `docs/RECGAME.md` §12.3, §14.3): run1784's `2/117`
 /// (Biplane, `TI` 287, air) on 4007, its figure at (11503, 27403) facing
 /// 982,157,039 (82°), node 0 to (11601, 27376); run1848's `1/41`
-/// (Mongol Javelineers, `TI` 83, land) on 5607 at (16008, 10200) facing
+/// (Javelineers on the Mongol piece, `TI` 83, land) on 5607 at (16008, 10200) facing
 /// −1,601,896,448, `CHAR_ATTACK2` frame 6, to (15971, 10234), 170 over;
 /// and `1/47` at (16248, 10920) facing −597,032,960, `CHAR_ATTACK3`
 /// frame 27, to (16235, 10881), 156 over — theirs' ammo ranges on those
