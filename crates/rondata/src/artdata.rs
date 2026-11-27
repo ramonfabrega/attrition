@@ -1600,7 +1600,10 @@ impl PieceDecoding {
 /// delta. Item 4028: **(1465, 1478)**, +26 of +26 — the gaia entries
 /// (`{GRAPH}-TYPE{v}`, [`bird_pieces`]) are pieces now, 26 entries of one
 /// piece each (1,425 of the 1,435 entries), and every one decodes.
-pub const PIECES_DECODING: (usize, usize) = (1465, 1478);
+/// Item 4747: **(1471, 1484)**, +6 of +6 — the six `<SCORCH>` entries
+/// ([`scorch_nodes`]) are pieces now, a burning death's record's, and every
+/// one decodes.
+pub const PIECES_DECODING: (usize, usize) = (1471, 1484);
 
 /// Of [`PIECES_DECODING`]'s K, the pieces whose model's node tree and every
 /// played animation's tree have the same shape — beside K, never part of
