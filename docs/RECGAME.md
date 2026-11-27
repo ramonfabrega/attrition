@@ -2017,7 +2017,7 @@ Open: ammo parts on 5607; units follow on 5940. run1806 holds sums.
 
 ### 14.4 Row 88
 
-Open: units and guys, 4384 (item 4746). run1846 is the row's whole take, every line but walls to 12,000; run1808
+Open: ammo, 4387 (item 4751). run1846 is the row's whole take, every line but walls to 12,000; run1808
 holds sums. Stories: journals.
 
 **Item 4614**, diff-backed by run1815's ranges:
