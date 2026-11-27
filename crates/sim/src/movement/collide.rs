@@ -977,24 +977,6 @@ impl<'a> SimDetect<'a> {
             else {
                 continue;
             };
-            if std::env::var_os("RON_PROBE_4733").is_some()
-                && s.units[self.u].owner == 2
-                && s.units[self.u].index == 80
-                && d.who == 1
-                && d.o == 26
-            {
-                eprintln!(
-                    "probe4733 f{} wreck 1/26 alive {} on_map {} coll_at {:?} cell {:?} vs {:?} here {} size {}",
-                    s.frame,
-                    s.units[w].alive(),
-                    s.units[w].on_map,
-                    s.units[w].coll_at,
-                    s.units[w].pos.cell(),
-                    self.cell,
-                    s.unit_is_here(w, self.hit),
-                    s.coll_size(w)
-                );
-            }
             if s.units[w].alive()
                 || !s.units[w].on_map
                 || s.units[w].coll_at.is_some()
@@ -1106,15 +1088,6 @@ impl DetectCollisionView for SimDetect<'_> {
             x: cell.0,
             y: cell.1,
         };
-        if std::env::var_os("RON_PROBE_4733").is_some()
-            && self.sim.units[self.u].owner == 2
-            && self.sim.units[self.u].index == 80
-        {
-            eprintln!(
-                "probe4733 f{} get_down cell {:?} hit {:?} at {:?}",
-                self.sim.frame, cell, self.hit, self.sim.units[self.u].pos
-            );
-        }
         let slot = (cell.1 as usize) * (self.sim.world.width() as usize) + (cell.0 as usize);
         Some(match self.sim.terrain.chain_heads[slot] {
             Some(h) => DetectNode::Live(h),
