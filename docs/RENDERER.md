@@ -7865,7 +7865,77 @@ the packet gives 18666. That is the first thing the next word settles.
   door (`sim::observe`) widens (4734a).
 - The packet's 18666 against the reading's 19600 (4734a).
 - `Ammo Blend` and the addon's light. Its pixels against the photograph:
-  no row yet.
+  no row yet. (A row since item 4768, §6.27.)
+
+## 6.27 The Woodcutter's Camp's hoist: drawn (item 4768)
+
+*2026-11-27, Opus 5.5. The ledger: `docs/journal/2026-11-27-item-4768.md`.
+`World::addon_drawings`, `World::addon_art`, `addon_clock`; the row
+`RUN1814B_3294_HOIST`.*
+
+**How it is drawn.** For each building entry on the draw list, each of
+its piece's `EXISTEVENT` subjects (`artdata::BuildArt::addons`) is found
+among the `<AMMO>`s (`ammo_pieces`, the first name matched without case),
+and its `model=`, `texture=` and the event's `.BHa` are loaded under the
+ammo piece. `execute_graphic_events@00909a10` hands the addon the
+building's chad: its point (`PlacedBuilding::anchor_point`), its angle
+270 (`WallOut::draw@00641930`), its `sx`, `sy`, `sz`, the chad's
+default (1, −1, 1), times `build_scale` 3. `draw_ammo@008e68b0` applies
+them as `rotate_z`, the point and the scale: the fire's frame (§3.20),
+`guy_placement` at 270 and `BUILD_SCALE`. The building's own
+`build_anim_time` is 0 for the camp (`anim=""`), so its clock reaches the
+addon whole. The pose is the addon's `.BHa` at that clock modulo its
+length (20000 ms), 0 where the building is not active. The addon joins
+the figures' textured meshes (`World::figure_meshes`), not
+`World::objects`: the silhouette keys and the register do not see it,
+and the silhouette pass skips it.
+
+**`Ammo Blend` is coverage.** The texture's alpha is 255 on 3,936 texels
+and 0 on 160: a box around the hook block, a quad whose surround is cut.
+Read as the owner's colour, as a figure's is, that box drew red down the
+boom. The addon's corners carry an owner of 2, out of a colour's range,
+and `fs_textured` cuts its texels at an alpha of a half and lays no
+owner's colour. A cut at a half, not a blend: the render state's own
+blend is not read.
+
+**The clock.** The client has no `recharging` (the door does not carry a
+building's), so a camp's clock is the game's, `frame · 200 / 3`
+(`addon_clock`). On run1814b that is 19600, the reading's gather clock's
+value too, since `0/2001`'s `recharging` is 3293 on frame 3294. The
+packet's 18666 and our 19600 lie in one stretch of the 20-second cycle,
+the boom down to the log pile and the rope at the log: drawn at either,
+the stills part on 92 pixels over the whole screen and none in the
+hoist's box. The cycle elsewhere: at 4000 ms the log swings off the
+pile, at 8000 the boom stands in over the tower.
+
+**The row.** `RUN1814B_3294_HOIST`, in the run1814b frame test: around
+the camp, x 1420..1500 and y 340..440, the pixels the addon moves by more
+than 3 on a channel, on the test's still (slot 0's fog drawn). On them
+the photograph agrees within 48 a channel with the still with no addon on
+356 of 677, with it drawn on 545. The lumas ×10: theirs 1182, ours 1309 →
+1133. The made-to-fail is the hoist at 8000 ms over its own pixels: 193 →
+118 of 385.
+
+| | pixels | within 48, none | drawn | luma ×10, theirs | none | drawn |
+|---|---|---|---|---|---|---|
+| `RUN1814B_3294_HOIST` | 677 | 356 | 545 | 1182 | 1309 | 1133 |
+| `RUN1814B_3294_HOIST_WRONG`, 8000 ms | 385 | 193 | 118 | 1283 | 1170 | 916 |
+
+**What it moved besides.** The addon's pixels move the frame's mean, so
+the tone map's white: 28,836 pixels by 3 or less across the still. One other row moved: `RUN1814B_3294_TREES_PAST_SIGHT`'s mask
+81,367 → 81,368 pixels and nearer 78,376 → 78,378, its lumas held.
+
+**Not established.**
+- Why ours draws the boom darker than theirs, a grey-brown where theirs
+  is a light tan (on the client's still with no fog, luma 99.8 against
+  118.5 on the boom's pixels): the render state's stages and whether the
+  addon is lit (4768a).
+- Who writes a gather building's `recharging` (4734a, still open). It
+  moves no pixel on run1814b; a capture where a camp's `recharging` parts
+  from the frame would.
+- `Ammo Blend` as the card sets it: a blend, a test, its reference.
+- The other addons the install names (the metro's, the Age 3 and 5
+  camps'): drawn by the same path, no row reaches them.
 
 ## 7. What is not established, and what needs Ramon's word
 

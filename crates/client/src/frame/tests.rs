@@ -162,6 +162,20 @@ pub(crate) const RUN1814B_3294_SELECTED: [usize; 7] =
 /// the terrain under the band.
 pub(crate) const RUN1814B_3294_TALLY: [usize; 6] = [7_560, 4_937, 6_129, 914, 777, 911];
 
+/// **`RUN1814B_3294_HOIST`** (item 4768; `docs/RENDERER.md` §6.27): on
+/// run1814b's frame 3294, the Woodcutter's Camp `0/2001`'s hoist, its
+/// `EXISTEVENT` addon (piece 60373) drawn at the client's clock, over the
+/// pixels it moves ([`hoist_rows`]), on the test's still, slot 0's fog
+/// drawn. Seen red at the build: none drawn, the photograph agrees on 356
+/// of 677 within 48; drawn, 545. The lumas ×10: theirs 1182, ours 1309 →
+/// 1133, toward theirs and past it, a darker boom (4768a).
+pub(crate) const RUN1814B_3294_HOIST: [usize; 6] = [677, 356, 545, 1182, 1309, 1133];
+
+/// **`RUN1814B_3294_HOIST_WRONG`** (item 4768): the made-to-fail, the
+/// hoist at 8000 ms over its own pixels: 193 agree with none drawn, 118
+/// with it.
+pub(crate) const RUN1814B_3294_HOIST_WRONG: [usize; 6] = [385, 193, 118, 1283, 1170, 916];
+
 /// The banner as interface.xml writes it, on a cut of its own text.
 #[test]
 fn the_banner_lays_out() {
@@ -692,6 +706,18 @@ fn the_minimap_frame_on_run1814b() {
         lum(&tally_mask, &framed),
     ];
     println!("RUN1814B_3294_TALLY: {tally_row:?}");
+    // Item 4768 (§6.27): the Woodcutter's Camp's hoist, its `EXISTEVENT`
+    // addon. Seen red: the still with no addon drawn; made to fail: the
+    // hoist at 8000 ms, a pose the photograph does not hold.
+    world.addons = false;
+    let no_hoist = still(&mut world);
+    world.addons = true;
+    world.addon_ms = Some(HOIST_WRONG_MS);
+    let wrong = still(&mut world);
+    world.addon_ms = None;
+    let (hoist_row, wrong_row) = hoist_rows(&photo.rgba, &no_hoist, &framed, &wrong, size.0);
+    println!("RUN1814B_3294_HOIST: {hoist_row:?}");
+    println!("RUN1814B_3294_HOIST_WRONG: {wrong_row:?}");
     let row = [
         mask.len(),
         atlas_agrees,
@@ -709,4 +735,65 @@ fn the_minimap_frame_on_run1814b() {
     assert_eq!(res_row, RUN1814B_3294_RESOURCES);
     assert_eq!(right_row, RUN1814B_3294_SELECTED);
     assert_eq!(tally_row, RUN1814B_3294_TALLY);
+    assert_eq!(hoist_row, RUN1814B_3294_HOIST);
+    assert_eq!(wrong_row, RUN1814B_3294_HOIST_WRONG);
 }
+
+/// **The hoist's row's pixels** (item 4768, §6.27): around the
+/// Woodcutter's Camp `0/2001` on run1814b's still, x 1420..1500 and y
+/// 340..440, those the addon moves by more than 3 on a channel against
+/// the still with none drawn: `[those pixels, the photograph within
+/// HOIST_TOLERANCE of the still with none, of the still with it, the
+/// lumas ×10 of the photograph, of the one and of the other]`. The
+/// made-to-fail is the same over the wrong pose's own pixels.
+fn hoist_rows(
+    photo: &[u8],
+    none: &[u8],
+    drawn: &[u8],
+    wrong: &[u8],
+    width: i32,
+) -> ([usize; 6], [usize; 6]) {
+    let px = |img: &[u8], (x, y): (i32, i32)| {
+        let i = (y as usize * width as usize + x as usize) * 4;
+        [img[i], img[i + 1], img[i + 2]]
+    };
+    let parts = |a: [u8; 3], b: [u8; 3], t: u8| (0..3).any(|c| a[c].abs_diff(b[c]) > t);
+    let row = |with: &[u8]| {
+        let mask: Vec<(i32, i32)> = (340..440)
+            .flat_map(|y| (1420..1500).map(move |x| (x, y)))
+            .filter(|&p| parts(px(none, p), px(with, p), 3))
+            .collect();
+        let agree = |img: &[u8]| {
+            mask.iter()
+                .filter(|&&p| !parts(px(img, p), px(photo, p), HOIST_TOLERANCE))
+                .count()
+        };
+        let lum = |img: &[u8]| {
+            let s: f64 = mask
+                .iter()
+                .map(|&p| {
+                    let [r, g, b] = px(img, p).map(f64::from);
+                    0.299 * r + 0.587 * g + 0.114 * b
+                })
+                .sum();
+            (s / mask.len().max(1) as f64 * 10.0).round() as usize
+        };
+        [
+            mask.len(),
+            agree(none),
+            agree(with),
+            lum(photo),
+            lum(none),
+            lum(with),
+        ]
+    };
+    (row(drawn), row(wrong))
+}
+
+/// The hoist's row's tolerance, on each channel (item 4768): wide, since
+/// ours draws the boom darker than theirs (§6.27, 4768a) and a pose is
+/// what the row scores.
+const HOIST_TOLERANCE: u8 = 48;
+
+/// The made-to-fail's pose (item 4768): the boom swung in over the tower.
+const HOIST_WRONG_MS: u32 = 8000;
