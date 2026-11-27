@@ -16449,8 +16449,8 @@ Four single-key `dest_angle` partings stand outside it (`1/149` on 15266, `1/129
 **Not established.**
 - That `guy_mark` is 1 for every unit the original ever builds: every dumped block prints 1, and `UnitType::init`'s literal is its one writer
   (`docs/ANIM.md`), but `Unit::init`'s copy is the field the loop reads and nothing here proves no later write moves it.
-- The two leading vslot tests of `UnitData::is_corner` (`+8` and `+0xbc`, both answering "on the map" per COLLISION §4.3) are read as already filtered
-  by the chain walk, as before.
+- ~~The two leading vslot tests of `UnitData::is_corner` (`+8` and `+0xbc`, both answering "on the map" per COLLISION §4.3) are read as already filtered
+  by the chain walk, as before.~~ `+8` is `flags & 1`, and a wreck fails it: item 4733, `docs/COLLISION.md` §4.3.
 - Who cast the decoy `1/106` and why a decoy is a blocker at all: the dump shows it standing on a cell and the original refusing it; `Object::do_damage`
   (§139) is the only place the decoy bit is read for combat. No `Object::add_to_world` decoy exemption is claimed or tested.
 - That no other golden or long window depended on the crew figure's corner: the rondata suite (749 tests, every golden chapter, both pairs' words) held
