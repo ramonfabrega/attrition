@@ -276,15 +276,6 @@ pub fn detect_unit_collision_steps<V: DetectCollisionView>(
                 && v.node_on_map(n)
                 && v.node_is_here(n, hit)
             {
-                if std::env::var_os("RON_PROBE_4733").is_some() && v.node_id(n) == (26, 1) {
-                    let soft = candidate_is_soft(v, n, my_action, attacking, extra);
-                    let theirs = v.node_corner(n, hit);
-                    eprintln!(
-                        "probe4733 walk f{} at {:?} hit {hit:?} cell {cell:?} will {will} theirs {theirs} soft {soft} action {my_action}",
-                        v.frame(),
-                        (a.x, a.y)
-                    );
-                }
                 if candidate_is_soft(v, n, my_action, attacking, extra) {
                     soft = true;
                 } else {
