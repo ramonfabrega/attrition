@@ -2351,7 +2351,7 @@ impl Sim {
                     // `ex, ey` reproduce. A node past the piece's restriction
                     // count is its own entry alone ([`crate::data::pivot::release_point`]).
                     // **From the figure's own point, not the unit's**
-                    // (item 4753, `docs/COMBAT.md` §22.1):
+                    // (item 4753, `docs/COMBAT.md` §22.7):
                     // `Guy::execute_events@005d99c0` fills the package's
                     // `x, y` from the guy's `+0xc, +0x10` (`GuyData` `x`,
                     // `y`, the body the guys line prints) and

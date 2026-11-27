@@ -5033,6 +5033,105 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 53's Dromon looses from its figure's own point** (item 4753,
+    /// `docs/RECGAME.md` §13.2, `docs/COMBAT.md` §22.7): run1847, the row's
+    /// whole take. who=2's Dromon `2/28` (TI 324, sea, piece 274) drifts on
+    /// tick 4757, its unit from y 29825 to 29826 and its figure behind it,
+    /// and looses frame 2's round at who=1's `1/68`.
+    /// `Guy::execute_events@005d99c0` hands `execute_game_events` the
+    /// figure's `x, y`, so theirs' round leaves (39780, 29996), ammo slot 5
+    /// on 4758; ours left the unit's (39780, 29997), and `angle` and the
+    /// trailing word followed. Every units, ammo, guys and world range on
+    /// 4757 to 4759, byte for byte: red on the tree before the fix at ammo
+    /// on 4758, slot 5's body.
+    #[test]
+    fn row_53_s_dromon_looses_from_its_figure_s_own_point_on_run1847_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 2) else {
+            eprintln!("skipping: row 53's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1847/map-18"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1847's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 53's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let word =
+            |b: &[u8], k: usize| i32::from_le_bytes(b[3 + 4 * k..7 + 4 * k].try_into().unwrap());
+        for state in 4757i64..=4759 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            // The Dromon, by name.
+            let u = built.sim.unit_by_o(2, 28).expect("2/28");
+            let ty = built.sim.units[u].ty.expect("a type");
+            assert_eq!(built.sim.tables.unit_types[ty].type_index, 324, "2/28's TI");
+            assert_eq!(loaded.unit_names[ty], "Dromon");
+            assert_eq!(
+                built.sim.units[u].kind.domain,
+                sim::territory::attrition::Domain::Sea
+            );
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            if state == 4758 {
+                // Theirs' slot 5 by value: the Dromon's round at `1/68`,
+                // `t 1/7`, leaving (39780, 29996, 52).
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == 3).collect();
+                let b = theirs
+                    .iter()
+                    .map(|r| &r.bytes)
+                    .find(|b| b.len() == 99 && word(b, 11) == 5)
+                    .expect("theirs' slot 5");
+                assert_eq!(
+                    (word(b, 13), word(b, 14), word(b, 16), word(b, 17)),
+                    (2, 28, 1, 68),
+                    "theirs' who, o, whom, ox"
+                );
+                assert_eq!((word(b, 7), word(b, 8)), (1, 7), "theirs' clock");
+                assert_eq!(
+                    (word(b, 1), word(b, 2), word(b, 3)),
+                    (39780, 29996, 52),
+                    "theirs' launch"
+                );
+                let ours = built
+                    .sim
+                    .combat
+                    .projectiles
+                    .iter()
+                    .find(|p| p.shooter == sim::combat::Obj::Unit(u))
+                    .expect("ours' round from 2/28");
+                assert_eq!((ours.launch.x, ours.launch.y), (39780, 29996), "ours' launch");
+                assert_eq!(built.sim.units[u].pos.y, 29826, "the unit has drifted");
+            }
+            for (li, name) in [(0u8, "units"), (3, "ammo"), (6, "guys"), (11, "world")] {
+                let ours = lines[usize::from(li)].as_ref().expect(name);
+                let theirs: Vec<_> = all.iter().filter(|r| r.line == li).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{name} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 83's Airbase keeps its Biplane in when an enemy wonder out of
     /// reach outscores the city** (item 4562, `docs/RECGAME.md` §12.3):
     /// run1784, the ranges take of row 83's file. who=2's computer sortie
@@ -15204,15 +15303,20 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 5,404 -> 5,513, first 4742 -> 5513, and the row's first parting
         // moves 4742 -> 4758 (ammo). Re-pinned by item 4753; with that
         // commit's `pool.rs` reversed, groups parts on 4742 at the old sums.
+        // Then item 4753 (a round leaves from its figure's own point):
+        // who=2's drifting Dromon `2/28`'s round on 4757 leaves (39780,
+        // 29996) as theirs' (run1847: ammo slot 5 on 4758, launch `y` ours
+        // 29997, theirs 29996). The row's first parting moves 4758 -> 5039
+        // (ammo): ammo 5,362 -> 5,368.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                5499, 5514, 12001, 5362, 5457, 5513, 5501, 5523, 5629, 10946, 5693, 5501,
+                5499, 5514, 12001, 5368, 5457, 5513, 5501, 5523, 5629, 10946, 5693, 5501,
             ],
             first: &[
                 ("units", (5499, Some(4053032274), 3307776702)),
                 ("builds", (5507, Some(140029691), 1669115254)),
-                ("ammo", (4758, Some(1410390863), 4039301842)),
+                ("ammo", (5039, Some(603721098), 3619490979)),
                 ("deaths", (5275, Some(2141760897), 2623450497)),
                 ("groups", (5513, Some(3842449435), 4008779876)),
                 ("guys", (5501, Some(3952932943), 788265010)),
