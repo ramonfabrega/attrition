@@ -1903,7 +1903,7 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: ammo on 4032. run1797, *diff-backed*.
+Open: units, guys on 4059. run1797, *diff-backed*.
 
 **Items 4597 to 4620**: units → 2376, builds → 2432, ammo → 2408, leaders → 2413, cities → 2448 (GROUPS, COMBAT
 §84, a Temple's close, two walks by object number).
@@ -1915,6 +1915,7 @@ its target in theirs and swings in ours: `Unit::fight`'s emplaced latch (`:92`�
 
 **Items 4691 to 4747**: units → 3628 → 3633 → 3690 → 3739 → 3790 → 4087, deaths → 4103 (`FILTER_COMBAT`, ARMY
 §13, MERCHANT §2.2; air refusal, COMBAT §66.8; Bribe, §90, §91; `local_20`, ORDERS §34.6; scorch, COMBAT §42.1).
+**Item 4755**: ammo → 4103, a building's round from its stored `z` (COMBAT §46.1).
 
 ## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
 

@@ -8488,7 +8488,11 @@ The operands, each read from its writer:
   figure's ground plus the node's `dz` (§22, run109's
   `run100_and_run109_agree_on_where_the_bow_hand_is_off_the_ground`). For
   `Object::fire_ammo@0064c8b0`'s unit arm it is the figure's `z + 100`,
-  and for its building arm the object's `z + 250`.
+  and for its building arm the object's `z + 250`. **That `z` is the
+  building's stored `+0xc`, fixed at placement, not its tile now** (item
+  4755, `fire_ammo:147`): run1797's `1/2021` fires on 4031 from 591 + 250
+  = 841 over a tile at 584. `ez` and the guided close test read a target
+  building's stored `+0xc` the same way.
 - **`ez`** is `Ammo::init`'s `+0x20`: the target object's own `z`, **plus
   75** (`0x4b`) when flag 4 is set, the first figure's `z` for an air
   target, and floored at 0. `1/8`'s tile gives 220, and 220 + 75 is the
@@ -8671,8 +8675,12 @@ dump, is past the word, and this crate no longer reaches it.
   piece flag here (`SEAM`).
 - **A dead building's hold under its spent arrow** (4515a).
 - **`sz` for a piece with a release table and no measured node** takes a
-  `dz` of 0, and `ez` for a building target is its tile's `z`. Neither is
-  reached by a rolled shot on any capture.
+  `dz` of 0. It is not reached by a rolled shot on any capture.
+  ~~`ez` for a building target is its tile's `z`~~: its stored `+0xc`
+  (item 4755, §46.1).
+- **A cycling building's round** (`GraphicEvents::execute_game_events`'
+  package, [`Sim::wall_round`]) still launches from its tile's `z`; the
+  package's `z` was not read (item 4755, parked 4755a).
 - **Negative coordinates** into `find_data_z` index `div_3_table` below
   0 in the original. Every caller here is gated by `is_valid` first, and
   this crate clamps.
@@ -8689,7 +8697,9 @@ widening.
 fourth argument 0 at three callers, `find_angle`'s register pair and
 `compare_target`'s load of it, and `GRAV_Z`'s single writer.
 
-**Reading-only**: the unit and building arms of `sz` (`+100`, `+250`),
+**Diff-backed** too: the building arm of `sz` on run1797's 4032 (item 4755).
+
+**Reading-only**: the unit arm of `sz` (`+100`),
 the air arm of `ez`, and the spent arrow's 200-frame hold.
 
 One lesson for the next reader. Grep the crate for the *type*, not only
