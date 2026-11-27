@@ -1334,3 +1334,52 @@ fn a_release_at_a_gone_target_takes_a_graph_index_and_leaves_no_round() {
         );
     }
 }
+
+/// **A round leaves from its figure's own point, not the unit's** (item
+/// 4753, `docs/COMBAT.md` §22.7). `Guy::execute_events@005d99c0` fills the
+/// package's `x, y` from the guy's `+0xc, +0x10` (`GuyData` `x`, `y`) and
+/// `GraphicEvents::execute_game_events@008e48e0+0x40d` adds
+/// `get_position`'s vector to them. Row 53's Dromon `2/28` (TI 324, sea,
+/// piece 274) drifts on 4757 with its unit at (39856, 29826) and its figure
+/// still at (39856, 29825), facing −1861091328 (24°); frame 2's bay is
+/// (−76, +171) at 204°, so theirs' round leaves (39780, 29996), run1847's
+/// ammo slot 5 on 4758, where the unit's point gave ours (39780, 29997).
+/// The control: a figure on its unit's point releases from there.
+///
+/// Written to fail first: on the unit's point the drifting round leaves
+/// 29997.
+#[test]
+fn a_round_leaves_from_its_figure_s_own_point_not_the_unit_s() {
+    for (body_y, want) in [(29825, (39780, 29996)), (29826, (39780, 29997))] {
+        let mut s = sim_at(12345);
+        let mut t = crate::UnitType::default();
+        t.cols.unit_flags |= crate::ai::ai_load::uflags::FIRES_ON_MOVE;
+        let ty = s.add_unit_type(t);
+        let target = animal(&mut s, 1, 68, -1, DEFAULT, 0, 20);
+        s.units[target].pos = Pos::new(39047, 29430);
+        s.units[target].on_map = true;
+        let piece = 274;
+        let u = animal(&mut s, 2, 28, piece, ATTACKWALK, 2, 30);
+        s.units[u].ty = Some(ty);
+        s.units[u].on_map = true;
+        s.units[u].pos = Pos::new(39856, 29826);
+        s.units[u].movement.body.pos = Pos::new(39856, body_y);
+        s.units[u].movement.facing = crate::movement::Angle(-1_861_091_328);
+        s.units[u].guys[0].last_time = 1;
+        s.units[u].cast_target = Some(crate::combat::Obj::Unit(target));
+        s.roster.art.releases.insert(
+            piece,
+            [(ATTACKWALK, vec![(2, 0, false, false, false, false, -1)])]
+                .into_iter()
+                .collect(),
+        );
+        s.guy_release_events(u);
+        assert_eq!(s.combat.projectiles.len(), 1, "body y {body_y}: one round");
+        let l = s.combat.projectiles[0].launch;
+        assert_eq!(
+            (l.x, l.y),
+            want,
+            "body y {body_y}: the round leaves the figure's point plus the bay"
+        );
+    }
+}

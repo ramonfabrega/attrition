@@ -630,7 +630,10 @@ fn a_strafe_releases_a_bomb_that_falls_a_tile_ahead() {
     assert_eq!(s.rng.seed, seed, "a bomb spends no draw");
     let p = s.combat.projectiles[0];
     assert_eq!(p.target, Some(Obj::Building(target)));
-    let from = s.units[u].pos;
+    // From the figure's own point (item 4753, `docs/COMBAT.md` §22.7):
+    // `work` has moved the unit and its figure trails it here.
+    let from = s.units[u].movement.body.pos;
+    assert_ne!(from, s.units[u].pos, "the figure trails the unit");
     assert_eq!(
         p.launch,
         crate::data::launch::launch_point(

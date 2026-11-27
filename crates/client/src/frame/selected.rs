@@ -27,8 +27,13 @@
 //!   icon at its right less its width. The line is `write_cent_l` over the
 //!   back's span, white with a black shadow ([`super::left::write_clock`]).
 //!
-//! Not drawn here (4750a): the name's text, the `object` button's picture
-//! and its hit points.
+//! - **The `object` button** (item 4754; `docs/RENDERER.md` §6.21):
+//!   `update_selected@00823790` makes it `IFACEBUTTON_BUILDING` (4) for a
+//!   building, and `IFaceButton::on_redraw@007fc730` draws it
+//!   ([`object_button`]).
+//!
+//! `draw_hitpoints@00821150` writes only under the profile's `prefs & 2`,
+//! which run1814b's profile does not set ([`PROFILE_PREFS_2`]).
 
 use super::caps::{Atlas, Layer, Tint};
 use super::left::{Crop, Fill, Piece, Span, block, named_tex, pairs, resolve, tags};
@@ -45,7 +50,18 @@ pub struct Panel {
     /// where the object has any.
     pub title: String,
     pub hits: Option<String>,
+    /// Item 4754: the `object` button's building record (its picture), and
+    /// its hits left and full figure for the button's bar.
+    pub picture: Option<usize>,
+    pub health: Option<(i32, i32)>,
 }
+
+/// **The player profile's `prefs & 2`** (item 4754): `draw_hitpoints`
+/// writes the `hits/full` line only when it is set, as `make_options`
+/// gives a city centre's panel its four gather buttons only then. Neither
+/// is on run1814b's photograph, and no held packet's profile sets it
+/// (`docs/CLIENT_INPUT.md` §32.9), so the client's profile has it clear.
+pub const PROFILE_PREFS_2: bool = false;
 
 /// **One of `draw_stat`'s figures**: the stat's case (0 `armor` to 19
 /// `radius`, its icon `stat_<name>` by [`STAT_ICONS`]) and its line.
@@ -133,6 +149,8 @@ pub struct SelectedLayout {
     pub stat_icons: [Option<Crop>; 20],
     /// Item 4752: `hitpoints`, `draw_hitpoints`' rectangle.
     pub hitpoints: Span,
+    /// Item 4754: `<BUTTON name="object">`, the selected object's picture.
+    pub object: Span,
 }
 
 /// The window's size: `IFaceMain::position_windows@00809250` sizes it
@@ -233,6 +251,11 @@ impl SelectedLayout {
             stat_right: named_tex(&sel, "stat_right")?,
             stat_icons: STAT_ICONS.map(|n| common_tex(&sel, n).ok()),
             hitpoints: rect_named(&sel, "hitpoints", parent)?,
+            object: sel
+                .iter()
+                .find(|t| t.starts_with("BUTTON ") && attr(t, "name") == Some("object"))
+                .and_then(|t| resolve(t, parent))
+                .ok_or("IFACESELECTED: no BUTTON object")?,
         })
     }
 
@@ -348,6 +371,115 @@ impl SelectedLayout {
     }
 }
 
+/// `GREEN`, `YELLOW` and `RED`, the bar's colours by
+/// [`crate::selection::health_level`]: 0, 1 to 3, and the rest.
+fn bar_colour(level: i32) -> [u8; 3] {
+    match level {
+        0 => [0, 255, 0],
+        1..=3 => [255, 255, 0],
+        _ => [255, 0, 0],
+    }
+}
+
+/// **The straight-alpha bilinear sample** of `crop` on `page`, stretched to
+/// `w × h`, at the destination's texel `(u, v)`: texel centres, each
+/// channel filtered alone, clamped inside the crop.
+fn stretched(
+    page: &render::tga::Image,
+    crop: Crop,
+    (w, h): (usize, usize),
+    (u, v): (usize, usize),
+) -> [u8; 4] {
+    let (l, t, cw, ch) = crop;
+    let along = |d: usize, n: usize, cn: usize| {
+        let s = ((d as f32 + 0.5) * cn as f32 / n as f32 - 0.5).clamp(0.0, (cn - 1) as f32);
+        let i = s.floor() as usize;
+        (i, (i + 1).min(cn - 1), s - i as f32)
+    };
+    let (x0, x1, fx) = along(u, w, cw);
+    let (y0, y1, fy) = along(v, h, ch);
+    let at =
+        |x: usize, y: usize, c: usize| f32::from(page.rgba[((t + y) * page.width + l + x) * 4 + c]);
+    std::array::from_fn(|c| {
+        let top = at(x0, y0, c) * (1.0 - fx) + at(x1, y0, c) * fx;
+        let bottom = at(x0, y1, c) * (1.0 - fx) + at(x1, y1, c) * fx;
+        (top * (1.0 - fy) + bottom * fy).round() as u8
+    })
+}
+
+/// **`IFaceButton::on_redraw@007fc730` for an `IFACEBUTTON_BUILDING`**
+/// (item 4754) into `win`, whose corner is `origin`, over the button at
+/// `button` on the screen:
+/// - the type's picture, the `tex` cell `clip_scale` cuts to the button
+///   (centred where the cell is the larger), 1:1 at its corner;
+/// - the default overlay (`def_overlay_texs0`), stretched to the button
+///   (`add_smooth` at its width and height), its colour ×`0x80`/`0xff`;
+/// - the bar, while the building is seen (`BuildData::is_now_seen`): black
+///   over the button less 3 at the left, right and bottom, 5 rows tall, and
+///   inside it less 1 the hits left's share of its width, truncated, in
+///   [`crate::selection::health_level`]'s colour.
+pub fn object_button(
+    win: &mut crate::selection::Texels,
+    origin: (i32, i32),
+    button: Span,
+    picture: Option<(&render::tga::Image, Crop)>,
+    overlay: Option<(&render::tga::Image, Crop)>,
+    health: Option<(i32, i32)>,
+) {
+    let (bl, bt, br, bb) = button;
+    let (bw, bh) = ((br - bl).max(0) as usize, (bb - bt).max(0) as usize);
+    let mut put = |x: i32, y: i32, src: [u8; 4]| {
+        let (u, v) = (x - origin.0, y - origin.1);
+        if (0..win.w as i32).contains(&u) && (0..win.h as i32).contains(&v) {
+            let j = (v as usize * win.w + u as usize) * 4;
+            super::left::over(&mut win.rgba[j..j + 4], src);
+        }
+    };
+    if let Some((page, (mut l, mut t, mut w, mut h))) = picture {
+        if w > bw {
+            l += (w - bw) / 2;
+            w = bw;
+        }
+        if h > bh {
+            t += (h - bh) / 2;
+            h = bh;
+        }
+        for v in 0..h {
+            for u in 0..w {
+                let i = ((t + v) * page.width + l + u) * 4;
+                let c = &page.rgba[i..i + 4];
+                put(bl + u as i32, bt + v as i32, [c[0], c[1], c[2], c[3]]);
+            }
+        }
+    }
+    if let Some((page, crop)) = overlay {
+        for v in 0..bh {
+            for u in 0..bw {
+                let [r, g, b, a] = stretched(page, crop, (bw, bh), (u, v));
+                let k = |c: u8| ((u32::from(c) * 0x80 + 127) / 255) as u8;
+                put(bl + u as i32, bt + v as i32, [k(r), k(g), k(b), a]);
+            }
+        }
+    }
+    if let Some((left, full)) = health.filter(|&(_, f)| f > 0) {
+        let (x0, x1, y1) = (bl + 3, br - 3, bb - 3);
+        let y0 = y1 - 5;
+        for y in y0..y1 {
+            for x in x0..x1 {
+                put(x, y, [0, 0, 0, 255]);
+            }
+        }
+        let inner = x1 - x0 - 2;
+        let n = inner * left.clamp(0, full) / full;
+        let [r, g, b] = bar_colour(crate::selection::health_level(left, full));
+        for y in y0 + 1..y1 - 1 {
+            for x in x0 + 1..x0 + 1 + n {
+                put(x, y, [r, g, b, 255]);
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -371,6 +503,7 @@ mod tests {
     <IFACERECT name="misc_tile" left="6" top="14" width="284" height="4"/>
     <IFACETEX name="misc_tile" texture="TEX_CIV" left="51" top="0" width="103" height="4"/>
     <IFACERECT name="hitpoints" left="30" top="60" width="62" height="13"/>
+    <BUTTON name="object" left="33" top="22" width="60" height="35"/>
     <IFACERECT name="stat_short" left="1" top="94" width="63" height="17"/>
     <IFACERECT name="stat_short" left="1" top="111" width="63" height="17"/>
     <IFACERECT name="stat_short" left="1" top="128" width="63" height="17"/>
@@ -399,6 +532,7 @@ mod tests {
         assert_eq!(l.borders, vec![(0, 18, 129, 160), (133, 18, 292, 160)]);
         assert_eq!(l.name, (0, 0, 292, 14));
         assert_eq!(l.hitpoints, (30, 60, 92, 73));
+        assert_eq!(l.object, (33, 22, 93, 57));
         assert_eq!(l.player_color, ((0, 18, 126, 64), (386, 84, 126, 46)));
         assert_eq!(l.capital_star, ((54, 71, 76, 92), (278, 158, 22, 21)));
         // `bottom_inverse="-1"` against the window's 158 rows, six back.

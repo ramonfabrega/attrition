@@ -119,9 +119,15 @@ pub(crate) const RUN1814B_3294_RESOURCES: [usize; 7] = [11_986, 11_827, 0, 11_67
 /// `draw_build_name`'s `Small City -- Napata` in the clock's face and
 /// `draw_hitpoints`' `1200/1200` in `arial` at 10, 238,258 → 239,112 on
 /// the still, the composition 238,035 → 238,889. Still apart: the
-/// `object` button's picture (4752a).
+/// `object` button's picture (4752a). Item 4754: the `object` button
+/// (`IFaceButton::on_redraw`'s `IFACEBUTTON_BUILDING`: the Small City's
+/// cell cut to the button, the overlay stretched over it at `0x80`, the
+/// green bar), 2,100 of its 2,100 pixels; and `draw_hitpoints`' line no
+/// longer written, the profile's `prefs & 2` clear. 239,112 → 241,422 on
+/// the still, the composition 238,889 → 241,199, luma ×10 550 → 556.
+/// Still apart: the display button at x 1906..1917 (4738b).
 pub(crate) const RUN1814B_3294_SELECTED: [usize; 7] =
-    [242_115, 238_889, 0, 239_112, 556, 1_161, 550];
+    [242_115, 241_199, 0, 241_422, 556, 1_161, 556];
 
 /// The banner as interface.xml writes it, on a cut of its own text.
 #[test]
@@ -562,7 +568,11 @@ fn the_minimap_frame_on_run1814b() {
             .to_vec(),
             // Item 4752: `draw_build_name`'s line and `draw_hitpoints`'.
             title: "Small City -- Napata".to_string(),
-            hits: Some("1200/1200".to_string()),
+            // Item 4754: the profile's `prefs & 2` is clear, so no line.
+            hits: None,
+            // Item 4754: the Small City's record, and its bar.
+            picture: Some(0),
+            health: Some((1200, 1200)),
         }),
         "the capital's panel, in the photograph's red"
     );

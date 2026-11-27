@@ -7354,7 +7354,8 @@ general; `tile_random`'s pick on any other frame.
 - `IFaceSelected::on_redraw@00826420`'s drawing (4738a): `draw_background`,
   `misc_border` by `draw_border` over two rectangles, `draw_stat` over the
   `stat_short` rectangles, `draw_hitpoints`, `draw_name`, `misc_tile` by
-  `tile_random`, `misc` by `add_smooth`; the `object` button's picture.
+  `tile_random`, `misc` by `add_smooth`; the `object` button's picture
+  (~~drawn by items 4748 to 4754, §6.18 to §6.21~~).
 - The display button, `collapse_button_up0..2` (4738b).
 - The `advanced_options` button's picture (4738c).
 - The idle citizens' button's dark (4694a) was not reached.
@@ -7523,10 +7524,71 @@ original calls the type's vtable `+0x9c` (a nation's
 the unit and non-capital arms.
 
 **Not established.**
-- The `object` button's picture (4752a): most of what is still apart in
-  the window.
+- ~~The `object` button's picture (4752a)~~: drawn by item 4754, §6.21.
 - How much of the +854 each of the three lines gives. The row was taken
   once, with all three drawn.
+- ~~The hit points' line on run1814b~~: it is not drawn there. The
+  profile's `prefs & 2` is clear (item 4754, §6.21), so `draw_hitpoints`
+  returns before it writes.
+
+## 6.21 The selected panel's `object` button (item 4754)
+
+*2026-11-27, Opus 5.5. The ledger: `docs/journal/2026-11-27-item-4754.md`.
+`client::frame::slots` (`SlotArt::building`), `client::frame::selected`
+(`object_button`, `PROFILE_PREFS_2`, `SelectedLayout::object`,
+`Panel::picture`, `Panel::health`). No `crates/sim` change.*
+
+**Who draws it.** `<BUTTON name="object">` in `<IFACESELECTED>`, (33, 22),
+60 × 35: (688, 939) on the 1,920 frame. `update_selected@00823790` gives
+it `type` 4 (`IFACEBUTTON_BUILDING`, by the PDB's enumerators) for a
+building (3 for a unit), and its `o` and `who`. `IFaceButton::on_redraw@007fc730`
+then draws three things:
+- **the picture**: `IFACEBUTTONDATA`'s `IFACEBUTTON_BUILDING` `tex`
+  (`TEX_BUILDINGS_0` (0, 0), 61 × 39), moved to the type's `TEX_ID`,
+  `TEX_COL` and `TEX_ROW` as a slot's is (§6.13). `clip_scale` cuts it to
+  the button: a side larger than the button's keeps its middle. So the
+  Small City's (62, 0) on `iface_buildings_civic.tga` becomes (62, 2),
+  60 × 35, at 1:1;
+- **the overlay**: `def_overlay_texs0` (`TEX_COMMON` (364, 0), 61 × 39),
+  drawn by `add_smooth` at the button's 60 × 35. It is stretched,
+  bilinear and with straight alpha, its colour ×`0x80`/`0xff`, as the
+  slots' is;
+- **the bar**, for a building the console sees (`BuildData::is_now_seen`).
+  Black over the button less 3 at the left, right and bottom, 5 rows tall,
+  so x 691..744 and y 966..970. Inside it, less 1 on each side, the hits
+  left's share of the 52 columns, truncated, in `ObjectData::health_level`'s
+  colour: `GREEN` at 0, `YELLOW` at 1 to 3, `RED` after.
+
+**The hit points' line.** `draw_hitpoints@00821150` returns at once unless
+the player profile's `prefs & 2` is set. `BuildOut::make_options` asks the
+same bit before it gives a city centre's panel its four gather buttons.
+Run1814b's photograph has neither the line nor the buttons, so the bit is
+clear there (`selected::PROFILE_PREFS_2`), as no held packet's profile sets
+it (`docs/CLIENT_INPUT.md` §32.9). §6.20's `1200/1200` was drawn in error.
+
+**Registered before it was built**, by Python on the photograph: the
+cell at (688, 937) agrees on 1,471 of 2,379 pixels, and on every pixel
+inside the button less 2 except the bar. A pixel of the overlay's stretched
+top row, at y 940, predicts 0.17 × the picture + 0.83 × 106, which is
+(116, 120, 126) against the photograph's (116, 120, 127).
+
+**The row** (§6.17's mask): ours 239,112 → **241,422**, the composition
+238,889 → **241,199**, luma ×10 550 → 556, which is the photograph's. The
+button is 2,100 of 2,100 pixels within two levels, and `hitpoints`' rectangle
+1,950 of 1,950.
+
+**Diff-backed**: the picture's cell and cut, the overlay's stretch and
+colour, and the bar's rectangle, colour and length at full health, against
+the photograph. **Read alone**: `YELLOW`'s and `RED`'s values, and the
+bar's length below full; `clip_scale` set on this button (the pixels show
+the cut); the team-coloured lines `on_redraw` draws round an infiltrated
+building (`ObjectData::is_infiltrated`); a unit's arm (`type` 3, its
+`unit_graphics.xml` picture); the disabled arm's shifts.
+
+**Not established.**
+- The display button, `collapse_button_up0..2` at x 1906..1917 (4738b).
+- `input::city_panel` takes `prefs & 2` as set (item 4261), against
+  `PROFILE_PREFS_2` (4754a).
 
 ## 7. What is not established, and what needs Ramon's word
 

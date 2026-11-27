@@ -1891,13 +1891,24 @@ impl Sim {
 
     /// `ObjectsData::find_building(x, y, SEARCH_ENEMY, who, 0x900, 0,
     /// FILTER_TYPE, AIRDEFENSE, 0)@0065d260 >= 0`, as the sortie asks it:
-    /// a live building of the AIRDEFENSE line whose owner is an enemy of
-    /// `who`'s, within twelve tiles. SEAM: the radius's unit, read and not
-    /// run (no staging has put one beside a city).
+    /// a live, **built** building of the AIRDEFENSE line whose owner is an
+    /// enemy of `who`'s, within twelve tiles. SEAM: the radius's unit, read
+    /// and not run (no staging has put one beside a city).
+    ///
+    /// **A site is not a defense** (item 4736, `docs/RECGAME.md` §12.3):
+    /// the search's circle arm calls each object's vslot `0xc` and then
+    /// `0x4c`, and skips it on a zero from either (`65d57e`, `65d58d` `je
+    /// 0x65d6da`). On `Build` those are `0x46cda0` (`flags & 1`, alive) and
+    /// `0x472350` (`movzbl 0x8(%ecx); and $4`, the built bit), read off the
+    /// PE's vtable at `0xb42174`. run1784: who=1 places the AIRDEFENSE site
+    /// `1/2046` on 3783, `flags` 0x41 on both sides through 3792, nine tiles
+    /// from its wonder `1/2026`; on 3791 who=2's Airbase `2/2033` still
+    /// scores the wonder, out of reach, and sends none of its five planes.
     fn enemy_air_defense_near(&self, who: crate::Player, at: Pos) -> bool {
         let a = at.tile();
         self.buildings.iter().enumerate().any(|(x, bd)| {
             bd.alive
+                && bd.active
                 && self.is_enemy(bd.owner, who)
                 && self.building_ident(x) == crate::cities::build::Ident::AirDefense
                 && {

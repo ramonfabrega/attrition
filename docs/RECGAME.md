@@ -1672,7 +1672,7 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 | 23 | run1774 | Atlantic Sea Power | the computers | 6,001 | 10 | **leaders 0**, units 5695 |
 | 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~3192, 3223, 3299, 3442, 3833, 3899~~ 3995 |
 | 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, to 4222 | **12** | ~~1582, 1789, 3683, 3986~~ whole |
-| 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | [units 3792](journal/2026-11-26-item-4732.md) |
+| 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | [ammo 4007](journal/2026-11-27-item-4736.md) |
 | 103 | run1778 | East Indies, Modern | the computers | 3,295, to 3294 | **12** | ~~1750, 1757, 1790, 2557 (GROUPS §3.4), ammo 2860, world 2983~~ whole (COLLISION §2) |
 | 123 | run1779 | Great Lakes, Gunpowder | human + added | 6,001 | 3 | ~~builds, groups 2977~~ whole (below) |
 | 143 | run1780 | Great Sahara, difficulty 1 | the computers | 6,001 | **12** | whole |
@@ -1880,7 +1880,7 @@ Open: units, builds, groups and guys part on 7675. run1788 holds sums (item 4579
 
 ### 13.2 Row 53
 
-Open: groups on 4742. → 3713 by 4660 (COLLISION §3.3), 3716 by 4667, 3935 by 4671 (AI §259.1), 4092 by 4741, 4742 by 4749 (`docs/COMBAT.md` §17.8, §39.4).
+Open: deaths on 5275. → 3713 by 4660, 3716 by 4667, 3935 by 4671, 4092 by 4741, 4742 by 4749, 4758 by 4746, 5039 by 4753, 5275 by 4755 (COLLISION §3.3; AI §259.1; COMBAT §17.8, §39.4, §22.7, §46.1).
 
 ### 13.3 Row 93
 
@@ -1888,14 +1888,14 @@ Open: groups on 4742. → 3713 by 4660 (COLLISION §3.3), 3716 by 4667, 3935 by 
 
 ### 13.4 Row 113
 
-**Whole: twelve lines of twelve, 4,573 of 4,573 states, to the original's end** (item 4592, run1802). Cities parted on
+**Whole: 12 of 12 lines, 4,573 of 4,573 states, to the original's end** (item 4592, run1802). Cities parted on
 3995 with the sums' low halves equal and high halves 8 apart: the same bytes in another order. run1802's cities range
 11, record 0, `vans[k]`, byte 4 (`who`) reads ours 1, theirs 2. who=1's city 0 holds `(3,2) (3,1)` on theirs, where
 ours walked `(3,1) (3,2)`: who=1's Caravan `1/34` (TI 59, land) links on 3995, after who=2's `2/131` (TI 59, land).
 
-**A city's `vans` stand in the order the links were made.** `ArrayBase<CaravanLink>::add@0046e550` appends, with
-`do_trade` as its one caller. `Array<CaravanLink>::remove@0046e4e0` keeps the rest in order, with `end_trade_route` as
-its one caller. Ours stamps a link when `do_trade` makes it (`Caravan::linked_at`), and `Sim::city_links` walks by the
+**A city's `vans` stand in the order the links were made.** `ArrayBase<CaravanLink>::add@0046e550` appends, its one caller
+`do_trade`. `Array<CaravanLink>::remove@0046e4e0` keeps the rest in order, its one caller
+`end_trade_route`. Ours stamps a link when `do_trade` makes it (`Caravan::linked_at`), and `Sim::city_links` walks by the
 stamp, which also closes run1325c's packet (cities 2 ranges → 0). Held by
 `row_113_s_city_walks_its_caravan_links_in_the_order_they_were_made_on_run1802_s_ranges` and
 `cities_tests::a_city_s_caravan_links_stand_in_the_order_they_were_made`. Not established: a link `end_trade_route`
@@ -1910,12 +1910,12 @@ Open: units, guys on 4059. run1797, *diff-backed*.
 
 **Item 4628** (run1819's packet): units → 2440: `get_damage`'s rocky step reads the target's cell `flags & 8`.
 
-**Item 4632**: units → 2543. On 2439 the Flamethrower `1/115` turns at its target in theirs and swings in ours:
+**Item 4632**: units → 2543. On 2439 the Flamethrower `1/115` turns in theirs, swings in ours:
 `Unit::fight`'s emplaced latch takes the head order's `0x10`.
 
 **Items 4691 to 4755**: units → 3628 → 3633 → 3690 → 3739 → 3790 → 4087, deaths → 4103, ammo → 4103
 (`FILTER_COMBAT`, ARMY §13, MERCHANT §2.2; air refusal, COMBAT §66.8; Bribe, §90, §91; `local_20`, ORDERS §34.6;
-scorch, COMBAT §42.1; a building's stored `z`, §46.1).
+scorch, COMBAT §42.1; building `z`, §46.1).
 
 ## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
 

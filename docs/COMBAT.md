@@ -3485,6 +3485,30 @@ confirmed both. These three rows change 359 occupied states while keeping
 the same slots occupied throughout. The raw values and the timing of the
 prediction are in the item 4367 entry in RUNS.
 
+### 22.7 The point is the figure's, not the unit's (item 4753, 2026-11-27)
+
+`Guy::execute_events@005d99c0` fills the `GameDataPackage` it hands
+`execute_game_events` from the **guy**: `x, y, z` from `+0xc, +0x10, +0x14`
+and `angle` from `+0x18`, which are `GuyData` `x`, `y`, `z` and `angle`.
+`GraphicEvents::execute_game_events@008e48e0+0x40d` adds `get_position`'s
+vector to them, and its pivot arm does the same. This crate added the vector
+to the unit's `pos`, which the guys line prints as `des`. For a figure on its
+unit's point the two are one point. That covers every standing shooter, and
+every capture the tables above were measured on. A figure still catching up
+with its unit is not on that point. Row 53's Dromon `2/28` (TI 324, sea,
+piece 274) drifts from y 29825 to 29826 on the tick it looses frame 2's
+round: theirs' leaves (39780, 29996), run1847's ammo slot 5 on 4758, where
+the unit's point gave (39780, 29997). `guy_release_events` now adds both
+arms' vectors to the figure's body point (`movement.body`, or a follower's
+own body).
+
+*Diff-backed*: run1847's ammo, units, guys and world ranges on 4757 to 4759
+(`row_53_s_dromon_looses_from_its_figure_s_own_point_on_run1847_s_ranges`);
+`a_round_leaves_from_its_figure_s_own_point_not_the_unit_s` is the killer.
+**Not established**: the facing is still the unit's `movement.facing`, which
+is guy 0's own. A crew figure past guy 0 that releases with a facing of its
+own has not been seen.
+
 ## 23. The emergency is a city alarm (item 399, 2026-09-19)
 
 **`Armies::emergency` is not reached by hitting a soldier.** That is the
