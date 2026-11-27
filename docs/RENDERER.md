@@ -7357,7 +7357,8 @@ general; `tile_random`'s pick on any other frame.
   `stat_short` rectangles, `draw_hitpoints`, `draw_name`, `misc_tile` by
   `tile_random`, `misc` by `add_smooth`; the `object` button's picture
   (~~drawn by items 4748 to 4754, §6.18 to §6.21~~).
-- The display button, `collapse_button_up0..2` (4738b).
+- ~~The display button, `collapse_button_up0..2` (4738b).~~ Drawn by item
+  4760 (§6.24).
 - The `advanced_options` button's picture (4738c).
 - The idle citizens' button's dark (4694a) was not reached.
 
@@ -7421,7 +7422,8 @@ unit, a good, a group, an enemy's object).
   `stat_short`; column 0's back at the rectangle's right less its width
   with the icon at its left, column 1's back at its left with the icon at
   its right; the line `write_cent_l` over the back's span.
-- The display button (4738b), `advanced_options`' picture (4738c).
+- ~~The display button (4738b)~~ (drawn by item 4760, §6.24),
+  `advanced_options`' picture (4738c).
 - ~~`draw_stat`'s six figures (4748b)~~: drawn by item 4750, §6.19.
 
 ## 6.19 The selected panel's figures (item 4750)
@@ -7587,7 +7589,8 @@ building (`ObjectData::is_infiltrated`); a unit's arm (`type` 3, its
 `unit_graphics.xml` picture); the disabled arm's shifts.
 
 **Not established.**
-- The display button, `collapse_button_up0..2` at x 1906..1917 (4738b).
+- ~~The display button, `collapse_button_up0..2` at x 1906..1917 (4738b).~~
+  Drawn by item 4760 (§6.24).
 - `input::city_panel` takes `prefs & 2` as set (item 4261), against
   `PROFILE_PREFS_2` (4754a).
 
@@ -7709,6 +7712,59 @@ register.
   but no reading settles the Forbidden City or a city being razed.
 - The profile's `prefs & 4` and `stat_mode` 1 are taken from the photograph.
   Neither is read from a profile.
+
+## 6.24 The HUD's bar: the display button (item 4760)
+
+*2026-11-27, Opus 5.5. The ledger: `docs/journal/2026-11-27-item-4760.md`.
+`client::frame::right` (`display_pieces`, `RightLayout::pieces`); the row
+`RUN1814B_3294_SELECTED`. No `crates/sim` change.*
+
+**Who draws it.** `<BUTTON name="display">` in `<IFACEMAINBASE>`,
+`right_inverse` 3, `bottom_inverse` 3, width −11, height −161: x 1906..1916,
+bar y 34..194, so y 917..1077 on the 1,920 × 1,080 frame. It has no `tex`.
+`IFaceMainBase::on_button_redraw@00811020` draws it:
+- `fill_expander_texs@0051c990` looks up three textures, a name with `0`,
+  `1` and `2` appended. The name is `int_str_array +0x15004` while the
+  button is neither pressed (`state & 1`), disabled, nor flagged `0x18`,
+  and `+0x14ff0` otherwise. They are `collapse_button_up0..2` and
+  `collapse_button_down0..2` (`TEX_CIV` (187, 20) and (199, 20), 11 × 7,
+  11 × 104, 11 × 7). The photograph's are the first set;
+- `draw_vert_expander@0051c600` lays the first at the button's top and the
+  third at its bottom, and tiles the second by `tile_vert` between them,
+  from the top;
+- then one arrow, `+0x15018` while the bar is `opened` and `+0x1502c`
+  otherwise, is drawn three times by `add_smooth`. The decompiler drops
+  the arrow's place. On the photograph it is `collapse_button_arrow_right`
+  (`TEX_CIV` (272, 20), 4 × 7). The three are stacked one under the other
+  and centred, truncated: (3, 70) in the button, x 1909..1912, y 987..1007.
+
+**Registered before it was built**, by Python on the photograph: that
+composition agrees with all 1,771 of the button's pixels within two
+levels, and the arrows' 0-alpha texels show the stone.
+
+**Ours.** `right::display_pieces` returns the three ends and the three
+arrows as `Fill::Tile` pieces. `RightLayout::pieces` appends them after the
+five buttons. The bar is always opened in ours and the button never
+pressed, so the textures are `up` and the arrow is `right`.
+
+**The row** (§6.17's mask, which grows by the button): pixels 242,115 →
+**243,886**, the composition 241,199 → **242,970**, ours 241,422 →
+**243,193** on the still, luma ×10 556 → **559**, the photograph's. All
+1,771 of the button's pixels agree.
+
+**Diff-backed**: the rectangle, the three textures' places and the
+middle's phase, the arrow's texture and the three places, against the
+photograph. **Read alone**: the `down` set and the left arrow, and the
+conditions that choose them; that the arrows' centring truncates
+(the photograph shows one width and one height); `int_str_array`'s four
+strings are named by the textures that register, not read from the
+string table.
+
+**Not established.**
+- The bar's right and bottom edges, `right_tile` twice (`TEX_CIV` (0, 51),
+  3 × 93, x 1917..1919; (51, 0), 103 × 3, y 1078..1079). By eye theirs
+  draws them and ours shows the terrain (4760a).
+- The arrow on a closed bar, and the `down` textures on a pressed button.
 
 ## 7. What is not established, and what needs Ramon's word
 

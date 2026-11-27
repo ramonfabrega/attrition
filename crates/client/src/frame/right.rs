@@ -15,8 +15,13 @@
 //!   of the alternate is not modelled; the alternate lies off the atlas).
 //! - **The buttons** `stats`, `chat`, `diplo`, `ping` and
 //!   `advanced_options`, each its `tex` 1:1 at its rectangle.
+//! - **The display button** (item 4760; §6.24), `display` at the right
+//!   edge: `IFaceMainBase::on_button_redraw@00811020` fills three textures
+//!   by `fill_expander_texs` and lays them by `draw_vert_expander` (the
+//!   first at the top, the last at the bottom, the middle tiled between),
+//!   then draws one arrow three times. [`display_pieces`].
 
-use super::left::{Fill, Piece, Span, block, named_tex, paint, resolve, tags};
+use super::left::{Crop, Fill, Piece, Span, block, named_tex, paint, resolve, tags};
 use crate::selection::{Texels, attr};
 
 /// The right side's buttons, in interface.xml's order.
@@ -35,6 +40,49 @@ pub struct RightLayout {
     right_window: String,
     /// Each button's tag and its `tex`.
     buttons: Vec<(String, (usize, usize, usize, usize))>,
+    /// Item 4760: the display button's tag, its three textures
+    /// (`collapse_button_up0..2`) and its arrow
+    /// (`collapse_button_arrow_right`).
+    display: (String, [Crop; 3], Crop),
+}
+
+/// **The display button's pieces** (item 4760; `docs/RENDERER.md` §6.24)
+/// at `span`, in its parent's coordinates. `draw_vert_expander@0051c600`
+/// lays `ends[0]` at the top, `ends[2]` at the bottom and tiles `ends[1]`
+/// between them from the top. `on_button_redraw` then draws `arrow` three
+/// times, the three stacked one under the other, centred in the button and
+/// truncated: on run1814b's photograph at (3, 70) in the 11 × 161 button.
+pub fn display_pieces(span: Span, ends: [Crop; 3], arrow: Crop) -> Vec<Piece> {
+    let (x0, y0, x1, y1) = span;
+    let (top, bottom) = (ends[0].3 as i32, ends[2].3 as i32);
+    let mut v = vec![
+        Piece {
+            crop: ends[0],
+            span: (x0, y0, x1, y0 + top),
+            fill: Fill::Tile,
+        },
+        Piece {
+            crop: ends[1],
+            span: (x0, y0 + top, x1, y1 - bottom),
+            fill: Fill::Tile,
+        },
+        Piece {
+            crop: ends[2],
+            span: (x0, y1 - bottom, x1, y1),
+            fill: Fill::Tile,
+        },
+    ];
+    let (aw, ah) = (arrow.2 as i32, arrow.3 as i32);
+    let ax = x0 + (x1 - x0 - aw) / 2;
+    let ay = y0 + (y1 - y0 - 3 * ah) / 2;
+    for k in 0..3 {
+        v.push(Piece {
+            crop: arrow,
+            span: (ax, ay + k * ah, ax + aw, ay + (k + 1) * ah),
+            fill: Fill::Tile,
+        });
+    }
+    v
 }
 
 impl RightLayout {
@@ -58,6 +106,17 @@ impl RightLayout {
             let tex = named_tex(&base[i + 1..i + 2], "tex")?;
             buttons.push((base[i].to_string(), tex));
         }
+        let display = base
+            .iter()
+            .find(|t| t.starts_with("BUTTON ") && attr(t, "name") == Some("display"))
+            .ok_or("IFACEMAINBASE: no button display")?
+            .to_string();
+        let ends = [
+            named_tex(&base, "collapse_button_up0")?,
+            named_tex(&base, "collapse_button_up1")?,
+            named_tex(&base, "collapse_button_up2")?,
+        ];
+        let arrow = named_tex(&base, "collapse_button_arrow_right")?;
         Ok(RightLayout {
             height,
             x0,
@@ -65,6 +124,7 @@ impl RightLayout {
             back: named_tex(&base, "back")?,
             right_window: rect("right_window")?,
             buttons,
+            display: (display, ends, arrow),
         })
     }
 
@@ -97,6 +157,10 @@ impl RightLayout {
                     fill: Fill::Tile,
                 });
             }
+        }
+        let (tag, ends, arrow) = &self.display;
+        if let Some(span) = resolve(tag, parent) {
+            v.extend(display_pieces(span, *ends, *arrow));
         }
         v
     }
