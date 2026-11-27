@@ -527,6 +527,16 @@ impl Sim {
         Some(target)
     }
 
+    /// **`Unit::find_melee_target@005ff9c0`'s squad head**: a follower takes
+    /// its captain's attack without a search. **The target and the
+    /// mandatory byte are the captain's action order's** (`get_action`,
+    /// vslot `+0xcc`'s `+8`/`+0xc`, and `+0x1c`), never a copy on the unit
+    /// (item 4771, `docs/RECGAME.md` §13.3): a group attack's
+    /// `finish_insert` appends a second `ATTACK` behind the captain's head
+    /// at `QUEUE_LAST`, and [`Sim::add_attack_order`] writes
+    /// `combat.target` for it too. Row 93's captain `1/2` holds `ATTACK
+    /// 2/101` at its head and `ATTACK 2/88` behind it on 4812; its
+    /// followers `1/16` and `1/26` take 101, as theirs.
     pub(crate) fn melee_squad_head(&mut self, u: usize) -> SquadHead {
         if self.units[u].captain {
             return SquadHead::Search;
@@ -536,16 +546,19 @@ impl Sim {
         let Some(k) = self.action_of(cap) else {
             return SquadHead::Nothing;
         };
-        if !matches!(self.units[cap].orders[k].body, Body::Attack(_)) {
+        let Body::Attack(a) = self.units[cap].orders[k].body else {
             return SquadHead::Nothing;
-        }
-        if let Some(t) = self.units[cap].combat.target
+        };
+        let held = a
+            .target
+            .and_then(|(ox, whom, _)| self.object_holding(whom, ox));
+        if let Some(t) = held
             && self.valid_target(me, t)
             && ((self.units[u].combat.stance != combat::Stance::StandGround
                 && !(self.hard_trench(u) && self.hard_trench(cap)))
                 || self.is_in_range(me, t))
         {
-            return SquadHead::Captain(t, self.units[cap].combat.mandatory);
+            return SquadHead::Captain(t, a.mandatory);
         }
         SquadHead::Search
     }
