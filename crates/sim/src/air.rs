@@ -1650,6 +1650,7 @@ impl Sim {
                 }
                 let p = bd.pos;
                 v /= vector_dist(p.x - base.x, p.y - base.y) / 768 + 1;
+                if std::env::var_os("RON_PROBE_4736").is_some() { println!("P4736 SORTIE frame {} base {}/{} city l {l} b {}/{} pos {:?} hits {} health {} ally {} v {v} best {best}", self.frame, owner, id, self.buildings[cb].owner, self.buildings[cb].index, p, bd.hits, bd.health, self.is_ally(l, owner)); }
                 if v > best {
                     best = v;
                     target = Some((l, cb));
@@ -1666,6 +1667,7 @@ impl Sim {
                 }
                 let v = (self.buildings[f].damage / 100 + 1000)
                     / (vector_dist(at.x - base.x, at.y - base.y) / 0x300 + 1);
+                if std::env::var_os("RON_PROBE_4736").is_some() { println!("P4736 SORTIE fort b {}/{} pos {at:?} damage {} v {v} best {best}", self.buildings[f].owner, self.buildings[f].index, self.buildings[f].damage); }
                 if v > best {
                     best = v;
                     target = Some((l, f));
@@ -1692,6 +1694,7 @@ impl Sim {
                     }
                 }
                 v /= vector_dist(at.x - base.x, at.y - base.y) / 0x300 + 1;
+                if std::env::var_os("RON_PROBE_4736").is_some() { println!("P4736 SORTIE wonder b {}/{} pos {at:?} damage {} v {v} best {best}", self.buildings[w].owner, self.buildings[w].index, self.buildings[w].damage); }
                 if v > best {
                     best = v;
                     target = Some((l, w));
@@ -1708,6 +1711,7 @@ impl Sim {
                 continue;
             }
             self.clear_orders(u);
+            if std::env::var_os("RON_PROBE_4736").is_some() { println!("P4736 SORTIE plane {}/{} d {d} speed {} mana {}", self.units[u].owner, self.units[u].index, self.get_speed(u, 1), self.unit_mana(u)); }
             if d >= self.get_speed(u, 1) * self.unit_mana(u) {
                 continue;
             }
