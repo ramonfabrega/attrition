@@ -3099,6 +3099,47 @@ pub(crate) mod tests {
         }
     }
 
+    #[test]
+    fn probe_4773_draws() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            return;
+        };
+        let dir = home.join("ron-golden/run1797/map-7");
+        let log = crate::testenv::experiment(&dir, "rontrace.log").expect("log");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let trace = crate::trace::Trace::read(&log).expect("reads").expect("parses");
+        let lo: i64 = std::env::var("P_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(4580);
+        let hi: i64 = std::env::var("P_HI").ok().and_then(|v| v.parse().ok()).unwrap_or(4582);
+        while built.sim.frame < lo {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        for f in lo..=hi {
+            let word = built.sim.rng.seed;
+            eprintln!("frame {f}: seed ours {word:08x} theirs {:?}", trace.frame_draws(f).first().map(|d| format!("{:08x}", d.seed)));
+            stream.apply(f as i32, &mut built);
+            built.sim.trace.trace_phases = true;
+            built.sim.command().tick();
+            built.sim.trace.trace_phases = false;
+            let ours = crate::diff::report::mark_sites(&built.sim.trace.phase_marks, built.sim.rng.seed).unwrap_or_default();
+            let theirs = trace.labels(f);
+            eprintln!("  ours {} theirs {}", ours.len(), theirs.len());
+            let n = ours.len().max(theirs.len());
+            for k in 0..n {
+                let a = ours.get(k).map_or("-", |s| s.as_str());
+                let b = theirs.get(k).map_or("-", |s| s.as_str());
+                eprintln!("  {k:4} {} {a:50} {b}", if a == b { " " } else { "*" });
+            }
+        }
+    }
+
     /// **A bribed figure keeps its own node flags** (item 4758,
     /// `docs/RECGAME.md` §13.5): run1797. On 4058 who=2's spy bribes
     /// who=1's BMP (TI 223); `Unit::swap_team@006118d0`'s per-guy loop
