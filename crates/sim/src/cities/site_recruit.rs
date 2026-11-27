@@ -63,9 +63,6 @@ impl Sim {
             .is_some_and(|t| crate::cities::build::is_fort(&self.tables.build_types, t))
             && bd.damage == 0;
         if !wonder && !fort {
-            if std::env::var_os("RON_PROBE_4766").is_some() && bd.owner == 2 {
-                eprintln!("P4766 recruit f{} b{b} o{} not wonder/fort ident {:?} dmg {}", self.frame, bd.index, bd.ty.map(|t| &self.tables.build_types[t].ident), bd.damage);
-            }
             return;
         }
         let helpers = bd.helpers;
@@ -74,23 +71,10 @@ impl Sim {
             want += self.rival_wonders(b);
         }
         if helpers >= want {
-            if std::env::var_os("RON_PROBE_4766").is_some() {
-                eprintln!("P4766 recruit f{} b{b} o{} helpers {helpers} >= want {want}", self.frame, self.buildings[b].index);
-            }
             return;
         }
         let (who, at) = (bd.owner, bd.pos);
-        let found = self.find_idle_citizen(who, at, RECRUIT_RANGE);
-        if std::env::var_os("RON_PROBE_4766").is_some() {
-            eprintln!(
-                "P4766 recruit f{} b{b} o{} ident {:?} wonder {wonder} fort {fort} helpers {helpers} want {want} found {:?}",
-                self.frame,
-                self.buildings[b].index,
-                self.buildings[b].ty.map(|t| &self.tables.build_types[t].ident),
-                found.map(|u| (self.units[u].owner, self.units[u].index))
-            );
-        }
-        let Some(u) = found else {
+        let Some(u) = self.find_idle_citizen(who, at, RECRUIT_RANGE) else {
             return;
         };
         self.add_build_order(u, b, QueuePos::New, false);

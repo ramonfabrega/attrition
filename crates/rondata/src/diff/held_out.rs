@@ -3013,50 +3013,6 @@ pub(crate) mod tests {
         }
     }
 
-    #[test]
-    fn probe_4766() {
-        if std::env::var_os("RON_PROBE_4766").is_none() {
-            return;
-        }
-        let Some(inst) = crate::testenv::install() else {
-            return;
-        };
-        let (Some(rcx), _) = paths(&SIXTH, 6) else {
-            return;
-        };
-        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
-        let loaded = crate::load::load(&inst).expect("the install loads");
-        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
-        let mut stream = crate::input::Stream::pump(&rec);
-        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(4386);
-        while built.sim.frame < lo {
-            stream.apply(built.sim.frame as i32, &mut built);
-            built.sim.command().tick();
-        }
-        for _ in 0..2 {
-            let f = built.sim.frame;
-            let c = built.sim.unit_by_o(2, 40).expect("2/40");
-            let at = built.sim.units[c].pos;
-            eprintln!("P4766 f{f} 2/40 at {:?} orders {:?} was_builder {}", at, built.sim.units[c].orders, built.sim.units[c].was_builder);
-            for (i, b) in built.sim.buildings.iter().enumerate() {
-                if b.owner != 2 || !b.alive {
-                    continue;
-                }
-                let d = (b.pos.x - at.x).abs().max((b.pos.y - at.y).abs());
-                if d > 16000 {
-                    continue;
-                }
-                eprintln!(
-                    "P4766 f{f}  b{i} o{} ty {:?} active {} started {} dmg {} health {} hits {} helpers {} d {} pos {:?} phase32 {} phase64 {} phase128 {}",
-                    b.index, b.ty, b.active, b.started, b.damage, b.health, b.hits, b.helpers, d, b.pos,
-                    (f as i32 + i32::from(b.index)) & 31, (f as i32 + i32::from(b.index)) & 63, (f as i32 + i32::from(b.index)) & 127
-                );
-            }
-            stream.apply(built.sim.frame as i32, &mut built);
-            built.sim.command().tick();
-        }
-    }
-
     /// **A bribed figure keeps its own node flags** (item 4758,
     /// `docs/RECGAME.md` §13.5): run1797. On 4058 who=2's spy bribes
     /// who=1's BMP (TI 223); `Unit::swap_team@006118d0`'s per-guy loop
