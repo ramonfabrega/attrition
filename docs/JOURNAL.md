@@ -22963,3 +22963,50 @@ picture with the HUD's new art: the bottom left reads as the
 original's, and the top of the screen, where a player reads food and
 timber, is empty. That goes ahead of the raised log.
 **DECISIONS 159.** `docs/audit/2026-11-26-fable-pass-floor.md`.
+
+## 2026-11-27 — the pass: the lanes had been carrying one probe from landing to landing (Fable 5.2, steering)
+
+The driver handed over at the backstop with nothing out: twenty-three
+landings in seven hours, the count of games where it stood, and the
+four open games that held seats each a long way further in. The row
+landings bought three times what the last tranche's did. The new thing
+in them was that a rule built on one game moved another: a push onto an
+army's emptied slot, found on one row, held a second row's groups for
+nearly eight hundred states, and a building's round leaving from its stored
+height, found on a third, moved three rows at once. A tranche ago every
+rule stayed where it was found. One of these crossed a lane at the
+merge and turned a booking gate red; the pass priced the guard that
+would have caught it and found it dearer than the red.
+
+What the pass found was in the journals' small print. To see the states
+round a leaf, each row landing took a probe test of two hundred and
+sixty lines from the landing before it, changed the row and the take by
+hand, used it, and reverted it before its gate. Sixteen journals say
+so, each as a matter of course. The rule that a probe reached for a
+third time becomes a tool had been broken many times over without
+anyone breaking it on purpose: every landing saw only its own one use.
+It is an example beside the scorer now. Two more of the same kind went
+with it. A landing copied its row's printed score into the pin by hand,
+and the rows another row's rule had moved kept printing stale lines
+into every later score, which two lanes disproved by mutation; the pin
+is written by a tool and the pass clears the stale lines at its tip.
+And an ammo leaf printed as bare bytes, which each landing decoded with
+its own closure; the sim's writer carries the names now, and the scorer
+prints `launch_y` where it printed byte 11.
+
+That last one paid at once. With the names on, two open games in two
+batteries read the same: a round launched one unit off its mark. One
+seat carries both.
+
+The second of them was readable only because the pass took its capture.
+Four open games had never been captured to their ends, and each one's
+item began with that capture. A capture is the original playing a file;
+nothing of ours is in it, and the game lane stands idle the whole time
+a pass is writing. So the pass took all four while it worked, and no
+item begins with one any more. The last two keep every line but walls:
+a line that is whole today may be the one the next rule parts.
+
+The client's picture reads as the original's across the whole frame.
+What is left is three lines of white text at the right edge and two
+buttons.
+**DECISIONS 160.** `docs/audit/2026-11-27-fable-pass-printer.md`.

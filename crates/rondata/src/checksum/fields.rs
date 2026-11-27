@@ -13,6 +13,9 @@ pub(crate) fn range_fields(line: &str, field: &str, b: &[u8]) -> Option<Vec<(Str
         "units" => Some(unit_range_fields(field, b)),
         "builds" => Some(build_range_fields(field, b)),
         "guys" => Some(guy_range_fields(field, b)),
+        "ammo" if field == "rolling..start_roll_angle" && b.len() == AMMO_BODY => {
+            Some(ammo_range_fields(b))
+        }
         "groups" if b.len() % 4 != 3 || matches!(field, "list" | "angles") => {
             Some(group_range_fields(field, b))
         }
@@ -24,6 +27,33 @@ pub(crate) fn range_fields(line: &str, field: &str, b: &[u8]) -> Option<Vec<(Str
         ),
         _ => None,
     }
+}
+
+/// An ammo sprite's display range: `rolling`, the accuracy and the sim's
+/// 24 words.
+const AMMO_BODY: usize = 3 + 4 * sim::checksum::AMMO_WORDS.len();
+
+/// One ammo sprite's 99 bytes by the sim's own table of what it writes
+/// ([`sim::checksum::AMMO_WORDS`]): `rolling` a signed byte, the accuracy
+/// a short, every word signed. The pass of 2026-11-27: the scorer printed
+/// an ammo leaf as bare bytes, on the two open rows that part there
+/// first.
+pub(crate) fn ammo_range_fields(b: &[u8]) -> Vec<(String, i64)> {
+    let mut out = vec![
+        ("rolling".to_string(), i64::from(b[0] as i8)),
+        (
+            "accuracy".to_string(),
+            i64::from(i16::from_le_bytes([b[1], b[2]])),
+        ),
+    ];
+    out.extend(sim::checksum::AMMO_WORDS.iter().enumerate().map(|(k, n)| {
+        let at = 3 + 4 * k;
+        (
+            n.to_string(),
+            i64::from(i32::from_le_bytes(b[at..at + 4].try_into().unwrap())),
+        )
+    }));
+    out
 }
 
 /// Decode equal-length native and simulated ranges under the simulated range's schema.
@@ -283,4 +313,32 @@ pub(crate) fn group_range_fields(field: &str, b: &[u8]) -> Vec<(String, i64)> {
         .enumerate()
         .map(|(k, c)| (format!("{field}[{k}]"), le(c)))
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// **An ammo sprite's range is named by the sim's table** (the pass of
+    /// 2026-11-27): two rounds a `launch_y` apart name that word and no
+    /// other, and a range of another length is left to its bytes.
+    #[test]
+    fn an_ammo_range_parts_on_its_named_word() {
+        let mut a = vec![0u8; AMMO_BODY];
+        a[1..3].copy_from_slice(&100i16.to_le_bytes());
+        a[11..15].copy_from_slice(&29997i32.to_le_bytes());
+        let mut b = a.clone();
+        b[11..15].copy_from_slice(&29996i32.to_le_bytes());
+        let field = "rolling..start_roll_angle";
+        assert_eq!(
+            differing_fields("ammo", field, &a, &b),
+            [("launch_y".to_string(), 29997, 29996)]
+        );
+        let all = range_fields("ammo", field, &a).expect("a decoder");
+        assert_eq!(all.len(), 26);
+        assert_eq!(all[1], ("accuracy".to_string(), 100));
+        assert_eq!(all[25].0, "start_roll_angle");
+        assert_eq!(range_fields("ammo", field, &a[..98]), None);
+        assert_eq!(range_fields("ammo", "flags", &[2]), None);
+    }
 }

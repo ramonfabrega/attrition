@@ -1,10 +1,12 @@
 //! Score a window recording against a complete original playback.
 mod diagnostic;
+mod window;
 use crate::checksum::state;
 use crate::diff::{built_from_lobby, from_lobby, sample::header_lobby};
 use crate::trace::checksums::{complete_sets, per_frame};
 use crate::trace::ranges::Record;
 use std::path::Path;
+pub use window::{Window, print_ranges};
 
 pub struct Score {
     /// Setup plus every tick, including the terminal state.

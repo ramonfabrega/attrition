@@ -599,6 +599,12 @@ battery and writes `Parity:` (151 §2: the fifth stood off the list for
 seven landings). **A take's end may run past the
 first parting it is taken for** (DECISIONS 149 §2): the mask is what a
 take reads while it runs, and a filed record keeps a twelfth of it.
+**The states round a row's leaf are `print_ranges`' and its pin is
+`repin_held.py`'s** (DECISIONS 160 §3; `docs/RECGAME.md` §15): no probe
+test is carried from one landing to the next. Sixteen journals name the
+range printer a landing cherry-picked from the landing before, pointed
+at its row by hand and reverted before its gate; a row's item names the
+example with its take and its states.
 
 ## Ratification, and the passes
 
@@ -677,7 +683,11 @@ the tree is removed, DECISIONS 151 §7).
 9. **Its held-out rows scored by leaf** — `score_recording` on every
    row not whole, seconds each: a row whose ranges take is on disk names
    its leaves, a row that holds sums prints the one take its parted lines
-   ask for, **with the lines whole beside each first parting** (DECISIONS
+   ask for **and the pass takes it**, one game at a time behind the
+   compressor, each waited on and filed (DECISIONS 160 §4: the game lane
+   stands idle through a pass, and a row that opened on its take cost a
+   lane a quarter of an hour of game before its first reading), **with
+   the lines whole beside each first parting** (DECISIONS
    157 §2), and both are pasted into the items it books (DECISIONS 146 §2:
    two rows parted on one bit no item had named; 148 §3: five of eight
    leaves on disk had no item) — **and each battery's reach read off its
@@ -694,11 +704,19 @@ the tree is removed, DECISIONS 151 §7).
    is `~/ron-data/lab-experiments/2026-11-22-pass-third/bay-probe.patch`,
    and its count is read beside the run's exit code, since two runs of
    it have printed zero for a reason that was not zero rounds).
+   **The drift is re-pinned there** (DECISIONS 160 §3): the batteries'
+   `held_out_games_score_as_pinned` under `--nocapture`, then
+   `python3 tools/repin_held.py <log> --write`, so a drift line a lane's
+   first score prints is its own build's (rows 93, 48 and 8 printed
+   eighteen such lines through a tranche, and three lanes ran a mutation
+   to show the lines were their base's).
 10. **Its seam table** — `RON_SEAMS_DIR=<the pass's directory> zsh
    tools/check.sh test --release -p rondata --features seam-count --
    held_seams --test-threads 6`, about four minutes after its build:
    every seam hook each held-out walk enters, marked against the walk's
-   first parting. A hook marked `=` or `<` on a parted row that no
+   first parting, and `python3 tools/seam_table.py <the pass's
+   directory>` lists the hooks an open row enters and no whole row does,
+   nearest its parting first. A hook marked `=` or `<` on a parted row that no
    whole row also enters is pasted into that row's item with the
    note's own sentence, **and a hook marked `=` whatever the whole
    rows enter** (DECISIONS 155 §9: the seventh's row 88, a hook one

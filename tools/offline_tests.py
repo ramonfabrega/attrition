@@ -95,6 +95,7 @@ SUITES = (
     'test_disk',  # the steering pass of 2026-11-12: the gate's disk steps
     'test_repin_packets',  # the pass of 2026-11-19: the packets' PINNED from a print walk
     'test_archive_compress',  # the pass of 2026-11-23, third: one tree at a time, and the scan (DECISIONS 156 §6)
+    'test_repin_held',  # the pass of 2026-11-27: a held-out row's moved score from the score test's print (DECISIONS 160 §3)
 )
 
 # The lab's suites (`docs/DECISIONS.md` entry 38: merged whole, its ledger

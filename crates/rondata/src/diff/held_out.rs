@@ -15662,10 +15662,14 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 4,288, guys 4,243 -> 4,288; past it ammo 4,787 -> 4,763, items
         // 6,717 -> 6,187 (first 6009 -> 6187), goods 5,464 -> 5,608 (first
         // 4720 -> 4459).
+        // Drift past the parting, re-pinned by the pass of 2026-11-27
+        // (`tools/repin_held.py`, DECISIONS 160 §3) so a lane's first score
+        // prints only its own: ammo 4,763 -> 5,139, goods 5,608 -> 5,373,
+        // ours' end none -> 10848, on other rows' rules (items 4740 to 4755).
         moved: Some(Score {
             states: 12001,
             agreed: [
-                4288, 4310, 12001, 4763, 4325, 4362, 4288, 4317, 4351, 6187, 5608, 4288,
+                4288, 4310, 12001, 5139, 4325, 4362, 4288, 4317, 4351, 6187, 5373, 4288,
             ],
             first: &[
                 ("units", (4288, Some(3288549406), 1585793752)),
@@ -15680,7 +15684,7 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
                 ("goods", (4459, Some(3368850730), 3351549222)),
                 ("world", (4288, Some(2994040454), 587558473)),
             ],
-            over: None,
+            over: Some(10848),
         }),
     }),
     // run1793
@@ -16441,7 +16445,32 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // The first parting stands as found, units on 9896. Drift past it,
+        // pinned by the pass of 2026-11-27 (`tools/repin_held.py`, DECISIONS
+        // 160 §3): on item 4746's `push_group_slot`, row 88's rule, ammo
+        // 11,146 -> 11,241, deaths 10,438 -> 10,541, groups 9,947 -> 9,950
+        // (first 9932 -> 9946), leaders 9,908 -> 9,938, cities 10,091 ->
+        // 10,108, goods 11,576 -> 11,432 (first 11576 -> 11227), a named fall
+        // 1,331 states past the parting.
+        moved: Some(Score {
+            states: 12001,
+            agreed: [
+                9896, 9922, 12001, 11241, 10541, 9950, 9898, 9938, 10108, 12001, 11432, 9900,
+            ],
+            first: &[
+                ("units", (9896, Some(171630208), 2211249348)),
+                ("builds", (9922, Some(3512185841), 1350677998)),
+                ("ammo", (9899, Some(1426297917), 1293259664)),
+                ("deaths", (9929, Some(2250257515), 2245866602)),
+                ("groups", (9946, Some(467422711), 440419436)),
+                ("guys", (9898, Some(2849304947), 1015869527)),
+                ("leaders", (9904, Some(2155332895), 1047774493)),
+                ("cities", (9924, Some(4210113495), 4140645333)),
+                ("goods", (11227, Some(3292886812), 3252516634)),
+                ("world", (9900, Some(4188360961), 2333888676)),
+            ],
+            over: None,
+        }),
     }),
     // run1805
     // row 28, as found 2026-11-23: 2 lines whole; units 3,956 of 4,248, first 3956; builds 3,956 of
@@ -16526,7 +16555,31 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // The first parting stands as found, ammo on 5607. Drift past it,
+        // pinned by the pass of 2026-11-27 (`tools/repin_held.py`, DECISIONS
+        // 160 §3): on item 4746's `push_group_slot`, row 88's rule, units
+        // 7,150 -> 7,151, builds 7,170 -> 7,183 (first 7170 -> 7183), ammo
+        // 8,363 -> 8,374, guys 7,182 -> 7,183 (first 6555 -> 7183).
+        moved: Some(Score {
+            states: 12001,
+            agreed: [
+                7151, 7183, 12001, 8374, 8721, 7186, 7183, 7176, 7183, 7947, 7542, 7183,
+            ],
+            first: &[
+                ("units", (5940, Some(506938227), 3241886403)),
+                ("builds", (7183, Some(821938490), 3534088889)),
+                ("ammo", (5607, Some(2828101927), 3052169677)),
+                ("deaths", (8721, Some(1), 2503022540)),
+                ("groups", (7186, Some(621207000), 1310973398)),
+                ("guys", (7183, Some(2673485387), 3411157871)),
+                ("leaders", (7176, Some(405918586), 1583338567)),
+                ("cities", (7183, Some(2785309316), 2502718081)),
+                ("items", (7947, Some(3978827278), 3964409356)),
+                ("goods", (7430, Some(3608639283), 3559618353)),
+                ("world", (7183, Some(2594571357), 1902774908)),
+            ],
+            over: None,
+        }),
     }),
     // run1807
     // row 68, as found 2026-11-23: 12 lines whole to the original's end; 3,949 of 3,949 states.

@@ -2117,3 +2117,31 @@ or an age under tribe bonus 0xd, the table moved or not. *Diff-backed*
 `unit_masks` ours 12, theirs 16396. `take_damage@00652020`'s `0x6529da` marks the victim's captain `0x4000` on a hit
 by an Aztec Barracks, Stable or Dock unit. *Diff-backed* (`row_148_s_aztec_slayer_marks_its_victim_on_run1836_s_ranges`);
 its clear and its disband pay rest on the reading. Journals: items 4618, 4635, 4637.
+
+## 15. The states round a leaf, and a row's pin (the pass of 2026-11-27)
+
+DECISIONS 160 §3. The
+scorer names one range a line, the first that parts. `print_ranges` prints
+every range that differs over a window of states, against a take that keeps
+ranges:
+
+```sh
+cargo run --release -p rondata --example print_ranges -- /path/to/install GAME.rcx /path/to/run/map-14 4006 4007
+cargo run --release -p rondata --example print_ranges -- /path/to/install GAME.rcx /path/to/run/map-14 4007 4007 --rec ammo:3
+```
+
+Each line is a state, a checksum line, ours' range and record, and the fields
+that differ with both values, or the bytes where no decoder names them; a
+units range is followed by its unit's slot, type and place. A range one side
+holds alone is said as that side's. `--rec LINE:RECORD` prints one record's
+every field on both sides on each state of the window, parted or not, and
+`--all` every field of each parted range. Its last line counts the ranges
+that differ, and it exits 0 on none, 1 on some, 2 on an error. A line the
+record's mask did not keep is said once. An ammo sprite's 99 bytes are named
+by the sim's own table of what it writes (`sim::checksum::AMMO_WORDS`), here
+and in the scorer's leaf. It replaces the probe test each row landing
+cherry-picked from the one before and reverted before its gate.
+
+**A row's `moved` score** is written by `tools/repin_held.py <log> --row N
+--write` from the line the score test prints under `--nocapture`; the
+sentence above the literal stays the landing's to write.

@@ -1,4 +1,4 @@
-# Every rondata release test's peak resident set alone, 2026-11-26, tools/suite_timings.py (tree b34caaca).
+# Every rondata release test's peak resident set alone, 2026-11-27, tools/suite_timings.py (tree aad846fa).
 # /usr/bin/time -l, one test per process, --test-threads 1; MiB then the test; -1 when unread.
 5304	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 3662	diff::start::tests::every_lobby_s_start_built_from_its_choices
@@ -2080,23 +2080,36 @@
 75	input::tests::the_order_kinds_on_disk
 75	recgame::tests::what_our_file_borrows_is_constant_for_one_lobby_s_options
 73	checksum::playback::tests::the_short_window_game_agrees_through_its_closing_state
+73	diff::held_out::tests::row_53_s_dromon_looses_from_its_figure_s_own_point_on_run1847_s_ranges
 72	diff::shutdown::tests::the_closing_dump_lags_one_tick_on_one_unit
+72	diff::held_out::tests::row_88_s_carrack_round_forgets_its_dead_target_where_it_sticks_on_run1846_s_ranges
 71	diff::held_out::tests::row_28_s_bazookas_drop_their_chase_of_a_citizen_on_run1813_s_ranges
 71	diff::held_out::tests::row_63_s_fort_pick_walks_the_fort_records_on_run1782
 71	diff::held_out::tests::row_28_s_round_at_the_capital_on_run1820_s_ranges
 71	diff::held_out::tests::row_133_s_general_bleeds_on_hostile_ground_on_run1797
+70	diff::held_out::tests::row_53_s_archers_drop_the_dromon_off_their_shore_on_run1847_s_ranges
+70	diff::held_out::tests::row_88_s_general_comes_out_facing_its_heading_on_run1846_s_ranges
 70	diff::held_out::tests::row_133_s_army_is_not_hurried_by_citizens_on_run1797
 70	diff::sample::tests::the_sample_s_ranges_to_3100_name_each_first_parting
 70	diff::held_out::tests::row_93_s_city_repair_beside_its_president_takes_the_long_clock_on_run1799_s_ranges
+70	diff::held_out::tests::row_88_s_despot_pushed_onto_army_3_s_emptied_slot_moves_that_record_on_run1846_s_ranges
+70	diff::held_out::tests::row_88_s_riders_closed_aboard_leave_their_owner_above_the_market_on_run1846_s_ranges
+70	diff::held_out::tests::row_133_s_bribed_infantry_keep_the_old_squad_s_marks_on_run1797
+70	diff::held_out::tests::row_53_s_rammed_fire_raft_plunders_nothing_on_run1835_s_ranges
 69	diff::held_out::tests::row_53_s_fire_raft_rams_and_sinks_on_run1835_s_ranges
 69	diff::held_out::tests::row_133_s_sam_rocket_strikes_its_own_capital_with_the_recapture_bonus_on_run1797_s_ranges
 69	diff::held_out::tests::row_133_s_captured_city_keeps_the_near_border_mark_on_run1797
 69	diff::held_out::tests::row_88_s_fire_raft_sunk_in_its_own_work_repaints_its_disc_on_run1843_s_ranges
+69	diff::held_out::tests::row_53_s_village_keeps_the_round_that_came_down_on_itself_on_run1847_s_ranges
+69	diff::held_out::tests::row_133_s_jet_fighter_banks_away_from_the_helicopter_under_its_nose_on_run1797
+68	diff::held_out::tests::row_133_s_burned_assault_infantry_lies_on_its_scorched_body_on_run1797
+68	diff::held_out::tests::row_83_s_airbase_does_not_count_an_air_defense_site_on_run1784_s_ranges
 68	diff::held_out::tests::row_133_s_merchant_is_not_kept_off_a_good_by_citizens_on_run1797
 68	diff::held_out::tests::row_43_s_muster_and_first_steps_match_run1787
 68	diff::held_out::tests::row_83_s_barracks_re_homes_when_its_city_is_taken_on_run1784_s_ranges
 68	diff::held_out::tests::row_93_s_siege_order_walks_its_point_on_run1799_s_ranges
 68	diff::held_out::tests::row_28_s_round_on_run1821_s_ranges
+68	diff::held_out::tests::row_133_s_building_fires_from_its_own_height_on_run1797
 67	diff::held_out::tests::row_93_s_howitzer_takes_the_unbuilt_city_mandatory_on_run1799_s_ranges
 67	diff::held_out::tests::row_83_rebuilds_the_trade_road_before_choosing_the_caravan_death_animation
 67	diff::held_out::tests::row_133_s_attack_helicopter_fires_from_its_pod_on_run1797_s_ranges
@@ -2178,6 +2191,7 @@
 63	diff::held_out::tests::row_110_s_losing_wonder_site_closes_without_the_unit_stats_bit_on_run1742_s_ranges
 63	diff::held_out::tests::row_43_s_follower_keeps_its_captain_s_target_past_the_leash_on_run1787_s_ranges
 63	diff::held_out::tests::row_103_s_armored_scout_car_fires_from_its_turret_on_run1783_s_ranges
+63	checksum::playback::window::tests::a_whole_game_prints_no_differing_range
 62	diff::held_out::tests::the_seventh_held_out_eight_are_the_rows_the_rule_names_seated_and_ordering
 62	diff::held_out::tests::row_103_s_army_record_keeps_its_role_when_a_squad_leaves_on_run1783_s_ranges
 62	diff::held_out::tests::row_123_s_producer_lap_starts_past_the_base_on_run1785_s_ranges
@@ -2587,6 +2601,8 @@
 5	diff::held_out::tests::the_seventh_held_out_line_reads_as_pinned
 5	diff::held_out::tests::a_trace_with_no_receipt_is_a_take_in_flight
 5	trace::card::tests::a_draw_s_stream_reads_back
+5	checksum::playback::window::tests::the_pairing_names_a_side_s_own_range_and_a_parted_one
+5	checksum::fields::tests::an_ammo_range_parts_on_its_named_word
 4	commands::tests::the_empty_group_is_the_same_selection
 4	commands::tests::the_mp_obfuscation_reverses
 4	diff::floors::tests::the_handoff_s_golden_line_is_the_pinned_word

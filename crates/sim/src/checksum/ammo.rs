@@ -7,6 +7,40 @@ use crate::Sim;
 use crate::combat::{Spline, SplineArm};
 use crate::num::single::Single;
 
+/// **The 24 words of an ammo sprite's 99-byte range**, in the order
+/// [`Sim::checksum_ammo`] writes them after `rolling` (one byte) and the
+/// accuracy (two): word `k` sits at byte `3 + 4k`. The names are this
+/// crate's fields, so a reader of a parted range names its byte by this
+/// table (`rondata::checksum::fields`, the pass of 2026-11-27: a probe and
+/// eight tests decoded the range with a closure of their own, and the
+/// scorer printed an ammo leaf as bare bytes). A test holds it to the writer.
+pub const AMMO_WORDS: [&str; 24] = [
+    "gpiece",
+    "launch_x",
+    "launch_y",
+    "sz",
+    "land_x",
+    "land_y",
+    "ez",
+    "cur_time",
+    "total_time",
+    "angle",
+    "splash_area",
+    "slot",
+    "graph_index",
+    "owner",
+    "o",
+    "num_guys",
+    "whom",
+    "ox",
+    "traj",
+    "v1z",
+    "dx",
+    "bank_dx",
+    "bank_dy",
+    "start_roll_angle",
+];
+
 /// An arm's walk: `max_control_depth_ratio`, the degree, the depth, the
 /// control points, `knots` and `spline_knots`.
 type ArmWalk<'a> = (i32, u16, u16, &'a [[Single; 3]], &'a [Single], &'a [Single]);

@@ -73,15 +73,6 @@ finish line's own counter, parity on the declared set (entry 143 §2).
 | **save and replay** | a game saved as seed plus orders, replayable here and written back into the original's recorded-game container | a saved game replays to the same hash; the original replays one of ours | the diff suite; the original on the capture lane | **step 3 stands** (`Recording:`): every recording on disk round-trips, and the original plays our order-free file for 24,000 of 24,000 frames (4058, run1560) |
 | **census** | the territory count tells the truth about the original's 3,611 simulation functions | ported · replaced by design · open, the readers' marks landed row by row (`docs/audit/2026-11-06-territory-*.md`; lore's scoring of the `replaced` groups) | `tools/census.py`'s pins | `Rubric:` 574 open of 3,611, 569 of them carrying a reader's ruling (entry 132); filler for an idle lane |
 
-**At the pass of 2026-11-21** (entry 148): **checksum** — parity 6 of 7; the sample's lowest first parting 4248 of 21,044 and
-its draw word 5273, both on `Parity:` now; the word moved 945 frames in four landings while the score stood, so the sample's seat
-takes ranges past the word first (item 4505); parity held out 7 of 8 now, the second battery 4 of 8, and the third read 5 of 8 and
-90 of 96 lines as found, 88 % by reach, 6 of 8 now; rows 40 and 5 are one line from whole (items 4484, 4507), rows 105 and 10 hold
-eight leaves on disk (items 4502, 4504); a row's take keeps the lines its score parts on, because the disk reads 75 GB against a
-floor of 60; a fourth battery is named (item 4510); the packets' lines 919 of 1,053; the fold is Ramon's, recommended, 13 of 15
-folded; **orders** — whole by its counters; **renderer** — the haze is a moving vehicle's dust, an emitter the view starts, and the
-eye's seat draws it from the packet's emitters (item 4506).
-
 **At the pass of 2026-11-21, second** (entry 149): **checksum** — parity 6 of 7; the sample parts first on world 5401 of 21,044,
 draws 5460, and its next take runs to 6400 on the ten lines that part below it (item 4526); parity held out 8 of 8 now, the second
 battery 6 of 8, the third 8 of 8, and the fourth read 5 of 8 and 90 of 96 lines as found, 91 % by reach; rows 75, 30, 55, 95 and
@@ -157,6 +148,16 @@ short; a ranges take is refused by its runner on its raw peak above 30 GB free, 
 the seats in the guard's order (items 4671, 4693, 4735); a booking's queue edit is one command; the packets' lines 959 of 1,053;
 **orders** — whole by its counters; **renderer** — the HUD's own art on run1814b, the bar's left window, its clock and slots and the
 minimap's frame (items 4694 to 4731); the client's seat takes the top bar, then the selected panel (items 4737, 4738).
+
+**At the pass of 2026-11-27** (entry 160): **checksum** — parity 52 of 63, unmoved; the sample as it stood; parity held out 8, 8, 8, 8,
+6, 4 and 4 of 8 now; thirteen row landings bought 2,945 states (rows 53, 88, 133 and 83 to 5275, 4568, 4059 and 4007), 433 of them on a
+row other than the landing's own, and the eleven open games stand 50,335 states short; the range printer a landing carried from the
+landing before is a kept example, an ammo leaf is named, a row's pin is written by a tool and a pass re-pins the drift; the pass took the
+whole takes of the four rows that held sums (run1848 to run1851) and no item opens on a take; the fifth's row 83 and the seventh's row 48
+part on one word and take one seat (item 4759) beside rows 133 and 93 (items 4758, 4733); the launch fallback fires in no walk; the
+packets' lines 960 of 1,053; **orders** — whole by its counters; **renderer** — the top boxes and the selected panel drawn on run1814b
+(items 4737 to 4754), the still reading as the photograph across the HUD; the client's seat takes the military tally, then the two
+buttons (items 4761, 4760).
 
 **The order of play** (the seventy-sixth pass, entry 116). The milestone
 first, one lobby deep, on the driver's own builders; the renderer beside it

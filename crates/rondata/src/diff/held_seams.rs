@@ -194,14 +194,21 @@ fn fallback_rows(walks: &[Walk]) -> Vec<(usize, u64)> {
 /// 133 one round from state 5548, 1,809 past its first parting, and the
 /// seventh's row 88 two from 10553, 6,836 past its own. No open row
 /// enters `pivot::offset_at_unpinned` (item 4656).
+/// **None on any battery on `aad846fa0`** (the pass of 2026-11-27):
+/// thirteen landings walked rows 53, 88, 133 and 83, and the walks past
+/// their first partings no longer fire a piece with no row. The hooks an
+/// open row enters and no whole row does are two, `merchant_fire_proj` on
+/// the seventh's row 48 from 8322 and `attack_action_no_target` on its row
+/// 88 from 10737, 2,715 and 6,169 states past their first partings
+/// (`tools/seam_table.py`).
 const FALLBACK: [(&str, &[(usize, u64)]); 7] = [
     ("first", &[]),
     ("second", &[]),
     ("third", &[]),
     ("fourth", &[]),
     ("fifth", &[]),
-    ("sixth", &[(133, 1)]),
-    ("seventh", &[(88, 2)]),
+    ("sixth", &[]),
+    ("seventh", &[]),
 ];
 
 fn fallback_as_pinned(file: &str, walks: &[Walk]) {

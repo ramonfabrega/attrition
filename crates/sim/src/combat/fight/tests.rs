@@ -5528,6 +5528,67 @@ fn a_round_that_comes_down_on_nothing_and_sticks_forgets_its_target() {
     }
 }
 
+/// **`checksum::AMMO_WORDS` names the words the writer writes** (the pass
+/// of 2026-11-27): a round whose every named field holds a value of its
+/// own, read back off its range by the table's index. A name moved in
+/// the table, or a word moved in the writer, reads another field's value.
+#[test]
+fn the_ammo_words_table_names_what_the_writer_writes() {
+    let (mut sim, ty) = at_war();
+    let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+    let mut p = shot(
+        me,
+        Pos::new(0x1111, 0x2222),
+        Pos::new(0x4444, 0x5555),
+        77,
+        0x333,
+        0x66,
+    );
+    (p.gpiece, p.cur_time, p.splash_area, p.num_guys) = (88, 9, 21, 3);
+    p.angle = Angle(0x0abc_0000);
+    sim.add_ammo(p);
+    let q = *sim.combat.projectiles.first().expect("the round");
+    let line = sim.checksum_ammo().expect("the ammo line");
+    let body = &line
+        .ranges
+        .iter()
+        .find(|r| r.field == "rolling..start_roll_angle")
+        .expect("the body")
+        .bytes;
+    assert_eq!(body.len(), 3 + 4 * crate::checksum::AMMO_WORDS.len());
+    let word = |name: &str| {
+        let k = crate::checksum::AMMO_WORDS
+            .iter()
+            .position(|n| *n == name)
+            .expect("a named word");
+        i32::from_le_bytes(body[3 + 4 * k..7 + 4 * k].try_into().unwrap())
+    };
+    let want = [
+        ("gpiece", q.gpiece),
+        ("launch_x", q.launch.x),
+        ("launch_y", q.launch.y),
+        ("sz", q.sz),
+        ("land_x", q.landing.x),
+        ("land_y", q.landing.y),
+        ("ez", q.ez),
+        ("cur_time", q.cur_time),
+        ("total_time", q.total_time),
+        ("angle", q.angle.0),
+        ("splash_area", q.splash_area),
+        ("num_guys", q.num_guys),
+        ("v1z", q.v1z.bits() as i32),
+    ];
+    for (name, value) in want {
+        assert_eq!(word(name), value, "{name}");
+    }
+    let mut seen: Vec<i32> = want.iter().map(|w| w.1).collect();
+    seen.sort_unstable();
+    seen.dedup();
+    assert_eq!(seen.len(), want.len(), "every staged value is its own");
+    assert_eq!((word("whom"), word("ox")), (-1, -1), "no target");
+    assert_eq!(word("traj"), 1, "no spline");
+}
+
 /// **A shooter that boards with its round in the air is not held**
 /// (item 4680, `docs/RECGAME.md` §14.4): `Ammo::inc_time@0067d380`'s
 /// first statement bumps the shooter's `hold_frames` when its slot's

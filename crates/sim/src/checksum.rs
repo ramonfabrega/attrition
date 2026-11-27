@@ -489,6 +489,7 @@ impl Sim {
 }
 
 mod ammo;
+pub use ammo::AMMO_WORDS;
 pub mod builds;
 mod deaths;
 pub mod groups;

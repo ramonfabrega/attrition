@@ -42628,3 +42628,31 @@ first parting moves to 4363, on groups. Read by
 theirs 7, `form_num` 2 against 1, `(ox, oy)` (0, 0) against (38952, 25752): the Despot `2/150`'s push onto the army's
 emptied slot. After the fix nothing on groups parts to 4400; the first parting moves to 4384, on units and guys. Read
 by `row_88_s_despot_pushed_onto_army_3_s_emptied_slot_moves_that_record_on_run1846_s_ranges`.
+## run1848 — parity held out, seventh battery, row 48's whole file to 12,000 with the checksum and ranges hooks, every line but walls kept (2026-11-27, the pass, DECISIONS 160 §4)
+
+`docs/RECGAME.md` §14.3. **What the disk could not answer**: row 48 held sums alone (run1806), and item 4615's first
+act was this take. DECISIONS 158 §2: the row's one whole take, no `--log-window`; no later word of row 48 books one.
+The pass took it, one of four in one script behind its compressor, each waited on with `waitrun.sh` and filed before
+the next launched (`~/ron-data/lab-experiments/2026-11-27-pass/takes.sh`, `takes2.sh`): `TMPDIR=<fresh> RON_LANE_WAIT=7200 zsh
+tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1848 --recording
+~/ron-golden/recordings/item4600-row048-12000.rcx --end-frame 12000 --allow-early-end --cover cover=1 --detail end:MISC
+--timeout 3600 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_RANGES --tracer-def RNG_MASK=0xffbu`,
+the mask `score_recording` printed on run1806's sums at `aad846fa0`. No lane was out and no gate ran; `df -g ~` read
+86 GB free before it, 71 after the take and 83 after filing.
+- **The run**: pool lane 1, launched 03:50:10 −05:00, exited 04:04:32: **862.1 s** launch to exit, exit
+  0, `success`, 0 page faults, 0 relaunches. 12,001 frames, `last_frame` 12000, not ended early, seed
+  12345, map 7. The recording's SHA-256 is run1806's (`494d1441…`). Players: tribe 4 (who 0, flags 7), tribe 16 (who 1), tribe 22 (who 2).
+- **The record**: `~/ron-golden/run1848/map-7/rontrace.ranges`, 14,906,950,332 bytes, SHA-256
+  `c0b62e00e281abca888f2cbd71f1727cbbdf5b2f791db726fa9e9fbaad3fea01`, split in 14 pieces by `filerun.py` and
+  compressed in place (13.89 GiB on disk before, 1.76 after). `gamelog_p.txt`, 2,890 bytes, SHA-256
+  `1c900d38a8389ac537da52a963ff58de70c9da24ca97872b79c47abfa6eed790`; `rontrace.log`, 847,480,064 bytes, SHA-256
+  `57b0ec2c6386bc2e3054f774a5b692670a6270d17fcd0812207b29582b034bb1`.
+- **Scored** (`score_recording … ~/ron-golden/run1848/map-7`, on `aad846fa0` with the pass's ammo decoder):
+  first differing state 5607 (ammo), as run1806's sums.
+- Filed with `filerun.py run1848 heldout7-row048-whole-ranges`.
+
+**What it named**: ammo on 5607, record 0, who=1's `1/41` at `2/127`, `launch_x` ours 15972, theirs 15971, `angle` and `dx` after
+it, and record 4's `sz` 588 against 585; nothing else parts on 5606 or 5607 (`print_ranges`, 2 ranges). It is the word of
+row 83's leaf on 4007 (`launch_y` 27377 against 27376), and item 4759 carries both rows. Units part on 5940: range 10957,
+record 173, `unit_masks` ours 262280, theirs 262152, `attrition` 48 against 0; builds on 7183, record 2067, `city_down` −1
+against 2068. It is row 48's take for every later word.
