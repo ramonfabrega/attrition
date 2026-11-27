@@ -1599,7 +1599,9 @@ fn every_packet_is_wired_to_its_game_or_named() {
 /// Item 4637: 955 -> 959, units whole on run1441, run1559b and run1564
 /// (one range each before) and run1266c (two): the Aztec slayer's mark,
 /// `unit_masks & 0x4000` (`take_damage@00652020`, `0x6529da`).
-pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 959, 1053);
+/// Item 4753: 959 -> 960, ammo whole on run1416 (one range before): a
+/// round leaves from its figure's own point (`docs/COMBAT.md` §22.7).
+pub(crate) const PACKETS_SCORE: (usize, usize, usize) = (107, 960, 1053);
 
 /// The packets on disk, the census's first count: the `Checksum:` line's
 /// `of` (`diff::floors::checksum_line`).
