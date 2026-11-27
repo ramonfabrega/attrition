@@ -830,7 +830,29 @@ impl Sim {
             }
         }
         let who = self.units[u].owner;
-        let Some(t) = order.target.filter(|&t| self.obj_alive(t)) else {
+        // **A dead target hands the cast to its squad's captain** (item
+        // 4765, `docs/RECGAME.md` §12.3): `do_cast`'s targeted arm at
+        // `5ec151`..`5ec182` tests the target's `ObjectData +0x8 & 1`
+        // and, clear, asks its `get_captain` (vslot `+0xe4`, the `o_up`
+        // walk); a different `o` is written to the order's `+0x8` with that
+        // object's `uid` (`+0x30`) at `+0x10`, and the captain's liveness is
+        // left to `is_valid_target` below. Row 83's Commando `2/149` keeps
+        // its paid Sniper on the Riflemen `1/57` when `1/58` dies on 4153.
+        let mut target = order.target;
+        if let Some(Obj::Unit(v)) = target
+            && !self.units[v].alive()
+        {
+            let c = self.attack_target_captain(v);
+            if c != v {
+                target = Some(Obj::Unit(c));
+                if let Some(front) = self.units[u].orders.front_mut()
+                    && let Body::Cast(cast) = &mut front.body
+                {
+                    cast.target = target;
+                }
+            }
+        }
+        let Some(t) = target.filter(|&t| self.obj_alive(t)) else {
             self.kill_current_order(u);
             return;
         };
