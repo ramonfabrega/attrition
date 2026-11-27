@@ -2927,6 +2927,83 @@ pub(crate) mod tests {
         }
     }
 
+    /// **A bribed figure keeps its own node flags** (item 4758,
+    /// `docs/RECGAME.md` §13.5): run1797. On 4058 who=2's spy bribes
+    /// who=1's BMP (TI 223); `Unit::swap_team@006118d0`'s per-guy loop
+    /// copies the turret angles (`+0x20..+0x3c`) and `turret_inc`, never
+    /// `node_flags`/`des_node_flags` (`+0x96`/`+0x98`). The copy `2/50`
+    /// prints 0 and 0 on 4059; ours copied the old figure's 15 and 1.
+    /// Every range of every line on 4059.
+    #[test]
+    fn row_133_s_bribed_bmp_keeps_its_own_node_flags_on_run1797() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 6) else {
+            eprintln!("skipping: row 133's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1797/map-7"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1797's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 133's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 4058 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        assert!(
+            built
+                .sim
+                .unit_by_o(2, 50)
+                .is_none_or(|u| !built.sim.units[u].alive()),
+            "2/50 is not yet the BMP"
+        );
+        stream.apply(built.sim.frame as i32, &mut built);
+        built.sim.command().tick();
+        assert_eq!(built.sim.frame, 4059);
+        let u = built.sim.unit_by_o(2, 50).expect("the bribed copy 2/50");
+        let unit = &built.sim.units[u];
+        assert_eq!(unit.type_index, 223, "a BMP");
+        let t = &unit.guys[0].turret;
+        assert_eq!(
+            (t.node_flags, t.des_flags, t.angles[0], t.des[0]),
+            (0, 0, 131072, 131072),
+            "the angles copied, the node flags the copy's own"
+        );
+        let set = record.first_of(4058).expect("the state's set").clone();
+        let all = record.ranges(&set).expect("the set's ranges");
+        let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+        for (line, ours) in lines.iter().enumerate() {
+            let Some(ours) = ours.as_ref() else {
+                continue;
+            };
+            let theirs: Vec<_> = all.iter().filter(|r| r.line as usize == line).collect();
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "line {line}'s ranges on 4059"
+            );
+            for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "line {line} range {k} on 4059, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+    }
+
     /// **Row 133's burned Assault Infantry lies on its scorched body**
     /// (item 4747, `docs/COMBAT.md` §42.1): run1797's ranges, the row's
     /// deaths parting on 3802 (range 37, record 18). who=2's Assault
