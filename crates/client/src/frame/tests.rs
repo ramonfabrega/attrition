@@ -68,7 +68,11 @@ pub(crate) const RUN1814B_3294_LEFT_WINDOW: [usize; 7] = [61_614, 61_397, 0, 61_
 /// the composition where the caption's text lies (4737a): 861 pixels, every
 /// one in x 881..1037, y 4..17, `Nubians: Ancient Age`.
 /// Item 4737: ours 0 → 8,749, the three crops; luma ×10 650 → 506.
-pub(crate) const RUN1814B_3294_BANNER: [usize; 7] = [9_610, 8_749, 0, 8_749, 615, 650, 506];
+/// Item 4745: 8,749 → 9,483, the caption ([`super::banner::caption_line`])
+/// in `georgiab` 14, `d4d4d4`; luma ×10 506 → 615, the photograph's. What
+/// parts is 127 glyph-edge texels, every one in x 882..1035, y 5..17, the
+/// pen and every glyph registered (4745a).
+pub(crate) const RUN1814B_3294_BANNER: [usize; 7] = [9_610, 9_483, 0, 9_483, 615, 650, 615];
 
 /// **`RUN1814B_3294_CAPS`** (item 4739; `docs/RENDERER.md` §6.15): on the
 /// same frame, the population box's opaque pixels at the screen's top
@@ -434,10 +438,15 @@ fn the_minimap_frame_on_run1814b() {
     // crop.
     let c = frame.banner_layout.origin(size.0);
     assert_eq!(c, (750, 0), "the banner's corner");
-    let banner_texel = |x: i32, y: i32| super::texel_of(&frame.banner, c, x, y);
+    // Item 4745: the caption, the Nubians' name and the Ancient Age's.
+    let caption = super::caption(&world, crate::world::CONSOLE).expect("the caption");
+    assert_eq!(caption, "Nubians: Ancient Age", "the caption on 3295");
+    assert!(frame.caption_face.is_some(), "the caption's face loads");
+    let banner = frame.banner_with(Some(&caption));
+    let banner_texel = |x: i32, y: i32| super::texel_of(&banner, c, x, y);
     let banner_mask: Vec<(i32, i32)> = (c.1..c.1 + frame.banner.h as i32)
         .flat_map(|y| (c.0..c.0 + frame.banner.w as i32).map(move |x| (x, y)))
-        .filter(|&(x, y)| banner_texel(x, y).is_some_and(|t| t[3] == 255))
+        .filter(|&(x, y)| super::texel_of(&frame.banner, c, x, y).is_some_and(|t| t[3] == 255))
         .collect();
     let banner_composed = banner_mask
         .iter()

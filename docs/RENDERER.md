@@ -7110,9 +7110,10 @@ top edge, against the photograph's pixels. **Read alone**: that
 two are the same pixels.
 
 **Not established.**
-- The caption's text (4737a): `draw_caption` asks `fonts` for lookup 14,
+- ~~The caption's text (4737a): `draw_caption` asks `fonts` for lookup 14,
   colour `d4d4d4`, its text rectangle (x0, −2) to (x1, 23), centred by
-  `write_cent_l`. Which face lookup 14 is has not been read.
+  `write_cent_l`. Which face lookup 14 is has not been read.~~ §6.22:
+  `FontFamily::get(fonts, 14, -1)`, `georgiab.ttf` 14 bold.
 - The tab under the banner, about (910..1010, 26..36), with three
   chevrons (4737b).
 - ~~The resources box and the population box (4737c, 4737d).~~ The population box: §6.15; the resources
@@ -7589,6 +7590,63 @@ building (`ObjectData::is_infiltrated`); a unit's arm (`type` 3, its
 - The display button, `collapse_button_up0..2` at x 1906..1917 (4738b).
 - `input::city_panel` takes `prefs & 2` as set (item 4261), against
   `PROFILE_PREFS_2` (4754a).
+
+## 6.22 The top of the screen: the banner's caption (item 4745)
+
+*2026-11-27, Opus 5.5. The ledger: `docs/journal/2026-11-27-item-4745.md`.
+`client::frame::banner` (`CAPTION_FACE`, `CAPTION_INK`, `CAPTION_Y`,
+`caption_line`), `client::frame` (`caption`, `MinimapFrame::banner_with`),
+`client::frame::left::write_cent_ink`; the row `RUN1814B_3294_BANNER`. No
+`crates/sim` change.*
+
+**The face.** `IFaceMainBase::draw_caption@0080f360` calls
+`FontFamily::get@00522810(fonts, 14, -1)`, the integer overload §6.20
+read for the panel: size 14, and a style of −1 takes `def_style`, bold.
+"Lookup 14" was never a `<LOOKUPS>` tag. The 1280 list's first size-14
+bold entry is `georgiab.ttf` `B`, the face the city plates already load
+(`selection::PLATE_FACE_FILE`, item 4426, `docs/HUD.md` §6; ascent 13,
+height 16).
+
+**The ink and the rectangle.** `text_color[0]` is `0xffd4d4d4` and
+`text_shadow[0]` `COLOR_NONE`, so no shadow is drawn (the shadow offsets
+are set to 1 and unused). The rectangle is the banner's own x span, with
+its y set to −2 and 23 before `Buffer::write_cent_l`, which centres the
+line as the clock's is (§6.12): the pen at y 2 on the 16-high face.
+
+**The text.** The tribe's name (`tribes[leader +0xc] +0x18`; nothing
+with no tribe), `loc_str_array +0x9d44` (`translated_strings.xml`'s
+2013th, `": "`), then the age's name: the type
+`leader +0x6eb8 → +0xdc ^ 0x62766` indexes, its `+0x74`; with that index
+zero, the first `startingtechs` category's, `Ancient Age`. Ours takes the
+tribe's `<TRIBE name>`, and the age type as `TechTree::ages[ages − 1]`
+(Classical first), or `rules.xml`'s first `startingtechs` with no age
+owned. `draw_caption` then adds two `Spot`s over the tribe's and the age's
+widths, the help hot-spots; ours has no help.
+
+**The row** (`frame::tests::the_minimap_frame_on_run1814b`), the mask the
+crops' own:
+
+| | pixels | within two levels of the photograph | mean luma ×10 |
+|---|---|---|---|
+| the photograph against the composition | 9,610 | 9,483 | 615 |
+| ours, no frame | | 0 | 650 |
+| **ours, the banner and caption** | | **9,483** | **615** |
+
+The 127 still apart are glyph-edge texels, every one in x 882..1035,
+y 5..17; the pen and every glyph register on the still beside the
+photograph (4745a).
+
+**Diff-backed**: the face, the size, the ink, the centring and the text,
+against the photograph's pixels (8,749 → 9,483). **Read alone**: the age
+for a leader past the Ancient Age (`TechTree::ages[ages − 1]` for the
+type `+0x6eb8 → +0xdc` names): run1814b is at age 0.
+
+**Not established.**
+- The 127 edge texels (4745a): the original rasterises through its
+  renderer's font atlas; ours hints and covers as §6.6 does. Whether the
+  levels part on blending or on coverage is unread.
+- A later age's name, and a nation's `alternatenames.xml`, on a
+  photograph.
 
 ## 7. What is not established, and what needs Ramon's word
 
