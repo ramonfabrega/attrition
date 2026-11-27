@@ -66,6 +66,9 @@ pub enum Atlas {
     Common,
     /// `TEX_CIV`, the nation's.
     Civ,
+    /// Item 4748: no texture, the colour itself over each piece's span
+    /// (`draw_name`'s fill of `name`).
+    Solid([u8; 3]),
 }
 
 /// **How a layer's texels are coloured.**
@@ -389,11 +392,21 @@ pub(super) fn paint_layers(
             })
             .collect();
         let mut one = blank();
-        let atlas = match layer.atlas {
-            Atlas::Common => common,
-            Atlas::Civ => civ,
-        };
-        paint(&mut one, &pieces, atlas)?;
+        match layer.atlas {
+            Atlas::Common => paint(&mut one, &pieces, common)?,
+            Atlas::Civ => paint(&mut one, &pieces, civ)?,
+            Atlas::Solid([r, g, b]) => {
+                for p in &pieces {
+                    let (px0, py0, px1, py1) = p.span;
+                    for y in py0.max(0)..py1.min(h as i32) {
+                        for x in px0.max(0)..px1.min(w as i32) {
+                            let i = (y as usize * w + x as usize) * 4;
+                            one.rgba[i..i + 4].copy_from_slice(&[r, g, b, 255]);
+                        }
+                    }
+                }
+            }
+        }
         let src = one.rgba.as_chunks::<4>().0;
         for (d, t) in out.rgba.as_chunks_mut::<4>().0.iter_mut().zip(src) {
             let mut t = *t;

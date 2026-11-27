@@ -7359,6 +7359,68 @@ general; `tile_random`'s pick on any other frame.
 - The `advanced_options` button's picture (4738c).
 - The idle citizens' button's dark (4694a) was not reached.
 
+## 6.18 The HUD's bar: the selected panel's frame (item 4748)
+
+*2026-11-26, Opus 5.5. The ledger: `docs/journal/2026-11-26-item-4748.md`.
+`client::frame::selected`, `client::frame::caps` (`Atlas::Solid`); the
+row `RUN1814B_3294_SELECTED`. No `crates/sim` change.*
+
+**Who draws it.** `IFaceSelected::on_redraw@00826420`, for one object
+(`multi == 0`) while the bar is opened, in `<IFACESELECTED name="main">`'s
+rectangles, the window at `right_window`'s corner ((655, 917) on the 1,920
+frame, §6.17), its parent the `main` rectangle (294 × 158):
+
+- `draw_border@0051d260` in white over each `misc_border` rectangle,
+  (0, 18, 129, 142) and (133, 18, 159, 142), with
+  `<IFACEBORDER name="misc_border">`'s corners and edges (`TEX_CIV`,
+  25 × 25), laid as §6.16's frames are. The edges' alpha is the shadow
+  inside each frame.
+- `draw_name@008205a0`: the font's vtable `+0x58` fills `name`
+  (0, 0, 292, 14) with the owner's `TeamColor::get_unit`; then
+  `player_color` (`TEX_CIV` (386, 84), 126 × 46, the wings) at its
+  rectangle (0, 18) under `IFACERENDERTYPE_ALPHA` in the same colour; then,
+  for a building whose city's flags hold `0x10`, `capital_star`
+  (`TEX_COMMON` (278, 158), 22 × 21) at (54, 71). The star's colour is the
+  owner's on the photograph: drawn white it agrees on 170 pixels fewer.
+- `misc_tile` by `tile_random`, the rectangles and textures paired by
+  index, from the texture's first row; then `misc` by `add_smooth` at
+  each rectangle's size, which is its texture's.
+
+**Registered before it was built**, a Python composition over item 4738's
+still, the panel's x 648..1920, y 917..1080 within two levels of the
+photograph: none 172,024; the borders 186,119; the name's fill 189,394;
+`misc_tile` 191,649; `misc` 191,732; the wings and the star in the owner's
+red 193,844.
+
+**The row** (`frame::tests::the_minimap_frame_on_run1814b`, its sixth
+assertion, §6.17's mask):
+
+| | pixels | within two levels of the photograph | mean luma ×10 |
+|---|---|---|---|
+| the photograph against the composition | 242,115 | 211,051 → **232,857** | 556 |
+| ours, no frame | | 0 | 1,161 |
+| **ours, the right side and the panel's frame** | | 211,274 → **233,080** | 552 → 545 |
+
+**Diff-backed**: the frames' corners, edges and shadow, the name's fill in
+(255, 0, 0), the wings and the star in the owner's colour, the tiles,
+against the photograph's pixels. **Read alone**: `misc`'s rectangles with
+`bottom_inverse` against the 158-row parent; the panel's other arms (a
+unit, a good, a group, an enemy's object).
+
+**Not established.**
+- `draw_build_name`'s text, `Small City -- Napata` (4748a): white with a
+  black shadow, `write_cent_l` in `name`; the window's font is
+  `FontFamily::get(fonts, 10, -1)`, `fonts.xml`'s tenth lookup,
+  `city_name_size`, 14 bold at 1280, which the photograph's sans-serif
+  does not obviously match. Read the lookup off a packet as item 4727 did.
+- The `object` button's picture and `draw_hitpoints`' bar (4748a).
+- `draw_stat`'s six figures (4748b): the stat order `{11, 1, 2, 0, 3, 15,
+  12, 13, 7, 8, 9, 10, 6, 4, 5, 14, 16..19}` filled row-major into
+  `stat_short`; column 0's back at the rectangle's right less its width
+  with the icon at its left, column 1's back at its left with the icon at
+  its right; the line `write_cent_l` over the back's span.
+- The display button (4738b), `advanced_options`' picture (4738c).
+
 ## 7. What is not established, and what needs Ramon's word
 
 ### 7.1 Not established
