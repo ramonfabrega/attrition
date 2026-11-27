@@ -950,18 +950,6 @@ impl Sim {
         home: Option<usize>,
         action: bool,
     ) {
-        if std::env::var_os("RON_PROBE_4736").is_some() {
-            println!(
-                "P4736 PATROL frame {} {}/{} to {:?} home {:?} action {}\n{}",
-                self.frame,
-                self.units[u].owner,
-                self.units[u].index,
-                point,
-                home,
-                action,
-                std::backtrace::Backtrace::force_capture()
-            );
-        }
         add_air_patrol_steps(
             self,
             point,

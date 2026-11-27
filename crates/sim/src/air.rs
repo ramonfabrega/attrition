@@ -1650,7 +1650,6 @@ impl Sim {
                 }
                 let p = bd.pos;
                 v /= vector_dist(p.x - base.x, p.y - base.y) / 768 + 1;
-                if std::env::var_os("RON_PROBE_4736").is_some() { println!("P4736 SORTIE frame {} base {}/{} city l {l} b {}/{} pos {:?} hits {} health {} ally {} v {v} best {best}", self.frame, owner, id, self.buildings[cb].owner, self.buildings[cb].index, p, bd.hits, bd.health, self.is_ally(l, owner)); }
                 if v > best {
                     best = v;
                     target = Some((l, cb));
@@ -1667,7 +1666,6 @@ impl Sim {
                 }
                 let v = (self.buildings[f].damage / 100 + 1000)
                     / (vector_dist(at.x - base.x, at.y - base.y) / 0x300 + 1);
-                if std::env::var_os("RON_PROBE_4736").is_some() { println!("P4736 SORTIE fort b {}/{} pos {at:?} damage {} v {v} best {best}", self.buildings[f].owner, self.buildings[f].index, self.buildings[f].damage); }
                 if v > best {
                     best = v;
                     target = Some((l, f));
@@ -1675,7 +1673,6 @@ impl Sim {
             }
             // The wonders (`64fb6a`..`64fda4`); a thousandth (`0x10624dd3`,
             // `sar 6` at `64fc9e`) where the silo's is a hundredth.
-            if std::env::var_os("RON_PROBE_4736").is_some() { let ws: Vec<_> = self.wonders_of(l).into_iter().map(|w| (self.buildings[w].owner, self.buildings[w].index, self.building_is(w, crate::cities::build::Ident::ForbiddenCity), self.enemy_air_defense_near(owner, self.buildings[w].pos))).collect(); println!("P4736 SORTIE wonders of {l}: {ws:?} stealth {stealth}"); }
             for w in self.wonders_of(l) {
                 if self.building_is(w, crate::cities::build::Ident::ForbiddenCity) {
                     continue;
@@ -1695,7 +1692,6 @@ impl Sim {
                     }
                 }
                 v /= vector_dist(at.x - base.x, at.y - base.y) / 0x300 + 1;
-                if std::env::var_os("RON_PROBE_4736").is_some() { println!("P4736 SORTIE wonder b {}/{} pos {at:?} damage {} v {v} best {best}", self.buildings[w].owner, self.buildings[w].index, self.buildings[w].damage); }
                 if v > best {
                     best = v;
                     target = Some((l, w));
@@ -1712,7 +1708,6 @@ impl Sim {
                 continue;
             }
             self.clear_orders(u);
-            if std::env::var_os("RON_PROBE_4736").is_some() { println!("P4736 SORTIE plane {}/{} d {d} speed {} mana {}", self.units[u].owner, self.units[u].index, self.get_speed(u, 1), self.unit_mana(u)); }
             if d >= self.get_speed(u, 1) * self.unit_mana(u) {
                 continue;
             }
@@ -1901,14 +1896,6 @@ impl Sim {
     /// run (no staging has put one beside a city).
     fn enemy_air_defense_near(&self, who: crate::Player, at: Pos) -> bool {
         let a = at.tile();
-        if std::env::var_os("RON_PROBE_4736").is_some() {
-            for (x, bd) in self.buildings.iter().enumerate() {
-                if bd.alive && self.building_ident(x) == crate::cities::build::Ident::AirDefense {
-                    let p = bd.pos.tile();
-                    println!("P4736 AA frame {} who {who} at {at:?} b#{x} {}/{} pos {:?} tile {:?} a {:?} dist {} active {} enemy {} type {:?}", self.frame, bd.owner, bd.index, bd.pos, p, a, vector_dist(p.x - a.x, p.y - a.y), bd.active, self.is_enemy(bd.owner, who), bd.ty);
-                }
-            }
-        }
         self.buildings.iter().enumerate().any(|(x, bd)| {
             bd.alive
                 && self.is_enemy(bd.owner, who)
