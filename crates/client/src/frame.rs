@@ -26,6 +26,7 @@ pub mod resources;
 pub mod right;
 pub mod selected;
 pub mod slots;
+pub mod tally;
 
 /// **The atlas's code** for a console of `ages` ages owned (0 the Ancient)
 /// whose nation's `BUILD_CONTINENT` is `build_continent`:
@@ -479,6 +480,23 @@ impl MinimapFrame {
         v
     }
 
+    /// **The military tally** as layers (item 4761, [`tally`]): `lines`
+    /// right-aligned above the bar's right end, in the caption's face.
+    pub fn tally_layers(&self, size: (i32, i32), lines: &[String]) -> Vec<crate::gpu::ScreenLayer> {
+        let Some(face) = &self.caption_face else {
+            return Vec::new();
+        };
+        let t = tally::compose(size, face, lines);
+        let c = tally::origin(size);
+        let (x1, y1) = (
+            (c.0 + t.w as i32).min(size.0),
+            (c.1 + t.h as i32).min(size.1),
+        );
+        layers_of(size, (c.0.max(0), x1, c.1.max(0), y1), |x, y| {
+            texel_of(&t, c, x, y).filter(|t| t[3] > 0)
+        })
+    }
+
     /// **The banner with its caption** (item 4745, [`banner`]):
     /// `write_cent_l` of `caption` in the banner's span from y −2 to 23, in
     /// the caption's face and colour, over the composed crops. The banner
@@ -795,6 +813,21 @@ pub fn caption(world: &crate::world::World, who: sim::Player) -> Option<String> 
         Some(n) => tree.types.get((*tree.ages.get(n)?)?)?.name.clone(),
     };
     Some(banner::caption_line(tribe, &age))
+}
+
+/// **The military tally's lines in `world`** for `who` (item 4761,
+/// [`tally::military_lines`]): the units of the scene and the cities
+/// alive and owned, `city_num`'s count.
+pub fn tally_lines(world: &crate::world::World, who: sim::Player) -> Vec<String> {
+    let sim = world.runner.sim();
+    let cities = sim
+        .cities
+        .cities
+        .iter()
+        .filter(|c| c.alive && c.owner == who)
+        .count() as i32;
+    let scene = world.runner.scene(None);
+    tally::military_lines(&scene, &world.names.units, who, cities)
 }
 
 /// **The console's frame** in `world`: the atlas its nation and age pick.
