@@ -543,22 +543,16 @@ impl Sim {
         }
         let me = Obj::Unit(u);
         let cap = self.squad_captain(u);
-        let Some(k) = self.action_of(cap) else {
+        let Some((held, mandatory)) = self.action_attack_target(cap) else {
             return SquadHead::Nothing;
         };
-        let Body::Attack(a) = self.units[cap].orders[k].body else {
-            return SquadHead::Nothing;
-        };
-        let held = a
-            .target
-            .and_then(|(ox, whom, _)| self.object_holding(whom, ox));
         if let Some(t) = held
             && self.valid_target(me, t)
             && ((self.units[u].combat.stance != combat::Stance::StandGround
                 && !(self.hard_trench(u) && self.hard_trench(cap)))
                 || self.is_in_range(me, t))
         {
-            return SquadHead::Captain(t, a.mandatory);
+            return SquadHead::Captain(t, mandatory);
         }
         SquadHead::Search
     }
@@ -1668,20 +1662,15 @@ impl Sim {
         if cap == u {
             return;
         }
-        // `get_action`'s order must be an ATTACK — `get_type() == 10`.
-        let Some(i) = self.action_of(cap) else {
-            return;
-        };
-        if !matches!(self.units[cap].orders[i].body, Body::Attack(_)) {
-            return;
-        }
-        let Some(t) = self.units[cap].combat.target else {
+        // `get_action`'s order must be an ATTACK — `get_type() == 10` —
+        // and the target and mandatory byte are that order's
+        // ([`Self::action_attack_target`], item 4771).
+        let Some((Some(t), mandatory)) = self.action_attack_target(cap) else {
             return;
         };
         if !self.valid_target(Obj::Unit(u), t) {
             return;
         }
-        let mandatory = self.units[cap].combat.mandatory;
         self.add_attack_order(u, t, QueuePos::New, mandatory, false);
     }
 

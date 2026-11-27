@@ -687,7 +687,7 @@ impl Sim {
         add_gather_order_steps(&mut v, b, pos, action);
     }
 
-    fn attack_target_id(&self, target: Obj) -> (i16, crate::Player, u16) {
+    pub(crate) fn attack_target_id(&self, target: Obj) -> (i16, crate::Player, u16) {
         match target {
             Obj::Unit(v) => (self.units[v].index, self.units[v].owner, self.units[v].uid),
             Obj::Building(b) => (
@@ -696,6 +696,26 @@ impl Sim {
                 self.buildings[b].uid,
             ),
         }
+    }
+
+    /// **A unit's action attack as a squad reads it**: when `get_action`'s
+    /// order is an `ATTACK` (`vslot +0x10 == 10`), the object now holding
+    /// its `(ox, whom)` (vslot `+0xcc`'s `+8`/`+0xc`; `None` for a cleared
+    /// pair) and its mandatory byte `+0x1c`. `None` when the action is
+    /// anything else. Every captain read in the original goes through the
+    /// order — `find_melee_target@005ff9c0`'s squad head, `fight@005fd4d0`'s
+    /// mirror, `think`'s captain arm — never through [`combat::State`]'s
+    /// copy, which [`Self::add_attack_order`] writes for a `QUEUE_LAST`
+    /// append behind the head too (item 4771, `docs/RECGAME.md` §13.3).
+    pub(crate) fn action_attack_target(&self, u: usize) -> Option<(Option<Obj>, bool)> {
+        let k = self.action_of(u)?;
+        let Body::Attack(a) = self.units[u].orders[k].body else {
+            return None;
+        };
+        let held = a
+            .target
+            .and_then(|(ox, whom, _)| self.object_holding(whom, ox));
+        Some((held, a.mandatory))
     }
 
     /// Retarget the current attack without rewriting other orders in the queue.
