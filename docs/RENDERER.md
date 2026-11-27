@@ -7296,6 +7296,69 @@ flashing backs, a closed resource area).
 - The pictures' edge rows against the dividers, and the dark runs over
   the figures (4742c).
 
+## 6.17 The HUD's bar: the right side (item 4738)
+
+*2026-11-26, Opus 5.5. The ledger: `docs/journal/2026-11-26-item-4738.md`.
+`client::frame::right`, `client::frame::left` (`Fill::Mirror`); the row
+`RUN1814B_3294_SELECTED`. No `crates/sim` change.*
+
+**Who draws it.** `IFaceMainBase::on_redraw@00811600`, while the bar is
+opened, copies `bar` (`TEX_CIV` (390, 131), 122 × 34) with its left and
+right swapped and tiles it by `tile_horiz` from `mid_window`'s right edge
+to the frame's. `on_window_redraw@00811b60` lays `back` (`TEX_CIV` (0, 371),
+160 × 141) by `tile_random@0051f060` over `right_window`: (655, 34) to the
+right edge less 14, 161 rows. `tile_random` draws bands of the crop's
+height, and for each band `Random::get(0, 1)` picks the crop or the crop of
+the same size one row below it. The five buttons `stats`, `chat`, `diplo`,
+`ping` and `advanced_options` are `<IFACEMAINBASE>`'s, each its `tex` at
+its rectangle (`right_inverse`, negative `width`).
+
+**Registered before it was built**, on run1814b's photograph at frame 3294:
+- the strip: every column of x 648..1920 at y 883 is the crop's column
+  `(769 − x) mod 122`, 32 of 32 rows (the last two lie under the panel).
+  Unmirrored, no offset registers above 272 of 3,904;
+- the back at (655, 917): the third and fourth tiles 22,560 of 22,560, and
+  the 20-row band below at y 1058, from the crop's first row, 3,200 of
+  3,200 per tile. Both bands took the crop, not the alternate;
+- `stats` (1891, 893) 475 of 475, `chat` (1861, 893) 513 of 513, `diplo`
+  (1810, 893) 912 of 912, `ping` (1782, 893) 475 of 475, where the
+  rectangles resolve; `advanced_options` at (1754, 893) 190 of 456: theirs
+  is another picture (4738c);
+- the selected window's `misc_border` corner at (655, 935): the window's
+  origin is `right_window`'s, (655, 917), with `misc_border`'s (0, 18).
+
+**Order.** The minimap window's back is 339 wide, to x 655, over the strip.
+The parent's strip goes first; drawn after, it cost the minimap row 185.
+
+**The row** (`frame::tests::the_minimap_frame_on_run1814b`, its sixth
+assertion): the right side's opaque pixels, x 648..1920, y 883..1080,
+
+| | pixels | within two levels of the photograph | mean luma ×10 |
+|---|---|---|---|
+| the photograph against the composition | 242,115 | 211,051 | 556 |
+| ours, no frame (before) | | 0 | 1,161 |
+| **ours, the right side** | | **211,274** | 552 |
+
+What parts is the selected panel, about 31,000 of the pixels in
+x 655..951: `IFACESELECTED`'s borders, the red title `Small City --
+Napata`, the picture, the star and the six figures (4738a). The rest: the
+display button at x 1906..1917 (4738b), `advanced_options` (4738c) and the
+bottom rows.
+
+**Diff-backed**: the strip's mirror and phase, the back's place and both
+bands, four buttons' places, against the photograph's pixels. **Read
+alone**: that the strip's tiles start at `mid_window`'s right edge in
+general; `tile_random`'s pick on any other frame.
+
+**Not established.**
+- `IFaceSelected::on_redraw@00826420`'s drawing (4738a): `draw_background`,
+  `misc_border` by `draw_border` over two rectangles, `draw_stat` over the
+  `stat_short` rectangles, `draw_hitpoints`, `draw_name`, `misc_tile` by
+  `tile_random`, `misc` by `add_smooth`; the `object` button's picture.
+- The display button, `collapse_button_up0..2` (4738b).
+- The `advanced_options` button's picture (4738c).
+- The idle citizens' button's dark (4694a) was not reached.
+
 ## 7. What is not established, and what needs Ramon's word
 
 ### 7.1 Not established
