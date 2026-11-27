@@ -595,6 +595,30 @@ pub(crate) mod tests {
         while built.sim.frame <= to {
             crate::diff::harness::debug_watch(&built, built.sim.frame);
             crate::diff::harness::debug_armies(&built, built.sim.frame);
+            if built.sim.frame >= to - 2 {
+                for (slot, a) in built.sim.ai.armies[1].valid() {
+                    if slot != 1 {
+                        continue;
+                    }
+                    for &u in &a.units {
+                        let un = &built.sim.units[u];
+                        let ords: Vec<String> = un
+                            .orders
+                            .iter()
+                            .map(|o| format!("{}", o.index()))
+                            .collect();
+                        eprintln!(
+                            "  O f{} 1/{} at ({},{}) orders [{}] tgt {:?}",
+                            built.sim.frame,
+                            un.index,
+                            un.pos.x,
+                            un.pos.y,
+                            ords.join(" "),
+                            un.combat.target
+                        );
+                    }
+                }
+            }
             stream.apply(built.sim.frame as i32, &mut built);
             built.sim.command().tick();
         }
