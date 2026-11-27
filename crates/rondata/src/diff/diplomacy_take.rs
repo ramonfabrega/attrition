@@ -1931,8 +1931,10 @@ pub(crate) fn recon4300_2() -> Option<(String, String)> {
 /// (+599, item 4325) with `calc_cost`'s diplomacy wall, the same lobby's
 /// style 0 (`docs/PATHFINDER.md` §5). The next parting, on 4801, is ours 32
 /// draws to theirs' 31 at index 10 (ours `Unit::move_step+0x823`, theirs
-/// `Guy::move+0x19f`); not read.
-pub(crate) const RECON4300_2_WORD: i64 = 4801;
+/// `Guy::move+0x19f`); not read. **5110** (+309, item 4766): a rival's
+/// running wonder clock counts one builder more at a computer's wonder
+/// site (`docs/AI.md` §69.7); not read past.
+pub(crate) const RECON4300_2_WORD: i64 = 5110;
 
 /// A recon of run1575's lobby, walked from run1482's start re-read at style
 /// 0 and at `difficulty`, with `script` staged and no window command (item
