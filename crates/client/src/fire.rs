@@ -490,11 +490,12 @@ mod tests {
     /// Item 4687: the drawn plume 10,762 → 10,765 of 19,958 → 19,959, past 2,264 → 2,263, dense 981 → 980; the packet's 11,700 → 11,707: the line passes in the mesh, their pushes redone for the texture alone, and `leech_codes`' line half (item 4687, `docs/RENDERER.md` §6.8) move the intersections some pieces are picked on, so the frame's mean and its white.
     /// Item 4690: the drawn plume 10,765 → 10,764 (a named fall of one), the packet's 14,801 → 14,800 on the second reader (a named fall of one): the candidate picked on the mesh's own lines (item 4690, `docs/RENDERER.md` §6.9) lays eleven more of the packet's pieces at the crossroads and leaves the T at (17–19, 163) on the mesh's yellow (4690a), so the frame's mean and its white.
     /// Item 4768: the drawn plume 10,764 → 10,763 of 19,959 → 19,961 (a named fall of one), past 2,263 → 2,262; the packet's 14,800 → 14,798 and 11,707 → 11,709, the fires off 16,891 → 16,893: the buildings' `EXISTEVENT` addons drawn (item 4768, `docs/RENDERER.md` §6.27) move the frame's mean, so its white.
+    /// Item 4772: the drawn plume of 19,961 → 19,960, past 2,262; the packet's 14,798 → 14,800 and dense 980 → 979, the fires off 16,893 → 16,892, the second reader 11,709 → 11,707, past 1,865 → 1,864, 14,029 → 14,028 and dense 1,835 → 1,834 (named falls of one and two): the redo walks one list in push order (item 4772, `docs/RENDERER.md` §6.9): (19, 163) lays the packet's piece and (18, 163) is left bare, so the frame's mean and its white.
     const RUN1559B_3279_PLUME: PlumeRows = [
-        ((10763, 19961, 2262), (14798, 980)),
-        ((0, 19961, 0), (0, 0)),
-        ((19961, 19961, 0), (16893, 3068)),
-        ((11709, 19961, 1865), (14029, 1835)),
+        ((10763, 19960, 2262), (14800, 979)),
+        ((0, 19960, 0), (0, 0)),
+        ((19960, 19960, 0), (16892, 3068)),
+        ((11707, 19960, 1864), (14028, 1834)),
     ];
     /// **`RUN1570_PLUME`**, on run1570's frame 3327: as run1559b's. Seen
     /// at **316** of 18,871 (made to fail: 944). Item 4233: **316 →
@@ -526,11 +527,12 @@ mod tests {
     /// Item 4687: the drawn plume 10,834 → 10,829 of 19,065 → 19,066 (a named fall of five), past 1,934 → 1,933, dense 981 → 982; the packet's 12,004 → 12,003 (a named fall of one): the line passes in the mesh, their pushes redone for the texture alone, and `leech_codes`' line half (item 4687, `docs/RENDERER.md` §6.8) move the intersections some pieces are picked on, so the frame's mean and its white.
     /// Item 4690: past 1,933 → 1,932, the packet's 14,671 → 14,670 on the second reader (a named fall of one): the candidate picked on the mesh's own lines (item 4690, `docs/RENDERER.md` §6.9) lays eleven more of the packet's pieces at the crossroads and leaves the T at (17–19, 163) on the mesh's yellow (4690a), so the frame's mean and its white.
     /// Item 4768: the drawn plume 10,829 → 10,827 of 19,066 (a named fall of two), the packet's 14,670 → 14,669 and 12,003 → 12,005, the fires off 16,026 → 16,025: the buildings' `EXISTEVENT` addons drawn (item 4768, `docs/RENDERER.md` §6.27) move the frame's mean, so its white.
+    /// Item 4772: the drawn plume 10,827 → 10,828, the packet's 14,669 → 14,670; the second reader past 1,489 → 1,488 (a named fall of one), 13,384 → 13,383 and dense 2,239 → 2,240: the redo walks one list in push order (item 4772, `docs/RENDERER.md` §6.9): (19, 163) lays the packet's piece and (18, 163) is left bare, so the frame's mean and its white.
     const RUN1570_PLUME: PlumeRows = [
-        ((10827, 19066, 1932), (14669, 982)),
+        ((10828, 19066, 1932), (14670, 982)),
         ((0, 19066, 0), (0, 0)),
         ((19066, 19066, 0), (16025, 3041)),
-        ((12005, 19066, 1489), (13384, 2239)),
+        ((12005, 19066, 1488), (13383, 2240)),
     ];
 
     #[test]

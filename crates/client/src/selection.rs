@@ -1227,10 +1227,11 @@ mod tests {
     /// `[1441, 1325]`, a named fall of one: the plates' and the asphalt's pieces on the packet's element on more tiles (item 4677, `docs/RENDERER.md` §6.5) move the frame's mean, so its white.
     /// Item 4687: selected `[1441, 1325]` → `[1442, 1326]`: the line passes in the mesh, their pushes redone for the texture alone, and `leech_codes`' line half (item 4687, `docs/RENDERER.md` §6.8) move the intersections some pieces are picked on, so the frame's mean and its white.
     /// Item 4690: selected `[1442, 1326]` → `[1438, 1322]`, a named fall of four: the candidate picked on the mesh's own lines (item 4690, `docs/RENDERER.md` §6.9) lays eleven more of the packet's pieces at the crossroads and leaves the T at (17–19, 163) on the mesh's yellow (4690a), so the frame's mean and its white.
+    /// Item 4772: selected `[1438, 1322]` → `[1437, 1321]`, a named fall of one: the redo walks one list in push order (item 4772, `docs/RENDERER.md` §6.9): (19, 163) lays the packet's piece and (18, 163) is left bare, so the frame's mean and its white.
     pub const RUN1559B_3279_SELECTED: ([[usize; 2]; 3], [usize; 2], [usize; 2]) = (
         [[4551, 1477], [4157, 721], [5398, 312]],
         [100, 35],
-        [1438, 1322],
+        [1437, 1321],
     );
 
     /// **The band's texture is one tent** (item 4421): the install's first

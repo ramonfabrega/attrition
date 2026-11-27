@@ -346,8 +346,16 @@ fn the_records_against_the_packet_s() {
 /// does. The T at (17–19, 163) loses two: the mesh's yellow there is
 /// `10`, `12` and `06` where the packet's is none, and (18, 163)'s white
 /// `21` where theirs is `33` (4690a).
+/// **Item 4772: white 597 → 598, yellow 596 → 597, the packet's piece 480
+/// → 481; laid 500 → 499, a named fall.** The redo walks one list in push
+/// order, the line passes' tiles cleared and leeched in their place
+/// (`docs/RENDERER.md` §6.9): (19, 163) is the packet's `4500cf04` and lays
+/// its element 1 at orientation 3. (18, 163)'s yellow `12` → `02` and white
+/// `21` → `31`, against the packet's none and `33`, and it lays no page-0
+/// piece where it laid 20·2 (theirs 17·4); (17, 163) holds at `10`. The two
+/// are never on one list after row 164's clear (4772a).
 const RUN1559B_RECORDS: (usize, usize, usize, usize, usize, usize, usize, usize) =
-    (599, 599, 599, 597, 596, 580, 500, 480);
+    (599, 599, 599, 598, 597, 580, 499, 481);
 
 /// **The ring's tiles** (item 4199, §3.19; the rule committed before its
 /// count): for every building whose type is a city (`is(VILLAGE)`), the
@@ -453,9 +461,10 @@ const RING_MOVE: (i32, i32) = (12, 0);
 /// Item 4677: drawn luma 21 → 20 of 24, a named fall: tile (13, 156), a 70-pixel sliver, takes the packet's piece (element 18 at its orientation 0, where ours was 2), and its luma goes 50.7 → 48.6 against theirs 58.5, over the bar.
 /// Item 4687: drawn luma 20 → 21 of 24, a rise back to the count before item 4677's named fall: the line passes in the mesh, their pushes redone for the texture alone, and `leech_codes`' line half (item 4687, `docs/RENDERER.md` §6.8) move the intersections some pieces are picked on, so the frame's mean and its white.
 /// Item 4690: drawn hue 21 → 20 of 24, a named fall: tile (17, 163), 767 pixels, lays no piece on page 0 where theirs lays element 17, since the mesh's yellow there is `10` where the packet's is none and the candidate matches no page-0 orientation (4690a); the still's (163, 162, 61) against theirs (148, 126, 103).
+/// Item 4772: drawn luma 21 → 20 of 24, a named fall: tile (18, 163), 81 pixels, lays no piece where it laid 20·2, the still's (148, 137, 91) Y 135.4 → (161, 162, 60) Y 150.3 against theirs (124, 119, 121) Y 120.6; (19, 163), 425 pixels, lays the packet's piece, (144, 138, 107) Y 136.2 → (147, 138, 108) Y 137.2 against theirs (147, 136, 108) Y 136.1, agreeing on both before and after. Hue holds at 20.
 const RUN1559B_3279_RING: [[(usize, usize); 2]; 3] = [
     [(1, 24), (15, 24)],
-    [(20, 24), (21, 24)],
+    [(20, 24), (20, 24)],
     [(1, 24), (13, 24)],
 ];
 /// **`RUN1570_RING`** (item 4199), the same on run1570's photograph: hue

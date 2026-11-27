@@ -268,7 +268,11 @@ pub(crate) mod tests {
         // Item 4690: run1559b's ground row 1,106 → 1,105 on both sides, a
         // named fall of one, as `RUN1559B_3279_GROUND_STILL` (item 4690,
         // `docs/RENDERER.md` §6.9).
-        ([959, 1105, 1080], [959, 1105, 1109]),
+        // Item 4772: run1559b's luma 1,080 → 1,079 off and 1,109 → 1,108
+        // on, named falls of one: the redo walks one list in push order
+        // (item 4772, `docs/RENDERER.md` §6.9), (18, 163) left bare, so
+        // the frame's mean and its white.
+        ([959, 1105, 1079], [959, 1105, 1108]),
         // Item 4338: run1564 off row 1,803 → 1,851, luma 1,840 → 1,841; on
         // row 1,798 → 1,852, luma 1,868 → 1,866 (a named fall of two): the
         // surf's lists blended on the HDR target (`docs/RENDERER.md` §3.30).
@@ -308,8 +312,9 @@ pub(crate) mod tests {
     /// Item 4292: drawn run1559b 959 → 960 (a rise from 959), run1564 678 → 676 and run1570 1,042 → 1,041 (a named fall from 678 and 1,042); untinted 954 → 965, 563 → 675, 1,036 → 1,049: the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22), the drawn side now [`LAND_LIGHT_ROWS`]' on. Its residue is parked 4292d.
     /// Item 4311: run1559b's untinted side 965 → 966; the drawn side holds: the map's edge border drawn (item 4311, `docs/RENDERER.md` §3.15) moves the frame's mean, so its white.
     /// Item 4319: drawn run1559b 960 → 959 (a named fall of one), run1564 676 → 679 of 679; untinted 966 → 964 and 675 → 674 (named falls): the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24).
+    /// Item 4772: untinted run1559b 964 → 965 of 986: the redo walks one list in push order (item 4772, `docs/RENDERER.md` §6.9): (19, 163) lays the packet's piece and (18, 163) is left bare, so the frame's mean and its white.
     pub(crate) const GRASS_HUE: [((usize, usize), (usize, usize)); 3] = [
-        ((964, 986), (959, 986)),
+        ((965, 986), (959, 986)),
         ((674, 679), (679, 679)),
         ((1049, 1073), (1041, 1073)),
     ];
