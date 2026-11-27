@@ -2878,7 +2878,10 @@ pub(crate) mod tests {
             stream.apply(built.sim.frame as i32, &mut built);
             built.sim.command().tick();
         }
-        let b = built.sim.building_by_o(1, 2021).expect("who=1's building 2021");
+        let b = built
+            .sim
+            .building_by_o(1, 2021)
+            .expect("who=1's building 2021");
         let bd = &built.sim.buildings[b];
         assert_eq!(
             (bd.z, built.sim.world.tile_z(bd.pos.tile())),
