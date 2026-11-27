@@ -7648,6 +7648,68 @@ type `+0x6eb8 → +0xdc` names): run1814b is at age 0.
 - A later age's name, and a nation's `alternatenames.xml`, on a
   photograph.
 
+## 6.23 The military tally above the bar's right end (item 4761)
+
+**The window.** The photograph's `MILITARY`, `Scout: 1` and `Cities: 1`
+are `StatWin`'s military page. The strings are `translated_strings.xml`'s
+3474th, `MILITARY` (`loc_str_array +0x10f68`), and its 3475th, `Cities`
+(`+0x10f7c`). The only function that cites either is
+`StatWin::setup_entries@007ed7b0`. `StatWin::init@007f0730` reads
+`<STATWIN name="statwin">` (500 × 400) from `interface.xml`. It sets the
+window's bottom to `scaled_screen_ys − 0xc4` and moves its right edge to the
+console's width. The window is therefore x `[W − 500, W)`, y `[0, H − 196)`:
+on a 1920 × 1080 screen, x 1420..1919 and y 0..883.
+
+**The page.** `StatWin::on_redraw@007f0e70` draws when the profile's
+`prefs & 4` is set and `stat_mode` is not 0. It calls `setup_entries`, and
+`stat_mode` 1 is the military page. That page is:
+1. The heading.
+2. For each unit type in type order, the leader's count of that type, where
+   the count is not zero. The type is skipped if it is a worker
+   (`TypeData::is_worker`), an `is(CARA)` (`TypeIndex` 0x3b), a merchant, or
+   an `is(FISHERMEN)` (0x13d). The line is the type's `NAME`, `": "`
+   (`+0x10c20`) and the count.
+3. The counts of barracks, stables, siege factories, docks, airbases,
+   missile silos, towers and forts at the leader's current upgrade of each,
+   where the count is not zero.
+4. `Cities: ` and the leader's `city_num`, where it is not zero.
+5. The lookouts' count, likewise.
+
+`add_line@007f0660` stores every line in `WHITE`, whatever colour it is
+passed.
+
+**The drawing.** `on_redraw` walks the lines from the last to the first. Its
+pen starts at the window's height less 3. Each line raises the pen by the
+face's height, then `Buffer::write_right_l` ends the line at the window's
+width less 3, over a `BLACK` shadow. The face is `FontFamily::get(fonts,
+int_str_array +0x1e618, 12, −1, 1)`, the string overload, whose tag is
+`data_size`. With line flag 1 the tag is `+0x1e62c`, `data_defeat_size`.
+`fonts.xml` gives `data_size` as 14 bold at 1280, and the first such entry
+is `georgiab.ttf`: §6.22's caption face. The page draws no back.
+
+**Ours.** `client::frame::tally`: `military_lines` builds the page, and
+`compose` writes it. `FrameArt::tally_layers` lays it at
+`tally::origin`. `frame::tally_lines` reads the world: the scene's living
+units and garrisons of the console by `type_index`, and the cities alive
+and owned. On run1814b's 3295 the page is `MILITARY`, `Scout: 1`,
+`Cities: 1`, as the photograph's. `RUN1814B_3294_TALLY` counts every pixel
+of x 1780..1919, y 830..883. Ours within two levels of the photograph's
+went from 4,937 to 6,129 of 7,560, and the luma ×10 from 777 to 911,
+against the photograph's 914. By eye, the place, the face and the shadow
+register.
+
+**Not established.**
+- The building lines and the lookouts (4761a). run1814b's console has none
+  of them, so no row reaches them.
+- The leader's per-type count (`leader +0x570e`, a `ushort` per type) is
+  replaced by a count of the scene's units. The `is(CARA)` and
+  `is(FISHERMEN)` tests are lineage tests, but ours compares the index
+  (4761b).
+- `city_num` against our count of owned cities: the two agree on run1814b,
+  but no reading settles the Forbidden City or a city being razed.
+- The profile's `prefs & 4` and `stat_mode` 1 are taken from the photograph.
+  Neither is read from a profile.
+
 ## 7. What is not established, and what needs Ramon's word
 
 ### 7.1 Not established

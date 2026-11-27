@@ -133,6 +133,20 @@ pub(crate) const RUN1814B_3294_RESOURCES: [usize; 7] = [11_986, 11_827, 0, 11_67
 pub(crate) const RUN1814B_3294_SELECTED: [usize; 7] =
     [242_115, 241_199, 0, 241_422, 556, 1_161, 556];
 
+/// **`RUN1814B_3294_TALLY`** (item 4761; `docs/RENDERER.md` §6.23): on
+/// the same frame, the band above the bar's right end where `StatWin`'s
+/// military page writes `MILITARY`, `Scout: 1` and `Cities: 1`, x 1780 to
+/// 1919 and y 830 to 883, every pixel: `[pixels, ours within two levels of
+/// the photograph's with no frame drawn, with it, the photograph's mean
+/// luma, ours with no frame, ours with it]`, the lumas as
+/// [`RUN1814B_3294_MINIMAP_FRAME`]'s.
+/// Seen red at `[0; 6]`. Item 4761: the three lines in `georgiab` 14,
+/// white over a black shadow, right-aligned at x 1917, bottom-up from
+/// y 881 ([`super::tally`]): ours 4,937 → 6,129, luma ×10 777 → 911
+/// against the photograph's 914. By eye the lines register; what parts is
+/// the terrain under the band.
+pub(crate) const RUN1814B_3294_TALLY: [usize; 6] = [7_560, 4_937, 6_129, 914, 777, 911];
+
 /// The banner as interface.xml writes it, on a cut of its own text.
 #[test]
 fn the_banner_lays_out() {
@@ -611,6 +625,25 @@ fn the_minimap_frame_on_run1814b() {
         lum(&right_mask, &framed),
     ];
     println!("RUN1814B_3294_SELECTED: {right_row:?}");
+    // Item 4761: the military tally, `StatWin`'s page 1.
+    let tally = super::tally_lines(&world, crate::world::CONSOLE);
+    assert_eq!(
+        tally,
+        vec!["MILITARY", "Scout: 1", "Cities: 1"],
+        "the console's military page on 3295"
+    );
+    let tally_mask: Vec<(i32, i32)> = (830..size.1.min(884))
+        .flat_map(|y| (1780..size.0).map(move |x| (x, y)))
+        .collect();
+    let tally_row = [
+        tally_mask.len(),
+        on(&tally_mask, &bare, &photo.rgba),
+        on(&tally_mask, &framed, &photo.rgba),
+        lum(&tally_mask, &photo.rgba),
+        lum(&tally_mask, &bare),
+        lum(&tally_mask, &framed),
+    ];
+    println!("RUN1814B_3294_TALLY: {tally_row:?}");
     let row = [
         mask.len(),
         atlas_agrees,
@@ -627,4 +660,5 @@ fn the_minimap_frame_on_run1814b() {
     assert_eq!(caps_row, RUN1814B_3294_CAPS);
     assert_eq!(res_row, RUN1814B_3294_RESOURCES);
     assert_eq!(right_row, RUN1814B_3294_SELECTED);
+    assert_eq!(tally_row, RUN1814B_3294_TALLY);
 }
