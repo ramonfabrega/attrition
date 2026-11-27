@@ -476,6 +476,11 @@ pub trait SpotView {
         who: Player,
         exempt: Option<usize>,
     ) -> bool;
+    /// `find_nearby_spot`'s region gate (`param_16`, `0061df5a`..): the
+    /// tile's `WorldData::get_tregion` with the coastal `region2`
+    /// refinement ([`crate::world::World::tregion_alt`]). Asked only when
+    /// [`spot_ring`] is handed a region.
+    fn tregion(&self, t: Pos) -> Option<u16>;
 }
 
 /// [`SpotView`] over a [`Sim`].
@@ -519,13 +524,17 @@ impl SpotView for SimSpot<'_> {
     ) -> bool {
         self.0.find_unit_ordered_with_radius(r, at, who, exempt)
     }
+    fn tregion(&self, t: Pos) -> Option<u16> {
+        self.0.world.tregion_alt(t)
+    }
 }
 
 /// The ring sweep of `UnitType::find_nearby_spot@0061de70`, over a
 /// [`SpotView`] (the body of [`Sim::spot_sweep`]). `p` is the asking
 /// type's record, `transport` its `unit_flags & 0x10`, `range` is
 /// `(min, max, step)`, `footprint` the building to keep off and whether a
-/// farm is exempt.
+/// farm is exempt, `region` the original's last argument (`param_16`; `None`
+/// is its `-1`).
 #[allow(clippy::too_many_arguments)]
 pub fn spot_ring(
     view: &impl SpotView,
@@ -538,6 +547,7 @@ pub fn spot_ring(
     footprint: Option<(usize, bool)>,
     coll: Coll,
     uber: bool,
+    region: Option<u16>,
 ) -> Option<Pos> {
     let (min, max, step) = range;
     let mut max = max;
@@ -614,6 +624,17 @@ pub fn spot_ring(
                 cand.y.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
             );
             if !view.tile_in_bounds(c.tile()) {
+                continue;
+            }
+            // **The region gate** (`param_16 >= 0`, `0061e0c4`..`0061e14c`,
+            // item 4741): the first test after the bounds — a candidate
+            // whose tile's `get_tregion` (coastal `region2` on an ocean
+            // tile of a `0x100` cell) is not the asked region is passed
+            // over. Only `Unit::find_attack_pos@00601280` passes one: a
+            // land asker's own region against a sea target.
+            if let Some(r) = region
+                && view.tregion(c.tile()) != Some(r)
+            {
                 continue;
             }
             if !air && view.tile_mask(c.tile()) & crate::world::tile::BLOCKED != 0 {
@@ -2915,6 +2936,62 @@ impl Sim {
         coll: Coll,
         uber: bool,
     ) -> Option<Pos> {
+        self.spot_sweep_in(
+            who,
+            centre,
+            min,
+            max,
+            step,
+            angle,
+            footprint_of,
+            coll,
+            uber,
+            None,
+        )
+    }
+
+    /// [`Sim::find_nearby_spot`] with the original's region argument
+    /// (`param_16`): only spots in `region` are taken
+    /// (`Unit::find_attack_pos@00601280:362`, item 4741).
+    #[allow(clippy::too_many_arguments)] // as `find_nearby_spot`
+    pub(crate) fn find_nearby_spot_in_region(
+        &self,
+        u: usize,
+        centre: Pos,
+        min: i32,
+        max: i32,
+        step: i32,
+        angle: Angle,
+        region: Option<u16>,
+    ) -> Option<Pos> {
+        self.spot_sweep_in(
+            Seeker::Unit(u),
+            centre,
+            min,
+            max,
+            step,
+            angle,
+            None,
+            Coll::Pairwise,
+            false,
+            region,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)] // as `spot_sweep`
+    fn spot_sweep_in(
+        &self,
+        who: Seeker,
+        centre: Pos,
+        min: i32,
+        max: i32,
+        step: i32,
+        angle: Angle,
+        footprint_of: Option<usize>,
+        coll: Coll,
+        uber: bool,
+        region: Option<u16>,
+    ) -> Option<Pos> {
         let p = match who {
             Seeker::Unit(u) => self.profile(Obj::Unit(u)),
             Seeker::Type(t) | Seeker::TypeFor(t, _) => self.tables.unit_types[t].combat,
@@ -2934,6 +3011,7 @@ impl Sim {
             footprint_of.map(|b| (b, farm_ok)),
             coll,
             uber,
+            region,
         )
     }
 }
