@@ -5031,7 +5031,15 @@ pub(crate) mod tests {
         );
         let air = sim::territory::attrition::Domain::Air;
         let land = sim::territory::attrition::Domain::Land;
-        let cases: [(&Battery, usize, &str, i64, Vec<Shooter>, Vec<[i32; 6]>); 2] = [
+        type Case = (
+            &'static Battery,
+            usize,
+            &'static str,
+            i64,
+            Vec<Shooter>,
+            Vec<[i32; 6]>,
+        );
+        let cases: [Case; 2] = [
             (
                 &FIFTH,
                 4,
