@@ -472,6 +472,19 @@ pub fn write_cent(
     line: &str,
     shadow: bool,
 ) {
+    write_cent_ink(win, face, rect, line, [255, 255, 255], shadow);
+}
+
+/// **`write_cent_l`** in `ink`, with or without the black shadow (item
+/// 4745: the caption's `0xffd4d4d4` over `COLOR_NONE`).
+pub fn write_cent_ink(
+    win: &mut Texels,
+    face: &crate::selection::PlateFace,
+    rect: Span,
+    line: &str,
+    ink: [u8; 3],
+    shadow: bool,
+) {
     let (x0, y0, x1, y1) = rect;
     let Some(tw) = face.text_width(line) else {
         return;
@@ -489,9 +502,9 @@ pub fn write_cent(
         .collect();
     let h = face.height();
     let inks: &[([u8; 3], (i32, i32))] = if shadow {
-        &[([0, 0, 0], (1, 1)), ([255, 255, 255], (0, 0))]
+        &[([0, 0, 0], (1, 1)), (ink, (0, 0))]
     } else {
-        &[([255, 255, 255], (0, 0))]
+        &[(ink, (0, 0))]
     };
     for &(ink, (dx, dy)) in inks {
         for (at, cell) in &cells {

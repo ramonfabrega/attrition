@@ -174,6 +174,9 @@ pub struct MinimapFrame {
     /// Item 4752: the panel's faces ([`left::PANEL_FACES`]), `arialbd` and
     /// `arial` at 10, `None` where the install has them not.
     pub panel_faces: Option<[crate::selection::PlateFace; 2]>,
+    /// Item 4745: the caption's face ([`banner::CAPTION_FACE`]), `None`
+    /// where the install has it not.
+    pub caption_face: Option<crate::selection::PlateFace>,
 }
 
 /// **The population box's art** (item 4739): its layout and `TEX_COMMON`.
@@ -219,7 +222,11 @@ pub struct FrameArt {
     /// names `TurnControl::speed` indexes (`game_speeds`).
     face: Option<crate::selection::PlateFace>,
     panel_faces: Option<[crate::selection::PlateFace; 2]>,
+    caption_face: Option<crate::selection::PlateFace>,
     pub speeds: Vec<String>,
+    /// Item 4745: `rules.xml`'s `startingtechs`, whose first is the
+    /// caption's age with no age type.
+    pub start_ages: Vec<String>,
     /// Item 4731: the slots' pictures, `None` where the install has none.
     pub slot_art: Option<std::sync::Arc<slots::SlotArt>>,
     caps: Option<std::sync::Arc<CapArt>>,
@@ -253,23 +260,30 @@ impl FrameArt {
             .into_iter()
             .collect::<Option<Vec<_>>>()
             .and_then(|v| <[_; 2]>::try_from(v).ok());
-        let speeds = std::fs::read_to_string(root.join("Data").join("rules.xml"))
-            .ok()
-            .and_then(|x| {
-                let b = x
-                    .split("<CATEGORIES id=\"gamespeeds\"")
-                    .nth(1)?
-                    .split("</CATEGORIES>")
-                    .next()?
-                    .to_string();
-                Some(
-                    b.split('<')
-                        .filter(|t| t.starts_with("CATEGORY "))
-                        .filter_map(|t| attr(t, "name").map(String::from))
-                        .collect(),
-                )
-            })
-            .unwrap_or_default();
+        let (file, ppem, ascent, height) = banner::CAPTION_FACE;
+        let caption_face =
+            crate::selection::PlateFace::load_face(root, file, ppem, ascent, height).ok();
+        let rules = std::fs::read_to_string(root.join("Data").join("rules.xml")).ok();
+        let categories = |id: &str| -> Vec<String> {
+            rules
+                .as_deref()
+                .and_then(|x| {
+                    let b = x
+                        .split(&format!("<CATEGORIES id=\"{id}\""))
+                        .nth(1)?
+                        .split("</CATEGORIES>")
+                        .next()?;
+                    Some(
+                        b.split('<')
+                            .filter(|t| t.starts_with("CATEGORY "))
+                            .filter_map(|t| attr(t, "name").map(String::from))
+                            .collect(),
+                    )
+                })
+                .unwrap_or_default()
+        };
+        let speeds = categories("gamespeeds");
+        let start_ages = categories("startingtechs");
         Ok(FrameArt {
             root: root.to_path_buf(),
             layout,
@@ -280,7 +294,9 @@ impl FrameArt {
             default_civ,
             face,
             panel_faces,
+            caption_face,
             speeds,
+            start_ages,
             slot_art: slots::SlotArt::load(root).ok().map(std::sync::Arc::new),
             caps: CapArt::load(root, &xml).ok().map(std::sync::Arc::new),
             cache: Default::default(),
@@ -336,6 +352,7 @@ impl FrameArt {
             right: self.right.clone(),
             selected: self.selected.clone(),
             panel_faces: self.panel_faces.clone(),
+            caption_face: self.caption_face.clone(),
         })
     }
 }
@@ -396,6 +413,7 @@ impl MinimapFrame {
         slots: &[slots::Slot],
         figures: Option<caps::Figures>,
         panel: Option<selected::Panel>,
+        caption: Option<&str>,
     ) -> Vec<crate::gpu::ScreenLayer> {
         let o = self.origin(size);
         let (x1, y1) = (
@@ -427,14 +445,16 @@ impl MinimapFrame {
         v.extend(layers_of(size, (b.0.max(0), x1, b.1.max(0), y1), |x, y| {
             texel_of(&win, b, x, y)
         }));
-        // Item 4737: the banner at the screen's top.
+        // Item 4737: the banner at the screen's top; item 4745, its
+        // caption.
         let c = self.banner_layout.origin(size.0);
+        let banner = self.banner_with(caption);
         let (x1, y1) = (
-            (c.0 + self.banner.w as i32).min(size.0),
-            (c.1 + self.banner.h as i32).min(size.1),
+            (c.0 + banner.w as i32).min(size.0),
+            (c.1 + banner.h as i32).min(size.1),
         );
         v.extend(layers_of(size, (c.0.max(0), x1, c.1.max(0), y1), |x, y| {
-            texel_of(&self.banner, c, x, y)
+            texel_of(&banner, c, x, y)
         }));
         // Item 4739: the population box.
         if let Some((t, c)) = self.cap_box(size, figures) {
@@ -457,6 +477,19 @@ impl MinimapFrame {
             }));
         }
         v
+    }
+
+    /// **The banner with its caption** (item 4745, [`banner`]):
+    /// `write_cent_l` of `caption` in the banner's span from y −2 to 23, in
+    /// the caption's face and colour, over the composed crops. The banner
+    /// alone without a caption or the face.
+    pub fn banner_with(&self, caption: Option<&str>) -> Texels {
+        let mut t = self.banner.clone();
+        if let (Some(line), Some(face)) = (caption, &self.caption_face) {
+            let rect = (0, banner::CAPTION_Y.0, t.w as i32, banner::CAPTION_Y.1);
+            left::write_cent_ink(&mut t, face, rect, line, banner::CAPTION_INK, false);
+        }
+        t
     }
 
     /// **The resources box composed** (item 4742, [`resources`]) with
@@ -745,6 +778,23 @@ pub fn cap_figures(world: &crate::world::World, who: sim::Player) -> Option<caps
         city_limit: sim.city_limit(who),
         goods,
     })
+}
+
+/// **The caption's line in `world`** for `who` (item 4745,
+/// [`banner::caption_line`]): the tribe's name and the age's, the age type
+/// `ages` owned names (`TechTree::ages`, Classical first), or with none
+/// owned `rules.xml`'s first `startingtechs`.
+pub fn caption(world: &crate::world::World, who: sim::Player) -> Option<String> {
+    let art = world.frame_art.as_ref()?;
+    let sim = world.runner.sim();
+    let tree = &sim.tables.tech_tree;
+    let p = sim.tech.get(who as usize)?;
+    let tribe = tree.tribes.get(p.tribe).map(|t| t.name.as_str());
+    let age = match usize::try_from(p.ages).ok()?.checked_sub(1) {
+        None => art.start_ages.first()?.clone(),
+        Some(n) => tree.types.get((*tree.ages.get(n)?)?)?.name.clone(),
+    };
+    Some(banner::caption_line(tribe, &age))
 }
 
 /// **The console's frame** in `world`: the atlas its nation and age pick.
