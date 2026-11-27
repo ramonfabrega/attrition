@@ -128,7 +128,7 @@ impl Sim {
         // `flags = new & 0x40 | old & 0xbf`: the detector bit is the type's,
         // the rest the old figure's (item 4735).
         let (idle_latch, cant_reach, attacking) = (old.idle_latch, old.cant_reach, old.attacking);
-        let (on_map, at) = (old.on_map, old.pos);
+        let (on_map, at, active, body) = (old.on_map, old.pos, old.alive(), old.movement.body.pos);
         let guys: Vec<_> = old.guys.iter().map(|g| (g.stopped, g.turret)).collect();
         let n = &mut self.units[m];
         n.health = n.max_health - damage;
@@ -159,8 +159,32 @@ impl Sim {
             g.turret.des = turret.des;
             g.turret.inc = turret.inc;
         }
-        if on_map {
-            self.set_new_location(m, at, true);
+        // **A dead figure's copy leaves the world where it was born** (item
+        // 4769, `docs/RECGAME.md` §12.3). The branch reads the copy's
+        // `flags & 1` (`SubObjectData::is_active`), just taken from the old
+        // figure (`006118d0:63`), at `:72`: clear, and the copy takes
+        // `Object::remove_from_world@00647970`, never `set_new_location`. Its
+        // disc walk is gated on that same bit and does not run; its chain
+        // half unthreads the copy, whose unit point stays `init_unit`'s. The
+        // per-guy loop still copies the figure's point (`+0xc`..`+0x14`).
+        // run1784's 4469: who=2 bribes a Riflemen squad whose third figure
+        // is dead, and the copy `2/41` stood threaded on its birth cell above
+        // `2/39`, `up` ours 41, theirs −1 on 4470.
+        if !active {
+            self.chain_remove(m);
+            self.units[m].movement.body.pos = body;
+        } else if on_map {
+            // **`set_new_location(…, 1, 1)`, the turn included** (item 4769):
+            // its `param_4` arm snaps guy 0's `angle` and `last_angle` to
+            // the unit's `angle`, just copied (`+0x50`). The per-guy loop
+            // runs after it and copies the old figure's `angle` (`+0x18`)
+            // back, but not `last_angle` (`+0x1c`). run1784's 4470: the
+            // copy `2/40`'s `last_angle`, ours 0x55555555 (init's), theirs
+            // −1191444480, the unit's `angle`.
+            self.set_new_location_turning(m, at, true);
+            let mv = &mut self.units[m].movement;
+            mv.facing = facing;
+            mv.frame_facing = facing;
         } else {
             self.units[m].on_map = false;
         }
