@@ -19,6 +19,7 @@
 
 use crate::selection::{Texels, attr, layers_of};
 
+pub mod banner;
 pub mod left;
 pub mod slots;
 
@@ -151,6 +152,10 @@ pub struct MinimapFrame {
     /// Item 4731: the grid's buttons in the bar, and the slots' art.
     pub slot_spans: Vec<left::Span>,
     pub slot_art: Option<std::sync::Arc<slots::SlotArt>>,
+    /// Item 4737: the banner at the screen's top ([`banner`]), composed,
+    /// and its layout.
+    pub banner: Texels,
+    pub banner_layout: banner::BannerLayout,
 }
 
 /// **The frame's art**: interface.xml's layout, and each nation's atlas as
@@ -159,6 +164,7 @@ pub struct FrameArt {
     root: std::path::PathBuf,
     layout: MinimapLayout,
     left: left::LeftLayout,
+    banner: banner::BannerLayout,
     /// interface.xml's own `TEX_CIV` file, the fallback.
     default_civ: String,
     /// Item 4727: the clock's face, and `rules.xml`'s `gamespeeds`, the
@@ -178,6 +184,7 @@ impl FrameArt {
             .map_err(|e| format!("interface.xml: {e}"))?;
         let layout = MinimapLayout::parse(&xml)?;
         let left = left::LeftLayout::parse(&xml)?;
+        let banner = banner::BannerLayout::parse(&xml)?;
         let default_civ = xml
             .split('<')
             .filter(|t| t.starts_with("IFACETEXLOAD"))
@@ -208,6 +215,7 @@ impl FrameArt {
             root: root.to_path_buf(),
             layout,
             left,
+            banner,
             default_civ,
             face,
             speeds,
@@ -258,6 +266,8 @@ impl FrameArt {
             face: self.face.clone(),
             slot_spans: self.left.slots.clone(),
             slot_art: self.slot_art.clone(),
+            banner: self.banner.compose(&atlas)?,
+            banner_layout: self.banner.clone(),
         })
     }
 }
@@ -334,6 +344,15 @@ impl MinimapFrame {
         );
         v.extend(layers_of(size, (b.0.max(0), x1, b.1.max(0), y1), |x, y| {
             texel_of(&win, b, x, y)
+        }));
+        // Item 4737: the banner at the screen's top.
+        let c = self.banner_layout.origin(size.0);
+        let (x1, y1) = (
+            (c.0 + self.banner.w as i32).min(size.0),
+            (c.1 + self.banner.h as i32).min(size.1),
+        );
+        v.extend(layers_of(size, (c.0.max(0), x1, c.1.max(0), y1), |x, y| {
+            texel_of(&self.banner, c, x, y)
         }));
         v
     }
