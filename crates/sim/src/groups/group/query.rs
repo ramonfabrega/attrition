@@ -842,6 +842,12 @@ impl Sim {
         // `[117, 119, 120, 121]`; a follower's `GROUP_MOVE`
         // refreshes the order the same tick, and run1751's record 68 reads
         // `num` 3, `[117, 119, 120]`.
+        // The table as the original's fixed arrays hold it before the
+        // prune: `normalize` shifts each entry past a dropped member down
+        // one and leaves the old last entry where it was (`00711540`'s
+        // copy loop stops at `num − 1`), so an index past the shortened
+        // list still reads the pre-prune entry there.
+        let before: Vec<(i32, i32)> = self.gstate(g).map(|st| st.off.clone()).unwrap_or_default();
         let pruned;
         let g = match Self::seat_of_group(g) {
             Some(seat) => {
@@ -857,10 +863,29 @@ impl Sim {
         let Some(i) = g.list.iter().position(|&u| u == member) else {
             return false;
         };
+        // **The slot is the taker's own `form_id`, never a search of the
+        // pruned list** (item 4763, `docs/GROUPS.md` §6.8): `713ab8` calls
+        // the current order's `get_group_order()` (vslot `0x94`), `713ac0`
+        // reads its `+0x10`, and `713ac3`/`713ac7` index `off_x`/`off_y`
+        // with it. `do_group_move` wrote that `form_id` from the list
+        // **before** this call's `normalize` dropped anyone (`5e7ea0`), so
+        // a member past a dropped one reads its successor's slot. Row 93's
+        // army 1 on 4645 (run1799): `1/69` leaves, `1/17` takes the block
+        // over with `form_id` 31, and theirs slides by `1/53`'s (18, 15).
+        let fid = match self.current_order(member) {
+            Some(Order {
+                body: Body::Move(mo),
+                ..
+            }) => mo.group.map_or(i, |gm| gm.form_id),
+            _ => i,
+        };
         let Some(st) = self.gstate_mut(g) else {
             return false;
         };
-        st.reorigin(i);
+        let Some(&by) = st.off.get(fid).or(before.get(fid)) else {
+            return false;
+        };
+        st.reorigin_by(by);
         // `713b94`: the tail is `call 0x713810` — the whole of
         // `update_positions` off the taking member, **waypoint arm
         // included**, not a turn by its heading (Great Sahara 17493, item
