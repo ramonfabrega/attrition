@@ -793,7 +793,13 @@ unit's `x_internal`/`y_internal`. It walks that unit's figures
 figure's own `GuyData::x/y` (`div_3_table[x >> 4]`, the same `ucell`). The
 `coll_size` is still the unit's type's `+0x248`, so only the centre moves.
 It returns 0 outright when the unit fails vfunc `+8` or `+0xbc`
-(`is_on_map`) — both already filtered by the chain walk that reached it.
+(`is_on_map`) — ~~both already filtered by the chain walk that reached it~~
+**a wreck fails `+8`** (item 4733): the PE's slot is `0x46cda0`,
+`SubObjectData::is_active`, `flags & 1`; `Object::close@00647160` zeroes
+`flags` on every close, a `blocks_while_dead` death kept in the world
+included, and the walk's own live test (`+0x18`, `0x41e0e0`) answers 1 for
+anything. So a wreck's `is_corner` is 0 and a dead stranger at a corner is
+hard. *Diff-backed* on row 93's 4288 (`docs/RECGAME.md` §13.3).
 
 So the original mixes two frames of reference within four lines:
 `UnitData::is_here`, immediately before, reads the **unit's** position, and
