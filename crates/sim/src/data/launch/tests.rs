@@ -4129,6 +4129,70 @@ fn run437_biplane_rounds_leave_from_its_nose_guns() {
     }
 }
 
+/// **Row 83's Biplane and row 48's Javelineers leave from the swept
+/// rows** (item 4759, `docs/RECGAME.md` §12.3, §14.3): run1784's `2/117`
+/// (Biplane, `TI` 287, air) on 4007, its figure at (11503, 27403) facing
+/// 982,157,039 (82°), node 0 to (11601, 27376); run1848's `1/41`
+/// (Mongol Javelineers, `TI` 83, land) on 5607 at (16008, 10200) facing
+/// −1,601,896,448, `CHAR_ATTACK2` frame 6, to (15971, 10234), 170 over;
+/// and `1/47` at (16248, 10920) facing −597,032,960, `CHAR_ATTACK3`
+/// frame 27, to (16235, 10881), 156 over — theirs' ammo ranges on those
+/// states. Made to fail with the rows before the sweep: the Biplane's
+/// y 27377, `1/41`'s x 15972 and `1/47`'s height 159.
+#[test]
+fn row_83_s_biplane_and_row_48_s_javelins_leave_from_the_swept_rows() {
+    use crate::units::anim::{ATTACK2, ATTACK3};
+    // (piece, anim, starttime, node, x, y, facing, sx, sy, dz)
+    type Row = (i32, i8, u32, i8, i32, i32, i32, i32, i32, i32);
+    let rows: [Row; 3] = [
+        (
+            237,
+            ATTACK2,
+            1,
+            0,
+            11503,
+            27403,
+            982_157_039,
+            11601,
+            27376,
+            39,
+        ),
+        (
+            1089,
+            ATTACK2,
+            6,
+            0,
+            16008,
+            10200,
+            -1_601_896_448,
+            15971,
+            10234,
+            170,
+        ),
+        (
+            1089,
+            ATTACK3,
+            27,
+            0,
+            16248,
+            10920,
+            -597_032_960,
+            16235,
+            10881,
+            156,
+        ),
+    ];
+    for (piece, anim, start, node, x, y, facing, sx, sy, dz) in rows {
+        let at = launch_point(Pos::new(x, y), Angle(facing), piece, anim, start, node);
+        assert_eq!((at.x, at.y), (sx, sy), "{piece} ({anim}, {start})");
+        assert_eq!(
+            release_dz(piece, anim, start, node),
+            Some(dz),
+            "{piece} ({anim}, {start})"
+        );
+    }
+}
+
 /// **Row 43's Slinger stones on 3191 and 3192 leave where theirs do**
 /// (item 4547, `docs/RECGAME.md` §12.3): who=2's Slingers `2/30` at
 /// (8472, 23832), facing 570,228,736, and `2/29` at (8616, 24024), facing
