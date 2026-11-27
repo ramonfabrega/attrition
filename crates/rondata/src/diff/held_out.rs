@@ -6430,6 +6430,144 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 88's riders closed aboard leave their owner above the
+    /// Market** (item 4693, `docs/RECGAME.md` §14.4): run1846, row 88's
+    /// whole ranges take. On tick 3716 who=2's Transport Barges `2/24` and
+    /// `2/64` (TI 320, sea) sink with King's Longbowmen (TI 178) aboard;
+    /// each rider's `remove_from_inside` threads it on its retained point
+    /// and `remove_from_world` takes it off, so the Market `2/2041`, under
+    /// `2/88`'s point at world cell (47, 26), keeps `up_who` 2. Every
+    /// units and builds range on states 3716 to 3718, byte for byte.
+    #[test]
+    fn row_88_s_riders_closed_aboard_leave_their_owner_above_the_market_on_run1846_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SEVENTH, 4) else {
+            eprintln!("skipping: row 88's recording is missing");
+            return;
+        };
+        let map = home.join("ron-golden/run1846/map-18");
+        let Some(ranges) = crate::testenv::experiment(&map, "rontrace.ranges") else {
+            eprintln!("skipping: run1846's ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("row 88's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        for state in 3716i64..=3718 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            // The rider and its barge by name, alive on 3716 only.
+            for (o, ti, name, domain) in [
+                (
+                    88,
+                    178,
+                    "King's Longbowmen",
+                    sim::territory::attrition::Domain::Land,
+                ),
+                (
+                    24,
+                    320,
+                    "Transport Barge",
+                    sim::territory::attrition::Domain::Sea,
+                ),
+            ] {
+                let u = built
+                    .sim
+                    .units
+                    .iter()
+                    .rposition(|u| u.owner == 2 && u.index == o)
+                    .expect("who=2's slot");
+                let ty = built.sim.units[u].ty.expect("a type");
+                assert_eq!(built.sim.tables.unit_types[ty].type_index, ti, "2/{o}'s TI");
+                assert_eq!(loaded.unit_names[ty], name);
+                assert_eq!(built.sim.units[u].kind.domain, domain);
+                assert_eq!(
+                    built.sim.units[u].alive(),
+                    state == 3716,
+                    "2/{o} on {state}"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for li in [0usize, 1] {
+                let ours = lines[li].as_ref().expect("the line");
+                let theirs: Vec<_> = all.iter().filter(|r| usize::from(r.line) == li).collect();
+                assert_eq!(
+                    ours.ranges.len(),
+                    theirs.len(),
+                    "line {li}'s ranges on {state}"
+                );
+                for (k, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "line {li} range {k} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+            // The Market's `up_who` (`+0x3f`): −1 until the riders close,
+            // read by name off theirs' range and ours'.
+            // The builds line opens each player's records with a
+            // `who..y_internal` range, its first byte the player.
+            let mut who = 0u8;
+            let market = lines[1]
+                .as_ref()
+                .expect("builds")
+                .ranges
+                .iter()
+                .find(|r| {
+                    if r.field == "who..y_internal" {
+                        who = r.bytes[0];
+                    }
+                    who == 2 && r.record == 2041 && r.field == "myhits..launch_frames"
+                })
+                .expect("the Market's range");
+            let b = built.sim.building_by_o(2, 2041).expect("the Market");
+            assert_eq!(
+                loaded.build_names[built.sim.buildings[b].ty.expect("a type")],
+                "Market"
+            );
+            let up_who = |bytes: &[u8]| {
+                crate::checksum::fields::range_fields("builds", market.field, bytes)
+                    .expect("the fields")
+                    .into_iter()
+                    .find(|(n, _)| n == "up_who")
+                    .expect("up_who")
+                    .1
+            };
+            let at = lines[1]
+                .as_ref()
+                .expect("builds")
+                .ranges
+                .iter()
+                .position(|r| std::ptr::eq(r, market))
+                .expect("its place");
+            let theirs: Vec<_> = all.iter().filter(|r| r.line == 1).collect();
+            let want = if state == 3716 { -1 } else { 2 };
+            assert_eq!(
+                up_who(&market.bytes),
+                want,
+                "ours' Market up_who on {state}"
+            );
+            assert_eq!(
+                up_who(&theirs[at].bytes),
+                want,
+                "theirs' Market up_who on {state}"
+            );
+        }
+    }
+
     /// **Row 43's Slinger stones leave from piece 736's sockets** (item
     /// 4547, `docs/RECGAME.md` §12.3): run1787, the ranges take of row 43's
     /// file. who=2's Slingers `2/30` and `2/29` (TI 82, land, piece 736,
@@ -15634,21 +15772,34 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // 8,804 -> 9,597 (first 4135 -> 5885), goods 4,054 -> 4,679 (first
         // 4625), world 3,574 -> 4,394. The first parting moves 3574 -> 3717,
         // on builds.
+        // Moved by item 4693 (run1846's ranges): a rider that dies still
+        // aboard takes `Object::remove_from_inside@006480f0`, whose
+        // `add_to_world` threads it on the point it boarded from, and
+        // `Object::close`'s `remove_from_world` takes it off: the object it
+        // lay on keeps `up_who` the rider's owner. On tick 3716 who=2's
+        // Transport Barges `2/24` and `2/64` (TI 320) sink with King's
+        // Longbowmen aboard; `2/88` (TI 178) stands retained on the Market
+        // `2/2041`'s cell (47, 26). Builds on 3717, record 2041 `up_who`
+        // ours -1 -> 2, as theirs. Units 4,327 -> 4,384 (first 4027 ->
+        // 4384), builds 4,383 -> 4,422 (first 3717 -> 4422), items 9,597
+        // -> 9,428 (first 5885 -> 5716; past the first parting), goods
+        // 4,679 -> 4,684. The first parting moves 3717 -> 4166, on ammo,
+        // which stood.
         moved: Some(Score {
             states: 12001,
             agreed: [
-                4327, 4383, 12001, 4187, 4443, 4368, 4384, 4199, 4488, 9597, 4679, 4394,
+                4384, 4422, 12001, 4187, 4443, 4368, 4384, 4199, 4488, 9428, 4684, 4394,
             ],
             first: &[
-                ("units", (4027, Some(4187914694), 1875804615)),
-                ("builds", (3717, Some(4119222040), 1630950939)),
+                ("units", (4384, Some(1930113341), 3084987553)),
+                ("builds", (4422, Some(2810936796), 290488154)),
                 ("ammo", (4166, Some(2844747041), 735145102)),
                 ("deaths", (4443, Some(1493940272), 2950874289)),
-                ("groups", (4363, Some(1430150107), 2640665236)),
+                ("groups", (4363, Some(2153732131), 2640665236)),
                 ("guys", (4384, Some(2966912178), 3125639190)),
                 ("leaders", (4199, Some(626313703), 2804271541)),
                 ("cities", (4486, Some(471488175), 2265470475)),
-                ("items", (5885, Some(3509651581), 3503884409)),
+                ("items", (5716, Some(785253319), 3503884409)),
                 ("goods", (4625, Some(2004087359), 1940648509)),
                 ("world", (4394, Some(593842110), 2211663771)),
             ],

@@ -462,7 +462,13 @@ fn build(
         let slots = hud.map_or_else(Vec::new, |input| {
             frame::bar_slots(world, input.player, &input.selection)
         });
-        minimap.extend(f.layers((size.0 as i32, size.1 as i32), line.as_deref(), &slots));
+        let figures = hud.and_then(|input| frame::cap_figures(world, input.player));
+        minimap.extend(f.layers(
+            (size.0 as i32, size.1 as i32),
+            line.as_deref(),
+            &slots,
+            figures,
+        ));
     }
     screen.splice(0..0, minimap);
     if let Some(input) = hud {
@@ -632,7 +638,13 @@ pub(crate) fn still_minimap(
         if let Some(f) = frame::console_frame(world, world::CONSOLE) {
             let line = frame::clock_line(world);
             let slots = frame::bar_slots(world, world::CONSOLE, selection);
-            screen.extend(f.layers((size.0 as i32, size.1 as i32), line.as_deref(), &slots));
+            let figures = frame::cap_figures(world, world::CONSOLE);
+            screen.extend(f.layers(
+                (size.0 as i32, size.1 as i32),
+                line.as_deref(),
+                &slots,
+                figures,
+            ));
         }
     }
     let version = world.runner.terrain().version;

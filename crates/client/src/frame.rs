@@ -20,7 +20,9 @@
 use crate::selection::{Texels, attr, layers_of};
 
 pub mod banner;
+pub mod caps;
 pub mod left;
+pub mod resources;
 pub mod slots;
 
 /// **The atlas's code** for a console of `ages` ages owned (0 the Ancient)
@@ -156,6 +158,39 @@ pub struct MinimapFrame {
     /// and its layout.
     pub banner: Texels,
     pub banner_layout: banner::BannerLayout,
+    /// Item 4739: the population box's art ([`caps`]), `None` where the
+    /// install has none.
+    pub caps: Option<std::sync::Arc<CapArt>>,
+    /// The nation's `TEX_CIV`, which the box's divider is cut from.
+    pub civ: std::sync::Arc<render::tga::Image>,
+}
+
+/// **The population box's art** (item 4739): its layout and `TEX_COMMON`.
+pub struct CapArt {
+    pub layout: caps::CapLayout,
+    pub common: render::tga::Image,
+    /// Item 4742: the resources box's layout ([`resources`]).
+    pub resources: resources::ResourceLayout,
+}
+
+impl CapArt {
+    fn load(root: &std::path::Path, xml: &str) -> Result<CapArt, String> {
+        let txt = std::fs::read_to_string(root.join("interface.txt"))
+            .map_err(|e| format!("interface.txt: {e}"))?;
+        let file = xml
+            .split('<')
+            .filter(|t| t.starts_with("IFACETEXLOAD"))
+            .find(|t| attr(t, "id") == Some("TEX_COMMON"))
+            .and_then(|t| attr(t, "file"))
+            .ok_or("interface.xml: no TEX_COMMON")?;
+        let path = rondata::artdata::resolve_art(root, file).ok_or(format!("{file}: absent"))?;
+        let bytes = std::fs::read(&path).map_err(|e| format!("{file}: {e}"))?;
+        Ok(CapArt {
+            layout: caps::CapLayout::parse(xml, &txt)?,
+            resources: resources::ResourceLayout::parse(xml, &txt)?,
+            common: render::tga::decode(&bytes).map_err(|e| format!("{file}: {e:?}"))?,
+        })
+    }
 }
 
 /// **The frame's art**: interface.xml's layout, and each nation's atlas as
@@ -173,6 +208,7 @@ pub struct FrameArt {
     pub speeds: Vec<String>,
     /// Item 4731: the slots' pictures, `None` where the install has none.
     pub slot_art: Option<std::sync::Arc<slots::SlotArt>>,
+    caps: Option<std::sync::Arc<CapArt>>,
     cache: std::sync::Mutex<
         std::collections::BTreeMap<Option<&'static str>, Option<std::sync::Arc<MinimapFrame>>>,
     >,
@@ -220,6 +256,7 @@ impl FrameArt {
             face,
             speeds,
             slot_art: slots::SlotArt::load(root).ok().map(std::sync::Arc::new),
+            caps: CapArt::load(root, &xml).ok().map(std::sync::Arc::new),
             cache: Default::default(),
         })
     }
@@ -268,6 +305,8 @@ impl FrameArt {
             slot_art: self.slot_art.clone(),
             banner: self.banner.compose(&atlas)?,
             banner_layout: self.banner.clone(),
+            caps: self.caps.clone(),
+            civ: std::sync::Arc::new(atlas),
         })
     }
 }
@@ -326,6 +365,7 @@ impl MinimapFrame {
         size: (i32, i32),
         line: Option<&str>,
         slots: &[slots::Slot],
+        figures: Option<caps::Figures>,
     ) -> Vec<crate::gpu::ScreenLayer> {
         let o = self.origin(size);
         let (x1, y1) = (
@@ -354,7 +394,56 @@ impl MinimapFrame {
         v.extend(layers_of(size, (c.0.max(0), x1, c.1.max(0), y1), |x, y| {
             texel_of(&self.banner, c, x, y)
         }));
+        // Item 4739: the population box.
+        if let Some((t, c)) = self.cap_box(size, figures) {
+            let (x1, y1) = (
+                (c.0 + t.w as i32).min(size.0),
+                (c.1 + t.h as i32).min(size.1),
+            );
+            v.extend(layers_of(size, (c.0.max(0), x1, c.1.max(0), y1), |x, y| {
+                texel_of(&t, c, x, y).filter(|t| t[3] > 0)
+            }));
+        }
+        // Item 4742: the resources box.
+        if let Some((t, c)) = self.resource_box(figures) {
+            let (x1, y1) = (
+                (c.0 + t.w as i32).min(size.0),
+                (c.1 + t.h as i32).min(size.1),
+            );
+            v.extend(layers_of(size, (c.0.max(0), x1, c.1.max(0), y1), |x, y| {
+                texel_of(&t, c, x, y).filter(|t| t[3] > 0)
+            }));
+        }
         v
+    }
+
+    /// **The resources box composed** (item 4742, [`resources`]) with
+    /// `figures`' goods, the resource area open as on run1814b's
+    /// photograph, and its corner; `None` without its art or figures.
+    pub fn resource_box(&self, figures: Option<caps::Figures>) -> Option<(Texels, (i32, i32))> {
+        let art = self.caps.as_ref()?;
+        art.resources
+            .compose(
+                &figures?.goods,
+                resources::PHOTOGRAPH_FLAGS,
+                &art.common,
+                &self.civ,
+            )
+            .ok()
+    }
+
+    /// **The population box composed** (item 4739, [`caps`]) on a `size`
+    /// frame with `figures`, and its corner; `None` without its art or
+    /// figures.
+    pub fn cap_box(
+        &self,
+        size: (i32, i32),
+        figures: Option<caps::Figures>,
+    ) -> Option<(Texels, (i32, i32))> {
+        let art = self.caps.as_ref()?;
+        art.layout
+            .compose(size, figures?, &art.common, &self.civ)
+            .ok()
     }
 }
 
@@ -384,6 +473,32 @@ pub fn bar_slots(
         return Vec::new();
     };
     slots::selected(world.runner.sim(), &world.names.roster, &art, who, sel)
+}
+
+/// **The population box's figures in `world`** for `who` (item 4739):
+/// `LeaderData +0x940` over `+0x7e4`, the muster's `control` over its
+/// `cap`, and `get_total_cities` over `get_city_limit`.
+pub fn cap_figures(world: &crate::world::World, who: sim::Player) -> Option<caps::Figures> {
+    let sim = world.runner.sim();
+    let m = sim.roster.muster.get(who as usize)?;
+    let l = sim.economy.ledgers.get(who as usize)?;
+    // Item 4742: each good `type_avail` gives, its stockpile and income;
+    // `draw_cap`'s least `resource_cap` of them, from 15,984 (999 × 16).
+    let avail: [bool; 6] = std::array::from_fn(|g| sim.type_avail(who, g) != 0);
+    let goods = resources::Goods {
+        shown: std::array::from_fn(|g| avail[g].then(|| (l.bucket[g], l.income[g]))),
+        cap: (0..6)
+            .filter(|&g| avail[g])
+            .map(|g| l.cap[g])
+            .fold(15_984, i32::min),
+    };
+    Some(caps::Figures {
+        pop: m.control,
+        pop_cap: m.cap,
+        cities: sim.total_cities(who),
+        city_limit: sim.city_limit(who),
+        goods,
+    })
 }
 
 /// **The console's frame** in `world`: the atlas its nation and age pick.

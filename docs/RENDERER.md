@@ -7115,7 +7115,186 @@ two are the same pixels.
   `write_cent_l`. Which face lookup 14 is has not been read.
 - The tab under the banner, about (910..1010, 26..36), with three
   chevrons (4737b).
-- The resources box and the population box (4737c, 4737d).
+- ~~The resources box and the population box (4737c, 4737d).~~ The population box: §6.15; the resources
+  box: §6.16.
+
+## 6.15 The top of the screen: the population box (item 4739)
+
+*2026-11-26, Opus 5.5. The ledger: `docs/journal/2026-11-26-item-4739.md`.
+`client::frame::caps`; the row `RUN1814B_3294_CAPS`. No `crates/sim` change.*
+
+**Who draws it.** `IFaceMainBase::on_redraw@00811600` calls
+`draw_cap_area@00810370`, `draw_pop_cap@0080ff90` and `draw_city_cap@0080fbe0`
+in that order. Their rectangles are `<IFACEMAINBASE>`'s, written against the
+frame's right edge from the screen's top: on the 1,920 frame `cap_area`
+(1697..1870, 0..25), `pop_cap` (1701..1798, 4..21), `city_cap`
+(1799..1866, 4..21). In each cap rectangle:
+
+- **The back**: `IFaceResources::draw_back@0081a920`, the render manager's
+  `draw_expander@0051c450` over `item_back_tex`, which is
+  `<IFACERESOURCES>`'s `resource_item_tex0`, `1` and `2` off `TEX_COMMON`
+  (7, 67 and 7 wide, 19 high). The ends lie at their own widths, stretched to
+  the rectangle's 17 rows. Between them the middle is tiled from the left
+  end's edge (`tile_horiz@0051f1d0`), the last tile cut to the width that
+  remains, each stretched only in height. The colour is `0xff323232` (red
+  while the cap is reached and `graphic_tick & 8`), under
+  `IFACERENDERTYPE_HIGHLIGHT`: the texel times the colour, doubled. The
+  texture's middle row (113, 105, 107) reads (44, 41, 42) on the photograph.
+- **The picture**, the `IFACETEX` of the rectangle's name off `TEX_COMMON`
+  (29 × 19), `add_smooth`ed to the rectangle's height at its own aspect, the
+  width truncated: 29 · 17 / 19 = 25, at the rectangle's corner. Bilinear,
+  as the left window's stretch (§6.11).
+- **The figure**: `LeaderData +0x940` `/` `+0x7e4` (the muster's `control`
+  over its `cap`), or `get_total_cities` `/` `get_city_limit`, written by
+  `IFaceRenderManager::write@0051f660` in `numbers_texs[0]`. Those are
+  `interface.txt`'s `NUMBERS_TEX[0][0..9]`, `SLASH_TEX[0]`, `PLUS_TEX[0]`
+  and `MINUS_TEX[0]` (`IFaceRenderManager::setup_text@0051dd50`), each a
+  `TEX_COMMON` crop 15 high, drawn 1:1 and advanced by its own width
+  (`char_to_index@0051f4a0`). The line is centred between the picture's
+  right and the rectangle's right less one, and between the rectangle's top
+  and bottom by the digits' height, both halvings truncated.
+- **The divider**, after `draw_pop_cap`'s figure only (`draw_city_cap` draws
+  none): `draw_vert_divider@0051d0d0`, thin, at `pop_cap`'s right less one
+  for the rectangle's height. `THIN_VERT_BAR` (`TEX_CIV` (155, 8), 3 × 30)
+  is tiled down by `tile_random`; on the photograph it starts at its first
+  row. Then `thin_tee[0]` and `thin_tee[2]` (`+0x1058`, `+0x1078`; `THIN_TEE[0]`
+  and `[2]`, 7 × 5), centred on the bar, the top three rows above the bar's
+  top and the foot two rows above its end, as the photograph registers them.
+
+**Registered before it was built.** On run1814b's photograph at frame 3294
+the digits of `6/25` lie at (1748, 5) and those of `1/1` at (1835, 5), every
+fully opaque texel within two levels, where the centring puts them. The
+tees register at (1795, 1) and (1795, 19), 27 of 29 and 26 of 27.
+
+**The row** (`frame::tests::the_minimap_frame_on_run1814b`, its fourth
+assertion): the box's opaque pixels,
+
+| | pixels | within two levels of the photograph | mean luma ×10 |
+|---|---|---|---|
+| the photograph against the composition | 2,847 | 2,840 | 649 |
+| ours, no frame (before) | | 2 | 812 |
+| **ours, the box** | | **2,840** | 648 |
+
+The figures are ours, off the sim: 6/25 and 1/1 on 3295, asserted. The 7
+apart lie on the figures' top row, y 5, at x 1761 and 1838..1840 and
+1850..1852: olive (77..91, 75..86, 23..32) in theirs where ours is the back.
+The digits' top rows there are transparent.
+
+**Diff-backed**: every piece's place and size, the back's grey and its
+modulate, the digits' crops and advance, the divider's bar and tees, against
+the photograph's pixels. **Read alone**: the red back while the cap is
+reached; `tile_random`'s start row in general (one photograph, one start).
+
+**Not established.**
+- The olive runs on the figures' top row (4739a).
+- The stone border around `cap_area` (4739b): `draw_cap_area` draws the render
+  manager's `borders` entry 3 (`<IFACEBORDER name="border3">`, `TEX_CIV`)
+  around `cap_area` and around `pop_cap` ∪ `city_cap` grown by 4, which is
+  the same rectangle on this frame, then a divider at `city_cap`'s left less
+  one whose height reads negative.
+- The help and menu buttons at (1873..1916, 4..21) and their frames (4739c).
+
+## 6.16 The top of the screen: the resources box (item 4742)
+
+*2026-11-26, Opus 5.5. The ledger: `docs/journal/2026-11-26-item-4742.md`.
+`client::frame::resources`; the row `RUN1814B_3294_RESOURCES`. No
+`crates/sim` change.*
+
+**Who draws it.** `IFaceResources::on_redraw@0081b3b0` counts the goods
+`LeaderData::type_avail` gives, and those not wealth or knowledge for the
+market, and on a change calls `adjust_rects@00819a90` and
+`adjust_buttons@00819660`. It then draws `draw_market_area@00818f20`,
+`draw_resource_area@00818cc0` and `draw_infra_area@00818270`, and the
+window's three buttons draw after (`on_button_redraw@0081af70`). All
+rectangles are `<IFACERESOURCES>`'s, the window at the screen's (0, 0).
+
+- **The rectangles** (`adjust_rects`). The rows' top is `market_rect0`'s
+  top + 12 + `market_title_rect`'s height: 29. The resource area's bottom
+  is (`market_sell_rect`'s height + 3) × goods − 3 + 29: 86 for three. The
+  market area's bottom is the same over the market's goods: 66 for two.
+  With the resource area open (`flags & 2`), it moves right to the market
+  area's right less one; the infra area moves to the resource area's right
+  less one. On the photograph the flags are 2, so the market area is at
+  (0..17, 0..66), the resource area at (16..131, 0..86) and the infra area
+  at (130..147, 21..86).
+- **Each area's frame**: the render manager's `draw_border@0051d260` with
+  `corner_tex0..3` and `side_tex0..3` (`TEX_CIV`). The corners lie 1:1 at
+  the rectangle's corners. The top and bottom sides are tiled between
+  them, and the left and right sides between the corners' heights, each
+  from its first texel. A closed area draws its frame alone.
+- **The resource area's top row**: the thick `draw_vert_divider` at
+  `resource_button_rect1`'s right (59, 4..21; `THICK_VERT_BAR`,
+  `THICK_TEE[0]`/`[2]` at (57, 1) and (57, 19)), then `draw_cap@00819370`
+  in `resource_cap_rect`. The cap draws the item back as §6.15's (`0xff323232`
+  under `HIGHLIGHT`), then `cap_tex` (`TEX_COMMON` 21 × 17) stretched to
+  the rectangle's height less 2 at its aspect, 18 × 15, at its corner plus
+  (1, 1). Then the least `LeaderDataEncrypt::resource_cap` (`+0x30`,
+  unmasked) of the available goods, from 15,984, over 16, `+` before a
+  positive figure, in `numbers_texs[0]` × `GREEN` at the corner plus
+  (5 + 21, 0).
+- **The thick `draw_horiz_divider@0051cf80`** under the union of the fold
+  button and the cap: `THICK_HORIZ_BAR` from (20, 21) for 107, and the tees
+  `[3]` and `[1]` at three columns before its left and two before its right,
+  two rows above.
+- **A row per good** (`draw_resource@00818840`) from `resource_item_rect`,
+  in `IFaceMainBase::good_order` (food, timber, metal, oil, wealth,
+  knowledge; `init@00812360`), each 20 below the last. Each row has the
+  back; then `first_good_tex` moved (21 + 4) × the good's `TypeIndex`, 1:1
+  at the row's left + 1, centred on the row by its 19 rows. Then the
+  stockpile (`bucket`, unmasked) in white, and `/` and the rate
+  (`income`, `^ 0x90236`, as [`crate::hud::rate_text`] writes it) in `GREY`,
+  from the row's left + 1 + 21 + 7, two rows down. The thin divider
+  (`THIN_HORIZ_BAR`, `THIN_TEE[3]`/`[1]`) goes under every row but the last.
+- **The buttons**: the closed areas' (`top_`, `mid_`, `bottom_vert_button_tex0`,
+  the middle tiled between) at (3, 3) for 60 rows and (133, 24) for 59, and
+  the fold (`resource_button_tex` 1:1 at (20, 4)) with three `up_arrow_tex`
+  centred in it.
+
+**Registered before it was built.** Each crop alone on run1814b's
+photograph at frame 3294, its opaque texels within two levels: the corners
+31..32 of 33 at every corner above; the fold 606 of 663 at (20, 4); food
+332 of 332 at (21, 24), timber 325 of 325 at (21, 44), wealth 354 of 354
+at (21, 64); the button tops 77 of 77 at (3, 3) and (133, 24); the arrows
+19 of 19 at (29, 10), (36, 10), (43, 10); the thick tees 32..33 of 34;
+`THIN_HORIZ_BAR` 84 of 84 at (76, 42) and (76, 62); the digits `4`, `9`
+and `1` of `491` at (49, 27), (57, 27) and (64, 27), every texel.
+
+**The figures**: food 491/+40, timber 418/+30 and wealth 172/+10, cap +70.
+They are ours on frames 3280 to 3284 only: food is 492 from 3291, timber
+419 from 3291, wealth 173 from 3285. On 3294 ours is 492/419/173. The box
+on the photograph is the record of a frame ten or more before its world.
+3285 is a second's boundary (219 × 15); what redraws the window has not
+been read (4742a). The row's composition takes the record at 3284.
+
+**The row** (`frame::tests::the_minimap_frame_on_run1814b`, its fifth
+assertion): the box's opaque pixels,
+
+| | pixels | within two levels of the photograph | mean luma ×10 |
+|---|---|---|---|
+| the photograph against the composition | 11,986 | 11,827 | 642 |
+| ours, no frame (before) | | 0 | 646 |
+| **ours, the box** | | **11,677** | 649 |
+
+The 159 the composition parts on: 90 in the closed areas' buttons,
+columns 6..9 and 136..139, where theirs shows chevrons and ours the
+plain middle (`tile_random`'s start row, 4742b); the rest on the pictures'
+top and bottom rows against the dividers, and dark runs over the figures
+(4742c). The still parts on 150 more, the figures' last digits: the live
+client writes 3295's record.
+
+**Diff-backed**: every crop's place and size above, the areas' rectangles,
+the dividers' bars and tees, the digits' place, the goods' order and
+pictures, against the photograph's pixels. The goods' figures are diffed
+against the photograph's digits on 3284. **Read alone**: `GREY` as 0x80 (`client::trees`'
+tree diffuse names it so; the rate's pixels agree within two levels);
+the arms not on the photograph (an open market or infra area, the
+flashing backs, a closed resource area).
+
+**Not established.**
+- What redraws the box, and so which frame's record it prints (4742a).
+- `tile_random`'s start row in the closed areas' buttons (4742b).
+- The pictures' edge rows against the dividers, and the dark runs over
+  the figures (4742c).
 
 ## 7. What is not established, and what needs Ramon's word
 

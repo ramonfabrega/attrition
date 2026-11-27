@@ -2567,6 +2567,8 @@ three clauses rests on `get_action@00608450` read against the dump's own
 
 ## 10. What is not established
 
+- **A plane killed inside its carrier building (§3.2, parked 4693a).** A rider dying aboard a unit heads its boarding
+  cell's chain and leaves it (`remove_from_inside`'s `add_to_world`); a building's `kill_contents` is not built.
 - **The stored heights' edges (§3.3, item 4660).** A figure's held `z` is read only while its body stands on the
   point it was held at, so a `Guy::set_new_location` onto the same point without `param_3` keeps it here where the
   original rewrites it. A stand-up from a dump holds no height. The renderer, the movement and a building target's
