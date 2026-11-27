@@ -6744,7 +6744,7 @@ target_slot < 0 || target_owner < 0 || (target == shooter)
 ```
 
 — so a shot that lands on **its own shooter** punctures the ground and
-spends both draws. `Sim::land` returns without drawing there
+spends both draws. ~~`Sim::land` returns without drawing there
 (`if t == p.shooter { return; }`). The clause is very likely dead in
 practice: `Ammo::check_hit`'s `find_unit` is filtered by the shooter's
 own owner, and this crate's `check_hit` excludes the shooter outright,
@@ -6755,7 +6755,14 @@ the one thing the measurement proves. **It is a parked row, with its
 falsifier named**: a capture in which a unit's shot lands on itself, or a
 synthesized `callfn` entry into `do_damage` with `0x48/0x4c` equal to
 `0x3c/0x40`, would turn the two draws into a visible count delta. No
-capture on disk has one.
+capture on disk has one.~~ **Built (item 4749).** The clause is live for a
+**building**: `check_hit`'s second half, `find_building_at`, does not
+leave the shooter out. run1847's 4091: who=1's Village `1/2013` drops
+its round at `2/78` inside its own footprint, and theirs spends
+`+0xc59` and `+0xc7e` and keeps the round in slot 1 as `flags 1`,
+`whom 1 ox 2013`, on 4092. `Sim::land` now sends a pair that is the
+shooter's to the puncture arm. Whether the splash arm (`splash_area >
+0`) treats a shooter's pair the same way is not read.
 
 Nor does this section establish anything about the *arithmetic* the two
 draws feed: this crate discards both rolls, because `puncture_ground`
