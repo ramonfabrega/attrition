@@ -6958,8 +6958,8 @@ that `position_windows` places none of these windows.
 - ~~The slots' pictures (4724b): registered 2,379 of 2,379 each, and named
   by the packet's options list, by item 4729's journal; not yet drawn.~~
   Drawn by item 4731, §6.13.
-- `IFACESELECTED`, the top's resources box, banner and population box, and
-  the right side of the bar.
+- `IFACESELECTED`, the top's resources box, ~~banner~~ (drawn by item
+  4737, §6.14) and population box, and the right side of the bar.
 - The bar at a width other than 1,920. Ours draws the left window only.
 
 ## 6.12 The HUD's bar: the clock (item 4727)
@@ -7069,6 +7069,53 @@ this state does not exercise.
   Citizen's AGE3 and AGE5 entries name other cells.
 - The disabled flag is taken as `disable ≠ 0`. Only `disable` 1 is
   registered.
+
+## 6.14 The top of the screen: the banner (item 4737)
+
+*2026-11-26, Opus 5.5. The ledger: `docs/journal/2026-11-26-item-4737.md`.
+`client::frame::banner`; the row `RUN1814B_3294_BANNER`. No `crates/sim`
+change.*
+
+**Who draws it.** `IFaceMainBase::draw_caption@0080f360`. It finds
+`<IFACEMAINBASE>`'s `caption_ends_left` (`TEX_CIV` (279, 40), 105 × 43),
+`caption_ends_mid` ((385, 40), 21 × 43) and `caption_ends_right` ((407, 40),
+105 × 43). The banner's width is the left's, ten middles' and the right's:
+420. Its left edge is the window's width less 420, halved and truncated:
+750 on the 1,920 frame. Its top is the screen's. The rectangle goes to the
+render manager's `draw_expander` in white. Then the caption is written over
+it: the tribe's name, a string-table separator, and the age's name.
+
+**Registered before it was built.** Each crop alone on run1814b's
+photograph at frame 3294, every opaque texel within two levels: the left
+at (750, 0), 2,180 of 2,180; the first middle at (855, 0), 525 of 525; the
+right at (1065, 0), 2,180 of 2,180. The next best offset of each is under
+36 %. Ours lays the middle tiled from the left's edge, ten times.
+
+**The row** (`frame::tests::the_minimap_frame_on_run1814b`, its third
+assertion): the banner's opaque pixels,
+
+| | pixels | within two levels of the photograph | mean luma ×10 |
+|---|---|---|---|
+| the photograph against the composition | 9,610 | 8,749 | 615 |
+| ours, no frame (before) | | 0 | 650 |
+| **ours, the banner** | | **8,749** | 506 |
+
+The 861 the photograph parts on all lie in x 881..1037, y 4..17. That is
+the caption's text, `Nubians: Ancient Age`, which ours does not write
+(4737a).
+
+**Diff-backed**: the three crops, the middle's count, the centring and the
+top edge, against the photograph's pixels. **Read alone**: that
+`draw_expander` tiles the middle rather than stretching it. At 21 × 10 the
+two are the same pixels.
+
+**Not established.**
+- The caption's text (4737a): `draw_caption` asks `fonts` for lookup 14,
+  colour `d4d4d4`, its text rectangle (x0, −2) to (x1, 23), centred by
+  `write_cent_l`. Which face lookup 14 is has not been read.
+- The tab under the banner, about (910..1010, 26..36), with three
+  chevrons (4737b).
+- The resources box and the population box (4737c, 4737d).
 
 ## 7. What is not established, and what needs Ramon's word
 
