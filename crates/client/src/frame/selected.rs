@@ -41,6 +41,10 @@ pub struct Panel {
     pub team: [u8; 3],
     pub capital: bool,
     pub stats: Vec<Stat>,
+    /// Item 4752: `draw_build_name`'s line, and `draw_hitpoints`' `hits/full`
+    /// where the object has any.
+    pub title: String,
+    pub hits: Option<String>,
 }
 
 /// **One of `draw_stat`'s figures**: the stat's case (0 `armor` to 19
@@ -127,6 +131,8 @@ pub struct SelectedLayout {
     pub stat_left: Crop,
     pub stat_right: Crop,
     pub stat_icons: [Option<Crop>; 20],
+    /// Item 4752: `hitpoints`, `draw_hitpoints`' rectangle.
+    pub hitpoints: Span,
 }
 
 /// The window's size: `IFaceMain::position_windows@00809250` sizes it
@@ -226,6 +232,7 @@ impl SelectedLayout {
             stat_left: named_tex(&sel, "stat_left")?,
             stat_right: named_tex(&sel, "stat_right")?,
             stat_icons: STAT_ICONS.map(|n| common_tex(&sel, n).ok()),
+            hitpoints: rect_named(&sel, "hitpoints", parent)?,
         })
     }
 
@@ -363,6 +370,7 @@ mod tests {
     <IFACETEX name="misc" texture="TEX_CIV" left="17" top="34" width="8" height="6"/>
     <IFACERECT name="misc_tile" left="6" top="14" width="284" height="4"/>
     <IFACETEX name="misc_tile" texture="TEX_CIV" left="51" top="0" width="103" height="4"/>
+    <IFACERECT name="hitpoints" left="30" top="60" width="62" height="13"/>
     <IFACERECT name="stat_short" left="1" top="94" width="63" height="17"/>
     <IFACERECT name="stat_short" left="1" top="111" width="63" height="17"/>
     <IFACERECT name="stat_short" left="1" top="128" width="63" height="17"/>
@@ -390,6 +398,7 @@ mod tests {
         let l = SelectedLayout::parse(xml).expect("the panel parses");
         assert_eq!(l.borders, vec![(0, 18, 129, 160), (133, 18, 292, 160)]);
         assert_eq!(l.name, (0, 0, 292, 14));
+        assert_eq!(l.hitpoints, (30, 60, 92, 73));
         assert_eq!(l.player_color, ((0, 18, 126, 64), (386, 84, 126, 46)));
         assert_eq!(l.capital_star, ((54, 71, 76, 92), (278, 158, 22, 21)));
         // `bottom_inverse="-1"` against the window's 158 rows, six back.

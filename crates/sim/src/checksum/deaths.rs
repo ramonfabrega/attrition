@@ -29,7 +29,7 @@ impl Sim {
                 .unwrap_or(-1);
             let words = [
                 d.first_frame as i32,
-                d.cur_anim,
+                d.anim_of(k),
                 place.pos.x,
                 place.pos.y,
                 place.z,

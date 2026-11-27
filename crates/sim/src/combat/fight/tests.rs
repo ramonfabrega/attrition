@@ -5022,6 +5022,126 @@ fn a_missed_round_strikes_a_city_at_its_ceiling() {
     );
 }
 
+/// **A round that comes down on its own shooter punctures the ground**
+/// (item 4749, `docs/COMBAT.md` §39.4): `Ammo::do_damage@00678060:98`–
+/// `:100` takes the puncture arm when the pair `check_hit` left is −1 *or
+/// the shooter's own*, so the round spends both draws and is stuck in its
+/// slot with that pair. run1847's 4091: who=1's Village `1/2013` drops its
+/// round at `2/78` inside its own footprint, and theirs prints the slot
+/// as `flags 1`, `whom 1 ox 2013`, `cur_time` 0 on 4092, the Village
+/// unhurt. The same round on a foe's building strikes it and draws
+/// nothing.
+///
+/// Made to fail with the shooter's pair striking (`land` returning on it,
+/// as before): no draw, and the round closed.
+#[test]
+fn a_round_on_its_own_shooter_punctures_the_ground_and_sticks() {
+    let (mut sim, ty) = at_war();
+    let bt = sim.add_build_type(crate::cities::build::BuildType {
+        x_size: 7,
+        y_size: 7,
+        ..crate::cities::build::BuildType::default()
+    });
+    let village = |sim: &mut Sim, who: Player| {
+        let b = sim.add_building(who, Pos::new(12384, 13920), 0);
+        sim.buildings[b].ty = Some(bt);
+        sim.buildings[b].hits = 1200;
+        sim.buildings[b].health = 1200;
+        sim.buildings[b].combat = Some(Profile {
+            attack: 15,
+            ..Profile::default()
+        });
+        b
+    };
+    let b = village(&mut sim, 1);
+    let foe = put(&mut sim, 0, ty, Pos::new(13248, 14304));
+    let round = |b: usize, owner: Player| combat::Projectile {
+        left: None,
+        shooter: Obj::Building(b),
+        owner,
+        target: Some(Obj::Unit(foe)),
+        launch: Pos::new(12372, 13679),
+        landing: Pos::new(12789, 14190),
+        cur_time: 0,
+        total_time: 1,
+        accuracy: 300,
+        angle: crate::movement::Angle(0),
+        splash_area: 0,
+        num_guys: 0,
+        rolling: false,
+        missed: false,
+        harmless: false,
+        air: false,
+        sz: 450,
+        ez: 253,
+        v1z: crate::num::single::Single::ZERO,
+        slot: 1,
+        graphic: Default::default(),
+        flame: false,
+        punctures: true,
+        spent: false,
+        crash: None,
+        spline: None,
+        gpiece: -1,
+    };
+    let p = round(b, 1);
+    assert!(!sim.hit_target(&p), "the Archer is off the landing");
+    assert_eq!(
+        sim.check_hit(&p),
+        Some(Obj::Building(b)),
+        "its own footprint"
+    );
+    let mut stuck = sim.clone();
+    stuck.trace.trace_phases = true;
+    stuck.add_ammo(p);
+    stuck.process_projectiles(4091);
+    let marks: Vec<_> = stuck
+        .trace
+        .phase_marks
+        .iter()
+        .map(|(m, _)| m.clone())
+        .collect();
+    assert_eq!(
+        marks,
+        [SITE_PUNCTURE_X, SITE_PUNCTURE_Y],
+        "the puncture's two draws"
+    );
+    let q = *stuck.combat.projectiles.first().expect("the spent round");
+    assert!(q.spent && q.cur_time == 0, "flags 1, clock reset");
+    assert_eq!(q.target, Some(Obj::Building(b)), "check_hit's pair stays");
+    assert_eq!(stuck.buildings[b].health, 1200, "the Village unhurt");
+    let line = stuck.checksum_ammo().expect("the ammo line");
+    assert_eq!(line.ranges[0].bytes, [1], "flags");
+    let body = &line.ranges[1].bytes;
+    let word = |k: usize| i32::from_le_bytes(body[3 + 4 * k..7 + 4 * k].try_into().unwrap());
+    assert_eq!(
+        (word(16), word(17)),
+        (1, i32::from(stuck.buildings[b].index)),
+        "whom, ox"
+    );
+    // The control: the same round from a foe's building, landing on this
+    // one, strikes it and spends nothing.
+    let other = village(&mut sim, 0);
+    sim.buildings[other].pos = Pos::new(20000, 20000);
+    sim.trace.trace_phases = true;
+    sim.add_ammo(round(other, 0));
+    sim.process_projectiles(4091);
+    let marks: Vec<_> = sim
+        .trace
+        .phase_marks
+        .iter()
+        .map(|(m, _)| m.clone())
+        .collect();
+    assert!(
+        !marks
+            .iter()
+            .any(|m| m == SITE_PUNCTURE_X || m == SITE_PUNCTURE_Y),
+        "no puncture draw: {marks:?}"
+    );
+    assert!(sim.combat.projectiles.is_empty(), "closed");
+    assert!(sim.buildings[b].health < 1200, "struck");
+}
+
 /// **The shield closes a missile's round in its holder's land**
 /// (item 1078, `Ammo::do_damage@00678060`'s `678337`..`67845d`):
 /// run390's V2b came down on who=1's Barracks `1/2007` on 3169, in a

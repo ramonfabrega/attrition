@@ -644,6 +644,7 @@ pub(crate) fn install_art(sim: &mut Sim, loaded: &Loaded, notes: &mut Vec<String
         .casualty_attachments
         .clone_from(&loaded.casualty_attachments);
     sim.roster.art.piece_skeletons = loaded.piece_skeletons.clone();
+    sim.roster.art.piece_scorches = loaded.piece_scorches.clone();
     if !loaded.piece_lengths.is_empty() {
         notes.push(format!(
             "anim: {} unit pieces' slot lists from the install",

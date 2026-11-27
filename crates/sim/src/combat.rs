@@ -732,10 +732,19 @@ pub struct Figures {
     /// **Each record's piece** (item 4175): `DeathObj +0x20`, which
     /// `DeathObj::init@008d4c60` takes from the dead unit's vslot `+0x178`,
     /// `UnitData::get_gpiece@0060dd80` — guy `k`'s own `gpiece` (`GuyData
-    /// +0x88`) for a unit with guys. Its `cur_anim < 0xf` arm, which swaps
-    /// in `RData::unit_data +0x24`, is never taken: `Unit::close` hands
-    /// `dtype * 2 + 0xd + roll % 2` with `dtype >= 1`. `-1` past `n`.
+    /// +0x88`) for a unit with guys — or that piece's scorched body,
+    /// `RData::unit_data +0x24`, when the record's animation came in below
+    /// `0xf` ([`Figures::anim`]). `-1` past `n`.
     pub gpiece: [i32; Figures::MAX],
+    /// **Each record's animation** (item 4747, `docs/COMBAT.md` §42.1):
+    /// `DeathObj +0x8`. `Unit::close@0060ee50` hands every figure the
+    /// death's [`Death::cur_anim`], except on a burning death (`dtype` 4),
+    /// where a figure whose piece has a scorched body gets the third
+    /// draw's `0xe − roll % 4` instead; `DeathObj::init@008d4c60`'s
+    /// `cur_anim < 0xf` arm adds 4 to that and swaps the record onto the
+    /// scorched piece. `-1` on a record built without one, which reads as
+    /// the death's ([`Death::anim_of`]).
+    pub anim: [i32; Figures::MAX],
     /// **Where each record lies** (item 4191, `docs/RENDERER.md` §3.13):
     /// `DeathObjData` `x`, `y`, `z` and `new_angle`, which `DeathObjOut::draw
     /// @008d4090` places and turns the body by. Zero past `n`.
@@ -758,6 +767,17 @@ pub struct Lie {
     pub angle: Angle,
 }
 
+impl Death {
+    /// Record `k`'s animation: its own [`Figures::anim`], or the death's
+    /// where the record was built without one.
+    pub fn anim_of(&self, k: usize) -> i32 {
+        match self.figures.anim.get(k) {
+            Some(&a) if a >= 0 => a,
+            _ => self.cur_anim,
+        }
+    }
+}
+
 impl Figures {
     /// More guys than any shipped crew has; a unit past it keeps the first.
     pub const MAX: usize = 8;
@@ -768,6 +788,7 @@ impl Figures {
             n: 1,
             life: [0; Self::MAX],
             gpiece: [-1; Self::MAX],
+            anim: [-1; Self::MAX],
             place: [Lie {
                 turret_angles: [0; 4],
                 pos: Pos { x: 0, y: 0 },

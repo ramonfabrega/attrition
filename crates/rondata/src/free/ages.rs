@@ -672,7 +672,12 @@ fn census() -> Option<Vec<GameCensus>> {
 /// Item 4463: +120 objects, +120 resolved, from (1,237,591, 1,237,606), the
 /// unresolved holding at 15 — the capture's hand-over and the trade kill
 /// change what the lobbies draw; not split by lobby or by arm.
-pub(crate) const AGES_RESOLVED: (usize, usize, usize) = (1_237_711, 1_237_726, 110);
+/// Item 4747: +3 objects, +3 resolved, from (1,237,711, 1,237,726), the
+/// unresolved holding at 15 — a burning death's figure lies on its scorched
+/// body (`docs/COMBAT.md` §42.1), and `artdata::unit_art` lists the six
+/// `<SCORCH>` entries, so the client resolves them; the record lives longer
+/// or shorter on its scorched piece than on its own.
+pub(crate) const AGES_RESOLVED: (usize, usize, usize) = (1_237_714, 1_237_729, 110);
 
 /// The dumped frames walked: frame 0 and every `FRAME` each long prints.
 pub(crate) const AGES_FRAMES: usize = 4_608;

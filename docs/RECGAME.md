@@ -1880,7 +1880,7 @@ Open: units, builds, groups and guys part on 7675. run1788 holds sums (item 4579
 
 ### 13.2 Row 53
 
-Open: ammo on 4092. → 3713 by 4660 (`docs/COLLISION.md` §3.3), 3716 by 4667, 3935 by 4671 (`docs/AI.md` §259.1), 4092 by 4741 (`docs/COMBAT.md` §17.8).
+Open: groups on 4742. → 3713 by 4660 (COLLISION §3.3), 3716 by 4667, 3935 by 4671 (AI §259.1), 4092 by 4741, 4742 by 4749 (`docs/COMBAT.md` §17.8, §39.4).
 
 ### 13.3 Row 93
 
@@ -1903,18 +1903,18 @@ leaves standing because its end has closed (theirs keeps it; ours drops it).
 
 ### 13.5 Row 133
 
-Open: deaths on 3802. run1797, *diff-backed*.
+Open: ammo on 4032. run1797, *diff-backed*.
 
-**Items 4597 to 4620**: units → 2376, builds → 2432, ammo → 2408, leaders → 2413, cities → 2448 (`docs/GROUPS.md`,
-`docs/COMBAT.md` §84, a Temple's close, two walks by object number; their journals).
+**Items 4597 to 4620**: units → 2376, builds → 2432, ammo → 2408, leaders → 2413, cities → 2448 (GROUPS, COMBAT
+§84, a Temple's close, two walks by object number).
 
 **Item 4628** (run1819's packet): units → 2440: `get_damage`'s rocky step reads the target's cell `flags & 8`.
 
 **Item 4632**: units → 2543. On 2439 the Flamethrower `1/115` (`recharging` 30, its attack's `flags` 16) turns at
 its target in theirs and swings in ours: `Unit::fight`'s emplaced latch (`:92`–`100`) takes the head order's `0x10`.
 
-**Items 4691 to 4740**: units → 3628 → 3633 → 3690 → 3739 → 3790 → 4087 (`FILTER_COMBAT`, ARMY §13, MERCHANT
-§2.2; air refusal, COMBAT §66.8; Bribe, §90, §91; `local_20`, ORDERS §34.6).
+**Items 4691 to 4747**: units → 3628 → 3633 → 3690 → 3739 → 3790 → 4087, deaths → 4103 (`FILTER_COMBAT`, ARMY
+§13, MERCHANT §2.2; air refusal, COMBAT §66.8; Bribe, §90, §91; `local_20`, ORDERS §34.6; scorch, COMBAT §42.1).
 
 ## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
 

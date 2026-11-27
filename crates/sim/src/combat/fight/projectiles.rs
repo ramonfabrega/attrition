@@ -759,7 +759,14 @@ impl Sim {
             }
         }
         if p.splash_area == 0 {
-            let Some(t) = target else {
+            // **A round on its own shooter is a shot into the ground**
+            // (item 4749, `docs/COMBAT.md` §39.4): `do_damage@00678060:98`–
+            // `:100` takes the puncture arm when the pair `check_hit` left
+            // is −1 *or is the shooter's*, and the pair stays on the stuck
+            // round. run1847's 4091: the Village `1/2013`'s round at `2/78`
+            // comes down inside its own footprint, spends both draws and
+            // reads `flags 1`, `whom 1 ox 2013` on 4092.
+            let Some(t) = target.filter(|&t| t != p.shooter) else {
                 // A shot into the ground: two draws for where it punctures
                 // (§39). Marked per draw, because the original spends them
                 // at two addresses.
@@ -770,9 +777,6 @@ impl Sim {
                 self.stick(p, Pos::new(p.landing.x + dx, p.landing.y + dy));
                 return;
             };
-            if t == p.shooter {
-                return;
-            }
             let angle = p.bearing();
             self.do_damage_round(
                 p.shooter,
