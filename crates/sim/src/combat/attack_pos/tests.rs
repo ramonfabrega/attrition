@@ -553,7 +553,7 @@ fn a_unit_target_with_no_spot_is_refused_unless_the_attack_is_mandatory_and_far(
 /// **A land asker on an `ATTACK` sweeps only its own region against a
 /// sea target** (`Unit::find_attack_pos@00601280:123`–`:143`, `local_3c`;
 /// `find_nearby_spot@0061de70:125`–`:141`; item 4741, `docs/COMBAT.md`
-/// §17.5). Two regions meet at cell column 30 (x 23,040). An archer in
+/// §17.8). Two regions meet at cell column 30 (x 23,040). An archer in
 /// the west one attacking a ship well inside the east one finds no spot
 /// at all — the ring lies wholly across the line — where the same ship
 /// asked for by a land target's attacker, or by an asker with no

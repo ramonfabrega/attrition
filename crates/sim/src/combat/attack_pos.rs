@@ -483,7 +483,7 @@ impl crate::Sim {
     }
 
     /// **`local_3c`, the asker's own region** (`Unit::find_attack_pos@
-    /// 00601280:74`, `:123`–`:143`; item 4741, `docs/RECGAME.md` §13.2):
+    /// 00601280:74`, `:123`–`:143`; item 4741, `docs/COMBAT.md` §17.8):
     /// `-1`, unless the asker has orders, its current one is an `ATTACK`
     /// (the order's vslot `+0x10`, `10`), and its type's domain (`+0x218`)
     /// is neither air (2) nor the target's — then `WorldData::get_tregion`
