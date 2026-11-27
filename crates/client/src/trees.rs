@@ -514,7 +514,10 @@ mod tests {
     /// 81,369 pixels and nearer 78,380 → 78,378, the tone map's white
     /// moving one pixel over the bar; the lumas hold. Item 4677: the mask
     /// 81,369 → 81,367 and nearer 78,378 → 78,376, the lumas held: the plates' and the asphalt's pieces on the packet's element on more tiles (item 4677, `docs/RENDERER.md` §6.5) move the frame's mean, so its white.
-    const RUN1814B_3294_TREES_PAST_SIGHT: [i64; 5] = [81_367, 432, 1014, 424, 78_376];
+    /// Item 4768, the buildings' addons drawn (§6.27): the mask 81,367 →
+    /// 81,368 and nearer 78,376 → 78,378, the lumas held, the frame's mean
+    /// again.
+    const RUN1814B_3294_TREES_PAST_SIGHT: [i64; 5] = [81_368, 432, 1014, 424, 78_378];
     /// The same pixels' mean colour: the photograph's, ours before, ours
     /// now, each channel ×10 and rounded.
     const RUN1814B_3294_TREES_PAST_SIGHT_RGB: [[i64; 3]; 3] =
