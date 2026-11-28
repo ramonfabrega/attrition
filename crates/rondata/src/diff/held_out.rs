@@ -18482,10 +18482,14 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
         // 4,590 (first 4387 -> 4569); no other line moves. The first
         // parting moves 4387 -> 4568, on units, builds, guys, leaders and
         // world.
+        // Item 4785 (`fight` chases the order's target, not `combat.target`):
+        // past the first parting, which stays 4568, items 5,616 -> 7,924
+        // (the base's tree, the fix mutated away, prints 7,498 and goods
+        // 6,716; with the fix goods holds 4,746).
         moved: Some(Score {
             states: 12001,
             agreed: [
-                4568, 4568, 12001, 4569, 4574, 4581, 4568, 4568, 4644, 5616, 4746, 4568,
+                4568, 4568, 12001, 4569, 4574, 4581, 4568, 4568, 4644, 7924, 4746, 4568,
             ],
             first: &[
                 ("units", (4568, Some(516811716), 223209531)),
