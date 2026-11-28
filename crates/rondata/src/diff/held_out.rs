@@ -576,6 +576,7 @@ fn columns(lines: &[String]) -> (String, Vec<String>, u64) {
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;
+    use super::tests::paths;
 
     /// **The declaration** (item 4413's first act): the eight lobbies, named
     /// and written out before any take, against what `lobbies_on_disk`
@@ -18157,6 +18158,7 @@ pub(crate) const SEVENTH: Battery = Battery {
 #[cfg(test)]
 mod probe_4778 {
     use super::*;
+    use super::tests::paths;
 
     #[test]
     fn probe_4778() {
