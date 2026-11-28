@@ -491,11 +491,12 @@ mod tests {
     /// Item 4690: the drawn plume 10,765 → 10,764 (a named fall of one), the packet's 14,801 → 14,800 on the second reader (a named fall of one): the candidate picked on the mesh's own lines (item 4690, `docs/RENDERER.md` §6.9) lays eleven more of the packet's pieces at the crossroads and leaves the T at (17–19, 163) on the mesh's yellow (4690a), so the frame's mean and its white.
     /// Item 4768: the drawn plume 10,764 → 10,763 of 19,959 → 19,961 (a named fall of one), past 2,263 → 2,262; the packet's 14,800 → 14,798 and 11,707 → 11,709, the fires off 16,891 → 16,893: the buildings' `EXISTEVENT` addons drawn (item 4768, `docs/RENDERER.md` §6.27) move the frame's mean, so its white.
     /// Item 4772: the drawn plume of 19,961 → 19,960, past 2,262; the packet's 14,798 → 14,800 and dense 980 → 979, the fires off 16,893 → 16,892, the second reader 11,709 → 11,707, past 1,865 → 1,864, 14,029 → 14,028 and dense 1,835 → 1,834 (named falls of one and two): the redo walks one list in push order (item 4772, `docs/RENDERER.md` §6.9): (19, 163) lays the packet's piece and (18, 163) is left bare, so the frame's mean and its white.
+    /// Item 4781: the drawn plume of 19,960 → 19,961, past 2,262 → 2,263, dense 979 → 980; the fires off 3,068 → 3,069; the second reader 11,707 → 11,709, past 1,864 → 1,865, 14,028 → 14,030: every tile on a redo list takes the four passes (item 4781, `docs/RENDERER.md` §6.9): (17, 163) and (18, 163) lay the packet's pieces, element 17 at orientations 0 and 4, so the frame's mean and its white.
     const RUN1559B_3279_PLUME: PlumeRows = [
-        ((10763, 19960, 2262), (14800, 979)),
-        ((0, 19960, 0), (0, 0)),
-        ((19960, 19960, 0), (16892, 3068)),
-        ((11707, 19960, 1864), (14028, 1834)),
+        ((10763, 19961, 2263), (14800, 980)),
+        ((0, 19961, 0), (0, 0)),
+        ((19961, 19961, 0), (16892, 3069)),
+        ((11709, 19961, 1865), (14030, 1834)),
     ];
     /// **`RUN1570_PLUME`**, on run1570's frame 3327: as run1559b's. Seen
     /// at **316** of 18,871 (made to fail: 944). Item 4233: **316 →
@@ -528,11 +529,12 @@ mod tests {
     /// Item 4690: past 1,933 → 1,932, the packet's 14,671 → 14,670 on the second reader (a named fall of one): the candidate picked on the mesh's own lines (item 4690, `docs/RENDERER.md` §6.9) lays eleven more of the packet's pieces at the crossroads and leaves the T at (17–19, 163) on the mesh's yellow (4690a), so the frame's mean and its white.
     /// Item 4768: the drawn plume 10,829 → 10,827 of 19,066 (a named fall of two), the packet's 14,670 → 14,669 and 12,003 → 12,005, the fires off 16,026 → 16,025: the buildings' `EXISTEVENT` addons drawn (item 4768, `docs/RENDERER.md` §6.27) move the frame's mean, so its white.
     /// Item 4772: the drawn plume 10,827 → 10,828, the packet's 14,669 → 14,670; the second reader past 1,489 → 1,488 (a named fall of one), 13,384 → 13,383 and dense 2,239 → 2,240: the redo walks one list in push order (item 4772, `docs/RENDERER.md` §6.9): (19, 163) lays the packet's piece and (18, 163) is left bare, so the frame's mean and its white.
+    /// Item 4781: the drawn plume of 19,066 → 19,067; the fires off 16,025 → 16,026; the second reader 12,005 → 12,007, past 1,488 → 1,489, 13,383 → 13,386 and dense 2,240 → 2,239 (a named fall of one): every tile on a redo list takes the four passes (item 4781, `docs/RENDERER.md` §6.9): (17, 163) and (18, 163) lay the packet's pieces, element 17 at orientations 0 and 4, so the frame's mean and its white.
     const RUN1570_PLUME: PlumeRows = [
-        ((10828, 19066, 1932), (14670, 982)),
-        ((0, 19066, 0), (0, 0)),
-        ((19066, 19066, 0), (16025, 3041)),
-        ((12005, 19066, 1488), (13383, 2240)),
+        ((10828, 19067, 1932), (14670, 982)),
+        ((0, 19067, 0), (0, 0)),
+        ((19067, 19067, 0), (16026, 3041)),
+        ((12007, 19067, 1489), (13386, 2239)),
     ];
 
     #[test]
@@ -610,10 +612,11 @@ mod tests {
     /// Item 4286: the flame row 349 → 351 of 625 → 592 (theirs, the fires off, moves with the brighter buildings), past 395 → 434; the packet's 412 → 421: the buildings' sprites tinted at load and taken through `TL_FAKE_LIGHT`, their shadow blended (item 4286, `docs/RENDERER.md` §3.28).
     /// Item 4292: the flame row 351 → 350 of 592 (a named fall from 351), past 434 → 433; the packet's particles through our pass 421 → 420 (a named fall from 421): the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white. Its residue is parked 4292f.
     /// Item 4311: the flame row 350 → 351 of 592 → 596, past 433 → 422; the packet's particles through our pass 420 → 422: the map's edge border drawn (item 4311, `docs/RENDERER.md` §3.15) moves the frame's mean, so its white.
+    /// Item 4781: the packet's particles through our pass 422 → 423, past 711 → 712: every tile on a redo list takes the four passes (item 4781, `docs/RENDERER.md` §6.9): (17, 163) and (18, 163) lay the packet's pieces, element 17 at orientations 0 and 4, so the frame's mean and its white.
     const RUN1570_FLAME: FlameRows = [
         (
-            (351, 596, 422),
-            (99, 711),
+            (351, 596, 423),
+            (99, 712),
             [(11, 11), (27, 27), (5, 0), (18, 24)],
         ),
         ((0, 596, 0), (0, 0), [(11, 0), (27, 0), (5, 0), (18, 0)]),

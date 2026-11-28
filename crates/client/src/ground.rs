@@ -1039,8 +1039,9 @@ pub const RUN1559B_3279_GROUND: (usize, usize) = (1097, 1109);
 /// 141) under a mountain, theirs (104, 101, 82), comes into the reader.
 /// Item 4319: **1,105 → 1,106**: the land oil's `rough` and `oil` underlays drawn (item 4319, `docs/RENDERER.md` §3.24); run1559b's map is GreatLakes too.
 /// Item 4690: **1,106 → 1,105**, a named fall of one (plain 982 of 986): the candidate picked on the mesh's own lines (item 4690, `docs/RENDERER.md` §6.9) lays eleven more of the packet's pieces at the crossroads and leaves the T at (17–19, 163) on the mesh's yellow (4690a), so the frame's mean and its white.
+/// Item 4781: **1,105 → 1,107**: every tile on a redo list takes the four passes (item 4781, `docs/RENDERER.md` §6.9): (17, 163) and (18, 163) lay the packet's pieces, element 17 at orientations 0 and 4, so the frame's mean and its white.
 #[cfg(test)]
-pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1105, 1109);
+pub const RUN1559B_3279_GROUND_STILL: (usize, usize) = (1107, 1109);
 
 /// **`RUN1559B_3279_PAST_THE_EDGE`** (item 4247; `docs/RENDERER.md`
 /// §3.15): the corner past the map's edge on run1559b's still at frame
@@ -1366,11 +1367,12 @@ pub type LumaStill = ((u32, usize), [[u32; 2]; 7]);
 /// Item 4338: run1564 1,868 → 1,866 (`SANDY` 738 → 736, a named fall of two): the surf's lists blended on the HDR target (`docs/RENDERER.md` §3.30).
 /// Item 4348: run1564 1,866 of 1,920 → 1,866 of 1,921 (`OCEAN` 419 of 437 → 419 of 438): the herd turned to the dump's angle (`docs/RENDERER.md` §3.30, "Where the herd stands").
 /// Item 4772: run1559b 1,109 → 1,108 of 1,109 (`plain` 986 → 985, a named fall of one): the redo walks one list in push order (item 4772, `docs/RENDERER.md` §6.9): (19, 163) lays the packet's piece and (18, 163) is left bare, so the frame's mean and its white.
+/// Item 4781: run1559b 1,108 → 1,109 of 1,109 (`plain` 985 → 986): every tile on a redo list takes the four passes (item 4781, `docs/RENDERER.md` §6.9): (17, 163) and (18, 163) lay the packet's pieces, so the frame's mean and its white.
 pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
     (
-        (1108, 1109),
+        (1109, 1109),
         [
-            [985, 986],
+            [986, 986],
             [106, 106],
             [17, 17],
             [0, 0],
@@ -1432,7 +1434,8 @@ pub const GROUND_LUMA_STILL: [LumaStill; 2] = [
 /// one): the herd turned to the dump's angle (item 4348, `docs/RENDERER.md` §3.30, "Where the herd stands").
 /// Item 4379: run1564's 1,710 → 1,700 (a named fall of ten on the made-to-fail side, which now trails the drawn row by 156): the national borders blended on the HDR target (item 4379, `docs/RENDERER.md` §3.29, "The band's colour").
 /// Item 4690: run1559b's 1,020 → 1,019 (a named fall of one on the made-to-fail side): the candidate picked on the mesh's own lines (item 4690, `docs/RENDERER.md` §6.9) moves the frame's mean, so its white.
-pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1019, 1109), (1700, 1921)];
+/// Item 4781: run1559b's 1,019 → 1,021 on the made-to-fail side: every tile on a redo list takes the four passes (item 4781, `docs/RENDERER.md` §6.9): (17, 163) and (18, 163) lay the packet's pieces, so the frame's mean and its white.
+pub const GROUND_STILL_SRGB: [(usize, usize); 2] = [(1021, 1109), (1700, 1921)];
 
 /// **`RUN1559B_3279_GROUND_LUMA`** (item 4172; `docs/RENDERER.md` §3.14,
 /// "On brightness", its rule committed before this count): of

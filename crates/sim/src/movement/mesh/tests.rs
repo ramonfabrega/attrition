@@ -556,7 +556,7 @@ fn a_piece_keeps_the_intersections_it_was_picked_on() {
 /// `leech_lines` returning at once, the lines read `004800` (red). This
 /// order does not reach the split that zeroes its `S`; the push that
 /// re-marks it is pinned on the walk (`RUN1814B_PLATE_CANDIDATES`, 54 →
-/// 53 with `tex_push` returning at once).
+/// 53 with the line passes' `add_unique` returning at once).
 #[test]
 fn a_joined_corner_holds_its_ring() {
     let mut sim = bare();
