@@ -5605,6 +5605,16 @@ pub(crate) mod tests {
             let f = built.sim.frame;
             crate::diff::harness::debug_watch(&built, f);
             stream.apply(f as i32, &mut built);
+            if f + 1 == lo && std::env::var("RON_PROBE_4779_POKE").is_ok() {
+                let tw = built.sim.world.width() * 4;
+                for b in (37082..=37090).step_by(2) {
+                    let i = b / 2;
+                    let t = sim::Pos::new(i % tw, i / tw);
+                    let m = built.sim.world.tile_mask(t);
+                    eprintln!("POKE tile {:?} tw {tw} mask {m:#x} -> {:#x}", t, m | 0xc0);
+                    built.sim.world.set_tile_mask(t, m | 0xc0);
+                }
+            }
             let watch = f >= lo - 3;
             if watch {
                 built.sim.trace.trace_phases = true;
