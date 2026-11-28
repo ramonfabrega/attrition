@@ -41143,6 +41143,15 @@ guys and units on 5657 (units range 3871, record 103, `1/103`'s guy `last_x` our
 `row_83_s_artillery_seats_its_crew_with_last_on_the_seat_on_run1784_s_ranges` holds every units and guys range on
 5656 to 5659. Units and guys 5,996 → 5,997; the row parts first on builds, deaths, leaders and world on 5996
 (builds range 5003, record 2040, `build_masks` ours 4144, theirs 20528).
+
+**Item 4784 on it**: builds range 5003 is who=2's Small City `2/2040` (`construct_hits` 1440), not who=1's Stockade
+of the same number. On 5995 who=1's Flamethrower `1/180` strikes it with `2/1` inside, and
+`Object::do_damage@0064a480:953`–`:1050` ejects it and burns three of who=2's Citizens (`docs/COMBAT.md` §7.4).
+Theirs spends draws 51–53 on the births and 54–64 on the closes. On 5996 `build_masks` is 0x5030, leader 2's
+`flags` 0x800003 and `units_built` 208 (ours 205), and the pool holds `2/171`, `2/179` and `2/180` on piece 60127.
+`print_ranges` reads 0 ranges over 5994..6000, and
+`row_83_s_flamethrower_burns_citizens_out_of_a_garrisoned_city_on_run1784_s_ranges` holds every builds, deaths,
+leaders and world range on 5995 to 5997. Every line 6,001 of 6,001: the row is whole.
 ## run1786 — the 2017 sample's playback to 8,000 with the checksum and ranges hooks, every line but walls kept (2026-11-22, item 4555, `att-4555`)
 
 

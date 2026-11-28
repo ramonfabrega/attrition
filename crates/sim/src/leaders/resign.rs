@@ -38,7 +38,6 @@
 //! (`semaphore & 0x44 == 4`). `Game::check_victory` is carried since item
 //! 4189 ([`Sim::check_victory`]).
 
-use crate::combat::Obj;
 use crate::{Player, Sim};
 
 impl Sim {
@@ -97,17 +96,6 @@ impl Sim {
     /// `+0x150` with `dtype` 0 — no death animation, no draw and no death
     /// object (`close_unit`'s first test) — and the slot held.
     pub(crate) fn die_quietly(&mut self, v: usize) {
-        let frame = self.frame;
-        self.units[v].health = 0;
-        self.close_count(v);
-        self.relink_squad(v);
-        self.close_unit(v, 0, frame, None);
-        self.kill_contents(v);
-        self.kremlin_spy_closed(v);
-        self.close_dead_orders(v);
-        self.hold_dead_slot(v);
-        self.close_supply_in(v, false);
-        self.forget(Obj::Unit(v));
-        self.clear_decoy_at_close(v);
+        self.close_through_slot(v, 0);
     }
 }

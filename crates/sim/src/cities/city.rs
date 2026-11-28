@@ -1244,6 +1244,7 @@ impl Sim {
                 greek_library: self.greek_library_discount(who, ty),
                 maya_timber: self.maya_timber_discount(who, ty),
                 japanese_farms: self.japanese_farm_discount(who, ty),
+                liberty_air_defense: self.liberty_air_defense_discount(who, ty),
                 indian_ramp: if is_city {
                     cost::IndianRamp::Off
                 } else {
@@ -1423,21 +1424,6 @@ impl Sim {
             0
         };
         [bantu, pyramids]
-    }
-
-    /// `get_cost`'s **Korean tower step** (`:916`–`922`,
-    /// [`cost::Modifiers::korean_tower`]): a building of the Tower's line,
-    /// `is(0x1b7, 0)` — no wonder test, unlike the fort arm after it — for a
-    /// leader with the Korean bonus. run991's block 9179: who=1's wealth 86
-    /// and metal 175 ours against 96 and 192 theirs, the third off its
-    /// towers that ours charged whole (item 3365, `docs/AI.md` §283).
-    fn korean_tower_discount(&self, who: Player, ty: usize) -> i32 {
-        if build::is_tower(&self.tables.build_types, ty) && self.cities.nation[who as usize].koreans
-        {
-            self.tables.tuning.korean_tower_cost
-        } else {
-            0
-        }
     }
 
     /// `get_cost`'s fort arm (`00665e0f`..`00665e8a`, [`cost::Modifiers::fort`]):

@@ -895,8 +895,9 @@ every path: a round a decoy fired that lands after its shooter closed is a
    `get_kill_value / 5` to score, `Build::plunder` for a non-air, non-splash,
    non-allied kill. Return.
 9. If not died: emergency AI; a `FLAMETHROWER` hitting a building **ejects
-   its garrison** (and against a city, spawns citizens); entrenchment is
-   **broken** on a hit that did not kill (`unit_masks &= ~0x2000000`, the
+   its garrison** and, against any building that holds someone, burns
+   `x_size >> 1` stand-in citizens (§7.4, item 4784); entrenchment is
+   **broken** on a hit that did not kill, by a Flamethrower only (§7.4) (`unit_masks &= ~0x2000000`, the
    two Antipater bits, `remove_entrench`); the Lakota coin trickle; planes
    ejected from a hit carrier/airbase by anti-air or bombers; then the
    **building's own splash**: every unit on the tiles within `circle_radius[1]`
@@ -1008,6 +1009,69 @@ is where the figure's size comes from. `ObjectData::hits_left` and
 `health_level` read `UnitData::total_damage`, which sums the chain and adds
 `(uber_size − curr_uber_size) × hits / uber_size` for the dead — the health
 bar shows the squad.
+
+### 7.4 The Flamethrower's garrison arm
+
+*Item 4784, 2026-11-28, Opus 5.5. Diff-backed on run1784's 5995..5997
+(`row_83_s_flamethrower_burns_citizens_out_of_a_garrisoned_city_on_run1784_s_ranges`);
+built in `sim::combat::fight::flame`.*
+
+`Object::do_damage@0064a480:953`–`:1050`, on a hit that `take_damage` did not
+kill, right after `Armies::emergency` and ahead of the capture check:
+
+```text
+if A.is(FLAMETHROWER)                       (vslot 0xb8, 0x83; the lineage)
+  if T is a building                        (T's vslot 0x18 answers 0)
+    if !T.can_carry(AIR)                     (not a hangar)
+      n = T.num_inside(1)                    (every live object on T's inside chain)
+      T.eject_contents(1, -1, 0, 1)          (a building: build_masks |= 0x4000, nothing else)
+      if n != 0
+        k = T.type.x_size >> 1               (+0x234, tiles)
+        if count(death pool: valid and DeathObj+0x20 > first_build_piece) < k
+          repeat k:                           u = init_unit(T.who, citizen, T.x, T.y, -1, -1, -1)
+                                              u.go_inside(T.o, T.who, 0); u.come_out(0)
+          each u: Unit::close(4, -1, 0)       (vslot 0x150: a burning death, three draws)
+  else (T is a unit)
+    break T's entrenchment                   (unit_masks &= ~0x2000000, the two 0x6c bits, remove_entrench)
+```
+
+- **`citizen`** is `types[PEASANTS]` when `LeaderData::tribe_can_type(T.who's
+  leader, PEASANTS)` answers it, and the type's vslot `0x68` handed the tribe
+  otherwise.
+- **The cap counts scorched bodies.** `first_build_piece` is `0xc606`, which
+  is `total_num_unit_pieces`. The only death records above it are the scorched
+  bodies a burning death moves a figure onto (§42.1, `DeathObj::init`'s `+4`).
+  So a city burns no more stand-ins while `k` of them still lie on the map.
+- **The stand-ins are real units for one frame.** `init_unit` counts each in
+  the owner's `units_built` and sets the score's units bit (`leader_flags |=
+  0x800000`). `close` takes each off `num_units`. Each leaves a death record.
+  `units_lost` does not step.
+- **The draws**: one `Guy::init_real < Objects::init_unit` per stand-in, all
+  first. Then `Unit::close+0xcb6`, `+0xce6` and `+0xd0a` per stand-in, each
+  beside its sound. `go_inside` and `come_out` take none for a Citizen.
+
+**The run that shows it.** On run1784's 5995, who=1's Flamethrower `1/180`
+(`TypeIndex` 0x83's lineage, land) strikes who=2's Small City `2/2040`, which
+has `2/1` inside. Theirs spends draws 51 to 53 on the three births and 54 to
+64 on the three closes. On 5996 the city's `build_masks` carries `0x4000`, leader
+2's `flags` reads 0x800003 and its `units_built` reads 208 where it was 205.
+The pool holds `2/171`, `2/179` and `2/180`: `first_frame` 5995, age 1, ammo
+−1, piece 60127 (`BIPED`'s scorched body). Ours held none of these before
+the build, and has all of them now.
+
+**What this has not established.**
+
+- The tribe arm (vslot `0x68`) is not read. Every tribe on file answers
+  `tribe_can_type` for the Citizen.
+- **The entrench arm is not built.** The listing shows a false `is(0x83)`
+  jumping to `64beb7`, past both arms, so `do_damage` breaks entrenchment
+  (`64bc61`–`64bc6e`) only for a Flamethrower's blow. The bit's only other
+  writers are `Unit::move_step` and `Unit::close`. This crate breaks it after
+  every hit that does not kill, and no capture has shown the difference
+  (item 4784's journal, parked 4784a).
+- No capture has shown the cap refuse. The second blow in
+  `a_flamethrower_burns_stand_in_citizens_out_of_a_garrisoned_city` is a
+  hand-built case.
 
 ---
 
@@ -3380,10 +3444,29 @@ Each goes red with the copy put back (`mutate.py`: held). **Read, not
 diffed**: the mandatory byte (no capture on file has a head whose byte
 differs from the copy's).
 
-**Not established**: the three Volksgrenadiers in the same group (`1/92`,
-`1/100`, `1/116`, TI 109) still part on their head move on 4812. Their head
-is `ATTACK 2/101` on both sides, so the target is not the cause. Draws agree
-on 4811, 458 against 458.
+~~**Not established**: the three Volksgrenadiers in the same group still
+part on 4812.~~ They attack, so they take the tail, not this arm: §21.9.
+
+### 21.9 `fight`'s target is its arguments, the order's (item 4785, 2026-11-28)
+
+`do_attack@005f1b80:254` calls `fight(ox, whom, mandatory, 0, 0)` with the
+order's `+8`/`+0xc`, and `Unit::fight@005fd4d0` tests and chases that pair
+(`uVar28`, `param_2`); the follower's mirror rewrites both. `do_attack_fight`
+read `combat.target`. On run1799's 4811 the Volksgrenadiers `1/92` (TI 109,
+land, an attack) chase under the head `ATTACK 2/101` with the copy naming
+`2/88`; `1/100` and `1/116` ask after it, so their spots follow. Units
+records' head moves on 4812, ours before → now = theirs:
+
+| record | before | now and theirs |
+|---|---|---|
+| 92 | (17688, 15192) | (18072, 14712) |
+| 100 | (18024, 14616) | (14616, 12648) |
+| 116 | (14664, 12648) | (18072, 15720) |
+
+**Diff-backed**: `row_93_s_volksgrenadiers_chase_their_head_order_s_target_on_run1799_s_ranges`
+and the killer `a_chaser_stands_off_its_head_order_s_target_not_its_copy`.
+**Not established**: the emplaced latch (`fight:81`–`94`) reads the entry
+pair too, and still reads the copy here; no capture on file parts on it.
 
 ## 22. Where an arrow starts, measured (item 396, 2026-09-19)
 

@@ -288,6 +288,7 @@ const fn combat_progress_lost(whole: i32) -> i32 {
 mod acquire;
 mod attack_step;
 mod delivery;
+mod flame;
 mod projectiles;
 mod stats;
 mod target_valid;
