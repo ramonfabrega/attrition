@@ -180,7 +180,8 @@ impl DoAttackView for SimDoAttack<'_> {
         (p.x, p.y)
     }
     fn find_nearby_spot(&mut self, x: i32, y: i32) -> Option<(i32, i32)> {
-        self.s
+        let r = self
+            .s
             .find_nearby_spot(
                 self.u,
                 crate::Pos::new(x, y),
@@ -190,7 +191,21 @@ impl DoAttackView for SimDoAttack<'_> {
                 crate::movement::Angle(0x5555_5555),
                 None,
             )
-            .map(|p| (p.x, p.y))
+            .map(|p| (p.x, p.y));
+        if std::env::var_os("RON_PROBE_4785").is_some() && (4810..=4811).contains(&self.frame) {
+            let un = &self.s.units[self.u];
+            eprintln!(
+                "PROBE4785 f{} {}/{} slot {} at ({}, {}) target {:?} centre ({x}, {y}) spot {r:?}",
+                self.frame,
+                un.owner,
+                un.index,
+                self.u,
+                un.pos.x,
+                un.pos.y,
+                self.target.map(|t| self.s.pos_of(t))
+            );
+        }
+        r
     }
     fn spot_valid(&mut self, x: i32, y: i32) -> bool {
         let units = |cells: i32| cells * crate::world::TILES_PER_CELL * 0xc0;
