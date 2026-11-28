@@ -1235,7 +1235,10 @@ fn run790_s_word_frame_is_widened_whole() {
     // reaches it — `sheltered` ours 1 against 0. Downstream of the
     // standing `attrition` row, not a new parting of its own.
     // Item 4159's third residue: 85 -> 60, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
-    pin_eq!(w.firsts.len(), 42, "initial run790 baseline");
+    // Item 4783: 42 -> 40, the Statue of Liberty's air-defence arm (`get_cost:1017`-`:1024`, `docs/COSTS.md`):
+    // who=1 holds the Statue, and on 3983 its `bucket[1:timber]` (ours 5169, theirs 5242) and
+    // `bucket[4:metal]` (ours 7531, theirs 7604) part no more.
+    pin_eq!(w.firsts.len(), 40, "initial run790 baseline");
 }
 
 /// run817, item 2055: the lobby's blocks 4260..4341 at run790's detail —
@@ -1322,5 +1325,8 @@ fn run817_s_word_frame_is_widened_whole() {
     // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
     // Item 4159's third residue: 223 -> 63, the bleed reads the record's `anti_att` and the Foraging arm (`docs/ATTRITION.md` §3).
     // Item 4508: 46 -> 45, a computer's bomber searches round itself (`find_new_bomber_target`).
-    pin_eq!(w.firsts.len(), 45, "initial run817 baseline");
+    // Item 4783: 45 -> 40, the Statue of Liberty's air-defence arm (`docs/COSTS.md`): on 4260 who=1's
+    // `bucket` timber (ours 4799, theirs 4841), wealth (11277, 11733) and metal (6149, 6491), its
+    // `escrow[2:wealth]` (346, 646) and `MAKE[3].val` (41, 43) part no more.
+    pin_eq!(w.firsts.len(), 40, "initial run817 baseline");
 }
