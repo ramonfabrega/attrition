@@ -105,27 +105,32 @@ bell closed and which left this row where it stood: another caller of the bell (
 against 7. No take. Re-pin each row it moves with `tools/repin_held.py`, never `found`. It stops when two landings running
 move no column.
 
-4757. **Parity held out, sixth: row 53's deaths from 5275** (a rules item, whole; unseated; `docs/RECGAME.md` §13.2). Items
-4753 and 4755 took the row 4758 -> 5275 (a round leaves from its figure's own point; a building's round from its stored z).
-Its leaf (run1847): deaths range 3, record 1, `first_frame..unit_crew`, bytes 8, 9, 12, 13, 24, 38, 42 and 43; units part on
-5499 (record 121, `unit_masks` ours 8720398, theirs 8720396) and ammo on 5512. First act: `print_ranges` (`docs/RECGAME.md`
-§15) on run1847 over 5273..5275. No take. Re-pin each row it moves with `tools/repin_held.py`, never `found`. It stops when
-two landings running move no column.
+4757. **Parity held out, sixth: row 53 from 5275, three terms on disk** (a rules item, whole; unseated; `docs/RECGAME.md`
+§13.2). The reading of 2026-11-28 (Ramon's, `~/ron-data/lab-experiments/2026-11-28-readings/`, nothing built) took the first
+act and the two words behind it, each predicted. 5275 (run1847, deaths record 1): one round from `1/139` sinks barges `2/180`
+and `2/192` in one cell on 5274; the original's splash walks cells in `move_x/move_y` order and each cell's chain from its
+head, ours by units-vector index (`B-item-4757.md`). 5499: `target_opportunity` queues NEW only when no order is left, ours on
+stance alone, `unit_masks` 8720398 against 8720396 (`B-item-4757-next-5499.md`). 5511: the chase review's `target_on_map` asks
+"inside nothing", not `on_map` (`B-item-4757-third.md`); 5512 on is its echo. Build the three in order. Re-pin each row it
+moves with `tools/repin_held.py`, never `found`. It stops when two landings running move no column.
 
-4615. **Parity held out, seventh: row 48's units from 5940** (a rules item, whole; unseated; `docs/RECGAME.md` §14.3). The
-row's first parting, ammo on 5607, moved to 8300 on item 4759 (the Biplane's and the Javelineers' launch rows); units on 5940
-is now its first parting. The row's whole take is run1848 (the pass's, 160 §4): units on 5940, range 10957, record 173,
-`unit_masks` ours 262280, theirs 262152, `attrition` 48 against 0; builds on 7183, record 2067, `city_down` -1 against 2068.
-No take. Re-pin each row it moves with `tools/repin_held.py`, never `found`. It stops when two landings running move no
-column.
+4615. **Parity held out, seventh: row 48's units from 5940, two terms on disk** (a rules item, whole; unseated;
+`docs/RECGAME.md` §14.3). The reading of 2026-11-28 (`~/ron-data/lab-experiments/2026-11-28-readings/`, nothing built) took
+the first act and the word behind it, each predicted. 5940 (run1848, units record 173, `attrition` 48 against 0, `unit_masks`
++0x80): who=2's Citizen moving to gather at its own Woodcutter is exempt in the original's `process_attrition` worker arm, and
+ours' `gathering_non_flat` is only ever written false by the loader; compute it at each refresh (`B-item-4615.md`). 7176:
+who=1's timber income 5120 against 4960; a camp whose `gather_max` fell 5 -> 3 pays min(live slots, gatherers), ours the raw
+count, in `Sim::site_of` (`B-item-4615-next-7176.md`); 7183 on is its echo. Build both. Re-pin each row it moves with
+`tools/repin_held.py`, never `found`. It stops when two landings running move no column.
 
-4616. **Parity held out, seventh: row 108 from 7421, and the sixth's row 13 from 7675, one first sight** (a rules item,
-whole; unseated; `docs/RECGAME.md` §14.5). The two rows part on the same four fields with the same values (DECISIONS 161 §4).
-Row 108 (run1849) on 7421: units record 16, who=1's slot 69, type 133, `unit_masks` ours 262152, theirs 262156, `orders_x`
-22488 against 5496, `path.length` 67 against 64; builds record 2007 `ever_seen` 1 against 3; guys record 16 `guy_flags` 16
-against 48; groups record 65 `o_angle`. Row 13 (run1850) on 7675: units record 26, slot 107, type 177, the same `unit_masks`,
-`ever_seen` and `guy_flags`. First act: `print_ranges` (`docs/RECGAME.md` §15) on run1849 over 7419..7421. No take. Re-pin
-each row it moves with `tools/repin_held.py`, never `found`. It stops when two landings running move no column.
+4616. **Parity held out, seventh: row 108 from 7421, and the sixth's row 13 from 7675, one line on disk** (a rules item,
+whole; unseated; `docs/RECGAME.md` §14.5). Not a first sight: the reading of 2026-11-28
+(`~/ron-data/lab-experiments/2026-11-28-readings/B-item-4616.md`, nothing built, predicted) found the AI probe's farm arm
+(`Army::find_target`) set the human's Farm `0/2007` `ever_seen |= 1 << who` before the attack, which ours
+(`ai/army.rs:1916-1917`) skips although `docs/ARMY.md` §12 names it; so six members take a MOVE_TO for an ATTACK, and
+`unit_masks` +4, `ever_seen` 1 against 3 and `guy_flags` +0x20 follow, on both rows. Build the write; the next words on
+7422/7676 and 7551/7751 are its echo (`B-item-4616-next.md`). Re-pin each row it moves with `tools/repin_held.py`, never
+`found`. It stops when two landings running move no column.
 
 4579. **Parity held out, sixth: row 13's units, builds, groups and guys from 7675** (a rules item, whole; unseated;
 `docs/RECGAME.md` §13.1). Amazon, the human with the added computer. Its leaf on 7675 is item 4616's first sight, which
@@ -133,12 +138,13 @@ carries this row; this item is the row's word after it. The row's whole take is 
 First act: `print_ranges` (`docs/RECGAME.md` §15) on run1850 over the two states before the row's first parting then. No
 take. Re-pin each row it moves with `tools/repin_held.py`, never `found`. It stops when two landings running move no column.
 
-4716. **The 2017 sample from the detected decoy on 15666** (a rules item, whole; unseated; `docs/RECGAME.md` §7.1).
-At 15666 player 2's decoy 110 has one damage in the original, zero here.
-Player 2's original first attrition stamp is 15665, zero here. Check player 4's detector bit against both ally masks.
-The experimental stored-mask correction advances to 15938 but loses the whole item line at 16948. The new first field's pivot row is in
-place (item 4656: piece 1196's node, 0x052c0000 as run1844's); retain the whole item floor. See the [investigation](journal/2026-11-26-item-4715.md).
-Stop after two landings move neither word (DECISIONS 157 §3).
+4716. **The 2017 sample from the detected decoy on 15666, one token on disk** (a rules item, whole; unseated;
+`docs/RECGAME.md` §7.1). At 15666 player 2's decoy 110 has one damage in the original, zero here, and its attrition stamp
+15665 against 0. The reading of 2026-11-28 (`~/ron-data/lab-experiments/2026-11-28-readings/B-item-4716.md`, nothing built,
+predicted): the detection on 15665 tests the cell's seen bits against the complement of the owner's **stored** ally byte (16 &
+~5 = 16), ours (`spells/cast.rs:120`) the recomputed `seen_ally_mask` (16 & ~23 = 0); Astra's `acfd76f59`. The 16948 items
+loss is drift past the parting, and item 4656 closed 15938's seam on the tip (`B-item-4716-next.md`). Keep the whole item
+floor. Stop after two landings move neither word (DECISIONS 157 §3).
 
 4780. **The client starts a lobby's game from the install alone** (a start item, scoped, touching `crates/client` alone; the
 client's, after 4776; `docs/START.md` §5). With an empty `--logs` directory the headless `client --lobby --frames 5` stops on
