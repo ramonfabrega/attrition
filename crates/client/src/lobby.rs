@@ -655,7 +655,8 @@ mod tests {
 
     /// **Start on the page opens the minted lobby's game**: the page's
     /// opening through `Game::Page` (the window's Start) against
-    /// `Game::Lobby` (the headless `--lobby`, run53's block), the scene
+    /// `Game::Lobby` (run53's dump's block, the headless `--lobby`'s door
+    /// before item 4780), the scene
     /// compared on frame 0 and after 40 frames.
     #[test]
     fn start_on_the_page_opens_the_minted_lobby_s_game() {
@@ -704,6 +705,96 @@ mod tests {
             !ours.runner.scene(None).units.is_empty(),
             "a scene with units"
         );
+    }
+
+    /// **Every lobby starts from the install alone** (item 4780,
+    /// `docs/START.md` §5): each lobby on disk set on a blank page by its
+    /// events (the test's read of the logs: the list and each `GAMEINFO`
+    /// block), then opened as the window's Start opens it
+    /// (`World::open_game` of `Game::Page`) with the logs directory an
+    /// empty one, and walked `LOBBY_WALK` frames. Each start draws its own
+    /// composed ground, and the empty directory is still empty after. It
+    /// can fail: the pair's game on the same empty directory is refused.
+    #[test]
+    fn every_lobby_starts_from_the_install_alone() {
+        let Some(root) = install() else {
+            eprintln!("skipping: no install (set RON_INSTALL)");
+            return;
+        };
+        let dir = crate::world::gamelog_dir();
+        let Ok(lobbies) = lobbies_on_disk(&dir, rondata::corpus::Ledger::of_tree()) else {
+            eprintln!("skipping: no gamelog directory (set RON_GAMELOG_DIR)");
+            return;
+        };
+        if lobbies.is_empty() {
+            eprintln!("skipping: no lobbies under {}", dir.display());
+            return;
+        }
+        let empty = std::env::temp_dir().join(format!("attrition-4780-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&empty);
+        std::fs::create_dir_all(&empty).unwrap();
+        assert!(
+            crate::world::World::open_game(&root, &empty, crate::world::Game::Pair).is_err(),
+            "the pair's game reads the logs: an empty directory refuses it"
+        );
+        let roster = Roster::read(&root).unwrap();
+        let walk = rondata::lobby::LOBBY_WALK as i64;
+        let chunks: Vec<&[rondata::lobby::OnDisk]> =
+            lobbies.chunks(lobbies.len().div_ceil(4)).collect();
+        let results: Vec<(String, Result<(), String>)> = std::thread::scope(|s| {
+            let handles: Vec<_> = chunks
+                .iter()
+                .map(|chunk| {
+                    let (root, empty, roster) = (&root, &empty, &roster);
+                    s.spawn(move || {
+                        chunk
+                            .iter()
+                            .map(|l| {
+                                let name = l.captures[0].clone();
+                                let theirs = Lobby::parse(&l.block).unwrap();
+                                let mut choices = Choices::blank();
+                                for e in events_for(&theirs, roster) {
+                                    choices.apply(&e, roster).unwrap();
+                                }
+                                let r = crate::world::World::open_game(
+                                    root,
+                                    empty,
+                                    crate::world::Game::Page(Box::new(choices)),
+                                )
+                                .and_then(|mut w| {
+                                    if w.ground_art().is_none() {
+                                        return Err("no ground of its own".into());
+                                    }
+                                    w.run_to(walk);
+                                    let f = w.runner.frame();
+                                    let units = w.runner.scene(None).units.len();
+                                    (f == walk && units > 0)
+                                        .then_some(())
+                                        .ok_or(format!("frame {f}, {units} units"))
+                                });
+                                (name, r)
+                            })
+                            .collect::<Vec<_>>()
+                    })
+                })
+                .collect();
+            handles
+                .into_iter()
+                .flat_map(|h| h.join().unwrap())
+                .collect()
+        });
+        let left: Vec<_> = std::fs::read_dir(&empty).unwrap().collect();
+        assert!(left.is_empty(), "the start wrote into the logs directory");
+        let _ = std::fs::remove_dir_all(&empty);
+        let started = results.iter().filter(|(_, r)| r.is_ok()).count();
+        let failed: Vec<_> = results.iter().filter(|(_, r)| r.is_err()).collect();
+        println!(
+            "from the install alone: {started} of {} lobbies started and walked {walk} frames",
+            lobbies.len()
+        );
+        assert!(failed.is_empty(), "{failed:#?}");
+        assert_eq!(started, rondata::lobby::LOBBY_FROM_INSTALL);
+        assert_eq!(lobbies.len(), rondata::diff::START_LOBBIES);
     }
 
     /// The page opens on the harness lobby and starts on its last row.

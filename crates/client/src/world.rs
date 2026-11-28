@@ -29,8 +29,11 @@ pub enum Game {
     /// The pair's: the long capture's start, its sibling's blocks and its
     /// pasture's trace (`FreeRunner::from_captures`).
     Pair,
-    /// The minted script's lobby, built from its choices alone
-    /// (`FreeRunner::from_lobby`, item 4145): our own start.
+    /// The minted script's lobby built off its dump's `GAMEINFO` block
+    /// (`FreeRunner::from_lobby`, item 4145): the tests' door to run53's
+    /// start. The binary's `--lobby` builds the same lobby from the install
+    /// alone, `Page` of [`rondata::lobby::Choices::harness`] (item 4780).
+    #[cfg(test)]
     Lobby,
     /// The lobby page's choices (`crate::lobby`, item 4184), built as the
     /// minted script's are (`FreeRunner::from_choices`).
@@ -1067,21 +1070,29 @@ impl World {
             return Err(format!("no install at {}", install_root.display()));
         }
         let loaded = rondata::load::load(&install).map_err(|e| e.to_string())?;
-        let start = logs.join(START_DUMP);
+        // Item 4780: `logs` is read for the pair's game (and the tests'
+        // `Lobby`) alone. A page's game is built from the install and its
+        // choices, and its ground is its own composed map's, never the
+        // pair's start dump: `--logs` on an empty directory starts it.
+        let mut pair_start = None;
         let runner = match game {
             Game::Pair => {
+                let start = logs.join(START_DUMP);
                 let long = logs.join(LONG_DUMP);
                 let trace = rondata::trace::Trace::read(&logs.join(LONG_TRACE))
                     .map_err(|e| format!("{LONG_TRACE}: {e}"))?;
-                FreeRunner::from_captures(
+                let runner = FreeRunner::from_captures(
                     &loaded,
                     &long,
                     &[start.as_path()],
                     trace.as_ref(),
                     sim::Tuning::RON,
                 )
-                .map_err(|e| format!("{}: {e}", long.display()))?
+                .map_err(|e| format!("{}: {e}", long.display()))?;
+                pair_start = Some(start);
+                runner
             }
+            #[cfg(test)]
             Game::Lobby => {
                 let lobby = logs.join(rondata::script::LOBBY_DUMP);
                 FreeRunner::from_lobby(&loaded, &lobby, sim::Tuning::RON)
@@ -1146,17 +1157,19 @@ impl World {
             }
         }
         // A built start's ground is its own composed map's (item 4215):
-        // the tileset it drew and `World.seed`. A capture's game reads
-        // both off the pair's start dump.
-        let (tileset, seed) = match runner.ground() {
-            Some((t, s)) => (Some(t.to_string()), Some(s)),
-            None => (
-                lobby_tileset(install_root, &start),
-                rondata::mapgen::start_head(&start)
+        // the tileset it drew and `World.seed`. The pair's game reads both
+        // off the pair's start dump; a built start whose chain refused
+        // draws no ground art rather than the pair's (item 4780).
+        let (tileset, seed) = match (runner.ground(), &pair_start) {
+            (Some((t, s)), _) => (Some(t.to_string()), Some(s)),
+            (None, Some(start)) => (
+                lobby_tileset(install_root, start),
+                rondata::mapgen::start_head(start)
                     .ok()
                     .flatten()
                     .map(|h| rondata::mapgen::start_grid(&h).seed as u32),
             ),
+            (None, None) => (None, None),
         };
         let tint = tileset
             .as_deref()

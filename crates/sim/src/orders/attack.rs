@@ -455,11 +455,23 @@ impl Sim {
         // from its attack-move's look on 773 while recharging 13. On 774
         // it stands with its heading unchanged and rolls the idle, and
         // that roll is the chapter's word (`docs/ORDERS.md` §22).
+        //
+        // **The aim is tested against the order's target, not the unit's**
+        // (item 4779, `docs/RECGAME.md` §13.3). `fight:111`–`:121` read
+        // the attack order's data (`get_order`, vslot `+0xcc`): its `+0x8`
+        // (`o`) against guy 0's `+0x8e`, then its `+0xc` (`whom`) against
+        // `+0x9f`, and only both equal return quietly. `combat.target` is
+        // the attack step's own copy, and a retarget that rewrote the
+        // order leaves it behind: run1799's German flak `1/109` (TI 283, `FLAKGUNGERMAN`)
+        // on 4811, recharging 22 on a fresh order at `2/101` with guy 0
+        // still aimed at `combat.target`'s `2/58`. Theirs rolled the idle
+        // and ours did not, one draw ahead of the road search's jitter,
+        // which moved every round's scatter after it on 4812.
         if state.recharging != 0 && !latch && !walks_on {
             if a.new_ord
-                && let Some(target) = self.units[u].combat.target
+                && let Some((ox, whom, _)) = a.target
                 && let Some(g0) = self.units[u].guys.first()
-                && g0.aim != Some(target)
+                && g0.aim.map(|o| self.obj_o_who(o)) != Some((i64::from(ox), i64::from(whom)))
                 && !(0..4).contains(&g0.anim)
             {
                 self.mark(anim::SITE_RELOAD_IDLE);

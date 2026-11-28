@@ -6655,6 +6655,45 @@ fn a_reloading_unit_asks_for_the_idle_and_does_not_turn() {
     }
 }
 
+/// **The reload gate tests guy 0's aim against the order's target**
+/// (item 4779, `docs/RECGAME.md` §13.3; `Unit::fight@005fd4d0:111`–`:121`,
+/// the attack order's `+0x8`/`+0xc` against guy 0's `+0x8e`/`+0x9f`).
+/// `combat.target` is the step's own copy, and a retarget can leave it
+/// behind the order. run1799's `1/109` (TI 283) on 4811 was recharging
+/// 22 on a fresh order at `2/101` with its aim and `combat.target` both
+/// still on `2/58`: theirs rolled the idle, ours did not. Here the
+/// order names `ordered` and `combat.target` names `stale`. Aimed at the
+/// stale copy, the unit asks for the idle; aimed at the order's target, it
+/// asks for nothing.
+#[test]
+fn the_reload_gate_reads_the_order_s_target_not_the_unit_s_copy() {
+    for (aim_at_order, asks) in [(false, true), (true, false)] {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let ordered = put(&mut sim, 1, ty, Pos::new(0x6000, 0x3000));
+        let stale = put(&mut sim, 1, ty, Pos::new(0x6400, 0x3000));
+        sim.add_attack_order(
+            me,
+            Obj::Unit(ordered),
+            crate::orders::QueuePos::First,
+            false,
+            false,
+        );
+        sim.units[me].combat.target = Some(Obj::Unit(stale));
+        let mut g = crate::units::anim::Guy::fresh(0);
+        g.anim = crate::units::anim::WALK;
+        g.aim = Some(Obj::Unit(if aim_at_order { ordered } else { stale }));
+        sim.units[me].guys = vec![g];
+        sim.units[me].combat.recharging = 13;
+        sim.work(me, 1);
+        let asked = sim.units[me].guys[0].anim != crate::units::anim::WALK;
+        assert_eq!(
+            asked, asks,
+            "aimed at the order's target {aim_at_order}: the idle request"
+        );
+    }
+}
+
 /// **The attack-move looks around one frame in fifteen, phased by
 /// `o`, and stacks what it finds `QUEUE_FIRST`** (item 530,
 /// `Unit::do_attack_to@005f2320`). This crate's attack-move never

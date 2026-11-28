@@ -229,6 +229,11 @@ reading.~~ Read the same day: `docs/COMMANDS.md`, decoded by
 
 ## 5. What is not established
 
+- **A recording's header from the install alone** (4780a, item 4780's
+  journal): the client's `--record` borrows a finished donor `.rcx` from
+  the logs directory for the version and options, so a recording does not
+  start from the install alone where the game itself does.
+
 - **The Types section's class sequence** (§4.2 step 2): the per-class
   grammar is now derived (second reading), but which of the 806 indices is
   which class is the loader's knowledge, not the file's — provably, the
@@ -1884,7 +1889,7 @@ Open: deaths on 5275. → 3713 by 4660, 3716 by 4667, 3935 by 4671, 4092 by 4741
 
 ### 13.3 Row 93
 
-2686 → 2965 by 4590, 4606 → 3058 by 4657 → 3089 by 4681 → 3269 by 4685 → 3524 by 4688 → 4130 by 4692 → 4154 by 4718 → 4219 by 4720 → 4235 by 4725 → 4288 by 4730 → 4645 by 4733 → 4806 by 4763 → 4812 by 4767, open (COMBAT §68.1, §47.2, §7.2; COLLISION §3.2, §4.3; AI §75.4, §368.1; CITIES §9.3; CHECKSUM §16, §23.9; GROUPS §6.8, §6.9).
+2686 → 2965 by 4590, 4606 → 3058 by 4657 → 3089 by 4681 → 3269 by 4685 → 3524 by 4688 → 4130 by 4692 → 4154 by 4718 → 4219 by 4720 → 4235 by 4725 → 4288 by 4730 → 4645 by 4733 → 4806 by 4763 → 4812 by 4767, open; ammo 4814 by 4779 (COMBAT §68.1, §47.2, §7.2; COLLISION §3.2, §4.3; AI §75.4, §368.1; CITIES §9.3; CHECKSUM §16, §23.9; GROUPS §6.8, §6.9).
 
 ### 13.4 Row 113
 
