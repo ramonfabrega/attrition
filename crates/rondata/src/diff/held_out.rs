@@ -5586,8 +5586,9 @@ pub(crate) mod tests {
     /// tests the order's `+0x8`/`+0xc` against guy 0's `+0x8e`/`+0x9f` and
     /// rolls `Guy::set_anim+0x97a < Unit::fight+0x169`. Ours tested the
     /// copy, spent no draw, and the road search's jitter and every round's
-    /// scatter after it were one draw early. Every ammo and guys range on
-    /// 4812 and 4813, ours against theirs, byte for byte: red on the tree
+    /// scatter after it were one draw early. Every ammo range on 4812 and
+    /// 4813 and every guys range on 4812 (guys part on 4813, at `1/90`'s
+    /// figure, item 4775's), ours against theirs, byte for byte: red on the tree
     /// before the fix at ammo range 3 on 4812, record 3 (`1/93` at `2/88`),
     /// `land_y` ours 17828, theirs 17833.
     #[test]
@@ -5644,7 +5645,13 @@ pub(crate) mod tests {
             let set = record.first_of(state - 1).expect("the state's set").clone();
             let all = record.ranges(&set).expect("the set's ranges");
             let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
-            for name in ["ammo", "guys"] {
+            // Guys part on 4813 at `1/90`'s figure, the approach (item 4775).
+            let names: &[&str] = if state == 4812 {
+                &["ammo", "guys"]
+            } else {
+                &["ammo"]
+            };
+            for &name in names {
                 let li = line(name);
                 let ours = lines[li].as_ref().expect(name);
                 let theirs: Vec<_> = all.iter().filter(|r| usize::from(r.line) == li).collect();
