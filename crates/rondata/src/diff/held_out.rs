@@ -5586,7 +5586,10 @@ pub(crate) mod tests {
         let Some(inst) = crate::testenv::install() else {
             return;
         };
-        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+        let row = std::env::var("RON_PROBE_4779_ROW").unwrap_or("fifth,4,run1784/map-14".into());
+        let parts: Vec<&str> = row.split(',').collect();
+        let table = if parts[0] == "sixth" { &SIXTH } else { &FIFTH };
+        let (Some(rcx), _) = paths(table, parts[1].parse().unwrap()) else {
             return;
         };
         let loaded = crate::load::load(&inst).expect("the install loads");
@@ -5596,7 +5599,7 @@ pub(crate) mod tests {
         let lo: i64 = std::env::var("RON_PROBE_4779").unwrap().parse().unwrap_or(4813);
         let home = std::path::PathBuf::from(std::env::var("HOME").unwrap());
         let trace = crate::trace::Trace::read(
-            &crate::testenv::experiment(&home.join("ron-golden/run1784/map-14"), "rontrace.log")
+            &crate::testenv::experiment(&home.join("ron-golden").join(parts[2]), "rontrace.log")
                 .expect("log"),
         )
         .expect("reads")
