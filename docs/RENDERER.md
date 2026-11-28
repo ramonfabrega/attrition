@@ -6820,9 +6820,26 @@ rows. **Read alone**: nothing new. The candidate is the door's bytes.
   goes one tile per call, (16, 164) to (20, 164) in ascending x. The clear
   of (18, 164) puts (18, 163) alone on the list, beside (19, 164). Also
   killed: `mark_splits@00891d40`'s `set_neighbor` pushes, which ours does
-  not make (below). Built, they left `RUN1559B_RECORDS` at 481. Still
+  not make (below). Built, they left `RUN1559B_RECORDS` at 481. ~~Still
   open (4774a): the order the original clears row 164 in, and the
-  phase the 11-round cap stops the period-2 loop on.
+  phase the 11-round cap stops the period-2 loop on.~~ Item 4776
+  (`docs/journal/2026-11-28-item-4776.md`) killed it, by a trace and a
+  reading. Row 164 goes on frame 2505, when a nuke's damage round closes
+  building index 2006 (type 22, at (19, 167)). `mask_building`'s unmask
+  ends in `unplace_roads`, which clears its ring (16..20, 164..168)
+  column by column. `BuildType::mask_me@006312a0` ends its unmask the
+  same way, in `place_roads@0063c580` with `param_5 = 0`, and all three
+  of `place_roads`' ring loops run x outer, y inner. The cap is the
+  same: `add_roads`' tail breaks after the eleventh redo
+  (`10 < local_3c`) and zeroes both counts, as `add_roads_steps` does.
+  So the clear order and the cap's phase are the original's.
+- Why the period-2 leech loop between (17, 163) and (18, 163) does not
+  keep the yellow in the original (4776a). `redo_changed_roads@0088e670`
+  gives every tile on its list the four passes: `clear_support`,
+  `flags = 0` over the whole dword with `mark_and_trim_directions`, the
+  whole of `leech_codes` and a real `set_diags`. Ours gives a tile that
+  only a line pass pushed less than that (§6.9, "One list in push
+  order"). Building those passes in full touches the simulation's mesh.
 - `mark_splits@00891d40` pushes the neighbour it newly joins onto the
   list named by its argument (`set_neighbor@00890c30`, then `add_unique`).
   Ours makes neither the join on the neighbour nor the push (4774b).

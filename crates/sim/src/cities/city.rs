@@ -2927,13 +2927,8 @@ impl Sim {
         }
         if self.buildings[b].started && !silent {
             self.mask_building(b, false);
-        } else if let Some(ty) = self.buildings[b].ty {
-            // `start_me(0)`: release the reservation.
-            let corner = self.tile_corner(ty, self.buildings[b].pos);
-            for t in self.footprint(ty, corner) {
-                self.world
-                    .clear_tile_bits(t, tile::PLACED | tile::PLACED_TWICE);
-            }
+        } else {
+            self.start_me_release(b);
         }
         if !self.buildings[b].garrison.is_empty() {
             self.buildings[b].eject_pending = true;
