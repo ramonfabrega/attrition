@@ -476,6 +476,16 @@ impl Sim {
                 g0.map(|g| g.aim),
                 g0.map(|g| g.anim)
             );
+            let oname = |t: Option<crate::Obj>| match t {
+                Some(crate::Obj::Unit(x)) => format!("u{}/{}", self.units[x].owner, self.units[x].index),
+                other => format!("{other:?}"),
+            };
+            eprintln!(
+                "   order.target {:?} combat.target {} g0.aim {}",
+                a.target,
+                oname(self.units[u].combat.target),
+                oname(g0.and_then(|g| g.aim))
+            );
         }
         if state.recharging != 0 && !latch && !walks_on {
             if a.new_ord
