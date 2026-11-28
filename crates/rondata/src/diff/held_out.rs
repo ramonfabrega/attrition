@@ -2239,8 +2239,9 @@ pub(crate) mod tests {
     /// ors the prober into the Farm's `ever_seen` (`BuildData +0x62`)
     /// before `Group::action_attack`, whose `is_seen` then answers 1: each
     /// member takes an ATTACK on the Farm, not a move to its point. Every
-    /// range of every line on 7421, ours against theirs, byte for byte:
-    /// red without the write at units range 948, record 16 `unit_masks`.
+    /// range of every line on 7421, ours against theirs, byte for byte.
+    /// Red without the write (`tools/mutate.py`) on both rows, at the
+    /// Farm's `ever_seen` on the probe state, ours 1 and theirs 3.
     #[test]
     fn row_108_s_probe_marks_the_farm_seen_before_it_attacks_on_run1849() {
         probe_marks_the_farm_seen(&SEVENTH, 5, "run1849/map-7", 7421, 21);
