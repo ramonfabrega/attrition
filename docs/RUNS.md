@@ -41487,6 +41487,10 @@ went to waiting. `df -g ~` read 69 GB free before it, 55 after the take, 65 afte
 
 **What it holds**: `diff::held_out::tests::row_93_s_volksgrenadiers_heal_beside_their_president_on_run1799_s_ranges`
 (every units range on states 2341 to 2343; who=1's `1/39` TI 109 beside the President `1/17` TI 355).
+Item 4779 adds `row_93_s_flak_rolls_the_reload_idle_on_its_order_s_target_on_run1799_s_ranges` (every ammo range on
+4812 and 4813 and every guys range on 4812; who=1's flak `1/109` TI 283 rolls `fight`'s reload idle on 4811). Its trace
+(`rontrace.log`, `callwin=0-12000`) answers the road search node for node: on the base, 4811's search priced 415 nodes
+in ours and 435 in theirs, its first cost 130 against 121, one draw apart.
 ## run1798 — parity held out, sixth battery, row 73's file to 12,000 with the checksum and ranges hooks, every line but walls kept (2026-11-23, item 4576, `att-4576`)
 
 `docs/RECGAME.md` §13; DECISIONS 153 §4. **What the disk could not answer**: run1791 holds sums only, so row 73's

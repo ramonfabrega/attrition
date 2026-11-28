@@ -1888,7 +1888,7 @@ Open: deaths on 5275. → 3713 by 4660, 3716 by 4667, 3935 by 4671, 4092 by 4741
 
 **Item 4779** (run1799, *diff-backed*): row 93's ammo and guys on 4812 were one draw early. On 4811 the flak `1/109`
 (TI 283, land), recharging on a fresh order at `2/101` with guy 0 still aimed at `combat.target`'s `2/58`, rolls
-`fight`'s reload idle in theirs (`Unit::fight:111`: the order's `o`/`whom` against the aim; ORDERS §22.4). Ours spent
+`fight`'s reload idle in theirs (`Unit::fight:111`: the order's `o`/`whom` against the aim; ORDERS §22.2). Ours spent
 440 draws on 4811 against theirs' 458, the road search's jitter from node 0 and every round's scatter after it (ammo
 record 3, `1/93` at `2/88`, `land_y` ours 17828, theirs 17833). Ammo first 4812 → 4814, guys 4812 → 4813; the row's
 first parting stays 4812, units (`1/90`'s approach, item 4775). Row 83's ammo on 4814 (run1784) is no land point:
