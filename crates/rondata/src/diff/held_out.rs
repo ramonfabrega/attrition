@@ -17445,6 +17445,18 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 4,586, groups 4,612 -> 4,617 (first 4612 -> 4617), cities 4,586
         // -> 4,776 (first 4586 -> 4776), items 6,016 -> 5,987 (first 5727
         // -> 5741), goods 5,485 -> 5,361. The first parting stands on 4583.
+        // Item 4783 (`get_cost`'s Statue of Liberty air-defence arm,
+        // `:1017`-`:1024`: who=1 holds the Statue, so its SAM Installation,
+        // the sixth, costs 180 timber and 180 metal, not 270; run1852's
+        // packet prices make slot 2 at 180/180 in `use_market`, and
+        // `need` timber 5220 -> 5130, metal 350 -> 260, theirs; every range
+        // on 4583 agrees, leaders record 1 whole): units 4,583 -> 4,892
+        // (first 4583 -> 4892), builds 4,583 -> 4,936, ammo 4,586 -> 4,898,
+        // deaths 4,593 -> 5,205, groups 4,617 -> 4,964, guys 4,583 ->
+        // 4,894, leaders 4,583 -> 4,945, cities 4,776 -> 5,028, items 5,987
+        // -> 6,030, world 4,583 -> 4,895. The first parting is units on
+        // 4892: range 4793, record 171 (who=1, slot 343, TI 273),
+        // `orders.count` ours 1, theirs 0.
         moved: Some(Score {
             states: 6085,
             agreed: [
