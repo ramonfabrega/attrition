@@ -5578,6 +5578,88 @@ pub(crate) mod tests {
     /// range on 4623 to 4626, ours against theirs, byte for byte: red on the
     /// tree before the fix at units range 2582, record 103, `z` ours 7,
     /// theirs 14, on 4624.
+    /// **Row 93's flak rolls the reload idle on its order's target**
+    /// (item 4779, `docs/RECGAME.md` §13.3): run1799, the ranges take of
+    /// row 93's file. On 4811 who=1's `1/109` (TI 283, `FLAKGUNGERMAN`,
+    /// land) is recharging 22 on a fresh `ATTACK` at `2/101` while guy 0
+    /// and `combat.target` still name `2/58`; `Unit::fight@005fd4d0:111`
+    /// tests the order's `+0x8`/`+0xc` against guy 0's `+0x8e`/`+0x9f` and
+    /// rolls `Guy::set_anim+0x97a < Unit::fight+0x169`. Ours tested the
+    /// copy, spent no draw, and the road search's jitter and every round's
+    /// scatter after it were one draw early. Every ammo and guys range on
+    /// 4812 and 4813, ours against theirs, byte for byte: red on the tree
+    /// before the fix at ammo range 3 on 4812, record 3 (`1/93` at `2/88`),
+    /// `land_y` ours 17828, theirs 17833.
+    #[test]
+    fn row_93_s_flak_rolls_the_reload_idle_on_its_order_s_target_on_run1799_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            eprintln!("skipping: row 93's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1799/map-14"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1799's ranges record is missing");
+            return;
+        };
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("the file");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let line = |n: &str| {
+            crate::checksum::CHECKSUM_LINES
+                .iter()
+                .position(|l| l.0 == n)
+                .expect(n)
+        };
+        for state in 4811..=4813 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            if state == 4811 {
+                let u = built.sim.unit_by_o(1, 109).expect("1/109");
+                let ty = built.sim.units[u].ty.expect("a type");
+                assert_eq!(
+                    (
+                        built.sim.tables.unit_types[ty].type_index,
+                        built.sim.units[u].kind.domain,
+                        built.sim.units[u].combat.recharging,
+                    ),
+                    // 23 entering; `Unit::process` counts it to 22 before
+                    // the gate.
+                    (283, sim::territory::attrition::Domain::Land, 23),
+                    "1/109 on 4811"
+                );
+                continue;
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for name in ["ammo", "guys"] {
+                let li = line(name);
+                let ours = lines[li].as_ref().expect(name);
+                let theirs: Vec<_> = all.iter().filter(|r| usize::from(r.line) == li).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (j, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{name} range {j} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+        }
+    }
+
     #[test]
     fn row_83_s_artillery_keeps_its_group_s_attack_move_under_a_re_search_on_run1784_s_ranges() {
         let Some(inst) = crate::testenv::install() else {
