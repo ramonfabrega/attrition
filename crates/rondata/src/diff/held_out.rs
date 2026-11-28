@@ -5667,6 +5667,79 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 93's Supply Wagon stands off its head order's target**
+    /// (item 4775, `docs/RECGAME.md` §13.3): run1799, the ranges take of
+    /// row 93's file. On 4811 who=1's `1/90` (TI 63, Supply Wagon, land),
+    /// attack-less in group 66, runs `Unit::do_attack@005f1b80`'s grouped
+    /// arm under the head `ATTACK 2/101` while its `combat.target` copy
+    /// names the `2/88` a `QUEUE_LAST` append queued behind it. The
+    /// original reads the order's `+8`/`+0xc` and stands off `2/101`. Every
+    /// units range of record 90 on 4812, ours against theirs at the same
+    /// index (records 0 to 89 agree there): red on the tree before the fix
+    /// at `order.move`, `x` ours 20568, theirs 19368.
+    #[test]
+    fn row_93_s_supply_wagon_stands_off_its_head_order_s_target_on_run1799_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&SIXTH, 4) else {
+            eprintln!("skipping: row 93's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1799/map-14"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1799's ranges record is missing");
+            return;
+        };
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("the file");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        while built.sim.frame < 4811 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let u = built.sim.unit_by_o(1, 90).expect("1/90");
+        let ty = built.sim.units[u].ty.expect("a type");
+        assert_eq!(
+            (
+                built.sim.tables.unit_types[ty].type_index,
+                built.sim.units[u].kind.domain,
+                built.sim.tables.unit_types[ty].combat.attack,
+            ),
+            (63, sim::territory::attrition::Domain::Land, 0),
+            "1/90 on 4811"
+        );
+        stream.apply(built.sim.frame as i32, &mut built);
+        built.sim.command().tick();
+        let set = record.first_of(4811).expect("the state's set").clone();
+        let all = record.ranges(&set).expect("the set's ranges");
+        let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+        let ours = lines[0].as_ref().expect("units");
+        let theirs: Vec<_> = all.iter().filter(|r| r.line == 0).collect();
+        let mut seen = 0;
+        for (j, a) in ours
+            .ranges
+            .iter()
+            .enumerate()
+            .filter(|(_, a)| a.record == 90)
+        {
+            assert_eq!(
+                a.bytes, theirs[j].bytes,
+                "units range {j} on 4812, record 90 {}",
+                a.field
+            );
+            seen += 1;
+        }
+        assert!(seen > 20, "record 90's ranges on 4812: {seen}");
+    }
+
     #[test]
     fn row_83_s_artillery_keeps_its_group_s_attack_move_under_a_re_search_on_run1784_s_ranges() {
         let Some(inst) = crate::testenv::install() else {
