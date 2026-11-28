@@ -1914,6 +1914,14 @@ impl Sim {
             None
         };
         if let Some(b) = farm {
+            // The farm is marked seen by the prober before the attack
+            // (`Army::find_target@006f69b0:1181`–`1183`, `6f8475 bts` /
+            // `6f8478 mov` on `BuildData +0x62`, the army's `who` at
+            // `+0x94`): no `check_ever_seen`, no completed mark. It is
+            // what makes `action_attack`'s `is_seen` answer 1, so the
+            // members take an ATTACK on the farm rather than a move to
+            // its point (item 4616, `docs/RECGAME.md` §14.5).
+            self.buildings[b].ever_seen |= 1 << w;
             self.group_action_stance(&g, 5);
             self.group_action_attack(&g, Obj::Building(b), true, QueuePos::New, 0);
             // The trailing move goes back to the **pair's own leader**

@@ -3444,10 +3444,29 @@ Each goes red with the copy put back (`mutate.py`: held). **Read, not
 diffed**: the mandatory byte (no capture on file has a head whose byte
 differs from the copy's).
 
-**Not established**: the three Volksgrenadiers in the same group (`1/92`,
-`1/100`, `1/116`, TI 109) still part on their head move on 4812. Their head
-is `ATTACK 2/101` on both sides, so the target is not the cause. Draws agree
-on 4811, 458 against 458.
+~~**Not established**: the three Volksgrenadiers in the same group still
+part on 4812.~~ They attack, so they take the tail, not this arm: §21.9.
+
+### 21.9 `fight`'s target is its arguments, the order's (item 4785, 2026-11-28)
+
+`do_attack@005f1b80:254` calls `fight(ox, whom, mandatory, 0, 0)` with the
+order's `+8`/`+0xc`, and `Unit::fight@005fd4d0` tests and chases that pair
+(`uVar28`, `param_2`); the follower's mirror rewrites both. `do_attack_fight`
+read `combat.target`. On run1799's 4811 the Volksgrenadiers `1/92` (TI 109,
+land, an attack) chase under the head `ATTACK 2/101` with the copy naming
+`2/88`; `1/100` and `1/116` ask after it, so their spots follow. Units
+records' head moves on 4812, ours before → now = theirs:
+
+| record | before | now and theirs |
+|---|---|---|
+| 92 | (17688, 15192) | (18072, 14712) |
+| 100 | (18024, 14616) | (14616, 12648) |
+| 116 | (14664, 12648) | (18072, 15720) |
+
+**Diff-backed**: `row_93_s_volksgrenadiers_chase_their_head_order_s_target_on_run1799_s_ranges`
+and the killer `a_chaser_stands_off_its_head_order_s_target_not_its_copy`.
+**Not established**: the emplaced latch (`fight:81`–`94`) reads the entry
+pair too, and still reads the copy here; no capture on file parts on it.
 
 ## 22. Where an arrow starts, measured (item 396, 2026-09-19)
 

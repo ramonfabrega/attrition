@@ -2106,7 +2106,7 @@ lowest live slot, not `inside_down`'s ring head (no capture kills a mixed cargo)
 
 ### 14.5 Row 108
 
-Open: units, builds, groups and guys part on 7421. run1809 holds sums.
+Whole, row 13 too: the probe marks the Farm seen (item 4616's journal).
 
 ### 14.6 Rows 128 and 148
 
