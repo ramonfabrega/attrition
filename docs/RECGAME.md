@@ -2106,39 +2106,7 @@ lowest live slot, not `inside_down`'s ring head (no capture kills a mixed cargo)
 
 ### 14.5 Row 108
 
-Whole to 12,000, 12,001 of 12,001 on every line (item 4616); row 13 (§13.1) with it. run1809 holds sums, run1849
-ranges to the parting.
-
-**Item 4616: the probe marks the farm seen before it attacks.** When the human leader holds no soldiers
-(`LeaderData::combat`, `+0x944`, 0), `Army::find_target@006f69b0`'s probe finds the human's Farm (`FILTER_TYPE`
-0x1a1) and, before `Group::action_stance(5)` and the mandatory `Group::action_attack`, ors the army's leader into
-the Farm's `ever_seen` (`:1181`–`1183`; `6f8475 bts ecx, eax` / `6f8478 mov byte [edx], cl` on `BuildData +0x62`,
-`who` from `ArmyData +0x94`). Nothing else: no `check_ever_seen`, no `ever_seen_completed`. `action_attack`'s member
-walk reads the target's `is_seen` (vslot `+0x48`, `WallData::is_seen`: `ever_seen & ally_mask[who]` for a started
-building) once, so the write is what gives each member `add_attack_order` on the Farm where a never-seen Farm takes
-`add_move_order` to its point (`crates/sim/src/groups/attack_view.rs`, `goes`). Ours skipped the write
-(`Sim::find_target_probe`), although `docs/ARMY.md` §12 names it.
-
-The value diff on the probe's state, both rows, ours before the fix against theirs (run1849 7421, run1850 7675):
-
-| row | record | field | ours | theirs |
-|---|---|---|---|---|
-| 108 | builds `0/2007` (TI 417 Farm, uid 21) | `ever_seen` | 1 | 3 |
-| 108 | units `1/16` (TI 133) | `orders.count`; order[1] | 2; GROUP_MOVE | 3; ATTACK (10) on (2007, 0, uid 21) |
-| 108 | units `1/16..18`, `1/42..44` | `unit_masks`; `guy_flags` | `0x40008`; 16 | `0x4000c`; 48 |
-| 13 | builds `0/2007` (TI 417 Farm, uid 13) | `ever_seen` | 1 | 3 |
-| 13 | units `1/26` (TI 177) | `orders.count`; order[1] | 2; GROUP_MOVE | 3; ATTACK (10) on (2007, 0, uid 13) |
-| 13 | units `1/26..28`, `1/38..40` | `unit_masks`; `guy_flags` | +0; 16 | +4; 48 |
-
-`unit_masks` bit 4 and `guy_flags` 0x20 are `Unit::set_in_danger`'s, under `Unit::work`'s ATTACK test, so they follow
-from the order. The probe's members' `find_attack_pos` draws (`Unit::fight`'s out-of-range arm) exist only under the
-ATTACK, so the sync stream parted on the same state and every later line (world one state on, leaders' `site_mark`,
-cities, items, goods, ammo) followed. All of them closed with the write: row 108 2 -> 12 lines whole, row 13 2 -> 12.
-Held by `row_108_s_probe_marks_the_farm_seen_before_it_attacks_on_run1849` and
-`row_13_s_probe_marks_the_farm_seen_before_it_attacks_on_run1850` (every range of every line on the probe state).
-
-**Not established.** Why Great Lakes 8186's probe took the ATTACK without the write (its Farm presumably already in
-the computer's `ever_seen`) was not read; its four checks are the gate's.
+Whole, row 13 too: the probe marks the Farm seen (item 4616's journal).
 
 ### 14.6 Rows 128 and 148
 
