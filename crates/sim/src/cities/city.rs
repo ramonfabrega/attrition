@@ -2928,11 +2928,19 @@ impl Sim {
         if self.buildings[b].started && !silent {
             self.mask_building(b, false);
         } else if let Some(ty) = self.buildings[b].ty {
-            // `start_me(0)`: release the reservation.
+            // `Wall::start_me@0063d790(0)`: release the reservation. A tile
+            // placed once loses `PLACED`; a tile placed twice keeps both
+            // bits while another building still covers it
+            // (`find_building_placed_at(t, −1, o, who)`), and loses both
+            // only when none does (item 4778, `docs/RECGAME.md` §12.3).
             let corner = self.tile_corner(ty, self.buildings[b].pos);
             for t in self.footprint(ty, corner) {
-                self.world
-                    .clear_tile_bits(t, tile::PLACED | tile::PLACED_TWICE);
+                if self.world.tile_mask(t) & tile::PLACED_TWICE == 0 {
+                    self.world.clear_tile_bits(t, tile::PLACED);
+                } else if !self.other_building_placed_at(t, b) {
+                    self.world
+                        .clear_tile_bits(t, tile::PLACED | tile::PLACED_TWICE);
+                }
             }
         }
         if !self.buildings[b].garrison.is_empty() {

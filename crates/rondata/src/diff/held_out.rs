@@ -5655,6 +5655,99 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 83's site that goes back keeps the tiles who=2's Village still
+    /// covers** (item 4778, `docs/RECGAME.md` §12.3): run1784, the ranges
+    /// take of row 83's file. who=1's unstarted site `1/2048` (5×5, corner
+    /// (61, 73)) and who=2's unstarted Village `2/2042` (7×7, corner
+    /// (61, 77)) share row 77's tiles 61 to 65, each `PLACED | PLACED_TWICE`
+    /// (0xc0) on both sides through 4697. On 4698 `1/2048` closes, and
+    /// `Wall::start_me@0063d790(0)` keeps both bits on a twice-placed tile
+    /// while `find_building_placed_at(t, −1, o, who)` finds another building
+    /// over it. Every units, builds, guys and world range on 4697 to 4700,
+    /// ours against theirs, byte for byte: red on the tree before the fix at
+    /// world range 3624, the mask, on 4698 (bytes 37082..37090 ours 0x00,
+    /// theirs 0xc0).
+    #[test]
+    fn row_83_s_site_that_goes_back_keeps_the_village_s_shared_tiles_on_run1784_s_ranges() {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+            eprintln!("skipping: row 83's recording is missing");
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden/run1784/map-14"), "rontrace.ranges")
+        else {
+            eprintln!("skipping: run1784's ranges record is missing");
+            return;
+        };
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("the file");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let line = |n: &str| {
+            crate::checksum::CHECKSUM_LINES
+                .iter()
+                .position(|l| l.0 == n)
+                .expect(n)
+        };
+        for state in 4697..=4700 {
+            while built.sim.frame < state {
+                stream.apply(built.sim.frame as i32, &mut built);
+                built.sim.command().tick();
+            }
+            let site = built
+                .sim
+                .buildings
+                .iter()
+                .position(|b| b.owner == 1 && b.index == 2048);
+            let village = built
+                .sim
+                .buildings
+                .iter()
+                .position(|b| b.owner == 2 && b.index == 2042);
+            let village = village.expect("2/2042");
+            assert!(
+                !built.sim.buildings[village].started,
+                "2/2042 is unstarted on {state}"
+            );
+            assert_eq!(
+                site.is_some_and(|b| built.sim.buildings[b].alive),
+                state < 4698,
+                "1/2048 stands to 4697 and has gone back on 4698"
+            );
+            for x in 61..=65 {
+                assert_eq!(
+                    built.sim.world.tile_mask(sim::Pos::new(x, 77)) & 0xc0,
+                    0xc0,
+                    "tile ({x}, 77) on {state}"
+                );
+            }
+            let set = record.first_of(state - 1).expect("the state's set").clone();
+            let all = record.ranges(&set).expect("the set's ranges");
+            let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+            for name in ["units", "builds", "guys", "world"] {
+                let li = line(name);
+                let ours = lines[li].as_ref().expect(name);
+                let theirs: Vec<_> = all.iter().filter(|r| usize::from(r.line) == li).collect();
+                assert_eq!(ours.ranges.len(), theirs.len(), "{name}' ranges on {state}");
+                for (j, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                    assert_eq!(
+                        a.bytes, b.bytes,
+                        "{name} range {j} on {state}, record {} {}",
+                        a.record, a.field
+                    );
+                }
+            }
+        }
+    }
+
     /// **Row 83's Airbase does not count an enemy air-defense site as a
     /// defense** (item 4736, `docs/RECGAME.md` §12.3): run1784, the ranges
     /// take of row 83's file. who=1 places the AIRDEFENSE site `1/2046`

@@ -555,6 +555,19 @@ impl Sim {
         })
     }
 
+    /// `ObjectsData::find_building_placed_at(t, −1, o, who)@00658c80` as
+    /// `Wall::start_me(0)` asks it: any player's building (below eight)
+    /// whose footprint covers `t`, other than `exclude`, behind the tile's
+    /// own gate (`is_built_at`). The candidate's vslot `+0xc` is
+    /// `is_build()`, so a started building counts too — unlike
+    /// [`Self::find_building_placed_at`]'s `!started` (item 4778).
+    pub(crate) fn other_building_placed_at(&self, t: Pos, exclude: usize) -> bool {
+        crate::world::is_built_at(self.world.tile_mask(t))
+            && self.buildings.iter().enumerate().any(|(i, b)| {
+                i != exclude && b.alive && b.owner < 8 && self.build_covers_tile(i, t)
+            })
+    }
+
     /// `BuildTypeData::blocked_location@006375b0`: the site, and the gather
     /// count its tail hands back through `param_7`. By
     /// [`crate::cities::location::blocked_location_steps`] (swept against the

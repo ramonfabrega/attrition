@@ -472,6 +472,57 @@ fn a_building_marks_its_own_cell_and_unmarks_it_when_it_closes() {
     );
 }
 
+/// **A site that goes back releases a double-placed tile only when no other
+/// building still covers it** (item 4778, `Wall::start_me@0063d790(0)`):
+/// a tile placed once loses `PLACED`; a tile placed twice keeps both bits
+/// while `find_building_placed_at(t, −1, o, who)` finds another building
+/// over it, and loses both when none does. Row 83's who=1 site `1/2048`
+/// went back over who=2's unstarted Village on 4698 and theirs kept 0xc0
+/// on the five shared tiles where ours had cleared them.
+#[test]
+fn a_site_that_goes_back_keeps_the_tiles_another_site_still_covers() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let a = sim.place_building(0, t.village, tile_pos(32, 32)).unwrap();
+    let b = sim.place_building(1, t.village, tile_pos(34, 32)).unwrap();
+    let ty = sim.buildings[a].ty.unwrap();
+    let fa = sim.footprint(ty, sim.tile_corner(ty, sim.buildings[a].pos));
+    let fb = sim.footprint(ty, sim.tile_corner(ty, sim.buildings[b].pos));
+    let shared: Vec<Pos> = fa.iter().copied().filter(|p| fb.contains(p)).collect();
+    let alone: Vec<Pos> = fa.iter().copied().filter(|p| !fb.contains(p)).collect();
+    assert!(
+        !shared.is_empty() && !alone.is_empty(),
+        "the two sites overlap in part"
+    );
+    let both = tile::PLACED | tile::PLACED_TWICE;
+    for p in &shared {
+        assert_eq!(
+            sim.world.tile_mask(*p) & both,
+            both,
+            "{p:?} is placed twice"
+        );
+    }
+    sim.close_building(a, false);
+    for p in &shared {
+        assert_eq!(
+            sim.world.tile_mask(*p) & both,
+            both,
+            "{p:?}: the other site still covers it, so both bits stay"
+        );
+    }
+    for p in &alone {
+        assert_eq!(sim.world.tile_mask(*p) & both, 0, "{p:?} is released");
+    }
+    sim.close_building(b, false);
+    for p in fa.iter().chain(&fb) {
+        assert_eq!(
+            sim.world.tile_mask(*p) & both,
+            0,
+            "{p:?}: nothing covers it now"
+        );
+    }
+}
+
 /// Goody ruins are a cell flag; visibility changes the refusal, not its presence.
 #[test]
 fn goody_ruins_refuse_placement_with_the_players_visibility_verdict() {
