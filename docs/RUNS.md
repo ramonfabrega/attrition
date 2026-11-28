@@ -41234,6 +41234,10 @@ it and 73 after.
   (who=2's Hoplites `2/63`), `orders.count` ours 1 → 2, theirs 2, the head `ATTACK` on `(23, 1)`; the row's first
   parting 3442 → 3833 (units, ammo, groups, guys, world), our walk to 6000.
   `row_43_s_follower_keeps_its_captain_s_target_past_the_leash_on_run1787_s_ranges`.
+- **Re-scored by item 4571** (an attrition blow rings a Citizen's city bell): on 4341 groups range 113, record 71,
+  `num` ours 0 → 1, `stamp` 4196 → 4340, `buildings` 0 → 1; leaders range 128, record 1, `flags` byte 3 0x00 → 0x02;
+  cities range 37, record 10, `city_flags` 0x01 → 0x41; who=1's Citizen `1/84` `orders.count` 2 → 4, each as theirs
+  (`print_ranges` over 4341..4345: 25 ranges → 0). The row is whole, 6,001 of 6,001 on all twelve lines.
 - Filed by `filerun.py run1787 heldout5-row043-ranges`: `gamelog_p.txt` →
   `Logs/gamelog-run1787-heldout5-row043-ranges.txt`, 2,873 bytes, SHA-256
   `89b9a9025c5bbfb4daee2d7ca38babf72970956a8943a8e49fe0796d43162b8b`; `rontrace.log` → `Logs/rontrace-run1787.log`,

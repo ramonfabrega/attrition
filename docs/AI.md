@@ -41422,10 +41422,13 @@ The window's first gameplay parting is 2060: the staged Battleships strike who=1
 
 ### 416.5 What is not established
 
-- **Attrition's blow.** `Unit::suffer_attrition` calls `take_damage` with `param_5` 1, which the arm does
+- ~~**Attrition's blow.** `Unit::suffer_attrition` calls `take_damage` with `param_5` 1, which the arm does
   not read, but this crate's attrition hurt (`SimSuffer::hurt`) does not come through
   `take_damage_typed`. It would need a computer Citizen bleeding on a cell `find_city_at` accepts for
-  its own city, which is neutral attrition, and no shipped scenario sets it.
+  its own city, which is neutral attrition, and no shipped scenario sets it.~~ **Built by item 4571**
+  (`docs/journal/2026-11-28-item-4571.md`): `find_city_at` asks the radius, not the cell's owner, so a
+  Citizen bleeding on a stranger's ground inside its own city's radius rings the bell. That is run1787's
+  4340, who=1's `1/84` in city 10. `SimSuffer::hurt` calls `peasant_alarm`, and row 43 is whole.
 - **The 2060 parting** and the stream it leaves (3984a).
 
 ## 417. Reserved for the next item on the AI track
