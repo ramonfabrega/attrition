@@ -1238,6 +1238,13 @@ pub(super) const NOT_HELD: &[(&str, i64, &str)] = &[
          on it for who=2's Anti-tank Rifle 2/125, compare_target's decoy 1/38 1 (detected) on \
          a blow of 52,100 and 1/24 104,679; no word walks it",
     ),
+    (
+        "run1852",
+        4582,
+        "the sixth battery's row 133 with a packet at 4582 (item 4777): Leader::use_market \
+         stepped on it for who=1, 45 food sells as theirs' trace, need timber 5130 and metal \
+         260 where ours prices the SAM at 270/270 against 180/180; no word walks it",
+    ),
 ];
 
 /// **The takes' packets** (item 4159, step VII-b2): held by a take's walk
@@ -1280,7 +1287,8 @@ pub(super) const TAKES_HELD: &[(&str, i64, &str, i64)] = &[
 // Item 4654: run1830's at 2963 and run1830b's at 2964 named, not held, (135, …, 25).
 // Item 4609: run1832's at 3357 named, not held, (136, …, 26).
 // Item 4717: run1845's packet at 3715 named, not held, (138, …, 28).
-const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (138, 87, 7, 12, 1, 3, 28);
+// Item 4777: run1852's packet at 4582 named, not held, (139, …, 29).
+const CENSUS: (usize, usize, usize, usize, usize, usize, usize) = (139, 87, 7, 12, 1, 3, 29);
 
 /// Every held packet's `(run, logger frame, game, the length its walk is
 /// whole to)`: a word's, a chapter's and the minted one.
