@@ -1383,3 +1383,43 @@ fn a_round_leaves_from_its_figure_s_own_point_not_the_unit_s() {
         );
     }
 }
+
+/// **The crew swing seats `last` with the body, and keeps `last_angle`**
+/// (item 4782, `docs/ANIM.md` §5.2). `Guy::inc_time@005d9e10`'s foot calls
+/// `Guy::set_new_location(crew, des, 1)` on each crew figure when figure 0
+/// is in the attack category, and its `1` writes `last_x/last_y/last_z`
+/// (`005d86f0:58`–`:62`) and no angle. A tracked crew figure standing at
+/// (12006, 27716) whose destination the leader's turn moved to (12004,
+/// 27715): after the clock it stands, and `last` stands, on the new point,
+/// facing as `last` faced. run1784's Artillery `1/103` on 5657. Made to
+/// fail with the arm moving the body alone.
+#[test]
+fn the_crew_swing_seats_last_with_the_body() {
+    let mut s = sim_at(4782);
+    let u = animal(&mut s, 1, 103, -1, ATTACK2, 0, 80);
+    let was = Pos::new(12006, 27716);
+    let to = Pos::new(12004, 27715);
+    let kept = crate::movement::Angle(-1_332_084_736);
+    let mut crew = s.units[u].guys[0];
+    crew.follow = Some(Follow {
+        body: crate::movement::Body {
+            pos: was,
+            last_speed: 0,
+            avg_speed: 0,
+        },
+        des: to,
+        facing: crate::movement::Angle(-756_678_656),
+        des_angle: crate::movement::Angle(-1_337_524_224),
+        track: (72, 216),
+    });
+    crew.last = Some((was, kept));
+    s.units[u].guys.push(crew);
+    s.guys_inc_time();
+    let g = &s.units[u].guys[1];
+    assert_eq!(
+        g.follow.expect("tracked").body.pos,
+        to,
+        "the body is seated"
+    );
+    assert_eq!(g.last, Some((to, kept)), "last is the seat, its angle kept");
+}
