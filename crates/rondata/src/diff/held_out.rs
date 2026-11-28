@@ -5668,8 +5668,9 @@ pub(crate) mod tests {
                     let to = marks.get(i + 1).map_or(built.sim.rng.seed, |m| m.1);
                     let mut r = sim::combat::Rng::new(*from);
                     while r.seed != to {
+                        let sd = r.seed;
                         let v = r.roll();
-                        ours.push((label.clone(), v));
+                        ours.push((format!("{label} @{sd:#x}"), v));
                     }
                 }
                 for k in 0..ours.len().max(td.len()) {

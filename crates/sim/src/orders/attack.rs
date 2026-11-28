@@ -462,8 +462,9 @@ impl Sim {
         {
             let g0 = self.units[u].guys.first();
             eprintln!(
-                "GATE4779 f{} {}/{} ty {:?} rech {} latch {} walks {} new_ord {} target {:?} g0.aim {:?} g0.anim {:?}",
+                "GATE4779 f{} seed {:#x} {}/{} ty {:?} rech {} latch {} walks {} new_ord {} target {:?} g0.aim {:?} g0.anim {:?}",
                 self.frame,
+                self.rng.seed,
                 self.units[u].owner,
                 self.units[u].index,
                 self.units[u].ty.map(|t| self.tables.unit_types[t].type_index),
