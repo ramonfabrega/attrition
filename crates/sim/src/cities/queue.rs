@@ -171,8 +171,9 @@ impl Sim {
     /// Democracy's non-library discount, the British taxation discount,
     /// and the redirect for a good the player does not have
     /// (`docs/COSTS.md` §"The redirect"), and being behind in ages
-    /// ([`Sim::ages_behind`], item 4513). The rest of the discount tail —
-    /// the lobby's tech-cost setting, the final-tech ramp, Incense — is
+    /// ([`Sim::ages_behind`], item 4513), and the final-tech ramp
+    /// ([`Sim::finals_held`], item 4777). The rest of the discount tail —
+    /// the lobby's tech-cost setting, Incense — is
     /// [`cost::Modifiers`]'s
     /// and arrives as the undiscounted price until the layers that produce
     /// it exist, as [`Sim::price_of`] does for a unit.
@@ -222,6 +223,7 @@ impl Sim {
             &crate::economy::cost::Modifiers {
                 science_ahead: self.science_ahead(who, t),
                 ages_behind: self.ages_behind(who, t),
+                final_ramp: self.finals_held(who, t),
                 bison_granary: if at_granary && self.has_rare(who, economy::BISON) {
                     self.tables.tuning.bison_granary_cost
                 } else {
@@ -278,6 +280,28 @@ impl Sim {
         } else {
             0
         }
+    }
+
+    /// `TypeData::get_cost`'s **final-tech ramp** (`:1162`–`:1181`),
+    /// [`cost::Modifiers::final_ramp`]: for a final tech (`is_final_type`,
+    /// `0x243..0x247`), how many of the four finals `who` holds
+    /// (`LeaderData::has_tech`) or is researching (`LeaderData::researching(f,
+    /// -1, 0, 0)`, queued anywhere: [`Sim::researching`]) — the priced tech
+    /// itself among them. Anything that is not a final answers 0.
+    ///
+    /// Item 4777: run1797's who=1 holds the Missile Shield on 4582, and the
+    /// original prices Artificial Intelligence at 4950 timber where 3300 is
+    /// the price; `use_market`'s timber need is that sum (item 4773).
+    pub(crate) fn finals_held(&self, who: Player, t: tech::TypeId) -> i32 {
+        let tree = &self.tables.tech_tree;
+        if tree.kind(t) != tech::Kind::Final {
+            return 0;
+        }
+        let p = &self.tech[who as usize];
+        (0..tree.types.len())
+            .filter(|&f| tree.kind(f) == tech::Kind::Final)
+            .filter(|&f| tree.has_tech(&self.tables.setup, p, f) || self.researching(who, f))
+            .count() as i32
     }
 
     /// `get_cost`'s industry arm (`00666940`..`006669b0`): the Hanging

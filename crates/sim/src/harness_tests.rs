@@ -4964,6 +4964,60 @@ fn an_age_is_cheaper_for_a_leader_behind_a_rival_it_is_not_allied_with() {
     assert_eq!(cost::age_behind_discount(t, 0, Resource::Food, 123), 123);
 }
 
+/// `TypeData::get_cost`'s final-tech ramp (`:1162`–`:1181`, item 4777): a
+/// final tech (`is_final_type`, `0x243..0x247`) costs `(100 + RAMP_FINAL ×
+/// n) / 100` of its price, `n` the finals `who` holds or is researching —
+/// the priced one itself included when it is queued — after the age-behind
+/// arm. run1797's who=1 holds the Missile Shield on 4582 and prices
+/// Artificial Intelligence at 4950 timber, where 3300 is the price.
+#[test]
+fn a_final_tech_ramps_against_the_finals_its_leader_holds_or_researches() {
+    use crate::economy::Resource;
+    use crate::tech::{self, Kind, TypeDef};
+
+    let mut tree = tech::TechTree::new().with_tuning(&Tuning::RON);
+    let mut def = |name: &str, kind: Kind, timber: i32| {
+        let mut d = TypeDef::new(name, kind);
+        d.cost[Resource::Timber.index()] = timber;
+        d.cost[Resource::Knowledge.index()] = timber * 4 / 3;
+        d.tribe_mask = u32::MAX;
+        d
+    };
+    let shield = tree.add(def("Missile Shield", Kind::Final, 330));
+    let ai = tree.add(def("Artificial Intelligence", Kind::Final, 330));
+    let vr = tree.add(def("Virtual Reality", Kind::Final, 330));
+    let coinage = tree.add(def("Coinage", Kind::Plain, 60));
+
+    let mut sim = skirmish(0);
+    sim.set_tech_tree(tree);
+    let (ti, k) = (Resource::Timber.index(), Resource::Knowledge.index());
+    let at = |sim: &Sim, t| {
+        let p = sim.tech_price(0, t);
+        (p[ti], p[k])
+    };
+    assert_eq!(at(&sim, ai), (3300, 4400), "no final held");
+    let plain = sim.tech_price(0, coinage);
+
+    sim.tech[0].tech[shield] = true;
+    assert_eq!(at(&sim, ai), (4950, 6600), "the Missile Shield held");
+    assert_eq!(
+        sim.tech_price(0, coinage),
+        plain,
+        "a plain tech takes nothing"
+    );
+    assert_eq!(at(&sim, ai), at(&sim, vr), "every final alike");
+    let other = sim.tech_price(1, ai);
+    assert_eq!(
+        (other[ti], other[k]),
+        (3300, 4400),
+        "another leader's finals"
+    );
+
+    sim.tech[0].queued[vr] = 1;
+    assert_eq!(at(&sim, ai), (6600, 8800), "one held, one researching");
+    assert_eq!(at(&sim, vr), (6600, 8800), "the queued one counts itself");
+}
+
 #[test]
 fn reduced_path_counterexample_stops_at_a_combined_final_flag() {
     // Reduced against the original executable from an injected equality-for-
