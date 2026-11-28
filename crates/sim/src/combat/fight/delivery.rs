@@ -694,24 +694,6 @@ impl Sim {
         // `frame_attacked` — human or computer, the leader of whatever was
         // hit. `Army::find_target`'s difficulty gate reads it for 7,200
         // frames (`docs/ARMY.md` §12, `docs/AI.md` §71).
-        if std::env::var_os("RON_PROBE_4571").is_some() && (4330..=4342).contains(&_frame) {
-            let ow = self.owner_of(target);
-            let bo = self.owner_of(_by);
-            match target {
-                Obj::Unit(i) => {
-                    let pz = self.is_peasant(i);
-                    let c = self.find_city_at(ow, self.units[i].pos, None);
-                    let al = c.map(|c| self.cities.cities[c].alarm);
-                    eprintln!("PROBE4571 f{} unit {}/{} ty {:?} by {:?} (who {}) hit {:?} peasant {} city {:?} alarm {:?} hp {}", _frame, ow, i, self.units[i].ty, _by, bo, hit, pz, c, al, self.units[i].health);
-                }
-                Obj::Building(b) => {
-                    let c = self.buildings[b].city;
-                    let al = c.map(|c| self.cities.cities[c].alarm);
-                    eprintln!("PROBE4571 f{} building {}/{} ty {:?} by {:?} (who {}) hit {:?} city {:?} gather {} iscity {} alarm {:?}", _frame, ow, b, self.buildings[b].ty, _by, bo, hit, c, self.is_gather_type(b), self.building_is_city(b), al);
-                }
-                _ => eprintln!("PROBE4571 f{} other {:?} by {:?}", _frame, target, _by),
-            }
-        }
         if self.ai_difficulty() < 2 {
             let owner = self.owner_of(target) as usize;
             if let Some(l) = self.ai.ai.get_mut(owner) {
