@@ -1916,12 +1916,6 @@ Open: six lines on 4583. run1797, *diff-backed*.
 → 4103 (`FILTER_COMBAT`, ARMY §13, MERCHANT §2.2; air refusal, COMBAT §66.8; Bribe, §90, §91; `local_20`, ORDERS
 §34.6; scorch, COMBAT §42.1; `z`, §46.1; pivots, §55.3; wonder clock, AI §69.7).
 
-**Item 4777** (run1852's packet at logger frame 4582): `get_cost`'s final-tech ramp built (COSTS); first parting stands
-on 4583, cities → 4776, groups → 4617. On the packet, `Leader::use_market` for who=1 makes 45 food sells (as theirs'
-trace), 50 timber and 2 metal buys; its `need` is food 120, timber 5130, wealth 175, knowledge 6740, metal 260, ours
-120, 5220, 175, 6740, 350: knowledge agrees under the ramp, and the SAM slot (tree 525) is 180/180 in theirs against
-ours' 270/270, its count (`num_buildings + num_queued`, no family) fewer than ours' 6.
-
 ## 14. Parity held out, seventh: rows 8 to 148, the human ordering through the game, to 12,000 (item 4600)
 
 DECISIONS 154 §7, 2026-11-23. Rows 8, 28, 48, 68, 88, 108, 128 and 148 of the order `Start:` counts, by the sixth's

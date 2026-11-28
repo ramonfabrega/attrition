@@ -42777,7 +42777,7 @@ original -2147483648. It is row 8's take for every later word, and item 4617 ope
 
 ## run1852 — parity held out, sixth battery, row 133's file to 4,588, a packet at logger frame 4582 (2026-11-28, item 4777, `att-4777`)
 
-`docs/RECGAME.md` §13.5. **What the disk could not answer**: run1797's ranges print who=1's buckets on 4583, never
+`docs/RECGAME.md` §13.5 (the leaf is `docs/journal/2026-11-28-item-4777.md`). **What the disk could not answer**: run1797's ranges print who=1's buckets on 4583, never
 `Leader::use_market`'s `need` or its sells and buys. The take: run1797's line with `--end-frame 4588 --log-window 4576
 4586 --timeout 1800 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_STATE_FRAME=4582 --tracer-def
 "RON_STATE_PLAN=\"$P/plan.h\""` (`P` exported, run1803's plan). **4582, not the brief's 4581**: the market decision is
