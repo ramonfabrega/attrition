@@ -17016,23 +17016,32 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 4,813), leaders 4,825 -> 4,828, ours' end 10826 -> none; past the
         // first parting builds 4,841 -> 4,840, ammo 5,356 -> 5,280, cities
         // 5,151 -> 4,961, goods 5,950 -> 5,804 (first 5596 -> 5594).
+        // Item 4775 (`do_attack` reads the dispatched order's target and
+        // mandatory byte, not `combat.target`): the Supply Wagon `1/90` (TI
+        // 63) stands off its head `ATTACK 2/101` on 4811, not the `2/88` a
+        // `QUEUE_LAST` append wrote into the copy (run1799's units record
+        // 90, `order.move` `x` ours 20568 -> 19368, `y` 16632 -> 15480, as
+        // theirs). The first parting stays 4812 (units: the Volksgrenadiers
+        // `1/92`, `1/100`, `1/116`'s approach); leaders 4,828 -> 4,839, goods
+        // 5,804 -> 5,953 (first 5594 -> 5599); past the first parting ammo
+        // 5,280 -> 5,208, items 6,187 -> 6,089 (first 6187 -> 5928).
         moved: Some(Score {
             states: 12001,
             agreed: [
-                4812, 4840, 12001, 5280, 4814, 4859, 4813, 4828, 4961, 6187, 5804, 4813,
+                4812, 4840, 12001, 5208, 4814, 4859, 4813, 4839, 4961, 6089, 5953, 4813,
             ],
             first: &[
-                ("units", (4812, Some(1953239027), 967517784)),
+                ("units", (4812, Some(1727663683), 967517784)),
                 ("builds", (4821, Some(2516689233), 1349362419)),
                 ("ammo", (4814, Some(2471536851), 2538056044)),
                 ("deaths", (4814, Some(617551199), 769398112)),
                 ("groups", (4849, Some(2230706991), 4256949038)),
-                ("guys", (4813, Some(2930167288), 1893388480)),
+                ("guys", (4813, Some(2617757555), 1893388480)),
                 ("leaders", (4813, Some(404430007), 2827689146)),
                 ("cities", (4961, Some(3356642640), 3426897235)),
-                ("items", (6187, Some(1365126693), 1373777447)),
-                ("goods", (5594, Some(3459683631), 3373176107)),
-                ("world", (4813, Some(625128391), 1517663140)),
+                ("items", (5928, Some(1399729705), 1365126693)),
+                ("goods", (5599, Some(3459683631), 3373176107)),
+                ("world", (4813, Some(1605743524), 1517663140)),
             ],
             over: None,
         }),
