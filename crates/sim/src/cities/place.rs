@@ -555,6 +555,26 @@ impl Sim {
         })
     }
 
+    /// `Wall::start_me@0063d790(0)`: release `b`'s reservation. A tile
+    /// placed once loses `PLACED`; a tile placed twice keeps both bits while
+    /// another building still covers it, and loses both only when none does
+    /// (item 4778, `docs/CITIES.md` §9.1, `docs/RECGAME.md` §12.3). A
+    /// building with no type holds no reservation.
+    pub(crate) fn start_me_release(&mut self, b: usize) {
+        let Some(ty) = self.buildings[b].ty else {
+            return;
+        };
+        let corner = self.tile_corner(ty, self.buildings[b].pos);
+        for t in self.footprint(ty, corner) {
+            if self.world.tile_mask(t) & tile::PLACED_TWICE == 0 {
+                self.world.clear_tile_bits(t, tile::PLACED);
+            } else if !self.other_building_placed_at(t, b) {
+                self.world
+                    .clear_tile_bits(t, tile::PLACED | tile::PLACED_TWICE);
+            }
+        }
+    }
+
     /// `ObjectsData::find_building_placed_at(t, −1, o, who)@00658c80` as
     /// `Wall::start_me(0)` asks it: any player's building (below eight)
     /// whose footprint covers `t`, other than `exclude`, behind the tile's
