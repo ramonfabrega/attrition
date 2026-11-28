@@ -1307,6 +1307,40 @@ wealth against this crate's 96 and 56, and who=1's buckets short by the
 difference; with the arm both close. The research arm's half is the listing's
 alone.
 
+## The Statue of Liberty takes a third off an air defence
+
+*Item 4783, 2026-11-28. Read from `TypeData::get_cost@00664090:1017`–`1024`
+(listing `006661d6`..`0066622b`) and measured on run1852's packet; built as
+`cost::Modifiers::liberty_air_defense` (set by
+`Sim::liberty_air_defense_discount`), tuning `LIBERTY_AIR_DEFENSE`.*
+
+The building arm's last step, after the Japanese Farm and Colosseum Barracks
+arms and before the shared tail: a type that `is(0x209, 0)` (vslot `+0x60`;
+`LOOKOUT`'s lineage, which takes the Observation Post, Air Defense, Radar and
+the SAM Installation) whose leader holds the Statue of Liberty
+(`LeaderData::has_wonder(0x219)`) pays `(100 − LIBERTY_AIR_DEFENSE) × cost /
+100` (33) on the **whole** price, the support ramp included. The unit arm's
+`LIBERTY_BOMBERS` is a different step: it comes before the ramp (`docs/AI.md`
+§204).
+
+**Measured on the original's state.** run1852's packet (logger frame 4582,
+row 133). who=1 holds five SAMs and queues one: `num_buildings[0x6f]` is 5 and
+`num_queued[0x20d]` is 1, the same count of six this crate uses. `step4.py
+--entry 664090` on the SAM's `TypeData` (timber, who=1) does the following:
+- it reaches 120 at `00665790`;
+- it reaches 150 (25 × 6) at `00665add`;
+- it reaches 270 at `00665b58`;
+- it returns 180 after `00666221`.
+
+Inside who=1's `use_market` (hooked at `6c9259`/`6c925c`), make slot 2's
+`get_cost` returns 180 timber and 180 metal, where this crate priced 270. That
+is the 90 of `need` item 4777 found. It was not the support count, which
+agrees.
+
+**Not established.** The same tail's British building arm (`BRITISH_AA_COST`
+on `is(0x20b, 0)`, `:991`–`995`), the German Mine and the Colosseum Barracks
+arms are read and not built here (parked 4783a).
+
 ## The rares' tail
 
 *Item 3343, 2026-10-19. Read from `TypeData::get_cost@00664090:1471`–`1505`

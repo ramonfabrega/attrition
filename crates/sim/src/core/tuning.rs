@@ -676,6 +676,13 @@ pub struct Tuning {
     /// The same arm's percentage for a missile type (`00664dd2`). Ships as
     /// `0% cheaper`.
     pub liberty_missiles: i32,
+    /// Percentage off a building of the Lookout's lineage (`is(0x209, 0)`:
+    /// Lookout, Observation Post, Air Defense, Radar, SAM Installation) while
+    /// the player holds the Statue of Liberty — the building arm's last step
+    /// (`get_cost` listing `006661d6`..`0066622b`; item 4783, `docs/COSTS.md`,
+    /// "The Statue of Liberty takes a third off an air defence"). Ships as
+    /// `33% cheaper`.
+    pub liberty_air_defense: i32,
     /// The unit wonders' arm of `ObjectData::train_time@006508c0:316`–`340`,
     /// by the type's domain (`UnitTypeData +0x218`): percent faster for a
     /// land unit under the Statue of Liberty (ships as `0%`), a ship under
@@ -1695,6 +1702,7 @@ impl Tuning {
         space_air_cost: 50,
         liberty_bombers: 33,
         liberty_missiles: 0,
+        liberty_air_defense: 33,
         liberty_units: 0,
         porcelain_ships: 50,
         porcelain_market: 300,
@@ -2443,6 +2451,7 @@ impl Tuning {
             ("SPACE_AIR_COST", Slot::Value(T.space_air_cost)),
             ("LIBERTY_BOMBERS", Slot::Value(T.liberty_bombers)),
             ("LIBERTY_MISSILES", Slot::Value(T.liberty_missiles)),
+            ("LIBERTY_AIR_DEFENSE", Slot::Value(T.liberty_air_defense)),
             ("LIBERTY_UNITS", Slot::Value(T.liberty_units)),
             ("PORCELAIN_SHIPS", Slot::Value(T.porcelain_ships)),
             ("PORCELAIN_MARKET", Slot::Value(T.porcelain_market)),

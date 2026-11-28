@@ -17730,23 +17730,35 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // 4,586, groups 4,612 -> 4,617 (first 4612 -> 4617), cities 4,586
         // -> 4,776 (first 4586 -> 4776), items 6,016 -> 5,987 (first 5727
         // -> 5741), goods 5,485 -> 5,361. The first parting stands on 4583.
+        // Item 4783 (`get_cost`'s Statue of Liberty air-defence arm,
+        // `:1017`-`:1024`: who=1 holds the Statue, so its SAM Installation,
+        // the sixth, costs 180 timber and 180 metal, not 270; run1852's
+        // packet prices make slot 2 at 180/180 in `use_market`, and
+        // `need` timber 5220 -> 5130, metal 350 -> 260, theirs; every range
+        // on 4583 agrees, leaders record 1 whole): units 4,583 -> 4,892
+        // (first 4583 -> 4892), builds 4,583 -> 4,936, ammo 4,586 -> 4,898,
+        // deaths 4,593 -> 5,205, groups 4,617 -> 4,964, guys 4,583 ->
+        // 4,894, leaders 4,583 -> 4,945, cities 4,776 -> 5,028, items 5,987
+        // -> 6,030, world 4,583 -> 4,895. The first parting is units on
+        // 4892: range 4793, record 171 (who=1, slot 343, TI 273),
+        // `orders.count` ours 1, theirs 0.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                4583, 4583, 6085, 4586, 4593, 4617, 4583, 4583, 4776, 5987, 5361, 4583,
+                4892, 4936, 6085, 4898, 5205, 4964, 4894, 4945, 5028, 6030, 5361, 4895,
             ],
             first: &[
-                ("units", (4583, Some(3645938677), 4179928937)),
-                ("builds", (4583, Some(3899986934), 2923566179)),
-                ("ammo", (4583, Some(419483375), 3333870174)),
-                ("deaths", (4593, Some(994403918), 867133005)),
-                ("groups", (4617, Some(1310697973), 471312646)),
-                ("guys", (4583, Some(1791506055), 974993104)),
-                ("leaders", (4583, Some(2914605038), 1289639612)),
-                ("cities", (4776, Some(4099765050), 123499325)),
+                ("units", (4892, Some(2708082632), 2554332937)),
+                ("builds", (4936, Some(2033553222), 1272877347)),
+                ("ammo", (4893, Some(2928989778), 1794627228)),
+                ("deaths", (5205, Some(647462726), 3328143730)),
+                ("groups", (4949, Some(1595277640), 1031471427)),
+                ("guys", (4894, Some(526304238), 3007891013)),
+                ("leaders", (4918, Some(3901580459), 733635757)),
+                ("cities", (4991, Some(130905217), 3940643923)),
                 ("items", (5741, Some(1281298895), 1298600403)),
                 ("goods", (5361, Some(713652352), 497121394)),
-                ("world", (4583, Some(432190892), 4176131650)),
+                ("world", (4895, Some(2960476869), 3380365964)),
             ],
             over: None,
         }),
