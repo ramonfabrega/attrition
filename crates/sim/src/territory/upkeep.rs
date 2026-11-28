@@ -329,6 +329,14 @@ impl Sim {
     /// period's bleed above and a detected decoy's
     /// ([`Sim::recover_mana`]). Its argument gates the graphic alone.
     pub(crate) fn suffer_attrition(&mut self, i: usize, frame: i64) -> Tick {
+        if std::env::var_os("RON_PROBE_4571").is_some() && (4300..=4342).contains(&frame) {
+            let ow = self.units[i].owner;
+            let pz = self.is_peasant(i);
+            let c = self.find_city_at(ow, self.units[i].pos, None);
+            let al = c.map(|c| self.cities.cities[c].alarm);
+            let cb = c.map(|c| self.cities.cities[c].building);
+            eprintln!("PROBE4571 f{} attrition {}/{} ty {:?} peasant {} city {:?} cb {:?} alarm {:?} pos {:?} hp {}", frame, ow, i, self.units[i].ty, pz, c, cb, al, self.units[i].pos, self.units[i].health);
+        }
         // The walk is [`suffer_view::suffer_attrition_steps`], the swept one
         // (item 3372): the damage is sixteenths of a hit point per figure,
         // carried through a fractional accumulator the way
