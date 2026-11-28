@@ -202,8 +202,18 @@ impl SufferView for SimSuffer<'_> {
         unit.damage_frac = frac;
         unit.health -= lost;
         let killed = matches!(taken, combat::Taken::Died { .. });
+        // **An attrition blow rings a Citizen's city bell too** (item
+        // 4571, `docs/RECGAME.md` §12.3): `Object::take_damage@00652020`'s
+        // arm for an object that is not a city building (`:176`–`:214`,
+        // [`Sim::peasant_alarm`]) tests no `param_5`, and the slot `0x16c`
+        // call is that `take_damage` with `param_5` 1; the swept twin,
+        // `take_damage_view::take_damage_arms`, runs it on every `p5`.
+        // run1787's 4340: who=1's Citizen `1/84` bleeds inside its own city
+        // 10, bell clear; theirs seats the city building alone, presses
+        // `0x2000000`, raises the bell and sends `1/84` to garrison.
+        self.sim.peasant_alarm(self.unit);
         if killed {
-            unit.health = unit.health.min(0);
+            self.sim.units[self.unit].health = self.sim.units[self.unit].health.min(0);
         } else {
             self.sim.struck_alive(self.unit);
         }

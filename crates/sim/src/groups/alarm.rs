@@ -113,11 +113,12 @@ impl Sim {
     /// never set here (`docs/ARMY.md` §18). The group is pushed on the
     /// player's pool first (`Groups::push_group(who, g, 1)`,
     /// `take_damage:209`; item 4440, the building arm's twin on the 2017
-    /// sample's 2887). SEAMS: attrition's blow (`Unit::suffer_attrition`
-    /// calls `take_damage` with `param_5` 1, which this arm does not read)
-    /// does not come through here, and needs a computer Citizen bleeding
-    /// on a cell `find_city_at` accepts for its own city — neutral
-    /// attrition, which no shipped scenario sets.
+    /// sample's 2887). **Attrition's blow comes through here too** (item
+    /// 4571, `docs/RECGAME.md` §12.3): `Unit::suffer_attrition` calls
+    /// `take_damage` with `param_5` 1, which this arm does not read, so
+    /// the attrition hurt ([`crate::territory::suffer_view::SimSuffer`])
+    /// calls it; run1787's 4340 is a computer Citizen bleeding on a cell
+    /// `find_city_at` accepts for its own city 10.
     pub(crate) fn peasant_alarm(&mut self, u: usize) {
         let who = self.units[u].owner;
         if self.cities.nation[who as usize].human || self.ai_difficulty() < 2 || !self.is_peasant(u)

@@ -16101,24 +16101,18 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // row's first parting moves 3995 -> 4341, on units, groups, guys,
         // leaders, cities and world. Measured by the scoring test alone; no
         // range of row 43 was read.
+        // Then item 4571 (an attrition blow rings a Citizen's city bell,
+        // `Object::take_damage@00652020:176`–`:214` reading no `param_5`;
+        // run1787's 4340: who=1's Citizen `1/84` bleeds inside its own
+        // city 10): on 4341 groups record 71 `num` 0 -> 1, `stamp` 4196 ->
+        // 4340, `buildings` 0 -> 1, leaders record 1 `flags` byte 3 0x00 ->
+        // 0x02, cities record 10 `city_flags` 0x01 -> 0x41, `1/84`
+        // `orders.count` 2 -> 4, each as theirs: every line 6,001 of 6,001,
+        // the row whole (`print_ranges` over 4341..4345: 25 ranges -> 0).
         moved: Some(Score {
             states: 6001,
-            agreed: [
-                4341, 4353, 6001, 4356, 4416, 4341, 4341, 4341, 4351, 5298, 4413, 4341,
-            ],
-            first: &[
-                ("units", (4341, Some(630316088), 571078055)),
-                ("builds", (4350, Some(4014773854), 1772852329)),
-                ("ammo", (4356, Some(1671400503), 4115106818)),
-                ("deaths", (4416, Some(1680720123), 2417413765)),
-                ("groups", (4341, Some(3090802498), 1869277035)),
-                ("guys", (4341, Some(3154895219), 3388006762)),
-                ("leaders", (4341, Some(3434555180), 2510759726)),
-                ("cities", (4341, Some(2806731487), 1671058207)),
-                ("items", (4887, Some(2284009543), 2246522949)),
-                ("goods", (4413, Some(3243865884), 3324606240)),
-                ("world", (4341, Some(234423208), 3308913912)),
-            ],
+            agreed: [6001; 12],
+            first: &[],
             over: None,
         }),
     }),
