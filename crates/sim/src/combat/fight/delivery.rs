@@ -303,6 +303,12 @@ impl Sim {
                 self.armies_emergency(tw);
             }
         }
+        // **A Flamethrower's blow on a garrisoned building burns stand-in
+        // citizens** (`do_damage@0064a480:953`–`:1050`, right after the
+        // emergency and ahead of the capture check; `docs/COMBAT.md` §7.4).
+        if !killed && let Obj::Building(b) = target {
+            self.flame_garrison(attacker, b);
+        }
         // Step 8 and 9 on a building: a kill by a non-air, non-splash,
         // non-allied unit plunders it; a hit that did not kill a capturable
         // building by another player's unit is a capture attempt
@@ -1136,6 +1142,28 @@ impl Sim {
     /// Sniper's kill ([`Sim::cast_sniper_unit`]) and a disband
     /// ([`Sim::disband_unit`], item 3914).
     pub(crate) fn die_with(&mut self, v: usize, dtype: i32) {
+        let frame = self.frame;
+        self.units[v].health = 0;
+        self.close_count(v);
+        self.relink_squad(v);
+        let keep = self.keeps_disc(v, dtype);
+        self.close_unit(v, dtype, frame, Some(CasualtyPose::Unarmed));
+        self.kill_contents(v);
+        self.kremlin_spy_closed(v);
+        self.close_dead_orders(v);
+        self.hold_dead_slot(v);
+        self.close_supply_in(v, keep);
+        self.forget(Obj::Unit(v));
+        self.clear_decoy_at_close(v);
+    }
+
+    /// `Unit::close(dtype, −1, 0)` through vslot `+0x150`, with no wound
+    /// and no killer: [`Sim::die_quietly`]'s `dtype` 0, and the
+    /// Flamethrower's burned citizens' 4 ([`Sim::flame_garrison`],
+    /// `docs/COMBAT.md` §7.4), whose close takes the three death draws and
+    /// leaves a record. The disc is the death-animation arm's
+    /// ([`Sim::keeps_disc`]), as on every other close.
+    pub(crate) fn close_through_slot(&mut self, v: usize, dtype: i32) {
         let frame = self.frame;
         self.units[v].health = 0;
         self.close_count(v);

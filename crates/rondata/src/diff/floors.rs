@@ -536,13 +536,15 @@ pub const MAPGEN: Mapgen = Mapgen {
 // moves whole to `air/bank.rs` beside its new turn sign, `close_air_target` (`local_20`).
 // Item 4778: `largest` 3,760 -> 3,755 (-5): `cities/city.rs`' `start_me(0)` loop moves whole to
 // `cities/place.rs`' `start_me_release`, beside `other_building_placed_at`.
+// Item 4783: `largest` 3,755 -> 3,741 (-14): `cities/city.rs`' `korean_tower_discount` moves whole
+// to `economy/pricing.rs`, beside the new `liberty_air_defense_discount` and `liberty_discount`.
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 11),
     ("test-tails", 0),
     ("sweep-lines", 17_287),
     ("names", 15),
     ("fields", 22),
-    ("largest", 3_755),
+    ("largest", 3_741),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before
