@@ -5579,6 +5579,32 @@ pub(crate) mod tests {
     /// tree before the fix at units range 2582, record 103, `z` ours 7,
     /// theirs 14, on 4624.
     #[test]
+    fn probe_4779_row_83_s_land_points() {
+        if std::env::var("RON_PROBE_4779").is_err() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+            return;
+        };
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("the file");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let lo: i64 = std::env::var("RON_PROBE_4779").unwrap().parse().unwrap_or(4813);
+        while built.sim.frame < lo + 2 {
+            crate::diff::harness::debug_watch(&built, built.sim.frame);
+            if built.sim.frame + 1 == lo {
+                eprintln!("PROBE4779 ticking into {}", built.sim.frame + 1);
+            }
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+    }
+
+    #[test]
     fn row_83_s_artillery_keeps_its_group_s_attack_move_under_a_re_search_on_run1784_s_ranges() {
         let Some(inst) = crate::testenv::install() else {
             return;

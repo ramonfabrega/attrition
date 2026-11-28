@@ -1395,8 +1395,36 @@ impl Sim {
         // **Not a missile's** (`Ammo::init@0067bbf0:798`: `local_30 == 0`
         // beside the bomb and ground tests, item 1625): a spline round is
         // not led.
+        let pre_lead = landing;
         if !missile {
             landing = self.lead_landing(target, landing, total_time);
+        }
+        if std::env::var("RON_PROBE_4779")
+            .ok()
+            .and_then(|v| v.parse::<i64>().ok())
+            .is_some_and(|lo| self.frame + 1 >= lo)
+        {
+            let tinfo = match target {
+                Some(Obj::Unit(t)) => {
+                    let u = &self.units[t];
+                    format!(
+                        "unit {}/{} ty {:?} k {} heading {} avg {} guy_follow_avg {:?} pos {:?}",
+                        u.owner,
+                        u.index,
+                        u.ty.map(|x| self.tables.unit_types[x].type_index),
+                        self.order_type(t),
+                        u.movement.heading.0,
+                        u.movement.body.avg_speed,
+                        u.guys.first().and_then(|g| g.follow).map(|f| f.body.avg_speed),
+                        u.pos
+                    )
+                }
+                other => format!("{other:?}"),
+            };
+            eprintln!(
+                "PROBE4779 f{} shooter {:?} target_pos {:?} acc {} s {} aim {:?} pre_lead {:?} landing {:?} T {} rng {:?} | {}",
+                self.frame, shooter, target_pos, acc, s, aim, pre_lead, landing, total_time, self.rng, tinfo
+            );
         }
         let _ = frame;
         // **A strafer's round never rolls** (`67c548`..`67c557`, item
