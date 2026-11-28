@@ -549,13 +549,13 @@ impl Sim {
     ) {
         if std::env::var("RON_PROBE_4775").is_ok()
             && (4811..=4811).contains(&self.frame)
-            && self.units[u].who == 1
-            && [90, 92, 100, 116].contains(&self.units[u].o)
+            && self.units[u].owner == 1
+            && [90, 92, 100, 116].contains(&self.units[u].index)
         {
             eprintln!(
                 "P4775 add_move f{} 1/{} to {:?} pos {:?} kind {:?} group {} at {:?}\n{}",
                 self.frame,
-                self.units[u].o,
+                self.units[u].index,
                 to,
                 pos,
                 kind,
