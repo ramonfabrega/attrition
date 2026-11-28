@@ -569,8 +569,22 @@ impl Sim {
         // empty target is killed here, as before. SEAM: the capture and
         // mandatory arms below read the refused object, and a cleared one
         // has none; a mandatory order with a cleared target is not built.
+        //
+        // **The target is `fight`'s arguments, the order's** (item 4785,
+        // `docs/COMBAT.md` §21.9): `do_attack@005f1b80:254` passes the
+        // dispatched order's `+8`/`+0xc`, and `Unit::fight@005fd4d0` tests
+        // and chases that pair (`uVar28`, `param_2`; the follower's mirror
+        // above rewrites both, as it rewrites `a.target`), never the
+        // unit's [`combat::State`] copy, which a `QUEUE_LAST` append
+        // behind the head rewrites. Row 93's Volksgrenadiers `1/92` (TI
+        // 109) chase under the head `ATTACK 2/101` on run1799's 4811 with
+        // the copy naming the `2/88` queued behind it; theirs stands off
+        // `2/101` at (18072, 14712).
         let cleared = a.target.is_none() && a.cleared_uid.is_some();
-        let target = match self.units[u].combat.target {
+        let ordered = a
+            .target
+            .and_then(|(ox, whom, _)| self.object_holding(whom, ox));
+        let target = match ordered {
             Some(t) => Some(t),
             None if cleared => None,
             None => {

@@ -7931,3 +7931,52 @@ fn an_attack_less_member_stands_off_its_head_order_s_target_not_its_copy() {
         "the stand-off is the ordered foe's, {dest:?}"
     );
 }
+
+/// **`fight` chases the order's target, not the unit's copy** (item 4785,
+/// `Unit::fight@005fd4d0`: its target is the pair `do_attack@005f1b80:254`
+/// passes, the dispatched order's `+8`/`+0xc`). A ranged unit under a head
+/// `ATTACK` on one foe, whose `combat.target` names a second foe on
+/// another bearing (what a `QUEUE_LAST` append behind the head writes),
+/// takes its chase spot round the first. Row 93's Volksgrenadiers `1/92`
+/// on run1799's 4811 is that unit: theirs stands off `2/101`.
+#[test]
+fn a_chaser_stands_off_its_head_order_s_target_not_its_copy() {
+    let (mut sim, _) = at_war();
+    let rifle = sim.add_unit_type(crate::UnitType {
+        hits: 100,
+        combat: Profile {
+            attack: 15,
+            max_range: 4,
+            uber_size: 1,
+            ..Profile::default()
+        },
+        ..crate::UnitType::default()
+    });
+    sim.cities.nation[0].human = true;
+    sim.cities.nation[1].human = false;
+    let at = Pos::new(30 * 0x300 + 0x180, 30 * 0x300 + 0x180);
+    let me = put(&mut sim, 0, rifle, at);
+    let ordered = put(&mut sim, 1, rifle, Pos::new(at.x + 0x800, at.y));
+    let stale = put(&mut sim, 1, rifle, Pos::new(at.x, at.y + 0x800));
+    // Mandatory, so the captain's re-search roll is not asked.
+    sim.add_attack_order(
+        me,
+        Obj::Unit(ordered),
+        crate::orders::QueuePos::First,
+        true,
+        false,
+    );
+    sim.units[me].combat.target = Some(Obj::Unit(stale));
+    sim.do_attack(me, 16);
+    let dest = sim.units[me]
+        .orders
+        .front()
+        .and_then(crate::orders::Order::move_dest)
+        .unwrap_or_else(|| panic!("the chase move: {:?}", sim.units[me].orders));
+    let off = |q: Pos| (dest.x - q.x).abs() + (dest.y - q.y).abs();
+    assert!(
+        off(sim.units[ordered].pos) < 0x1000
+            && off(sim.units[ordered].pos) < off(sim.units[stale].pos),
+        "the chase stands off the ordered foe, {dest:?}"
+    );
+}
