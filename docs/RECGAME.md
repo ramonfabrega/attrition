@@ -1886,6 +1886,16 @@ Open: deaths on 5275. → 3713 by 4660, 3716 by 4667, 3935 by 4671, 4092 by 4741
 
 2686 → 2965 by 4590, 4606 → 3058 by 4657 → 3089 by 4681 → 3269 by 4685 → 3524 by 4688 → 4130 by 4692 → 4154 by 4718 → 4219 by 4720 → 4235 by 4725 → 4288 by 4730 → 4645 by 4733 → 4806 by 4763 → 4812 by 4767, open (COMBAT §68.1, §47.2, §7.2; COLLISION §3.2, §4.3; AI §75.4, §368.1; CITIES §9.3; CHECKSUM §16, §23.9; GROUPS §6.8, §6.9).
 
+**Item 4779** (run1799, *diff-backed*): row 93's ammo and guys on 4812 were one draw early. On 4811 the flak `1/109`
+(TI 283, land), recharging on a fresh order at `2/101` with guy 0 still aimed at `combat.target`'s `2/58`, rolls
+`fight`'s reload idle in theirs (`Unit::fight:111`: the order's `o`/`whom` against the aim; ORDERS §22.4). Ours spent
+440 draws on 4811 against theirs' 458, the road search's jitter from node 0 and every round's scatter after it (ammo
+record 3, `1/93` at `2/88`, `land_y` ours 17828, theirs 17833). Ammo first 4812 → 4814, guys 4812 → 4813; the row's
+first parting stays 4812, units (`1/90`'s approach, item 4775). Row 83's ammo on 4814 (run1784) is no land point:
+4813's road search runs 23 nodes longer in ours, and theirs' `PLACED | PLACED_TWICE` (0xc0) on tiles (61..65, 77),
+the world leaf item 4778 holds from 4698, poked into ours before the tick gives theirs' 4,104 draws and all four
+landings. Row 53's on 5512 (run1847) stands past its units' parting.
+
 ### 13.4 Row 113
 
 **Whole: 12 of 12 lines, 4,573 of 4,573 states, to the original's end** (item 4592, run1802). Cities parted on
