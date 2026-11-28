@@ -16143,17 +16143,25 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // deaths 4,817 -> 5,996, guys 4,815 -> 5,996, leaders 4,835 -> 5,996,
         // world 4,698 -> 5,996; groups, cities, items and goods whole; none
         // fell. The row's first parting is guys and units on 5657.
+        // Item 4782 (`Guy::inc_time@005d9e10`'s crew arm seats each crew
+        // figure with `Guy::set_new_location(crew, des, 1)`, whose `1`
+        // writes `last_x/y/z`): who=1's Artillery `1/103` (`TI` 269, land)
+        // turns mid-swing on 5657, moving its tracked guy 1's seat. Units
+        // range 3871 and guys range 780, record 103's guy `last_x` ours
+        // 12006 -> 12004, `last_y` 27716 -> 27715, as theirs. Units 5,996 ->
+        // 5,997, guys 5,996 -> 5,997; nothing else moved. The row's first
+        // parting is builds, deaths, leaders and world on 5996.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                5996, 5996, 6001, 5997, 5996, 6001, 5996, 5996, 6001, 6001, 6001, 5996,
+                5997, 5996, 6001, 5997, 5996, 6001, 5997, 5996, 6001, 6001, 6001, 5996,
             ],
             first: &[
-                ("units", (5657, Some(193632786), 3892812303)),
+                ("units", (5997, Some(4017382552), 1761831464)),
                 ("builds", (5996, Some(2182696873), 124735465)),
                 ("ammo", (5997, Some(1491820995), 2546491731)),
                 ("deaths", (5996, Some(3712312259), 2299629828)),
-                ("guys", (5657, Some(644564595), 2769962608)),
+                ("guys", (5997, Some(1591837581), 1889044087)),
                 ("leaders", (5996, Some(1528837194), 3732354253)),
                 ("world", (5996, Some(2360803158), 72221117)),
             ],
