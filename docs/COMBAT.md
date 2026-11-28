@@ -895,8 +895,9 @@ every path: a round a decoy fired that lands after its shooter closed is a
    `get_kill_value / 5` to score, `Build::plunder` for a non-air, non-splash,
    non-allied kill. Return.
 9. If not died: emergency AI; a `FLAMETHROWER` hitting a building **ejects
-   its garrison** (and against a city, spawns citizens); entrenchment is
-   **broken** on a hit that did not kill (`unit_masks &= ~0x2000000`, the
+   its garrison** and, against any building that holds someone, burns
+   `x_size >> 1` stand-in citizens (§7.4, item 4784); entrenchment is
+   **broken** on a hit that did not kill, by a Flamethrower only (§7.4) (`unit_masks &= ~0x2000000`, the
    two Antipater bits, `remove_entrench`); the Lakota coin trickle; planes
    ejected from a hit carrier/airbase by anti-air or bombers; then the
    **building's own splash**: every unit on the tiles within `circle_radius[1]`
@@ -1008,6 +1009,69 @@ is where the figure's size comes from. `ObjectData::hits_left` and
 `health_level` read `UnitData::total_damage`, which sums the chain and adds
 `(uber_size − curr_uber_size) × hits / uber_size` for the dead — the health
 bar shows the squad.
+
+### 7.4 The Flamethrower's garrison arm
+
+*Item 4784, 2026-11-28, Opus 5.5. Diff-backed on run1784's 5995..5997
+(`row_83_s_flamethrower_burns_citizens_out_of_a_garrisoned_city_on_run1784_s_ranges`);
+built in `sim::combat::fight::flame`.*
+
+`Object::do_damage@0064a480:953`–`:1050`, on a hit that `take_damage` did not
+kill, right after `Armies::emergency` and ahead of the capture check:
+
+```text
+if A.is(FLAMETHROWER)                       (vslot 0xb8, 0x83; the lineage)
+  if T is a building                        (T's vslot 0x18 answers 0)
+    if !T.can_carry(AIR)                     (not a hangar)
+      n = T.num_inside(1)                    (every live object on T's inside chain)
+      T.eject_contents(1, -1, 0, 1)          (a building: build_masks |= 0x4000, nothing else)
+      if n != 0
+        k = T.type.x_size >> 1               (+0x234, tiles)
+        if count(death pool: valid and DeathObj+0x20 > first_build_piece) < k
+          repeat k:                           u = init_unit(T.who, citizen, T.x, T.y, -1, -1, -1)
+                                              u.go_inside(T.o, T.who, 0); u.come_out(0)
+          each u: Unit::close(4, -1, 0)       (vslot 0x150: a burning death, three draws)
+  else (T is a unit)
+    break T's entrenchment                   (unit_masks &= ~0x2000000, the two 0x6c bits, remove_entrench)
+```
+
+- **`citizen`** is `types[PEASANTS]` when `LeaderData::tribe_can_type(T.who's
+  leader, PEASANTS)` answers it, and the type's vslot `0x68` handed the tribe
+  otherwise.
+- **The cap counts scorched bodies.** `first_build_piece` is `0xc606`, which
+  is `total_num_unit_pieces`. The only death records above it are the scorched
+  bodies a burning death moves a figure onto (§42.1, `DeathObj::init`'s `+4`).
+  So a city burns no more stand-ins while `k` of them still lie on the map.
+- **The stand-ins are real units for one frame.** `init_unit` counts each in
+  the owner's `units_built` and sets the score's units bit (`leader_flags |=
+  0x800000`). `close` takes each off `num_units`. Each leaves a death record.
+  `units_lost` does not step.
+- **The draws**: one `Guy::init_real < Objects::init_unit` per stand-in, all
+  first. Then `Unit::close+0xcb6`, `+0xce6` and `+0xd0a` per stand-in, each
+  beside its sound. `go_inside` and `come_out` take none for a Citizen.
+
+**The run that shows it.** On run1784's 5995, who=1's Flamethrower `1/180`
+(`TypeIndex` 0x83's lineage, land) strikes who=2's Small City `2/2040`, which
+has `2/1` inside. Theirs spends draws 51 to 53 on the three births and 54 to
+64 on the three closes. On 5996 the city's `build_masks` reads 0x5030, leader
+2's `flags` reads 0x800003 and its `units_built` reads 208 where it was 205.
+The pool holds `2/171`, `2/179` and `2/180`: `first_frame` 5995, age 1, ammo
+−1, piece 60127 (`BIPED`'s scorched body). Ours held none of these before
+the build, and has all of them now.
+
+**What this has not established.**
+
+- The tribe arm (vslot `0x68`) is not read. Every tribe on file answers
+  `tribe_can_type` for the Citizen.
+- **The entrench arm is not built.** The listing shows a false `is(0x83)`
+  jumping to `64beb7`, past both arms, so `do_damage` breaks entrenchment
+  (`64bc61`–`64bc6e`) only for a Flamethrower's blow. The bit's only other
+  writers are `Unit::move_step` and `Unit::close`. This crate breaks it after
+  every hit that does not kill, and no capture has shown the difference
+  (item 4784's journal, parked 4784a).
+- No capture has shown the cap refuse. The second blow in
+  `a_flamethrower_burns_stand_in_citizens_out_of_a_garrisoned_city` is a
+  hand-built case.
 
 ---
 
