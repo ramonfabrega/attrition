@@ -455,38 +455,6 @@ impl Sim {
         // from its attack-move's look on 773 while recharging 13. On 774
         // it stands with its heading unchanged and rolls the idle, and
         // that roll is the chapter's word (`docs/ORDERS.md` §22).
-        if std::env::var("RON_PROBE_4779")
-            .ok()
-            .and_then(|v| v.parse::<i64>().ok())
-            .is_some_and(|lo| self.frame + 1 == lo)
-        {
-            let g0 = self.units[u].guys.first();
-            eprintln!(
-                "GATE4779 f{} seed {:#x} {}/{} ty {:?} rech {} latch {} walks {} new_ord {} target {:?} g0.aim {:?} g0.anim {:?}",
-                self.frame,
-                self.rng.seed,
-                self.units[u].owner,
-                self.units[u].index,
-                self.units[u].ty.map(|t| self.tables.unit_types[t].type_index),
-                state.recharging,
-                latch,
-                walks_on,
-                a.new_ord,
-                self.units[u].combat.target,
-                g0.map(|g| g.aim),
-                g0.map(|g| g.anim)
-            );
-            let oname = |t: Option<Obj>| match t {
-                Some(Obj::Unit(x)) => format!("u{}/{}", self.units[x].owner, self.units[x].index),
-                other => format!("{other:?}"),
-            };
-            eprintln!(
-                "   order.target {:?} combat.target {} g0.aim {}",
-                a.target,
-                oname(self.units[u].combat.target),
-                oname(g0.and_then(|g| g.aim))
-            );
-        }
         if state.recharging != 0 && !latch && !walks_on {
             if a.new_ord
                 && let Some(target) = self.units[u].combat.target
