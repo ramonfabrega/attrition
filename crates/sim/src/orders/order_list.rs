@@ -276,6 +276,7 @@ impl Sim {
     /// `Unit::kill_current_order(0)` (§3.2): the per-kind teardown, then the
     /// pop, the path segment, `update_action`.
     pub fn kill_current_order(&mut self, u: usize) {
+        if std::env::var("RON_PROBE_4786").is_ok() && self.units[u].owner == 1 && self.units[u].index == 171 && (4889..=4893).contains(&self.frame) { eprintln!("PROBE kill_current_order f{}\n{}", self.frame, std::backtrace::Backtrace::force_capture()); }
         self.kill_order(u, false);
     }
 
@@ -720,6 +721,9 @@ impl Sim {
 
     /// Retarget the current attack without rewriting other orders in the queue.
     pub(crate) fn set_attack_target(&mut self, u: usize, target: Option<Obj>) {
+        if std::env::var("RON_PROBE_4786").is_ok() && self.units[u].owner == 1 && self.units[u].index == 171 && (4889..=4893).contains(&self.frame) {
+            eprintln!("PROBE set_attack_target f{} -> {:?}\n{}", self.frame, target.map(|t| self.attack_target_id(t)), std::backtrace::Backtrace::force_capture());
+        }
         let id = target.map(|t| self.attack_target_id(t));
         if let Some(k) = self.action_of(u)
             && let Body::Attack(a) = &mut self.units[u].orders[k].body
@@ -748,6 +752,7 @@ impl Sim {
         mandatory: bool,
         action: bool,
     ) {
+        if std::env::var("RON_PROBE_4786").is_ok() && self.units[u].owner == 1 && self.units[u].index == 171 && (4889..=4893).contains(&self.frame) { eprintln!("PROBE add_attack_order {pos:?} {target:?} f{}\n{}", self.frame, std::backtrace::Backtrace::force_capture()); }
         if pos == QueuePos::New {
             self.units[u].path.clear();
             self.close_orders(u);
