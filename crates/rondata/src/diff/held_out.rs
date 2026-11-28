@@ -13647,6 +13647,51 @@ pub(crate) mod tests {
             out.join("\n")
         );
     }
+
+    /// PROBE 4784, reverted whole: row 83 to 5996, the Flamethrowers and
+    /// the occupied buildings.
+    #[test]
+    fn probe_4784_row_83_flamethrowers() {
+        if std::env::var("RON_PROBE_4784").is_err() {
+            return;
+        }
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let (Some(rcx), _) = paths(&FIFTH, 4) else {
+            return;
+        };
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("the file");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        let lo: i64 = std::env::var("RON_PROBE_LO").ok().and_then(|v| v.parse().ok()).unwrap_or(5990);
+        while built.sim.frame <= 5997 {
+            if built.sim.frame >= lo {
+                let f = built.sim.frame;
+                for (u, x) in built.sim.units.iter().enumerate() {
+                    if !x.alive() { continue; }
+                    let name = &built.unit_type_names[x.ty.unwrap_or(0)];
+                    if name.contains("lame") {
+                        eprintln!("P f{f} unit {u} {}/{} {name} ti{:?} at ({},{}) target {:?} inside {:?}",
+                            x.owner, x.index, x.ty, x.pos.x, x.pos.y, x.combat.target, x.inside);
+                    }
+                }
+                for (b, x) in built.sim.buildings.iter().enumerate() {
+                    if !x.alive { continue; }
+                    let hit = (x.owner == 1 && x.index == 2040) || !x.garrison.is_empty() || x.eject_pending;
+                    if hit {
+                        let name = x.ty.map(|t| loaded.build_type_names[t].clone()).unwrap_or_default();
+                        eprintln!("P f{f} build {b} {}/{} {name} ty{:?} at ({},{}) dmg {} ch {} eject {} garrison {:?}",
+                            x.owner, x.index, x.ty, x.pos.x, x.pos.y, x.damage, x.construct_hits, x.eject_pending,
+                            x.garrison.iter().map(|&g| (built.sim.units[g].owner, built.sim.units[g].index)).collect::<Vec<_>>());
+                    }
+                }
+            }
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+    }
 }
 
 /// **The eight, as declared** (item 4413, before any take): rows 0, 20, …,
