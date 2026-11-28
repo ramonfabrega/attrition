@@ -16,6 +16,8 @@ struct SimDoAttack<'a> {
     u: usize,
     frame: i64,
     target: Option<Obj>,
+    /// The order's `+0x1c`.
+    mandatory: bool,
     cargo: Vec<usize>,
     at: usize,
 }
@@ -48,7 +50,7 @@ impl DoAttackView for SimDoAttack<'_> {
         matches!(self.target, Some(Obj::Building(_)))
     }
     fn mandatory(&mut self) -> bool {
-        self.s.units[self.u].combat.mandatory
+        self.mandatory
     }
     fn cargo_start(&mut self) -> bool {
         self.cargo = self.riders();
@@ -57,7 +59,7 @@ impl DoAttackView for SimDoAttack<'_> {
     }
     fn strafe_cargo(&mut self) {
         let r = self.cargo[self.at];
-        let mandatory = self.s.units[self.u].combat.mandatory;
+        let mandatory = self.mandatory;
         self.s.add_strafe_order(
             r,
             self.target,
@@ -271,19 +273,31 @@ impl DoAttackView for SimDoAttack<'_> {
 impl crate::Sim {
     /// `Unit::do_attack@005f1b80` — [`do_attack_steps`] over [`SimDoAttack`];
     /// the `fight` half is [`Self::do_attack_fight`].
+    ///
+    /// **The target and the mandatory byte are the order's** (item 4775,
+    /// `docs/RECGAME.md` §13.3): `do_attack` takes the order `think`
+    /// dispatched on as `param_1` and reads its data (vslot `+0x50`) at
+    /// `+8`/`+0xc` (`ox`, `whom`) and `+0x1c`, never the unit's
+    /// [`crate::combat::State`] copy, which a `QUEUE_LAST` append behind
+    /// the head rewrites. Row 93's Supply Wagon `1/90` (TI 63) runs the
+    /// grouped arm on 4811 under the group's head `ATTACK 2/101` with the
+    /// copy naming the `ATTACK 2/88` queued behind it; the original
+    /// stands off `2/101`.
     pub(crate) fn do_attack(&mut self, u: usize, frame: i64) {
-        if !matches!(
-            self.current_order(u).map(|o| &o.body),
-            Some(crate::orders::Body::Attack(_))
-        ) {
+        let Some(crate::orders::Body::Attack(order)) = self.current_order(u).map(|o| &o.body)
+        else {
             return;
-        }
-        let target = self.units[u].combat.target;
+        };
+        let mandatory = order.mandatory;
+        let target = order
+            .target
+            .and_then(|(ox, whom, _)| self.object_holding(whom, ox));
         do_attack_steps(&mut SimDoAttack {
             s: self,
             u,
             frame,
             target,
+            mandatory,
             cargo: Vec::new(),
             at: 0,
         });
