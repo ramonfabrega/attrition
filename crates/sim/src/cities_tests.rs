@@ -10349,6 +10349,54 @@ fn a_citizen_struck_rings_its_city_s_bell_and_only_a_computer_s_once() {
     assert!(!sim.cities.cities[c].alarm, "outside every city");
 }
 
+/// **An attrition blow rings a Citizen's city bell too** (item 4571,
+/// `docs/RECGAME.md` §12.3): `Unit::suffer_attrition@005e1a10`'s hurt is
+/// `Object::take_damage` with `param_5` 1, and the peasant arm
+/// (`:176`–`:214`) reads no `param_5`. run1787's 4340: who=1's Citizen
+/// `1/84` bleeds inside its own city 10, bell clear, and theirs seats the
+/// city building alone, raises the bell and sends `1/84` to garrison. A
+/// human's Citizen bleeding rings nothing.
+///
+/// Made to fail with the hurt's `peasant_alarm` call dropped.
+#[test]
+fn an_attrition_blow_on_a_computer_citizen_rings_its_city_s_bell() {
+    use crate::orders::Body;
+    let fresh = |human: bool| {
+        let (mut sim, t, citizen, _) = alarm_sim();
+        sim.tables.unit_types[citizen].worker = crate::orders::Worker::Citizen;
+        let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
+        sim.cities.nation[0].human = human;
+        sim.ai.lobby.difficulty = 2;
+        let near = sim.init_unit(0, citizen, tile_pos(38, 32));
+        let other = sim.init_unit(0, citizen, tile_pos(34, 30));
+        (sim, b, c, near, other)
+    };
+    let garrisoning = |sim: &Sim, u: usize, b: usize| {
+        matches!(sim.units[u].orders.front().map(|o| o.body),
+            Some(Body::Garrison { building, search: true }) if building == b)
+    };
+
+    let (mut sim, b, c, near, other) = fresh(false);
+    let before = sim.units[near].health;
+    let tick = sim.suffer_attrition(near, 4340);
+    assert!(!tick.killed, "one tick, alive");
+    assert!(
+        sim.units[near].health < before || sim.units[near].damage_frac != 0,
+        "the blow landed"
+    );
+    assert!(sim.cities.cities[c].alarm, "city_flags | 0x40");
+    assert!(bell_group_seated(&sim, 0, b), "the bell's group is pushed");
+    assert!(garrisoning(&sim, near, b), "{:?}", sim.units[near].orders);
+    assert!(garrisoning(&sim, other, b), "every Citizen in the radius");
+
+    let (mut sim, _, c, near, _) = fresh(true);
+    let _ = sim.suffer_attrition(near, 4340);
+    assert!(
+        !sim.cities.cities[c].alarm,
+        "a human's Citizen bleeding rings nothing"
+    );
+}
+
 /// The bell's group seated on `who`'s pool (`Groups::push_group(who, g,
 /// 1)` in both of `Object::take_damage@00652020`'s arms, item 4440): the
 /// slot `last_group` names holds `[b]` alone, a building group.
