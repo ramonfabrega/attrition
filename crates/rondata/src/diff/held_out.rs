@@ -16044,23 +16044,28 @@ pub(crate) const SCORES_FIFTH: [Option<FirstScore>; 8] = [
         // 5,206 fall past first partings that did not come earlier (items
         // 5222 stands, goods 4706 -> 4958). The row's first parting is world
         // on 4698.
+        // Item 4778 (`Wall::start_me@0063d790(0)`: a twice-placed tile keeps
+        // both bits while `find_building_placed_at(t, −1, o, who)` finds
+        // another building over it): who=1's unstarted site `1/2048` goes
+        // back on 4698 over who=2's unstarted Village `2/2042`. World range
+        // 3624 (the mask), tiles (61..65, 77), ours 0x00 -> 0xc0, as theirs.
+        // Units 4,815 -> 5,996, builds 4,850 -> 5,996, ammo 4,815 -> 5,997,
+        // deaths 4,817 -> 5,996, guys 4,815 -> 5,996, leaders 4,835 -> 5,996,
+        // world 4,698 -> 5,996; groups, cities, items and goods whole; none
+        // fell. The row's first parting is guys and units on 5657.
         moved: Some(Score {
             states: 6001,
             agreed: [
-                4815, 4850, 6001, 4815, 4817, 4858, 4815, 4835, 4945, 5222, 5206, 4698,
+                5996, 5996, 6001, 5997, 5996, 6001, 5996, 5996, 6001, 6001, 6001, 5996,
             ],
             first: &[
-                ("units", (4815, Some(1242042184), 3900444444)),
-                ("builds", (4850, Some(951584565), 2963146531)),
-                ("ammo", (4814, Some(4097865957), 2939123464)),
-                ("deaths", (4817, Some(1114439199), 1349844512)),
-                ("groups", (4854, Some(2583444955), 1301691999)),
-                ("guys", (4815, Some(2623019191), 877926580)),
-                ("leaders", (4830, Some(942676057), 2055870555)),
-                ("cities", (4945, Some(736581522), 2641712907)),
-                ("items", (5222, Some(912470408), 921121162)),
-                ("goods", (4958, Some(3572536627), 3422590255)),
-                ("world", (4698, Some(3200711580), 2266824540)),
+                ("units", (5657, Some(193632786), 3892812303)),
+                ("builds", (5996, Some(2182696873), 124735465)),
+                ("ammo", (5997, Some(1491820995), 2546491731)),
+                ("deaths", (5996, Some(3712312259), 2299629828)),
+                ("guys", (5657, Some(644564595), 2769962608)),
+                ("leaders", (5996, Some(1528837194), 3732354253)),
+                ("world", (5996, Some(2360803158), 72221117)),
             ],
             over: None,
         }),
