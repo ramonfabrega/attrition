@@ -4976,7 +4976,7 @@ fn a_final_tech_ramps_against_the_finals_its_leader_holds_or_researches() {
     use crate::tech::{self, Kind, TypeDef};
 
     let mut tree = tech::TechTree::new().with_tuning(&Tuning::RON);
-    let mut def = |name: &str, kind: Kind, timber: i32| {
+    let def = |name: &str, kind: Kind, timber: i32| {
         let mut d = TypeDef::new(name, kind);
         d.cost[Resource::Timber.index()] = timber;
         d.cost[Resource::Knowledge.index()] = timber * 4 / 3;
