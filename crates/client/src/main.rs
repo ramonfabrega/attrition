@@ -19,7 +19,8 @@
 //! its last row starts the game from them through `FreeRunner::from_choices`
 //! and runs it to `--frame`. With `--still`, `--headless` or `--silhouette`
 //! there is no page and no person, and `--lobby` builds the minted script's
-//! lobby as before. `--page-still OUT.bmp` writes the page itself.
+//! lobby, the harness lobby's choices from the install alone (item 4780):
+//! a lobby's game reads nothing under `--logs`. `--page-still OUT.bmp` writes the page itself.
 //! `--page-of CAPTURE` sets the page to that capture's lobby by the page's
 //! own keys (item 4215): in a window the page opens on it, and with
 //! `--still` or `--headless` the game starts from it at once. With
@@ -1331,10 +1332,24 @@ fn main() {
         return;
     }
     let from_page = page.as_ref().map(|p| p.choices.clone());
-    let game = match (&from_page, &off_screen) {
-        (Some(c), _) | (None, Some(c)) => world::Game::Page(Box::new(c.clone())),
-        (None, None) if args.lobby => world::Game::Lobby,
-        (None, None) => world::Game::Pair,
+    // Off-screen `--lobby` with no page builds the harness lobby — the
+    // minted script's, run53's — from the install alone (item 4780): its
+    // choices are the page's opening, and nothing under `--logs` is read.
+    let harness = (args.lobby && from_page.is_none() && off_screen.is_none()).then(|| {
+        rondata::lobby::Roster::read(&args.install)
+            .and_then(|r| rondata::lobby::Choices::harness(&r))
+            .unwrap_or_else(|e| {
+                eprintln!("client: the harness lobby: {e}");
+                std::process::exit(1);
+            })
+    });
+    let game = match from_page
+        .as_ref()
+        .or(off_screen.as_ref())
+        .or(harness.as_ref())
+    {
+        Some(c) => world::Game::Page(Box::new(c.clone())),
+        None => world::Game::Pair,
     };
     // A lobby opens where the original's does (item 4437, `opening`); the
     // pair keeps run1559b's camera, which its photograph was taken at.
@@ -1356,7 +1371,12 @@ fn main() {
     world.trees = args.trees;
     world.textured = args.textured;
     world.debug_ground = args.debug_ground;
-    world.speed = pace::speed_of(from_page.as_ref().or(off_screen.as_ref()));
+    world.speed = pace::speed_of(
+        from_page
+            .as_ref()
+            .or(off_screen.as_ref())
+            .or(harness.as_ref()),
+    );
     world.set_land_light(args.land_light);
     world.set_mountain_light(!args.mountain_flat);
     session.mark("frame zero");

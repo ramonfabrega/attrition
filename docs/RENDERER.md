@@ -1724,7 +1724,8 @@ load, not a diff: nothing of the original is compared. The resident set is
 
 **What is not established.**
 - **Seconds to lobby.** DECISIONS 114 §4 names it, and the client has no
-  lobby screen to time. The lobby's choices are read from run53's dump.
+  lobby screen to time. The lobby's choices are the harness lobby's,
+  from the install alone since item 4780 (run53's dump before it).
 - **The windowed session.** Its frames wait on vsync (§3.6's 21.3 ms
   p99), so it is not the ceilings' session. A window over the lobby is
   unmeasured here because a window opened in a gate could take a capture
