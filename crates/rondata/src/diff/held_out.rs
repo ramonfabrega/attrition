@@ -5622,10 +5622,38 @@ pub(crate) mod tests {
             if watch {
                 built.sim.trace.trace_phases = true;
                 built.sim.trace.phase_marks.clear();
+                built.sim.trace.trace_costs = true;
+                built.sim.trace.road_marks.clear();
             }
             let w0 = built.sim.rng.seed;
             built.sim.command().tick();
             if watch {
+                built.sim.trace.trace_costs = false;
+                let ours_nodes = std::mem::take(&mut built.sim.trace.road_marks);
+                let theirs_nodes = trace.road_nodes(f);
+                let first = ours_nodes
+                    .iter()
+                    .zip(&theirs_nodes)
+                    .position(|(a, b)| a != b);
+                eprintln!(
+                    "ROAD f{f}: ours {} nodes, theirs {}, first differing {:?}",
+                    ours_nodes.len(),
+                    theirs_nodes.len(),
+                    first
+                );
+                if let Some(k) = first.or(if ours_nodes.len() != theirs_nodes.len() {
+                    Some(ours_nodes.len().min(theirs_nodes.len()))
+                } else {
+                    None
+                }) {
+                    for j in k.saturating_sub(4)..(k + 6) {
+                        eprintln!(
+                            "  road {j}: ours {:?} | theirs {:?}",
+                            ours_nodes.get(j),
+                            theirs_nodes.get(j)
+                        );
+                    }
+                }
                 built.sim.trace.trace_phases = false;
                 let td = trace.frame_draws(f);
                 eprintln!(
