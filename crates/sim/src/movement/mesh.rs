@@ -174,16 +174,12 @@ pub struct RoadMesh {
     mods: ModQueue,
     /// `Roads::add_roads`' function-static `remove_list`.
     remove: ModQueue,
-    /// The simulation's entries on `changed_roads` (`+0x150`) and
-    /// `changed_roads2` (`+0x16c`): the tiles the redo runs every pass on.
-    redo: [Vec<i32>; 2],
-    /// **The lists themselves, in push order** (item 4772,
-    /// `docs/RENDERER.md` §6.9): every `add_unique`, the simulation's and
-    /// the line passes' (item 4687, §6.8), each tile once where it was
-    /// first pushed. The redo walks this; a tile on it and not on the
-    /// matching [`RoadMesh::redo`] list is redone for its texture alone
-    /// ([`SimRedo`]), so nothing the simulation reads is written (parked
-    /// 4687a), but it is cleared and leeched in its place among the rest.
+    /// **`changed_roads` (`+0x150`) and `changed_roads2` (`+0x16c`), in
+    /// push order** (item 4772, `docs/RENDERER.md` §6.9): every
+    /// `add_unique`, the simulation's and the line passes' (item 4687,
+    /// §6.8), each tile once where it was first pushed. The redo walks this
+    /// and gives every tile on it the four passes (item 4781, §6.9): a tile
+    /// a line pass pushed is a tile like any other.
     order: [Vec<i32>; 2],
     /// `RoadsData::tx` / `ty`.
     at: Pos,
@@ -380,19 +376,6 @@ impl RoadMesh {
         if list == 0 {
             return;
         }
-        let l = &mut self.redo[usize::from(list != 1)];
-        if !l.contains(&index) {
-            l.push(index);
-        }
-        self.tex_push(index, list);
-    }
-
-    /// `ArrayBase<int>::add_unique` from a texture pass: the same list the
-    /// original names, in its push order ([`RoadMesh::order`]).
-    fn tex_push(&mut self, index: i32, list: i32) {
-        if list == 0 {
-            return;
-        }
         let l = &mut self.order[usize::from(list != 1)];
         if !l.contains(&index) {
             l.push(index);
@@ -431,7 +414,7 @@ impl RoadMesh {
             return false;
         }
         e.lines = (e.lines | set) & !clear;
-        self.tex_push(i, list);
+        self.add_unique(i, list);
         true
     }
 
@@ -544,7 +527,7 @@ impl RoadMesh {
                 }
             }
             if fresh {
-                m.tex_push(index_of(world, Pos::new(at.x + dx, at.y + dy)), list);
+                m.add_unique(index_of(world, Pos::new(at.x + dx, at.y + dy)), list);
             }
             true
         };
@@ -686,7 +669,7 @@ impl RoadMesh {
         ] {
             if self.lines_of(world, self.at) & any != 0 && g & claim == 0 {
                 self.own_lines(world, 0, any);
-                self.tex_push(index_of(world, self.at), list);
+                self.add_unique(index_of(world, self.at), list);
             }
         }
     }
@@ -1428,23 +1411,12 @@ impl Sim {
 
     /// `Roads::redo_changed_roads@0088e670` — the passes over one of the two
     /// lists; see [`redo_changed_roads_steps`], which this runs over the
-    /// list `which` names, **in push order** (item 4772): the tiles only the
-    /// line passes pushed (item 4687) take each pass in their place, for
-    /// their texture alone ([`SimRedo`]).
+    /// list `which` names, **in push order** (item 4772). Every tile on it
+    /// takes all four passes, the line passes' pushes among them (item
+    /// 4781).
     fn redo_changed_roads(&mut self, which: usize, list: i32, param: i32) {
-        let work = self.movement.mesh.redo[which].clone();
         let order = self.movement.mesh.order[which].clone();
-        let tex: Vec<i32> = order
-            .iter()
-            .filter(|i| !work.contains(i))
-            .copied()
-            .collect();
-        let mut v = SimRedo {
-            sim: self,
-            tex,
-            cur: None,
-        };
-        redo_changed_roads_steps(&mut v, &order, list, param);
+        redo_changed_roads_steps(&mut SimRedo { sim: self }, &order, list, param);
     }
 }
 
@@ -1526,62 +1498,27 @@ pub fn redo_changed_roads_steps<V: RedoView>(v: &mut V, work: &[i32], list: i32,
 
 /// [`RedoView`] over the simulation: the mesh's own passes.
 ///
-/// **A tile the line passes alone pushed** (item 4687, `docs/RENDERER.md`
-/// §6.8; in the walk's order since item 4772, §6.9) is redone for its
-/// texture alone: the original runs `redo_changed_roads@0088e670`'s four
-/// passes on it as on any listed tile, and those rewrite its connections
-/// (parked 4687a). Here its support is left, its line bytes,
-/// intersections and joins are cleared in the second pass, `leech_codes`'
-/// line half and the marks run in the third on its connections as they
-/// stand, with `set_diags` taken as a zero answer, and the fourth's
-/// `fixup_lines`, `delete_straglers` and the pick. Its cursor is
-/// [`SimRedo::cur`], and each of its steps restores the mesh's cursor and
-/// caches after, so a simulation tile's steps read what they did before.
+/// **Every tile on the list takes the four passes** (item 4781,
+/// `docs/RENDERER.md` §6.9), as `redo_changed_roads@0088e670` gives them,
+/// the tiles a line pass alone pushed (item 4687, §6.8) among them: its
+/// support dropped, its whole dword cleared and its directions trimmed,
+/// `leech_codes` whole and a real `set_diags`. Until item 4781 such a tile
+/// kept its directions untrimmed and took `leech_lines` alone with a zero
+/// `set_diags`, and on run1559b the T at (17–18, 163) held row 164's
+/// yellow in a period-2 loop the trim breaks.
 struct SimRedo<'a> {
     sim: &'a mut Sim,
-    /// The list's texture-only tiles.
-    tex: Vec<i32>,
-    /// The cursor, while it is on one of them.
-    cur: Option<Pos>,
-}
-
-impl SimRedo<'_> {
-    /// One texture-only step at [`SimRedo::cur`], the mesh's cursor and
-    /// caches put back after. `None` when the cursor is on a simulation tile.
-    fn on_tex<R>(&mut self, f: impl FnOnce(&mut RoadMesh, &World) -> R) -> Option<R> {
-        let cur = self.cur?;
-        let world = &self.sim.world;
-        let m = &mut self.sim.movement.mesh;
-        let saved = (m.at, m.blocked, m.road);
-        m.at = cur;
-        let r = f(m, world);
-        (m.at, m.blocked, m.road) = saved;
-        Some(r)
-    }
 }
 
 impl RedoView for SimRedo<'_> {
     fn tile(&mut self, index: i32) {
-        let t = tile_of(&self.sim.world, index);
-        if self.tex.contains(&index) {
-            self.cur = Some(t);
-        } else {
-            self.cur = None;
-            self.sim.movement.mesh.at = t;
-        }
+        self.sim.movement.mesh.at = tile_of(&self.sim.world, index);
     }
     fn clear_support(&mut self) {
-        if self.cur.is_some() {
-            return;
-        }
         let at = self.sim.movement.mesh.at;
         self.sim.clear_support(at, 1);
     }
     fn road_data(&mut self) -> bool {
-        if let Some(t) = self.cur {
-            let w = &self.sim.world;
-            return self.sim.movement.mesh.elems.contains_key(&index_of(w, t));
-        }
         let at = self.sim.movement.mesh.at;
         self.sim
             .movement
@@ -1589,16 +1526,6 @@ impl RedoView for SimRedo<'_> {
             .get_road_data(&self.sim.world, at, false, 0, false)
     }
     fn clear_flags(&mut self) {
-        let cleared = self.on_tex(|m, w| {
-            if let Some(e) = m.elems.get_mut(&index_of(w, m.at)) {
-                e.inter = 0;
-                e.lines = 0;
-                e.joins = 0;
-            }
-        });
-        if cleared.is_some() {
-            return;
-        }
         let at = self.sim.movement.mesh.at;
         self.sim.movement.mesh.set_flags(&self.sim.world, at, 0);
         if let Some(e) = self
@@ -1614,54 +1541,26 @@ impl RedoView for SimRedo<'_> {
         }
     }
     fn fill_cache(&mut self) {
-        // A texture-only tile fills its own cache in each step that reads it.
-        if self.cur.is_some() {
-            return;
-        }
         let at = self.sim.movement.mesh.at;
         self.sim.movement.mesh.fill_cache(&self.sim.world, at);
     }
     fn trim_directions(&mut self, list: i32) {
-        if self.cur.is_some() {
-            return;
-        }
         self.sim
             .movement
             .mesh
             .trim_directions(&self.sim.world, list);
     }
     fn leech_codes(&mut self) {
-        let leeched = self.on_tex(|m, w| {
-            m.fill_cache(w, m.at);
-            m.leech_lines(w);
-        });
-        if leeched.is_some() {
-            return;
-        }
         self.sim.movement.mesh.leech_codes(&self.sim.world);
     }
     fn set_diags(&mut self, list: i32, param: i32) -> i32 {
-        if self.cur.is_some() {
-            return 0;
-        }
         self.sim.set_diags(list, param)
     }
     fn refill_for_marks(&mut self) {
-        if self.cur.is_some() {
-            return;
-        }
         let at = self.sim.movement.mesh.at;
         self.sim.movement.mesh.fill_cache(&self.sim.world, at);
     }
     fn texture_marks(&mut self, list: i32) {
-        let marked = self.on_tex(|m, w| {
-            m.fill_cache(w, m.at);
-            m.mark_intersections(w, list);
-            m.fixup_lines(w, list);
-        });
-        if marked.is_some() {
-            return;
-        }
         // Items 4677 and 4687: the splits' clears, the lines, the
         // intersections and `fixup_lines`, texture only; the line passes'
         // pushes go onto the list in push order (`RoadMesh::order`).
@@ -1674,14 +1573,6 @@ impl RedoView for SimRedo<'_> {
         // `find_piece` picks the road tile's own piece, so the C4 a corner
         // left on it goes (§12; the pick itself is the client's, on the
         // intersections it reads here: item 4682).
-        let finished = self.on_tex(|m, w| {
-            m.fixup_lines(w, list);
-            m.delete_straglers(w, list);
-            m.note_pick(w, m.at);
-        });
-        if finished.is_some() {
-            return;
-        }
         let at = self.sim.movement.mesh.at;
         self.sim.movement.mesh.fixup_lines(&self.sim.world, list);
         self.sim
@@ -1825,7 +1716,6 @@ impl RoadsView for SimRoads<'_> {
         self.sim.redo_changed_roads(which, arg, param);
     }
     fn redo_clear(&mut self, which: usize) {
-        self.sim.movement.mesh.redo[which].clear();
         self.sim.movement.mesh.order[which].clear();
     }
     fn tile_flags(&self, _x: i32, _y: i32) -> u16 {
@@ -1843,8 +1733,6 @@ impl RoadsView for SimRoads<'_> {
     }
     fn add_ambience(&mut self, _x: i32, _y: i32) {}
     fn finish(&mut self) {
-        self.sim.movement.mesh.redo[0].clear();
-        self.sim.movement.mesh.redo[1].clear();
         self.sim.movement.mesh.order[0].clear();
         self.sim.movement.mesh.order[1].clear();
         self.sim.movement.mesh.mods.count = 0;

@@ -1477,11 +1477,12 @@ pub type TankHaze = ((u8, i16), (u32, u32), bool);
 /// alpha 0). The dust off gives the minted row.
 /// Item 4768: 1/27 2,386 → 2,385 and 1/16 2,270 → 2,269 (named falls of one), the control 1,318 → 1,319: the buildings' `EXISTEVENT` addons drawn (item 4768, `docs/RENDERER.md` §6.27) move the frame's mean, so its white.
 /// Item 4772: the control 1,319 → 1,318, a named fall of one: the redo walks one list in push order (item 4772, `docs/RENDERER.md` §6.9): (19, 163) lays the packet's piece and (18, 163) is left bare, so the frame's mean and its white.
+/// Item 4781: the control 1,318 → 1,320: every tile on a redo list takes the four passes (item 4781, `docs/RENDERER.md` §6.9): (17, 163) and (18, 163) lay the packet's pieces, element 17 at orientations 0 and 4, so the frame's mean and its white.
 pub const RUN1559B_3279_TANKS_HAZE: [TankHaze; 4] = [
     ((1, 40), (1329, 2167), true),
     ((1, 27), (2385, 3363), true),
     ((1, 16), (2269, 3005), true),
-    ((1, 15), (1318, 2826), true),
+    ((1, 15), (1320, 2826), true),
 ];
 /// The minted row, the draw before (`World::team_trim` off).
 pub const RUN1559B_3279_BUILDINGS_TEAM_BEFORE: [((u8, i16), (u32, u32)); 2] =

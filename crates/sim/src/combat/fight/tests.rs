@@ -7875,3 +7875,59 @@ fn a_follower_takes_its_captain_s_head_attack_not_the_one_queued_behind_it() {
         "the idle mirror copies the head attack too"
     );
 }
+
+/// **`do_attack`'s grouped arm stands off the order's target, not the
+/// unit's copy** (item 4775, `Unit::do_attack@005f1b80`: the target is
+/// the dispatched order's data, `+8`/`+0xc`). An attack-less member of a
+/// group under a head `ATTACK` on one foe, whose `combat.target` names a
+/// second foe (what a `QUEUE_LAST` append behind the head writes), walks
+/// to the point `0x180` short of the first along the bearing to itself
+/// (no member of the group attacks, so the stand-off is `0xc0 + 0xc0`).
+/// Row 93's Supply Wagon `1/90` on run1799's 4811 is that member.
+#[test]
+fn an_attack_less_member_stands_off_its_head_order_s_target_not_its_copy() {
+    let (mut sim, _) = at_war();
+    let wagon = sim.add_unit_type(crate::UnitType {
+        hits: 90,
+        combat: Profile {
+            attack: 0,
+            max_range: 0,
+            uber_size: 1,
+            ..Profile::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let foe = sim.add_unit_type(crate::UnitType {
+        hits: 100,
+        combat: Profile {
+            attack: 15,
+            max_range: 0,
+            uber_size: 1,
+            ..Profile::default()
+        },
+        ..crate::UnitType::default()
+    });
+    let me = put(&mut sim, 0, wagon, Pos::new(0x4000, 0x4000));
+    let ordered = put(&mut sim, 1, foe, Pos::new(0x5800, 0x4000));
+    let stale = put(&mut sim, 1, foe, Pos::new(0x4000, 0x5800));
+    sim.units[me].group_ptr = Some(2);
+    sim.add_attack_order(
+        me,
+        Obj::Unit(ordered),
+        crate::orders::QueuePos::First,
+        false,
+        false,
+    );
+    sim.units[me].combat.target = Some(Obj::Unit(stale));
+    sim.do_attack(me, 16);
+    let dest = sim.units[me]
+        .orders
+        .front()
+        .and_then(crate::orders::Order::move_dest)
+        .expect("the stand-off move");
+    let near = |p: Pos, q: Pos| (p.x - q.x).abs() + (p.y - q.y).abs() <= 0x180;
+    assert!(
+        near(dest, Pos::new(0x5800 - 0x180, 0x4000)),
+        "the stand-off is the ordered foe's, {dest:?}"
+    );
+}

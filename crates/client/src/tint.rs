@@ -272,7 +272,11 @@ pub(crate) mod tests {
         // on, named falls of one: the redo walks one list in push order
         // (item 4772, `docs/RENDERER.md` §6.9), (18, 163) left bare, so
         // the frame's mean and its white.
-        ([959, 1105, 1079], [959, 1105, 1108]),
+        // Item 4781: run1559b's row 1,105 → 1,107 on both sides, luma
+        // 1,079 → 1,080 off and 1,108 → 1,109 on: every tile on a redo
+        // list takes the four passes (item 4781, `docs/RENDERER.md` §6.9),
+        // (17, 163) and (18, 163) laid, so the frame's mean and its white.
+        ([959, 1107, 1080], [959, 1107, 1109]),
         // Item 4338: run1564 off row 1,803 → 1,851, luma 1,840 → 1,841; on
         // row 1,798 → 1,852, luma 1,868 → 1,866 (a named fall of two): the
         // surf's lists blended on the HDR target (`docs/RENDERER.md` §3.30).
@@ -284,7 +288,9 @@ pub(crate) mod tests {
         // the national borders blended on the HDR target (`docs/RENDERER.md`
         // §3.29, "The band's colour").
         ([679, 1855, 1839], [679, 1856, 1868]),
-        ([1042, 1171, 1144], [1041, 1171, 1166]),
+        // Item 4781: run1570's row 1,171 → 1,172 on both sides, as
+        // run1559b's.
+        ([1042, 1172, 1144], [1041, 1172, 1166]),
     ];
 
     /// **`GRASS_HUE`**, `[(untinted, tinted)]` on run1559b, run1564 and

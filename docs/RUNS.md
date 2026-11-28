@@ -41135,6 +41135,14 @@ covers it, where ours cleared both bits. `print_ranges` reads 0 ranges over 4696
 and world range on 4697 to 4700. World 4,698 → 5,996; groups, cities, items and goods whole; the row parts first on
 guys and units on 5657 (units range 3871, record 103, `1/103`'s guy `last_x` ours 12006, theirs 12004, `last_y`
 27716, 27715).
+
+**Item 4782 on it**: units range 3871 and guys range 780 on 5657, the Artillery `1/103`'s tracked guy 1 (`track`
+72, 216). Figure 0 is in the attack category and turns on 5657, and that moves guy 1's seat (12006, 27716) →
+(12004, 27715). Both sides seat it there, and `Guy::inc_time@005d9e10`'s `set_new_location(crew, des, 1)` writes
+`last` with it, where ours moved the body alone. `print_ranges` reads 0 ranges over 5655..5995, and
+`row_83_s_artillery_seats_its_crew_with_last_on_the_seat_on_run1784_s_ranges` holds every units and guys range on
+5656 to 5659. Units and guys 5,996 → 5,997; the row parts first on builds, deaths, leaders and world on 5996
+(builds range 5003, record 2040, `build_masks` ours 4144, theirs 20528).
 ## run1786 — the 2017 sample's playback to 8,000 with the checksum and ranges hooks, every line but walls kept (2026-11-22, item 4555, `att-4555`)
 
 
@@ -41500,6 +41508,8 @@ Item 4779 adds `row_93_s_flak_rolls_the_reload_idle_on_its_order_s_target_on_run
 4812 and 4813 and every guys range on 4812; who=1's flak `1/109` TI 283 rolls `fight`'s reload idle on 4811). Its trace
 (`rontrace.log`, `callwin=0-12000`) answers the road search node for node: on the base, 4811's search priced 415 nodes
 in ours and 435 in theirs, its first cost 130 against 121, one draw apart.
+Item 4775 adds `row_93_s_supply_wagon_stands_off_its_head_order_s_target_on_run1799_s_ranges` (every units range of
+record 90 on 4812; who=1's Supply Wagon `1/90` TI 63 stands off its head `ATTACK 2/101` on 4811, `docs/COMBAT.md` §21.8).
 ## run1798 — parity held out, sixth battery, row 73's file to 12,000 with the checksum and ranges hooks, every line but walls kept (2026-11-23, item 4576, `att-4576`)
 
 `docs/RECGAME.md` §13; DECISIONS 153 §4. **What the disk could not answer**: run1791 holds sums only, so row 73's

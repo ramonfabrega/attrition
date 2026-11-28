@@ -6586,8 +6586,8 @@ the lists, from one reading.
   the line passes' pushes, with `leech_codes`' line half), and whether the
   lists' extra redos are sim-idempotent. A redo runs
   `mark_and_trim_directions`, `leech_codes` and `set_diags` again, and
-  `set_diags` can lay a road. Still open: §6.8 redoes those tiles for the
-  texture alone (4687a).
+  `set_diags` can lay a road. ~~Still open: §6.8 redoes those tiles for the
+  texture alone (4687a).~~ Item 4781 (§6.9) gives them all four passes.
 - ~~(16, 156)'s pick on the packet's own candidate (`11003300`): theirs
   element 15 at 4, ours 16 at 0. Either the fractal's height or
   `find_map`'s order.~~ Item 4682 (§6.7): the intersections the pick read.
@@ -6732,8 +6732,10 @@ pushed tile's `set_diags` would answer non-zero, or its re-derived
 connections would differ from the standing ones.
 
 **Not established.**
-- Whether the original's redos of pushed tiles ever change a connection
-  (4687a).
+- ~~Whether the original's redos of pushed tiles ever change a connection
+  (4687a).~~ They do: item 4781 (§6.9, "Every tile on the list takes the
+  four passes") gives them the original's four passes, and (18, 163)'s
+  trim on run1559b's frame 2505 gains an `S`.
 - ~~The client still draws from its own white and yellow
   (`candidates`, `corner_loops`), not from the mesh's lines (4687b).~~
   Item 4690 (§6.9): the candidate is the mesh's word.
@@ -6834,13 +6836,15 @@ rows. **Read alone**: nothing new. The candidate is the door's bytes.
   same: `add_roads`' tail breaks after the eleventh redo
   (`10 < local_3c`) and zeroes both counts, as `add_roads_steps` does.
   So the clear order and the cap's phase are the original's.
-- Why the period-2 leech loop between (17, 163) and (18, 163) does not
-  keep the yellow in the original (4776a). `redo_changed_roads@0088e670`
-  gives every tile on its list the four passes: `clear_support`,
-  `flags = 0` over the whole dword with `mark_and_trim_directions`, the
-  whole of `leech_codes` and a real `set_diags`. Ours gives a tile that
-  only a line pass pushed less than that (§6.9, "One list in push
-  order"). Building those passes in full touches the simulation's mesh.
+- ~~Why the period-2 leech loop between (17, 163) and (18, 163) does not
+  keep the yellow in the original (4776a).~~ Answered by item 4781
+  (below, "Every tile on the list takes the four passes"): the full
+  passes' trim gives (18, 163) its `S` on frame 2505, and the loop never
+  starts. ~~Why (17, 163) and (18, 163) never share a batch (4772a)~~ is
+  answered with it: they do not need to.
+- Whether a line pass's tile, now taking `set_diags` and
+  `clear_support`, ever lays or lifts a road the world sees (4781a). The
+  corpus's pins hold; no probe counted it.
 - `mark_splits@00891d40` pushes the neighbour it newly joins onto the
   list named by its argument (`set_neighbor@00890c30`, then `add_unique`).
   Ours makes neither the join on the neighbour nor the push (4774b).
@@ -6904,6 +6908,70 @@ are never on the same list (4772a).
 that the original's redo list holds the line passes' pushes in push order
 (`redo_changed_roads@0088e670`, `set_neighbor@00890c30`, as item 4722
 read them).
+
+### Every tile on the list takes the four passes (item 4781)
+
+*2026-11-28, Opus 5.5. The ledger: `docs/journal/2026-11-28-item-4781.md`.
+`sim::movement::mesh`: `RoadMesh::redo` (the simulation's own entries) and
+`RoadMesh::tex_push` are retired; `SimRedo` loses its texture-only cursor.
+A `crates/sim` change to the mesh's road directions.*
+
+**The build.** `redo_changed_roads@0088e670` gives every tile on its list
+the four passes: `clear_support(x, y, 1)`; `flags = 0` over the whole
+dword, `fill_cache` and `mark_and_trim_directions`; `leech_codes` whole and
+`set_diags`; then `fixup_lines`, `delete_straglers` and `find_piece`. Since
+item 4772 ours walked the one list in push order but gave a tile only a
+line pass pushed less: no `clear_support`, its directions kept untrimmed,
+`leech_lines` alone and `set_diags` taken as zero. Now every tile on
+`RoadMesh::order` takes the same four passes, and a line pass's push is an
+`add_unique` like any other.
+
+**The first act** (a trace, not kept: each redo holding a tile of
+(16..20, 163), short passes against full). They part on frame 2505's third
+redo, the `changed_roads` walk after (17, 164)'s clear, which holds (18,
+163) as a line pass's push. The short passes keep its directions at `11`
+(E, W). The full passes' trim gives it `15` (E, S, W), toward (18, 164),
+which is still a road then. From there the words of (16..19, 163) hold
+through every later redo of the round, and the period-2 loop between (17,
+163) and (18, 163) (4772a) never starts: (17, 163)'s line byte stays
+`0027` where the short passes' leech took it to `1827`, the yellow `18`.
+
+**The value diff** (run1559b's packet against our door at the
+photograph's frame):
+
+| tile | theirs | before | now | piece, theirs / before / now |
+|---|---|---|---|---|
+| (17, 163) | `11003300` | `11103300` | `11003300` | 17·0 / not laid / 17·0 |
+| (18, 163) | `11003310` | `11023110` | `11003310` | 17·4 / not laid / 17·4 |
+
+- *run1559b* (`RUN1559B_RECORDS`): **white 598 → 599, yellow 597 → 599,
+  laid 499 → 501, the packet's piece 481 → 483.**
+- *The rows*: `RUN1559B_3279_RING` drawn **hue 20 → 22**, luma 20 → 21 of
+  24. (17, 163), 767 pixels: the still's (163, 162, 61) → (143, 135, 105)
+  against theirs (148, 126, 103). (18, 163), 81 pixels: (161, 162, 60) →
+  (152, 141, 110) against theirs (124, 119, 121), agreeing on both.
+  `RUN1570_RING` drawn hue 22 → 23: (19, 163), the T, agrees on hue.
+  `RUN1559B_3279_GROUND_STILL` 1,105 → 1,107, `GROUND_STILL_SRGB`'s
+  run1559b 1,019 → 1,021, `GROUND_LUMA_STILL`'s run1559b 1,108 → 1,109
+  (back from item 4772's named fall), `LAND_LIGHT_ROWS`, `RUN1559B_3279_SELECTED`,
+  `RUN1559B_3279_TANKS_HAZE`'s control, `RUN1559B_3279_PLUME`,
+  `RUN1570_PLUME` and `RUN1570_FLAME` by one or two, through the frame's
+  mean and its white.
+
+**What the simulation reads.** The full passes can reach the world:
+`clear_support` takes a filled tile away, and `set_diags` can lay one.
+On the corpus they move nothing that is pinned. `rondata`'s `diff::`, 2,344
+tests at release with every parity row, floor and held-out score in them,
+passed whole on the built tree, the sim crate's mesh tests and the redo
+sweep (`roads_redo_changed_roads`, against the emulated original) with
+them. Whether a line pass's tile ever lays or lifts a road the world sees
+is not established: no probe counted it.
+
+**Diff-backed**: every column of `RUN1559B_RECORDS`, against the packet.
+**Read alone**: that the original's redo gives a line pass's push the same
+four passes as any other tile (`redo_changed_roads@0088e670`, as item 4776
+read it; the listing walks one list and branches on nothing but
+`get_road_data`).
 
 ## 6.10 The HUD's frame: the minimap's window (item 4694)
 

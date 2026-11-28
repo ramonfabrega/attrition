@@ -2568,11 +2568,22 @@ impl Sim {
         // while figure 0's swing was deferred stayed there, stepped its
         // own clock and rolled a fresh attack on the next swing — golden
         // chapter three's restage, 664.
+        //
+        // **The seat writes `last` with the body** (item 4782, `docs/ANIM.md`
+        // §5.2): the call's `1` is `last_x/last_y/last_z = x/y/z`
+        // (`005d86f0:58`–`:62`) and no angle, so a tracked crew figure
+        // whose destination the leader's turn moved ends the frame with
+        // `last` on its new point and its `last_angle` kept. run1784's
+        // Artillery `1/103` on 5657: guy 1 seated (12006, 27716) → (12004,
+        // 27715), `last` ours (12006, 27716) before, theirs (12004, 27715).
         if g == 0 && category(self.units[u].guys[0].anim) == 12 {
             let lead = self.units[u].guys[0];
             for crew in self.units[u].guys.iter_mut().skip(SQUAD_SIZE) {
                 if let Some(f) = &mut crew.follow {
                     f.body.pos = f.des;
+                    let angle = crew.last.map_or(f.facing, |(_, a)| a);
+                    crew.last = Some((f.des, angle));
+                    crew.seat_heights();
                 }
                 crew.anim = lead.anim;
                 crew.cur_time = lead.cur_time;
