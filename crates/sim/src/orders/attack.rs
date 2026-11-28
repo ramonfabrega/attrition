@@ -894,10 +894,23 @@ impl Sim {
         // `1/132`, packed on its attack-move, walks at `0/2000` on 17945.
         // And a unit in a trench the marines did not dig (`005fd8f0`'s
         // `unit_masks & 0x2000000 && !(unit_masks2 & 0x20000)`, item 3661).
+        //
+        // **The skipped chase is the refused chase** (item 4786,
+        // `docs/RECGAME.md` §13.5): both gates jump to `5fe3f8` (`je` at
+        // `5fe151` and `5fe167`), the block `find_attack_pos`'s 0 reaches
+        // at `5fe186` — [`Self::chase_refused`]: a second
+        // `find_new_target(NULL, 0)`, and an `ATTACK` on the same target
+        // again is killed. For a packer the target compared is the first
+        // search's (`edi`, `5fe118`), so a packer standing its ground
+        // whose search re-finds what it found drops it twice and stands
+        // with no order: row 133's MLRS `1/171` (TI 273) on 4892, its
+        // chase of the Armored Cavalry `2/21` out of reach, finds `2/41`
+        // twice (`targeted` 0 → 2) and holds nothing, as theirs (run1797).
         if !state.mandatory
             && ((state.stance == combat::Stance::StandGround && !self.on_duty(u))
                 || self.hard_trench(u))
         {
+            self.chase_refused(u, target);
             return false;
         }
         // **The chase** (`docs/COMBAT.md` §17): the unit asks where to
@@ -1038,8 +1051,10 @@ impl Sim {
 
     /// **The chase that `find_attack_pos` refused** — `Unit::fight@
     /// 005fd4d0`, `5fe186`'s `je` to `5fe3f8`–`5fe502` (`fight:1056`–
-    /// `1100`, `docs/AI.md` §138). A guard's attack on a building gets no
-    /// spot ([`Sim::attack_pos_refused`]), and the original then:
+    /// `1100`, `docs/AI.md` §138), which the STAND_GROUND and trench gates
+    /// reach too (`5fe151`, `5fe167`; item 4786). A guard's attack on a
+    /// building gets no spot ([`Sim::attack_pos_refused`]), and the
+    /// original then:
     ///
     /// 1. runs `find_new_target(this, NULL, 0)` — the attack killed and
     ///    the guard's own search, which adds what it finds;
