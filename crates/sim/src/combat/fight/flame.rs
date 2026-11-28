@@ -47,7 +47,9 @@ impl Sim {
         if !inside {
             return;
         }
-        let k = self.profile(Obj::Building(b)).x_size >> 1;
+        // The type's `+0x234`, the footprint's width in tiles, on every
+        // building (a combat profile carries it only for one that fires).
+        let k = self.tables.build_types[ty].x_size >> 1;
         if self.scorched_bodies() >= k {
             return;
         }

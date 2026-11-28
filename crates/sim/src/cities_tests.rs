@@ -13155,6 +13155,82 @@ fn an_empty_city_at_its_ceiling_ejects_until_its_next_process() {
     );
 }
 
+/// **A Flamethrower's blow on a garrisoned building burns stand-in
+/// citizens** (item 4784, `docs/COMBAT.md` §7.3; `Object::do_damage@0064a480:953`
+/// –`:1050`). A non-Flamethrower's blow does nothing here. A Flamethrower's
+/// on an empty city ejects (`build_masks |= 0x4000`) and burns no one. On
+/// a garrisoned one it ejects and makes `x_size >> 1` of the owner's
+/// Citizens, three for a 7-wide village, on the city's point, sends each
+/// in and out, and closes each with `dtype` 4. A second blow finds three
+/// scorched bodies in the pool, no fewer than three, and burns no more.
+///
+/// Made to fail by dropping the `flame_garrison` call in `do_damage`'s
+/// alive arm (the strike below goes through it) and, separately, by
+/// dropping the `scorched_bodies` cap.
+#[test]
+fn a_flamethrower_burns_stand_in_citizens_out_of_a_garrisoned_city() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let citizen = sim.add_unit_type(UnitType {
+        type_index: 0x32,
+        ..citizen_type(t.village)
+    });
+    let hop = sim.add_unit_type(hoplite_type(t.barracks));
+    let mut flame_ty = hoplite_type(t.barracks);
+    flame_ty.combat.roles |= combat::role::IS_FLAMETHROWER;
+    let flame = sim.add_unit_type(flame_ty);
+    let (b, _) = city_at(&mut sim, &t, 1, 32, 32);
+    let soldier = spawn(&mut sim, 0, hop, tile_pos(40, 32));
+    let flamer = spawn(&mut sim, 0, flame, tile_pos(40, 33));
+    let blow = |sim: &mut Sim, by: usize, f: i64| {
+        sim.buildings[b].eject_pending = false;
+        sim.flame_garrison(Obj::Unit(by), b);
+        let _ = f;
+    };
+    let alive = |sim: &Sim| sim.units.iter().filter(|u| u.alive()).count();
+    // Not a Flamethrower: nothing.
+    blow(&mut sim, soldier, 100);
+    assert!(!sim.buildings[b].eject_pending, "a Hoplite ejects no one");
+    // An empty city: the eject, and no citizens.
+    let before = sim.units.len();
+    blow(&mut sim, flamer, 101);
+    assert!(sim.buildings[b].eject_pending, "0x4000 on an empty city");
+    assert_eq!(sim.units.len(), before, "no one inside: no one burns");
+    // A garrisoned city.
+    let guest = spawn(&mut sim, 1, citizen, tile_pos(31, 32));
+    sim.go_inside(guest, b);
+    // The citizens' own piece burns to a scorched body above
+    // `first_build_piece`.
+    let probe = sim.init_unit(1, citizen, tile_pos(20, 20));
+    let own = sim.units[probe].guys.first().map_or(-1, |g| g.gpiece);
+    sim.die_quietly(probe);
+    sim.roster
+        .art
+        .piece_scorches
+        .insert(own, crate::units::anim::TOTAL_UNIT_PIECES + 0x1ed9);
+    let (before, live) = (sim.units.len(), alive(&sim));
+    sim.frame = 102;
+    blow(&mut sim, flamer, 102);
+    assert!(sim.buildings[b].eject_pending, "0x4000");
+    assert_eq!(sim.units.len(), before + 3, "x_size 7: three citizens");
+    for u in &sim.units[before..] {
+        assert_eq!((u.owner, u.ty), (1, Some(citizen)), "the owner's Citizen");
+        assert!(!u.alive(), "each one closed");
+    }
+    assert_eq!(alive(&sim), live, "the guest stays");
+    assert_eq!(
+        sim.buildings[b].garrison,
+        vec![guest],
+        "inside until the eject runs"
+    );
+    // The pool now holds three scorched bodies: the cap.
+    let before = sim.units.len();
+    sim.frame = 103;
+    blow(&mut sim, flamer, 103);
+    assert!(sim.buildings[b].eject_pending, "0x4000 again");
+    assert_eq!(sim.units.len(), before, "three scorched bodies: no more");
+}
+
 /// **A terraform rewrites only the heights `Wall::init` refreshes** (item
 /// 4660, `crate::units::stored_z`; run1832's Phalanxes `2/76` and `2/91`
 /// under Smelter `2/2040`). A Barracks flattens a slope under two standing
