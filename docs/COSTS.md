@@ -1483,10 +1483,11 @@ a capture has one.
 - **`MIN_POP_LIMIT` and `MAX_POP_LIMIT`.** Loaded into `Constants` and not
   consumed by anything read so far; the lobby is the likely reader and the
   lobby is cut from v1.
-- **The final-tech ramp is not modelled** (item 4773): `TypeData::get_cost@00664090:1162`–`:1181`, after the
-  age-behind arm and before the lobby's `tech_cost`, multiplies a final tech (one of the four finals) by `(100 +
-  RAMP_FINAL × n) / 100`, n the finals held or researching. run1797's who=1 holds the Missile Shield on 4582, so
-  theirs prices Artificial Intelligence at 4950 timber where `Sim::tech_price` says 3300.
+- ~~**The final-tech ramp is not modelled** (item 4773)~~ — built by item 4777: `cost::Modifiers::final_ramp`
+  and `Sim::finals_held`, after the age-behind arm. `TypeData::get_cost@00664090:1162`–`:1181` counts eight per final
+  held or researching (the priced one itself when queued) and scales by `((RAMP_FINAL × 8n) / 8 + 100) / 100`. run1797's
+  who=1 holds the Missile Shield on 4582 and now prices Artificial Intelligence at 4950 timber, as theirs; row 133's
+  leaders still part on 4583 (51 sell passes against 45). Not diff-backed alone: no dumped field prints a price.
 
 ---
 
