@@ -1551,7 +1551,24 @@ moves **664 → 780** with it.
 **Diff-backed**: run146's draw stream, draw for draw, from 639 to 780,
 through every chariot swing of the restage, crew rolls included. The
 crew's position after the snap is `GUYS=2`'s `g.x`/`g.y`, compared on
-every block by the chapter's widening and quiet to 780. **Not
+every block by the chapter's widening and quiet to 780.
+
+**The seat writes `last` too** (item 4782, 2026-11-28). Until then the
+arm moved a tracked crew figure's body onto `des` and left `last` on the
+point the movement head had copied. On every frame the destination stays
+put the two agree. They part where figure 0's turn moves the destination
+in the same frame it swings. run1784, 5657: who=1's Artillery `1/103`
+(`TypeIndex` 269), guy 1 (`track` 72, 216) seated (12006, 27716) →
+(12004, 27715) on both sides, `last_x`/`last_y` ours 12006/27716, theirs
+12004/27715, `last_angle` the old facing on both. The arm now writes
+`last = (des, last's own angle)` and the seat's heights
+(`Guy::seat_heights`). **Diff-backed** by run1784's units and guys ranges
+on 5656..5659
+(`held_out::tests::row_83_s_artillery_seats_its_crew_with_last_on_the_seat_on_run1784_s_ranges`).
+**Not established**: a trackless crew figure's seat is not written here.
+Its `des` is its leader's point, and its `last` comes from the movement
+step's late heads. No capture has a trackless crew figure whose leader
+moved in a frame it swung. **Not
 established**: the `+0xd0` clear (a `GuyOut` field, not sim state), and a
 crew of more than one figure, which no capture reaches.
 
