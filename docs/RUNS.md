@@ -41126,6 +41126,15 @@ where ours' inlined `QUEUE_NEW` add closed it and the STAND_GROUND gate stopped 
 ranges over 4622..4640, and `row_83_s_artillery_keeps_its_group_s_attack_move_under_a_re_search_on_run1784_s_ranges`
 holds every units, builds, guys and world range on 4623 to 4626. Units 4,624 → 4,815; the row parts first on world
 on 4698.
+
+**Item 4778 on it**: world range 3624, the mask, tiles (61..65, 77), where who=1's unstarted site `1/2048` (5×5,
+corner (61, 73)) and who=2's unstarted Village `2/2042` (7×7, corner (61, 77)) share a row; 0xc0 on both sides to
+4697. `1/2048` goes back on 4698, and `Wall::start_me@0063d790(0)` keeps a twice-placed tile while another building
+covers it, where ours cleared both bits. `print_ranges` reads 0 ranges over 4696..4816, and
+`row_83_s_site_that_goes_back_keeps_the_village_s_shared_tiles_on_run1784_s_ranges` holds every units, builds, guys
+and world range on 4697 to 4700. World 4,698 → 5,996; groups, cities, items and goods whole; the row parts first on
+guys and units on 5657 (units range 3871, record 103, `1/103`'s guy `last_x` ours 12006, theirs 12004, `last_y`
+27716, 27715).
 ## run1786 — the 2017 sample's playback to 8,000 with the checksum and ranges hooks, every line but walls kept (2026-11-22, item 4555, `att-4555`)
 
 
