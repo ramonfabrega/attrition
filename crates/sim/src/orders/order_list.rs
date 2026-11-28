@@ -547,6 +547,23 @@ impl Sim {
         group: Option<GroupMove>,
         orig: Option<Pos>,
     ) {
+        if std::env::var("RON_PROBE_4775").is_ok()
+            && (4811..=4811).contains(&self.frame)
+            && self.units[u].who == 1
+            && [90, 92, 100, 116].contains(&self.units[u].o)
+        {
+            eprintln!(
+                "P4775 add_move f{} 1/{} to {:?} pos {:?} kind {:?} group {} at {:?}\n{}",
+                self.frame,
+                self.units[u].o,
+                to,
+                pos,
+                kind,
+                group.is_some(),
+                self.units[u].pos,
+                std::backtrace::Backtrace::force_capture()
+            );
+        }
         let mode = i32::from(match kind {
             MoveKind::MoveTo => index::MOVE_TO,
             MoveKind::AttackTo => index::ATTACK_TO,
