@@ -3416,6 +3416,39 @@ captain whose head and appended attacks differ in either. **Not
 established**: whether any other reader of `combat.target` should read the
 action order as well; only the captain reads were changed.
 
+### 21.8 `do_attack`'s target is its dispatched order's (item 4775, 2026-11-28)
+
+`do_attack` takes the order `think` dispatched on as `param_1` and reads its
+data (vslot `+0x50`): the target at `+8`/`+0xc` (`ox`, `whom`) and the
+mandatory byte at `+0x1c`. Every arm reads these: the carrier, the barge,
+the grouped stand-off and the tail. `do_attack/live.rs` read the unit's
+`combat.target` and `combat.mandatory` instead. `add_attack_order` rewrites
+that copy for a `QUEUE_LAST` append behind the head too (the shape §21.7
+closed in the captain reads; the grouped stand-off is `docs/AI.md` §348.3).
+
+On run1799's 4811 (row 93, `docs/RECGAME.md` §13.3), group 66's attack runs
+pass 1 at `2/101`, and `finish_insert` re-issues the leader's `ATTACK 2/88`
+at `QUEUE_LAST`. So the attack-less Supply Wagon `1/90` (TI 63) has the head
+`ATTACK 2/101` while its copy says `2/88`. Theirs stands off `2/101`; ours
+stood off `2/88`. The table is units record 90's head move on 4812:
+
+| field | ours before | ours now | theirs |
+|---|---|---|---|
+| `x, y` | (20568, 16632) | (19368, 15480) | (19368, 15480) |
+| `off_x, off_y` | (600, 504) | (168, 120) | (168, 120) |
+
+**Diff-backed** for the target: the widening
+`row_93_s_supply_wagon_stands_off_its_head_order_s_target_on_run1799_s_ranges`
+and the killer `an_attack_less_member_stands_off_its_head_order_s_target_not_its_copy`.
+Each goes red with the copy put back (`mutate.py`: held). **Read, not
+diffed**: the mandatory byte (no capture on file has a head whose byte
+differs from the copy's).
+
+**Not established**: the three Volksgrenadiers in the same group (`1/92`,
+`1/100`, `1/116`, TI 109) still part on their head move on 4812. Their head
+is `ATTACK 2/101` on both sides, so the target is not the cause. Draws agree
+on 4811, 458 against 458.
+
 ## 22. Where an arrow starts, measured (item 396, 2026-09-19)
 
 §20.3 left the launch offset open and bounded above, and named the capture

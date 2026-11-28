@@ -354,8 +354,15 @@ fn the_records_against_the_packet_s() {
 /// `21` → `31`, against the packet's none and `33`, and it lays no page-0
 /// piece where it laid 20·2 (theirs 17·4); (17, 163) holds at `10`. The two
 /// are never on one list after row 164's clear (4772a).
+/// **Item 4781: white 598 → 599, yellow 597 → 599, laid 499 → 501, the
+/// packet's piece 481 → 483.** Every tile on a redo list takes the four
+/// passes (`docs/RENDERER.md` §6.9): on frame 2505 the trim gives (18,
+/// 163), a line pass's tile, the `S` toward (18, 164) that the short
+/// passes withheld, and the period-2 loop never starts. (17, 163) is the
+/// packet's `11003300` and lays element 17 at orientation 0; (18, 163)
+/// its `11003310` and element 17 at orientation 4.
 const RUN1559B_RECORDS: (usize, usize, usize, usize, usize, usize, usize, usize) =
-    (599, 599, 599, 598, 597, 580, 499, 481);
+    (599, 599, 599, 599, 599, 580, 501, 483);
 
 /// **The ring's tiles** (item 4199, §3.19; the rule committed before its
 /// count): for every building whose type is a city (`is(VILLAGE)`), the
@@ -462,9 +469,10 @@ const RING_MOVE: (i32, i32) = (12, 0);
 /// Item 4687: drawn luma 20 → 21 of 24, a rise back to the count before item 4677's named fall: the line passes in the mesh, their pushes redone for the texture alone, and `leech_codes`' line half (item 4687, `docs/RENDERER.md` §6.8) move the intersections some pieces are picked on, so the frame's mean and its white.
 /// Item 4690: drawn hue 21 → 20 of 24, a named fall: tile (17, 163), 767 pixels, lays no piece on page 0 where theirs lays element 17, since the mesh's yellow there is `10` where the packet's is none and the candidate matches no page-0 orientation (4690a); the still's (163, 162, 61) against theirs (148, 126, 103).
 /// Item 4772: drawn luma 21 → 20 of 24, a named fall: tile (18, 163), 81 pixels, lays no piece where it laid 20·2, the still's (148, 137, 91) Y 135.4 → (161, 162, 60) Y 150.3 against theirs (124, 119, 121) Y 120.6; (19, 163), 425 pixels, lays the packet's piece, (144, 138, 107) Y 136.2 → (147, 138, 108) Y 137.2 against theirs (147, 136, 108) Y 136.1, agreeing on both before and after. Hue holds at 20.
+/// Item 4781: drawn hue 20 → 22, luma 20 → 21 of 24: every tile on a redo list takes the four passes (item 4781, `docs/RENDERER.md` §6.9). Tile (17, 163), 767 pixels, lays element 17 at orientation 0: the still's (163, 162, 61) Y 151.1 → (143, 135, 105) Y 134.1 against theirs (148, 126, 103) Y 129.9, agreeing on hue. Tile (18, 163), 81 pixels, lays element 17 at orientation 4: (161, 162, 60) Y 150.3 → (152, 141, 110) Y 141.2 against theirs (124, 119, 121) Y 120.6, agreeing on both.
 const RUN1559B_3279_RING: [[(usize, usize); 2]; 3] = [
     [(1, 24), (15, 24)],
-    [(20, 24), (20, 24)],
+    [(22, 24), (21, 24)],
     [(1, 24), (13, 24)],
 ];
 /// **`RUN1570_RING`** (item 4199), the same on run1570's photograph: hue
@@ -481,9 +489,10 @@ const RUN1559B_3279_RING: [[(usize, usize); 2]; 3] = [
 /// Item 4275: the luma before 9 → 8 of 24, a named fall on the grass under the ring with no road drawn: the snowcap underlay drawn (item 4275, `docs/RENDERER.md` §3.10) moves the frame's mean, so its white.
 /// Item 4292: the luma before and moved 8 → 11 of 24 (a rise from 8), drawn unchanged: the plain ground lit by the land's own N·L (item 4292, `docs/RENDERER.md` §3.22) moves the frame's mean, so its white.
 /// Item 4311: the luma before and moved 11 → 12 of 24, drawn unchanged: the map's edge border drawn (item 4311, `docs/RENDERER.md` §3.15) moves the frame's mean, so its white.
+/// Item 4781: drawn hue 22 → 23 of 24: every tile on a redo list takes the four passes (item 4781, `docs/RENDERER.md` §6.9). Tile (19, 163), the T, 844 pixels, now agrees on hue: the still's (138, 132, 103) against theirs (111, 99, 71). The one left is (18, 163), the name plate (86, 41, 33).
 const RUN1570_RING: [[(usize, usize); 2]; 3] = [
     [(0, 24), (12, 24)],
-    [(22, 24), (16, 24)],
+    [(23, 24), (16, 24)],
     [(0, 24), (12, 24)],
 ];
 

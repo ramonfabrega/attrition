@@ -41517,6 +41517,8 @@ Item 4779 adds `row_93_s_flak_rolls_the_reload_idle_on_its_order_s_target_on_run
 4812 and 4813 and every guys range on 4812; who=1's flak `1/109` TI 283 rolls `fight`'s reload idle on 4811). Its trace
 (`rontrace.log`, `callwin=0-12000`) answers the road search node for node: on the base, 4811's search priced 415 nodes
 in ours and 435 in theirs, its first cost 130 against 121, one draw apart.
+Item 4775 adds `row_93_s_supply_wagon_stands_off_its_head_order_s_target_on_run1799_s_ranges` (every units range of
+record 90 on 4812; who=1's Supply Wagon `1/90` TI 63 stands off its head `ATTACK 2/101` on 4811, `docs/COMBAT.md` §21.8).
 ## run1798 — parity held out, sixth battery, row 73's file to 12,000 with the checksum and ranges hooks, every line but walls kept (2026-11-23, item 4576, `att-4576`)
 
 `docs/RECGAME.md` §13; DECISIONS 153 §4. **What the disk could not answer**: run1791 holds sums only, so row 73's
