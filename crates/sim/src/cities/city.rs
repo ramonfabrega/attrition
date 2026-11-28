@@ -1397,9 +1397,7 @@ impl Sim {
     /// 4783).
     fn liberty_air_defense_discount(&self, who: Player, ty: usize) -> i32 {
         let pct = self.tables.tuning.liberty_air_defense;
-        if pct == 0
-            || self.wonders_held(who) & (1 << crate::tech::wonder::STATUE_OF_LIBERTY) == 0
-        {
+        if pct == 0 || self.wonders_held(who) & (1 << crate::tech::wonder::STATUE_OF_LIBERTY) == 0 {
             return 0;
         }
         let tree = &self.tables.tech_tree;
