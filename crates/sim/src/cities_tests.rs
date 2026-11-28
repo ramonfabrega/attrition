@@ -13156,7 +13156,7 @@ fn an_empty_city_at_its_ceiling_ejects_until_its_next_process() {
 }
 
 /// **A Flamethrower's blow on a garrisoned building burns stand-in
-/// citizens** (item 4784, `docs/COMBAT.md` §7.3; `Object::do_damage@0064a480:953`
+/// citizens** (item 4784, `docs/COMBAT.md` §7.4; `Object::do_damage@0064a480:953`
 /// –`:1050`). A non-Flamethrower's blow does nothing here. A Flamethrower's
 /// on an empty city ejects (`build_masks |= 0x4000`) and burns no one. On
 /// a garrisoned one it ejects and makes `x_size >> 1` of the owner's

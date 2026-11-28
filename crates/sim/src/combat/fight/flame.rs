@@ -1,11 +1,11 @@
 //! **The Flamethrower's garrison arm** — `Object::do_damage@0064a480:953`–
-//! `:1050`, on a hit that did not kill (`docs/COMBAT.md` §7.3, item 4784).
+//! `:1050`, on a hit that did not kill (`docs/COMBAT.md` §7.4, item 4784).
 use crate::Sim;
 use crate::combat::{Obj, role};
 
 impl Sim {
     /// A Flamethrower's blow on a building that holds someone burns stand-in
-    /// Citizens of its owner (`docs/COMBAT.md` §7.3).
+    /// Citizens of its owner (`docs/COMBAT.md` §7.4).
     ///
     /// The listing's order, after `Armies::emergency`: the attacker answers
     /// `is(FLAMETHROWER)` (`ObjectData::is`, vslot `0xb8`, with `0x83`); the

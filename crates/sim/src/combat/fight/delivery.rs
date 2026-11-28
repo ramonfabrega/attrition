@@ -305,7 +305,7 @@ impl Sim {
         }
         // **A Flamethrower's blow on a garrisoned building burns stand-in
         // citizens** (`do_damage@0064a480:953`–`:1050`, right after the
-        // emergency and ahead of the capture check; `docs/COMBAT.md` §7.3).
+        // emergency and ahead of the capture check; `docs/COMBAT.md` §7.4).
         if !killed && let Obj::Building(b) = target {
             self.flame_garrison(attacker, b);
         }
@@ -1160,7 +1160,7 @@ impl Sim {
     /// `Unit::close(dtype, −1, 0)` through vslot `+0x150`, with no wound
     /// and no killer: [`Sim::die_quietly`]'s `dtype` 0, and the
     /// Flamethrower's burned citizens' 4 ([`Sim::flame_garrison`],
-    /// `docs/COMBAT.md` §7.3), whose close takes the three death draws and
+    /// `docs/COMBAT.md` §7.4), whose close takes the three death draws and
     /// leaves a record. The disc is the death-animation arm's
     /// ([`Sim::keeps_disc`]), as on every other close.
     pub(crate) fn close_through_slot(&mut self, v: usize, dtype: i32) {

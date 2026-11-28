@@ -5928,7 +5928,7 @@ pub(crate) mod tests {
     }
 
     /// **Row 83's Flamethrower burns stand-in citizens out of a garrisoned
-    /// city** (item 4784, `docs/COMBAT.md` §7.3, `docs/RECGAME.md` §12.3):
+    /// city** (item 4784, `docs/COMBAT.md` §7.4, `docs/RECGAME.md` §12.3):
     /// run1784, the ranges take of row 83's file. On 5995 who=1's
     /// Flamethrower `1/180` (`TypeIndex` 0x83's lineage, land) strikes
     /// who=2's Small City `2/2040` with `2/1` inside, and
