@@ -476,8 +476,8 @@ impl Sim {
                 g0.map(|g| g.aim),
                 g0.map(|g| g.anim)
             );
-            let oname = |t: Option<crate::Obj>| match t {
-                Some(crate::Obj::Unit(x)) => format!("u{}/{}", self.units[x].owner, self.units[x].index),
+            let oname = |t: Option<Obj>| match t {
+                Some(Obj::Unit(x)) => format!("u{}/{}", self.units[x].owner, self.units[x].index),
                 other => format!("{other:?}"),
             };
             eprintln!(
