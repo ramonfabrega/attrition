@@ -17768,9 +17768,10 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
 /// original's end 3,943 (piece 49's bays), 1 -> 2. Item 4595 made row 73
 /// whole (a release at a gone target takes a `graph_index`): 2 -> 3.
 /// Item 4592 made row 113 whole (a city's `vans` in the order the links
-/// were made): 3 -> 4.
+/// were made): 3 -> 4. Item 4616 made row 13 whole to 12,000 (the
+/// probe marks the Farm seen before it attacks): 4 -> 5.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SIXTH_LINE: (usize, usize) = (4, 8);
+pub(crate) const HELD_OUT_SIXTH_LINE: (usize, usize) = (5, 8);
 
 /// The sixth battery (item 4566): three seats, a team and a scripted human
 /// a row, recorded to [`SIXTH_FRAMES`].
@@ -18636,8 +18637,10 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
 /// Russian age's border fix): 2 -> 3. Item 4637 made row 148 whole to
 /// 12,000 (the Aztec slayer's mark): 3 -> 4. Item 4770 made row 8 whole
 /// to 12,000 (a packer's re-search is `find_new_target` whole): 4 -> 5.
+/// Item 4616 made row 108 whole to 12,000 (the probe marks the Farm seen
+/// before it attacks): 5 -> 6.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SEVENTH_LINE: (usize, usize) = (5, 8);
+pub(crate) const HELD_OUT_SEVENTH_LINE: (usize, usize) = (6, 8);
 
 /// The seventh battery (item 4600): the sixth's recipe, the human ordering
 /// every 600 frames to 11,400.
