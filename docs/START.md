@@ -416,6 +416,34 @@ installer's `activate` lays the city's roads again on the dump's cells.
 So the census holds every `CELL flags` row to the dump's printed word, not the
 installer's. That moved no other lobby.
 
+**The client starts all 161 from the install alone** (item 4780; the
+`Lobby:` line's clause, `rondata::lobby::LOBBY_FROM_INSTALL`, 0 -> 161):
+each lobby's page choices opened as the window's Start opens them
+(`World::open_game` of `Game::Page`) with the logs directory empty, and
+walked 600 frames (`client` `lobby::tests::every_lobby_starts_from_the_install_alone`,
+28 s on four threads). The census of the logs directory's reads from the
+page's Enter to frame 600, before the change:
+
+- the headless `--lobby`'s `Game::Lobby`: run53's dump
+  (`rondata::script::LOBBY_DUMP`), its `GAMEINFO` block and `PLAYER` rows
+  alone, through `FreeRunner::from_lobby` — the start's. It is now
+  `Game::Page` of `Choices::harness`, which `LOBBY_STARTS` already holds
+  whole against run53's built start on frames 0 and 600; `Game::Lobby`
+  stays as the tests' door.
+- `open_game`'s ground fallback: the pair's start dump
+  (`world::START_DUMP`), read when a built start had no ground of its own
+  — the start's (its art, not its simulation). It is now the pair's alone;
+  a built start whose chain refused draws no ground art.
+- `--record`'s donor recording (`recording::Recording::open`, a finished
+  `.rcx` under `--logs` or `RON_RECGAME_DIR` for the header) — the
+  recording's, outside the count (item 4780's journal, 4780a).
+- `--page-of`'s named capture — the person's choice of a capture, outside
+  the count.
+
+None is the simulation's: nothing the walk reads after frame 0 comes from
+the directory. The tests keep their reads (`gamelog_dir`, `LOBBY_DUMP`,
+`START_DUMP`) as comparisons.
+
 ## 6. Confidence, and what is not established
 
 - **Diff-backed** (the comparison above): the extent on Small, the

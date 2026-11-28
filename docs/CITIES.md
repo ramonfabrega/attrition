@@ -2105,7 +2105,7 @@ alive: a LIBRARY remembers whether it was first, else `clean_queue(refund)`
 (`docs/PRODUCTION.md`); **active** → `decrement_stats` (when `e` or in a
 city), a gather type's `gather_slots −= gather_max`, the dock/market/temple
 count down; a rubble tile bit; **`Wall::close`** — `mark_behind_tiles(0)`,
-`start_me(0)` (release the footprint reservation), started → **`mask_me(0,
+`start_me(0)` (release the footprint reservation: a tile without `0x40` clears `0x80`; a tile with it clears both only when `find_building_placed_at(t, −1, o, who)` finds no other building over it, and otherwise keeps both, item 4778, `crates/sim/src/cities/city.rs`), started → **`mask_me(0,
 REGEN_SIMPLE)`** (unmask the footprint and, for a city, its radius), not
 active → `num_queued[type]--`, `Object::close` (the garrison, §6.6); then a
 non-city → `remove_from_city`; **a city → `remove_unbuilt_city` if never
@@ -2376,6 +2376,11 @@ heal, ejection), then the sites' `construct_hits` refresh.
 
 ## 12. What is not established
 
+- **`Wall::close@0063f6e0:79` runs `start_me(0)` on a started building
+  too** (item 4778, parked 4778a): ours runs it in the unstarted arm alone,
+  and `mask_building(false)` clears both placement bits on a started one.
+  They differ only where a site was placed over a started building's
+  tile; no capture on disk shows one.
 - **The capture's capital calls run before the close loop here** (item
   4466, parked 4466a): `capture_city@00733380` runs step 7 after step 6;
   `Sim::capture_city` runs `capture_capital_calls` before it. No line

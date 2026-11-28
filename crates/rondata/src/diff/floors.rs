@@ -534,13 +534,15 @@ pub const MAPGEN: Mapgen = Mapgen {
 // nuke launch and circle alerts (`do_missile_launch:74`, `Ammo::init:652`).
 // Item 4740: `largest` 3,774 -> 3,760 (-14): `air.rs`' plane bank (`bank_plane`, `bank_plane_as`)
 // moves whole to `air/bank.rs` beside its new turn sign, `close_air_target` (`local_20`).
+// Item 4778: `largest` 3,760 -> 3,755 (-5): `cities/city.rs`' `start_me(0)` loop moves whole to
+// `cities/place.rs`' `start_me_release`, beside `other_building_placed_at`.
 pub const STRUCTURE: [(&str, u64); 6] = [
     ("flat", 11),
     ("test-tails", 0),
     ("sweep-lines", 17_287),
     ("names", 15),
     ("fields", 22),
-    ("largest", 3_760),
+    ("largest", 3_755),
 ];
 
 /// **The queue's line as the seventy-fourth pass wrote it, before
@@ -668,16 +670,20 @@ pub fn start_line() -> String {
 /// dump ([`crate::diff::START_LOBBIES`]), and the lobbies whose start the
 /// page's choices build whole, on frame 0 and after
 /// [`crate::lobby::LOBBY_WALK`] frames ([`crate::lobby::LOBBY_STARTS`],
-/// item 4215).
+/// item 4215), and those the client starts and walks as far with its logs
+/// directory empty ([`crate::lobby::LOBBY_FROM_INSTALL`], item 4780).
 #[cfg(test)]
 pub fn lobby_line() -> String {
     format!(
-        "Lobby: the page sets {} of {} lobbies \u{b7} starts {} of {}, walked {} frames",
+        "Lobby: the page sets {} of {} lobbies \u{b7} starts {} of {}, walked {} frames \u{b7} \
+         from the install alone {} of {}",
         crate::lobby::LOBBY_PAGE,
         crate::diff::START_LOBBIES,
         crate::lobby::LOBBY_STARTS,
         crate::diff::START_LOBBIES,
         crate::lobby::LOBBY_WALK,
+        crate::lobby::LOBBY_FROM_INSTALL,
+        crate::diff::START_LOBBIES,
     )
 }
 

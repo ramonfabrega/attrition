@@ -555,6 +555,39 @@ impl Sim {
         })
     }
 
+    /// `Wall::start_me@0063d790(0)`: release `b`'s reservation. A tile
+    /// placed once loses `PLACED`; a tile placed twice keeps both bits while
+    /// another building still covers it, and loses both only when none does
+    /// (item 4778, `docs/CITIES.md` §9.1, `docs/RECGAME.md` §12.3). A
+    /// building with no type holds no reservation.
+    pub(crate) fn start_me_release(&mut self, b: usize) {
+        let Some(ty) = self.buildings[b].ty else {
+            return;
+        };
+        let corner = self.tile_corner(ty, self.buildings[b].pos);
+        for t in self.footprint(ty, corner) {
+            if self.world.tile_mask(t) & tile::PLACED_TWICE == 0 {
+                self.world.clear_tile_bits(t, tile::PLACED);
+            } else if !self.other_building_placed_at(t, b) {
+                self.world
+                    .clear_tile_bits(t, tile::PLACED | tile::PLACED_TWICE);
+            }
+        }
+    }
+
+    /// `ObjectsData::find_building_placed_at(t, −1, o, who)@00658c80` as
+    /// `Wall::start_me(0)` asks it: any player's building (below eight)
+    /// whose footprint covers `t`, other than `exclude`, behind the tile's
+    /// own gate (`is_built_at`). The candidate's vslot `+0xc` is
+    /// `is_build()`, so a started building counts too — unlike
+    /// [`Self::find_building_placed_at`]'s `!started` (item 4778).
+    pub(crate) fn other_building_placed_at(&self, t: Pos, exclude: usize) -> bool {
+        crate::world::is_built_at(self.world.tile_mask(t))
+            && self.buildings.iter().enumerate().any(|(i, b)| {
+                i != exclude && b.alive && b.owner < 8 && self.build_covers_tile(i, t)
+            })
+    }
+
     /// `BuildTypeData::blocked_location@006375b0`: the site, and the gather
     /// count its tail hands back through `param_7`. By
     /// [`crate::cities::location::blocked_location_steps`] (swept against the

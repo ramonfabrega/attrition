@@ -6171,6 +6171,13 @@ the byte the dump prints. It now writes both, and the army's
    `5dac7a` under `Unit::fight+0x169`, and it is the word. The first
    reading had the unit turn toward its target and return. That dated
    from the order list's first landing and was never diffed.
+   **"Its target" is the order's** (item 4779, `docs/RECGAME.md`
+   §13.3): `:111`–`:121` read the attack order's data (vslot `+0xcc`),
+   `+0x8` (`o`) against `+0x8e` and `+0xc` (`whom`) against `+0x9f`.
+   This crate tested `combat.target`, the step's copy, which a retarget
+   that rewrote the order leaves behind; run1799's flak `1/109` (TI 283)
+   on 4811 is the witness. *Diff-backed*:
+   `row_93_s_flak_rolls_the_reload_idle_on_its_order_s_target_on_run1799_s_ranges`.
 
 And a fifth link, the one that closed the rest of the map:
 `Unit::work:283` runs `update_action` **unconditionally**, every frame
@@ -6233,6 +6240,11 @@ spends a draw in the capture.
   997 (`docs/COMBAT.md` §64). The naval refusal
   in the add arm. And `Unit::move_step`'s cavalry-archer write of the
   guy's aim.
+- **The reload gate on an order with no target** (item 4779). The gate
+  reads the order's `o`/`whom` whatever they hold; this crate's
+  `AttackOrder::target` is `None` for a cleared target, and the gate
+  then asks for nothing. What the original's words hold there is not
+  read.
 - **The guy's aim at stand-up.** The dump prints it, but the stand-up
   has no slot map yet, so a capture opened mid-fight starts every guy
   un-aimed.

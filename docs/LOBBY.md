@@ -65,8 +65,11 @@ Start opens the game: `World::open_game(Game::Page(choices))`, which is
 dump's is, and runs the same `from_lobby` and `built_from_lobby` the minted
 script's walk runs on run53. The window then runs to `--frame`. With
 `--still`, `--headless` or `--silhouette` there is no page and no person, and
-`--lobby` builds run53's own block as before. The `clock` test's session
-is unchanged.
+`--lobby` builds run53's lobby from the harness lobby's choices
+(`Choices::harness`), not from run53's dump (item 4780): a lobby's game,
+in the window or off it, reads nothing under `--logs`, and every lobby on
+disk starts and walks 600 frames with that directory empty
+(`docs/START.md` §5). The `clock` test's session is unchanged.
 
 ## 4. The settings' categories
 

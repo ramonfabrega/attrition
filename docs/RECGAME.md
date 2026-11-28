@@ -229,6 +229,11 @@ reading.~~ Read the same day: `docs/COMMANDS.md`, decoded by
 
 ## 5. What is not established
 
+- **A recording's header from the install alone** (4780a, item 4780's
+  journal): the client's `--record` borrows a finished donor `.rcx` from
+  the logs directory for the version and options, so a recording does not
+  start from the install alone where the game itself does.
+
 - **The Types section's class sequence** (§4.2 step 2): the per-class
   grammar is now derived (second reading), but which of the 806 indices is
   which class is the loader's knowledge, not the file's — provably, the
@@ -1672,7 +1677,7 @@ fourth read 5 of 8, 90 of 96 and 91 % on two seats and no team. The original sea
 | 23 | run1774 | Atlantic Sea Power | the computers | 6,001 | 10 | **leaders 0**, units 5695 |
 | 43 | run1775 | Great Sahara, Ancient | human + added | 6,001 | 1 | ~~3192, 3223, 3299, 3442, 3833, 3899~~ 3995 |
 | 63 | run1776 | East Indies, Enlightenment | the computers | 4,223, to 4222 | **12** | ~~1582, 1789, 3683, 3986~~ whole |
-| 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | ~~4007, 4154, 4470, 4624~~ [4698](journal/2026-11-27-item-4770.md) |
+| 83 | run1777 | Great Lakes, Industrial | human + added | 6,001 | 1 | ~~4007, 4154, 4470, 4624, 4698~~ [5657](journal/2026-11-28-item-4778.md) |
 | 103 | run1778 | East Indies, Modern | the computers | 3,295, to 3294 | **12** | ~~1750, 1757, 1790, 2557 (GROUPS §3.4), ammo 2860, world 2983~~ whole (COLLISION §2) |
 | 123 | run1779 | Great Lakes, Gunpowder | human + added | 6,001 | 3 | ~~builds, groups 2977~~ whole (below) |
 | 143 | run1780 | Great Sahara, difficulty 1 | the computers | 6,001 | **12** | whole |
@@ -1884,7 +1889,7 @@ Open: deaths on 5275. → 3713 by 4660, 3716 by 4667, 3935 by 4671, 4092 by 4741
 
 ### 13.3 Row 93
 
-2686 → 2965 by 4590, 4606 → 3058 by 4657 → 3089 by 4681 → 3269 by 4685 → 3524 by 4688 → 4130 by 4692 → 4154 by 4718 → 4219 by 4720 → 4235 by 4725 → 4288 by 4730 → 4645 by 4733 → 4806 by 4763 → 4812 by 4767, open (COMBAT §68.1, §47.2, §7.2; COLLISION §3.2, §4.3; AI §75.4, §368.1; CITIES §9.3; CHECKSUM §16, §23.9; GROUPS §6.8, §6.9).
+2686 → 2965 by 4590, 4606 → 3058 by 4657 → 3089 by 4681 → 3269 by 4685 → 3524 by 4688 → 4130 by 4692 → 4154 by 4718 → 4219 by 4720 → 4235 by 4725 → 4288 by 4730 → 4645 by 4733 → 4806 by 4763 → 4812 by 4767, open; ammo 4814 by 4779 (COMBAT §68.1, §47.2, §7.2; COLLISION §3.2, §4.3; AI §75.4, §368.1; CITIES §9.3; CHECKSUM §16, §23.9; GROUPS §6.8, §6.9).
 
 ### 13.4 Row 113
 
