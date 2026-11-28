@@ -1204,7 +1204,9 @@ distance bound, nearest by **tile**-space octagonal distance, ties to the
 last in walk order — and `0x200` is `param_6 & 0x200`, the **region**
 filter that confines the answer to the asking point's tile region.
 `docs/COMBAT.md` §17.1 has the citation; read the other way round the
-search finds no farm at all. Then the farm's `ever_seen |= 1 << me`,
+search finds no farm at all. Then the farm's `ever_seen |= 1 << me`
+(built by item 4616, `docs/RECGAME.md` §14.5: it is what makes `action_attack`'s
+`is_seen` answer 1, so the members take an ATTACK, not a move to the farm's point),
 `action_stance(5)`,
 `action_attack(farm, L, 1, QUEUE_NEW, 0)`, then `action_move_to` back to
 ~~the first unit's position~~ **the pair's `GroupData::find_leader`**

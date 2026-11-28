@@ -2231,6 +2231,95 @@ pub(crate) mod tests {
         }
     }
 
+    /// **Row 108's probe marks the human's Farm seen before it attacks**
+    /// (item 4616, `docs/RECGAME.md` §14.5): on run1849's state 7421 the
+    /// computer's army sends a group of six (`1/16`..`18`, `1/42`..`44`,
+    /// group 65) at the human's first Farm `0/2007` (TI 417, uid 21) when
+    /// the human holds no soldiers, and `Army::find_target@006f69b0:1181`
+    /// ors the prober into the Farm's `ever_seen` (`BuildData +0x62`)
+    /// before `Group::action_attack`, whose `is_seen` then answers 1: each
+    /// member takes an ATTACK on the Farm, not a move to its point. Every
+    /// range of every line on 7421, ours against theirs, byte for byte.
+    /// Red without the write (`tools/mutate.py`) on both rows, at the
+    /// Farm's `ever_seen` on the probe state, ours 1 and theirs 3.
+    #[test]
+    fn row_108_s_probe_marks_the_farm_seen_before_it_attacks_on_run1849() {
+        probe_marks_the_farm_seen(&SEVENTH, 5, "run1849/map-7", 7421, 21);
+    }
+
+    /// The same probe on row 13 (item 4616): run1850's state 7675, the six
+    /// `1/26`..`28` and `1/38`..`40` (group 66) at `0/2007` (uid 13).
+    #[test]
+    fn row_13_s_probe_marks_the_farm_seen_before_it_attacks_on_run1850() {
+        probe_marks_the_farm_seen(&SIXTH, 0, "run1850/map-8", 7675, 13);
+    }
+
+    /// Plays game `k` of `b` to `state`, holds the human's Farm `0/2007`
+    /// (uid `uid`) seen by both leaders on it and not before, and every
+    /// line's ranges on it against the take under `~/ron-golden/<run>`.
+    fn probe_marks_the_farm_seen(b: &Battery, k: usize, run: &str, state: i64, uid: u16) {
+        let Some(inst) = crate::testenv::install() else {
+            return;
+        };
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let (Some(rcx), _) = paths(b, k) else {
+            eprintln!("skipping: row {}'s recording is missing", b.table[k].row);
+            return;
+        };
+        let Some(ranges) =
+            crate::testenv::experiment(&home.join("ron-golden").join(run), "rontrace.ranges")
+        else {
+            eprintln!("skipping: {run}'s ranges record is missing");
+            return;
+        };
+        let rec = crate::recgame::read(&rcx.to_string_lossy()).expect("the row's file");
+        let loaded = crate::load::load(&inst).expect("the install loads");
+        let look = crate::artdata::BuildLook::new(&inst).with_types(&loaded.build_types);
+        let rules = inst.rules().expect("rules");
+        let tribes = inst.tribe_defs(&rules).expect("tribes");
+        let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
+        let mut stream = crate::input::Stream::pump(&rec);
+        while built.sim.frame < state - 1 {
+            stream.apply(built.sim.frame as i32, &mut built);
+            built.sim.command().tick();
+        }
+        let farm = built.sim.building_by_o(0, 2007).expect("0/2007");
+        assert_eq!(built.sim.buildings[farm].uid, uid, "0/2007's uid");
+        assert_eq!(
+            built.sim.buildings[farm].ever_seen, 1,
+            "0/2007 entering {state}"
+        );
+        stream.apply(built.sim.frame as i32, &mut built);
+        built.sim.command().tick();
+        assert_eq!(built.sim.frame, state);
+        assert_eq!(
+            built.sim.buildings[farm].ever_seen, 3,
+            "0/2007 on {state}: the prober's bit"
+        );
+        let mut record = crate::trace::ranges::Record::open(&ranges).expect("the record opens");
+        let set = record.first_of(state - 1).expect("the state's set").clone();
+        let all = record.ranges(&set).expect("the set's ranges");
+        let lines = crate::checksum::state::ranges(&built.sim, &look, &tribes);
+        for (line, ours) in lines.iter().enumerate() {
+            let Some(ours) = ours else {
+                continue;
+            };
+            let theirs: Vec<_> = all.iter().filter(|r| usize::from(r.line) == line).collect();
+            assert_eq!(
+                ours.ranges.len(),
+                theirs.len(),
+                "line {line}'s ranges on {state}"
+            );
+            for (i, (a, b)) in ours.ranges.iter().zip(&theirs).enumerate() {
+                assert_eq!(
+                    a.bytes, b.bytes,
+                    "line {line} range {i} on {state}, record {} {}",
+                    a.record, a.field
+                );
+            }
+        }
+    }
+
     /// **Row 133's Citizen comes out at the ground under its spot** (item
     /// 4684, `docs/RECGAME.md` §13.5): run1797's ranges, the row's units
     /// parting on 3613 (units range 6687, record 3, `z` ours 661, theirs
@@ -16895,7 +16984,18 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4616 (`Army::find_target`'s probe marks the human's
+        // Farm `0/2007` seen by the prober before `action_attack`: on 7675
+        // `ever_seen` ours 1 against theirs 3, and each of the six took a
+        // MOVE_TO for theirs' ATTACK, `unit_masks` +4, `guy_flags` +0x20):
+        // 2 -> 12 lines whole, the row whole; every line's first parting
+        // (7675, 7676, 7751, 8001, 8286, 8561, 9001) -> whole.
+        moved: Some(Score {
+            states: 12001,
+            agreed: [12001; 12],
+            first: &[],
+            over: None,
+        }),
     }),
     // run1789
     // row 33, as found 2026-11-22: 1 line whole; units 2,411 of 3,944, first 2411; builds 2,483 of
@@ -17875,9 +17975,10 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
 /// original's end 3,943 (piece 49's bays), 1 -> 2. Item 4595 made row 73
 /// whole (a release at a gone target takes a `graph_index`): 2 -> 3.
 /// Item 4592 made row 113 whole (a city's `vans` in the order the links
-/// were made): 3 -> 4.
+/// were made): 3 -> 4. Item 4616 made row 13 whole to 12,000 (the
+/// probe marks the Farm seen before it attacks): 4 -> 5.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SIXTH_LINE: (usize, usize) = (4, 8);
+pub(crate) const HELD_OUT_SIXTH_LINE: (usize, usize) = (5, 8);
 
 /// The sixth battery (item 4566): three seats, a team and a scripted human
 /// a row, recorded to [`SIXTH_FRAMES`].
@@ -18652,7 +18753,18 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
             ],
             over: None,
         },
-        moved: None,
+        // Moved by item 4616 (`Army::find_target`'s probe marks the human's
+        // Farm `0/2007` seen by the prober before `action_attack`: on 7421
+        // `ever_seen` ours 1 against theirs 3, and each of the six took a
+        // MOVE_TO for theirs' ATTACK, `unit_masks` +4, `guy_flags` +0x20):
+        // 2 -> 12 lines whole, the row whole; every line's first parting
+        // (7421, 7422, 7551, 7583, 7585, 8370, 8784) -> whole.
+        moved: Some(Score {
+            states: 12001,
+            agreed: [12001; 12],
+            first: &[],
+            over: None,
+        }),
     }),
     // run1810
     // row 128, as found 2026-11-23 (item 4611, on `6fa43acc3`'s tree): 11 lines whole; leaders
@@ -18736,8 +18848,10 @@ pub(crate) const SCORES_SEVENTH: [Option<FirstScore>; 8] = [
 /// Russian age's border fix): 2 -> 3. Item 4637 made row 148 whole to
 /// 12,000 (the Aztec slayer's mark): 3 -> 4. Item 4770 made row 8 whole
 /// to 12,000 (a packer's re-search is `find_new_target` whole): 4 -> 5.
+/// Item 4616 made row 108 whole to 12,000 (the probe marks the Farm seen
+/// before it attacks): 5 -> 6.
 #[cfg(test)]
-pub(crate) const HELD_OUT_SEVENTH_LINE: (usize, usize) = (5, 8);
+pub(crate) const HELD_OUT_SEVENTH_LINE: (usize, usize) = (6, 8);
 
 /// The seventh battery (item 4600): the sixth's recipe, the human ordering
 /// every 600 frames to 11,400.
