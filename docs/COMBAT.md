@@ -1053,7 +1053,7 @@ if A.is(FLAMETHROWER)                       (vslot 0xb8, 0x83; the lineage)
 **The run that shows it.** On run1784's 5995, who=1's Flamethrower `1/180`
 (`TypeIndex` 0x83's lineage, land) strikes who=2's Small City `2/2040`, which
 has `2/1` inside. Theirs spends draws 51 to 53 on the three births and 54 to
-64 on the three closes. On 5996 the city's `build_masks` reads 0x5030, leader
+64 on the three closes. On 5996 the city's `build_masks` carries `0x4000`, leader
 2's `flags` reads 0x800003 and its `units_built` reads 208 where it was 205.
 The pool holds `2/171`, `2/179` and `2/180`: `first_frame` 5995, age 1, ammo
 −1, piece 60127 (`BIPED`'s scorched body). Ours held none of these before
