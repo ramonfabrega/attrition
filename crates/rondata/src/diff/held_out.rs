@@ -5594,13 +5594,64 @@ pub(crate) mod tests {
         let mut built = crate::checksum::playback::recording_start(&loaded, &rec);
         let mut stream = crate::input::Stream::pump(&rec);
         let lo: i64 = std::env::var("RON_PROBE_4779").unwrap().parse().unwrap_or(4813);
-        while built.sim.frame < lo + 2 {
-            crate::diff::harness::debug_watch(&built, built.sim.frame);
-            if built.sim.frame + 1 == lo {
-                eprintln!("PROBE4779 ticking into {}", built.sim.frame + 1);
+        let home = std::path::PathBuf::from(std::env::var("HOME").unwrap());
+        let trace = crate::trace::Trace::read(
+            &crate::testenv::experiment(&home.join("ron-golden/run1784/map-14"), "rontrace.log")
+                .expect("log"),
+        )
+        .expect("reads")
+        .expect("parses");
+        while built.sim.frame < lo + 1 {
+            let f = built.sim.frame;
+            crate::diff::harness::debug_watch(&built, f);
+            stream.apply(f as i32, &mut built);
+            let watch = f >= lo - 3;
+            if watch {
+                built.sim.trace.trace_phases = true;
+                built.sim.trace.phase_marks.clear();
             }
-            stream.apply(built.sim.frame as i32, &mut built);
+            let w0 = built.sim.rng.seed;
             built.sim.command().tick();
+            if watch {
+                built.sim.trace.trace_phases = false;
+                let td = trace.frame_draws(f);
+                eprintln!(
+                    "## frame {f}: word ours {w0:#x} theirs {:?}; ours {} draws, theirs {}",
+                    td.first().map(|d| format!("{:#x}", d.seed)),
+                    crate::diff::report::draws_between(w0, built.sim.rng.seed).unwrap_or(9999),
+                    td.len()
+                );
+                let mut ours: Vec<(String, i32)> = Vec::new();
+                let marks = &built.sim.trace.phase_marks;
+                for (i, (label, from)) in marks.iter().enumerate() {
+                    let to = marks.get(i + 1).map_or(built.sim.rng.seed, |m| m.1);
+                    let mut r = sim::combat::Rng::new(*from);
+                    while r.seed != to {
+                        let v = r.roll();
+                        ours.push((label.clone(), v));
+                    }
+                }
+                for k in 0..ours.len().max(td.len()) {
+                    let a = ours.get(k);
+                    let b = td.get(k);
+                    let bl = b.map(|d| trace.label(d));
+                    let mark = match (a, b) {
+                        (Some(a), Some(b))
+                            if Some(&a.0) == bl.as_ref() && Some(a.1) == b.value() =>
+                        {
+                            " "
+                        }
+                        _ => "*",
+                    };
+                    eprintln!(
+                        "  {mark}{k:3} ours {:?} | theirs {:?} {:?} up {:x?}",
+                        a,
+                        bl,
+                        b.and_then(|d| d.value()),
+                        b.map(|d| d.up)
+                    );
+                }
+            }
         }
     }
 
