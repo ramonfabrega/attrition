@@ -229,6 +229,11 @@ reading.~~ Read the same day: `docs/COMMANDS.md`, decoded by
 
 ## 5. What is not established
 
+- **A recording's header from the install alone** (4780a, item 4780's
+  journal): the client's `--record` borrows a finished donor `.rcx` from
+  the logs directory for the version and options, so a recording does not
+  start from the install alone where the game itself does.
+
 - **The Types section's class sequence** (§4.2 step 2): the per-class
   grammar is now derived (second reading), but which of the 806 indices is
   which class is the loader's knowledge, not the file's — provably, the

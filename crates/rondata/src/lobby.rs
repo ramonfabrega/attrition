@@ -931,6 +931,15 @@ pub const LOBBY_STARTS: usize = 161;
 /// The frames [`LOBBY_STARTS`] walks each start before comparing again.
 pub const LOBBY_WALK: usize = 600;
 
+/// **The page's starts from the install alone** (item 4780,
+/// `docs/START.md` §5): the lobbies on disk whose page choices the client
+/// opens (`World::open_game` of `Game::Page`, the window's Start) and
+/// walks [`LOBBY_WALK`] frames with its logs directory empty, of
+/// [`crate::diff::START_LOBBIES`]. Counted by the client crate's
+/// `lobby::tests::every_lobby_starts_from_the_install_alone`; 0 -> 161 at
+/// item 4780.
+pub const LOBBY_FROM_INSTALL: usize = 161;
+
 #[cfg(test)]
 mod tests {
     use super::*;

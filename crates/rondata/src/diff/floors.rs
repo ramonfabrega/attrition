@@ -670,16 +670,20 @@ pub fn start_line() -> String {
 /// dump ([`crate::diff::START_LOBBIES`]), and the lobbies whose start the
 /// page's choices build whole, on frame 0 and after
 /// [`crate::lobby::LOBBY_WALK`] frames ([`crate::lobby::LOBBY_STARTS`],
-/// item 4215).
+/// item 4215), and those the client starts and walks as far with its logs
+/// directory empty ([`crate::lobby::LOBBY_FROM_INSTALL`], item 4780).
 #[cfg(test)]
 pub fn lobby_line() -> String {
     format!(
-        "Lobby: the page sets {} of {} lobbies \u{b7} starts {} of {}, walked {} frames",
+        "Lobby: the page sets {} of {} lobbies \u{b7} starts {} of {}, walked {} frames \u{b7} \
+         from the install alone {} of {}",
         crate::lobby::LOBBY_PAGE,
         crate::diff::START_LOBBIES,
         crate::lobby::LOBBY_STARTS,
         crate::diff::START_LOBBIES,
         crate::lobby::LOBBY_WALK,
+        crate::lobby::LOBBY_FROM_INSTALL,
+        crate::diff::START_LOBBIES,
     )
 }
 
