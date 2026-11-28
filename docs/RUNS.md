@@ -42787,3 +42787,20 @@ rule that parts it later (DECISIONS 160 §4). No lane was out and no gate ran; `
 
 **What it named**: on 9896, units range 1744, record 50, collide_frame..play, byte 18: ours 0x70, original 0x00, dest_angle ours 1685061632,
 original -2147483648. It is row 8's take for every later word, and item 4617 opens on it.
+
+## run1852 — parity held out, sixth battery, row 133's file to 4,588, a packet at logger frame 4582 (2026-11-28, item 4777, `att-4777`)
+
+`docs/RECGAME.md` §13.5 (the leaf is `docs/journal/2026-11-28-item-4777.md`). **What the disk could not answer**: run1797's ranges print who=1's buckets on 4583, never
+`Leader::use_market`'s `need` or its sells and buys. The take: run1797's line with `--end-frame 4588 --log-window 4576
+4586 --timeout 1800 --stall-seconds 120 --tracer-def RON_CHECKSUMS --tracer-def RON_STATE_FRAME=4582 --tracer-def
+"RON_STATE_PLAN=\"$P/plan.h\""` (`P` exported, run1803's plan). **4582, not the brief's 4581**: the market decision is
+trace tick 4582, which makes state 4583 (`docs/EMULATOR.md` §8; item 4654's correction). Pool lane 1, launched 01:43:39
+−05:00, exit 0, `success`, 335.6 s, `last_frame` 4588, seed 12345, map 7; the recording's SHA-256 is run1794's
+(`ca4af2d6…`); 67 GB free before it. The lane was free.
+- **The packet**: `frame_snapshot.py` verified frame 4582, the logger return and the receipt; `frame-snapshot.bin`,
+  965,677,864 bytes, SHA-256 `fc5c6679f60db5196b5849c6bedbbc2cb61143e21964921594cd5e668d3291c5`.
+- **`step4.py <exe> <packet> --entry 6c91c0 --this e4127c`** (who=1's `Leader::use_market`), hooked at `do_sell`
+  (`6cfc60`), `do_buy` (`6cfbd0`), `Random::get` and `calc_market_prices` (`6dc2a0`): 45 draws at `use_market+0x1ed`,
+  45 food sells, 50 timber and 2 metal buys; `need` food 120, timber 5130, wealth 175, knowledge 6740, metal 260.
+- Filed with `filerun.py run1852 heldout6-row133-packet4582`: `gamelog-run1852-heldout6-row133-packet4582.txt`,
+  7,541,643 bytes; `rontrace-run1852.log`, 257,548,256 bytes.

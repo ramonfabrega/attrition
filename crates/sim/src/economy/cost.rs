@@ -360,6 +360,16 @@ pub struct Modifiers {
     /// [`Modifiers::science_ahead`], before the final-tech ramp. Zero is
     /// the identity (item 4513, `docs/COSTS.md`).
     pub ages_behind: i32,
+    /// How many of the four finals the player **holds or is researching**,
+    /// for a final tech — `TypeData::get_cost`'s final-tech ramp
+    /// (`:1162`–`:1181`, `0066668a`..), which only a final reaches
+    /// (`is_final_type`, vslot `+0x3c`, `0x243..0x247`) and only for a
+    /// real leader (`who >= 0`). The original counts eight per final and
+    /// takes `RAMP_FINAL × 8n / 8` (a signed divide), so the scale is `(100
+    /// + RAMP_FINAL × n) × cost / 100`, its own truncation, right after
+    /// [`Modifiers::ages_behind`] and before the lobby's `tech_cost`. Zero
+    /// is the identity (item 4777, `docs/COSTS.md`).
+    pub final_ramp: i32,
     /// Bison discount on Granary research, rounded before Democracy.
     pub bison_granary: i32,
     /// Non-library technology discount, after Science and before the
@@ -706,6 +716,7 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     // than discounting a redirected one.
     cost = science_discount(t, m.science_ahead, cost);
     cost = age_behind_discount(t, m.ages_behind, r, cost);
+    cost = final_ramp(t, m.final_ramp, cost);
 
     if let Some(rs) = m.research {
         // The research arm, in place of the ramp and the military discount.
@@ -1137,6 +1148,16 @@ pub fn age_behind_discount(t: &Tuning, behind: i32, r: Resource, cost: i32) -> i
     } else {
         0
     }
+}
+
+/// `TypeData::get_cost`'s final-tech ramp on one resource's price, `n` the
+/// count [`Modifiers::final_ramp`] carries: `iVar8 = RAMP_FINAL × 8n`, then
+/// `((iVar8 >> 3, toward zero) + 100) × cost / 100`.
+pub const fn final_ramp(t: &Tuning, n: i32, cost: i32) -> i32 {
+    if n == 0 {
+        return cost;
+    }
+    ((t.ramp_final * 8 * n) / 8 + 100) * cost / 100
 }
 
 pub const fn science_discount(t: &Tuning, ahead: i32, cost: i32) -> i32 {
