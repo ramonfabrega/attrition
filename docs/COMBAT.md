@@ -1932,7 +1932,8 @@ and the tail returns, so the middle arm's `v / 4` never reaches the caller and i
   attack to a return point; STAND_GROUND ignores range in the search and
   never chases **off duty** (`fight@005fd4d0`, `005fe139`: `stance == 2 &&
   !on_duty()` skips the chase, so an attack-move's packed siege still walks;
-  item 2265, `docs/GOLDEN.md` §82); RAID weights civilians and never retaliates; RAZE prefers
+  item 2265, `docs/GOLDEN.md` §82), and **takes the refused chase in its
+  place** (`5fe151` → `5fe3f8`, §60.7; item 4786); RAID weights civilians and never retaliates; RAZE prefers
   buildings and never retaliates; HOLD_FIRE does nothing — **except under
   a mandatory order**, which skips every stance test in `Unit::do_attack`:
   `005f1b80:225`-`244` reads the order's `+0x1c` and jumps straight to
@@ -11141,7 +11142,8 @@ The chase tail opens:
 ```text
 if (!packs || param_3 || (t = find_new_target(this, &who, 0)) >= 0 && who >= 0)
    && !param_4:
-    stand-ground / entrenched hold, or find_attack_pos and the chase, on t
+    stand-ground off duty / entrenched: the refused chase (5fe3f8, §60.7)
+    else find_attack_pos and the chase, on t
 return 0
 ```
 
@@ -11209,8 +11211,8 @@ minimum. With the re-search off, the retaliation keeps its order.
   `in_range = false` (§12.2's "or be a unit, have attack"). That reading
   is not changed here, and it wants its own measurement.
 - **The guarding arm** (`local_2c`, activity 12) of the same gate.
-- **The found-target branch of §60.3** for a packer, meaning the
-  stand-ground hold, `find_attack_pos` and the chase on the new target.
+- **The found-target branch of §60.3** for a packer, meaning ~~the
+  stand-ground hold,~~ (§60.7, item 4786) `find_attack_pos` and the chase on the new target.
   ~~No capture reaches it with a packer~~; run589 now reaches the
   mandatory army-target chase (§88). The other branches remain open.
 - `find_new_target`'s DEFENSIVE `find_def_pos` arm, its `repath`, the
@@ -11225,6 +11227,57 @@ minimum. With the re-search off, the retaliation keeps its order.
   (`64911b`–`64918d`, `6495c2`–`64963b`).
 - **Reading only**: `find_new_target`'s kill-then-search and the tail's
   packer test (`fight:1051`), and every arm §60.5 lists.
+
+### 60.7 The stand-ground hold is the refused chase (item 4786, 2026-11-28)
+
+**The listing.** After the packer's re-search, `fight` tests the gates
+at `5fe135`–`5fe167`. The first is `esi`, `fight`'s third argument
+(mandatory). Then a stance of 2 that is not `on_duty` jumps (`je` at
+`5fe151`) to `5fe3f8`, and so does a trench the unit did not dig (`je` at
+`5fe167`). That is the block `find_attack_pos`'s 0 reaches at `5fe186`,
+`docs/AI.md` §138.3:
+
+1. `find_new_target(this, NULL, 0)`.
+2. If the head is an `ATTACK` whose `+8`/`+0xc` (vslot `+0x3c`) is `edi`
+   and `who`, it is killed. With a post and nothing left, the unit walks to
+   the post (`5fe4b8`).
+3. An `ATTACK` still at the head with `+0xae` clear sets the frozen mark,
+   `+0x6c |= 0x10` (`5fe502`).
+
+So the gate is not a plain return. For a packer, `edi` is the first
+search's find (`5fe118`). A packer standing its ground whose second search
+finds what the first found therefore kills it twice and ends the frame
+with no order. Each search bumps the find's `targeted` (`ObjectData
++0x3d`, `find_nearby_target`), so the find is counted twice.
+
+**The witness.** Row 133, run1797's ranges, on 4892. who=1's MLRS `1/171`
+(TI 273, land, packs) is chasing who=2's Armored Cavalry `2/21` (TI 220,
+uid 53). `2/21` walks out of reach to `attack_dist` 4896, and the MLRS
+re-searches and finds the other Armored Cavalry, `2/41` (uid 145), at 4625.
+
+| 4892, units, `1/171` / `2/41` | ours before | theirs | ours now |
+|---|---|---|---|
+| `orders.count` (range 4793) | 1 | 0 | 0 |
+| `order.type` | 10, `ATTACK 2/41`, `new_ord` 1 | — | — |
+| `2/41`'s `targeted` (range 9115) | 1 | 2 | 2 |
+| 4893: `flags` / `idle` | 1 / 0 | 9 / 1 | 9 / 1 |
+| 4893: head order | `CAST_SPELL` UNPACK over the `ATTACK` | `ATTACK 2/41` | `ATTACK 2/41` |
+
+On 4893 the MLRS, now idle, takes the idle latch (`flags | 8`). Its
+think finds `2/41` a third time and adds the attack, which is how theirs'
+order is new on 4893.
+
+**The build.** `Sim::do_attack`'s tail calls `Sim::chase_refused` under
+the STAND_GROUND and trench gates instead of returning. The arm was already
+built for `find_attack_pos`'s refusal, with this crate's `target` as
+`edi`.
+
+**Coverage.** *Diff-backed*: the packer's double kill, by
+`row_133_s_mlrs_drops_its_chase_on_run1797_s_ranges` (every units range on
+4891 to 4894, byte for byte). A non-packer stand-ground unit off duty
+takes the same block with its entry target as `edi`; that case is from the
+listing alone, and no diff reaches it yet. The post walk (step 2) is
+§138.7's seam.
 
 ## 61. An aircraft takes no aircraft it cannot reach (item 650, 2026-09-23)
 

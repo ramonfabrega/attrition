@@ -17794,25 +17794,36 @@ pub(crate) const SCORES_SIXTH: [Option<FirstScore>; 8] = [
         // -> 6,030, world 4,583 -> 4,895. The first parting is units on
         // 4892: range 4793, record 171 (who=1, slot 343, TI 273),
         // `orders.count` ours 1, theirs 0.
+        // Item 4786 (`fight`'s STAND_GROUND and trench gates take the
+        // refused chase, `5fe151`/`5fe167` -> `5fe3f8`: the MLRS `1/171`
+        // re-finds the Armored Cavalry `2/41` twice and kills it twice;
+        // on 4892 `orders.count` ours 1 -> 0, theirs 0, `2/41`'s
+        // `targeted` 1 -> 2, theirs 2): units 4,892 -> 5,189 (first 4892
+        // -> 5189), builds 4,936 -> 5,216, ammo 4,898 -> 5,192, deaths
+        // 5,205 -> 5,231, groups 4,964 -> 5,189, guys 4,894 -> 5,190,
+        // leaders 4,945 -> 5,221, cities 5,028 -> 5,280, items 6,030 ->
+        // 5,954, world 4,895 -> 5,194; ours holds `game_over` from 5815
+        // (over None -> 5815), past the parting. The first parting is groups
+        // and units on 5189.
         moved: Some(Score {
             states: 6085,
             agreed: [
-                4892, 4936, 6085, 4898, 5205, 4964, 4894, 4945, 5028, 6030, 5361, 4895,
+                5189, 5216, 6085, 5192, 5231, 5189, 5190, 5221, 5280, 5954, 5361, 5194,
             ],
             first: &[
-                ("units", (4892, Some(2708082632), 2554332937)),
-                ("builds", (4936, Some(2033553222), 1272877347)),
-                ("ammo", (4893, Some(2928989778), 1794627228)),
-                ("deaths", (5205, Some(647462726), 3328143730)),
-                ("groups", (4949, Some(1595277640), 1031471427)),
-                ("guys", (4894, Some(526304238), 3007891013)),
-                ("leaders", (4918, Some(3901580459), 733635757)),
-                ("cities", (4991, Some(130905217), 3940643923)),
+                ("units", (5189, Some(1987036567), 3926701370)),
+                ("builds", (5215, Some(2522205958), 595971544)),
+                ("ammo", (5192, Some(281959207), 1456429703)),
+                ("deaths", (5231, Some(398884303), 1141207108)),
+                ("groups", (5189, Some(2379693245), 4251860514)),
+                ("guys", (5190, Some(3896961155), 2269833216)),
+                ("leaders", (5205, Some(2007976130), 3135064260)),
+                ("cities", (5272, Some(2558950728), 2419883334)),
                 ("items", (5741, Some(1281298895), 1298600403)),
                 ("goods", (5361, Some(713652352), 497121394)),
-                ("world", (4895, Some(2960476869), 3380365964)),
+                ("world", (5194, Some(1863866128), 1349277076)),
             ],
-            over: None,
+            over: Some(5815),
         }),
     }),
     // run1795
