@@ -478,14 +478,7 @@ impl crate::Sim {
         };
         let region = self.attack_pos_region(u, target);
         let p =
-            self.find_nearby_spot_in_region(u, centre.unwrap_or(t), min, max, step, angle, region);
-        if std::env::var_os("RON_PROBE_4785").is_some() && self.frame == 4811 {
-            eprintln!(
-                "PROBE4785 chase {}/{} from ({}, {}) t {target:?} at ({}, {}) stand {stand} far {far} min {min} max {max} step {step} angle {:#x} centre {centre:?} region {region:?} -> {p:?}",
-                self.units[u].owner, self.units[u].index, from.x, from.y, t.x, t.y, angle.0 as u32
-            );
-        }
-        let p = p?;
+            self.find_nearby_spot_in_region(u, centre.unwrap_or(t), min, max, step, angle, region)?;
         (far || centre.is_some() || self.is_in_range_at(me, p, target)).then_some(p)
     }
 
