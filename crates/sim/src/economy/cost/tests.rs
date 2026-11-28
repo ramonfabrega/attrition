@@ -812,6 +812,36 @@ fn the_statue_of_liberty_takes_a_third_off_a_bomber_before_the_ramp() {
     assert_eq!((at(13, 33), at(14, 33)), (136, 141));
 }
 
+/// **The Statue of Liberty takes its third off an air defence's whole
+/// price, ramp included** (item 4783). The SAM Installation is `12t/12m`
+/// with `SUPPORT` 25 timber and 25 metal; who=1 on run1852's packet
+/// (row 133, logger frame 4582) holds five and queues one, and the
+/// original's `get_cost` reaches 270 at `00665b58` and returns 180 after
+/// `00666221`. Off the base alone it would be 80 + 150 = 230.
+#[test]
+fn the_statue_of_liberty_takes_a_third_off_an_air_defence_after_the_ramp() {
+    let sam = Price {
+        kind: Kind::Building,
+        class: RampClass::Building,
+        ..Price::free()
+            .with_base(Resource::Timber, 12)
+            .with_base(Resource::Metal, 12)
+            .with_support(Resource::Timber, 25)
+            .with_support(Resource::Metal, 25)
+    };
+    let at = |r, liberty_air_defense| {
+        let m = Modifiers {
+            liberty_air_defense,
+            ..Modifiers::default()
+        };
+        cost_of(&T, &sam, r, owned(6), &m)
+    };
+    assert_eq!(T.liberty_air_defense, 33, "LIBERTY_AIR_DEFENSE ships 33");
+    assert_eq!(at(Resource::Timber, 0), 270, "no Statue");
+    assert_eq!(at(Resource::Timber, 33), 180, "theirs on the packet");
+    assert_eq!(at(Resource::Metal, 33), 180, "theirs on the packet");
+}
+
 #[test]
 fn maize_halves_the_ramp_and_nothing_else() {
     let c = citizen();

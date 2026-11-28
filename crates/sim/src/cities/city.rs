@@ -22,6 +22,9 @@ use crate::{Building, Player, Sim};
 /// `TypeIndex` 0x163, `THEPRESIDENT` — what The Senator becomes
 /// (`docs/TECH.md`, the government patriot).
 const PRESIDENT: i32 = 0x163;
+/// `LOOKOUT`'s `TypeIndex`, the root of the air-defence lineage
+/// `get_cost`'s Statue of Liberty arm tests (`is(0x209, 0)`).
+const LOOKOUT: usize = 0x209;
 
 /// The nation, wonder and tech inputs this mechanic reads per player — the
 /// `has_tribe_bonus`, `has_wonder` and `has_preq` answers, as inputs until
@@ -1244,6 +1247,7 @@ impl Sim {
                 greek_library: self.greek_library_discount(who, ty),
                 maya_timber: self.maya_timber_discount(who, ty),
                 japanese_farms: self.japanese_farm_discount(who, ty),
+                liberty_air_defense: self.liberty_air_defense_discount(who, ty),
                 indian_ramp: if is_city {
                     cost::IndianRamp::Off
                 } else {
@@ -1383,6 +1387,26 @@ impl Sim {
         } else {
             cost::IndianRamp::Zero
         }
+    }
+
+    /// `get_cost`'s **Statue of Liberty air-defence arm** (`:1017`–`:1024`,
+    /// [`cost::Modifiers::liberty_air_defense`]): a building whose type is of
+    /// the Lookout's lineage (`is(0x209, 0)`) takes `LIBERTY_AIR_DEFENSE` with
+    /// the Statue held ([`Sim::wonders_held`]'s rule). run1852's packet:
+    /// who=1's SAM Installation 180 timber and 180 metal, ours 270 (item
+    /// 4783).
+    fn liberty_air_defense_discount(&self, who: Player, ty: usize) -> i32 {
+        let pct = self.tables.tuning.liberty_air_defense;
+        if pct == 0
+            || self.wonders_held(who) & (1 << crate::tech::wonder::STATUE_OF_LIBERTY) == 0
+        {
+            return 0;
+        }
+        let tree = &self.tables.tech_tree;
+        let lookout = self.tables.build_types[ty]
+            .tree
+            .is_some_and(|t| t == LOOKOUT || (t < tree.types.len() && tree.is(t, LOOKOUT, false)));
+        if lookout { pct } else { 0 }
     }
 
     /// `get_cost`'s **Japanese Farm arm** (`:1003`–`1008`): a Farm by type

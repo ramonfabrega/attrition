@@ -469,6 +469,16 @@ pub struct Modifiers {
     /// off, `(100 − x) × cost / 100`, after the Greek Library arm in the
     /// same chain. Zero is the identity (item 3331, `docs/AI.md` §268).
     pub japanese_farms: i32,
+    /// `get_cost`'s **Statue of Liberty air-defence arm**, the building
+    /// arm's last step (`:1017`–`:1024`, listing `006661d6`..`0066622b`):
+    /// a type of the Lookout's lineage (`is(0x209, 0)`, vslot `+0x60`) whose
+    /// leader holds the Statue (`has_wonder(0x219)`) takes
+    /// `LIBERTY_AIR_DEFENSE` off the whole price, ramp included, after the
+    /// Japanese Farm and Colosseum Barracks arms. Zero is the identity. On
+    /// run1852's packet (row 133, logger frame 4582) who=1's SAM
+    /// Installation, the sixth of its line, prices 270 timber and 270 metal
+    /// at `00665b58` and 180 at `00666221` (item 4783).
+    pub liberty_air_defense: i32,
     /// `get_cost`'s **Indian ramp arm** (`:843`–`876`, `00665b0a`..`00665c1f`),
     /// inside the building arm's support loop, after the wonder's halving:
     /// for a leader with `has_tribe_bonus(0x15)` and a type that is not a
@@ -796,6 +806,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     }
     if m.japanese_farms != 0 {
         cost = (100 - m.japanese_farms) * cost / 100;
+    }
+    if m.liberty_air_defense != 0 {
+        cost = (100 - m.liberty_air_defense) * cost / 100;
     }
     if m.greek_research != 0 && r != Resource::Knowledge {
         cost = (100 - m.greek_research) * cost / 100;
